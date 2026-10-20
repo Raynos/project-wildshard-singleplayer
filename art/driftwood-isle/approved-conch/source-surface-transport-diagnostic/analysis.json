@@ -1,0 +1,202 @@
+{
+  "scope": "Descriptive residuals only; not image tuning, likeness score, performance or admission",
+  "quartets": [
+    {
+      "view": "front",
+      "sourceNativeVsRaw": {
+        "differentPixels": 37,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.0003984653392078509,
+        "maximumChannelDelta": 37,
+        "pixelsOver8": 5,
+        "differenceBounds": [
+          112,
+          356,
+          252,
+          544
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 26281,
+        "meanAbsoluteChannelDelta": 0.595205702987731
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "left",
+      "sourceNativeVsRaw": {
+        "differentPixels": 28,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.00020777121258695082,
+        "maximumChannelDelta": 43,
+        "pixelsOver8": 3,
+        "differenceBounds": [
+          131,
+          379,
+          274,
+          510
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 20194,
+        "meanAbsoluteChannelDelta": 0.816300837536194
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "right",
+      "sourceNativeVsRaw": {
+        "differentPixels": 28,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.00030454136639457177,
+        "maximumChannelDelta": 63,
+        "pixelsOver8": 5,
+        "differenceBounds": [
+          158,
+          345,
+          236,
+          561
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 15786,
+        "meanAbsoluteChannelDelta": 0.42691102079230087
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "back",
+      "sourceNativeVsRaw": {
+        "differentPixels": 52,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.00034723408130969864,
+        "maximumChannelDelta": 45,
+        "pixelsOver8": 3,
+        "differenceBounds": [
+          121,
+          316,
+          288,
+          533
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 24732,
+        "meanAbsoluteChannelDelta": 0.8977765634072202
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "top",
+      "sourceNativeVsRaw": {
+        "differentPixels": 16,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 6.261598187551943e-05,
+        "maximumChannelDelta": 7,
+        "pixelsOver8": 0,
+        "differenceBounds": [
+          157,
+          389,
+          283,
+          502
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 14108,
+        "meanAbsoluteChannelDelta": 0.6722613097745446
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "diag-front",
+      "sourceNativeVsRaw": {
+        "differentPixels": 54,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.0004477991431097753,
+        "maximumChannelDelta": 34,
+        "pixelsOver8": 11,
+        "differenceBounds": [
+          106,
+          328,
+          264,
+          533
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 24374,
+        "meanAbsoluteChannelDelta": 0.8475205968631291
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "diag-left",
+      "sourceNativeVsRaw": {
+        "differentPixels": 37,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.0006498779937080426,
+        "maximumChannelDelta": 99,
+        "pixelsOver8": 4,
+        "differenceBounds": [
+          133,
+          378,
+          252,
+          516
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 17700,
+        "meanAbsoluteChannelDelta": 0.8399829608631139
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "diag-right",
+      "sourceNativeVsRaw": {
+        "differentPixels": 26,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.00018595049163033043,
+        "maximumChannelDelta": 70,
+        "pixelsOver8": 1,
+        "differenceBounds": [
+          158,
+          337,
+          252,
+          553
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 14998,
+        "meanAbsoluteChannelDelta": 0.6612627176854097
+      },
+      "restoredBaselineByteIdentical": true
+    },
+    {
+      "view": "diag-back",
+      "sourceNativeVsRaw": {
+        "differentPixels": 56,
+        "totalPixels": 351348,
+        "meanAbsoluteChannelDelta": 0.0007210325185665874,
+        "maximumChannelDelta": 92,
+        "pixelsOver8": 10,
+        "differenceBounds": [
+          139,
+          356,
+          297,
+          508
+        ]
+      },
+      "baselineVsRaw": {
+        "differentPixels": 19828,
+        "meanAbsoluteChannelDelta": 0.7645942674119866
+      },
+      "restoredBaselineByteIdentical": true
+    }
+  ],
+  "hostUnchanged": true,
+  "allStateChecks": true,
+  "sourceMaterialSettingsEqual": true,
+  "fragmentShadersIdentical": true,
+  "vertexShaderOnlyDifference": "USE_SKINNING",
+  "filter": "unchanged PCF",
+  "nativeDrawGroups": 95,
+  "productionPerformanceClaim": false
+}

@@ -1,0 +1,19 @@
+{
+  "scope": "Portability-only command arguments after completed capture. No rerender, geometry/material/camera or capture algorithm change. Original report scriptHashes remain unchanged.",
+  "recordedSource": {
+    "prepare.py": "98d5ad23143fa5483ec15c15c6b2da545cd031e9210fa3d142e58df42ed5ce8b",
+    "adapter.mjs": "4943416892ba6d0ed812154bbe7f483dfc5c8c0ac5e7c0bb993c79e01289a641",
+    "capture.mjs": "51f54159377b71cd975ea53ca02524b4860f5c7b1a9dd95a9fec072842cc8042"
+  },
+  "portableSource": {
+    "prepare.py": "1b05e7b3f1cf03d32298365b140a3b545dd005c401fcb5a36c91bee88f20bd44",
+    "adapter.mjs": "4943416892ba6d0ed812154bbe7f483dfc5c8c0ac5e7c0bb993c79e01289a641",
+    "capture.mjs": "2c92a267754ba74deeebcf5298d2b69ec7af478544bf465f7eb7a4c541860726"
+  },
+  "changes": [
+    "prepare.py: required --host, --native, --output replace retained storage constants.",
+    "capture.mjs: required --host, --baseline-evidence, --transport, --output, --chrome replace retained storage constants.",
+    "adapter.mjs: unchanged."
+  ],
+  "originalCaptureEvidence": "evidence/report.json"
+}
