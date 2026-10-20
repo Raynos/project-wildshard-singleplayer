@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { PINE_TERRAIN } from '../data/terrainBindings.ts';
+import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from './bootFiles.ts';
 import { FINISH_CARDS } from './finishCards.ts';
 import { WILDLIFE_LOOK } from './wildlifeLook.ts';

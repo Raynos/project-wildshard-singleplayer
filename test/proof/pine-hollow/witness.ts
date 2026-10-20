@@ -17,7 +17,7 @@ import { parseNavmesh, type Navmesh } from '../../../src/engine/physics/navmesh'
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { fillNativeCombatFrame, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
-import { PINE_TERRAIN } from '../../../src/shards/pine-hollow/data/terrainBindings';
+import PINE_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/runtime/quest';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
@@ -44,7 +44,7 @@ const LEVER_STEP = 'pine.lever', CROSSBOW_STEP = 'pine.crossbow';
  * lantern. Nothing writes health, flags or positions: every outcome is gameplay. The night (the stag's walk, the Antler
  * King and dawn) are walked on the same tape, with the remaining systems listed in OPEN.
  */
-export const ENTRY = 'boot/headlessModules.ts';
+export const ENTRY = 'data/headlessAssembly.json';
 const ROOT = new URL('../../../', import.meta.url);
 const assets = new Map([PINE_TERRAIN.terrain, PINE_TERRAIN.navmesh].map(path => [path, new Uint8Array(readFileSync(new URL(path, ROOT)))] as const));
 const LEAD = parseQuestLeadRows(leadJson);

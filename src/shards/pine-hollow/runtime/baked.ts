@@ -1,6 +1,6 @@
 import { createNativeBakeReader, nativeBodySpecSchema, nativeColliderSchema } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
-import { PINE_TERRAIN } from '../data/terrainBindings';
+import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The exact captured native lattice, including the crag cuts. */

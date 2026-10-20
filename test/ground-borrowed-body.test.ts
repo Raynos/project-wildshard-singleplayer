@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { env, execPath } from 'node:process';
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { PINE_TERRAIN } from '../src/shards/pine-hollow/data/terrainBindings';
+import PINE_TERRAIN from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import type { SimValue } from '@wildshard/engine/sim';

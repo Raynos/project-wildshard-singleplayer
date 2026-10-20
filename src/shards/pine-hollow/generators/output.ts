@@ -21,7 +21,7 @@ import { POPULATION_ENVIRONMENT } from './populationEnvironment';
 import { POPULATION_ROSTER } from './population';
 import nightModule from '../behaviour/night.generated.json' with { type: 'json' };
 import persistence from '../data/persistence.json' with {type:'json'};
-import { PINE_TERRAIN } from '../data/terrainBindings';
+import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import headlessEntries from '../data/entryWalk.json' with { type: 'json' };
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import { WILDLIFE_DRAW } from './wildlifeDraw';

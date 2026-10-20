@@ -9,7 +9,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { PINE_TERRAIN } from '../src/shards/pine-hollow/data/terrainBindings';
+import PINE_TERRAIN from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import legacy from './fixtures/quest-step-legacy-saves.json' with { type: 'json' };
 import type { SimValue } from '../src/engine/sim';
 

@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Pine still declares its native ground/navigation by public path.
 import { readFileSync } from 'node:fs';
-import { PINE_TERRAIN } from '../../src/shards/pine-hollow/data/terrainBindings';
+import PINE_TERRAIN from '../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Native proof capabilities are generated outside source and play products.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only the checked local proof module is a trusted entry.

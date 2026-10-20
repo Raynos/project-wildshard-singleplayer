@@ -2,7 +2,7 @@ import { currentPageMode } from '@wildshard/game/grid/pageMode';
 import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterReflect } from './water';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
-import { PINE_TERRAIN } from '../data/terrainBindings';
+import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import geography from '../data/geography.generated.json' with { type: 'json' };
 

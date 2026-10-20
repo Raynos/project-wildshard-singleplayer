@@ -1,7 +1,7 @@
 import { nativeColliderRecordSchema, nativeBodySchema } from '@wildshard/format/nativePhysics';
 import * as v from 'valibot';
 import { PinePhysicsSchema } from './sections';
-import { PINE_TERRAIN } from '../data/terrainBindings';
+import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import rows from '../data/physicsRows.json' with { type: 'json' };
 
 /** G350-PH: Pine Hollow's physics product from authoring inputs only: the authored rows no recipe computes yet (the floor,

@@ -7670,7 +7670,7 @@
         "src/shards/pine-hollow/generators/physics.ts",
         "src/format",
         "src/shards/pine-hollow/generators/sections.ts",
-        "src/shards/pine-hollow/data/terrainBindings.ts"
+        "src/shards/pine-hollow/data/terrainBindings.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/physics.generated.json"
@@ -18226,7 +18226,7 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/shards/pine-hollow/manifest.json",
-        "src/shards/pine-hollow/data/terrainBindings.ts",
+        "src/shards/pine-hollow/data/terrainBindings.json",
         "public/assets/baked/pine-hollow/terrain.bin",
         "src/format"
       ],
