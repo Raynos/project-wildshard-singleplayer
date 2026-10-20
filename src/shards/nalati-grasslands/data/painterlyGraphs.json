@@ -8858,5 +8858,1554 @@
     "alpha": "n820"
    }
   }
+ },
+ "nalati-cloth": {
+  "version": 1,
+  "kind": "material",
+  "model": "standard",
+  "doubleSided": false,
+  "params": {
+   "colour": {
+    "type": "colour",
+    "value": [
+     1,
+     1,
+     1
+    ]
+   },
+   "emissive": {
+    "type": "colour",
+    "value": [
+     0,
+     0,
+     0
+    ]
+   },
+   "emissiveIntensity": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 64
+   },
+   "rimAmt": {
+    "type": "float",
+    "value": 0.35,
+    "min": 0,
+    "max": 1
+   },
+   "bands": {
+    "type": "float",
+    "value": 0.8,
+    "min": 0,
+    "max": 1
+   },
+   "shadeAmt": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 1
+   },
+   "floorAmt": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 1
+   },
+   "shade": {
+    "type": "vec3",
+    "value": [
+     0.1,
+     0.14,
+     0.3
+    ],
+    "min": 0
+   },
+   "rim": {
+    "type": "vec3",
+    "value": [
+     1.4,
+     1.2,
+     0.9
+    ],
+    "min": 0
+   },
+   "warm": {
+    "type": "float",
+    "value": 0.8,
+    "min": 0,
+    "max": 4
+   },
+   "floor": {
+    "type": "float",
+    "value": 3,
+    "min": 0,
+    "max": 16
+   },
+   "wet": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 1
+   },
+   "clothWind": {
+    "type": "vec3",
+    "value": [
+     -0.92,
+     -0.38,
+     0.7
+    ],
+    "min": -2,
+    "max": 2
+   },
+   "clothTime": {
+    "type": "float",
+    "value": 0,
+    "min": 0
+   }
+  },
+  "nodes": {
+   "uv": {
+    "op": "uv"
+   },
+   "colourP": {
+    "op": "param",
+    "param": "colour"
+   },
+   "tinted": {
+    "op": "mul",
+    "in": [
+     "colourP",
+     1
+    ]
+   },
+   "vc": {
+    "op": "vertexColour"
+   },
+   "base": {
+    "op": "mul",
+    "in": [
+     "tinted",
+     "vc"
+    ]
+   },
+   "emP": {
+    "op": "param",
+    "param": "emissive"
+   },
+   "emI": {
+    "op": "param",
+    "param": "emissiveIntensity"
+   },
+   "emissive": {
+    "op": "mul",
+    "in": [
+     "emP",
+     "emI"
+    ]
+   },
+   "nV": {
+    "op": "normalView"
+   },
+   "lV": {
+    "op": "sunDirection"
+   },
+   "vV": {
+    "op": "viewDirection"
+   },
+   "sunC": {
+    "op": "sunColour"
+   },
+   "vis": {
+    "op": "sunShadow"
+   },
+   "alb": {
+    "op": "albedo"
+   },
+   "ndl": {
+    "op": "dot",
+    "in": [
+     "nV",
+     "lV"
+    ]
+   },
+   "ndlS": {
+    "op": "saturate",
+    "in": [
+     "ndl"
+    ]
+   },
+   "x": {
+    "op": "mul",
+    "in": [
+     "ndlS",
+     "vis"
+    ]
+   },
+   "c0": {
+    "op": "smoothstep",
+    "in": [
+     0.03,
+     0.13,
+     "x"
+    ]
+   },
+   "c1": {
+    "op": "smoothstep",
+    "in": [
+     0.34,
+     0.5,
+     "x"
+    ]
+   },
+   "c0w": {
+    "op": "mul",
+    "in": [
+     "c0",
+     0.52
+    ]
+   },
+   "c1w": {
+    "op": "mul",
+    "in": [
+     "c1",
+     0.48
+    ]
+   },
+   "cel": {
+    "op": "add",
+    "in": [
+     "c0w",
+     "c1w"
+    ]
+   },
+   "bandsP": {
+    "op": "param",
+    "param": "bands"
+   },
+   "l": {
+    "op": "mix",
+    "in": [
+     "x",
+     "cel",
+     "bandsP"
+    ]
+   },
+   "shadeP": {
+    "op": "param",
+    "param": "shade"
+   },
+   "shadeAmtP": {
+    "op": "param",
+    "param": "shadeAmt"
+   },
+   "l1": {
+    "op": "oneMinus",
+    "in": [
+     "l"
+    ]
+   },
+   "sh0": {
+    "op": "mul",
+    "in": [
+     "shadeP",
+     "l1"
+    ]
+   },
+   "sh1": {
+    "op": "mul",
+    "in": [
+     "sh0",
+     "shadeAmtP"
+    ]
+   },
+   "lit": {
+    "op": "mul",
+    "in": [
+     "sunC",
+     "l"
+    ]
+   },
+   "irr0": {
+    "op": "add",
+    "in": [
+     "lit",
+     "sh1"
+    ]
+   },
+   "pt0": {
+    "op": "smoothstep",
+    "in": [
+     0.02,
+     0.2,
+     "l"
+    ]
+   },
+   "pt1": {
+    "op": "smoothstep",
+    "in": [
+     0.45,
+     0.85,
+     "l"
+    ]
+   },
+   "pt2": {
+    "op": "oneMinus",
+    "in": [
+     "pt1"
+    ]
+   },
+   "pTerm": {
+    "op": "mul",
+    "in": [
+     "pt0",
+     "pt2"
+    ]
+   },
+   "sR": {
+    "op": "swizzle",
+    "in": [
+     "sunC"
+    ],
+    "mask": "x"
+   },
+   "sB": {
+    "op": "swizzle",
+    "in": [
+     "sunC"
+    ],
+    "mask": "z"
+   },
+   "sRB": {
+    "op": "sub",
+    "in": [
+     "sR",
+     "sB"
+    ]
+   },
+   "sRm": {
+    "op": "max",
+    "in": [
+     "sR",
+     0.001
+    ]
+   },
+   "wk0": {
+    "op": "div",
+    "in": [
+     "sRB",
+     "sRm"
+    ]
+   },
+   "wk1": {
+    "op": "mul",
+    "in": [
+     "wk0",
+     4
+    ]
+   },
+   "warmKey": {
+    "op": "saturate",
+    "in": [
+     "wk1"
+    ]
+   },
+   "warmP": {
+    "op": "param",
+    "param": "warm"
+   },
+   "wm0": {
+    "op": "mul",
+    "in": [
+     "pTerm",
+     "warmP"
+    ]
+   },
+   "wm1": {
+    "op": "mul",
+    "in": [
+     "wm0",
+     "warmKey"
+    ]
+   },
+   "warmTint": {
+    "op": "mix",
+    "in": [
+     [
+      1,
+      1,
+      1
+     ],
+     [
+      1.16,
+      0.98,
+      0.8
+     ],
+     "wm1"
+    ]
+   },
+   "irr": {
+    "op": "mul",
+    "in": [
+     "irr0",
+     "warmTint"
+    ]
+   },
+   "wetP": {
+    "op": "param",
+    "param": "wet"
+   },
+   "nW": {
+    "op": "normalWorld"
+   },
+   "nWy": {
+    "op": "swizzle",
+    "in": [
+     "nW"
+    ],
+    "mask": "y"
+   },
+   "wu": {
+    "op": "smoothstep",
+    "in": [
+     0.1,
+     0.75,
+     "nWy"
+    ]
+   },
+   "wu7": {
+    "op": "mul",
+    "in": [
+     "wu",
+     0.7
+    ]
+   },
+   "wu3": {
+    "op": "add",
+    "in": [
+     "wu7",
+     0.3
+    ]
+   },
+   "wetK": {
+    "op": "mul",
+    "in": [
+     "wetP",
+     "wu3"
+    ]
+   },
+   "wd0": {
+    "op": "mul",
+    "in": [
+     "wetK",
+     0.38
+    ]
+   },
+   "wd1": {
+    "op": "oneMinus",
+    "in": [
+     "wd0"
+    ]
+   },
+   "albW": {
+    "op": "mul",
+    "in": [
+     "alb",
+     "wd1"
+    ]
+   },
+   "albWpi": {
+    "op": "mul",
+    "in": [
+     "albW",
+     0.3183098861837907
+    ]
+   },
+   "dif": {
+    "op": "mul",
+    "in": [
+     "irr",
+     "albWpi"
+    ]
+   },
+   "hv0": {
+    "op": "add",
+    "in": [
+     "lV",
+     "vV"
+    ]
+   },
+   "hv": {
+    "op": "normalize",
+    "in": [
+     "hv0"
+    ]
+   },
+   "ndh": {
+    "op": "dot",
+    "in": [
+     "nV",
+     "hv"
+    ]
+   },
+   "ndhS": {
+    "op": "saturate",
+    "in": [
+     "ndh"
+    ]
+   },
+   "spk": {
+    "op": "pow",
+    "in": [
+     "ndhS",
+     120
+    ]
+   },
+   "ws0": {
+    "op": "mul",
+    "in": [
+     "sunC",
+     "vis"
+    ]
+   },
+   "ws1": {
+    "op": "mul",
+    "in": [
+     "ws0",
+     "spk"
+    ]
+   },
+   "ws2": {
+    "op": "mul",
+    "in": [
+     "ws1",
+     "wetK"
+    ]
+   },
+   "wetSpec": {
+    "op": "mul",
+    "in": [
+     "ws2",
+     0.6
+    ]
+   },
+   "ndv": {
+    "op": "dot",
+    "in": [
+     "nV",
+     "vV"
+    ]
+   },
+   "ndvS": {
+    "op": "saturate",
+    "in": [
+     "ndv"
+    ]
+   },
+   "ndv1": {
+    "op": "oneMinus",
+    "in": [
+     "ndvS"
+    ]
+   },
+   "fres": {
+    "op": "pow",
+    "in": [
+     "ndv1",
+     3
+    ]
+   },
+   "vNeg": {
+    "op": "negate",
+    "in": [
+     "vV"
+    ]
+   },
+   "back0": {
+    "op": "dot",
+    "in": [
+     "vNeg",
+     "lV"
+    ]
+   },
+   "back": {
+    "op": "saturate",
+    "in": [
+     "back0"
+    ]
+   },
+   "side0": {
+    "op": "mul",
+    "in": [
+     "ndl",
+     0.5
+    ]
+   },
+   "side1": {
+    "op": "add",
+    "in": [
+     "side0",
+     0.5
+    ]
+   },
+   "side": {
+    "op": "saturate",
+    "in": [
+     "side1"
+    ]
+   },
+   "rf": {
+    "op": "smoothstep",
+    "in": [
+     0.25,
+     0.75,
+     "fres"
+    ]
+   },
+   "rb0": {
+    "op": "mul",
+    "in": [
+     "back",
+     0.65
+    ]
+   },
+   "rb": {
+    "op": "add",
+    "in": [
+     "rb0",
+     0.35
+    ]
+   },
+   "rk0": {
+    "op": "mul",
+    "in": [
+     "rf",
+     "rb"
+    ]
+   },
+   "rk1": {
+    "op": "mul",
+    "in": [
+     "rk0",
+     "side"
+    ]
+   },
+   "rimAmtP": {
+    "op": "param",
+    "param": "rimAmt"
+   },
+   "rimK": {
+    "op": "mul",
+    "in": [
+     "rk1",
+     "rimAmtP"
+    ]
+   },
+   "rimP": {
+    "op": "param",
+    "param": "rim"
+   },
+   "albHalf": {
+    "op": "mix",
+    "in": [
+     "alb",
+     [
+      1,
+      1,
+      1
+     ],
+     0.5
+    ]
+   },
+   "rc0": {
+    "op": "mul",
+    "in": [
+     "rimP",
+     "albHalf"
+    ]
+   },
+   "rimC": {
+    "op": "mul",
+    "in": [
+     "rc0",
+     "rimK"
+    ]
+   },
+   "sun0": {
+    "op": "add",
+    "in": [
+     "dif",
+     "wetSpec"
+    ]
+   },
+   "sun": {
+    "op": "add",
+    "in": [
+     "sun0",
+     "rimC"
+    ]
+   },
+   "irrA": {
+    "op": "irradiance"
+   },
+   "a0": {
+    "op": "mul",
+    "in": [
+     "irrA",
+     "albWpi"
+    ]
+   },
+   "fr5": {
+    "op": "pow",
+    "in": [
+     "ndv1",
+     5
+    ]
+   },
+   "a1a": {
+    "op": "mul",
+    "in": [
+     "irrA",
+     "fr5"
+    ]
+   },
+   "a1b": {
+    "op": "mul",
+    "in": [
+     "a1a",
+     "wetK"
+    ]
+   },
+   "a1": {
+    "op": "mul",
+    "in": [
+     "a1b",
+     0.07
+    ]
+   },
+   "floorP": {
+    "op": "param",
+    "param": "floor"
+   },
+   "floorAmtP": {
+    "op": "param",
+    "param": "floorAmt"
+   },
+   "fl0": {
+    "op": "sub",
+    "in": [
+     [
+      0.22,
+      0.22,
+      0.22
+     ],
+     "alb"
+    ]
+   },
+   "fl1": {
+    "op": "max",
+    "in": [
+     "fl0",
+     0
+    ]
+   },
+   "fl2": {
+    "op": "mul",
+    "in": [
+     "fl1",
+     0.3183098861837907
+    ]
+   },
+   "fl3": {
+    "op": "mul",
+    "in": [
+     "shadeP",
+     "floorP"
+    ]
+   },
+   "fl4": {
+    "op": "mul",
+    "in": [
+     "fl3",
+     "floorAmtP"
+    ]
+   },
+   "a2": {
+    "op": "mul",
+    "in": [
+     "fl4",
+     "fl2"
+    ]
+   },
+   "am0": {
+    "op": "add",
+    "in": [
+     "a0",
+     "a1"
+    ]
+   },
+   "ambient": {
+    "op": "add",
+    "in": [
+     "am0",
+     "a2"
+    ]
+   },
+   "cA": {
+    "op": "attribute",
+    "name": "aClothA",
+    "type": "vec4"
+   },
+   "cS": {
+    "op": "attribute",
+    "name": "aClothS",
+    "type": "vec4"
+   },
+   "cP": {
+    "op": "attribute",
+    "name": "aClothP",
+    "type": "vec4"
+   },
+   "cF": {
+    "op": "attribute",
+    "name": "aClothF",
+    "type": "vec2"
+   },
+   "cAx": {
+    "op": "swizzle",
+    "in": [
+     "cA"
+    ],
+    "mask": "xyz"
+   },
+   "cPh": {
+    "op": "swizzle",
+    "in": [
+     "cA"
+    ],
+    "mask": "w"
+   },
+   "cSv": {
+    "op": "swizzle",
+    "in": [
+     "cS"
+    ],
+    "mask": "xyz"
+   },
+   "cAcr": {
+    "op": "swizzle",
+    "in": [
+     "cS"
+    ],
+    "mask": "w"
+   },
+   "cLen": {
+    "op": "swizzle",
+    "in": [
+     "cP"
+    ],
+    "mask": "x"
+   },
+   "cDroop": {
+    "op": "swizzle",
+    "in": [
+     "cP"
+    ],
+    "mask": "y"
+   },
+   "cTaper": {
+    "op": "swizzle",
+    "in": [
+     "cP"
+    ],
+    "mask": "z"
+   },
+   "cU": {
+    "op": "swizzle",
+    "in": [
+     "cP"
+    ],
+    "mask": "w"
+   },
+   "cJ": {
+    "op": "swizzle",
+    "in": [
+     "cF"
+    ],
+    "mask": "x"
+   },
+   "cFace": {
+    "op": "swizzle",
+    "in": [
+     "cF"
+    ],
+    "mask": "y"
+   },
+   "cW": {
+    "op": "param",
+    "param": "clothWind"
+   },
+   "cT": {
+    "op": "param",
+    "param": "clothTime"
+   },
+   "cWx": {
+    "op": "swizzle",
+    "in": [
+     "cW"
+    ],
+    "mask": "x"
+   },
+   "cWz": {
+    "op": "swizzle",
+    "in": [
+     "cW"
+    ],
+    "mask": "y"
+   },
+   "cWs": {
+    "op": "swizzle",
+    "in": [
+     "cW"
+    ],
+    "mask": "z"
+   },
+   "cAc0": {
+    "op": "negate",
+    "in": [
+     "cWz"
+    ]
+   },
+   "cAc1": {
+    "op": "mul",
+    "in": [
+     "cAc0",
+     "cAcr"
+    ]
+   },
+   "cAc2": {
+    "op": "mul",
+    "in": [
+     "cWx",
+     "cAcr"
+    ]
+   },
+   "cAcross": {
+    "op": "combine",
+    "in": [
+     "cAc1",
+     0,
+     "cAc2"
+    ]
+   },
+   "cIsAcross": {
+    "op": "gt",
+    "in": [
+     "cAcr",
+     0
+    ]
+   },
+   "cSpan": {
+    "op": "select",
+    "in": [
+     "cIsAcross",
+     "cAcross",
+     "cSv"
+    ]
+   },
+   "cDr0": {
+    "op": "mul",
+    "in": [
+     "cWs",
+     0.75
+    ]
+   },
+   "cDr1": {
+    "op": "sub",
+    "in": [
+     1.25,
+     "cDr0"
+    ]
+   },
+   "cDr2": {
+    "op": "mul",
+    "in": [
+     "cDroop",
+     "cDr1"
+    ]
+   },
+   "cDr3": {
+    "op": "mul",
+    "in": [
+     "cT",
+     0.7
+    ]
+   },
+   "cDr4": {
+    "op": "add",
+    "in": [
+     "cDr3",
+     "cPh"
+    ]
+   },
+   "cDr5": {
+    "op": "sin",
+    "in": [
+     "cDr4"
+    ]
+   },
+   "cDr6": {
+    "op": "mul",
+    "in": [
+     "cDr5",
+     0.08
+    ]
+   },
+   "cDr7": {
+    "op": "add",
+    "in": [
+     "cDr2",
+     "cDr6"
+    ]
+   },
+   "cDrop": {
+    "op": "min",
+    "in": [
+     "cDr7",
+     0.97
+    ]
+   },
+   "cG0": {
+    "op": "mul",
+    "in": [
+     "cT",
+     0.9
+    ]
+   },
+   "cG1": {
+    "op": "mul",
+    "in": [
+     "cPh",
+     1.3
+    ]
+   },
+   "cG2": {
+    "op": "add",
+    "in": [
+     "cG0",
+     "cG1"
+    ]
+   },
+   "cG3": {
+    "op": "sin",
+    "in": [
+     "cG2"
+    ]
+   },
+   "cG4": {
+    "op": "mul",
+    "in": [
+     "cT",
+     0.37
+    ]
+   },
+   "cG5": {
+    "op": "add",
+    "in": [
+     "cG4",
+     "cPh"
+    ]
+   },
+   "cG6": {
+    "op": "sin",
+    "in": [
+     "cG5"
+    ]
+   },
+   "cG7": {
+    "op": "mul",
+    "in": [
+     "cG3",
+     "cG6"
+    ]
+   },
+   "cG8": {
+    "op": "mul",
+    "in": [
+     "cG7",
+     0.15
+    ]
+   },
+   "cGust": {
+    "op": "add",
+    "in": [
+     "cG8",
+     0.85
+    ]
+   },
+   "cOd": {
+    "op": "oneMinus",
+    "in": [
+     "cDrop"
+    ]
+   },
+   "cDx": {
+    "op": "mul",
+    "in": [
+     "cWx",
+     "cOd"
+    ]
+   },
+   "cDy": {
+    "op": "negate",
+    "in": [
+     "cDrop"
+    ]
+   },
+   "cDz": {
+    "op": "mul",
+    "in": [
+     "cWz",
+     "cOd"
+    ]
+   },
+   "cD0": {
+    "op": "combine",
+    "in": [
+     "cDx",
+     "cDy",
+     "cDz"
+    ]
+   },
+   "cD": {
+    "op": "normalize",
+    "in": [
+     "cD0"
+    ]
+   },
+   "cN0": {
+    "op": "cross",
+    "in": [
+     "cD",
+     "cSpan"
+    ]
+   },
+   "cN": {
+    "op": "normalize",
+    "in": [
+     "cN0"
+    ]
+   },
+   "cAm0": {
+    "op": "mul",
+    "in": [
+     "cWs",
+     0.16
+    ]
+   },
+   "cAm1": {
+    "op": "add",
+    "in": [
+     "cAm0",
+     0.06
+    ]
+   },
+   "cAmp": {
+    "op": "mul",
+    "in": [
+     "cAm1",
+     "cGust"
+    ]
+   },
+   "cLm": {
+    "op": "max",
+    "in": [
+     "cLen",
+     0.4
+    ]
+   },
+   "cK": {
+    "op": "div",
+    "in": [
+     7.5,
+     "cLm"
+    ]
+   },
+   "cWv0": {
+    "op": "mul",
+    "in": [
+     "cWs",
+     5
+    ]
+   },
+   "cWv": {
+    "op": "add",
+    "in": [
+     "cWv0",
+     5.5
+    ]
+   },
+   "cAlong": {
+    "op": "mul",
+    "in": [
+     "cU",
+     "cLen"
+    ]
+   },
+   "cKa": {
+    "op": "mul",
+    "in": [
+     "cK",
+     "cAlong"
+    ]
+   },
+   "cTw": {
+    "op": "mul",
+    "in": [
+     "cT",
+     "cWv"
+    ]
+   },
+   "cAr0": {
+    "op": "sub",
+    "in": [
+     "cKa",
+     "cTw"
+    ]
+   },
+   "cArg": {
+    "op": "add",
+    "in": [
+     "cAr0",
+     "cPh"
+    ]
+   },
+   "cSin": {
+    "op": "sin",
+    "in": [
+     "cArg"
+    ]
+   },
+   "cWa0": {
+    "op": "mul",
+    "in": [
+     "cSin",
+     "cAmp"
+    ]
+   },
+   "cWa1": {
+    "op": "mul",
+    "in": [
+     "cWa0",
+     "cU"
+    ]
+   },
+   "cWa2": {
+    "op": "mul",
+    "in": [
+     "cWa1",
+     "cLen"
+    ]
+   },
+   "cWave": {
+    "op": "mul",
+    "in": [
+     "cWa2",
+     0.35
+    ]
+   },
+   "cUu": {
+    "op": "mul",
+    "in": [
+     "cU",
+     "cU"
+    ]
+   },
+   "cSg0": {
+    "op": "mul",
+    "in": [
+     "cUu",
+     "cLen"
+    ]
+   },
+   "cSg1": {
+    "op": "mul",
+    "in": [
+     "cSg0",
+     -0.18
+    ]
+   },
+   "cSg2": {
+    "op": "mul",
+    "in": [
+     "cWs",
+     0.6
+    ]
+   },
+   "cSg3": {
+    "op": "oneMinus",
+    "in": [
+     "cSg2"
+    ]
+   },
+   "cSag": {
+    "op": "mul",
+    "in": [
+     "cSg1",
+     "cSg3"
+    ]
+   },
+   "cTp": {
+    "op": "mul",
+    "in": [
+     "cTaper",
+     "cU"
+    ]
+   },
+   "cSw": {
+    "op": "oneMinus",
+    "in": [
+     "cTp"
+    ]
+   },
+   "cC0": {
+    "op": "mul",
+    "in": [
+     "cD",
+     "cAlong"
+    ]
+   },
+   "cC1": {
+    "op": "mul",
+    "in": [
+     "cN",
+     "cWave"
+    ]
+   },
+   "cC2": {
+    "op": "add",
+    "in": [
+     "cAx",
+     "cC0"
+    ]
+   },
+   "cC3": {
+    "op": "add",
+    "in": [
+     "cC2",
+     "cC1"
+    ]
+   },
+   "cSagV": {
+    "op": "combine",
+    "in": [
+     0,
+     "cSag",
+     0
+    ]
+   },
+   "cC": {
+    "op": "add",
+    "in": [
+     "cC3",
+     "cSagV"
+    ]
+   },
+   "cQ0": {
+    "op": "mul",
+    "in": [
+     "cKa",
+     0.6
+    ]
+   },
+   "cQ1": {
+    "op": "mul",
+    "in": [
+     "cTw",
+     0.7
+    ]
+   },
+   "cQ2": {
+    "op": "sub",
+    "in": [
+     "cQ0",
+     "cQ1"
+    ]
+   },
+   "cQ3": {
+    "op": "add",
+    "in": [
+     "cQ2",
+     "cPh"
+    ]
+   },
+   "cQ4": {
+    "op": "sin",
+    "in": [
+     "cQ3"
+    ]
+   },
+   "cQ5": {
+    "op": "mul",
+    "in": [
+     "cQ4",
+     0.25
+    ]
+   },
+   "cTwist": {
+    "op": "mul",
+    "in": [
+     "cQ5",
+     "cU"
+    ]
+   },
+   "cSpanL": {
+    "op": "length",
+    "in": [
+     "cSpan"
+    ]
+   },
+   "cNx": {
+    "op": "swizzle",
+    "in": [
+     "cN"
+    ],
+    "mask": "x"
+   },
+   "cNz": {
+    "op": "swizzle",
+    "in": [
+     "cN"
+    ],
+    "mask": "z"
+   },
+   "cTv0": {
+    "op": "combine",
+    "in": [
+     "cNx",
+     0,
+     "cNz"
+    ]
+   },
+   "cTv1": {
+    "op": "mul",
+    "in": [
+     "cTv0",
+     "cTwist"
+    ]
+   },
+   "cTv": {
+    "op": "mul",
+    "in": [
+     "cTv1",
+     "cSpanL"
+    ]
+   },
+   "cF0": {
+    "op": "mul",
+    "in": [
+     "cJ",
+     "cSw"
+    ]
+   },
+   "cE0": {
+    "op": "add",
+    "in": [
+     "cSpan",
+     "cTv"
+    ]
+   },
+   "cE1": {
+    "op": "mul",
+    "in": [
+     "cE0",
+     "cF0"
+    ]
+   },
+   "clothPosition": {
+    "op": "add",
+    "in": [
+     "cC",
+     "cE1"
+    ]
+   },
+   "cCos": {
+    "op": "cos",
+    "in": [
+     "cArg"
+    ]
+   },
+   "cSl0": {
+    "op": "mul",
+    "in": [
+     "cCos",
+     "cAmp"
+    ]
+   },
+   "cSl1": {
+    "op": "mul",
+    "in": [
+     "cSl0",
+     0.8
+    ]
+   },
+   "cSlope": {
+    "op": "mul",
+    "in": [
+     "cSl1",
+     "cU"
+    ]
+   },
+   "cM0": {
+    "op": "mul",
+    "in": [
+     "cD",
+     "cSlope"
+    ]
+   },
+   "cM1": {
+    "op": "sub",
+    "in": [
+     "cN",
+     "cM0"
+    ]
+   },
+   "cM2": {
+    "op": "normalize",
+    "in": [
+     "cM1"
+    ]
+   },
+   "clothNormal": {
+    "op": "mul",
+    "in": [
+     "cM2",
+     "cFace"
+    ]
+   }
+  },
+  "stages": {
+   "surface": {
+    "colour": "base",
+    "emissive": "emissive",
+    "roughness": 1,
+    "metalness": 0
+   },
+   "lighting": {
+    "sun": "sun",
+    "ambient": "ambient"
+   },
+   "vertex.position": {
+    "position": "clothPosition",
+    "shadow": true
+   },
+   "vertex.normal": {
+    "normal": "clothNormal"
+   }
+  },
+  "budget": {
+   "nodes": 240,
+   "samplers": 1,
+   "instructions": 640
+  }
  }
 }
