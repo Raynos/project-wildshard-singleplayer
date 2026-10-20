@@ -3,7 +3,7 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { beforeEach, expect, test } from 'vitest';
-import { Group, Scene, Vector3, Mesh, BoxGeometry, MeshLambertMaterial } from 'three';
+import { Group, Scene, Vector3, SkinnedMesh, BoxGeometry, MeshLambertMaterial } from 'three';
 import type { Game } from '../src/engine/core/Game';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
@@ -39,9 +39,9 @@ test('an independent marsh herd encounter adopts native bodies and follows AS te
   const template = ecology.externalElites.find(row => row.mode === 'herd');
   if (template?.mode !== 'herd') throw new Error('Missing herd fixture');
   const signatures: string[] = [], wins: string[] = [];
-  const actor = legacyDouble<Animal>({ position: new Vector3(3, 0, 4), hp: 750, maxHp: 750, alive: true, mesh: new Mesh(new BoxGeometry(), new MeshLambertMaterial()) });
-  const mount = legacyDouble<Animal>({ position: new Vector3(1, 0, 2), scale: 1, mesh: new Mesh() });
-  const herd = { stallionState: 'display', stallion: actor as Animal | null, leadAway: () => undefined };
+  const actor = legacyDouble<Animal>({ position: new Vector3(3, 0, 4), hp: 750, maxHp: 750, alive: true, mesh: new SkinnedMesh(new BoxGeometry(), new MeshLambertMaterial()) });
+  const mount = legacyDouble<Animal>({ position: new Vector3(1, 0, 2), scale: 1, mesh: new SkinnedMesh() });
+  const herd: NonNullable<Parameters<ExternalElitePage['adopt']>[1]> = { stallionState: 'display', stallion: actor, leadAway: () => undefined };
   const script = new ExternalElitePage({ ...template, def, spawn: { ...template.spawn, kind: 'marsh-stag' },
     adopted: { ...template.adopted, kind: 'marsh-stag', feed: 'A stag joins you' } },
   { game: legacyDouble<Game>({ scene: new Scene() }), animals: legacyDouble<AnimalManager>({}), player: legacyDouble<Player>({ position: new Vector3(10, 0, 20) }),
