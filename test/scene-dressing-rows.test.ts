@@ -108,3 +108,25 @@ test('an orchard floor table shares the native highest-deck and sampled-height l
   expect(ground?.(30,40)).toBe(5);expect(ground?.(29,39)).toBe(2);expect(ground?.(31,41)).toBe(8);
   expect(()=>readSceneFloors([{x:0,z:0,size:2,res:3,data:btoa(data)}])).toThrow('Floor sample byte count differs');
 });
+
+test('dressing keeps its small animation and mote rows live after construction',async()=>{
+  const scope=new Scope('orchard-runtime-rows'),root=new THREE.Group(),material=new THREE.MeshBasicMaterial(),setParam=vi.fn();
+  lendLooks(scope,{materials:new Map([['orchard-paint',material]]),setParam:(...args)=>{setParam(...args);},setTexture:()=>undefined,bindMeshMap:()=>material});
+  const camera=new THREE.PerspectiveCamera(50),ctx={} as ShardContext;
+  Object.assign(ctx,{scope,root,system:vi.fn(),app:{registry:new WorldRegistry()},product:{},game:{runtime:{world:{sky:null,player:{position:new THREE.Vector3()},game:{camera,renderer:{getDrawingBufferSize:(size:THREE.Vector2)=>size.set(390,844)}}}}}});
+  const host=await SceneDressing.install(ctx,{name:'orchard',catalogues:[],packs:{},geometry:{},materials:{},layers:[],statics:[],
+    animations:[{look:'orchard-paint',timeParam:'clock',windParam:'wind',windScale:1,windMax:2}],
+    motes:{name:'petals',count:120,seed:91,look:'orchard-paint',drift:.1,driftParam:'offset',pixelParam:'pixels'}});
+  host.update(.25);
+  expect(setParam).toHaveBeenCalledWith('orchard-paint','clock',.25);
+  expect(setParam).toHaveBeenCalledWith('orchard-paint','pixels',844/(2*Math.tan(50*Math.PI/360)));
+  const petals=host.group.getObjectByName('petals');
+  if(!(petals instanceof THREE.Points))throw new Error('Missing runtime motes');
+  const petalShape:unknown=petals.geometry;
+  if(!(petalShape instanceof THREE.BufferGeometry))throw new Error('Missing mote geometry');
+  const seeds:unknown=petalShape.getAttribute('aSeed');
+  if(!(seeds instanceof THREE.BufferAttribute))throw new Error('Missing mote seeds');
+  expect(seeds.count).toBe(120);
+  host.update(.25);expect(setParam).toHaveBeenCalledWith('orchard-paint','clock',.5);
+  scope.dispose();expect(root.children).toHaveLength(0);material.dispose();
+});

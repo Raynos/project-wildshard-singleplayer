@@ -80,21 +80,23 @@ export class SceneDressing {
   private time = 0;
   private instances:SceneInstanceFields|undefined;
   private wings: AmbientWingField | undefined;
-  private constructor(private readonly ctx: ShardContext, private readonly rows: SceneDressingRows) { this.group.name=rows.name; }
+  private readonly animations:SceneDressingRows['animations'];
+  private readonly motes:SceneDressingRows['motes'];
+  private constructor(private readonly ctx: ShardContext, rows: SceneDressingRows) { this.group.name=rows.name;this.animations=rows.animations;this.motes=rows.motes; }
 
   static async install(ctx: ShardContext, input: unknown): Promise<SceneDressing> {
     const rows=v.parse(SceneDressingSchema,input), owner=new SceneDressing(ctx,rows);
     let products=books.get(ctx.scope);if(products===undefined){products=new WeakMap();books.set(ctx.scope,products);}
     if(products.has(ctx.product)||ctx.scope.disposed)throw new Error('Scene dressing requires an unbound entered owner');
-    await owner.build();products.set(ctx.product,owner);const installed=products;
+    await owner.build(rows);products.set(ctx.product,owner);const installed=products;
     ctx.scope.onDispose(()=>{if(installed.get(ctx.product)===owner)installed.delete(ctx.product);owner.instances?.dispose();for(const piece of owner.pieces.values())piece.object.removeFromParent();owner.group.removeFromParent();});
     ctx.system({id:'client.scene.dressing',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>owner.update(dt)});
     return owner;
   }
   static current(ctx: ShardContext): SceneDressing { const value=books.get(ctx.scope)?.get(ctx.product);if(value===undefined||ctx.scope.disposed)throw new Error('Scene dressing is not installed');return value; }
 
-  private async build(): Promise<void> {
-    const {ctx,rows}=this,world=ctx.game.runtime?.world;
+  private async build(rows:SceneDressingRows): Promise<void> {
+    const {ctx}=this,world=ctx.game.runtime?.world;
     if(world===undefined||world===null)throw new Error('Scene dressing needs a world');
     for(const source of Object.values(rows.geometry))if(source.kind==='baked'&&!ctx.product.hasFile(source.address.file))throw new Error('Missing scene geometry address file');
     for(const row of rows.layers)if(!ctx.product.hasFile(row.file))throw new Error('Missing scene scatter file');
@@ -181,10 +183,10 @@ export class SceneDressing {
       for(const layer of this.layers)layer.cull(this.frustum,this.position);
     }
     this.time+=dt;
-    for(const row of this.rows.animations){const w=painterlyUniforms.uPWind.value;setLentParam(row.look,row.timeParam,this.time);setLentParam(row.look,row.windParam,[w.x,w.y,Math.min(row.windMax,w.z*row.windScale)]);}
+    for(const row of this.animations){const w=painterlyUniforms.uPWind.value;setLentParam(row.look,row.timeParam,this.time);setLentParam(row.look,row.windParam,[w.x,w.y,Math.min(row.windMax,w.z*row.windScale)]);}
     this.instances?.update(dt,world.player.position,painterlyUniforms.uPTime.value);
     this.wings?.update(dt,world.player.position);
-    const row=this.rows.motes;
+    const row=this.motes;
     if(row!==undefined){this.drift[0]+=wind.dirX*wind.speed*row.drift*dt;this.drift[1]+=wind.dirZ*wind.speed*row.drift*dt;
       world.game.renderer.getDrawingBufferSize(this.size);setLentParam(row.look,row.driftParam,this.drift);setLentParam(row.look,row.pixelParam,this.size.y/(2*Math.tan(world.game.camera.fov*Math.PI/360)));}
   }
