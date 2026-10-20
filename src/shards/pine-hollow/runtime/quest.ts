@@ -9,7 +9,7 @@ import { bindInteractionTransitions, type InteractionState } from '@wildshard/en
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '@wildshard/game/plugin/quests';
-import { LANTERN_FLAGS } from '../data/wardensHollow';
+import wardens from '../data/wardensHollow.json' with { type: 'json' };
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, isPineThrall } from '../quest/featLaw';
@@ -221,7 +221,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (event === 'night.consume') flags.clear('wait:night');
     else if (event === 'night.start') fastForward(NIGHT_PHASE, value);
     else if (event === 'dawn.sunrise') fastForward(SUNRISE_PHASE, value);
-    else if (event === 'dawn.lanterns') transitions.setFlags(LANTERN_FLAGS);
+    else if (event === 'dawn.lanterns') transitions.setFlags(wardens.LANTERN_FLAGS);
     else if (event === 'dawn.finish') flags.set('seen:dawn');
   };
   const clock = DirectorScriptStageLane.bind(ports.director.stages, ports.director.create(), ports.director.bindings,

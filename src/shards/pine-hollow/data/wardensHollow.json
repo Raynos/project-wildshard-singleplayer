@@ -1,0 +1,8 @@
+{
+  "QUEST_DONE": "quest:warden-done",
+  "LANTERN_FLAGS": [
+    "lit:pond",
+    "lit:ridge",
+    "lit:den"
+  ]
+}

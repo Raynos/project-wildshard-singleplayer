@@ -1753,7 +1753,7 @@
         "src/shards/pine-hollow/data/bowProfile.json",
         "src/shards/pine-hollow/generators/bowProfile.ts",
         "src/shards/pine-hollow/generators/interactions.ts",
-        "src/shards/pine-hollow/data/wardensHollow.ts"
+        "src/shards/pine-hollow/data/wardensHollow.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/items.generated.json"
@@ -2078,7 +2078,7 @@
         "src/shards/pine-hollow/generators/questNpcs.ts",
         "src/shards/pine-hollow/data/layout.generated.json",
         "src/shards/pine-hollow/generators/questTalkPolicy.ts",
-        "src/shards/pine-hollow/data/wardensHollow.ts",
+        "src/shards/pine-hollow/data/wardensHollow.json",
         "src/sdk/bake/json.mjs",
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/package.json",

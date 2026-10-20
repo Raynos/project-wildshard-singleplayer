@@ -57,7 +57,7 @@ import { PINE_PHASES } from '../look/dayKeys';
 import { waystoneSites, contractBoardSite, type PineLandmarks } from '../runtime/world/landmarks';
 import { ZIP_YAW } from '../runtime/world/timberSites';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
-import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
+import wardens from '../data/wardensHollow.json' with { type: 'json' };
 import { PINE_FIGURES } from '../roster';
 import type { FigureRows as NpcFigure } from '@wildshard/game/systems/npc/figureRows';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -174,8 +174,8 @@ export async function installPineQuest(ctx: ShardContext, deps: { cabins: PineCa
   // ── the lanterns ──
   const lm = h.landmarks;
   const WS = waystoneSites();
-  const lanternId = (f: string): LanternId => (f === 'lit:pond' ? 'pond' : f === 'lit:ridge' ? 'ridge' : 'den');
-  const syncLanterns = (): void => { if (lm) for (const f of LANTERN_FLAGS) lm.setLit(lanternId(f), flags.has(f) || flags.has(QUEST_DONE)); };
+  const lanternId = (f: string): Parameters<PineLandmarks['setLit']>[0] => (f === 'lit:pond' ? 'pond' : f === 'lit:ridge' ? 'ridge' : 'den');
+  const syncLanterns = (): void => { if (lm) for (const f of wardens.LANTERN_FLAGS) lm.setLit(lanternId(f), flags.has(f) || flags.has(wardens.QUEST_DONE)); };
   syncLanterns();
   const points = Object.fromEntries((['pond', 'ridge', 'den'] as const).map(id => [id, new THREE.Vector3(WS[id].x, floorAt(WS[id].x, WS[id].z) + 1.2, WS[id].z)]));
   const lanternPage = bindQuestPageInteractions(lanternRows, { flags, interactions: lanternRules, timer: ui,

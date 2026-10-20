@@ -20,9 +20,9 @@
  */
 import type { QuestData } from '@wildshard/sdk/quests';
 
-import { QUEST_DONE, LANTERN_FLAGS } from '../data/wardensHollow';
+import wardens from '../data/wardensHollow.json' with { type: 'json' };
 
-export const QUEST_EXTERNAL = ['talked:ranger', ...LANTERN_FLAGS, 'used:ph-zip', 'followed:stag', 'dead:king', 'seen:dawn'];
+export const QUEST_EXTERNAL = ['talked:ranger', ...wardens.LANTERN_FLAGS, 'used:ph-zip', 'followed:stag', 'dead:king', 'seen:dawn'];
 
 const at = (x: number, z: number) => ({ poi: 'world' as const, x, z });
 
@@ -82,14 +82,14 @@ export const WARDENS_HOLLOW: QuestData['quests'][number] = {
       done: { all: ['seen:dawn'] },
     },
   ],
-  completeFlag: QUEST_DONE,
+  completeFlag: wardens.QUEST_DONE,
 };
 
 export const RANGER_DIALOGUE = {
   id: 'ranger',
   name: 'Hale, ranger of the Hollow',
   dialogue: [
-    { when: { all: [QUEST_DONE] }, lines: [
+    { when: { all: [wardens.QUEST_DONE] }, lines: [
       'Dawn, and every lantern burning. I have not seen the Hollow this quiet in thirty winters.',
       'The old Warden kept a bow for a night like that one. It is yours now. He would want it used, not hung on a wall.',
     ] },
@@ -98,7 +98,7 @@ export const RANGER_DIALOGUE = {
       'The stag took you to the stones. He is there — only at night, and only if you stand inside the ring.',
       'Mind his antlers when they swing, and jump his roots. When the fog closes behind you, it will not open until one of you falls.',
     ] },
-    { when: { all: [...LANTERN_FLAGS, 'used:ph-zip'] }, lines: [
+    { when: { all: [...wardens.LANTERN_FLAGS, 'used:ph-zip'] }, lines: [
       'Three lanterns. I watched them come up one by one from this porch.',
       'Now the pale stag will walk. Follow it after dark down the west road and it will take you to him.',
       'If you would rather not wait for the dark on your own, sit a while. I will keep watch with you.',

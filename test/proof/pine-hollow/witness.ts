@@ -24,7 +24,7 @@ import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
 import leadJson from '../../../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
 import { parseQuestLeadRows } from '../../../src/shards/pine-hollow/generators/sections';
-import { QUEST_DONE } from '../../../src/shards/pine-hollow/data/wardensHollow';
+import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' with { type: 'json' };
 import bossRows from '../../../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import { LEVER_FLAG, LOADOUT_STEP, PINE_WEAPON, WEAPON_COMMAND } from '../../fixtures/weapon-oracle/nativeLoadout';
 import { AIM_COMMAND, AIM_RIBS } from '../../fixtures/weapon-oracle/headlessRanged';
@@ -174,7 +174,7 @@ function route(spots: PineSpots, nav: Navmesh, heightAt: (x: number, z: number) 
     { kind: 'go', path: OFF_PORCH }, walk(OFF_ROAD, STAG_FIRST), ...LEAD.path.slice(1).map((bend, i) => walk(LEAD.path[i] ?? STAG_FIRST, [bend[0], bend[1]])),
     { kind: 'wait', until: host => host.flags.has('followed:stag') },
     // 9. the Antler King, by weapon play; 10. the dawn
-    { kind: 'king' }, { kind: 'wait', until: host => host.flags.has(QUEST_DONE) },
+    { kind: 'king' }, { kind: 'wait', until: host => host.flags.has(wardens.QUEST_DONE) },
   ];
 }
 
@@ -419,7 +419,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
       hashes[name] = canonicalSimDigest(state);
       writeFileSync(checkpointFile(name), gzipSync(JSON.stringify(checkpoint), { level: 9 })); ticks[name] = checkpoint.tick;
     }
-    playUntil(session, tape, host => host.flags.has(QUEST_DONE), SLICE);
+    playUntil(session, tape, host => host.flags.has(wardens.QUEST_DONE), SLICE);
     hashes['dawn'] = digest(session.host);
     writeFileSync(MANIFEST, `${JSON.stringify({ inputs, ticks, hashes }, null, 2)}\n`);
     return { status: 'written', inputs, ticks, hashes };
@@ -437,7 +437,7 @@ export async function walkSlice(rapier: Rapier, to: CheckpointName | 'dawn'): Pr
   const from = to === 'dawn' ? 'fallen' : i > 0 ? CHECKPOINT_NAMES[i - 1] : undefined;
   const start = from === undefined ? { session: boot(plan, rapier), tape: pineTape(plan), tick: 0 } : resume(plan, rapier, from);
   try {
-    const ticks = playUntil(start.session, start.tape, host => to === 'dawn' ? host.flags.has(QUEST_DONE) : atCheckpoint(to, host), SLICE);
+    const ticks = playUntil(start.session, start.tape, host => to === 'dawn' ? host.flags.has(wardens.QUEST_DONE) : atCheckpoint(to, host), SLICE);
     const host = start.session.host, hash = digest(host);
     const manifest = v.parse(ManifestSchema, readWitnessManifest(MANIFEST));
     if (hash !== manifest.hashes[to]) throw new Error(`Inexact ${to} gameplay continuation`);
@@ -506,7 +506,7 @@ async function collectGameplayProof(rapier: Rapier, from?: 'night') {
       } else receipts.push(...ingress.ingest(effects));
       if (session.host.player.health.attributes.health <= 0) throw new Error('Player died');
     }
-    if (!tape.walked || !session.host.flags.has(QUEST_DONE) || !session.host.flags.has(bossRows.record.defeated)) throw new Error('King/dawn tape unfinished');
+    if (!tape.walked || !session.host.flags.has(wardens.QUEST_DONE) || !session.host.flags.has(bossRows.record.defeated)) throw new Error('King/dawn tape unfinished');
     const durable = ledger.state(), rows = Object.values(durable.facts), reopened = profile(local);
     if (JSON.stringify(reopened.state()) !== JSON.stringify(durable) || rows.some(row => reopened.record(row).status !== 'duplicate')) throw new Error('Gameplay ledger not durable/deduplicated');
     const pack = v.parse(v.object({ pack: nativeInventorySchema(readItemInventory(source.items)) }), session.host.adapters.get(QUEST_STEP)?.snapshot()).pack;

@@ -1,10 +1,10 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
 import { WARDENS_HOLLOW, QUEST_EXTERNAL, ERRAND_EXTERNAL } from './wardensHollow';
-import { QUEST_DONE } from '../data/wardensHollow';
+import wardens from '../data/wardensHollow.json' with { type: 'json' };
 
 /** The shipping seven-step chapter; native NPC presentation and the dawn camera remain runtime recipes. */
 export const PINE_QUESTS = parseQuestData({
-  flags: [...QUEST_EXTERNAL, ...ERRAND_EXTERNAL, 'errand:paid', QUEST_DONE, 'taken:pond-glass'],
+  flags: [...QUEST_EXTERNAL, ...ERRAND_EXTERNAL, 'errand:paid', wardens.QUEST_DONE, 'taken:pond-glass'],
   quests: [{ ...WARDENS_HOLLOW, onComplete: { fact: 'pine.feat.quest' } }],
   triggers: [], dialogue: [],
 });

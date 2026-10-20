@@ -1,4 +1,4 @@
-import { LANTERN_FLAGS, QUEST_DONE } from '../data/wardensHollow';
+import wardens from '../data/wardensHollow.json' with { type: 'json' };
 import { RESIN_FLAG, TOKEN_FLAG, SECRET_FLAGS } from './interactions';
 
 /** Authored feat metadata; the declared ledger owns deduplicated gameplay grants. */
@@ -43,14 +43,14 @@ export const PINE_BAG_ITEMS = [
 
 /** Flag totals preserve event order and suppress unraised one-shot events. */
 export const PINE_FLAG_FEATS=[
-  {id:'lantern',method:'event',value:{flags:LANTERN_FLAGS}},
+  {id:'lantern',method:'event',value:{flags:wardens.LANTERN_FLAGS}},
   {id:'resin',method:'event',value:{prefix:RESIN_FLAG}},
   {id:'token',method:'event',value:{prefix:TOKEN_FLAG}},
   {id:'secret',method:'event',value:{flags:SECRET_FLAGS}},
   {id:'zipline',method:'event',value:{flag:'used:ph-zip'},onlyWhenSet:true},
   {id:'miller',method:'event',value:{flag:'errand:done'},onlyWhenSet:true},
   {id:'king',method:'event',value:{flag:'dead:king'},onlyWhenSet:true},
-  {id:'quest',method:'event',value:{flag:QUEST_DONE},onlyWhenSet:true},
+  {id:'quest',method:'event',value:{flag:wardens.QUEST_DONE},onlyWhenSet:true},
 ] as const;
 
 /** Native/page feat counters retain numeric totals and write before stable emission. */
