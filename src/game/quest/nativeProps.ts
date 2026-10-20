@@ -20,7 +20,9 @@ export class NativeQuestProps {
   private readonly walk = { x: 0, y: 0, z: 0 };
   private readonly lifted = { x: 0, y: 0, z: 0 };
   private readonly env: BarrelEnv;
-  constructor(private readonly host: SimHost, input: unknown, restoring: boolean) {
+  private readonly host: SimHost;
+  constructor(host: SimHost, input: unknown, restoring: boolean) {
+    this.host = host;
     this.rows = v.parse(NativeQuestPropsSchema, input);
     if (new Set(this.rows.barrels.map(row => row.id)).size !== this.rows.barrels.length
       || this.rows.floors.some(row => row.values.length !== row.width * row.height)) throw new Error('Invalid native quest prop rows');
