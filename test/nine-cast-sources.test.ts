@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify declared source URLs against retained generated cast files.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare every decoded geometry byte without object-matcher traversal.
+import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { CAST_BLOBS, CAST_SOURCES } from '../src/shards/nine-dragon-stack/generators/castSources';
 import { createModelLibrary } from '../src/game/plugin/geometry';
@@ -38,8 +40,8 @@ test('cast resource rows publish exact channels and preserve middle-LOD sharing 
       const decoded = actualGeometry.getAttribute(key);
       expect(decoded.normalized).toBe(attribute.normalized); expect(decoded.itemSize).toBe(attribute.itemSize);
       expect(decoded.array.constructor).toBe(attribute.array.constructor);
-      expect(new Uint8Array(decoded.array.buffer, decoded.array.byteOffset, decoded.array.byteLength))
-        .toEqual(new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength));
+      expect(Buffer.compare(new Uint8Array(decoded.array.buffer, decoded.array.byteOffset, decoded.array.byteLength),
+        new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength)), `${file}:${key}`).toBe(0);
     }
     expect(actualGeometry.index?.array).toEqual(expectedGeometry.index?.array);
     expect(actualGeometry.groups).toEqual(expectedGeometry.groups);
