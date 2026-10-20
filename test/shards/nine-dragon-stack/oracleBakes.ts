@@ -1,6 +1,7 @@
 // Committed predecessor bytes are test oracles only; no product/runtime imports this module.
 import * as v from 'valibot';
 import { bakedGeometryBytes, readBakedGeometry } from '../../../src/game/plugin/geometry';
+import { layoutProjection } from '../../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutBake, layoutReviver } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
 import { LayoutRowsSchema } from '../../../src/shards/nine-dragon-stack/generators/sections';
 import type { BufferGeometry } from 'three';
@@ -40,7 +41,7 @@ export function oracleLayout(bytes: Uint8Array): LayoutBake {
   const geometries = new Map<number, ReturnType<typeof readBakedGeometry>>();
   for (const [index, row] of rows.geometries.entries()) { geometries.set(index, readBakedGeometry(bytes, offset, row)); offset += bakedGeometryBytes(row); }
   if (offset !== bytes.length) throw new Error('Nine layout oracle size differs');
-  return new LayoutBake(rows, [...records], geometries);
+  return new LayoutBake(layoutProjection(rows, [...records]), geometries);
 }
 export function oracleSpecimens(bytes: Uint8Array): SpecimenBake {
   const jsonBytes = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true);

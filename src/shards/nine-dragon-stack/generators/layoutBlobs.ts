@@ -6,6 +6,7 @@ import wireSchema from './layoutSchema.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import world from '../data/world.generated.json' with { type: 'json' };
 import { LayoutRowsSchema, GeometryBootSchema } from './sections';
+import { layoutProjection } from './layoutProjection';
 import { SET_TILES } from './worldScenes';
 
 function revive(_key: string, value: unknown): unknown {
@@ -31,5 +32,7 @@ export function layoutBlobs(): NamedBlob[] {
   const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows, volumes: lightVolumeRows() });
   return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: wireSchema }),
     nameBlob('geometry/layout-f64.bin', 'bin', new Uint8Array(floats.buffer)),
+    nameBlob('geometry/layout-projection.json', 'json', new TextEncoder().encode(JSON.stringify(layoutProjection(rows, numeric),
+      (_key, value: unknown) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value))),
     nameBlob('geometry/world-f64.bin', 'bin', new Uint8Array(Float64Array.from(worldRows.records).buffer))];
 }

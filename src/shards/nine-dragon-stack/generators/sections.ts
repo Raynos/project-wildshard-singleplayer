@@ -53,6 +53,17 @@ export const LayoutRowsSchema = v.strictObject({
   banyan: v.nullable(v.strictObject({ lumps: v.array(v.strictObject({ c: V3, r: V3, up: finite, seed: finite, wash: finite })), hangs: v.array(V3) })),
 });
 export type LayoutRows = v.InferOutput<typeof LayoutRowsSchema>;
+/** Only the layout maps and poses used by the client, decoded from the author record stream offline. */
+export const LayoutProjectionSchema = v.strictObject({
+  geometries: v.array(v.strictObject({ id: finite, box: v.boolean() })),
+  kits: v.array(v.tuple([v.string(), v.nullable(finite)])), alphaKits: v.array(v.tuple([v.string(), finite])),
+  farOf: LayoutRowsSchema.entries.farOf, inKit: LayoutRowsSchema.entries.inKit, shell: v.nullable(finite),
+  lanterns: v.array(v.array(finite)), acs: v.array(v.array(finite)), hooks: v.array(V3),
+  hookMounts: v.array(v.strictObject({ ring: V3, out: V3 })),
+  inst: v.array(v.tuple([v.string(), v.array(v.strictObject({ matrix: v.array(finite), color: V3 }))])),
+});
+export type LayoutProjection = v.InferOutput<typeof LayoutProjectionSchema>;
+
 export type SignCallRow = v.InferOutput<typeof SignCall>;
 export type BakedPlace = v.InferOutput<typeof Place>;
 

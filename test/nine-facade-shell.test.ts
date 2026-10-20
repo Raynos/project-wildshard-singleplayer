@@ -4,6 +4,7 @@ import { expect, test } from 'vitest';
 import { BufferAttribute, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { nineLayoutSource, runLayout, SignRecorder } from '../src/shards/nine-dragon-stack/generators/layout';
+import { layoutProjection } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutBake, restoreLayout } from '../src/shards/nine-dragon-stack/world/layoutBake';
 
 function exactGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
@@ -39,7 +40,7 @@ test('bakes every native solid/swept draw in order with exact channels, bounds a
   for (const [name, kit] of author.kitxs) if (!author.kits.has(name) && kit.vertexCount > 0) expected.set(name, kit.build());
   const source = nineLayoutSource();
   expect(source.rows.kitxs).toEqual([]);
-  const bake = new LayoutBake(source.rows, source.records, new Map(source.geometries.map((geometry, i) => [i, geometry])));
+  const bake = new LayoutBake(layoutProjection(source.rows, source.records), new Map(source.geometries.map((geometry, i) => [i, geometry])));
   await bake.prepare(() => Promise.resolve());
   const restored = restoreLayout(bake);
   const actual = new Map([...restored.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]));
@@ -63,7 +64,7 @@ test('restores the offline facade shell with exact packed channels and bounds', 
   if (index === null) throw new Error('Nine layout has no facade shell');
   const original = source.geometries[index];
   if (original === undefined) throw new Error('Nine layout lost its shell geometry');
-  const bake = new LayoutBake(source.rows, source.records, new Map(source.geometries.map((geometry, i) => [i, geometry])));
+  const bake = new LayoutBake(layoutProjection(source.rows, source.records), new Map(source.geometries.map((geometry, i) => [i, geometry])));
   await bake.prepare(() => Promise.resolve());
   const ctx = restoreLayout(bake);
   const restored = ctx.shell;
