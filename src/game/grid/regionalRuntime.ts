@@ -1,3 +1,4 @@
+import {bindEquipmentActors} from '../loadout/actors';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientHomeBytes } from '../shardfile/clientResidency';
 import { Object3D } from 'three';
@@ -277,6 +278,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               if (left()) throw new Error('Regional runtime left while building creatures');
               app.effects?.registerDefinitions(app.levelRegistrations.list('effect'));
               const targets = authoredTargets(app.events, regional.animals, () => null);
+              bindEquipmentActors(targets,regional.animals,owner);
               const build = runtime.buildEquipment;
               if (build === undefined) throw new Error('Regional kit did not install its equipment factory');
               // a set that failed to arrive is drawn by its weapon as before: the head start is never a gate
