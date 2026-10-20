@@ -1,0 +1,53 @@
+{
+  "status": "editable milestone; renders pending; not admitted",
+  "files": {
+    "build_complete.py": {
+      "bytes": 17539,
+      "sha256": "dda37399619931c3b09d894c61e17387876116d3eac2b14c9d8cf34594175953"
+    },
+    "audit_complete.py": {
+      "bytes": 9220,
+      "sha256": "5490d7a149001e8eeb440baaa54e3738646660c2700bd5844656f29edcd2bd21"
+    },
+    "native-source.json": {
+      "bytes": 1850130,
+      "sha256": "93d08f181778edf158c3b8fcafd0d28c3e6fde789aec6ef260dcc0a0a77c3da2"
+    },
+    "brine-pitcher-v1.glb": {
+      "bytes": 998328,
+      "sha256": "e432ad5c21a3e7ab7e2ee380c1d065868692ea680dbc6adef3db25073b996de9"
+    },
+    "metadata.json": {
+      "bytes": 8382,
+      "sha256": "e3eed1d4fad1d7b29ea592ede3d2fab24bcf65949d941dd91aa0f4c652bdae00"
+    },
+    "payload.bin": {
+      "bytes": 48343,
+      "sha256": "12c6c958a161a57f7dc63b747224f243ea8b5e42074a45203feb853d9f3fa51c"
+    },
+    "construction.json": {
+      "bytes": 14619,
+      "sha256": "b7c498eeb822bfee2d50439a6b97f5c261e8c8ac2025952cce7ac962d27ff471"
+    },
+    "source-audit.json": {
+      "bytes": 13999,
+      "sha256": "dc8d9be5a39d568aff375bb87f2895bdc3aca20a2458fea0f2ac5e6b752a2a4c"
+    },
+    "native.test.ts": {
+      "bytes": 3900,
+      "sha256": "073867e36596e4aafc254a221029f0b37982fde0ac3d8d39cf110e105411ec3c"
+    },
+    "vitest.config.ts": {
+      "bytes": 238,
+      "sha256": "6bad9c9c1c56a89db5f7e5993a3309b24c881a48cf496db1899fe42834e99b02"
+    },
+    "README.md": {
+      "bytes": 2735,
+      "sha256": "789307f204cfa605a83cd07a7afe3ede9d8f0576f15458caf3de80a1fada13b9"
+    }
+  },
+  "dependencies": {
+    "art/driftwood-isle/approved-puffer/native_export.py": "210ee9b812655509dcbf869e91db945cc17df40da2ccc07ffdc9d2f292043416",
+    "scripts/heavy-lane.py": "d3631d41f1bf869071b523f223199220b29a00c779939dd08433ccab4e2e399b"
+  }
+}
