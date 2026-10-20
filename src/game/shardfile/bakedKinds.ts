@@ -111,14 +111,6 @@ export interface BakedPieceRows<K extends BakedKindRow> {
   /** a kind's per-instance colours for a TRS bake (its GLB carries none), three floats an instance */
   readonly tints?: Readonly<Record<string, readonly number[]>>;
 }
-/** A drawn piece: its group (one `InstancedMesh` per drawn kind, in row order), its colliders and its drawn kinds by name. */
-export interface DrawnBakedPiece { readonly root: Group; readonly colliders: ColliderDesc[]; readonly kinds: ReadonlyMap<string, InstancedMesh> }
-/** Per-call choices: the nodes to draw (default the last load), the kinds to draw and a material hook after the shard's. */
-export interface BakedPieceCall<K extends BakedKindRow> {
-  readonly nodes?: ReadonlyMap<string, InstancedMesh> | undefined;
-  readonly only?: ((kind: K) => boolean) | undefined;
-  readonly each?: ((material: MeshStandardMaterial) => void) | undefined;
-}
 
 
 /** Draw exact ordinary meshes alongside instanced kinds, without changing their shader family or transform precision. */
