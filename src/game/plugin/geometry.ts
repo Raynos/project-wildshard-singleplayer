@@ -38,7 +38,7 @@ type AnimalSpecies = ReturnType<SpeciesLook['build']>;
  *
  * A file that fails to load is a page fault (`console.error`; the boot smoke and the tests fail on it), never a silent
  * stand-in: the caller's copy is null and the thing it would draw stands undrawn. The helpers below (`fitGeometry`,
- * `bindRigid`, `undrawnRig`) shape the copies.
+ * `undrawnRig`) shape the copies; generators bind rigid bodies with `bindRigid` (`@wildshard/sdk/bake/skinned`).
  *
  * Creature bodies (`creatureBodies`, over `skinnedModel`): standard skinned GLBs a generator baked (bones with their bind
  * positions, parts, clips and the shard's extras), copied per spawn, each with its stand-in skeleton when it did not load.
@@ -735,17 +735,6 @@ export function fitGeometry(g: BufferGeometry, o: ModelFit): BufferGeometry {
   const span = o.by === 'height' ? b.max.y - b.min.y : Math.max(b.max.x - b.min.x, b.max.z - b.min.z), k = o.size / Math.max(1e-6, span);
   g.translate(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
   g.scale(k, k, k); g.translate(0, o.floor ?? 0, 0); g.computeBoundingBox(); g.computeBoundingSphere();
-  return g;
-}
-
-/** Bind every triangle rigidly to the bone `boneOf` names for its centroid (bone indices in the caller's skeleton order). */
-export function bindRigid(g: BufferGeometry, boneOf: (x: number, y: number, z: number) => number): BufferGeometry {
-  const p = g.getAttribute('position'), n = p.count, index = new Uint16Array(n * 4), weight = new Float32Array(n * 4);
-  for (let t = 0; t + 2 < n; t += 3) {
-    const bone = boneOf((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3);
-    for (let v = t; v < t + 3; v++) { index[v * 4] = bone; weight[v * 4] = 1; }
-  }
-  g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
   return g;
 }
 

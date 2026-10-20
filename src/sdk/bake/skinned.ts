@@ -1,4 +1,4 @@
-import { InterpolateDiscrete, InterpolateLinear, Matrix4, PropertyBinding, type AnimationClip, type BufferAttribute, type BufferGeometry, type Material, type MeshStandardMaterial } from 'three';
+import { Float32BufferAttribute, InterpolateDiscrete, InterpolateLinear, Matrix4, PropertyBinding, Uint16BufferAttribute, type AnimationClip, type BufferAttribute, type BufferGeometry, type Material, type MeshStandardMaterial } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptEncoder } from 'meshoptimizer/encoder';
 
@@ -292,4 +292,15 @@ export function skinnedGlb(bake: SkinnedBake): SkinnedOutput {
   const bin = new Uint8Array(offset); let at = 0;
   for (const chunk of chunks) { bin.set(chunk, at); at += chunk.length; }
   return { glb: joinGlb(doc, bin) };
+}
+
+/** Bind every triangle rigidly to the bone `boneOf` names for its centroid (bone indices in the caller's skeleton order). */
+export function bindRigid(g: BufferGeometry, boneOf: (x: number, y: number, z: number) => number): BufferGeometry {
+  const p = g.getAttribute('position'), n = p.count, index = new Uint16Array(n * 4), weight = new Float32Array(n * 4);
+  for (let t = 0; t + 2 < n; t += 3) {
+    const bone = boneOf((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3);
+    for (let v = t; v < t + 3; v++) { index[v * 4] = bone; weight[v * 4] = 1; }
+  }
+  g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
+  return g;
 }

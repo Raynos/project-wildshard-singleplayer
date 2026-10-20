@@ -1,5 +1,6 @@
 import { RAM_DATA, DIVE_DATA, BURST_DATA } from './strikes';
-import type { BrainedSpecies, speciesBrains } from '@wildshard/sdk/speciesBrains';
+import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
+import type { StrikeData } from '@wildshard/sdk/species';
 import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
 import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA, STORM_ROC_DATA } from './species';
 
@@ -21,7 +22,7 @@ export const WISP_BRAIN = { id: 'far.brain.wisp', kind: 'burst-flyer', strike: '
  * wall (a wide lane of wind swept across the crown from its hover; it shoves you toward the rim, G24) and phase 3's wing
  * sweep round the dais, grounded.
  */
-export const ROC_STRIKES: readonly [Parameters<typeof speciesBrains>[1][number], Parameters<typeof speciesBrains>[1][number], Parameters<typeof speciesBrains>[1][number]] = [
+export const ROC_STRIKES: readonly [StrikeData, StrikeData, StrikeData] = [
   { id: 'far.roc.stoop', shape: { kind: 'sphere', radius: 2.6 }, windup: 1.2, active: 1.2, recover: 0.8, cooldown: 4,
     range: 22, damage: 14, tags: ['creature.stormRoc'], units: 'world', weight: { kind: 'constant', value: 1 } },
   { id: 'far.roc.galeWall', shape: { kind: 'lane', length: 26, width: 6 }, windup: 1.5, active: 0.6, recover: 1.4, cooldown: 3.5,

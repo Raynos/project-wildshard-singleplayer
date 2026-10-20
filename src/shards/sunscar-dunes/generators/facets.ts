@@ -1,4 +1,4 @@
-import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
+import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, Vector3, type BufferAttribute, type Object3D } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import type { ModelFit } from './rows/hulls';
 
@@ -7,8 +7,8 @@ import type { ModelFit } from './rows/hulls';
  * reads its generated models from the retained authoring copies (`assets/models/`) with no game module and no public/
  * file. `facetModel` is the library's `mesh` (every mesh of the GLB, through three's GLTFLoader and the meshopt decoder,
  * as one flat world-space soup: position, the facet colour times its baked AO kept down to `aoFloor`, flat normals);
- * `fitGeometry` and `bindRigid` are the library's own. test/signal-rigs-authoring.test.ts keeps each bit-equal to the
- * library (`@wildshard/sdk/looks/modelLibrary`) over the public copies.
+ * `fitGeometry` is the library's own; rigid binding is the SDK bake's `bindRigid`. test/signal-rigs-authoring.test.ts
+ * keeps each bit-equal to the library (`@wildshard/sdk/looks/modelLibrary`) over the public copies.
  */
 
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
@@ -51,17 +51,6 @@ export function fitGeometry(g: BufferGeometry, o: ModelFit): BufferGeometry {
   const span = o.by === 'height' ? b.max.y - b.min.y : Math.max(b.max.x - b.min.x, b.max.z - b.min.z), k = o.size / Math.max(1e-6, span);
   g.translate(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
   g.scale(k, k, k); g.translate(0, o.floor ?? 0, 0); g.computeBoundingBox(); g.computeBoundingSphere();
-  return g;
-}
-
-/** Bind every triangle rigidly to the bone `boneOf` names for its centroid (bone indices in the caller's skeleton order). */
-export function bindRigid(g: BufferGeometry, boneOf: (x: number, y: number, z: number) => number): BufferGeometry {
-  const p = g.getAttribute('position'), n = p.count, index = new Uint16Array(n * 4), weight = new Float32Array(n * 4);
-  for (let t = 0; t + 2 < n; t += 3) {
-    const bone = boneOf((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3);
-    for (let v = t; v < t + 3; v++) { index[v * 4] = bone; weight[v * 4] = 1; }
-  }
-  g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
   return g;
 }
 
