@@ -1,0 +1,563 @@
+{
+  "scope": "Complete editable Keelmaw source candidate and matched source-render evidence; no acceptance.",
+  "files": [
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/README.md",
+      "sha256": "1432eb14518d4cb418722f9a431c7cb53ccadb7cdb2ec8ba4ee5b316740f2e43",
+      "bytes": 5321
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/audit_framing.py",
+      "sha256": "aebc1399a1f245e77173ba980c8173f48c183d68ba73034b9cbccf9194cf6a63",
+      "bytes": 2019
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/audit_source.py",
+      "sha256": "f1a705382db7d064c6922fb33be6d6132fa964cd893b1178082adbfb642a2f29",
+      "bytes": 7942
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/build_keelmaw.py",
+      "sha256": "0a09992f4fe843707edea34284e68c70894c583bc7efd09ca3d1e827fe2d1eed",
+      "bytes": 17982
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/build_keelmaw_failed_storage.py",
+      "sha256": "5eb704d2756eb5fd4a4f077bbbd94c0d155601348af6b658abb1ba596fb6bea6",
+      "bytes": 17692
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/build_keelmaw_first_form.py",
+      "sha256": "42b2aa16f5057bfabfc66db60c67faa0fd8684e467b96cc232f215ec9e286ce9",
+      "bytes": 17692
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/capture_baseline.py",
+      "sha256": "53121f19b264698a58ef59b2d82b710b5f78420d7a5581aebd4b3ea8d30e3ffe",
+      "bytes": 16628
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/make_review.py",
+      "sha256": "d8c3cd67040d85a9eab956b8668f3eb9b3ffa827d23158b904d587e0c57bf6cd",
+      "bytes": 4620
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/model/construction.json",
+      "sha256": "76cec2721dcc4c42098b701b1948e81b7e968421d5368bf23c4db835427d88ec",
+      "bytes": 36110
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/model/keelmaw-v1.glb",
+      "sha256": "7aafb69c0b96e71306eb7c6cdace2dcdd74fd5d700b57b17eccd33ec7cd2d89c",
+      "bytes": 903388
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/model/metadata.json",
+      "sha256": "29a4c703516fa49dbf214d9907a2ec1a8ad18513fe0fcdc3647443dd81abd2e3",
+      "bytes": 22052
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/model/native-source.json",
+      "sha256": "ff70566f6eb96760a9dbff3a54ecf59e81e4c13b904784a33ac3c1c061191fab",
+      "bytes": 1472128
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/model/payload.bin",
+      "sha256": "65c2186799070e62dc260e8c5de50c0f7ff6fd1124b8d34d4f6745bbc6654e35",
+      "bytes": 62098
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/model/source-audit.json",
+      "sha256": "5031ed72d73c5c48f1c862bca90641165116af50f3a68b83d6daa1984feb8715",
+      "bytes": 20820
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-back.webp",
+      "sha256": "e94088f5052c9c92b0251fc085bf360832753a8b50b228c6c64c3e2797af93d5",
+      "bytes": 7474
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-elevated-back.webp",
+      "sha256": "b0ff81c490f75123049d3f9124ec6a4271a1e9ca3f6c914a9b16c98594a7d705",
+      "bytes": 11702
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-elevated-front.webp",
+      "sha256": "4120af6d919118c924ab5cd8905a68921377caef82ebf0802c8caaf730e96811",
+      "bytes": 13404
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-elevated-left.webp",
+      "sha256": "2a09ce6f6c3dd783ad9f4e7848ffed7c846a092cc17b2c769b1b9d41b0731149",
+      "bytes": 13426
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-elevated-right.webp",
+      "sha256": "5402a4c3d708fef6004b92c9450c22ff875ddfb5556cef5ae8027b15002d5d64",
+      "bytes": 12888
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-front.webp",
+      "sha256": "6d2f834a47c116ffa5572f8f70cac0849f871074d3099404a8f8e7bea60b6ae6",
+      "bytes": 8484
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-hero.webp",
+      "sha256": "237bd99b3cad262a1174e0f636b028d2f76c82cf23d53f2aae4549faf7c02d61",
+      "bytes": 11104
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-left.webp",
+      "sha256": "3710dbaef20ba89eda5b87207b2bfd244acabe5a00d7fdd5cda506fc6831d70d",
+      "bytes": 11156
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-right.webp",
+      "sha256": "ea49d8d8cab866f5eb0268bc411741df26f2aaec5a483da194cd8813c2f8eb1f",
+      "bytes": 9888
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/baseline-top.webp",
+      "sha256": "a4f1d39d9638741a6de1966dd2c4dca8a347b2a6967676ebcfaee33f299112b1",
+      "bytes": 13756
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-back.webp",
+      "sha256": "21ce8372ec6373acf5ce1f2b3355a2be107fd8f5d992a7af7dd7534510b3d2a7",
+      "bytes": 8024
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-elevated-back.webp",
+      "sha256": "e0e95f31bc433b25a8d01d29336a4f401d0d702820221f8f8a445f2a0c476df6",
+      "bytes": 12112
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-elevated-front.webp",
+      "sha256": "f19add459ca68ec7f131f3ac79b3cfb5e2b4bbe4ca936b3446992c59fab7bd48",
+      "bytes": 14346
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-elevated-left.webp",
+      "sha256": "7f7ea0a41cdee9cf49f388456664c03bcfb7e69d58ead7793dbc2536048f1bb5",
+      "bytes": 14806
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-elevated-right.webp",
+      "sha256": "94a217ed66b586c14d7a8fe85081a4455cf6411c2b957f01d94b4e39899becc2",
+      "bytes": 14046
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-front.webp",
+      "sha256": "999efcdd5b2d273518e343bccdb74d0bda5dcf2dc3925317bdbb3976e909c6ce",
+      "bytes": 9466
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-hero.webp",
+      "sha256": "ad709dbec3279b5099e1dd444e684b5621ac71a4d52cafded0426ebf4254211f",
+      "bytes": 12494
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-left.webp",
+      "sha256": "72c00885b70a338af638733c4294f924704d76cdcc47a6d70ff18138d1732270",
+      "bytes": 11920
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-right.webp",
+      "sha256": "d8f98617830042516321643ce3a6a1f0dbd93748c65e58a48b914573257d25ce",
+      "bytes": 10818
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/candidate-top.webp",
+      "sha256": "53107ff2cd37fb7db3b73063d500c62df6791569753413b30e96d24d2ffd3c83",
+      "bytes": 15076
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/capture-receipt.json",
+      "sha256": "fe15cfea00d4b4995e501cd4f4d67a31d9ebe0da8af3cd6ecbe578ee60abd461",
+      "bytes": 27892
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/explorer-matched-nine-board.webp",
+      "sha256": "830c30a776a19abce622657cdf472ce9e79c75cdeed13b633babeafd1a4abab9",
+      "bytes": 102550
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/hero-matched-board.webp",
+      "sha256": "80ebac83e31fbd3653e0fab6a8ea88b4ed695e33b8b82ddac19378ca022c3971",
+      "bytes": 47350
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/review/world-matched-nine-board.webp",
+      "sha256": "f73d30d0dc86bcf906032f8a7e76e9beb7049ef372757906a1baf57404e1f5c2",
+      "bytes": 113718
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/source.test.ts",
+      "sha256": "c062d92f5ae6b8b2c242cc32b3e52faf929bde1e73b110b1b69a415627d9fcf2",
+      "bytes": 1631
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/verification.json",
+      "sha256": "746d3e841b43984a960e4419faf016219392bc36dc6bd79320bc45346d61669c",
+      "bytes": 22902
+    },
+    {
+      "path": "art/driftwood-isle/approved-keelmaw/complete-character-next/vitest.config.ts",
+      "sha256": "ac9794946e2d7b14f5040ebe4361f3265d5be87590376605fd571ffd8bed45c5",
+      "bytes": 368
+    }
+  ],
+  "newBinaryBytes": 1465494,
+  "rawOriginalsForNativeSite": [
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/back.png",
+      "sha256": "dfebede8b5b7f6f4b0e52a125cf31cda041db73610ef85ffd4013a0cf976250d",
+      "bytes": 504515
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/cameras.json",
+      "sha256": "174589f8393875f7a134127de5b8c49e2d14533cd00e0cfbaff262b9412cb379",
+      "bytes": 5907
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/construction.json",
+      "sha256": "a8ab81b1bb0a5eaa985ec9c9f85eee7644bd21f9a525ad73e7d397391e2fb7a5",
+      "bytes": 35332
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-back.png",
+      "sha256": "1756ae3e39e788da8ada7d16bee4a35a73fdaa0c8866568877ddf4cf829296bc",
+      "bytes": 756187
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-front.png",
+      "sha256": "e76cc2287bab12ba17101933c0bfa69fe282c3c18d4039f479a1eae50ae51efb",
+      "bytes": 773359
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-left.png",
+      "sha256": "e558600b2d1acfff6beea2322ecf00fe6366c2ce827d9bc68463d4383a0e93bd",
+      "bytes": 750078
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/elevated-right.png",
+      "sha256": "2f772f9a5ad4e72fe954697b1a9fff4ea56c4b63998e6a218b3df18541bd5faa",
+      "bytes": 746473
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/front.png",
+      "sha256": "4fa6ca3649657b80c0e5d6decddbb923b86abd969bdf4ee0ab873317acd187ec",
+      "bytes": 516766
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/hero.png",
+      "sha256": "b5885556739cf13f9df6141cb70c17626e9194a9de7148a7ba65434d5e5911a4",
+      "bytes": 695979
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/keelmaw-v1.glb",
+      "sha256": "cf69a48b8ed0411f66fd8deb657c71c0c8702c518537bc7d92ed955017c2dd12",
+      "bytes": 932800
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/left.png",
+      "sha256": "205da54af98c267e359f0283d673bf641a47a4a0370df063720c637105f709ea",
+      "bytes": 529936
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/metadata.json",
+      "sha256": "a7fb471cb287e1ae827aa49a2bd01eb9ae3918940e1896a18c0fd8f4e4d8ff23",
+      "bytes": 22066
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/native-source.json",
+      "sha256": "eaaae47bc5316d1278d36295e7c08995e89d7a688888d9f90d25d7909a9a372d",
+      "bytes": 1526834
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/payload.bin",
+      "sha256": "de184ee931dc9218b2514ab279069195de50bb85f3305a81ef4b8c59dd01fd38",
+      "bytes": 61572
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/right.png",
+      "sha256": "c58f2f4f412fd106f02273206dca04d06ba634eb9c5e42133580669cd2804187",
+      "bytes": 528111
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/source-audit.json",
+      "sha256": "4956fa647397807f0ee9052edf6911e5544ded32673dfc33ea19b0c9123e8c4e",
+      "bytes": 19787
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/top.png",
+      "sha256": "056cac7bc8463879da939c788fe4b47d4088ef1e888309944e06ba17d063eb01",
+      "bytes": 789466
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline/verified-framing.json",
+      "sha256": "fa20aeb8227883dd41713e9a965e8aa6bc1a3a03baa1486ff200f9072d48b3e8",
+      "bytes": 3544
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline-audit.log",
+      "sha256": "4956fa647397807f0ee9052edf6911e5544ded32673dfc33ea19b0c9123e8c4e",
+      "bytes": 19787
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/baseline-render.log",
+      "sha256": "6aded1e4249cb808c22fd0e11f0b43e33dccc26ea80c6f6056a1f63725d4a8d1",
+      "bytes": 77489
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/back.png",
+      "sha256": "f156f2b66c56a6dc371c6562d6d9d3f172e17deb42a5ee4408dcd8616569dde8",
+      "bytes": 509292
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/cameras.json",
+      "sha256": "d4243f12172ed4f01a34b41db99628bdef77818f3ca73f4775736799e12f8f95",
+      "bytes": 5927
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/construction.json",
+      "sha256": "a6d64809454032812880c56bb1f649692b8b12d264043cad48fc50e720b92967",
+      "bytes": 34070
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/elevated-back.png",
+      "sha256": "0741c87fc08098ef43b8a77a028ad82e6868eb0a297d4567e5cebbaedfd0fcfa",
+      "bytes": 761444
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/elevated-front.png",
+      "sha256": "ac613c2957eaf7918a384ad752db477257b61582b16f410417ae2ef12f48d8a7",
+      "bytes": 774407
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/elevated-left.png",
+      "sha256": "3c8b1c132eb6e1c6c0abb7d646a63d1cf1654543c2e29ab2476e7dfafabad436",
+      "bytes": 758574
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/elevated-right.png",
+      "sha256": "3c8d7ce0f635d6bd012c427ea6c11a08b2ec88d0bbc9b32e0f503472219a0d64",
+      "bytes": 749574
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/front.png",
+      "sha256": "cf2c78d92c59804ec337aa1917a7f7d2eac8b9cef50c2def4d23d7eb6fe35f3c",
+      "bytes": 521194
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/hero.png",
+      "sha256": "aa8ed50ca03e55e7ee5c298ce03f1f55fc32e3be39deeb6a458367503e5a4528",
+      "bytes": 700495
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/keelmaw-v1.glb",
+      "sha256": "fdfd527167980f51937b784da0f8926104df244af63a9d408cd26dc35e56f17f",
+      "bytes": 898612
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/left.png",
+      "sha256": "6545f2512092622fcbc07e3913b9ebd22a78120603adadb54fa5f33efcd5e3a7",
+      "bytes": 539442
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/metadata.json",
+      "sha256": "d580eae36277728512ec69638a5660218bc7b50ae6da4661cfd4a43d80d9f802",
+      "bytes": 22050
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/native-source.json",
+      "sha256": "86cb4203e731ac24181e5aeadf637aa0cba51a8b9a6453f7072702babdc8a08b",
+      "bytes": 1452920
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/payload.bin",
+      "sha256": "531677a71d7f4c7f624df8617fd417a238627b1331513c83aa1692cdd5bcc147",
+      "bytes": 61078
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/right.png",
+      "sha256": "37d49d92587c9ced301ea019652b191c5597ac40bcf4c1aa569ef14662fc7c3d",
+      "bytes": 532521
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/source-audit.json",
+      "sha256": "44462069cd092bdf441619526aafcd41c9890e886e21390c8a0c9ba1bedce067",
+      "bytes": 19777
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate/top.png",
+      "sha256": "80a8a229f92d7bc916327ecae117e4199ef8ca3f25f8711bbb568a3f2cdcc929",
+      "bytes": 791075
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate-build.log",
+      "sha256": "87683f7c4639a0d4b51381ab5be939f946b1b9a7213a2b64468e34b30e5e8c8c",
+      "bytes": 2865
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/candidate-render.log",
+      "sha256": "af096d44675298088f0797b3399683cd9af661212f7607e138a196986183ece2",
+      "bytes": 77345
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/failed-storage/construction.json",
+      "sha256": "d21f787886bb641480e0dce4a4a0881dc4c2f7fd89472a76d8ac281ea44f6391",
+      "bytes": 34072
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/failed-storage/keelmaw-v1.glb",
+      "sha256": "5ceabf3125f0a2b65c7c2a81de33236bbece6e91cf4d42f11db3bbee1073958e",
+      "bytes": 1098484
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/failed-storage/metadata.json",
+      "sha256": "f6b3ea9b7c17ba9c539a8f6e67682d642fcd38da229d26f34338f43c7638834a",
+      "bytes": 22116
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/failed-storage/native-source.json",
+      "sha256": "4f22e331245518c35eefc6bd731177480ebffd9711c7657f73cd4a2c7a4fef27",
+      "bytes": 1781752
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/failed-storage/payload.bin",
+      "sha256": "f1b42ea52d09d1ed5834a7d6cefa35014792e4c76a8e61ab9eafde34939fedc7",
+      "bytes": 74913
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/back.png",
+      "sha256": "259778c3d0e6598979668a2cfec287b2cdc46e910f8396b82c47bbdc441dd7e1",
+      "bytes": 509392
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/cameras.json",
+      "sha256": "081305a2fbdf19715200550d01a77ac64f9237f4f60396f44998dea2a0b99d7f",
+      "bytes": 5932
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/construction.json",
+      "sha256": "76cec2721dcc4c42098b701b1948e81b7e968421d5368bf23c4db835427d88ec",
+      "bytes": 36110
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/elevated-back.png",
+      "sha256": "08cda45780d27e6c01cc1db6c6d55decc7a7d1bb916c550639192adcc2f99b42",
+      "bytes": 756326
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/elevated-front.png",
+      "sha256": "126576242bfbeff001fd01e7bfa68b5535b2738c0aca92bc9d204651a65abc96",
+      "bytes": 779126
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/elevated-left.png",
+      "sha256": "d703ddc6fea9a319a146b1d473e1e836c096e9a076d70822bf233d09fc08a230",
+      "bytes": 767139
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/elevated-right.png",
+      "sha256": "2f663623afa4afc6fcca4d2d098fc68fc96e8537483c810e2a74622ee54a46b6",
+      "bytes": 750936
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/front.png",
+      "sha256": "9bc987cca41c3dae052ccf893bd4ff054b694ac3d69a6e31e79fda2c9910f22b",
+      "bytes": 531770
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/hero.png",
+      "sha256": "ce34b5142184c04f1ceb1c28acf04b5ea3da0b05ba9a096474202de3dd03af23",
+      "bytes": 702814
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/keelmaw-v1.glb",
+      "sha256": "7aafb69c0b96e71306eb7c6cdace2dcdd74fd5d700b57b17eccd33ec7cd2d89c",
+      "bytes": 903388
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/left.png",
+      "sha256": "37ff696e345258420dde6869371bbad26cb6876163983b48e00c76dc0dd5904b",
+      "bytes": 548006
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/metadata.json",
+      "sha256": "29a4c703516fa49dbf214d9907a2ec1a8ad18513fe0fcdc3647443dd81abd2e3",
+      "bytes": 22052
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/native-source.json",
+      "sha256": "ff70566f6eb96760a9dbff3a54ecf59e81e4c13b904784a33ac3c1c061191fab",
+      "bytes": 1472128
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/payload.bin",
+      "sha256": "65c2186799070e62dc260e8c5de50c0f7ff6fd1124b8d34d4f6745bbc6654e35",
+      "bytes": 62098
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/right.png",
+      "sha256": "81a07474d2240ce86893b3b6b1c82b03decd52e5c6e24a479e2a800d18c7ea1f",
+      "bytes": 535340
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/source-audit.json",
+      "sha256": "5031ed72d73c5c48f1c862bca90641165116af50f3a68b83d6daa1984feb8715",
+      "bytes": 20820
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/top.png",
+      "sha256": "8933d09de437381b39ae9318fac080e96e725bdf74c8226a9b06048571fa6e7e",
+      "bytes": 793783
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final/verified-framing.json",
+      "sha256": "67af86278a5f46b497af52cde6904f25f6ba73137fc06a19ba29b7e3bb325fe1",
+      "bytes": 3548
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final-audit.log",
+      "sha256": "5031ed72d73c5c48f1c862bca90641165116af50f3a68b83d6daa1984feb8715",
+      "bytes": 20820
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final-render.log",
+      "sha256": "42a644262b6dc0e6323b8b17e8d5b2757a5ffb65d40621785053aee2fe1f64bc",
+      "bytes": 77201
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/final-tests.log",
+      "sha256": "44e7c6a7428d6dcd1476130c646aeaacfbdbc46c95dcc82fb32314a8b29c5a8c",
+      "bytes": 866
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/refine.py",
+      "sha256": "9ea994d548e19592cf2417b2d8977397e184ac58e3f2d5112d6d80750b60e8c3",
+      "bytes": 902
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/source-audit.log",
+      "sha256": "44462069cd092bdf441619526aafcd41c9890e886e21390c8a0c9ba1bedce067",
+      "bytes": 19777
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/tests-direct.log",
+      "sha256": "557c00b7d2a2a0e9e0ef6405ea37388443f531441203160bca4972a49be302e9",
+      "bytes": 866
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/tests.log",
+      "sha256": "0d1f61a223d8cf29b29a482592ea6e3f6909730f9fd3da4dce57115ebcebd68c",
+      "bytes": 2907
+    },
+    {
+      "path": "tmp/keelmaw-complete-character/write_source.py",
+      "sha256": "279102798a5277eb29aeaa126afa41721fb0a6c67c93b05759fa286a6db0de75",
+      "bytes": 8696
+    }
+  ]
+}
