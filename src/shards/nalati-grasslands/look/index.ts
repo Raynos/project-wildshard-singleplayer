@@ -3,14 +3,14 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { NalatiWeather } from '../world/installWeather';
-import { PaintedPanorama, PainterKeyLight } from '@wildshard/game/looks/painterlyLook';
+import { PainterlyWorld } from '@wildshard/game/looks/painterlyLook';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
+import captureRows from '../boot/staticCapture.generated.json' with { type: 'json' };
 import { PANO_RIDGE_V } from './panoramaData';
 import { gradeUniforms } from './grade';
 import { fogLut, tint } from './fog';
-import { grassV2Uniforms, grassMood, terrainHeightTexture } from './field';
-import { createStaticCapture, PHONE_STATIC_OFF_CSM } from './capture';
-import { smoothstep } from '@wildshard/engine/core/noise';
+import { grassProfile } from './field';
+import { bakeUniforms } from './capture';
 
 export interface LookV2Ctx {
   game: Game; sky: Sky; weather: NalatiWeather;
@@ -21,41 +21,16 @@ export interface LookV2Ctx {
   forest: Forest;
 }
 
-
+/** Nalati's painterly world (game/looks/painterlyLook): the panorama, the painter's key, the static capture and the grass's mood,
+ *  from the boot rows, hearing the grade and the live re-grade (fog.ts `tint`) and following the weather's hour and storm. */
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
-  const { game, sky, weather } = ctx;
-  const scope = game.levelScope;
-  // the painted panorama (game/looks/painterlyLook): the dome and the cloud sea, hearing the grade and the live re-grade
+  const { game, sky, weather } = ctx, rows = paintedTextures;
   const uniforms = Object.fromEntries(Object.entries({ ...gradeUniforms, uV2KeyTint: tint.key, uV2Moon: tint.moon, uV2Light: tint.light, uV2Veil: tint.veil, uV2VeilCol: tint.veilColour, uV2Flash: tint.flash }).filter(([key]) => key !== 'uV2LookSat'));
-  const panorama = await PaintedPanorama.build(game.scene, Math.min(8, game.renderer.capabilities.getMaxAnisotropy()), scope,
-    'panorama' in paintedTextures ? paintedTextures.panorama : null, { ridge: PANO_RIDGE_V, lut: fogLut, uniforms });
-  if (panorama === null) return;
-  ctx.groups['skyV2'] = panorama.dome;
-  const rigDome = weather.rig.dome;
-  const cheat = new PainterKeyLight('key' in paintedTextures ? paintedTextures.key : null, sky, game.level.grade.saturation, gradeUniforms.uV2LookSat);
-  // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
-  const bake = createStaticCapture(game.renderer, game.scene, terrainHeightTexture(), scope);
-  for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
-  bake.add(ctx.forest.group);
-  // the generated models' shading (glbPaint.ts; N20, the user's pick): the clones the builders made of a model get their own bake
-  // phone: the realtime shadow map now holds only what moves (the creatures, the player — bake.ts), so 512² does
-  if (PHONE_STATIC_OFF_CSM) {
-    sky.csm.shadowMapSize = 512;
-    for (const l of sky.csm.lights) { l.shadow.mapSize.set(512, 512); l.shadow.map?.dispose(); l.shadow.map = null; }
-  }
-  let sweepT = 0;
-  ctx.updates.push((dt) => {
-    sweepT -= dt;
-    if (sweepT <= 0) { sweepT = 2; bake.sweep(); } // streamed-in casters join the bake (and leave the phone's CSM)
-    const look = weather.look, w = weather.air;
-    cheat.apply(look); // the painter's key: swung round + lifted, the fill lower and cooler
-    bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
-    // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)
-    const night = panorama.update(look.sunDir, weather.clock.sunElevation);
-    grassV2Uniforms.uSunView.value.copy(look.sunDir); // the grass glows looking into the (painted, real) sun
-    grassMood(night, smoothstep(12, 0, weather.clock.sunElevation) * (1 - night), w.overcast); // the grass darkens + greys with the hour / storm
-    rigDome.visible = night > 0.001;
-    // the sun is painted; the rig's disc stays only as the moon
-    if (look.moon <= 0) sky.sunDisc.visible = false;
-  });
+  const world = await PainterlyWorld.build('world' in rows ? rows.world : null, { renderer: game.renderer, scene: game.scene, scope: game.levelScope, sky, stars: weather.rig.dome,
+    groups: ctx.groups, casters: [ctx.forest.group], grass: grassProfile, capture: { rows: captureRows, uniforms: bakeUniforms },
+    panorama: { rows: 'panorama' in rows ? rows.panorama : null, ridge: PANO_RIDGE_V, lut: fogLut, uniforms },
+    key: { rows: 'key' in rows ? rows.key : null, daySaturation: game.level.grade.saturation, saturation: gradeUniforms.uV2LookSat } });
+  if (world === null) return;
+  ctx.groups['skyV2'] = world.panorama.dome;
+  ctx.updates.push(dt => { world.update(dt, { look: weather.look, sunElevation: weather.clock.sunElevation, overcast: weather.air.overcast }); });
 }

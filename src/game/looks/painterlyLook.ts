@@ -1,6 +1,6 @@
 /** The painterly look host's world pieces (G478 point 3, with game/looks/paintedLook): a level that paints its own world
  * (Nalati's panorama painterly) declares them as rows; renderer construction and lifetime hooks stay here. */
-import { BufferGeometry, ClampToEdgeWrapping, Color, Material, Vector3, Mesh, MeshLambertMaterial, SphereGeometry, type IUniform, type Scene, type Texture } from 'three';
+import { BufferGeometry, ClampToEdgeWrapping, Color, Material, Vector3, type Object3D, Mesh, MeshLambertMaterial, SphereGeometry, type IUniform, type Scene, type Texture } from 'three';
 import * as v from 'valibot';
 import type { TerrainPainter } from '@wildshard/engine/render/look';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -20,7 +20,9 @@ import { loadSpecimenTexture } from '../models/specimenCatalogue';
 import { createClientScene } from '../plugin/ui';
 import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
-import type { StaticCaptureUniforms } from './staticCapture';
+import { StaticCapture, type StaticCaptureUniforms } from './staticCapture';
+import type { GrassPresentationProfile } from './grassPresentation';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 
 const finite = v.pipe(v.number(), v.finite());
 const shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
@@ -160,5 +162,54 @@ export class PainterKeyLight {
     rig.hemi.groundColor.copy(look.hemiGround).lerp(mixed.copy(this.ground), r.mix);
     rig.hemi.intensity = look.hemiIntensity * r.fill;
     this.saturation.value = Math.max(0, 1 + (look.saturation - this.daySaturation));
+  }
+}
+
+/**
+ * A painterly world (the painterly look host, G478): the panorama and the painter's key over a static capture of the
+ * level's `casters` (its groups by name and the caller's extra roots), swept every `sweep` s for streamed-in casters; on a
+ * tier whose capture rows take statics off the realtime map, that map shrinks to `liveMap` texels. Each frame the key
+ * swings, the capture re-keys from it, the panorama fades to night, the grass faces the sun and darkens with the hour
+ * (dusk over `dusk` [from, to] degrees of sun) and the storm, the rig's night sky shows only at night, and the rig's sun
+ * disc stays only as the moon.
+ */
+export const PainterlyWorldSchema = v.strictObject({ casters: v.pipe(v.array(shapeId), v.maxLength(16)), sweep: v.pipe(finite, v.minValue(0.1)),
+  liveMap: v.pipe(finite, v.integer(), v.minValue(64), v.maxValue(4096)), dusk: v.tuple([finite, finite]) });
+/** What the world reads each frame: the hour's look, the sun's elevation (degrees) and the storm's overcast. */
+export interface PainterlyFrame { readonly look: PainterSkyLook; readonly sunElevation: number; readonly overcast: number }
+/** The static capture as the world drives it (a `StaticCapture` from the level's capture rows, unless one is lent). */
+export interface PainterlyCapture { readonly staticOffCsm: boolean; add: (root: Object3D) => void; sweep: () => void; update: (keyDir: Vector3) => void }
+export class PainterlyWorld {
+  private sweepT = 0;
+  private constructor(private readonly rows: v.InferOutput<typeof PainterlyWorldSchema>, private readonly sky: SkyRig, private readonly capture: PainterlyCapture,
+    readonly panorama: PaintedPanorama, private readonly key: PainterKeyLight, private readonly grass: GrassPresentationProfile, private readonly stars: Object3D) {}
+  static async build(input: unknown, ports: { readonly renderer: Renderer; readonly scene: Scene; readonly scope: Scope; readonly sky: SkyRig; readonly stars: Object3D;
+    readonly groups: Readonly<Record<string, Object3D>>; readonly casters: readonly Object3D[]; readonly grass: GrassPresentationProfile;
+    readonly capture: { readonly rows: unknown; readonly uniforms: StaticCaptureUniforms } | { readonly lent: PainterlyCapture }; readonly panorama: { readonly rows: unknown } & Parameters<typeof PaintedPanorama.build>[4];
+    readonly key: { readonly rows: unknown; readonly daySaturation: number; readonly saturation: IUniform<number> } }): Promise<PainterlyWorld | null> {
+    const rows = v.parse(PainterlyWorldSchema, input), { renderer, scene, scope, sky } = ports;
+    const panorama = await PaintedPanorama.build(scene, Math.min(8, renderer.capabilities.getMaxAnisotropy()), scope, ports.panorama.rows, ports.panorama);
+    if (panorama === null) return null;
+    const key = new PainterKeyLight(ports.key.rows, sky, ports.key.daySaturation, ports.key.saturation);
+    const capture = 'lent' in ports.capture ? ports.capture.lent : new StaticCapture(renderer, scene, ports.grass.heightTexture(), scope, ports.capture.rows, ports.capture.uniforms);
+    for (const name of rows.casters) { const group = ports.groups[name]; if (group !== undefined) capture.add(group); }
+    for (const root of ports.casters) capture.add(root);
+    if (capture.staticOffCsm) {
+      sky.csm.shadowMapSize = rows.liveMap;
+      for (const light of sky.csm.lights) { light.shadow.mapSize.set(rows.liveMap, rows.liveMap); light.shadow.map?.dispose(); light.shadow.map = null; }
+    }
+    return new PainterlyWorld(rows, sky, capture, panorama, key, ports.grass, ports.stars);
+  }
+  update(dt: number, frame: PainterlyFrame): void {
+    const look = frame.look;
+    this.sweepT -= dt;
+    if (this.sweepT <= 0) { this.sweepT = this.rows.sweep; this.capture.sweep(); }   // streamed-in casters join the capture
+    this.key.apply(look);
+    this.capture.update(this.sky.sunDir);   // after the key, so the captured shadows fall from it
+    const night = this.panorama.update(look.sunDir, frame.sunElevation);
+    this.grass.uniforms.uSunView.value.copy(look.sunDir);
+    this.grass.mood(night, smoothstep(this.rows.dusk[0], this.rows.dusk[1], frame.sunElevation) * (1 - night), frame.overcast);
+    this.stars.visible = night > 0.001;
+    if (look.moon <= 0) this.sky.sunDisc.visible = false;   // the sun is painted; the disc stays only as the moon
   }
 }

@@ -118,6 +118,9 @@ export class StaticCapture {
     this.dirty = true;
   }
 
+  /** this tier's statics are off the realtime shadow map (the capture is their shadow): it need only hold what moves */
+  get staticOffCsm(): boolean { return this.row.staticOffCsm[TIER]; }
+
   /** the groups stream in (the dressing, the GLB props): pick up meshes added since — cheap, call it every second or two */
   sweep(): void {
     let n = 0;

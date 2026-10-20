@@ -68,5 +68,8 @@ const panorama = { dome: { name: 'sky-dome-v2', look: 'nalati-panorama', image: 
 // it, so the light that shades the world swings 40° further round and 15° higher (easing onto the real sun as it sets); the
 // fill lower and cooler, a blue sky above and an olive bounce below
 const key = { turn: 40, lift: 15, ease: [-1, 12], sky: [0.4, 0.46, 0.62], ground: [0.3, 0.3, 0.16], mix: 0.4, fill: 0.95 };
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key }));
+// the painterly world (game/looks/painterlyLook PainterlyWorld): the static capture of the places, the dressing, the outcrops
+// and the crags (and the spruce), swept every 2 s; the phone's live shadow map holds only what moves at 512²; dusk over 12°…0°
+const world = { casters: ['pois', 'dressing', 'outcrops', 'crags'], sweep: 2, liveMap: 512, dusk: [12, 0] };
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key, world }));
 writer.finish();
