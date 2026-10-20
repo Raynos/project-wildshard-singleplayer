@@ -52,9 +52,9 @@
       "installNativeBootRoster",
       "installNativePopulationHunt"
     ],
+    "@wildshard/game/weather/continuation": ["installWeatherContinuation"],
     "@wildshard/game/weather/reactions": [
-      "nativeWeatherBundle",
-      "installNativeWeatherWorld"
+      "nativeWeatherBundle"
     ],
     "@wildshard/engine/world/dayCycle": [
       "DayCycle"
@@ -782,8 +782,8 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/weather/reactions",
-              "installNativeWeatherWorld"
+              "@wildshard/game/weather/continuation",
+              "installWeatherContinuation"
             ]
           },
           {

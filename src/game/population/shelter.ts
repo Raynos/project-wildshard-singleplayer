@@ -3,7 +3,6 @@ import { projectedSite } from './projectedSites';
 import type { SimHost } from '@wildshard/engine/sim';
 import { populationRoster } from './roster';
 import { populationEnvironment } from './environment';
-import { nativeWeatherContinuation } from '../weather/continuation';
 import { parsePopulationShelter, type HerdShelterRows } from '@wildshard/format/herdShelter';
 import * as v from 'valibot';
 
@@ -129,11 +128,11 @@ export function installNativeHerdShelter(host: SimHost, trees: readonly NativeSh
   } };
   const shelter = new HerdShelter(source, trees.map(([x, z, r, height, cover]) => ({ x, z, r, height, cover })), rows.look, ReturnProgram.native(host, rows.program));
   const publish = (): void => {
-    const rain = nativeWeatherContinuation(host, rows.weather).rain, goals = environment.wanderGoals;
+    const rain = host.events.ask('weather.rain', { id: rows.weather, rain: 0 }).rain, goals = environment.wanderGoals;
     goals.length = source.herds.length;
     for (let i = 0; i < goals.length; i++) goals[i] = shelter.wanderGoal(i, rain);
   };
-  host.onStep(rows.step, dt => { shelter.update(dt, nativeWeatherContinuation(host, rows.weather).rain); publish(); }, {
+  host.onStep(rows.step, dt => { shelter.update(dt, host.events.ask('weather.rain', { id: rows.weather, rain: 0 }).rain); publish(); }, {
     snapshot: () => shelter.snapshot(), restore: value => { shelter.restore(value); publish(); },
   });
   return shelter;

@@ -9,7 +9,8 @@ import { NativePopulationField } from '../src/game/population/environment';
 import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { installNativeBootRoster } from '../src/game/riding/nativePopulation';
 import { eliteBindings } from '../src/game/shardfile/eliteEncounters';
-import { nativeWeatherBundle, installNativeWeatherWorld } from '../src/game/weather/reactions';
+import { nativeWeatherBundle } from '../src/game/weather/reactions';
+import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import storm from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
@@ -38,7 +39,7 @@ test('orchard native boot joins its own bake, raster senses and weather continua
     const program = parseWeatherProgram({ ...pine,registers: { ...pine.registers,ready: 0,armed: 0,wait: 0,flash: 0,bearing: 2,low: 0,lowFor: 0 } });
     const reactions = { version: 1,hz: 5,script: storm.script,bytes: storm.bytes,active: ['rain'],flash: 'flash',shelter: { margin: 1,circles: [] },points: [],steps: [{ signal: 'tick',observe: [['dt','dt'],['armed','register.armed'],['pendingT','register.wait'],['ready','register.ready'],['storm','state.rain'],['gust','state.rain'],['bearing','register.bearing'],['flash','register.flash']],random: true,write: [['flash','register.flash']],emit: [] }] };
     const env = new NativeWildEnvironment(field.grass.field,field.grass.trample,{ wind: { x: 1,z: 0,strength: .5 },flatten: .5 });
-    const weather = installNativeWeatherWorld(host,{ program: nativeWeatherBundle({ weather: program,reactions }),clock: { sunElevation: 0 },env,
+    const weather = installWeatherContinuation(host,{ program: nativeWeatherBundle({ weather: program,reactions }),clock: { sunElevation: 0 },env,
       bake: { trees: [[3,4,1]],tops: [12] },rows: { step: 'orchard.weather',scareRadius: 20,windReference: 8,
         light: { base: .2,storm: .4,ramps: [[-10,10,.6]] },hit: { ask: 'weather.damage',tags: ['env.rain'],cause: { kind: 'rain',label: 'Rain',text: 'Rain' },toast: 'Rain' } } });
     expect(env.light).toBeCloseTo(.5); weather.storm.weather.force('rain',.2); weather.storm.weather.hold = true;
