@@ -16,6 +16,7 @@ import sys
 import bmesh
 import bpy
 import numpy as np
+from mathutils import Vector
 
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
@@ -570,8 +571,113 @@ for obj in bpy.context.scene.objects:
             value = (1.0 if route else tone) * occlusion
             colours.data[loop].color = (value, value, value, 1)
 
+# G532 (4): the ground's baked light, drawn by the platform's baked tiles (format/bakedTiles) from ground.glb; world.glb
+# keeps the ground as collision, edge and far-proxy ground only (`undrawn` in shard.config.ts). Cycles bakes two maps on
+# the ground's planar cell UV: the sky's occlusion within 5 m (every structure occludes), and the indirect light of the
+# game's fixed mid-morning sun (look.day: hour 9.6, 40 degrees up, azimuth 215) with a black sky, no albedo.
+GROUND = [obj for obj in bpy.context.scene.objects if obj.name.startswith('ws_terrain_ground')]
+scene = bpy.context.scene
+scene.render.engine = 'CYCLES'
+prefs = bpy.context.preferences.addons['cycles'].preferences
+prefs.compute_device_type = 'METAL'
+prefs.get_devices()
+for device in prefs.devices:
+    device.use = device.type == 'METAL'
+scene.cycles.device = 'GPU' if any(device.use for device in prefs.devices) else 'CPU'
+scene.cycles.samples = 64
+scene.cycles.use_denoising = False
+scene.cycles.max_bounces = 4
+scene.cycles.diffuse_bounces = 3
+scene.cycles.glossy_bounces = 0
+scene.cycles.transmission_bounces = 0
+sky = bpy.data.worlds.new('World')
+scene.world = sky
+sky.use_nodes = True
+sky.node_tree.nodes['Background'].inputs['Color'].default_value = (0, 0, 0, 1)
+LIGHTMAP, BOUNCE_GAIN = 1024, 2.0
+maps = {}
+for name in ('lm-ao', 'lm-bounce'):
+    maps[name] = bpy.data.images.new(name, LIGHTMAP, LIGHTMAP, alpha=False, float_buffer=True)
+    maps[name].colorspace_settings.name = 'Non-Color'
+for surface in (clay, road):
+    node = surface.node_tree.nodes.new('ShaderNodeTexImage')
+    node.name = 'BAKE'
+    surface.node_tree.nodes.active = node
+bake = scene.render.bake
+bake.margin, bake.margin_type, bake.use_clear, bake.target = 4, 'EXTEND', True, 'IMAGE_TEXTURES'
+bpy.ops.object.select_all(action='DESELECT')
+for obj in GROUND:
+    obj.select_set(True)
+bpy.context.view_layer.objects.active = GROUND[0]
+
+
+def baked(name, kind, **options):
+    for surface in (clay, road):
+        surface.node_tree.nodes['BAKE'].image = maps[name]
+    bpy.ops.object.bake(type=kind, **options)
+
+
+sky.light_settings.distance = 5.0
+baked('lm-ao', 'AO')
+# toward the sun in game space (x, y up, z) is (0.436, 0.649, -0.623); Blender's axes are (x, -z, y)
+sun = bpy.data.objects.new('sun', bpy.data.lights.new('sun', 'SUN'))
+sun.data.energy, sun.data.angle = 1.0, math.radians(1.5)
+scene.collection.objects.link(sun)
+sun.rotation_mode = 'QUATERNION'
+sun.rotation_quaternion = Vector((0, 0, 1)).rotation_difference(Vector((0.436, 0.623, 0.649)).normalized())
+baked('lm-bounce', 'DIFFUSE', pass_filter={'INDIRECT'})
+for name, gain in (('lm-ao', 1.0), ('lm-bounce', BOUNCE_GAIN)):
+    pixels = np.empty(LIGHTMAP * LIGHTMAP * 4, np.float32)
+    maps[name].pixels.foreach_get(pixels)
+    pixels = pixels.reshape(-1, 4)
+    pixels[:, :3] = np.clip(pixels[:, :3] * gain, 0, 1)
+    saved = bpy.data.images.new(f'{name}.png', LIGHTMAP, LIGHTMAP, alpha=False)
+    saved.colorspace_settings.name = 'Non-Color'
+    saved.pixels.foreach_set(pixels.ravel())
+    saved.filepath_raw, saved.file_format = os.path.join(out, f'{name}.png'), 'PNG'
+    saved.save()
+    print(f'[blender-template] {name} mean {pixels[:, :3].mean() / gain:.3f}')
+for surface in (clay, road):
+    surface.node_tree.nodes.remove(surface.node_tree.nodes['BAKE'])
+bpy.data.objects.remove(sun)
+
 bpy.ops.export_scene.gltf(export_vertex_color='ACTIVE', filepath=os.path.join(out, 'world.glb'), export_format='GLB',
                           export_yup=True, export_apply=True, export_materials='EXPORT',
                           export_animations=False, export_cameras=False, export_lights=False,
                           export_extras=False, export_image_format='AUTO')
 print('[blender-template] exported the filled clay cell')
+
+# ground.glb: the ground in 4 x 4 tiles of 125 m (one draw each), its vertex colours carrying the clay and road tones
+# (the baked-tiles look is one material), the planar cell UV the lightmaps read, no materials.
+tiles = {}
+for obj in GROUND:
+    corners = [obj.matrix_world @ vertex.co for vertex in obj.data.vertices]
+    cx, cy = sum(c.x for c in corners) / len(corners), sum(c.y for c in corners) / len(corners)
+    copy = obj.copy()
+    copy.data = obj.data.copy()
+    scene.collection.objects.link(copy)
+    data = copy.data
+    colours = data.color_attributes['Col']
+    for face in data.polygons:
+        base = data.materials[face.material_index].node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value
+        for loop in face.loop_indices:
+            value = colours.data[loop].color
+            colours.data[loop].color = (value[0] * base[0], value[1] * base[1], value[2] * base[2], 1)
+    tiles.setdefault((min(3, int((cx + 250) // 125)), min(3, int((-cy + 250) // 125))), []).append(copy)
+bpy.ops.object.select_all(action='DESELECT')
+for (ix, iz), parts in sorted(tiles.items()):
+    bpy.ops.object.select_all(action='DESELECT')
+    for part in parts:
+        part.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]
+    bpy.ops.object.join()
+    parts[0].name = parts[0].data.name = f'ground_{ix}_{iz}'
+    parts[0].data.materials.clear()
+bpy.ops.object.select_all(action='DESELECT')
+for obj in scene.objects:
+    if obj.name.startswith('ground_'):
+        obj.select_set(True)
+bpy.ops.export_scene.gltf(export_vertex_color='ACTIVE', filepath=os.path.join(out, 'ground.glb'), export_format='GLB',
+                          use_selection=True, export_yup=True, export_apply=True, export_materials='NONE',
+                          export_animations=False, export_cameras=False, export_lights=False, export_extras=False)
+print(f'[blender-template] exported {len(tiles)} lightmapped ground tiles')

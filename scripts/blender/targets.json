@@ -195,16 +195,34 @@
    ],
    "lock": true,
    "build": [
-    "world.glb"
+    "world.glb",
+    "ground.glb",
+    "lm-ao.png",
+    "lm-bounce.png"
    ],
    "copy": [
     [
      "world.glb",
      "src/shards/blender-template/assets/world.glb"
+    ],
+    [
+     "ground.glb",
+     "src/shards/blender-template/assets/ground.glb"
+    ],
+    [
+     "lm-ao.png",
+     "src/shards/blender-template/assets/lm-ao.png"
+    ],
+    [
+     "lm-bounce.png",
+     "src/shards/blender-template/assets/lm-bounce.png"
     ]
    ],
    "outputs": [
-    "src/shards/blender-template/assets/world.glb"
+    "src/shards/blender-template/assets/world.glb",
+    "src/shards/blender-template/assets/ground.glb",
+    "src/shards/blender-template/assets/lm-ao.png",
+    "src/shards/blender-template/assets/lm-bounce.png"
    ],
    "feeds": [
     "src/shards/blender-template/shard.config.ts"
