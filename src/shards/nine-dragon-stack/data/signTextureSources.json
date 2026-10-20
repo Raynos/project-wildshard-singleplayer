@@ -1,0 +1,56 @@
+[
+  {
+    "kind": "product",
+    "file": {
+      "phone": "signs/atlas-phone-mono.ktx2",
+      "desktop": "signs/atlas-desktop-mono.ktx2"
+    },
+    "label": "Nine Dragon baked sign atlas (GPU only)",
+    "sampler": {
+      "filter": "linear",
+      "mips": "gpu",
+      "anisotropy": 8
+    },
+    "looks": [
+      "nine-neon"
+    ],
+    "param": "mono",
+    "publish": "signs.mono"
+  },
+  {
+    "kind": "product",
+    "file": {
+      "phone": "signs/atlas-phone-colour.ktx2",
+      "desktop": "signs/atlas-desktop-colour.ktx2"
+    },
+    "label": "Nine Dragon baked sign atlas (GPU only)",
+    "sampler": {
+      "filter": "linear",
+      "mips": "gpu",
+      "anisotropy": 8
+    },
+    "looks": [
+      "nine-neon"
+    ],
+    "param": "colour",
+    "publish": "signs.colour"
+  },
+  {
+    "kind": "product",
+    "file": {
+      "phone": "signs/glyphs-phone.ktx2",
+      "desktop": "signs/glyphs-desktop.ktx2"
+    },
+    "label": "Nine Dragon baked sign atlas (GPU only)",
+    "sampler": {
+      "filter": "linear",
+      "mips": "gpu",
+      "anisotropy": 4
+    },
+    "looks": [
+      "nine-neon-tube"
+    ],
+    "param": "sdf",
+    "publish": "signs.sdf"
+  }
+]

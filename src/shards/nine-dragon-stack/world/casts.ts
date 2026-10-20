@@ -1,9 +1,6 @@
-import { PlaneGeometry, InstancedBufferAttribute, InstancedMesh, type Material, type Object3D, type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3, LinearFilter, LinearMipmapLinearFilter } from 'three';
+import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
+import { PlaneGeometry, InstancedBufferAttribute, InstancedMesh, type Material, type Object3D, type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3 } from 'three';
 import type { GeometryBoot, SignAtlas, CastChannels } from '../runtime/productSections.generated';
-import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
-import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
-import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Emitter } from '../runtime/looks/emitterCards';
 import { createModelLibrary, type ModelGeometryPool } from '@wildshard/game/plugin/geometry';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -57,8 +54,8 @@ export interface BakedSigns {
   readonly geometry: (name: string) => BufferGeometry;
 }
 
-/** Existing rest-pool and KTX2 readers; all painting, packing and face construction are offline. */
-export async function loadSignAtlas(tier: 'phone' | 'desktop', renderer: Renderer): Promise<BakedSigns> {
+/** Existing rest-pool reader and product texture handles; painting, packing and face construction are offline. */
+export async function loadSignAtlas(tier: 'phone' | 'desktop', scenes: SceneHandles): Promise<BakedSigns> {
   const product = await loadFirstPartyProduct('nine-dragon-stack');
   const rows = JSON.parse(new TextDecoder().decode(await product.file(`signs/atlas-${tier}.json`)), layoutReviver) as SignAtlas;
   const libraries = await Promise.all(rows.pools.map(async pool => {
@@ -73,20 +70,8 @@ export async function loadSignAtlas(tier: 'phone' | 'desktop', renderer: Rendere
       await library.preload(); return library;
     } finally { URL.revokeObjectURL(url); }
   }));
-  const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
-  const read = async (name: 'mono' | 'colour' | 'sdf'): Promise<Texture> => {
-    const bytes = await product.file(name === 'sdf' ? `signs/glyphs-${tier}.ktx2` : `signs/atlas-${tier}-${name}.ktx2`);
-    const texture = await new Promise<Texture>((resolve, reject) => { loader.parse(Uint8Array.from(bytes).buffer, resolve, reject); });
-    texture.flipY = false; texture.generateMipmaps = true; texture.mipmaps = [];
-    texture.minFilter = LinearMipmapLinearFilter; texture.magFilter = LinearFilter; texture.anisotropy = name === 'sdf' ? 4 : 8;
-    texture.needsUpdate = true;
-    gpuOnlyTexture(texture, 'Nine Dragon baked sign atlas (GPU only)');
-    return texture;
-  };
-  let mono: Texture, colour: Texture, sdf: Texture;
-  try { [mono, colour, sdf] = await Promise.all([read('mono'), read('colour'), read('sdf')]); }
-  finally { loader.dispose(); }
-  return { keys: rows.keys, glyphLayout: rows.glyphLayout, textures: { mono, colour, sdf },
+  const textures = { mono: scenes.texture('signs.mono'), colour: scenes.texture('signs.colour'), sdf: scenes.texture('signs.sdf') };
+  return { keys: rows.keys, glyphLayout: rows.glyphLayout, textures,
     copies: rows.copies,
     neonLights: rows.neonLights.map(({ at, color, ...rest }) => ({ ...rest, at: new Vector3(...at), color: new Color(...color) })),
     lights: rows.lights.map(({ at, color, ...rest }) => ({ ...rest, at: new Vector3(...at), color: new Color(...color) })),

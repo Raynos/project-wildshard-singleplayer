@@ -106,10 +106,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
-  const atlas = await loadSignAtlas(tier, renderer);
+  const atlas = await loadSignAtlas(tier, opts.scenes);
   const signs = atlas;
   // the neon calligraphy: the 'nine-neon-board' and 'nine-neon-tube' looks (data/lookGraphs.json), fogged by the silk
-  setLentTexture('nine-neon-tube', 'sdf', atlas.textures.sdf);
   const { fontPx, spread, skeletonSpread } = atlas.glyphLayout;
   setLentParam('nine-neon-tube', 'spread', [spread / fontPx, skeletonSpread / fontPx]);
   shared.u.uGroundY.value = Y0;
@@ -266,8 +265,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
   // the sign atlas's lightboxes, lights and beacons: the 'nine-neon' look (data/lookGraphs.json), fogged by the silk
   const neon = lentLook('nine-neon');
-  setLentTexture('nine-neon', 'mono', atlas.textures.mono);
-  setLentTexture('nine-neon', 'colour', atlas.textures.colour);
   nd.look.neon = { mat: neon, atlas };
   const movers = (key: string, programs: readonly unknown[], id: string): RunningMover[] => placeMovers(models.model(key), programs, { ctx: models.ctx, parent: root, id, name: 'movers' });
   const drones = movers('drone', declarations.clientChannels.slice(2), 'nds-drones');
