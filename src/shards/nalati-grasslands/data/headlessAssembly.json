@@ -295,6 +295,12 @@
             "$ref": [
               "weatherJson"
             ]
+          },
+          {
+            "$ref": [
+              "constants",
+              "nativeShelters"
+            ]
           }
         ]
       }

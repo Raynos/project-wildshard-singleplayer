@@ -187,9 +187,10 @@ export function installWeatherReactions(air: WeatherContinuation, rows: WeatherR
 }
 
 /** Admit a phase program and its reaction guest as one data-only native bundle. */
-export function nativeWeatherBundle(input: unknown): { weather: WeatherProgram; reactions: WeatherReactionRows } {
+export function nativeWeatherBundle(input: unknown, circles?: unknown): { weather: WeatherProgram; reactions: WeatherReactionRows } {
   const data = v.parse(v.object({ weather: v.unknown(),reactions: v.unknown() }),input), weather = parseWeatherProgram(data.weather);
-  return { weather,reactions: parseWeatherReactions(data.reactions,weather) };
+  const reactions=parseWeatherReactions(data.reactions,weather);
+  return { weather,reactions:circles===undefined?reactions:parseWeatherReactions({...reactions,shelter:{...reactions.shelter,circles}},weather) };
 }
 /** Client-only intake of the same damage policy used by native weather. The
  * entered lifetime owns its subscription; no content damage callback binds. */
@@ -204,12 +205,12 @@ export function bindPageWeatherHit(ctx:ShardContext,player:Player,storm:WeatherR
  * through the native population/combat authorities, never content callbacks. */
 export function installNativeWeatherWorld(host: SimHost, ports: { program: ReturnType<typeof nativeWeatherBundle>; rows: unknown;
   clock: Pick<DayCycleClock,'sunElevation'>; env: NativeWildEnvironment;
-  bake: { readonly trees: readonly (readonly [number,number,number])[]; readonly tops: readonly number[]; readonly yurts: readonly (readonly [number,number,number])[] } }): { wind: Wind; storm: WeatherReactions } {
+  bake: { readonly trees: readonly (readonly [number,number,number])[]; readonly tops: readonly number[] } }): { wind: Wind; storm: WeatherReactions } {
   const rows = v.parse(WeatherWorldSchema,ports.rows), { env,clock,bake,program } = ports;
   if (!(env instanceof NativeWildEnvironment) || bake.trees.length !== bake.tops.length) throw new Error('Invalid native weather observations');
   const wind = new Wind({ value: 1 });
   const storm = installWeatherReactions(installWeatherContinuation(host,program.weather,{ phase: 0 },undefined),
-    { ...program.reactions,points: bake.trees.map(([x,z],index) => [x,z,bake.tops[index] ?? 0]),shelter: { ...program.reactions.shelter,circles: bake.yurts.map(([x,z,r]) => [x,z,r]) } },{ host });
+    { ...program.reactions,points: bake.trees.map(([x,z],index) => [x,z,bake.tops[index] ?? 0]) },{ host });
   Object.assign(storm.inputs,{ calmSpeed: wind.speed,calmDir: wind.dir,calmGust: wind.gustiness,titanHeld: 0,crouched: 0,mounted: 0 });
   storm.on('strike',event => { const population = nativePopulationOf(host); if (population === undefined) throw new Error('Missing native weather population'); population.scare(event['x'] ?? 0,event['z'] ?? 0,rows.scareRadius); });
   storm.on('wind',event => { wind.setTarget(event['speed'] ?? wind.speed,event['dir'] ?? wind.dir,event['gustiness'],event['seconds']); });
