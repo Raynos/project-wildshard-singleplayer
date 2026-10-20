@@ -21,4 +21,6 @@ export interface CatalogueParams {
   readonly fencePost: Record<string, never>;
   readonly signpost: SignpostParams;
   readonly plankStep: PlankStepParams;
+  /** how far in from the cell edge the deck runs, and the seabed under its columns (own y) */
+  readonly entryDeck: { readonly run: number; readonly bed: number };
 }

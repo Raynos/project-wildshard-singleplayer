@@ -17634,7 +17634,11 @@
         "src/shards/driftwood-isle/generators/reefFiles.ts",
         "src/shards/driftwood-isle/data/reefBlobs.generated.json",
         "src/sdk/bake/source-loader.mjs",
-        "src/shards/driftwood-isle/data/cargoScenes.generated.json"
+        "src/shards/driftwood-isle/data/cargoScenes.generated.json",
+        "src/shards/driftwood-isle/generators/entryDeckGeometry.ts",
+        "src/shards/driftwood-isle/data/entryDeckBoxes.json",
+        "src/shards/driftwood-isle/data/entryDecks.generated.json",
+        "src/format"
       ],
       "outputs": [
         "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",

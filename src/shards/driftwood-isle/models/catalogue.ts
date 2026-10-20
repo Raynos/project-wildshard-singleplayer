@@ -7,6 +7,7 @@ const catalogue = defineSpecimenCatalogue<CatalogueParams>(data.catalogue);
 export const fencePost = catalogue.model('fencePost');
 export const signpost = catalogue.model('signpost');
 export const plankStep = catalogue.model('plankStep');
+export const entryDeck = catalogue.model('entryDeck');
 
 export const sites = defineWorldSceneCatalogue(data.siteCatalogue);
 export const hut = sites.model('hut');

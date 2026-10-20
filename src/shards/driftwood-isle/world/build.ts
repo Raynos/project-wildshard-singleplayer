@@ -12,7 +12,7 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  */
 import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { sites, fencePost, signpost, plankStep, shoreBoulder, smallRock } from '../models/catalogue';
+import { sites, fencePost, signpost, plankStep, shoreBoulder, smallRock, entryDeck } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -41,7 +41,6 @@ import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/l
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import { bakedTilesOf } from '@wildshard/game/shardfile/bakedTiles';
 import { LOWERED_SEA } from './sea';
-import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
 import { place, type ModelSite, type Placed } from '@wildshard/engine/models/place';
 
@@ -72,7 +71,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles): Promise<DriftwoodWorld> {
   // G164: the whole island lowered, the sea at road level; G170: each declared entry landing is the inner end of an asphalt
-  // road deck (../runtime/models/entryDeck.ts) that carries the socket on over it, and a pier / jetty ramps up from it
+  // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
   const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
@@ -109,7 +108,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
   const pier = await placePier(firstPier.id);
-  // G170: the four asphalt road decks over the water (./entryDeck.ts): the platform's socket floor carried on over the
+  // G170: the four asphalt road decks over the water (the catalogue's entryDeck): the platform's socket floor carried on over the
   // declared entry landings (the shardfile's socket-landing proof, installed exactly as declared); each ramp rises from one
   registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/build.ts', surface: 'stone',
     colliders: landings.map(({ box }) => ({ ...box })), solidFloor: true,
