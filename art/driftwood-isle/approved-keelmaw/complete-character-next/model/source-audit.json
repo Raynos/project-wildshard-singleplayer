@@ -1,0 +1,915 @@
+{
+  "schema": "wildshard.keelmaw.source-audit.v1",
+  "vertices": 20394,
+  "triangles": 6798,
+  "joints": [
+    "body",
+    "neck1",
+    "head",
+    "jaw",
+    "tail1",
+    "tail2",
+    "tail3",
+    "FL_shoulder",
+    "FL_carpus",
+    "FL_fetlock",
+    "FR_shoulder",
+    "FR_carpus",
+    "FR_fetlock",
+    "BL_hip",
+    "BL_stifle",
+    "BL_hock",
+    "BR_hip",
+    "BR_stifle",
+    "BR_hock"
+  ],
+  "glbNativePositionColorSkinParity": true,
+  "orientedTriangleParity": true,
+  "outwardRimTriangles": 0,
+  "singleSidedGlbMaterials": true,
+  "numericalSingleSidedVisibilityParity": {
+    "front": 3286,
+    "left": 3118,
+    "right": 2924,
+    "back": 3219,
+    "top": 3089,
+    "elevated-front": 3459,
+    "elevated-left": 3235,
+    "elevated-right": 3247,
+    "elevated-back": 3343
+  },
+  "positiveClosedComponents": [
+    {
+      "name": "Broad shoulder armored torso",
+      "volume": 3.655870456732036
+    },
+    {
+      "name": "Deep warm belly",
+      "volume": 1.2919108399430534
+    },
+    {
+      "name": "Thick shoulder neck",
+      "volume": 0.9538805018055803
+    },
+    {
+      "name": "Broad sculpted muzzle",
+      "volume": 0.8425031013333332
+    },
+    {
+      "name": "Upper dark palate",
+      "volume": 0.11115638196666676
+    },
+    {
+      "name": "Massive lower jaw wedge",
+      "volume": 0.6482367135333332
+    },
+    {
+      "name": "Recessed lower mouth",
+      "volume": 0.10359331211666661
+    },
+    {
+      "name": "Dark throat",
+      "volume": 0.11906767348800001
+    },
+    {
+      "name": "Heavy ivory cheek -1",
+      "volume": 0.17205512246666665
+    },
+    {
+      "name": "Recessed eye socket -1",
+      "volume": 0.010151280381199876
+    },
+    {
+      "name": "Amber eye -1",
+      "volume": 0.0014219515772643807
+    },
+    {
+      "name": "Vertical pupil -1",
+      "volume": 5.258228669985491e-05
+    },
+    {
+      "name": "Eye glint -1",
+      "volume": 5.520961781781969e-06
+    },
+    {
+      "name": "Overhanging angry brow -1",
+      "volume": 0.017286499999999927
+    },
+    {
+      "name": "Nostril -1",
+      "volume": 0.001446000120000104
+    },
+    {
+      "name": "Upper varied tooth -1 0",
+      "volume": 0.0011865609407392284
+    },
+    {
+      "name": "Lower varied tooth -1 0",
+      "volume": 0.0008481851254620828
+    },
+    {
+      "name": "Upper varied tooth -1 1",
+      "volume": 0.001588527195299988
+    },
+    {
+      "name": "Lower varied tooth -1 1",
+      "volume": 0.0011401395002331827
+    },
+    {
+      "name": "Upper varied tooth -1 2",
+      "volume": 0.0011294686698193812
+    },
+    {
+      "name": "Lower varied tooth -1 2",
+      "volume": 0.0008065931198707196
+    },
+    {
+      "name": "Upper varied tooth -1 3",
+      "volume": 0.0017616127297987898
+    },
+    {
+      "name": "Lower varied tooth -1 3",
+      "volume": 0.00126555754035273
+    },
+    {
+      "name": "Upper varied tooth -1 4",
+      "volume": 0.0013584157360291406
+    },
+    {
+      "name": "Lower varied tooth -1 4",
+      "volume": 0.000973149847018085
+    },
+    {
+      "name": "Upper varied tooth -1 5",
+      "volume": 0.0017038683666879238
+    },
+    {
+      "name": "Lower varied tooth -1 5",
+      "volume": 0.0012237480801907236
+    },
+    {
+      "name": "Upper varied tooth -1 6",
+      "volume": 0.0012437496226884175
+    },
+    {
+      "name": "Lower varied tooth -1 6",
+      "volume": 0.000889803696047585
+    },
+    {
+      "name": "Upper varied tooth -1 7",
+      "volume": 0.001473357856986183
+    },
+    {
+      "name": "Lower varied tooth -1 7",
+      "volume": 0.0010566122912352702
+    },
+    {
+      "name": "Heavy ivory cheek 1",
+      "volume": 0.17205512246666677
+    },
+    {
+      "name": "Recessed eye socket 1",
+      "volume": 0.01015128038119993
+    },
+    {
+      "name": "Amber eye 1",
+      "volume": 0.001421951577264143
+    },
+    {
+      "name": "Vertical pupil 1",
+      "volume": 5.2582286700127376e-05
+    },
+    {
+      "name": "Eye glint 1",
+      "volume": 5.520961782544925e-06
+    },
+    {
+      "name": "Overhanging angry brow 1",
+      "volume": 0.017286499999999927
+    },
+    {
+      "name": "Nostril 1",
+      "volume": 0.0014460001199999987
+    },
+    {
+      "name": "Upper varied tooth 1 0",
+      "volume": 0.0011865571863508852
+    },
+    {
+      "name": "Lower varied tooth 1 0",
+      "volume": 0.0008481812501023817
+    },
+    {
+      "name": "Upper varied tooth 1 1",
+      "volume": 0.001588525178461799
+    },
+    {
+      "name": "Lower varied tooth 1 1",
+      "volume": 0.0011401425711637754
+    },
+    {
+      "name": "Upper varied tooth 1 2",
+      "volume": 0.0011294645344537345
+    },
+    {
+      "name": "Lower varied tooth 1 2",
+      "volume": 0.0008065926947384975
+    },
+    {
+      "name": "Upper varied tooth 1 3",
+      "volume": 0.0017616058580705364
+    },
+    {
+      "name": "Lower varied tooth 1 3",
+      "volume": 0.001265560374143229
+    },
+    {
+      "name": "Upper varied tooth 1 4",
+      "volume": 0.0013584191699265655
+    },
+    {
+      "name": "Lower varied tooth 1 4",
+      "volume": 0.000973149158215171
+    },
+    {
+      "name": "Upper varied tooth 1 5",
+      "volume": 0.0017038586648577781
+    },
+    {
+      "name": "Lower varied tooth 1 5",
+      "volume": 0.0012237500030559622
+    },
+    {
+      "name": "Upper varied tooth 1 6",
+      "volume": 0.0012437468592137518
+    },
+    {
+      "name": "Lower varied tooth 1 6",
+      "volume": 0.0008898038738972007
+    },
+    {
+      "name": "Upper varied tooth 1 7",
+      "volume": 0.0014733661912512278
+    },
+    {
+      "name": "Lower varied tooth 1 7",
+      "volume": 0.0010566040074900733
+    },
+    {
+      "name": "Golden sculpted snout keel",
+      "volume": 0.019983333333333356
+    },
+    {
+      "name": "FL shoulder muscle",
+      "volume": 0.33445039973875984
+    },
+    {
+      "name": "FL angular forearm",
+      "volume": 0.1573254209076313
+    },
+    {
+      "name": "FL broad planted palm",
+      "volume": 0.05891368883120004
+    },
+    {
+      "name": "FL chunky toe 0",
+      "volume": 0.00811228604491452
+    },
+    {
+      "name": "FL ivory gold claw 0",
+      "volume": 0.0015982360857935663
+    },
+    {
+      "name": "FL chunky toe 1",
+      "volume": 0.009855525101565656
+    },
+    {
+      "name": "FL ivory gold claw 1",
+      "volume": 0.0015982429385652593
+    },
+    {
+      "name": "FL chunky toe 2",
+      "volume": 0.009855506744026235
+    },
+    {
+      "name": "FL ivory gold claw 2",
+      "volume": 0.0015982360857935642
+    },
+    {
+      "name": "FL chunky toe 3",
+      "volume": 0.008112286044914537
+    },
+    {
+      "name": "FL ivory gold claw 3",
+      "volume": 0.001598236085793532
+    },
+    {
+      "name": "FR shoulder muscle",
+      "volume": 0.334524796700644
+    },
+    {
+      "name": "FR angular forearm",
+      "volume": 0.1573658712599758
+    },
+    {
+      "name": "FR broad planted palm",
+      "volume": 0.05891368883120003
+    },
+    {
+      "name": "FR chunky toe 0",
+      "volume": 0.008112286044914466
+    },
+    {
+      "name": "FR ivory gold claw 0",
+      "volume": 0.0015982360857935546
+    },
+    {
+      "name": "FR chunky toe 1",
+      "volume": 0.00985550674402624
+    },
+    {
+      "name": "FR ivory gold claw 1",
+      "volume": 0.001598236085793495
+    },
+    {
+      "name": "FR chunky toe 2",
+      "volume": 0.009855525101565647
+    },
+    {
+      "name": "FR ivory gold claw 2",
+      "volume": 0.0015982429385652266
+    },
+    {
+      "name": "FR chunky toe 3",
+      "volume": 0.008112286044914438
+    },
+    {
+      "name": "FR ivory gold claw 3",
+      "volume": 0.00159823608579353
+    },
+    {
+      "name": "BL shoulder muscle",
+      "volume": 0.2344227720179933
+    },
+    {
+      "name": "BL angular forearm",
+      "volume": 0.11027251499275799
+    },
+    {
+      "name": "BL broad planted palm",
+      "volume": 0.058913688831200024
+    },
+    {
+      "name": "BL chunky toe 0",
+      "volume": 0.008112305866804332
+    },
+    {
+      "name": "BL ivory gold claw 0",
+      "volume": 0.0015982360857935366
+    },
+    {
+      "name": "BL chunky toe 1",
+      "volume": 0.00985552510156567
+    },
+    {
+      "name": "BL ivory gold claw 1",
+      "volume": 0.0015982429385652502
+    },
+    {
+      "name": "BL chunky toe 2",
+      "volume": 0.009855506744026207
+    },
+    {
+      "name": "BL ivory gold claw 2",
+      "volume": 0.0015982360857935375
+    },
+    {
+      "name": "BL chunky toe 3",
+      "volume": 0.008112305866804349
+    },
+    {
+      "name": "BL ivory gold claw 3",
+      "volume": 0.0015982360857935386
+    },
+    {
+      "name": "BR shoulder muscle",
+      "volume": 0.2344751233217741
+    },
+    {
+      "name": "BR angular forearm",
+      "volume": 0.11030085866172808
+    },
+    {
+      "name": "BR broad planted palm",
+      "volume": 0.05891368883119997
+    },
+    {
+      "name": "BR chunky toe 0",
+      "volume": 0.008112305866804333
+    },
+    {
+      "name": "BR ivory gold claw 0",
+      "volume": 0.001598236085793536
+    },
+    {
+      "name": "BR chunky toe 1",
+      "volume": 0.009855506744026209
+    },
+    {
+      "name": "BR ivory gold claw 1",
+      "volume": 0.001598236085793539
+    },
+    {
+      "name": "BR chunky toe 2",
+      "volume": 0.009855525101565657
+    },
+    {
+      "name": "BR ivory gold claw 2",
+      "volume": 0.0015982429385652476
+    },
+    {
+      "name": "BR chunky toe 3",
+      "volume": 0.008112305866804328
+    },
+    {
+      "name": "BR ivory gold claw 3",
+      "volume": 0.001598236085793539
+    },
+    {
+      "name": "Continuous thick tail 0",
+      "volume": 0.7387110861433788
+    },
+    {
+      "name": "Continuous thick tail 1",
+      "volume": 0.6750571121918877
+    },
+    {
+      "name": "Continuous thick tail 2",
+      "volume": 0.4360693772964702
+    },
+    {
+      "name": "FL forelimb shield 0",
+      "volume": 0.005499899999999966
+    },
+    {
+      "name": "FL forelimb shield 1",
+      "volume": 0.0049499100000000695
+    },
+    {
+      "name": "FL forelimb shield 2",
+      "volume": 0.00439992000000004
+    },
+    {
+      "name": "FR forelimb shield 0",
+      "volume": 0.005499900000000048
+    },
+    {
+      "name": "FR forelimb shield 1",
+      "volume": 0.004949909999999939
+    },
+    {
+      "name": "FR forelimb shield 2",
+      "volume": 0.004399919999999946
+    },
+    {
+      "name": "BL forelimb shield 0",
+      "volume": 0.005499899999999929
+    },
+    {
+      "name": "BL forelimb shield 1",
+      "volume": 0.004949910000000012
+    },
+    {
+      "name": "BL forelimb shield 2",
+      "volume": 0.00439992
+    },
+    {
+      "name": "BR forelimb shield 0",
+      "volume": 0.005499900000000071
+    },
+    {
+      "name": "BR forelimb shield 1",
+      "volume": 0.0049499099999999845
+    },
+    {
+      "name": "BR forelimb shield 2",
+      "volume": 0.0043999200000000085
+    },
+    {
+      "name": "Overlapping dorsal shield 0 0",
+      "volume": 0.007291295999999937
+    },
+    {
+      "name": "Swept dorsal crest 0 0",
+      "volume": 0.01422933333333343
+    },
+    {
+      "name": "Overlapping dorsal shield 0 1",
+      "volume": 0.007291295999999985
+    },
+    {
+      "name": "Overlapping dorsal shield 0 2",
+      "volume": 0.00729129600000001
+    },
+    {
+      "name": "Swept dorsal crest 0 2",
+      "volume": 0.022120725333333358
+    },
+    {
+      "name": "Overlapping dorsal shield 0 3",
+      "volume": 0.0072912960000000165
+    },
+    {
+      "name": "Overlapping dorsal shield 0 4",
+      "volume": 0.007291296000000032
+    },
+    {
+      "name": "Swept dorsal crest 0 4",
+      "volume": 0.012684567466666621
+    },
+    {
+      "name": "Overlapping dorsal shield 1 0",
+      "volume": 0.007291296000000027
+    },
+    {
+      "name": "Swept dorsal crest 1 0",
+      "volume": 0.01608537813333337
+    },
+    {
+      "name": "Overlapping dorsal shield 1 1",
+      "volume": 0.007291296000000027
+    },
+    {
+      "name": "Overlapping dorsal shield 1 2",
+      "volume": 0.007291296000000044
+    },
+    {
+      "name": "Swept dorsal crest 1 2",
+      "volume": 0.01755090133333336
+    },
+    {
+      "name": "Overlapping dorsal shield 1 3",
+      "volume": 0.007291295999999985
+    },
+    {
+      "name": "Overlapping dorsal shield 1 4",
+      "volume": 0.007291295999999963
+    },
+    {
+      "name": "Swept dorsal crest 1 4",
+      "volume": 0.013658982399999964
+    },
+    {
+      "name": "Overlapping dorsal shield 2 0",
+      "volume": 0.00729129600000003
+    },
+    {
+      "name": "Swept dorsal crest 2 0",
+      "volume": 0.012684567466666671
+    },
+    {
+      "name": "Overlapping dorsal shield 2 1",
+      "volume": 0.007291295999999989
+    },
+    {
+      "name": "Overlapping dorsal shield 2 2",
+      "volume": 0.00729129600000002
+    },
+    {
+      "name": "Swept dorsal crest 2 2",
+      "volume": 0.018860294399999995
+    },
+    {
+      "name": "Overlapping dorsal shield 2 3",
+      "volume": 0.0072912960000000235
+    },
+    {
+      "name": "Overlapping dorsal shield 2 4",
+      "volume": 0.007291296000000015
+    },
+    {
+      "name": "Swept dorsal crest 2 4",
+      "volume": 0.016248770133333312
+    },
+    {
+      "name": "Overlapping dorsal shield 3 0",
+      "volume": 0.0072912959999999645
+    },
+    {
+      "name": "Swept dorsal crest 3 0",
+      "volume": 0.013658982399999978
+    },
+    {
+      "name": "Overlapping dorsal shield 3 1",
+      "volume": 0.007291296000000044
+    },
+    {
+      "name": "Overlapping dorsal shield 3 2",
+      "volume": 0.007291296000000006
+    },
+    {
+      "name": "Swept dorsal crest 3 2",
+      "volume": 0.02234029866666665
+    },
+    {
+      "name": "Overlapping dorsal shield 3 3",
+      "volume": 0.007291295999999984
+    },
+    {
+      "name": "Overlapping dorsal shield 3 4",
+      "volume": 0.007291296000000091
+    },
+    {
+      "name": "Swept dorsal crest 3 4",
+      "volume": 0.0131189056
+    },
+    {
+      "name": "Overlapping dorsal shield 4 0",
+      "volume": 0.007291296000000013
+    },
+    {
+      "name": "Swept dorsal crest 4 0",
+      "volume": 0.01624877013333334
+    },
+    {
+      "name": "Overlapping dorsal shield 4 1",
+      "volume": 0.0072912960000000165
+    },
+    {
+      "name": "Overlapping dorsal shield 4 2",
+      "volume": 0.007291296000000013
+    },
+    {
+      "name": "Swept dorsal crest 4 2",
+      "volume": 0.018134500266666697
+    },
+    {
+      "name": "Overlapping dorsal shield 4 3",
+      "volume": 0.007291295999999982
+    },
+    {
+      "name": "Overlapping dorsal shield 4 4",
+      "volume": 0.007291295999999961
+    },
+    {
+      "name": "Swept dorsal crest 4 4",
+      "volume": 0.013134116266666709
+    },
+    {
+      "name": "Tail swept crest 0 -1",
+      "volume": 0.03582316885333335
+    },
+    {
+      "name": "Tail swept crest 0 1",
+      "volume": 0.035823168853333344
+    },
+    {
+      "name": "Tail swept crest 1 -1",
+      "volume": 0.026968862197333236
+    },
+    {
+      "name": "Tail swept crest 1 1",
+      "volume": 0.02696886219733333
+    },
+    {
+      "name": "Tail swept crest 2 -1",
+      "volume": 0.01970219596800004
+    },
+    {
+      "name": "Tail swept crest 2 1",
+      "volume": 0.019702195968000012
+    },
+    {
+      "name": "Tail swept crest 3 -1",
+      "volume": 0.015657895967999883
+    },
+    {
+      "name": "Tail swept crest 3 1",
+      "volume": 0.0156578959679999
+    },
+    {
+      "name": "Tail swept crest 4 -1",
+      "volume": 0.012208195583999784
+    },
+    {
+      "name": "Tail swept crest 4 1",
+      "volume": 0.01220819558399943
+    },
+    {
+      "name": "Tail swept crest 5 -1",
+      "volume": 0.008053487519999555
+    },
+    {
+      "name": "Tail swept crest 5 1",
+      "volume": 0.008053487519999888
+    },
+    {
+      "name": "Tail swept crest 6 -1",
+      "volume": 0.004536393333332792
+    },
+    {
+      "name": "Tail swept crest 6 1",
+      "volume": 0.0045363933333331385
+    },
+    {
+      "name": "Tail swept crest 7 -1",
+      "volume": 0.001961376767999047
+    },
+    {
+      "name": "Tail swept crest 7 1",
+      "volume": 0.0019613767679998798
+    },
+    {
+      "name": "Interlocking snout plate -1 0",
+      "volume": 0.0069874919999999285
+    },
+    {
+      "name": "Head side crest -1 0",
+      "volume": 0.004106666666666742
+    },
+    {
+      "name": "Interlocking snout plate 1 0",
+      "volume": 0.006987491999999993
+    },
+    {
+      "name": "Head side crest 1 0",
+      "volume": 0.004106666666666597
+    },
+    {
+      "name": "Interlocking snout plate -1 1",
+      "volume": 0.00698749200000005
+    },
+    {
+      "name": "Head side crest -1 1",
+      "volume": 0.003910666666666801
+    },
+    {
+      "name": "Interlocking snout plate 1 1",
+      "volume": 0.006987491999999918
+    },
+    {
+      "name": "Head side crest 1 1",
+      "volume": 0.003910666666666538
+    },
+    {
+      "name": "Interlocking snout plate -1 2",
+      "volume": 0.006987491999999922
+    },
+    {
+      "name": "Head side crest -1 2",
+      "volume": 0.0037090666666666815
+    },
+    {
+      "name": "Interlocking snout plate 1 2",
+      "volume": 0.0069874920000000205
+    },
+    {
+      "name": "Head side crest 1 2",
+      "volume": 0.0037090666666667396
+    },
+    {
+      "name": "Interlocking snout plate -1 3",
+      "volume": 0.006987492000000022
+    },
+    {
+      "name": "Interlocking snout plate 1 3",
+      "volume": 0.0069874919999999814
+    },
+    {
+      "name": "Braided nautical rope 0 -1",
+      "volume": 0.03278629368213796
+    },
+    {
+      "name": "Braided nautical rope 0 1",
+      "volume": 0.03279867374183642
+    },
+    {
+      "name": "Uneven hollow barnacle 0 -1 0",
+      "volume": 0.005096755856250178
+    },
+    {
+      "name": "Uneven hollow barnacle 0 -1 1",
+      "volume": 0.002497417096124976
+    },
+    {
+      "name": "Uneven hollow barnacle 0 -1 2",
+      "volume": 0.0035394062906251088
+    },
+    {
+      "name": "Uneven hollow barnacle 0 -1 3",
+      "volume": 0.0016366186768751376
+    },
+    {
+      "name": "Uneven hollow barnacle 0 1 0",
+      "volume": 0.005096755856250178
+    },
+    {
+      "name": "Uneven hollow barnacle 0 1 1",
+      "volume": 0.002497417096124976
+    },
+    {
+      "name": "Uneven hollow barnacle 0 1 2",
+      "volume": 0.0035394062906251088
+    },
+    {
+      "name": "Braided nautical rope 1 -1",
+      "volume": 0.03278629053198098
+    },
+    {
+      "name": "Braided nautical rope 1 1",
+      "volume": 0.03279867525271442
+    },
+    {
+      "name": "Uneven hollow barnacle 1 -1 0",
+      "volume": 0.00509675585624985
+    },
+    {
+      "name": "Uneven hollow barnacle 1 -1 1",
+      "volume": 0.0024974170961248737
+    },
+    {
+      "name": "Uneven hollow barnacle 1 -1 2",
+      "volume": 0.0035394062906249045
+    },
+    {
+      "name": "Uneven hollow barnacle 1 -1 3",
+      "volume": 0.00163661867687495
+    },
+    {
+      "name": "Uneven hollow barnacle 1 1 0",
+      "volume": 0.00509675585624985
+    },
+    {
+      "name": "Uneven hollow barnacle 1 1 1",
+      "volume": 0.0024974170961248737
+    },
+    {
+      "name": "Uneven hollow barnacle 1 1 2",
+      "volume": 0.0035394062906249045
+    },
+    {
+      "name": "Braided nautical rope 2 -1",
+      "volume": 0.02592018909967356
+    },
+    {
+      "name": "Braided nautical rope 2 1",
+      "volume": 0.025930910079274044
+    },
+    {
+      "name": "Uneven hollow barnacle 2 -1 0",
+      "volume": 0.005096755856249854
+    },
+    {
+      "name": "Uneven hollow barnacle 2 -1 1",
+      "volume": 0.0024974170961247033
+    },
+    {
+      "name": "Uneven hollow barnacle 2 -1 2",
+      "volume": 0.003539406290625144
+    },
+    {
+      "name": "Uneven hollow barnacle 2 -1 3",
+      "volume": 0.0016366186768755208
+    },
+    {
+      "name": "Uneven hollow barnacle 2 1 0",
+      "volume": 0.005096755856249854
+    },
+    {
+      "name": "Uneven hollow barnacle 2 1 1",
+      "volume": 0.0024974170961247033
+    },
+    {
+      "name": "Uneven hollow barnacle 2 1 2",
+      "volume": 0.003539406290625144
+    }
+  ],
+  "watertightVesselVolumes": {},
+  "intentionalOpenComponents": [],
+  "maximumBindClosureError": 2.9802322387695312e-08,
+  "zeroAreaTriangles": 0,
+  "minimumTriangleArea": 5.2649999999983746e-08,
+  "bounds": [
+    [
+      -2.714303,
+      -0.036334,
+      -2.977784
+    ],
+    [
+      1.985,
+      2.487,
+      2.87
+    ]
+  ],
+  "coordinateConvention": "+Y-up +Z-forward right-handed; Blender x,-z,y",
+  "visualAcceptance": false,
+  "colliderAcceptance": false,
+  "runtimeAcceptance": false,
+  "files": {
+    "keelmaw-v1.glb": "7aafb69c0b96e71306eb7c6cdace2dcdd74fd5d700b57b17eccd33ec7cd2d89c",
+    "metadata.json": "29a4c703516fa49dbf214d9907a2ec1a8ad18513fe0fcdc3647443dd81abd2e3",
+    "native-source.json": "ff70566f6eb96760a9dbff3a54ecf59e81e4c13b904784a33ac3c1c061191fab",
+    "construction.json": "76cec2721dcc4c42098b701b1948e81b7e968421d5368bf23c4db835427d88ec",
+    "payload.bin": "65c2186799070e62dc260e8c5de50c0f7ff6fd1124b8d34d4f6745bbc6654e35"
+  }
+}

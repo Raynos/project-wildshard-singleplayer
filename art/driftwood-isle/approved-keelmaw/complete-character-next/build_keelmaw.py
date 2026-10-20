@@ -10,7 +10,7 @@ p=argparse.ArgumentParser();p.add_argument('--out',required=True);p.add_argument
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[3]
 spec=importlib.util.spec_from_file_location('codec',ROOT/'art/driftwood-isle/approved-puffer/native_export.py');codec=importlib.util.module_from_spec(spec);spec.loader.exec_module(codec)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
-hexes={'green':'405B51','light':'53695A','dark':'283C38','moss':'727B38','mossLight':'ACAC4B','gold':'D8A54F','goldLight':'F0C779','goldDark':'9E7135','ivory':'ECD6A1','ivoryShade':'BEA775','mouth':'48241F','tongue':'8C4439','black':'151C19','eye':'F4AE24','rope':'AC813F'}
+hexes={'green':'405B51','light':'53695A','dark':'283C38','moss':'727B38','mossLight':'ACAC4B','gold':'BA8C42','goldLight':'D9AF65','goldDark':'9E7135','ivory':'ECD6A1','ivoryShade':'BEA775','mouth':'48241F','tongue':'8C4439','black':'151C19','eye':'F4AE24','rope':'AC813F'}
 colors={k:[round(v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4,7) for v in [int(h[i:i+2],16)/255 for i in (0,2,4)]] for k,h in hexes.items()};materials={}
 for k,c in colors.items():
  m=bpy.data.materials.new(k);m.diffuse_color=(*c,1);m.use_backface_culling=True;m.use_nodes=True;m.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=(*c,1);m.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=.88;materials[k]=m
@@ -75,10 +75,10 @@ loft('Recessed lower mouth',[(0,.91,1.32,.49,.08),(0,.81,1.69,.55,.06),(0,.59,2.
 ell('Dark throat',(0,.96,1.41),(.52,.30,.24),['mouth'],'head',8)
 for side in [-1,1]:
  loft('Heavy ivory cheek '+str(side),[(side*.55,.85,1.18,.25,.35),(side*.60,.79,1.50,.26,.34),(side*.59,.65,1.87,.18,.26),(side*.54,.48,2.15,.10,.14)],ivory,'head',8)
- ell('Recessed eye socket '+str(side),(side*.685,1.35,1.62),(.11,.135,.20),['dark'],'head',8)
- ell('Amber eye '+str(side),(side*.768,1.35,1.66),(.043,.083,.101),['eye'],'head',8)
- ell('Vertical pupil '+str(side),(side*.805,1.35,1.68),(.012,.060,.025),['black'],'head',6)
- ell('Eye glint '+str(side),(side*.817,1.38,1.70),(.009,.015,.014),['ivory'],'head',6)
+ ell('Recessed eye socket '+str(side),(side*.76,1.36,1.76),(.12,.14,.19),['dark'],'head',8)
+ ell('Amber eye '+str(side),(side*.862,1.37,1.79),(.045,.092,.108),['eye'],'head',8)
+ ell('Vertical pupil '+str(side),(side*.902,1.37,1.81),(.012,.060,.025),['black'],'head',6)
+ ell('Eye glint '+str(side),(side*.914,1.405,1.83),(.009,.015,.014),['ivory'],'head',6)
  # Slanted angular brow closes over eye, not a round tube.
  mesh('Overhanging angry brow '+str(side),[(side*.46,1.57,1.35),(side*.81,1.51,1.43),(side*.85,1.40,1.82),(side*.53,1.45,1.99),(side*.49,1.38,1.39),(side*.77,1.37,1.53),(side*.78,1.31,1.83),(side*.54,1.36,1.94)],[(0,1,2,3),(4,7,6,5),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],skin,'head')
  ell('Nostril '+str(side),(side*.43,1.23,2.69),(.10,.055,.09),['black'],'head',6)
@@ -99,12 +99,17 @@ for prefix,side,z,names,pts in legs:
   tube(prefix+' chunky toe '+str(i),[((x,.16,z+.49),.115),((x,.115,tz),.09)],['dark','green'],names[2],5)
   tube(prefix+' ivory gold claw '+str(i),[((x,.12,tz-.02),.09),((x,.045,tz+.20),.006)],gold,names[2],5)
 # Thick lifted C tail, narrowing gradually through an actual continuous curl.
-tail=[((0,.93,-1.03),.52),((-.13,.89,-1.55),.47),((-.45,.91,-2.07),.42),((-.95,1.02,-2.49),.37),((-1.53,1.18,-2.64),.33),((-2.01,1.34,-2.37),.28),((-2.24,1.47,-1.91),.22),((-2.22,1.55,-1.35),.16),((-1.98,1.60,-.94),.045)]
+tail=[((0,.93,-1.03),.52),((-.13,.89,-1.55),.47),((-.45,.91,-2.07),.42),((-.95,1.28,-2.49),.39),((-1.58,1.70,-2.64),.36),((-2.14,1.93,-2.37),.31),((-2.48,1.92,-1.91),.25),((-2.52,1.85,-1.35),.18),((-2.25,1.78,-.87),.045)]
 for j,(start,end) in enumerate([(0,3),(2,5),(4,9)]):tube('Continuous thick tail '+str(j),tail[start:end],skin,'tail'+str(j+1),10)
 # Irregular shield-shaped armor, swept backward, rather than rectangular tile deck.
 def shield(name,x,y,z,w,d,joint='body',palette=skin):
  vs=[(x-w,y-.03,z+d*.65),(x+w,y-.03,z+d*.65),(x+w*.86,y-.03,z-d*.55),(x,y-.03,z-d),(x-w*.86,y-.03,z-d*.55),(x,y+.09,z+.02)]
  mesh(name,vs,[(0,4,3,2,1),(0,1,5),(1,2,5),(2,3,5),(3,4,5),(4,0,5)],palette,joint)
+# Overlapping limb scutes break up large smooth forearm bands.
+for prefix,side,z,names,pts in legs:
+ for k in range(3):
+  x=side*(1.02+.20*k);y=.98-.23*k;zz=z+.02+.20*k
+  shield(prefix+' forelimb shield '+str(k),x,y,zz,.25-.025*k,.21,names[0] if k==0 else names[1],['green','moss','light'])
 for zi,z in enumerate([-.91,-.49,-.05,.39,.79]):
  for xi,x in enumerate([-.77,-.39,0,.39,.77]):
   zz=z+(.10 if xi%2 else -.035);y=1.00+math.sqrt(max(0,1-(x/1.15)**2))*.64-abs(z)*.10
