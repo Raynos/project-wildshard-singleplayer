@@ -201,13 +201,13 @@ export class CoupledEncounter {
   }
 }
 
-const ScheduleRows = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()) });
+export const EncounterScheduleSchema = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()) });
 /** A projected attack clock retains only declared numeric slots. Rendering
  * borrows the last result; an event never installs a second decision owner. */
 export class EncounterSchedule {
   readonly state: Record<string, number>;
-  private readonly rows: v.InferOutput<typeof ScheduleRows>;
-  constructor(input: unknown, private readonly program: ReturnProgram) { this.rows = v.parse(ScheduleRows, input); this.state = { ...this.rows.initial }; }
+  private readonly rows: v.InferOutput<typeof EncounterScheduleSchema>;
+  constructor(input: unknown, private readonly program: ReturnProgram) { this.rows = v.parse(EncounterScheduleSchema, input); this.state = { ...this.rows.initial }; }
   value(key: string): number { const value = this.state[key]; if (value === undefined) throw new Error('Unknown encounter schedule slot'); return value; }
   set(values: Readonly<Record<string, number>>): void {
     if (Object.entries(values).some(([key, value]) => !Object.hasOwn(this.rows.initial, key) || !Number.isFinite(value))) throw new Error('Invalid encounter schedule state');

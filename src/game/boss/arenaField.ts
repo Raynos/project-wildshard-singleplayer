@@ -3,6 +3,7 @@
 import type { ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 import * as v from 'valibot';
+import { EncounterSchedule, EncounterScheduleSchema, EncounterTrail } from './encounterPatrol';
 
 const finite = v.pipe(v.number(), v.finite());
 const count = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(64));
@@ -86,4 +87,66 @@ export function arenaBlockedAt(field: ArenaField, point: { readonly x: number; r
   boundary: { readonly x: number; readonly z: number; readonly radius: number }, mask: number): boolean {
   return ((mask & 1) !== 0 && Math.hypot(point.x - boundary.x, point.z - boundary.z) > boundary.radius)
     || ((mask & 2) !== 0 && field.activeAt(point.x, point.z));
+}
+
+const numeric = v.record(v.string(), finite);
+const schedule = v.strictObject({ id: v.string(), law: EncounterScheduleSchema });
+/** A bounded set of authored clocks. The AS gate chooses which clocks advance;
+ * projections observe shared health/phase inputs and publish one-shot effects.
+ * Landing slots borrow a position history; no view or shard callback is stored. */
+export const ArenaEncounterSchema = v.strictObject({
+  gate: v.strictObject({ signal: v.string(), parameters: numeric }),
+  schedules: v.pipe(v.array(schedule), v.maxLength(16)),
+  shared: v.record(v.string(), v.strictObject({ clock: v.string(), slot: v.string() })),
+  volley: v.strictObject({ launcher: v.string(), capacity: v.pipe(count, v.maxValue(8)),
+    landing: EncounterScheduleSchema, trail: v.strictObject({ capacity: count, seconds: v.pipe(finite, v.minValue(.1)) }) }),
+});
+export interface ArenaClockEffect { readonly id: string; readonly index: number; readonly values: Readonly<Record<string, number>> }
+/** The existing arena host owns attack cadence, delayed strikes and sharing of
+ * cooldown slots. Choices and telegraph windows belong to the admitted guest. */
+export class ArenaEncounter {
+  readonly schedules: ReadonlyMap<string, EncounterSchedule>;
+  readonly landings: readonly EncounterSchedule[];
+  private readonly rows: v.InferOutput<typeof ArenaEncounterSchema>;
+  private readonly trail: EncounterTrail;
+  private elapsed = 0;
+  constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
+    this.rows = v.parse(ArenaEncounterSchema, input);
+    if (new Set(this.rows.schedules.map(row => row.id)).size !== this.rows.schedules.length) throw new Error('Duplicate arena clock');
+    this.schedules = new Map(this.rows.schedules.map(row => [row.id, new EncounterSchedule(row.law, program)]));
+    if (!this.schedules.has(this.rows.volley.launcher)) throw new Error('Missing arena launcher');
+    this.landings = Array.from({ length: this.rows.volley.capacity }, () => new EncounterSchedule(this.rows.volley.landing, program));
+    this.trail = new EncounterTrail(this.rows.volley.trail);
+  }
+  clock(id: string): EncounterSchedule { const clock = this.schedules.get(id); if (clock === undefined) throw new Error('Missing arena clock'); return clock; }
+  reset(): void { this.elapsed = 0; this.trail.clear(); for (const clock of this.schedules.values()) clock.reset(); for (const clock of this.landings) clock.reset(); }
+  /** No catch-up burst: one atomic projection batch at most every 100 ms. A
+   * paused arena neither samples history nor consumes its borrowed RNG stream. */
+  update(dt: number, frame: Readonly<Record<string, number>>, point: { readonly x: number; readonly z: number }): { dt: number; effects: readonly ArenaClockEffect[] } {
+    this.elapsed += dt;
+    if (this.elapsed + 1e-9 < .1) return { dt: 0, effects: [] };
+    const step = this.elapsed; this.elapsed = 0;
+    const gate = this.program.project(this.rows.gate.signal, { ...this.rows.gate.parameters, ...frame, dt: step });
+    if (gate['active'] === 1) this.trail.update(step, point);
+    const effects: ArenaClockEffect[] = [];
+    for (const [index, row] of this.rows.schedules.entries()) {
+      if (((gate['mask'] ?? 0) & (1 << index)) === 0) continue;
+      const clock = this.clock(row.id), shared: Record<string, number> = {};
+      // Explicit clock ids are scalar observations; the guest never receives
+      // mutable schedules or a second owner of their retained slots.
+      for (const [name, source] of Object.entries(this.rows.shared)) shared[name] = this.clock(source.clock).value(source.slot);
+      const values = clock.project({ ...shared, ...frame, dt: step, count: this.trail.points.length }, this.random);
+      effects.push({ id: row.id, index, values });
+      if (row.id === this.rows.volley.launcher && values['strike'] === 1) {
+        const at = this.trail.points[values['index'] ?? -1] ?? point, landing = this.landings.find(candidate => candidate.value('on') === 0);
+        landing?.reset({ on: 1, x: at.x, z: at.z });
+      }
+    }
+    if (gate['land'] === 1) for (const [index, clock] of this.landings.entries()) {
+      if (clock.value('on') !== 1) continue;
+      const x = clock.value('x'), z = clock.value('z');
+      effects.push({ id: this.rows.volley.launcher, index, values: { ...clock.project({ ...frame, dt: step }, this.random), x, z, landing: 1 } });
+    }
+    return { dt: step, effects };
+  }
 }

@@ -14,6 +14,7 @@ type Lines = Record<'kneels' | 'grassFire' | 'immuneDome' | 'immuneSpear' | 'spe
   | 'burning' | 'chain' | 'wall' | 'tie' | 'tieOnFoot' | 'tieQuiet' | 'wantsRider' | 'quiet' | 'wakes', string>;
 /** Named JSON is validated by the producer; native code consumes only this wire contract. */
 export interface TitanFightData {
+  TITAN_CLOCKS: unknown;
   TITAN_FIRE_SENSE: { x: number; z: number }[];
   TITAN_CHAINS: { count: number; law: unknown };
   TITAN_TRAIL: unknown; TITAN_WHIRLS: unknown[];

@@ -4,16 +4,16 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombine
 @inline function length2(x:f64,z:f64):f64{return Math.sqrt(x*x+z*z);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
 @inline export function attackEntry(signal:i32,value:f64,source:i32):void {
-if(signal==Signal.spear||signal==Signal.spearResolve){
+if(signal==Signal.spear||signal==Signal.spearResolve||signal==Signal.arenaSpear){
     const dt=f(Field.dt),phase=f(Field.phase);let mode=f(Field.mode),t=f(Field.t)+dt,cd=f(Field.cd),x=f(Field.x),z=f(Field.z),strike=0.0,stuck=0.0;
-    if(mode==0){cd-=dt;if(cd<=0&&f(Field.chain)==0){mode=1;t=0;x=f(Field.px);z=f(Field.pz);}}
+    if(mode==0){cd-=dt;if(cd<=0&&(signal==Signal.arenaSpear?f(Field.chainLeft):f(Field.chain))==0){mode=1;t=0;x=f(Field.px);z=f(Field.pz);}}
     else if(mode==1){
       if(t<f(Field.aim)-f(Field.lock)){const k=Math.min(1,dt*5);x+=(f(Field.px)-x)*k;z+=(f(Field.pz)-z)*k;}
       if(t>=f(Field.aim)){mode=2;t=0;strike=1;}
     }else if(mode==2){if(t>.45){mode=3;t=0;stuck=phase==0?1:0;}}
     else if(mode==3){if(t>=f(Field.stuck)){mode=0;t=0;cd=phase==2?6+Read.random()*2:2+Read.random()*1.5;}}
     put(Channel.mode,mode);put(Channel.t,t);put(Channel.cd,cd);put(Channel.x,x);put(Channel.z,z);put(Channel.strike,strike);put(Channel.stuck,stuck);
-    if(signal==Signal.spearResolve){put(Channel.hurt,strike>0&&length2(f(Field.px)-x,f(Field.pz)-z)<f(Field.radius)?1:0);put(Channel.spread,strike>0&&phase==2?1:0);}
+    if(signal==Signal.spearResolve||signal==Signal.arenaSpear){put(Channel.hurt,strike>0&&length2(f(Field.px)-x,f(Field.pz)-z)<f(Field.radius)?1:0);put(Channel.spread,strike>0&&phase==2?1:0);}
   } else if(signal==Signal.rider){
     const dt=f(Field.dt),px=f(Field.px),pz=f(Field.pz),ax=f(Field.ax),az=f(Field.az),x0=f(Field.x0),z0=f(Field.z0),x1=f(Field.x1),z1=f(Field.z1);
     let mode=f(Field.mode),t=f(Field.t)+dt,theta=f(Field.theta),hit=f(Field.hit),x=0.0,z=0.0,speed=0.0,turn=0.0,alpha=0.0,show=0.0,hurt=0.0;
@@ -30,9 +30,9 @@ if(signal==Signal.spear||signal==Signal.spearResolve){
     }
     put(Channel.mode,mode);put(Channel.t,t);put(Channel.theta,theta);put(Channel.hit,hit);put(Channel.x,x);put(Channel.z,z);
     put(Channel.speed,speed);put(Channel.turn,turn);put(Channel.alpha,alpha);put(Channel.show,show);put(Channel.hurt,hurt);
-  } else if(signal==Signal.chain){
+  } else if(signal==Signal.chain||signal==Signal.arenaChain){
     const dt=f(Field.dt);let cd=f(Field.cd)-dt,left=f(Field.chain),step=f(Field.t),strike=0.0;
-    if(left==0&&cd<=0&&f(Field.mode)>0){left=7;step=0;}
+    if(left==0&&cd<=0&&(signal==Signal.arenaChain?f(Field.spearMode)==0:f(Field.mode)>0)){left=7;step=0;}
     if(left>0){step-=dt;if(step<=0){step=.42;left--;strike=1;if(left==0)cd=5+Read.random()*2;}}
     put(Channel.cd,cd);put(Channel.left,left);put(Channel.t,step);put(Channel.strike,strike);put(Channel.index,Math.max(0,f(Field.count)-5));
   } else if(signal==Signal.chainLand){

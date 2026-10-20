@@ -1,9 +1,10 @@
 import { expect, test } from 'vitest';
-import { ArenaField } from '../src/game/boss/arenaField';
+import { ArenaEncounter, ArenaField } from '../src/game/boss/arenaField';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
+import { TITAN_CLOCKS } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
 test('the arena field obeys ignition bounds and cannot rekindle spent cells', () => {
   const field = new ArenaField(fight.TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));
@@ -32,4 +33,40 @@ test('an unrelated orchard encounter uses a rectangular four-neighbour frost fie
   const changed = field.update(.4, { wx: 1, wz: 0 });
   expect(changed).toEqual([0, 5]); expect(field.mode(0)).toBe(2); expect(field.mode(5)).toBe(2);
   expect(field.extinguish()).toEqual([]);
+});
+
+test('arena clocks own delayed tells once, pause RNG and reset pending strikes', () => {
+  const rng = new Rng(513), host = new ArenaEncounter(TITAN_CLOCKS, ReturnProgram.page(program.attack), rng);
+  host.clock('chain').set({ cd: 0 });
+  const frame = { phase: 2, fighting: 1, px: 12, pz: -3 }, at = { x: 12, z: -3 };
+  const before = rng.snapshot();
+  expect(host.update(.05, frame, at).effects).toEqual([]);
+  expect(rng.snapshot()).toEqual(before);
+  const first = host.update(.05, frame, at);
+  expect(first.effects.filter(row => row.values['landing'] === 1)).toHaveLength(1);
+  expect(host.landings[0]?.value('x')).toBe(12);
+  const paused = rng.snapshot(), tellT = host.landings[0]?.value('t');
+  expect(host.update(1, { ...frame, fighting: 0 }, at).effects).toEqual([]);
+  expect(host.landings[0]?.value('t')).toBe(tellT);
+  expect(rng.snapshot()).toEqual(paused);
+  let strikes = 0;
+  for (let i = 0; i < 45; i++) for (const effect of host.update(.1, frame, at).effects)
+    if (effect.values['landing'] === 1 && effect.values['strike'] === 1) strikes++;
+  expect(strikes).toBe(7);
+  host.reset();
+  expect(host.landings.every(clock => clock.value('on') === 0)).toBe(true);
+  expect(host.clock('spear').value('mode')).toBe(0);
+});
+
+test('an orchard frost boss binds different clock ids and two landing slots', () => {
+  const rows = { ...TITAN_CLOCKS, schedules: TITAN_CLOCKS.schedules.map((row, i) => ({ ...row, id: i === 0 ? 'icicle' : 'hail' })),
+    shared: { spearMode: { clock: 'icicle', slot: 'mode' }, chainLeft: { clock: 'hail', slot: 'chain' } },
+    volley: { ...TITAN_CLOCKS.volley, launcher: 'hail', capacity: 2, trail: { capacity: 3, seconds: .2 } } };
+  const host = new ArenaEncounter(rows, ReturnProgram.page(program.attack), new Rng(714));
+  host.clock('hail').set({ cd: 0 });
+  const effects = host.update(.1, { phase: 2, fighting: 1, px: -20, pz: 50 }, { x: -20, z: 50 }).effects;
+  expect(effects.some(row => row.id === 'hail' && row.values['landing'] === 1)).toBe(true);
+  expect(host.landings).toHaveLength(2);
+  expect(host.landings[0]?.value('z')).toBe(50);
+  expect(() => new ArenaEncounter({ ...rows, shared: {}, volley: { ...rows.volley, launcher: 'absent' } }, ReturnProgram.page(program.attack), new Rng(1))).toThrow('launcher');
 });

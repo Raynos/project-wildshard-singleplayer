@@ -116,3 +116,12 @@ export const TITAN_CHAINS = { count: 8, law: { signal: 'chainLand',
 } };
 
 export const TITAN_FIRE_SENSE = [0,1,2,3,4,5].map(angle => ({ x: Math.cos(angle)*5, z: Math.sin(angle)*5 }));
+
+/** Boss-host clock contract: AS selects active attacks and their delayed tells. */
+export const TITAN_CLOCKS = {
+  gate: { signal: 'arenaClocks', parameters: {} },
+  shared: { spearMode: { clock: 'spear', slot: 'mode' }, chainLeft: { clock: 'chain', slot: 'chain' } },
+  schedules: [{ id: 'spear', law: { ...TITAN_SCHEDULES.spear, signal: 'arenaSpear' } },
+    { id: 'chain', law: { ...TITAN_SCHEDULES.chain, signal: 'arenaChain' } }],
+  volley: { launcher: 'chain', capacity: TITAN_CHAINS.count, landing: TITAN_CHAINS.law, trail: TITAN_TRAIL },
+};

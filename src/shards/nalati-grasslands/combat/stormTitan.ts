@@ -1,4 +1,4 @@
-import { CoupledEncounter, EncounterSchedule, EncounterTrail } from '@wildshard/game/boss/encounterPatrol';
+import { CoupledEncounter, EncounterSchedule } from '@wildshard/game/boss/encounterPatrol';
 import type { TitanCtx, TitanFightHost, TitanPlay, TitanRiders, Puff, Whirl, Chain, StormRider } from './bossBindings';
 import { weaponSpecimen } from '../weapons/loadout';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -33,7 +33,7 @@ import { wildEnv } from '@wildshard/game/population/pageGroups';
 import layoutRows from '../boot/layout.generated.json' with { type: 'json' };
 import { LightningStrip } from '@wildshard/game/weapons/arcPower';
 import { NaizagaiPower, type NaizagaiPowerHandle } from '../weapons/nativeMelee';
-import { ArenaField, arenaBlockedAt } from '@wildshard/game/boss/arenaField';
+import { ArenaField, ArenaEncounter, arenaBlockedAt, type ArenaClockEffect } from '@wildshard/game/boss/arenaField';
 import { ArenaFireView } from '@wildshard/game/boss/arenaFire';
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { createClientScene } from '@wildshard/game/plugin/ui';
@@ -233,7 +233,7 @@ export class StormTitanFight implements BossScript {
   private scorchN = 0;
   private readonly chains: Chain[];
   private get chainLeft(): number { return this.chainLaw.value('chain'); }
-  private readonly trail: EncounterTrail;
+  private readonly clocks: ArenaEncounter;
   // whirlwinds
   private readonly whirls: Whirl[];
   private readonly debris: THREE.InstancedMesh;
@@ -241,7 +241,6 @@ export class StormTitanFight implements BossScript {
   private readonly wall: THREE.Mesh[]; private readonly wallMat: [FxMaterial,FxMaterial];
   private wallK = 0; private sealed = false;
   private immuneT = 0; private introBolt = false;
-  private decisionT = 0;
   private hazardT = 0; private hazardDt = 0;
   private arenaReady = false; private arenaShield = false; private refusalMask = 0;
   private readonly author: ReturnProgram;
@@ -252,10 +251,9 @@ export class StormTitanFight implements BossScript {
   constructor(private readonly ctx: TitanCtx, private readonly host: TitanFightHost) {
     const scene = ctx.game.scene;
     this.author = ReturnProgram.page(this.data.programs.attack, ctx.game.levelScope);
-    this.spearLaw = new EncounterSchedule(this.data.TITAN_SCHEDULES.spear, this.author);
-    this.chainLaw = new EncounterSchedule(this.data.TITAN_SCHEDULES.chain, this.author);
+    this.clocks = new ArenaEncounter(this.data.TITAN_CLOCKS, this.author, app.rng.stream('ai'));
+    this.spearLaw = this.clocks.clock('spear'); this.chainLaw = this.clocks.clock('chain');
     this.fireContact = new EncounterSchedule(this.data.TITAN_SCHEDULES.contact, this.author);
-    this.trail = new EncounterTrail(this.data.TITAN_TRAIL);
     const fireLaw = ReturnProgram.page(this.data.programs.fire, ctx.game.levelScope);
     this.field = new ArenaField(this.data.TITAN_FIRE_FIELD, fireLaw, app.rng.stream('ai'));
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
@@ -268,7 +266,7 @@ export class StormTitanFight implements BossScript {
     this.spearRing = new GroundTell(scene, 'ring', new THREE.Color(2.6, 2.0, 0.8));
     this.spearFork = new GroundTell(scene, 'ring', new THREE.Color(2.8, 2.6, 1.6));
     this.lanes = [0, 1, 2].map(() => new GroundTell(scene, 'lane', new THREE.Color(1.2, 2.2, 2.8)));
-    this.chains = Array.from({ length: this.data.TITAN_CHAINS.count }, () => ({ tell: new GroundTell(scene, 'ring', new THREE.Color(2.4, 2.2, 1.4)), law: new EncounterSchedule(this.data.TITAN_CHAINS.law, this.author) }));
+    this.chains = Array.from({ length: this.clocks.landings.length }, (_, i) => { const law = this.clocks.landings[i]; if (law === undefined) throw new Error('Missing arena landing'); return { tell: new GroundTell(scene, 'ring', new THREE.Color(2.4, 2.2, 1.4)), law }; });
     this.wallMat = [fxMaterial(FX.stream, new THREE.Color(.5,.53,.62), .85, false), fxMaterial(FX.stream, new THREE.Color(.66,.7,.8), .55, false)];
     const rows = this.data.geometry.arena, texture = new THREE.DataTexture(Uint8Array.from(rows.scorch),64,64);
     texture.needsUpdate = true;
@@ -321,7 +319,7 @@ export class StormTitanFight implements BossScript {
   cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(CAIRN.x, heightAt(CAIRN.x, CAIRN.z + 3), CAIRN.z + 3); }
 
   reset(phase: number): void {
-    this.phase = phase; this.decisionT = 0;
+    this.phase = phase; this.clocks.reset();
     this.hp = Math.round(this.data.TITAN_PLACE.heartHp * (this.data.TITAN_PHASES[phase]?.at ?? 1));
     this.fighting = false; this.open = false; this.invuln = false; this.victoryT = -1; this.introBolt = false;
     const b = this.body;
@@ -402,14 +400,11 @@ export class StormTitanFight implements BossScript {
     b.dome.visible = b.visible && this.phase === 1 && !this.domeBroken && this.victoryT < 0;
     this.immuneT -= dt;
     if (fighting && this.victoryT < 0) {
-      this.trail.update(dt, p);
-      this.decisionT += dt;
-      const thinkDt = this.decisionT >= .1 - 1e-9 ? this.decisionT : 0;
-      if (thinkDt > 0) this.decisionT = 0;
-      if (this.phase !== 1) this.updateSpear(dt, t, thinkDt);
-      if (this.phase === 1 && thinkDt > 0) this.updateRiders(thinkDt);
-      if (this.phase === 2) this.updateChains(dt, t, thinkDt);
-      if (thinkDt > 0) this.open = this.heartDecision(0)['open'] === 1;
+      const step = this.clocks.update(dt, { phase: this.phase, fighting: Number(fighting), px: p.x, pz: p.z }, p);
+      if (this.phase !== 1) this.updateSpear(dt, t, step.effects.find(effect => effect.id === 'spear')?.values);
+      if (this.phase === 1 && step.dt > 0) this.updateRiders(step.dt);
+      if (this.phase === 2) this.updateChains(dt, t, step.effects);
+      if (step.dt > 0) this.open = this.heartDecision(0)['open'] === 1;
     }
     this.spearRing.setTime(t); this.spearFork.setTime(t);
     for (const l of this.lanes) l.setTime(t);
@@ -486,10 +481,9 @@ export class StormTitanFight implements BossScript {
 
   // ── I · the Sky Spear ──
 
-  private updateSpear(dt: number, t: number, thinkDt: number): void {
+  private updateSpear(dt: number, t: number, answer: Readonly<Record<string, number>> | undefined): void {
     const b = this.body, p = this.host.player.position;
-    if (thinkDt > 0) {
-      const answer = this.spearLaw.project({ dt: thinkDt, phase: this.phase, px: p.x, pz: p.z, chain: this.chainLeft }, app.rng.stream('ai'));
+    if (answer !== undefined) {
       const n = (key: string): number => { const value = answer[key]; if (value === undefined) throw new Error('Missing attack decision'); return value; };
       this.spearAt.x = this.spearLaw.value('x'); this.spearAt.z = this.spearLaw.value('z');
       if (n('strike') === 1) {
@@ -617,26 +611,17 @@ export class StormTitanFight implements BossScript {
 
   }
 
-  private updateChains(dt: number, t: number, thinkDt: number): void {
+  private updateChains(dt: number, t: number, effects: readonly ArenaClockEffect[]): void {
     const b = this.body, p = this.host.player.position;
-    if (thinkDt > 0) {
-      const result = this.chainLaw.project({ dt: thinkDt, mode: Number(this.spear === 'idle'), count: this.trail.points.length }, app.rng.stream('ai'));
-      if (result['strike'] === 1) {
-        const tr = this.trail.points[result['index'] ?? 0] ?? p, ring = this.chains.find(row => row.law.value('on') === 0);
-        if (ring) ring.law.reset({ on: 1, x: tr.x, z: tr.z });
-      }
-    }
     b.poseState.castL += ((this.chainLeft > 0 ? 1 : 0) - b.poseState.castL) * Math.min(1, dt * 4);
+    for (const effect of effects) if (effect.values['landing'] === 1 && effect.values['strike'] === 1) {
+      const x = effect.values['x'] ?? 0, z = effect.values['z'] ?? 0;
+      this.chains[effect.index]?.tell.hide(); this.bolt(x, z); this.ignite(x, z);
+      if (effect.values['hurt'] === 1) sampleArena(NALATI_STRIKES.chain, _v.set(x, p.y, z), p, () => { this.host.hurt(this.data.TITAN_TUNING.chainDamage, this.data.TITAN_LINES.chain); }, app.physics);
+    }
     for (const ring of this.chains) {
       if (ring.law.value('on') !== 1) continue;
-      const x = ring.law.value('x'), z = ring.law.value('z');
-      ring.tell.ring(x, z, this.data.TITAN_TUNING.chainRadius, .85 * (.6 + .4 * Math.sin(t * 24)));
-      if (thinkDt <= 0) continue;
-      const result = ring.law.project({ dt: thinkDt, px: p.x, pz: p.z });
-      if (result['strike'] === 1) {
-        ring.tell.hide(); this.bolt(x, z); this.ignite(x, z);
-        if (result['hurt'] === 1) sampleArena(NALATI_STRIKES.chain, _v.set(x, p.y, z), p, () => { this.host.hurt(this.data.TITAN_TUNING.chainDamage, this.data.TITAN_LINES.chain); }, app.physics);
-      }
+      ring.tell.ring(ring.law.value('x'), ring.law.value('z'), this.data.TITAN_TUNING.chainRadius, .85 * (.6 + .4 * Math.sin(t * 24)));
     }
   }
 

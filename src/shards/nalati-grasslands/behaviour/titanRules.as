@@ -3,7 +3,10 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombine
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
 @inline export function rulesEntry(signal:i32,value:f64,source:i32):void {
-if(signal==Signal.phaseEntry){
+if(signal==Signal.arenaClocks){
+ const active=f(Field.fighting)>0,phase=f(Field.phase);
+ put(Channel.active,active?1:0);put(Channel.mask,active?(phase==0?1:phase==2?3:0):0);put(Channel.land,active&&phase==2?1:0);
+} else if(signal==Signal.phaseEntry){
  const phase=f(Field.phase);
  put(Channel.cd,phase==2?3:2);put(Channel.mask,phase==0?7:phase==1?3:0);
  put(Channel.arm,phase==1?1:0);put(Channel.spread,phase==2?1:0);put(Channel.index,phase);
