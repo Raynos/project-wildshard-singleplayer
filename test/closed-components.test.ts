@@ -41,3 +41,15 @@ test('locks cannot be removed or changed into adjustable budgets', () => {
   expect(() => closedComponents({ 'pine-hollow': { C8: 1 } })).toThrow('Invalid closedComponents');
   expect(() => closedComponents({ 'pine-hollow': ['C8', 'C8'] })).toThrow('Invalid closedComponents');
 });
+
+test('closing counts shrink, require the lock to follow cuts, and close at zero', () => {
+  const policy = { 'nalati-grasslands': { C7: 93 } };
+  const row = (lines: number) => ({ 'nalati-grasslands': { components: componentInventory('', 'nalati-grasslands',
+    [{ path: 'src/game/riding/mountedFigure.ts', kind: 'sole-module', lines }], lines) } });
+  expect(closedComponentFailures(row(93), {}, policy)).toEqual([]);
+  expect(closedComponentFailures(row(94), {}, policy)).toEqual([expect.stringContaining('SHRINK-ONLY C7')]);
+  expect(closedComponentFailures(row(92), {}, policy)).toEqual([expect.stringContaining('lower shrink-only C7 lock')]);
+  expect(closedComponentFailures(row(0), {}, { 'nalati-grasslands': { C7: 0 } })).toEqual([]);
+  expect(compareClosedComponents({}, {}, policy, { 'nalati-grasslands': { C7: 92 } })).toEqual([]);
+  expect(compareClosedComponents({}, {}, policy, { 'nalati-grasslands': { C7: 94 } })).toEqual([expect.stringContaining('raised or removed')]);
+});
