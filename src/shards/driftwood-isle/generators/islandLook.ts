@@ -1,5 +1,5 @@
 // SHARD-PLATFORM W2 C2 (look-family rows): the Blender cove's materials as graph toon looks (`look.materials`, compiled by
-// the runtime with its other looks, runtime/hybrid.ts; world/BlenderIsland.ts wears them). Its numbers are
+// the runtime with its other looks, lent by the baked tiles host, which wears them, generators/bakedCove.ts). Its numbers are
 // data/islandRows.ts. G466 C2: their graphs are authored graph JSON (data/lookGraphs.json, with the cover grid they mix in).
 
 /** the look.materials ids: the terrain tiles, the casters (and the Explorer's specimens), the two cover sets */

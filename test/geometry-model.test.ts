@@ -4,33 +4,33 @@ import { Rng } from '../src/engine/core/rng';
 import { defineGeometryModel, modelContext, paramsOf } from '../src/engine/models/model';
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import crags from '../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
-import { coveModels } from '../src/shards/driftwood-isle/models/catalogue';
-
-import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
-import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { BAKED_COVE } from '../src/shards/driftwood-isle/generators/bakedCove';
+import { ISLAND_LOOK } from '../src/shards/driftwood-isle/generators/islandRows';
 
 test('all cove families retain clone, shadow, specimen and far-copy policy', () => {
-  admitDriftwoodFixtureRows();
+  const families = BAKED_COVE.instances?.families ?? [];
   const ctx = modelContext(null), rng = new Rng(1), geometry = new Map<string, THREE.BufferGeometry>();
-  const materials = { cast: new THREE.MeshBasicMaterial(), cover: new THREE.MeshBasicMaterial(), big: new THREE.MeshBasicMaterial() };
-  for (const { model } of driftwoodRows('custom/fixedLayouts').island.models) for (const variant of model.variants) {
+  const materials: Record<string, THREE.Material> = { cast: new THREE.MeshBasicMaterial(), cover: new THREE.MeshBasicMaterial(), big: new THREE.MeshBasicMaterial() };
+  for (const { model } of families) for (const variant of model.variants) {
     geometry.set(variant.id, new THREE.BoxGeometry()); geometry.set(`${variant.id}_lo`, new THREE.BoxGeometry(2, 2, 2));
   }
-  for (const [key, { model, look }] of coveModels({ geometry, materials })) {
+  expect(families).toHaveLength(16);
+  for (const { key, look: slot, model: row } of families) {
+    const model = defineGeometryModel(row, 'proto', { category: row.category, pipeline: row.pipeline }, { geometry, materials });
     for (const variant of model.variants ?? []) {
       const params = paramsOf(model, variant.id, undefined), built = model.build(ctx, params, rng), specimen = model.specimen?.(ctx, params, rng);
       if (built instanceof THREE.Object3D || specimen instanceof THREE.Object3D) throw new Error('Expected cove parts');
       expect(built).toHaveLength(1);
       expect(built[0]?.geometry).not.toBe(geometry.get(variant.id));
       expect(built[0]?.geometry.getAttribute('position').array).toEqual(geometry.get(variant.id)?.getAttribute('position').array);
-      expect(built[0]?.material).toBe(materials[look]);
-      expect(built[0]?.castShadow).toBe(look === 'cast'); expect(built[0]?.receiveShadow).toBe(true);
-      expect(specimen?.[0]?.material).toBe(materials.cast);
+      expect(built[0]?.material).toBe(materials[slot]);
+      expect(built[0]?.castShadow).toBe(slot === 'cast'); expect(built[0]?.receiveShadow).toBe(true);
+      expect(specimen?.[0]?.material).toBe(materials['cast']);
       const levels = model.lods ?? [];
       expect(levels).toHaveLength(key === 'palm' || key === 'bpalm' ? 1 : 0);
       for (const level of levels) {
         const far = level.build(ctx, params, rng); if (far instanceof THREE.Object3D) throw new Error('Expected far cove part');
-        expect(level.from).toBe(driftwoodRows('custom/fixedLayouts').nativeView.ISLAND_LOOK.lod); expect(far[0]?.geometry.getAttribute('position').array).toEqual(geometry.get(`${variant.id}_lo`)?.getAttribute('position').array);
+        expect(level.from).toBe(ISLAND_LOOK.lod); expect(far[0]?.geometry.getAttribute('position').array).toEqual(geometry.get(`${variant.id}_lo`)?.getAttribute('position').array);
       }
     }
   }

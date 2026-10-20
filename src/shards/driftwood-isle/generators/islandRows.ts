@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2 C2 (look-family rows): the Blender cove's numbers as data (world/BlenderIsland.ts builds it; its
+// SHARD-PLATFORM W2 C2 (look-family rows): the Blender cove's numbers as data (generators/bakedCove.ts rows it for the baked tiles host; its
 // terrain and props wear the graph toon looks of data/islandLook.ts): the tiers' files, tile counts and reaches, and the
 // tier-free LOD, simplification, splat, file and placement-name rows.
 

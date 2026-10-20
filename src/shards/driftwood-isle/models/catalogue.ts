@@ -1,6 +1,3 @@
-import type { CustomSections } from '../runtime/productSections.generated.d.ts';
-import { defineGeometryModel, type GeometryModelSource, type ModelDef } from '@wildshard/engine/models/model';
-import { driftwoodRows } from '../runtime/boot/rows';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
 import data from '../boot/modelCatalogue.generated.json' with { type: 'json' };
@@ -27,9 +24,3 @@ export const driftLog = sites.model('driftLog');
 export const pier = sites.model('pier');
 export const boat = sites.model('boat');
 export const zipline = sites.model('zipline');
-
-/** The island supplies its already-loaded prototypes and looks, with no fitting. */
-export function coveModels(source: GeometryModelSource): ReadonlyMap<string, { readonly look: CustomSections['custom/fixedLayouts']['island']['models'][number]['look']; readonly model: ModelDef<{ proto: string }> }> {
-  return new Map(driftwoodRows('custom/fixedLayouts').island.models.map(row => [row.key, { look: row.look,
-    model: defineGeometryModel(row.model, 'proto', { category: row.model.category, pipeline: row.model.pipeline }, source) }]));
-}

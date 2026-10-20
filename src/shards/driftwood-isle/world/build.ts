@@ -12,7 +12,7 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  */
 import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { sites, fencePost, signpost, plankStep, shoreBoulder } from '../models/catalogue';
+import { sites, fencePost, signpost, plankStep, shoreBoulder, smallRock } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -28,7 +28,7 @@ import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
-import { hasLentLook, lentLook, lentLooksOf } from '@wildshard/sdk/looks/lentLooks';
+import { hasLentLook, lentLook, lentLooksOf, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import SEABED from '../data/seabedLook.json' with { type: 'json' };
@@ -39,7 +39,7 @@ import type { CustomSections, CoverComposition, EntryLandings } from '../runtime
 import { followToonLook, toonLookState } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
-import type { BlenderIsland } from './BlenderIsland';
+import { bakedTilesOf } from '@wildshard/game/shardfile/bakedTiles';
 import { LOWERED_SEA } from './sea';
 import { entryDeck } from '../runtime/models/entryDeck';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
@@ -59,14 +59,14 @@ export interface DriftwoodWorld {
   hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: { placed: Placed; mesh: THREE.Mesh } | null;
   gulls: AmbientFlockDraw | null; trailside: { mesh: THREE.Mesh; placed: Placed[] } | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: { group: THREE.Group; placed: Placed[]; crabSites: CustomSections['custom/fixedLayouts']['cove']['spec']['crabSites']; anchors: CustomSections['custom/fixedLayouts']['cove']['native']['anchors']; update: () => void } | null; palms: { placed: Placed; mesh: THREE.Mesh; update: typeof updateWind } | null; cover: (StreamedCoverHandle & { placed: Placed[] }) | null;
-  bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
+  bridgeDeck: RopeChain | null;
 }
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
   return { ocean: null, pier: null, jetties: [], boat: null, rocks: null, hut: null, lookout: null, wreck: null, shrine: null,
     bushes: null, gulls: null, trailside: null, bridge: null, seabed: null, palmSpecs: [], cove: null, palms: null, cover: null,
-    bridgeDeck: null, blenderIsland: null };
+    bridgeDeck: null };
 }
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
@@ -235,21 +235,21 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — after the decks register,
   // so none where a deck carries the path (a board there pokes up through the bridge's planks); `ground.paths: 'plugin'`
   installPagePathRamps(registry, { id: 'paths', name: 'Paths' });
-  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove.
-  // The island and tier cover file are required boot content. Let the level loader dispose and
-  // report a failed world stage; never substitute procedural scenery for damaged assets.
+  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52), drawn by the client plan's baked tiles (world.baked, G532 (4)):
+  // here its ground wears the cover it carries, its cover fades into the cover's ground map, the monkeys climb its palms
   await slice(stages.completed + 1, total, 'Bridge physics and paths');
-  const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
-    const island = await B.install({
-      scene: game.scene, sky, registry, scenes, palmSpecs, islandCover,
-    });
-    game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');
-    return island;
-  });
+  const island = bakedTilesOf(driftwoodProduct(), 'cove'), looks = fixed.nativeView.ISLAND_LOOKS, reach = fixed.nativeView.ISLAND_TIERS[TIER];
+  island.tiles.forEach((tile, i) => { islandCover.wear(tile.geometry, i + 1); });
+  for (const [id, c] of [[looks.cover, reach.cover], [looks.coverBig, reach.big]] as const) {
+    setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...islandCover.groundRect]); setLentTexture(id, 'groundMap', islandCover.ground);
+  }
+  await scenes.place('rocks.small.copies'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
+  const smallRocks = scenes.mesh('rocks.small'); smallRocks.name = smallRock.id; game.scene.add(smallRocks);
+  palmSpecs.push(...fixed.foliage.islandPalms);
   await slice(total, total, 'Baked island');
   gpuOnlyTrees([ocean.group, pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,
-    wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, seabed.fish, cove.group, palms.mesh, cover.group, blenderIsland.group], 'driftwood.world', ['position']);
-  return { ocean, pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck, blenderIsland };
+    wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, seabed.fish, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
+  return { ocean, pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }
 
 const built = new WeakMap<object, DriftwoodWorld>();

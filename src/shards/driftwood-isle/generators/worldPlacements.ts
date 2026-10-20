@@ -33,7 +33,7 @@ export function uprightPoses(poses: readonly Readonly<{ matrix: readonly number[
 }
 
 /**
- * The world's declared copies the world build used to place by hand (world/build.ts, world/BlenderIsland.ts): the cove's
+ * The world's declared copies the world build used to place by hand (world/build.ts and the old Blender island module): the cove's
  * small rocks, the wreck and its cargo and reef rocks, the sea cave's reef rocks. Each is a world
  * scene placement drawn into the part its scene step publishes, registering its piece's colliders and floors.
  */

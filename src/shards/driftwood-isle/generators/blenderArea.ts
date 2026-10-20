@@ -4,7 +4,7 @@ import { CELL, type BlenderArea } from '@wildshard/engine/world/blenderArea';
 
 /**
  * Driftwood Isle's Blender area (DRIFTWOOD-REMASTER X2, E52): the spawn cove, the crescent beach, the plank stair and the
- * hut plateau, which scripts/blender/driftwood-isle/ bakes and BlenderIsland.ts builds. Procedural cells x 71…184,
+ * hut plateau, which scripts/blender/driftwood-isle/ bakes and the baked tiles host draws (generators/bakedCove.ts). Procedural cells x 71…184,
  * z 18…117 → x −110.8 … 110.8, z −214.7 … −20.6. The manifest declares it as `blender.area` (E405: the engine keeps
  * no per-shard table), so the export (scripts/blender/lib/export-scene.mjs) and the game clip at the same lines.
  */
