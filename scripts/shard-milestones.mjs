@@ -72,6 +72,8 @@ export function planProgress(rows) {
   const ready=ports.filter(row=>row?.gridReady.verdict==='pass').length;
   const unknown=ports.filter(row=>row===undefined||row.gridReady.verdict==='unknown').length;
   const m2={lower:ready/6,upper:(ready+unknown)/6,ready,unknown,total:6};
+  // M3 reports past 100 % honestly, but it can't carry the plan past its 60 % share.
+  const m3Share=m3===null?null:Math.min(1,m3);
   return {m3:{fraction:m3,cut,mustGo,shards:measured.length},m2,
-    plan:m3===null?null:{lower:.6*m3+.4*m2.lower,upper:.6*m3+.4*m2.upper}};
+    plan:m3Share===null?null:{lower:.6*m3Share+.4*m2.lower,upper:.6*m3Share+.4*m2.upper}};
 }
