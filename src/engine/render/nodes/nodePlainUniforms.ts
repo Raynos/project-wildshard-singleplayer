@@ -135,9 +135,10 @@ export class NodePlainUniforms {
   }
 
   /**
-   * Upload what changed in `groups` since `program` last received it (`program` is in use). `pass` names the current
-   * camera pass (the node frame's render id; omitted: every group compares): a render / frame group already compared
-   * on this program in that pass is left as it is.
+   * Upload what changed in `groups` since `program` last received it. `program` must be in use: gl.uniform* writes the
+   * current program, so the handler sends a draw's uniforms from setProgram, after its useProgram. `pass` names the
+   * current camera pass (the node frame's render id; omitted: every group compares): a render / frame group already
+   * compared on this program in that pass is left as it is.
    */
   bind(program: WebGLProgram, groups: readonly BlockGroup[], pass?: number): void {
     const known = this.program(program);

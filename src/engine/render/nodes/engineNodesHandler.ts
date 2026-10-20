@@ -340,6 +340,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly frame: NodeFrame;
   /** The material's active program view, including its validated block list. */
   private readonly drawEntries = new WeakMap<THREE.Material, DrawEntry>();
+  /**
+   * The draw whose plain uniforms wait for its program to be in use (`flushPlainUniforms`): plain uniforms are program
+   * state, written to the CURRENT program, and onBeforeRender / onUpdateProgram run before setProgram's useProgram.
+   */
+  private pendingPlain: { readonly program: unknown; readonly linked: WebGLProgram; readonly groups: readonly BlockGroup[]; readonly pass: number } | null = null;
+  /** three programs whose uniform setter flushes the pending plain uniforms */
+  private readonly plainHooked = new WeakSet();
   /** ms spent in the node builder (JS), summed */
   buildMs = 0;
   private real: Renderer | null = null;
@@ -820,8 +827,40 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const blocks = this.blocks;
     if (blocks === null) return;
     Reflect.set(material, 'uniformsGroups', NO_GROUPS);
+    const linked = draw?.linked ?? null;
+    if (draw === undefined || linked === null) return;
     // the node frame's render id is the camera pass the draw's updates just ran in (`textureUpdates.ts`)
-    if (draw !== undefined && draw.linked !== null) blocks.bind(draw.linked, draw.groups, this.frame.renderId);
+    if (blocks instanceof NodePlainUniforms) {
+      // Plain uniforms go to the current program: send them once setProgram has put this draw's program in use.
+      this.hookPlainUniforms(draw.program);
+      this.pendingPlain = { program: draw.program, linked, groups: draw.groups, pass: this.frame.renderId };
+    } else blocks.bind(linked, draw.groups, this.frame.renderId);
+  }
+
+  /**
+   * setProgram ends every draw's uniforms with `p_uniforms.setValue(gl, 'modelMatrix', …)`, unconditionally and after
+   * `useProgram`: the program's uniform setter is wrapped once so that call sends the draw's pending plain uniforms.
+   */
+  private hookPlainUniforms(program: unknown): void {
+    if (typeof program !== 'object' || program === null || this.plainHooked.has(program)) return;
+    const getUniforms: unknown = Reflect.get(program, 'getUniforms');
+    const uniforms: unknown = typeof getUniforms === 'function' ? Reflect.apply(getUniforms, program, []) : undefined;
+    const stock: unknown = typeof uniforms === 'object' && uniforms !== null ? Reflect.get(uniforms, 'setValue') : undefined;
+    if (typeof uniforms !== 'object' || uniforms === null || typeof stock !== 'function') throw new Error('Node program keeps no uniform setter');
+    this.plainHooked.add(program);
+    const flush = (): void => { this.flushPlainUniforms(program); };
+    Reflect.set(uniforms, 'setValue', function setValue(this: unknown, ...args: unknown[]): void {
+      Reflect.apply(stock, this, args);
+      if (args[1] === 'modelMatrix') flush();
+    });
+  }
+
+  /** `program` is in use: send the pending draw's plain uniforms if they belong to it */
+  private flushPlainUniforms(program: object): void {
+    const pending = this.pendingPlain, blocks = this.blocks;
+    if (pending === null || pending.program !== program || !(blocks instanceof NodePlainUniforms)) return;
+    this.pendingPlain = null;
+    blocks.bind(pending.linked, pending.groups, pending.pass);
   }
 
   /** Warm draws borrow the paired program view without rebuilding block lists.
