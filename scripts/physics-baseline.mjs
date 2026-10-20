@@ -44,7 +44,7 @@ const flag = (name, dflt) => { const a = argv.find((x) => x.startsWith(`--${name
 const has = (name) => argv.includes(`--${name}`);
 const OUT_DIR = resolvePath(ROOT, flag('out', 'progress/physics'));
 const ENTRY = flag('entry', 'shard');
-if (!['shard', 'grid'].includes(ENTRY)) throw new Error('--entry must be shard or grid');
+if (!['shard', 'grid', 'grid-only'].includes(ENTRY)) throw new Error('--entry must be shard, grid or grid-only');
 
 const POSES = [
   { shard: 'pine-hollow', name: 'gate', q: 'x=0&z=-200&yaw=3.1416' },
@@ -179,17 +179,26 @@ async function openGame(shard, q, { cpu, video }) {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
-  if (ENTRY === 'grid') await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
-  await page.goto(`${BASE}/?chunk=${shard}&tier=${TIER}&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
-  await waitForPhysicsBoot(page, 'standalone', TIMEOUT_MS);
-  if (ENTRY === 'grid') {
-    const standalone = await page.evaluate(physicsEntryInventory);
+  if (ENTRY !== 'shard') await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
+  if (ENTRY === 'grid-only') {
     await enterPhysicsGrid(page, BASE, TIER, TIMEOUT_MS);
     const grid = await page.evaluate(physicsEntryInventory);
     if (grid.grid !== shard) throw new Error(`Grid starts in ${grid.grid}, expected ${shard}`);
-    const failures = physicsEntryFailures(standalone, grid);
-    result.entry = { standalone, grid, failures };
-    if (failures.length > 0) { console.error(JSON.stringify(result.entry)); await ctx.close(); throw new Error(failures.join('\n')); }
+    if (grid.pier?.owner !== 'pier' || grid.native.pier !== grid.registered.pier) throw new Error('Pier deck has no matching registered/native floor');
+    result.entry = { grid, parity: 'not-sampled' };
+    console.error(JSON.stringify(result.entry));
+  } else {
+    await page.goto(`${BASE}/?chunk=${shard}&tier=${TIER}&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
+    await waitForPhysicsBoot(page, 'standalone', TIMEOUT_MS);
+    if (ENTRY === 'grid') {
+      const standalone = await page.evaluate(physicsEntryInventory);
+      await enterPhysicsGrid(page, BASE, TIER, TIMEOUT_MS);
+      const grid = await page.evaluate(physicsEntryInventory);
+      if (grid.grid !== shard) throw new Error(`Grid starts in ${grid.grid}, expected ${shard}`);
+      const failures = physicsEntryFailures(standalone, grid);
+      result.entry = { standalone, grid, failures };
+      if (failures.length > 0) { console.error(JSON.stringify(result.entry)); await ctx.close(); throw new Error(failures.join('\n')); }
+    }
   }
   await page.waitForTimeout(SETTLE_MS);
   try { result.activation[shard] = await activationWitness(page, shard); } catch (error) { await ctx.close(); throw error; }
