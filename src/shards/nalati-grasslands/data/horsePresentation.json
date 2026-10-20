@@ -1,0 +1,71 @@
+{
+  "alive": "horsealive",
+  "smooth": [
+    {
+      "source": "rear",
+      "target": "horserear",
+      "rate": 3.5,
+      "low": 0,
+      "high": 1
+    },
+    {
+      "source": "buck",
+      "target": "horsebuck",
+      "rate": 5,
+      "low": 0,
+      "high": 1
+    },
+    {
+      "source": "headUp",
+      "target": "horseheadUp",
+      "rate": 3,
+      "low": 0,
+      "high": 1
+    },
+    {
+      "source": "pin",
+      "target": "horsepin",
+      "rate": 6,
+      "low": 0,
+      "high": 1
+    },
+    {
+      "source": "turnLead",
+      "target": "horseturnLead",
+      "rate": 3.2,
+      "low": -1,
+      "high": 1
+    }
+  ],
+  "decay": [
+    {
+      "source": "kick",
+      "target": "posekick",
+      "rate": 1.8
+    },
+    {
+      "source": "stamp",
+      "target": "posestamp",
+      "rate": 2.5
+    },
+    {
+      "source": "toss",
+      "target": "posetoss",
+      "rate": 2
+    }
+  ],
+  "graze": {
+    "target": "horsegraze",
+    "rate": 2.2,
+    "speed": 0.3
+  },
+  "base": {
+    "bone": "body",
+    "target": "horsebaseZ"
+  },
+  "wind": {
+    "x": "horseWindX",
+    "z": "horseWindZ",
+    "strength": "horseWindStrength"
+  }
+}

@@ -9,13 +9,13 @@ import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { nalatiBake } from '../../../src/shards/nalati-grasslands/runtime/baked';
-import { nalatiTamingOf } from '../../../src/shards/nalati-grasslands/runtime/headlessTaming';
+import { nativeTamingOf } from '@wildshard/game/riding/nativeTaming';
 import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { canonicalSimDigest } from '../../fake/simState';
 
 const MODULE = new URL('../../fixtures/nalati-headless.ts', import.meta.url).href;
 function law(host: SimHost) {
-  const value = nalatiTamingOf(host); if (value === undefined) throw new Error('Missing native taming owner'); return value;
+  const value = nativeTamingOf(host); if (value === undefined) throw new Error('Missing native taming owner'); return value;
 }
 
 /** The pilot observes only the living horse position, live prompt and balance gauge. No trust/position grants or forceBreak. */
@@ -71,7 +71,7 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
     const taming = law(first.host), mounted = mountedPlayerOf(first.host);
     assert.equal(prompt, true); assert.ok(breakingTicks > 0);
     assert.equal(taming.phase, 'bonded', JSON.stringify({ breakingTicks, checkpointTick, law: taming.snapshot() }));
-    assert.equal(taming.tulpar?.variant, 'tulpar'); assert.equal(mounted?.horse, taming.tulpar);
+    assert.equal(taming.companion?.variant, 'tulpar'); assert.equal(mounted?.horse, taming.companion);
     assert.equal(original.alive, true); assert.equal(first.host.entities.get(original.entityId), original);
     assert.equal(original.position.y, -1e4); assert.equal(original.motor, null);
     if (replay) {

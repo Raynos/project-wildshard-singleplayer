@@ -1,10 +1,12 @@
+import horsePresentation from '../data/horsePresentation.json' with { type: 'json' };
+import { poseRidingEnvelopes } from '@wildshard/game/riding/presentation';
 import horseRows from './horse.json' with { type: 'json' };
 import { numericCreaturePose } from '@wildshard/game/plugin/channelPrograms';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import { NO_FUR, clamp } from '@wildshard/engine/entities/species/rigs';
+import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 
 import type * as THREE from 'three';
 
@@ -48,12 +50,7 @@ export const HORSE_SPEED = ecology.modes.ride[0].gaits;
 const nativeClips = new WeakMap<object, ReturnType<typeof numericCreaturePose>>();
 /** Data channels draw the overlay; this binding observes wind and advances presentation envelopes. */
 export function poseNalatiHorse(c: AnimalRigContext, wind: { readonly x: number; readonly z: number; readonly strength: number }, input?: object): void {
-  const m = c.mem; m['horsealive'] = Number(c.alive);
-  for (const [key, rate, lo, hi] of horseRows.overlay.smooth) { const at = `horse${key}`, target = c.alive ? clamp(m[key] ?? 0, lo, hi) : 0; m[at] = (m[at] ?? 0) + (target - (m[at] ?? 0)) * Math.min(1, c.dt * rate); }
-  for (const [key, rate] of horseRows.overlay.decay) { const value = m[key] ?? 0; m[`pose${key}`] = value; if (value > 0) m[key] = Math.max(0, value - c.dt * rate); }
-  const graze = c.alive && c.state === 'graze' && c.speed < .3 ? 1 : 0;
-  m['horsegraze'] = (m['horsegraze'] ?? 0) + (graze - (m['horsegraze'] ?? 0)) * Math.min(1, c.dt * horseRows.overlay.grazeRate);
-  m['horsebaseZ'] ??= c.bones['body']?.position.z ?? 0; m['horseWindX'] = wind.x; m['horseWindZ'] = wind.z; m['horseWindStrength'] = wind.strength;
+  poseRidingEnvelopes(c, horsePresentation, wind);
   if (input === undefined) { poseNalatiCreature('horse', c); return; }
   let pose = nativeClips.get(input); if (pose === undefined) { pose = numericCreaturePose(input); nativeClips.set(input, pose); } pose(c);
 }

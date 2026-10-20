@@ -33,10 +33,6 @@
       "nalatiHeadlessEnv",
       "installNalatiGroups"
     ],
-    "src/shards/nalati-grasslands/runtime/headlessTaming": [
-      "nalatiTamingOf",
-      "installNalatiTaming"
-    ],
     "src/shards/nalati-grasslands/runtime/headlessCreatures": [
       "installNalatiCreatures"
     ],
@@ -51,9 +47,6 @@
     ],
     "@wildshard/game/plugin/mover": [
       "proveTerrainEntries"
-    ],
-    "src/shards/nalati-grasslands/species/horse": [
-      "poseNalatiHorse"
     ],
     "@wildshard/game/shardfile/eliteEncounters": [
       "eliteBindings",
@@ -76,9 +69,140 @@
     ],
     "@wildshard/game/riding/native": [
       "installMountedPlayer"
+    ],
+    "@wildshard/game/riding/nativeTaming": [
+      "nativeTamingOf",
+      "installNativeTaming"
     ]
   },
-  "constants": {},
+  "constants": {
+    "nativeTaming": {
+      "step": "nalati.taming",
+      "herds": "nalati.herds",
+      "roster": "nalati.mounts",
+      "kinds": [
+        "horse",
+        "argymaq"
+      ],
+      "binding": {
+        "upgradeKind": "argymaq",
+        "bonds": [
+          "1",
+          "argymaq"
+        ],
+        "names": [
+          "Tulpar",
+          "Argymaq"
+        ],
+        "offset": [
+          2.6,
+          3.5
+        ],
+        "fields": {
+          "upgraded": "argymaq",
+          "horseUpgraded": "horseArgymaq",
+          "candidateUpgraded": "argymaq"
+        },
+        "labels": {
+          "mount": "Mount the stallion",
+          "breaking": "Break the stallion",
+          "trust": "The herd saw you drive the wolves off · TRUST +30",
+          "start": "HOLD ON — lean against him (A / D, LEAN L / LEAN R)",
+          "thrown": "Thrown! TRUST −40 — find him again when the herd settles",
+          "bonded": [
+            "TULPAR is yours · he waits at the camp's hitching rail · whistle (X / HORSE) to call him",
+            "ARGYMAQ is yours — he takes Tulpar's place at the camp's rail · whistle (X / HORSE) to call him"
+          ]
+        }
+      },
+      "inputs": {
+        "offer": "nalati.taming.offer",
+        "lean": "nalati.taming.lean",
+        "pitch": "nalati.look.pitch",
+        "mount": "nalati.taming.mount"
+      },
+      "rail": {
+        "x": 71,
+        "z": 215
+      },
+      "eye": 1.68,
+      "impactRange": 4.5,
+      "scareRange": 25,
+      "scareSeconds": 4,
+      "thrownLabel": "Thrown from the saddle",
+      "presentation": {
+        "alive": "horsealive",
+        "smooth": [
+          {
+            "source": "rear",
+            "target": "horserear",
+            "rate": 3.5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "buck",
+            "target": "horsebuck",
+            "rate": 5,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "headUp",
+            "target": "horseheadUp",
+            "rate": 3,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "pin",
+            "target": "horsepin",
+            "rate": 6,
+            "low": 0,
+            "high": 1
+          },
+          {
+            "source": "turnLead",
+            "target": "horseturnLead",
+            "rate": 3.2,
+            "low": -1,
+            "high": 1
+          }
+        ],
+        "decay": [
+          {
+            "source": "kick",
+            "target": "posekick",
+            "rate": 1.8
+          },
+          {
+            "source": "stamp",
+            "target": "posestamp",
+            "rate": 2.5
+          },
+          {
+            "source": "toss",
+            "target": "posetoss",
+            "rate": 2
+          }
+        ],
+        "graze": {
+          "target": "horsegraze",
+          "rate": 2.2,
+          "speed": 0.3
+        },
+        "base": {
+          "bone": "body",
+          "target": "horsebaseZ"
+        },
+        "wind": {
+          "x": "horseWindX",
+          "z": "horseWindZ",
+          "strength": "horseWindStrength"
+        }
+      }
+    }
+  },
   "prepare": [
     {
       "name": "tamingPoses",
@@ -806,8 +930,8 @@
                       "$call": [
                         {
                           "$ref": [
-                            "src/shards/nalati-grasslands/runtime/headlessTaming",
-                            "nalatiTamingOf"
+                            "@wildshard/game/riding/nativeTaming",
+                            "nativeTamingOf"
                           ]
                         },
                         {
@@ -1345,8 +1469,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nalati-grasslands/runtime/headlessTaming",
-              "installNalatiTaming"
+              "@wildshard/game/riding/nativeTaming",
+              "installNativeTaming"
             ]
           },
           {
@@ -1355,79 +1479,51 @@
             ]
           },
           {
-            "groups": {
-              "$ref": [
-                "groups"
-              ]
-            },
-            "creatures": {
-              "$ref": [
-                "creatures"
-              ]
-            },
-            "mounted": {
-              "$ref": [
-                "mounted"
-              ]
-            },
-            "environment": {
-              "$ref": [
-                "env"
-              ]
-            },
-            "context": {
-              "$ref": [
-                "context"
-              ]
-            },
-            "rest": {
-              "$ref": [
-                "boot",
-                "rest"
-              ]
-            },
-            "poses": {
-              "$ref": [
-                "tamingPoses",
-                "poses"
-              ]
-            },
-            "animate": {
-              "$fn": {
-                "$call": [
-                  {
-                    "$ref": [
-                      "src/shards/nalati-grasslands/species/horse",
-                      "poseNalatiHorse"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "args",
-                      0
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "env",
-                      "wind"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "tamingPoses",
-                      "horse"
-                    ]
-                  }
+            "$ref": [
+              "context"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "assembly",
+                  "merge"
                 ]
+              },
+              {
+                "$ref": [
+                  "constants",
+                  "nativeTaming"
+                ]
+              },
+              {
+                "programs": {
+                  "$ref": [
+                    "boot",
+                    "riding"
+                  ]
+                },
+                "rest": {
+                  "$ref": [
+                    "boot",
+                    "rest"
+                  ]
+                },
+                "poses": {
+                  "$ref": [
+                    "tamingPoses",
+                    "poses"
+                  ]
+                },
+                "poseProgram": {
+                  "$ref": [
+                    "tamingPoses",
+                    "horse"
+                  ]
+                }
               }
-            },
-            "programs": {
-              "$ref": [
-                "boot",
-                "riding"
-              ]
-            }
+            ]
           }
         ]
       }
