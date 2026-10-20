@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./forestWeather": "./forestWeather.ts",
     "./pagePreparation": "./pagePreparation.ts",
     "./speciesLooks": "./speciesLooks.ts",
     "./rangedPage": "./rangedPage.ts",

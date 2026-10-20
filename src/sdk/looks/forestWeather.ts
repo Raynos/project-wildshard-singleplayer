@@ -11,6 +11,7 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { fogUniforms, weatherUniforms, volumetricFog } from '@wildshard/engine/world/Atmosphere';
 import * as v from 'valibot';
+import { ForestWeatherSchema, type ForestWeatherRows } from '@wildshard/format/forestWeather';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import { keyedSkyOf } from '@wildshard/game/looks/keyedSky';
 import { installWeatherContinuation } from '@wildshard/game/plugin/weather';
@@ -21,15 +22,6 @@ import { RainPresentation } from './rainPresentation';
 import { HerdShelter, populationShelter } from '../populationShelter';
 
 type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
-const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1));
-/** Native presentation bindings are resource ids and numeric policies only. */
-export const ForestWeatherSchema = v.strictObject({
-  files: v.strictObject({ observations: id, rain: id, program: id, shelter: id }),
-  channels: id, debug: id, heldPhase: n,
-  focus: v.strictObject({ kind: id, variant: id, near: n, threshold: n, retention: n, height: n, radius: n, gain: n }),
-  system: v.strictObject({ id, after: v.array(id), before: v.array(id) }),
-});
-export type ForestWeatherRows = v.InferOutput<typeof ForestWeatherSchema>;
 export interface ForestWeatherRig { weather: WeatherContinuation; fx: RainPresentation; setMode: (mode: string, at?: number) => void }
 
 /** The page's weather: shared observations from native ids, the rain from world/rain.json's rows. */
