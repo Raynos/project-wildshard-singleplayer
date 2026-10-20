@@ -17608,6 +17608,7 @@
     },
     {
       "id": "trail-specimen-catalogue",
+      "catalogueDependencies": ["driftwood-entry-decks"],
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-specimens.mjs",
       "command": [
