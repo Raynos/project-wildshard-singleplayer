@@ -15,7 +15,7 @@ const strings = v.pipe(v.record(id, id), v.check(rows => Object.keys(rows).lengt
 const reference = v.strictObject({ library: id, model: id });
 const tierFile = v.union([id, v.strictObject({ phone: id, desktop: id })]);
 // Little-endian float32 columns read from a product blob: `count` rows of the row's width from `byteOffset`.
-const packet = v.strictObject({ file: id, storage: v.literal('f32'), byteOffset: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0x7fffffff), v.multipleOf(4)),
+const packet = v.strictObject({ file: id, storage: v.literal('f32'), byteOffset: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0x7fffffff), v.check(offset => offset % 4 === 0, 'Packet offsets are float32-aligned')),
   count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8192)) });
 const instanceValues = { values: v.exactOptional(bounded(finite, 32768)), packet: v.exactOptional(packet) };
 const library = v.variant('kind', [
