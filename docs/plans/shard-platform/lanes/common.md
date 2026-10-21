@@ -2,8 +2,8 @@
 
 AGENTS.md and docs/process/ hold the rest.
 
-- **Small commits early and often (Jake):** land each green cut at once. **Mega-build (G507):** only cut and land code.
-- **Never idle (Jake):** task done = take the top open row of your type in `ready-queue.md` yourself (claim it,
+- **Small commits (Jake):** land each green cut now. **Mega-build (G507):** only cut and land code.
+- **Never idle:** task done = take the top open row of your type in `ready-queue.md` (claim it,
   tell wildshard-new); while a check runs, prepare your next cut.
 - **Queue (G513, G518):** easy cuts toward 0 %, biggest first; whole modules onto existing hosts or data; a new or grown host
   needs a REAL second shard this wave, never a fixture, and HOST-BAR ≥ 5/6; state net lines; one-shard logic to AS + data at ≤ 10 Hz (G470). G517: AS engine files

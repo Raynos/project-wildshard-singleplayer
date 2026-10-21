@@ -59,7 +59,7 @@ with tempfile.TemporaryDirectory(prefix='capacity-test-', dir=repo / 'tmp') as t
   final = subprocess.run([sys.executable,wrapper,'build','--','node','--input-type=module','-e',guard],env=env,capture_output=True,text=True)
   assert final.returncode == 0, final.stderr
   assert (root/'build-day.log').read_text() == before
-  (root/'build-day.log').write_text('malformed observation header')
+  (root/'build-day.log').write_text('[]')
   report_only = subprocess.run([sys.executable,wrapper,'build','--','node','--input-type=module','-e',guard],env=env,capture_output=True,text=True)
   assert report_only.returncode == 0 and 'observation unavailable' in report_only.stderr
   assert not json.loads(subprocess.check_output([sys.executable,wrapper,'status'],env=env))['active']

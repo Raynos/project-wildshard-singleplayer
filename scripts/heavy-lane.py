@@ -212,7 +212,7 @@ def record_build(root, queued, started, load, code, inherited_lease=False):
                     'queueSeconds': started - queued, 'buildSeconds': ended - started,
                     'loadStart': load, 'loadEnd': load_average(), 'exitCode': code,
                     'inherited': inherited_lease, 'cwd': os.getcwd()}) + '\n')
-    except (OSError, ValueError, KeyError) as error:
+    except (OSError, ValueError, KeyError, TypeError) as error:
         print('heavy-lane: build observation unavailable: ' + str(error), file=sys.stderr)
 
 
