@@ -65,7 +65,7 @@ def lint_sources(root, files):
 def failure_paths(output):
     plain = ANSI.sub('', output)
     # TS, oxlint and Vitest diagnostics. Unknown errors never guess a prefix.
-    return sorted(set(re.findall(r'(?<![\w/])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh))\b', plain)))
+    return sorted(set(re.findall(r'(?<![\w])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh))\b', plain)))
 
 
 def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True):
@@ -83,7 +83,9 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
         lintable = lint_sources(root, files)
         commands = [('types', ['node', str(tools / 'local-gate-checks.mjs'), 'types', str(listing)])] if types_available else []
         if lintable:
-            commands.append(('lint', ['pnpm', 'exec', 'oxlint', *(['--type-aware'] if types_available else []), '-c', '.oxlintrc.json', *lintable]))
+            if not types_available:
+                commands.append(('lint-config', ['node', str(tools / 'push-lint-config.mjs')]))
+            commands.append(('lint', ['pnpm', 'exec', 'oxlint', *(['--type-aware'] if types_available else []), '-c', '.oxlintrc.json' if types_available else '.push-untyped.oxlint.json', *lintable]))
         env = dict(os.environ, WS_VITEST_MAX_WORKERS='4', WS_LIVE_PREPUSH='1', NO_COLOR='1')
         for phase, command in commands:
             rc, output = runner(command, root, deadline, env)

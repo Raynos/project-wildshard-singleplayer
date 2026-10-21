@@ -90,6 +90,12 @@ def offender(root, base, tip, files, deadline):
     return None
 
 
+def refusal_signature(output):
+    plain = LIVE['ANSI'].sub('', output)
+    plain = re.sub(r'(?:push-source-|live-prepush-)[A-Za-z0-9_-]+', '<source-snapshot>', plain)
+    return re.sub(r'\d+(?:\.\d+)?(?:ms|s)\b', '<time>', plain)
+
+
 def tick(root, checker=check_committed, uploader=None, notify=ping):
     started = time.monotonic()
     # Reaping the snapshot is part of the 45-second ceiling too.
@@ -122,7 +128,7 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         if candidate != base and not checker(root, base, candidate, deadline)['ok']:
             candidate = base
         state_file = common / 'push-red.json'
-        signature = re.sub(r'\d+(?:\.\d+)?(?:ms|s)\b', '<time>', LIVE['ANSI'].sub('', result['output']))
+        signature = refusal_signature(result['output'])
         fingerprint = hashlib.sha256(json.dumps([bad, result['phase'], result['files'], signature], sort_keys=True).encode()).hexdigest()
         state = load(state_file, {})
         count = state.get('count', 0) + 1 if state.get('fingerprint') == fingerprint else 1

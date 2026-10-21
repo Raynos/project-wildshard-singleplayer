@@ -157,6 +157,13 @@ class PushLoop(unittest.TestCase):
             self.assertEqual(PUSH['tick'](self.root, checker=checker, notify=notify)['status'], 'red')
         self.assertEqual(len(notices), 1)
 
+    def test_snapshot_names_do_not_reset_the_same_refusal(self):
+        first = '/repo/tmp/push-source-abcd_01/src/entry.ts: refusal in 8.2s'
+        second = '/repo/tmp/push-source-other-02/src/entry.ts: refusal in 9.3s'
+        self.assertEqual(PUSH['refusal_signature'](first), PUSH['refusal_signature'](second))
+        self.assertNotEqual(PUSH['refusal_signature'](first), PUSH['refusal_signature'](first.replace('entry.ts', 'other.ts')))
+        self.assertEqual(LIVE['failure_paths']('file:///repo/tmp/push-source-abcd/src/entry.ts:2:1'), ['src/entry.ts'])
+
     def test_ci_failure_notifies_once_and_names_the_job(self):
         tip = self.commit('src/good.ts')
         notices = []
@@ -222,8 +229,26 @@ class PushLoop(unittest.TestCase):
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'ci-cache-miss')
         self.assertIn('full CI gate', result['output'])
-        self.assertEqual(commands[0][:3], ['pnpm', 'exec', 'oxlint'])
+        self.assertEqual(commands[0][0], 'node')
+        self.assertEqual(Path(commands[0][1]).name, 'push-lint-config.mjs')
+        self.assertEqual(commands[1][:3], ['pnpm', 'exec', 'oxlint'])
         self.assertTrue(all('types' not in command and '--type-aware' not in command for command in commands))
+
+    def test_real_cache_miss_config_defers_typed_rules_only(self):
+        self.put('.oxlintrc.json', json.dumps({'plugins': ['typescript'], 'options': {'typeAware': True},
+                 'rules': {'typescript/no-unsafe-assignment': 'error', 'no-eval': 'error'}}))
+        self.put('tsconfig.json', '{"compilerOptions":{"strict":true,"target":"esnext"},"include":["src"]}')
+        self.put('src/unsafe.ts', "export const value = JSON.parse('{}');")
+        executable = str(ROOT / 'node_modules/.bin/oxlint')
+        original = subprocess.run([executable, '-c', '.oxlintrc.json', 'src/unsafe.ts'], cwd=self.root, capture_output=True)
+        self.assertNotEqual(original.returncode, 0)
+        subprocess.run(['node', str(ROOT / 'scripts/push-lint-config.mjs')], cwd=self.root, check=True)
+        ordinary = [executable, '-c', '.push-untyped.oxlint.json', 'src/unsafe.ts']
+        self.assertEqual(subprocess.run(ordinary, cwd=self.root, capture_output=True).returncode, 0)
+        self.put('src/unsafe.ts', "eval('1');")
+        refusal = subprocess.run(ordinary, cwd=self.root, capture_output=True, text=True)
+        self.assertNotEqual(refusal.returncode, 0)
+        self.assertIn('no-eval', refusal.stdout)
 
 
 if __name__ == '__main__':

@@ -6,7 +6,15 @@ import { expect, test } from 'vitest';
 import { manifestTypeTables, sectionTables } from '../scripts/push-tables.mjs';
 import { writeSectionSchemaBridge } from '../scripts/bake-section-schemas.mjs';
 import { sourceWalker } from '../scripts/push-inputs.mjs';
+import { untypedLintConfig } from '../scripts/push-lint-config.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
+
+test('cache-miss lint retains architecture rules and ordinary options', () => {
+  const original = { options: { typeAware: true, denyWarnings: true }, jsPlugins: ['./lint/guard.js'],
+    rules: { 'no-eval': 'error' }, overrides: [{ files: ['src/**'], rules: { 'local/guard': 'error' } }] };
+  expect(untypedLintConfig(original)).toEqual({ ...original, options: { typeAware: false, denyWarnings: true } });
+  expect(original.options.typeAware).toBe(true);
+});
 
 test('metadata discovery emits the same checked TypeScript table', () => {
   mkdirSync('tmp', { recursive: true });
