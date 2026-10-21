@@ -36,7 +36,7 @@ G8, ZB, ZD, the ZA barrel note.
 |---|---|---|
 | Pine boot policy + manifest as data, then Pine shelter host + spawn director, Pine C5 non-view | C9 boot ~91, C5 ~30, shelter 25 | sp-x1 (Codex) |
 | Driftwood ZC: pageGroups, quest/install.ts logic, barrel native-body installer host (save owner) | C4 43, C5 140 | sp-x6 (Codex) |
-| Runtime entry with no shard plugin: Driftwood hybrid.ts hooks (world/species/quest/movers) + Pine hybrid/landmarks/context | DW C9 240, Pine C9 rest | sp-x8 (Codex), after ZE |
+| Runtime entry with no shard plugin: Driftwood hybrid.ts hooks (world/species/quest/movers) + Pine hybrid/landmarks/context | DW C9 240, Pine C9 rest | sp-x8 (host, integration, Pine side) + sp-x6 (Driftwood side, group by group) |
 | WASM-HOST view lane (H0b, H1-H6) | ZF | sp-x9 (Codex), after Z11 |
 | WASM-HOST H0, then H9 view lane users: rope bridge, poolSurface, beaverPool, quest/views, King pose, posedInstances, creatureLooks, figures | ~340 per-frame view | sp-o4 (Opus) |
 | Driftwood world hosts: islandCover, fish school (extend installPageLife), fixed-draw loader host, build.ts stage glue | DW C1 353 | sp-o5 (Opus), after the gull |
