@@ -115,8 +115,6 @@ export interface AnimalModel {
   map?: THREE.Texture | null;
   /** the hull is thin sheets (the eagle's wings): every instance's material is double-sided */
   doubleSided?: boolean;
-  /** a `sharedBody` look's one drawn body (`instantiate`): made with the first animal, drawn by every rig of the model */
-  sharedBody?: AnimalMaterial;
 }
 
 /** one fur-shell layer's uniforms (see patchFur) */
@@ -294,6 +292,8 @@ export class AnimalFactory {
   readonly ready: Promise<void>;
 
   private readonly sky: Sky;
+  /** `sharedBody` looks' drawn bodies (`instantiate`): per shared body identity, per hull map and side */
+  private readonly sharedBodies = new WeakMap<object, Map<string, AnimalMaterial>>();
   constructor(sky: Sky, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
     this.sky = sky;
     this.style = opts.style ?? 'pbr';
@@ -592,10 +592,16 @@ export class AnimalFactory {
     if (Reflect.get(fur, 'isNodeMaterial') !== true) this.sky.setupMaterial(fur);
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
     // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
-    // a `sharedBody` look (O15): the rigs draw the model's one body; `fur` stays this animal's port, copied in per draw
-    const first = look?.sharedBody === true && look.material !== undefined && model.sharedBody === undefined;
-    if (first) model.sharedBody = fur.clone();
-    const drawn = look?.sharedBody === true && look.material !== undefined ? model.sharedBody ?? fur : fur;
+    // a `sharedBody` look (O15): every rig whose body copies the same one (and wears the same hull map and side) draws
+    // one body, made from the first animal's; `fur` stays this animal's port, copied in per draw
+    const shared = look?.material === undefined ? undefined : look.sharedBody?.(model.species.eyeGlow);
+    let drawn = fur, first = false;
+    if (shared !== undefined) {
+      let bodies = this.sharedBodies.get(shared);
+      if (bodies === undefined) { bodies = new Map(); this.sharedBodies.set(shared, bodies); }
+      const slot = `${model.map?.uuid ?? '-'}|${model.doubleSided === true ? 'double' : 'front'}`, known = bodies.get(slot);
+      if (known === undefined) { drawn = fur.clone(); bodies.set(slot, drawn); first = true; } else drawn = known;
+    }
     const mesh = new THREE.SkinnedMesh(model.geometry, model.render.oneMaterial || model.hull !== undefined ? [drawn] : [drawn, model.hard, model.eye]);
     if (drawn !== fur) {
       mesh.onBeforeRender = (_renderer, _scene, _camera, _geometry, material) => {

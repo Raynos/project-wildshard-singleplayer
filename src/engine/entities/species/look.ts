@@ -19,11 +19,12 @@ export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'b
   /** with `material` on a low-poly level: the body stays faceted (flat facets, per-facet jitter) in one group, glowing eye
    *  faces marked by an `aGlow` attribute (1 on the eyes) for the material to read; absent, the smooth loft as before */
   faceted?: true;
-  /** with a graph `material` (a classic copy drops its compile patches): every rig of a model draws ONE body; each
-   *  animal's own `material()` copy is its port (its tint, its hit flash), written into the drawn body before each of its
-   *  draws. A graph (node) body is built once per material, so a copy per animal was a node build per animal: 33 frames
-   *  of Driftwood's road entry on the Simulator (O15). */
-  sharedBody?: true;
+  /** with a graph `material` (a classic copy drops its compile patches): the body every `material()` copy is made from
+   *  (for a species of this eye glow). Every rig whose copies share it draws ONE body; each animal's own copy is its
+   *  port (its tint, its hit flash), written into the drawn body before each of its draws. A graph (node) body is built
+   *  once per material, so a copy per animal was a node build per animal: 33 frames of Driftwood's road entry on the
+   *  Simulator (O15). */
+  sharedBody?: (glow?: readonly [number, number, number]) => object;
   /** Decorate the existing instance materials after lighting is installed; preserve their hit-flash owners. */
   decorateMaterials?: (materials: readonly AnimalMaterial[]) => void;
   hasSkin?: (variant: VariantDef) => boolean;
