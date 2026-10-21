@@ -86,3 +86,42 @@ it('separates visual stalls from frame floor and refuses unmeasured timing',()=>
   expect(evidence().oneFrameLooks?.verdict).toBe('unknown');expect(evidence().frameFloor?.verdict).toBe('unknown');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('carries unchanged B1/runtime bindings and refuses either changed key', () => {
+ const root=mkdtempSync(resolve('tmp','grid-key-witness-'));
+ const measured='b'.repeat(40),product='c'.repeat(64),runtime='d'.repeat(64);
+ const receipt={schema:1,source:measured,contentKeys:{schema:'grid-runtime-keys/1',source:measured,runtime,products:{'pine-hollow':product}},
+  protocol:{profiler:false,glObserver:'off'},runs:[{sha:measured,when:'2026-10-21T01:00:00Z',surface:'sim',cohort:'grid',complete:true,glObserver:'off',
+   cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'pine-entry',after:{current:'pine-hollow'}}],
+    rows:[{name:'grid-pine-entry-drive',frames:120,pass:true,contextLost:false,maxMs:100,p95Ms:33,medianFps:30}]}]}]};
+ try {
+  writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));
+  const read=(productKey=product,runtimeKey=runtime)=>runtimeGridEvidence(root,'pine-hollow',sha,['receipt.json'],caps,{productKey,runtimeKey});
+  expect(read().oneFrameLooks?.verdict).toBe('pass');
+  expect(read().oneFrameLooks?.evidence).toContain(`source ${measured}; carried to ${sha}`);
+  expect(read().oneFrameLooks?.evidence).toContain(`unchanged B1 product ${product} and grid runtime ${runtime}`);
+  expect(read('e'.repeat(64))).toEqual({});
+  expect(read(product,'f'.repeat(64))).toEqual({});
+  receipt.contentKeys.source=sha;
+  writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));
+  expect(read()).toEqual({});
+ } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+it('accepts a qualified Chromium phone witness and separately observed CDP memory', () => {
+ const root=mkdtempSync(resolve('tmp','grid-chromium-witness-'));
+ const reading={measurement:'chromium-residency+cdp',owner:'pine-hollow',samples:4,playingPeakBytes:100_000_000,loadingPeakBytes:200_000_000,
+  cdp:'memory-infra',browserProcessPeakBytes:2_000_000_000,rendererProcessPeakBytes:3_000_000_000,gpuProcessPeakBytes:500_000_000};
+ const receipt={schema:1,source:sha,protocol:{profiler:false,glObserver:'off'},runs:[{sha,when:'2026-10-21T01:00:00Z',surface:'chromium',cohort:'grid',complete:true,glObserver:'off',
+  profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},memory:reading,
+  cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'pine-entry',after:{current:'pine-hollow'}}],
+   rows:[{name:'grid-pine-entry-drive',frames:120,pass:true,contextLost:false,maxMs:100,p95Ms:33,medianFps:30}]}]}]};
+ const read=()=>{writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));return runtimeGridEvidence(root,'pine-hollow',sha,['receipt.json'],caps);};
+ try {
+  expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().memory?.verdict).toBe('pass');
+  reading.playingPeakBytes=1_200_000_001;expect(read().memory?.verdict).toBe('fail');
+  reading.playingPeakBytes=100_000_000;reading.owner='other';expect(read().memory).toBeUndefined();
+  reading.owner='pine-hollow';const first=receipt.runs[0];if(first===undefined)throw new Error('Missing Chromium run');
+  first.profile.cpu=1;expect(read()).toEqual({});
+ } finally {rmSync(root,{recursive:true,force:true});}
+});

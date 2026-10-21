@@ -3,12 +3,17 @@ import {existsSync,readFileSync,readdirSync,statSync} from 'node:fs';
 import {resolve,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
+import {GridRuntimeBindingSchema,gridRuntimeKey} from './grid-runtime-keys.mjs';
 
 const sha=v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u));
 const positive=v.pipe(v.number(),v.finite(),v.minValue(1));
 const memory=v.looseObject({measurement:v.literal('native-footprint+gpu'),samples:positive,playingPeakBytes:positive,loadingPeakBytes:positive});
-const run=v.looseObject({sha,when:v.string(),surface:v.picklist(['sim','desktop']),cohort:v.literal('grid'),complete:v.literal(true),glObserver:v.literal('off'),
-  memory:v.optional(memory),cases:v.array(v.looseObject({shard:v.string(),complete:v.boolean(),errors:v.array(v.unknown()),
+const chromiumMemory=v.looseObject({measurement:v.literal('chromium-residency+cdp'),owner:v.string(),samples:positive,
+  playingPeakBytes:positive,loadingPeakBytes:positive,cdp:v.literal('memory-infra'),
+  browserProcessPeakBytes:positive,rendererProcessPeakBytes:positive,gpuProcessPeakBytes:positive});
+const phoneProfile=v.strictObject({device:v.literal('iPhone 16 Pro'),tier:v.literal('phone'),cpu:v.literal(4),muted:v.literal(true)});
+const run=v.looseObject({sha,when:v.string(),surface:v.picklist(['sim','desktop','chromium']),cohort:v.literal('grid'),complete:v.literal(true),glObserver:v.literal('off'),
+  profile:v.optional(phoneProfile),memory:v.optional(v.union([memory,chromiumMemory])),cases:v.array(v.looseObject({shard:v.string(),complete:v.boolean(),errors:v.array(v.unknown()),
     routes:v.array(v.looseObject({name:v.string(),after:v.looseObject({current:v.nullable(v.string())})})),
     rows:v.array(v.looseObject({name:v.string(),frames:positive,pass:v.boolean(),contextLost:v.optional(v.boolean()),skipped:v.optional(v.pipe(v.number(),v.finite(),v.minValue(0))),
       maxMs:v.optional(positive),worstMs:v.optional(positive),p95Ms:v.optional(positive),medianFps:v.optional(positive),stallPass:v.optional(v.boolean())}))}))});
@@ -31,36 +36,49 @@ export function runtimeReceiptPaths(root) {
   walk(directory);return out.sort((a,b)=>a.localeCompare(b));
 }
 
-/** An exact source SHA is mandatory. Receipt bytes are hashed into each verdict;
+/** Exact-SHA legacy receipts or matching measured product/shared-runtime keys qualify. Receipt bytes are hashed into each verdict;
  * the newest eligible observation overrides older passes, including with a fail.
  * Current frame-floor receipts have no native memory readings: they cannot supply memory.
  * @param {string} root @param {string} slug @param {string|null} revision
  * @param {readonly string[]} paths @param {{explorerMB:number,loadingMB:number}} caps
+ * @param {{productKey?:string,runtimeKey?:string}} [keys]
  * @returns {Partial<Record<'memory'|'oneFrameLooks'|'frameFloor',import('./shard-milestones.mjs').Criterion>>} */
-export function runtimeGridEvidence(root,slug,revision,paths,caps) {
+export function runtimeGridEvidence(root,slug,revision,paths,caps,keys={}) {
   if(revision===null||!v.is(sha,revision))return {};
+  let basis=`source ${revision}; exact source SHA`;
+  const applies=(source,input)=>{
+    if(source===revision){basis=`source ${source}; exact source SHA`;return true;}
+    const binding=v.safeParse(GridRuntimeBindingSchema,input);
+    if(!binding.success||binding.output.source!==source||keys.productKey===undefined)return false;
+    const runtime=keys.runtimeKey??gridRuntimeKey(root,revision);
+    if(runtime===undefined||binding.output.runtime!==runtime||binding.output.products[slug]!==keys.productKey)return false;
+    basis=`source ${source}; carried to ${revision}: unchanged B1 product ${keys.productKey} and grid runtime ${runtime}`;
+    return true;
+  };
   /** @type {Record<'memory'|'oneFrameLooks'|'frameFloor',Array<{at:number,path:string,criterion:import('./shard-milestones.mjs').Criterion}>>} */
   const candidates={memory:[],oneFrameLooks:[],frameFloor:[]};
   const add=(name,when,path,bytes,verdict,evidence)=>{
     const at=Date.parse(when);if(!Number.isFinite(at))return;
-    candidates[name].push({at,path,criterion:{verdict,evidence:`${path} sha256:${hash(bytes)} at ${revision}: ${evidence}`}});
+    candidates[name].push({at,path,criterion:{verdict,evidence:`${path} sha256:${hash(bytes)} ${basis}: ${evidence}`}});
   };
-  const measured=(when,path,bytes,playing,loading)=>add('memory',when,path,bytes,
+  const measured=(when,path,bytes,playing,loading,method='native WebContent + labelled GPU')=>add('memory',when,path,bytes,
     playing<=caps.explorerMB*1_000_000&&loading<=caps.loadingMB*1_000_000?'pass':'fail',
-    `native WebContent + labelled GPU peaks playing/loading ${playing}/${loading} bytes; caps ${caps.explorerMB}/${caps.loadingMB} MB`);
+    `${method} peaks playing/loading ${playing}/${loading} bytes; per-shard caps ${caps.explorerMB}/${caps.loadingMB} MB`);
   for(const path of paths) {
     const file=resolve(root,path);if(!existsSync(file)||statSync(file).size>5_000_000)continue;
-    const bytes=readFileSync(file);if(!bytes.includes(revision))continue;
+    const bytes=readFileSync(file);
     let input;try{input=JSON.parse(bytes.toString('utf8'));}catch{continue;}
     const recordedSoak=v.safeParse(soak,input);
-    if(recordedSoak.success&&recordedSoak.output.sha===revision&&recordedSoak.output.grade.admitted.includes(slug)) {
+    if(recordedSoak.success&&recordedSoak.output.grade.admitted.includes(slug)&&applies(recordedSoak.output.sha,input.contentKeys)) {
       const receipt=recordedSoak.output;
       if(receipt.seconds>=receipt.grade.requiredSeconds)measured(receipt.driveStarted,path,bytes,receipt.grade.peakBytes,receipt.grade.loadingPeakBytes);
     }
-    const recordedMilestone=v.safeParse(milestone,input);if(!recordedMilestone.success||recordedMilestone.output.source!==revision)continue;
+    const recordedMilestone=v.safeParse(milestone,input);if(!recordedMilestone.success)continue;
     for(const value of recordedMilestone.output.runs) {
-      const parsed=v.safeParse(run,value);if(!parsed.success||parsed.output.sha!==revision)continue;
+      const parsed=v.safeParse(run,value);if(!parsed.success||parsed.output.sha!==recordedMilestone.output.source||!applies(parsed.output.sha,input.contentKeys))continue;
       const receipt=parsed.output;
+      const chromium=receipt.surface==='chromium'&&receipt.profile!==undefined;
+      if(receipt.surface==='chromium'&&!chromium)continue;
       for(const scene of receipt.cases.filter(row=>row.shard==='grid'&&row.complete&&row.errors.length===0)) {
         const names=scene.routes.filter(route=>route.after.current===slug).map(route=>`grid-${route.name}`);
         const rows=scene.rows.filter(row=>names.some(name=>row.name===name||row.name===`${name}-travel`||row.name===`${name}-drive`));
@@ -69,19 +87,22 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps) {
           const invalid=rows.some(row=>row.contextLost===true||(row.skipped??0)>0);
           // Complete error-free entry cases already passed the route's reload/hole witness. The composite row.pass
           // also includes FPS and content CPU limits, so it cannot decide the separate visual/stall criterion.
-          if(receipt.surface==='sim') {
+          if(receipt.surface==='sim'||chromium) {
             const stalled=rows.some(row=>row.stallPass===false||(row.maxMs??row.worstMs??0)>200);
             const observed=rows.every(row=>row.contextLost===false&&(row.maxMs??row.worstMs)!==undefined);
             add('oneFrameLooks',receipt.when,path,bytes,invalid||stalled?'fail':observed?'pass':'unknown',
-              `completed Safari entry without reload/hole; ${rows.length} look/travel windows, requires intact context and every observed frame <= 200 ms; missing observations stay unknown`);
+              `completed ${chromium?'Chromium phone 4x':'Safari'} entry without reload/hole; ${rows.length} look/travel windows, requires intact context and every observed frame <= 200 ms; missing observations stay unknown`);
           }
-          const floor=receipt.surface==='sim'?30:60,limit=receipt.surface==='sim'?35:17.5;
+          const floor=receipt.surface==='sim'||chromium?30:60,limit=receipt.surface==='sim'||chromium?35:17.5;
           const slow=rows.some(row=>row.p95Ms!==undefined&&row.p95Ms>limit||row.medianFps!==undefined&&Math.round(row.medianFps)<floor);
           const observed=rows.every(row=>row.contextLost===false&&row.p95Ms!==undefined&&row.medianFps!==undefined);
           add('frameFloor',receipt.when,path,bytes,invalid||slow?'fail':observed?'pass':'unknown',
             `${receipt.surface}: every one of ${rows.length} grid entry/look/travel rows requires p95 <= ${limit} ms and rounded median >= ${floor} fps; missing observations stay unknown`);
         }
-        if(receipt.surface==='sim'&&receipt.memory!==undefined)measured(receipt.when,path,bytes,receipt.memory.playingPeakBytes,receipt.memory.loadingPeakBytes);
+        if(receipt.surface==='sim'&&receipt.memory?.measurement==='native-footprint+gpu')measured(receipt.when,path,bytes,receipt.memory.playingPeakBytes,receipt.memory.loadingPeakBytes);
+        if(chromium&&receipt.memory?.measurement==='chromium-residency+cdp'&&receipt.memory.owner===slug)measured(receipt.when,path,bytes,
+          receipt.memory.playingPeakBytes,receipt.memory.loadingPeakBytes,
+          `owner residency; CDP process peaks browser/renderer/GPU ${receipt.memory.browserProcessPeakBytes}/${receipt.memory.rendererProcessPeakBytes}/${receipt.memory.gpuProcessPeakBytes} bytes (page totals informational)`);
       }
     }
   }
