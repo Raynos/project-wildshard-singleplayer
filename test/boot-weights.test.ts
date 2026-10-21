@@ -19,3 +19,11 @@ it('blends local measurements and keeps history separated by tier, path and iden
   expect(new Set([loadingTimingKey(key), loadingTimingKey({ ...key, path: 'shardfile' }),
     loadingTimingKey({ ...key, identity: 'forest' }), loadingTimingKey({ ...key, tier: 'desktop' })]).size).toBe(4);
 });
+
+it('uses reported units instead of elapsed easing while a counted row runs', () => {
+  const row = { key: 'models', state: 'on', ms: 1_000_000, fraction: 0.25 } as const;
+  expect(loadingFraction([row], { models: 1000 })).toBe(0.25);
+  expect(loadingFraction([{ ...row, state: 'ok' }], { models: 1000 })).toBeLessThan(1);
+  expect(loadingFraction([row], { models: 1000 }, true)).toBe(1);
+  expect(loadingFraction([{ key: 'models', state: 'on', ms: 1000 }], { models: 1000 })).toBeCloseTo(1 - Math.exp(-1));
+});

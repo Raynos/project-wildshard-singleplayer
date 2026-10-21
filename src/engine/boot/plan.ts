@@ -264,7 +264,8 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
           s.sub = Math.max(s.sub, d / total);
           s.fraction = Math.max(s.fraction, clamp01(d / (total + 1)));
         }
-        if (detail !== undefined) { s.detail = detail; currentLoadingTimeline()?.report(key, detail); }
+        if (detail !== undefined) s.detail = detail;
+        currentLoadingTimeline()?.report(key, s.detail, done, total);
         publish();
       },
       detail(text) { if (s.state !== 'on') return; s.detail = text; currentLoadingTimeline()?.report(key, text); publish(); },

@@ -3,14 +3,14 @@ import { engineString } from '../strings';
 export interface LoadingStep { key: string; label: string; weight: number; aliases?: readonly string[] }
 export interface LoadingPath { id: string; steps: readonly LoadingStep[]; ignored?: readonly string[] }
 export interface LoadingRow {
-  key: string; label: string; number: number; state: 'todo' | 'on' | 'ok'; ms: number; detail: string;
+  key: string; label: string; number: number; state: 'todo' | 'on' | 'ok'; ms: number; detail: string; fraction?: number;
 }
 export interface LoadingGap { label: string; state: 'on' | 'ok'; ms: number; after: string | null }
-interface Stage { key: string; detail: string }
+interface Stage { key: string; detail: string; fraction?: number }
 /** Nested/parallel waits never double-count elapsed seconds: the most recently entered stage owns each interval. */
 export class LoadingTimeline {
   private path: LoadingPath;
-  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string }>();
+  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number }>();
   private readonly active = new Map<number, Stage>();
   private readonly aliases = new Map<string, string>();
   private readonly ignored = new Set<string>();
@@ -44,6 +44,7 @@ export class LoadingTimeline {
     if (current !== undefined) {
       const row = this.rows.get(current.key);
       if (row !== undefined) { row.ms += elapsed; row.detail = current.detail || row.detail; }
+      if (row !== undefined && current.fraction !== undefined) row.fraction = current.fraction;
       return;
     }
     if (elapsed === 0) return;
@@ -53,9 +54,15 @@ export class LoadingTimeline {
       state: 'on', ms: elapsed, after: this.last });
   }
   private label(key: string): string { return this.path.steps.find(step => step.key === key)?.label ?? key; }
-  report(name: string, text: string): void {
+  report(name: string, text: string, done?: number, total?: number): void {
     const key = this.aliases.get(name) ?? name;
-    for (const stage of this.active.values()) if (stage.key === key) stage.detail = text;
+    for (const stage of this.active.values()) if (stage.key === key) {
+      stage.detail = text;
+      // One unit remains for stage completion, just as in StepProgress.set.
+      if (done !== undefined && total !== undefined && Number.isFinite(done) && Number.isFinite(total) && total > 0) {
+        stage.fraction = Math.max(stage.fraction ?? 0, Math.min(total, Math.max(0, done)) / (total + 1));
+      }
+    }
   }
   /** A missing key becomes an explicit row, so an unrecognised stage can never disappear from the clock. */
   begin(name: string, detail = ''): { end: () => void; detail: (text: string) => void } {
@@ -81,7 +88,8 @@ export class LoadingTimeline {
     const rows = this.path.steps.map((step, index): LoadingRow => {
       const row = this.rows.get(step.key);
       return { key: step.key, label: step.label, number: index + 1,
-        state: running.has(step.key) ? 'on' : row?.started ? 'ok' : 'todo', ms: row?.ms ?? 0, detail: row?.detail ?? '' };
+        state: running.has(step.key) ? 'on' : row?.started ? 'ok' : 'todo', ms: row?.ms ?? 0, detail: row?.detail ?? '',
+        ...(row?.fraction === undefined ? {} : { fraction: row.fraction }) };
     });
     return { path: this.path.id, rows, gaps: this.gaps.map(gap => ({ label: gap.label, state: gap.state,
       ms: gap.ms, after: gap.after })), current: this.current()?.key ?? null };

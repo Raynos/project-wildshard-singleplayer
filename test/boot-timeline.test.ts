@@ -46,3 +46,14 @@ it('accounts for destination preparation, boundary wait, save, commit and activa
   expect(rows.map(row => row.ms)).toEqual([20, 10, 2, 2, 6]);
   expect(rows.reduce((sum, row) => sum + row.ms, 0)).toBe(40);
 });
+
+it('carries real unit progress through aliases without granting stage completion', () => {
+  const timeline = new LoadingTimeline(loadingPath('grid'), 0, () => 100);
+  const stage = timeline.begin('level.world');
+  timeline.report('level.world', 'Models 2 / 4', 2, 4);
+  expect(timeline.snapshot().rows.find(row => row.key === 'world')).toMatchObject({ fraction: 0.4, state: 'on' });
+  timeline.report('level.world', 'Models 1 / 4', 1, 4);
+  expect(timeline.snapshot().rows.find(row => row.key === 'world')?.fraction).toBe(0.4);
+  stage.end();
+  expect(timeline.snapshot().rows.find(row => row.key === 'world')?.state).toBe('ok');
+});

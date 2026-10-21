@@ -37,7 +37,7 @@ export function loadingUnits(label: string, total: number): (done: number, detai
   const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current;
   return (done, detail) => {
     if (key === null || key === undefined) return;
-    timeline?.report(key, `${label} ${done} / ${total}${detail ? ` · ${detail}` : ''}`);
+    timeline?.report(key, `${label} ${done} / ${total}${detail ? ` · ${detail}` : ''}`, done, total);
   };
 }
 

@@ -133,7 +133,9 @@ export class Loading {
     this.admission = progress;
     const phase = progress.phase === 'modules' ? 'modules' : 'admission';
     if (this.phase !== undefined && phase !== this.phaseKey) { this.phase.end(); this.phase = this.timeline.begin(phase); this.phaseKey = phase; }
-    this.phase?.detail(`${progress.detail} · ${progress.filesDone} / ${progress.filesTotal} files · ${formatMB(progress.bytesRead)} read`);
+    const detail = `${progress.detail} · ${progress.filesDone} / ${progress.filesTotal} files · ${formatMB(progress.bytesRead)} read`;
+    this.phase?.detail(detail);
+    this.timeline.report(phase, detail, progress.filesDone, progress.filesTotal);
     setData(this.root, 'step', `admission.${progress.phase}`);
     this.dirty = true;
   }
