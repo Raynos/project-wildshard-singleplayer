@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { ReturnProgramSchema } from './namedJsonContracts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(400));
 const integer = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
@@ -9,14 +10,18 @@ const reward = v.strictObject({ items: v.pipe(v.array(v.strictObject({ id: text,
 const target = v.strictObject({ kind: text, target: text });
 /** Deterministic contract board policy and content. Selection laws and identities are authored rows. */
 export const ContractCatalogueSchema = v.strictObject({
+  program: v.exactOptional(ReturnProgramSchema),
   id: text, store: text, slots: v.pipe(positive, v.maxValue(8)), attempts: v.pipe(positive, v.maxValue(256)),
   initial: v.array(target), fallback: target,
   draws: v.pipe(v.array(v.strictObject({ below: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)),
     kind: text, targets: v.pipe(v.array(text), v.minLength(1), v.maxLength(64)) })), v.minLength(1), v.maxLength(32)),
   ranks: v.record(text, integer), defaultRank: text,
   tags: v.exactOptional(v.pipe(v.array(v.strictObject({ tag: text,
-    any: v.pipe(v.array(v.pipe(v.strictObject({ kind: v.exactOptional(text), variant: v.exactOptional(text), label: v.exactOptional(text) }),
-      v.check(row => row.kind !== undefined || row.variant !== undefined || row.label !== undefined))), v.minLength(1), v.maxLength(64)) })), v.maxLength(64))),
+    any: v.pipe(v.array(v.union([
+      v.strictObject({ kind: text, variant: v.exactOptional(text), label: v.exactOptional(text) }),
+      v.strictObject({ kind: v.exactOptional(text), variant: text, label: v.exactOptional(text) }),
+      v.strictObject({ kind: v.exactOptional(text), variant: v.exactOptional(text), label: text }),
+    ])), v.minLength(1), v.maxLength(64)) })), v.maxLength(64))),
   matches: v.pipe(v.array(v.strictObject({ kind: text, match: v.picklist(['species', 'rarity', 'elite', 'tag']),
     excludeTags: v.array(text), excludeElite: v.boolean(), belowRank: v.exactOptional(positive) })), v.minLength(1), v.maxLength(32)),
   milestones: v.pipe(v.array(v.strictObject({ claimed: positive, skin: text })), v.maxLength(32)),
