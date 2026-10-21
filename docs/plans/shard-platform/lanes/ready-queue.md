@@ -29,7 +29,7 @@ Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real secon
 | Z1 | Opus | Nalati C2 looks (370) + C1 world (516) graphical spans | sp-o3 (after Ink) |
 | Z2 | Opus | Nine C2 looks (807): composite GLSL stays listed view (graph form costs +64 KB sections, +40-115 MB; closed by sp-o4); other look spans open | sp-o4 |
 | Z3 | Opus | Nine C1 world (566): drawn-in kit rows, Fei Zhua mounts, sets | sp-o2 |
-| Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | sp-o1 (after open-plots 7f6a9df314) |
+| Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | residue (sp-o1, spans at de19d7959a): poolSurface 61 is listed view (level transition, no second user); trample GLSL 30 charged; King 49 (registerKing on the limb rig: G9, no second user); dayKeys 6 (a clock spec of functions, $ref in sp-x8's headlessAssembly); render 8 (keyed sky, Pine-only); ~20 one-line owner APIs. Only real cut: a hull-book client binding with Driftwood species/bodies.ts as second user (Pine -11, DW -9), in Z5's files |
 | Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | sp-o5 (after Z9) |
 | Z6 | Codex | Nalati non-graphical own code (combat/quest/state) | sp-x9 |
 | Z7 | Codex | Nine C6 items (265) + C9 glue (199) | sp-x8 |
