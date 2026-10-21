@@ -108,6 +108,14 @@ it('rechecks absent descendants after a file parent becomes a directory', async 
   expect(productInputKey(root,receipt,[],memo)).toBeUndefined();
 });
 
+it('keys existence probes without treating them as source-content reads',async()=>{
+  const root=fixture(),receipt=resolve(root,'receipt.json'),source=resolve(root,'entry.ts');
+  await captureProductInputs(root,receipt,()=>{existsSync(source);recordBundle({output:[]});return Promise.resolve();});
+  const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),before=key();expect(before).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(source,'// changed source, same existence');expect(key()).toBe(before);
+  rmSync(source);expect(key()).toBeUndefined();
+});
+
 it.each(['execution','source','function-text'])('keeps %s compiler dependencies in their proper identity domain', mode => {
   const root=fixture(),compiler=resolve(root,'compiler.mjs'),receipt=resolve(root,'receipt.json');
   const initial='/** initial documentation */\nexport function compile(){return 1;}\n';

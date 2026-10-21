@@ -3,6 +3,12 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import * as childProcess from 'node:child_process';
+import worker from 'node:worker_threads';
+import net from 'node:net';
+import tls from 'node:tls';
+import http from 'node:http';
+import https from 'node:https';
+import http2 from 'node:http2';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash } from 'node:crypto';
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
@@ -13,9 +19,9 @@ import {compilerCodeHash} from './compiler-code.mjs';
 
 const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync.native, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
-const schema = 'shardfile-inputs/3', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs')]);
+const schema = 'shardfile-inputs/4', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs')]);
 const code=/\.[cm]?[jt]sx?$/u;
-const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FDM] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
+const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FDMP] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
 /** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,traceOnly?:boolean,opaque?:Set<string>}>} */
 const scopes = new AsyncLocalStorage();
 /** @type {ReturnType<typeof scopes.getStore>} */
@@ -49,6 +55,7 @@ function value(root, entry, memo) {
     if (!raw.real(at).startsWith(root+sep)) throw new Error(`Escaped product input: ${file}`);
     if (stat.isDirectory()) return kind === 'D' ? `directory:${digest(raw.list(at).sort().join('\0'))}` : 'directory';
     if (!stat.isFile()) throw new Error(`Nonregular product input: ${file}`);
+    if(kind==='P')return 'file';
     const hash=memo === undefined ? digest(raw.read(at)) : memo.hash(file);
     return kind==='M'&&code.test(file)?`module:${compilerCodeHash(file,hash,()=>raw.read(at))}`:hash;
   } catch (error) {
@@ -62,7 +69,7 @@ function note(kind, target) {
   if (scope === undefined || scope.observing || path === undefined) return;
   const file = inside(scope.root,path);
   if(file===undefined) {
-    if(kind!=='W'&&scope.traceOnly&&path!==scope.root&&!path.split(sep).includes('node_modules'))scope.opaque?.add('external-read');
+    if(kind!=='W'&&scope.traceOnly&&path!==scope.root&&!path.split(sep).includes('node_modules'))scope.opaque?.add(`external-read:${path}`);
     return;
   }
   if (kind === 'W') { scope.writes.add(file); return; }
@@ -77,10 +84,6 @@ function note(kind, target) {
 export function installInputRecorder() {
   if (installed) return; installed = true;
   registerHooks({
-  resolve(specifier,context,next) {
-    if(/^(?:node:)?(?:worker_threads|http|https|http2|net|tls)$/u.test(specifier))generationScope?.opaque?.add('worker-or-network');
-    return next(specifier,context);
-  },
   load(url,context,next) {
     const file=url.startsWith('file:')?fileURLToPath(url):undefined,scope=inputScope();
     if(file!==undefined)modules.add(file);
@@ -119,15 +122,37 @@ export function installInputRecorder() {
       Object.defineProperties(traced,Object.getOwnPropertyDescriptors(original)); table[name] = traced;
     }
   };
-  wrap(fs,['openAsBlob','readFileSync','readFile','existsSync','statSync','stat','lstatSync','lstat','openSync','open','createReadStream','accessSync','access','realpathSync','copyFileSync','cpSync'],'F');
+  wrap(fs,['existsSync','realpathSync'],'P');
+  wrap(fs,['openAsBlob','readFileSync','readFile','statSync','stat','lstatSync','lstat','openSync','open','createReadStream','accessSync','access','copyFileSync','cpSync'],'F');
   wrap(fs,['readdirSync','readdir','opendirSync','opendir'],'D');
   wrap(fs,['writeFileSync','writeFile','appendFileSync','appendFile'],'W');
-  wrap(fsp,['readFile','stat','lstat','open','access','realpath','copyFile','cp'],'F');
+  wrap(fsp,['realpath'],'P');
+  wrap(fsp,['readFile','stat','lstat','open','access','copyFile','cp'],'F');
   wrap(fsp,['readdir','opendir'],'D'); wrap(fsp,['writeFile','appendFile'],'W');
   const nativeLoad=process.dlopen.bind(process);
   process.dlopen=(...args)=>{generationScope?.opaque?.add('native-addon');nativeLoad(...args);};
   const request=globalThis.fetch.bind(globalThis);
-  globalThis.fetch=(...args)=>{generationScope?.opaque?.add('network');return request(...args);};
+  globalThis.fetch=(...args)=>{
+    const target=args[0],url=typeof target==='string'?target:target instanceof URL?target.href:target.url;
+    if(!url.startsWith('data:'))generationScope?.opaque?.add('network');
+    return request(...args);
+  };
+  /** Observe actual work, not imports used for isMainThread or pure constants.
+   * @param {Record<string,unknown>} table @param {string[]} names @param {string} reason */
+  const observeCalls=(table,names,reason)=>{
+    for(const name of names) {
+      const original=table[name];if(typeof original!=='function')continue;
+      table[name]=new Proxy(original,{
+        apply(target,thisArg,args){generationScope?.opaque?.add(reason);return Reflect.apply(target,thisArg,args);},
+        construct(target,args,newTarget){generationScope?.opaque?.add(reason);return Reflect.construct(target,args,newTarget);},
+      });
+    }
+  };
+  observeCalls(worker,['Worker'],'worker');
+  observeCalls(net,['Socket','Server','connect','createConnection','createServer'],'network');
+  observeCalls(tls,['TLSSocket','connect','createServer'],'network');
+  for(const table of [http,https])observeCalls(table,['request','get','createServer'],'network');
+  observeCalls(http2,['connect','createServer','createSecureServer'],'network');
   /** @param {Record<string,unknown>} table */
   const observeChildren=table=>{
     for(const name of ['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork']) {
@@ -259,13 +284,15 @@ export function inputRecorderPlugin(options={}) {
  * @param {string} root @param {string} receipt */
 export function startGenerationInputTrace(root,receipt) {
   if(generationScope!==undefined)throw new Error('Generation trace already active');
-  moduleKind='F';installInputRecorder();
+  moduleKind='M';installInputRecorder();
   const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,opaque:new Set()};
   generationScope=scope;scopes.enterWith(scope);
-  for(const file of modules)if(inside(scope.root,file)!==undefined)note('F',file);
+  for(const file of modules)if(inside(scope.root,file)!==undefined)note(code.test(file)?'M':'F',file);
   process.on('exit',status=>{
     if(status!==0)return;
-    const body={schema:'generation-reads/1',files:[...scope.reads.keys()].filter(entry=>/^[FM] /u.test(entry)).map(entry=>entry.slice(2)).sort((a,b)=>a<b?-1:a>b?1:0),opaque:[...scope.opaque].sort((a,b)=>a<b?-1:a>b?1:0)};
+    const files=[...scope.reads.keys()].filter(entry=>entry.startsWith('F ')).map(entry=>entry.slice(2)).sort((a,b)=>a<b?-1:a>b?1:0);
+    const execution=[...scope.reads.keys()].filter(entry=>entry.startsWith('M ')).map(entry=>entry.slice(2)).filter(file=>!scope.reads.has(`F ${file}`)).sort((a,b)=>a<b?-1:a>b?1:0);
+    const body={schema:'generation-reads/2',files,execution,opaque:[...scope.opaque].sort((a,b)=>a<b?-1:a>b?1:0)};
     raw.write(receipt,JSON.stringify({...body,seal:digest(JSON.stringify(body))}));
   });
 }

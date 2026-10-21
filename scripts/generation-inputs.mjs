@@ -5,11 +5,13 @@ import {copyFileSync,lstatSync,mkdirSync,readFileSync,readdirSync,writeFileSync}
 import {dirname,isAbsolute,resolve} from 'node:path';
 import * as v from 'valibot';
 import {generationCacheRoot,runGenerationJob} from './generation-cache.mjs';
+import {compilerCodeHash} from './compiler-code.mjs';
 
 export const generationReadReceipt='.generation-reads.json';
 const digest=(/** @type {string} */ text)=>createHash('sha256').update(text).digest('hex');
 const path=v.pipe(v.string(),v.check(file=>file.length>0&&!isAbsolute(file)&&!file.includes('\\')&&file.split('/').every(part=>part!==''&&part!=='.'&&part!=='..')));
-const Trace=v.strictObject({schema:v.literal('generation-reads/1'),files:v.pipe(v.array(path),v.maxLength(100_000)),opaque:v.array(v.string()),seal:v.string()});
+const paths=v.pipe(v.array(path),v.maxLength(100_000));
+const Trace=v.strictObject({schema:v.literal('generation-reads/2'),files:paths,execution:paths,opaque:v.array(v.string()),seal:v.string()});
 const order=(/** @type {string} */ a,/** @type {string} */ b)=>a<b?-1:a>b?1:0;
 const code=/\.[cm]?[jt]sx?$/u;
 /** Missing, malformed, failed or opaque observations grant no narrower key.
@@ -19,8 +21,9 @@ function readTrace(file,entry) {
     const stat=lstatSync(file);
     if(!stat.isFile()||stat.size>5_000_000)return undefined;
     const trace=v.parse(Trace,JSON.parse(readFileSync(file,'utf8')));
-    const body={schema:trace.schema,files:trace.files,opaque:trace.opaque};
-    if(trace.opaque.length>0||trace.files.length!==new Set(trace.files).size||!trace.files.includes(entry)||digest(JSON.stringify(body))!==trace.seal)return undefined;
+    const body={schema:trace.schema,files:trace.files,execution:trace.execution,opaque:trace.opaque};
+    const all=[...trace.files,...trace.execution];
+    if(trace.opaque.length>0||all.length!==new Set(all).size||!all.includes(entry)||digest(JSON.stringify(body))!==trace.seal)return undefined;
     return trace;
   } catch {return undefined;}
 }
@@ -40,10 +43,21 @@ function selectInputs(inputs,files) {
  * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
 export async function runObservedGeneration(root,job,options,entry) {
   const inventory=Object.keys(job.inputs).sort(order);
-  const recipe=digest(JSON.stringify({schema:'generation-inputs/1',node:process.version,id:job.id,inventory,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
+  const recipe=digest(JSON.stringify({schema:'generation-inputs/2',node:process.version,id:job.id,inventory,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
   const profiles=resolve(options.cacheDir??generationCacheRoot(),'.reads-v1',job.id,recipe);
-  /** @param {string[]} files */
-  const narrowed=files=>({...job,inputs:selectInputs(job.inputs,files),tools:{...job.tools,readInventory:recipe}});
+  /** @param {v.InferOutput<typeof Trace>} trace */
+  const executionInputs=trace=>Object.fromEntries(trace.execution.filter(file=>code.test(file)&&Object.hasOwn(job.inputs,file)).map(file=>[file,job.inputs[file]]));
+  /** @param {v.InferOutput<typeof Trace>} trace */
+  const narrowed=trace=>({...job,inputs:selectInputs(job.inputs,trace.files),tools:{...job.tools,readInventory:recipe,
+    execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}});
+  /** Even a normalized execution hit must validate the current raw source
+   * through the full phase memo; semantic identity never freezes old bytes.
+   * @param {v.InferOutput<typeof Trace>} trace */
+  const verifyExecution=trace=>{
+    const inputs=executionInputs(trace);
+    if(options.inputHashes!==undefined)options.inputHashes.verifyInputs(inputs);
+    else for(const [file,expected]of Object.entries(inputs))if(createHash('sha256').update(readFileSync(resolve(root,file))).digest('hex')!==expected)throw new Error(`Generation execution changed: ${file}`);
+  };
   if(options.forceCompare!==true) {
     /** @type {string[]} */
     let names=[];
@@ -52,7 +66,10 @@ export async function runObservedGeneration(root,job,options,entry) {
       const trace=readTrace(resolve(profiles,name),entry);
       if(trace===undefined)continue;
       const miss=new Error('Observed generation cache miss');
-      try {return await runGenerationJob(root,narrowed(trace.files),{...options,generate:()=>Promise.reject(miss)});}
+      try {
+        const result=await runGenerationJob(root,narrowed(trace),{...options,generate:()=>Promise.reject(miss)});
+        try {verifyExecution(trace);return result;}catch(error){result.release();throw error;}
+      }
       catch(error) {if(error!==miss)throw error;}
     }
   }
@@ -60,7 +77,7 @@ export async function runObservedGeneration(root,job,options,entry) {
   const trace=readTrace(resolve(full.directory,generationReadReceipt),entry);
   if(trace===undefined)return full;
   try {
-    const result=await runGenerationJob(root,narrowed(trace.files),{...options,generate:directory=>{
+    const result=await runGenerationJob(root,narrowed(trace),{...options,generate:directory=>{
       // The full result's read lease remains live through all alias copies.
       // runGenerationJob verifies these bytes again before atomic publication.
       for(const file of job.outputs) {
@@ -69,6 +86,7 @@ export async function runObservedGeneration(root,job,options,entry) {
       return Promise.resolve();
     }});
     try {
+      verifyExecution(trace);
       mkdirSync(profiles,{recursive:true});
       const text=JSON.stringify(trace),file=resolve(profiles,`${digest(text)}.json`);
       try {writeFileSync(file,text,{flag:'wx'});}catch(error) {if(!(error instanceof Error)||!('code'in error)||error.code!=='EEXIST')throw error;}

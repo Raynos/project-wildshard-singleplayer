@@ -31,6 +31,8 @@ it('reuses unread SDK edits but rebuilds imported code and newly read branches',
   const {root,entry,output,run}=fixture();const first=await run();expect(first.hit).toBe(false);
   put(root,'src/sdk/unread.ts','// edited unrelated source');
   expect(await run()).toEqual({...first,hit:true});
+  put(root,'src/sdk/used.mjs','/** executed docs changed */ export const value=1;');
+  expect(await run()).toEqual({...first,hit:true});
   put(root,'src/sdk/used.mjs','export const value=2;');
   expect(await run()).toMatchObject({hit:false,text:'2'});
   // An old read set misses on the changed entry. The new branch executes with
@@ -40,6 +42,13 @@ it('reuses unread SDK edits but rebuilds imported code and newly read branches',
   put(root,'src/sdk/unread.ts','// newly observed bytes');
   expect(await run()).toMatchObject({hit:false,text:'// newly observed bytes'});
   expect((await run()).hit).toBe(true);
+});
+it.each(['raw','function-text'])('keeps %s self-source reads byte-exact',async mode=>{
+  const {root,entry,output,run}=fixture();
+  const source=`/** first docs */ import fs from 'node:fs';export function compile(){return 1;}fs.writeFileSync('${output}',String(${mode==='raw'?`fs.readFileSync('${entry}','utf8').length`:'compile.toString().length'}));`;
+  put(root,entry,source);await run();expect((await run()).hit).toBe(true);
+  put(root,entry,source.replace('first docs','longer changed docs'));
+  expect((await run()).hit).toBe(false);
 });
 it('invalidates negative probes when the declared input inventory gains a file',async()=>{
   const output='src/shards/alpha/data/output.txt';

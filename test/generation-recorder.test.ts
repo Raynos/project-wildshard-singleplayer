@@ -21,21 +21,25 @@ function fixture(source:string) {
   const child=spawnSync(process.execPath,['--import',resolve('scripts/generation-recorder.mjs'),'entry.mjs'],{
     cwd:root,env:{...process.env,WS_GENERATION_READ_RECEIPT:receipt},encoding:'utf8',
   });
-  return {root,receipt,child,read:()=>v.parse(v.object({schema:v.literal('generation-reads/1'),files:v.array(v.string()),opaque:v.array(v.string()),seal:v.string()}),JSON.parse(readFileSync(receipt,'utf8')))};
+  return {root,receipt,child,read:()=>v.parse(v.object({schema:v.literal('generation-reads/2'),files:v.array(v.string()),execution:v.array(v.string()),opaque:v.array(v.string()),seal:v.string()}),JSON.parse(readFileSync(receipt,'utf8')))};
 }
 it('records imports and descriptor-based raw reads without consuming unrelated source modules',()=>{
   const {child,read}=fixture("import{value}from'./used.mjs';import fs from'node:fs';const fd=fs.openSync('raw.ts','r');fs.readSync(fd,Buffer.alloc(1),0,1,null);fs.closeSync(fd);fs.writeFileSync('output.json',JSON.stringify(value));");
   expect(child.status,child.stderr).toBe(0);const trace=read();
-  expect(trace.files).toContain('entry.mjs');expect(trace.files).toContain('used.mjs');expect(trace.files).toContain('raw.ts');
+  expect(trace.execution).toContain('entry.mjs');expect(trace.execution).toContain('used.mjs');expect(trace.files).toContain('raw.ts');
   expect(trace.files).not.toContain('unread.ts');expect(trace.opaque).toEqual([]);
 });
 it.each([
   ["import{spawnSync}from'node:child_process';spawnSync(process.execPath,['-e',\"require('fs').readFileSync('unread.ts')\"]);",'child-process'],
   ["try{process.dlopen({exports:{}},'missing-native-addon.node');}catch{}",'native-addon'],
-  ["import'node:worker_threads';",'worker-or-network'],
-  ["import'node:http';",'worker-or-network'],
+  ["import{Worker}from'node:worker_threads';const worker=new Worker('',{eval:true});await worker.terminate();",'worker'],
+  ["import{createServer}from'node:http';createServer().close();",'network'],
 ])('marks opaque I/O for the conservative fallback: %s',(source,reason)=>{
   const {child,read}=fixture(source);expect(child.status,child.stderr).toBe(0);expect(read().opaque).toContain(reason);
+});
+it('permits pure builtin imports and immutable data-URL fetches',()=>{
+  const {child,read}=fixture("import{isMainThread}from'node:worker_threads';import'node:http';await fetch('data:text/plain,pinned');if(!isMainThread)throw new Error('wrong thread');");
+  expect(child.status,child.stderr).toBe(0);expect(read().opaque).toEqual([]);
 });
 it('does not publish a successful trace when a producer fails',()=>{
   const {child,receipt}=fixture("throw new Error('producer failed');");
