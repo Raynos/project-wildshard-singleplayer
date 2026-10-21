@@ -18,18 +18,20 @@ if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served SHA dif
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
+const desktop = arg('surface', 'phone') === 'desktop';
+const cpu = desktop ? 1 : 4;
 let failed = false;
 try {
   for (const path of arg('paths', 'shardfile,grid').split(',')) {
     if (path !== 'shardfile' && path !== 'grid') throw new Error('Unsupported load path');
     const transport = await observeTransport(base);
-    const context = await browser.newContext(phone);
+    const context = await browser.newContext(desktop ? { viewport: { width: 1440, height: 900 } } : phone);
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
     await context.addInitScript(accuracyRecorder);
     const page = await context.newPage(), errors = [], requests = new Map();
     page.on('pageerror', error => errors.push(error.message));
     const cdp = await context.newCDPSession(page);
-    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
     await cdp.send('Network.enable');
     cdp.on('Network.requestWillBeSent', event => {
       requests.set(event.requestId, { url: event.request.url, start: event.timestamp, wall: event.wallTime,
@@ -76,12 +78,12 @@ try {
     if (arg('profile', '0') === '1') writeFileSync(resolve(out, `${path}.cpuprofile`), JSON.stringify((await cdp.send('Profiler.stop')).profile));
     if (collected.fatal) errors.push(collected.fatal);
     if (errors.length > 0) status = 'failed';
-    const receipt = { pin, path, device: 'iPhone 16 Pro', cpu: 4, status, errors, cdpNetworkBytes, transportReceipts: received, ...report, ...collected };
+    const receipt = { pin, path, device: desktop ? 'Desktop Chromium' : 'iPhone 16 Pro', cpu, status, errors, cdpNetworkBytes, transportReceipts: received, ...report, ...collected };
     writeFileSync(resolve(out, `${path}.json`), JSON.stringify(receipt, null, 2));
     console.info(JSON.stringify({ path, status, networkBytes, displayedNetworkBytes: receipt.displayedNetworkBytes,
       stageSeconds: receipt.stageSeconds, clockSeconds: receipt.clockSeconds, unaccountedSeconds: receipt.unaccountedSeconds, maxDetailGapMs: receipt.maxDetailGapMs, errors }));
     if (status === 'passed') await page.locator('.ws-load').waitFor({ state: 'detached', timeout: 10_000 });
-    await page.screenshot({ path: resolve(out, `${path}-${status === 'passed' ? 'first-frame' : 'stalled'}.jpg`), type: 'jpeg', quality: 75, scale: 'css' });
+    if (!desktop) await page.screenshot({ path: resolve(out, `${path}-${status === 'passed' ? 'first-frame' : 'stalled'}.jpg`), type: 'jpeg', quality: 75, scale: 'css' });
     await context.close(); await transport.close();
     if (status !== 'passed' || (arg('accept', '0') === '1' && report.failures.length > 0)) failed = true;
   }
