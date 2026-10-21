@@ -117,7 +117,6 @@ const input = plumbing.entries.input.pipe[0].item;
 const debug = plumbing.entries.debug.pipe[0].item;
 // These identities are the defining schemas, not message-based permissions for arbitrary author code.
 const customSchemas = new Map<object, JsonSchema>([
-  [GraphArmsSchema.entries.decal.entries.atlas, {}],
   [InputActionSchema.options[1], { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9-]*(?:\\.[a-zA-Z0-9-]+)+$' }],
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
