@@ -16,22 +16,22 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code (from the audit) | Effort (est.) |
 |---|---|---|---|
 | **L1 — accepted `8264f6dca2`; source `0e5a42feb3`; pushed** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
-| **L2 — cold accepted and pushed `8264f6dca2`; warm bootstrap `63dc1e12b4` proof pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
+| **L2 — cold accepted and pushed `8264f6dca2`; Safari warm accepted `de6833b8b7`; Chromium eviction residual in `9fd203d409`** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
 | **L3 — accepted `8264f6dca2`; source `583123db2a`; pushed** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
 | **L4 — accepted `8264f6dca2`; source `c54a3c5c54`; pushed** | A step table per load path (shardfile, grid entry, grid crossing; legacy comparison retained) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
 | **L5 — accepted `8264f6dca2`; source `91a491c8a8 / 390a57867c`; pushed** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
 | **L6 — accepted `8264f6dca2`; source `977a0d1303`; pushed** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
 | **L7 — accepted `8264f6dca2`; source `8dd0eeaa0e / 09bdb72199`; pushed** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
-| **L8 — cold matrix accepted and pushed `8264f6dca2`; added warm proof pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
+| **L8 — cold matrix accepted and pushed `8264f6dca2`; Safari warm accepted; Chromium residual retained `9fd203d409`** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
 
 ## Phase 2: fast (after Phase 1 is accepted)
 
 | Row | What | Code | Effort (est.) |
 |---|---|---|---|
 | **O1 — done `02fb4e4288`, `8f220455e8`, `94bf308bc1`** | Grid edges read from each neighbour's product index only, not the whole product (today 3,237 requests, 137.5 MB, 75.7 s) | `grid/edgeSources.ts:73-86`, `grid/products.ts:42-60`, `grid/session.ts:305-322` | 0.5 day |
-| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `4a2bed9f6f`, `de51698358`, `63dc1e12b4`; full warm proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
+| **O2 — accepted `de6833b8b7`; receipts `9fd203d409`; Chromium cache-pressure residual documented; carrier pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3 — done; accepted `32cde80543`, receipts `fd69ae2b29`, pushed** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
-| **O4 — source `0f63b7b167`, API `4c025e81bd`; batch green `68aa1e372c`; served proof pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
+| **O4 — accepted `de6833b8b7`; source `0f63b7b167`; receipts `9fd203d409`; Chromium cache-pressure residual documented; carrier pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
 | **O5 — pulled forward: `b2e4c86d92`; desktop AO repair `32cde80543` first frames green; native warm/full acceptance pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6 — source `48d648401a`, `be7b843f6e`; final served proof pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
@@ -426,3 +426,17 @@ L2/L8 and O2/O4 gate. Independent panel cut `52860bd662` reuses unchanged
 row paints at the existing cadence after the retained phone profile
 charged about 0.5 s to panel painting. Strict lint passes; its performance
 effect remains unmeasured. The ~20 s phone grid target stays open.
+
+Coordinator acceptance, 2026-10-21: O2 and O4 are accepted with the
+Chromium cache-pressure residual kept explicit in
+[`diagnostic-de6833b`](../../../progress/loading/g543/diagnostic-de6833b/README.md)
+(`9fd203d409`). Nine of ten entries and all five real returns pass. Both
+native Safari warm paths have 1.16% byte error; every entry passes stage
+accounting and cadence. Phone warm grid reaches first frame in 16.8 s,
+but displays 57,300 against 78,273 actual wire bytes (26.79% error).
+The Chromium fixture reuses the core before pressure; after 192 MiB of
+ordinary cacheable responses, its next update refetches the unchanged
+bootstrap/core without validators. The game's trace matches that miss.
+The real wire denominator and failed byte verdict remain unchanged.
+No production workaround or cap change is introduced. O5/O6 continue:
+cold CPU-4x phone grid is 28.7 s, still above the roughly 20 s target.
