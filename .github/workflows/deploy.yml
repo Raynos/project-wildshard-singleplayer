@@ -253,8 +253,42 @@ jobs:
         # Typecheck already generated this exact tree. Fresh plugin workers bound AST retention.
         run: node scripts/lint-all.mjs --shard=${{ matrix.shard }}/4
 
-  # Keep the full suite within the runner budget; generation alone takes ~4 min cold.
+  # All behaviour shards consume one exact-run preparation. Cold generation
+  # and 24 product builds otherwise consume most of every 20-minute test job.
+  products:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm gen && node scripts/build-shardfiles.mjs
+      - name: Pack exact-run generated inputs and products
+        run: python3 scripts/ci-products.py pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-products
+          path: |
+            test-products.tar
+            test-products-proof.json
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
+
   behaviour:
+    needs: products
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -277,9 +311,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
-      - run: pnpm gen && node scripts/build-shardfiles.mjs
-      # The preceding producer built these exact products; hooks must not rebuild
-      # all ten concurrently inside every test file (CI always forces a rebuild).
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+      - name: Verify and restore exact-run generated inputs and products
+        run: python3 scripts/ci-products.py unpack
+      # The verified same-run producer built these exact products; hooks must
+      # not rebuild them inside every test file (CI always forces a rebuild).
       - run: python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/10
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
