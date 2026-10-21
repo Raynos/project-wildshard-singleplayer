@@ -48,14 +48,19 @@ function registerDraws(label: string, value: unknown): void {
 }
 for (const [family, files] of Object.entries({ ground: GROUND_FILES, palms: PALM_FILES, hibiscus: HIBISCUS_FILES, reef: REEF_FILES })) registerDraws(`draw:${family}`, files);
 registerDraws('draw:zipline', { world: ziplineRows.world, trolley: ziplineRows.trolley, specimen: ziplineRows.specimen, parked: ziplineRows.parked });
+// Finished foliage GLBs carry these exact native channels. The old transports
+// remain bake inputs, but no runtime/Explorer reader or declared section uses them.
+const retiredFoliage = new Set(['world/palms/phone.bin', 'world/palms/desktop.bin',
+  'world/hibiscus/phone.bin', 'world/hibiscus/desktop.bin']);
+const activeByUrl = Object.fromEntries(Object.entries(byUrl).filter(([, name]) => !retiredFoliage.has(name)));
 /** Build-only mapping for the runtime's checked logical-name mirrors. */
-export const DRIFTWOOD_ASSET_NAMES = byUrl;
+export const DRIFTWOOD_ASSET_NAMES = activeByUrl;
 /** Build-only source declarations and an explicit, retiring URL-to-name bridge. */
 export const DRIFTWOOD_OUTPUT = {
-  blobs: [...canonical.values()].map(row => {
+  blobs: [...canonical.values()].filter(row => !retiredFoliage.has(row.name)).map(row => {
     if (row.kind !== 'glb') return row;
     const result = { ...row };
     return Object.assign(result, { options: { meshopt: true } });
   }),
-  custom: {byUrl},
+  custom: {byUrl: activeByUrl},
 };
