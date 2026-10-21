@@ -36,8 +36,8 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | G5 | Driftwood C9 glue (340): runtime/index.ts + hybrid.ts (X11 remainder) once quest and world own their parts | 340 | |
 | G6 | Pine C9 glue (167): runtime entry glue onto the declared runtime entry | 167 | |
 | G7 | Driftwood C4 creatures (202): creature looks/bodies onto shared species rows (Pine species as second user) | 202 | sp-o3 (after O18 stops) |
-| G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows. Pine trample grass ports onto Nalati's graph grass (G415 port, old deleted; forestPage.ts with sp-o1); 1-8 line exports only with a real second user, the rest stay with their owners' rows (G3/G4/G7/G1a) | 198 (realistic ~20-30 + trample 30) | sp-o5, then G9 Pine tail |
-| G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 | Driftwood loot: sp-x9 (e52acff6ae, finishing); Pine creatures 62 + Pine items 7: OPEN |
+| G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows. Trample (30) folded into G4's forest-page move (Nalati's GrassPresentation is a baked steppe field, not a general host: a port is days of look risk for -30); 1-8 line exports only with a real second user, the rest stay with their owners' rows (G3/G4/G7/G1a) | 198 (realistic ~20) | sp-o5 after G9 Pine tail |
+| G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 | Driftwood loot: sp-x9 (e52acff6ae, finishing); Pine creatures 62 + Pine items 7: sp-o5 14:10 |
 | G10 | Grid containment (G550, Jake): in grid mode nothing draws outside its cell's bounds except the platform's declared layers (road, outer floor, sky); the shardfile validator refuses out-of-cell bounds in any section, and the grid loader clips or refuses any cell-owned object whose world bounds leave the cell, with a test that walks every drawn object on the 5x5 and fails on a stray one | platform | |
 
 ### G1/G2 file boundaries (G551, sp-x8)
