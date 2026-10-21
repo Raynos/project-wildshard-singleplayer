@@ -5,6 +5,28 @@ claims it with a one-line pathspec commit to this file (`<lane> <HH:MM>`), sends
 A brief sent by wildshard-new always wins over this queue. The coordinator keeps at least five open rows per type.
 Every row is decided work (Jake's G-rows); the refs are the brief.
 
+## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
+
+Jake 2026-10-21: every lane that finishes its current task takes a row here before any other row, except the
+Simulator owner (sp-o5), sp-x7 and M2 gate rows. X4 and Nalati/Nine phase D wait. Ruler at e954900567: Pine
+1,428 custom lines, Driftwood 1,503; target <= 150 each (G532: data + AS + <= 150 listed view lines). Each row: whole
+modules onto existing hosts with a real second shard (Pine and Driftwood are each other's second user), or into
+the shard's AS + data; state net lines; no fake second user; graphical rows are Opus, the rest Codex.
+
+| # | Task | Lines | Taken |
+|---|---|---|---|
+| G0 | Phase A free cut: delete src/engine/ai/view/DebugOverlay.ts and its references | engine | |
+| G1 | Pine C5 quests (748): sp-x8 leads X5 and splits it into file-disjoint subrows G1a/G1b/... here for other lanes | 748 | sp-x8 (split pending) |
+| G2 | Driftwood C5 quests (227): with G1, shared quest host, Pine as second user | 227 | |
+| G3 | Driftwood C1 world (625): world/build.ts remainder (180 code lines), ocean (O7), shrine (O8), cover, terrain cuts; rows + AS, listed view only for G532 (3) items | 625 | sp-o4 (O7) |
+| G4 | Pine C1 world (319): world build, pool (poolSurface listed), timber scenes, forest pages onto world/scenes and placements | 319 | |
+| G5 | Driftwood C9 glue (340): runtime/index.ts + hybrid.ts (X11 remainder) once quest and world own their parts | 340 | |
+| G6 | Pine C9 glue (167): runtime entry glue onto the declared runtime entry | 167 | |
+| G7 | Driftwood C4 creatures (202): creature looks/bodies onto shared species rows (Pine species as second user) | 202 | |
+| G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows | 198 | |
+| G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 | |
+| G10 | Grid containment (G550, Jake): in grid mode nothing draws outside its cell's bounds except the platform's declared layers (road, outer floor, sky); the shardfile validator refuses out-of-cell bounds in any section, and the grid loader clips or refuses any cell-owned object whose world bounds leave the cell, with a test that walks every drawn object on the 5x5 and fails on a stray one | platform | |
+
 ## Opus (graphical)
 
 | # | Task | Refs | Taken |
