@@ -111,6 +111,57 @@ lock() {  # a mkdir lock round the registry; a lock left by a killed start is br
   done
 }
 unlock() { rmdir "$REG/.lock" 2>/dev/null; return 0; }
+
+REQUESTED_PORT="$PORT"; PORT_END=4999
+if [ -n "$PORT" ]; then
+  [[ "$PORT" =~ ^[0-9]{1,5}$ ]] || { echo 'serve-build: invalid port' >&2; exit 64; }
+  PORT=$((10#$PORT))
+  [ "$PORT" -ge 1 ] && [ "$PORT" -le 65535 ] || { echo 'serve-build: invalid port' >&2; exit 64; }
+  PORT_START=$PORT; PORT_END=65535
+else PORT_START=4400; fi
+
+# Private FIFOs work with macOS Bash 3 without inheriting lease descriptors
+# into builders or detached previews. The helper also exits if its owner dies.
+PORT_CHANNEL="$(mktemp -d "$REG/.port-lease-XXXXXX")" || exit 1
+mkfifo "$PORT_CHANNEL/commands" "$PORT_CHANNEL/replies" || exit 1
+python3 "$REPO/scripts/serve-port-lease.py" hold "$REG" "$PORT_CHANNEL" "$$" &
+PORT_LEASE_OWNER=$!
+close_port_lease() {
+  if [ -n "${PORT_LEASE_OWNER:-}" ]; then
+    python3 "$REPO/scripts/serve-port-lease.py" request "$PORT_CHANNEL" close >/dev/null 2>&1 || kill "$PORT_LEASE_OWNER" 2>/dev/null
+    wait "$PORT_LEASE_OWNER" 2>/dev/null || true
+    PORT_LEASE_OWNER=""
+  fi
+}
+cleanup_reservation() {
+  [ -n "${PREVIEW_PID:-}" ] && kill -TERM -- "-$PREVIEW_PID" 2>/dev/null
+  close_port_lease
+  [ -n "${PORT:-}" ] && [ -f "$REG/$PORT" ] && grep -q "^$$ " "$REG/$PORT" && rm "$REG/$PORT"
+  return 0
+}
+trap cleanup_reservation EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+port_lease() {
+  local reply
+  reply="$(python3 "$REPO/scripts/serve-port-lease.py" request "$PORT_CHANNEL" take "$1")" || return 2
+  case "$reply" in ok) return 0;; busy) return 1;; *) return 2;; esac
+}
+reserve_port() { # caller holds the registry lock; the OS lease stays held after unlock
+  local p rc
+  for ((p=PORT_START; p<=PORT_END; p++)); do
+    [ -f "$REG/$p" ] && continue
+    lsof -nP -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1 && continue
+    if port_lease "$p"; then PORT=$p; return 0; else rc=$?; fi
+    [ "$rc" = 1 ] || return "$rc"
+  done
+  return 1
+}
+publish_reservation() { # atomic rows cannot be mistaken for dead, partially written owners
+  local entry="$REG/.entry-$PORT-$$"
+  printf '%s %s %s %s %s\n' "$1" "$2" "$BASE/$stamp" "$CALLER" "$3" > "$entry" || return
+  mv "$entry" "$REG/$PORT"
+}
 said=0
 while :; do
   lock
@@ -126,23 +177,11 @@ while :; do
       a="$(age_min "$pid")"; if [ "$a" -gt "$other_age" ]; then other="$(basename "$f")"; other_age="$a"; fi
     fi
   done
-  # Explicit ports must respect the same live reservation/listener fence as automatic selection.
-  if [ -n "$PORT" ] && { [ -f "$REG/$PORT" ] || lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; }; then
-    unlock
-    echo "serve-build: port $PORT is reserved or already listening" >&2
-    exit 64
-  fi
   if [ "$n_live" -lt "$MAX_LIVE" ]; then
-    if [ -z "$PORT" ]; then
-      for p in $(seq 4400 4999); do
-        [ -f "$REG/$p" ] && continue
-        lsof -nP -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1 && continue
-        PORT=$p; break
-      done
-    fi
+    reserve_port || { unlock; echo 'serve-build: no free preview port' >&2; exit 1; }
     # reserve it: this shell holds the entry until the preview's pid replaces it (an exit before that drops it)
     stamp="$(date +%Y%m%d-%H%M%S)-$PORT"
-    [ -n "$PORT" ] && { echo "$$ $(( $(date +%s) + 3600 )) $BASE/$stamp $CALLER $NAME(building)" > "$REG/$PORT"; trap '[ -f "$REG/$PORT" ] && grep -q "^$$ " "$REG/$PORT" && rm -f "$REG/$PORT"' EXIT; }
+    publish_reservation "$$" "$(( $(date +%s) + 3600 ))" "$NAME(building)" || { unlock; exit 1; }
     unlock; break
   fi
   unlock
@@ -156,6 +195,7 @@ while :; do
   fi
 done
 [ -n "$PORT" ] || { echo "serve-build.sh: no free port in 4400–4999" >&2; exit 1; }
+[ -n "$REQUESTED_PORT" ] && [ "$PORT" != "$REQUESTED_PORT" ] && echo "serve-build: port $REQUESTED_PORT busy; using $PORT" >&2
 
 OUT="$BASE/$stamp/dist"
 SRC="$REPO"
@@ -218,6 +258,7 @@ JS
 cd "$SRC" || exit 1
 # A tool runner retires its process group when the calling command exits. nohup ignores HUP, but stays in that
 # group: the preview died and the lane reaper correctly deleted its registered export. Give it its own session.
+start_preview() {
 pid="$(node --input-type=module - "$PREVIEW_CFG" "$OUT" "$PORT" "$BASE/$stamp/preview.log" <<'PREVIEW_NODE'
 import { spawn } from 'node:child_process';
 import { openSync, closeSync } from 'node:fs';
@@ -228,7 +269,8 @@ const child = spawn('pnpm', ['exec', 'vite', 'preview', '--config', config, '--o
 child.once('error', error => { closeSync(fd); console.error(error); process.exitCode = 1; });
 child.once('spawn', () => { closeSync(fd); console.log(child.pid); child.unref(); });
 PREVIEW_NODE
-)" || exit 1
+)"
+}
 # An HTTP response from an older process is not readiness for this preview.
 preview_owns_port() {
   local listener group
@@ -238,18 +280,41 @@ preview_owns_port() {
   done
   return 1
 }
-ready=0
-for _ in $(seq 1 60); do
-  kill -0 "$pid" 2>/dev/null || break
-  if preview_owns_port && curl --fail --silent --output /dev/null "http://127.0.0.1:$PORT/"; then ready=1; break; fi
-  sleep 0.5
-done
-if [ "$ready" -ne 1 ]; then
-  echo "serve-build: preview failed to become ready on port $PORT" >&2
+# Retry only listener conflicts, with one startup budget and the same dist.
+# No build work lives in this loop and no foreign listener is stopped.
+deadline=$((SECONDS + 30))
+while :; do
+  : > "$BASE/$stamp/preview.log"
+  start_preview || exit 1
+  PREVIEW_PID=$pid
+  ready=0
+  while [ "$SECONDS" -lt "$deadline" ]; do
+    kill -0 "$pid" 2>/dev/null || break
+    if preview_owns_port && curl --fail --silent --output /dev/null "http://127.0.0.1:$PORT/"; then ready=1; break; fi
+    grep -Eq 'EADDRINUSE|[Pp]ort .*already in use' "$BASE/$stamp/preview.log" && break
+    sleep 0.5
+  done
+  [ "$ready" -eq 1 ] && break
+  conflict=0
+  if ! preview_owns_port && lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then conflict=1; fi
+  grep -Eq 'EADDRINUSE|[Pp]ort .*already in use' "$BASE/$stamp/preview.log" && conflict=1
   kill -TERM -- "-$pid" 2>/dev/null || true
-  tail -30 "$BASE/$stamp/preview.log" >&2
-  exit 1
-fi
-echo "$pid $(( $(date +%s) + HOURS * 3600 )) $BASE/$stamp $CALLER $NAME" > "$REG/$PORT"
+  PREVIEW_PID=""
+  if [ "$conflict" -ne 1 ] || [ "$SECONDS" -ge "$deadline" ]; then
+    echo "serve-build: preview failed to become ready on port $PORT" >&2
+    tail -30 "$BASE/$stamp/preview.log" >&2
+    exit 1
+  fi
+  old_port=$PORT; PORT_START=$((PORT + 1))
+  lock
+  if ! reserve_port; then unlock; echo 'serve-build: no free retry port' >&2; exit 1; fi
+  [ -f "$REG/$old_port" ] && grep -q "^$$ " "$REG/$old_port" && rm "$REG/$old_port"
+  publish_reservation "$$" "$(( $(date +%s) + 3600 ))" "$NAME(starting)" || { unlock; exit 1; }
+  unlock
+  echo "serve-build: port $old_port became busy; reusing finished dist on $PORT" >&2
+done
+publish_reservation "$pid" "$(( $(date +%s) + HOURS * 3600 ))" "$NAME" || { kill -TERM -- "-$pid" 2>/dev/null; exit 1; }
+PREVIEW_PID=""
+close_port_lease
 echo "http://127.0.0.1:$PORT/"
 echo "serve-build: pid $pid, reaped in ${HOURS} h; stop it with: scripts/serve-build.sh stop $PORT" >&2
