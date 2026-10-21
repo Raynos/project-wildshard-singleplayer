@@ -23,10 +23,10 @@ test('composer back-references cannot hide nested bloom preparation', () => {
   expect(materials.map(material => material.name)).toContain('UpsamplingMaterial');
   expect(new Set(materials).size).toBe(materials.length);
   const luma = jobs.find(job => preparedMaterials([job]).includes(bloom.luminanceMaterial));
-  expect(luma?.rt).toBe(bloom.luminancePass.renderTarget);
+  expect(luma?.rt?.texture).toBe(bloom.luminancePass.texture);
   const down = jobs.find(job => preparedMaterials([job]).some(material => material.name === 'DownsamplingMaterial'));
-  expect(down?.rt).toBe(bloom.mipmapBlurPass.renderTarget);
-  expect(jobs.find(job => preparedMaterials([job]).includes(colour.fullscreenMaterial))?.rt).toBe(target);
+  expect(down?.rt?.texture).toBe(bloom.mipmapBlurPass.texture);
+  expect(jobs.find(job => preparedMaterials([job]).some(material => material === colour.fullscreenMaterial))?.rt).toBe(target);
   expect(composer.passes).toEqual([world, colour]);
   for (const job of jobs) job.dispose?.();
   colour.dispose(); world.dispose(); target.dispose();
@@ -52,8 +52,8 @@ test('screen output does not send nested bloom targets to the canvas', () => {
   const bloom = new BloomEffect({ mipmapBlur: true }), colour = new EffectPass(new PerspectiveCamera(), bloom);
   colour.renderToScreen = true;
   const target = new WebGLRenderTarget(8, 8), jobs = postJobs({ passes: [colour] }, target, 1);
-  expect(jobs.find(job => preparedMaterials([job]).includes(colour.fullscreenMaterial))?.rt).toBeNull();
-  expect(jobs.find(job => preparedMaterials([job]).includes(bloom.luminanceMaterial))?.rt).toBe(bloom.luminancePass.renderTarget);
+  expect(jobs.find(job => preparedMaterials([job]).some(material => material === colour.fullscreenMaterial))?.rt).toBeNull();
+  expect(jobs.find(job => preparedMaterials([job]).includes(bloom.luminanceMaterial))?.rt?.texture).toBe(bloom.luminancePass.texture);
   expect(jobs.every(job => job.root.children.every(mesh => mesh instanceof Mesh && !mesh.frustumCulled))).toBe(true);
   for (const job of jobs) job.dispose?.();
   colour.dispose(); target.dispose();
