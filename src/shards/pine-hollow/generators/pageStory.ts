@@ -1,6 +1,7 @@
 import { QUEST_PRESENTATION } from './questPresentation';
 import journal from '../data/questJournal.json' with { type: 'json' };
 import bench from '../data/questBench.json' with { type: 'json' };
+import page from '../data/forestStory.json' with { type: 'json' };
 import { parseQuestStory } from '@wildshard/format/questStory';
 
 /** The shipped strings, flag filters, migration and seat pose; no live state. */
@@ -15,4 +16,6 @@ export const PAGE_STORY = parseQuestStory({ ...base, chapters: {
   chapters: [base.quest.id], talks: [], rewards: {}, flagEvents: [], introTitle: base.presentation.introTitle,
   chapterTitle: '{title}', completedObjective: '{objective}', completedHint: '', rewardKicker: '', rewardSubtitle: '',
   started: '', objective: '', rewardMs: 0, messages: base.presentation.messages,
+  decision: { observations: { taken: { source: { flag: page.secret.flag }, on: 'secret' } },
+    actions: { accept: [{ kind: 'flag', flag: page.secret.flag }, { kind: 'toast', text: page.secret.text }] } },
 } });

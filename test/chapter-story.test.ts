@@ -5,7 +5,7 @@ import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { Flags } from '../src/engine/world/interact/flags';
-import { QuestLine } from '../src/engine/quest/core';
+import { QuestLine, QuestState } from '../src/engine/quest/core';
 import type { MapQuest } from '../src/engine/ui/Map';
 import { shardContext } from '../src/game/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
@@ -28,6 +28,9 @@ import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { chapterPresentation } from '../src/shards/nalati-grasslands/generators/chapterBindings';
 import persistenceRows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
+import { publishBoundQuest } from '../src/game/quest/boundState';
+import pineProgram from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
+import pinePage from '../src/shards/pine-hollow/data/forestStory.json' with { type: 'json' };
 import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
 
 afterEach(() => { vi.useRealTimers(); document.body.replaceChildren(); });
@@ -217,4 +220,33 @@ test('entered chapter rows preserve carving order and continue the same saved ch
       } finally { elites.mockRestore(); }
     } finally { resumed.saved.flags.reset(); resumed.scope.dispose(); }
   } finally { first.scope.dispose(); }
+});
+
+
+test('Pine secret guest commits the original flag before its once-only notice', () => {
+  const scope = new Scope('pine-secret-chapter'), app = new App(), flags = new Flags('pine-secret-chapter', false), effects: string[] = [];
+  const product = createShardProduct({ slug: pine.identity.slug, revision: 1, shardfile: pine,
+    sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('No file needed')) });
+  const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const ctx = shardContext(level.context, MANIFEST, { shard: MANIFEST, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
+  const definition = parseQuestData(pine.quests).quests[0];
+  if (definition === undefined) throw new Error('Missing authored Pine chapter');
+  publishBoundQuest(scope, new QuestState(definition, flags, app.events, scope));
+  const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, carried: false };
+  Object.defineProperty(ctx.game, 'runtime', { value: { world: { player }, interactables: [], play: {
+    hud: { toast: (text: string) => { effects.push(text); } }, music: { sting: () => undefined },
+    fullMap: { setQuest: () => undefined },
+  } } });
+  try {
+    const chapter = scope.run(() => installChapterStory(ctx, PINE_STORY, { program: pineProgram }));
+    scope.onDispose(flags.onChange(flag => { effects.push(flag); }));
+    const at = { playerX: 0, playerY: 0, playerZ: 0, atX: 0, atY: 0, atZ: 0, floorY: 0 };
+    chapter.project('secret', { ...at, playerX: 2.2 });
+    chapter.project('secret', { ...at, playerY: .8 });
+    expect(effects).toEqual([]);
+    chapter.project('secret', at);
+    expect(effects).toEqual([pinePage.secret.flag, pinePage.secret.text]);
+    chapter.project('secret', at);
+    expect(effects).toEqual([pinePage.secret.flag, pinePage.secret.text]);
+  } finally { scope.dispose(); }
 });

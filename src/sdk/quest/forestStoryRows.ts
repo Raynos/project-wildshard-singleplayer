@@ -31,7 +31,7 @@ export interface ForestStoryRows {
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string; readonly audio: string; readonly shot: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */
   readonly mover: { readonly id: string; readonly mesh: string; readonly binding: { readonly systemId: string; readonly bindings: NonNullable<MoverInstallation['borrowed']>['rows'] }; readonly rest: string };
-  readonly secret: { readonly scene: string; readonly flag: string; readonly text: string; readonly floorY: number; readonly mid: Triple; readonly mouths: Triple[] };
+  readonly secret: { readonly scene: string; readonly floorY: number; readonly mid: Triple; readonly mouths: Triple[] };
   readonly map: { readonly pois: readonly (Point & { id: string; name: string; r: number })[];
     readonly zones: readonly { label: string; x: number; z: number; size?: number; rot?: number }[] };
   readonly jumps: Readonly<Record<string, Point & { readonly flags: string[]; readonly look: Point; readonly height?: Point & { up: number }; readonly phase?: number }>>;

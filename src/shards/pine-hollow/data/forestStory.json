@@ -145,5 +145,9 @@
         "trader": "Mott"
       }
     }
+  },
+  "secret": {
+    "flag": "secret:log",
+    "text": "Inside the fallen giant. It smells of rain and old resin"
   }
 }
