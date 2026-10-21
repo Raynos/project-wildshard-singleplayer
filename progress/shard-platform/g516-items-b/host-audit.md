@@ -27,3 +27,20 @@ Physical TS deltas by cut (generator code is build-time, not custom runtime):
 
 Chargebacks change attribution, not physical source size. The SDK allocation
 comment used for the separate G548 timing case is outside this ledger.
+
+
+X4 follow-up: the original riding and grapple room modules are deleted.
+`game/practice/course` now shares the native `PracticeCourse` lifecycle:
+real Nalati horse rows (`data/practiceCard.json`) and Nine grapple rows
+(`data/practiceCard.json`) enter through `practice/registration.ts`. The common
+lifecycle scores **111111, 6/6**: two real courses; no shard identity;
+JSON layouts; explicitly client-only; either course still needs the room
+without the other; concrete page services, no authored hook API.
+`MountedCourseController` and `RidingCourseRun` remain **011101, 4/6**,
+charged to Nalati; `HookCourseController` and its pad helpers remain
+**011101, 4/6**, charged to Nine. The dispatcher grants neither a second
+user. Their continuation and timing behavior is retained for later X4 cuts.
+Runtime physical TS delta: **shards 0, platform -63**. The registry receives
+the same scene rows, collider descriptors and surface for each course.
+Focused checks cover live entered-mount reuse, repeated room entry/exit,
+grapple hook transforms, the mounted guest and separate controller charges.

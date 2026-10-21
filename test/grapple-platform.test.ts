@@ -12,7 +12,7 @@ import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playg
 import { parseGrappleProfile, parseGrappleFilament, type GrappleRows } from '@wildshard/format/grapple';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { GrappleTool } from '@wildshard/game/grapple/tool';
-import { HookCoursePlayground } from '@wildshard/game/practice/hookCourse';
+import { PracticeCourse } from '@wildshard/game/practice/course';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { grappleNeedsLift, grappleLiftTo } from '@wildshard/game/grapple/sim';
 import { grappleCourse } from '@wildshard/game/grapple/course';
@@ -100,13 +100,14 @@ test('quarry practice rows select the equipped native tool and translate their h
     registry: legacyDouble<PlaygroundHost['registry']>({ add: piece => piece }),
     spawn: { x: 11, z: -9 }, toast: () => undefined,
   });
-  const course = new HookCoursePlayground(host, { course: { ...room, title: 'Quarry hook run', pads },
+  const course = new PracticeCourse(host, legacyDouble<ShardContext>({}), {kind:'grapple',layout:{ course: { ...room, title: 'Quarry hook run', pads },
     hooks: [{ pad: 'quarry-hook', x: 3, y: 4, z: 5 }],
-    presentation: { parts: [], colliders: [], map: { bounds: { x0: -20, x1: 20, z0: -20, z1: 20 }, shapes: [] } } });
+    presentation: { parts: [], colliders: [], map: { bounds: { x0: -20, x1: 20, z0: -20, z1: 20 }, shapes: [] } } } });
   try {
     course.enter(); expect(course.entered).toBe(true);
     expect(select).toHaveBeenLastCalledWith({ name: 'Quarry hook run', hooks: [new Vector3(14, 3004, -4)] });
-    expect(course.padUnder()?.kind).toBe('start');
+    const start=pads.find(pad=>pad.id===room.run.from);if(start===undefined)throw new Error('Missing start pad');
+    expect(position.toArray()).toEqual([host.spawn.x+start.x,3000+start.top,host.spawn.z+start.z+start.d/2-3]);
     course.exit(); expect(select).toHaveBeenLastCalledWith(null); expect(course.entered).toBe(false);
   } finally { select.mockRestore(); course.exit(); scope.dispose(); app.levelScope = previous; app.setState(state); }
 });

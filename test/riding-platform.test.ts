@@ -1,6 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { PerspectiveCamera, Vector3, SkinnedMesh } from 'three';
+import { app as pageApp } from '@wildshard/engine/app/runtime';
+import { PracticeCourse } from '@wildshard/game/practice/course';
+import type { ShardContext } from '@wildshard/game/plugin/context';
+import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
+import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { App } from '@wildshard/engine/app/app';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { LevelContext } from '@wildshard/engine/level/context';
@@ -171,4 +176,40 @@ test('full orchard riding session owns its native mount and data prompts', () =>
     expect(()=>parse(RidingControlsSchema,{...controls,run:()=>undefined})).toThrow();
   } finally { session.mount.dismount(); f.scope.dispose(); }
   expect(input.contexts).toEqual([]);expect(input.has('orchard.saddle')).toBe(false);expect(input.bindings.table.rows).toEqual([]);
+});
+
+
+test('Nalati practice reuses its entered mount and respawns one horse across room entries', () => {
+  const f = fixture('horse', { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 });
+  const previousScope = pageApp.levelScope, previousState = pageApp.state;
+  pageApp.levelScope = f.scope;
+  const rows = horseCourseRows(), registrations: string[] = [];
+  let spawned = 0, update: Parameters<PlaygroundHost['game']['onUpdate']>[0] = () => undefined;
+  f.player.mountedOn = null;
+  f.animals.spawn = () => { spawned++; return f.actor; };
+  f.actor.place = (x, z, yaw) => { f.actor.position.set(x, 0, z); f.actor.yaw = yaw; };
+  f.player.spawn = (x, z, yaw, y) => { f.player.position.set(x, y ?? 0, z); f.player.yaw = yaw; };
+  const host = legacyDouble<PlaygroundHost>({
+    player: f.player, animals: f.animals, spawn: {x: 0, z: 0}, toast: () => undefined,
+    registry: legacyDouble<PlaygroundHost['registry']>({add: piece => { registrations.push(piece.id); return piece; }}),
+    game: legacyDouble<PlaygroundHost['game']>({onUpdate: run => {update = run;}}),
+  });
+  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope: f.scope}), {kind: 'horse', layout: rows});
+  try {
+    expect(registrations).toEqual([rows.piece.id]);
+    expect(course.root.visible).toBe(false);
+    course.enter();
+    expect(spawned).toBe(1); expect(course.entered).toBe(true); expect(course.root.visible).toBe(true);
+    expect(f.mount.mountables).toHaveLength(1); expect(f.mount.mountables[0]?.a).toBe(f.actor);
+    expect(f.player.position.toArray()).toEqual([rows.fieldAt.x + rows.riderStart.x, 3000, rows.fieldAt.z + rows.riderStart.z]);
+    expect(f.actor.position.y).toBe(3000);
+    update(.1, 0);
+    course.exit();
+    expect(f.mount.mountables).toEqual([]); expect(f.actor.hidden).toBe(true); expect(f.actor.mesh.visible).toBe(false);
+    expect(course.root.visible).toBe(false);
+    course.enter(); expect(spawned).toBe(1); expect(f.actor.hidden).toBe(false);
+    course.exit();
+  } finally {
+    course.exit(); f.scope.dispose(); pageApp.levelScope = previousScope; pageApp.setState(previousState);
+  }
 });

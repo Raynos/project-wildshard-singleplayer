@@ -2740,6 +2740,13 @@ Shared species take a plain `{ ...BOAR, variants: [...] }` spread to add a varia
 
 ## 22. Explore, practice, playgrounds
 
+`game/practice/course` exposes the client-only `PracticeCourse` room.
+Native course registration supplies the entered page context and JSON rows:
+`{ kind: 'horse', layout }` borrows the live mount owner; `{ kind: 'grapple',
+layout }` resolves the equipped grapple tool. Both share room visibility,
+registry registration, the map and chip lifetime. The individual mounted and
+grapple controllers retain their existing laws and attribution.
+
 | Export / field | What it is |
 |---|---|
 | `ctx.playground(spec)` (`PlaygroundSpec`) | `{ id, title, blurb, icon, art?, load }`: a feature playground listed in Explore. `load` returns the class |

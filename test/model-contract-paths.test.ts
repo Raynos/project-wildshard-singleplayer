@@ -93,7 +93,7 @@ describe('model contract after client relocation', () => {
     ['src/engine/render/scatterInstances.ts', 'new THREE.InstancedMesh();', 1],
     ['src/game/ambient/wingField.ts', 'new THREE.InstancedMesh();', 1],
     ['src/game/boss/arenaFire.ts', 'new THREE.InstancedMesh();', 2],
-    ['src/game/practice/hookCourse.ts', 'registry.add({ object });', 1],
+    ['src/game/practice/course.ts', 'registry.add({ object });', 1],
     ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
     ['src/shards/nine-dragon-stack/world/casts.ts', 'new InstancedMesh();', 1],
   ] as const)('retains the relocated draw ceiling at %s', (file, draw, ceiling) => {

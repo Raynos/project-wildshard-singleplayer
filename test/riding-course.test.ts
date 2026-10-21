@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { RidingCourseRun } from '../src/game/practice/ridingCourse';
+import { RidingCourseRun } from '../src/game/practice/course';
 import { parseRidingPractice } from '../src/format/practiceCourse';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { parseDecisionScripts } from '../src/format/decisionScripts';

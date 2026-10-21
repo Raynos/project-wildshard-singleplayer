@@ -8,14 +8,13 @@ export function installPracticeCourse(ctx: ShardContext, row: ClientFeatureRow):
   if (row.kind !== 'practice.course') throw new Error('Invalid practice course');
   ctx.playground({ id: row.course, title: row.title, blurb: row.blurb, icon: row.icon, art: ctx.product.url(row.art),
     load: async () => {
+      const { PracticeCourse } = await import('./course');
       if (row.course === 'horse') {
         const { practice } = await ctx.product.json<{ practice: unknown }>(row.file);
-        const { RidingCoursePlayground } = await import('./ridingCourse');
-        return class extends RidingCoursePlayground { constructor(host: PlaygroundHost) { super(host, ctx, practice); } };
+        return class extends PracticeCourse { constructor(host: PlaygroundHost) { super(host, ctx, {kind:'horse',layout:practice}); } };
       }
       const { practice } = await ctx.product.json<{ practice: HookPracticeLayout }>(row.file);
-      const { HookCoursePlayground } = await import('./hookCourse');
-      return class extends HookCoursePlayground { constructor(host: PlaygroundHost) { super(host, practice); } };
+      return class extends PracticeCourse { constructor(host: PlaygroundHost) { super(host, ctx, {kind:'grapple',layout:practice}); } };
     },
   });
 }

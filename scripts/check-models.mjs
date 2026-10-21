@@ -146,7 +146,7 @@ export const DONE = {
     'src/game/ambient/wingField.ts': { why: '2d917c567c: the former two ambient wing draws share one row-owned allocation site; creatures remain model-owned', counts: { InstancedMesh: 1 } },
     'src/game/boss/arenaFire.ts': { why: 'f524ad70dc: the existing flame and smoke effect draws moved from stormTitanLook with their original ceiling', counts: { InstancedMesh: 2 } },
     'src/game/boss/encounterView.ts': { why: 'Moved from Nalati: a cloud body\'s puffs (one row-sized draw) and an encounter site\'s empty stand-in for a variant no site wears; the sites themselves are placed through place()', counts: { InstancedMesh: 2 } },
-    'src/game/practice/hookCourse.ts': { why: 'The existing grapple practice room registry piece moved from Nine runtime/tools/hookCourse; no shard world content', counts: { 'registry add with object': 1 } },
+    'src/game/practice/course.ts': { why: 'The existing riding and grapple practice rooms share one row-owned registration; no shard world content', counts: { 'registry add with object': 1 } },
     'src/game/weapons/heldPolearm.ts': { why: '90b6eb13ce: the held spear retains its original single thrown-javelin draw; the empty placeholder allocation is retired', counts: { InstancedMesh: 1 } },
     'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared native batch reserves named models and ordered fixed world instances; bounded rows own capacity and material, never shard drawing callbacks', counts: { BatchedMesh: 1 } },
     'src/game/shardfile/worldSceneWeld.ts': { why: 'Frozen Z2 instances hydrate declared capacity and matrix rows as Scope-owned native draws; no procedural shard content', counts: { InstancedMesh: 1 } },

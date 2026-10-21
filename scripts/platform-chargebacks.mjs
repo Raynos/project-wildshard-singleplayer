@@ -9,10 +9,11 @@ const modules = new Map([
   ['src/game/models/mountedSpecimen.ts', 'C1'],
   ['src/game/systems/viewmodel/graphArms.ts', 'C6'],
   // G516/G518: only one live shard drives these item hosts; fixtures grant no credit.
-  ...['game/weapons/bowVariant', 'game/loadout/mounted', 'game/practice/ridingCourse'].map(path => [`src/${path}.ts`, 'C6']),
+  ...['game/weapons/bowVariant', 'game/loadout/mounted'].map(path => [`src/${path}.ts`, 'C6']),
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
+  ['src/game/practice/course.ts', new Map(['RidingCourseRun', 'MountedCourseController', 'HookCourseController', 'hookCoursePad', 'yawToward', 'HookCourseCourse', 'HookCourseRow', 'HookCoursePad'].map(name => [name, 'C6']))],
   ['src/game/plugin/bossPhase.ts', new Map([['ArenaBossScript', 'C4']])],
   ['src/format/bossProfiles.ts', new Map([['ArenaScriptBossProfileSchema', 'C4'], ['ArenaScriptBossProfile', 'C4']])],
   ['src/game/population/pageGroups.ts', new Map([
@@ -106,8 +107,9 @@ const inline = new Map([
   ['src/format/questPageComposition.ts', new Map([['QuestPresentation', [['presentation: v.exactOptional', 1]]]])],
 ]);
 
-/** @param {string} path */
-function reviewedOwner(path) {
+/** @param {string} path @param {string} [name] */
+function reviewedOwner(path, name) {
+  if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/systems/viewmodel/graphArms.ts') return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts', 'src/format/water.ts', 'src/game/systems/looks/waterSurface.ts',
     'src/game/models/figureCatalogue.ts', 'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
@@ -158,7 +160,7 @@ export function retiredPlatformModule(path) {
  * @param {T} row @param {(line:string)=>void} [report] */
 export function recordPrivateCharge(charges, owner, row, report = console.error) {
   const reviewed = platformChargeback(row.path, row.name) !== null;
-  const shard = reviewed ? reviewedOwner(row.path) : owner;
+  const shard = reviewed ? reviewedOwner(row.path, row.name) : owner;
   const target = charges.get(shard ?? '');
   if (target === undefined) {
     report(`shard-platform: skip ${row.path}${row.name === undefined ? '' : `#${row.name}`}: ${row.lines} lines owned by ${shard ?? 'no user'}, outside measured shards`);
@@ -178,6 +180,6 @@ export function chargePlatformUsers(moduleUsers, bindingUsers) {
   }
   for (const [path, names] of declarations) for (const name of names.keys()) {
     const key = `${path}\0${name}`;
-    if (bindingUsers.has(key)) bindingUsers.set(key, new Set([reviewedOwner(path)]));
+    if (bindingUsers.has(key)) bindingUsers.set(key, new Set([reviewedOwner(path, name)]));
   }
 }
