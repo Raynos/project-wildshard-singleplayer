@@ -70,4 +70,10 @@ export class GridAssembly {
   world(point: GridPoint, cell: GridCell): GridPoint { finite(point); return { x: point.x + cell.origin.x, y: point.y, z: point.z + cell.origin.z }; }
   /** Horizontal cell/strip traversal belongs to the grid driver; the authored fall floor still recovers the player. */
   boundsMode(): boolean { return true; }
+  /**
+   * O11: a radial admission (runtime prefetch, tile admission) of a cell `distance` metres from its content square
+   * fires within `reach`, and never at a pitch or more: that far, a whole cell column stands between (the outer road
+   * is 555-610 m from ring 1, inside a hybrid shard's 567 m readiness reach and the boosted 640 m tile reach).
+   */
+  approaching(distance: number, reach: number): boolean { return distance <= reach && distance < this.pitch; }
 }

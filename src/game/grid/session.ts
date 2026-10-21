@@ -707,7 +707,7 @@ export class GridSession {
     // cells keep their baked proxy without admitting their full product at boot.
     for (const cell of this.neighbours) {
       const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
-      if (distance <= 400 + Math.min(speed, 60) * 4) this.admitNeighbour?.(cell);
+      if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) this.admitNeighbour?.(cell);
     }
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);

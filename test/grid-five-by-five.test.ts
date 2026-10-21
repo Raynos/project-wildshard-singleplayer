@@ -6,6 +6,8 @@ import { GridContinuationCache } from '../src/game/grid/continuations';
 import { roadLayout, segmentPoint, RAIL_OFFSET } from '../src/game/grid/roadLayout';
 import { PLOT_IDEAS } from '../src/game/grid/plotCellLayout';
 import { generatePlatform, type PlatformCell } from '../src/engine/sim/strips';
+import { readinessModel } from '../src/engine/sim/readiness';
+import { CHUNK_HALF } from '../src/engine/core/config';
 
 const modes = [{ developer: false, devserver: false }, { developer: true, devserver: false },
   { developer: false, devserver: true }, { developer: true, devserver: true }] as const;
@@ -71,4 +73,23 @@ test('builds every road collider and four turn-ins per cell out to the outer plo
     expect(strip?.turnIn).toBeDefined();
     expect(segmentPoint(segment, 0, 0)).toEqual(segment.centre);
   }
+});
+
+test('O11: no ring-1 cell admits its runtime or tiles from the outer road', () => {
+  const assembly = new GridAssembly({ developer: true, devserver: false }), pitch = assembly.pitch;
+  // liveSession's link and a trusted-runtime (hybrid) bundle: Nine's and Nalati's readiness reach; tiles at the 60 m/s boost
+  const hybrid = readinessModel({ criticalWireBytes: 2_000_000, hybridWireBytes: 2_000_000, decodeSeconds: 1, runtimeParseSeconds: 1 },
+    { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 }).distance, tiles = 400 + 60 * 4;
+  expect(Math.min(hybrid, tiles)).toBeGreaterThan(pitch); // both reach past one pitch
+  const square = (cell: { origin: { x: number; z: number } }, x: number, z: number): number =>
+    Math.hypot(Math.max(0, Math.abs(x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(z - cell.origin.z) - CHUNK_HALF));
+  const shoulder = 2 * pitch + CHUNK_HALF; // the outer road's inner edge, the closest the road comes to ring 1
+  for (const cell of assembly.cells.filter(row => Math.max(Math.abs(row.cell[0]), Math.abs(row.cell[1])) <= 1)) {
+    for (let t = -shoulder; t <= shoulder; t += 5) for (const [x, z] of [[shoulder, t], [-shoulder, t], [t, shoulder], [t, -shoulder]] as const) {
+      for (const reach of [hybrid, tiles]) expect(assembly.approaching(square(cell, x, z), reach), `${cell.instance} from ${x},${z}`).toBe(false);
+    }
+  }
+  // on its own ring road (the boulevard beside it) Nine still prefetches
+  const nine = assembly.cell('nine-dragon-stack');
+  expect(assembly.approaching(square(nine, nine.origin.x + pitch / 2, nine.origin.z), hybrid)).toBe(true);
 });
