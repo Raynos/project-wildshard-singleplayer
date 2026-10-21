@@ -2,6 +2,38 @@
   "schema": "grid-ready-latches/1",
   "entries": [
     {
+      "shard": "_template",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/_template--template-2/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.317Z"
+    },
+    {
+      "shard": "blender-template",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/blender-template--blender-template-1/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.384Z"
+    },
+    {
+      "shard": "blender-template",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/blender-template--blender-template-1/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.385Z"
+    },
+    {
+      "shard": "far-reach",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/far-reach--far-reach/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.453Z"
+    },
+    {
       "shard": "ink-cel-valley",
       "criterion": "memory",
       "source": "8c7861b92613fcdb04faaf7234ed868183984982",
@@ -18,6 +50,222 @@
       "latchedAt": "2026-10-21T13:44:13.221Z"
     },
     {
+      "shard": "open-plot-alien-plain",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-alien-plain--open-plot-4-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.521Z"
+    },
+    {
+      "shard": "open-plot-alien-plain",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-alien-plain--open-plot-4-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.522Z"
+    },
+    {
+      "shard": "open-plot-clockwork-canyon",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-clockwork-canyon--open-plot-4-3/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.590Z"
+    },
+    {
+      "shard": "open-plot-clockwork-canyon",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-clockwork-canyon--open-plot-4-3/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.591Z"
+    },
+    {
+      "shard": "open-plot-coral-drift",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-coral-drift--open-plot-0-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.657Z"
+    },
+    {
+      "shard": "open-plot-coral-drift",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-coral-drift--open-plot-0-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.658Z"
+    },
+    {
+      "shard": "open-plot-desert-ruin",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-desert-ruin--open-plot-3-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.726Z"
+    },
+    {
+      "shard": "open-plot-desert-ruin",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-desert-ruin--open-plot-3-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.726Z"
+    },
+    {
+      "shard": "open-plot-ember-forge",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-ember-forge--open-plot-4-1/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.792Z"
+    },
+    {
+      "shard": "open-plot-ember-forge",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-ember-forge--open-plot-4-1/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.793Z"
+    },
+    {
+      "shard": "open-plot-frostline-peaks",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-frostline-peaks--open-plot-0-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.856Z"
+    },
+    {
+      "shard": "open-plot-frostline-peaks",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-frostline-peaks--open-plot-0-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.857Z"
+    },
+    {
+      "shard": "open-plot-lantern-bayou",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-lantern-bayou--open-plot-0-1/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.918Z"
+    },
+    {
+      "shard": "open-plot-mosslight-ruins",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-mosslight-ruins--open-plot-0-3/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.983Z"
+    },
+    {
+      "shard": "open-plot-mosslight-ruins",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-mosslight-ruins--open-plot-0-3/receipt.json",
+      "latchedAt": "2026-10-21T14:09:10.984Z"
+    },
+    {
+      "shard": "open-plot-night-market",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-night-market--open-plot-1-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.048Z"
+    },
+    {
+      "shard": "open-plot-night-market",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-night-market--open-plot-1-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.049Z"
+    },
+    {
+      "shard": "open-plot-showcase-template",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-showcase-template--open-plot-2-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.172Z"
+    },
+    {
+      "shard": "open-plot-showcase-template",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-showcase-template--open-plot-2-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.173Z"
+    },
+    {
+      "shard": "open-plot-sky-harbor",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-harbor--open-plot-4-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.237Z"
+    },
+    {
+      "shard": "open-plot-sky-harbor",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-harbor--open-plot-4-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.238Z"
+    },
+    {
+      "shard": "open-plot-sky-race",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-race--open-plot-2-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.301Z"
+    },
+    {
+      "shard": "open-plot-sky-race",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-race--open-plot-2-0/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.302Z"
+    },
+    {
+      "shard": "open-plot-starfall-observatory",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-starfall-observatory--open-plot-3-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.368Z"
+    },
+    {
+      "shard": "open-plot-starfall-observatory",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-starfall-observatory--open-plot-3-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.369Z"
+    },
+    {
+      "shard": "open-plot-thin-ice",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-thin-ice--open-plot-1-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.442Z"
+    },
+    {
+      "shard": "open-plot-thin-ice",
+      "criterion": "oneFrameLooks",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-thin-ice--open-plot-1-4/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.443Z"
+    },
+    {
       "shard": "pastel-plain",
       "criterion": "memory",
       "source": "8c7861b92613fcdb04faaf7234ed868183984982",
@@ -32,6 +280,14 @@
       "receiptCommit": "2fc35330d35135d29151d413c793bfe74dd2a24f",
       "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/pastel-plain/receipt.json",
       "latchedAt": "2026-10-21T13:44:13.050Z"
+    },
+    {
+      "shard": "sunscar-dunes",
+      "criterion": "memory",
+      "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+      "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/sunscar-dunes--sunscar-dunes/receipt.json",
+      "latchedAt": "2026-10-21T14:09:11.516Z"
     }
   ]
 }
