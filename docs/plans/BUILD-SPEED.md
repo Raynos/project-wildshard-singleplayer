@@ -8,10 +8,12 @@ a time."* Earlier the same morning: *"I think we have resource contention as a b
 fucking heavy for worktrees until we fix the size of the repo which is its own plan"*, *"I don't have a second Mac for
 the simulator lol. Can we partition this one MacBook with containers or virtualization?"*
 
-**State:** `in progress` 2026-10-21 — **Wave 1 ruled (10-21 ~10:00 Cancun): 1.1 A · 1.2 A · 1.3 A1+A2+A3 · 1.4
-A1+A2+A3 · 1.5 fix both, never quarantine. D1 ruled no: keep a local pre-push of at most 45 s with very little
-duplication of pre-commit** (Phase 2.4 re-planned below). Wave 1 is being built by the `wildshard` pane, one phase per
-commit; Phase 1.5 is the owning lanes' at their next boundary. Wave 2 is asked after Wave 1's Verify.
+**State:** `in progress` 2026-10-21 — **Wave 1 ruled and landed (10-21 ~10:50 Cancun) except 1.3 A1, which needs
+Jake's hand (Spotlight); Waves 2–5 planned in full, not asked, not started.** Rulings: 1.1 A · 1.2 A · 1.3 A1+A2+A3 ·
+1.4 A1+A2+A3 · 1.5 fix both, never quarantine. D1 ruled no: keep a local pre-push of at most 45 s with very little
+duplication of pre-commit (Phase 2.4 re-planned below). The `wildshard` pane built Wave 1 after the rulings without
+being asked to build; Jake (10-21): keep it, revert nothing. Landed SHAs and the Verify still owed:
+[build-speed/STATE.md](build-speed/STATE.md). Wave 2 is asked when Jake wants it.
 
 Audit: [Wildshard Build Speed Audit](https://claude.ai/artifact/FDEUjZcmiBxQ8uPTVajAVB) (review page
 `docs/reviews/build-speed-audit.md`). The numbers every wave is measured against: 1,613 commits in 72 h, 723 with no
