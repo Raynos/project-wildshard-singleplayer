@@ -4,7 +4,7 @@
 
 **Live:** c67d1eb3a (17:55Z). Sim a2d07edee1: 30.3 fps avg all legs; hitches Pine activate 489 ms, Nine afterPlay 237 ms (G561 holds fixes).
 
-**Tooling:** BUILD-SPEED owns it (G562 fe2f3f6cb7). G567: goal 0 %, M3 = cut / 98,854 original, plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10; ruler 8f716736ef).
+**Tooling:** BUILD-SPEED. G567: goal 0 %, M3 = cut / 98,854 original, plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
 
 **Rules:** lanes/common.md.
 
