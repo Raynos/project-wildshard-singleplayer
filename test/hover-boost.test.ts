@@ -10,7 +10,7 @@ import CARD from '../src/shards/_template/data/card.json' with { type: 'json' };
 import { MANIFEST as padding } from '../src/shards/_template/discovery.generated';
 import { MANIFEST as main } from '../src/shards/driftwood-isle/discovery.generated';
 import { MANIFEST as pastel } from '../src/shards/pastel-plain/discovery.generated';
-import { INK } from '../src/shards/ink-cel-valley/manifest';
+import { MANIFEST as ink } from '../src/shards/ink-cel-valley/discovery.generated';
 import { MANIFEST as blender } from '../src/shards/blender-template/discovery.generated';
 import { MANIFEST as openPlot } from '../src/shards/open-plots/discovery.open-plot-ember-forge.generated';
 
@@ -19,7 +19,7 @@ afterEach(() => { setDev(false); document.body.replaceChildren(); });
 
 test('real padding declarations select road cruise; a main shard keeps its default', () => {
   expect(CARD.hoverSpeedClass).toBe(padding.hoverSpeedClass);
-  for (const row of [padding, blender, pastel, INK, openPlot]) {
+  for (const row of [padding, blender, pastel, ink, openPlot]) {
     expect(row.hoverSpeedClass).toBe('road');
     expect(gridHoverSpeed(centre, 14, row.hoverSpeedClass)).toBe(30);
     const scope = new Scope('standalone-padding'), player: GridHoverPort = { hoverSpeedLimit: null };

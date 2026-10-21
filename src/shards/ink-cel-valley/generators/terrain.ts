@@ -1,8 +1,9 @@
+import * as v from 'valibot';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { TerrainField, TerrainNoise } from '@wildshard/engine/level/data';
 import { bakeTerrain, type BakedTerrain } from '@wildshard/sdk/bake/terrain';
 import { Color } from 'three';
-import { TRAIL, HUT } from '../layout';
+import layout from '../data/layout.json' with { type: 'json' };
 import { cellGround } from './cell';
 import { poolMask } from './world';
 
@@ -22,7 +23,7 @@ export function inkField(): TerrainField {
     const ridge = smooth(RIDGE_FOOT, RIDGE_TOP, Math.abs(x)) * (RIDGE_HEIGHT + n.get(x * 0.06, z * 0.06) * 0.8);
     return n.get(x * 0.015, z * 0.015) * 0.5 + ridge;
   };
-  return buildTerrain(357, { landscape, trails: TRAIL, cabinSites: [], finish: cellGround });
+  return buildTerrain(357, { landscape, trails: v.parse(v.array(v.array(v.tuple([v.number(), v.number()]))), layout.TRAIL), cabinSites: [], finish: cellGround });
 }
 
 /**
@@ -31,5 +32,5 @@ export function inkField(): TerrainField {
  */
 export function inkTerrain(): BakedTerrain & { sites: { door: [number, number, number] } } {
   const field = inkField(), colour = new Color(0x8f9c5e);
-  return { ...bakeTerrain({ heightAt: field.heightAt, colourAt: () => [colour.r, colour.g, colour.b], family: 'ground' }), sites: { door: [HUT.x, field.heightAt(HUT.x, HUT.z) + 1.2, HUT.doorZ] } };
+  return { ...bakeTerrain({ heightAt: field.heightAt, colourAt: () => [colour.r, colour.g, colour.b], family: 'ground' }), sites: { door: [layout.HUT.x, field.heightAt(layout.HUT.x, layout.HUT.z) + 1.2, layout.HUT.doorZ] } };
 }

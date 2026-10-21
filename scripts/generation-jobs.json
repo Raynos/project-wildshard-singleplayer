@@ -20891,7 +20891,7 @@
       ],
       "inputRoots": [
         "src/shards/ink-cel-valley/shard.config.ts",
-        "src/shards/ink-cel-valley/layout.ts",
+        "src/shards/ink-cel-valley/data/layout.json",
         "src/shards/ink-cel-valley/generators",
         "scripts/map-painter.mjs",
         "scripts/bake-data-maps.mjs",
