@@ -1058,10 +1058,22 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
  */
 export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPass): Promise<void> {
   const prior = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
-  let linked: Promise<unknown>;
+  let materials: Set<THREE.Material>;
   renderer.setRenderTarget(pass.target);
-  try { linked = renderer.compileAsync(pass.scene, pass.camera); } finally { renderer.setRenderTarget(prior, face, mip); }
-  await linked;
+  try { materials = renderer.compile(pass.scene, pass.camera); } finally { renderer.setRenderTarget(prior, face, mip); }
+  // O15: three's compileAsync asked each link's COMPLETION_STATUS every 10 ms with no limit (~20 ms a query through
+  // WebKit's GPU process on the Simulator), and a link WebKit never reported held Driftwood's region sky, so its entry
+  // warm-up stalled in before-warm past 30 s. The links are asked at LIVE_LINK_POLL_MS for at most LINK_WAIT_MS; then
+  // each one still pending is linked synchronously (its first use, `getUniforms`), as the live resolve does.
+  const unready = (): unknown[] => [...materials].flatMap(material => materialPrograms(renderer, material)).filter(program => {
+    const isReady: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'isReady') : undefined;
+    return typeof isReady === 'function' && Reflect.apply(isReady, program, []) !== true;
+  });
+  if (await boundedLinkWait(() => unready().length === 0, () => new Promise<void>((resolve) => { pageScope.timeout(LIVE_LINK_POLL_MS, resolve); }))) return;
+  for (const program of unready()) {
+    const getUniforms: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'getUniforms') : undefined;
+    if (typeof getUniforms === 'function') Reflect.apply(getUniforms, program, []);
+  }
 }
 
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
