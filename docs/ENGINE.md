@@ -7610,6 +7610,10 @@ source or product calls it. Both chapters enter closed observations/effects
 through their page/native chapter owners. The unchanged legacy adapter lives
 only in `test/fixtures/legacy-director-bindings.ts`, preserving independent
 old-clock and continuation comparisons without shipping reflection dispatch.
+The unused reflection schema is retained in that fixture too. The product
+reader returns only the admitted factory, bytes and stage contract; it no
+longer publishes unused binding metadata. Product documents retain their
+existing compatibility key, so their names and section count do not change.
 
 `src/game/plugin/director.ts#DirectorScriptStageLane` also accepts
 `DirectorScriptStagePorts` with `emits: {source, actions}` instead of

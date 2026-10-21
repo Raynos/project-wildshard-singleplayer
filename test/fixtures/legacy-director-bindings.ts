@@ -2,9 +2,23 @@
  * Live products enter closed chapter rows and cannot import this fixture. */
 import * as v from 'valibot';
 import type { SimHost } from '../../src/engine/sim';
-import { DirectorBindingsSchema } from '../../src/format/namedJsonContracts';
 import { bindBorrowedMethod, readBorrowedOwner } from '../../src/game/plugin/borrowed';
 import { DirectorScriptStageLane } from '../../src/game/plugin/director';
+
+const borrowedPath = { owner: v.pipe(v.string(), v.minLength(1), v.maxLength(96)), path: v.pipe(v.array(v.union([v.string(), v.number()])), v.minLength(1), v.maxLength(16)) };
+const argument = v.union([v.string(), v.number(), v.boolean(), v.null()]);
+const DirectorBindingsSchema = v.strictObject({
+  observations: v.pipe(v.record(v.string(), v.union([v.number(), v.strictObject({ ...borrowedPath,
+    args: v.exactOptional(v.pipe(v.array(argument), v.maxLength(16))), present: v.exactOptional(v.boolean()), fallback: v.exactOptional(v.number()),
+  })])), v.maxEntries(32)),
+  actions: v.pipe(v.record(v.string(), v.pipe(v.array(v.variant('kind', [
+    v.strictObject({ kind: v.literal('call'), ...borrowedPath, args: v.optional(v.pipe(v.array(argument), v.maxLength(16)), []) }),
+    v.strictObject({ kind: v.literal('set'), ...borrowedPath, value: argument }),
+  ])), v.maxLength(16))), v.maxEntries(64)),
+  changes: v.optional(v.pipe(v.array(v.strictObject({ ...borrowedPath, keys: v.pipe(v.array(v.string()), v.maxLength(32)) })), v.maxLength(16)), []),
+  source: v.picklist(['matching', 'optional']), initialDt: v.optional(v.pipe(v.number(), v.minValue(0), v.maxValue(1)), 0),
+});
+
 
 export function bindLegacyDirector(data: unknown, script: ConstructorParameters<typeof DirectorScriptStageLane>[1], input: unknown, owners: ReadonlyMap<string, unknown>,
   scope: { readonly disposed: boolean; readonly onDispose: (cleanup: () => void) => void }, restoring = false, host?: SimHost, id?: string): DirectorScriptStageLane {

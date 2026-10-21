@@ -140,13 +140,13 @@ export async function prepareEmbeddedDirector(data: unknown, module: { readonly 
 
 const embeddedProduct = v.strictObject({ declaration: v.unknown(), module: v.strictObject({ module: v.string(), bytes: v.string() }),
   stages: v.unknown(), bindings: v.unknown(), seed: v.number() });
-/** Read the admitted named product; embedded bytes, row contracts and bindings stay in the data path. */
+/** Read embedded bytes and stage contracts from the admitted named product. */
 export async function readDirectorProduct(product: { file: (name: string) => Promise<Uint8Array> }, scope?: { readonly disposed: boolean }): Promise<{
-  readonly create: () => DirectorLane; readonly bytes: Uint8Array; readonly stages: unknown; readonly bindings: unknown;
+  readonly create: () => DirectorLane; readonly bytes: Uint8Array; readonly stages: unknown;
 }> {
   const data = v.parse(embeddedProduct, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('directors/main.json'))));
   const create = await prepareEmbeddedDirector(data.declaration, data.module, data.seed, scope);
-  return { create, bytes: embeddedDirectorBytes(data.declaration, data.module), stages: data.stages, bindings: data.bindings };
+  return { create, bytes: embeddedDirectorBytes(data.declaration, data.module), stages: data.stages };
 }
 
 /** Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory. */
