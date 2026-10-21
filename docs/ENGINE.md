@@ -879,7 +879,8 @@ The engine contains no content identities or product measurements.
 `loadingStage(key, work)` in `@wildshard/engine/boot/waits` measures semantic
 boundaries, including LevelLoader hooks and initial home entry. Nested stages
 own exclusive wall intervals, so stage and explicit gap rows sum to the loading
-clock. Unknown stages become visible rows; ignored shell stages remain inside
+clock. Parallel stages keep their actual counts and detail visible while a newer
+stage owns that interval. Unknown stages become visible rows; ignored shell stages remain inside
 their reported parent. The game supplies legacy, shardfile, grid and crossing
 tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,
 commit and activation using the existing same-clock transition timestamps.
@@ -7820,9 +7821,10 @@ Runtime compilation factors large inline schema branches into local definitions
 and disables reference inlining, bounding generated validator functions. Schema
 identifiers, existing references, data literals and the original admission checks remain intact.
 `OutputDescriptorReader.pause` (forwarded by `ProductOptions.pause`) is an
-optional trusted scheduling callback before each complete custom-schema check.
-Client checks share one queue across parallel product readers, with a paint
-between validators; Node admission needs no client scheduler.
+optional trusted scheduling callback before and after each complete custom-schema check.
+Client checks share one queue across parallel product readers. Actual completion
+is reported before the trailing paint, separating the validator from its consumer
+assembly and hashing. Node admission needs no client scheduler.
 Schema counts and live waits describe the actual checks; file reads stay parallel.
 `OutputDescriptorReader.cacheHit(path, hash, bytes)` reports a cached section or
 schema only after size/hash verification. The product reader connects that hit
