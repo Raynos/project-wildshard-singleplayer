@@ -6,13 +6,10 @@ import { mixedPopulation } from '../population/mixedRoster';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
-import { plateOverlap } from '@wildshard/engine/world/interact/barrel';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
-import { bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredQuests } from './declared';
 import { QuestRewardController, installNativeQuestProps } from '../plugin/quests';
-import type { installDeclaredQuestHost } from '../plugin/simulation';
 import type { AchievementCounterRows } from '../achievements';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { NativeInventory } from '../inventoryLaw';
@@ -99,11 +96,8 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     for (let i = 0; i < MAX_BODIES; i++) { const b = list[i]; if (b === undefined) break; if (b.kind === policy.guardKind && b.actor?.alive === true) return true; }
     return false;
   };
-  let commit: ReturnType<typeof installDeclaredQuestHost>['run'] = () => { throw new Error('Native quest graph is not installed'); };
-  const transitions=bindInteractionTransitions(rules,flags,{rowLimit:policy.limits.rows,flagLimit:policy.limits.rows,
-    commit:id=>commit(id),item:(id,n)=>{pack.add(id,n);},plate:(row,size)=>plateOverlap(host.physics,row.spot,row.spot.yaw,size,policy.plate),
-    touched:r=>{const feet=host.player.position,dx=feet.x-r.spot.x,dz=feet.z-r.spot.z;
-      return dx*dx+dz*dz<policy.touch.radius*policy.touch.radius&&Math.abs(feet.y-r.spot.y)<policy.touch.height;}});
+  const transitions = entry.transitions({ ids: rules.map(row => row.d.id), rowLimit: policy.limits.rows,
+    flagLimit: policy.limits.rows, touch: 'graph', pickup: policy.touch, plate: policy.plate });
   const prompts = bindHeadlessPrompts(spots.promptRegistrations, id => {
     if (id === policy.talkId) return { act: policy.actions.talk, position: spots.talk, radius: policy.talkRadius };
     if (id === policy.heldId) return { act: policy.actions.sword, position: spots.sword, get radius() { return state.iron ? 0 : guarded() ? policy.guardRadius : policy.swordRadius; } };
@@ -118,7 +112,6 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
       [policy.heldId, () => { state.iron = true; equipment.equip(policy.heldSlot); }], [policy.cableId, () => { cables.start(cableId); }],
       ...rules.map(row => [row.d.id, () => { transitions.interact(row); }] as const),
     ]) });
-  commit = graph.run;
 
   counterBook.observe();
 

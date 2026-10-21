@@ -18,6 +18,7 @@ import type { QuestHostPorts } from '../src/game/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
+import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 
 /** Isolate command admission with concrete mutable service observations. Full
  * living entry/save replay still runs through each actual native composition. */
@@ -168,4 +169,33 @@ test('Pine admitted routes preserve same-tick modal priority, actor values, canc
     expect(calls).toHaveLength(1024);
     expect(calls.every(call => call === 'quest.ammo.cycle/0')).toBe(true);
   } finally { host.dispose(); }
+});
+
+test('native entries share direct and graph pickup transitions over their original flags and pack', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  for (const sample of [
+    { source: pine, table: PINE_QUEST_RUNTIME.table, id: 'resin-1', touch: 'direct', pickup: 'walk-in', flag: 'resin:1', radius: 1.1, granted: 1 },
+    { source: driftwood, table: DRIFTWOOD_INTERACT, id: 'glass-1', touch: 'graph', pickup: { radius: 1.2, height: 2.2 }, flag: 'glass:1', radius: 1.2, granted: 0 },
+  ] as const) {
+    const row = sample.table.rows.find(value => value.id === sample.id), declared = sample.source.questHost;
+    if (row === undefined || declared === undefined || declared === null) throw new Error('Missing authored transition fixture');
+    const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+    try {
+      registerNativeQuestInputs(host, { scripts: () => [], walk: () => ({ x: 0, z: 0 }), ledger: { fact: () => undefined, coins: () => undefined } });
+      const entry = prepareNativeQuestEntry(host, sample.source, { rows: [row], external: [] }, [{ id: sample.id, kind: row.kind, x: 0, y: 0, z: 0, yaw: 0 }]);
+      const policy = { ids: [sample.id], rowLimit: 1, flagLimit: 16, touch: sample.touch, pickup: sample.pickup };
+      expect(() => entry.transitions({ ...policy, ids: ['absent'] })).toThrow('Unknown native transition');
+      expect(() => entry.transitions({ ...policy, ids: [sample.id, sample.id] })).toThrow();
+      const transitions = entry.transitions(policy);
+      const ids = [...new Set([...declared.commands.routes.flatMap(route => route.spot === null ? [] : [route.spot]),
+        ...declared.interactions.rows.map(value => value.at), ...declared.npcs.map(value => value.spot)])];
+      entry.install({ spots: { interact: ids.map(id => ({ id, x: 0, y: 0, z: 0, radius: 3 })), crack: [] },
+        observations: new Map(declared.observations.flatMap(value => value.kind === 'owner' ? [[value.owner, () => true] as const] : [])),
+        actions: new Map(declared.commands.routes.flatMap(route => route.action.kind === 'owner' ? [[route.action.id, () => undefined] as const] : [])) });
+      host.player.position.set(sample.radius, 0, 0); transitions.step(); expect(host.flags.has(sample.flag)).toBe(false);
+      host.player.position.x -= 0.001; transitions.step(); expect(host.flags.has(sample.flag)).toBe(true);
+      expect(entry.pack.count('amber-resin')).toBe(sample.granted);
+      transitions.step(); expect(entry.pack.count('amber-resin')).toBe(sample.granted);
+    } finally { host.dispose(); }
+  }
 });

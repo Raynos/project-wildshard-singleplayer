@@ -6675,6 +6675,13 @@ same ledger. `sync()` and `flush()` keep their explicit call phases; `observe()`
 filters transient plate/lever flags and releases the subscription with the
 entry. Restore remains quiet and introduces no new saved adapter.
 
+`transitions(rows)` binds selected table identities to that entry's actual
+graph, inventory and physics. Data selects walk-in sight or strict radius/
+height pickup eligibility, direct or graph grants, and an optional plate
+slab. Pine and Driftwood retain their original choices and explicit step/
+latch order. Captured positions and unknown identities refuse before effects;
+the adapter adds no physics body, clock or saved state.
+
 Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing
 scene assembler passes them to MeshStandardMaterial before its named world

@@ -13,8 +13,7 @@ import { takeNativeBossReward } from '../boss/native';
 import { commitQuestEffects } from './effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
-import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
-import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
+import type { InteractionState } from '@wildshard/engine/world/interact/flags';
 import { bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
 import type { installDeclaredQuestHost } from '../plugin/simulation';
 import { ReturnProgram } from '../population/returnProgram';
@@ -27,7 +26,7 @@ import { Exchange } from '../loot/exchange';
 import { QuestStepRunner } from './steps';
 
 const finite = v.pipe(v.number(), v.finite());
-interface Rule extends InteractionState { readonly spot: NativeStorySpots['rows'][number]; readonly prompt: { x: number; y: number; z: number } | null }
+interface Rule extends InteractionState { readonly spot: NativeStorySpots['rows'][number] }
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
 const LeadSaved = v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: v.pipe(finite, v.minValue(0)) });
 const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>, ids: readonly string[]) => v.strictObject({ lead: LeadSaved,
@@ -63,10 +62,10 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const required = (id: string): Rule => {
     const row = indexed.get(id);
     if (row === undefined) throw new Error(`Missing story quest row ${id}`);
-    return { ...row, prompt: row.spot.prompt };
+    return row;
   };
   const latch = required(policy.latch), benchRule = required(policy.benchRow), bench = benchRule.spot;
-  if (benchRule.d.kind !== 'bench' || benchRule.prompt === null) throw new Error('Story bench requires its prompt');
+  if (benchRule.d.kind !== 'bench' || benchRule.spot.prompt === null) throw new Error('Story bench requires its prompt');
   const graph = entry.install(commandOwners());
   const quests = graph.quests;
   const chapter = quests.quests[0];
@@ -102,9 +101,8 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     if (row.d.kind !== 'pickup' || row.d.touch !== true || row.d.item !== policy.touch.item) throw new Error('Story needs its touchRows take law');
     return row;
   });
-  const transitions=bindInteractionTransitions([...touchRows,latch],flags,{rowLimit:TOUCH_COUNT+1,flagLimit:MAX_SETS,touch:'direct',
-    commit:id=>graph.run(id),item:()=>{pack.add(policy.touch.item);},
-    touched:row=>'spot' in row&&walkInPickup(host.physics,host.player.position,row.spot)});
+  const transitions = entry.transitions({ ids: [...touchRows, latch].map(row => row.d.id), rowLimit: TOUCH_COUNT + 1,
+    flagLimit: MAX_SETS, touch: 'direct', pickup: 'walk-in' });
 
   const fast: { on: { from: number; span: number; t: number; dur: number; to: number } | null } = { on: null };
   const fastForward = (to: number, dur: number): void => {
