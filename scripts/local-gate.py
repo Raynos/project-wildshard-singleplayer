@@ -51,7 +51,7 @@ def main():
         # progress/ and sources/ like Vercel's .vercelignore tree, synced file by file instead of a fresh 5 GB export per
         # push. This script re-runs itself there.
         mirror = [str(root / 'scripts/build-mirror.mjs'), 'run', sha, '--slot', 'gate', '--']
-        return subprocess.run(['node', *mirror, sys.executable, str(root / 'scripts/local-gate.py'), sha],
+        return subprocess.run(['node', *mirror, sys.executable, 'scripts/local-gate.py', sha],
                               env=dict(os.environ, WS_GATE_REPO=str(root))).returncode
     timings = {}
     started = time.time()
@@ -100,14 +100,12 @@ def main():
         if lintable:
             run('oxlint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *lintable])
         # The tests that import the changed files, not the whole suite (focused files need no full-test lease).
-        # The checkout's selector, like this script, so a tip older than the selector still runs it.
-        selected = run('select-tests', ['node', str(root / 'scripts/gate-related-tests.mjs'), str(related_list)],
+        # Selection and product edges belong to the immutable carrier, including older tips.
+        selected = run('select-tests', ['node', 'scripts/gate-related-tests.mjs', str(related_list)],
                        stdout=subprocess.PIPE, text=True)
         tests = json.loads(selected.stdout.strip().splitlines()[-1])
         if tests:
             registry_path = tree / 'scripts/gate-test-products.json'
-            if not registry_path.exists():
-                registry_path = root / 'scripts/gate-test-products.json'
             registry = json.loads(registry_path.read_text())
             products = required_test_products(tests, registry)
             if products:

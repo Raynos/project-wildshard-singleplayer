@@ -154,6 +154,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   `.git/push-gate-steps.jsonl`; a passed SHA is stamped in `.git/build-gate-g416/`. Required exact-SHA
   boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
   selects only a CI-green and smoke-green commit.
+- **Source checks use the tree being checked.** The checkout supplies mirror transport; pre-commit runs the staged
+  tree's checker and imported policies under the `commit` lock, retaining the original private index for comparisons.
+  The push gate runs the carrier's runner, related-test selector and product registry under the `gate` lock.
+  A missing checker or registry refuses; it never borrows the checkout's newer source checks.
 - **Disk-reading tests declare their products** in `scripts/gate-test-products.json`.
   The related-test walk retains their author-source edges; before Vitest, the
   gate verifies/rebuilds only the selected products with `--reuse --shard=…`.
