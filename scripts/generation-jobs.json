@@ -1176,7 +1176,6 @@
       "inputRoots": [
         "src/format",
         "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
-        "src/shards/nalati-grasslands/generators/firearmProfile.ts",
         "src/shards/nalati-grasslands/data/items.json",
         "src/shards/nalati-grasslands/data/heldRifle.json",
         "src/sdk",
