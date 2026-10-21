@@ -67,6 +67,8 @@ import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from './collisionStrips';
 import type { LocalSaveInstance } from '../instanceSaves';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
+import { constructionOwner, currentOwner } from '@wildshard/engine/app/ownership';
+import { prepareScriptMemoryLease, SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
@@ -625,7 +627,7 @@ export class LiveGridSession {
     // Four native creature-only walls and their shape/query adapters belong to this regional claim.
     // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
     const bytes = regionalSimAccountedBytes(cell.slug, source.budgets.sim.resident + generatedGroundBytes + 4096, TRANSFER_WALL_BYTES, findShard(cell.slug));
-    return { bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
+    const build = (saved: Parameters<LiveGridAdmission['create']>[0]): ReturnType<LiveGridAdmission['create']> => {
       let sim: ShardfileSimulation = createShardfileSim(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
       let releaseBasis: () => void = () => undefined;
       let transfer: TransferWalls;
@@ -684,6 +686,16 @@ export class LiveGridSession {
         try { sim.dispose(); } finally { releaseBasis(); }
         throw error;
       }
+    };
+    return { bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved) => {
+      // SF88e: each declared script module's WebAssembly.Memory is a synchronous full GC on iOS JSC (40-80 ms each);
+      // lease them one drawn frame apart under the owner the script host installs in, so entry draws no 250 ms frame
+      const owner = constructionOwner() ?? currentOwner();
+      const modules = copySource.sim.scripts.flatMap(name => { const module = assets.get(name); return module === undefined ? [] : [module]; });
+      const release = owner === null || modules.length === 0 || modules.length > SCRIPT_LIMITS.instances ? undefined
+        : await prepareScriptMemoryLease(modules, owner, 'frame');
+      try { return await (owner === null ? build(saved) : owner.run(() => build(saved))); }
+      finally { release?.(); }
     } };
     } catch (error) { releaseProduct(); throw error; }
   }
