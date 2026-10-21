@@ -12,8 +12,8 @@ import {runtimeGridEvidence} from '../scripts/grid-runtime-evidence.mjs';
 
 it('reads pinned latches from Git when the fenced mirror omits progress',()=>{
  const root=mkdtempSync(resolve('tmp','grid-latch-git-'));
- const env={...process.env,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_NOSYSTEM:'1',GIT_CEILING_DIRECTORIES:''};
- delete env.GIT_DIR;delete env.GIT_WORK_TREE;delete env.GIT_INDEX_FILE;
+ const env:NodeJS.ProcessEnv={...process.env,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_NOSYSTEM:'1',GIT_CEILING_DIRECTORIES:''};
+ delete env['GIT_DIR'];delete env['GIT_WORK_TREE'];delete env['GIT_INDEX_FILE'];
  const git=(...args:string[])=>execFileSync('git',args,{cwd:root,env,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  const commit=()=>{git('add','.');git('commit','-qm','fixture');return git('rev-parse','HEAD');};
  const path=resolve(root,GRID_READY_LATCHES);
