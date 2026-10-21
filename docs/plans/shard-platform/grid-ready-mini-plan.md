@@ -31,4 +31,6 @@ At ruler ed51b1446 every shard passes four of the six M2 criteria (baked tiles, 
 | **R6** | The `frameFloor` criterion stays a separate, reported line; it does not block M2 (coordinator ruling X0, 10-20) | | |
 
 **Done when** the six zero-custom shards and the plots read 6/6 and stay latched. Then R5 takes Pine, Driftwood, Nine and Nalati, each only after it reaches zero custom (G561).
+GR3 acceptance ruling (2026-10-21, coordinator): a qualified Chromium pass under machine load may latch, with `quiet:false` recorded in its latch and receipt. Load can only worsen cadence; a non-quiet miss stays unconfirmed and needs a quiet repeat before it becomes a failure. Profiling still supplies no acceptance credit.
+
 No Simulator in this plan either (G559): the Simulator only reproduces what Chromium can't. Jake's iPhone is not in this plan: the phone check is SHARD-PLATFORM's final row at 99 % (G558).

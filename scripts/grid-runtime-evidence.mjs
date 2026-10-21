@@ -73,20 +73,24 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps) {
         const names=scene.routes.filter(route=>route.after.current!==null&&(route.after.slug??route.after.current)===slug).map(route=>`grid-${route.name}`);
         const rows=scene.rows.filter(row=>names.some(name=>row.name===name||row.name===`${name}-travel`||row.name===`${name}-drive`));
         if(rows.length===0||!names.every(name=>rows.some(row=>row.name===`${name}-drive`)))continue;
-        if(recordedMilestone.output.protocol.quiet!==false) {
+        const quiet=recordedMilestone.output.protocol.quiet!==false;
+        if(quiet||chromium) {
           const invalid=rows.some(row=>row.contextLost===true||(row.skipped??0)>0);
           // Complete error-free entry cases already passed the route's reload/hole witness. The composite row.pass
           // also includes FPS and content CPU limits, so it cannot decide the separate visual/stall criterion.
           if(receipt.surface==='sim'||chromium) {
             const stalled=rows.some(row=>row.stallPass===false||(row.maxMs??row.worstMs??0)>200);
             const observed=rows.every(row=>row.contextLost===false&&(row.maxMs??row.worstMs)!==undefined);
-            add('oneFrameLooks',receipt.when,path,bytes,invalid||stalled?'fail':observed?'pass':'unknown',
-              `completed ${chromium?'Chromium phone 4x':'Safari'} entry without reload/hole; ${rows.length} look/travel windows, requires intact context and every observed frame <= 200 ms; missing observations stay unknown`);
+            const passed=!invalid&&!stalled&&observed;
+            // GR3: load can worsen cadence. A green under load is conservative;
+            // a non-quiet miss requires quiet confirmation, never a failure latch.
+            if(quiet||passed)add('oneFrameLooks',receipt.when,path,bytes,invalid||stalled?'fail':observed?'pass':'unknown',
+              `completed ${chromium?'Chromium phone 4x':'Safari'} entry without reload/hole; ${rows.length} look/travel windows, requires intact context and every observed frame <= 200 ms; missing observations stay unknown${quiet?'':'; quiet false, green under load accepted'}`);
           }
           const floor=receipt.surface==='sim'||chromium?30:60,limit=receipt.surface==='sim'||chromium?35:17.5;
           const slow=rows.some(row=>row.p95Ms!==undefined&&row.p95Ms>limit||row.medianFps!==undefined&&Math.round(row.medianFps)<floor);
           const observed=rows.every(row=>row.contextLost===false&&row.p95Ms!==undefined&&row.medianFps!==undefined);
-          add('frameFloor',receipt.when,path,bytes,invalid||slow?'fail':observed?'pass':'unknown',
+          if(quiet||!invalid&&!slow&&observed)add('frameFloor',receipt.when,path,bytes,invalid||slow?'fail':observed?'pass':'unknown',
             `${receipt.surface}: every one of ${rows.length} grid entry/look/travel rows requires p95 <= ${limit} ms and rounded median >= ${floor} fps; missing observations stay unknown`);
         }
         if(receipt.surface==='sim'&&receipt.memory?.measurement==='native-footprint+gpu')measured(receipt.when,path,bytes,receipt.memory.playingPeakBytes,receipt.memory.loadingPeakBytes);

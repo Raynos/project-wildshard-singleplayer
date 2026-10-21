@@ -24,7 +24,8 @@ for(const shard of shards) {
  for(const criterion of /** @type {const} */ (['memory','oneFrameLooks'])) {
   if(latches.entries.some(row=>row.shard===shard&&row.criterion===criterion))continue;
   if(criteria[criterion]?.verdict!=='pass')continue;
-  latches.entries.push({shard,criterion,source,receiptCommit,receipt,latchedAt:new Date().toISOString()});
+  latches.entries.push({shard,criterion,source,receiptCommit,receipt,latchedAt:new Date().toISOString(),
+    ...(typeof observation.protocol?.quiet==='boolean'?{quiet:observation.protocol.quiet}:{})});
   console.info(`Latched ${shard} ${criterion} from ${receiptCommit}:${receipt}`);
  }
 }

@@ -107,6 +107,26 @@ it('accepts a qualified Chromium phone witness and separately observed CDP memor
  } finally {rmSync(root,{recursive:true,force:true});}
 });
 
+it('accepts a Chromium green under load but requires quiet confirmation of a miss',()=>{
+ const root=mkdtempSync(resolve('tmp','grid-loaded-green-'));
+ const row={name:'grid-template-entry-drive',frames:120,pass:true,contextLost:false,maxMs:200,p95Ms:33,medianFps:30};
+ const receipt={schema:1,source:sha,protocol:{profiler:false,glObserver:'off',quiet:false},runs:[{
+  sha,when:'2026-10-21T01:00:00Z',surface:'chromium',cohort:'grid',complete:true,glObserver:'off',
+  profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},
+  cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'template-entry',after:{current:'template-2',slug:'_template'}}],rows:[row]}]}]};
+ const read=()=>{writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));return runtimeGridEvidence(root,'_template',sha,['receipt.json'],caps);};
+ try{
+  expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().oneFrameLooks?.evidence).toContain('quiet false');
+  row.maxMs=201;expect(read().oneFrameLooks).toBeUndefined();
+  row.maxMs=100;row.contextLost=true;expect(read().oneFrameLooks).toBeUndefined();
+  row.contextLost=false;row.p95Ms=50;expect(read().frameFloor).toBeUndefined();
+  expect(read().oneFrameLooks?.verdict).toBe('pass');
+  receipt.protocol.profiler=true;expect(read()).toEqual({});
+  receipt.protocol.profiler=false;receipt.protocol.quiet=true;row.maxMs=201;
+  expect(read().oneFrameLooks?.verdict).toBe('fail');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
 it('matches a template product slug while retaining its distinct entered instance',()=>{
  const root=mkdtempSync(resolve('tmp','grid-instance-witness-'));
  const receipt={schema:1,source:sha,protocol:{profiler:false,glObserver:'off'},runs:[{
@@ -123,7 +143,7 @@ it('matches a template product slug while retaining its distinct entered instanc
 
 it('retains a measured pass across source/product changes and later failing samples until manual removal',()=>{
  const root=mkdtempSync(resolve('tmp','grid-latch-')),source='a'.repeat(40),revision='b'.repeat(40);
- const latch={shard:'_template',criterion:'oneFrameLooks',source,receiptCommit:'c'.repeat(40),receipt:'old/receipt.json',latchedAt:'2026-10-21T13:00:00Z'};
+ const latch={shard:'_template',criterion:'oneFrameLooks',source,receiptCommit:'c'.repeat(40),receipt:'old/receipt.json',latchedAt:'2026-10-21T13:00:00Z',quiet:false};
  const path=resolve(root,GRID_READY_LATCHES),write=(entries:unknown[])=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,JSON.stringify({schema:'grid-ready-latches/1',entries}));};
  try {
   write([latch]);
@@ -131,6 +151,7 @@ it('retains a measured pass across source/product changes and later failing samp
   // No old receipt, checksum, product or runtime source is required after the pass latches.
   const read=()=>runtimeGridEvidence(root,'_template',revision,['new.json'],caps);
   expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().oneFrameLooks?.evidence).toContain(`${latch.receiptCommit}:${latch.receipt}`);
+  expect(read().oneFrameLooks?.evidence).toContain('quiet false');
   expect(runtimeGridEvidence(root,'other',revision,[],caps)).toEqual({});
   writeFileSync(resolve(root,'new.json'),JSON.stringify({schema:1,source:revision,protocol:{profiler:false,glObserver:'off'},runs:[{
    sha:revision,when:'2026-10-22T01:00:00Z',surface:'sim',cohort:'grid',complete:true,glObserver:'off',
