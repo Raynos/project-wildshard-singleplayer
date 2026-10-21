@@ -11,6 +11,7 @@ import { parseQuestData } from '../src/sdk/quests';
 import pinePeople from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
 import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';
+import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
 import { NATIVE_CHAPTER_DIRECTOR } from '../src/shards/pine-hollow/generators/chapterDirector';
 
 // Frozen canonical hashes of the original play-read authored declarations.
@@ -45,10 +46,13 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   const nativeFile = loaded.output.namedFiles?.find(row => row.name === 'quests/native-story.json');
   const nativeBytes = nativeFile === undefined ? undefined : loaded.assets.get(nativeFile.hash);
   if (nativeBytes === undefined) throw new Error('Missing admitted native story');
-  const nativePolicy: unknown = JSON.parse(new TextDecoder().decode(nativeBytes));
+  const nativePolicy = parseNativeQuestComposition(JSON.parse(new TextDecoder().decode(nativeBytes)));
   expect(nativePolicy).toMatchObject({ transitions: { ids: [...Array.from({ length: 30 }, (_unused, i) => `resin-${i + 1}`), 'dam-sluice'],
     rowLimit: 31, flagLimit: 16, touch: 'direct', pickup: 'walk-in' } });
-  for (const selector of ['touch', 'latch', 'actor', 'trade', 'ammo']) expect(nativePolicy).not.toHaveProperty(selector);
+  // QB declares the existing trader and ammunition owners as typed facets.
+  expect(nativePolicy.trade).toEqual({ pack: nativeStory.pack, finish: nativeStory.finish.id, speaker: nativeStory.trader });
+  expect(nativePolicy.ammunition).toEqual({ launcher: nativeStory.launcher });
+  for (const selector of ['touch', 'latch', 'actor', 'ammo']) expect(nativePolicy).not.toHaveProperty(selector);
   const resin = FOREST_STORY.collections[0], tokens = FOREST_STORY.collections[1];
   expect(resin?.prefix).toBe(PINE_QUEST_RUNTIME.policy.resinFlag);
   expect(resin?.names).toHaveLength(PINE_QUEST_RUNTIME.policy.resinCount);
