@@ -32,7 +32,7 @@ import { bindRuntimeQuest } from '../plugin/headless';
 import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory, installStoryTalks } from './story';
 import { questPageWorld } from './pageResources';
 import { questBenchPose } from './storyLaw';
-import { QuestPageTalksSchema } from '@wildshard/format/npcs';
+import type { QuestPageTalksRows } from '@wildshard/format/npcs';
 import { ProductFigureCatalogue } from '../models/figureCatalogue';
 import { SceneHandles } from '../shardfile/sceneHandles';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
@@ -137,7 +137,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   achievements: () => ReturnType<typeof bindStoryAchievements>;
   observe: () => void;
   bench: () => void;
-  talks: (input: unknown) => Promise<ReturnType<typeof installStoryTalks<FigureRows>>>;
+  talks: (input: QuestPageTalksRows) => Promise<ReturnType<typeof installStoryTalks<FigureRows>>>;
   deaths: (input: unknown) => void;
   cable: (input: unknown) => Promise<QuestCableView>;
   trader: (input: unknown) => QuestTrader;
@@ -231,7 +231,7 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
     },
     talks: async talkInput => {
       if (!isJsonData(talkInput)) throw new Error('Quest talks require JSON rows');
-      const talkRows = v.parse(QuestPageTalksSchema, talkInput), runtime = ctx.game.runtime, play = runtime?.play;
+      const talkRows = talkInput, runtime = ctx.game.runtime, play = runtime?.play;
       if (new Set(talkRows.models.map(row => row.id)).size !== talkRows.models.length) throw new Error('Duplicate quest talk model');
       if (runtime === undefined || play === undefined || play === null) throw new Error('Quest talks require their entered play owners');
       const requireLive = (): void => { if (ctx.scope.disposed) throw new Error('Quest talks left during model admission'); };

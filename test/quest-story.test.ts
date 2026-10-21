@@ -206,8 +206,9 @@ test('entered talk rows borrow the actual castaway and preserve opening, stow an
   try {
     const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
     entry.flags.reset();
-    await expect(entry.talks({ ...driftPage.talks, models: [...driftPage.talks.models, ...driftPage.talks.models] })).rejects.toThrow('Duplicate quest talk model');
-    const talks = await entry.talks(driftPage.talks), person = talks.people[0];
+    const talkRows = v.parse(QuestPageTalksSchema, driftPage.talks);
+    await expect(entry.talks({ ...talkRows, models: [...talkRows.models, ...talkRows.models] })).rejects.toThrow('Duplicate quest talk model');
+    const talks = await entry.talks(talkRows), person = talks.people[0];
     if (person === undefined) throw new Error('Missing declared castaway');
     expect(person.fig).toBe(figure); expect(scene.children).toContain(figure.group);
     person.prompt.onInteract(); person.update(.1, 1, new Vector3());
@@ -215,7 +216,7 @@ test('entered talk rows borrow the actual castaway and preserve opening, stow an
     expect(figure.takeSignal('wave')).toBe(true);
     person.update(.1, 2, new Vector3(100, 0, 0));
     expect(weapons.stowed).toBe(false); expect(figure.talking).toBe(false);
-    await expect(entry.talks(driftPage.talks)).rejects.toThrow('already installed');
+    await expect(entry.talks(talkRows)).rejects.toThrow('already installed');
   } finally { scope.dispose(); }
   expect(figure.active).toBe(false);
 });
@@ -229,7 +230,7 @@ test('leaving during a catalogue read cannot create figures or dialogue on the d
     await gate; return new ProductFigureCatalogue('test', 'people/catalogue.json');
   });
   try {
-    const pending = entry.talks(pinePage.talks), refused = expect(pending).rejects.toThrow('left during model admission');
+    const pending = entry.talks(v.parse(QuestPageTalksSchema, pinePage.talks)), refused = expect(pending).rejects.toThrow('left during model admission');
     scope.dispose(); release(); await refused;
     expect(read).toHaveBeenCalledWith(ctx.product, 'people/catalogue.json');
     expect(scene.children).toEqual([]);

@@ -21,8 +21,10 @@ for (const [name, output] of [['pine', pine], ['driftwood', driftwood]] as const
   });
 }
 
-test('Pine admits board placement, store and panel declarations in their existing documents', () => {
+test('Pine admits talk, board, store and panel declarations in their existing documents', () => {
   const documents = [
+    { name: 'quests/forest-story.json', bad: { ...FOREST_STORY, talks: { ...FOREST_STORY.talks, models: [{ source: 'callback', id: 'foreign' }] } } },
+    { name: 'quests/forest-story.json', bad: { ...FOREST_STORY, talks: { ...FOREST_STORY.talks, calls: { foreign: { kind: 'hook', target: 'unbound' } } } } },
     { name: 'quests/forest-story.json', bad: { ...FOREST_STORY, board: { ...FOREST_STORY.board, radius: 0 } } },
     { name: 'quests/forest-story.json', bad: { ...FOREST_STORY, store: { ...FOREST_STORY.store, slot: '' } } },
     { name: 'quests/panels.json', bad: { ...PINE_PANELS, board: { ...PINE_PANELS.board, lifetime: 'forever' } } },
