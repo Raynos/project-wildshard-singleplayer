@@ -115,7 +115,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   capture as "iPhone 16 Pro".
 - **No vite dev servers**: `scripts/serve-build.sh`, started from your scratchpad. **One iOS Simulator**, through
   `scripts/sim-lane.sh`. **One local model at a time**, under the model lock.
-- **One full suite and one app build machine-wide**: use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted. Lanes never run the full suite: `full-test` refuses outside CI without `WS_FULL_SUITE=1` (SF74 W1).
+- **One full suite and up to three app builds machine-wide** (Jake, 2026-10-20, G547): use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted. Lanes never run the full suite: `full-test` refuses outside CI without `WS_FULL_SUITE=1` (SF74 W1).
 - **Clean your scratchpad**: delete throwaways as soon as you have the result; never rename aside. What you keep goes in
   the repo.
 - **Disk: never copy the repo.** No `git archive | tar -x` exports, clones or worktrees. An exact-commit build or check runs
@@ -124,7 +124,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   the git-ignored `./tmp/<task>`, deleted with `rm -rf` on its exact path when done. Never `/tmp`, `$TMPDIR` or the
   session scratchpad for anything big, and never `mv` trees to `/tmp/delete-me-*`: macOS empties those at boot before
   login, and millions of leftover export files held the laptop at the login progress bar for hours (2026-10-15).
-  **At most three mirror slots machine-wide** (`gate`, `commit`, `check`), never one per lane or agent; one served build
+  **At most eight mirror slots machine-wide** (`gate`, `commit`, `check`, `check2`…`check6`; Jake, 2026-10-20, G547), never one per lane or agent; one served build
   of HEAD reused; Node's compile cache lives outside `$TMPDIR`; pre-commit warns past 500k files in `/tmp` or in `$TMPDIR` (each counted)
   (`scripts/boot-temp-warn.sh`).
 
