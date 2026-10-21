@@ -40,8 +40,8 @@ G8, ZB, ZD, the ZA barrel note.
 | WASM-HOST H0, then H9 view lane users: rope bridge, poolSurface, beaverPool, quest/views, King pose, posedInstances, creatureLooks, figures | ~340 per-frame view | sp-o4 (Opus) |
 | Driftwood world hosts: islandCover, fish school (extend installPageLife), fixed-draw loader host, build.ts stage glue | DW C1 353 | sp-o5 (Opus), after the gull |
 | Pine looks + world hosts: keyedSkyBackdrop render host, dayKeys, landmarks drawing, geometrySources/place helpers | Pine C2 118, C1 220 | sp-o2 (Opus), after the Sim corner frames |
-| Driftwood creatures: install wiring as data, crab hit-arc rule host, packed look rows | DW C4 ~80 | sp-o3 (Opus), after program keys |
-| Grid steady frame cost (ZG, Jake's fps bar) | perf | sp-o1 (Opus) |
+| Driftwood creatures: install wiring as data, crab hit-arc rule host, packed look rows | DW C4 ~80 | sp-o5 (Opus) queue; sp-o3 stopped (G574) after program keys |
+| Grid steady frame cost (ZG, Jake's fps bar) | perf | sp-o5 (Opus) after the corner gpu-bisect; sp-o1 stopped (G574) after its gpuLabels cut |
 
 
 Jake 2026-10-21: every lane that finishes its current task takes a row here before any other row, except the
