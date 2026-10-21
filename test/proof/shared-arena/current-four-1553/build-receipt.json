@@ -1,0 +1,75 @@
+{
+  "schema": "wildshard.shared-arena.candidate-build.v1",
+  "admitted": false,
+  "localOnly": true,
+  "acceptance": {
+    "modelAcceptance": false,
+    "runtimeAcceptance": false,
+    "visualAcceptance": false,
+    "colliderAcceptance": false,
+    "publicAcceptance": false
+  },
+  "sourceSnapshotSha256": "0bb568623d4b8ab3837b576996e7fa3fc50c9aafa3ffb647fe249d90a24f28cf",
+  "permissionSha256": "169716efd0cc6355b05d25403a6da7ca8dbeb07dfb864defec1a5683a84263c9",
+  "builtAt": "2026-10-21T15:54:31.279Z",
+  "revision": "daa3e4bc3160a5216c11d4889ea8b57d273b4e3d8d6519455d9e9129ad48f345",
+  "singleRuntime": true,
+  "worldPersistence": false,
+  "buildPolicy": {
+    "configFile": false,
+    "publicDir": false,
+    "envDir": false,
+    "envPrefix": [],
+    "mode": "candidate",
+    "base": "./",
+    "css": {
+      "postcss": {
+        "plugins": []
+      }
+    },
+    "define": {
+      "import.meta.env.MODE": "\"candidate\"",
+      "import.meta.env.BASE_URL": "\"./\"",
+      "import.meta.env.DEV": "false",
+      "import.meta.env.PROD": "true",
+      "import.meta.env.SSR": "false",
+      "import.meta.env.VITE_SENTRY_DSN": "\"\"",
+      "process.env.NODE_ENV": "\"production\""
+    }
+  },
+  "bellback": "unavailable",
+  "products": [
+    {
+      "id": "mantis",
+      "candidate": "V7-native22-motion7",
+      "mode": "motion7",
+      "sourceHash": "123eab925eca95a5275637259803235c85c670cb85c184e186334a3c24f8c9f7",
+      "originalValidator": "71f5cc53f24ad80b4fdc82b400cbf490cdcb66224fe10e79a91d121dfd833805",
+      "currentSdkValidation": "passed"
+    },
+    {
+      "id": "conch",
+      "candidate": "character-native15-motion4-upper-readable-r2",
+      "mode": "motion4",
+      "sourceHash": "e41d1e7600a94074384a00fca22b58f634c060f5eb0458c5d34ec2bf44db6cb8",
+      "originalValidator": "71f5cc53f24ad80b4fdc82b400cbf490cdcb66224fe10e79a91d121dfd833805",
+      "currentSdkValidation": "passed"
+    },
+    {
+      "id": "colossus",
+      "candidate": "V4-skin1-native22-motion2",
+      "mode": "motion2",
+      "sourceHash": "052535ba72fa042ee5895194390d31b489123494143c27f837bafaa112bcb349",
+      "originalValidator": "7b3924e21232999bc86b00c15dced728345c6be92232b5ebdbc025d26a92eadb",
+      "currentSdkValidation": "passed"
+    },
+    {
+      "id": "puffer",
+      "candidate": "V70",
+      "mode": "gait5",
+      "sourceHash": "80e39ff9f9af3b1e0bcaf3565e9282aa042a33af32298850c6085be7396cf895",
+      "originalValidator": "15ea87532e798d3171fa58ee84adb0de9d445db4b70065312449b1b804ac3eca",
+      "currentSdkValidation": "passed"
+    }
+  ]
+}

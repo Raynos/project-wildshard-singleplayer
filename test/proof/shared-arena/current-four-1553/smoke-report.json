@@ -1,0 +1,2149 @@
+{
+  "schema": "wildshard.shared-arena.qa.v1",
+  "startedAt": "2026-10-21T16:07:45.205Z",
+  "errors": [],
+  "checks": {
+    "lazy": true,
+    "back": true,
+    "restartSameGame": true,
+    "restartFresh": true,
+    "reloadFresh": true,
+    "persistence": true,
+    "bellbackUnavailable": true,
+    "noErrors": true
+  },
+  "enemies": [
+    {
+      "kind": "splinter-mantis",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 0.5325000000596046,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 55,
+          "maxHp": 55,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "mantis-st": 0,
+            "mantis-beat": 0,
+            "regular-clock": 0.2,
+            "mantis-pose-phase": 0,
+            "mantis-pose-clock": 0.2
+          },
+          "position": [
+            4.4109468681774455e-12,
+            900,
+            -6.814999997615814
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.0325000000596045,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.2,
+              "mantis-pose-phase": 1,
+              "mantis-pose-clock": 0.1
+            },
+            "position": [
+              2.5065589981214387e-9,
+              900,
+              -6.69499999564141
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.386400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.6,
+              "mantis-pose-phase": 1,
+              "mantis-pose-clock": 0.5
+            },
+            "position": [
+              2.5065589981214387e-9,
+              900,
+              -6.69499999564141
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.869400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.0999999999999999,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.30000000000000004
+            },
+            "position": [
+              -0.0002648970894525049,
+              900,
+              -6.085022012703121
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.869400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.0999999999999999,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.30000000000000004
+            },
+            "position": [
+              -0.0002648970894525049,
+              900,
+              -6.085022012703121
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 1.969400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.2,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.4
+            },
+            "position": [
+              -0.0002641520304264744,
+              900,
+              -5.746922026388347
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.069400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.3,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.5
+            },
+            "position": [
+              -0.0002632430572062261,
+              900,
+              -5.338822017423809
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.069400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.3,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.5
+            },
+            "position": [
+              -0.0002632430572062261,
+              900,
+              -5.338822017423809
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.069400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.3,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.5
+            },
+            "position": [
+              -0.0002632430572062261,
+              900,
+              -5.338822017423809
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.069400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.3,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.5
+            },
+            "position": [
+              -0.0002632430572062261,
+              900,
+              -5.338822017423809
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.269400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.5000000000000002,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.7
+            },
+            "position": [
+              -0.0004640740805412391,
+              900,
+              -4.500104705803096
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 2.369400000035763,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 1.6000000000000003,
+              "mantis-pose-phase": 2,
+              "mantis-pose-clock": 0.7999999999999999
+            },
+            "position": [
+              -0.0012086004714588383,
+              900,
+              -4.5001010191845126
+            ]
+          },
+          "player": {
+            "health": 90,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 3.18769999998808,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 55,
+            "maxHp": 55,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "mantis-st": 1,
+              "mantis-beat": 1,
+              "regular-clock": 0.2,
+              "mantis-pose-phase": 1,
+              "mantis-pose-clock": 0.1
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 3.923800000011923,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "splinter-mantis",
+            "hp": 43,
+            "maxHp": 55,
+            "alive": true,
+            "state": "alert",
+            "mem": {
+              "mantis-st": 2,
+              "mantis-beat": 0,
+              "regular-clock": 0.1,
+              "mantis-pose-phase": 0,
+              "mantis-pose-clock": 0.4
+            },
+            "position": [
+              -0.31754741398617625,
+              900,
+              -7.508583002490923
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            2.4023028319213047e-9,
+            900,
+            -3.6999999955296516
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            0,
+            900,
+            -5.2
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            0,
+            900,
+            -5.2
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 2.369400000035763,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 55,
+          "maxHp": 55,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "mantis-st": 1,
+            "mantis-beat": 1,
+            "regular-clock": 1.6000000000000003,
+            "mantis-pose-phase": 2,
+            "mantis-pose-clock": 0.7999999999999999
+          },
+          "position": [
+            -0.0012086004714588383,
+            900,
+            -4.5001010191845126
+          ]
+        },
+        "player": {
+          "health": 90,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 2.8694000000357636,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 55,
+          "maxHp": 55,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "mantis-st": 0,
+            "mantis-beat": 0,
+            "regular-clock": 0,
+            "mantis-pose-phase": 0,
+            "mantis-pose-clock": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 3.923800000011923,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "splinter-mantis",
+          "hp": 43,
+          "maxHp": 55,
+          "alive": true,
+          "state": "alert",
+          "mem": {
+            "mantis-st": 2,
+            "mantis-beat": 0,
+            "regular-clock": 0.1,
+            "mantis-pose-phase": 0,
+            "mantis-pose-clock": 0.4
+          },
+          "position": [
+            -0.31754741398617625,
+            900,
+            -7.508583002490923
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    },
+    {
+      "kind": "conch-duelist",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 6.223800000011915,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "maxHp": 60,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "conch-st": 0,
+            "conch-guard": 0,
+            "regular-clock": 0.1
+          },
+          "position": [
+            -4.284155252776145e-8,
+            900,
+            -6.929999999701977
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 6.431800000011914,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 0.30000000000000004
+            },
+            "position": [
+              3.3341157568145263e-7,
+              900,
+              -6.753200000151992
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 6.731800000011913,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 0.6
+            },
+            "position": [
+              0.000001011409521467499,
+              900,
+              -6.498200004920363
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 6.966100000023833,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 0.8999999999999999
+            },
+            "position": [
+              0.0000014547139581821966,
+              900,
+              -6.344478173181415
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 7.166100000023833,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 1.0999999999999999
+            },
+            "position": [
+              0.0000017620482761770973,
+              900,
+              -6.251573653891683
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 7.266100000023832,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "conch-st": 0,
+              "conch-guard": 0,
+              "regular-clock": 1.2
+            },
+            "position": [
+              0.000001892430452343774,
+              900,
+              -6.215290615335107
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 7.566100000023831,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "conch-st": 1,
+              "conch-guard": 1,
+              "regular-clock": 0.1
+            },
+            "position": [
+              0.000002003254740756688,
+              900,
+              -6.184450032189488
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 7.7661000000238305,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "conch-st": 1,
+              "conch-guard": 1,
+              "regular-clock": 0.30000000000000004
+            },
+            "position": [
+              0.000002003254740756688,
+              900,
+              -6.184450032189488
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 8.06610000002383,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 60,
+            "maxHp": 60,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "conch-st": 1,
+              "conch-guard": 0,
+              "regular-clock": 0.6
+            },
+            "position": [
+              0.000002003254740756688,
+              900,
+              -6.184450032189488
+            ]
+          },
+          "player": {
+            "health": 86,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 9.362899999976142,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "conch-duelist",
+            "hp": 57,
+            "maxHp": 60,
+            "alive": true,
+            "state": "alert",
+            "mem": {
+              "conch-st": 4,
+              "conch-guard": 0,
+              "regular-clock": 0
+            },
+            "position": [
+              -0.20305079338116827,
+              900,
+              -7.250760619528592
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            -5.587911466875539e-8,
+            900,
+            -3.9096849989145994
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            -4.58673972136836e-8,
+            900,
+            -5.12483672965318
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 8.06610000002383,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "maxHp": 60,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "conch-st": 1,
+            "conch-guard": 0,
+            "regular-clock": 0.6
+          },
+          "position": [
+            0.000002003254740756688,
+            900,
+            -6.184450032189488
+          ]
+        },
+        "player": {
+          "health": 86,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 8.555999999999987,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 60,
+          "maxHp": 60,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "conch-st": 0,
+            "conch-guard": 0,
+            "regular-clock": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 9.362899999976142,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "conch-duelist",
+          "hp": 57,
+          "maxHp": 60,
+          "alive": true,
+          "state": "alert",
+          "mem": {
+            "conch-st": 4,
+            "conch-guard": 0,
+            "regular-clock": 0
+          },
+          "position": [
+            -0.20305079338116827,
+            900,
+            -7.250760619528592
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    },
+    {
+      "kind": "tideRootColossus",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 11.010899999976136,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "maxHp": 480,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "tg-state": 0,
+            "tg-clock": 0,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 11.417799999952292,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "idle",
+            "mem": {
+              "tg-state": 0,
+              "tg-clock": 0.4,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 11.81779999995229,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "idle",
+            "mem": {
+              "tg-state": 0,
+              "tg-clock": 0.7999999999999999,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.136899999976132,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.1,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.336899999976131,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.30000000000000004,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.53689999997613,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.5,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.73689999997613,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.7,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 12.936899999976129,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "tg-state": 1,
+              "tg-clock": 0.8999999999999999,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 82,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 14.191399999976126,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "tideRootColossus",
+            "hp": 480,
+            "maxHp": 480,
+            "alive": true,
+            "state": "idle",
+            "mem": {
+              "tg-state": 0,
+              "tg-clock": 0.6,
+              "tg-awake": 1,
+              "tg-phase": 1,
+              "tg-exposed": 0
+            },
+            "position": [
+              0,
+              900,
+              -7
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            0,
+            900,
+            -3
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            0,
+            900,
+            -4.2
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 12.936899999976129,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "maxHp": 480,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "tg-state": 1,
+            "tg-clock": 0.8999999999999999,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 82,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 13.636899999976126,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 480,
+          "maxHp": 480,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "tg-state": 0,
+            "tg-clock": 0,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 14.291399999976125,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "tideRootColossus",
+          "hp": 468,
+          "maxHp": 480,
+          "alive": true,
+          "state": "idle",
+          "mem": {
+            "tg-state": 0,
+            "tg-clock": 0.7,
+            "tg-awake": 1,
+            "tg-phase": 1,
+            "tg-exposed": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    },
+    {
+      "kind": "brine-puffer",
+      "entry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 16.2615999999642,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 45,
+          "maxHp": 45,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "puffer-st": 0,
+            "regular-clock": 0.1
+          },
+          "position": [
+            0.000012446747859939933,
+            900,
+            -6.929999999701977
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "samples": [
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 16.572399999976128,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "puffer-st": 0,
+              "regular-clock": 0.4
+            },
+            "position": [
+              0.000012452561474235197,
+              900,
+              -6.845264865085483
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 16.77239999997613,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "stalk",
+            "mem": {
+              "puffer-st": 0,
+              "regular-clock": 0.6
+            },
+            "position": [
+              0.000012468392289560499,
+              900,
+              -6.811180669814348
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.169299999952294,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.2
+            },
+            "position": [
+              0.000012477237231228473,
+              900,
+              -6.7978693302720785
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.369299999952297,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.4
+            },
+            "position": [
+              0.000012477237231228473,
+              900,
+              -6.7978693302720785
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.5692999999523,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.6
+            },
+            "position": [
+              0.000012477237231228473,
+              900,
+              -6.7978693302720785
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 17.869299999952304,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 45,
+            "maxHp": 45,
+            "alive": true,
+            "state": "attack",
+            "mem": {
+              "puffer-st": 1,
+              "regular-clock": 0.8999999999999999
+            },
+            "position": [
+              0.000012477237231228473,
+              900,
+              -6.7978693302720785
+            ]
+          },
+          "player": {
+            "health": 88,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Practice bout. Health and rewards stay in this page."
+        },
+        {
+          "gameExists": true,
+          "entered": true,
+          "frame": 19.12169999998808,
+          "targets": 1,
+          "canvas": 1,
+          "iframes": 0,
+          "enemy": {
+            "kind": "brine-puffer",
+            "hp": 33,
+            "maxHp": 45,
+            "alive": true,
+            "state": "alert",
+            "mem": {
+              "puffer-st": 2,
+              "regular-clock": 0
+            },
+            "position": [
+              -0.20303847911513628,
+              900,
+              -7.2425538301467896
+            ]
+          },
+          "player": {
+            "health": 100,
+            "maxHealth": 100
+          },
+          "loot": {
+            "scope": "practice",
+            "coins": 0,
+            "complete": false
+          },
+          "status": "Fresh practice bout."
+        }
+      ],
+      "placements": [
+        {
+          "reason": "Diagnostic player placement for real enemy attack",
+          "position": [
+            0.000012442323124250976,
+            900,
+            -4.722439999878406
+          ]
+        },
+        {
+          "reason": "Diagnostic sword range; actual touch attack",
+          "position": [
+            0.000012402509085518432,
+            900,
+            -5.1166299998760225
+          ]
+        }
+      ],
+      "checks": {
+        "singleInstance": true,
+        "fresh": true,
+        "actualPlayerDamage": true,
+        "retry": true,
+        "actualEnemyDamage": true
+      },
+      "defense": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 17.869299999952304,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 45,
+          "maxHp": 45,
+          "alive": true,
+          "state": "attack",
+          "mem": {
+            "puffer-st": 1,
+            "regular-clock": 0.8999999999999999
+          },
+          "position": [
+            0.000012477237231228473,
+            900,
+            -6.7978693302720785
+          ]
+        },
+        "player": {
+          "health": 88,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Practice bout. Health and rewards stay in this page."
+      },
+      "retry": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 18.30259999996423,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 45,
+          "maxHp": 45,
+          "alive": true,
+          "state": "stalk",
+          "mem": {
+            "puffer-st": 0,
+            "regular-clock": 0
+          },
+          "position": [
+            0,
+            900,
+            -7
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "attack": {
+        "gameExists": true,
+        "entered": true,
+        "frame": 19.12169999998808,
+        "targets": 1,
+        "canvas": 1,
+        "iframes": 0,
+        "enemy": {
+          "kind": "brine-puffer",
+          "hp": 33,
+          "maxHp": 45,
+          "alive": true,
+          "state": "alert",
+          "mem": {
+            "puffer-st": 2,
+            "regular-clock": 0
+          },
+          "position": [
+            -0.20303847911513628,
+            900,
+            -7.2425538301467896
+          ]
+        },
+        "player": {
+          "health": 100,
+          "maxHealth": 100
+        },
+        "loot": {
+          "scope": "practice",
+          "coins": 0,
+          "complete": false
+        },
+        "status": "Fresh practice bout."
+      },
+      "storage": {
+        "local": [],
+        "session": [],
+        "caches": [],
+        "databases": [],
+        "workers": 0
+      }
+    }
+  ],
+  "caveat": "Muted cloud Chromium portrait diagnostic, not physical iPhone performance or visual acceptance. Only diagnostic player positioning and real attack input; no enemy clocks/health/AI injection.",
+  "storageBefore": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "databases": [],
+    "workers": 0
+  },
+  "back": {
+    "gameExists": true,
+    "entered": false,
+    "frame": 21.00199999994042,
+    "targets": 0,
+    "canvas": 1,
+    "iframes": 0,
+    "enemy": null,
+    "status": "Choose an enemy, then Start. Bellback is awaiting admission."
+  },
+  "restart": {
+    "gameExists": true,
+    "entered": true,
+    "frame": 21.771299999892744,
+    "targets": 1,
+    "canvas": 1,
+    "iframes": 0,
+    "enemy": {
+      "kind": "brine-puffer",
+      "hp": 45,
+      "maxHp": 45,
+      "alive": true,
+      "state": "stalk",
+      "mem": {
+        "puffer-st": 0,
+        "regular-clock": 0.1
+      },
+      "position": [
+        0.000012446747859939933,
+        900,
+        -6.929999999701977
+      ]
+    },
+    "player": {
+      "health": 100,
+      "maxHealth": 100
+    },
+    "loot": {
+      "scope": "practice",
+      "coins": 0,
+      "complete": false
+    },
+    "status": "Practice bout. Health and rewards stay in this page."
+  },
+  "storageAfter": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "databases": [],
+    "workers": 0
+  },
+  "reload": {
+    "gameExists": false,
+    "canvas": 1,
+    "iframes": 0,
+    "enemy": null,
+    "status": "Choose an enemy, then Start."
+  },
+  "storageAfterReload": {
+    "local": [],
+    "session": [],
+    "caches": [],
+    "databases": [],
+    "workers": 0
+  },
+  "endedAt": "2026-10-21T16:09:18.916Z"
+}
