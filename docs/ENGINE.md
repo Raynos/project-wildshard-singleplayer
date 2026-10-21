@@ -5329,9 +5329,21 @@ the existing strict state JSON or flag-backed save representation;
 an explicit bounded worker owner over the original `ContentCache`.
 `get`, `put`, `pin`, `flush` and `stats` retain the cache contracts;
 `has(hash, bytes)` verifies durable SHA and length without returning an
-unneeded byte array. `close()` drains, flushes and terminates its worker.
-Failed workers terminate before one shared checked fallback takes over;
-its refcounted leases survive. Importing the module starts no worker.
+unneeded byte array. At most 64 commands are posted; validated excess
+requests wait FIFO for a slot instead of forcing main-thread fallback.
+Each request deadline starts when posted. `close()` drains, flushes and
+terminates within its existing shutdown deadline, including queued work.
+Failed workers terminate before posted and queued requests replay in order
+through one shared checked fallback; live leases are installed before any
+replayed write. Checked refusals reject one request without retiring the
+worker. Importing the module starts no worker.
+
+`ContentCache` recovers durable access order once, then maintains byte and
+entry totals with its LRU order. Reads still verify immutable hashes;
+corruption, browser eviction and pinned-write refusals update accounting.
+Storage budgets and quota estimates retain their existing limits. Durable
+blob writes finish before acknowledgement, while dirty index metadata
+shares the existing two-second flush window and flushes on pagehide/close.
 
 ### Paired visual channels and prompts
 
