@@ -32,8 +32,8 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **O2 — accepted `de6833b8b7`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3 — done; accepted `32cde80543`, receipts `fd69ae2b29`, pushed** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4 — accepted `de6833b8b7`; source `0f63b7b167`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
-| **O5 — warm-up `b2e4c86d92`, AO repair `32cde80543`; traversal cut `61e45099ae`; served proof pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
-| **O6 — accepted `f8f5ee9a9d`; ordinary native receipt `28302b9183`; 20.7 s approximate target accepted; carrier pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
+| **O5 — accepted `61e45099ae`; receipts `7e37b39b44`; source pushed; receipt/tick carrier pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
+| **O6 — accepted `f8f5ee9a9d`; ordinary native receipt `28302b9183`; 20.7 s approximate target accepted; pushed** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
 
@@ -535,3 +535,26 @@ repair or cause. Duplicate foliage transport retirement remains 34,444,304
 raw bytes with finished GLBs, collider data and legacy internals unchanged.
 O5 continues with its already-landed traversal cut and one running combined
 Driftwood/Nine/Pine source batch, followed by the exact served matrix.
+
+O5 is accepted; the loading plan has no open implementation or proof row.
+The exact `61e45099ae` Driftwood/Nine/Pine source batch passes in 180.6 s.
+All six cold entries and all three real road returns pass, retained with
+four viewed labelled portraits in
+[`performance-61e4509`](../../../progress/loading/g543/performance-61e4509/README.md)
+(`7e37b39b44`). CPU-4x phone SHARD SELECT/grid take 19.5 / 20.4 s;
+native takes 12.1 / 14.7 s, desktop 7.4 / 10.5 s with AO enabled.
+Every stage sum, actual-wire byte count and detail-update cadence passes;
+the largest detail gap is 545.6 ms. The prior approximate 20 s target
+acceptance remains explicit rather than becoming a strict 20.0 s cutoff.
+
+The mapped comparison is in
+[`shader-profile-61e4509`](../../../progress/loading/g543/shader-profile-61e4509/README.md).
+Material/object multisets and counts match (67 / 74 builds). Logged node
+build CPU changes from 6171.2 to 5481.2 ms in SHARD SELECT and from 2724.6
+to 2725.3 ms in grid; grid CPU is effectively unchanged. These sequential
+shared-machine measurements establish no isolated whole-entry speedup.
+The focused allocation/parity fix, post warm-up and AO repair remain
+documented with the native post-chain pause retained openly. The accepted
+Chromium warm cache-pressure residual and actual-wire denominator remain.
+Source/API and O6 acceptance are verified on `origin/main` at `6b0ab1dd8f`;
+the final O5 evidence and this tick are with the normal carrier.
