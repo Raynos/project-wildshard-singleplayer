@@ -19,7 +19,9 @@ Waves 2–5 are planned in full, not asked, not started. Jake (10-21): keep the 
 - 1.5 met before the plan: `c8cf164dd6`, `fb781f41c1`; deploy runs 39617646471 and 39619243789 green on 10/10 shards.
 
 **Wave 1, open:**
-- 1.3 A1 Spotlight: `mdfind -onlyin …/tmp -name package.json | wc -l` still 61 at 10:35; Jake's pane or sudo step.
+- 1.3 A1 Spotlight: **done** 10:50 (Jake added all of `~/projects/games` in Spotlight's Search Privacy; `mdfind` finds
+  0 files under `tmp/` and under the whole games tree, was 61). mds was still at 26 % a minute later, dropping the old
+  entries; fseventsd (87 %) is the lanes' own file churn and stays.
 - Verify at 24 h (10-22 10:30, this pane runs `python3 scripts/agent-time.py --hours 24` and records): idle during
   lane tests > 20 % median (10:35 sample: 28 % idle, load 42; this morning 0 %, load 86); Codex poll share < 10 %;
   MCP processes ≤ one set per session that uses them; receipts flat (`.git/proofs` 13,813 → 14,195 and `progress/`
