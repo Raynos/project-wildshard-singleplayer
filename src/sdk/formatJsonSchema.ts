@@ -77,6 +77,7 @@ import { TargetsSchema } from '@wildshard/format/targets';
 import { QuestDataSchema } from '@wildshard/format/quests';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema, QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
+import { QuestPageSchema } from '@wildshard/format/questPageComposition';
 import { QuestHostSchema } from '@wildshard/format/questHost';
 
 import { RowsSchema } from '@wildshard/format/rows';
@@ -166,6 +167,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'sceneDressing.SceneDressing': SceneDressingSchema,
   'clientChannels.NumericPose': NumericPoseSchema,
   'questInteractions.QuestPageInteractions': QuestPageInteractionsSchema,
+  'questPageComposition.QuestPage': QuestPageSchema,
   'cueDirector.CueDirectorWire': CueDirectorWireSchema,
   'questSteps.QuestHintRows': QuestHintRowsSchema,
   'questSteps.QuestKillRows': QuestKillRowsSchema,

@@ -1,25 +1,64 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { QuestPageTalksSchema } from './npcs';
+import { ContractBoardPageSchema } from './contracts';
+import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from './questPageFacets';
 
-const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
+const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256)), ids = v.pipe(v.array(id), v.maxLength(64));
 const frame = v.strictObject({ x: n, z: n, rot: n });
 const place = v.strictObject({ poi: id, x: n, z: n,
   y: v.exactOptional(n), dy: v.exactOptional(n), yaw: v.exactOptional(n), anchor: v.exactOptional(id) });
-/** Entered quest composition names resources and ordered effects, never functions. */
-export const QuestPageCompositionSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page composition requires JSON rows'), v.strictObject({
-  id, world: id, debug: id,
+const custom = v.pipe(v.string(), v.regex(/^custom\/[a-zA-Z0-9_./-]{1,249}$/));
+/** Entered quest composition names resources and ordered effects, never functions.
+ * Every facet past the shared entry, kit, talks, trader, cable and places is optional. */
+export const QuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page composition requires JSON rows'), v.strictObject({
+  id, debug: id,
+  /** a registered page world (its POI anchors and guide flock), and the frames its placements resolve in */
+  world: v.exactOptional(id), frames: v.exactOptional(v.pipe(v.record(id, frame), v.maxEntries(4096))),
+  placement: v.exactOptional(v.strictObject({ platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(n, v.minValue(Number.MIN_VALUE))) })),
   presentation: v.exactOptional(v.strictObject({ mapPois: v.boolean(), flags: v.boolean(), hints: v.exactOptional(id) })),
-  frames: v.pipe(v.record(id, frame), v.maxEntries(4096)),
-  files: v.strictObject({ discovery: id, services: id, assembly: id, stall: id, encounter: id, returns: id }),
-  events: v.unknown(), deaths: v.unknown(), services: v.array(id), deathMoves: v.array(v.strictObject({ effect: id, target: id })),
-  talks: QuestPageTalksSchema, held: id, remaining: id, quietPlaces: v.array(id),
-  speaker: v.strictObject({ figure: id, feet: place, fire: place }),
-  trader: v.strictObject({ figure: id, counter: id, offer: id, label: id, radius: n }),
-  cable: v.strictObject({ scene: id, mode: id, carriage: id, prompt: id, radius: n, label: id, a: id, b: id, anchor: id, publish: id }),
-  boss: v.strictObject({ pool: place, reward: id }),
-  sway: v.strictObject({ piece: id, height: n, ease: n, threshold: n, rate: n, speed: n, rollHz: n, roll: n, dipHz: n, dip: n }),
-  guideHeight: n, placeInterval: n,
-  systems: v.strictObject({ speakerPose: id, traderPose: id, kit: id, talks: id, trader: id, cable: id, guide: id, sway: id, places: id, before: v.array(id) }),
+  files: v.strictObject({ services: id, stall: id, discovery: v.exactOptional(id), assembly: v.exactOptional(id), encounter: v.exactOptional(id),
+    returns: v.exactOptional(id), contracts: v.exactOptional(id), director: v.exactOptional(id), trader: v.exactOptional(id) }),
+  /** the interaction table: the assembly file's constants, or a custom section's `table` */
+  kit: v.exactOptional(v.strictObject({ section: v.exactOptional(custom), platforms: v.exactOptional(v.boolean()),
+    registryReach: v.exactOptional(v.pipe(n, v.minValue(Number.MIN_VALUE))) })),
+  events: v.unknown(), services: v.array(id),
+  deaths: v.unknown(), deathOrder: n, deathMoves: v.array(v.strictObject({ effect: id, target: id })), deathKill: v.exactOptional(n),
+  talks: QuestPageTalksSchema, held: v.exactOptional(id), quietPlaces: v.optional(ids, []), peopleLod: v.optional(v.boolean(), false),
+  chapter: v.strictObject({ placements: v.optional(v.boolean(), false), completion: v.optional(v.boolean(), false),
+    remaining: v.exactOptional(id), program: v.exactOptional(v.unknown()) }),
+  speaker: v.exactOptional(v.strictObject({ figure: id, feet: place, fire: place })),
+  /** a placed trader's figure and counter; without it the stall's own rows place the trader */
+  trader: v.exactOptional(v.strictObject({ figure: id, counter: id, offer: id, label: id, radius: n })),
+  /** the stall's shop panel, held with the board as one modal pair */
+  shop: v.optional(v.boolean(), false),
+  board: v.exactOptional(v.strictObject({ ...v.omit(ContractBoardPageSchema, ['contracts', 'panel']).entries, panel: id })),
+  /** lent page owners: `floor` the entered forest page, `sound` the ranged page's shot bank, and placed scene objects */
+  forest: v.exactOptional(id), ranged: v.exactOptional(id),
+  placed: v.optional(v.pipe(v.array(v.strictObject({ owner: id, scene: id })), v.maxLength(16)), []),
+  door: v.exactOptional(QuestPageDoorSchema),
+  mover: v.exactOptional(QuestPageMoverSchema), collections: v.exactOptional(QuestPageCollectionsSchema), map: v.exactOptional(QuestPageMapSchema),
+  /** admitted page interaction files: `prompts` it creates and registers, over the page's borrowed owners; a page whose
+   * `requires` owner is absent (an unbuilt door) is not bound */
+  pages: v.optional(v.pipe(v.array(v.strictObject({ file: id, prompts: v.optional(ids, []), requires: v.optional(ids, []) })), v.maxLength(16)), []),
+  /** named prompt points, lent to the pages as owner `points`: the floor under (x, z) plus `height` */
+  points: v.optional(v.pipe(v.array(v.strictObject({ id, x: n, z: n, height: n })), v.maxLength(128)), []),
+  /** the entry cable rows; `a`/`b`/`anchor` name scene points, `publish` the anchor they set */
+  cable: v.strictObject({ view: v.unknown(), drawDistance: v.exactOptional(n),
+    ends: v.exactOptional(v.strictObject({ a: id, b: id, anchor: id, publish: id })) }),
+  /** discovered places: authored rows, else the discovery file's places */
+  places: v.exactOptional(v.pipe(v.array(v.strictObject({ id, label: id, x: n, z: n, r: n, quiet: v.boolean() })), v.maxLength(256))),
+  boss: v.exactOptional(v.strictObject({ pool: place, reward: id })),
+  sway: v.exactOptional(v.strictObject({ piece: id, height: n, ease: n, threshold: n, rate: n, speed: n, rollHz: n, roll: n, dipHz: n, dip: n })),
+  guideHeight: v.exactOptional(n), placeInterval: n,
+  systems: v.strictObject({ kit: id, kitAfter: v.optional(ids, []), talks: id, cable: id, places: id, before: ids,
+    speakerPose: v.exactOptional(id), traderPose: v.exactOptional(id), trader: v.exactOptional(id), guide: v.exactOptional(id), sway: v.exactOptional(id) }),
 }));
-export type QuestPageCompositionRows = v.InferOutput<typeof QuestPageCompositionSchema>;
+export type QuestPageRows = v.InferOutput<typeof QuestPageSchema>;
+type Present<T, K extends keyof T> = T & { readonly [P in K]-?: NonNullable<T[P]> };
+/** The placed-figure page (speaker, trader, boss and bridge rows present), as its shard's install reads it. */
+export type QuestPageCompositionRows = Present<QuestPageRows, 'world' | 'speaker' | 'trader' | 'boss' | 'sway'> & {
+  readonly systems: Present<QuestPageRows['systems'], 'speakerPose' | 'traderPose' | 'trader' | 'sway'>;
+};
+/** The admitted schema both shards' composition files are published under. */
+export const QuestPageCompositionSchema = QuestPageSchema;
