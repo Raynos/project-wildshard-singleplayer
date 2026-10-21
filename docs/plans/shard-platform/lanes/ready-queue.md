@@ -24,8 +24,12 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | # | Task | Lines | Taken |
 |---|---|---|---|
 | G0 | Phase A: delete src/engine/ai/view/DebugOverlay.ts | engine | BLOCKED: its only user is the frozen pine-hollow-legacy runtime (frozen files are never edited); deletes when the legacy copies retire (sp-x9 preflight) |
-| G1 | Pine C5 quests (748): sp-x8 leads X5 and splits it into file-disjoint subrows G1a/G1b/... here for other lanes | 748 | sp-x8 (split pending) |
-| G2 | Driftwood C5 quests (227): with G1, shared quest host, Pine as second user | 227 | sp-x6 07:47 (coordinate X5 boundary; data preparation first) |
+| G1 | Pine C5 quests (748), split below; sp-x8 leads the shared page/native quest host | 748 baseline | G1a + G1b |
+| G1a | Shared entry and Pine composition convergence; owned files and acceptance below | subset of G1 | sp-x8 |
+| G1b | Pine contract-board rules/continuation onto Pine AS + admitted data; preserve the existing page/native board API and saves | subset of G1 | |
+| G2 | Driftwood C5 quests (227), split below; same shared host as G1 | 227 baseline | G2a + G2b |
+| G2a | Entered NPC/catalogue and outer quest binding; four native specimen cards are ready, exact live rig/material parity required | subset of G2 | sp-x6 (G551 file boundary released) |
+| G2b | Driftwood page/native composition integration and remaining one-user presentation declarations on the shared entry | subset of G2 | sp-x8 |
 | G3 | Driftwood C1 world (625): world/build.ts remainder (180 code lines), ocean (O7), shrine (O8), cover, terrain cuts; rows + AS, listed view only for G532 (3) items | 625 | sp-o4 (O7) |
 | G4 | Pine C1 world (319): world build, pool (poolSurface listed), timber scenes, forest pages onto world/scenes and placements | 319 | |
 | G5 | Driftwood C9 glue (340): runtime/index.ts + hybrid.ts (X11 remainder) once quest and world own their parts | 340 | |
@@ -34,6 +38,60 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows | 198 | |
 | G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 |  sp-x9 07:50 |
 | G10 | Grid containment (G550, Jake): in grid mode nothing draws outside its cell's bounds except the platform's declared layers (road, outer floor, sky); the shardfile validator refuses out-of-cell bounds in any section, and the grid loader clips or refuses any cell-owned object whose world bounds leave the cell, with a test that walks every drawn object on the 5x5 and fails on a stray one | platform | |
+
+### G1/G2 file boundaries (G551, sp-x8)
+
+The 748 / 227 figures are the coordinator's G551 baseline, not additive child budgets. Children remove their actual
+attributed spans; moving a helper is no cut. The <= 150 listed view lines is an aggregate per shard. X5 phase B
+stays open until the shared entry, both real plays and historical saves pass together. Three lanes can work now:
+sp-x8 on G1a/G2b, one Codex lane on G1b, and sp-x6 on G2a.
+
+- **G1a — sp-x8, shared host + Pine entry. Files:** `src/sdk/quest/forestStory.ts`,
+  `src/sdk/quest/forestStoryRows.ts`; `src/game/quest/{nativeStory,nativeStoryRows,nativeEntry,nativeInputs,chapter,chapterBindings,chapterClock,chapterDirector,boundState,interactionRows,story,storyLaw,effects,steps}.ts`;
+  `src/format/{questHost,questStory,questSteps,chapterDirector,npcs}.ts`; Pine `quest/views.ts`,
+  `data/{forestStory,nativeStory,headlessAssembly}.json` and quest generators except `contractRows.ts`.
+  **Target:** retire the Pine-shaped page/native compositions onto the same row-only entry that Driftwood uses;
+  preserve original system phases, prompts, dialogue/modal priority, lead/spawn decisions, flags and save bytes.
+  **Constraints:** no new shard TS hooks, recipe interpreter or one-user factory; a grown facet needs a real second
+  shard. This row owns shared chapter/talk/cable/interaction interfaces. It integrates requests from G1b/G2a.
+- **G1b — free Codex row, board rules. Files:** `src/game/quest/{contracts,contractBoard,contractBoardPage}.ts`,
+  `src/format/contracts.ts`, `src/shards/pine-hollow/generators/contractRows.ts`, new Pine
+  `behaviour/contracts*.as` / `generators/bake-contract*.mjs` / admitted contract data, and
+  `test/{contracts-platform,pine-contract-offers-product}.test.ts` plus new contract-only tests.
+  **Target:** remove the Pine-only offer selection, kill matching, claim/tear/streak and board save-law TS from
+  the platform through Pine AS + data; use existing inventory, finish, panel and save owners. Do not invent a
+  Driftwood board to manufacture a second user. **Constraints:** keep `ContractBoard` constructor/methods and
+  `ContractCatalogue` consumers compatible while G1a runs; send any needed caller/schema integration to sp-x8.
+  Preserve exact serial/RNG offers, overlapping kill credits, payouts, `lodge` slot migration, quiet/atomic restore,
+  third-claim finish and old board envelope. Keep `test/fixtures/pine-contracts.ts` unchanged as the original oracle.
+- **G2a — sp-x6, outer entered binding. Files:** `src/shards/driftwood-isle/quest/install.ts`,
+  `runtime/models/{people,trader,captainHat}.ts`, `generators/{nativeSpecimens,figureCatalogue,npcScenes,counterLayout}.ts`,
+  `generators/bake-native-specimens.mjs`, native specimen assets/metadata and `test/driftwood-native-specimens.test.ts`.
+  **Target:** replace the four shipped native cards (`native-specimens`: `captainHat`, `sailclothCape`,
+  `tradeCounter`, `trader`) and remaining one-user NPC setup with admitted catalogue/figure/collection rows;
+  retain the real entered speaker/trader owners. **Constraints:** G551 releases only these files from the old X5
+  fence, not phase B as a whole. Keep `prepareQuestPageComposition` / `installQuestPageComposition` calls and
+  system ids/order stable. Speaker/trader pose identities, borrowed materials and resident lifetimes survive.
+  Castaway's conditional smoke Mesh depends on `hasLentLook(SMOKE_LOOK)`; retain the original until both cold and
+  world cases are preserved. Rope-deck sway stays counted/listed (G532 (3)); no look or HUD redesign.
+  This row alone edits `quest/install.ts`, including its loot/keepsake call sites: G9 sends its needed call-site
+  change to sp-x6 rather than editing that file. G9 retains `loot/presentation.ts` and its own loot rows.
+- **G2b — sp-x8, Driftwood/shared integration. Files:** `src/game/quest/{nativeComposition,pageComposition,pageResources}.ts`,
+  `src/format/{nativeQuestComposition,questPageComposition}.ts`, Driftwood
+  `data/{nativeQuest,headlessAssembly,questPageComposition,questFrames,questEvents,questDeaths}.json`,
+  `generators/{questHost,questGraph,questRows,pageStory,chapterDirector}.ts` and shared entry/replay tests.
+  **Target:** delete the Driftwood-shaped composition stack in favor of G1a's same entry and admitted placement,
+  interaction, discovery, trader, cable, prop and chapter rows; preserve all existing native continuation keys.
+  **Constraints:** no `quest/install.ts`, NPC-model or loot-presentation edits; coordinate interfaces with G2a.
+  Keep Driftwood's 58-section ceiling, no new section for a small row document, and the declared old-save wires.
+
+**Integration ownership:** shared `docs/ENGINE.md`, package export maps, `scripts/generation-jobs.json`, producer
+`output.ts` / `namedSchemas.ts` and shared replay/phone-witness files stay with sp-x8 (pusher/coordinator for their
+existing owned files). Other rows send exact small integration deltas; never stage a peer's hunk. No ruler/cap
+changes, frozen legacy edits or AS engine edits (G517). Each set gets one consolidated batch, original save/replay
+laws and the push gate. Phone witnesses run at the integration milestone. Simulator requests go to `sim-queue.md`
+with an exact committed SHA/command and `--ktx2-probe=skip`; sp-o5 runs them (G549), and builders continue work.
+
 
 ## Opus (graphical)
 
