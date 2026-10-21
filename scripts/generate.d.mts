@@ -1,3 +1,4 @@
+import type { InputHashMemo } from './bake-input-hashes.mjs';
 import type { GenerationResult } from './generation-cache.mjs';
 /** Explicit producer and conservative repository input closure; null shard means shared root tooling. */
 export interface ShardGenerationJob { id:string;/** Opt in to a catalogue containing own row plus these exact dependencies; omission keeps every row. */catalogueDependencies?:string[]; shard:string|null; entry:string; command:string[]; inputRoots:string[]; outputs:string[]; platform:'portable'|'native'|'darwin';/** Cheap derived outputs built from source; no historical byte baseline. */buildTimeOutputs?:string[];buildOutputs?:Record<string,string>;/** Report-only pins never enable automatic build restoration or removal. */comparisonOutputs?:Record<string,string>;seedOutputs?:string[];capture?:boolean;browser?:boolean;preview?:boolean;recordedInputs?:boolean;externalInputs?:{path:string;url:string;sha256:string}[];toolCommands?:string[][] }
@@ -8,11 +9,11 @@ export interface GenerationRetention {file:string;bytes:number;coldSeconds:numbe
 /** Report verified output sizes against actual cold producer time, excluding lease waits and warm cache reads. */
 export function generationRetention(directory:string,outputs:string[],coldSeconds:number|null):GenerationRetention[];
 /** Hash a bounded source tree, excluding dependency folders; reject symlinks. */
-export function generationInputs(root:string,roots:string[]):Record<string,string>;
+export function generationInputs(root:string,roots:string[],memo?:InputHashMemo):Record<string,string>;
 /** Walk shard generators and expose every unregistered bake entry point. */
 export function discoverGeneration(root:string,catalogPath?:string):{schema:string;jobs:ShardGenerationJob[];unregistered:string[]};
 /** Generate in an isolated root, compare every committed byte, optionally restore only absent outputs. */
-export function generateShardJob(root:string,job:ShardGenerationJob,options?:{cacheDir?:string;forceCompare?:boolean;restore?:boolean;restoreOutputs?:string[];catalogPath?:string;preview?:{url:string;revision:string};onComparison?:(rows:readonly GenerationComparison[])=>void}):Promise<GenerationResult & {retention:GenerationRetention[]}>;
+export function generateShardJob(root:string,job:ShardGenerationJob,options?:{inputHashes?:InputHashMemo;cacheDir?:string;forceCompare?:boolean;restore?:boolean;restoreOutputs?:string[];catalogPath?:string;preview?:{url:string;revision:string};onComparison?:(rows:readonly GenerationComparison[])=>void}):Promise<GenerationResult & {retention:GenerationRetention[]}>;
 /** Report-only CI/Vercel phase, leaving committed outputs intact pending platform proof. */
 export function reportGeneration(root:string):ReturnType<typeof discoverGeneration> & {missing:string[]};
 /** Generate only admitted build outputs, verifying pinned hashes before restoring missing files. */

@@ -9,8 +9,8 @@
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-input-hashes.mjs --refresh <export> <result.json>
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, realpathSync, readFileSync, writeFileSync } from 'node:fs';
-import { isAbsolute, resolve, sep } from 'node:path';
+import { existsSync, lstatSync, mkdirSync, realpathSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** Committed bakes with recorded input hashes: the output file, the script that bakes it and its exported bake function. */
@@ -27,15 +27,49 @@ export function bakeOutcome(text) {
 /** @param {string} root @param {string} path */
 const sha256 = (root, path) => existsSync(resolve(root, path)) ? bakeInputHashes(root, [path])[path] ?? null : null;
 
-/** Exact regular-file SHA256 input map shared by asset jobs and recorded bakes. Missing files refuse generation.
- * @param {string} root @param {Iterable<string>} paths @returns {Record<string,string>} */
-export function bakeInputHashes(root, paths) {
-  const base=realpathSync(root);
-  return Object.fromEntries([...new Set(paths)].sort().map(path => {
+/** A run-scoped digest memo. Every hit checks nanosecond timestamps, inode,
+ * device and size; restoring mtime alone cannot conceal an input edit.
+ * The optional disk memo is only an optimization and malformed entries miss. */
+export class InputHashMemo {
+  /** @type {Map<string,{stamp:string,digest:string}>} */
+  entries = new Map();
+  reads = 0;
+  /** @param {string} root @param {string} [file] */
+  constructor(root, file) {
+    this.root = realpathSync(root); this.file = file;
+    if (file !== undefined) try {
+      const saved = JSON.parse(readFileSync(file, 'utf8'));
+      if (saved?.schema === 'input-hashes/1' && Array.isArray(saved.entries)) for (const row of saved.entries) {
+        if (Array.isArray(row) && row.length === 3 && row.every(value => typeof value === 'string') && /^[a-f0-9]{64}$/u.test(row[2])) this.entries.set(row[0], {stamp:row[1],digest:row[2]});
+      }
+    } catch { /* Missing or malformed memo hashes the real input. */ }
+  }
+  /** @param {string} path */
+  hash(path) {
     if (isAbsolute(path) || path.includes('\\') || path.split('/').some(part=>part==='' || part==='.' || part==='..')) throw new Error(`Invalid bake input path ${path}`);
-    if (!lstatSync(resolve(base,path)).isFile() || !realpathSync(resolve(base,path)).startsWith(base+sep)) throw new Error(`Invalid bake input ${path}`);
-    return [path,createHash('sha256').update(readFileSync(resolve(root,path))).digest('hex')];
-  }));
+    const at = resolve(this.root, path), stat = lstatSync(at, {bigint:true});
+    if (!stat.isFile() || !realpathSync(at).startsWith(this.root+sep)) throw new Error(`Invalid bake input ${path}`);
+    const stamp = [stat.dev,stat.ino,stat.size,stat.mtimeNs,stat.ctimeNs].join(':');
+    const seen = this.entries.get(path);
+    if (seen?.stamp === stamp) return seen.digest;
+    const digest = createHash('sha256').update(readFileSync(at)).digest('hex'); this.reads++;
+    // A concurrent writer must not make its bytes reusable under an older stat.
+    const after = lstatSync(at, {bigint:true});
+    if (!after.isFile() || [after.dev,after.ino,after.size,after.mtimeNs,after.ctimeNs].join(':') !== stamp) throw new Error(`Bake input changed while hashing: ${path}`);
+    this.entries.set(path, {stamp,digest}); return digest;
+  }
+  flush() {
+    if (this.file === undefined) return;
+    try { mkdirSync(dirname(this.file), {recursive:true}); writeFileSync(this.file, JSON.stringify({schema:'input-hashes/1',entries:[...this.entries].map(([path,row])=>[path,row.stamp,row.digest])})); }
+    catch { /* A failed optimization never changes the generation verdict. */ }
+  }
+}
+
+/** Exact regular-file SHA256 input map shared by asset jobs and recorded bakes. Missing files refuse generation.
+ * @param {string} root @param {Iterable<string>} paths @param {InputHashMemo} [memo] @returns {Record<string,string>} */
+export function bakeInputHashes(root, paths, memo = new InputHashMemo(root)) {
+  if (memo.root !== realpathSync(root)) throw new Error('Crossed input hash memo root');
+  return Object.fromEntries([...new Set(paths)].sort().map(path => [path,memo.hash(path)]));
 }
 
 /** Re-record every recorded bake whose inputs changed in `root`. Returns { file: text } for each one re-recorded. @param {string} root */

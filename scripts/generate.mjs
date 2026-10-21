@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
-import { isRecordedBake, bakeInputHashes } from './bake-input-hashes.mjs';
+import { isRecordedBake, bakeInputHashes, InputHashMemo } from './bake-input-hashes.mjs';
 import { generationOutputHashes, runGenerationJob } from './generation-cache.mjs';
 import { capturePreview, generationBrowserDigest } from './generation-capture.mjs';
 import { externalGenerationInputs, generationTools } from './generation-sources.mjs';
@@ -60,8 +60,8 @@ function validateProducer(job) {
     (buildOutputs.length>0 && (job.platform==='darwin' || job.capture || job.browser || job.recordedInputs))) throw new Error(`Invalid build-time outputs: ${job.id}`);
 }
 
-/** Recursively collect regular inputs; links cannot escape the declared source tree. @param {string} root @param {string[]} roots */
-export function generationInputs(root,roots) {
+/** Recursively collect regular inputs; links cannot escape the declared source tree. @param {string} root @param {string[]} roots @param {InputHashMemo} [memo] */
+export function generationInputs(root,roots,memo) {
   const base=realpathSync(root), files=new Set();
   /** @param {string} relative */
   function walk(relative) {
@@ -75,7 +75,7 @@ export function generationInputs(root,roots) {
     else throw new Error(`Generation input is not regular: ${relative}`);
   }
   for(const relative of roots) walk(relative);
-  return bakeInputHashes(base,[...files].sort((a,b)=>a<b?-1:a>b?1:0));
+  return bakeInputHashes(base,[...files].sort((a,b)=>a<b?-1:a>b?1:0),memo);
 }
 
 /** Discover shard-owned bake entry points and validate declared jobs; gaps stay report-only. @param {string} root @param {string} [catalogPath] */
@@ -141,9 +141,10 @@ export function generationRetention(directory, outputs, coldSeconds) {
 
 /** Stage the declared source closure, generate there and publish verified outputs only; never mutate a source bake.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} descriptor
- * @param {{cacheDir?:string,forceCompare?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string,preview?:{url:string,revision:string},onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */
+ * @param {{inputHashes?:InputHashMemo,cacheDir?:string,forceCompare?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string,preview?:{url:string,revision:string},onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */
 export async function generateShardJob(root,descriptor,options={}) {
   const job=v.parse(Descriptor,descriptor), catalog=options.catalogPath ?? 'scripts/generation-jobs.json';
+  const inputHashes=options.inputHashes ?? new InputHashMemo(root);
   validateProducer(job);
   if(options.restore===true && Object.keys(job.comparisonOutputs).length>0) throw new Error(`Comparison-only job cannot restore outputs: ${job.id}`);
   const restoreOutputs=options.restoreOutputs ?? job.outputs;
@@ -156,13 +157,13 @@ export async function generateShardJob(root,descriptor,options={}) {
   const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-capture.mjs','generation-sources.mjs']);
   const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
-  const collected=generationInputs(root,[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog]);
+  const collected=generationInputs(root,[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog],inputHashes);
   // Produced bytes are not source inputs. Explicit schema seeds remain inputs until their imports are separated.
   const inputs=Object.fromEntries(Object.entries(collected).filter(([file])=>(projected===undefined || file!==catalog) && (!job.outputs.includes(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file)));
   /** @type {number|null} */
   let coldSeconds=null;
   const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(projected===undefined?{}:{catalogue:projected}),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
-    ...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),
+    inputHashes, ...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),
     generate:async directory=>{
       const coldStarted=performance.now();
       const tree=realpathSync(mkdtempSync(resolve(tmpdir(),'wildshard-generation-')));
@@ -209,6 +210,7 @@ export function reportGeneration(root) {
  * Complete jobs and pinned output hashes are checked even on a warm hit; undeclared outputs remain report-only.
  * @param {string} root @param {{cacheDir?:string, concurrency?:number}} [options] */
 export async function prepareGeneration(root,options={}) {
+  const inputHashes=new InputHashMemo(root,resolve(root,'.cache/generation-hashes.json'));
   const concurrency=options.concurrency ?? 1;
   if(!Number.isSafeInteger(concurrency) || concurrency<1 || concurrency>4) throw new Error('Generation concurrency must be 1..4');
   const report=reportGeneration(root), jobs=report.jobs.filter(job=>Object.keys(job.buildOutputs).length>0 || job.buildTimeOutputs.length>0), completed=new Set();
@@ -219,14 +221,14 @@ export async function prepareGeneration(root,options={}) {
   /** @param {import('./generate.mjs').ShardGenerationJob} a @param {import('./generate.mjs').ShardGenerationJob} b */
   const conflicts=(a,b)=>a.outputs.some(file=>reads(b,file)) || b.outputs.some(file=>reads(a,file));
   const running=new Map();
-  while(completed.size<jobs.length) {
+  try { while(completed.size<jobs.length) {
     for(const [index,job] of jobs.entries()) {
       if(running.size>=concurrency) break;
       if(completed.has(index) || running.has(index) || jobs.slice(0,index).some((prior,position)=>!completed.has(position) && conflicts(prior,job))) continue;
       const work=async()=>{
         try {
         const started=performance.now(), outputs=[...Object.keys(job.buildOutputs), ...job.buildTimeOutputs];
-        const result=await generateShardJob(root,job,{...options,restore:true,restoreOutputs:outputs});
+        const result=await generateShardJob(root,job,{...options,inputHashes,restore:true,restoreOutputs:outputs});
         console.info(`generate: ${job.id}, ${result.hit?'verified cache':'generated'}, ${String(outputs.length)} admitted build outputs, ${((performance.now()-started)/1000).toFixed(3)}s`);
         return {index};
         } catch(error) { return {index,error}; }
@@ -242,6 +244,7 @@ export async function prepareGeneration(root,options={}) {
     }
     completed.add(finished.index);
   }
+  } finally { inputHashes.flush(); }
   return report;
 }
 

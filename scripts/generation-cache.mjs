@@ -5,6 +5,7 @@ import { homedir } from 'node:os';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import * as v from 'valibot';
+import { bakeInputHashes } from './bake-input-hashes.mjs';
 
 /** @param {string | Uint8Array} bytes */
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -34,13 +35,12 @@ export function generationCacheRoot(env = process.env) {
 
 /** Validate exact producer inputs and include command, toolchain and native host identity in the key.
  * @param {string} root @param {import('./generation-cache.mjs').GenerationJob} descriptor
- * @param {{platform?:string,arch?:string}} [host] */
+ * @param {{platform?:string,arch?:string,inputHashes?:import('./bake-input-hashes.mjs').InputHashMemo}} [host] */
 export function generationKey(root, descriptor, host = {}) {
   const job = v.parse(Job, descriptor), platform = host.platform ?? process.platform, arch = host.arch ?? process.arch;
   if (job.outputs.length === 0 || new Set(job.outputs).size !== job.outputs.length || Object.keys(job.inputs).length === 0) throw new Error('Incomplete generation job');
   for (const [path, expected] of Object.entries(job.inputs)) {
-    const at = resolve(root, path);
-    if (!lstatSync(at).isFile() || hash(readFileSync(at)) !== expected) throw new Error(`Generation input changed: ${path}`);
+    if (bakeInputHashes(root, [path], host.inputHashes)[path] !== expected) throw new Error(`Generation input changed: ${path}`);
   }
   return hash(canonical({ schema: 'generation-cache/1', job, node: process.version,
     host: job.platform === 'portable' ? 'portable' : { platform, arch } }));
