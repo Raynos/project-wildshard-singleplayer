@@ -1,0 +1,76 @@
+{
+  "sha": "9ffb1b8d0bd647b603df3efb35b26eaae1fd82b6",
+  "surface": "Chromium iPhone 16 Pro, muted",
+  "quiet": false,
+  "results": [
+    {
+      "success": true,
+      "data": {
+        "lifecycle": {
+          "effectiveLaunch": {
+            "browserLaunched": true,
+            "engine": "chrome",
+            "launchHash": 6481937606291078277
+          },
+          "launched": false,
+          "relaunchedBrowser": false,
+          "restartedBackground": false,
+          "restoreStatus": "not_configured",
+          "reused": true,
+          "saveStatus": "not_attempted"
+        },
+        "origin": "http://127.0.0.1:4405/?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&touch=1&tier=phone",
+        "result": {
+          "ammoAfter": 8,
+          "ammoBefore": 0,
+          "build": "9ffb1b8-mvhrg2vi",
+          "button": "Need 1 boar hide \u00b7 2 amber resin",
+          "counts": {},
+          "errors": [],
+          "shard": "pine-hollow",
+          "viewport": {
+            "dpr": 3,
+            "height": 874,
+            "width": 402
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "data": {
+        "lifecycle": {
+          "effectiveLaunch": {
+            "browserLaunched": true,
+            "engine": "chrome",
+            "launchHash": 6481937606291078277
+          },
+          "launched": false,
+          "relaunchedBrowser": false,
+          "restartedBackground": false,
+          "restoreStatus": "not_configured",
+          "reused": true,
+          "saveStatus": "not_attempted"
+        },
+        "origin": "http://127.0.0.1:4403/?chunk=driftwood-isle&mute=1&nolock=1&skipintro=1&touch=1&tier=phone",
+        "result": {
+          "build": "9ffb1b8-mvhryqxk",
+          "button": "Whetstone I \u00b7 Owned",
+          "coins": 0,
+          "errors": [],
+          "owned": [
+            "whetstone-1"
+          ],
+          "shard": "driftwood-isle",
+          "viewport": {
+            "dpr": 3,
+            "height": 874,
+            "width": 402
+          }
+        }
+      },
+      "error": null
+    }
+  ]
+}
