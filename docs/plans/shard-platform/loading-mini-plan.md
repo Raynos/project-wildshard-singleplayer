@@ -173,3 +173,14 @@ on a separate platform-chargeback assertion: Pine was counted as an
 to sp-x9; no preview or physical cases ran on this pin. One replacement batch
 follows the repair and CPU quiet release. Phase 1 stays open for the phone
 return; O2 remains unapplied scratch work.
+
+The repaired source batch at `6c1495e588` passed in 367.5 s. Its receipts
+are retained in [`diagnostic-6c1495e`](../../../progress/loading/g543/diagnostic-6c1495e/README.md)
+(`ec1b514938`): all three real crossings now return, including phone home
+preparation in 52.483 s. The eight-route CPU 4x grid physics walk has zero
+stuck results and zero page errors. All bytes are within 5% and all stages
+balance. Five entry cadence cases pass; native SHARD SELECT has a 1,486 ms
+Pass 0 to Pass 1 gap, so Phase 1 remains open. A separate GL-call/Timeline
+diagnostic tests the coordinator's shader-link poll suspect. Owner fix
+`2f9eb0dc08` restores loading-time polling; the affected proof uses a newer
+served build. O2 remains unapplied scratch work until this gate passes.
