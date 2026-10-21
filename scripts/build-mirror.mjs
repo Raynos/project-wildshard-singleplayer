@@ -15,7 +15,7 @@
 // what this repo holds. A lock serializes users of a slot: the mirror cannot change under a running build.
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 
@@ -129,6 +129,12 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     const groups = generatedGroups(dir);
     const generated = new Set(groups.flat());
     const tracked = new Set(git(['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean));
+    // Retained source assets remain distinguishable from incidental generated
+    // files while Git discovery is fenced outside this exact exported tree.
+    const inventory = join(root, 'committed-files.json');
+    writeFileSync(inventory, JSON.stringify({ root: realpathSync(dir), files: [...tracked] }));
+    process.env.WS_GENERATION_TREE_FILES = inventory;
+    process.env.WS_GENERATION_TREE_ROOT = realpathSync(dir);
     for (const file of previous) if (!generated.has(file) && !tracked.has(file)) rmSync(join(dir, file), { force: true });
     const strays = git(['ls-files', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
     for (const stray of strays) if (!generated.has(stray) && !stray.split('/').includes('node_modules')) unlinkSync(join(dir, stray));

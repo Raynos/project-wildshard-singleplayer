@@ -43,6 +43,10 @@ it('syncs only what differs, drops art/progress/sources, and leaves the checkout
   const second = commit({ 'src/a.ts': 'a2', 'src/b.ts': null });
 
   const one = openMirror(first, { repo, env });
+  const inventory: unknown=JSON.parse(readFileSync(processEnv['WS_GENERATION_TREE_FILES'] ?? '', 'utf8'));
+  expect(inventory).toMatchObject({root:one.dir});
+  expect(inventory).toHaveProperty('files',expect.arrayContaining(['src/a.ts','src/keep.ts']));
+  expect(processEnv['WS_GENERATION_TREE_ROOT']).toBe(one.dir);
   one.release();
   expect(readFileSync(join(one.dir, 'src/b.ts'), 'utf8')).toBe('b1');
   expect(['art', 'progress', 'sources'].filter((d) => existsSync(join(one.dir, d)))).toEqual([]);

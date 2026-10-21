@@ -1,5 +1,5 @@
 // G292: shard-owned generator discovery and isolated jobs over the shared content-addressed cache.
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
@@ -146,6 +146,22 @@ export function generationRetention(directory, outputs, coldSeconds) {
     policy:outputPolicy({bytes:statSync(resolve(directory,file)).size,seconds:coldSeconds,darwinOnly:null,blender:false,frozen:false})}));
 }
 
+/** Mirrors supply their exact exported tree inventory; ordinary checkouts use
+ * HEAD. Never inherit the surrounding checkout's identity in a fixture/export.
+ * @param {string} root @returns {Set<string>} */
+function committedGenerationFiles(root) {
+  const base=realpathSync(root), inventory=process.env.WS_GENERATION_TREE_FILES;
+  if(inventory!==undefined && process.env.WS_GENERATION_TREE_ROOT===base) {
+    const row=v.parse(v.strictObject({root:v.string(),files:v.array(path)}),JSON.parse(readFileSync(inventory,'utf8')));
+    if(row.root===base)return new Set(row.files);
+  }
+  const top=spawnSync('git',['rev-parse','--show-toplevel'],{cwd:base,encoding:'utf8'});
+  if(top.status!==0 || realpathSync(top.stdout.trim())!==base)return new Set();
+  const tree=spawnSync('git',['ls-tree','-r','--name-only','-z','HEAD'],{cwd:base,encoding:'utf8',maxBuffer:64*1024*1024});
+  if(tree.status!==0)throw new Error('Cannot read committed generation inputs');
+  return new Set(tree.stdout.split('\0').filter(Boolean));
+}
+
 /** Stage the declared source closure, generate there and publish verified outputs only; never mutate a source bake.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} descriptor
  * @param {{preparation?:import('./generate.mjs').GenerationPreparation,inputHashes?:InputHashMemo,cacheDir?:string,forceCompare?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string,preview?:{url:string,revision:string},onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */
@@ -166,8 +182,8 @@ export async function generateShardJob(root,descriptor,options={}) {
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
   const roots=[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog];
   // Only a whole-folder input absorbs other producers implicitly. Explicit file
-  // dependencies and schema seeds retain their own exact source hashes.
-  const foreign=new Set((options.preparation?.outputs ?? []).filter(file=>!job.outputs.includes(file) && !job.inputRoots.includes(file) && roots.some(folder=>file.startsWith(`${folder}/`))));
+  // dependencies, retained/committed outputs and schema seeds keep exact hashes.
+  const foreign=new Set((options.preparation?.outputs ?? []).filter(file=>!options.preparation?.retained?.has(file) && !job.outputs.includes(file) && !job.inputRoots.includes(file) && roots.some(folder=>file.startsWith(`${folder}/`))));
   const inputs=generationInputs(root,roots,inputHashes,file=>(projected===undefined || file!==catalog) && (!job.outputs.includes(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file) && !foreign.has(file));
   /** @type {Map<string,{source:string,hash:string}>} */
   const upstreamFiles=new Map();
@@ -243,8 +259,10 @@ export async function prepareGeneration(root,options={}) {
   /** @param {import('./generate.mjs').ShardGenerationJob} a @param {import('./generate.mjs').ShardGenerationJob} b */
   const conflicts=(a,b)=>a.outputs.some(file=>reads(b,file)) || b.outputs.some(file=>reads(a,file));
   const running=new Map();
+  const retained=committedGenerationFiles(root);
+  for(const job of jobs)for(const file of job.outputs)if(!job.buildTimeOutputs.includes(file) && !Object.hasOwn(job.buildOutputs,file))retained.add(file);
   /** @type {import('./generate.mjs').GenerationPreparation} */
-  const preparation={outputs:jobs.flatMap(job=>job.outputs),upstream:new Map()};
+  const preparation={outputs:jobs.flatMap(job=>job.outputs),retained,upstream:new Map()};
   try { while(completed.size<jobs.length) {
     for(const [index,job] of jobs.entries()) {
       if(running.size>=concurrency) break;
