@@ -39,6 +39,9 @@ test('real arena payloads have one defining schema at production and product rea
   await expect(readArenaScriptData(product,files)).rejects.toThrow('refuses its schema');
   const badGeometry={...geometry,phone:'missing'};
   expect(()=>validateNamedJsonSchema(geometrySchema,encode(badGeometry))).toThrow('refuses its schema');
+  const badFire={...fight,arenaFire:{...arenaFire,flameCount:65537}};
+  expect(()=>nameBlob('combat/titan-fight.json','json',encode(badFire),{jsonSchema:fightSchema})).toThrow('refuses its schema');
+  expect(()=>validateNamedJsonSchema(fightSchema,encode(badFire))).toThrow('refuses its schema');
   for(const arenaScript of [
     {...fight.arenaScript,field:{...fight.arenaScript.field,width:65}},
     {...fight.arenaScript,support:{...fight.arenaScript.support,actors:{...fight.arenaScript.support.actors,hp:0}}},
@@ -63,6 +66,8 @@ test('timed encounter admission bounds rosters before native owners allocate',as
     {...rows,patrol:{...rows.patrol,actors:{...rows.patrol.actors,count:9}}},
     {...rows,slots:{...rows.slots,select:{...rows.slots.select,count:9}}},
     {...rows,motion:{...rows.motion,parameters:{bad:'not numeric'}}},
+    {...rows,view:{...rows.view,tell:{...rows.view.tell,pool:9}}},
+    {...rows,ride:{...rows.ride,arrow:{...rows.ride.arrow,maxFlying:65}}},
   ]) {
     expect(()=>nameBlob('combat/timed-encounters.json','json',encode(bad),{jsonSchema:schema})).toThrow('refuses its schema');
     payload=encode(bad);

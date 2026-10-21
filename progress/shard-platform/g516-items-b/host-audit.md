@@ -86,3 +86,12 @@ rosters and arena presentation keep their one-user charge: HOST-BAR 4/6.
 The existing named-JSON host remains 6/6; no grown host earns new user credit.
 Runtime physical TS delta: **shards 0, platform -60**. Build-only TS **+73**;
 total physical TS **+13**. Data payloads, colliders, AS and ceilings unchanged.
+
+
+X4 encounter presentation validation: complete SlotViewSchema,
+PatrolViewSchema and ArenaFireSchema declarations move to build-only
+encounter rows. Existing arena/timed named files reject oversized visual
+pools and malformed view rows before allocation. The native drawing code
+and its one-user HOST-BAR 4/6 charge remain; the named-JSON host stays 6/6.
+Runtime physical TS: **shards 0, platform -40**; build-only **+40**, total
+physical TS **0**. No renderer behavior, collider, AS or ceiling changes.

@@ -52,9 +52,45 @@ export const ArenaWhirlsSchema = v.strictObject({
  debris: v.strictObject({ count: v.pipe(count, v.maxValue(64)), climb: finite, turn: finite, step: finite, radius: pair, height: finite,
   axis: v.tuple([finite, finite, finite]), roll: finite, scale: v.tuple([finite, finite, v.pipe(count, v.maxValue(16))]) }),
 });
+
+const cue=v.pipe(v.string(),v.regex(/^cue\.[a-zA-Z0-9.-]+$/u)),name=v.pipe(v.string(),v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u));
+const shader=v.pipe(v.string(),v.maxLength(4096)),vector=v.tuple([finite,finite,finite]);
+const look=v.strictObject({key:v.pipe(v.string(),v.maxLength(64)),common:shader,fragment:shader});
+const poolCount=v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(65536));
+
+export const SlotViewSchema = v.strictObject({
+  cycle: v.strictObject({ wake: name, dawn: name }), states: v.strictObject({ broken: name, retire: name, home: name }),
+  cues: v.strictObject({ wake: cue, hit: cue, weak: cue, hard: v.strictObject({ cue, drop: finite }), broken: cue, strike: cue }),
+  lift: v.strictObject({ wake: finite, hit: finite, broken: finite, strike: finite }), strike: v.strictObject({ field: name, ahead: finite }),
+  every: v.pipe(finite, v.minValue(0.01)),
+  trails: v.pipe(v.array(v.strictObject({ cue, field: name, min: finite, max: finite, chance: v.pipe(finite, v.minValue(0), v.maxValue(1)),
+    at: v.picklist(['ground', 'body']), lift: finite })), v.maxLength(8)),
+  tell: v.strictObject({ pool: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8)), cone: finite, reach: finite, wind: finite, strike: finite, hold: finite,
+    alpha: v.tuple([finite, finite, finite]), colour: v.tuple([finite, finite, finite]), vertexShader: shader, fragmentShader: shader }),
+});
+export const PatrolViewSchema = v.strictObject({
+  looks: v.record(name, look), quietLook: name, quietScale: v.pipe(finite, v.minValue(0.1)), figure: v.strictObject({ bone: name }), seat: vector,
+  states: v.strictObject({ fade: name, dying: name, dead: name }),
+  cues: v.strictObject({ form: cue, tear: cue, loose: cue, hurt: cue, impact: cue }), lift: v.strictObject({ form: finite, loose: finite }),
+  trail: v.strictObject({ cue, rate: v.pipe(finite, v.minValue(0)), back: finite }), aim: name, damage: v.pipe(finite, v.minValue(0)),
+  targets: v.pipe(v.array(v.strictObject({ at: vector, radius: v.pipe(finite, v.minValue(0)), head: v.boolean() })), v.maxLength(4)),
+  arrow: v.strictObject({ geometry: v.unknown(), colour: vector, renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)),
+    length: finite, gravity: finite, drag: finite, windCoupling: finite, bury: finite, recover: finite,
+    maxFlying: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)), maxStuck: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)),
+    stick: v.boolean(), hitsAnimals: v.boolean(), puffs: v.boolean(), hurtsPlayer: v.strictObject({ radius: finite, height: finite }) }),
+});
+export const ArenaFireSchema = v.strictObject({
+ flameLook: v.string(), smokeLook: v.string(), flameCount: poolCount,
+ smokeCount: v.tuple([poolCount,poolCount]), smokeDetail: v.tuple([v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(3)),v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(3))]),
+ front: pair, heat: pair, flameWidth: finite, life: pair, rise: pair, radius: pair, expansion: pair,
+ /** a burning field's cells: `burn` s alight, flames `scatter` m off the centre, `sink` m into the ground, `size` tall,
+  *  smoke puffs a second per cell [phone, desktop]; a burnt-out cell's scorch decal `jitter` m off, `lift` m up, `scale` ± */
+ cells: v.exactOptional(v.strictObject({ burn: v.pipe(finite,v.minValue(.01)), scatter: finite, sink: finite, size: finite, smoke: pair,
+   scorch: v.strictObject({ jitter: finite, lift: finite, scale: pair }) })),
+});
 /** Existing timed named file; unrelated source binding fields remain intact. */
-export const TimedEncountersSchema = v.looseObject({ presentation: v.string(), program: ReturnProgramSchema, slots: EncounterSlotsSchema, view: v.unknown(),
-  patrol: EncounterPatrolSchema, motion: EncounterScheduleSchema, ride: v.unknown(), phases: v.strictObject({ slots: v.array(v.string()), patrol: v.array(v.string()) }),
+export const TimedEncountersSchema = v.looseObject({ presentation: v.string(), program: ReturnProgramSchema, slots: EncounterSlotsSchema, view: SlotViewSchema,
+  patrol: EncounterPatrolSchema, motion: EncounterScheduleSchema, ride: PatrolViewSchema, phases: v.strictObject({ slots: v.array(v.string()), patrol: v.array(v.string()) }),
   lightFloor: v.pipe(v.number(), v.finite(), v.minValue(0)),
   contact: v.strictObject({ strike: CreatureStrikeSchema, tags: v.array(CreatureStrikeSchema.entries.tags.pipe[0].item), origin: v.picklist(['actor', 'player']) }),
 });
@@ -67,3 +103,7 @@ export type ArenaEncounterRows=v.InferOutput<typeof ArenaEncounterSchema>;
 export type ArenaWhirlsRows=v.InferOutput<typeof ArenaWhirlsSchema>;
 export type TimedEncountersRows=v.InferOutput<typeof TimedEncountersSchema>;
 export type EncounterScheduleRows=v.InferOutput<typeof EncounterScheduleSchema>;
+
+export type SlotViewRows=v.InferOutput<typeof SlotViewSchema>;
+export type PatrolViewRows=v.InferOutput<typeof PatrolViewSchema>;
+export type ArenaFireRows=v.InferOutput<typeof ArenaFireSchema>;

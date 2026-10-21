@@ -3,7 +3,7 @@ import { ArenaScriptBossProfileSchema } from './bossProfiles';
 import { BossEncounterDefinitionSchema,BossEncounterPresentationSchema } from './bossEncounter';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { CreatureStrikeSchema } from './creatures';
-import { ArenaEncounterSchema,ArenaFieldSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema } from './encounterRows';
+import { ArenaEncounterSchema,ArenaFieldSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema } from './encounterRows';
 
 /** Build-only validation; runtime readers import the inferred types only. */
 const finite = v.pipe(v.number(),v.finite()), label = v.pipe(v.string(),v.minLength(1));
@@ -17,7 +17,7 @@ const lines = v.strictObject({ kneels: label,grassFire: label,immuneDome: label,
 /** Declared resources and effect bindings for an AS arena script. Named-file
  * admission checks bounded field, support and clock rows before allocation. */
 export const ArenaScriptRowsSchema = v.strictObject({
-  script: ArenaScriptBossProfileSchema,clocks: ArenaEncounterSchema,field: ArenaFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: v.unknown(),
+  script: ArenaScriptBossProfileSchema,clocks: ArenaEncounterSchema,field: ArenaFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: ArenaFireSchema,
   programs: v.strictObject({ attack: ReturnProgramSchema,fire: ReturnProgramSchema,wind: ReturnProgramSchema,rules: ReturnProgramSchema }),
   supportSites: v.pipe(v.array(v.strictObject({ x: finite,z: finite,theta: finite })),v.maxLength(8)),
   arena: v.strictObject({ center: point,body: point,anchor: point,ground: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),
@@ -41,7 +41,7 @@ export type ArenaScriptData = ArenaScriptRows & { geometry: v.InferOutput<typeof
 /** The original named fight file retains its other encounter rows. */
 export const ArenaScriptFightFileSchema=v.looseObject({
   arenaScript:v.omit(ArenaScriptRowsSchema,['programs','arenaFire']),
-  programs:ArenaScriptRowsSchema.entries.programs,arenaFire:v.unknown(),
+  programs:ArenaScriptRowsSchema.entries.programs,arenaFire:ArenaFireSchema,
 });
 export type ArenaScriptFightFile=v.InferOutput<typeof ArenaScriptFightFileSchema>;
 /** Build and focused scenario readers use the same defining schemas. */

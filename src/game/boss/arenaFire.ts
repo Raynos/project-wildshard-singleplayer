@@ -1,29 +1,13 @@
 /** Client-only instanced arena flames, smoke, scorch and whirlwinds. No fight decisions or hazard ownership. */
 import * as THREE from 'three';
-import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import type { ArenaField } from './arenaField';
-import type { ArenaWhirlsRows } from '@wildshard/format/encounterRows';
+import type { ArenaWhirlsRows,ArenaFireRows } from '@wildshard/format/encounterRows';
 
-const finite = v.pipe(v.number(), v.finite());
-const pair = v.tuple([finite,finite]);
-const count = v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(65536));
-/** Strict bounds protect allocation and pool modulo before drawing. */
-export const ArenaFireSchema = v.strictObject({
- flameLook: v.string(), smokeLook: v.string(), flameCount: count,
- smokeCount: v.tuple([count,count]), smokeDetail: v.tuple([v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(3)),v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(3))]),
- front: pair, heat: pair, flameWidth: finite, life: pair, rise: pair, radius: pair, expansion: pair,
- /** a burning field's cells: `burn` s alight, flames `scatter` m off the centre, `sink` m into the ground, `size` tall,
-  *  smoke puffs a second per cell [phone, desktop]; a burnt-out cell's scorch decal `jitter` m off, `lift` m up, `scale` ± */
- cells: v.exactOptional(v.strictObject({ burn: v.pipe(finite,v.minValue(.01)), scatter: finite, sink: finite, size: finite, smoke: pair,
-   scorch: v.strictObject({ jitter: finite, lift: finite, scale: pair }) })),
-});
-/** Native mesh capacity, graph ids and presentation tuning, supplied as data. */
-export type ArenaFireRows = v.InferOutput<typeof ArenaFireSchema>;
 interface SmokeP { x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; r0: number; r1: number; glow: number; seed: number; on: boolean }
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
@@ -42,8 +26,8 @@ export class ArenaFireView {
   private scorch: THREE.InstancedMesh | null = null;
 
   readonly rows: ArenaFireRows;
-  constructor(scene: THREE.Scene, input: unknown, flames: unknown) {
-    const rows = v.parse(ArenaFireSchema, input);
+  constructor(scene: THREE.Scene, input: ArenaFireRows, flames: unknown) {
+    const rows = input;
     if (rows.life[0] <= 0 || rows.life[1] < 0) throw new Error('Invalid smoke lifetime');
     this.rows = rows;
     // per instance (aInst): the flames' heat 0..1, front (1 = the downwind edge) and seed; the smoke's age, fire glow and seed

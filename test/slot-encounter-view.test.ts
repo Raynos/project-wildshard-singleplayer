@@ -1,4 +1,4 @@
-import { EncounterSlotsSchema } from '@wildshard/format/encounterRows';
+import { EncounterSlotsSchema, SlotViewSchema } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Scene, Vector3 } from 'three';
 import * as v from 'valibot';
@@ -17,11 +17,11 @@ const slots = { ...v.parse(EncounterSlotsSchema,night.slots), actors: { kind: 'o
   memory: { rising: 0 }, home: { x: 'originX', z: 'originZ', yaw: 'facing' }, dawn: 'returning', gone: 'buried' } };
 const cue = (id: string) => ({ id, vfx: [] });
 const ids = ['cue.orchard.wake', 'cue.orchard.chip', 'cue.orchard.weak', 'cue.orchard.hard', 'cue.orchard.break', 'cue.orchard.stomp', 'cue.orchard.petal'];
-const view = { cycle: { wake: 'spawn', dawn: 'dissolve' }, states: { broken: 'broken', retire: 'retire', home: 'statue' },
+const view = v.parse(SlotViewSchema, { cycle: { wake: 'spawn', dawn: 'dissolve' }, states: { broken: 'broken', retire: 'retire', home: 'statue' },
   cues: { wake: 'cue.orchard.wake', hit: 'cue.orchard.chip', weak: 'cue.orchard.weak', hard: { cue: 'cue.orchard.hard', drop: 20 }, broken: 'cue.orchard.break', strike: 'cue.orchard.stomp' },
   lift: { wake: 0.5, hit: 1, broken: 2, strike: 0 }, strike: { field: 'stompT', ahead: 0.5 }, every: 0.1,
   trails: [{ cue: 'cue.orchard.petal', field: 'rising', min: 0.2, max: 0.8, chance: 1, at: 'body', lift: 1 }],
-  tell: { pool: 2, cone: 0.5, reach: 2, wind: 1, strike: 1.2, hold: 0.1, alpha: [0.5, 0.5, 2], colour: [1, 0.2, 0.6], vertexShader: 'void main(){}', fragmentShader: 'void main(){}' } };
+  tell: { pool: 2, cone: 0.5, reach: 2, wind: 1, strike: 1.2, hold: 0.1, alpha: [0.5, 0.5, 2], colour: [1, 0.2, 0.6], vertexShader: 'void main(){}', fragmentShader: 'void main(){}' } });
 
 function body(id: string, x: number, z: number, yaw: number, variant: string) {
   return { entityId: id, position: { x, y: 4, z }, yaw, variant, herd: 0, alive: true, hidden: false, scale: 2, yOffset: 0, hp: 100, attackPhase: -1, mem: {} as Record<string, number> };
@@ -90,6 +90,6 @@ test('a broken guard plays its rubble once and its plinth stands again when the 
 });
 
 test('view rows refuse unknown keys and a cue outside the cue namespace', () => {
-  expect(() => new SlotEncounterView<Body>(slots, { ...view, extra: 1 }, ReturnProgram.page(night.program), { scene: new Scene(), cues: {} as CueDirector, sites: null, guest: { weakPoint: () => false } })).toThrow();
-  expect(() => new SlotEncounterView<Body>(slots, { ...view, cues: { ...view.cues, wake: 'wake' } }, ReturnProgram.page(night.program), { scene: new Scene(), cues: {} as CueDirector, sites: null, guest: { weakPoint: () => false } })).toThrow();
+  expect(() => v.parse(SlotViewSchema, { ...view, extra: 1 })).toThrow();
+  expect(() => v.parse(SlotViewSchema, { ...view, cues: { ...view.cues, wake: 'wake' } })).toThrow();
 });

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import { parse } from 'valibot';
-import { ArenaWhirlsSchema } from '../src/format/encounterRows';
+import { ArenaWhirlsSchema,ArenaFireSchema } from '../src/format/encounterRows';
 import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshLambertMaterial, Scene, Vector3 } from 'three';
 import { parsePrivateScene } from '../src/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
@@ -28,7 +28,7 @@ function burning() {
   const scope = new Scope('reed-marsh'), scene = new Scene();
   lendLooks(scope, { materials: new Map(['reed-flame', 'reed-smoke'].map(id => [id, new MeshBasicMaterial()])),
     setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('Unused'); } });
-  const fire = new ArenaFireView(scene, reeds, new BufferGeometry().copy(new BoxGeometry()).toJSON());
+  const fire = new ArenaFireView(scene, parse(ArenaFireSchema,reeds), new BufferGeometry().copy(new BoxGeometry()).toJSON());
   const field = new ArenaField(marsh, ReturnProgram.page(program.fire), new Rng(7)), scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 2);
   fire.attachScorch(scorch);
   return { fire, field, scorch, scope };
@@ -62,7 +62,7 @@ test('burnt-out cells leave a bounded scorch that a reset clears', () => {
 test('a fire without cell rows refuses to draw a field', () => {
   const { field, scope } = burning(), { cells: _cells, ...plain } = reeds;
   try {
-    const fire = new ArenaFireView(new Scene(), plain, new BufferGeometry().copy(new BoxGeometry()).toJSON());
+    const fire = new ArenaFireView(new Scene(), parse(ArenaFireSchema,plain), new BufferGeometry().copy(new BoxGeometry()).toJSON());
     expect(() => { fire.drawField(field, 0.1, 0, 0); }).toThrow('cell rows');
   } finally { scope.dispose(); }
 });

@@ -27,10 +27,9 @@ import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import { EncounterPatrol, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
-import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows } from '@wildshard/format/encounterRows';
+import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows,SlotViewRows,PatrolViewRows } from '@wildshard/format/encounterRows';
 
-const finite = v.pipe(v.number(), v.finite()), cue = v.pipe(v.string(), v.regex(/^cue\.[a-zA-Z0-9.-]+$/u)), name = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u));
-const shader = v.pipe(v.string(), v.maxLength(4096));
+const finite = v.pipe(v.number(), v.finite());
 /**
  * What a slot encounter shows (the cycle's `wake` / `dawn` flags spawn into and release the sites): `cues` at a site as an
  * actor wakes, on a hit (`weak` where the guest finds a weak point, `hard` past `drop` hp), on the member's `broken` flag
@@ -39,16 +38,6 @@ const shader = v.pipe(v.string(), v.maxLength(4096));
  * `tell` wedge (its own shaders: uniforms uFill, uAlpha, uColor) fills through the attack's `wind` and shows until
  * `strike` + `hold`, alpha `alpha[0] + alpha[1] × fill`, then `alpha[2]` on the blow.
  */
-export const SlotViewSchema = v.strictObject({
-  cycle: v.strictObject({ wake: name, dawn: name }), states: v.strictObject({ broken: name, retire: name, home: name }),
-  cues: v.strictObject({ wake: cue, hit: cue, weak: cue, hard: v.strictObject({ cue, drop: finite }), broken: cue, strike: cue }),
-  lift: v.strictObject({ wake: finite, hit: finite, broken: finite, strike: finite }), strike: v.strictObject({ field: name, ahead: finite }),
-  every: v.pipe(finite, v.minValue(0.01)),
-  trails: v.pipe(v.array(v.strictObject({ cue, field: name, min: finite, max: finite, chance: v.pipe(finite, v.minValue(0), v.maxValue(1)),
-    at: v.picklist(['ground', 'body']), lift: finite })), v.maxLength(8)),
-  tell: v.strictObject({ pool: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8)), cone: finite, reach: finite, wind: finite, strike: finite, hold: finite,
-    alpha: v.tuple([finite, finite, finite]), colour: v.tuple([finite, finite, finite]), vertexShader: shader, fragmentShader: shader }),
-});
 /** A slot actor as drawn: where it stands and faces, its health and its attack's phase (−1 between attacks). */
 export interface SlotViewActor extends SlotActor { readonly position: { readonly x: number; readonly y: number; readonly z: number }; readonly yaw: number; readonly hp: number; readonly attackPhase: number }
 const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -131,12 +120,12 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
   readonly slots: EncounterSlots<A>;
   readonly awake: Awake<A>[] = [];
   private readonly changes: SlotSiteChange[] = [];
-  private readonly rows: v.InferOutput<typeof SlotViewSchema>;
+  private readonly rows: SlotViewRows;
   private readonly wedges: GroundTell[] = [];
   private trailT = 0;
-  constructor(slots: EncounterSlotsRows, view: unknown, program: ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
+  constructor(slots: EncounterSlotsRows, view: SlotViewRows, program: ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
     readonly sites: readonly EncounterSlotSite[] | null; readonly guest: { readonly weakPoint: (actor: A, at: THREE.Vector3) => boolean } }) {
-    this.slots = new EncounterSlots<A>(slots, program); this.rows = v.parse(SlotViewSchema, view);
+    this.slots = new EncounterSlots<A>(slots, program); this.rows = view;
     const tell = this.rows.tell;
     for (let i = 0; i < tell.pool; i++) {
       const fill = { value: 0 }, alpha = { value: 0 };
@@ -202,8 +191,6 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
   }
 }
 
-const vector = v.tuple([finite, finite, finite]);
-const look = v.strictObject({ key: v.pipe(v.string(), v.maxLength(64)), common: shader, fragment: shader });
 /**
  * What a patrol shows: each actor's `looks` (keyed by variant, or `quiet` for a quiet spawn, which also grows by
  * `quietScale`): a self-lit additive patch on its own material (uniforms uGFade, the member's `fade` state, and uGTime) and
@@ -212,17 +199,6 @@ const look = v.strictObject({ key: v.pipe(v.string(), v.maxLength(64)), common: 
  * (`aim` signal, from `lift` over the seat) and where its arrows hit you or the world; and `targets`, spheres in the bone's
  * frame (radius × scale) that a ray may hit before the body's own capsules.
  */
-export const PatrolViewSchema = v.strictObject({
-  looks: v.record(name, look), quietLook: name, quietScale: v.pipe(finite, v.minValue(0.1)), figure: v.strictObject({ bone: name }), seat: vector,
-  states: v.strictObject({ fade: name, dying: name, dead: name }),
-  cues: v.strictObject({ form: cue, tear: cue, loose: cue, hurt: cue, impact: cue }), lift: v.strictObject({ form: finite, loose: finite }),
-  trail: v.strictObject({ cue, rate: v.pipe(finite, v.minValue(0)), back: finite }), aim: name, damage: v.pipe(finite, v.minValue(0)),
-  targets: v.pipe(v.array(v.strictObject({ at: vector, radius: v.pipe(finite, v.minValue(0)), head: v.boolean() })), v.maxLength(4)),
-  arrow: v.strictObject({ geometry: v.unknown(), colour: vector, renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)),
-    length: finite, gravity: finite, drag: finite, windCoupling: finite, bury: finite, recover: finite,
-    maxFlying: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)), maxStuck: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)),
-    stick: v.boolean(), hitsAnimals: v.boolean(), puffs: v.boolean(), hurtsPlayer: v.strictObject({ radius: finite, height: finite }) }),
-});
 /** A patrol actor as drawn: its skinned body, scale, variant and facing; a target the player's shots can strike. */
 export interface PatrolViewActor extends TargetAnimal { readonly entityId: string; readonly mem: Record<string, number>; readonly hidden: boolean; herd: number;
   readonly mesh: THREE.SkinnedMesh; scale: number; readonly variant: string; readonly yaw: number }
@@ -236,16 +212,16 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   readonly riders: Rider<A>[] = [];
   readonly patrol: EncounterPatrol<A>;
   readonly arrows: Projectiles;
-  private readonly rows: v.InferOutput<typeof PatrolViewSchema>;
+  private readonly rows: PatrolViewRows;
   private readonly motion: ProjectedState;
   private readonly time: THREE.IUniform<number> = { value: 0 };
   private readonly hits: PatrolHit<A>[] = [];
   private readonly hit: TargetHit;
   private shooter: A | null = null;
   get killsTonight(): number { return this.patrol.kills; }
-  constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: unknown }, private readonly program: ReturnProgram,
+  constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, private readonly program: ReturnProgram,
     private readonly ports: ProjectileWorld & { readonly cues: CueDirector; readonly figures: Readonly<Record<string, THREE.BufferGeometry>> }) {
-    this.rows = v.parse(PatrolViewSchema, input.view);
+    this.rows = input.view;
     this.patrol = new EncounterPatrol<A>(input.patrol, program, app.rng.stream('ai')); this.motion = new ProjectedState(input.motion, program);
     for (const key of Object.keys(this.rows.looks)) if (ports.figures[key] === undefined) throw new Error(`Missing patrol figure: ${key}`);
     const { geometry, colour, renderOrder, ...kind } = this.rows.arrow;

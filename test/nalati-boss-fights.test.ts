@@ -8,6 +8,8 @@ import { parseRuntimeSpawns } from '../src/format/runtimeSpawns';
 import { arenaRoomFight } from '../src/game/boss/arenaRoom';
 import { NALATI_RUNTIME_SPAWNS } from '../src/shards/nalati-grasslands/generators/spawns';
 import { expect, test } from 'vitest';
+import { parse } from 'valibot';
+import { PatrolViewSchema } from '../src/format/encounterRows';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/ai/phases';
@@ -94,7 +96,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     data.record = { kind: 'orchard-thunder',variant: 'elder' };
   }
   const owner = new ArenaScriptEncounter({ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },data);
-  const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: night.ride },ReturnProgram.page(night.program,scope),
+  const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: parse(PatrolViewSchema,night.ride) },ReturnProgram.page(night.program,scope),
     { game,sky: f.sky,player: f.player,forest: f.forest,cues: new CueDirector(game,night.cues,scope),figures: { rider: figure,captain: figure,storm: figure } });
   riders.attachActors(f.manager); owner.riders = riders;
   owner.mount = new Mount(legacyDouble<LevelContext>({ app,scope }),f.player,f.manager,

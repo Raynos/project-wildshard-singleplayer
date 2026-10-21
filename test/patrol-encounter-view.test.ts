@@ -1,4 +1,4 @@
-import { EncounterPatrolSchema } from '@wildshard/format/encounterRows';
+import { EncounterPatrolSchema, PatrolViewSchema } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Bone, BoxGeometry, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, Vector3, type Vector2 } from 'three';
 import * as v from 'valibot';
@@ -17,13 +17,13 @@ import night from '../src/shards/nalati-grasslands/data/night.generated.json' wi
 // A made-up orchard watch (the patrol view's fixture second user): lantern wraiths and their warden riding its own rows,
 // looks, figures, cues, targets and a plain dart, on the patrol law Nalati's ghost riders share.
 const look = (key: string) => ({ key, common: '#include <common>\nuniform float uGFade;\nuniform float uGTime;', fragment: '#include <dithering_fragment>\ngl_FragColor.rgb *= uGFade;' });
-const view = { looks: { scout: look('orchard-scout'), warden: look('orchard-warden'), hush: look('orchard-hush') }, quietLook: 'hush', quietScale: 2,
+const view = v.parse(PatrolViewSchema, { looks: { scout: look('orchard-scout'), warden: look('orchard-warden'), hush: look('orchard-hush') }, quietLook: 'hush', quietScale: 2,
   figure: { bone: 'saddle' }, seat: [0, 1, 0], states: { fade: 'fade', dying: 'dying', dead: 'dead' },
   cues: { form: 'cue.orchard.form', tear: 'cue.orchard.tear', loose: 'cue.orchard.loose', hurt: 'cue.orchard.hurt', impact: 'cue.orchard.impact' },
   lift: { form: 0.5, loose: 0.2 }, trail: { cue: 'cue.orchard.trail', rate: 0, back: 1 }, aim: 'aim', damage: 7,
   targets: [{ at: [0, 1.5, 0], radius: 0.3, head: true }],
   arrow: { geometry: { data: new BufferGeometry().copy(new BoxGeometry(0.02, 0.02, 0.5)).toJSON().data }, colour: [1, 0.8, 0.3], renderOrder: 9, length: 0.5, gravity: 4, drag: 0, windCoupling: 0, bury: 0, recover: 0,
-    maxFlying: 4, maxStuck: 0, stick: false, hitsAnimals: false, puffs: false, hurtsPlayer: { radius: 0.4, height: 1.8 } } };
+    maxFlying: 4, maxStuck: 0, stick: false, hitsAnimals: false, puffs: false, hurtsPlayer: { radius: 0.4, height: 1.8 } } });
 const patrol = { ...v.parse(EncounterPatrolSchema,night.patrol), actors: { kind: 'orchard-watch', variant: 'scout', leader: 'warden', count: 2, herd: -2,
   player: { x: 'px', z: 'pz' }, target: { x: 'tx', z: 'tz' }, steering: { tx: 'tx', tz: 'tz', v: 'v', turn: 'turn' } } };
 const ids = ['form', 'tear', 'loose', 'hurt', 'impact', 'trail'].map(id => `cue.orchard.${id}`);
