@@ -1,15 +1,13 @@
-# BUILD-SPEED — State (unassigned; ≤ 3 KB)
+# BUILD-SPEED — State (wildshard pane; ≤ 3 KB)
 
-**Phase: Wave 1 rulings asked (2026-10-21), nothing built.** Plan written from the 72 h audit (E491) in five waves;
-Jake rules on every approach wave by wave through the question tool; a wave is built only after its rulings, one phase
-per commit at a lane boundary (G492), with each phase's Verify numbers recorded here before the next phase starts.
+**Phase: Wave 1 ruled and being built (2026-10-21 ~10:00 Cancun).** Rulings: 1.1 A (2 vitest workers) · 1.2 A (utility
+QoS + nice) · 1.3 A1+A2+A3 (Spotlight exclusion, no unused MCP servers in lanes, reap day-old browsers) · 1.4 A1+A2+A3
+(Codex no-poll brief, no new receipts, `scripts/agent-time.py`) · 1.5 fix both red shards, never quarantine. D1 ruled
+no: a local pre-push of at most 45 s stays, with very little duplication of pre-commit; Phase 2.4 re-planned around it.
 
-**Waiting on Jake:** Wave 1 rulings (Phases 1.1–1.5); D1 (CI is the only gate) before Wave 2 is asked.
+**Building:** the `wildshard` pane lands Phases 1.1–1.4 one commit each; Phase 1.5 belongs to the owning lanes at
+their next boundary (coordinator told). Each phase's Verify goes here before the next.
 
-**Order:** Wave 1 stop the bleeding (caps, priority, Spotlight and MCP hygiene, no polling, no receipts, red shards) →
-Wave 2 commit wrapper, push loop, CI watcher, delete the gate, retire the pusher lane → Wave 3 live-tree previews,
-container only if needed, delete the mirror and heavy-lane, quiet-vs-not measurement → Wave 4 coordinator script,
-session hygiene, budget pacing, plan-state batching → Wave 5 one-page AGENTS.md, lint trim, receipts, budget estimate
-before commit.
+**Waiting on Jake:** the Spotlight sudo line (1.3 A1) once handed over; Wave 2 rulings after Wave 1's Verify.
 
-**Rulings:** none yet. **Live:** no rows landed.
+**Verify so far:** none landed.

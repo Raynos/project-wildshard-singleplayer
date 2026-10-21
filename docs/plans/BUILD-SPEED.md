@@ -8,8 +8,10 @@ a time."* Earlier the same morning: *"I think we have resource contention as a b
 fucking heavy for worktrees until we fix the size of the repo which is its own plan"*, *"I don't have a second Mac for
 the simulator lol. Can we partition this one MacBook with containers or virtualization?"*
 
-**State:** `open` 2026-10-21 — plan written from the 72 h audit; Wave 1 rulings asked (question tool, 10-21); nothing
-built. Owner: one Opus lane, unassigned; each phase is one commit at a lane boundary (G492).
+**State:** `in progress` 2026-10-21 — **Wave 1 ruled (10-21 ~10:00 Cancun): 1.1 A · 1.2 A · 1.3 A1+A2+A3 · 1.4
+A1+A2+A3 · 1.5 fix both, never quarantine. D1 ruled no: keep a local pre-push of at most 45 s with very little
+duplication of pre-commit** (Phase 2.4 re-planned below). Wave 1 is being built by the `wildshard` pane, one phase per
+commit; Phase 1.5 is the owning lanes' at their next boundary. Wave 2 is asked after Wave 1's Verify.
 
 Audit: [Wildshard Build Speed Audit](https://claude.ai/artifact/FDEUjZcmiBxQ8uPTVajAVB) (review page
 `docs/reviews/build-speed-audit.md`). The numbers every wave is measured against: 1,613 commits in 72 h, 723 with no
@@ -47,7 +49,7 @@ Claude 50 % and Codex 54 % of the week used at day 1.9 and 1.3; `scripts/` 33 �
 
 | # | Decision | Ruling |
 |---|---|---|
-| D1 | **CI is the only gate.** The local push gate and the build mirror's gate slot are deleted; "done" = pushed and CI green, fix-forward. A red main is visible for about 25 min and never ships. | needs pick; Wave 2 waits on it |
+| D1 | **A local pre-push stays, at most 45 s, with very little duplication of pre-commit** (Jake, 10-21: *"Keep a upto 45s local pre push with very little duplication of the local pre commit"*). CI remains the full gate. The pre-push is types and oxlint on the changed files plus related tests up to the ceiling; no gen, build, products, mirror or Vercel-tree export in it. "Done" = pushed with that pre-push green and CI green, fix-forward. | ruled 10-21; Phase 2.4 re-planned |
 | D2 | Commits go through one wrapper, `scripts/commit.sh "<msg>" -- <paths>`: `git add -N` for new files, a one-second `lockf` on `.git/commit.lock`, a pathspec commit. A pathspec commit never reads the shared index, so the shared-index guards go. | with Phase 2.1 |
 | D3 | If Wave 1 caps are not enough, CPU-only lane work runs in a Linux container with hard caps; the host keeps the Super cores, the GPU, git, the agents, the Simulator and GPU captures. The GPU cannot be partitioned; GPU captures get a schedule. | with Phase 3.2 |
 | D4 | Measurement stays on the host. | decided (10-21) |
@@ -68,7 +70,7 @@ third longer at the median above load 50, and a third of builds start there.
 - **Deletes:** nothing. **Risk:** none; focused runs get slower per run, faster overall. **Effort:** 10 min.
 - **Verify:** `ps` during a lane test window shows ≤ 2 workers per run; host idle during lane tests, median over an
   hour; gate `vitest` median (today 138 s). **Rollback:** revert the line.
-- **Jake:** ☐ A ☐ B ☐ C ☐ veto
+- **Jake:** ☑ A (10-21)
 
 ### Phase 1.2 Priority: lane jobs yield to measurement
 
@@ -83,7 +85,7 @@ lower-QoS work onto the lower core tier and lets default-priority work win conte
   **Effort:** 20 min.
 - **Verify:** one frame-floor milestone run on the Simulator during full lane load, drive p95 compared with the last
   quiet reading at the same SHA (Phase 3.4 is the full protocol). **Rollback:** revert.
-- **Jake:** ☐ A ☐ B ☐ C ☐ veto
+- **Jake:** ☑ A (10-21)
 
 ### Phase 1.3 Memory and indexing hygiene
 
@@ -101,7 +103,7 @@ Chrome is 4 days old. Swap is 3 of 4 GB.
 - **A3 (recommended):** `browser-lane.sh reap` also closes agent-browser Chromes older than 24 h (today only lane
   browsers over 90 min). Verify: no browser older than a day in `ps`.
 - **Deletes:** nothing. **Risk:** none. **Effort:** 30 min plus Jake's one line.
-- **Jake:** ☐ A1 ☐ A1-alt ☐ A2 ☐ A3 ☐ veto
+- **Jake:** ☑ A1 + A2 + A3 (10-21)
 
 ### Phase 1.4 Agents: stop the polling and the receipts
 
@@ -118,7 +120,7 @@ Receipts under `.git/proofs` (13.8k files) and `progress/` (11.8k) keep growing 
   numbers on demand (tool-hours by category and agent kind, poll share, gate medians, commits by kind) so every
   wave's Verify is one command instead of a session of ad-hoc parsing.
 - **Deletes:** nothing. **Risk:** none. **Effort:** 30 min, plus 1 h for A3.
-- **Jake:** ☐ A1 ☐ A2 ☐ A3 ☐ veto
+- **Jake:** ☑ A1 + A2 + A3 (10-21)
 
 ### Phase 1.5 CI: make the red shards green
 
@@ -126,16 +128,16 @@ Receipts under `.git/proofs` (13.8k files) and `progress/` (11.8k) keep growing 
 "Unbound quest cable pine" and a Driftwood retained-pin assertion. Every red run costs the hourly deploy a slot and
 the pusher lane a round.
 
-- **Approach A (recommended):** the owning lanes fix both at their next boundary; any file that flakes twice in a
-  week is quarantined with a `skip` and a plan row naming it.
+- **Approach (ruled):** the owning lanes fix both at their next boundary. **Never quarantine** (Jake, 10-21): a flaky
+  file stays in the suite until it is fixed.
 - **Deletes:** nothing. **Risk:** low. **Effort:** about 1 h each.
 - **Verify:** two consecutive green deploy runs; red shards per day from the deploy workflow.
-- **Jake:** ☐ A ☐ veto
+- **Jake:** ☑ fix both, never quarantine (10-21)
 
 **Wave 1 Verify, before Wave 2 is asked:** host idle during lane tests above 20 % median; Codex poll share under 10 %;
 MCP processes ≤ one set per session that uses them; two green deploys in a row; receipt counts flat.
 
-## Wave 2: the commit and push path (CI is the gate; waits on D1)
+## Wave 2: the commit and push path (a 45 s local pre-push, CI as the full gate; D1 ruled)
 
 ### Phase 2.1 One way to commit (D2)
 
@@ -199,22 +201,27 @@ red batch held every lane. A single pusher process needs no lock and never block
   **Rollback:** revert; the old scripts come back from git.
 - **Jake:** ☐ A ☐ B ☐ C ☐ veto
 
-### Phase 2.4 Delete the local gate (D1)
+### Phase 2.4 Shrink the local gate to 45 seconds (D1, ruled 10-21)
 
 **Why.** The gate duplicates CI, which already typechecks, lints in 4 shards, tests in 10 shards, builds products
 and builds the app on every push. Locally it held the push lock 47 % of the clock, went red 52 % of the time, and its
-`gen` step alone cost 12.5 h in 72 h.
+`gen` step alone cost 12.5 h in 72 h. Jake keeps a local pre-push, at most 45 s, with very little duplication of
+pre-commit.
 
-- **Approach A (recommended):** remove `local-gate.py`, `local-gate-checks.mjs`, `vercel-tree-gate.sh`,
-  `gate-cache.mjs`, `gate-trace.mjs`, `gate-related-tests.mjs`, `gate-jobs.sh`, `gate-test-products.json` and the
-  `push-gate` heavy-lane slot; pre-push keeps `repo-size.mjs` for the outgoing budget. A red commit reaches origin,
-  the watcher pings its lane, the lane fixes forward within the hour, and the deploy ships the newest green.
-- **B:** keep a 20 s pre-push of types and oxlint on the changed files, nothing else.
-- **Deletes:** eight scripts, the gate stamps under `.git`, 27 → 2 scripts between a commit and origin.
-- **Risk:** medium: red main is visible for about 25 min at a time. **Effort:** 0.5 day.
-- **Verify:** red-main minutes per day from CI under 2 h; the hourly deploy keeps shipping. **Rollback:** one
-  `git revert` restores the files and hook lines.
-- **Jake:** ☐ A ☐ B ☐ veto
+- **Approach A (recommended):** the push loop (2.3) runs a 45 s pre-push before each push: types on the changed
+  files (`local-gate-checks.mjs types`, 0.2 s cached), oxlint on the changed files (17 s median), then
+  `gate-related-tests.mjs` with its budget set to whatever is left of the 45 s, hard-stopped at the ceiling. No gen,
+  no build, no products, no mirror, no Vercel-tree export. It runs on the live tree, so another lane's half-edit can
+  turn it red; on red the loop retries next minute and pings the first lane in the range only when the same red
+  repeats three times. Pre-commit (2.2) keeps only the storage policy, so the two overlap on nothing.
+- **B:** types and oxlint only, 20 s, no related tests.
+- **Deletes:** `local-gate.py` (replaced by about 40 lines), `vercel-tree-gate.sh`, `gate-cache.mjs`,
+  `gate-trace.mjs`, `gate-jobs.sh`, `gate-test-products.json`, the `push-gate` heavy-lane slot and the gate stamps
+  under `.git`. `gate-related-tests.mjs` and `local-gate-checks.mjs` stay.
+- **Risk:** medium: a red main past the 45 s checks is visible for about 25 min at a time. **Effort:** 0.5 day.
+- **Verify:** pre-push p90 under 45 s; red-main minutes per day from CI under 2 h; the hourly deploy keeps shipping.
+  **Rollback:** one `git revert` restores the files and hook lines.
+- **Jake:** ☐ A ☐ B ☐ veto (asked with Wave 2)
 
 ### Phase 2.5 Retire the pusher lane; write it down
 
