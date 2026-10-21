@@ -30,7 +30,7 @@ Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real secon
 | Z2 | Opus | Nine C2 looks (807): composite GLSL stays listed view (graph form costs +64 KB sections, +40-115 MB; closed by sp-o4); other look spans open | sp-o4 |
 | Z3 | Opus | Nine C1 world (566): drawn-in kit rows, Fei Zhua mounts, sets | sp-o2 |
 | Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | sp-o1 (after open-plots 7f6a9df314) |
-| Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | |
+| Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | sp-o5 (after Z9) |
 | Z6 | Codex | Nalati non-graphical own code (combat/quest/state) | sp-x9 |
 | Z7 | Codex | Nine C6 items (265) + C9 glue (199) | sp-x8 |
 | Z8 | Codex | Pine C9 glue (229) | |
