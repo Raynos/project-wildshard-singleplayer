@@ -401,7 +401,7 @@ export class LiveGridSession {
     if (this.page.ownedHome === true && from === null && to !== null) {
       // Retry a refused source cleanup before any destination foundation/whole-runtime claim is allocated.
       for (const instance of this.live.state().residents) {
-        if (instance !== to && !this.live.unload(instance)) throw new Error('Previous region is not durably retired');
+        if (instance !== to && !this.live.retire(instance)) throw new Error('Previous region is not durably retired'); // O20: in steps
       }
       if (!this.live.state().pending.includes(to)) this.live.retry(to);
     }

@@ -374,7 +374,7 @@ export class LiveGridHost {
       const dwelling = resident !== undefined && (resident.outsideSince === undefined || this.fixedTick - resident.outsideSince < COLD_DWELL_TICKS);
       resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 || resident.disposalFailed === true || dwelling });
       if (!inside && !dwelling && resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
-        && !this.coldUnloadRefused.has(cell.instance) && !this.unload(cell.instance)) this.coldUnloadRefused.add(cell.instance);
+        && !this.coldUnloadRefused.has(cell.instance) && !this.retire(cell.instance)) this.coldUnloadRefused.add(cell.instance); // O20: in steps
     }
   }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
@@ -443,7 +443,7 @@ export class LiveGridHost {
           // A turn replaces any speculative world, including a declarative copy, only after durable disposal succeeds.
           // Never overlap opaque worlds, retry a failed save each tick, or discard an in-flight crossing reservation.
           for (const [instance] of this.residents) if (instance !== approach.instance
-            && !this.roadRetirementRefused.has(instance) && !this.unload(instance)) this.roadRetirementRefused.add(instance);
+            && !this.roadRetirementRefused.has(instance) && !this.retire(instance)) this.roadRetirementRefused.add(instance); // O20: in steps
           if (this.residents.size === 0) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
         }
       }
@@ -581,7 +581,8 @@ export class LiveGridHost {
       await this.sequence;
       this.assertAlive();
       if (this.current() !== from) throw new Error('Stale live frame preparation');
-      for (const instance of this.residents.keys()) if (instance !== to && !this.unload(instance)) throw new Error('Previous region is not durably retired');
+      // O20: retired in steps; the destination's admission below waits for them (`sequence`)
+      for (const instance of this.residents.keys()) if (instance !== to && !this.retire(instance)) throw new Error('Previous region is not durably retired');
     }
     if (to !== null) await this.ensure(to);
     if (this.active !== from || !this.ready(to)) throw new Error('Unready live frame preparation');
