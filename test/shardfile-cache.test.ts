@@ -61,3 +61,12 @@ it('reuses a published product and rebuilds on a new key', async () => {
   expect(builds).toBe(3);
   expect(existsSync(join(cacheRoot, 'alpha', 'a'.repeat(64), 'shard.json'))).toBe(true);
 });
+
+it('publishes a cold build under its completed input receipt key', async () => {
+  const root = fixture({}), cacheRoot = join(root,'cache'), destination = join(root,'out'), complete = 'c'.repeat(64);
+  expect(await reuseOrBuild({slug:'alpha',key:'0'.repeat(64),destination,cacheRoot,build:out=>{
+    write(out,{'shard.json':'compiled'}); return Promise.resolve(complete);
+  }})).toBe('built');
+  expect(existsSync(join(cacheRoot,'alpha',complete,'shard.json'))).toBe(true);
+  expect(await reuseOrBuild({slug:'alpha',key:complete,destination,cacheRoot,build:()=>Promise.reject(new Error('must reuse'))})).toBe('slot');
+});

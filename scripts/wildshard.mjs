@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Execute the workspace's author CLI without requiring a previously packed SDK or a Vite dev server.
 import { build } from 'vite';
+import { captureProductInputs, recordBundle, inputRecorderPlugin } from './shardfile-inputs.mjs';
 import { basename, relative, resolve, sep } from 'node:path';
 import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -15,12 +16,15 @@ let runner;
 const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sdk/package.json'));
 /** Bundle trusted workspace tooling once; external Vite resolves against this installed tool, not a data URL. */
 export async function runWildshard(args) {
+  const receipt = args.find(arg=>arg.startsWith('--input-receipt='))?.slice('--input-receipt='.length);
+  if (receipt !== undefined) { await captureProductInputs(resolve(import.meta.dirname,'..'),receipt,()=>runWildshard(args.filter(arg=>!arg.startsWith('--input-receipt=')))); return; }
   runner ??= (async () => {
-    const result = await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'silent', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision()), 'import.meta.dirname': JSON.stringify(resolve(import.meta.dirname, '../src/sdk')) }, plugins: [{ name: 'author-node-vite', enforce: 'pre', resolveId(id) {
-      if (id === 'vite') return { id: import.meta.resolve('vite'), external: true };
+    const result = await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'silent', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision()), 'import.meta.dirname': JSON.stringify(resolve(import.meta.dirname, '../src/sdk')) }, plugins: [inputRecorderPlugin(), { name: 'author-node-vite', enforce: 'pre', resolveId(id) {
+      if (id === 'vite') return { id: pathToFileURL(resolve(import.meta.dirname,'shardfile-vite.mjs')).href, external: true };
       if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
       return null;
     } }], build: { write: false, minify: false, lib: { entry: resolve(import.meta.dirname, '../src/sdk/cli.ts'), formats: ['es'], fileName: 'cli' }, rolldownOptions: { platform: 'node', external: [/^node:/u], output: { codeSplitting: false } } } });
+    recordBundle(result);
     const output = Array.isArray(result) ? result.at(0) : result;
     if (output === undefined || !('output' in output)) throw new Error('Author CLI build produced no output');
     const chunks = output.output.filter((chunk) => chunk.type === 'chunk');

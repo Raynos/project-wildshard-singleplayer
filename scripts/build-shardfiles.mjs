@@ -11,8 +11,11 @@ import { runWildshard } from './wildshard.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
-import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
+import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 import { prepareDataMaps } from './bake-data-maps.mjs';
+import { createHash, randomBytes } from 'node:crypto';
+import { InputHashMemo } from './bake-input-hashes.mjs';
+import { productInputKey, productToolchainKey } from './shardfile-inputs.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 
@@ -50,7 +53,11 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   for (const slug of only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
   if(onFailure===undefined)for (const slug of only ?? built) checkHeadlessAssembly(root, slug);
   if ((reuse || only !== undefined) && strict) console.warn('wildshard build: --reuse / --shard ignored in CI; building every shard');
-  const files = strict ? undefined : treeHashes(root);
+  const recorded = build === runWildshard;
+  const files = recorded ? undefined : treeHashes(root);
+  const inputHashes = new InputHashMemo(root,resolve(root,'.cache/shardfile-input-hashes.json'));
+  const toolchain = recorded ? productToolchainKey(root,inputHashes) : '';
+  try {
   await runShardBuildPool(readdirSync(projects, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)), async (entry, signal) => {
     const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
     const project = resolve(projects, entry.name);
@@ -75,22 +82,24 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     // until the grid reads a shardfile's `near`. The CLI's default baked a near row into Signal Dunes' product, whose play
     // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
     const destination = resolve(root, 'out', entry.name);
-    if (files === undefined) {
-      // CI / Vercel overwrite the product in place: drop any fast-path stamp so it can never vouch for these bytes.
-      mkdirSync(resolve(root,'out'),{recursive:true});
-      const temporary=mkdtempSync(resolve(root,'out',`.build-${entry.name}-`));
-      try {await buildOne(['build',project,temporary,'--product-only','--no-placeholders','--format=2',...flags]);publishProduct(temporary,destination);}finally{rmSync(temporary,{recursive:true,force:true});}
-      count++;
-      return;
-    }
-    const key = shardfileKey(files, entry.name, built, flags.map(flag => flag.replace(root, '<root>')));
-    if (only !== undefined && !only.includes(entry.name)) {
+    const normalized = flags.map(flag=>flag.replace(root,'<root>'));
+    const recipe = [entry.name,...normalized,toolchain];
+    const receipt = resolve(shardfileCacheRoot(),'.inputs',entry.name,`${createHash('sha256').update(JSON.stringify(normalized)).digest('hex')}.json`);
+    const currentKey = () => recorded ? productInputKey(root,receipt,recipe,inputHashes) : shardfileKey(files ?? new Map(),entry.name,built,normalized);
+    const key = currentKey();
+    if (!strict && only !== undefined && !only.includes(entry.name)) {
       const here = readBuildKey(destination);
       if (here !== key && existsSync(destination)) { rmSync(destination, { recursive: true, force: true }); console.info(`wildshard build: ${entry.name} skipped (--shard), stale product removed`); }
       else console.info(`wildshard build: ${entry.name} skipped (--shard)${here === key ? ', product current' : ''}`);
       return;
     }
-    const how = await reuseOrBuild({ slug: entry.name, key, destination, fresh: !reuse && only === undefined, build: out => buildOne(['build', project, out, '--product-only', '--no-placeholders', '--format=2', ...flags]) });
+    const how = await reuseOrBuild({ slug: entry.name, key:key ?? randomBytes(32).toString('hex'), destination, fresh:strict || !reuse && only === undefined, build: async out => {
+      await buildOne(['build',project,out,'--product-only','--no-placeholders','--format=2',...flags,...(recorded?[`--input-receipt=${receipt}`]:[])]);
+      if (recorded && productToolchainKey(root,inputHashes) !== toolchain) throw new Error('Product toolchain changed during build');
+      const next = currentKey();
+      if (next === undefined) throw new Error(`Missing complete product input receipt: ${entry.name}`);
+      return next;
+    } });
     console.info(`wildshard build: ${entry.name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     } catch(error) {
@@ -100,6 +109,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       onFailure(entry.name,error);
     }
   });
+  } finally { inputHashes.flush(); }
   runtimeReport.sort((a,b)=>a.slug.localeCompare(b.slug));
   if (copyRuntime === 'closed') for (const report of runtimeReport) console.info(`runtime copy: ${JSON.stringify(report)}`);
   console.info(`wildshard build: ${count} shardfile project(s)`);

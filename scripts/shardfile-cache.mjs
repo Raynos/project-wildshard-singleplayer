@@ -141,7 +141,7 @@ function prune(cacheRoot, slug) {
 /**
  * Bring `destination` to the product for `key`: already there, cloned from the cache, or built by `build(staging)` into a
  * fresh folder, published to the cache and cloned in. `fresh` always builds (the full build) and serves its own bytes.
- * @param {{slug:string, key:string, destination:string, cacheRoot?:string, fresh?:boolean, build:(out:string)=>Promise<void>}} job
+ * @param {{slug:string, key:string, destination:string, cacheRoot?:string, fresh?:boolean, build:(out:string)=>Promise<void>|Promise<string>}} job
  * @returns {Promise<'slot'|'cache'|'built'>}
  */
 export async function reuseOrBuild({ slug, key, destination, cacheRoot = shardfileCacheRoot(), fresh = false, build }) {
@@ -159,14 +159,15 @@ export async function reuseOrBuild({ slug, key, destination, cacheRoot = shardfi
   mkdirSync(join(cacheRoot, slug), { recursive: true });
   const staging = join(cacheRoot, slug, `.staging-${process.pid}-${randomBytes(4).toString('hex')}`);
   try {
-    await build(staging);
-    writeFileSync(join(staging, KEY_FILE), `${key}\n`);
+    const captured = await build(staging);
+    const publishedKey = typeof captured === 'string' ? captured : key;
+    writeFileSync(join(staging, KEY_FILE), `${publishedKey}\n`);
     publishProduct(staging, destination);
-    const entry = join(cacheRoot, slug, key);
-    if (entryFor(cacheRoot, slug, key) === undefined) {
+    const entry = join(cacheRoot, slug, publishedKey);
+    if (entryFor(cacheRoot, slug, publishedKey) === undefined) {
       try { rmSync(entry, { recursive: true, force: true }); renameSync(staging, entry); } catch (error) {
         // A sibling published the same key first: theirs is as good as ours.
-        if (entryFor(cacheRoot, slug, key) === undefined) throw error;
+        if (entryFor(cacheRoot, slug, publishedKey) === undefined) throw error;
       }
     } else utimesSync(entry, now, now);
     prune(cacheRoot, slug);

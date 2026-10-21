@@ -24,7 +24,7 @@ export async function runShardBuildPool(items, work) {
  * @param {string[]} args @param {AbortSignal} signal @returns {Promise<void>} */
 export function runShardBuild(args, signal) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [resolvePath(import.meta.dirname, 'wildshard.mjs'), ...args], {
+    const child = spawn(process.execPath, ['--import', resolvePath(import.meta.dirname,'shardfile-inputs.mjs'), resolvePath(import.meta.dirname, 'wildshard.mjs'), ...args], {
       cwd: resolvePath(import.meta.dirname, '..'), env: process.env, signal, stdio: ['ignore', 'inherit', 'inherit'],
     });
     /** @type {Error|undefined} */
