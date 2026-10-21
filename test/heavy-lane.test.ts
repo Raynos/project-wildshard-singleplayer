@@ -125,3 +125,23 @@ print(json.dumps(True))
 `], { encoding: 'utf8' });
   expect(JSON.parse(result)).toBe(true);
 });
+
+test('gate and ruler launches keep normal QoS while lane builds use utility', () => {
+  const result = execFileSync('python3', ['-c', `
+import json, runpy
+from unittest.mock import patch
+module = runpy.run_path('scripts/heavy-lane.py')
+launch = module['launch_command']
+command = ['node', 'fixture.mjs']
+with patch.object(module['shutil'], 'which', return_value='/usr/bin/taskpolicy'):
+ assert launch('gate', command, {}) == command
+ assert launch('build', command, {'WS_HEAVY_RULER':'1'}) == command
+ assert launch('build', command, {}) == ['taskpolicy', '-c', 'utility', *command]
+ assert launch('build', command, {'WS_HEAVY_RULER':'0'}) == ['taskpolicy', '-c', 'utility', *command]
+ assert launch('full-test', command, {'WS_HEAVY_RULER':'1'}) == ['taskpolicy', '-c', 'utility', 'nice', '-n', '10', *command]
+with patch.object(module['shutil'], 'which', return_value=None):
+ assert launch('build', command, {}) == command
+print(json.dumps(True))
+`], { encoding: 'utf8' });
+  expect(JSON.parse(result)).toBe(true);
+});

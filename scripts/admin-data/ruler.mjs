@@ -238,8 +238,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const committedAt = new Date(Number(git('show', '-s', '--format=%ct', revision)) * 1000).toISOString();
   // Take the mirror first, then the build lease. The CLI prepares all ten
   // verified products (including _template) before reading section inventory.
+  // G562: this child-only marker preserves ruler QoS without changing ordinary lane builds.
   const out = execFileSync(process.execPath, [resolve(repo, 'scripts/build-mirror.mjs'), 'run', revision, '--slot', 'check', '--', 'python3', 'scripts/heavy-lane.py', 'build', '--', ...RULER_COMMAND.split(' ')],
-    { cwd: repo, maxBuffer: 256 << 20, stdio: ['ignore', 'pipe', 'inherit'] }).toString('utf8');
+    { cwd: repo, env: { ...process.env, WS_HEAVY_RULER: '1' }, maxBuffer: 256 << 20, stdio: ['ignore', 'pipe', 'inherit'] }).toString('utf8');
   const start = out.search(/^\{/mu);
   if (start === -1) throw new Error(`Ruler: ${RULER_COMMAND} printed no JSON`);
   const file = resolve(repo, RULER_PATH);

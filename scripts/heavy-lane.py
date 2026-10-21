@@ -272,6 +272,15 @@ def mirror_first(command, wrapper):
     return None
 
 
+def launch_command(kind, command, env):
+    """G562: gate leases and marked ruler builds keep normal QoS; other lanes yield to playtests."""
+    launch = command if 'build' in RESOURCES[kind] else ['nice', '-n', '10', *command]
+    normal = kind == 'gate' or (kind == 'build' and env.get('WS_HEAVY_RULER') == '1')
+    if not normal and shutil.which('taskpolicy'):
+        launch = ['taskpolicy', '-c', 'utility', *launch]
+    return launch
+
+
 def main():
     from quiet_logs import requested, run_logged
     args_before_command = sys.argv[1:sys.argv.index('--')] if '--' in sys.argv else sys.argv[1:]
@@ -351,13 +360,9 @@ def main():
                'WS_HEAVY_SCHEDULER_ROOT': str(root)}
         if args.kind == 'gate':
             env['WS_HEAVY_GATE'] = '1'
-        # Build leases already bound concurrency; keep their normal CPU priority.
-        # Full tests yield CPU, and nested wrappers inherit the owner's priority.
-        launch = command if 'build' in resources else ['nice', '-n', '10', *command]
-        # BUILD-SPEED 1.2: every lane job runs in the utility QoS class on macOS, so the measurement lane, frame-floor
-        # and the Simulator (default QoS) win every CPU contest; CI's Linux runners have no taskpolicy.
-        if shutil.which('taskpolicy'):
-            launch = ['taskpolicy', '-c', 'utility', *launch]
+        # Nested wrappers inherit their owner's QoS. Gate descendants are therefore
+        # normal too; CI's Linux runners have no taskpolicy.
+        launch = launch_command(args.kind, command, env)
         child = subprocess.Popen(launch, env=env, start_new_session=True,
                                  pass_fds=tuple(fd.fileno() for fd in held))
         entry['childPid'] = child.pid
