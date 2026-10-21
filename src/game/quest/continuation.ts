@@ -13,7 +13,7 @@ import { Sword } from '../weapons/Sword';
 import { installItemEffects } from '../loadout/effects';
 import { enteredLootPresentation, installRuntimeLoot } from '../loot/runtime';
 
-const ended = (ctx: ShardContext): boolean => ctx.scope.disposed;
+const ended = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.disposing;
 
 /** Complete an entered quest's data-declared keepsakes, effects and loot after
  * its figures and chapter are ready. Its scope owns all resulting bindings. */

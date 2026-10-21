@@ -36,8 +36,8 @@ function deferred<T>(): { readonly promise: Promise<T>; readonly resolve: (value
 class EmptyCatalogue extends CollectionCatalogue {
   override prepare(): Promise<void> { return Promise.resolve(); }
 }
-function fixture(read: (hash: string) => Promise<Uint8Array>) {
-  const scope = new Scope('orchard.continuation'), flags = new Flags('orchard.continuation', false);
+function fixture(read: (hash: string) => Promise<Uint8Array>, parent?: Scope) {
+  const scope = new Scope('orchard.continuation', parent), flags = new Flags('orchard.continuation', false);
   const adventure = legacyDouble<QuestPageComposition>({ flags, finale: null,
     place: row => ({ x: row.x, z: row.z, y: row.y ?? 0, yaw: row.yaw ?? 0 }), floorAt: () => 0 });
   const catalogue = new EmptyCatalogue('orchard', new Map());
@@ -61,23 +61,33 @@ function fixture(read: (hash: string) => Promise<Uint8Array>) {
   return { scope, ctx, adventure, catalogue, system, on, flags, owned: play.owned };
 }
 
-test.each(['cosmetics', 'shop'])('leaving during the %s read prevents later service bindings', async phase => {
+test.each(['cosmetics', 'shop'].flatMap(phase => [false, true].map(ancestor => ({ phase, ancestor }))))(
+  'leaving during $phase read (ancestor: $ancestor) prevents later service bindings', async ({ phase, ancestor }) => {
   const pending = deferred<Uint8Array>(), reached = deferred<string>(), reads: string[] = [];
+  const parent = new Scope('orchard.parent');
   const f = fixture(hash => { reads.push(hash); if (hash === phase) { reached.resolve(hash); return pending.promise; }
-    return Promise.resolve(hash === 'cosmetics' ? cosmeticBytes : shopBytes); });
+    return Promise.resolve(hash === 'cosmetics' ? cosmeticBytes : shopBytes); }, parent);
   const before = { flags: f.flags.all, owned: f.owned.all };
   const running = installQuestContinuation(f.ctx, rows);
   expect(await reached.promise).toBe(phase);
   expect(entryOwner(f.scope, 'quest', rows.quest)).toBe(f.adventure);
   expect(entryOwner(f.scope, 'collection', rows.collection)).toBe(f.catalogue);
   expect(f.system.mock.calls.map(([row]) => row.id)).toEqual(phase === 'cosmetics' ? [] : ['keepsakes']);
-  f.scope.dispose(); const calls = f.system.mock.calls.length;
+  let retirement: Generator | undefined;
+  if (ancestor) {
+    parent.onDispose(() => undefined);
+    retirement = parent.disposeSteps(); retirement.next();
+    expect(f.scope.disposed).toBe(false); expect(f.scope.disposing).toBe(true);
+  } else f.scope.dispose();
+  const calls = f.system.mock.calls.length;
   // Retired cosmetic bytes must not even reach catalogue admission.
   pending.resolve(phase === 'cosmetics' ? encode({ retired: true }) : shopBytes); await running;
   expect(f.system).toHaveBeenCalledTimes(calls);
   expect(reads).toEqual(phase === 'cosmetics' ? ['cosmetics'] : ['cosmetics', 'shop']);
   expect({ flags: f.flags.all, owned: f.owned.all }).toEqual(before);
   expect(() => entryOwner(f.scope, 'quest', rows.quest)).toThrow('scope has ended');
+  if (retirement !== undefined) for (const _step of retirement) { /* Drain the actual original owner. */ }
+  parent.dispose();
 });
 
 test('continuation intake refuses callbacks, reflected paths and invalid collection ids', () => {
