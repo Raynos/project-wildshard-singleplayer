@@ -32,7 +32,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`, `bf332be4cc`; batch green `bd459dadaf`; native warm/cadence proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3** | Home region reads files in parallel / prefetched from the product's file list (today one request in flight for 25 s) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
-| **O5 — pulled forward: post warm-up `b2e4c86d92`, test types `2d603918ea`, API `072e36da10`; served proof pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
+| **O5 — pulled forward: `b2e4c86d92`; desktop AO repair `32cde80543` first frames green; native warm/full acceptance pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes) | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
@@ -242,3 +242,18 @@ shader/post tests and strict lint pass; the immediate test-only type repair
 `2d603918ea` also passes root tsc. API notes are `072e36da10`. One new source
 batch and served cold/warm proof cover the pending cuts. O2 and the added
 warm L2/L8 follow-up remain open; the earlier cold acceptance stays retained.
+
+The `49c39e9232` shader batch passed in 833.2 s, but its phone-tier first
+frames missed a desktop regression: optional post stand-in draws reached
+N8AO before its real pass had bound sample arrays (`toArray` failure).
+`32cde80543` leaves those programs linked and defers only unsafe optional
+draws to their real pass; no samples are fabricated and AO stays enabled.
+The actual N8AO regression, six post tests and strict lint pass; root tsc
+also passes. A real desktop grid entry on committed `32cde80543` proves AO
+present/enabled with first frame in 11.4 s and a 174.1 ms detail gap. Phone
+SHARD SELECT passes in 26.6 s with a 352.7 ms gap. Both byte errors are
+under 0.05%. The viewed phone portrait and compact receipts are committed
+in [`post-ao-fix-32cde80`](../../../progress/loading/g543/post-ao-fix-32cde80/README.md)
+(`1e53d45c22`). The old queued matrix was cancelled before launch when
+this regression was confirmed. One source batch on the repair is pending;
+the corrected native cold/warm proof still owns O2 and warm L2/L8 closure.
