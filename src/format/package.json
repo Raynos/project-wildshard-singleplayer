@@ -245,7 +245,8 @@
     "./voicePatches": "./voicePatches.ts",
     "./audioScene": "./audioScene.ts",
     "./fieldPresentation": "./fieldPresentation.ts",
-    "./geometryPack": "./geometryPack.ts"
+    "./geometryPack": "./geometryPack.ts",
+    "./nativeStoryRows": "./nativeStoryRows.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
