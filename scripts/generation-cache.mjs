@@ -1,6 +1,6 @@
 // G292: one verified, content-addressed cache for generated assets and native checkpoints.
 import { createHash, randomBytes } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -171,10 +171,19 @@ function alive(pid) {
  * @param {string} directory */
 function readLease(directory) {
   const readers=`${directory}.readers`;
-  mkdirSync(readers,{recursive:true});
   const owner=resolve(readers,`${process.pid}-${randomBytes(12).toString('hex')}`);
-  writeFileSync(owner,'',{flag:'wx'});
-  return ()=>{rmSync(owner,{force:true});};
+  for(;;) {
+    mkdirSync(readers,{recursive:true});
+    try {writeFileSync(owner,'',{flag:'wx'});break;}
+    catch(error) {if(!(error instanceof Error) || !('code' in error) || error.code!=='ENOENT')throw error;}
+  }
+  return ()=>{rmSync(owner,{force:true});removeEmptyReaders(readers);};
+}
+/** An acquiring reader retries if this removes its still-empty directory.
+ * @param {string} readers */
+function removeEmptyReaders(readers) {
+  try {rmdirSync(readers);}
+  catch(error) {if(!(error instanceof Error) || !('code' in error) || !['ENOENT','ENOTEMPTY','EEXIST'].includes(String(error.code)))throw error;}
 }
 /** Reap only dead owners; an unfamiliar marker conservatively keeps the entry.
  * @param {string} directory */
@@ -202,6 +211,7 @@ function evict(jobDir, key) {
     renameSync(resolve(jobDir, key), doomed);
   } catch { return false; } finally { rmSync(lock, { recursive: true, force: true }); }
   rmSync(doomed, { recursive: true, force: true });
+  removeEmptyReaders(resolve(jobDir,`${key}.readers`));
   return true;
 }
 

@@ -55,6 +55,7 @@ it('keeps coalesced upstream readers pinned through downstream copies and prunes
   const copied=resolve(root,'downstream.bin');copyFileSync(resolve(second.directory,'b.bin'),copied);
   expect(readFileSync(copied,'utf8')).toBe('b');second.release();
   expect(prune().deleted.map(row=>row.key)).toContain(first.key);
+  expect(existsSync(`${first.directory}.readers`)).toBe(false);
   expect(existsSync(first.directory)).toBe(false);expect(existsSync(newer.directory)).toBe(true);
 });
 
