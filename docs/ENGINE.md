@@ -849,8 +849,12 @@ receipts to the page, preserving HTTP-cache hits and worker clock offsets.
 Foreground worker fetches use the same receipts; a synthetic page response
 never double-charges a worker-owned transfer or calls its HTTP-cache hit network. The loading screen
 shows downloaded bytes and cache bytes separately; unclassified worker receipts
-stay explicit. Service-worker responses carry transport provenance through
-Server-Timing without extra response-body reads. Expected files remain pending
+stay explicit. Service-worker Resource Timing batches reach the page through
+`receiveWorkerDownloads(value, pageOrigin)`; the pure receiver converts clocks
+and buffers early receipts until an attempt installs. `ws-receipt` marks the
+synthetic page response so the actual worker fetch owns network/cache bytes
+once. Cache hits carry `ws-cache` sizes for Safari. No accounting reads or tees
+response bodies. Expected files remain pending
 until a network or cache receipt arrives; completion credits from legacy steps
 are not downloaded bytes.
 
@@ -861,7 +865,13 @@ cache/texture workers, Wasm preparation and shader linking use this registry;
 Loading displays the active dependency and files in flight without changing
 ownership, scheduling or concurrency. Synchronous work remains a reported stage.
 
-`Loading.setPath({id, steps, ignored?})` accepts a data-only step vocabulary.
+`Loading.setPath({id, steps, ignored?}, calibrations?)` accepts a data-only step
+vocabulary and measured baseline tables supplied by the composition root.
+Each calibration names its tier, path, identity, source SHA, sample count and
+per-stage milliseconds. Like-for-like local history blends with that baseline;
+missing measurements use explicit row-weight fallbacks. Running rows approach
+their expected share exponentially; only completion grants the full share.
+The engine contains no content identities or product measurements.
 `loadingStage(key, work)` in `@wildshard/engine/boot/waits` measures semantic
 boundaries, including LevelLoader hooks and initial home entry. Nested stages
 own exclusive wall intervals, so stage and explicit gap rows sum to the loading
