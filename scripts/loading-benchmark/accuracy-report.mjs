@@ -7,7 +7,8 @@ export function accuracyReport(accuracy, networkBytes) {
   };
   const stageSeconds = final?.rows.reduce((sum, row) => sum + (row.ms === undefined ? seconds(row.duration) : Number(row.ms) / 1000), 0) ?? 0;
   const clockSeconds = final ? final.clock.split(':').reduce((minutes, value) => minutes * 60 + Number(value), 0) : 0;
-  const updates = accuracy.updates;
+  const updates = [accuracy.firstAt ?? accuracy.updates[0] ?? 0, ...accuracy.updates, accuracy.readyAt]
+    .filter(at => Number.isFinite(at) && at <= accuracy.readyAt);
   const displayedNetworkBytes = final?.networkBytes === undefined ? null : Number(final.networkBytes);
   const byteError = networkBytes === null || displayedNetworkBytes === null ? null
     : Math.abs(displayedNetworkBytes - networkBytes) / Math.max(1, networkBytes);

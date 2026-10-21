@@ -1,2 +1,2 @@
-interface Accuracy { readyAt: number; updates: number[]; final: { clock: string; networkBytes?: string; download?: string; rows: { label: string; duration: string; ms?: string }[] } | null }
+interface Accuracy { readyAt: number; firstAt?: number | null; updates: number[]; final: { clock: string; networkBytes?: string; download?: string; rows: { label: string; duration: string; ms?: string }[] } | null }
 export function accuracyReport(accuracy: Accuracy, networkBytes: number | null): { failures: string[]; stageSeconds: number; clockSeconds: number; unaccountedSeconds: number; displayedNetworkBytes: number | null; networkBytes: number | null; byteError: number | null; visibleByteError: number | null; maxDetailGapMs: number };

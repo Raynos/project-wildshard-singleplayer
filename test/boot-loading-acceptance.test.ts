@@ -23,3 +23,10 @@ it('checks the visible MB label as well as the underlying raw counter', () => {
     final: { clock: '00:01.0', networkBytes: '100000000', download: '90.0 MB downloaded', rows: [{ label: 'Admission', duration: '1 s' }] } }, 100000000);
   expect(receipt.failures).toContain('Visible MB count differs by more than 5%');
 });
+
+
+it('rejects a silent start or tail even without two recorded detail changes', () => {
+  const receipt = accuracyReport({ firstAt: 100, readyAt: 3000, updates: [200],
+    final: { clock: '00:03.0', networkBytes: '100', rows: [{ label: 'Admission', duration: '3 s' }] } }, 100);
+  expect(receipt.failures).toContain('Detailed update gap exceeds 1 s');
+});

@@ -1,5 +1,5 @@
 export function accuracyRecorder() {
-      const state = { samples: [], final: null, readyAt: 0, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [], workerReceipts: [] };
+      const state = { samples: [], final: null, readyAt: 0, firstAt: -1, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [], workerReceipts: [] };
       Reflect.set(window, '__loadingAccuracy', state);
       navigator.serviceWorker.addEventListener('message', event => {
         if (!state.readyAt && event.data?.type === 'WS_BACKGROUND_DOWNLOAD') state.workerReceipts.push(event.data);
@@ -13,6 +13,7 @@ export function accuracyRecorder() {
         const root = document.querySelector('.ws-load');
         if (!(root instanceof HTMLElement) || Object.hasOwn(root.dataset, 'shell') || state.readyAt) return;
         const now = performance.now();
+        if (state.firstAt < 0) state.firstAt = now;
         const text = key => root.querySelector(`[data-el="${key}"]`)?.textContent ?? '';
         const rows = [...root.querySelectorAll('[data-el="rows"] > div')].map(row => ({
           label: row.children.item(0)?.textContent ?? '', detail: row.children.item(1)?.textContent ?? '',
