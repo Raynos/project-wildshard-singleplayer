@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeAll, expect, test } from 'vitest';
+import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
@@ -10,7 +11,7 @@ import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { installChapterStory } from '../src/game/quest/chapter';
 import { readChapterDirector } from '../src/game/quest/chapterDirector';
-import { parseChapterDirector, chapterObservations } from '../src/format/chapterDirector';
+import { ChapterDirectorSchema, parseChapterDirector, chapterObservations } from '../src/format/chapterDirector';
 import type { ShardContext } from '../src/game/plugin/context';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';
@@ -35,6 +36,15 @@ test('both real chapter declarations read live values through the same renderer-
 beforeAll(async () => {
   for (const slug of ['pine-hollow', 'driftwood-isle']) products.set(slug, await loadHeadlessProduct(`out/${slug}`));
 }, 30_000);
+
+test('Pine native product uses the shared request rows and retires executable binding data', async () => {
+  const product = products.get('pine-hollow'); if (product === undefined) throw new Error('Missing real Pine product');
+  const native: unknown = JSON.parse(new TextDecoder().decode(await product.file('quests/native-story.json')));
+  const clock = v.parse(v.object({ clock: ChapterDirectorSchema }), native).clock;
+  expect(clock.requests).toEqual(pineRows.requests);
+  const director: unknown = JSON.parse(new TextDecoder().decode(await product.file('directors/main.json')));
+  expect(v.parse(v.object({ bindings: v.null() }), director).bindings).toBeNull();
+});
 
 async function fixture(slug: string, saved: readonly string[]) {
   const product = products.get(slug); if (product === undefined) throw new Error('Missing real product');

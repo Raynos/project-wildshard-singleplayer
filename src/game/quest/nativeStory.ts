@@ -53,7 +53,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   director: Awaited<ReturnType<typeof readDirectorProduct>>): NativeStory {
   if (!isJsonData(rows)) throw new Error('Native story requires JSON rows');
   const policy = rows.policy, content = rows.content, spots = rows.spots, flags = host.flags;
-  const clockRows = parseChapterDirector(policy.clock.director);
+  const clockRows = parseChapterDirector(policy.clock);
   if (Object.values(clockRows.actions).some(effects => effects.some(effect => effect.kind !== 'flag' && effect.kind !== 'phase')))
     throw new Error('Native chapter publications require flag or phase effects');
   const entry = prepareNativeQuestEntry(host, product.shardfile, content.table, spots.rows), { input, pack } = entry;
@@ -169,7 +169,9 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
 
 
 
-  host.scope.onDispose(flags.onChange((flag, on) => { if (on && flag === policy.clock.wait) clock.request(policy.clock.nightRequest); }));
+  host.scope.onDispose(flags.onChange((flag, on) => {
+    if (on) for (const request of clockRows.requests) if ('flag' in request && flag === request.flag) clock.request(request.request);
+  }));
   counterBook.observe();
   const killed = bindQuestDeathEffects(content.deaths, { kill: feats.kill, event: feats.event,
     calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
@@ -207,7 +209,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
       day.phase = questPhaseAt(ff.from, ff.span, ff.t, ff.dur);
       if (ff.t / ff.dur >= 1) { day.phase = ff.to; fast.on = null; }
     }
-    if (chapter.current?.id === policy.clock.step) clock.request(policy.clock.dawnRequest);
+    for (const request of clockRows.requests) if ('step' in request && chapter.current?.id === request.step) clock.request(request.request);
     clock.update(dt);
     // The fixed 60 Hz host tick is already saved; its six-tick phase needs
     // no new continuation wire. Only the elapsed clock advances between decisions.

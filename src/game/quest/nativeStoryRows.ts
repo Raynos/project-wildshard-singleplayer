@@ -37,7 +37,6 @@ export interface NativeStoryRows {
     readonly touch: { readonly prefix: string; readonly item: string };
     readonly finish: { readonly id: string; readonly claims: number; readonly ids: readonly string[] };
     readonly lead: { readonly step: string; readonly target: string; readonly nightAbove: number };
-    readonly clock: { readonly director: ChapterDirectorRows;
-      readonly wait: string; readonly nightRequest: string; readonly step: string; readonly dawnRequest: string };
+    readonly clock: ChapterDirectorRows;
   };
 }

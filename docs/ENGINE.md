@@ -10575,6 +10575,11 @@ The producer retains the original native effect projection, including quiet
 presentation events and original phase durations. No reflected publication
 method is installed. Native request cadence, stage cursor and saved fast
 curve retain their original owners and wire.
+Both projections now select requests from those same chapter rows. The
+page keeps its original step-edge requests; native keeps its original
+per-tick step requests and flag-change delivery. Pine's main director product
+no longer publishes the unused reflected bindings payload (`bindings` is
+null); the existing module, stage contract and cursor remain unchanged.
 
 The renderer-free `game/quest/storyLaw.questPhaseSpan` and `questPhaseAt`
 share the forward clock arc between Pine's native/page watch and Driftwood's
