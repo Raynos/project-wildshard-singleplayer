@@ -2,7 +2,7 @@ import { partitionPendingPlatformUsers } from '../scripts/shard-platform.mjs';
 import { expect,test } from 'vitest';
 import { COMPONENTS,componentInventory,componentWave,SHARD_WAVES,type ComponentInventory } from '../scripts/shard-components.mjs';
 
-test('G471 current and next waves retain their roster and unknown ownership refuses closure',()=>{
+test('G471 waves retain their roster and unknown ownership refuses C9 closure',()=>{
   const rows:Record<string,{components:ComponentInventory}>={};
   for(const wave of SHARD_WAVES)for(const {slug} of wave.shards){
     const counts={C1:0,C2:0,C3:0,C4:0,C5:0,C6:0,C7:0,C8:0,C9:0};
@@ -14,7 +14,8 @@ test('G471 current and next waves retain their roster and unknown ownership refu
   const pine=rows['pine-hollow'];if(pine===undefined)throw new Error('Missing fixture');
   pine.components.unknown.push('unclassified');
   expect(Object.keys(current.components)).toEqual(Object.keys(COMPONENTS));
-  expect(componentWave(rows,'W2').components.C5.closed).toBe(false);
+  expect(componentWave(rows,'W2').components.C9.closed).toBe(false);
+  expect(componentWave(rows,'W2').components.C5.closed).toBe(true);
   expect(componentWave(rows).components.C5.closed).toBe(true);
   expect(componentWave(rows,'W2').unknown['pine-hollow']).toContain('unclassified');
 });

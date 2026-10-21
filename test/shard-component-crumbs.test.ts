@@ -84,7 +84,7 @@ test('borrowed service fields retain their owner; calls and tuning keep semantic
 
 test('known zeros close; pending charges stay closing and unresolved owners stay in C9', () => {
   const inventory = (lines: number) => componentInventory('', 'nalati-grasslands',
-    [{ path: 'src/game/riding/mountedFigure.ts', kind: 'sole-module', lines }], lines);
+    [{ path: 'src/shards/nalati-grasslands/ride/charged.ts', kind: 'sole-export', lines }], lines);
   const pending = inventory(93); pending.unknown.push('unresolved boot binding');
   const states = componentStates({ nalati: { components: pending } }, ['nalati'], ['C7']);
   expect(states.C8.state).toBe('closed'); expect(states.C7.state).toBe('closing'); expect(states.C9.state).toBe('open');
