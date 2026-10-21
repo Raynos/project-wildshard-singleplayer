@@ -1,0 +1,66 @@
+{
+  "sha": "36eda397f8d0106f8fa940491135ccd7459c1ee1",
+  "surface": "Chromium iPhone 16 Pro, muted",
+  "quiet": false,
+  "batchProof": "20261021T042038-sp-x8-x5-trader-bridge-map-batch-79044",
+  "browserProof": "20261021T042048-sp-x8-x5-trader-map-purchases-79911",
+  "results": [
+    {
+      "ammoAfter": 8,
+      "ammoBefore": 0,
+      "build": "36eda39-mvhwzxdv",
+      "button": "Need 1 boar hide",
+      "counts": {
+        "amber-resin": 4,
+        "lodge-ribbon": 3
+      },
+      "errors": [],
+      "rides": {
+        "canoe": {
+          "name": "canoe-ride",
+          "vertices": 1494,
+          "visible": false
+        },
+        "sameParent": true,
+        "trolley": {
+          "name": "zip-trolley",
+          "roughness": 0.86,
+          "vertices": 372
+        }
+      },
+      "shard": "pine-hollow",
+      "talks": {
+        "before": {},
+        "flag": true,
+        "paid": {
+          "amber-resin": 4,
+          "lodge-ribbon": 3
+        },
+        "repeated": {
+          "amber-resin": 4,
+          "lodge-ribbon": 3
+        }
+      },
+      "viewport": {
+        "dpr": 3,
+        "height": 874,
+        "width": 402
+      }
+    },
+    {
+      "build": "36eda39-mvhwzxdv",
+      "button": "Whetstone I \u00b7 Owned",
+      "coins": 0,
+      "errors": [],
+      "owned": [
+        "whetstone-1"
+      ],
+      "shard": "driftwood-isle",
+      "viewport": {
+        "dpr": 3,
+        "height": 874,
+        "width": 402
+      }
+    }
+  ]
+}
