@@ -17,7 +17,8 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | O6 | Pine King atmosphere hook + cave/pool presentation onto boss-host / water rows (listed view code if per-frame) | G532 research P3/P4 | sp-o4 21:50 |
 | O7 | Driftwood ocean admitted through world.water (floor, dry, lent, foam) as a declared client-plan world feature (after X11) | G532 phase C, sp-o5 19:55 | |
 | O8 | A living-buildings client feature for Driftwood's shrine life (real second user required, G518) (after X11) | G532 phase C | |
-| O9 | SF88e tail: pastel-plain and ink-cel-valley pass all six M2 grid-ready criteria in the ruler (baked tiles, edge, entries, accent, memory, one-frame looks) and read as themselves from the road; own proxies and looks landed fb416ded15 | G526, SF88e | |
+| O9 | SF88e tail: pastel-plain and ink-cel-valley pass all six M2 grid-ready criteria in the ruler (baked tiles, edge, entries, accent, memory, one-frame looks) and read as themselves from the road; own proxies and looks landed fb416ded15 | G526, SF88e | sp-o1 22:00 |
+| O11 | Nine's runtime sometimes loads partway through an outer-road drive (long frames, ~157 MB; sp-o1 10-20, intermittent, predates SF88c): find why the drive triggers it and admit Nine's runtime only on approach like other cells, proven by a 5x5 outer-road drive on the Simulator with no frame > 200 ms from it | Jake goal 30-60 fps Sim, G534 | sp-o5 22:00 |
 | O10 | Nine remaining view code (look and world view tails after bee045e89f) toward 5 % custom, onto existing look/scene hosts or Nine AS + data | G533 step 6 | |
 
 ## Codex (non-graphical)
