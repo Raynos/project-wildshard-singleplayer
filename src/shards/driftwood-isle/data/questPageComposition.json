@@ -13,6 +13,11 @@
   "deathMoves": [{ "effect": "hold-key", "target": "hold-key" }],
   "talks": { "models": [{ "source": "entered", "id": "castaway", "approach": "wave", "swap": true, "stow": true }], "calls": {} },
   "held": "iron-sword", "remaining": "Still to find", "quietPlaces": ["pier"],
+  "speaker": {
+    "figure": "castaway",
+    "feet": { "poi": "hut", "anchor": "hut.npc", "x": 2.4, "z": -8.2, "yaw": 3.491592653589793 },
+    "fire": { "poi": "hut", "x": 0.7, "z": -9.8 }
+  },
   "trader": { "figure": "trader", "counter": "trade-counter", "offer": "offer", "label": "Trade with Maren", "radius": 2.8 },
   "cable": {
     "scene": "harbour.zipline", "mode": "driftwood.zipline",
@@ -24,6 +29,7 @@
   "sway": { "piece": "bridge", "height": 0.35, "ease": 3, "threshold": 0.001, "rate": 0.8, "speed": 0.25, "rollHz": 1.7, "roll": 0.018, "dipHz": 3.4, "dip": 0.025 },
   "guideHeight": 300, "placeInterval": 0.25,
   "systems": {
+    "speakerPose": "driftwood.speaker.pose", "traderPose": "driftwood.trader.pose",
     "kit": "shard.driftwood.adventure", "talks": "shard.driftwood-isle.installSpine",
     "trader": "shard.driftwood-isle.installTrader", "cable": "shard.driftwood.adventure.2",
     "guide": "shard.driftwood-isle.installGullGuide", "sway": "shard.driftwood.adventure.3",

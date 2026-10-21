@@ -63,6 +63,7 @@ test('world and figure channels are scoped, and page intake refuses code', () =>
 
 test('page composition admits an authored place frame rather than a fixed island vocabulary', () => {
   const orchard = { ...rows, events: [], deaths: [], frames: { orchard: { x: 5, z: 8, rot: .3 } },
+    speaker: { ...rows.speaker, feet: { poi: 'orchard', x: 1, z: 2 }, fire: { poi: 'orchard', x: 3, z: 4 } },
     boss: { ...rows.boss, pool: { poi: 'orchard', x: 6, z: 7 } } };
   expect(v.parse(QuestPageCompositionSchema, orchard).frames).toEqual(orchard.frames);
   expect(() => v.parse(QuestPageCompositionSchema, { ...orchard, frames: { orchard: { x: 5, z: 8, rot: Number.NaN } } })).toThrow();
