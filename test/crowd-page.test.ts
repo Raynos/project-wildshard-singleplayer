@@ -5,18 +5,25 @@ import { Rng } from '../src/engine/core/rng';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { createPageCrowds, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
+import { createPageCrowds, readCrowdBody, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { legacyDouble } from './fake/FakeGame';
-import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../src/shards/nalati-grasslands-legacy/species/sheep';
+import { bakeSheepBody } from '../src/shards/nalati-grasslands/generators/sheepBody';
 import view from '../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { wildEnv } from '../src/game/population/pageGroups';
 
-test('an unrelated marsh crowd uses its own bounds, identity, material and native cadence', () => {
+/** The live Nalati sheep body, read through the page crowd's own product reader. */
+function sheepBody(): ReturnType<typeof readCrowdBody> {
+  const { bytes, ...row } = bakeSheepBody(), metadata = new TextEncoder().encode(JSON.stringify({ species: {}, ...row }));
+  return readCrowdBody({ file: name => name === 'actors/sheep.bin' ? Promise.resolve(bytes) : name === 'actors/sheep.json' ? Promise.resolve(metadata) : Promise.reject(new Error('Unexpected sheep product file')) },
+    { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
+}
+
+test('an unrelated marsh crowd uses its own bounds, identity, material and native cadence', async () => {
   setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000);
   const sky = legacyDouble<SkyRig>({ csm: legacyDouble<SkyRig['csm']>({ lights: [] }), sunDir: new Vector3(0, 1, 0), setupMaterial: () => undefined });
-  const geometry = buildSheepGeometry(), body = { geometry, pivots: SHEEP_PIVOTS, parts: SHEEP_PART_NAMES };
+  const body = await sheepBody(), geometry = body.geometry;
   const row = { id: 'marsh.cranes', kind: 'flock', x: 12, z: -25, count: 3, seed: 17, range: 20, runSpeed: 4, walkSpeed: .8, grazeStep: .2, bleatCue: 'crane.call' };
   const guard = { signal: 'dog', clock: 'marsh.guardClock', every: .2, straggler: 15, bark: 'crane.alarm', soundHeight: .8, memory: { bark: 'marsh.bark', rest: 'marsh.rest', snarl: 'marsh.snarl', low: 'marsh.low' }, states: ['idle', 'alert', 'stalk', 'wander'] };
   const data = { guard, slug: 'reed-marsh', hull: null, bounds: [-40, 70, -90, 40], rows: [row], material: { rim: .3, bands: .6 }, view: { ...view, name: 'marsh.cranes' } };

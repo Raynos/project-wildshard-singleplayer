@@ -13,7 +13,8 @@ import { Thrown } from '@wildshard/sdk/runtime/weapons/Thrown';
 import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
 import {parseAudioData} from '@wildshard/format/audio';
 import { ND_AUDIO } from '../src/shards/nine-dragon-stack/generators/audio';
-import { SteppeAmbience } from '../src/shards/nalati-grasslands-legacy/runtime/audio/SteppeAmbience';
+// The original steppe ambience's mixes, pans, diagnostics, calls and zones, frozen from the legacy copy
+import FROZEN from './fixtures/legacy-oracles/nalati-ambience.json' with { type: 'json' };
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 
@@ -37,40 +38,38 @@ it('replays the frozen zone, mix, call timing and seeded positions across weathe
   const mixes: { id: string; gain: number; tau: number; panned: boolean | undefined }[] = [];
   vi.spyOn(AmbienceZones.prototype, 'mix').mockImplementation((row, _sample, gain, tau) => { mixes.push({ id: row.id, gain, tau, panned: row.panned }); });
   vi.spyOn(AmbienceZones.prototype, 'silence').mockImplementation(() => undefined);
-  const old = new SteppeAmbience(audio), current = new SampledAmbience(audio, profile), listener = new Vector3(21, 4, -51);
-  const oldZones: unknown = Reflect.get(old, 'zones');
-  if (!(oldZones instanceof AmbienceZones)) throw new Error('Missing frozen native zones');
+  const current = new SampledAmbience(audio, profile), listener = new Vector3(21, 4, -51);
   const pans: number[][] = [];
   const addPans = (zones: AmbienceZones): void => {
     for (const id of ['river', 'camp', 'meltwater']) zones.beds.set(id, { gain: {} as GainNode, pan: { pan: { setTargetAtTime: (...args: number[]) => { pans.push(args); } } } as StereoPannerNode,
       src: undefined, buf: undefined, level: 0, quiet: 0 });
   };
-  addPans(oldZones); addPans(current.zones);
+  addPans(current.zones);
   vi.spyOn(AmbienceZones.prototype, 'dispose').mockImplementation(() => undefined);
   const place = { zones: [1, 0, 0] as readonly [number, number, number], river: 0.7, melt: 0.3, camp: 0.4, night: 0.2, wind: 9, gust: 0.6, out: 1, pan: { river: -0.6, camp: 0.1, melt: 0.8 } };
+  const sets = FROZEN.sets.values(), calls = new Map(FROZEN.calls.map(row => [row.frame, row.calls]));
+  const frozenZones = FROZEN.zones.flatMap(([zone, count]) => Array.from({ length: Number(count) }, () => zone));
   for (let frame = 0; frame < 6000; frame++) {
     const region = Math.floor(frame / 600) % 3;
     const zones: readonly [number, number, number] = region === 0 ? [1, 0, 0] : region === 1 ? [0, 1, 0] : [0, 0, 1];
     const storm = Math.floor(frame / 900) % 2 === 0 ? 0 : 0.8;
-    old.storm.wind = storm; old.storm.rain = storm;
     current.inputs['storm'] = storm; current.inputs['rain'] = storm;
     if (frame % 15 === 0) {
       place.zones = zones; place.out = frame > 4500 && frame < 4800 ? 0 : 1;
-      old.set(place); const expected = mixes.splice(0), expectedPans = pans.splice(0);
+      const frozen = sets.next().value; if (frozen?.frame !== frame) throw new Error(`Missing frozen ambience set at ${String(frame)}`);
       const [valley, bowl, snow] = zones;
       current.set({ valley, bowl, snow, river: place.river, melt: place.melt, camp: place.camp, night: place.night, wind: place.wind, gust: place.gust, out: place.out,
         riverPan: place.pan.river, campPan: place.pan.camp, meltPan: place.pan.melt });
       current.mix();
-      expect(mixes.splice(0)).toEqual(expected);
-      expect(current.diag).toEqual(old.diag);
-      expect(pans.splice(0)).toEqual(expectedPans);
+      expect(mixes.splice(0)).toEqual(frozen.mixes);
+      expect(current.diag).toEqual(frozen.diag);
+      expect(pans.splice(0)).toEqual(frozen.pans);
     }
-    old.update(1 / 60, listener, 0.37); const calls = audio.recordedCalls.splice(0);
     current.advance(1 / 60, listener, 0.37);
-    expect(audio.recordedCalls.splice(0)).toEqual(calls);
-    expect(current.zone).toBe(old.zone);
+    expect(audio.recordedCalls.splice(0)).toEqual(calls.get(frame) ?? []);
+    expect(current.zone).toBe(frozenZones[frame]);
   }
-  old.dispose(); current.dispose();
+  current.dispose();
 });
 it('retains the market/Well distance blend throughout and outside every authored rectangle', () => {
   const profile = requireAudioProfile(ND_AUDIO.zones, 'zones'), current = new SampledAmbience(new Audio(), profile);

@@ -1,11 +1,14 @@
 import { expect, it } from 'vitest';
-import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../src/shards/nalati-grasslands-legacy/species/sheep';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare baked channels by their exact bytes.
+import { createHash } from 'node:crypto';
+import type { BufferAttribute, InterleavedBufferAttribute } from 'three';
 import { bakeSheepBody } from '../src/shards/nalati-grasslands/generators/sheepBody';
 import { readCrowdBody } from '../src/game/ambient/crowdPage';
 import { FlockBrain } from '../src/engine/ai/flock';
 import { flock } from '../src/sdk/crowds';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
-import { nalatiFlockRows as originalFlockRows } from '../src/shards/nalati-grasslands-legacy/creatures/flockRows';
+// The original Nalati sheep and flock rows, frozen from the legacy copy (fixtures/legacy-oracles/nalati-sheep.json)
+import FROZEN from './fixtures/legacy-oracles/nalati-sheep.json' with { type: 'json' };
 import { ShippingFlock } from './fixtures/flock-oracle/flock';
 
 const readFlockBody = (product: Parameters<typeof readCrowdBody>[0]) => readCrowdBody(product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
@@ -23,31 +26,35 @@ const source = () => {
 for (const seed of [0, 3, 8172, 0xffffffff - 101]) it(`keeps flock identities and setup seeds exact at ${String(seed)}`, () => {
   const world = ecology.flocks.world.map(row => flock({ ...row, seed: seed + row.seed }));
   const specimen = ecology.flocks.specimen.map(row => flock({ ...row, seed: seed + row.seed }));
-  expect(world).toEqual(originalFlockRows(seed));
-  expect(specimen).toEqual(originalFlockRows(seed, [{ x: 0, z: 0, count: 1, dog: false }]));
+  const frozen = FROZEN.flocks[String(seed) as keyof typeof FROZEN.flocks];
+  expect(world).toEqual(frozen.world);
+  expect(specimen).toEqual(frozen.specimen);
 });
 
 it('keeps every frozen sheep vertex, rig weight, index and animation bound exactly', async () => {
-  const original = buildSheepGeometry(), product = source(), body = await readFlockBody(product), baked = body.geometry;
+  const original = FROZEN.geometry, product = source(), body = await readFlockBody(product), baked = body.geometry;
+  const bytes = (attribute: BufferAttribute | InterleavedBufferAttribute): string => {
+    const array = attribute.array; return createHash('sha256').update(new Uint8Array(array.buffer, array.byteOffset, array.byteLength)).digest('hex');
+  };
   try {
-    expect(Object.keys(baked.attributes)).toEqual(Object.keys(original.attributes));
-    for (const name of Object.keys(original.attributes)) {
-      const actual = baked.getAttribute(name), expected = original.getAttribute(name);
-      expect(actual.array, name).toEqual(expected.array);
-      expect([actual.itemSize, actual.normalized], name).toEqual([expected.itemSize, expected.normalized]);
+    expect(Object.keys(baked.attributes)).toEqual(original.order);
+    for (const [name, expected] of Object.entries(original.attributes)) {
+      const actual = baked.getAttribute(name);
+      expect({ hash: bytes(actual), length: actual.array.length, kind: actual.array.constructor.name, itemSize: actual.itemSize, normalized: actual.normalized }, name).toEqual(expected);
     }
-    expect(baked.index?.array).toEqual(original.index?.array);
+    const index = baked.index;
+    expect(index === null ? null : { hash: bytes(index), length: index.array.length, kind: index.array.constructor.name }).toEqual(original.index);
     expect(baked.groups).toEqual(original.groups);
-    expect(baked.boundingSphere).toEqual(original.boundingSphere);
-    expect(baked.boundingBox).toEqual(original.boundingBox);
-    expect(body.pivots).toEqual(SHEEP_PIVOTS); expect(body.parts).toEqual(SHEEP_PART_NAMES);
-    const first = baked.clone(), second = baked.clone();
+    expect(baked.boundingSphere === null ? null : { center: baked.boundingSphere.center.toArray(), radius: baked.boundingSphere.radius }).toEqual(original.boundingSphere);
+    expect(baked.boundingBox === null ? null : { min: baked.boundingBox.min.toArray(), max: baked.boundingBox.max.toArray() }).toEqual(original.boundingBox);
+    expect(body.pivots).toEqual(FROZEN.pivots); expect(body.parts).toEqual(FROZEN.parts);
+    const first = baked.clone(), second = baked.clone(), x0 = baked.getAttribute('position').getX(0);
     try {
       first.getAttribute('position').setX(0, 1000);
-      expect(second.getAttribute('position').getX(0)).toBe(original.getAttribute('position').getX(0));
-      expect(baked.getAttribute('position').getX(0)).toBe(original.getAttribute('position').getX(0));
+      expect(second.getAttribute('position').getX(0)).toBe(x0);
+      expect(baked.getAttribute('position').getX(0)).toBe(x0);
     } finally { first.dispose(); second.dispose(); }
-  } finally { original.dispose(); baked.dispose(); }
+  } finally { baked.dispose(); }
 });
 
 it('refuses truncated product bytes before a flock can build', async () => {

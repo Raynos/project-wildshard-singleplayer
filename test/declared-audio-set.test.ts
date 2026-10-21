@@ -11,23 +11,23 @@ import {requireAudioProfile} from '@wildshard/engine/audio/audioProfiles';
 import {createCueRouter} from '@wildshard/engine/audio/cueRouting';
 import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
 import {ND_AUDIO} from '../src/shards/nine-dragon-stack/generators/audio';
-import {createNalatiAudio} from '../src/shards/nalati-grasslands-legacy/runtime/audio/files';
 import NINE_FROZEN from './fixtures/legacy-oracles/nine-audio.json' with {type:'json'};
-import {steppePick,createSteppeScore} from '../src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore';
+import NALATI_FROZEN from './fixtures/legacy-oracles/nalati-audio.json' with {type:'json'};
 import type {CombatCueOpts} from '@wildshard/engine/combat/cues';
 
 const NALATI_AUDIO=parseAudioData(audioDeclaration.audio);
 
-// The frozen shards are independent executable oracles. They are never modified.
+// The original shards' audio, frozen from their legacy copies (fixtures/legacy-oracles/*-audio.json).
 afterEach(()=>{vi.restoreAllMocks();});
 it('retains score-set inventory, boot order and Synth gates (Nalati)',async()=>{
  const selected=vi.spyOn(settings,'getSfxSet');
- const declared=await createCatalogueAudio(NALATI_AUDIO),legacy=await createNalatiAudio();
+ const declared=await createCatalogueAudio(NALATI_AUDIO),frozen:Record<string,{files:unknown;priority:unknown;boot:Record<string,unknown>}>=NALATI_FROZEN.inventory;
  for(const sfx of ['synth',...settings.SFX_SETS] as const){
   selected.mockReturnValue(sfx);
-  expect(declared.files()).toEqual(legacy.files());
-  expect(declared.priorityFiles?.()).toEqual(legacy.priorityFiles?.());
-  for(const style of ['synth',...settings.MUSIC_STYLES] as const)expect(declared.bootFiles(style)).toEqual(legacy.bootFiles(style));
+  const row=frozen[sfx];if(row===undefined)throw new Error(`Missing frozen Nalati audio set ${sfx}`);
+  expect(declared.files()).toEqual(row.files);
+  expect(declared.priorityFiles?.()??null).toEqual(row.priority);
+  for(const style of ['synth',...settings.MUSIC_STYLES] as const)expect(declared.bootFiles(style)).toEqual(row.boot[style]);
  }
 });
 // Nine Dragon's original audio, frozen (fixtures/legacy-oracles/nine-audio.json): its inventory per set and style
@@ -58,15 +58,14 @@ it.each([[NALATI_AUDIO,'nalati'],[ND_AUDIO,'nine']] as const)('retains title/sco
  vi.spyOn(preload,'decodeSfxSet').mockImplementation((set,bed,_read,onFile)=>{
   order.push({kind:'samples',set,bed});onFile?.();return Promise.resolve({set,credit:'fixture',loops:new Map([['river',{buffer,loopStart:0,loopEnd:1,gain:0.2}]]),shots:new Map()});
  });
- const declared=await createCatalogueAudio(rows),legacy=which==='nalati'?await createNalatiAudio():null;
- const frozen:Record<string,{order:unknown;ticks:number}>=NINE_FROZEN.decode;
+ const declared=await createCatalogueAudio(rows);
+ const frozen:Record<string,{order:unknown;ticks:number}>=which==='nalati'?NALATI_FROZEN.decode:NINE_FROZEN.decode;
  for(const sfx of ['synth',...settings.SFX_SETS] as const)for(const style of ['synth','folk'] as const){
   selected.mockReturnValue(sfx);
   const run=async(profile:typeof declared)=>{
    order=[];let ticks=0;const bank=await profile.decode(style,()=>Promise.resolve(new ArrayBuffer(0)),()=>Promise.resolve(buffer),()=>{ticks++;});return {order:[...order],ticks,bank};
   };
-  if(legacy!==null){expect(await run(declared)).toEqual(await run(legacy));continue;}
-  // Nine Dragon's original decode order and ticks, frozen
+  // the original decode order and ticks, frozen
   const ran=await run(declared);expect({order:structuredClone(ran.order),ticks:ran.ticks}).toEqual(frozen[`${sfx}/${style}`]);
  }
 });
@@ -75,10 +74,10 @@ it('preserves every Nalati scene fallback and Nine Dragon combat/Well precedence
  const decode=():Promise<AudioBuffer>=>Promise.reject(new Error('No decode during selection'));
  const onReady=():void=>{/* Native music refresh is borrowed. */};
  const nalati=SetScore.declared(requireAudioProfile(NALATI_AUDIO.music,'music'),{refreshScore:onReady},{read,decode});
- const original=createSteppeScore(read,decode,onReady);
  for(const zone of ['grass','sky','snow'] as const)for(const night of [false,true])for(const storm of [false,true])for(const boss of [null,'king'] as const){
-  const scene={zone,night,storm,boss};Object.assign(nalati.scene,scene);Object.assign(original.scene,scene);
-  expect(nalati.target()).toBe(steppePick(scene)[0]);expect(nalati.target()).toBe(original.target());
+  const scene={zone,night,storm,boss};Object.assign(nalati.scene,scene);
+  const frozen=NALATI_FROZEN.picks[`${zone}/${String(night)}/${String(storm)}/${String(boss)}` as keyof typeof NALATI_FROZEN.picks];
+  expect(nalati.target()).toBe(frozen.pick);expect(nalati.target()).toBe(frozen.target);
  }
  const dragon=SetScore.declared(requireAudioProfile(ND_AUDIO.music,'music'),{refreshScore:onReady},{read,decode});
  for(const well of [0,0.5,0.50001,1])for(const mode of ['calm','alert','combat'] as const){
