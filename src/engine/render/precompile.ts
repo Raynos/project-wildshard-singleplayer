@@ -700,6 +700,23 @@ export const LIVE_LINK_POLL_MS = 250;
 /** the wait before asking an unfinished link again: LIVE_LINK_POLL_MS in play, none while loading */
 const linkPollMs = (): number => (presenting() ? LIVE_LINK_POLL_MS : 0);
 
+/** How long a parallel link is waited on before its caller links it synchronously (ms; `boundedLinkWait`). */
+export const LINK_WAIT_MS = 10_000;
+/**
+ * Wait for parallel links to report done (`ready`), asking again after each `wait`, for at most `capMs`. WebKit can leave
+ * a link's COMPLETION_STATUS unreported (O14: Nine Dragon's entry warm-up then stalled past its 30 s bound on the
+ * Simulator; O15: Driftwood's offscreen sky): false past the bound, and the caller links what is left synchronously
+ * (three's `getUniforms()`: the link-status check, one long frame instead of no frame). Never waits forever.
+ */
+export async function boundedLinkWait(ready: () => boolean, wait: () => Promise<void>, capMs = LINK_WAIT_MS): Promise<boolean> {
+  const start = performance.now();
+  while (!ready()) {
+    if (performance.now() - start >= capMs) return false;
+    await wait();
+  }
+  return true;
+}
+
 // Program identities are renderer-owned; preparation must not keep a retired renderer or revisit its resolved links.
 const resolvedPrograms = new WeakSet<ProgramLike>();
 const preparedBlocks = new WeakMap<ProgramLike, WeakSet<THREE.Material>>();
@@ -975,12 +992,11 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   for (const [i, p] of pending.entries()) {
     checkCurrent();
     // A live slice settles one ready program. An incomplete link alone needs another poll.
-    if (parallel && isolateImageUploads) {
-      while (!p.isReady()) {
-        const asked = performance.now();
-        do { await pause(); checkCurrent(); } while (performance.now() - asked < linkPollMs());
-      }
-    }
+    // (past LINK_WAIT_MS the resolve below links it synchronously)
+    if (parallel && isolateImageUploads) await boundedLinkWait(() => p.isReady(), async () => {
+      const asked = performance.now();
+      do { await pause(); checkCurrent(); } while (performance.now() - asked < linkPollMs());
+    });
     if (!resolvedPrograms.has(p)) p.getUniforms();
     prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
     const linkedProgress = parallel ? (isolateImageUploads ? 2 * (i + 1) : n + i + 1) : i + 1;
