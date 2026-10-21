@@ -3372,7 +3372,8 @@ omission leaves the previous serialized bytes unchanged.
 Pine and Driftwood both select this admitted native composition. Pine keeps
 external modal/ride delivery and its existing graph continuation, with no new
 command step. Its root flag vocabulary appends table declarations after the
-original saved flag prefix; story installation supplies no duplicate graph.
+original saved flag prefix. Both page and native story bindings read that root
+graph; the custom story payload contains no second graph or interaction table.
 
 Root `questNpcs` also accepts `kind: "posed-talk"`: unchanged dialogue,
 named figure, reading policy, optional authored placement and named conditional

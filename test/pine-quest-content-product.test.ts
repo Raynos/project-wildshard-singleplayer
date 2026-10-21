@@ -10,6 +10,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseQuestData } from '../src/sdk/quests';
 import pinePeople from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
 import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
+import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';
 
 // Frozen canonical hashes of the original play-read authored declarations.
 const originals = {
@@ -34,6 +35,9 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);
   if (bytes === undefined) throw new Error('The product must publish its fixed quest rows');
   const rows = parsePineQuestRows(JSON.parse(new TextDecoder().decode(bytes)));
+  expect(rows).not.toHaveProperty('graph'); expect(rows).not.toHaveProperty('interactions');
+  expect(loaded.shard.questHost?.graph).toEqual(PINE_QUEST_RUNTIME.graph);
+  expect(loaded.shard.questHost?.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
   expect(hash(rows.content)).toBe(originals.content);
   expect(rows.table.rows).toHaveLength(44);
   const resin = FOREST_STORY.collections[0], tokens = FOREST_STORY.collections[1];

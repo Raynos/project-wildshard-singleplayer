@@ -4,14 +4,13 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { ShopGood } from '@wildshard/game/loot/ui/ShopPanel';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
 import type { MoverRuntime, MoverInstallation } from '@wildshard/game/plugin/mover';
-import type { InteractionRowsData } from '@wildshard/format/questInteractions';
 import type { PackedGeometryJson } from '../kit/geometryPack';
 
 interface Point { x: number; z: number }
 type Triple = [number, number, number];
 /** Story content remains in its admitted section; hosts validate subcontracts. */
 export interface ForestStoryContent {
-  readonly table: InteractTable; readonly interactions: InteractionRowsData; readonly steps: unknown;
+  readonly table: InteractTable; readonly steps: unknown;
   readonly lead: { program: unknown }; readonly events: unknown; readonly pageDeaths: unknown; readonly content: unknown;
 }
 /** Existing shop cards carry the authored transaction identity. */

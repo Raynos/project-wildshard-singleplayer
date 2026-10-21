@@ -40,3 +40,8 @@ export const PINE_QUEST_RUNTIME = {
   beats: Object.fromEntries(Object.entries(BEATS).map(([id, beat]) => [id, { ...beat, flags: beatFlags(id as Beat) }])),
   content: pineQuestContent(contractCatalogue(), tradeCatalogue()),
 };
+
+// Root questHost is the single page/native graph declaration. The remaining
+// story payload carries presentation and continuation data only.
+const { graph: _graph, interactions: _interactions, ...payload } = PINE_QUEST_RUNTIME;
+export const PINE_QUEST_PAYLOAD = payload;

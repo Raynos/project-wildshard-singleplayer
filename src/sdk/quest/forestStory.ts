@@ -80,7 +80,8 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const sfx = equipment.ambience.sfx;
   const shot = (name: Parameters<DeclaredSoundBank['shot']>[0], at?: THREE.Vector3): void => { sfx.shot(name, at ? { at } : {}); };
 
-  const { table, interactions: lanternRules } = native;
+  const { table } = native, lanternRules = source.questHost?.interactions;
+  if (lanternRules === undefined) throw new Error('Story requires its admitted quest host');
   const kit = await entry.interact({ table, registryReach: 20 },
     { id: 'quest.kit', after: ['engine.compendium.installCompendium'], before: ['hud.combat', 'main.frame'] });
   const kitSfx = kit.sfx;

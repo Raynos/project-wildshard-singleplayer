@@ -9,7 +9,8 @@ import { questHostBindingRules } from '../src/format/questHost';
 import pine from '../src/shards/pine-hollow/generators/product';
 import driftwood from '../src/shards/driftwood-isle/generators/product';
 import people from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
-import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';
+import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from '../src/shards/pine-hollow/generators/questRuntime';
+import { parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 test('both quest entries use an admitted host and Pine preserves the existing flag prefix', () => {
@@ -21,6 +22,9 @@ test('both quest entries use an admitted host and Pine preserves the existing fl
   expect(pine.questHost?.graph).toEqual(PINE_QUEST_RUNTIME.graph);
   expect(pine.questHost?.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
   expect(pine.questHost?.commands.step).toBeNull();
+  expect(parsePineQuestRows(PINE_QUEST_PAYLOAD)).not.toHaveProperty('graph');
+  expect(parsePineQuestRows(PINE_QUEST_PAYLOAD)).not.toHaveProperty('interactions');
+  expect(() => parsePineQuestRows(PINE_QUEST_RUNTIME)).toThrow();
 });
 
 test('Pine declared entry preserves external action results, continuation and quiet restore', async () => {
