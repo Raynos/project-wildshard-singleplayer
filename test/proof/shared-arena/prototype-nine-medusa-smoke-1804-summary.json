@@ -1,0 +1,159 @@
+{
+  "schema": "wildshard.prototype-nine.functional-qa.v1",
+  "mode": "smoke",
+  "onlyKind": "pearlglass-medusa",
+  "startedAt": "2026-10-21T18:04:06.287Z",
+  "endedAt": "2026-10-21T18:04:34.036Z",
+  "passed": true,
+  "allNineCompleteCycles": false,
+  "checks": {
+    "lazy": true,
+    "nineEnabled": true,
+    "reloadLazy": true,
+    "reloadPlayable": true,
+    "emptyStores": true,
+    "noMissingRequests": true,
+    "allJavaScriptOwned": true,
+    "originalFourProductsRetained": true,
+    "newFiveProductsOwned": true,
+    "physicsRetained": true,
+    "noConsoleErrors": true,
+    "noPageErrors": true,
+    "exactBytesUnchanged": true,
+    "videoFinalized": true
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "stores": [
+    {
+      "local": [],
+      "session": [],
+      "caches": [],
+      "databases": [],
+      "workers": 0,
+      "world": null
+    },
+    {
+      "local": [],
+      "session": [],
+      "caches": [],
+      "databases": [],
+      "workers": 0,
+      "world": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    },
+    {
+      "local": [],
+      "session": [],
+      "caches": [],
+      "databases": [],
+      "workers": 0,
+      "world": null
+    },
+    {
+      "local": [],
+      "session": [],
+      "caches": [],
+      "databases": [],
+      "workers": 0,
+      "world": {
+        "docs": {
+          "global": {
+            "keys": {}
+          }
+        },
+        "shard": {},
+        "generation": 0
+      }
+    }
+  ],
+  "method": "Muted cloud Chromium, iPhone 16 Pro portrait. Real trusted touch controls and actual damage pipeline. Explicit logged player-only placements test functional combat, NOT player navigation. No HP, clock, enemy AI, pose or callback writes. Retained opponent.targets proves despawn death. Observed RAF cadence and recorder cadence are separate, neither physical-phone FPS. Smoke is NOT complete cycles; neither mode establishes likeness, animation quality or native corpse admission.",
+  "hostReceiptSha256": "20227267ccfb93b7d371f7ee4fb2033ab6b95ae5c8ca36405e92974600bda114",
+  "hostInventorySha256": "e3654c22fa8ab3c7d42a3f81d7039d7dee66ee4d0a1ba85b8f91346300364bc9",
+  "enemyChecks": [
+    {
+      "kind": "pearlglass-medusa",
+      "checks": {
+        "freshSpawn": true,
+        "realJoystickMovement": true,
+        "livingOpponentClockAdvances": true,
+        "aiLocomotion": true,
+        "back": true,
+        "restart": true,
+        "noHandledSystemFaults": true,
+        "trainingArenaObservedRunning": true,
+        "liveClock": true,
+        "sameGameCanvas": true,
+        "poseWorldEvidence": true,
+        "trustedInputs": true,
+        "observationErrors": true
+      },
+      "actions": [
+        {
+          "type": "diagnostic-player-placement",
+          "reason": "AI approach setup only; no enemy movement writes",
+          "wall": 9280.800000011921,
+          "before": [
+            0.5276045391910735,
+            900.0076695940224,
+            -2.6316635341799453
+          ],
+          "after": [
+            -0.5011387625709176,
+            900,
+            2.4113444685935974
+          ],
+          "actor": [
+            -0.5011387625709176,
+            900,
+            -4.588655531406403
+          ],
+          "pitch": 0.08
+        }
+      ]
+    }
+  ],
+  "video": {
+    "bytes": 2249341,
+    "sha256": "0e8433bd95dc6e2afc64e86d011aff58ca314e0424a261249348275af38b5a76",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "r_frame_rate": "25/1",
+          "avg_frame_rate": "25/1",
+          "nb_read_frames": "600"
+        }
+      ],
+      "format": {
+        "duration": "24.000000"
+      }
+    }
+  },
+  "rawReportSha256": "6b38c8b2c75443ee7498583f8bd77b991566bae565ff7e8d02871d02bbd9f55c",
+  "independentReview": {
+    "method": "Read-only comparison of previous failed and corrected actual traces; numeric world-transform checks; ffprobe and retained video hash verification. No visual full-video review.",
+    "opponentElapsedSeconds": [
+      2.4244,
+      6.4323
+    ],
+    "approachWallSeconds": 6.0124,
+    "translationMetres": 5.157594,
+    "distanceMetres": [
+      7,
+      2.390492
+    ],
+    "finiteWorldPoseSamples": 42,
+    "faultFreeTrainingArenaObservations": 97,
+    "rafMedianMs": 134.35,
+    "limitations": "Movement smoke only; not full combat, nine-enemy completion, native corpse admission, visual quality or physical-phone performance."
+  }
+}
