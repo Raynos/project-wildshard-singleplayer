@@ -1865,7 +1865,7 @@ export function modelCatalogue(rows: readonly ModelSpecimenRow[], library: Pick<
 
 /** One authored index range in a shared posed draw; instances still own all clocks. */
 export interface PosedAssetRange { readonly kind: number; readonly start: number; readonly count: number; readonly box: readonly [number, number, number, number, number, number] }
-export interface PosedAssetSet { readonly geometry: BufferGeometry; readonly ranges: readonly PosedAssetRange[]; readonly atlas: Texture }
+export interface PosedAssetSet { readonly geometry: BufferGeometry; readonly ranges: readonly PosedAssetRange[]; readonly atlas: Texture | null }
 /**
  * A posed draw's atlas as its own KTX2 file (a built product's named blob), sampled as the glTF atlas it replaces:
  * flipY false, repeat wrap, mipmapped linear, anisotropy 4, sRGB; fenced before the set publishes it.
@@ -1879,7 +1879,7 @@ async function posedAtlas(url: string): Promise<Texture> {
 /**
  * Read packed channels and original image bytes without vertex packing or attribute copies. The atlas is either
  * `atlasModel` (a GLB whose material carries it, through the tier / GPU path) or `atlas` (its own KTX2 file: a product's
- * named blob); exactly one of the two.
+ * named blob); at most one of the two (a vertex-coloured draw has none).
  */
 export async function posedAssets(input: unknown): Promise<PosedAssetSet> {
   const poseNumber = wholeV.pipe(wholeV.number(), wholeV.finite());
@@ -1889,7 +1889,7 @@ export async function posedAssets(input: unknown): Promise<PosedAssetSet> {
     channels: wholeV.pipe(wholeV.array(wholeV.strictObject({name: text, source: text, width: wholeV.picklist([1, 2, 3, 4])})), wholeV.minLength(1), wholeV.maxLength(16)),
     ranges: wholeV.pipe(wholeV.array(wholeV.strictObject({kind: integer, start: integer, count: integer,
       box: wholeV.tuple([poseNumber, poseNumber, poseNumber, poseNumber, poseNumber, poseNumber])})), wholeV.minLength(1), wholeV.maxLength(32))}), input);
-  if ((rows.atlasModel === undefined) === (rows.atlas === undefined)) throw new Error('A posed draw names exactly one atlas source');
+  if (rows.atlasModel !== undefined && rows.atlas !== undefined) throw new Error('A posed draw names at most one atlas source');
   if (new Set(rows.channels.map(row => row.name)).size !== rows.channels.length || new Set(rows.ranges.map(row => row.kind)).size !== rows.ranges.length) throw new Error('Repeated posed channel or kind');
   const source = await loadRigFile(rows.geometry), node = source.scene.getObjectByName(rows.name);
   if (!(node instanceof Mesh) || node.type !== 'Mesh' || !node.matrix.equals(new Matrix4())) throw new Error('Missing identity-space posed draw');
@@ -1908,7 +1908,8 @@ export async function posedAssets(input: unknown): Promise<PosedAssetSet> {
   for (const range of rows.ranges) { if (range.start !== end || range.count === 0 || range.count % 3 !== 0) throw new Error('Invalid posed range'); end += range.count; }
   if (end !== index.count) throw new Error('Posed ranges do not cover the draw');
   if (rows.atlas !== undefined) return {geometry, ranges: rows.ranges, atlas: await posedAtlas(rows.atlas)};
-  const atlasSource = await loadRigFile(rows.atlasModel ?? ''), textures: Texture[] = [];
+  if (rows.atlasModel === undefined) return {geometry, ranges: rows.ranges, atlas: null};
+  const atlasSource = await loadRigFile(rows.atlasModel), textures: Texture[] = [];
   atlasSource.scene.traverse(object => { if (isMesh(object) && !Array.isArray(object.material) && object.material instanceof MeshStandardMaterial && object.material.map !== null) textures.push(object.material.map); });
   const atlas = textures[0]; if (atlas === undefined) throw new Error('Missing posed asset atlas'); atlas.anisotropy = 4;
   return {geometry, ranges: rows.ranges, atlas};

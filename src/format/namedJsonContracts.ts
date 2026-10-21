@@ -6,9 +6,11 @@ const key = v.pipe(v.string(), v.minLength(1)), recordRow = v.strictObject({ key
 const number = finite;
 const posedLaneSchema = v.union([number, text, v.strictObject({ any: v.pipe(v.array(v.strictObject({ field: text, op: v.picklist(['gt', 'lt']), value: number })), v.minLength(1), v.maxLength(8)), yes: number, no: number })]);
 const posedChannelSchema = v.tuple([posedLaneSchema, posedLaneSchema, posedLaneSchema, posedLaneSchema]);
-const tierFiles = v.strictObject({ geometry: text, atlas: text });
+const tierFiles = v.strictObject({ geometry: text, atlas: v.exactOptional(text) });
 
-export const PosedLibrarySchema = v.strictObject({ name: text, glow: v.optional(text), atlas: text, attributes: v.tuple([text, text]), channels: v.tuple([posedChannelSchema, posedChannelSchema]),
+/** A library's look samples its lent `atlas` param, or (a vertex-coloured model, Driftwood's gull) has none; one or two posed channels. */
+export const PosedLibrarySchema = v.strictObject({ name: text, glow: v.optional(text), atlas: v.exactOptional(text), attributes: v.union([v.strictTuple([text, text]), v.strictTuple([text])]),
+      channels: v.union([v.strictTuple([posedChannelSchema, posedChannelSchema]), v.strictTuple([posedChannelSchema])]),
       assets: v.strictObject({ name: text, channels: v.pipe(v.array(v.strictObject({ name: text, source: text, width: v.picklist([1, 2, 3, 4]) })), v.minLength(1), v.maxLength(16)),
         ranges: v.pipe(v.array(v.strictObject({ kind: number, start: number, count: number, box: v.tuple([number, number, number, number, number, number]) })), v.minLength(1), v.maxLength(32)) }),
       tiers: v.strictObject({ phone: tierFiles, desktop: tierFiles }),

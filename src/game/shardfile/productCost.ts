@@ -199,7 +199,7 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop', 
     const row = v.safeParse(PosedLibrarySchema, JSON.parse(text));
     if (!row.success) continue;
     const selected = row.output.tiers[tier], other = row.output.tiers[tier === 'phone' ? 'desktop' : 'phone'];
-    alternative(selected.geometry, other.geometry); alternative(selected.atlas, other.atlas);
+    alternative(selected.geometry, other.geometry); if (selected.atlas !== undefined && other.atlas !== undefined) alternative(selected.atlas, other.atlas);
   }
   if (inactive.size === 0) return source;
   const visit = (input: unknown): void => {

@@ -150,17 +150,17 @@ export class PosedDraw {
     let assets: PosedAssetSet | null = null, loading: Promise<void> | null = null;
     const preload = (): Promise<void> => (loading ??= (async () => {
       const files = row.tiers[TIER];
-      const set = await load({ ...row.assets, geometry: product.url(files.geometry), atlas: product.url(files.atlas) });
+      const set = await load({ ...row.assets, geometry: product.url(files.geometry), ...(files.atlas === undefined ? {} : { atlas: product.url(files.atlas) }) });
       // The library is page-wide but its atlas belongs to the scope that first drew it: a retired resident frees the
       // GPU allocation, and its compressed mips were dropped at that first draw, so it cannot upload again. Forget the
       // set with it; the next entry's preload loads a fresh one (a grid re-entry hit "lost its allocation" here).
-      pageScope.listenOnceEmitter(set.atlas, 'dispose', () => { if (assets === set) { assets = null; loading = null; } });
+      if (set.atlas !== null) pageScope.listenOnceEmitter(set.atlas, 'dispose', () => { if (assets === set) { assets = null; loading = null; } });
       assets = set;
     })());
     const ready = (): PosedAssetSet => { if (assets === null) throw new Error('Required posed library is not loaded'); return assets; };
     const draw = (capacity: number): PosedDraw => {
       const set = ready(), view = new PosedDraw(row, capacity, set.geometry, lentLook(row.name));
-      setLentTexture(row.name, row.atlas, set.atlas); uploadTexture(set.atlas);
+      if (row.atlas !== undefined && set.atlas !== null) { setLentTexture(row.name, row.atlas, set.atlas); uploadTexture(set.atlas); }
       return view;
     };
     const models = row.models.map(model => {

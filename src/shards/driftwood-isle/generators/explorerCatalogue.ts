@@ -51,7 +51,7 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
         "code"
       ]
     }
-    ,{kind:'library',library:'native',model:'driftwood-isle/gull'},
+    ,{kind:'posed',file:'look/gull-draw.json',source:'product'},
     {kind:'library',library:'native',model:'driftwood-isle/castaway'},
     ...HELD_ARMS.weapons.map(weapon => ({kind:'held',item:weapon.item})),
   ]

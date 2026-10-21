@@ -3,7 +3,7 @@ import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
@@ -38,6 +38,7 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/wake-boss.json': ChapterWakeSchema,
   'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
   'look/creature-looks.json': PackedCreatureLooksSchema,
+  'look/gull-draw.json': PosedLibrarySchema,
   'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch }),
   'quests/stall.json': QuestTraderSchema,
   'quests/trader.json': QuestPageInteractionsSchema,
