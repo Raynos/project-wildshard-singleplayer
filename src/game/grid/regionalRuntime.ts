@@ -4,7 +4,7 @@ import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientHomeBytes } from '../shardfile/clientResidency';
 import { Object3D } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
-import type { Scope } from '@wildshard/engine/app/scope';
+import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
 import { bindConstructionEnvironment, ownedFacade, ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -360,7 +360,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             },
           };
         } };
-      return { resident, region: { ...foundation.region, dispose: () => { scope.dispose(); } }, queries: view.queries, checkpoint,
+      return { resident, region: { ...foundation.region, dispose: () => { scope.dispose(); }, retire: () => retireRegion(view.root, scope) }, queries: view.queries, checkpoint,
         aimAnimals: () => localPlay?.animals.animals ?? [],
         interactables: () => localRuntime?.interactables ?? [],
         combatActors: () => new Map((localPlay?.animals.animals ?? []).map(animal => [animal.combatActor(), animal.position])),
@@ -376,6 +376,13 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       throw error;
     }
   };
+}
+
+/** O20: a left region's retirement in steps: its world stops drawing at once (no frame shows or re-uploads what a later
+ *  step frees), then its scope's cleanups run as `Scope.disposeSteps` yields them. */
+function* retireRegion(root: Object3D, scope: Scope): Generator<DisposeStep, void> {
+  root.visible = false;
+  yield* scope.disposeSteps();
 }
 
 /** SF57: a creature's border constraint built outside the admission closure. V8 gives every closure of one scope that

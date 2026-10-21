@@ -6,6 +6,8 @@ import { TraversalReadiness, readinessModel, type ReadinessBundle, type Readines
 import type { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
 import { CHUNK_HALF, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { workSlice } from '@wildshard/engine/core/workSlice';
+import type { DisposeStep } from '@wildshard/engine/app/scope';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './allocator';
 import type { PreparedGridCrossing } from './crossing';
@@ -14,6 +16,8 @@ import type { HomeResidencyClaim } from './pageResidency';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
 export interface LiveGridRegion { host: SimHost; dispose: () => void;
+  /** O20: the same disposal as steps (`Scope.disposeSteps`), so a retirement after a crossing spreads over frames */
+  retire?: () => Generator<DisposeStep, void>;
   /** Opaque runtimes own logical checkpoints; native shardfile hosts use the exact codec below. */
   checkpoint?: () => boolean; walls?: ReadinessWalls }
 /** Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. */
@@ -77,8 +81,14 @@ export interface LiveGridState {
   gameplayReady: boolean;
   continuations: { entries: number; storedChars: number; capacityChars: number; claimedBytes: number };
   /** O20: the latest region retirements, how long each one's checkpoint and disposal took (ms) */
-  retirements?: readonly { instance: string; checkpointMs: number; disposeMs: number }[];
+  retirements?: readonly Retirement[];
+  /** O20: regions still retiring in steps (out of `residents`, their claims still held) */
+  retiring?: readonly string[];
 }
+/** O20: one region retirement: its checkpoint, its disposal's whole span, and for a sliced one its steps and slowest step */
+export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
+interface RetiringRegion { readonly instance: string; readonly resident: Resident; readonly steps: Generator<DisposeStep, void>;
+  readonly checkpointMs: number; readonly start: number; count: number; slowestMs: number; slowest: string; done: boolean }
 interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; exclusiveRuntime: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean; outsideSince?: number }
 
 // The motor's 6/10 m frame bands are independent. Residency waits five continuous fixed-step seconds outside
@@ -131,7 +141,8 @@ export class LiveGridHost {
   private readonly saved = new GridContinuationCache();
   private readonly cacheLease: ResidencyLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
-  private readonly retirements: { instance: string; checkpointMs: number; disposeMs: number }[] = [];
+  private readonly retirements: Retirement[] = [];
+  private readonly retiring = new Map<string, RetiringRegion>();
   private readonly products = new Map<string, LiveGridAdmission>();
   private readonly productRequests = new Map<string, Promise<LiveGridAdmission>>();
   private readonly issues = new Map<string, string>();
@@ -497,7 +508,7 @@ export class LiveGridHost {
     return { abort: () => { if (closed) return; closed = true; resident.evicting = false; }, commit: () => {
       if (closed) return; closed = true;
       const disposeStart = diagnosticNow();
-      try { resident.region.dispose(); this.retirements.push({ instance, checkpointMs, disposeMs: diagnosticNow() - disposeStart }); if (this.retirements.length > 16) this.retirements.shift(); }
+      try { resident.region.dispose(); this.noteRetirement({ instance, checkpointMs, disposeMs: diagnosticNow() - disposeStart }); }
       catch (error) {
         resident.evicting = false; resident.disposalFailed = true; resident.lease.update({ needed: true });
         this.readiness.invalidate(instance); this.issues.set(`cleanup:${instance}`, error instanceof Error ? error.message : String(error)); return;
@@ -508,6 +519,54 @@ export class LiveGridHost {
     } };
   }
   /** Leave active/home/highway worlds intact; unload only a durably checkpointed frozen region. */
+  /**
+   * O20: retire a frozen region after its crossing without a long frame: checkpoint it now, take it out of the residents
+   * (its readiness closes), then run its disposal in steps under the loading slice budget. Its claim stays held until the
+   * last step, and every later admission waits for it (`sequence`), so its memory is released before anything replaces
+   * it. A region with no stepped disposal, or one that cannot retire now, takes `unload`.
+   */
+  retire(instance: string): boolean {
+    const resident = this.residents.get(instance), retire = resident?.region.retire;
+    if (resident === undefined || retire === undefined || this.disposed || instance === this.active || resident.reservations > 0
+      || resident.evicting || resident.disposalFailed === true) return this.unload(instance);
+    const checkpointStart = diagnosticNow();
+    try { if (!this.checkpoint(instance)) return false; } catch { return false; }
+    const checkpointMs = diagnosticNow() - checkpointStart;
+    resident.evicting = true; this.residents.delete(instance); this.readiness.invalidate(instance);
+    const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, slowestMs: 0, slowest: '', done: false };
+    this.retiring.set(instance, record);
+    this.sequence = this.settle(Promise.all([this.sequence, this.drainRetirement(record)]).then(() => undefined));
+    return true;
+  }
+  private async drainRetirement(record: RetiringRegion): Promise<void> {
+    const slice = workSlice();
+    try {
+      for (;;) {
+        if (record.done) return;
+        const at = diagnosticNow(), step = record.steps.next(), ms = diagnosticNow() - at;
+        record.count++;
+        if (ms > record.slowestMs) { record.slowestMs = ms; record.slowest = step.done === true ? 'final' : `${step.value.scope}:${step.value.kind}`; }
+        if (step.done === true) break;
+        if (slice.due()) await slice.yield();
+      }
+      this.finishRetirement(record, undefined);
+    } catch (error) { this.finishRetirement(record, { error }); }
+  }
+  private finishRetirement(record: RetiringRegion, failure: { readonly error: unknown } | undefined): void {
+    if (record.done) return;
+    record.done = true; this.retiring.delete(record.instance);
+    const { instance, resident } = record, row = { instance, checkpointMs: record.checkpointMs, disposeMs: diagnosticNow() - record.start,
+      steps: record.count, slowestStepMs: Math.round(record.slowestMs), slowestStep: record.slowest };
+    if (failure !== undefined) {
+      const { error } = failure;
+      // A partly freed world keeps its full claim and blocks exclusive admissions, as a failed `unload` does.
+      resident.evicting = false; resident.disposalFailed = true; resident.lease.update({ needed: true }); this.residents.set(instance, resident);
+      this.issues.set(`cleanup:${instance}`, error instanceof Error ? error.message : String(error)); this.noteRetirement({ ...row, failed: true }); return;
+    }
+    if (resident.reloadsCheckpoint) this.saved.drop(instance);
+    resident.lease.release(); this.noteRetirement(row);
+  }
+  private noteRetirement(row: Retirement): void { this.retirements.push(row); if (this.retirements.length > 16) this.retirements.shift(); }
   unload(instance: string): boolean { if (this.borrowedHome(instance)) return false; if (!this.residents.has(instance)) return true; const prepared = this.prepareUnload(instance); if (prepared === null) return false; prepared.commit(); return !this.residents.has(instance); }
   /** Prepare disabled replacement controllers while the existing page stays authoritative; no entered runtime hooks run here. */
   async prepare(from: string | null, to: string | null): Promise<PreparedGridCrossing> {
@@ -547,7 +606,7 @@ export class LiveGridHost {
     } };
   }
   /** Read-only crossing evidence and failures for the real grid physics harness. */
-  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), retirements: this.retirements.map(row => ({ ...row })), continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
+  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), retirements: this.retirements.map(row => ({ ...row })), retiring: [...this.retiring.keys()], continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
   /** Return the traveller to its page world before retiring regions. Failed disposals keep their full claims
    * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {
@@ -563,6 +622,11 @@ export class LiveGridHost {
       this.ports.bindFrame({ instance: page, physics, motor: rider.motor, origin });
     }
     const failures: unknown[] = [];
+    // O20: a stepped retirement still running finishes now, before the residents' own disposal
+    for (const record of this.retiring.values()) {
+      try { for (let step = record.steps.next(); step.done !== true; step = record.steps.next()) { /* drained */ } this.finishRetirement(record, undefined); }
+      catch (error) { this.finishRetirement(record, { error }); failures.push(error); }
+    }
     for (const [instance, resident] of this.residents) {
       try { resident.region.dispose(); }
       catch (error) { resident.disposalFailed = true; resident.lease.update({ needed: true }); failures.push(error); continue; }

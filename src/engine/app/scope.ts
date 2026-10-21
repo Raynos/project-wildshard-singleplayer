@@ -24,7 +24,9 @@ export interface ScopeCensus {
   nodes: number;
 }
 type Kind = keyof ScopeCensus;
-interface Cleanup { kind: Kind; run: () => void }
+interface Cleanup { kind: Kind; run: () => void; readonly child?: Scope }
+/** One cleanup `Scope.disposeSteps` has just run: its scope and kind (a caller times its steps and yields between them). */
+export interface DisposeStep { readonly scope: string; readonly kind: Kind }
 export interface NativeCensus {
   listeners: { window: number; document: number; canvas: number; other: number };
   timers: { timeouts: number; intervals: number; raf: number };
@@ -80,22 +82,30 @@ export class Scope {
     this.parent = parent;
     if (parent) {
       parent.children.add(this);
-      const forget = parent.track('disposers', () => this.dispose());
+      const forget = parent.track('disposers', () => this.dispose(), this);
       this.detach = () => { parent.children.delete(this); forget(); };
       if (parent.disposed) this.detach();
     }
   }
 
   get disposed(): boolean { return this.closed; }
-  /** true only while `dispose()` runs this scope's cleanups (SF57: a lookup then is the teardown, not a new use) */
-  get disposing(): boolean { return this.tearing; }
+  /** true only while `dispose()` runs this scope's cleanups, or while it or an ancestor retires through `disposeSteps()`
+   *  (SF57: a lookup then is the teardown, not a new use) */
+  get disposing(): boolean {
+    if (this.tearing || this.retiring) return true;
+    for (let scope = this.parent; scope !== undefined; scope = scope.parent) if (scope.retiring) return true;
+    return false;
+  }
   private tearing = false;
+  /** O20: set for the whole of a `disposeSteps()` retirement, across the slices between its steps */
+  private retiring = false;
   belongsTo(scope: Scope): boolean { return this === scope || (this.parent?.belongsTo(scope) ?? false); }
-  /** Both owners are retiring within the same active synchronous disposal; each keeps its own final cleanups. */
+  /** Both owners are retiring within the same active disposal (synchronous, or sliced by `disposeSteps()`); each keeps its
+   *  own final cleanups. */
   sharesTeardown(other: Scope): boolean {
-    if (this.tearing && other.belongsTo(this)) return true;
+    if ((this.tearing || this.retiring) && other.belongsTo(this)) return true;
     for (let ancestor = this.parent; ancestor !== undefined; ancestor = ancestor.parent) {
-      if (ancestor.tearing && other.belongsTo(ancestor)) return true;
+      if ((ancestor.tearing || ancestor.retiring) && other.belongsTo(ancestor)) return true;
     }
     return false;
   }
@@ -120,9 +130,9 @@ export class Scope {
     return remove;
   }
 
-  private track(kind: Kind, run: () => void): () => void {
+  private track(kind: Kind, run: () => void, child?: Scope): () => void {
     if (this.closed) { run(); return () => { /* Already released. */ }; }
-    const cleanup = { kind, run };
+    const cleanup: Cleanup = child === undefined ? { kind, run } : { kind, run, child };
     this.cleanups.add(cleanup);
     return () => { this.cleanups.delete(cleanup); };
   }
@@ -280,6 +290,40 @@ export class Scope {
         try { cleanup.run(); } catch (error) { errors.push(error); }
       }
     } finally { this.tearing = false; }
+    this.children.clear();
+    this.owned.clear();
+    this.detach?.();
+    this.detach = undefined;
+    if (errors.length > 0) throw new AggregateError(errors,
+      `Scope ${this.name} disposal failed: ${errors.flatMap(disposalErrorMessages).join('; ')}`);
+  }
+
+  /**
+   * O20: `dispose()` spread over a caller's frames. The scope closes at once (no new registrations; `disposed` reads
+   * true), then the same cleanups run in the same order, a child scope's own cleanups step by step in its place, each
+   * followed by a `yield` naming it, so the caller can time steps and yield to the browser under its budget. While the
+   * steps last, the scope and its descendants report `disposing` and share one teardown. Errors are collected and thrown
+   * at the end, as `dispose()` does. The caller must drain the steps to the end (synchronously, when its own owner closes
+   * first): `dispose()` on the closed scope does nothing more.
+   */
+  *disposeSteps(): Generator<DisposeStep, void> {
+    if (this.closed) return;
+    this.closed = true;
+    const cleanups = [...this.cleanups].reverse();
+    this.cleanups.clear();
+    const errors: unknown[] = [];
+    this.retiring = true;
+    try {
+      for (const cleanup of cleanups) {
+        if (cleanup.child !== undefined) {
+          try { yield* cleanup.child.disposeSteps(); } catch (error) { errors.push(error); }
+          continue;
+        }
+        this.tearing = true;
+        try { cleanup.run(); } catch (error) { errors.push(error); } finally { this.tearing = false; }
+        yield { scope: this.name, kind: cleanup.kind };
+      }
+    } finally { this.retiring = false; }
     this.children.clear();
     this.owned.clear();
     this.detach?.();
