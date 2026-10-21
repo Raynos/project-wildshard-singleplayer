@@ -1,5 +1,5 @@
 import { PagePathRampSchema } from './pagePreparation';
-import { BakedTilesSchema } from './bakedTiles';
+import { BakedSourceSchema, BakedTilesSchema } from './bakedTiles';
 import { WaterSurfaceSchema } from './water';
 import { ClientCuesSchema } from './clientCues';
 import { ClientTrailsSchema } from './clientTrails';
@@ -13,6 +13,21 @@ import { ClientHeldMeleeSchema, ClientSpeciesProgramSchema, ClientQuestPageSchem
 const finite=v.pipe(v.number(),v.finite()),rgb=v.tuple([finite,finite,finite]);
 const label=v.pipe(v.string(),v.minLength(1),v.maxLength(512));
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]*$/u));
+const attribute = v.pipe(v.string(), v.minLength(1), v.maxLength(64), v.regex(/^[_a-zA-Z][_a-zA-Z0-9]*$/u));
+/** O7: a water row's own draw (WaterSurface.draw): its grid per tier (custom attributes renamed for its graph), level,
+ *  baked floor, dry rectangles, foam boxes, and params lent from the product's toon lighting uniforms. */
+const WaterDrawSchema = v.strictObject({
+  grid: v.strictObject({ phone: BakedSourceSchema, desktop: BakedSourceSchema }),
+  attributes: v.pipe(v.record(attribute, attribute), v.maxEntries(8)),
+  level: finite,
+  floor: v.exactOptional(BakedSourceSchema),
+  dry: v.pipe(v.array(v.pipe(v.strictObject({ minX: finite, minZ: finite, maxX: finite, maxZ: finite }),
+    v.check(rect => rect.minX < rect.maxX && rect.minZ < rect.maxZ, 'positive dry rectangle'))), v.maxLength(16)),
+  foam: v.pipe(v.array(v.strictObject({ x: finite, z: finite, hw: finite, hd: finite, rot: finite, yTop: finite, yBottom: finite })), v.maxLength(2048)),
+  lent: v.pipe(v.record(attribute, v.picklist(['uCloudShadow', 'uToonNight', 'uSeaLevel', 'uCloudTime'])), v.maxEntries(8)),
+  /** the toon lighting's sea level is this water's level */
+  toonSeaLevel: v.boolean(),
+});
 /** Client-only declarations select compiled platform features, never modules, owners or property paths. */
 export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
@@ -38,7 +53,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({kind:v.literal('bag.finds'),id,quest:id,file:label}),
   v.strictObject({kind:v.literal('look.painterly'),shadeTint:rgb,rimColor:rgb,wind:v.strictObject({x:finite,z:finite,strength:finite})}),
   v.strictObject({ kind: v.literal('audio.scene') }),
-  v.strictObject({kind:v.literal('world.water'),rows:v.pipe(v.array(v.strictObject({id,surface:WaterSurfaceSchema,geometry:v.pipe(v.string(),v.minLength(1),v.maxLength(256))})),v.minLength(1),v.maxLength(8),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
+  v.strictObject({kind:v.literal('world.water'),rows:v.pipe(v.array(v.union([v.strictObject({id,surface:WaterSurfaceSchema,geometry:v.pipe(v.string(),v.minLength(1),v.maxLength(256))}),v.strictObject({id,surface:WaterSurfaceSchema,draw:WaterDrawSchema})])),v.minLength(1),v.maxLength(8),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
   v.strictObject({ kind: v.literal('world.scenes'), graphs: v.exactOptional(v.picklist(['required', 'debug'])) }),
   v.strictObject({ kind: v.literal('world.baked'), rows: v.pipe(v.array(BakedTilesSchema), v.minLength(1), v.maxLength(4), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique baked tile ids')) }),
   v.strictObject({ kind: v.literal('motion.channels'), rows: SceneMotionSchema }),
