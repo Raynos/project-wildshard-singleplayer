@@ -110,26 +110,55 @@ test('page actors are real native rigs, excluded from target lists and retired e
   } finally { owner.dispose(); configureLevel(previous); material.mockRestore(); preloads.mockRestore(); retire.mockRestore(); }
 });
 
-test('compiled AS body commands reach native physics through the existing DecisionHost boundary', async () => {
+test.each([true, false])('compiled AS body queries require granted floor capability: %s', async allowedFloor => {
   const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
   const { decisionBindingMap } = await import('../src/format/decisionBindings');
   const { DecisionHost } = await import('../src/engine/script/decision');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try {
-    const ops = await installDeclaredBodyOps(host, rows);
+    const ops = await installDeclaredBodyOps(host, { ...rows, floors: [{ x: 2, z: 3, step: 1, width: 1, height: 1, values: [6] }] });
+    ops.setPlayerIntent({ x: 5, z: 7 });
     const input = { id: 'test.native-body', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`, source: 'behaviour/body.as',
-      binding: { shard: true }, onFail: 'hold', on: ['start'], reads: ['bodyAlive'], commands: ['body.spawn', 'body.teleport'],
+      binding: { shard: true }, onFail: 'hold', on: ['start'], reads: ['bodyAlive', 'playerIntent', 'declaredFloor'], commands: ['body.spawn', 'body.teleport'],
       bodies: { crate: 'crate' }, params: {}, state: [], stateVersion: 1 };
     const built = await compileDecisionScripts([input], ops.registries, new Map([['behaviour/body.as',
-      "import {Body,Read,Do} from './generated/testNativeBody';\nexport function onStart():void{if(!Read.bodyAlive(Body.crate))Do.bodySpawn(Body.crate);Do.bodyTeleport(Body.crate,5,6,7);}"]]), { asLineCeiling: 10 });
+      "import {Body,Read,List,Do} from './generated/testNativeBody';\nexport function onStart():void{if(!Read.bodyAlive(Body.crate))Do.bodySpawn(Body.crate);Read.declaredFloor(2,3);const y=List.at(0);Do.bodyTeleport(Body.crate,Read.playerIntent(0),y,Read.playerIntent(1));}"]]), { asLineCeiling: 10 });
     const script = built.rows[0], blob = built.blobs[0]; if (script === undefined || blob === undefined) throw new Error('Missing compiled body program');
-    const decision = new DecisionHost({ scripts: [{ ...script, reads: ['bodyAlive'], lists: [], ids: decisionBindingMap(script, ops.registries).ids }],
+    const decision = new DecisionHost({ scripts: [{ ...script, reads: ['bodyAlive', 'playerIntent'], lists: allowedFloor ? ['declaredFloor'] : [], ids: decisionBindingMap(script, ops.registries).ids }],
       bindings: [{ id: 1, script: script.id, self: 0, actors: [], instance: 0 }], modules: new Map([[script.module, blob.bytes]]), seed: [1, 2],
-      world: { read: (op, a, b) => ops.read(op, a, b), list: () => 0, prepare: commands => ops.prepare(commands), failed: () => undefined } });
+      world: { read: (op, a, b) => ops.read(op, a, b), list: (op, a, b, out) => ops.list(op, a, b, out), prepare: commands => ops.prepare(commands), failed: () => undefined } });
     decision.enqueue(1, [1, 0, 0, 0, 0, 0]);
     for (let tick = 1; tick <= 6; tick++) decision.step(tick);
     expect(ops.body('crate')).toBeNull(); decision.step(7);
-    expect(ops.position('crate')).toEqual({ x: 5, y: 6, z: 7 }); expect(decision.metrics()[0]?.refusals).toBe(0);
+    expect(ops.position('crate')).toEqual(allowedFloor ? { x: 5, y: 6, z: 7 } : null);
+    expect(decision.metrics()[0]?.refusals).toBe(allowedFloor ? 0 : 1);
+  } finally { host.dispose(); }
+});
+
+
+test('intent samples remain requested motion and floors preserve captured null/bounds/max rules', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+  try {
+    const ops = await installDeclaredBodyOps(host, { ...rows, floors: [
+      { x: 0, z: 0, step: 2, width: 2, height: 2, values: [3, null, -2, 7] },
+      { x: 0, z: 0, step: 2, width: 1, height: 1, values: [5] },
+    ] });
+    expect(() => ops.read(26, 0, 0)).toThrow('unavailable');
+    const requested = { x: 1.5, z: -2 }; const before = host.player.position.clone();
+    ops.setPlayerIntent(requested); requested.x = 0;
+    expect(host.player.position).toMatchObject(before);
+    expect(ops.read(26, 0, 0)).toBe(1.5); expect(ops.read(26, 1, 0)).toBe(-2);
+    expect(() => ops.read(26, 2, 0)).toThrow(); expect(() => ops.read(26, 0, 1)).toThrow();
+    expect(() => ops.setPlayerIntent({ x: Infinity, z: 0 })).toThrow(); expect(ops.read(26, 0, 0)).toBe(1.5);
+    expect(ops.floorAt(0, 0)).toBe(5); expect(ops.floorAt(2, 0)).toBe(0);
+    expect(ops.floorAt(0, 2)).toBe(0); expect(ops.floorAt(2, 2)).toBe(7); expect(ops.floorAt(20, 20)).toBe(0);
+    expect(ops.list(7, 0, 0, new Float64Array(0))).toBe(0);
+    const result = new Float64Array(2); expect(ops.list(7, 0, 0, result)).toBe(1); expect(result[0]).toBe(5);
+    expect(() => v.parse(DeclaredBodyOpsSchema, { ...rows, floors: [{ x: 0, z: 0, step: 1, width: 2, height: 2, values: [0] }] })).toThrow();
+    ops.prepare([[17, 0, 1, 0, 0], [20, 1, 3, 4, 1.2], [18, 1, 2, 3, 4]]).commit();
+    expect(ops.body('crate')?.rb.rotation().y).toBeCloseTo(Math.sin(.15));
+    expect(ops.read(24, 1, 0)).toBe(.3);
   } finally { host.dispose(); }
 });

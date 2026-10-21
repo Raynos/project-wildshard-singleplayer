@@ -336,6 +336,7 @@ export class DecisionHost {
     if (op === 14) this.id(row, 'zones', a);
     if (op === 18) this.id(row, 'spawns', a);
     if (op >= SCRIPT_V1_READS.bodyX && op <= SCRIPT_V1_READS.bodyVisible) { this.id(row, 'bodies', a); check(b === 0, 'body read arguments'); }
+    if (op === SCRIPT_V1_READS.playerIntent) check((a === 0 || a === 1) && b === 0, 'player intent axis');
     let result: number;
     if (op === 11) { this.id(row, 'timers', a); result = Math.max(0, ((row.timers[row.timerIds.indexOf(a)] ?? 0) - this.tick) / 60); }
     else if (op === 12) {

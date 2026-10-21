@@ -9,10 +9,10 @@ export const SCRIPT_V1_READS = Object.freeze({
   x: 1, y: 2, z: 3, yaw: 4, hpShare: 5, alive: 6, field: 7, distance: 8, nearestPlayer: 9,
   flag: 10, timerLeft: 11, random: 12, actorInZone: 13, playersInZone: 14, moving: 15,
   strikeState: 16, playerFlag: 17, spawnGroupAlive: 18, bearing: 19,
-  bodyX: 20, bodyY: 21, bodyZ: 22, bodyAlive: 23, bodyYaw: 24, bodyVisible: 25,
+  bodyX: 20, bodyY: 21, bodyZ: 22, bodyAlive: 23, bodyYaw: 24, bodyVisible: 25, playerIntent: 26,
 });
 /** Bounded list queries. Ground/navigation keep the existing physics query semantics. */
-export const SCRIPT_V1_LISTS = Object.freeze({ actorsInZone: 1, playersWithin: 2, groundHeight: 3, nearestWalkable: 4, path: 5, radial: 6 });
+export const SCRIPT_V1_LISTS = Object.freeze({ actorsInZone: 1, playersWithin: 2, groundHeight: 3, nearestWalkable: 4, path: 5, radial: 6, declaredFloor: 7 });
 /** Command ids; view commands occupy a disjoint range and may not run in a simulation binding. */
 export const SCRIPT_V1_COMMANDS = Object.freeze({
   move: 1, strike: 2, stop: 3, field: 4, spawn: 5, despawn: 6, flag: 7, timer: 8,

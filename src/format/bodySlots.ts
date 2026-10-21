@@ -44,12 +44,17 @@ export const DeclaredBodyOpsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'De
       group: v.exactOptional(v.picklist(['ITEM', 'DEBRIS'])),
     }),
   ])), v.maxLength(64)),
+  floors: v.optional(v.pipe(v.array(v.strictObject({ x: declaredFinite, z: declaredFinite, step: v.pipe(declaredFinite, v.minValue(.001)),
+    width: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)), height: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)),
+    values: v.pipe(v.array(v.nullable(declaredFinite)), v.maxLength(4096)),
+  })), v.maxLength(64)), []),
   colliders: v.pipe(v.array(v.strictObject({ id: declaredId, target: v.variant('kind', [
     v.strictObject({ kind: v.literal('body'), body: declaredId }),
     v.strictObject({ kind: v.literal('box'), box: v.strictObject({ x: declaredFinite, z: declaredFinite,
       hw: declaredPositive, hd: declaredPositive, yTop: declaredFinite, yBottom: declaredFinite }) }),
   ]) })), v.maxLength(64)),
-}), v.check(rows => new Set(rows.bodies.map(row => row.id)).size === rows.bodies.length
+}), v.check(rows => rows.floors.every(row => row.values.length === row.width * row.height)
+  && new Set(rows.bodies.map(row => row.id)).size === rows.bodies.length
   && new Set(rows.colliders.map(row => row.id)).size === rows.colliders.length
   && rows.colliders.every(row => row.target.kind !== 'body' || rows.bodies.some(body => body.kind === 'prop' && row.target.kind === 'body' && body.id === row.target.body)), 'unique body and collider identities with declared prop targets'));
 /** JSON-only body/collider rows; no raw native handle is authored. */

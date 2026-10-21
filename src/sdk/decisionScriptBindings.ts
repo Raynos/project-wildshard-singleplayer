@@ -16,11 +16,13 @@ const reads: Record<keyof typeof SCRIPT_V1_READS, Method> = {
   bodyX:{args:'body:i32',values:'f64(body)'},bodyY:{args:'body:i32',values:'f64(body)'},bodyZ:{args:'body:i32',values:'f64(body)'},
   bodyAlive:{args:'body:i32',values:'f64(body)',result:'bool'},
   bodyYaw:{args:'body:i32',values:'f64(body)'},bodyVisible:{args:'body:i32',values:'f64(body)',result:'bool'},
+  playerIntent:{args:'axis:i32',values:'f64(axis)'},
 };
 const lists: Record<keyof typeof SCRIPT_V1_LISTS, Method> = {
   actorsInZone:{args:'zone:i32',values:'f64(zone)'},playersWithin:{args:'actor:i32,radius:f64',values:'f64(actor),radius'},
   groundHeight:{args:'x:f64,z:f64',values:'x,z'},nearestWalkable:{args:'x:f64,z:f64',values:'x,z'},path:{args:'actor:i32,target:i32',values:'f64(actor),f64(target)'},
   radial:{args:'angle:f64,radius:f64=1',values:'angle,radius'},
+  declaredFloor:{args:'x:f64,z:f64',values:'x,z'},
 };
 const commands: Record<keyof typeof SCRIPT_V1_COMMANDS, Method> = {
   move:{args:'actor:i32,move:i32,target:i32=0',values:'actor,f64(move),f64(target)'},

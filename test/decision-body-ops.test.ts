@@ -10,19 +10,19 @@ import { SCRIPT_V1_READS, type ScriptV1ReadName, type ScriptV1Command } from '..
 
 const row = { id: 'test.bodies', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`,
   source: 'behaviour/bodies.as', binding: { shard: true }, onFail: 'hold', on: ['start'],
-  reads: ['bodyX', 'bodyY', 'bodyZ', 'bodyAlive', 'bodyYaw', 'bodyVisible'],
+  reads: ['bodyX', 'bodyY', 'bodyZ', 'bodyAlive', 'bodyYaw', 'bodyVisible', 'playerIntent'],
   commands: ['body.spawn', 'body.teleport', 'body.place', 'body.visible', 'body.retire', 'collider.enabled'],
   bodies: { guide: 'actor.guide', crate: 'prop.crate', old: 'actor.old' }, colliders: { door: 'gate.door' },
   stateVersion: 1, state: [], params: {} };
 const registries = { bodies: new Map([['actor.guide', 71], ['prop.crate', 8], ['actor.old', 12]]), colliders: new Map([['gate.door', 9]]) };
-async function fixture(body: string) {
+async function fixture(body: string, deniedReads: readonly ScriptV1ReadName[] = []) {
   const source = `import {Body,Collider,Read,Do} from './generated/testBodies';\nexport function onStart():void{${body}}`;
   const built = await compileDecisionScripts([row], registries, new Map([['behaviour/bodies.as', source]]), { asLineCeiling: 10 });
   const script = built.rows[0], blob = built.blobs[0];
   if (script === undefined || blob === undefined) throw new Error('Missing body program');
   const map = decisionBindingMap(script, registries), committed: ScriptV1Command[] = [];
   let prepared = 0;
-  const declaration: DecisionScript = { ...script, ids: map.ids, reads: script.reads.filter((read): read is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, read)), lists: [] };
+  const declaration: DecisionScript = { ...script, ids: map.ids, reads: script.reads.filter((read): read is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, read)).filter(read => !deniedReads.includes(read)), lists: [] };
   const host = new DecisionHost({ scripts: [declaration], bindings: [{ id: 1, script: row.id, self: 0, actors: [], instance: 0 }],
     seed: [1, 2], modules: new Map([[script.module, blob.bytes]]), world: {
       read: () => 0, list: () => 0, failed: () => undefined,
@@ -40,7 +40,7 @@ test('generated body ops use declared identities and commit atomically at the ex
   expect(f.committed).toEqual([[17, 0, 71, 0, 0], [20, 71, 2, 3, .5], [21, 71, 1, 0, 0], [18, 8, 4, 5, 6], [19, 0, 9, 0, 0], [22, 12, 0, 0, 0]]);
 });
 
-test.each(['Do.bodySpawn(999);', 'Do.bodyPlace(999,0,0,0);', 'Do.bodyTeleport(999,0,0,0);', 'Do.bodyVisible(999,true);', 'Do.bodyRetire(999);', 'Do.colliderEnabled(999,true);', 'Read.bodyX(999);'])('refuses undeclared body or collider authority before any command publishes: %s', async invalid => {
+test.each(['Do.bodySpawn(999);', 'Do.bodyPlace(999,0,0,0);', 'Do.bodyTeleport(999,0,0,0);', 'Do.bodyVisible(999,true);', 'Do.bodyRetire(999);', 'Do.colliderEnabled(999,true);', 'Read.bodyX(999);', 'Read.playerIntent(2);', 'Read.playerIntent(-1);'])('refuses undeclared body or collider authority before any command publishes: %s', async invalid => {
   const f = await fixture(`Do.bodySpawn(Body.guide);${invalid}`); f.step(1, 7);
   expect(f.host.metrics()[0]?.refusals).toBe(1); expect(f.prepared()).toBe(0); expect(f.committed).toEqual([]);
 });
@@ -79,4 +79,11 @@ test('additive body capabilities preserve the existing night director Wasm ident
   const built = await compileDecisionScripts([NIGHT_SPAWN.script], spawnScriptRegistries(NIGHT_SPAWN),
     new Map([['behaviour/night.as', nightSource]]), { asLineCeiling: 2130 });
   expect(built.blobs[0]?.file.hash).toBe('3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135');
+});
+
+
+test('requested player intent requires an explicit read capability', async () => {
+  const f = await fixture('Do.bodySpawn(Body.guide);Read.playerIntent(0);', ['playerIntent']);
+  f.step(1, 7); expect(f.host.metrics()[0]?.refusals).toBe(1);
+  expect(f.prepared()).toBe(0); expect(f.committed).toEqual([]);
 });

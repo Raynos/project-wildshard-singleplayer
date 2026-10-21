@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { DeclaredBodyOpsSchema, declaredBodyRegistries, type DeclaredBodyOpsRows } from '@wildshard/format/bodySlots';
-import { SCRIPT_V1_COMMANDS as Commands, SCRIPT_V1_READS as Reads, type ScriptV1Command } from '@wildshard/format/scriptAbiV1';
+import { SCRIPT_V1_COMMANDS as Commands, SCRIPT_V1_READS as Reads, SCRIPT_V1_LISTS as Lists, type ScriptV1Command } from '@wildshard/format/scriptAbiV1';
 import { Bodies, Body, type BodySpec } from '@wildshard/engine/physics/bodies';
 import { staticBoxCollider } from '@wildshard/engine/physics/query';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -31,6 +31,7 @@ export class DeclaredBodyOps {
   private readonly page: ShardContext | null;
   private service: Bodies | null;
   private disposed = false;
+  private intent: { x: number; z: number } | null = null;
   private forgetCleanup: (() => void) | undefined;
   private constructor(private readonly owner: Owner, rows: DeclaredBodyOpsRows) {
     this.rows = rows; this.native = 'physics' in owner ? owner : null; this.page = 'physics' in owner ? null : owner;
@@ -92,9 +93,41 @@ export class DeclaredBodyOps {
   position(id: string): Readonly<{ x: number; y: number; z: number }> | null {
     const slot = this.named(id); return slot.actor?.position ?? (slot.body?.alive === true ? slot.body.rb.translation() : null);
   }
+  /** Copy the existing requested world walk velocity (m/s), before collision.
+   * The caller retains its original movement observer and fixed-step phase. */
+  setPlayerIntent(walk: Readonly<{ x: number; z: number }>): void {
+    requireLive(this.owner);
+    if (!Number.isFinite(walk.x) || !Number.isFinite(walk.z)) throw new Error('Nonfinite requested player walk');
+    this.intent ??= { x: 0, z: 0 }; this.intent.x = walk.x; this.intent.z = walk.z;
+  }
+  /** Same captured-grid layering as native prop floors, above native ground. */
+  floorAt(x: number, z: number): number {
+    requireLive(this.owner);
+    if (!Number.isFinite(x) || !Number.isFinite(z) || this.native === null) throw new Error('Declared floor requires native ground');
+    let y = this.native.groundHeightAt(x, z);
+    for (const grid of this.rows.floors) {
+      const ix = Math.round((x - grid.x) / grid.step), iz = Math.round((z - grid.z) / grid.step);
+      if (ix < 0 || iz < 0 || ix >= grid.width || iz >= grid.height) continue;
+      const sample = grid.values[iz * grid.width + ix];
+      if (sample !== null && sample !== undefined) y = Math.max(y, sample);
+    }
+    return y;
+  }
+  /** Bounded DecisionWorld list port; existing scripts keep groundHeight. */
+  list(op: number, x: number, z: number, output: Float64Array): number {
+    if (op !== Lists.declaredFloor) throw new Error('Unknown declared body query');
+    const y = this.floorAt(x, z);
+    if (output.length === 0) return 0;
+    output[0] = y; return 1;
+  }
   /** DecisionWorld read port; capability ownership is checked by DecisionHost. */
   read(op: number, id: number, reserved: number): number {
     if (reserved !== 0) throw new Error('Reserved declared body read');
+    if (op === Reads.playerIntent) {
+      requireLive(this.owner);
+      if ((id !== 0 && id !== 1) || this.intent === null) throw new Error('Player intent sample unavailable');
+      return id === 0 ? this.intent.x : this.intent.z;
+    }
     const slot = this.slot(id), at = slot.actor?.position ?? (slot.body?.alive === true ? slot.body.rb.translation() : null);
     switch (op) {
       case Reads.bodyAlive: return Number(at !== null);
@@ -139,7 +172,7 @@ export class DeclaredBodyOps {
           if (alive.get(id) !== true) throw new Error('Declared body is absent');
           pending.push(() => {
             const at = op === Commands['body.place'] ? { x: a, y: slot.actor?.position.y ?? slot.body?.rb.translation().y ?? slot.row.at.y, z: b } : { x: a, y: b, z: c };
-            if (op === Commands['body.place']) slot.yaw = c;
+            slot.yaw = op === Commands['body.place'] ? c : slot.row.yaw;
             slot.actor?.place(at.x, at.z, slot.yaw, at.y); slot.body?.teleport(at, upright(slot.yaw));
           }); break;
         case Commands['body.visible']:
