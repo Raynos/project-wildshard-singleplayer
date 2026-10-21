@@ -136,14 +136,11 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     if (kind === policy.trader) trader.open();
   });
 
-  const interact = (r: Rule): void => {
-    const d = r.d;
-    if (!graph.run(d.id).ok) return; // the shared table flag law; a locked row only toasts
-    if (d.kind === 'bench') {
-      const pose = questBenchPose(benchRows, bench, bench.yaw);
-      at.set(pose.x, pose.y, pose.z); host.player.motor.resetAt(at); host.player.position.copy(at);
-      host.player.yaw = pose.yaw; host.playerFall.vy = 0;
-    }
+  const sit = (): void => {
+    if (!graph.run(benchRule.d.id).ok) return;
+    const pose = questBenchPose(benchRows, bench, bench.yaw);
+    at.set(pose.x, pose.y, pose.z); host.player.motor.resetAt(at); host.player.position.copy(at);
+    host.player.yaw = pose.yaw; host.playerFall.vy = 0;
   };
   const touchRows = Array.from({ length: TOUCH_COUNT }, (_unused, i) => {
     const row = required(`${policy.touch.prefix}${i + 1}`);
@@ -189,7 +186,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     ['quest.board.use', value => { eye.copy(host.player.position); eye.y += EYE; useBoard(value); }],
     ['quest.pickup', () => { flags.set(PICKUP_FLAG); state.pickup = true; }],
     ['quest.reward', () => { eye.copy(host.player.position); eye.y += EYE; takeNativeBossReward(host, policy.boss, eye); }],
-    ...[...indexed.keys()].map(id => [id, () => { interact(required(id)); }] as const),
+    [policy.benchRow, () => { sit(); }],
     ...spots.people.map(person => [`talk.${person.kind}`, () => { dialogue.press(person.kind); }] as const),
   ]) };
   }

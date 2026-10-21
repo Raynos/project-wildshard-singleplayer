@@ -22,9 +22,9 @@ const routes = [
   owner(null, 'quest.reading.next', '!riding && reading'),
   ...policy.actions.map(action => {
     const common = { value: action.value, when: free };
-    if (action.kind === 'row' || action.kind === 'talk') return { ...common,
-      spot: action.kind === 'row' ? action.target : `talk.${action.target}`,
-      action: { kind: 'owner', id: action.kind === 'row' ? action.target : `talk.${action.target}` } };
+    if (action.kind === 'row') return { ...common, spot: action.target,
+      action: { kind: action.target === policy.benchRow ? 'owner' : 'row', id: action.target } };
+    if (action.kind === 'talk') return { ...common, spot: `talk.${action.target}`, action: { kind: 'owner', id: `talk.${action.target}` } };
     if (action.kind === 'lantern') return { ...common, spot: `signal.${action.target}`, action: { kind: 'row', id: action.row } };
     if (action.kind === 'cable') return { ...common, spot: 'quest.cable', action: { kind: 'cable', cable: policy.cable, command: 'start' } };
     if (action.kind === 'pickup') return { ...common, when: `${free} && pickup`, spot: 'quest.pickup', action: { kind: 'owner', id: 'quest.pickup' } };

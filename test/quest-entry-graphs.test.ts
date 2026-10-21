@@ -147,6 +147,13 @@ test('Pine admitted routes preserve same-tick modal priority, actor values, canc
     registerNativeQuestInputs(host, { scripts: () => [], walk: () => ({ x: 0, z: 0 }), ledger: { fact: () => undefined, coins: () => undefined } });
     const { owners, modal } = pineCommandOwners(calls), entry = prepareNativeQuestEntry(host, pine, { rows: [], external: [] }, []), graph = entry.install(owners);
     const command = (value: number, actorId = 'pine.interact') => graph.accept({ actorId, value });
+    // Ordinary table commands use the admitted graph directly, with no custom
+    // owner binding. Repeats retain the same one-way flag and fact law.
+    host.flags.set('talked:ranger');
+    expect(command(1)).toBe(true); expect(command(1)).toBe(true);
+    expect(host.flags.has('lever:dam-log-a')).toBe(true); expect(calls).toEqual([]);
+    expect(command(2)).toBe(true); expect(host.flags.has('lever:dam-log-b')).toBe(true);
+    host.flags.clear('lever:dam-log-a'); host.flags.clear('lever:dam-log-b'); host.flags.clear('talked:ranger');
     expect(command(0)).toBe(true); expect(command(1)).toBe(true);
     expect(calls).toEqual(['talk.ranger/0', 'quest.reading.next/1']);
     expect(command(10, 'pine.trade')).toBe(false); expect(command(-1)).toBe(true);
