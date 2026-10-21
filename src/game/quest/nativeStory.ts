@@ -138,6 +138,8 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   };
   const latch = required(policy.latch), benchRule = required(policy.benchRow), bench = benchRule.spot;
   if (benchRule.d.kind !== 'bench' || benchRule.spot.prompt === null) throw new Error('Story bench requires its prompt');
+  const cables = cableModes(host.scope), cableId = policy.cable;
+  cables.state(cableId);
   const graph = entry.install(commandOwners());
   const quests = graph.quests;
   const chapter = quests.quests[0];
@@ -179,8 +181,6 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const chapterClock = installNativeChapterDirector(host, director, { id: `${policy.step}.chapter`, rows: clockRows });
   const { clock, fast } = chapterClock;
 
-  const cables = cableModes(host.scope), cableId = policy.cable;
-  cables.state(cableId);
   const state = { pickup: false };
 
   const counterBook = entry.achievements(rows.counters), feats = counterBook.counters;
@@ -198,7 +198,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   // Construct the callbacks at the graph's original phase. They resolve live
   // owners only when command delivery starts, after preparation has completed.
   function commandOwners(): NonNullable<Parameters<typeof entry.install>[0]> {
-    return { spots: { crack: [], interact: [
+    return { mechanics: { cables }, spots: { crack: [], interact: [
     ...[...indexed.values()].flatMap(row => row.spot.prompt === null ? [] : [{ id: row.d.id, ...row.spot.prompt, get radius() { return row.promptRadius(); } }]),
     ...spots.people.map(person => ({ id: `talk.${person.kind}`, ...person.prompt })),
     ...Object.entries(spots.signals).map(([id, prompt]) => ({ id: `signal.${id}`, x: prompt.x, y: prompt.y, z: prompt.z, radius: prompt.radius })),
@@ -212,7 +212,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     ['quest.reading.next', () => { dialogue.press(policy.primary); }],
     ['quest.trade.use', value => { trader.use(value); }], ['quest.ammo.cycle', () => { ammunition.cycle(); }],
     ['quest.board.use', value => { eye.copy(host.player.position); eye.y += EYE; useBoard(value); }],
-    ['quest.cable', () => { cables.start(cableId); }], ['quest.pickup', () => { flags.set(PICKUP_FLAG); state.pickup = true; }],
+    ['quest.pickup', () => { flags.set(PICKUP_FLAG); state.pickup = true; }],
     ['quest.reward', () => { eye.copy(host.player.position); eye.y += EYE; takeNativeBossReward(host, policy.boss, eye); }],
     ...[...indexed.keys()].map(id => [id, () => { interact(required(id)); }] as const),
     ...spots.people.map(person => [`talk.${person.kind}`, () => { dialogue.press(person.kind); }] as const),

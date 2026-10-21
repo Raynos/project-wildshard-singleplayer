@@ -10605,6 +10605,11 @@ caller retains the update phase and saved stage/fast-forward envelopes.
 `DirectorScriptStageLane.registerNative(host, id)` publishes that existing
 continuation for the native composition; it adds no clock or save owner.
 Both emitted director documents keep their legacy `bindings` key as null.
+Both native quest command declarations route cable starts through the
+existing `kind: "cable"` command with its admitted mode identity. Their quest
+entries lend the already installed cable mechanic before graph admission;
+neither composition supplies a separate cable-start callback. Prompt order,
+acceptance conditions, movement laws and continuation owners stay unchanged.
 The native clock's quiet flag/phase projection is generated directly from
 the same chapter actions and declared AS output keys. There is no second
 author clock/publication list. The complete original native clock JSON hash

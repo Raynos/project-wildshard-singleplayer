@@ -18330,6 +18330,7 @@
         "src/shards/driftwood-isle/generators/quests.ts",
         "src/shards/driftwood-isle/generators/questNpcs.ts",
         "src/shards/driftwood-isle/generators/questHost.ts",
+        "src/shards/driftwood-isle/data/nativeQuest.json",
         "src/shards/driftwood-isle/generators/questGraph.ts",
         "src/shards/driftwood-isle/generators/questConstants.ts",
         "src/shards/driftwood-isle/generators/interactables.ts",

@@ -26,7 +26,7 @@ const routes = [
       spot: action.kind === 'row' ? action.target : `talk.${action.target}`,
       action: { kind: 'owner', id: action.kind === 'row' ? action.target : `talk.${action.target}` } };
     if (action.kind === 'lantern') return { ...common, spot: `signal.${action.target}`, action: { kind: 'row', id: action.row } };
-    if (action.kind === 'cable') return { ...common, spot: 'quest.cable', action: { kind: 'owner', id: 'quest.cable' } };
+    if (action.kind === 'cable') return { ...common, spot: 'quest.cable', action: { kind: 'cable', cable: policy.cable, command: 'start' } };
     if (action.kind === 'pickup') return { ...common, when: `${free} && pickup`, spot: 'quest.pickup', action: { kind: 'owner', id: 'quest.pickup' } };
     if (action.kind === 'reward') return { ...common, spot: null, action: { kind: 'owner', id: 'quest.reward' } };
     throw new Error('Unknown native quest command');

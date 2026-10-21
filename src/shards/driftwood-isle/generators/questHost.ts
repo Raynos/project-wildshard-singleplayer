@@ -1,4 +1,5 @@
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from './questGraph';
+import policy from '../data/nativeQuest.json' with { type: 'json' };
 
 /** Native command routes retain page prompt order and borrow each live physical owner. */
 export const QUEST_HOST = {
@@ -24,7 +25,7 @@ export const QUEST_HOST = {
       {"value": 113, "spot": "reef-treasure", "when": "true", "action": {"kind": "owner", "id": "reef-treasure"}},
       {"value": 114, "spot": "vista-bench", "when": "true", "action": {"kind": "owner", "id": "vista-bench"}},
       {"value": 0, "spot": "castaway.talk", "when": "true", "action": {"kind": "row", "id": "castaway.talk"}},
-      {"value": 2, "spot": "zipline", "when": "idle", "action": {"kind": "owner", "id": "zipline"}},
+      {"value": 2, "spot": "zipline", "when": "idle", "action": {"kind": "cable", "cable": policy.cable, "command": "start"}},
     ] },
 };
 
