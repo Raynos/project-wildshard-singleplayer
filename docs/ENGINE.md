@@ -1011,6 +1011,14 @@ The warm-up is bounded in presented time (`boundEntryWarmup`, `src/engine/render
 with an `EntryWarmupStallError` naming the stage. Each rAF gap counts at most 100 ms, so a hidden page never expires
 it. The grid records the rejection as the cell's admission issue and the next crossing retries; nothing waits silently.
 
+Initial loading opts into `precompileLevel(..., { warmPost: true })`. Post links issue first,
+then the linked post materials draw individually into their declared pass targets (or the
+composer buffer/canvas) with a painted task between completed draws. `warmPostJobs` restores
+the previous target, cube face and mip on error or cancellation. These are borrowed materials
+and existing targets at their full sizes; no simulation or effect clock advances. The first
+real composer frame overwrites the warm pixels. Live entered-world preparation keeps its
+existing composer warm-up and does not opt into this initial-loading phase.
+
 During WebKit entered-world preparation, `Game.warmEnteredFrame` requests isolated image uploads.
 `precompileLevel` accepts `isolateImageUploads`; `runPrecompile` accepts it before its optional `pause` callback.
 Each image keeps its original texture/source/sampler and upload order, with a paint opportunity before the next
