@@ -19,7 +19,8 @@ if(!version.build?.startsWith(pin.slice(0,7)))throw new Error('Served SHA differ
 mkdirSync(out,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});
 const {defaultBrowserType:_engine,...phone}=devices['iPhone 16 Pro'];
-const receipt={schema:1,source:pin,protocol:{profiler:false,glObserver:'off',...(arg('quiet','0')==='1'?{quiet:true}:{}),
+const profiling=arg('profile','0')==='1';
+const receipt={schema:1,source:pin,protocol:{profiler:profiling,glObserver:'off',...(profiling?{quiet:false}:arg('quiet','0')==='1'?{quiet:true}:{}),
   memory:'Residency sampled every 250 ms; CDP detailed private-footprint dumps outside timed windows, no forced GC. Page process totals informational.',
   timing:'Live clock, drawn-frame cadence, real held-input road entry and leave; one declared road seed per independent case. No layout or cap changes.'},runs:[]};
 let failed=false;
@@ -53,6 +54,8 @@ try {
   const run={sha:pin,when:new Date().toISOString(),surface:'chromium',cohort:'grid',complete:false,glObserver:'off',
    instance,profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},cases:[],processSamples:[]};
   const scene={shard:'grid',complete:false,errors,routes:[],rows:[]};run.cases.push(scene);receipt.runs.push(run);
+  const profileStart=async()=>{if(profiling){await cdp.send('Profiler.enable');await cdp.send('Profiler.start');}};
+  const profileEnd=async phase=>{if(profiling)writeFileSync(resolvePath(out,`${caseName}-${phase}.cpuprofile`),JSON.stringify((await cdp.send('Profiler.stop')).profile));};
   const dump=async phase=>{
    const events=[];
    const collect=event=>{events.push(...event.value);};session.on('Tracing.dataCollected',collect);
@@ -81,13 +84,16 @@ try {
    const entry=await gridFloorDeclaredPlan(page,state,plans[0]);
    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(entry)},${JSON.stringify(identity)},(${driveFloorGrid.toString()}))`);
    await dump('before-entry');
+   await profileStart();
    await page.evaluate(()=>window.__gridReadyProbe.start('loading'));
    const entered=await page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(entry)},${JSON.stringify(identity)})`);
    const entryRow=await page.evaluate(()=>window.__gridReadyProbe.stop());
+   await profileEnd('entry');
    scene.rows.push({name:`grid-${entry.name}-drive`,...entryRow});
    errors.push(...gridFloorWitnessFailures(entered));
    scene.routes.push({name:entry.name,after:{current:entered.after.live.live.current,slug},witness:entered});
    await dump('entered');
+   await profileStart();
    await page.evaluate(()=>window.__gridReadyProbe.start('playing'));
    await page.evaluate(()=>new Promise(resolve=>{
     const game=window.__wildshard.world.game,player=window.__wildshard.world.player,start=performance.now(),yaw=player.yaw;
@@ -97,6 +103,7 @@ try {
     });
    }));
    scene.rows.push({name:`grid-${entry.name}`,...await page.evaluate(()=>window.__gridReadyProbe.stop())});
+   await profileEnd('look');
    await dump('after-look');
    await page.evaluate(label=>{
     const caption=document.createElement('div');caption.textContent=label;
@@ -107,9 +114,11 @@ try {
    const road=entry.waypoints[0];
    const leave=await gridFloorDeclaredPlan(page,entered.after,{name:`${slug}-leave`,from:cell.instance,to:null,movement:'road-hover',
     waypoints:[road],requiredResidents:[],finishOnArrival:false});
+   await profileStart();
    await page.evaluate(()=>window.__gridReadyProbe.start('playing'));
    const left=await page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(leave)},${JSON.stringify(identity)})`);
    scene.rows.push({name:`grid-${entry.name}-travel`,...await page.evaluate(()=>window.__gridReadyProbe.stop())});
+   await profileEnd('leave');
    errors.push(...gridFloorWitnessFailures(left));scene.leave=left;
    const owned=await page.evaluate(()=>window.__gridReadyProbe.finish());
    const peaks=run.processSamples.reduce((peak,row)=>({browser:Math.max(peak.browser,row.browser),renderer:Math.max(peak.renderer,row.renderer),gpu:Math.max(peak.gpu,row.gpu)}),{browser:0,renderer:0,gpu:0});
