@@ -1,0 +1,78 @@
+{
+  "pin": "e8c4dba97ea739c25102480e7fe1984602ecc9f7",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "transitions": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "wallMs": 175,
+      "stageMs": 175,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 17.30000001192093
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 43.39999997615814
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 3.400000035762787
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.8999999761581421
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 110
+        }
+      ]
+    },
+    {
+      "from": null,
+      "to": "driftwood-isle",
+      "wallMs": 37387.60000002384,
+      "stageMs": 37387.60000002384,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 37366.19999998808
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 21.30000001192093
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 0
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.10000002384185791
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 0
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "networkBytes": 167252359,
+  "surface": "phone",
+  "visit": "warm",
+  "rawSHA256": "ba46e2f151a6f40b7423dcdbd4f72b595dc37405153059dfb4b8722c37ebda86"
+}

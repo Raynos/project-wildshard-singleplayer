@@ -1,0 +1,335 @@
+{
+  "pin": "e8c4dba97ea739c25102480e7fe1984602ecc9f7",
+  "path": "shardfile",
+  "visit": "warm",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "errors": [],
+  "stageSeconds": 24.46209999996423,
+  "clockSeconds": 24.4,
+  "unaccountedSeconds": -0.06209999996423221,
+  "displayedNetworkBytes": 6176,
+  "networkBytes": 6263,
+  "byteError": 0.013891106498483154,
+  "visibleByteError": 0,
+  "maxDetailGapMs": 381.0999999642372,
+  "failures": [],
+  "surface": "phone",
+  "rawSHA256": "5512e174da5915b30c93d061c239eec8a325f619a955591f3b74d58a2fc59fd7",
+  "final": {
+    "at": 24518.599999964237,
+    "clock": "00:24.4",
+    "detail": "step 24 / 24 \u00b7 Final activation",
+    "download": "0.01 MB downloaded \u00b7 193.1 MB from cache \u00b7 0.00 MB still expected \u00b7 1017 / 1017 files",
+    "footer": "Now waiting for: Decode selected audio clip \u00b7 0.0 s \u00b7 0 files in flight",
+    "diagnostics": "Attempt 1 \u00b7 JS heap 51 MiB \u00b7 scene textures ~2 MiB\nLargest observed frame-update gap 0.3s at Preparing application services\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "Decode selected audio clip",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "shardfile",
+    "step": "finish",
+    "setup": "100",
+    "networkBytes": "6176",
+    "cachedBytes": "193082567",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 gap before setup",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.09999996423721313"
+      },
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "1.2 s",
+        "state": "ok",
+        "key": "modules",
+        "ms": "1157.8999999761581"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "857 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "857.1000000238419"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "65 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "65.30000001192093"
+      },
+      {
+        "label": "\u25b8 gap after Texture and audio preparation",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "1.199999988079071"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "222 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "222.39999997615814"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Sky \u00b7 lighting",
+        "detail": "",
+        "duration": "1.2 s",
+        "state": "ok",
+        "key": "sky",
+        "ms": "1243.7000000476837"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 Terrain \u00b7 heightfield",
+        "detail": "256\u00b2 heightfield",
+        "duration": "105 ms",
+        "state": "ok",
+        "key": "terrain",
+        "ms": "104.59999996423721"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Tree cards",
+        "detail": "",
+        "duration": "11 ms",
+        "state": "ok",
+        "key": "cards",
+        "ms": "10.800000011920929"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Trees",
+        "detail": "0 trees",
+        "duration": "22 ms",
+        "state": "ok",
+        "key": "forest",
+        "ms": "22.30000001192093"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 Physics \u00b7 Rapier \u00b7 navmesh",
+        "detail": "5 colliders",
+        "duration": "32 ms",
+        "state": "ok",
+        "key": "physics",
+        "ms": "31.80000001192093"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Chunk edge \u00b7 water \u00b7 horizon",
+        "detail": "",
+        "duration": "62 ms",
+        "state": "ok",
+        "key": "edge",
+        "ms": "61.799999952316284"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Grass \u00b7 ground cover",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "grass",
+        "ms": "1"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Buildings",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "cabins",
+        "ms": "0.10000002384185791"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Props",
+        "detail": "Baked island",
+        "duration": "5.1 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "5057.800000011921"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Animals",
+        "detail": "13 animals",
+        "duration": "183 ms",
+        "state": "ok",
+        "key": "animals",
+        "ms": "182.60000002384186"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "8 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "7.500000059604645"
+      },
+      {
+        "label": "\u25b8 16 \u00b7 World assembly",
+        "detail": "",
+        "duration": "8 ms",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "8"
+      },
+      {
+        "label": "\u25b8 17 \u00b7 Title art \u00b7 explore",
+        "detail": "40 / 40 pictures \u00b7 UI",
+        "duration": "26 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "25.900000035762787"
+      },
+      {
+        "label": "\u25b8 18 \u00b7 Shaders",
+        "detail": "8 / 8 post pipelines drawn \u00b7 119 programs",
+        "duration": "12.7 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "12687.300000011921"
+      },
+      {
+        "label": "\u25b8 19 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 119 programs",
+        "duration": "544 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "543.9000000357628"
+      },
+      {
+        "label": "\u25b8 20 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 89 / 91",
+        "duration": "326 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "325.5999999642372"
+      },
+      {
+        "label": "\u25b8 21 \u00b7 Region world",
+        "detail": "",
+        "duration": "151 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "150.9000000357628"
+      },
+      {
+        "label": "\u25b8 22 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "812 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "812.1999998688698"
+      },
+      {
+        "label": "\u25b8 23 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "809 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "809.3000000119209"
+      },
+      {
+        "label": "\u25b8 24 \u00b7 Final activation",
+        "detail": "",
+        "duration": "71 ms",
+        "state": "on",
+        "key": "finish",
+        "ms": "70.99999994039536"
+      }
+    ]
+  },
+  "firstAt": 777.3999999761581,
+  "readyAt": 24518.599999964237,
+  "updates": 238,
+  "transport": {
+    "requests": 5,
+    "bodyBytes": 5276,
+    "headerBytes": 987
+  },
+  "observedTransport": [
+    {
+      "url": "http://127.0.0.1:4443/?chunk=driftwood-isle",
+      "status": 200,
+      "endedAt": 1792573518121,
+      "bodyBytes": 5214,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd"
+      },
+      "responseCache": {
+        "etag": "W/\"4a12-TDj9OnkJg63Q9Mj1U/AAgUm7pWM\"",
+        "cacheControl": "no-cache",
+        "vary": "Origin",
+        "contentEncoding": "gzip"
+      },
+      "headerBytes": 235
+    },
+    {
+      "url": "http://127.0.0.1:4443/api/telemetry",
+      "status": 404,
+      "endedAt": 1792573518238,
+      "bodyBytes": 0,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "origin": "http://127.0.0.1:65420"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 228
+    },
+    {
+      "url": "http://127.0.0.1:4443/version.json?t=1792573518272",
+      "status": 200,
+      "endedAt": 1792573518276,
+      "bodyBytes": 62,
+      "requestCache": {
+        "cacheControl": "no-cache",
+        "acceptEncoding": "gzip, deflate, br, zstd"
+      },
+      "responseCache": {
+        "etag": "W/\"62-1792573255770\"",
+        "cacheControl": "no-store",
+        "vary": "Origin"
+      },
+      "headerBytes": 240
+    },
+    {
+      "url": "http://127.0.0.1:4443/sw.js",
+      "status": 304,
+      "endedAt": 1792573523582,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"57097-1792573255773\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:55 GMT",
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "serviceWorker": "script"
+      },
+      "responseCache": {
+        "cacheControl": "no-cache"
+      },
+      "headerBytes": 142
+    },
+    {
+      "url": "http://127.0.0.1:4443/sw.js",
+      "status": 304,
+      "endedAt": 1792573524746,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"57097-1792573255773\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:55 GMT",
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "serviceWorker": "script"
+      },
+      "responseCache": {
+        "cacheControl": "no-cache"
+      },
+      "headerBytes": 142
+    }
+  ]
+}

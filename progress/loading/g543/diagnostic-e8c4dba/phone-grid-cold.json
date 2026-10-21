@@ -1,0 +1,174 @@
+{
+  "pin": "e8c4dba97ea739c25102480e7fe1984602ecc9f7",
+  "path": "grid",
+  "visit": "cold",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "errors": [],
+  "stageSeconds": 29.19390000003576,
+  "clockSeconds": 29.2,
+  "unaccountedSeconds": 0.006099999964238378,
+  "displayedNetworkBytes": 173107345,
+  "networkBytes": 173165407,
+  "byteError": 0.00033529791547800306,
+  "visibleByteError": 8.897273576124821e-05,
+  "maxDetailGapMs": 649.3999999761581,
+  "failures": [],
+  "surface": "phone",
+  "rawSHA256": "3be1c81f16cea578ccfde5ad0e7b58c5230d94d090ccaf57e529c06feb86f1db",
+  "final": {
+    "at": 29271.19999998808,
+    "clock": "00:29.2",
+    "detail": "step 14 / 16 \u00b7 Final activation",
+    "download": "173.1 MB downloaded \u00b7 97.7 MB from cache \u00b7 0.00 MB still expected \u00b7 1488 / 1488 files",
+    "footer": "Now working on: Audio \u00b7 music + sound effects",
+    "diagnostics": "Attempt 1 \u00b7 JS heap 51 MiB \u00b7 scene textures ~42 MiB\nLargest observed frame-update gap 0.6s at World assembly: Terrain seams \u00b7 26 batches\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "grid",
+    "step": "finish",
+    "setup": "100",
+    "networkBytes": "173107345",
+    "cachedBytes": "97717061",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "1.2 s",
+        "state": "ok",
+        "key": "modules",
+        "ms": "1180.800000011921"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "958 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "957.8000000715256"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "29 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "28.599999964237213"
+      },
+      {
+        "label": "\u25b8 gap after Texture and audio preparation",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.6000000238418579"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "111 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "110.89999997615814"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "20 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "19.69999998807907"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 World assembly",
+        "detail": "25 cells \u00b7 96 seams \u00b7 road ready",
+        "duration": "6.9 s",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "6865.300000011921"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Title art \u00b7 explore",
+        "detail": "28 / 28 pictures \u00b7 UI",
+        "duration": "18 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "17.80000001192093"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Shaders",
+        "detail": "13 / 13 post pipelines drawn \u00b7 167 programs",
+        "duration": "6.7 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "6708.300000011921"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 167 programs",
+        "duration": "529 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "528.6999999880791"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 0 / 0",
+        "duration": "14 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "14"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Region world",
+        "detail": "",
+        "duration": "453 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "453.2000000476837"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "223 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "222.80000001192093"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "173 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "172.79999995231628"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Final activation",
+        "detail": "",
+        "duration": "267 ms",
+        "state": "on",
+        "key": "finish",
+        "ms": "267.1000000834465"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Home region",
+        "detail": "Home region 1 / 1 \u00b7 driftwood-isle \u00b7 Physics 2102 colliders \u00b7 Trees 0 forest records",
+        "duration": "11.6 s",
+        "state": "ok",
+        "key": "home",
+        "ms": "11645.49999988079"
+      }
+    ]
+  },
+  "firstAt": 923.6999999880791,
+  "readyAt": 29271.19999998808,
+  "updates": 343,
+  "transport": {
+    "requests": 766,
+    "bodyBytes": 172962631,
+    "headerBytes": 202776
+  }
+}

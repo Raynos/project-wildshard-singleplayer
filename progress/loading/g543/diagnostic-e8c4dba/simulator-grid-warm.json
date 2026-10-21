@@ -1,0 +1,527 @@
+{
+  "pin": "e8c4dba97ea739c25102480e7fe1984602ecc9f7",
+  "path": "grid",
+  "visit": "warm",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "errors": [],
+  "stageSeconds": 10.769,
+  "clockSeconds": 10.7,
+  "unaccountedSeconds": -0.06900000000000084,
+  "displayedNetworkBytes": 28992,
+  "networkBytes": 26728,
+  "byteError": 0.0847051780903921,
+  "visibleByteError": 0,
+  "maxDetailGapMs": 700,
+  "failures": [
+    "Network bytes are unavailable or differ by more than 5%"
+  ],
+  "surface": "simulator",
+  "rawSHA256": "c2b50df1e1d7d41eafdf67d76d76d4beb168d66e79da33feed57f7e0f05c71af",
+  "final": {
+    "at": 10780,
+    "clock": "00:10.7",
+    "detail": "gap after Audio \u00b7 music + sound effects",
+    "download": "0.03 MB downloaded \u00b7 179.4 MB from cache \u00b7 0.00 MB still expected \u00b7 998 / 998 files",
+    "footer": "Now working on: First frame",
+    "diagnostics": "Attempt 1 \u00b7 JS heap unavailable on Safari \u00b7 scene textures ~42 MiB\nLargest observed frame-update gap 0.3s at World assembly: Road geometry \u00b7 62 batches \u00b7 96 seams\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "grid",
+    "step": "gap",
+    "setup": "100",
+    "networkBytes": "28992",
+    "cachedBytes": "179360741",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "478 ms",
+        "state": "ok",
+        "key": "modules",
+        "ms": "478"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "602 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "602"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "6 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "6"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "71 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "71"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "42 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "42"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 World assembly",
+        "detail": "25 cells \u00b7 96 seams \u00b7 road ready",
+        "duration": "2.7 s",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "2718"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Title art \u00b7 explore",
+        "detail": "28 / 28 pictures \u00b7 UI",
+        "duration": "4 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "4"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Shaders",
+        "detail": "13 / 13 post pipelines drawn \u00b7 167 programs",
+        "duration": "2.2 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "2222"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 167 programs",
+        "duration": "140 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "140"
+      },
+      {
+        "label": "\u25b8 gap after First frame",
+        "detail": "",
+        "duration": "3 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "3"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 0 / 0",
+        "duration": "3 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "3"
+      },
+      {
+        "label": "\u25b8 gap after Audio \u00b7 music + sound effects",
+        "detail": "",
+        "duration": "4 ms",
+        "state": "on",
+        "key": "gap",
+        "ms": "4"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Region world",
+        "detail": "",
+        "duration": "83 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "83"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "53 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "53"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "45 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "45"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Final activation",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "finish",
+        "ms": "0"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Home region",
+        "detail": "Home region 1 / 1 \u00b7 driftwood-isle \u00b7 Physics 2102 colliders \u00b7 Trees 0 forest records",
+        "duration": "4.2 s",
+        "state": "ok",
+        "key": "home",
+        "ms": "4222"
+      },
+      {
+        "label": "\u25b8 gap after Home region",
+        "detail": "",
+        "duration": "73 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "73"
+      }
+    ]
+  },
+  "firstAt": 291,
+  "readyAt": 10780,
+  "updates": 153,
+  "transport": {
+    "requests": 21,
+    "bodyBytes": 22692,
+    "headerBytes": 4036
+  },
+  "observedTransport": [
+    {
+      "url": "http://127.0.0.1:4443/?chunk=driftwood-isle",
+      "status": 200,
+      "endedAt": 1792573420946,
+      "bodyBytes": 22201,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "etag": "W/\"4a12-TDj9OnkJg63Q9Mj1U/AAgUm7pWM\"",
+        "cacheControl": "no-cache",
+        "vary": "Origin"
+      },
+      "headerBytes": 206
+    },
+    {
+      "url": "http://127.0.0.1:4443/manifest.webmanifest",
+      "status": 200,
+      "endedAt": 1792573420958,
+      "bodyBytes": 429,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "etag": "W/\"429-1792079788629\"",
+        "cacheControl": "no-store",
+        "vary": "Origin"
+      },
+      "headerBytes": 251
+    },
+    {
+      "url": "http://127.0.0.1:4443/api/telemetry",
+      "status": 404,
+      "endedAt": 1792573420992,
+      "bodyBytes": 0,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate",
+        "origin": "http://127.0.0.1:58765"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 228
+    },
+    {
+      "url": "http://127.0.0.1:4443/version.json?t=1792573420994",
+      "status": 200,
+      "endedAt": 1792573420999,
+      "bodyBytes": 62,
+      "requestCache": {
+        "cacheControl": "no-cache",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "etag": "W/\"62-1792573255770\"",
+        "cacheControl": "no-store",
+        "vary": "Origin"
+      },
+      "headerBytes": 240
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/00268188baf07b6a96e449add801904354513cc04ac0b8b45e3572d21c6b9157.glb",
+      "status": 304,
+      "endedAt": 1792573424957,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"1456776-1792573256051\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/0318cec04aeccd1db2e61064aab12c7e5b59edf2ec8595f414a6644d6486c4fe.glb",
+      "status": 304,
+      "endedAt": 1792573424957,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"281380-1792573256040\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/1eaebf3fc4b4402c4e5a3f0cd67614a19be4c3d75fd128ed0958407e60ef4039.glb",
+      "status": 304,
+      "endedAt": 1792573425038,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"561128-1792573256208\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/1f81227bc7344feb947e164614e79fd738c352fbdd6690d7e3549f1dbf51c1a9.glb",
+      "status": 304,
+      "endedAt": 1792573425038,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"491176-1792573256199\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/3c8cd3e59fc4a9a35bc79f80a77666d6aca9e49659e08ba9e8de1123927ffa74.glb",
+      "status": 304,
+      "endedAt": 1792573425128,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"271268-1792573256069\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/3cafe1edd4629893bab42c6be47c9f2a4159167bffffd9802aff10f361dc0509.glb",
+      "status": 304,
+      "endedAt": 1792573425129,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"355264-1792573256076\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/534cec830ae56911d56553fa3f99d7db08847146964011afc310395b9c21f582.glb",
+      "status": 304,
+      "endedAt": 1792573425196,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"2158672-1792573256137\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/5547c4116c3125773af202d96ebd66d1b2d6619abc5bd663f1022bb534ca384b.glb",
+      "status": 304,
+      "endedAt": 1792573425196,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"3416-1792573256062\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/67503837fe1a97f8450d2d6d23596117cc0c7342a486ed49a525f3cf38038b70.glb",
+      "status": 304,
+      "endedAt": 1792573425246,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"2036-1792573256222\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/9054c38ace415ecac09418a522e41f10228bdac9651006db74bf95137db77f3b.glb",
+      "status": 304,
+      "endedAt": 1792573425319,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"322668-1792573256189\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/96cc309b55975190814e6578a00fa889a514481d9f63d356eaf68a5d6146c29d.glb",
+      "status": 304,
+      "endedAt": 1792573425335,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"413916-1792573256156\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/9d7299ecc0e8d86da25d49578adf4ac2be5f0f3703e8bb44a3d61a455fc04ce4.glb",
+      "status": 304,
+      "endedAt": 1792573425345,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"3350484-1792573256175\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/a0e8f87e65e26b1598000faf6ff2b4af03312124c3e484de72915fbe5aa07a13.glb",
+      "status": 304,
+      "endedAt": 1792573425365,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"232200-1792573256209\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/b2b261ead396aae07bae50b9724b76d6a258d901ece0005a88a4ae78f0c819bd.glb",
+      "status": 304,
+      "endedAt": 1792573425424,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"15124-1792573256138\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/c761446da1fa535035faff40ba9ac428a559a3728dcc6c526b7d9553ba51e0ff.glb",
+      "status": 304,
+      "endedAt": 1792573425464,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"123116-1792573256210\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/d7737c770136ac1d0fc446ed1309a805e1f1dff2f57113aa23efb14e0282de52.glb",
+      "status": 304,
+      "endedAt": 1792573425513,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"3983672-1792573256145\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/blobs/glb/ed63f773f7d44365a171f18431da1d571aa9a4a5085ad3143dabc9155a753a35.glb",
+      "status": 304,
+      "endedAt": 1792573425535,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"999928-1792573256090\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:00:56 GMT",
+        "acceptEncoding": "gzip, deflate"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 183
+    }
+  ]
+}

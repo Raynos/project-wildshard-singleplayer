@@ -1,0 +1,254 @@
+{
+  "pin": "e8c4dba97ea739c25102480e7fe1984602ecc9f7",
+  "path": "shardfile",
+  "visit": "cold",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "errors": [],
+  "stageSeconds": 24.208099999964237,
+  "clockSeconds": 24.1,
+  "unaccountedSeconds": -0.10809999996423514,
+  "displayedNetworkBytes": 172356607,
+  "networkBytes": 172363793,
+  "byteError": 4.169089038322567e-05,
+  "visibleByteError": 0,
+  "maxDetailGapMs": 390.9000000357628,
+  "failures": [],
+  "surface": "phone",
+  "rawSHA256": "23c498fd93d5ce7940eebee08f7b83bb17475c4bdf37f945c87fe03356156e22",
+  "final": {
+    "at": 24272,
+    "clock": "00:24.1",
+    "detail": "step 24 / 24 \u00b7 Final activation",
+    "download": "172.4 MB downloaded \u00b7 103.5 MB from cache \u00b7 0.00 MB still expected \u00b7 1286 / 1286 files",
+    "footer": "Now waiting for: Decode selected audio clip \u00b7 0.0 s \u00b7 0 files in flight",
+    "diagnostics": "Attempt 1 \u00b7 JS heap 78 MiB \u00b7 scene textures ~2 MiB\nLargest observed frame-update gap 0.3s at Shaders: 116 materials \u00b7 9 / 160 batches \u00b7 parallel \u00b7 24 programs\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "Decode selected audio clip",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "shardfile",
+    "step": "finish",
+    "setup": "100",
+    "networkBytes": "172356607",
+    "cachedBytes": "103504446",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 gap before setup",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.40000003576278687"
+      },
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "1.0 s",
+        "state": "ok",
+        "key": "modules",
+        "ms": "1013.5999999642372"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "880 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "879.5999999642372"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "57 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "56.90000003576279"
+      },
+      {
+        "label": "\u25b8 gap after Texture and audio preparation",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.19999998807907104"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "95 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "94.59999996423721"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Sky \u00b7 lighting",
+        "detail": "",
+        "duration": "1.1 s",
+        "state": "ok",
+        "key": "sky",
+        "ms": "1132.0000000596046"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 Terrain \u00b7 heightfield",
+        "detail": "256\u00b2 heightfield",
+        "duration": "122 ms",
+        "state": "ok",
+        "key": "terrain",
+        "ms": "122.39999997615814"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Tree cards",
+        "detail": "",
+        "duration": "8 ms",
+        "state": "ok",
+        "key": "cards",
+        "ms": "7.5"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Trees",
+        "detail": "0 trees",
+        "duration": "35 ms",
+        "state": "ok",
+        "key": "forest",
+        "ms": "35"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 Physics \u00b7 Rapier \u00b7 navmesh",
+        "detail": "5 colliders",
+        "duration": "24 ms",
+        "state": "ok",
+        "key": "physics",
+        "ms": "23.5"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Chunk edge \u00b7 water \u00b7 horizon",
+        "detail": "",
+        "duration": "42 ms",
+        "state": "ok",
+        "key": "edge",
+        "ms": "42.40000003576279"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Grass \u00b7 ground cover",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "grass",
+        "ms": "0.5"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Buildings",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "cabins",
+        "ms": "0"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Props",
+        "detail": "Baked island",
+        "duration": "6.6 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "6604.599999964237"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Animals",
+        "detail": "13 animals",
+        "duration": "174 ms",
+        "state": "ok",
+        "key": "animals",
+        "ms": "174.19999998807907"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "7 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "6.800000071525574"
+      },
+      {
+        "label": "\u25b8 16 \u00b7 World assembly",
+        "detail": "",
+        "duration": "9 ms",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "9.100000023841858"
+      },
+      {
+        "label": "\u25b8 17 \u00b7 Title art \u00b7 explore",
+        "detail": "40 / 40 pictures \u00b7 UI",
+        "duration": "23 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "22.5"
+      },
+      {
+        "label": "\u25b8 18 \u00b7 Shaders",
+        "detail": "8 / 8 post pipelines drawn \u00b7 119 programs",
+        "duration": "11.4 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "11432.300000011921"
+      },
+      {
+        "label": "\u25b8 19 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 119 programs",
+        "duration": "441 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "441.19999998807907"
+      },
+      {
+        "label": "\u25b8 20 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 89 / 91",
+        "duration": "260 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "260"
+      },
+      {
+        "label": "\u25b8 21 \u00b7 Region world",
+        "detail": "",
+        "duration": "210 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "210.19999998807907"
+      },
+      {
+        "label": "\u25b8 22 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "804 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "803.9999999403954"
+      },
+      {
+        "label": "\u25b8 23 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "774 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "773.8000000119209"
+      },
+      {
+        "label": "\u25b8 24 \u00b7 Final activation",
+        "detail": "",
+        "duration": "61 ms",
+        "state": "on",
+        "key": "finish",
+        "ms": "60.799999952316284"
+      }
+    ]
+  },
+  "firstAt": 686.3000000119209,
+  "readyAt": 24272,
+  "updates": 260,
+  "transport": {
+    "requests": 531,
+    "bodyBytes": 172218146,
+    "headerBytes": 145647
+  }
+}
