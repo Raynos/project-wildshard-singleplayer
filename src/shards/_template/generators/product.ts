@@ -17,7 +17,7 @@ import { TEMPLATE_QUESTS } from '../data/quests';
 import { TEMPLATE_LEDGER } from '../data/ledger';
 import { TEMPLATE_AUDIO } from '../data/audio';
 import { SPAWN } from '../data/spawn';
-import { ITEMS } from '../data/items';
+import ITEMS from '../data/items.json' with { type: 'json' };
 import { TEMPLATE_TARGETS } from '../data/targets';
 import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from '../data/skins';
 import { CLIENT_IDLE_BYTES, CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, TEMPLATE_CLIENT_SCRIPTS } from '../data/clientScripts';

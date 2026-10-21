@@ -1,5 +1,4 @@
-/** Template item data: kit families and one content-addressed admitted hook; installed at SF16. */
-export const ITEMS = {
+{
   "version": 1,
   "rows": [
     {
@@ -170,4 +169,4 @@ export const ITEMS = {
       "tool.template-lantern"
     ]
   }
-} as const;
+}

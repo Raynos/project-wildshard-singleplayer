@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { capture } from './parity.mjs';
@@ -19,7 +19,7 @@ writeFileSync(join(fixture, 'scripts/physics-route.json'), JSON.stringify({ _tem
   start: { x: 0, y: 1, z: 0, yaw: 0 }, waypoints: [{ x: 0, z: -4 }, { x: 0, z: -7.5 }], timeout: 30 }] }));
 // The scripted weapon is the Template's declared whip (SF16): a declared weapon's Weapon.id is its legacySlot,
 // which game/shardfile/items.ts maps from the row's `slot`, so key on that, not the row id.
-const items = object(object(await import(resolve(import.meta.dirname, '../src/shards/_template/data/items.ts'))).ITEMS);
+const items = object(JSON.parse(readFileSync(resolve(import.meta.dirname, '../src/shards/_template/data/items.json'), 'utf8')));
 const whip = string(object(array(items.rows).find((row) => object(row).context === 'template.whip')).slot);
 if (!whip) throw new Error('Template items declare no template.whip weapon row');
 STEPS._template = [{ step: 'swing', weapon: whip, target: 'greyBlob', near: { x: 0, z: -19 }, distance: 3, hit: 5, kill: 20, settleFrames: 30 }];

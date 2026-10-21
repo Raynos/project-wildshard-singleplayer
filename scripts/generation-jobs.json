@@ -13436,7 +13436,7 @@
         "src/shards/_template/data/creatures.ts",
         "src/shards/_template/data/director.ts",
         "src/shards/_template/data/encounters.ts",
-        "src/shards/_template/data/items.ts",
+        "src/shards/_template/data/items.json",
         "src/shards/_template/data/ledger.ts",
         "src/shards/_template/data/look.ts",
         "src/shards/_template/data/plumbing.ts",

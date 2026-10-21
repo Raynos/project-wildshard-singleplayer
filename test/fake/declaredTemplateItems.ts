@@ -8,7 +8,7 @@ import type { ItemRuntime, ItemTarget } from '../../src/engine/combat/items';
 import { installDeclaredItems, type DeclaredItems } from '../../src/game/shardfile/items';
 import { parseItems } from '@wildshard/format/items';
 import { declaredKitItemFamilies } from '../../src/game/plugin/weaponFamily';
-import { ITEMS } from '../../src/shards/_template/data/items';
+import ITEMS from '../../src/shards/_template/data/items.json' with { type: 'json' };
 
 interface TemplateItemFixture {
   app: App; scope: Scope; weapon: Weapon; runtime: ItemRuntime; service: EquipmentService; items: DeclaredItems;
