@@ -1103,6 +1103,9 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     }
     if (effect?.depthWrite !== undefined) m.depthWrite = effect.depthWrite;
     if (effect?.singlePass === true) m.forceSinglePass = true;
+    // O14: an additive double-sided blend that writes no depth reads the same in one pass (the sum is order-free); three
+    // otherwise draws it twice, back faces then front, with a second program (its flipSided variant) and node build each
+    else if (m.transparent && m.side === THREE.DoubleSide && m.blending === THREE.AdditiveBlending && !m.depthWrite) m.forceSinglePass = true;
     if (effect?.depthBias !== undefined) {
       m.polygonOffset = true; m.polygonOffsetFactor = effect.depthBias.factor; m.polygonOffsetUnits = effect.depthBias.units;
     }
