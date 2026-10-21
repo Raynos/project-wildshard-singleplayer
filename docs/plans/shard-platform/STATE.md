@@ -4,7 +4,7 @@
 
 **Live:** c67d1eb3a; pushed 8842d08d30 (QA+QB, X5, ruler fix). Sim a2d07edee1: 30.3 fps avg, hitches Pine 489 / Nine 237 ms.
 
-**Tooling:** BUILD-SPEED. G567: goal 0 %, M3 = cut / 98,854 original, plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
+**Tooling:** BUILD-SPEED. G568 (Jake): push loop (2.3 A + 2.4 A, <=45 s pre-push, ejects red commits) built by sp-x1, sp-x7 retires after; no per-slice batch checks (one per row). G567: goal 0 %, M3 = cut / 98,854 original, plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
 
 **Rules:** lanes/common.md.
 
