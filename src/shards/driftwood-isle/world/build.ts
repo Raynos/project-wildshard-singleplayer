@@ -13,7 +13,7 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  */
 import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { sites, fencePost, signpost, plankStep, shoreBoulder, entryDeck } from '../models/catalogue';
+import { sites, fencePost, signpost, plankStep, entryDeck } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -24,7 +24,6 @@ import manifest from '../discovery.generated';
 import { WaterSurface, waterSurfaceLook } from '@wildshard/game/systems/looks/waterSurface';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { MooringLines } from '../runtime/props/mooringLines';
-import rockMetadata from '../boot/modelCatalogue.generated.json' with { type: 'json' };
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
@@ -129,16 +128,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await stages.next('Pier and boat');
   // faceted shore boulders along the beach
   // Keep the model's authored copy facts over the finished world draw.
-  const rocks = await stages.build('Shore boulders', async () => {
-    const rows = rockMetadata.rockWorld.shore, mesh = scenes.mesh('rocks.shore');
-    mesh.name = shoreBoulder.id;
-    const { colliders: _hulls, ...metadata } = shoreBoulder;
-    const placed = place(metadata, rows.map(row => ({ x: row.matrix[12] ?? 0, y: row.matrix[13] ?? 0, z: row.matrix[14] ?? 0, matrix: new THREE.Matrix4().fromArray(row.matrix), params: row.params })),
-      { ctx: modelContext(sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true }, drawnInto: { object: mesh, boxes: Float32Array.from(rows.flatMap(row => row.box)),
-        colliders: readColliderRows(rows.flatMap(row => row.colliders), { kinds: ['hull'], surfaces: [] }) } });
-    await placed.registered; game.scene.add(mesh);
-    return { placed };
-  });
+  const rocks = await stages.build('Shore boulders', async () => { await entry.run('shore'); return { placed: entry.placed('rocks.shore.copies') }; });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
   const hut = await stages.build('Hut', () => sites.site('hut', 'world', sharedModelContext(sky, game), registry));
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)

@@ -39,6 +39,7 @@ export function uprightPoses(poses: readonly Readonly<{ matrix: readonly number[
  */
 export const WORLD_PLACEMENTS: readonly WorldScenePlacementRow[] = [
   baked('rocks.small.copies', 'smallRock', 'rocks.small', { id: 'cove-small-rocks' }, rocks.world.small),
+  baked('rocks.shore.copies', 'shoreBoulder', 'rocks.shore', { id: 'rocks', solidFloor: true }, rocks.world.shore),
   parseWorldScenePlacement({ id: 'wreck.ship', model: 'shipwreck', draw: 'merged', drawnInto: { part: 'wreck.root', boxes: wreck.shipBox },
     poses: [{ x: wreck.spec.x, y: wreck.floorY, z: wreck.spec.z, params: { site: wreck.spec }, yxz: { yaw: wreck.spec.heading, scale: 1 } }],
     colliders: wreck.descs, piece: { id: 'wreck', floors: wreck.floors, floorPolicy: 'first', solidFloor: true } }),
