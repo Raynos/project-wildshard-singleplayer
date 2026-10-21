@@ -8,8 +8,7 @@ import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import { saves } from '@wildshard/engine/saves/runtime';
-import { jsonSchema } from '@wildshard/engine/saves/slots';
+import { jsonSchema, jsonSlot } from '@wildshard/engine/saves/slots';
 import { test } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -28,8 +27,6 @@ import { isItemId } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
 import { QuestViews, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 
-const defineBoardSave = (key: string) => saves.define({ key, scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
-const stores = new Map<string, ReturnType<typeof defineBoardSave>>();
 const _v = new THREE.Vector3();
 /** Client-only story composition over native page owners. Rows supply every
  * content identity; custom world drawing consumes the returned observations. */
@@ -110,9 +107,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     owners: new Map<string, unknown>([['door', millDoor], ['sfx', kitSfx]]) });
   const thralls = await installQuestSpawnDirector(ctx, native);
   thralls.useSfx(sfx);
-  let lodgeSave = stores.get(rows.store.slot);
-  if (lodgeSave === undefined) { lodgeSave = defineBoardSave(rows.store.slot); stores.set(rows.store.slot, lodgeSave); }
-  const savedBoard = lodgeSave;
+  const savedBoard = jsonSlot(rows.store.slot, 'shard');
   const lodge = bindRuntimeState(ctx, source, rows.store.state, () => JSON.stringify(savedBoard.read(h.chunkId)), h.chunkId);
   const store = { getItem: (_key: string): string => String(lodge.read()), setItem: (_key: string, raw: string): void => {
     v.parse(jsonSchema, JSON.parse(raw) as unknown); lodge.write(raw);
