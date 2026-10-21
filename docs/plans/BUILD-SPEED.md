@@ -57,6 +57,7 @@ Claude 50 % and Codex 54 % of the week used at day 1.9 and 1.3; `scripts/` 33 �
 | D4 | Measurement stays on the host. | decided (10-21) |
 | D5 | Polling is forbidden for both agent kinds. | decided (10-21); Phase 1.4 |
 | D6 | **The push gate and the ruler keep normal priority:** Phase 1.2's `taskpolicy -c utility` wraps lane jobs only; `heavy-lane.py gate` (the push gate and everything under its lease) and the ruler's measurement build (`scripts/admin-data/ruler.mjs`) run at default QoS, as G548 B5 set (Jake, 10-21 ~10:35 Cancun, on the plan agent's review of Wave 1: *"exempt the push gate and the ruler approved"*; SHARD-PLATFORM G562). | decided (10-21); amends 1.2 |
+| D7 | **One Simulator device, no new ones:** `scripts/sim-lane.sh` stops creating a device for every new name; it uses one named Wildshard device (`wildshard-iphone`, an iPhone 17 Pro on the newest runtime) by default, accepts only existing device names, and refuses to create others. The 44 one-off lane devices (~103 GB) were deleted by the plan agent on Jake's word (10-21: 73 → 29 devices, 184 → 81 GB); the three in use, Apple's stock devices and other projects' (rockhop, trials) were kept (Jake, 10-21 ~10:50 Cancun: *"Delete + fix the tool"*; SHARD-PLATFORM G563). | decided (10-21) |
 
 ## Wave 1: stop the bleeding (nothing deleted, every step reversible in minutes)
 
