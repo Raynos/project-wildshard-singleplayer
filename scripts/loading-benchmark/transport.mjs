@@ -37,7 +37,7 @@ export async function observeTransport(upstream, fixture = {}) {
           response.writeHead(incoming.statusCode ?? 502, headers); response.write(patched);
         }
         response.end();
-        receipts.push({ url: target.href, endedAt: Date.now(), bodyBytes: body,
+        receipts.push({ url: target.href, status: incoming.statusCode ?? 502, endedAt: Date.now(), bodyBytes: body,
           // Resource Timing's transferSize charges a fixed 300-byte header estimate.
           // Keep the independent observed payload and actual response headers separate.
           headerBytes: Buffer.byteLength(`HTTP/1.1 ${incoming.statusCode} ${incoming.statusMessage}\r\n${Object.entries(headers).map(([key, value]) => `${key}: ${value}\r\n`).join('')}\r\n`) });
