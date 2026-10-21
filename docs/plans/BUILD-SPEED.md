@@ -15,6 +15,8 @@ duplication of pre-commit (Phase 2.4 re-planned below). The `wildshard` pane bui
 being asked to build; Jake (10-21): keep it, revert nothing. Landed SHAs and the Verify still owed:
 [build-speed/STATE.md](build-speed/STATE.md). Wave 2 is asked when Jake wants it.
 
+**Already landed before this plan (SHARD-PLATFORM, 10-20/21; this plan builds on them, never undoes them without a ruling):** G547 two builds at a time and check slots `check`..`check5` (`29d62fc9ef`, `b3b0b19824`); G548 [build-speed-mini-plan](shard-platform/build-speed-mini-plan.md) B1–B6: shard products keyed on the files each build reads, a six-process shard pool, a shared input-hash memo, one parse for the census, normal build priority; a no-change ruler build 13.4 s (was 204–282 s), 26.6 s when `src/sdk` changes. From 10-21 BUILD-SPEED is the one owner of build and lane tooling (SHARD-PLATFORM opens no new tooling rows).
+
 Audit: [Wildshard Build Speed Audit](https://claude.ai/artifact/FDEUjZcmiBxQ8uPTVajAVB) (review page
 `docs/reviews/build-speed-audit.md`). The numbers every wave is measured against: 1,613 commits in 72 h, 723 with no
 source; Codex lanes 31.5 of 48 tool-hours in wait()/sleep() polls; the push gate held 33.5 of 72 h, 52 % red, gen
