@@ -1,5 +1,7 @@
 import { parseWorldEntry, type WorldEntryRows, type WorldEntryStep } from '@wildshard/format/worldEntry';
 import { ISLAND_KNOBS } from './tiers';
+import cove from '../data/coveBake.json' with { type: 'json' };
+import composition from '../data/coveComposition.json' with { type: 'json' };
 
 const TIERS = ['phone', 'desktop'] as const;
 /** a tier's foliage placement and its draw, named for its model, clipped by the island dressing */
@@ -11,7 +13,8 @@ const foliage = (kind: 'bushes' | 'palms', mesh: string, castShadow: (tier: type
 
 /**
  * Driftwood Isle's declared world entry (the world/scenes section's entry, run by @wildshard/game/shardfile/worldEntry in
- * world/build.ts): the shore boulders, the hibiscus bushes and the coconut palms for this tier, the wreck, and the cove's small rocks.
+ * world/build.ts): the shore boulders, the hibiscus bushes and the coconut palms for this tier, the wreck, the cove's piece and
+ * the cove's small rocks.
  */
 export function driftwoodWorldEntry(): WorldEntryRows {
   return parseWorldEntry({ blocks: {
@@ -21,5 +24,7 @@ export function driftwoodWorldEntry(): WorldEntryRows {
     wreck: [...['wreck.ship', 'wreck.barrels', 'wreck.crates', 'wreck.coils', 'wreck.logs', 'wreck.reef'].map(id => ({ kind: 'place', id })), { kind: 'attach', id: 'wreck.root', as: 'group' }],
     shore: [{ kind: 'place', id: 'rocks.shore.copies' }, { kind: 'attach', id: 'rocks.shore', as: 'mesh', nameAfter: 'rocks.shore.copies' }],
     smallRocks: [{ kind: 'place', id: 'rocks.small.copies' }, { kind: 'attach', id: 'rocks.small', as: 'mesh', nameAfter: 'rocks.small.copies' }],
+    // Wreck Cove as one world piece (G3): its rock walls and treads, its walkable floors (authored order), its root group
+    cove: [{ kind: 'piece', ...composition.piece, colliders: cove.native.descs, floors: cove.floors, floorPolicy: 'first', object: composition.root }],
   } });
 }

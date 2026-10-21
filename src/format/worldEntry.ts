@@ -6,6 +6,7 @@ import * as v from 'valibot';
  *   attach  put a published group / mesh / object under the world root (optionally renamed, shadow and user flags)
  *   place   load a named scene placement (its models, draws, colliders and piece)
  *   look    set a lent look's material state (blend factors, depth and coverage flags, transparency)
+ *   piece   register a world piece: colliders, floor rects and the scene object it stands for (G3)
  * `when` keeps a row to one tier or one world variant (e.g. a deck ending); rows without it always run.
  */
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
@@ -25,7 +26,15 @@ const AttachSchema = v.strictObject({ kind: v.literal('attach'), when: v.exactOp
   name: v.exactOptional(id), nameAfter: v.exactOptional(id), castShadow: v.exactOptional(v.boolean()), userData: v.exactOptional(v.record(id, v.union([v.boolean(), finite, id]))) });
 const PlaceSchema = v.strictObject({ kind: v.literal('place'), when: v.exactOptional(when), id });
 const LookSchema = v.strictObject({ kind: v.literal('look'), when: v.exactOptional(when), look: id, state: MaterialStateSchema });
-export const WorldEntryStepSchema = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema]);
+const surface = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']);
+const FloorRectSchema = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), y: finite,
+  rot: v.exactOptional(finite), slope: v.exactOptional(finite), tilt: v.exactOptional(finite), profile: v.exactOptional(v.pipe(v.array(v.tuple([finite, finite, finite])), v.maxLength(8))) });
+/** register one world piece: its box / tread colliders (each with its surface), its floor rects (`first` keeps authored
+ *  priority, `highest` the top surface) and the scene object it stands for (absent: the world root) */
+const PieceSchema = v.strictObject({ kind: v.literal('piece'), when: v.exactOptional(when), id, name: id, file: id,
+  category: v.picklist(['ground', 'nature', 'buildings', 'props']), surface, colliders: v.pipe(v.array(v.unknown()), v.maxLength(2048)),
+  floors: v.pipe(v.array(FloorRectSchema), v.maxLength(4096)), floorPolicy: v.picklist(['first', 'highest']), solidFloor: v.boolean(), object: v.exactOptional(id) });
+export const WorldEntryStepSchema = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema, PieceSchema]);
 export const WorldEntrySchema = v.strictObject({ blocks: v.record(id, v.pipe(v.array(WorldEntryStepSchema), v.maxLength(1024))) });
 export type WorldEntryStep = v.InferOutput<typeof WorldEntryStepSchema>;
 export type WorldEntryRows = v.InferOutput<typeof WorldEntrySchema>;

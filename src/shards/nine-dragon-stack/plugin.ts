@@ -19,8 +19,8 @@ import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import worldInstall from './world/install.generated.json' with { type: 'json' };
 import type { GeometryBoot } from './runtime/productSections.generated';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { floorAtRects } from '@wildshard/engine/physics/box';
-import deckFloors from './data/deckFloors.generated.json' with { type: 'json' };
+import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
+import { TIER } from '@wildshard/engine/core/tier';
 import { NdRuntime, ownNdRuntime } from './runtime/state';
 import { installSpecimenLight } from './look/specimenLight';
 import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
@@ -145,10 +145,11 @@ export class NdPlugin extends ShardPlugin {
     if (ctx.game.runtime !== undefined) ctx.game.runtime.objects['lanterns'] = world.lanterns;
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(scope, rt);
-    for (const { id, name, file, colliderOwner, colliders } of world.entryCaps === true ? worldInstall.standalone : worldInstall.cell) {
+    // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
+    await WorldEntry.admit(ctx.product.section('world/scenes').entry, { root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
+    for (const { id, name, file, colliderOwner, colliders } of (world.entryCaps === true ? worldInstall.standalone : worldInstall.cell).filter(row => row.id !== 'nds-floors')) {
       ctx.piece({ id, name, file, ...(colliderOwner === undefined ? {} : { colliderOwner }), category: 'buildings', surface: 'stone',
         colliders: readColliderRows(colliders, { kinds: ['box', 'treads'], surfaces: ['stone'], requireSurface: true }),
-        ...(id === 'nds-floors' ? { object: world.root, floor: (x: number, z: number) => floorAtRects(worldRows.floors, x, z, 'first') ?? floorAtRects(deckFloors, x, z, 'first'), solidFloor: true } : {}),
         ...(id === 'nds-grapple-guard' ? { follows: new Group(), active: () => this.grapple?.guardOpen !== true } : {}),
       });
     }

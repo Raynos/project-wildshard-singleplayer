@@ -12,7 +12,6 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import * as THREE from 'three';
-import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { sites, fencePost, signpost, plankStep, entryDeck } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -59,7 +58,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
-  const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier });
+  const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier, piece: (piece) => { registry.add(piece); } });
   const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
   const slice = slicer(30, progress);
@@ -174,9 +173,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const cove = { group: scenes.group(coveView.root), placed: [] as Placed[], crabSites: coveSpec.crabSites,
     anchors: structuredClone(coveRows.native.anchors), update: followToonLook(driftwoodProduct(), coveView.look) };
   cove.group.add(scenes.group(coveView.cascade));
-  registry.add({ ...coveView.piece, object: cove.group,
-    colliders: readColliderRows(coveRows.native.descs, { kinds: ['box', 'treads'], surfaces: ['rock'], requireSurface: true }),
-    floor: (x, z) => floorAtRects(coveRows.floors, x, z, 'first') });
+  await entry.run('cove'); // its piece (world/scenes entry): rock walls, treads and floors
   cove.placed.push(await scenes.place('cove.reef'));
   cutTerrain(world.physics, structuredClone(coveRows.native.cuts)); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await complete('Cove');
