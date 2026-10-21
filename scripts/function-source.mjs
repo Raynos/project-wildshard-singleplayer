@@ -17,7 +17,7 @@ export function functionSource(target) {
   try {
     if(inspector===undefined) {
       const session=new Session(),scripts=new Map();session.connect();
-      session.on('Debugger.scriptParsed',event=>scripts.set(event.params.scriptId,event.params.url.startsWith('data:')?'data:':event.params.url));
+      session.on('Debugger.scriptParsed',event=>{ scripts.set(event.params.scriptId,event.params.url.startsWith('data:')?'data:':event.params.url); });
       session.post('Debugger.enable',{},()=>{ /* A missing location keeps the conservative fallback. */ });
       inspector={session,scripts};
     }
