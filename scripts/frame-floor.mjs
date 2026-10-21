@@ -568,7 +568,7 @@ async function measureShard(driver, shard, deadline) {
  *  (`instance:hook`, from the grid's runtimeTiming), else `between hooks`: where a whole drive's long frames came from,
  *  on either surface, with no profiler running. */
 /** O14: the node (graph) program builds of a drive, per runtime hook ('between hooks': a live frame). `afterPlay` counts
- *  the builds from the entered cell's first afterPlay on: programs its warm-up should have built and did not. */
+ *  the builds from the entered cell's last afterPlay on (its entry warm-up runs there), `late` lists them in order. */
 function nodeBuildsByHook(log, completed) {
   const byHook = {};
   for (const { at } of log) {
@@ -577,8 +577,10 @@ function nodeBuildsByHook(log, completed) {
     byHook[key] = (byHook[key] ?? 0) + 1;
   }
   const play = completed.findLast((t) => t.hook === 'afterPlay');
-  return { total: log.length, afterPlay: play === undefined ? 0 : log.filter((row) => row.at >= play.start).length, byHook,
-    lateMaterials: play === undefined ? [] : log.filter((row) => row.at >= play.start).map((row) => `${row.material}@${row.object}`) };
+  // each build from afterPlay on: [ms after afterPlay's start, material@object]
+  const late = play === undefined ? [] : log.filter((row) => row.at >= play.start);
+  return { total: log.length, afterPlay: late.length, byHook, afterPlayAt: play?.start ?? null, afterPlayMs: play === undefined ? null : Math.round(play.end - play.start),
+    late: late.map((row) => [Math.round(row.at - play.start), `${row.material}@${row.object}`]) };
 }
 function longFrameHooks(at, completed) {
   const out = new Map();

@@ -779,8 +779,9 @@ export class Game {
     return work;
   }
 
-  private _entryPreparation: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number }[] } | null = null;
-  /** Last entered-frame preparation's scalar timings. Painted waits are included; no content resources are retained. */
+  private _entryPreparation: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number; endAt: number }[] } | null = null;
+  /** Last entered-frame preparation's scalar timings (each stage's end on the diagnostic clock). Painted waits are
+   *  included; no content resources are retained. */
   get entryPreparation(): Readonly<NonNullable<Game['_entryPreparation']>> | null { return this._entryPreparation; }
   /** The node (graph material) programs built so far and the recent build log (`EngineNodesHandler.buildLog`); null
    *  before any graph material loaded the back-end. A diagnostic: the frame floor counts builds after an entry's warm-up. */
@@ -798,7 +799,7 @@ export class Game {
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D, before?: () => Promise<void> | void): Promise<void> {
     const composer = this._composer;
     if (composer === null) { await before?.(); return; }
-    const trace = { root: (futureRoot ?? this.scene).uuid, completed: false, stages: [] as { phase: string; elapsedMs: number; units: number }[] };
+    const trace = { root: (futureRoot ?? this.scene).uuid, completed: false, stages: [] as { phase: string; elapsedMs: number; units: number; endAt: number }[] };
     this._entryPreparation = trace;
     // OP: every wait below is bounded in presented time; a stall rejects naming its stage (an admission issue), never a
     // silent hang. `current` turns false with the bound, so the abandoned stages stop at their next check.
@@ -827,7 +828,7 @@ export class Game {
     if (linkDraws) cullPlaced(this.camera);
     const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
     const futureEnvironment = futureScene.environment;
-    const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units }); };
+    const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units, endAt: diagnosticNow() }); };
     const isolateImageUploads = setting('buildPacing') === 'links'
       || navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
