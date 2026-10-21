@@ -37,7 +37,7 @@ export async function observeTransport(upstream, fixture = {}) {
           // Keep the independent observed payload and actual response headers separate.
           headerBytes: Buffer.byteLength(`HTTP/1.1 ${incoming.statusCode} ${incoming.statusMessage}\r\n${Object.entries(headers).map(([key, value]) => `${key}: ${value}\r\n`).join('')}\r\n`) });
       });
-      incoming.on('error', () => response.destroy());
+      incoming.on('error', () => { response.destroy(); });
     });
     forwarded.on('error', () => { response.writeHead(502); response.end(); });
     request.pipe(forwarded);

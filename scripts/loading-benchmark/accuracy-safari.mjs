@@ -1,8 +1,9 @@
 // scripts/sim-lane.sh run --max 20 wildshard-loading node scripts/loading-benchmark/accuracy-safari.mjs --base=URL --pin=SHA --dist=DIR --out=DIR
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { createServer } from 'node:net';
 import { observeTransport } from './transport.mjs';
 import { soakInspector } from '../soak/inspector.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
@@ -16,17 +17,26 @@ if (!udid || !upstream || !dist || !out || !/^[a-f0-9]{40}$/u.test(pin ?? '')) t
 const start = `<!doctype html><script>${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};location.replace('/');</script>`;
 const transport = await observeTransport(upstream, { recorder: accuracyRecorder, start }), base = transport.base;
 const version = await (await fetch(new URL('/version.json', base))).json();
-if (!version.build?.startsWith(pin.slice(0, 7)) || JSON.parse(readFileSync(resolve(dist, 'version.json'), 'utf8')).build !== version.build) throw new Error('HTTP/disk pin mismatch');
+if (!version.build?.startsWith(pin.slice(0, 7)) || JSON.parse(readFileSync(resolvePath(dist, 'version.json'), 'utf8')).build !== version.build) throw new Error('HTTP/disk pin mismatch');
 mkdirSync(out, { recursive: true });
 const socket = execFileSync('xcrun', ['simctl', 'getenv', udid, 'RWI_LISTEN_SOCKET'], { encoding: 'utf8' }).trim();
-const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${socket}`, '-c', 'null:9221,:9232-9240'], { stdio: ['ignore', 'ignore', 'pipe'] });
-const proxyErrors = []; proxy.stderr.on('data', value => proxyErrors.push(String(value)));
+async function freePort() {
+  const server = createServer();
+  await new Promise(resolve => { server.listen(0, '127.0.0.1', resolve); });
+  const address = server.address();
+  if (address === null || typeof address === 'string') throw new Error('No inspector port');
+  await new Promise(resolve => { server.close(resolve); });
+  return address.port;
+}
+const listPort = await freePort(), pagePort = await freePort();
+const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${socket}`, '-c', `null:${listPort},:${pagePort}-${pagePort + 8}`], { stdio: ['ignore', 'ignore', 'pipe'] });
+const proxyErrors = []; proxy.stderr.on('data', value => { proxyErrors.push(String(value)); });
 let inspector;
 async function connect() {
   inspector?.close(); inspector = undefined;
   const deadline = Date.now() + 60000;
   while (Date.now() < deadline) {
-    for (let port = 9232; port <= 9240; port++) {
+    for (let port = pagePort; port <= pagePort + 8; port++) {
       try {
         const pages = await (await fetch(`http://127.0.0.1:${port}/json`, { signal: AbortSignal.timeout(500) })).json();
         const page = pages.find(row => row.url?.startsWith(base));
@@ -75,7 +85,7 @@ try {
       }
       await sleep(500); await connect();
       await inspector.send('Network.enable');
-      const off = inspector.on('Network.loadingFinished', event => events.push(event));
+      const off = inspector.on('Network.loadingFinished', event => { events.push(event); });
       try { await wait(`window.__loadingAccuracy?.readyAt > 0`); } finally { off(); }
     } catch (error) { errors.push(String(error)); }
     try {
@@ -89,10 +99,10 @@ try {
     } catch (error) { errors.push(String(error)); }
     const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
       ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };
-    writeFileSync(resolve(out, `${path}.json`), JSON.stringify(result, null, 2));
-    execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', resolve(out, `${path}.png`)], { stdio: 'ignore' });
-    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolve(out, `${path}.png`), '--out', resolve(out, `${path}.jpg`)], { stdio: 'ignore' });
-    unlinkSync(resolve(out, `${path}.png`));
+    writeFileSync(resolvePath(out, `${path}.json`), JSON.stringify(result, null, 2));
+    execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', resolvePath(out, `${path}.png`)], { stdio: 'ignore' });
+    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolvePath(out, `${path}.png`), '--out', resolvePath(out, `${path}.jpg`)], { stdio: 'ignore' });
+    unlinkSync(resolvePath(out, `${path}.png`));
     console.info(JSON.stringify({ path, errors, ...report }));
     if (errors.length > 0 || (arg('accept') === '1' && (report?.failures.length ?? 0) > 0)) failed = true;
   }
@@ -101,7 +111,7 @@ try {
   inspector?.close(); proxy.kill('SIGTERM');
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
   await transport.close();
-  writeFileSync(resolve(out, 'proxy.log'), proxyErrors.join(''));
+  writeFileSync(resolvePath(out, 'proxy.log'), proxyErrors.join(''));
 }
 
 if (failed) throw new Error('Safari capture failed; see per-path receipts');
