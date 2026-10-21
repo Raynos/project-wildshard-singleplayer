@@ -21110,7 +21110,7 @@
         "src/sdk/bake/image.ts",
         "src/sdk/bake/worldImage.ts",
         "src/shards/open-plots/shard.config.ts",
-        "src/shards/open-plots/data/source.ts",
+        "src/shards/open-plots/data/source.json",
         "src/shards/open-plots/look/map.json",
         "scripts/map-painter.mjs",
         "scripts/bake-data-maps.mjs",

@@ -35,7 +35,21 @@
       "src/shards/sunscar-dunes/discovery.generated.ts",
       "src/shards/pine-hollow/discovery.generated.ts",
       "src/shards/driftwood-isle/discovery.generated.ts",
-      "src/shards/pastel-plain/discovery.generated.ts"
+      "src/shards/pastel-plain/discovery.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-alien-plain.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-clockwork-canyon.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-coral-drift.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-desert-ruin.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-ember-forge.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-frostline-peaks.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-lantern-bayou.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-mosslight-ruins.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-night-market.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-showcase-template.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-sky-harbor.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-sky-race.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-starfall-observatory.generated.ts",
+      "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts"
     ],
     "src/shards/pine-hollow/generators/bake-grazers.mjs": [
       "src/shards/pine-hollow/data/grazers.generated.json"

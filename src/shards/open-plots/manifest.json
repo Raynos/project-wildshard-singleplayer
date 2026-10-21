@@ -21,8 +21,8 @@
   "bindings": {
     "accent": "ember",
     "budgets": {
-      "export": "BUDGETS",
-      "module": "./data/budgets"
+      "module": "./data/budgets.json",
+      "export": "default"
     }
   },
   "biome": "Open plot · coming soon",
