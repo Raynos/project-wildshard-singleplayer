@@ -24,6 +24,12 @@ it('checks the visible MB label as well as the underlying raw counter', () => {
   expect(receipt.failures).toContain('Visible MB count differs by more than 5%');
 });
 
+it('reads the network figure independently of a larger offline-cache total', () => {
+  const receipt = accuracyReport({ readyAt: 1000, updates: [0, 900],
+    final: { clock: '00:01.0', networkBytes: '0', download: '0.00 MB network · 134.2 MB offline cache · 134.2 MB of 134.2 MB known total', rows: [{ label: 'Admission', duration: '1 s' }] } }, 0);
+  expect(receipt.failures).toEqual([]);
+});
+
 
 it('rejects a silent start or tail even without two recorded detail changes', () => {
   const receipt = accuracyReport({ firstAt: 100, readyAt: 3000, updates: [200],

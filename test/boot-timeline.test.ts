@@ -71,3 +71,23 @@ it('keeps parallel work counts visible without charging its time twice', () => {
   admission.end(); assembly.end();
   expect(timeline.snapshot().rows.reduce((sum, row) => sum + row.ms, 0)).toBe(200);
 });
+
+it('numbers actual starts and gives re-entered admission its own labelled row', () => {
+  let clock = 0;
+  const timeline = new LoadingTimeline(loadingPath('grid'), 0, () => clock);
+  const admission = timeline.begin('admission'); clock = 10; admission.end();
+  const home = timeline.begin('home'); clock = 20;
+  const resumed = timeline.begin('admission'); clock = 30;
+  timeline.report('admission', 'Neighbour schemas 2 / 4', 2, 4);
+  const current = timeline.snapshot();
+  expect(current.rows.filter(row => row.state !== 'todo').map(row => [row.number, row.key])).toEqual([
+    [1, 'modules'], [2, 'admission'], [3, 'home'], [4, 'admission#2'],
+  ]);
+  expect(current.current).toBe('admission#2');
+  expect(current.rows.find(row => row.key === current.current)).toMatchObject({ label: 'Product admission · pass 2', detail: 'Neighbour schemas 2 / 4', ms: 10 });
+  expect(current.rows.find(row => row.key === 'admission')).toMatchObject({ state: 'ok', ms: 10 });
+  const parallel = timeline.begin('product'); clock = 40; parallel.end();
+  expect(timeline.snapshot().current).toBe('admission#2');
+  resumed.end(); clock = 50; home.end();
+  expect(timeline.snapshot().rows.reduce((sum, row) => sum + row.ms, 0)).toBe(50);
+});

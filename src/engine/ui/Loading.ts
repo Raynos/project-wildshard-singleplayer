@@ -224,8 +224,9 @@ export class Loading {
   private downloadProgress(done: boolean) {
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
     const transfer = this.downloads.snapshot();
+    const received = transfer.networkBytes + transfer.cachedBytes;
     const fraction = done && transfer.filesDone === transfer.filesTotal && transfer.unclassifiedBytes === 0 ? 1
-      : Math.min(0.999, transfer.networkBytes / (transfer.networkBytes + transfer.pendingBytes + 1));
+      : Math.min(0.999, received / (received + transfer.pendingBytes + transfer.unclassifiedBytes + 1));
     return { ...transfer, fraction };
   }
 
@@ -240,7 +241,9 @@ export class Loading {
     setData(this.root, 'networkBytes', String(transfer.networkBytes));
     setData(this.root, 'cachedBytes', String(transfer.cachedBytes));
     setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
-    set(this.els.dlFact, `${formatMB(transfer.networkBytes)} downloaded · ${formatMB(transfer.cachedBytes)} from cache · ${formatMB(transfer.pendingBytes)} still expected · ${transfer.filesDone} / ${transfer.filesTotal} files${transfer.unclassifiedBytes > 0 ? ` · ${formatMB(transfer.unclassifiedBytes)} source unknown` : ''}${done ? '' : ' · total pending'}`);
+    const received = transfer.networkBytes + transfer.cachedBytes;
+    const total = received + transfer.pendingBytes + transfer.unclassifiedBytes;
+    set(this.els.dlFact, `${formatMB(transfer.networkBytes)} network · ${formatMB(transfer.cachedBytes)} offline cache · ${formatMB(received)} of ${formatMB(total)} known total · ${transfer.filesDone} / ${transfer.filesTotal} files${transfer.unclassifiedBytes > 0 ? ` · ${formatMB(transfer.unclassifiedBytes)} source unknown` : ''}`);
     return transfer.fraction;
   }
 

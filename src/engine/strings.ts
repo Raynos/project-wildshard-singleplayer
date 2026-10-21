@@ -5,6 +5,7 @@ export const ENGINE_STRINGS = {
   "s_loading_gap_before": "gap before ⟦0⟧",
   "s_loading_gap_after": "gap after ⟦0⟧",
   "s_loading_step_label": "⟦0⟧ · ⟦1⟧",
+  "s_loading_step_repeat": "⟦0⟧ · pass ⟦1⟧",
   "s_hover_boost": "BOOST",
   "s_hover_boost_label": "Hover boost",
   "s_interact_item_count": "⟦0⟧ ×⟦1⟧",
