@@ -67,7 +67,16 @@ export interface WsSw {
 // the page's service-worker handle is declared in ./swGlobal.d.ts (an ambient file every layer's project sees)
 
 const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
-if (sw !== null) pageScope.listen(sw, 'message', event => { receiveWorkerDownloads(event.data, performance.timeOrigin); });
+function replayDownloads(): void {
+  // The worker may have completed install requests while this document was
+  // navigating. Its existing timing buffer preserves those early receipts.
+  sw?.controller?.postMessage({ type: 'DOWNLOAD_RECEIPTS' });
+}
+if (sw !== null) {
+  pageScope.listen(sw, 'message', event => { receiveWorkerDownloads(event.data, performance.timeOrigin); });
+  pageScope.listen(sw, 'controllerchange', replayDownloads);
+  replayDownloads();
+}
 
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
 const api: WsSw = { ready: boot(), waiting: null, adopt, version };

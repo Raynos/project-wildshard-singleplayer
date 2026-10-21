@@ -78,3 +78,15 @@ it('uses actual worker transfers instead of charging synthetic response lengths 
     expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, cachedBytes: 1000, filesDone: 2 });
   } finally { dispose(); }
 });
+
+it('replays navigation-time worker receipts once and excludes the previous document', () => {
+  const accounting = new DownloadAccounting(base), dispose = installDownloadAccounting(accounting);
+  const entry = { name: new URL('/early-module.js', base).href, startTime: 900,
+    responseEnd: 1100, transferSize: 1300, encodedBodySize: 1000 };
+  const replay = { type: 'WS_WORKER_DOWNLOAD', origin: 1000,
+    timings: [entry, { ...entry, startTime: 800, responseEnd: 900 }] };
+  try {
+    receiveWorkerDownloads(replay, 2000); receiveWorkerDownloads(replay, 2000);
+    expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, filesDone: 1 });
+  } finally { dispose(); }
+});

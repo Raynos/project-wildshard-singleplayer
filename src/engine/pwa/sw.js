@@ -323,6 +323,13 @@ workerScope.listen(self, 'message', (event) => {
   const data = event.data;
   if (!data) return;
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
+  // A replacement document can start listening after install fetches finish.
+  // Replay the browser's existing bounded timing buffer; live/replayed entries
+  // share the same identity in the page accounting. Do not grow that buffer.
+  else if (data.type === 'DOWNLOAD_RECEIPTS' && workerTransport) event.waitUntil(reply(event, Promise.resolve({
+    type: 'WS_WORKER_DOWNLOAD', origin: performance.timeOrigin,
+    timings: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
+  })));
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
   else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD })));
   else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
