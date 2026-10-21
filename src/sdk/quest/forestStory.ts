@@ -31,18 +31,16 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const source = ctx.product.shardfile, floor = forestPage(ctx.scope, rows.page), equipment = rangedPage(ctx.scope, rows.ranged);
   const runtime = ctx.game.runtime, enteredWorld = runtime?.world, play = runtime?.play;
   if (runtime === undefined || enteredWorld === undefined || enteredWorld === null || play === undefined || play === null) throw new Error('Story requires entered play services');
-  const h = { ...enteredWorld, ...play, ctx, cabins: floor.cabins, trees: enteredWorld.forest.trees,
-    interactables: runtime.interactables, chunkId: ctx.manifest.slug, compendium: equipment.compendium?.state ?? null };
-  const panels = await readDataPanels(h.ctx.product);
+  const panels = await readDataPanels(ctx.product);
   const boardPanel = panels[rows.panels.board], countPanel = panels[rows.panels.count];
   if (boardPanel === undefined || countPanel === undefined) throw new Error('Story requires its named quest panels');
-  const native = h.ctx.product.section<ForestStoryContent>(rows.content);
+  const native = ctx.product.section<ForestStoryContent>(rows.content);
 
-  const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.stall)));
-  const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.contracts))));
-  const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.signals))));
-  const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.door))));
-  const { game, sky, player, hud, inventory } = h;
+  const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
+  const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.contracts))));
+  const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.signals))));
+  const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.door))));
+  const { game, sky, player } = enteredWorld, { hud, inventory } = play;
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services, placement: { registryReach: 20 } });
   const { story, flags, floorAt } = entry;
   const featFacts = await entry.achievements(), facts = featFacts.facts;
@@ -60,7 +58,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const ui = new QuestViews(ctx);
   const chip = ui.view('count', (scope) => new DataPanel(countPanel, { scope }));
   const shelf = rows.collections.find(row => row.shelf !== undefined);
-  const shelfObject = shelf?.shelf === undefined ? null : (await h.cabins.resources.place(shelf.shelf)).object;
+  const shelfObject = shelf?.shelf === undefined ? null : (await floor.cabins.resources.place(shelf.shelf)).object;
   const count = (row: ForestStoryRows['collections'][number]): number => flags.count(row.prefix);
   if (shelfObject !== null && shelf !== undefined) shelfObject.visible = count(shelf) === shelf.names.length;
   const calls = new Map<string, (e: InteractEvent) => void>(rows.collections.flatMap(row => [
@@ -69,32 +67,27 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     }],
     [row.completeEvent, (): void => { if (count(row) === row.names.length) { hud.toast(row.complete); if (row.shelf !== undefined && shelfObject !== null) shelfObject.visible = true; } }],
   ]));
-  calls.set(rows.pickupEvent, () => { h.music.sting('pickup'); });
+  calls.set(rows.pickupEvent, () => { play.music.sting('pickup'); });
   kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls,
     item: id => isItemId(id) ? { label: ITEMS[id].label, add: n => { inventory.add(id, n); } } : null });
   entry.bench();
 
   const points = Object.fromEntries(rows.signals.map(row => [row.id, new THREE.Vector3(row.x, floorAt(row.x, row.z) + row.height, row.z)]));
   const lanternPage = bindQuestPageInteractions(lanternRows, { flags, interactions: lanternRules, timer: ui,
-    promptIds: rows.signals.map(row => row.id), interactables: h.interactables, toast: text => { hud.toast(text); },
+    promptIds: rows.signals.map(row => row.id), interactables: runtime.interactables, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['points', points], ['sound', { shot }], ['sfx', kitSfx]]) });
   const lanternPrompts = Object.fromEntries(rows.signals.map(row => [row.id, lanternPage.prompt(row.id)]));
-  const syncWheel = (): void => { h.cabins.life.wheelSpeed = flags.has(rows.wheel.flag) ? rows.wheel.speed : 0; };
+  const syncWheel = (): void => { floor.cabins.life.wheelSpeed = flags.has(rows.wheel.flag) ? rows.wheel.speed : 0; };
   syncWheel();
   ctx.scope.onDispose(flags.onChange(f => { if (f === rows.wheel.flag) syncWheel(); }));
   const millDoor = ((): { prompt: Interactable; use: () => void } | null => {
-    const mill = h.cabins.buildings.find((b) => b.id === rows.door.building);
-    const piece = mill ? h.cabins.life.doorPieces().find((d) => d.id === `cabin-${mill.index + 1}-door`) : undefined;
-    if (!piece) return null;
-    h.registry.add({ id: `${piece.id}-bar`, name: 'Mill door bar', category: 'buildings', file: 'src/sdk/quest/forestStory.ts', surface: 'wood',
+    const mill = floor.cabins.buildings.find((b) => b.id === rows.door.building);
+    const pieces = floor.cabins.life.doorPieces(), index = mill === undefined ? -1 : pieces.findIndex(d => d.id === `cabin-${mill.index + 1}-door`);
+    const piece = pieces[index], prompt = floor.cabins.life.interactables[index];
+    if (piece === undefined || prompt === undefined) return null;
+    enteredWorld.registry.add({ id: `${piece.id}-bar`, name: 'Mill door bar', category: 'buildings', file: 'src/sdk/quest/forestStory.ts', surface: 'wood',
       follows: piece.pivot, colliders: piece.colliders, active: () => !flags.has(rows.door.flag) });
-    const hinge = piece.pivot.getWorldPosition(new THREE.Vector3());
-    let best: Interactable | null = null, bestD = 1.5; // the prompt stands ~0.7 m from its hinge; the next door is metres off
-    for (const it of h.cabins.life.interactables) {
-      const d = Math.hypot(it.position.x - hinge.x, it.position.z - hinge.z);
-      if (d < bestD && /^(Open|Close) door$/.test(it.label)) { best = it; bestD = d; }
-    }
-    return best === null ? null : { prompt: best, use: piece.use };
+    return { prompt, use: piece.use };
   })();
   if (millDoor) bindQuestPageInteractions(doorRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['door', millDoor], ['sfx', kitSfx]]) });
@@ -107,7 +100,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const talks = await entry.talks({ ...rows.talks, steps: native.steps });
   const { people, dialogue } = talks;
   const trade = installQuestShop(ctx, traderStall);
-  ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
+  ui.panelHold({ hud, weapons: play.weapons, menu: play.menu, nolock: play.nolock, touchUi: play.touchUi,
     panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
   entry.deaths({ effects: native.pageDeaths, order: 0 });
   boardPage.observe();
@@ -127,11 +120,11 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     zip = { trolley: cable.trolley, prompt: cable.prompt };
     const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
     canoe = { group: floor.resources.mesh(rows.mover.mesh) };
-    motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.mover.binding, { canoe }, { flags, prompts: h.interactables });
+    motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.mover.binding, { canoe }, { flags, prompts: runtime.interactables });
   }
 
   let hollow: { floorY: number; mid: THREE.Vector3; mouths: THREE.Vector3[] } | null = null;
-  void h.cabins.resources.place(rows.secret.scene).then(() => {
+  void floor.cabins.resources.place(rows.secret.scene).then(() => {
     const site = rows.secret;
     hollow = { floorY: site.floorY, mid: new THREE.Vector3().fromArray(site.mid), mouths: site.mouths.map(point => new THREE.Vector3().fromArray(point)) };
     return hollow;
@@ -153,12 +146,12 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
 
   presentation.publishMap({ declutter: true, unknownLabel: '?', markerLabels: 'full' });
   const placeNames = new Set(rows.map.pois.map((p) => p.name.toUpperCase()));
-  h.fullMap.setZones(rows.map.zones.filter((zn) => !placeNames.has(zn.label)));
-  h.fullMap.setFeatures({ trees: h.trees, roofs: h.cabins.roofs });
+  play.fullMap.setZones(rows.map.zones.filter((zn) => !placeNames.has(zn.label)));
+  play.fullMap.setFeatures({ trees: enteredWorld.forest.trees, roofs: floor.cabins.roofs });
 
   entry.observe();
   const journalFull = (): boolean => {
-    const st = h.compendium; if (!st) return false;
+    const st = equipment.compendium?.state; if (!st) return false;
     return st.def.entries.every((e) => { const s = st.stats(e.id).state; return s === 'seen' || s === 'taken'; });
   };
 
@@ -173,8 +166,8 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     talks.update(dt, t, pp);
     updateCable(dt);
     for (const event of motion.takeRideTransitions(rows.mover.id)) {
-      h.weapons.visible = !event.riding; h.weapons.setEnabled(!event.riding);
-      const rest = h.cabins.resources.object(rows.mover.rest);
+      play.weapons.visible = !event.riding; play.weapons.setEnabled(!event.riding);
+      const rest = floor.cabins.resources.object(rows.mover.rest);
       if (event.riding) rest.visible = false;
       if (event.arrived === -1) rest.visible = true;
       if (event.riding) {

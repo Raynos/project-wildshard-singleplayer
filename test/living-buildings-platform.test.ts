@@ -60,6 +60,25 @@ describe('living-building platform rows', () => {
     a.glass.dispose(); b.glass.dispose();
   });
 
+  test('door pieces and prompts retain one ordered owner across admitted batches', () => {
+    const { life, resources, rows, glass } = secondBuilding();
+    const first = rows.doors[0]; if (first === undefined) throw new Error('Missing original door');
+    resources.publish('west-pivot', new Group());
+    const more = emptyBuildingLifeRows();
+    more.doors.push({ ...first, id: 'west-gate', pivot: 'west-pivot', at: [-20, 2, 10], open: 'West entrance', close: 'West exit' });
+    life.add(more);
+    try {
+      const pieces = life.doorPieces(); expect(pieces.map(piece => piece.id)).toEqual(['east-gate', 'west-gate']);
+      expect(life.interactables).toHaveLength(pieces.length);
+      for (const [index, piece] of pieces.entries()) {
+        const prompt = life.interactables[index]; if (prompt === undefined) throw new Error('Missing door prompt');
+        prompt.onInteract();
+        expect(life.snapshot().doors.filter(door => door.open).map(door => door.id)).toEqual([piece.id]);
+        piece.use(); expect(life.snapshot().doors.every(door => !door.open)).toBe(true);
+      }
+    } finally { glass.dispose(); }
+  });
+
   test('day/night, flicker, swing and wheel reuse their original resources', () => {
     const fixture = secondBuilding(), { life, lamp, glass, wheel } = fixture, eye = new Vector3();
     const children = [...fixture.root.children];
