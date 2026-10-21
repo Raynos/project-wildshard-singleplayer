@@ -50,12 +50,16 @@ def ping(root, commits, message):
                           cwd=root, stdout=subprocess.DEVNULL, timeout=20).returncode == 0
 
 
-def offender(root, base, tip, files):
-    if not files:
+def offender(root, base, tip, files, deadline):
+    left = deadline - time.monotonic()
+    if not files or left <= 0:
         return None
     # Expand failed tests through actual imports before naming an owner.
-    queried = subprocess.run(['node', 'scripts/push-inputs.mjs', *files], cwd=root,
-                             capture_output=True, text=True, timeout=5)
+    try:
+        queried = subprocess.run(['node', 'scripts/push-inputs.mjs', *files], cwd=root,
+                                 capture_output=True, text=True, timeout=min(5, left))
+    except subprocess.TimeoutExpired:
+        return None
     if queried.returncode:
         return None
     inputs = json.loads(queried.stdout)
@@ -83,13 +87,16 @@ def tick(root, checker=LIVE['check'], uploader=None, notify=ping):
     candidate = tip
     bad = None
     if not result['ok']:
-        bad = offender(root, base, tip, result['files']) if result['phase'] != 'working-tree' else None
+        bad = offender(root, base, tip, result['files'], deadline) if result['phase'] != 'working-tree' else None
         candidate = git(root, 'rev-parse', bad + '^') if bad else base
         # The prefix must pass too, in the remaining original 45s budget.
-        if candidate != base and not checker(root, base, candidate, deadline)['ok']:
+        prefix_files = LIVE['changed'](root, base, candidate) if candidate != base else []
+        if candidate != base and (not LIVE['matches'](root, candidate, prefix_files)
+                                  or not checker(root, base, candidate, deadline)['ok']):
             candidate = base
         state_file = common / 'push-red.json'
-        fingerprint = hashlib.sha256(json.dumps([bad, result['phase'], result['files'], result['output']], sort_keys=True).encode()).hexdigest()
+        signature = re.sub(r'\d+(?:\.\d+)?(?:ms|s)\b', '<time>', LIVE['ANSI'].sub('', result['output']))
+        fingerprint = hashlib.sha256(json.dumps([bad, result['phase'], result['files'], signature], sort_keys=True).encode()).hexdigest()
         state = load(state_file, {})
         count = state.get('count', 0) + 1 if state.get('fingerprint') == fingerprint else 1
         pinged = state.get('pinged', False) if count > 1 else False
@@ -106,9 +113,10 @@ def tick(root, checker=LIVE['check'], uploader=None, notify=ping):
     if uploader is None:
         def uploader(revision, environment):
             return subprocess.run(['git', 'push', '-q', 'origin', revision + ':refs/heads/main'], cwd=root, env=environment).returncode
+    gate_seconds = round(time.monotonic() - started, 2)
     rc = uploader(candidate, env)
     return {'status': 'pushed' if rc == 0 else 'upload-red', 'tip': candidate, 'bad': bad,
-            'gateSeconds': round(time.monotonic() - started, 2), 'output': result['output']}
+            'gateSeconds': gate_seconds, 'output': result['output']}
 
 
 def main():

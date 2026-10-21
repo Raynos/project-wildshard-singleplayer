@@ -71,9 +71,6 @@ def failure_paths(output):
 def check(root, base, tip, deadline, runner=run):
     files = changed(root, base, tip)
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
-    if not matches(root, tip, files):
-        result['output'] = 'Changed paths have live edits; retry next minute'
-        return result
     before = snapshot(root, files)
     (root / 'tmp').mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='live-prepush-', dir=root / 'tmp') as temporary:
@@ -108,7 +105,7 @@ def check(root, base, tip, deadline, runner=run):
                         return result
                     if rc == 124:
                         result['output'] = 'Related tests reached the ceiling; remainder runs in CI'
-        if before != snapshot(root, files) or not matches(root, tip, files):
+        if before != snapshot(root, files):
             result.update(phase='working-tree', output='Inputs changed during checks; retry next minute')
             return result
     result.update(ok=True, phase='passed')

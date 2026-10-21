@@ -1,0 +1,150 @@
+"""Real Git prefix uploads, bounded children and live-check refusal paths."""
+import json
+import os
+from pathlib import Path
+import runpy
+import subprocess
+import sys
+import tempfile
+import time
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+PUSH = runpy.run_path(str(ROOT / 'scripts/push-loop.py'))
+LIVE = PUSH['LIVE']
+WATCH = runpy.run_path(str(ROOT / 'scripts/ci-watch.py'))
+
+
+class PushLoop(unittest.TestCase):
+    def setUp(self):
+        (ROOT / 'tmp').mkdir(exist_ok=True)
+        self.temporary = tempfile.TemporaryDirectory(dir=ROOT / 'tmp', prefix='push-loop-test-')
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name).resolve()
+        self.git('init', '-q', '-b', 'main')
+        self.git('config', 'user.name', 'fixture')
+        self.git('config', 'user.email', 'fixture@example.invalid')
+        self.git('config', 'core.hooksPath', '/dev/null')
+        self.put('.oxlintrc.json', '{"ignorePatterns":[]}')
+        self.put('.gitignore', 'tmp/\n')
+        self.put('scripts/push-inputs.mjs', 'console.log(JSON.stringify(process.argv.slice(2)));')
+        self.base = self.commit('src/base.ts')
+        self.git('update-ref', 'refs/remotes/origin/main', self.base)
+
+    def git(self, *args):
+        env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+        return subprocess.check_output(['git', *args], cwd=self.root, env=env, text=True, stderr=subprocess.DEVNULL).strip()
+
+    def put(self, file, value):
+        path = self.root / file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(value)
+
+    def commit(self, file):
+        self.put(file, 'export const value = 1;\n')
+        self.git('add', '--', '.')
+        self.git('commit', '-qm', 'fixture')
+        return self.git('rev-parse', 'HEAD')
+
+    def test_green_checks_only_live_types_lint_and_budgeted_tests(self):
+        tip = self.commit('src/good.ts')
+        commands, deadlines = [], []
+
+        def runner(command, root, deadline, env):
+            commands.append(command)
+            deadlines.append(deadline)
+            return 0, '["test/unit.test.ts"]' if '--live' in command else ''
+
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)
+        self.assertTrue(result['ok'])
+        self.assertEqual([command[0] for command in commands], ['node', 'pnpm', 'node', 'pnpm'])
+        self.assertEqual(len(set(deadlines)), 1)
+        self.assertTrue(all(not any(word in ' '.join(command) for word in
+                                   ['heavy-lane', 'build-shardfiles', 'mirror', 'pnpm gen']) for command in commands))
+
+    def test_type_failure_never_runs_lint_or_tests(self):
+        tip = self.commit('src/bad.ts')
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
+                               lambda *_: (1, 'src/bad.ts(2,3): error TS2322'))
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['files'], ['src/bad.ts'])
+
+    def test_partial_edit_and_racing_edit_cannot_earn_a_pass(self):
+        tip = self.commit('src/good.ts')
+        self.put('src/good.ts', 'half edit')
+        refused = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
+                                lambda *_: (1, 'src/good.ts(1,1): error TS1109'))
+        self.assertEqual(refused['phase'], 'types')
+        self.assertIsNone(PUSH['offender'](self.root, self.base, tip, refused['files'], time.monotonic() + 5))
+        self.put('src/good.ts', 'export const value = 1;\n')
+
+        def racing(command, *_):
+            if 'types' in command:
+                self.put('src/good.ts', 'another edit')
+            return 0, '[]'
+
+        self.assertFalse(LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, racing)['ok'])
+
+    def test_deadline_reaps_owned_process(self):
+        start = time.monotonic()
+        rc, _ = LIVE['run']([sys.executable, '-c', 'import signal; signal.pause()'], self.root, start + .15)
+        self.assertEqual(rc, 124)
+        self.assertLess(time.monotonic() - start, 2)
+
+    def test_timed_out_tests_defer_but_observed_failures_stay_red(self):
+        tip = self.commit('src/good.ts')
+        for output, expected in [('still running', True), ('FAIL test/unit.test.ts > broken', False)]:
+            def runner(command, *_):
+                if '--live' in command:
+                    return 0, '["test/unit.test.ts"]'
+                return (124, output) if 'vitest' in command else (0, '')
+            self.assertEqual(LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)['ok'], expected)
+
+    def test_prefix_upload_keeps_red_suffix_main_and_index(self):
+        good = self.commit('src/good.ts')
+        bad = self.commit('src/bad.ts')
+        tip = self.commit('src/later.ts')
+        index = (self.root / '.git/index').read_bytes()
+        remote = self.root / 'tmp/remote.git'
+        subprocess.run(['git', 'init', '--bare', '-q', str(remote)], check=True)
+        self.git('remote', 'add', 'origin', str(remote))
+        self.git('push', '-q', 'origin', self.base + ':refs/heads/main')
+        notices = []
+
+        def checker(root, base, candidate, deadline):
+            return {'ok': candidate == good, 'phase': 'lint', 'files': ['src/bad.ts'], 'output': 'bad'}
+
+        result = PUSH['tick'](self.root, checker=checker, notify=lambda *args: notices.append(args) or True)
+        self.assertEqual(result['status'], 'pushed')
+        self.assertEqual(result['tip'], good)
+        self.assertEqual(result['bad'], bad)
+        self.assertEqual(self.git('rev-parse', 'origin/main'), good)
+        self.assertEqual(self.git('rev-parse', 'main'), tip)
+        self.assertEqual((self.root / '.git/index').read_bytes(), index)
+        self.assertEqual(len(notices), 1)
+
+    def test_unknown_live_refusal_pings_only_on_third_repeat(self):
+        self.commit('src/good.ts')
+        notices = []
+        checker = lambda *_: {'ok': False, 'phase': 'working-tree', 'files': [], 'output': 'live edit'}
+        notify = lambda *args: notices.append(args) or True
+        for _ in range(4):
+            self.assertEqual(PUSH['tick'](self.root, checker=checker, notify=notify)['status'], 'red')
+        self.assertEqual(len(notices), 1)
+
+    def test_ci_failure_notifies_once_and_names_the_job(self):
+        tip = self.commit('src/good.ts')
+        notices = []
+        def command(args, **_):
+            if 'list' in args:
+                return json.dumps([{'headSha': tip, 'conclusion': 'failure', 'databaseId': 8},
+                                   {'headSha': self.base, 'conclusion': 'success', 'databaseId': 7}])
+            return '{"jobs":[{"name":"typed-check","conclusion":"failure"}]}'
+        for _ in range(2):
+            WATCH['watch'](self.root, command=command, notify=lambda *args: notices.append(args) or True)
+        self.assertEqual(len(notices), 1)
+        self.assertIn('typed-check', notices[0][2])
+
+
+if __name__ == '__main__':
+    unittest.main()
