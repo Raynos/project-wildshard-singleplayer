@@ -20,25 +20,7 @@ QA sp-o3 (+ sp-o2 on a facet split: mover, collections, map zones) Â· QB sp-x9 Â
 
 QB done 728a629a1d (sp-x9); QA done ace3b47a57 + 0c92ce88a0 (sp-o3/sp-o2); QC 9f01f130f4; QD gates dc788d5d60 + G566 API; QE 937be4e247. X5 behavioural acceptance PASS at e3a7990c5b (sp-x8). Idle-Codex overflow (G551 wait lifted, logged): sp-x1 X4 Nine charged hosts; sp-x9 Nalati phase D own-folder code (1,280) toward data + AS + <= 150 listed. sp-o4 Nine phase D own-folder graphical code (world/looks; Nine 1,605 own) the same way; DW fixed-intake rebake declined (26 MB + grid load path under G561). sp-o1 Ink Cel Valley (768) + Pastel Plain (732) own code toward zero (G567) onto shared hosts with real second users; Pine page-life row declined (net ~0, by-name host). sp-o2 Nine terrain (118 unmasked) + world/build.ts (247) onto declared ground/world-entry rows; sp-o4 Nine composite post. sp-x1 _template (1,001) + blender-template (109) toward zero (G567).
 
-## Self-pull: toward zero (G567; take the top open row of your type the moment you finish, no asking)
-
-Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real second shard, or data + AS + <= 150 listed view; no net-0 moves, no one-user hosts; types + lint + focused tests per slice, ONE batch per row (G568). Claim with a one-line pathspec commit here.
-
-| # | Type | Target | Taken |
-|---|---|---|---|
-| Z1 | Opus | Nalati C2 looks (370) + C1 world (516) graphical spans | closed, no honest host cut (sp-o3: painterly hosts/geography/channels are Nalati-only); a ~20-30 line literal-to-JSON pass waits for sp-x9's generators |
-| Z2 | Opus | Nine C2 looks (807): composite GLSL stays listed view (graph form costs +64 KB sections, +40-115 MB; closed by sp-o4); other look spans open | sp-o4 + sp-o3 (split Nine look files between them) |
-| Z3 | Opus | Nine C1 world (566): drawn-in kit rows, Fei Zhua mounts, sets | sp-o2: ground 7ca332b2ac (-15, frees buildTerrain's ~116 charged) + sets 3c015c2671 (-4); drawn-in rows no honest cut (75 copies need boxes only a 399-asset native re-bake or whole-tile decode gives; placement rows need them), Fei Zhua is a code-built cast model (no catalogue row) |
-| Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | residue (sp-o1, spans at de19d7959a): poolSurface 61 is listed view (level transition, no second user); trample GLSL 30 charged; King 49 (registerKing on the limb rig: G9, no second user); dayKeys 6 (a clock spec of functions, $ref in sp-x8's headlessAssembly); render 8 (keyed sky, Pine-only); ~20 one-line owner APIs. Only real cut: a hull-book client binding with Driftwood species/bodies.ts as second user (Pine -11, DW -9), in Z5's files |
-| Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | C1: sp-o5 (6a7b4d069f null world + AO fetch, 8c39f33450 cover re-hash, 2e34de74f1/730219a1e5 mooring look, 5eb2b39f23 headless sea; C1 426 -> 353 at 776d1c1882 with sp-o4), sp-o4 (build.ts glue, scene generators, bridge). C4: sp-o1, hull-book binding (look/hull-book, Pine as second user) in flight; rest is residue (spans at 589607151c): pageGroups PageActorGroups 43 (reviewed DW-owned, only DW's projection uses it), creatures/install 23 (wiring of shared hosts), gull model 8, crab front-shell 7 (no second directional-armour user), one-liners |
-| Z6 | Codex | Nalati non-graphical own code (combat/quest/state) | sp-x9 |
-| Z7 | Codex | Nine C6 items (265) + C9 glue (199) | done (sp-x8: Nine -36, Nalati -11 charged; Nine 1,797, residue graphical/presenter/native wiring) |
-| Z8 | Codex | Pine C9 glue (229): no honest cut found (boot lists filePolicy/files/gpuTable 91 hang on grid-only ASTC 6x6; hybrid 36 wires Pine-only forest/ranged pages; shelter 25 and manifest forest/clip 13 have no second user, Nalati forest is a mask; explorer 18 a listed chargeback) | triaged, no honest cut (sp-o3 547b24916d: boot lists need page-mode rows, hybrid wires Pine-only pages, shelter/forest readers one user) |
-| Z9 | Codex | Driftwood C9 glue (271) | done sp-o5: 24d00f9c66 C9 271 -> 252 (shims, rows, probe handles); rest stays (hybrid hooks, NPC focus DW-only, blobAssets, type-narrowing shims, owner reads) |
-| Z10 | Codex | Ink Cel Valley residue + open-plots (148) | sp-o3 / open-plots done (sp-o1 7f6a9df314: 148 -> 19, batch PASS; residue = shard.config per-idea projection, an SDK override would be a one-user host) |
-| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path | sp-x9 (non-graphical) + sp-o4 (graphical, empty); Nalati C9 1,037 split: sp-x8 owns runtime/{index,state}.ts + manifest/plugin metadata (314 own C9 lines); sp-x9 keeps population/pageGroups/sensory/mounted admission |
-
-## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
+## G551: Driftwood + Pine to zero (FIRST: take the top open row of your type here; G567 changed only how % is measured)
 
 Jake 2026-10-21: every lane that finishes its current task takes a row here before any other row, except the
 Simulator owner (sp-o5), sp-x7 and M2 gate rows. X4 and Nalati/Nine phase D wait. Ruler at e954900567: Pine
@@ -123,6 +105,24 @@ changes, frozen legacy edits or AS engine edits (G517). Each set gets one consol
 laws and the push gate. Phone witnesses run at the integration milestone. Simulator requests go to `sim-queue.md`
 with an exact committed SHA/command and `--ktx2-probe=skip`; sp-o5 runs them (G549), and builders continue work.
 
+
+## Self-pull: toward zero (G567; Nalati/Nine rows only when no Driftwood/Pine row above is open for your lane type)
+
+Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real second shard, or data + AS + <= 150 listed view; no net-0 moves, no one-user hosts; types + lint + focused tests per slice, ONE batch per row (G568). Claim with a one-line pathspec commit here.
+
+| # | Type | Target | Taken |
+|---|---|---|---|
+| Z1 | Opus | Nalati C2 looks (370) + C1 world (516) graphical spans | closed, no honest host cut (sp-o3: painterly hosts/geography/channels are Nalati-only); a ~20-30 line literal-to-JSON pass waits for sp-x9's generators |
+| Z2 | Opus | Nine C2 looks (807): composite GLSL stays listed view (graph form costs +64 KB sections, +40-115 MB; closed by sp-o4); other look spans open | sp-o4 + sp-o3 (split Nine look files between them) |
+| Z3 | Opus | Nine C1 world (566): drawn-in kit rows, Fei Zhua mounts, sets | sp-o2: ground 7ca332b2ac (-15, frees buildTerrain's ~116 charged) + sets 3c015c2671 (-4); drawn-in rows no honest cut (75 copies need boxes only a 399-asset native re-bake or whole-tile decode gives; placement rows need them), Fei Zhua is a code-built cast model (no catalogue row) |
+| Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | residue (sp-o1, spans at de19d7959a): poolSurface 61 is listed view (level transition, no second user); trample GLSL 30 charged; King 49 (registerKing on the limb rig: G9, no second user); dayKeys 6 (a clock spec of functions, $ref in sp-x8's headlessAssembly); render 8 (keyed sky, Pine-only); ~20 one-line owner APIs. Only real cut: a hull-book client binding with Driftwood species/bodies.ts as second user (Pine -11, DW -9), in Z5's files |
+| Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | C1: sp-o5 (6a7b4d069f null world + AO fetch, 8c39f33450 cover re-hash, 2e34de74f1/730219a1e5 mooring look, 5eb2b39f23 headless sea; C1 426 -> 353 at 776d1c1882 with sp-o4), sp-o4 (build.ts glue, scene generators, bridge). C4: sp-o1, hull-book binding (look/hull-book, Pine as second user) in flight; rest is residue (spans at 589607151c): pageGroups PageActorGroups 43 (reviewed DW-owned, only DW's projection uses it), creatures/install 23 (wiring of shared hosts), gull model 8, crab front-shell 7 (no second directional-armour user), one-liners |
+| Z6 | Codex | Nalati non-graphical own code (combat/quest/state) | sp-x9 |
+| Z7 | Codex | Nine C6 items (265) + C9 glue (199) | done (sp-x8: Nine -36, Nalati -11 charged; Nine 1,797, residue graphical/presenter/native wiring) |
+| Z8 | Codex | Pine C9 glue (229): no honest cut found (boot lists filePolicy/files/gpuTable 91 hang on grid-only ASTC 6x6; hybrid 36 wires Pine-only forest/ranged pages; shelter 25 and manifest forest/clip 13 have no second user, Nalati forest is a mask; explorer 18 a listed chargeback) | triaged, no honest cut (sp-o3 547b24916d: boot lists need page-mode rows, hybrid wires Pine-only pages, shelter/forest readers one user) |
+| Z9 | Codex | Driftwood C9 glue (271) | done sp-o5: 24d00f9c66 C9 271 -> 252 (shims, rows, probe handles); rest stays (hybrid hooks, NPC focus DW-only, blobAssets, type-narrowing shims, owner reads) |
+| Z10 | Codex | Ink Cel Valley residue + open-plots (148) | sp-o3 / open-plots done (sp-o1 7f6a9df314: 148 -> 19, batch PASS; residue = shard.config per-idea projection, an SDK override would be a one-user host) |
+| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path | sp-x9 (non-graphical) + sp-o4 (graphical, empty); Nalati C9 1,037 split: sp-x8 owns runtime/{index,state}.ts + manifest/plugin metadata (314 own C9 lines); sp-x9 keeps population/pageGroups/sensory/mounted admission |
 
 ## Opus (graphical)
 
