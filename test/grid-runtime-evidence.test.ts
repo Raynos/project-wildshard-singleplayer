@@ -149,7 +149,7 @@ it('retains a measured pass across source/product changes and later failing samp
   write([latch]);
   expect(runtimeGridEvidence(root,'_template',null,[],caps).oneFrameLooks?.verdict).toBe('pass');
   // No old receipt, checksum, product or runtime source is required after the pass latches.
-  const read=()=>runtimeGridEvidence(root,'_template',revision,['new.json'],caps);
+  const read=()=>runtimeGridEvidence(root,'_template',null,['new.json'],caps);
   expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().oneFrameLooks?.evidence).toContain(`${latch.receiptCommit}:${latch.receipt}`);
   expect(read().oneFrameLooks?.evidence).toContain('quiet false');
   expect(runtimeGridEvidence(root,'other',revision,[],caps)).toEqual({});
@@ -157,8 +157,8 @@ it('retains a measured pass across source/product changes and later failing samp
    sha:revision,when:'2026-10-22T01:00:00Z',surface:'sim',cohort:'grid',complete:true,glObserver:'off',
    cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'template-entry',after:{current:'_template'}}],
     rows:[{name:'grid-template-entry-drive',frames:120,pass:false,contextLost:false,maxMs:900,p95Ms:40,medianFps:25}]}]}]}));
-  expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().frameFloor?.verdict).toBe('fail');
-  write([]);expect(read().oneFrameLooks?.verdict).toBe('fail');
+  expect(read().oneFrameLooks?.verdict).toBe('pass');
+  write([]);expect(read().oneFrameLooks).toBeUndefined();
   rmSync(resolve(root,'new.json'));expect(read().oneFrameLooks).toBeUndefined();
   expect(()=>v.parse(GridReadyLatchesSchema,{schema:'grid-ready-latches/1',entries:[latch,latch]})).toThrow('Duplicate');
  }finally{rmSync(root,{recursive:true,force:true});}

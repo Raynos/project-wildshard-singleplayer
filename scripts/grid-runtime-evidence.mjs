@@ -102,5 +102,5 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps) {
   }
   return {...Object.fromEntries(Object.entries(candidates).flatMap(([name,rows])=>{
     rows.sort((a,b)=>b.at-a.at||a.path.localeCompare(b.path));return rows.slice(0,1).map(row=>[name,row.criterion]);
-  })),...latchedGridEvidence(root,slug)};
+  })),...latchedGridEvidence(root,slug,revision)};
 }
