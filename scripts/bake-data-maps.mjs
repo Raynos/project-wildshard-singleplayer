@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { MapRaster, stylizeMap } from './map-painter.mjs';
 import { MAP_METRES, mapPixelHash, mapSettingsPath, mapStampPath, mapShards, mapTilesHash } from './map-hash.mjs';
 import { discoverGeneration, generateShardJob } from './generate.mjs';
+import { InputHashMemo } from './bake-input-hashes.mjs';
 
 const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
 const json = file => JSON.parse(readFileSync(file, 'utf8'));
@@ -14,19 +15,20 @@ const json = file => JSON.parse(readFileSync(file, 'utf8'));
 /** A direct shardfile build has the same map generation fence as pnpm gen. */
 export async function prepareDataMaps(root, only) {
   const jobs = discoverGeneration(root).jobs;
-  for (const { slug, dir } of mapShards(root)) {
+  const inputHashes=new InputHashMemo(root,resolve(root,'.cache/generation-hashes.json'));
+  try {for (const { slug, dir } of mapShards(root)) {
     if (only !== undefined && !only.includes(slug)) continue;
     const settings = json(mapSettingsPath(dir));
     if (settings.painter === undefined) continue;
     for (const id of settings.painter.prerequisites ?? []) {
       const prerequisite = jobs.find(row => row.id === id);
       if (prerequisite === undefined) throw new Error(`${slug}: missing map prerequisite ${id}`);
-      await generateShardJob(root, prerequisite, { restore: true });
+      await generateShardJob(root, prerequisite, { restore: true,inputHashes });
     }
     const job = jobs.find(row => row.id === settings.painter.job);
     if (job === undefined) throw new Error(`${slug}: data map generation job is missing`);
-    await generateShardJob(root, job, { restore: true });
-  }
+    await generateShardJob(root, job, { restore: true,inputHashes });
+  }} finally {inputHashes.flush();}
 }
 
 /** Paint the exact render lattice and placed prop triangles. Each address is
