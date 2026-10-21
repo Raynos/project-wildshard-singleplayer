@@ -24,7 +24,7 @@ import { platformInputs } from './platformInputs';
 import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } from 'three';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
-import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
@@ -47,7 +47,7 @@ import { DEVSERVER, gridMode } from './menu';
 import { gridCells, pageGridInstance, pageMode } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
-import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderResidency';
+import { PlatformRenderResidency } from './renderResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { decodeFarImpostor, farBandShare } from './farImpostorView';
@@ -84,10 +84,8 @@ import { CellMinimaps } from './minimapBlend';
 import { leaseMapImage } from '../shardfile/mapImage';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
-import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
-import { cellScreenStatus, installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
-import type { MemoryAdmissionWarning } from '@wildshard/format/product';
-import { TIER } from '@wildshard/engine/core/tier';
+import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type ShardRefusal } from './refusal';
+import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { horizonFade } from './horizonFade';
 
 declare const __GRID_SEAM_PLANS__: readonly (readonly [string, readonly number[][]])[];
@@ -150,8 +148,8 @@ export interface GridSessionState {
   readonly softWalls: SoftWallState;
   /** G78's border shimmer and G119's save panel (status null: no panel up) */
   readonly shimmer: BorderShimmerState;
-  /** G217: the cells you can't enter that wear the full loading screen now, and its redraw count */
-  readonly screens: CellScreensState;
+  /** G555: the cell whose step-by-step loading screen is open (its entry or re-entry waits), or null */
+  readonly cellLoading: string | null;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
@@ -301,8 +299,11 @@ export class GridSession {
   private readonly farMissing = new Set<string>();
   /** each slug's shown name */
   private readonly names = new Map<string, string>();
-  /** G217: the full loading screen on every cell you can't enter */
-  private readonly screens: { readonly step: () => void; readonly state: () => CellScreensState };
+  /** G555: the one step-by-step loading screen over a cell entry or re-entry that waits */
+  private readonly cellLoading = new CellLoading();
+  private cellLoadingPolled = 0;
+  /** when each cell's current wait began, so its screen counts only the hooks of this load */
+  private readonly loadingSince = new Map<string, number>();
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost, progress?: StepProgress): Promise<GridSession> {
@@ -410,21 +411,7 @@ export class GridSession {
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
       ports: { closed: (id) => this.live === null || !this.live.live.ready(id) } });
-    // G217: every cell you can't enter (loading, waiting or refused) wears the full Developer loading screen at its soft wall
-    // (a page whose envelope can't fit the screens' one claim keeps its closed walls without them, rather than no grid)
-    try {
-      this.screens = installCellScreens({ scene: host.scene, admission, time: () => app.clock.real, wall: CHUNK_HALF + 6,
-        build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '', tier: TIER, ...(host.renderer === undefined ? {} : { renderer: host.renderer }),
-        ...(host.frame === undefined ? {} : { camera: host.frame.camera }),
-        ...(host.prepareView === undefined ? {} : { prepare: host.prepareView }),
-        cells: this.neighbours.map((cell) => ({ instance: cell.instance, x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, art: findShard(cell.slug)?.card.thumb ?? null })),
-        ports: { read: () => this.screenInputs(), ready: id => this.screenReady(id),
-          feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
-    } catch (error) {
-      if (!(error instanceof PlatformRenderAdmissionError)) throw error;
-      console.warn('[grid] the cell screens did not fit the envelope:', error);
-      this.screens = { step: () => undefined, state: () => ({ shown: [], draws: 0 }) };
-    }
+    host.scope.onDispose(() => { this.cellLoading.close(); });
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
     let status: CrossingSaveStatus = null, polled = 0;
@@ -605,49 +592,49 @@ export class GridSession {
     this.refusals.set(cell.instance, refusal); this.issues.set(cell.instance, error instanceof Error ? error.message : String(error)); pageShardRefusals().note(cell.slug, refusal);
   }
   /**
-   * G217's read-only port: every neighbour you can't enter now, with its readiness stages, its refusal or wait, its claims in
-   * the one allocator (its own and its shared product) and its far view. Read a few times a second by the cell screens.
+   * G555's read-only port: the cell whose entry waits (the one the traveller is in before its gameplay is ready, else the
+   * nearest unready cell within 12 m of its edge), with its readiness fences, its claims, its entered hooks since this wait
+   * began and its refusal; null when none waits.
    */
-  private screenInputs(): ReadonlyMap<string, CellScreenInput> {
-    const out = new Map<string, CellScreenInput>(), live = this.live, cost = this.allocator.cost(), claimed = new Map<string, { bytes: number; count: number }>();
+  private cellLoadingInput(): CellLoadingInput | null {
+    const live = this.live; if (live === null) return null;
+    const current = live.live.current(), ready = (id: string): boolean => live.live.ready(id) && (current !== id || live.gameplayReady());
+    let target: GridCell | undefined = current !== null && !ready(current) ? this.assembly.cell(current) : undefined;
+    if (target === undefined) {
+      const at = this.world();
+      let best = 12;
+      for (const cell of this.assembly.cells) {
+        if (ready(cell.instance)) continue;
+        const d = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
+        if (d <= best) { best = d; target = cell; }
+      }
+    }
+    if (target === undefined) { this.loadingSince.clear(); return null; }
+    const id = target.instance, since = this.loadingSince.get(id) ?? performance.now(); this.loadingSince.set(id, since);
+    const raw = live.refusal(id), refusal = this.refusal(id);
+    const reason = refusal !== null ? refusalReason(refusal)
+      : raw instanceof GridCellWaitingError ? GAME_STRINGS.grid.waiting(this.shardName(id)) : null;
+    let claimed = 0, product = false;
     for (const entry of this.allocator.claims()) {
-      const key = entry.owner === 'grid' && entry.id.startsWith('product:grid:') ? entry.id : entry.owner, was = claimed.get(key);
-      claimed.set(key, { bytes: (was?.bytes ?? 0) + entry.bytes, count: (was?.count ?? 0) + 1 });
+      if (entry.owner === id) claimed += entry.bytes;
+      if (entry.owner === 'grid' && entry.id === `product:grid:${target.slug}`) { claimed += entry.bytes; product = true; }
     }
-    // G216: a claim Developer admitted past the envelope reports its full numbers (the newest report per cell wins)
-    const over = new Map<string, MemoryAdmissionWarning>();
-    for (const report of this.allocator.memory.reports()) over.set(report.owner === 'grid' && report.id.startsWith('product:grid:') ? report.id : report.owner, report);
-    for (const cell of this.neighbours) {
-      const id = cell.instance;
-      const raw = live?.refusal(id), refusal = this.refusal(id), manifest = findShard(cell.slug);
-      const status = cellScreenStatus({ ready: live?.live.ready(id) === true,
-        gameplayReady: live?.live.current() !== id || live.gameplayReady(),
-        declared: (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined,
-        pending: live?.live.state().pending.includes(id) === true,
-        waiting: raw instanceof GridCellWaitingError || (raw !== undefined && classifyRefusal(raw) === null), refusal });
-      if (status === null) continue;
-      const waiting = status === 'waiting';
-      const message = raw instanceof Error ? raw.message : raw === undefined ? this.issues.get(id) ?? null : typeof raw === 'string' ? raw : null;
-      const stages = live?.live.readiness.status(id), own = claimed.get(id), product = claimed.get(`product:grid:${cell.slug}`);
-      const warning = over.get(id) ?? over.get(`product:grid:${cell.slug}`);
-      out.set(id, { instance: id, slug: cell.slug, name: this.shardName(id), status, refusal,
-        wait: waiting ? (message !== null && /hybrid/u.test(message) ? 'hybrid' : 'format') : null, issue: message, far: this.farStatus(id),
-        requested: stages?.requested ?? false, product: product !== undefined, runtime: stages?.runtime ?? false, colliders: stages?.colliders ?? false, sim: stages?.sim ?? false,
-        claimedBytes: (own?.bytes ?? 0) + (product?.bytes ?? 0), claims: (own?.count ?? 0) + (product?.count ?? 0), declaredBytes: product?.bytes ?? 0,
-        pageBytes: warning?.playingBytes ?? cost.playing, capBytes: warning?.playingCap ?? CONTENT_CAPS.playing, overBytes: warning?.playingOverBytes ?? 0 });
-    }
-    return out;
+    const stages = live.live.readiness.status(id), timings = live.hookTimings();
+    const hooks = new Set(timings.completed.filter(row => row.instance === id && row.start >= since).map(row => row.hook));
+    const hook = timings.current?.instance === id ? timings.current.hook : null;
+    return { instance: id, slug: target.slug, name: this.shardName(id), refusal: reason, product: product || stages.runtime || stages.ready,
+      claimedMB: claimed / 1e6, requested: stages.requested, runtime: stages.runtime, colliders: stages.colliders, sim: stages.sim,
+      hooks, hook, hybrid: hooks.size > 0 || hook !== null, entered: current === id, gameplayReady: current === id && live.gameplayReady() };
   }
-  /** A data-ready active region keeps G217 visible until its entered world/kit/play hooks finish. */
-  private screenReady(instance: string): boolean {
-    const live = this.live;
-    return live !== null && live.live.ready(instance) && (live.live.current() !== instance || live.gameplayReady());
+  /** At most four times a second: the loading screen reads the allocator and the live session. */
+  private stepCellLoading(): void {
+    const now = performance.now(); if (now - this.cellLoadingPolled < 250) return;
+    this.cellLoadingPolled = now; this.cellLoading.step(this.cellLoadingInput());
   }
   private refusal(instance: string): ShardRefusal | null {
     const live = this.live?.refusal(instance);
     return this.refusals.get(instance) ?? (live === undefined ? null : classifyRefusal(live));
   }
-  private farStatus(instance: string): FarViewStatus { return this.farViews.has(instance) ? 'resident' : this.farMissing.has(instance) ? 'none' : 'loading'; }
   private shardName(instance: string): string { const slug = this.assembly.cell(instance).slug; return this.names.get(slug) ?? slug; }
 
   /** Step 2: the live crossing, once the page's player health and equipment exist (play.ts). */
@@ -699,7 +686,7 @@ export class GridSession {
     const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
-    this.screens.step();
+    this.stepCellLoading();
     this.shimmer.step();
     const active = this.live === null ? this.home.instance : this.live.live.current();
     const eye = this.host.eye?.();
@@ -735,7 +722,7 @@ export class GridSession {
     return {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => { const d = drawn(cell.instance); return { instance: cell.instance, slug: cell.slug, cell: cell.cell, shows: shows(cell.instance, d), drawn: d }; }),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), screens: this.screens.state(), ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), cellLoading: this.cellLoading.open, ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
       rings: { frame: stats.frame, far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },

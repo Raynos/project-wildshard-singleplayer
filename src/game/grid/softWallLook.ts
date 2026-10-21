@@ -1,8 +1,8 @@
 /**
  * The soft wall's look (SHARD-PLATFORM SF17b look, G85 "B: shimmer barrier"): while a neighbour isn't ready its edge holds
  * as a closed wall (SF18d `ReadinessWalls`); this draws that wall as a translucent cyan hex shimmer near the traveller. The
- * same language as G89's void rail. What the cell shows on its wall (why it can't be entered, every loading detail) is
- * G217's cell screen (`cellScreen.ts`), which replaced this look's LOADING panel and bar.
+ * same language as G89's void rail. Why it can't be entered, and every loading step, is G555's step-by-step loading
+ * screen (`cellLoading.ts`), opened as the traveller reaches the wall.
  *
  * One draw for every wall (a curtain quad per edge, additive, faded out past ~70 m so a 500 m wall never dominates the
  * view). Which walls are closed comes from the session each fixed step; a wall opens the moment its neighbour is ready.

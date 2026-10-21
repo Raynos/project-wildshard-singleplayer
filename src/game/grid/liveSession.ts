@@ -766,6 +766,8 @@ export class LiveGridSession {
     } };
   }
 
+  /** G555: the entered runtime hooks' timings (the one running and those finished), for the cell loading screen. */
+  hookTimings(): ReturnType<HybridRuntimeSession['timings']> { return this.hybrid.timings(); }
   /** Admission opens the strip first; hooks freeze gameplay only after the committed traveller reaches the interior. */
   gameplayReady(): boolean {
     const current = this.live.current();

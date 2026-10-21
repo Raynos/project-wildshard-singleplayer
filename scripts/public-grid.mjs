@@ -34,7 +34,7 @@ export function readPublicGridWitness() {
   const state = grid.state();
   return {developer:Object.hasOwn(document.documentElement.dataset,'dev'),savedDeveloper:device.keys?.devMode?.data,
     state,refusals:session.keys?.shardRefusals?.data ?? {},homeResidency:grid.residency().home,
-    cellScreens:state.screens.shown.map(row => ({instance:row.instance,status:row.status,issue:state.live.live.issues[row.instance] ?? null})),
+    cellLoading:state.cellLoading===null ? null : {instance:state.cellLoading,issue:state.live.live.issues[state.cellLoading] ?? null},
     runtimeLevel:window.__wildshard.world.game.level.id};
 }
 

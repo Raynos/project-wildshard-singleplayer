@@ -1,7 +1,7 @@
 /**
  * Why a shard can't load (SHARD-PLATFORM SF58 (12), G167): a cell whose shard is refused (by memory admission, a
- * validation / safety failure, a format it can't read or a load error) keeps its soft wall closed and shows G217's cell
- * screen (`cellScreen.ts`: the full Developer loading screen, the reason in amber, YOUR SAVE IS KEPT); SHARD SELECT shows
+ * validation / safety failure, a format it can't read or a load error) keeps its soft wall closed and, as the traveller
+ * reaches it, shows G555's step-by-step loading screen with the reason (`cellLoading.ts`); SHARD SELECT shows
  * that shard's **UNAVAILABLE card**.
  *
  * This module is the pure part: `classifyRefusal` maps the thrown admission error to a reason (or null: a cell that is only

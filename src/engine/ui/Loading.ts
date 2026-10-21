@@ -77,14 +77,19 @@ export class Loading {
   private shownSetup = 0;
   private readonly admissionPhases = new Set<string>();
   private readonly paintedRows: (LoadingRow | LoadingGap)[] = [];
+  /** G555: a mid-play load (a grid cell entry): no boot trace, no adopted shell, no page-wide timeline or download
+   *  accounting; its owner drives the steps (`scopedStep`) and `done()` disposes it */
+  private readonly scoped: boolean;
+  private failedReason: string | null = null;
 
-  constructor(chunk: { id: string; name: string; trace?: boolean }) {
+  constructor(chunk: { id: string; name: string; trace?: boolean }, mode: { readonly scoped?: boolean } = {}) {
     this.identity = chunk.id;
+    this.scoped = mode.scoped === true;
     this.timingKey = { tier: TIER, path: 'pending', identity: this.identity };
-    startBoot({ id: chunk.id, name: chunk.name }, TIER === 'phone' && chunk.trace === true);
+    if (!this.scoped) startBoot({ id: chunk.id, name: chunk.name }, TIER === 'phone' && chunk.trace === true);
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     // index.html paints this panel from its first bytes (src/engine/boot/shell.ts): adopt it; a page without it gets a fresh one
-    const shell = document.querySelector<HTMLElement>('.ws-load[data-shell]');
+    const shell = this.scoped ? null : document.querySelector<HTMLElement>('.ws-load[data-shell]');
     if (shell) { this.root = shell; delete shell.dataset['shell']; mountUi(shell, this.scope, document.body); }
     else {
       this.root = document.createElement('div');
@@ -95,10 +100,10 @@ export class Loading {
     const startedAt = Number(this.root.dataset['startedAt']);
     if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= this.t0) this.t0 = startedAt;
     this.timeline = new LoadingTimeline({ id: 'pending', steps: [{ key: 'modules', label: engineString('s_loading_modules'), weight: 1 }] }, this.t0);
-    this.phase = this.timeline.begin('modules');
-    this.scope.onDispose(installLoadingTimeline(this.timeline));
+    this.phase = this.scoped ? undefined : this.timeline.begin('modules');
+    if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
-    this.scope.onDispose(installDownloadAccounting(this.downloads));
+    if (!this.scoped) this.scope.onDispose(installDownloadAccounting(this.downloads));
     this.downloadObserver = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
       this.dirty = true;
@@ -130,7 +135,7 @@ export class Loading {
   /** Show real pre-session work. Unknown totals stay explicit instead of inventing a percentage. */
   paintAdmission(progress: LoadingAdmission): void {
     if (this.view !== null) throw new Error('Admission progress arrived after world setup started');
-    if (!this.admissionPhases.has(progress.phase)) { this.admissionPhases.add(progress.phase); recordBootCheckpoint(`admission:${progress.phase}`, { detail: progress.detail }); }
+    if (!this.scoped && !this.admissionPhases.has(progress.phase)) { this.admissionPhases.add(progress.phase); recordBootCheckpoint(`admission:${progress.phase}`, { detail: progress.detail }); }
     this.admission = progress;
     const phase = progress.phase === 'modules' ? 'modules' : 'admission';
     if (this.phase !== undefined && phase !== this.phaseKey) { this.phase.end(); this.phase = this.timeline.begin(phase); this.phaseKey = phase; }
@@ -139,6 +144,22 @@ export class Loading {
     this.timeline.report(phase, detail, progress.filesDone, progress.filesTotal);
     setData(this.root, 'step', `admission.${progress.phase}`);
     this.dirty = true;
+  }
+
+  /** G555: a scoped load's current step (a key of its `setPath` path) and its live detail. Earlier steps end as it moves on. */
+  scopedStep(key: string, detail: string): void {
+    if (!this.scoped) throw new Error('Loading: scopedStep is for a scoped (mid-play) load');
+    if (key !== this.phaseKey || this.phase === undefined) { this.phase?.end(); this.phase = this.timeline.begin(key, detail); this.phaseKey = key; }
+    else this.phase.detail(detail);
+    this.admission = { phase: key, detail, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 };
+    setData(this.root, 'step', key);
+    this.dirty = true;
+  }
+  /** G555: a scoped load that cannot finish (a refused cell): its reason stays on the screen until the owner disposes it. */
+  scopedFail(reason: string): void {
+    if (!this.scoped) throw new Error('Loading: scopedFail is for a scoped (mid-play) load');
+    this.admission = { phase: this.phaseKey, detail: reason, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 };
+    this.failedReason = reason; setData(this.root, 'failed', 'true'); set(this.els.foot, reason); this.dirty = true;
   }
 
   /** Explain module/tier/SW waits before the first source denominator is known. */
@@ -173,7 +194,7 @@ export class Loading {
     v = { ...v, bytesRead: transfer.networkBytes, bytesTotal: transfer.networkBytes + transfer.pendingBytes,
       filesDone: transfer.filesDone, filesTotal: transfer.filesTotal, download: transfer.fraction };
     this.view = v;
-    recordBootProgress(v);
+    if (!this.scoped) recordBootProgress(v);
     this.dirty = true;
     const pct = (f: number): string => String(Math.floor(f * 100));
     setData(this.root, 'download', pct(v.download));
@@ -311,7 +332,7 @@ export class Loading {
   }
 
   private paintWaiting(): void {
-    if (this.view?.error) return;
+    if (this.view?.error || this.failedReason !== null) return;
     const pending = bootWaits(), files = pending.filter(wait => wait.kind === 'file');
     const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
     const timeline = this.timeline.snapshot(), transfer = this.downloads.snapshot();
@@ -345,7 +366,7 @@ export class Loading {
    * the title menu, on every launch. The fade (loading.css) is 250 ms; the menu is live under it.
    */
   done(): Promise<void> {
-    this.finished = true;
+    this.finished = true; this.phase?.end(); this.phase = undefined;
     const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
     savePathTimings(this.timingKey, measured, this.baseline);
     if (this.view !== null) this.paint(this.view);

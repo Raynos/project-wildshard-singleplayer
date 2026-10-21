@@ -234,7 +234,7 @@ export function installFloorGridProgress() {
         stop: { ...stop }, current: live?.current, inside: state.inside, feet: live?.worldFeet, gameplayReady: live?.gameplayReady,
         admission: { residents: [...(live?.residents ?? [])], pending: [...(live?.pending ?? [])], issues: { ...live?.issues },
           crossing: state.live?.crossing === undefined ? null : { phase: state.live.crossing.phase, issue: state.live.crossing.issue },
-          screens: state.screens ?? null },
+          cellLoading: state.cellLoading ?? null },
         // the hook a stuck admission is waiting in (current), and the last completed ones
         runtimeTiming: state.live?.runtimeTiming ?? null,
         memory: { modelledMB: state.playingMB ?? null, accountedBytes: state.accountedBytes ?? null,
