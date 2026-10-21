@@ -1,6 +1,5 @@
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
-import { arsenal,prepareSabre,prepareSpear } from '../weapons/nativeMelee';
 
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
@@ -12,7 +11,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
-import { prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
+import { arsenal, prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
 import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
 import { installNalatiQuestView } from '../quest/kokpar';
 import { enteredAdventurePersistence } from '@wildshard/game/quest/chapterBindings';
@@ -42,8 +41,8 @@ export class NalatiPlugin extends ShardPlugin {
     await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress, enteredAdventurePersistence(ctx.scope)));
-    await prepareSabre(ctx.product);
-    await prepareSpear(ctx.product);
+    await arsenal.blade.prepare(ctx.product);
+    await arsenal.polearm.prepare(ctx.product);
     await prepareWeaponCatalogue();
     const rt = this.rt;
     shell.objects['nalati'] = rt;

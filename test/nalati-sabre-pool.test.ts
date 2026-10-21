@@ -1,3 +1,5 @@
+import { MountedArsenal } from '../src/game/loadout/mounted';
+import loadout from '../src/shards/nalati-grasslands/boot/mountedLoadout.generated.json' with { type: 'json' };
 import heldWeapons from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the emitted GLB against its original authoring geometry.
 import { readFileSync } from 'node:fs';
@@ -7,13 +9,14 @@ import { PackedSpecimenSchema } from '../src/format/specimenCatalogue';
 import { MeshBasicMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { buildSabre as authorSabre, SABRE_PROFILE as authorProfile, PASS_LEFT, PASS_RIGHT } from '../src/shards/nalati-grasslands/generators/sabre';
-import { buildSabre, prepareSabre, sabreProfile } from '../src/shards/nalati-grasslands/weapons/nativeMelee';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import rows from '../src/shards/nalati-grasslands/data/sabre.generated.json' with { type: 'json' };
 
 const {polearm:_polearm,blade:_blade,programs:_programs,...weaponPower}=heldWeapons;
+
+const { blade } = new MountedArsenal(loadout);
 
 test('baked sabre preserves every move, contact, mounted coefficient and mutable geometry channel', async () => {
   const key = (row: typeof PASS_LEFT.keys[number]) => ({ t: row.t, pos: row.pos.toArray(), q: row.q.toArray() });
@@ -24,9 +27,9 @@ test('baked sabre preserves every move, contact, mounted coefficient and mutable
   const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(gltf);
   const material = new MeshBasicMaterial();
   try {
-    await prepareSabre({ shardfile: { ...emptyShardfile({ slug: 'sabre-test', name: 'Sabre', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.blade,power:{...weaponPower,program:heldWeapons.programs.power},parts:heldWeapons.blade}))) });
-    expect(sabreProfile()).toEqual(authorProfile);
-    const before = authorSabre(material, material), after = buildSabre(material, material), second = buildSabre(material, material);
+    await blade.prepare({ shardfile: { ...emptyShardfile({ slug: 'sabre-test', name: 'Sabre', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.blade,power:{...weaponPower,program:heldWeapons.programs.power},parts:heldWeapons.blade}))) });
+    expect(blade.profile()).toEqual(authorProfile);
+    const before = authorSabre(material, material), after = blade.build(material, material), second = blade.build(material, material);
     expect({ tipY: after.tipY, baseY: after.baseY, tipX: after.tipX }).toEqual({ tipY: before.tipY, baseY: before.baseY, tipX: before.tipX });
     const oldParts = [before.sword, before.arms, ...(before.extras ?? []).map(part => part.geometry)];
     const parts = [after.sword, after.arms, ...(after.extras ?? []).map(part => part.geometry)];
@@ -54,6 +57,7 @@ test('Nalati gear rows decode all eight cards and independent bow paints', async
   const { Rng } = await import('../src/engine/core/rng');
   const { Object3D, Mesh, Vector3, BufferGeometry, BufferAttribute } = await import('three');
   const { default: gear } = await import('../src/shards/nalati-grasslands/boot/gear.generated.json');
+  expect(gear.loadout).toEqual(loadout);
   const bake = parse(PackedSpecimenSchema, gear.packed);
   const bytes = unshuffleLanes(new Uint8Array(inflateSync(readFileSync(`public${gear.packed.bin}`))));
   expect(bytes.length).toBe(gear.packed.bytes);

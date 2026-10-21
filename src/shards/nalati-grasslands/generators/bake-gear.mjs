@@ -76,10 +76,10 @@ try {
   effects.cards = effects.skins.map(skin => { const source = Object.values(ecology.elites).find(elite => elite.drop.skin === skin.id)?.name ?? 'Jel Ata, the Storm Titan'; return { id: skin.id, name: skin.name, blurb: skin.blurb, icon: icons[skin.slot], lockedBlurb: `${source} drops it` }; });
   writer.put(resolve(import.meta.dirname, '../boot/weaponEffects.generated.ts'), `// Generated from data/weaponEffects.json; edit its retained rows.\nexport const weaponEffects = ${JSON.stringify(effects)} as const;\n`);
   writer.put(resolve(root, 'public/assets/nalati/baked/gear-specimens.bin'), deflateSync(lanes, { level: 9 }));
-  writer.put(resolve(import.meta.dirname, '../boot/gear.generated.json'), jsonBytes({ catalogue, materials, variants: JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/legendaryWeapons.json'), 'utf8')),
-    packed: { bin: '/assets/nalati/baked/gear-specimens.bin', bytes: bytes.length, rows } }));
   const loadout=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/loadout.json'),'utf8')),variants=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/legendaryWeapons.json'),'utf8'));
   loadout.variants=Object.fromEntries([['bow','goldenBow'],['blade','naizagai']].map(([name,key])=>[name,{id:`weapon.${variants[key].id}`,name:variants[key].name}]));
+  writer.put(resolve(import.meta.dirname, '../boot/gear.generated.json'), jsonBytes({ catalogue, materials, loadout, variants: JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/legendaryWeapons.json'), 'utf8')),
+    packed: { bin: '/assets/nalati/baked/gear-specimens.bin', bytes: bytes.length, rows } }));
   writer.put(resolve(import.meta.dirname,'../boot/mountedLoadout.generated.json'),jsonBytes(loadout));
   writer.put(resolve(import.meta.dirname,'../boot/bowTrail.generated.json'),jsonBytes(JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'))));
   const variant=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowVariant.json'),'utf8'));
