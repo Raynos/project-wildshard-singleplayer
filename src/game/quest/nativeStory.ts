@@ -18,7 +18,7 @@ import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import { bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
 import type { installDeclaredQuestHost } from '../plugin/simulation';
 import { ReturnProgram } from '../population/returnProgram';
-import { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
+import { DirectorScriptStageLane, type readDirectorProduct } from '../plugin/director';
 import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
 import { ContractBoard, CONTRACT_ACTION } from './contractBoard';
 import { contractKill } from './contracts';
@@ -38,11 +38,6 @@ const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>, ids:
     skins: v.pipe(v.array(v.picklist(ids)), v.maxLength(ids.length), v.check(skins => new Set(skins).size === skins.length)) })), ammunition: v.optional(NativeAmmunitionSavedSchema) });
 
 
-const prepared = new WeakMap<ShardProduct, Awaited<ReturnType<typeof readDirectorProduct>>>();
-/** Prepare the admitted AS module before synchronous native installation. */
-export async function prepareNativeStory(product: ShardProduct): Promise<void> {
-  prepared.set(product, await readDirectorProduct(product));
-}
 /** Existing native owners returned for equipment/modal observations. */
 export interface NativeStory {
   readonly quests: ReturnType<typeof installDeclaredQuestHost>['quests'];
@@ -54,14 +49,13 @@ export interface NativeStory {
   readonly takePickup: () => boolean;
 }
 /** Install story services around the admitted quest host shared by all entries. */
-export function installNativeStory(host: SimHost, product: ShardProduct, rows: NativeStoryRows): NativeStory {
+export function installNativeStory(host: SimHost, product: ShardProduct, rows: NativeStoryRows,
+  director: Awaited<ReturnType<typeof readDirectorProduct>>): NativeStory {
   if (!isJsonData(rows)) throw new Error('Native story requires JSON rows');
   const policy = rows.policy, content = rows.content, spots = rows.spots, flags = host.flags;
   const entry = prepareNativeQuestEntry(host, product.shardfile, content.table, spots.rows), { input, pack } = entry;
   const ammunition = nativeHeldAmmunition(host), launcher = readNativeRangedItem(host, policy.launcher);
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
-  const director = prepared.get(product);
-  if (director === undefined) throw new Error('Native story has no prepared director');
   const ports = { ...rows,
     commands: input.scripts, fact: input.ledger.fact, coins: input.ledger.coins, director, ammunition,
     addBolts: (n: number) => { launcher.item.addBolts(n); }, canSelectAmmo: () => launcher.frame.live.has(policy.launcher),

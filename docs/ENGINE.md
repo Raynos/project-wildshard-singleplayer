@@ -7511,7 +7511,10 @@ values to satisfy their declared AS output and delivered same-key events
 to carry that exact value. Pine retains its 1/60 initialization delta;
 both shards retain their AS bytes and unchanged version-3 snapshots.
 `readDirectorProduct(product, scope?)` admits the named `directors/main.json`
-blob. `DirectorScriptStageLane.bind(stages, lane, bindings, owners, scope,
+blob. Both native recipes use that product directly: Pine passes its prepared
+director into story installation, and Driftwood binds its named stage lane.
+No story-specific preparation cache owns the factory.
+`DirectorScriptStageLane.bind(stages, lane, bindings, owners, scope,
 restoring?)` reads bounded declared observations, applies ordered native
 method calls or field writes, and subscribes to declared flag edges. It
 borrows only supplied objects through the existing safe owner paths. Pine

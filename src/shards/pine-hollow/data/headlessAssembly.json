@@ -9,7 +9,7 @@
     "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion"],
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
-    "@wildshard/game/quest/nativeStory": ["prepareNativeStory", "installNativeStory"],
+    "@wildshard/game/quest/nativeStory": ["installNativeStory"],
     "@wildshard/format/contracts": ["parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
     "@wildshard/game/loot/exchange": ["parseExchange"],
@@ -239,7 +239,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/game/quest/nativeStory", "prepareNativeStory"]
+            "$ref": ["@wildshard/game/plugin/director", "readDirectorProduct"]
           },
           {
             "$ref": ["product"]
@@ -1038,6 +1038,9 @@
                 "trades"
               ]
             }
+          },
+          {
+            "$ref": ["director"]
           }
         ]
       }
