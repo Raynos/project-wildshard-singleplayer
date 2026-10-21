@@ -10,6 +10,7 @@ import { saveFixtureCode } from '../debug-settings.mjs';
 import { accuracyRecorder, accuracyCaption } from './accuracy-data.mjs';
 import { accuracyReport } from './accuracy-report.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
+import { crossingProbeCode, crossingReport } from './crossing.mjs';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const udid = process.env.SIM_UDID, upstream = arg('base'), pin = arg('pin'), dist = arg('dist'), out = arg('out');
@@ -131,6 +132,19 @@ try {
     execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolvePath(out, `${path}.png`), '--out', resolvePath(out, `${path}.jpg`)], { stdio: 'ignore' });
     unlinkSync(resolvePath(out, `${path}.png`));
     console.info(JSON.stringify({ path, errors, ...report }));
+    if (path === 'grid' && errors.length === 0 && (arg('crossing') ?? '1') === '1') {
+      await inspector.evaluate(crossingProbeCode());
+      await wait('window.__loadingCrossing?.done', 130000);
+      const crossing = JSON.parse(await inspector.evaluate('JSON.stringify(window.__loadingCrossing)'));
+      const crossingResult = crossingReport(crossing);
+      const receipts = transport.receipts.filter(row => row.endedAt >= collected.origin + crossing.startedAt
+        && row.endedAt <= collected.origin + crossing.endedAt);
+      writeFileSync(resolvePath(out, 'crossing.json'), JSON.stringify({ pin, device: result.device, cpu: 'native',
+        ...crossing, ...crossingResult, transportReceipts: receipts,
+        networkBytes: receipts.reduce((sum, row) => sum + row.bodyBytes + row.headerBytes, 0) }, null, 2));
+      console.info(JSON.stringify({ path: 'crossing', ...crossingResult }));
+      if (crossingResult.failures.length > 0) failed = true;
+    }
     try { await inspector?.evaluate(`location.replace('about:blank')`); } catch { /* The target already left. */ }
     inspector?.close(); inspector = undefined;
     try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }

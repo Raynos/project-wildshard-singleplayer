@@ -9,6 +9,7 @@ import { observeTransport } from './transport.mjs';
 import { accuracyReport } from './accuracy-report.mjs';
 import { accuracyRecorder, accuracyCaption } from './accuracy-data.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
+import { crossingProbeCode, crossingReport } from './crossing.mjs';
 
 const arg = (key, fallback) => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
 const base = arg('base', ''), pin = arg('pin', ''), out = arg('out', '');
@@ -96,6 +97,19 @@ try {
     if (!desktop) {
       await page.evaluate(accuracyCaption, `${pin.slice(0, 7)} · ${collected.accuracy.final?.path ?? `${path} request`} · iPhone 16 Pro · CPU ${cpu}x`);
       await page.screenshot({ path: resolve(out, `${path}-${status === 'passed' ? 'first-frame' : 'stalled'}.jpg`), type: 'jpeg', quality: 75, scale: 'css' });
+    }
+    if (path === 'grid' && status === 'passed' && arg('crossing', '1') === '1') {
+      await page.evaluate(crossingProbeCode());
+      await page.waitForFunction(() => window.__loadingCrossing?.done, undefined, { timeout: 130_000 });
+      const crossing = await page.evaluate(() => window.__loadingCrossing);
+      const crossingResult = crossingReport(crossing);
+      const receipts = transport.receipts.filter(row => row.endedAt >= collected.origin + crossing.startedAt
+        && row.endedAt <= collected.origin + crossing.endedAt);
+      writeFileSync(resolve(out, 'crossing.json'), JSON.stringify({ pin, device: receipt.device, cpu,
+        ...crossing, ...crossingResult, transportReceipts: receipts,
+        networkBytes: receipts.reduce((sum, row) => sum + row.bodyBytes + row.headerBytes, 0) }, null, 2));
+      console.info(JSON.stringify({ path: 'crossing', ...crossingResult }));
+      if (crossingResult.failures.length > 0) failed = true;
     }
     await context.close(); await transport.close();
     if (status !== 'passed' || (arg('accept', '0') === '1' && report.failures.length > 0)) failed = true;
