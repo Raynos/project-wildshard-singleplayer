@@ -11,6 +11,9 @@ export function accuracyReport(accuracy, networkBytes) {
   const displayedNetworkBytes = final?.networkBytes === undefined ? null : Number(final.networkBytes);
   const byteError = networkBytes === null || displayedNetworkBytes === null ? null
     : Math.abs(displayedNetworkBytes - networkBytes) / Math.max(1, networkBytes);
+  const visible = /^(\d+\.(\d+)) MB downloaded/u.exec(final?.download ?? '');
+  const visibleByteError = visible === null || networkBytes === null ? null
+    : Math.max(0, Math.abs(Number(visible[1]) * 1_000_000 - networkBytes) - 500_000 * 10 ** -visible[2].length) / Math.max(1, networkBytes);
   const maxDetailGapMs = Math.max(0, ...updates.slice(1).map((at, index) => at - updates[index]));
   const unaccountedSeconds = clockSeconds - stageSeconds;
   const failures = [];
@@ -19,7 +22,8 @@ export function accuracyReport(accuracy, networkBytes) {
   if (unaccountedSeconds > 2) failures.push('Unlabelled gap exceeds 2 s');
   if (maxDetailGapMs > 1000) failures.push('Detailed update gap exceeds 1 s');
   if (byteError === null || byteError > 0.05) failures.push('Network bytes are unavailable or differ by more than 5%');
+  if (final?.download !== undefined && (visibleByteError === null || visibleByteError > 0.05)) failures.push('Visible MB count differs by more than 5%');
   for (const row of final?.rows ?? []) if (!row.label && seconds(row.duration) > 2) failures.push('Unlabelled gap exceeds 2 s');
   return { stageSeconds, clockSeconds, unaccountedSeconds, displayedNetworkBytes, networkBytes,
-    byteError, maxDetailGapMs, failures };
+    byteError, visibleByteError, maxDetailGapMs, failures };
 }

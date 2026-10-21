@@ -332,7 +332,8 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   return api;
 }
 
-export const formatMB = (b: number): string => `${(b / 1048576).toFixed(b < 10 * 1048576 ? 2 : 1)} MB`;
+/** Decimal MB matches the network ruler; memory ceilings retain their own byte units. */
+export const formatMB = (b: number): string => `${(b / 1_000_000).toFixed(b < 10_000_000 ? 2 : 1)} MB`;
 
 /** Runs one step: what code outside main.ts (bootstrap) receives, so it need not know the plan type. */
 export type StepRunner = <T>(key: BootStep, work: (p: StepProgress) => T | Promise<T>) => Promise<T>;

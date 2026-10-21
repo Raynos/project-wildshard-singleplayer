@@ -34,6 +34,7 @@ const proxyErrors = []; proxy.stderr.on('data', value => { proxyErrors.push(Stri
 let inspector;
 async function connect() {
   inspector?.close(); inspector = undefined;
+  let lastProtocolError = '';
   const deadline = Date.now() + 60000;
   while (Date.now() < deadline) {
     for (let port = pagePort; port <= pagePort + 8; port++) {
@@ -42,16 +43,19 @@ async function connect() {
         const page = pages.find(row => row.url?.startsWith(base));
         if (page) {
           inspector = soakInspector(page.webSocketDebuggerUrl); await inspector.opened;
+          // Target.targetCreated follows the socket handshake. Sending a bare
+          // Runtime command first races the page target on current Safari.
+          await sleep(600);
           await inspector.evaluate('performance.now()'); return;
         }
-      } catch { inspector?.close(); inspector = undefined; }
+      } catch (error) { lastProtocolError = String(error); inspector?.close(); inspector = undefined; }
     }
     await sleep(300);
   }
-  throw new Error('Safari Inspector did not connect');
+  throw new Error(`Safari Inspector did not connect: ${lastProtocolError}`);
 }
-async function wait(expression) {
-  const deadline = Date.now() + 300000;
+async function wait(expression, timeout = 300000) {
+  const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     let raw;
     try { raw = await inspector.evaluate(`JSON.stringify({ ready: !!(${expression}), fatal: document.querySelector('#wserr .msg')?.textContent ?? '', errors: window.__loadingAccuracy?.errors ?? [] })`); }
@@ -77,11 +81,11 @@ try {
       await connect();
       await inspector.evaluate(`setTimeout(() => location.replace('/sf67-start.html'), 100); true`);
       await sleep(500); await connect();
-      await wait(`document.querySelector('.ws-main-select') !== null`);
+      await wait(`document.querySelector('.ws-main-select') !== null`, 60000);
       if (path === 'grid') await gesture(`document.querySelector('.ws-main-grid').click()`);
       else {
         await gesture(`document.querySelector('.ws-main-select').click()`);
-        await wait(`document.querySelectorAll('.ws-menu-card').length > 0`);
+        await wait(`document.querySelectorAll('.ws-menu-card').length > 0`, 30000);
         const titles = JSON.parse(await inspector.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(el => el.textContent))`));
         const index = loadingCardIndex(titles, 'driftwood-isle');
         await gesture(`document.querySelector('.ws-menu-dots i[data-i="${index}"]').click()`);
@@ -108,6 +112,9 @@ try {
     execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolvePath(out, `${path}.png`), '--out', resolvePath(out, `${path}.jpg`)], { stdio: 'ignore' });
     unlinkSync(resolvePath(out, `${path}.png`));
     console.info(JSON.stringify({ path, errors, ...report }));
+    try { await inspector?.evaluate(`location.replace('about:blank')`); } catch { /* The target already left. */ }
+    inspector?.close(); inspector = undefined;
+    try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
     if (errors.length > 0 || (arg('accept') === '1' && (report?.failures.length ?? 0) > 0)) failed = true;
   }
 } finally {

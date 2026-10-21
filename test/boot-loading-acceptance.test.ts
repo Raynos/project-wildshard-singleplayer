@@ -17,3 +17,9 @@ it('rejects missing seconds even inside the three-second stage-sum allowance', (
     final: { clock: '00:03.0', networkBytes: '100', rows: [{ label: 'Admission', duration: '0.5 s' }] } }, 100);
   expect(receipt.failures).toContain('Unlabelled gap exceeds 2 s');
 });
+
+it('checks the visible MB label as well as the underlying raw counter', () => {
+  const receipt = accuracyReport({ readyAt: 1000, updates: [0, 900],
+    final: { clock: '00:01.0', networkBytes: '100000000', download: '90.0 MB downloaded', rows: [{ label: 'Admission', duration: '1 s' }] } }, 100000000);
+  expect(receipt.failures).toContain('Visible MB count differs by more than 5%');
+});
