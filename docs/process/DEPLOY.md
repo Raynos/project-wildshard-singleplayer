@@ -46,8 +46,8 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **GitHub drops the :17 schedule** under load, with no error (2026-10-02/03: one run every 4–6 h). A launchd agent on
   Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every second hour and dispatches
   the deploy when no scheduled run started in the last 119 minutes and `deploy-pin.mjs release-slot` proves the shared
-  hourly slot is free and `release-ready` finds an eligible BOTH-proof-green candidate under the 20-minute chase bound below.
-  Pending proof defers dispatch before that bound without consuming the hour; API or unreadable proof errors refuse it.
+  hourly slot is free and `release-ready` finds the newest BOTH-proof-green candidate. A newer pending smoke never
+  blocks an existing proven candidate; with none proven, readiness defers without consuming the hour. API errors refuse it.
   Other configured pin modes retain their release-job proof checks. A recent scheduled/manual release or any
   queued/running release blocks it. Every retry checks
   again, and an API error or unreadable proof refuses dispatch. `scripts/deploy-backstop/install.sh` (re)installs it
@@ -87,15 +87,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   to close within its existing 150-second title budget before tapping the real entry button.
   The `verdict` job requires all five legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
-  release waits within the same run while a newer CI-green candidate's exact-SHA smoke is pending. A newly completed
-  push CI with no smoke status yet gets the same wait (up to 15 minutes after CI completion), covering dispatch and
-  queue startup. The selector refreshes candidates and statuses every 30 seconds, with a total 20-minute wait budget.
-  Only an exact-SHA successful smoke can supply the pin. A terminal failure or superseded proof may be skipped for an
-  older proven build. Under continuous landings, once 20 minutes have elapsed since an older **unshipped** SHA reached
-  both push CI and exact-SHA smoke green, select the **newest BOTH-proof-green SHA**. Read the actual proof timestamps;
-  each newer pending commit does not restart that bound. A previously shipped build does not start it. If no eligible
-  both-proof candidate exists, an unresolved proof at the deadline still refuses selection and names its SHA. Waiting never chooses
-  an unproven candidate or consumes another dispatch. The hourly cadence and manual dispatch limit stay unchanged.
+  release immediately selects the newest SHA with both push CI and exact-SHA smoke green. A newer CI-green SHA
+  whose smoke is pending or not started never delays that proven release. With no fully proven candidate, the
+  release refreshes candidates and statuses every 30 seconds for at most 20 minutes, then refuses with the unresolved
+  SHA. Neither waiting nor a free hourly slot can select an unproven candidate. Terminal failed proofs can be skipped
+  for an older proven build. The hourly cadence and manual dispatch limit stay unchanged.
   Smoke runs following manual/scheduled releases are intentionally skipped (only push CI or explicit smoke dispatch
   runs the proof), so inspect the run event as well as its SHA. An explicit emergency rollback may instead return to any SHA
   proven previously live in production, even before the smoke existed: verified `production-live` status or a
@@ -111,9 +107,8 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   **boot-smoke does the same by itself** (SF74 W16, G284): its `release` job runs after a green exact-SHA smoke of main and
   dispatches `deploy` only when `release-ready` finds the newest candidate already proven,
   `node scripts/deploy-pin.mjs release-slot` says the hour is free and `version.json` does
-  not already serve that selected SHA. An older smoke finishing while a newer proof is pending
-  leaves the hour free for that newer completion; otherwise it does nothing and the cron, the backstop or a hand
-  dispatch picks the pin up.
+  not already serve that selected SHA. Newer pending proofs do not block the newest fully proven build from using
+  a free hourly slot. Otherwise it does nothing and the cron, the backstop or a hand dispatch picks the pin up.
 - **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too
   slow"). The local gates on a clean export of HEAD are the check; CI and the hourly deploy run on their own. A red CI
   run is fixed by whoever sees it. If the game needs an immediate release, `gh workflow run deploy` (no need to watch it).

@@ -260,7 +260,7 @@ jobs:
           if [ "$mode" != newest-ci-green ]; then echo "Release mode $mode: keeping the configured pin policy."; exit 0; fi
           export GITHUB_OUTPUT="$RUNNER_TEMP/release.out"
           node scripts/deploy-pin.mjs release-ready
-          if ! grep -qx 'ready=true' "$GITHUB_OUTPUT"; then echo 'A newer exact-SHA smoke is pending; leaving the hourly slot free.'; exit 0; fi
+          if ! grep -qx 'ready=true' "$GITHUB_OUTPUT"; then echo 'No candidate has both CI and exact-SHA smoke green; leaving the hourly slot free.'; exit 0; fi
           DEPLOY_SHA="$(sed -n 's/^sha=//p' "$GITHUB_OUTPUT")"
           export DEPLOY_SHA
           node scripts/deploy-version.mjs check

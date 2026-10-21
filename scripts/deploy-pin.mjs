@@ -129,22 +129,21 @@ export function ciGreen(sha, query = ghApi) {
   return runs.includes(sha);
 }
 
-/** A newer CI-green SHA is pending and the both-proof fallback bound has not expired. */
+/** No CI-green SHA has a successful exact-SHA smoke yet. */
 export class PendingBootSmokeError extends Error {
   /** @param {string} sha */
   constructor(sha) { super(`newest-ci-green: awaiting exact-SHA boot-smoke for ${sha}`); this.name = 'PendingBootSmokeError'; this.sha = sha; }
 }
 
-/** The newest successful push CI on main with a separate, successful real boot on that exact SHA. macOS boot
- * queueing never holds push CI, and an unproven/failing boot can never become a release pin. Pending smoke (or a newly green push still awaiting its first smoke status)
- * holds selection for up to 20 minutes after an older unshipped commit reaches BOTH proofs; terminal smoke failures may be skipped and are logged with their state (SF74 W15: a stuck release says why); main SHAs whose push CI failed
- * or is still running are never candidates.
+/** The newest successful push CI on main with a separate, successful real boot on that exact SHA.
+ * A newer pending smoke never delays an already proven candidate. With no proven candidate,
+ * pending smoke can defer selection; unproven/failing boots never become a release pin.
  * @param {(args:string[])=>string} [query] @param {(line: string) => void} [log] @param {number} [now] @returns {string} */
 export function newestCiGreen(query = ghApi, log = (line) => console.error(line), now = Date.now()) {
   const candidates = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=100`,
     '--jq', '.workflow_runs[] | [.head_sha, .updated_at] | @tsv']).trim().split('\n');
   const seen = new Set();
-  let pending, proven;
+  let pending;
   for (const row of candidates) {
     const [sha = '', completed = ''] = row.split('\t');
     if (seen.has(sha)) continue;
@@ -153,21 +152,7 @@ export function newestCiGreen(query = ghApi, log = (line) => console.error(line)
     const proof = statuses(sha, query), boot = proof.get('boot-smoke');
     const completedAt = Date.parse(completed);
     if (Number.isNaN(completedAt)) throw new Error(`newest-ci-green: unreadable completed CI time for ${sha}`);
-    if (boot?.state === 'success') {
-      if (pending === undefined) return sha;
-      proven ??= sha;
-      // Earlier ancestors were delivered by this proven release; they cannot
-      // keep an expired chase timer alive in the next hourly slot.
-      if (proof.get('production-live')?.state === 'success') break;
-      // Anchor to an unshipped older commit's actual BOTH-proof completion,
-      // not to the newest pending commit. Continuous landings cannot reset it.
-      const bootAt = Date.parse(boot.createdAt), bothAt = Math.max(completedAt,bootAt);
-      if (proof.get('production-live')?.state !== 'success' && Number.isFinite(bothAt) && now-bothAt>=20*60000) {
-        log(`newest-ci-green: 20-minute chase bound reached; release BOTH-proof-green ${proven}; pending ${pending}`);
-        return proven;
-      }
-      continue;
-    }
+    if (boot?.state === 'success') return sha;
     if (boot?.state === 'pending' || (!boot && now - completedAt >= 0 && now - completedAt < 15 * 60 * 1000)) {
       pending ??= sha;
       continue;
@@ -178,8 +163,8 @@ export function newestCiGreen(query = ghApi, log = (line) => console.error(line)
   throw new Error('newest-ci-green: no successful push CI with a successful exact-SHA boot-smoke in the last 100 runs');
 }
 
-/** Check automatic-dispatch readiness without spending the hourly slot on a newer pending proof.
- * Actual releases still reselect and enforce the bounded wait and every exact-SHA proof.
+/** Dispatch readiness for the newest fully proven candidate. Newer pending proofs do not spend
+ * or block the hourly slot; actual releases reselect and enforce every exact-SHA proof.
  * @param {(args:string[])=>string} [query] @param {(line:string)=>void} [log] @param {number} [now]
  * @returns {{ready:boolean, sha:string}} */
 export function releaseReady(query = ghApi, log = (line) => console.error(line), now = Date.now()) {
@@ -190,8 +175,8 @@ export function releaseReady(query = ghApi, log = (line) => console.error(line),
   }
 }
 
-/** Wait at most 20 minutes; the chase bound can select only a BOTH-proof-green SHA.
- * With no such proof, unresolved candidates still fail closed.
+/** Wait at most 20 minutes only when no candidate has both proofs. Unresolved candidates
+ * still fail closed; an existing BOTH-proof-green SHA is selected without waiting.
  * Re-read CI and statuses every 30 seconds so a newer green push or coalesced smoke is observed.
  * @param {(args:string[])=>string} [query] @param {(line:string)=>void} [log]
  * @param {{now?:()=>number, wait?:(ms:number)=>Promise<void>, maxWaitMs?:number}} [options] @returns {Promise<string>} */

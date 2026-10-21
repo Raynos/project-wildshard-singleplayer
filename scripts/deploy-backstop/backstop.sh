@@ -53,7 +53,7 @@ for attempt in 1 2 3; do
     exit 1
   fi
   if [[ "${BASH_REMATCH[1]}" == false ]]; then
-    log "ok: newer candidate ${BASH_REMATCH[2]} awaits exact-SHA smoke; leaving the hour free"
+    log "ok: no fully proven candidate; ${BASH_REMATCH[2]} awaits exact-SHA smoke; leaving the hour free"
     exit 0
   fi
   if [[ "$DRY" == 1 ]]; then

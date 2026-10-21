@@ -11,10 +11,10 @@ export function ciGreen(sha: string, query?: (args: string[]) => string): boolea
 /** Whether the hourly release slot is free: no release run started in the last hour and none is queued or running (G284). */
 export function releaseSlot(now?: number, query?: (args: string[]) => string, windowMs?: number): { free: boolean, why: string };
 
-/** A newer CI-green candidate is waiting for exact-SHA smoke; selection has no pin yet. */
+/** No CI-green candidate has a successful exact-SHA smoke yet. */
 export class PendingBootSmokeError extends Error { constructor(sha: string); sha: string; }
-/** Wait within the same release for a newer pending proof; after the chase bound select only an exact BOTH-proof-green pin. */
+/** Select an existing BOTH-proof-green pin immediately; wait only when no candidate has both proofs. */
 export function newestCiGreenAfterBoot(query?: (args: string[]) => string, log?: (line: string) => void, options?: { now?: () => number; wait?: (ms: number) => Promise<void>; maxWaitMs?: number }): Promise<string>;
 
-/** Defer automatic newest-CI dispatch while a newer exact-SHA proof is pending; API errors remain fatal. */
+/** Dispatch the newest candidate with both proofs, even while newer smoke is pending; API errors remain fatal. */
 export function releaseReady(query?: (args: string[]) => string, log?: (line: string) => void, now?: number): { ready: boolean; sha: string };
