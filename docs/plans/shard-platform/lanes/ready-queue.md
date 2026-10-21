@@ -14,12 +14,13 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | O3 | Driftwood looks: runtime/looks/creatureLooks.ts, captain looks and coat as look graphs, toon/day-sky exports as rows | G532 research D5/D6 | folded into phase C (O7/O8, after X11): clientSpeciesLooks gains a per-animal graph material + glow/texture row with Driftwood as user |
 | O4 | G536 menu hero: three real in-engine captures of the whole 5x5 at the menu hero framing, phone tier, into art/grid/round-28-hero/, SHA to wildshard-new (only once the outer band is filled) | G536 | done e471dbd7ae (sp-o4) |
 | O5 | Nalati remaining view code (world/view.ts and look tails) toward 5 % custom | G533 step 6 | folded into phase D (Nalati adoption): no cut on existing hosts without a one-user factory (G518) or a multi-day painted-model port (sp-o4) |
-| O6 | Pine King atmosphere hook + cave/pool presentation onto boss-host / water rows (listed view code if per-frame) | G532 research P3/P4 | sp-o4 21:50 |
+| O6 | Pine King atmosphere hook + cave/pool presentation onto boss-host / water rows (listed view code if per-frame) | G532 research P3/P4 | done 27fb810833 (sp-o4); pool lowering + landmarks fold into phase B (X5) |
 | O7 | Driftwood ocean admitted through world.water (floor, dry, lent, foam) as a declared client-plan world feature (after X11) | G532 phase C, sp-o5 19:55 | |
 | O8 | A living-buildings client feature for Driftwood's shrine life (real second user required, G518) (after X11) | G532 phase C | |
 | O9 | SF88e tail: pastel-plain and ink-cel-valley pass all six M2 grid-ready criteria in the ruler (baked tiles, edge, entries, accent, memory, one-frame looks) and read as themselves from the road; own proxies and looks landed fb416ded15 | G526, SF88e | sp-o1 22:00 |
 | O11 | Nine's runtime sometimes loads partway through an outer-road drive (long frames, ~157 MB; sp-o1 10-20, intermittent, predates SF88c): find why the drive triggers it and admit Nine's runtime only on approach like other cells, proven by a 5x5 outer-road drive on the Simulator with no frame > 200 ms from it | Jake goal 30-60 fps Sim, G534 | sp-o5 22:00 |
-| O10 | Nine remaining view code (look and world view tails after bee045e89f) toward 5 % custom, onto existing look/scene hosts or Nine AS + data | G533 step 6 | |
+| O12 | SF88f Opus half: the native memory soak drives the whole 5x5 (outer loop past all 25 cells, entering each playable shard) on the Simulator, scripts/sim-lane.sh with --ktx2-probe=skip (G386); report per-cell peak memory and worst frame against 1200/1800 MB (G534) and 30 fps; fix only what is yours, route the rest to wildshard-new | G526, SF88f, G534 | |
+| O10 | Nine remaining view code (look and world view tails after bee045e89f) toward 5 % custom, onto existing look/scene hosts or Nine AS + data | G533 step 6 | sp-o4 22:05 |
 
 ## Codex (non-graphical)
 
