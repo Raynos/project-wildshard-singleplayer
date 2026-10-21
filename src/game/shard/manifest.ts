@@ -18,7 +18,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import type { WaterBody } from '@wildshard/engine/world/water/body';
-import { terrainFieldFor } from '@wildshard/engine/world/groundField';
+import { flatTerrainField, terrainFieldFor } from '@wildshard/engine/world/groundField';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
@@ -682,7 +682,7 @@ export function defineShard(rows: ShardManifestRows,
 
 
 /**
- * A hybrid shard's ground from its declared rows (`GroundRowsSchema`, G4): its baked terrain field by key and seed with
+ * A shard's ground from its declared rows (`GroundRowsSchema`, G4): its baked terrain field by key and seed (or a flat datum) with
  * the declared trails, pads, pond, rest water level and datum, and its water bodies from the same rows a shardfile's water
  * section admits (a declared stream also answers the terrain's `streamAt`: wading, the dry-ground test, the boundary).
  * The manifest names a generated rows file (`ground: { platform: 'declared', rows }`); no shard code builds its ground.
@@ -692,7 +692,8 @@ export function declaredGround(input: unknown): ShardManifest['ground'] {
   const stream = water[rows.bodies.findIndex(row => row.kind === 'stream')];
   const metadata = buildTerrainMetadata(rows.terrain.seed, { trails: rows.trails, cabinSites: rows.cabinSites,
     ...(rows.pond === undefined ? {} : { pond: rows.pond }), ...(stream === undefined ? {} : { streamAt: stream.restAt }) }, () => rows.water);
-  const terrain = createBakedTerrainField(rows.terrain, { ...metadata, ...(rows.datum === undefined ? {} : { datum: rows.datum }) });
+  const source = rows.terrain, terrain = 'flat' in source ? flatTerrainField(source.flat, metadata)
+    : createBakedTerrainField(source, { ...metadata, ...(rows.datum === undefined ? {} : { datum: rows.datum }) });
   return { ...(rows.paths === undefined ? {} : { paths: rows.paths }), terrain, water };
 }
 
