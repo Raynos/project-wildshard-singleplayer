@@ -78,6 +78,22 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
 }
 function trust(receipt: unknown): void { vi.stubGlobal('__SHARDFILE_VALIDATOR__', 'loader-test'); vi.stubGlobal('__SHARDFILE_VERDICTS__', [receipt]); }
 
+test('immutable URL cache avoids admission and released-library revalidation while retaining hash checks', async () => {
+  const f = fixture(); trust(f.receipt);
+  const fetch = vi.fn(f.options.fetch);
+  const cachedResponse = vi.fn((url: string) => Promise.resolve(url.endsWith(`${f.ref}.bin`) ? f.blob : null));
+  const options = { ...f.options, fetch, cachedResponse };
+  const admitted = await admitProduct(f.index, options);
+  const assets = new ClientAssets(admitted.source, admitted.assets, options);
+  assets.releaseTransport([f.ref]);
+  expect(await assets.read(f.ref)).toEqual(f.blob);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith(`${f.ref}.bin`))).toBe(false);
+  expect(cachedResponse.mock.calls.filter(([url]) => url.endsWith(`${f.ref}.bin`))).toHaveLength(2);
+  cachedResponse.mockImplementation(url => Promise.resolve(url.endsWith(`${f.ref}.bin`) ? new Uint8Array([3, 2, 1]) : null));
+  await expect(assets.read(f.ref)).rejects.toThrow('hash or size');
+  await expect(admitProduct(f.index, options)).rejects.toThrow('hash mismatch');
+});
+
 test('the pinned index keeps custom admission and shares a facade until its last lease ends', async () => {
   const f = fixture(); trust(f.receipt); const parse = vi.spyOn(schema, 'parseShardfile');
   const a = own(), b = own();

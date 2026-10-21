@@ -53,7 +53,7 @@ export interface ProductOptions {
   /** Optional catalogue SHA-256 of the exact format-2 index wire bytes. */
   descriptorHash?: string;
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
-  /** Optional URL-cache hint; every section reader still verifies its declared size and hash. */
+  /** Optional URL-cache hint for sections and blobs; readers still verify declared sizes and hashes. */
   cachedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
@@ -265,18 +265,20 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   };
   progress('assets', 'Reading immutable assets');
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
-    let bytes = await options.cache?.asset(base, hash);
+    const url = outputBlobUrl(source, source.files.some(file => file.hash === hash) ? hash : `commons:${hash}`, base);
+    let bytes = await options.cache?.asset(base, hash)
+      ?? await options.cachedResponse?.(url, hash, cap);
     const fromCache = bytes !== null && bytes !== undefined;
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
       progress('assets', `Fetching ${hash.slice(0, 12)}`);
-      bytes = await boundedResponse(await options.fetch(outputBlobUrl(source, source.files.some(file => file.hash === hash) ? hash : `commons:${hash}`, base)), cap, (size) => { bytesRead += size; progress('assets', `Reading ${hash.slice(0, 12)}`); });
+      bytes = await boundedResponse(await options.fetch(url), cap, (size) => { bytesRead += size; progress('assets', `Reading ${hash.slice(0, 12)}`); });
     } else { bytesRead += bytes.length; progress('assets', `Cached ${hash.slice(0, 12)}`); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     progress('hash', `Verifying ${hash.slice(0, 12)}`);
     const owned = Uint8Array.from(bytes), actual = await options.hash(owned);
     if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
-    if (fromCache) verifiedCached.add(hash);
+    if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
     filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);
     return owned;
   };

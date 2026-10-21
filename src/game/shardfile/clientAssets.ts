@@ -27,6 +27,9 @@ export class ClientAssets {
     // those unknown-path reads on completion and never changes cache refusals.
     if (outputDescriptor(this.source) !== undefined) declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
     let bytes = await this.options.cache?.asset(base, hash), downloaded = false;
+    if ((bytes === null || bytes === undefined) && outputDescriptor(this.source) !== undefined) {
+      bytes = await this.options.cachedResponse?.(outputBlobUrl(this.source, ref, base), hash, cap);
+    }
     if (bytes === null || bytes === undefined) {
       if (this.options.offline) throw new Error('Missing cached resident tile');
       bytes = await boundedResponse(await this.options.fetch(outputBlobUrl(this.source, ref, base)), cap);
