@@ -847,6 +847,7 @@
         "src/shards/nalati-grasslands/generators/bake-decorative.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/armsStyle.json",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
@@ -12282,6 +12283,7 @@
         "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/engine",
         "src/game",
         "src/sdk",
@@ -17050,6 +17052,7 @@
         "src/shards/pine-hollow/generators/bake-hands-pool.mjs"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/data/armsStyle.json",
         "src/engine",
         "src/game",
         "src/sdk",
@@ -18800,6 +18803,7 @@
         "src/shards/nalati-grasslands/generators/bake-sabre.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/engine",
         "src/game",
         "src/sdk",
@@ -18881,6 +18885,7 @@
         "src/shards/nalati-grasslands/generators/bake-spear.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/engine",
         "src/game",
         "src/sdk",
@@ -20581,6 +20586,7 @@
         "src/shards/nalati-grasslands/generators/bake-gear.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/engine",
         "src/game",
         "src/sdk",
@@ -21777,6 +21783,7 @@
         "src/shards/nalati-grasslands/generators/bake-map.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/shards/nalati-grasslands/generators",
         "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
         "src/shards/nalati-grasslands/data/mapAssembly.generated.bin",
@@ -22188,6 +22195,7 @@
         "src/shards/nalati-grasslands/generators/bake-render-tiles.mjs"
       ],
       "inputRoots": [
+        "src/shards/nalati-grasslands/data/armsStyle.json",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
