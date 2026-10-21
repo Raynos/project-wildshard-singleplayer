@@ -39,9 +39,13 @@ LANES="${BROWSER_LANES:-4}"
 DIR="$HOME/.browser-lane"
 mkdir -p "$DIR"
 MAX_AGE_MIN="${BROWSER_MAX_AGE_MIN:-90}"
+AGENT_BROWSER_MAX_AGE_H="${AGENT_BROWSER_MAX_AGE_H:-24}"
 PREVIEW_MAX_AGE_H="${PREVIEW_MAX_AGE_H:-6}"
 DEV_MAX_AGE_H="${DEV_MAX_AGE_H:-2}"
-BROWSER_RE='/(ms-playwright|\.agent-browser/browsers)/[^ ]*(chrome-headless-shell|Chromium|Google Chrome for Testing|chrome)( |$)'
+# BUILD-SPEED 1.3 (E491): the command must START with the browser binary, which may sit inside a "Google Chrome for
+# Testing.app" bundle whose path has spaces; the old `[^ ]*` could never cross them, so no Chrome for Testing root was
+# ever matched and a 4-day-old agent-browser Chrome survived every reap.
+BROWSER_RE='^ *[0-9]+ +[0-9]+ +/[^ ]*/(ms-playwright|\.agent-browser/browsers)/.*/(chrome-headless-shell|Chromium|Google Chrome for Testing|chrome)( |$)'
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
 # seconds since a process started (ps etime: [[dd-]hh:]mm:ss)
@@ -99,7 +103,11 @@ reap() {
   while read -r pid ppid; do
     [ -z "$pid" ] && continue
     a="$(age_s "$pid")"; why=""
-    if [ "$ppid" = "1" ]; then why="orphaned (parent gone)"
+    # BUILD-SPEED 1.3 A3 (E491): an agent-browser Chrome is a session someone may still be driving, so only its age
+    # counts, and the limit is a day; a Playwright browser is a capture, orphaned or past MAX_AGE_MIN means dead.
+    if [[ "$(ps -o command= -p "$pid" 2>/dev/null)" == *".agent-browser/browsers/"* ]]; then
+      [ "$a" -gt $((AGENT_BROWSER_MAX_AGE_H * 3600)) ] && why="agent-browser session older than ${AGENT_BROWSER_MAX_AGE_H} h"
+    elif [ "$ppid" = "1" ]; then why="orphaned (parent gone)"
     elif [ "$a" -gt $((MAX_AGE_MIN * 60)) ]; then why="older than ${MAX_AGE_MIN} min"; fi
     [ -z "$why" ] && continue
     n=$((n + 1))
