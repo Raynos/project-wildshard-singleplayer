@@ -2787,8 +2787,10 @@ Native course registration supplies the entered page context and JSON rows:
 layout }` resolves the equipped grapple tool. Both share room visibility,
 registry registration, the map and chip lifetime. The individual mounted and
 grapple controllers retain their individual attribution. Grapple layouts include
-an admitted `program`; its stateless AS guest decides checkpoints, start/finish
-and falls at 10 Hz. Native code interpolates the timer and presents its outputs.
+an admitted `program` and a numeric `frame` baked with pad coordinates, the floor
+and checkpoint-facing poses. The stateless AS guest selects footpads, checkpoints,
+start/finish, falls and spawn poses at 10 Hz. Native code applies the existing
+player spawn, clears velocity, interpolates the timer and presents its outputs.
 
 | Export / field | What it is |
 |---|---|

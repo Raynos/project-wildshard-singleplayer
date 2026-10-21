@@ -9,6 +9,7 @@ import type { RoomMap, RoomMarker } from '@wildshard/engine/ui/roomMap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { RidingPracticeLayout, HookPracticeLayout, HookPracticeRow } from '@wildshard/format/practiceCourseRows';
 import { isJsonData } from '@wildshard/format/json';
+import type { GrappleCourseRow } from '@wildshard/format/grapple';
 import type { ShardContext } from '../plugin/context';
 import { ProjectedState, ReturnProgram } from '../population/returnProgram';
 import { pageRidingMount } from '../riding/client';
@@ -19,23 +20,6 @@ const fill = (text:string, values:Readonly<Record<string,string|number>>):string
 
 type HookCourseRow = HookPracticeRow;
 type HookCoursePad = HookCourseRow['pads'][number];
-
-/** What a course hands the tool: its name and the rings' centres, world space. */
-interface HookCourseCourse {
-  readonly name: string;
-  readonly hooks: readonly THREE.Vector3[];
-}
-
-/** a pad of the row by id (throws on an unknown one) */
-function hookCoursePad(row: HookCourseRow, id: string): HookCoursePad {
-  const p = row.pads.find((q) => q.id === id);
-  if (p === undefined) throw new Error(`hook course: no pad ${id}`);
-  return p;
-}
-
-
-/** the way the player faces to look from (x, z) toward (tx, tz): Player.forward is (−sin yaw, −cos yaw) */
-const yawToward = (x: number, z: number, tx: number, tz: number): number => Math.atan2(-(tx - x), -(tz - z));
 
 /** Only rows and native page authority enter the shared room lifecycle. */
 export type PracticeCourseRows = { kind:'horse'; layout:RidingPracticeLayout } | { kind:'grapple'; layout:HookPracticeLayout };
@@ -48,7 +32,7 @@ function prepareCourse(ctx:ShardContext,input:PracticeCourseRows):
  {kind:'horse';layout:RidingPracticeLayout;mount:ReturnType<typeof pageRidingMount>} | {kind:'grapple';layout:HookPracticeLayout;law:ReturnProgram} {
   if(!isJsonData(input.layout))throw new Error('Practice rows require JSON data');
   if(input.kind==='horse')return {kind:'horse',layout:input.layout,mount:pageRidingMount(ctx)};
-  hookCoursePad(input.layout.course,input.layout.course.run.from);return {...input,law:ReturnProgram.page(input.layout.program,ctx.scope)};
+  return {...input,law:ReturnProgram.page(input.layout.program,ctx.scope)};
 }
 
 class MountedCourseController implements CourseController {
@@ -150,9 +134,8 @@ class HookCourseController implements CourseController {
   readonly hooks: THREE.Vector3[];
   private readonly host: PlaygroundHost;
   private readonly row: HookCourseRow;
-  private readonly course: HookCourseCourse;
-  /** the lowest pad floor: a fall `fallY` under it is a fall */
-  private readonly lowest: number;
+  private readonly course: GrappleCourseRow;
+  private readonly frame:Readonly<Record<string,number>>;
   private readonly law:ProjectedState<{phase:number;started:number;elapsed:number;best:number;checkpoint:number}>;
   private get state(){return this.law.state;}
   private readonly reached=new Set<string>();
@@ -160,7 +143,7 @@ class HookCourseController implements CourseController {
   constructor(host:PlaygroundHost,layout:HookPracticeLayout,program:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
     this.host=host;this.row=layout.course;this.map=map;
     this.law=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:0}},program);
-    this.lowest=Math.min(...this.row.pads.map(p=>p.top));
+    this.frame=layout.frame;
     const o=room.origin;this.hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
     this.course={name:room.title,hooks:this.hooks};
   }
@@ -178,48 +161,31 @@ class HookCourseController implements CourseController {
 
   /** The guest resets its continuation; the native presenter moves the body. */
   restart(): void {
-    this.law.reset({...this.state});this.reached.clear();this.project('reset',null);
-    this.place(this.pad(this.state.checkpoint),true);
+    this.law.reset({...this.state});this.reached.clear();this.place(this.project('reset'));
     this.room.chip.status(this.row.words.ready);this.room.chip.time(0,this.best);
   }
   private get best():number|null {return this.state.best<0?null:this.state.best;}
   private pad(index:number):HookCoursePad {
     const pad=this.row.pads[index];if(pad===undefined)throw new Error('Invalid practice checkpoint');return pad;
   }
-  private project(signal:string,pad:HookCoursePad|null,delta?:number):Readonly<Record<string,number>> {
-    const row=this.row,start=hookCoursePad(row,row.run.from),p=this.host.player.position,o=this.room.origin;
-    const frame={now:performance.now()/1000,x:p.x-o.x,y:p.y-o.y,z:p.z-o.z,
-      startPad:row.pads.indexOf(start),finishPad:row.pads.indexOf(hookCoursePad(row,row.run.to)),pad:pad===null?-1:row.pads.indexOf(pad),
-      eligible:Number(pad!==null&&pad.kind!=='start'&&pad.kind!=='range'),
-      startX:start.x,startZ:start.z,startWidth:start.w,startDepth:start.d,lowest:this.lowest,fallY:row.fallY};
+  private project(signal:string,delta?:number):Readonly<Record<string,number>> {
+    const player=this.host.player,p=player.position,o=this.room.origin;
+    const frame={...this.frame,now:performance.now()/1000,x:p.x-o.x,y:p.y-o.y,z:p.z-o.z,grounded:Number(player.onGround)};
     return delta===undefined?this.law.event(signal,frame):this.law.step(delta,frame).values;
   }
 
-  /** on a pad's floor facing its next pad's hook (the start: 3 m in from its near end, the next pad dead ahead) */
-  private place(p: HookCoursePad, atStart: boolean): void {
-    const o = this.room.origin, player = this.host.player;
-    const x = p.x, z = atStart ? p.z + p.d / 2 - 3 : p.z;
-    const next = p.next === undefined ? null : hookCoursePad(this.row, p.next);
-    const yaw = next === null ? 0 : yawToward(x, z, next.x, next.z);
-    player.spawn(o.x + x, o.z + z, yaw, o.y + p.top);
-    player.velocity.set(0, 0, 0);
-    player.pitch = next === null ? -0.1 : Math.atan2(next.top - p.top, Math.hypot(next.x - x, next.z - z)) * 0.8;
-  }
-
-  /** the pad under the feet (on its floor), or null — the run's clock reads it, and so do the tests */
-  padUnder(): HookCoursePad | null {
-    const o = this.room.origin, p = this.host.player.position;
-    const lx = p.x - o.x, ly = p.y - o.y, lz = p.z - o.z;
-    for (const pad of this.row.pads) {
-      if (Math.abs(lx - pad.x) <= pad.w / 2 && Math.abs(lz - pad.z) <= pad.d / 2 && Math.abs(ly - pad.top) < 0.35) return pad;
-    }
-    return null;
+  /** The guest chooses the checkpoint pose; the native player keeps its existing spawn and velocity owner. */
+  private place(out:Readonly<Record<string,number>>):void {
+    const value=(key:string):number=>{const n=out[key];if(n===undefined)throw new Error('Missing practice spawn channel');return n;};
+    const o=this.room.origin,player=this.host.player;
+    player.spawn(o.x+value('spawnX'),o.z+value('spawnZ'),value('spawnYaw'),o.y+value('spawnY'));
+    player.velocity.set(0,0,0);player.pitch=value('spawnPitch');
   }
 
   update(delta:number): void {
     const {player}=this.host,row=this.row,words=row.words;
     if(player.hover)player.setHover(false);
-    const pad=player.onGround?this.padUnder():null,out=this.project('step',pad,delta);
+    const out=this.project('step',delta),index=out['pad']??-1,pad=index<0?null:this.pad(index);
     if(Object.keys(out).length>0) {
       const visit=out['visit'];if(visit!==undefined&&visit>=0)this.reached.add(this.pad(visit).id);
       if(out['finish']===1) {
@@ -229,7 +195,7 @@ class HookCourseController implements CourseController {
       } else if(this.state.phase===1) this.room.chip.status(pad!==null?fill(words.running,{pad:pad.label}):fill(words.between,{reached:this.reached.size,goals:row.run.goals}),'go');
       if(out['fell']===1) {
         const checkpoint=this.pad(this.state.checkpoint);
-        this.place(checkpoint,checkpoint.id===row.run.from);this.host.toast(fill(words.fell,{pad:checkpoint.label}));
+        this.place(out);this.host.toast(fill(words.fell,{pad:checkpoint.label}));
       }
     }
     const elapsed=this.state.phase===1?performance.now()/1000-this.state.started:this.state.elapsed;

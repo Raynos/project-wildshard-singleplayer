@@ -1,3 +1,4 @@
+import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 // @vitest-environment happy-dom
 import PRACTICE_PROGRAM from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- Native traversal uses the shipped physics binary.
@@ -103,7 +104,7 @@ test('quarry practice rows select the equipped native tool and translate their h
     registry: legacyDouble<PlaygroundHost['registry']>({ add: piece => piece }),
     spawn: { x: 11, z: -9 }, toast: () => undefined,
   });
-  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope}), {kind:'grapple',layout:{ program:PRACTICE_PROGRAM,course: { ...room, title: 'Quarry hook run', pads },
+  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope}), {kind:'grapple',layout:{ program:PRACTICE_PROGRAM,frame:practiceFrame({...room,pads}),course: { ...room, title: 'Quarry hook run', pads },
     hooks: [{ pad: 'quarry-hook', x: 3, y: 4, z: 5 }],
     presentation: { parts: [], colliders: [], map: { bounds: { x0: -20, x1: 20, z0: -20, z1: 20 }, shapes: [] } } } });
   try {

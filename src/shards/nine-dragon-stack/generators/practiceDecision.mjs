@@ -4,8 +4,9 @@ import { readFileSync,writeFileSync } from 'node:fs';
 
 /** Build-only room law; the emitted course rows carry the admitted stateless guest. */
 export async function buildPracticeDecision() {
-  const fields = ['phase','started','elapsed','best','checkpoint','startPad','finishPad','pad','eligible','now','x','y','z','startX','startZ','startWidth','startDepth','lowest','fallY'];
-  const channels = ['phase','started','elapsed','best','checkpoint','visit','finish','fell'], signals = ['reset','step'];
+  const padFields = Array.from({length:11},(_,index)=>['Depth','Eligible','Pitch','StartPitch','StartYaw','Top','Width','X','Yaw','Z'].map(key=>`pad${String(index).padStart(2,'0')}${key}`)).flat();
+  const fields = ['phase','started','elapsed','best','checkpoint','startPad','finishPad','padCount','grounded','now','x','y','z','fallY','lowest',...padFields];
+  const channels = ['phase','started','elapsed','best','checkpoint','visit','finish','fell','pad','spawnX','spawnY','spawnZ','spawnYaw','spawnPitch'], signals = ['reset','step'];
   /** @param {string[]} names */
   const aliases = names => Object.fromEntries(names.map(name => [name,name]));
   /** @param {string[]} names */
