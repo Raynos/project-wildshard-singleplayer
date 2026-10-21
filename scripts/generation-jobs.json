@@ -22039,7 +22039,8 @@
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "src/shards/pine-hollow/data/geography.generated.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/mapAssembly.generated.json",
@@ -22060,7 +22061,8 @@
         "pine-prop-scenes",
         "pine-hero-scenes",
         "pine-floor-placements",
-        "pine-tree-rest"
+        "pine-tree-rest",
+        "pine-geography"
       ]
     },
     {
