@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Scene, Vector3 } from 'three';
+import { Group, Scene, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { App } from '../src/engine/app/app';
@@ -156,6 +156,45 @@ function talkPage(source: typeof drift, story: typeof driftStory, counters: type
     objects: {}, interactables: [], play: { audio: { weaponSwap: swaps, voices: { play: () => undefined } }, weapons, inventory: { items: [] }, animals: { animals }, hud: { toast } } } });
   return { ctx, scope, host, animals, toast, swaps, scene, weapons };
 }
+
+test('entry traders keep talk-opened and placed counters on their actual figure, floor and shop owners', async () => {
+  for (const placed of [false, true]) {
+    setTerrainHeight((x, z) => x + z);
+    const { ctx, scope } = talkPage(drift, driftStory, DRIFTWOOD_FEAT_COUNTERS);
+    const figure = new FigureRows(new SceneHandles({ setupMaterial: () => undefined }), {
+      id: 'keeper', name: 'Keeper', feet: [6, 0, 3], yaw: 0, talkHeight: 1.4,
+      collider: { kind: 'box', half: .3, top: 1.8, bottom: 0 }, rig: { skeleton: 'npc.legs.v1', clips: ['idle'], sockets: [] },
+      visible: [], joints: [], sockets: [], drawDistance: 80, pointAt: [0, 0, 0], points: false,
+    }, scope);
+    try {
+      const runtime = ctx.game.runtime, world = runtime?.world;
+      if (runtime === undefined || world === undefined || world === null) throw new Error('Missing entered fixture world');
+      scope.run(() => { world.registry.add({ id: 'counter', name: 'Counter', category: 'props', file: 'test/quest-story.test.ts', object: new Group() }); });
+      const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
+      const policy = { name: 'Keeper', reopen: false, ...(placed ? {
+        placement: { feet: { poi: 'world', x: 6, z: 3, yaw: .5 }, npc: 'keeper', counter: 'counter', counterAhead: 1, tradeAhead: 2, tradeHeight: 1, system: 'entry.counter' },
+        view: { pitch: -.2, closeDistance: 4 },
+      } : {}) };
+      const data = { rows: policy, ...(placed ? { resources: { figure: 'keeper', counter: 'counter', offer: 'offer', label: 'Trade', radius: 2.5, before: [] } } : {}) };
+      expect(() => entry.trader({ ...data, run: () => undefined })).toThrow('JSON rows');
+      const stall = entry.trader(data);
+      let opened = 0, active = false;
+      stall.shop = { open: () => { opened++; active = true; }, close: () => { active = false; }, get isOpen() { return active; } };
+      if (placed) {
+        const x = 6 + Math.sin(.5) * 2, z = 3 + Math.cos(.5) * 2;
+        expect(stall.at.toArray()).toEqual([x, x + z + 1, z]);
+        expect(stall.trader?.position).toBe(figure.group.position);
+        const prompt = runtime.interactables[0]; if (prompt === undefined) throw new Error('Missing entered counter prompt');
+        expect(prompt.label).toBe('Trade'); expect(prompt.radius).toBe(2.5); prompt.onInteract();
+        expect(world.player.pitch).toBe(-.2); expect(figure.takeSignal('offer')).toBe(true);
+      } else { expect(stall.trader).toBeNull(); expect(runtime.interactables).toEqual([]); stall.open(); }
+      expect(opened).toBe(1); stall.open(); expect(opened).toBe(1);
+      expect(() => entry.trader(data)).toThrow('Duplicate');
+      scope.dispose(); expect(runtime.interactables).toEqual([]);
+      expect(() => entry.trader(data)).toThrow('live JSON rows');
+    } finally { scope.dispose(); setTerrainHeight(() => 0); }
+  }
+});
 
 test('entered talk rows borrow the actual castaway and preserve opening, stow and greeting cadence', async () => {
   const { ctx, scope, swaps, scene, weapons } = talkPage(drift, driftStory, DRIFTWOOD_FEAT_COUNTERS);

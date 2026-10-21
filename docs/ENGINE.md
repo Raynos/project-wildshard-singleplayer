@@ -6704,6 +6704,12 @@ pages use this same intake; it preserves their update phases, completion flags
 and native save envelopes. Scene ownership remains with the resident, and
 leaving during asynchronous admission refuses before binding the player.
 
+`trader(rows)` installs the existing talk-opened or placed shop binding.
+Optional resource ids name an entered figure, counter, offer signal and
+prompt; the entry resolves its feet and counter height through its own
+placement and floor policy. Inventory, panel creation, opening, camera,
+walk-away closure and save ownership stay with the existing trader host.
+
 The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
 the admitted table and pack for both native quest compositions. It borrows
 the worker's existing command and ledger adapter; `install(owners)` binds the

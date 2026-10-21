@@ -1,7 +1,7 @@
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
 import { prepareQuestEntry } from '@wildshard/game/quest/chapter';
-import { installQuestTrader, installQuestShop } from '@wildshard/game/quest/trader';
+import { installQuestShop } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
@@ -153,7 +153,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   };
   h.interactables.push(boardPrompt);
 
-  installQuestTrader(ctx, traderStall);
+  entry.trader({ rows: traderStall });
   const talks = await entry.talks({ ...rows.talks, steps: native.steps });
   const { people, dialogue } = talks;
   const trader = people.find(person => person.kind === rows.trades.figure);

@@ -18,7 +18,7 @@ import type { ShardContext } from '../plugin/context';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { prepareQuestEntry, type QuestChapter } from './chapter';
-import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
+import type { QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
 import { installChapterWakeEncounter } from './chapterDirector';
@@ -98,11 +98,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
     if (!practiceRoom.open) chapter.chip.update(t, w.player);
   }, rows.systems.talks);
   entry.deaths({ effects: [{ effects: [{ kind: 'kill' }] }], order: 35 });
-  const stall = parseQuestTrader(traderStall), placement = stall.placement;
-  if (placement === undefined) throw new Error('Page trader requires its declared placement');
-  const feet = place(placement.feet), ax = feet.x + Math.sin(feet.yaw) * placement.tradeAhead, az = feet.z + Math.cos(feet.yaw) * placement.tradeAhead;
-  adventure.trader = installQuestTrader(ctx, traderStall, { figure: rows.trader.figure, counter: rows.trader.counter, offer: rows.trader.offer,
-    at: { x: ax, y: floorAt(ax, az) + placement.tradeHeight, z: az }, prompt: { label: rows.trader.label, radius: rows.trader.radius }, before: rows.systems.before });
+  adventure.trader = entry.trader({ rows: traderStall, resources: { ...rows.trader, before: rows.systems.before } });
   entry.observe();
   entry.bench();
   w.ironDrop?.bindGuardFlags(flags.all);

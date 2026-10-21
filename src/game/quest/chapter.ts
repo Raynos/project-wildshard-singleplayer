@@ -35,7 +35,7 @@ import { ProductFigureCatalogue } from '../models/figureCatalogue';
 import { SceneHandles } from '../shardfile/sceneHandles';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { QuestStepRunner } from './steps';
-import { openQuestTrader } from './trader';
+import { openQuestTrader, installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { cableModes } from '@wildshard/engine/player/modes';
 import type { Placed } from '@wildshard/engine/models/place';
@@ -106,6 +106,10 @@ const entryCable = v.strictObject({ mode: entryId, carriage: entryId,
   scene: v.strictObject({ kind: v.picklist(['placement', 'object']), id: entryId }),
   prompt: v.union([entryId, point]), radius: v.pipe(finite, v.minValue(Number.MIN_VALUE)), label: entryId,
   camera: v.optional(v.boolean(), false) });
+const entryTrader = v.strictObject({ rows: v.unknown(), resources: v.exactOptional(v.strictObject({
+  figure: entryId, counter: entryId, offer: entryId, label: entryId,
+  radius: v.pipe(finite, v.minValue(0), v.maxValue(100)), before: v.pipe(v.array(entryId), v.maxLength(64)),
+})) });
 /** Client cable view borrows the existing scene and mode continuation. */
 export interface QuestCableView {
   readonly group: Object3D; readonly placed: Placed | null; readonly trolley: Mesh;
@@ -124,6 +128,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   talks: (input: unknown) => Promise<ReturnType<typeof installStoryTalks<FigureRows>>>;
   deaths: (input: unknown) => void;
   cable: (input: unknown) => Promise<QuestCableView>;
+  trader: (input: unknown) => QuestTrader;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -148,6 +153,16 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
   let interaction: Awaited<ReturnType<typeof installQuestInteractables>> | null = null;
   let installed = false, talksInstalled = false;
   return { story, flags, services, ...placement,
+    trader: traderInput => {
+      if (ctx.scope.disposed || !isJsonData(traderInput)) throw new Error('Quest trader requires live JSON rows');
+      const trader = v.parse(entryTrader, traderInput), resources = trader.resources;
+      if (resources === undefined) return installQuestTrader(ctx, trader.rows);
+      const site = parseQuestTrader(trader.rows).placement;
+      if (site === undefined) throw new Error('Quest trader resources require a declared placement');
+      const feet = placement.place(site.feet), x = feet.x + Math.sin(feet.yaw) * site.tradeAhead, z = feet.z + Math.cos(feet.yaw) * site.tradeAhead;
+      return installQuestTrader(ctx, trader.rows, { figure: resources.figure, counter: resources.counter, offer: resources.offer,
+        at: { x, y: placement.floorAt(x, z) + site.tradeHeight, z }, prompt: { label: resources.label, radius: resources.radius }, before: resources.before });
+    },
     cable: async cableInput => {
       if (!isJsonData(cableInput)) throw new Error('Quest cable requires JSON rows');
       const cable = v.parse(entryCable, cableInput), runtime = ctx.game.runtime;
