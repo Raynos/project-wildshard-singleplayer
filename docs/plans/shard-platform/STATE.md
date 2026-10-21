@@ -4,11 +4,11 @@
 
 **G515/G516:** C6 items and the nalatiArms rename are ready rows (X2 with sp-x6).
 
-**Jake's 16:38/16:44 live reports:** pier + grid stall FIXED and proven (e1799246dd: standalone + grid walks 0 stuck incl. pier/wreck); release dispatched with the next CI + boot-smoke-green head (sp-x7).
+**Jake's 16:38/16:44 live reports:** pier + grid stall fixed and proven (e1799246dd; grid entry now +0.46 s vs standalone with 65c5401847). Release HELD: since c39f26cc95 (G531) a browser that visited a shard on an older build fails to load it; sp-o3's 594a2bf567 fixes it; sp-x7 pins live (cdff44f21) until a head with it is green.
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
-**For wildshard-v (19:40):** ruler crash fixed (922f8096d2; X8 8ff60bd7b1 makes one failed shard build report, not crash). Your admin ruler on the check slot blocks lane proofs: please use another slot. Hologram board for Jake: art/grid/round-32-holograms/board.jpg (be813c67e0).
+**For wildshard-v:** ruler crash fixed (922f8096d2, X8 8ff60bd7b1). Hologram board for Jake: art/grid/round-32-holograms/board.jpg (be813c67e0).
 
 **Idle lanes (17:50 reply):** cause: lanes wait 20-60 min on three shared check slots, plus two briefs lost after /clear; fix: lanes/ready-queue.md (self-pull) + prepare the next cut while a check runs. **Lanes (19:00):** Opus sp-o1 far impostors; sp-o2 open plots P2; sp-o3 frame floor; sp-o4 Pine memory; sp-o5 phase C. Codex sp-x1 loading; sp-x6 G540 capture; sp-x8 Nalati memory; sp-x9 grid proof; sp-x7 push.
 
