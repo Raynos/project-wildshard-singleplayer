@@ -13,7 +13,8 @@ it('weights admission by measured time and keeps an overrunning stage below comp
 
 it('blends local measurements and keeps history separated by tier, path and identity', () => {
   expect(blendLoadingTimings({ world: 1000 }, { world: 3000, shaders: 100 })).toEqual({ world: 2000, shaders: 100 });
-  expect(loadingExpectations([{ key: 'world', weight: 1 }], { world: 500 }, { world: 2000 })).toEqual({ world: 1250 });
+  expect(loadingExpectations([{ key: 'world', weight: 1 }], { world: 500 }, { world: 2000 })).toEqual({ world: 2000 });
+  expect(blendLoadingTimings({ world: 500 }, { world: 2000 })).toEqual({ world: 1250 });
   const key = { tier: 'phone', path: 'grid', identity: 'coast' } as const;
   expect(new Set([loadingTimingKey(key), loadingTimingKey({ ...key, path: 'shardfile' }),
     loadingTimingKey({ ...key, identity: 'forest' }), loadingTimingKey({ ...key, tier: 'desktop' })]).size).toBe(4);

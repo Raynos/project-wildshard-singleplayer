@@ -71,6 +71,7 @@ export class Loading {
   private readonly stall = new LoadingStall(performance.now());
   private readonly identity: string;
   private timingKey: LoadingTimingKey;
+  private baseline: LoadingTimings = {};
   private expected: LoadingTimings = {};
   private configured = false;
   private finished = false;
@@ -149,7 +150,8 @@ export class Loading {
     this.timingKey = { tier: TIER, path: path.id, identity: this.identity };
     const calibration = LOADING_CALIBRATION.find(row => row.tier === TIER && row.path === path.id && row.identity === this.identity)
       ?? LOADING_CALIBRATION.find(row => row.tier === TIER && row.path === path.id && row.identity === '*');
-    this.expected = loadingExpectations(path.steps, calibration?.ms, loadPathTimings(this.timingKey));
+    this.baseline = calibration?.ms ?? {};
+    this.expected = loadingExpectations(path.steps, this.baseline, loadPathTimings(this.timingKey));
     this.configured = true;
   }
   /** End pre-session admission before LevelLoader's data/world boundaries take over. */
@@ -331,7 +333,7 @@ export class Loading {
   done(): Promise<void> {
     this.finished = true;
     const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
-    savePathTimings(this.timingKey, measured);
+    savePathTimings(this.timingKey, measured, this.baseline);
     if (this.view !== null) this.paint(this.view);
     return new Promise((resolve) => {
       this.root.classList.add('hide');

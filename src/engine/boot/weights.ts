@@ -7,10 +7,7 @@ export interface LoadingCalibration extends LoadingTimingKey {
 }
 /** Missing measurements remain explicit fallbacks; a different path or identity cannot supply device history. */
 export function loadingExpectations(steps: readonly { key: string; weight: number }[], baseline: LoadingTimings = {}, own: LoadingTimings = {}): Record<string, number> {
-  return Object.fromEntries(steps.map(step => {
-    const local = own[step.key], measured = baseline[step.key];
-    return [step.key, Math.max(1, local === undefined ? measured ?? step.weight * 300 : ((measured ?? local) + local) / 2)];
-  }));
+  return Object.fromEntries(steps.map(step => [step.key, Math.max(1, own[step.key] ?? baseline[step.key] ?? step.weight * 300)]));
 }
 /** Running stages approach their measured share smoothly; completion alone grants the whole share. */
 export function loadingFraction(rows: readonly WeightedLoadingRow[], expected: LoadingTimings, complete = false): number {

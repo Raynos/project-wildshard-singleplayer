@@ -10,7 +10,7 @@ export function loadPathTimings(key: LoadingTimingKey): LoadingTimings {
       typeof entry[1] === 'number' && Number.isFinite(entry[1]) && entry[1] > 0));
   } catch { return {}; }
 }
-export function savePathTimings(key: LoadingTimingKey, measured: LoadingTimings): void {
-  try { saveStorage('device').setItem(loadingTimingKey(key), JSON.stringify(blendLoadingTimings(loadPathTimings(key), measured))); }
+export function savePathTimings(key: LoadingTimingKey, measured: LoadingTimings, baseline: LoadingTimings = {}): void {
+  try { saveStorage('device').setItem(loadingTimingKey(key), JSON.stringify(blendLoadingTimings({ ...baseline, ...loadPathTimings(key) }, measured))); }
   catch { /* Denied storage keeps the committed calibration as the next run's baseline. */ }
 }
