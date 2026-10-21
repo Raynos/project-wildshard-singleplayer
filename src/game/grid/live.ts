@@ -6,7 +6,7 @@ import { TraversalReadiness, readinessModel, type ReadinessBundle, type Readines
 import type { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
 import { CHUNK_HALF, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { workSlice } from '@wildshard/engine/core/workSlice';
+import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import type { DisposeStep } from '@wildshard/engine/app/scope';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './allocator';
@@ -86,9 +86,9 @@ export interface LiveGridState {
   retiring?: readonly string[];
 }
 /** O20: one region retirement: its checkpoint, its disposal's whole span, and for a sliced one its steps and slowest step */
-export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
+export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; workMs?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
 interface RetiringRegion { readonly instance: string; readonly resident: Resident; readonly steps: Generator<DisposeStep, void>;
-  readonly checkpointMs: number; readonly start: number; count: number; slowestMs: number; slowest: string; done: boolean }
+  readonly checkpointMs: number; readonly start: number; count: number; workMs: number; slowestMs: number; slowest: string; done: boolean }
 interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; exclusiveRuntime: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean; outsideSince?: number }
 
 // The motor's 6/10 m frame bands are independent. Residency waits five continuous fixed-step seconds outside
@@ -533,21 +533,24 @@ export class LiveGridHost {
     try { if (!this.checkpoint(instance)) return false; } catch { return false; }
     const checkpointMs = diagnosticNow() - checkpointStart;
     resident.evicting = true; this.residents.delete(instance); this.readiness.invalidate(instance);
-    const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, slowestMs: 0, slowest: '', done: false };
+    const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, workMs: 0, slowestMs: 0, slowest: '', done: false };
     this.retiring.set(instance, record);
     this.sequence = this.settle(Promise.all([this.sequence, this.drainRetirement(record)]).then(() => undefined));
     return true;
   }
   private async drainRetirement(record: RetiringRegion): Promise<void> {
+    // Its own stretch per frame, not the builds' shared one: starved by tile and prefetch work it took 31-35 s on the
+    // Simulator, holding the left region's memory and the next admission (which waits on `sequence`) that long
     const slice = workSlice();
+    let stretch = diagnosticNow();
     try {
       for (;;) {
         if (record.done) return;
         const at = diagnosticNow(), step = record.steps.next(), ms = diagnosticNow() - at;
-        record.count++;
+        record.count++; record.workMs += ms;
         if (ms > record.slowestMs) { record.slowestMs = ms; record.slowest = step.done === true ? 'final' : `${step.value.scope}:${step.value.kind}`; }
         if (step.done === true) break;
-        if (slice.due()) await slice.yield();
+        if (diagnosticNow() - stretch >= WORK_SLICE_MS) { await slice.yield(); stretch = diagnosticNow(); }
       }
       this.finishRetirement(record, undefined);
     } catch (error) { this.finishRetirement(record, { error }); }
@@ -556,7 +559,7 @@ export class LiveGridHost {
     if (record.done) return;
     record.done = true; this.retiring.delete(record.instance);
     const { instance, resident } = record, row = { instance, checkpointMs: record.checkpointMs, disposeMs: diagnosticNow() - record.start,
-      steps: record.count, slowestStepMs: Math.round(record.slowestMs), slowestStep: record.slowest };
+      steps: record.count, workMs: Math.round(record.workMs), slowestStepMs: Math.round(record.slowestMs), slowestStep: record.slowest };
     if (failure !== undefined) {
       const { error } = failure;
       // A partly freed world keeps its full claim and blocks exclusive admissions, as a failed `unload` does.
