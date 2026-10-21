@@ -224,17 +224,15 @@ export async function generateShardJob(root,descriptor,options={}) {
   const inputs=generationInputs(root,roots,inputHashes,file=>(projected===undefined || file!==catalog) && (!ownOutputs.has(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file) && !foreign.has(file));
   /** @type {Map<string,{source:string,hash:string}>} */
   const upstreamFiles=new Map();
-  /** @type {Record<string,string>} */
-  const upstreamKeys={};
   if(options.preparation?.completedOutputs!==undefined) {
     for(const file of foreign) {
       const row=options.preparation.completedOutputs.get(file);
-      if(row!==undefined) {upstreamFiles.set(file,{source:resolve(row.result.directory,file),hash:row.hash});upstreamKeys[row.id]=row.result.key;}
+      if(row!==undefined) {upstreamFiles.set(file,{source:resolve(row.result.directory,file),hash:row.hash});}
     }
   } else {
-    for(const [id,result] of options.preparation?.upstream ?? []) {
+    for(const result of options.preparation?.upstream.values() ?? []) {
       for(const [file,hash] of Object.entries(result.hashes)) if(foreign.has(file)) {
-        upstreamFiles.set(file,{source:resolve(result.directory,file),hash}); upstreamKeys[id]=result.key;
+        upstreamFiles.set(file,{source:resolve(result.directory,file),hash});
       }
     }
   }
@@ -244,7 +242,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const stageHashes=Object.fromEntries([...Object.entries(inputs),...[...upstreamFiles].map(([file,row])=>[file,row.hash])].sort(([a],[b])=>a<b?-1:a>b?1:0));
   /** @type {number|null} */
   let coldSeconds=null;
-  const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(options.preparation===undefined?{}:{upstream:JSON.stringify(Object.fromEntries(Object.entries(upstreamKeys).sort(([a],[b])=>a.localeCompare(b))))}),...(projected===undefined?{}:{catalogue:projected}),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
+  const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(options.preparation===undefined?{}:{upstream:JSON.stringify(Object.fromEntries([...upstreamFiles].sort(([a],[b])=>a.localeCompare(b)).map(([file,row])=>[file,row.hash])))}),...(projected===undefined?{}:{catalogue:projected}),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
     inputHashes, ...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),
     generate:async directory=>{
       const coldStarted=performance.now();

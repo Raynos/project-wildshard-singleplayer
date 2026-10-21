@@ -100,3 +100,23 @@ it('refreshes generated-table admission when a later report declares a retained 
   put(root,binary,'edited');await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
   expect(readFileSync(resolve(root,output),'utf8')).toBe('edited');
 });
+
+it('reuses a consumer when a rerun producer writes identical stage bytes', async () => {
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-cutoff-'));owned.push(root);
+  const shard='src/shards/alpha', first=`${shard}/data/first.json`, second=`${shard}/data/second.json`;
+  const entry=`${shard}/generators/bake-first.mjs`, consumer=`${shard}/generators/bake-second.mjs`;
+  put(root,'source.txt','first input');
+  put(root,entry,`import fs from 'node:fs';fs.readFileSync('source.txt');fs.writeFileSync('${first}','same output');`);
+  put(root,consumer,`import fs from 'node:fs';fs.writeFileSync('${second}',fs.readFileSync('${first}'));`);
+  const jobs=[
+    {id:'cutoff-first',shard:'alpha',entry,command:[entry],inputRoots:[entry,'source.txt'],outputs:[first],buildTimeOutputs:[first],platform:'portable'},
+    {id:'cutoff-second',shard:'alpha',entry:consumer,command:[consumer],inputRoots:[consumer,`${shard}/data`],outputs:[second],buildTimeOutputs:[second],platform:'portable'},
+  ];
+  put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs}));
+  const cacheDir=resolve(root,'cache'),log=vi.spyOn(console,'info').mockImplementation(()=>{ /* Observe independent producer verdicts. */ });
+  await prepareGeneration(root,{cacheDir});put(root,'source.txt','changed input');log.mockClear();
+  await prepareGeneration(root,{cacheDir});
+  expect(log.mock.calls.filter(row=>String(row[0]).includes(', generated,'))).toHaveLength(1);
+  expect(log.mock.calls.some(row=>String(row[0]).includes('cutoff-second, verified cache'))).toBe(true);
+  expect(readFileSync(resolve(root,second),'utf8')).toBe('same output');
+});
