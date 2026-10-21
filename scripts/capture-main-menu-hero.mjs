@@ -7,7 +7,7 @@
  *   their near placeholder) and C (every cell near: the capture-only harness pin `__wildshardHarness.nearEvery`, never a
  *   setting), four road views from the roundabout to each crossroads cell, on iPhone 16 Pro portrait and 1920×1080
  *   desktop; files <B|C>-<pose>-<device>.png. (A, the far proxy only, was deleted by G385.)
- * --round=near also shoots the shipped hero (round 6's SQ-NE-b, G383, entered with --enter, after the road views). Every
+ * --round=near also shoots the shipped hero (round 6's SQ-NE-b, G383, after the road views; never entered, O24). Every
  *   frame records each cell's real tier (grid.state().cells[].shows / drawn: near, far proxy, tiles, playing) and the
  *   near tier's own readout (frame.near), for the labels.
  * --round=5 (G372): round5HeroPlan (above Nalati's centre looking toward Driftwood) with the near tier (B, shipped).
@@ -106,7 +106,15 @@ async function enterOver(page, over) {
   await page.waitForFunction(instance => {
     const s = window.__wildshard.shard.grid.state(), l = s.live.live;
     return l.current === instance && s.inside === instance && l.gameplayReady && l.pending.length === 0 && l.residents.includes(instance);
-  }, over.instance, { timeout: 240000, polling: 250 });
+  }, over.instance, { timeout: 240000, polling: 250 }).catch(async error => {
+    // O24: say what the entry was waiting on (the desktop SQ-NE-b entry timed out here with no state)
+    const state = await page.evaluate(() => {
+      const s = window.__wildshard.shard.grid.state(), l = s.live.live, w = window.__wildshard.requireWorld();
+      return { current: l.current, inside: s.inside, gameplayReady: l.gameplayReady, pending: l.pending, residents: l.residents, issues: l.issues,
+        feet: s.feet, worldFeet: l.worldFeet, playerY: w.player.position.y, crossing: s.live.crossing };
+    });
+    throw new Error(`${over.instance} entry did not settle: ${JSON.stringify(state)} (${String(error)})`);
+  });
   await place(null);
   // Settled: the cell is the entered runtime and no tile is in flight or queued, for three polls in a row
   const handle = await page.waitForFunction(instance => {
@@ -123,7 +131,8 @@ async function enterOver(page, over) {
     const census = await page.evaluate(() => {
       const grid = window.__wildshard.shard.grid, rows = {};
       for (const claim of grid.residency().claims) rows[`${claim.owner}/${claim.category}`] = (rows[`${claim.owner}/${claim.category}`] ?? 0) + 1;
-      return { rings: grid.state().rings, ringsReady: grid.state().ringsReady, claims: rows };
+      const s = grid.state(), w = window.__wildshard.requireWorld();
+      return { current: s.live.live.current, inside: s.inside, feet: s.feet, playerY: w.player.position.y, rings: s.rings, ringsReady: s.ringsReady, claims: rows };
     });
     throw new Error(`${over.instance} tiles did not settle: ${JSON.stringify(census)} (${String(error)})`);
   });
@@ -336,9 +345,10 @@ async function captureAerial(base) {
           report.shots.push(row); save();
           try {
             // G343: stand the player in the cell the eye is over, so that shard draws its own runtime (not a placeholder)
-            // the near round's iPhone sessions never enter (the phone-tier entry from the air times out): the hero view's
-            // cell then draws its near placeholder, and the label's tier readout says so
-            const enterHere = enter && shot.over !== undefined && !(near && session.key.endsWith('-iphone'));
+            // the near round never enters: an entry from the air does not hold (the phone tier timed out; on desktop, O24, the
+            // set-down player is recovered to the road before the cell's tiles settle), and the near round shoots shipped tiers,
+            // so the hero view's cell draws its near placeholder on both tiers, and the label's tier readout says so
+            const enterHere = enter && shot.over !== undefined && !near;
             if (enterHere && shot.over.instance !== entered?.instance) {
               entered = await enterOver(page, { ...shot.over, road: centre0 });
               console.log(`entered ${shot.over.slug} for ${session.key}: ${JSON.stringify(entered.tiles)}`);
