@@ -19,6 +19,7 @@ import { installClientAudioScene, enterClientAudioScene } from '../audio/sceneDi
 import { installClientWaterSurfaces } from './clientWaterSurfaces';
 import { installClientBakedTiles } from './bakedTiles';
 import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
+import { installHeldRangedFeel } from '../plugin/heldEquipment';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { installClientCues } from './clientCues';
 import { installClientTrails } from './clientTrails';
@@ -103,6 +104,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     } },
   'bag.finds': {phase:'play',rank:95,lifetime:'entered',sections:[],install:installClientFinds},
   'held.cosmetics': {phase:'kit',rank:30,lifetime:'entered',sections:['held/finishes'],install:installClientCosmeticFinishes},
+  'held.ranged-feel': {phase:'play',rank:30,lifetime:'entered',sections:[],install:installHeldRangedFeel},
   'held.melee': { phase: 'kit', rank: 10, lifetime: 'entered', sections: ['look/painted'], install: installClientHeldMelee,
     play: { rank: 20, install: enterClientHeldMelee } },
   'player.enter': { phase: 'world', rank: 50, lifetime: 'entered', sections: [], install: installClientPlayerEnter,
@@ -143,6 +145,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if (plan.features.some(row => row.kind === 'light.emitters') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Emitters require the scene feature');
     if (plan.features.some(row => row.kind === 'motion.channels') && !plan.features.some(row => row.kind === 'world.scenes')) throw new Error('Motion requires the scene feature');
     if(plan.features.some(row=>row.kind==='held.cosmetics')&&product.section('held/finishes').cosmetics===undefined)throw new Error('Cosmetic feature requires declared finishes');
+    if(plan.features.some(row=>row.kind==='held.ranged-feel')&&!product.shardfile.items.rows.some(row=>row.kind==='weapon'&&row.equipment?.rangedFeel!==undefined))throw new Error('Ranged feel requires admitted equipment feedback rows');
     for (const row of plan.features) if (row.kind === 'world.baked') for (const baked of row.rows) {
       const files = [baked.glb, ...baked.lightmaps.flatMap(map => [map.source.phone, map.source.desktop]), ...(baked.instances === null ? [] : [baked.instances.table, baked.instances.protos, baked.instances.plan.phone.source, baked.instances.plan.desktop.source])];
       const looks = [baked.look, ...Object.values(baked.instances?.looks ?? {}).map(slot => slot.look)];

@@ -107,6 +107,21 @@
           "icon": "longbow",
           "blurb": "",
           "category": "weapon"
+        },
+        "rangedFeel": {
+          "kick": {
+            "body": 0.35,
+            "head": 0.6,
+            "kill": 0.9,
+            "side": 0.6,
+            "killSide": 1.2
+          },
+          "trauma": {
+            "kill": 0,
+            "head": 0,
+            "killKinds": [],
+            "headKinds": []
+          }
         }
       }
     },
@@ -481,6 +496,21 @@
           "icon": "rifle",
           "blurb": "",
           "category": "weapon"
+        },
+        "rangedFeel": {
+          "kick": {
+            "body": 0.35,
+            "head": 0.6,
+            "kill": 0.9,
+            "side": 0.6,
+            "killSide": 1.2
+          },
+          "trauma": {
+            "kill": 0,
+            "head": 0,
+            "killKinds": [],
+            "headKinds": []
+          }
         }
       }
     }

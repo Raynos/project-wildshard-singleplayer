@@ -34,6 +34,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('practice.course'), course: v.picklist(['horse', 'grapple']),
     title: label, blurb: label, icon: v.pipe(v.string(), v.minLength(1), v.maxLength(4096)), art: label, file: label }),
   v.strictObject({ kind: v.literal('held.cosmetics') }),
+  v.strictObject({ kind: v.literal('held.ranged-feel') }),
   v.strictObject({kind:v.literal('bag.finds'),id,quest:id,file:label}),
   v.strictObject({kind:v.literal('look.painterly'),shadeTint:rgb,rimColor:rgb,wind:v.strictObject({x:finite,z:finite,strength:finite})}),
   v.strictObject({ kind: v.literal('audio.scene') }),

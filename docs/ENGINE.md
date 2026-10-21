@@ -10465,3 +10465,11 @@ material, including distinct materials with the same name.
 Real callers are Pine's held gear and Nalati's cosmetic finishes. The
 material row API has no callbacks; client lighting and texture/geometry
 painting remain with their existing presentation owners.
+
+### Entered ranged feedback (G516)
+
+`client/plan` feature `held.ranged-feel` binds admitted equipment feedback
+in the play phase. It requires at least one weapon with `rangedFeel` rows.
+Pine's held kit and Nalati's bow/rifle declare it once. The installer reads
+the current weapon rows for every event, including replacement weapons,
+and uses the existing entered scope for kick, trauma and impact debris.

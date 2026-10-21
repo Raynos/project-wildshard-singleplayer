@@ -1,4 +1,3 @@
-import { installHeldRangedFeel } from '../plugin/heldEquipment';
 import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
 import * as THREE from 'three';
 import { LoadoutSchema, type LoadoutRows } from '@wildshard/format/loadout';
@@ -69,7 +68,6 @@ export function installHeldLoadout(context: ShardContext, input: unknown): HeldL
   const crossbow = launcher, source = context.product.shardfile;
   const h = { context, source, scope: context.scope, scene: world.game.scene, sky, cues: play.cues };
   const base = row.pouch.fallback, kinds = row.pouch.kinds;
-  installHeldRangedFeel(context);
   const savedSlot = loadoutLegacySlot(row);
   const audioRows = runtimeAudio(context, source.audio);
   const echo = audioRows.routing.flatMap(route => route.actions).find(action => action.voice === row.audio.echoVoice);

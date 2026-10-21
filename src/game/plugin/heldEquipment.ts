@@ -24,10 +24,10 @@ import { Bow } from '../weapons/Bow';
 export function installHeldRangedFeel(context: ShardContext): void {
   const runtime = context.game.runtime, game = runtime?.world?.game, weapons = runtime?.play?.weapons;
   if (game === undefined || weapons === undefined) throw new Error('Ranged feel needs its player stage');
-  const events = weapons.events, rows = weapons.list.map(weapon => weapon.row);
+  const events = weapons.events;
   if (events === undefined) return;
   const bind = prepareRangedFeel(game);
-  installEnteredRuntimeService(context, scope => { bind(events, scope, id => rows.find(row => row.id === id)); });
+  installEnteredRuntimeService(context, scope => { bind(events, scope, id => weapons.list.find(weapon => weapon.row.id === id)?.row); });
 }
 
 /** Native bolt profile plus row-authored page feel. Native clocks and ballistics have one source, combat/items. */
