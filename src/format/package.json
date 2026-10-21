@@ -149,6 +149,7 @@
     "./contentCost": "./contentCost.ts",
     "./scriptAbi": "./scriptAbi.ts",
     "./scriptAdmission": "./scriptAdmission.ts",
+    "./scriptModuleV2": "./scriptModuleV2.ts",
     "./scriptLimits": "./scriptLimits.ts",
     "./bakedTerrainBytes": "./bakedTerrainBytes.ts",
     "./bakedTerrainSampling": "./bakedTerrainSampling.ts",
