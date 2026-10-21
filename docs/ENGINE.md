@@ -8165,6 +8165,8 @@ serializes native decodes, ends after 30 idle seconds and rejects all pending
 requests on failure/disposal. Unsupported workers and failed jobs use the original
 page `createImageBitmap` API, then the existing image-element fallback. KTX2
 transcoding and its format probe are independent of this image decode path.
+KTX2 uses one Basis worker on the phone (four on desktop), bounding simultaneous
+transcodes and retained Wasm heaps without serializing network reads or changing formats.
 Page bitmap fallbacks also share one decode slot, released on success or failure;
 counted network reads remain parallel.
 

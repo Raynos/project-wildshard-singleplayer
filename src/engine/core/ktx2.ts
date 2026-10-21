@@ -34,6 +34,7 @@ import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/
 import { harnessPins } from '../app/identity';
 import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
 import { workSlice } from './workSlice';
+import { TIER } from './tier';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -43,7 +44,8 @@ let gameRenderer: Renderer | null = null;
 
 function createLoader(): KTX2Loader {
   const made = new KTX2Loader().setTranscoderPath(BASIS_PATH);
-  made.workerPool = new ScopedWorkerPool(pageScope);
+  // Basis workers retain separate Wasm heaps; phone reads stay parallel, transcodes do not.
+  made.workerPool = new ScopedWorkerPool(pageScope, TIER === 'phone' ? 1 : 4);
   return made;
 }
 /**
