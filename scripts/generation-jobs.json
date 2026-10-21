@@ -1622,6 +1622,8 @@
         "scripts/bake-output.mjs",
         "src/shards/driftwood-isle/generators/bake-loot.mjs",
         "src/shards/driftwood-isle/generators/loot.ts",
+        "src/shards/driftwood-isle/data/lootPresentation.json",
+        "src/shards/driftwood-isle/data/traderStall.json",
         "src/shards/driftwood-isle/data/keepsakePickups.json",
         "src/shards/driftwood-isle/generators/economy.ts",
         "src/shards/driftwood-isle/generators/finds.ts",
