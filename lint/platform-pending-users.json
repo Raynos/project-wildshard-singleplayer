@@ -2614,7 +2614,6 @@
     },
     {
       "module": "src/game/practice/course.ts",
-      "exports": ["PracticeCourse"],
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "practice-courses",
