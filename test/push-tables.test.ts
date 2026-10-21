@@ -3,13 +3,26 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the fixture's literal paths.
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { sectionTables } from '../scripts/push-tables.mjs';
+import { manifestTypeTables, sectionTables } from '../scripts/push-tables.mjs';
 import { writeSectionSchemaBridge } from '../scripts/bake-section-schemas.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 
 test('metadata discovery emits the same checked TypeScript table', () => {
   expect(authoredManifestSource(resolve('.'), '_template', { metadataOnly: true }))
     .toBe(authoredManifestSource(resolve('.'), '_template'));
+});
+
+test('standard ignored bindings borrow the defining admitted contracts', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/push-binding-types-'));
+  try {
+    manifestTypeTables(root, 'example', { bindings: {
+      poses: { module: './data/poses.generated.json' },
+      boot: { sources: { module: './data/sources.generated.json' } },
+    } }, new Set(['src/shards/example/data/poses.generated.json', 'src/shards/example/data/sources.generated.json']));
+    expect(readFileSync(join(root, 'src/shards/example/data/poses.generated.d.json.ts'), 'utf8')).toContain('parseCapturePoses>');
+    expect(readFileSync(join(root, 'src/shards/example/data/sources.generated.d.json.ts'), 'utf8')).toContain("AuthoredShardBindings['bootBindings']>[\"sources\"]");
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('push declarations equal the product producer without reading data WIP', async () => {

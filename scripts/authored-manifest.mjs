@@ -40,7 +40,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     if (typeof value !== 'string' || !/^\.\/[a-zA-Z0-9_./-]+$/u.test(value) || value.split('/').includes('..')) throw new Error(`${file}: invalid binding module`);
     const candidates = [value, `${value}.ts`, `${value}.js`, `${value}/index.ts`];
     if (metadataOnly && value.endsWith('.json')) candidates.push(value.replace(/\.json$/u, '.d.json.ts'));
-    if (!candidates.some(path => existsSync(resolve(root, `src/shards/${folder}`, path)))) throw new Error(`${file}: unknown binding module ${value}`);
+    if (!metadataOnly && !candidates.some(path => existsSync(resolve(root, `src/shards/${folder}`, path)))) throw new Error(`${file}: unknown binding module ${value}`);
     return value;
   };
   const value = ref => {

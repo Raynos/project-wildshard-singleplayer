@@ -4,7 +4,7 @@ import { relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 
 /** @param {string} root */
-function sourceWalker(root) {
+export function sourceWalker(root, runtimeOnly = false) {
   const config = ts.findConfigFile(root, path => ts.sys.fileExists(path));
   const options = config === undefined ? { allowJs: true } : ts.parseJsonConfigFileContent(
     ts.readConfigFile(config, path => ts.sys.readFile(path)).config, ts.sys, root).options;
@@ -25,7 +25,19 @@ function sourceWalker(root) {
     if (cached !== undefined) { pending.push(...cached); continue; }
     const dependencies = [];
     const source = readFileSync(path, 'utf8');
+    const syntax = runtimeOnly ? ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true) : undefined;
+    const runtime = new Set(syntax?.statements.flatMap(statement => {
+      if (ts.isImportDeclaration(statement) && statement.importClause?.phaseModifier !== ts.SyntaxKind.TypeKeyword && ts.isStringLiteral(statement.moduleSpecifier)) return [statement.moduleSpecifier.text];
+      if (ts.isExportDeclaration(statement) && !statement.isTypeOnly && statement.moduleSpecifier !== undefined && ts.isStringLiteral(statement.moduleSpecifier)) return [statement.moduleSpecifier.text];
+      return [];
+    }));
+    const erased = new Set(syntax?.statements.flatMap(statement => {
+      if (ts.isImportDeclaration(statement) && statement.importClause?.phaseModifier === ts.SyntaxKind.TypeKeyword && ts.isStringLiteral(statement.moduleSpecifier)) return [statement.moduleSpecifier.text];
+      if (ts.isExportDeclaration(statement) && statement.isTypeOnly && statement.moduleSpecifier !== undefined && ts.isStringLiteral(statement.moduleSpecifier)) return [statement.moduleSpecifier.text];
+      return [];
+    }));
     for (const imported of ts.preProcessFile(source, true, true).importedFiles) {
+      if (erased.has(imported.fileName) && !runtime.has(imported.fileName)) continue;
       const module = ts.resolveModuleName(imported.fileName, path, options, ts.sys).resolvedModule;
       if (module !== undefined) {
         const target = module.resolvedFileName;
@@ -43,7 +55,7 @@ function sourceWalker(root) {
     imports.set(path, dependencies);
     pending.push(...dependencies);
   }
-  return [...seen].map(path => relative(root, path)).sort();
+  return [...seen].map(path => relative(root, path)).sort((a,b) => a.localeCompare(b));
   };
 }
 

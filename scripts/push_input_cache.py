@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import re
 
 INFRA = [ 'scripts/generate.mjs', 'scripts/generation-cache.mjs',
          'scripts/generation-inputs.mjs', 'scripts/generation-recorder.mjs',
@@ -12,11 +13,16 @@ INFRA = [ 'scripts/generate.mjs', 'scripts/generation-cache.mjs',
          'scripts/source-generation-outputs.json', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml']
 
 
-def identities(jobs, records):
+def identities(jobs, records, reads=None):
     owners = {}
     by_id = {row['id']: row for row in jobs}
+    tracked = {record.split(b'\t', 1)[1].decode() for record in records}
     for row in jobs:
         for output in row['outputs']:
+            # Retained outputs are ordinary committed inputs. Their producer
+            # does not replace them during generation (same retained rule).
+            if output in tracked:
+                continue
             path = Path(output)
             for parent in [path, *path.parents]:
                 owners.setdefault(str(parent), set()).add(row['id'])
@@ -38,9 +44,13 @@ def identities(jobs, records):
         if any('src/sdk/bake/json.mjs' not in by_id[owner].get('command', []) for owner in seen):
             roots.add('src/format')
         prefixes = tuple(source + '/' for source in roots)
-        selected = [record for record, name in named if name in roots or name.startswith(prefixes)]
+        scope = [(record, name) for record, name in named if name in roots or name.startswith(prefixes)]
+        read = None if reads is None or any(reads.get(owner) is None for owner in seen) else set().union(*(set(reads[owner]) for owner in seen))
+        code = lambda name: re.search(r'\.[cm]?[jt]sx?$', name) is not None
+        selected = [record for record, name in scope if read is None or name in roots or name in read or not code(name)]
+        inventory = [name for _, name in scope]
         descriptors = [row for row in jobs if row['id'] in seen]
-        keys[job['id']] = hashlib.sha256(json.dumps(descriptors, sort_keys=True).encode() + b'\0' + b'\0'.join(selected)).hexdigest()
+        keys[job['id']] = hashlib.sha256(json.dumps([descriptors, inventory], sort_keys=True).encode() + b'\0' + b'\0'.join(selected)).hexdigest()
     return keys
 
 
@@ -59,7 +69,24 @@ def publish(repo, revision, generated):
     blobs = cache / 'blobs'
     blobs.mkdir(exist_ok=True)
     rows = []
-    keys = identities(jobs, records)
+    script = r"""
+import {readFileSync,existsSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+const root=process.argv[1],tool=process.argv[2];
+const {sourceWalker}=await import(pathToFileURL(tool).href);
+const walk=sourceWalker(root,true),jobs=JSON.parse(readFileSync(0,'utf8')),rows={};
+for(const job of jobs){
+ const starts=[job.entry,...job.command.filter(path=>!path.startsWith('-')&&existsSync(resolve(root,path)))];
+ const files=walk(starts);
+ const opaque=files.some(file=>/\.[cm]?[jt]sx?$/.test(file)&&!['src/sdk/bake/json.mjs','src/sdk/bake/source-loader.mjs'].includes(file)&&/\bimport\s*\(\s*[^'\"`]/.test(readFileSync(resolve(root,file),'utf8')));
+ rows[job.id]=opaque?null:files;
+}
+console.log(JSON.stringify(rows));
+"""
+    reads = json.loads(subprocess.check_output(['node', '--input-type=module', '-e', script, str(generated), str(repo / 'scripts/push-inputs.mjs')],
+                                              input=json.dumps(jobs), text=True))
+    keys = identities(jobs, records, reads)
     for job in jobs:
         files = {}
         for name in job['outputs']:
@@ -72,7 +99,7 @@ def publish(repo, revision, generated):
                     target.write_bytes(data)
                 files[name] = digest
         if files:
-            rows.append({'id': job['id'], 'key': keys[job['id']], 'files': files})
+            rows.append({'id': job['id'], 'key': keys[job['id']], 'files': files, 'reads': reads[job['id']]})
     (cache / 'entries.json').write_text(json.dumps(rows))
     return sum(len(row['files']) for row in rows)
 
@@ -85,8 +112,10 @@ def restore(repo, tree, records, deadline):
         return
     jobs = json.loads(registry.read_text())['jobs']
     by_id = {row['id']: row for row in jobs}
-    keys = identities(jobs, records)
-    for saved in json.loads(file.read_text()):
+    saved_rows = json.loads(file.read_text())
+    reads = {row['id']: row.get('reads') for row in saved_rows}
+    keys = identities(jobs, records, reads)
+    for saved in saved_rows:
         if time.monotonic() >= deadline:
             raise TimeoutError('Type-input cache verification exceeded budget')
         job = by_id.get(saved['id'])

@@ -181,6 +181,16 @@ class PushLoop(unittest.TestCase):
         self.assertNotEqual(keys['upstream'], changed['upstream'])
         self.assertNotEqual(keys['consumer'], changed['consumer'])
 
+    def test_unused_code_edits_carry_but_inventory_changes_invalidate(self):
+        jobs = [{'id': 'data', 'inputRoots': ['src'], 'outputs': ['src/result.generated.json'],
+                 'command': ['src/sdk/bake/json.mjs']}]
+        rows = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/unused.ts', b'100644 blob ccc\tsrc/data.json']
+        reads = {'data': ['src/author.ts']}
+        keys = CACHE['identities'](jobs, rows, reads)
+        self.assertEqual(keys, CACHE['identities'](jobs, [rows[0], b'100644 blob ddd\tsrc/unused.ts', rows[2]], reads))
+        self.assertNotEqual(keys, CACHE['identities'](jobs, [*rows, b'100644 blob eee\tsrc/new.ts'], reads))
+        self.assertNotEqual(keys, CACHE['identities'](jobs, [*rows[:2], b'100644 blob fff\tsrc/data.json'], reads))
+
 
 if __name__ == '__main__':
     unittest.main()
