@@ -372,7 +372,7 @@
       "export": "default"
     },
     "entry": {
-      "legacy": "./runtime/index",
+      "legacy": "./runtime/hybrid",
       "retainHomeRuntime": false,
       "stagesOwner": "declared"
     }
