@@ -217,7 +217,9 @@ async function main(opts) {
   try {
     if(exported&&'hit' in exported)timings.cacheEvicted=evictBuildCache(undefined,cacheKeep).length;
     const plants=array(readJson(join(fixtureRoot,'test/parity/plants/index.json'))).map(object);
-    const registry=shardFolders(root);if(registry.length===0)throw new Error('empty shard registry');
+    // X22 (G416): the frozen -legacy copies are the ruler's comparison source, never edited and no longer booted against
+    // today's shared code (boot-smoke already leaves them out); parity gates the shipped shards only
+    const registry=shardFolders(root).filter((slug)=>!slug.endsWith('-legacy'));if(registry.length===0)throw new Error('empty shard registry');
     let shards=opts.shards&&opts.shards!=='all'?opts.shards.split(','):registry;if(shards.some((s)=>!registry.includes(s)))throw new Error('usage: unknown shard');
     if(opts.fast){
       const base=opts.base??execFileSync('git',['merge-base','origin/main',sha],{cwd:ROOT,encoding:'utf8'}).trim();

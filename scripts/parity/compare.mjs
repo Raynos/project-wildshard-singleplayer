@@ -70,7 +70,9 @@ function numericBand(expected,actual,noise) {
   return {pass:typeof actual==='number'&&Number.isFinite(actual)&&Math.abs(actual-number(expected))<=band,band:`± ${band}`};
 }
 /** @param {string} p */
-function info(p) { return /^(harness$|sha$|recorded$|browser$|spread|selfMin|verdict|boot\.(?:sha|build|browser|playMs|stepMs|heapMB)(?:\.|$)|poses\.[^.]+\.(fps|frameP|cpuP|frames|creatureBoxes|boxes|shot)|walk\.legs\.[^.]+\.(seconds|trace)|leak\.scope)/.test(p); }
+// X22 (G415/G416): exact resource, scene, step, system and HUD counts are information, not gates. They tracked every
+// content change rather than a glitch; errors, stuck walks, combat, pause, leaks, budgets and the pose SSIM floors gate.
+function info(p) { return /^(harness$|sha$|recorded$|browser$|spread|selfMin|verdict|boot\.(?:sha|build|browser|playMs|stepMs|heapMB|gpuBytes|render|scene\.(?:named|totals)|steps|systems|hud)(?:\.|$)|poses\.[^.]+\.(fps|frameP|cpuP|frames|creatureBoxes|boxes|shot|calls$|tris$)|walk\.legs\.[^.]+\.(seconds|trace)|leak\.scope)/.test(p); }
 /** @param {RecordValue} value */
 export function normalize(value) {
   const result = structuredClone(value);
@@ -150,7 +152,8 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
     emit(path, prefix?get(current,`${prefix}before.${path.slice(prefix.length)}`):get(baseline,path), prefix?get(current,`${prefix}after.${path.slice(prefix.length)}`):get(current,path), 'D', pass, band);
   }
   for (const check of budgetChecks(current)) emit(check.field, check.limit, check.observed, 'D', check.pass, `≤ ${check.limit}`);
-  for(const path of ['walk.sounds.event','combat.sounds.event'])if(get(current,path)!==undefined || get(baseline,path)!==undefined)emit(path,get(baseline,path),get(current,path),'A',equal(get(baseline,path),get(current,path)),'exact multiset');
+  // X22: a baseline sound that stopped playing is a glitch; its exact count is not (similar, not identical: G415)
+  for(const path of ['walk.sounds.event','combat.sounds.event'])if(get(current,path)!==undefined || get(baseline,path)!==undefined)emit(path,get(baseline,path),get(current,path),'A',Object.keys(object(get(baseline,path)??{})).every((kind)=>number(object(get(current,path)??{})[kind]??0)>0),'baseline kinds still play');
   for (const path of new Set([...Object.keys(bf), ...Object.keys(cf)])) {
     if (d.some(([p]) => matches(p, path)) || matches('walk.sounds.event',path) || matches('combat.sounds.event',path) || path.startsWith('budgets.') || path.startsWith('leak.') || (options.ignore ?? []).some((p) => matches(p, path))) continue;
     const a = bf[path], b = cf[path];
