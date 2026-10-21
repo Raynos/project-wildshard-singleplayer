@@ -35,6 +35,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | X4 | Cut the G520 charged-back hosts (Nalati +998, Nine +196, Pine +137, DW +12): each gets a real second shard this wave or moves into its shard's AS + data and the platform module is deleted | G520, G518 | |
 | X5 | G532 phase B: one shared quest host (page + headless) with Pine and Driftwood as each other's second user, one trader, one chapter director, shared props; old saves load | G532 (1), research P1/P2/D4 | |
 | X6 | Production /api/telemetry returns HTTP 500 on every load; fix the route; also the 404 for nine near.json in the grid | live audit 10-20 | |
+| X15 | scripts/serve-build.sh port race: two runs (tmp/serve/20261020-213712-4400 and -213926-4400) both picked 4400 and the second failed after a full build; hold the port lock from choice until preview is listening, and on a busy port pick the next free one and reuse the finished dist instead of rebuilding | 10-20 sp-x1 loading proof | |
 | X7 | Hooks run the gated tree's own scripts (pre-commit + push gate ran working-tree scripts against older trees twice on 10-20) | 10-20 incidents | |
 | X10 | Garment catalogue rows (captain hat, cape, trader, people) via a NATIVE specimen job (the portable catalogue job lacks src/engine), touching quest/install.ts only after phase B | G532 phase C | |
 | X11 | G532 phase C Codex half: Driftwood runtime/index.ts + hybrid.ts plugin removal via the declared runtime entry (G483), engine/boot/plan.ts BuildStages retired | G532 (4)/(5), research D3 | |
