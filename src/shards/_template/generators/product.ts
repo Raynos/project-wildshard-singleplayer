@@ -4,7 +4,7 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import terrain from '../data/terrain.json' with { type: 'json' };
 import door from '../behaviour/door.json' with { type: 'json' };
 import props from '../data/props.json' with { type: 'json' };
-import { TEMPLATE_HOOKS, TEMPLATE_STATE } from '../behaviour/hooks';
+import hooks from '../behaviour/hooks.json' with { type: 'json' };
 import rows from '../data/rows.json' with { type: 'json' };
 import { parseRows } from '@wildshard/sdk/rows';
 import TEMPLATE_PLUMBING from '../data/plumbing.json' with { type: 'json' };
@@ -20,8 +20,10 @@ import SPAWN from '../data/spawn.json' with { type: 'json' };
 import ITEMS from '../data/items.json' with { type: 'json' };
 import { TEMPLATE_TARGETS } from '../data/targets';
 import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from '../data/skins';
-import { CLIENT_IDLE_BYTES, CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, TEMPLATE_CLIENT_SCRIPTS } from '../data/clientScripts';
+import idle from '../data/clientScripts.json' with { type: 'json' };
 
+// The idle reserve retains three pairs of Wasm pages and six particle slots.
+const { hash: CLIENT_IDLE_HASH, bytes: CLIENT_IDLE_BYTES, resident: CLIENT_IDLE_RESIDENT } = idle.module;
 const TEMPLATE_ROWS = parseRows(rows);
 const base = emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 2, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
@@ -47,8 +49,8 @@ export default parseShardfile({ ...base, accent: 'sand',
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
   look: TEMPLATE_LOOK, spawn: SPAWN, rows: { ...TEMPLATE_ROWS, looks: TEMPLATE_SKIN_LOOKS }, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
   terrain: { ...terrain.terrain, ...TERRAIN_DRAW }, tiles, files: [...terrain.files, ...props.files, ...TEMPLATE_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,
-  library: [...props.library, ...TEMPLATE_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS, clientScripts: TEMPLATE_CLIENT_SCRIPTS,
+  library: [...props.library, ...TEMPLATE_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS, clientScripts: idle.scripts,
   critical: [...terrain.critical, door.hash, itemModule], water: TEMPLATE_WATER, creatures: CREATURES, encounters: ENCOUNTERS.encounters,
-  quests: TEMPLATE_QUESTS, directors: TEMPLATE_DIRECTORS, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: TEMPLATE_STATE, hooks: TEMPLATE_HOOKS,
+  quests: TEMPLATE_QUESTS, directors: TEMPLATE_DIRECTORS, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: hooks.state, hooks: hooks.hooks,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
 });
