@@ -2594,6 +2594,40 @@ chains keep their existing native owners and cannot use the platform/static nati
 
 ### Embedded simulation
 
+`CharacterMotor` accepts optional data-only `convexBody: { points }`: one validated,
+volumetric hull (4–128 points, finite coordinates within 20 m), in actor-root-local
+metres. It replaces the capsule, never adds blockers. Omission preserves capsule
+geometry and offsets. Convex construction requires an explicit initial feet/yaw/
+enabled placement, allocates disabled, initializes, then activates; reset and
+transfer retain the exact root pivot without capsule half-height or reset lift.
+`acceptTurn(feet, yaw)` is the collision-owned optional `AnimalMotor` turn port:
+convex endpoint overlap refuses yaw without relocating feet; ordinary capsules
+retain the existing freely steered actor behavior. This is endpoint admission,
+not a swept-rotation guarantee. Direct current-transform contact queries avoid
+stale broadphase data; the existing caller still owns the sole physics step.
+Convex motion explicitly refuses vertical KCC corrections before publishing displacement,
+rather than let the flat actor-height owner overwrite a different collider height.
+Convex touch queries use exact shape distance. Kinematic deck proximity explicitly
+refuses instead of silently probing a capsule or adding a lift.
+
+`SimHost.bindConvexBody(actor, recipe)` is an embedded page-body installer. It
+prepares a disabled replacement, activates with current-transform clearance,
+preserves the old motor on preparation/activation failure, and retains immutable
+recipe data for host-owned motor recreation within this host lifetime. The actor remains the surface owner.
+Embedded practice hosts deliberately refuse `snapshotSimHost` and `snapshotSimHostBytes`;
+this candidate adds no persistent-world recipe or restoration support. Low-level motor
+snapshot reconnection validates exact canonical hull vertices before reconnecting the handle.
+Practice's opt-in `livingBodyBone` selects an existing source hull only when the
+numeric compiler proves no writers on its complete ancestry and the flat,
+yaw-only root uses authored flinch with no death splay. Unsupported ancestry,
+root tilt and kinematic decks refuse. This is a bounded living-body candidate,
+not an admission of the full animated creature or any corpse hull; lethal
+compound overlap checks remain independent and unchanged. The first source-body candidate
+is **not admitted**: the current Arena metal slab produces a nonzero vertical KCC
+correction even for ordinary horizontal travel, which this bounded flat-root mode
+correctly refuses. See `test/proof/pitcher-convex-body-motor/report.json`; do not
+interpret fail-closed regression tests as usable floor-travel acceptance.
+
 Practice native corpse selection supports explicit `anchored-held` alongside the
 unchanged default `rigid` mode. Anchored-held is a distinct stationary death design:
 one fixed compound retains the exact lethal root and local pose, with no fold,

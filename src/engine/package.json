@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./physics/convexHull": "./physics/convexHull.ts",
     "./entities/nativeCorpseOwner": "./entities/nativeCorpseOwner.ts",
     "./physics/nativeRigidCorpse": "./physics/nativeRigidCorpse.ts",
     "./entities/rigidCorpsePose": "./entities/rigidCorpsePose.ts",

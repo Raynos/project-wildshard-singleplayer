@@ -1,0 +1,21 @@
+{
+  "schema": "wildshard.evidence-delivery.v1",
+  "files": [
+    {
+      "original": "tmp/shared-arena-candidates/current-four-1553-conch-qa/report.json",
+      "originalSha256": "fbeb535d13940fe40bf6f242617c37ad71049bd296f448c08f87e01df0403bf5",
+      "delivery": "test/proof/shared-arena/current-four-1553/conch-attempt1-report.json",
+      "deliverySha256": "9ab0d6ddc6e927bbb66d04d562de0c79382d0a46bbf47e5f6a4b0855e4029197",
+      "originalRetained": true,
+      "conversion": "Replace exact absolute repository prefix only; all numerical/event evidence unchanged."
+    },
+    {
+      "original": "tmp/shared-arena-candidates/current-four-1553-conch-qa/trace.json",
+      "originalSha256": "6c1931e5a42bab5d6fed2eb9a8fd0e250fd0341ada127f3e1f4b781f3b8b563d",
+      "delivery": "test/proof/shared-arena/current-four-1553/conch-attempt1-trace.json",
+      "deliverySha256": "6c1931e5a42bab5d6fed2eb9a8fd0e250fd0341ada127f3e1f4b781f3b8b563d",
+      "originalRetained": true,
+      "conversion": "Byte-identical copy"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { practiceConvexBody } from './practiceConvexBody';
 import type { NativeCorpseMode } from '@wildshard/engine/physics/nativeRigidCorpse';
 import type { PracticeContactSurface } from '../plugin/practiceFootContact';
 import { ragdollsFor } from '@wildshard/engine/physics/ragdoll';
@@ -23,11 +24,15 @@ export interface PracticeNativeSelection {
   /** Opt-in exact published source triangles; absence retains native legacy hit volumes. */
   readonly hitMode?: 'source-mesh';
   readonly corpse?: NativeCorpseMode;
+  /** Existing rigid source bone; only compiler-proven invariant ancestry is supported. */
+  readonly livingBodyBone?: string;
 }
 type Decision = Awaited<ReturnType<typeof preparePracticeDecision>>;
 interface Options {
   readonly contactSurface?: PracticeContactSurface;
   readonly corpse?: NativeCorpseMode;
+  /** Existing rigid source bone; only compiler-proven invariant ancestry is supported. */
+  readonly livingBodyBone?: string;
   readonly scope: Scope;
   readonly ports: Required<Pick<SimHostPorts, 'physics' | 'player' | 'events' | 'combat'>>;
   readonly spawn: SimSpawn;
@@ -119,11 +124,16 @@ export class PracticeNativeActor {
       this.control.observe(options.observation); this.control.fighting = true;
       this.pose = new NativeCreaturePose(actor, options.recipe, animate, options.contactSurface);
       actor.bindVolumes(this.pose); this.pose.sampleTerrain(); this.pose.initializePractice();
+      if (options.livingBodyBone !== undefined) this.host.bindConvexBody(actor,
+        practiceConvexBody(actor, options.recipe, animate, this.pose.corpseJoints(), options.livingBodyBone));
       if (lease !== undefined) {
         prepareNumericRigidCorpse(options.ports.physics.R, actor.dims.rigidCorpse, this.pose.corpseJoints(), actor.scale);
         this.corpse = this.host.bindNativeCorpse(actor, this.pose, lease, options.corpse); this.pose.bindCorpse(this.corpse);
       }
-      this.host.useBodyStep({ after: (_id, _actor, dt) => {
+      this.host.useBodyStep({ before: () => {
+        if (options.livingBodyBone !== undefined && actor.alive && !actor.flatGroundRoot)
+          throw new Error('Convex practice body requires a flat yaw-only root');
+      }, after: (_id, _actor, dt) => {
         this.pose.advance(dt, this.clock.now, true); this.pose.publish();
       } });
       scope.onDispose(() => { actor.alive = false; });
@@ -152,7 +162,7 @@ export class PracticeNativeActor {
     if (this.scope.disposed || ![at.x, at.y, at.z, yaw].every(Number.isFinite)) throw new Error('Invalid native practice placement');
     const contactPlacement = this.pose.prepareContactPlacement(at, yaw);
     this.actor.place(at.x, at.z, yaw, at.y);
-    if (this.actor.motor instanceof CharacterMotor) this.actor.motor.resetAt(this.actor.position);
+    if (this.actor.motor instanceof CharacterMotor) this.actor.motor.resetAt(this.actor.position, yaw);
     this.pose.resetMotionAnchor(contactPlacement);
   }
 

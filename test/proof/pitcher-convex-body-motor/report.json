@@ -1,0 +1,63 @@
+{
+  "schema": "wildshard.pitcher-convex-body-candidate.v1",
+  "status": "NOT ADMITTED: ordinary Arena floor travel is unsupported",
+  "metadataSha256": "a1badfcd0a4039ca031356b4d5963450e1f3e472ae1ff427f95276da828cfdfa",
+  "bodyPoints": 68,
+  "totalCorpseHulls": 7,
+  "selection": "BRINE_PITCHER_CONVEX_NATIVE_SELECTION (separate, not activated)",
+  "exactArenaFloor": {
+    "halfExtents": [
+      50,
+      2,
+      50
+    ],
+    "translation": [
+      0,
+      898,
+      0
+    ],
+    "material": "metal",
+    "group": "WORLD",
+    "actorRoot": [
+      0,
+      900,
+      0
+    ],
+    "requestedMove": [
+      0.1,
+      0,
+      0
+    ],
+    "computedVerticalCorrection": 0.00011967930913669989,
+    "outcome": "Refused before publishing displacement; actor and collider remain at Y900"
+  },
+  "realWorldStep": {
+    "halfExtents": [
+      0.25,
+      0.1,
+      2
+    ],
+    "translation": [
+      2,
+      0.1,
+      0
+    ],
+    "requestedMove": [
+      0.8,
+      0,
+      0
+    ],
+    "outcome": "Genuine nonzero KCC vertical correction observed and refused; actor/collider root stays aligned"
+  },
+  "scope": "Exact selected source body only. Six moving head/lid hulls remain independent lethal-contact blockers. No full creature, corpse or app admission.",
+  "unchanged": [
+    "strict PLAYER/WORLD corpse overlap guard and tolerance",
+    "HP",
+    "root height",
+    "collision groups",
+    "source geometry",
+    "Bellback",
+    "existing rooted selection"
+  ],
+  "rawFailure": "flat-floor-admission-failure.txt"
+}

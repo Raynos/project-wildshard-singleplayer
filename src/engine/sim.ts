@@ -1,3 +1,4 @@
+import type { ConvexBodyRecipe } from './physics/convexHull';
 import type { NativeCorpseMode } from './physics/nativeRigidCorpse';
 import { validateLocalMovement, type LocalMovementCommand } from './input/commands';
 import { Vector3 } from 'three';
@@ -258,6 +259,7 @@ export class SimHost {
   private externalPlayer: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private heightAt: (x: number, z: number) => number;
   private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; present: ((body: AnimalSim) => boolean) | undefined; physics: boolean } | undefined;
+  private readonly convexBodies = new Map<string, ConvexBodyRecipe>();
   private readonly nativeCorpses = new Map<string, NativeCorpseOwner>();
   private bodyStep: SimBodyStep | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
@@ -415,6 +417,35 @@ export class SimHost {
       || this.nativeCorpses.has(actor.entityId) || lease.physics !== this.physics) throw new Error('Invalid native corpse binding');
     const owner = new NativeCorpseOwner(actor, pose, lease, this.scope, this.clock, mode); this.nativeCorpses.set(actor.entityId, owner); return owner;
   }
+  /** Replace one flat practice motor transactionally. The immutable data recipe survives body LOD recreation.
+   * Allocation/pose initialization occurs disabled; no physics step or broadphase refresh is introduced. */
+  bindConvexBody(actor: AnimalSim, recipe: ConvexBodyRecipe): void {
+    if (this.disposed || !this.embedded || !this.pageCreatureBodies || this.entities.get(actor.entityId) !== actor
+      || this.convexBodies.has(actor.entityId) || this.nativeCorpses.has(actor.entityId) || !actor.flatGroundRoot || !(actor.motor instanceof CharacterMotor))
+      throw new Error('Invalid convex body binding');
+    const old = actor.motor, oldEnabled = old.snapshot().enabled;
+    const motor = new CharacterMotor(this.physics, { ...this.creatureMotorOptions(actor), owner: actor, convexBody: recipe },
+      undefined, { feet: actor.position, yaw: actor.yaw, enabled: false });
+    try {
+      // Both collider identities exist here, but only the old one is enabled until installation.
+      old.setEnabled(false);
+      motor.setEnabled(oldEnabled);
+      if (!motor.acceptTurn(actor.position, actor.yaw)) throw new Error('Obstructed initial convex body');
+    } catch (error) {
+      const errors: unknown[] = [error];
+      try { old.restoreEnabledState(oldEnabled); } catch (cleanup) { errors.push(cleanup); }
+      try { motor.dispose(); } catch (cleanup) { errors.push(cleanup); }
+      throw new AggregateError(errors, 'Convex body installation failed', { cause: error });
+    }
+    const retained = motor.opts.convexBody;
+    if (retained === undefined) throw new Error('Missing prepared convex body');
+    this.convexBodies.set(actor.entityId, retained); actor.motor = motor;
+    this.scope.onDispose(() => { old.retireForHandoff(); });
+    // Retirement is retryable and does not change the selected collider identity.
+    try { old.retireForHandoff(); } catch (error) {
+      try { old.retireForHandoff(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Convex motor retirement failed', { cause: cleanup }); }
+    }
+  }
   /** Existing borrowed-world pre phase only; never steps clocks, physics, decisions, events or player. */
   preEmbeddedBodies(): void {
     if (this.disposed || !this.embedded) throw new Error('Invalid borrowed body preparation');
@@ -479,7 +510,8 @@ export class SimHost {
   }
   /** The page's creature capsule for a body under the physics body LOD (physics/creatures.ts's recipe), owned by its id. */
   creatureMotorOptions(entity: AnimalSim): MotorOptions {
-    return { ...creatureBodyShape(entity.dims, entity.scale), group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: entity.entityId };
+    const convexBody = this.convexBodies.get(entity.entityId);
+    return { ...creatureBodyShape(entity.dims, entity.scale), ...(convexBody === undefined ? {} : { convexBody }), group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: convexBody === undefined ? entity.entityId : entity };
   }
   /** The band clocks as plain values (SimSnapshot.bands); undefined without bands. */
   bodyBandState(): BandsState | undefined { return this.bands?.clocks.snapshot(); }
@@ -497,8 +529,9 @@ export class SimHost {
         && keepsCreatureBody(entity.motor !== null, entity.alive, entity.driven, creatureBodyDistance(entity.position, player));
       if (entity.motor === null && keep) {
         const motor = new CharacterMotor(this.physics, this.pageCreatureBodies
-          ? { ...this.creatureMotorOptions(entity), owner: entity } : this.creatureMotorOptions(entity));
-        motor.resetAt(entity.position); // at the animal, not the world origin (G222 playtest #7)
+          ? { ...this.creatureMotorOptions(entity), owner: entity } : this.creatureMotorOptions(entity),
+          undefined, { feet: entity.position, yaw: entity.yaw, enabled: true });
+        motor.resetAt(entity.position, entity.yaw); // at the animal, not the world origin (G222 playtest #7)
         entity.motor = motor;
       } else if (entity.motor !== null && !keep) { entity.motor.dispose(); entity.motor = null; }
     }

@@ -223,6 +223,7 @@ export class PracticeCreature {
     const native = new PracticeNativeActor({ scope, spawn, species: this.options.species,
       ...(this.contactSurface === undefined ? {} : { contactSurface: this.contactSurface }),
       ...(this.options.nativePose?.corpse === undefined ? {} : { corpse: this.options.nativePose.corpse }),
+      ...(this.options.nativePose?.livingBodyBone === undefined ? {} : { livingBodyBone: this.options.nativePose.livingBodyBone }),
       recipe: practiceNativeRecipe(model, rig), pose: this.nativePoseInput, decision,
       ports: { events, combat, physics: this.options.physics,
         player: { id: player.health.id, position: this.options.player.position, health: player.health,

@@ -1,0 +1,47 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ❯ test/convex-character-motor.test.ts (16 tests | 1 failed | 14 skipped) 961ms
+   × actual flat metal WORLD floor allows planar travel or explicitly refuses its vertical correction 30ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/convex-character-motor.test.ts > actual flat metal WORLD floor allows planar travel or explicitly refuses its vertical correction
+AssertionError: expected { refused: true, …(1) } to deeply equal { refused: false, corrections: [ +0 ] }
+
+- Expected
++ Received
+
+  {
+    "corrections": [
+-     0,
++     0.00011967930913669989,
+    ],
+-   "refused": false,
++   "refused": true,
+  }
+
+ ❯ test/convex-character-motor.test.ts:219:116
+    217|     expect(f.actor.position.y).toBe(900); expect(f.motor.collider.tran…
+    218|     expect(f.motor.collider.translation().x).toBeCloseTo(f.actor.posit…
+    219|     expect({ refused, corrections: movement.mock.results.map(row => ro…
+       |                                                                                                                    ^
+    220|   } finally { f.motor.dispose(); f.physics.dispose(); }
+    221| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed | 14 skipped (16)
+   Start at  12:29:31
+   Duration  20.08s (transform 72%, setup 21%, tests 5%, import 2%)
+
+  Transform  transforming modules took 14.30s · 72% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

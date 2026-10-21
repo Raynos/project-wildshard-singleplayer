@@ -1,0 +1,29 @@
+{
+  "schema": "wildshard.evidence-delivery.v1",
+  "files": [
+    {
+      "original": "test/proof/pitcher-convex-body-motor/flat-floor-admission-failure.txt",
+      "originalSha256": "fabb45a9451109c3c95181a560fe1c80e4138a504d6a44acb858297d1c2962a3",
+      "delivery": "test/proof/pitcher-convex-body-motor/flat-floor-admission-failure.public.txt",
+      "deliverySha256": "6fc387f1f06589cb99cbe386e6598fb18db7575a20ddc3e4b22dbe837230c85a",
+      "originalRetained": true,
+      "conversion": "Replace exact repository prefix and trim line-end/terminal blank whitespace only; numerical results unchanged."
+    },
+    {
+      "original": "test/proof/pitcher-convex-body-motor/focused-tests-before-floor.txt",
+      "originalSha256": "8d93a24237d6b3ee5588c5103481bc77701d2a6da3b171d7e96753036a90f259",
+      "delivery": "test/proof/pitcher-convex-body-motor/focused-tests-before-floor.public.txt",
+      "deliverySha256": "ddf31fb9d3349f60e3bcf5c04e8b027f5d9b589600123d9625488c690d2ae7a8",
+      "originalRetained": true,
+      "conversion": "Replace exact repository prefix and trim line-end/terminal blank whitespace only; numerical results unchanged."
+    },
+    {
+      "original": "test/proof/pitcher-convex-body-motor/focused-tests-final.txt",
+      "originalSha256": "ef6a917b2cad4349ad7f77953ae452905ec8f50d6348343ffd2076eb9c6c81ac",
+      "delivery": "test/proof/pitcher-convex-body-motor/focused-tests-final.public.txt",
+      "deliverySha256": "fbc41226e46d1e4cdcd4cf12864afe17ff0cb7bc9036484aaa2d53a28b6e69e2",
+      "originalRetained": true,
+      "conversion": "Replace exact repository prefix and trim line-end/terminal blank whitespace only; numerical results unchanged."
+    }
+  ]
+}

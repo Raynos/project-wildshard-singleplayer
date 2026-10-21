@@ -1,3 +1,4 @@
+import { prepareConvexHull, validateConvexPoints } from './convexHull';
 import { MathUtils, Matrix4, Quaternion, Vector3, type Object3D, type Bone } from 'three';
 import type { ColliderDesc } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
@@ -23,8 +24,7 @@ export function validateRigidCorpse(value: unknown): asserts value is RigidCorps
       || names.has(part['bone']) || !Array.isArray(part['points']) || part['points'].length < 4 || part['points'].length > 128) throw new Error('Invalid rigid corpse part');
     names.add(part['bone']); count += part['points'].length;
     if (count > 512) throw new Error('Rigid corpse point budget exceeded');
-    for (const point of part['points']) if (!Array.isArray(point) || point.length !== 3
-      || Array.from(point).some((n: unknown) => typeof n !== 'number' || !Number.isFinite(n) || Math.abs(n) > 20)) throw new Error('Invalid rigid corpse point');
+    validateConvexPoints(part['points']);
   }
 }
 
@@ -66,18 +66,7 @@ export function prepareRigidCorpse(R: Rapier, recipe: unknown, root: Object3D,
 }
 
 function prepareHull(R: Rapier, part: RigidCorpsePart, scale: number, pose: RigidCorpseTransform): ColliderDesc {
-    const vertices = new Float32Array(part.points.flatMap(point => point.map(n => n * scale)));
-    if (vertices.some(n => !Number.isFinite(n))) throw new Error('Unsafe scaled rigid corpse points');
-    // Rapier owns the convex construction. Refuse non-volumetric point sets before its native hull builder.
-    const origin = part.points[0];
-    if (origin === undefined) throw new Error('Empty rigid corpse hull');
-    const base = new Vector3(...origin), axis = new Vector3(), normal = new Vector3(), delta = new Vector3(), cross = new Vector3();
-    for (const point of part.points) { delta.fromArray(point).sub(base); if (delta.lengthSq() > axis.lengthSq()) axis.copy(delta); }
-    for (const point of part.points) { cross.crossVectors(axis, delta.fromArray(point).sub(base)); if (cross.lengthSq() > normal.lengthSq()) normal.copy(cross); }
-    const volume = part.points.some(point => Math.abs(normal.dot(delta.fromArray(point).sub(base))) > 1e-9);
-    if (!volume) throw new Error('Degenerate rigid corpse hull');
-    const desc = R.ColliderDesc.convexHull(vertices);
-    if (desc === null) throw new Error('Invalid rigid corpse convex hull');
+    const desc = prepareConvexHull(R, part.points, scale);
     return desc.setTranslation(pose.position.x, pose.position.y, pose.position.z).setRotation(pose.rotation);
 }
 

@@ -85,6 +85,12 @@ function numericDefinitionBytes(value: unknown): string {
     .map(([key, item]) => `${JSON.stringify(key)}:${numericDefinitionBytes(item)}`).join(',')}}`;
   throw new Error('Invalid numeric definition value');
 }
+const invariantInputs = new WeakMap<(ctx: AnimalRigContext) => void, ReadonlySet<string>>();
+/** Compiler-owned no-writer proof. Missing definitions, procedural contact and legacy modifiers refuse. */
+export function numericPoseKeepsJoints(animate: (ctx: AnimalRigContext) => void, names: readonly string[]): boolean {
+  const writes = invariantInputs.get(animate);
+  return writes !== undefined && names.every(name => !writes.has(`joint.${name.replaceAll('_', '.')}`));
+}
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
 export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => void {
@@ -258,6 +264,8 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
   };
+  if (row.practiceTransition !== undefined && row.footContact === undefined && row.look === undefined && row.squash === undefined)
+    invariantInputs.set(animate, new Set(row.programs.flatMap(program => program.numeric?.outputs.map(output => output.target) ?? [])));
   // v1 identifies the complete parsed numeric semantics, independently of envelope layout versions.
   registerNumericPoseDefinition(animate, `numeric-creature-pose:v1:sha256:${sha256(new TextEncoder().encode(numericDefinitionBytes(row)))}`);
   if (row.practiceTransition !== undefined) registerPracticePoseTransition(animate, { ...row.practiceTransition, ...(row.footContact === undefined ? {} : { contact: row.footContact }) });

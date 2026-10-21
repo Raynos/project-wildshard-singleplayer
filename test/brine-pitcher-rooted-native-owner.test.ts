@@ -1,3 +1,6 @@
+import { snapshotSimHost, snapshotSimHostBytes } from '../src/engine/sim/snapshot';
+import { practiceConvexBody } from '../src/game/practice/practiceConvexBody';
+import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify full byte-exact authored fixture identities in the commit mirror.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test, vi } from 'vitest';
@@ -51,7 +54,7 @@ beforeAll(async () => {
     new Map(BRINE_PITCHER_DECISIONS.map(row => [row.source, readFileSync(`src/shards/driftwood-isle/${row.source}`, 'utf8')])), { asLineCeiling: 100 });
 });
 const joint = (): AnimalRigJoint => ({ position: new Vector3(), rotation: new Euler(), scale: new Vector3(1, 1, 1) });
-async function fixture(declaration = motion) {
+async function fixture(declaration = motion, livingBodyBone?: string, withCorpse = true) {
   const scope = new Scope('pitcher-native-owner1'), events = new Events(), combat = new CombatPipeline(events, scope);
   const outside = createSimHost({ ...SIM_LEVEL, entities: [], quests: [], ground: { size: 100, height: 900 }, player: { at: { x: 0, y: 900, z: 2 }, yaw: 0, speed: 0 } },
     { scope, rapier: await loadRapier(decode(rapierUrl)) });
@@ -72,7 +75,7 @@ async function fixture(declaration = motion) {
     spawn: { id: 'practice.brine-pitcher-matriarch', seed: 1, scale: 1, at: { x: 0, y: 900, z: 0 }, yaw: 0,
       spec: { kind: 'brine-pitcher-matriarch', label: 'Pitcher', variant: 'brine-pitcher-matriarch', rarity: 'rare', hp: 150, aggressive: true,
         dims: packed.dims, mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 14, relentless: false } } },
-    species, recipe, pose: declaration, corpse: BRINE_PITCHER_ROOTED_NATIVE_SELECTION.corpse,
+    species, recipe, pose: declaration, ...(livingBodyBone === undefined ? {} : { livingBodyBone }), ...(withCorpse ? { corpse: BRINE_PITCHER_ROOTED_NATIVE_SELECTION.corpse } : {}),
     contactSurface: { id: 'practice-arena', revision: 1, active: true, y: 900, minX: -49.78, maxX: 49.78, minZ: -49.78, maxZ: 49.78 },
     decision: ports => borrowedDecisionAuthority(createBrinePitcherNativePreviewSource(),
       new Map(compiled.blobs.map(blob => [blob.file.hash, blob.bytes])), sections,
@@ -259,4 +262,58 @@ test('nonfinite native contact data is a genuine fault rather than a recoverable
   expect(f.native.actor.hp).toBe(150);expect(f.native.actor.alive).toBe(true);
   expect(ragdollsFor(physics).reserved).toBe(1);
  }finally{f.scope.dispose();}
+});
+
+test('bounded living source body survives actual pose/flinch/yaw/reset and host motor recreation', async () => {
+  const f = await fixture(motion, 'body');
+  try {
+    const actor = f.native.actor;
+    const original = actor.motor; if (!(original instanceof CharacterMotor)) throw new Error('Missing convex motor');
+    expect(original.opts.convexBody?.points).toHaveLength(68);
+    expect(() => snapshotSimHost(f.native.host)).toThrow('Borrowed simulation snapshots');
+    expect(() => snapshotSimHostBytes(f.native.host)).toThrow('Borrowed simulation snapshots');
+    expect(f.outside.physics.colliderTag(original.collider)?.owner).toBe(actor);
+    const locals0 = f.native.pose.corpseJoints().find(row => row.name === 'body');
+    for (let i = 0; i < 90; i++) f.tick();
+    f.hit(1);
+    for (let i = 0; i < 30; i++) {
+      f.tick();
+      expect(f.native.pose.corpseJoints().find(row => row.name === 'body')).toEqual(locals0);
+      expect(original.collider.translation().x).toBeCloseTo(actor.position.x, 5);
+      expect(original.collider.translation().y).toBeCloseTo(actor.position.y, 5);
+      expect(original.collider.translation().z).toBeCloseTo(actor.position.z, 5);
+      expect(original.collider.rotation().y).toBeCloseTo(Math.sin(actor.yaw / 2), 6);
+    }
+    f.native.place({ x: 5, y: 900, z: -4 }, 1.1);
+    expect(original.collider.translation()).toEqual({ x: 5, y: 900, z: -4 });
+    expect(original.collider.rotation().y).toBeCloseTo(Math.sin(.55), 6);
+    original.dispose(); actor.motor = null; f.outside.player.position.copy(actor.position).add(new Vector3(0, 0, 6));
+    f.tick();
+    const recreated = f.native.host.entities.get(actor.entityId)?.motor; if (!(recreated instanceof CharacterMotor)) throw new Error('Missing recreated motor');
+    expect(recreated.opts.convexBody).toEqual(original.opts.convexBody);
+    expect(f.outside.physics.colliderTag(recreated.collider)?.owner).toBe(actor);
+    expect(recreated.collider).not.toBe(original.collider);
+    expect(f.native.host.creatureMotorOptions(actor).convexBody).toEqual(original.opts.convexBody);
+  } finally { f.scope.dispose(); }
+});
+
+test('convex install activation fault preserves the exact old motor and retires the failed allocation', async () => {
+  const f = await fixture(motion, undefined, false);
+  try {
+    const actor = f.native.actor, old = actor.motor;
+    if (!(old instanceof CharacterMotor)) throw new Error('Missing old motor');
+    const counts = [f.outside.physics.world.colliders.len(), f.outside.physics.world.characterControllers.size];
+    const recipeBody = practiceConvexBody(actor, recipe, numericCreaturePose(motion), f.native.pose.corpseJoints(), 'body');
+    const create = f.outside.physics.world.createCollider.bind(f.outside.physics.world);
+    vi.spyOn(f.outside.physics.world, 'createCollider').mockImplementationOnce((...args) => {
+      const collider = create(...args), enable = collider.setEnabled.bind(collider);
+      vi.spyOn(collider, 'setEnabled').mockImplementation(on => { enable(on); if (on) throw new Error('after activation'); });
+      return collider;
+    });
+    expect(() => f.native.host.bindConvexBody(actor, recipeBody)).toThrow('Convex body installation failed');
+    expect(actor.motor).toBe(old); expect(old.collider.isEnabled()).toBe(true);
+    expect(f.outside.physics.colliderTag(old.collider)?.owner).toBe(actor);
+    expect([f.outside.physics.world.colliders.len(), f.outside.physics.world.characterControllers.size]).toEqual(counts);
+    expect(f.native.host.creatureMotorOptions(actor).convexBody).toBeUndefined();
+  } finally { f.scope.dispose(); }
 });

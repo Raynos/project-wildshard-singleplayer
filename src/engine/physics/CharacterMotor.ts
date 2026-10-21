@@ -1,3 +1,4 @@
+import { prepareConvexHull, matchesConvexHull, validateConvexPoints, type ConvexBodyRecipe } from './convexHull';
 /**
  * A character's body in the physics world (PHYSICS.md P2, ENGINE-FIT E3): a capsule and Rapier's kinematic character
  * controller. The player uses it now; near creatures (P6) and the Nalati horse (P10) use the same one.
@@ -21,6 +22,8 @@ import { tagCollider, tagOf } from './surface';
 import { FIXED_STEP } from '../core/fixedStep';
 
 export interface MotorOptions {
+  /** Optional exact actor-root-local body. Only flat, yaw-only motion is supported; no capsule offsets. */
+  convexBody?: ConvexBodyRecipe;
   radius: number;
   /** feet to crown, metres (an upright capsule; a lying one is 2 × radius tall) */
   height: number;
@@ -101,37 +104,87 @@ export class CharacterMotor {
   private readonly physics: Physics;
   readonly opts: MotorOptions;
 
-  constructor(physics: Physics, opts: MotorOptions, state?: MotorState) {
-    this.physics = physics; this.opts = opts;
+  constructor(physics: Physics, opts: MotorOptions, state?: MotorState, placement?: { readonly feet: Vec3; readonly yaw: number; readonly enabled: boolean }) {
+    this.physics = physics;
+    if (opts.convexBody !== undefined && (opts.length !== undefined || Reflect.ownKeys(opts.convexBody).length !== 1
+      || !Object.hasOwn(opts.convexBody, 'points'))) throw new Error('Invalid convex motor recipe');
+    if (opts.convexBody !== undefined) validateConvexPoints(opts.convexBody.points);
+    this.opts = opts.convexBody === undefined ? opts : Object.freeze({ ...opts, blockedBy: Object.freeze([...opts.blockedBy]), convexBody: Object.freeze({
+      points: Object.freeze(opts.convexBody.points.map(point => Object.freeze([...point] as [number, number, number]))),
+    }) });
     const { R, world } = physics;
     const lying = opts.length !== undefined;
     const half = lying ? Math.max(0.01, (opts.length ?? 0) / 2 - opts.radius) : Math.max(0.01, opts.height / 2 - opts.radius);
     this.halfAxis = half;
-    this.lift = lying ? opts.radius : opts.height / 2;
+    this.lift = opts.convexBody === undefined ? lying ? opts.radius : opts.height / 2 : 0;
     if (state !== undefined && (state.version !== 1 || !world.colliders.contains(state.colliderHandle))) throw new RangeError('Invalid motor snapshot');
-    this.collider = state === undefined ? world.createCollider(R.ColliderDesc.capsule(half, opts.radius).setCollisionGroups(groups(opts.group))) : world.getCollider(state.colliderHandle);
-    if (lying && state === undefined) { this.layAlong(0); this.collider.setRotation(this.rot); }
-    tagCollider(this.collider, 'flesh', opts.owner ?? null);
-    this.kcc = world.createCharacterController(0.02);
-    this.kcc.setUp({ x: 0, y: 1, z: 0 });
-    this.kcc.enableAutostep(opts.step, opts.radius * 0.5, false);
-    this.kcc.enableSnapToGround(opts.snap);
-    this.kcc.setMaxSlopeClimbAngle(opts.maxClimbDeg * Math.PI / 180);
-    this.kcc.setMinSlopeSlideAngle((opts.maxClimbDeg + 5) * Math.PI / 180);
-    this.kcc.setSlideEnabled(true);
-    this.kcc.setApplyImpulsesToDynamicBodies(true);
-    this.kcc.setCharacterMass(80); // P7: a collider with no rigid body counts as massless, and a massless character pushes nothing
-    this.filter = queryGroups(this.blockedBy(), opts.group);
-    this.ray = new R.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
-    if (state !== undefined) {
-      this.filter = state.filter; this.ghost = state.ghost; this.enabled = state.enabled; this.yaw = state.yaw;
-      Object.assign(this.anchor, state.anchor);
-      this.anchorBody = state.anchorBodyHandle === null ? null : world.getRigidBody(state.anchorBodyHandle);
-      const result = state.result;
-      this.result.grounded = result.grounded; this.result.groundNormalY = result.groundNormalY;
-      this.result.downhillX = result.downhillX; this.result.downhillZ = result.downhillZ; this.result.horizontalFreedom = result.horizontalFreedom;
-      this.result.groundCollider = result.groundColliderHandle === null ? null : world.getCollider(result.groundColliderHandle);
-      this.kcc.setMaxSlopeClimbAngle(state.climbAngle); this.kcc.setMinSlopeSlideAngle(state.slideAngle);
+    const desc = this.opts.convexBody === undefined ? R.ColliderDesc.capsule(half, opts.radius)
+      : prepareConvexHull(R, this.opts.convexBody.points);
+    if (this.opts.convexBody === undefined && state !== undefined
+      && R.Shape.fromRaw(world.colliders.raw, state.colliderHandle) instanceof R.ConvexPolyhedron)
+      throw new Error('Restored convex motor requires its recipe');
+    if (this.opts.convexBody !== undefined && state !== undefined
+      && !matchesConvexHull(R, R.Shape.fromRaw(world.colliders.raw, state.colliderHandle), desc.shape))
+      throw new Error('Restored convex motor shape differs from its recipe');
+    if (this.opts.convexBody !== undefined && state !== undefined) {
+      const collider = world.getCollider(state.colliderHandle), q = collider.rotation(), p = collider.translation();
+      if (![state.yaw, p.x, p.y, p.z, q.x, q.y, q.z, q.w].every(Number.isFinite)
+        || Math.abs(q.x) > 1e-6 || Math.abs(q.z) > 1e-6
+        || Math.abs(Math.abs(q.y * Math.sin(state.yaw / 2) + q.w * Math.cos(state.yaw / 2)) - 1) > 1e-6
+        || collider.isEnabled() !== state.enabled) throw new Error('Restored convex motor pose differs from its snapshot');
+    }
+    if (this.opts.convexBody !== undefined && state === undefined && placement === undefined) throw new Error('Convex motor requires an explicit initial pose');
+    if (placement !== undefined && ![placement.feet.x, placement.feet.y, placement.feet.z, placement.yaw].every(Number.isFinite)) throw new Error('Invalid initial motor pose');
+    // The exceptional convex replacement path records identities to recover even an after-allocation fault.
+    // Ordinary capsule construction does not scan all level colliders.
+    const retained = this.opts.convexBody === undefined ? undefined : new Set<Collider>();
+    if (retained !== undefined) world.forEachCollider(c => { retained.add(c); });
+    const controllers = new Set(world.characterControllers);
+    let allocated: Collider | undefined;
+    try {
+      this.collider = state === undefined ? allocated = world.createCollider(desc.setCollisionGroups(groups(opts.group)).setEnabled(false)) : world.getCollider(state.colliderHandle);
+      if (lying && state === undefined) { this.layAlong(0); this.collider.setRotation(this.rot); }
+      tagCollider(this.collider, 'flesh', opts.owner ?? null);
+      this.kcc = world.createCharacterController(0.02);
+      this.kcc.setUp({ x: 0, y: 1, z: 0 });
+      this.kcc.enableAutostep(opts.step, opts.radius * 0.5, false);
+      this.kcc.enableSnapToGround(opts.snap);
+      this.kcc.setMaxSlopeClimbAngle(opts.maxClimbDeg * Math.PI / 180);
+      this.kcc.setMinSlopeSlideAngle((opts.maxClimbDeg + 5) * Math.PI / 180);
+      this.kcc.setSlideEnabled(true);
+      this.kcc.setApplyImpulsesToDynamicBodies(true);
+      this.kcc.setCharacterMass(80); // P7: a collider with no rigid body counts as massless, and a massless character pushes nothing
+      this.filter = queryGroups(this.blockedBy(), opts.group);
+      this.ray = new R.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+      if (state !== undefined) {
+        this.filter = state.filter; this.ghost = state.ghost; this.enabled = state.enabled; this.yaw = state.yaw;
+        Object.assign(this.anchor, state.anchor);
+        this.anchorBody = state.anchorBodyHandle === null ? null : world.getRigidBody(state.anchorBodyHandle);
+        const result = state.result;
+        this.result.grounded = result.grounded; this.result.groundNormalY = result.groundNormalY;
+        this.result.downhillX = result.downhillX; this.result.downhillZ = result.downhillZ; this.result.horizontalFreedom = result.horizontalFreedom;
+        this.result.groundCollider = result.groundColliderHandle === null ? null : world.getCollider(result.groundColliderHandle);
+        this.kcc.setMaxSlopeClimbAngle(state.climbAngle); this.kcc.setMinSlopeSlideAngle(state.slideAngle);
+        if (this.opts.convexBody !== undefined) this.yawRotation(this.yaw);
+      } else {
+        if (placement !== undefined) this.resetAt(placement.feet, placement.yaw);
+        this.collider.setEnabled(placement?.enabled ?? true); this.enabled = placement?.enabled ?? true;
+      }
+    } catch (error) {
+      const errors: unknown[] = [error];
+      for (const controller of world.characterControllers) if (!controllers.has(controller)) {
+        for (let attempt = 0; attempt < 2 && world.characterControllers.has(controller); attempt++) {
+          try { world.removeCharacterController(controller); } catch (cleanup) { errors.push(cleanup); }
+        }
+      }
+      const candidates: Collider[] = [];
+      if (retained !== undefined) world.forEachCollider(c => { if (!retained.has(c)) candidates.push(c); });
+      else if (allocated !== undefined) candidates.push(allocated);
+      for (const c of candidates) for (let attempt = 0; attempt < 2 && c.isValid(); attempt++) {
+        try { world.removeCollider(c, false); } catch (cleanup) { errors.push(cleanup); }
+      }
+      if (errors.length > 1) throw new AggregateError(errors, 'Motor construction cleanup failed', { cause: error });
+      throw error;
     }
   }
   /** Collider handles reconnect against the restored Rapier world, never the disposed world's wrappers. */
@@ -147,7 +200,7 @@ export class CharacterMotor {
   /** Prepare a motor in another world without retiring this one. World-bound ground/ride anchors are reacquired. */
   transferTo(physics: Physics, feet: Vec3): CharacterMotor {
     if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid motor transfer feet');
-    const motor = new CharacterMotor(physics, this.opts);
+    const motor = new CharacterMotor(physics, this.opts, undefined, { feet, yaw: this.yaw, enabled: false });
     try {
       motor.syncTransfer(this, feet);
       return motor;
@@ -158,9 +211,10 @@ export class CharacterMotor {
     if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid motor transfer feet');
     this.filter = source.filter; this.ghost = source.ghost; this.yaw = source.yaw;
     this.kcc.setMaxSlopeClimbAngle(source.kcc.maxSlopeClimbAngle()); this.kcc.setMinSlopeSlideAngle(source.kcc.minSlopeSlideAngle());
-    this.setEnabled(source.enabled);
+    if (this.opts.convexBody !== undefined) { this.yawRotation(this.yaw); this.collider.setRotation(this.rot); }
     if (this.opts.length !== undefined) { this.layAlong(this.yaw); this.collider.setRotation(this.rot); }
-    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + 0.005, z: feet.z });
+    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + (this.opts.convexBody === undefined ? 0.005 : 0), z: feet.z });
+    this.setEnabled(source.enabled);
   }
 
   /** the quaternion for a lying capsule along `yaw` (animal convention: forward = (sin yaw, 0, cos yaw)): Rapier's
@@ -176,6 +230,7 @@ export class CharacterMotor {
    * refused and false returned (the rider's heading stays where it was). Upright capsules turn freely.
    */
   setYaw(feet: Vec3, yaw: number): boolean {
+    if (this.opts.convexBody !== undefined) return this.acceptTurn(feet, yaw);
     if (this.opts.length === undefined || !this.enabled) { this.yaw = yaw; return true; }
     const { R, world } = this.physics;
     const old = this.yaw;
@@ -201,6 +256,37 @@ export class CharacterMotor {
     return false;
   }
 
+  private yawRotation(yaw: number): void {
+    this.rot.x = 0; this.rot.y = Math.sin(yaw / 2); this.rot.z = 0; this.rot.w = Math.cos(yaw / 2);
+  }
+
+  /** Collision-owned yaw admission. Convex turns never relocate the actor. Current collider transforms
+   * are queried directly, including fixed.post writes not yet present in the next broadphase step. */
+  acceptTurn(feet: Vec3, yaw: number): boolean {
+    if (this.opts.convexBody === undefined) return true;
+    if (![feet.x, feet.y, feet.z, yaw].every(Number.isFinite)) throw new Error('Invalid convex turn');
+    this.yawRotation(yaw);
+    const blocked = { value: false };
+    if (this.enabled) this.eachCurrent(this.filter, c => {
+      const contact = c.contactShape(this.collider.shape, feet, this.rot, 0);
+      if (contact !== null && (!Number.isFinite(contact.distance) || contact.distance < -1e-6)) blocked.value = true;
+      return true;
+    });
+    if (blocked.value) { this.yawRotation(this.yaw); return false; }
+    this.collider.setRotation(this.rot); this.collider.setTranslation(feet); this.yaw = yaw;
+    return true;
+  }
+
+  private eachCurrent(filter: number, each: (collider: Collider) => boolean): void {
+    let active = true;
+    this.physics.world.forEachCollider(c => {
+      const collision = c.collisionGroups();
+      if (!active || c === this.collider || !c.isEnabled() || c.isSensor()
+        || ((collision >>> 16) & filter & 0xffff) === 0 || ((filter >>> 16) & collision & 0xffff) === 0) return;
+      active = each(c);
+    });
+  }
+
   /** the last computed move touched only walkable floor (every contact's normal within the climb angle of straight up) */
   private stalledOnFloor(): boolean {
     const n = this.kcc.numComputedCollisions();
@@ -222,6 +308,15 @@ export class CharacterMotor {
    */
   private nearDeck(feet: Vec3): boolean {
     const { R, world } = this.physics, p = this.probe;
+    if (this.opts.convexBody !== undefined) {
+      this.eachCurrent(this.filter, c => {
+        const body = c.parent();
+        if (body !== null && (body.isKinematic() || RIDEABLE.has(body)) && c.contactShape(this.collider.shape, feet, this.rot, DECK_REACH) !== null)
+          throw new Error('Convex motor does not support kinematic decks or rideable bodies');
+        return true;
+      });
+      return false;
+    }
     this.deckProbe ??= new R.Capsule(this.halfAxis, this.opts.radius + DECK_REACH);
     p.x = feet.x; p.y = feet.y + this.lift; p.z = feet.z;
     return world.intersectionWithShape(p, this.rot, this.deckProbe,
@@ -260,12 +355,20 @@ export class CharacterMotor {
   touching(margin: number, sees: readonly GroupName[], each: (c: Collider) => boolean): void {
     if (!this.enabled) return;
     const { R, world } = this.physics;
+    if (this.opts.convexBody !== undefined) {
+      if (!Number.isFinite(margin) || margin < 0) throw new Error('Invalid convex touch margin');
+      this.eachCurrent(queryGroups(sees, this.opts.group), c => {
+        const contact = c.contactShape(this.collider.shape, this.collider.translation(), this.collider.rotation(), margin);
+        return contact === null || contact.distance > margin ? true : each(c);
+      });
+      return;
+    }
     if (this.touchShape === null || this.touchMargin !== margin) { this.touchShape = new R.Capsule(this.halfAxis, this.opts.radius + margin); this.touchMargin = margin; }
     world.intersectionsWithShape(this.collider.translation(), this.collider.rotation(), this.touchShape, each, R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(sees, this.opts.group), this.collider);
   }
 
   /** Parked (Explore's free camera, a menu that owns the player): the capsule leaves the world's way. */
-  setEnabled(on: boolean): void { if (on === this.enabled) return; this.enabled = on; this.collider.setEnabled(on); }
+  setEnabled(on: boolean): void { if (on === this.enabled) return; this.collider.setEnabled(on); this.enabled = on; }
 
   /** Internal synchronous handoff rollback: force native and cached state to agree, even if setEnabled threw after caching. */
   restoreEnabledState(on: boolean): void {
@@ -281,11 +384,12 @@ export class CharacterMotor {
     const r = this.result;
     if (!this.enabled) { feet.x += want.x; feet.y += want.y; feet.z += want.z; r.grounded = false; r.groundNormalY = 1; r.horizontalFreedom = 1; r.groundCollider = null; this.anchorBody = null; return r; }
     const { R } = this.physics;
+    if (this.opts.convexBody !== undefined) this.nearDeck(feet);
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
     const wantH = Math.hypot(want.x, want.z);
     // SF49 / SF51: a sideways move near a kinematic body (a mover's deck, at rest or ridden) starts a skin higher (see
     // `nearDeck`); a move with no sideways part isn't snapped back down by the controller, so it starts where it is.
-    const lifted = wantH > 1e-6 && want.y <= 0 && this.nearDeck(feet) ? this.kcc.offset() : 0;
+    const lifted = this.opts.convexBody === undefined && wantH > 1e-6 && want.y <= 0 && this.nearDeck(feet) ? this.kcc.offset() : 0;
     if (lifted > 0) this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + lifted, z: feet.z });
     const pred = ignoreGround ? this.notGround : undefined;
     this.kcc.computeColliderMovement(this.collider, want, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
@@ -298,6 +402,8 @@ export class CharacterMotor {
       this.kcc.computeColliderMovement(this.collider, this.flat, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
       m = this.kcc.computedMovement();
     }
+    // Flat-root callers own height. Never publish a KCC autostep/snap height they will overwrite.
+    if (this.opts.convexBody !== undefined && m.y !== 0) throw new Error('Convex motor requires planar displacement');
     feet.x += m.x; feet.y += m.y + lifted; feet.z += m.z;
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
     r.grounded = this.kcc.computedGrounded();
@@ -356,9 +462,10 @@ export class CharacterMotor {
   release(): void { this.anchorBody = null; }
 
   /** Load/respawn at an already admitted pose: align the existing capsule and discard old contacts without a collision or physics step. */
-  resetAt(feet: Vec3): void {
-    if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid motor reset feet');
-    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + 0.005, z: feet.z });
+  resetAt(feet: Vec3, yaw = this.yaw): void {
+    if (![feet.x, feet.y, feet.z, yaw].every(Number.isFinite)) throw new RangeError('Invalid motor reset feet');
+    if (this.opts.convexBody !== undefined) { this.yawRotation(yaw); this.collider.setRotation(this.rot); this.yaw = yaw; }
+    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + (this.opts.convexBody === undefined ? 0.005 : 0), z: feet.z });
     this.anchorBody = null;
     Object.assign(this.result, { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null });
   }
@@ -390,8 +497,5 @@ export class CharacterMotor {
     if (errors.length > 0) throw new AggregateError(errors, 'Native motor retirement failed', { cause: errors[0] });
   }
 
-  dispose(): void {
-    this.physics.world.removeCharacterController(this.kcc);
-    this.physics.world.removeCollider(this.collider, false);
-  }
+  dispose(): void { this.retireForHandoff(); }
 }

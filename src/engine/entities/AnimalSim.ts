@@ -17,6 +17,8 @@ export interface AnimalSimSpec {
 /** Collision-only displacement port; the creature retains its own feet position. */
 export interface AnimalMotor {
   move: (feet: Vector3, want: { x: number; y: number; z: number }, ignoreGround: boolean) => void;
+  /** Optional collision-owned turn admission; false preserves the previous yaw without moving feet. */
+  acceptTurn?: (feet: Vector3, yaw: number) => boolean;
   dispose: () => void;
 }
 /** Detached prospective damage state. Preparing its pose must not mutate the actor or publish anything. */
@@ -97,6 +99,8 @@ export class AnimalSim {
   seed: number; scale: number;
   strafe = 0; desiredStrafe = 0; yOffset = 0;
   driven = false; levelGround = false;
+  /** Collision recipes restricted to a flat, untilted, nonflying actor root can refuse unsupported motion. */
+  get flatGroundRoot(): boolean { return this.levelGround && !this.driven && this.flight === null && this.yOffset === 0 && this.tiltRollT === 0; }
   groundHeight?: (x: number, z: number, fromY: number) => number;
   mem: Record<string, number> = {};
   protected attackT = -1; protected attackDur = 1;
@@ -337,7 +341,7 @@ export class AnimalSim {
       dy = Math.atan2(Math.sin(dy), Math.cos(dy));
       const maxTurn = (this.attackT >= 0 ? Math.min(this.turnRate, this.attackTurnCap) : this.turnRate) * dt;
       const turn = MathUtils.clamp(dy, -maxTurn, maxTurn);
-      this.yaw += turn;
+      if (this.motor?.acceptTurn?.(this.position, this.yaw + turn) !== false) this.yaw += turn;
       // a flier rolls into its turn (SpeciesFlight.bank); applyTerrain eases the body toward it
       if (this.flight !== null) this.tiltRollT = this.flight.bank(this.speed, dt > 0 ? turn / dt : 0);
       const accel = this.desiredSpeed > this.speed ? 7 : 11;
