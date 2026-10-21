@@ -1,5 +1,4 @@
 import { expect, test } from 'vitest';
-import { CoupledEncounter } from '../src/game/boss/encounterPatrol';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
@@ -17,27 +16,6 @@ test('the boss schedule retains committed target and emits a strike once', () =>
   expect(hits).toBe(1); expect(clock.value('x')).toBe(10); expect(clock.value('z')).toBe(20);
   clock.reset(); expect(clock.value('mode')).toBe(0); expect(clock.value('cd')).toBe(2.5);
   expect(() => clock.set({ missing: 1 })).toThrow('projection state');
-});
-
-test('support death chips the boss once and commits only one surviving member', () => {
-  const host = new CoupledEncounter(fight.TITAN_SUPPORT, author(), new Rng(513));
-  host.add('one', { theta: 0 }); const two = host.add('two', { theta: 2 });
-  const frame = { dt: 3, px: 10, pz: 20, hp: 1560, invuln: 0 };
-  const result = host.update(frame, [{ id: 'one', x: 0, z: 0, alive: false }, { id: 'two', x: 2, z: 0, alive: true }]);
-  expect(result.retired).toEqual(['one']); expect(result.state['hp']).toBe(1352); expect(two.state['mode']).toBe(2);
-  const next = host.update({ ...frame, hp: result.state['hp'] ?? 0, dt: .1 }, [{ id: 'two', x: 2, z: 0, alive: true }]);
-  expect(next.retired).toEqual([]); expect(next.state['hp']).toBe(1352);
-  host.reset(); expect(host.members).toEqual([]);
-});
-
-test('an unrelated orchard boss uses its own support health share and opening timing', () => {
-  const host = new CoupledEncounter({ ...fight.TITAN_SUPPORT, initial: { cd: 0 }, parameters: { chip: 12, lane: .2, flank: .4 } }, author(), new Rng(71));
-  const member = host.add('sentry', { theta: 1 });
-  const step = host.update({ dt: .1, px: 0, pz: 0, hp: 90, invuln: 0 }, [{ id: 'sentry', x: 10, z: 0, alive: true }]);
-  expect(step.state['index']).toBe(0); expect(member.state['mode']).toBe(1);
-  expect(host.damage(member, { x: 10, z: 0, px: 30, pz: 0, radius: 1 })).toBe(.5);
-  const end = host.update({ dt: .1, px: 0, pz: 0, hp: 90, invuln: 0 }, [{ id: 'sentry', x: 10, z: 0, alive: false }]);
-  expect(end.state['hp']).toBe(78); expect(end.state['broke']).toBe(1);
 });
 
 test('phase and arena rules are decided in the admitted module', () => {

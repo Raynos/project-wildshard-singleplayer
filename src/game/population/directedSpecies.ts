@@ -3,7 +3,6 @@ import { DirectedSpeciesSchema } from '@wildshard/format/speciesLooks';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
 import { app } from '@wildshard/engine/app/runtime';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import { coupledActorDamage } from '../boss/encounterPatrol';
 import { eliteDamageMul } from '../quest/elitePage';
 import { ReturnProgram } from './returnProgram';
 
@@ -37,7 +36,7 @@ export class DirectedSpecies {
         const result = this.program.project(row.signal, { ready: Number(x !== undefined && z !== undefined),
           distance: Math.hypot(point.x - (x ?? 0), point.z - (z ?? 0)), radius: row.radius, scale: row.scale });
         const scale = result['scale']; if (scale === undefined) throw new Error('Missing directed damage output');
-        return scale * (row.coupled ? coupledActorDamage(actor, point) : 1) * (row.elite ? eliteDamageMul(actor, point, direction) : 1);
+        return scale * (row.elite ? eliteDamageMul(actor, point, direction) : 1);
       } }),
     };
   }

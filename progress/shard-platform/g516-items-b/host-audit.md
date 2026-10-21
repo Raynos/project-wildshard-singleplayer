@@ -145,3 +145,19 @@ authoring MJS **+3**, AS **+51**. Root/layer types, typed lint and three
 focused suites (14 tests) pass, including history comparison, delayed
 strikes, pause/RNG, reset and the real headless boss fight. No collider,
 AS engine, resource bound or budget changes.
+
+
+X4 support cohort: delete the complete CoupledEncounter, its member/body
+interfaces and its separate damage registry/query. Existing ProjectedState
+retains each member and the shared cooldown; existing Titan AS still
+chooses the member, retirement mask, health chip, steering and damage.
+The arena's native body list remains the sole roster. Damage borrows the
+existing native species slot and is neutralized at retirement or clear;
+no author callback, new host API or additional platform credit is added.
+ProjectedState retains real Nalati + Nine HOST-BAR 6/6; the arena and
+native damage binding remain charged to Nalati at 4/6.
+Physical runtime TS: **shards 0, platform -73**; build TS **0**, AS **0**.
+Retire tests of the deleted wrapper; strengthen the actual mounted Titan
+fight with authored support health, ranged/melee damage and retired-owner
+checks. Root/layer types, typed lint and six suites (22 tests) pass.
+No collider, codec, AS engine or resource/budget changes.

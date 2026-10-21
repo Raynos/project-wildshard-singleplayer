@@ -46,7 +46,7 @@ export const DirectedSpeciesSchema = v.strictObject({ signal: text, clock: text,
   every: v.pipe(number, v.minValue(.1), v.maxValue(10)), target: v.tuple([text, text]), motion: v.tuple([text, text]),
   speed: number, turn: number, threshold: number, stopDistance: number, look: number,
   states: v.pipe(v.array(text), v.minLength(1), v.maxLength(32)),
-  damage: v.exactOptional(v.strictObject({ signal: text, player: v.tuple([text, text]), radius: number, scale: number, coupled: v.boolean(), elite: v.boolean() })),
+  damage: v.exactOptional(v.strictObject({ signal: text, player: v.tuple([text, text]), radius: number, scale: number, elite: v.boolean() })),
 });
 /** Packed body keys, rig contracts and painterly material measurements. */
 export const SpeciesLookBookSchema=v.pipe(v.unknown(),v.check(isJsonData),v.object({slug:text,body:v.unknown(),poses:v.optional(v.record(text,v.unknown())),program:v.optional(v.unknown()),

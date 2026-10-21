@@ -12,7 +12,7 @@ import shapeRows from '../src/shards/nalati-grasslands/boot/shapeBook.generated.
 test('a marsh courier projects its own target memory, cadence and hit rules through the existing guest', () => {
   const row = { signal: 'steer', clock: 'courier.clock', every: .1, target: ['guide.x', 'guide.z'], motion: ['guide.speed', 'guide.turn'],
     speed: 3, turn: 1.8, threshold: 5, stopDistance: 1.2, look: .4, states: ['wander', 'flee'],
-    damage: { signal: 'riderDamage', player: ['eye.x', 'eye.z'], radius: 2, scale: 1.4, coupled: false, elite: false } };
+    damage: { signal: 'riderDamage', player: ['eye.x', 'eye.z'], radius: 2, scale: 1.4, elite: false } };
   const binding = new DirectedSpecies(row, admission).binding, motions: number[][] = [];
   const actor = legacyDouble<Animal>({ position: new Vector3(4, 0, 8), yaw: .3, state: 'idle',
     mem: { 'guide.x': 7, 'guide.z': 12, 'guide.speed': 6, 'eye.x': 0, 'eye.z': 0 }, lookTarget: new Vector3(), lookWeight: 0,

@@ -28,9 +28,9 @@ import { installChannelPrograms } from '../plugin/channelPrograms';
 import type { WeatherReactions } from '../weather/reactions';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { installBossEncounter, type Boss } from '../Boss';
-import { type ProjectedState, ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, ReturnProgram } from '../population/returnProgram';
 import { wildEnv } from '../population/pageGroups';
-import { CoupledEncounter, type CoupledMember } from './encounterPatrol';
+import { setEliteDamage } from '../quest/elitePage';
 import { ArenaField, ArenaEncounter, arenaBlockedAt, installArenaBoundary, type ArenaBoundary, type ArenaClockEffect } from './arenaField';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
@@ -54,7 +54,7 @@ export function arenaScriptCloud(scene: THREE.Scene, state: Readonly<Record<stri
     puffs: { ...g.body.puffs,rows: g[TIER].puffs } },state,new Map([['place',{ ...data.arena.body,ground: heightAt(data.arena.ground.x,data.arena.ground.z) }]]));
 }
 export interface ArenaScriptWorld { readonly game: Game; readonly player: Player; readonly weather: WeatherReactions; readonly air: WeatherContinuation; readonly tieSpot: THREE.Vector3 | null }
-interface SupportActor { readonly a: Animal; readonly lane: GroundTell; readonly law: CoupledMember }
+interface SupportActor { readonly a: Animal; readonly lane: GroundTell; readonly law: ProjectedState }
 interface Chain { readonly tell: GroundTell; readonly law: ProjectedState }
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
 export class ArenaScriptFight implements BossScript {
@@ -75,7 +75,7 @@ export class ArenaScriptFight implements BossScript {
   private readonly spearAt = new THREE.Vector3();
   // phase II
   private stormRiders: SupportActor[] = [];
-  private readonly support: CoupledEncounter;
+  private readonly support: ProjectedState;
   private get domeBroken(): boolean { return this.life.value('broke')===1; }
   private set domeBroken(on: boolean) { this.life.event('support',{ hp: this.hp,broke: Number(on) }); }
   // phase III
@@ -114,7 +114,7 @@ export class ArenaScriptFight implements BossScript {
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
     this.rules = ReturnProgram.page(this.data.programs.rules, ctx.game.levelScope);
     this.life = bossFight(this.data.script,{ program: this.rules });
-    this.support = new CoupledEncounter(this.data.support, this.rules, app.rng.stream('ai'));
+    this.support = new ProjectedState({...this.data.support,signal:'couple'},this.rules);
     this.body = arenaScriptCloud(scene, this.pose, data);
     this.fightDraw = installChannelPrograms(this.data.geometry.poses, this.data.view.group, new Map<string,unknown>([
       ['pose',this.pose],['alpha',this.body.alpha],['flash',this.body.flash],['fight',this.viewRead],
@@ -319,37 +319,45 @@ export class ArenaScriptFight implements BossScript {
       if (a === null) continue;
       const lane = this.arena.tells('lane')[i];
       if (lane === undefined) continue;
-      const r: SupportActor = { a, lane, law: this.support.addActor(a, { theta: site.theta }, this.host.player.position) };
+      const rows=this.data.support,actors=rows.actors;if(actors===undefined)throw new Error('Missing support actor rows');
+      const law=new ProjectedState({initial:{...rows.member,theta:site.theta},parameters:rows.parameters,signals:rows.signals,signal:'member'},this.rules),player=this.host.player.position;
+      a.maxHp=actors.hp;a.hp=actors.hp;
+      setEliteDamage(a,(body,point)=>law.event('damage',{x:point.x,z:point.z,px:player.x,pz:player.z,radius:body.scale})['alpha']??1);
+      const r: SupportActor = { a,lane,law };
       this.stormRiders.push(r);
     }
   }
 
   private clearRiders(): void {
     const gr = this.host.riderOwner();
-    for (const r of this.stormRiders) { r.lane.hide(); if (r.a.alive && gr !== null) { r.a.alive = false; gr.dissolve(r.a); } }
-    this.stormRiders = []; this.support.clear();
+    for (const r of this.stormRiders) { setEliteDamage(r.a,()=>1);r.lane.hide(); if (r.a.alive && gr !== null) { r.a.alive = false; gr.dissolve(r.a); } }
+    this.stormRiders = [];
     for (const l of this.arena.tells('lane')) l.hide();
   }
 
   private updateRiders(dt: number): void {
-    const p = this.host.player.position;
-    const riders = this.stormRiders;
-    const step = this.support.updateActors({ dt, px: p.x, pz: p.z, hp: this.hp, invuln: Number(this.invuln) });
-    this.hp = step.state['hp'] ?? this.hp;
-    for (let i = riders.length - 1; i >= 0; i--) {
-      const r = riders[i]; if (r === undefined) continue;
-      if (step.retired.includes(r.law.id)) {
-        r.lane.hide(); riders.splice(i, 1);
-        this.host.feed(riders.length > 0 ? this.data.lines.riderBreaks+this.data.view.remaining.replace('{count}',String(riders.length)) : this.data.lines.lastRider);
-        continue;
-      }
-      const a = r.a, state = r.law.state;
-      const answer = step.members.get(r.law.id);
-      const n = (key: string): number => { const value = answer?.[key]; if (value === undefined) throw new Error('Missing support decision'); return value; };
-      if (n('show') === 1) r.lane.lane(state['x0'] ?? 0, state['z0'] ?? 0, state['x1'] ?? 0, state['z1'] ?? 0, 4.2, n('alpha')); else r.lane.hide();
-      if (n('hurt') === 1 && this.host.contact('wind', a.position, this.data.tuning.chargeDamage, this.data.lines.charge)) this.host.throwRider();
+    const p=this.host.player.position,riders=this.stormRiders,rows=this.data.support;
+    const frame={dt,px:p.x,pz:p.z,hp:this.hp,invuln:Number(this.invuln)};
+    const state=this.support.project({...frame,count:riders.length},app.rng.stream('ai'),riders.map(({a,law})=>({x:a.position.x,z:a.position.z,hit:Number(a.alive),mode:law.value('mode')})));
+    const selected=riders[state['index']??-1];
+    if(selected!==undefined){
+      selected.law.set(rows.commit);
+      selected.law.set(Object.fromEntries(['x0','z0','x1','z1'].map(key=>[key,state[key]??0] as const)));
     }
-    if (step.state['broke'] === 1 && !this.domeBroken) { this.domeBroken = true; this.body.flash.value = 1; }
+    this.hp=state['hp']??this.hp;
+    for(let i=riders.length-1;i>=0;i--){
+      const r=riders[i];if(r===undefined)continue;
+      if(((state['mask']??0)&(1<<i))!==0){
+        setEliteDamage(r.a,()=>1);r.lane.hide();riders.splice(i,1);
+        this.host.feed(riders.length>0?this.data.lines.riderBreaks+this.data.view.remaining.replace('{count}',String(riders.length)):this.data.lines.lastRider);continue;
+      }
+      const a=r.a,answer=r.law.project({...frame,ax:a.position.x,az:a.position.z});
+      const n=(key:string):number=>{const value=answer[key];if(value===undefined)throw new Error('Missing support decision');return value;};
+      for(const [slot,channel]of Object.entries(rows.actors?.memory??{}))a.mem[slot]=n(channel);
+      if(n('show')===1)r.lane.lane(r.law.value('x0'),r.law.value('z0'),r.law.value('x1'),r.law.value('z1'),4.2,n('alpha'));else r.lane.hide();
+      if(n('hurt')===1&&this.host.contact('wind',a.position,this.data.tuning.chargeDamage,this.data.lines.charge))this.host.throwRider();
+    }
+    if(state['broke']===1&&!this.domeBroken){this.domeBroken=true;this.body.flash.value=1;}
   }
 
   // ── III · the grass fire + chain lightning ──

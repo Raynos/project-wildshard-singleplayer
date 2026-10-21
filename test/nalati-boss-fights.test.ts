@@ -1,3 +1,5 @@
+import type { Animal } from '../src/engine/entities/AnimalView';
+import { eliteDamageMul } from '../src/game/quest/elitePage';
 // @vitest-environment happy-dom
 import { app } from '../src/engine/app/runtime';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -105,6 +107,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   const fight = owner.fight;
   f.player.position.set(world.CAIRN.x, 0, world.CAIRN.z + titan.TITAN_PLACE.centreZ); fight.tied = true;
   const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
+  let support:Animal|null=null,supportChecked=false;
   try {
     e.brain.arm();
     for (let frame = 0; frame < 12000 && e.brain.state !== 'victory'; frame++) {
@@ -112,7 +115,14 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
       owner.mount.horse = horse; owner.mount.feet.copy(f.player.position);
       e.step(dt, t);
       if (frame % 15 === 0 && e.brain.state === 'fight') {
-        for (const { a } of riders.riders) if (a.alive) a.applyDamage(1000,a.position,direction);
+        for (const { a } of riders.riders) if(a.alive){
+          if(fight.phase===1&&!supportChecked){
+            support=a;supportChecked=true;expect(a.hp).toBe(data.support.actors?.hp);
+            expect(eliteDamageMul(a,f.player.position.clone().add(new Vector3(100,0,0)),direction)).toBe(.5);
+            expect(eliteDamageMul(a,f.player.position,direction)).toBe(1);
+          }
+          a.applyDamage(1000,a.position,direction);
+        }
         const target = fight.lockTarget();
         if (target !== null && fight.heartOpen) {
           const hit = fight.target(target.position.clone().add(new Vector3(0, 0, 30)), direction, 100, null);
@@ -122,6 +132,8 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     }
     expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['armed:0','intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
     expect(e.saved).toEqual({ defeated: true, rewardTaken: false, kills: 1 }); expect(e.rewards).toBe(1); expect(fight.dead).toBe(true);
+    expect(supportChecked).toBe(true);if(support===null)throw new Error('Missing actual support actor');
+    expect(eliteDamageMul(support,f.player.position.clone().add(new Vector3(100,0,0)),direction)).toBe(1);
     fight.reset(0); expect(fight.inArena(f.player.position)).toBe(false); expect(fight.hp).toBe(data.place.heartHp);
   } finally { scope.dispose(); figure.dispose(); for (const material of materials.values()) material.dispose(); restore(); }
 });
