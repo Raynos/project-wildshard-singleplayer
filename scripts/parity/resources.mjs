@@ -6,23 +6,30 @@ export function installResources() {
   let listenerId=0;
   // oxlint-disable-next-line typescript/unbound-method -- Wrappers preserve the native receiver through call().
   const add=EventTarget.prototype.addEventListener,remove=EventTarget.prototype.removeEventListener;
+  // O12: each target's entries by capture + type, so add/remove never scan every listener on the page (the whole-set scan
+  // was quadratic: Pine's admission adds thousands, and froze the Simulator soak 12-15 s)
+  /** @type {WeakMap<EventTarget, Map<string, Entry[]>>} */ const index=new WeakMap();
+  /** @param {EventTarget} target @param {string} type @param {boolean} capture */
+  const slot=(target,type,capture)=>{let byKey=index.get(target);if(!byKey){byKey=new Map();index.set(target,byKey);}
+    const key=(capture?'1:':'0:')+type;let list=byKey.get(key);if(!list){list=[];byKey.set(key,list);}return list;};
   /** @param {Entry} entry */
-  const forget=(entry)=>{listeners.delete(entry);if(entry.signal && entry.abort)remove.call(entry.signal,'abort',entry.abort);};
+  const forget=(entry)=>{listeners.delete(entry);const list=slot(entry.target,entry.type,entry.capture),at=list.indexOf(entry);if(at!==-1)list.splice(at,1);
+    if(entry.signal && entry.abort)remove.call(entry.signal,'abort',entry.abort);};
   EventTarget.prototype.addEventListener=/** @this {EventTarget} @param {string} type @param {EventListenerOrEventListenerObject|null} callback @param {boolean|AddEventListenerOptions} [options] */ function addEventListener(type,callback,options){
     if(!callback){add.call(this,type,callback,options);return;}
     const capture=typeof options==='boolean'?options:options?.capture??false;
-    const prior=[...listeners].find((e)=>e.target===this && e.type===type && e.callback===callback && e.capture===capture);
+    const prior=slot(this,type,capture).find((e)=>e.callback===callback);
     if(prior)return;
     const signal=typeof options==='object'?options.signal:undefined;
     if(signal?.aborted)return;
     const once=typeof options==='object' && options.once===true;
     /** @type {Entry} */ const entry={id:++listenerId,target:this,type,callback,capture,stack:new Error(`listener ${type}`).stack??'',wrapped(event){if(once)forget(entry);if(typeof callback==='function')callback.call(this,event);else callback.handleEvent(event);}};
     if(signal){entry.signal=signal;entry.abort=()=>forget(entry);add.call(signal,'abort',entry.abort,{once:true});}
-    listeners.add(entry);add.call(this,type,entry.wrapped,options);
+    listeners.add(entry);slot(this,type,capture).push(entry);add.call(this,type,entry.wrapped,options);
   };
   EventTarget.prototype.removeEventListener=/** @this {EventTarget} @param {string} type @param {EventListenerOrEventListenerObject|null} callback @param {boolean|EventListenerOptions} [options] */ function removeEventListener(type,callback,options){
     const capture=typeof options==='boolean'?options:options?.capture??false;
-    const entry=[...listeners].find((e)=>e.target===this && e.type===type && e.callback===callback && e.capture===capture);
+    const entry=slot(this,type,capture).find((e)=>e.callback===callback);
     if(entry){forget(entry);remove.call(this,type,entry.wrapped,options);}else remove.call(this,type,callback,options);
   };
   /** @type {Map<number,string>} */ const timeouts=new Map(),intervals=new Map(),raf=new Map();
