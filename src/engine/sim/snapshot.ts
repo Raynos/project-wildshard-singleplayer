@@ -244,6 +244,16 @@ function sameIds(actual: readonly string[], expected: Iterable<string>): boolean
   return wanted.size === actual.length && new Set(actual).size === actual.length && actual.every((id) => wanted.has(id));
 }
 
+const restoreChecks = new WeakMap<SimHost, (() => void)[]>();
+/** Reinstalled services may require native state that does not exist until the
+ * restore transaction replaces physics and reconnects its tags and adapters.
+ * Checks run once before the restored host escapes; ordinary hosts refuse. */
+export function onSimHostRestored(host: SimHost, check: () => void): void {
+  const checks = restoreChecks.get(host);
+  if (checks === undefined) throw new Error('Simulation host is not restoring');
+  checks.push(check);
+}
+
 /** Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. */
 export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved: SimSnapshot, install?: (host: SimHost) => void): SimHost {
   if (saved.version !== SIM_SNAPSHOT_VERSION || saved.apiVersion !== SIM_API_VERSION || saved.levelId !== level.id
@@ -252,6 +262,8 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     || !Object.values(saved.state.timers).every((value) => Number.isFinite(value) && value >= 0)
     || saved.physics.length === 0 || saved.physics.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255)) throw new RangeError('Incompatible simulation snapshot');
   const host = createSimHost(level, ports);
+  const checks: (() => void)[] = [];
+  restoreChecks.set(host, checks);
   let replacement: Physics | null = null;
   try {
     install?.(host);
@@ -338,6 +350,9 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
     }
     host.restoreBoardColliders(saved.boardColliders ?? []);
     for (const adapter of host.adapters.values()) adapter.physicsRestored?.();
+    restoreChecks.delete(host);
+    for (const check of checks) check();
     return host;
   } catch (error) { replacement?.dispose(); host.dispose(); throw error; }
+  finally { restoreChecks.delete(host); }
 }

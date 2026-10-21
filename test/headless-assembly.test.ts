@@ -5,7 +5,8 @@ import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/hea
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/sim';
-import { snapshotSimHost } from '../src/engine/sim/snapshot';
+import { snapshotSimHost, restoreSimHost, onSimHostRestored } from '../src/engine/sim/snapshot';
+import { hasStaticGround } from '../src/engine/physics/query';
 import { tagCollider } from '../src/engine/physics/surface';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
@@ -117,4 +118,31 @@ test('refuses native body scripts before real ground admission or after its host
     expect(snapshotSimHost(host)).toEqual(unready);
   } finally { host.dispose(); }
   expect(() => plan.install(host, context)).toThrow('owner has ended');
+});
+
+test('native restore checks the restored ground before releasing the host', async () => {
+  const shard = emptyShardfile({ slug: 'native-restore-ground', name: 'Restore Ground', author: 'Test', revision: 1, seed: 1 });
+  const declaration = { ...base, install: [{ name: 'bodies', value: { $native: 'native.body-scripts' } }] };
+  const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard,
+    sections: new Map<string, unknown>([['sim/scripts', []], ['sim/bodies', {}]]),
+    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
+    read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
+  const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, {});
+  const source = createSimHost(plan.level, { rapier }), empty = createSimHost(plan.level, { ...plan.ports, rapier });
+  const ports = { ...plan.ports, rapier };
+  const context = { restoring: true, commands: () => [], emit: () => undefined };
+  try {
+    const saved = snapshotSimHost(source);
+    const restored = restoreSimHost(plan.level, ports, saved, host => {
+      expect(hasStaticGround(host.physics)).toBe(false);
+      plan.install(host, context);
+    });
+    try {
+      expect(hasStaticGround(restored.physics)).toBe(true);
+      expect(snapshotSimHost(restored)).toEqual(saved);
+      expect(() => onSimHostRestored(restored, () => undefined)).toThrow('not restoring');
+    } finally { restored.dispose(); }
+    expect(() => restoreSimHost(plan.level, ports, snapshotSimHost(empty), host => { plan.install(host, context); })).toThrow('require admitted ground');
+    expect(() => plan.install(empty, context)).toThrow('not restoring');
+  } finally { source.dispose(); empty.dispose(); }
 });

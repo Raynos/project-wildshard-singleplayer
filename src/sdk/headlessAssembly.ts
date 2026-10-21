@@ -5,6 +5,7 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { installNativeBodyScripts } from '@wildshard/game/quest/nativeBodyScripts';
 import { hasStaticGround } from '@wildshard/engine/physics/query';
+import { onSimHostRestored } from '@wildshard/engine/sim/snapshot';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation } from './headlessRuntime';
 
 /** Static imports supplied by the trusted caller and checked by the producer.
@@ -128,7 +129,9 @@ function evaluate(value: Value, env: Environment): unknown {
     if (input !== 'native.body-scripts' || env.native === undefined) throw new Error('Native capability requires its installation frame');
     const { host, context, preparation } = env.native, product = preparation.product;
     if (host.scope.disposed || host.scope.disposing) throw new Error('Native capability owner has ended');
-    if (!hasStaticGround(host.physics)) throw new Error('Native body scripts require admitted ground');
+    const requireGround = (): void => { if (!hasStaticGround(host.physics)) throw new Error('Native body scripts require admitted ground'); };
+    if (context.restoring) onSimHostRestored(host, requireGround);
+    else requireGround();
     const sections = new Map<string, unknown>([['sim/scripts', product.section('sim/scripts')], ['sim/bodies', product.section('sim/bodies')]]);
     installNativeBodyScripts(host, product.shardfile, preparation.assets, context.restoring, sections);
     return undefined;
