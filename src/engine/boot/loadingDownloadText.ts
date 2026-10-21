@@ -26,7 +26,8 @@ export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolea
 /** Wire traffic, verified cache reads and disk-prefetch completion have separate units and totals. */
 export function loadingDownloadText(transfer: DownloadSnapshot, scoped: boolean, prefetch: LoadingPrefetchSnapshot | null): string {
   const unknown = transfer.unclassifiedFiles > 0 ? ` · wire size unavailable for ${transfer.unclassifiedFiles} files (${formatMB(transfer.unclassifiedBytes)} known body)` : '';
-  const activity = `${scoped ? 'Page activity during this load: ' : ''}${formatMB(transfer.networkBytes)} network${transfer.unclassifiedFiles > 0 ? ' measured' : ''} · ${formatMB(transfer.cachedBytes)} offline cache · ${formatMB(transfer.pendingBytes)} declared pending · ${transfer.filesDone} / ${transfer.filesTotal} load files${unknown}`;
+  const network = transfer.unclassifiedFiles > 0 ? `Network total unavailable (${formatMB(transfer.networkBytes)} measured)` : `${formatMB(transfer.networkBytes)} network`;
+  const activity = `${scoped ? 'Page activity during this load: ' : ''}${network} · ${formatMB(transfer.cachedBytes)} offline cache · ${formatMB(transfer.pendingBytes)} declared pending · ${transfer.filesDone} / ${transfer.filesTotal} load files${unknown}`;
   if (prefetch === null) return activity;
   const bytes = prefetch.presentBytes + prefetch.storedBytes, files = prefetch.presentFiles + prefetch.storedFiles;
   const state = prefetch.phase === 'running' ? 'prefetching' : prefetch.phase === 'done' ? 'prefetch finished' : 'prefetch stopped';

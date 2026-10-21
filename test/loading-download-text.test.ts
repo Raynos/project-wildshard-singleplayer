@@ -26,7 +26,7 @@ it('keeps actual wire bytes separate from cached and discovered disk-prefetch by
 
 it('shows missing wire measurements even when the browser exposes zero body bytes', () => {
   expect(loadingDownloadText({ ...traffic, unclassifiedFiles: 2, unclassifiedBytes: 0 }, false, null))
-    .toContain('1.30 MB network measured · 2.00 MB offline cache');
+    .toContain('Network total unavailable (1.30 MB measured) · 2.00 MB offline cache');
   expect(loadingDownloadText({ ...traffic, unclassifiedFiles: 2, unclassifiedBytes: 0 }, false, null))
     .toContain('wire size unavailable for 2 files (0.00 MB known body)');
 });
@@ -37,4 +37,12 @@ it('reports quota stops and partial finished runs without claiming the whole set
   expect(loadingDownloadText(traffic, false, { ...prefetch, phase: 'done', productsRead: 25 }))
     .toContain('5 / 10 prefetch files · 25 / 25 products checked · prefetch finished');
   expect(loadingDownloadText(traffic, false, null)).not.toContain('On disk');
+});
+
+it('never presents missing Safari wire measurements as zero downloaded', () => {
+  const text = loadingDownloadText({ ...traffic, networkBytes: 0, unclassifiedFiles: 1133, unclassifiedBytes: 232_600_000 }, false, prefetch);
+  expect(text).toContain('Network total unavailable (0.00 MB measured)');
+  expect(text).not.toContain('0.00 MB network');
+  expect(text).toContain('wire size unavailable for 1133 files (232.6 MB known body)');
+  expect(text).toContain('On disk: 10.0 MB of 20.0 MB known so far');
 });
