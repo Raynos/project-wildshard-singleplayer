@@ -51,7 +51,7 @@ test('an orchard quest resolves native services by ids and restores carried rewa
     bindLegacyDirector(stages, create(), { observations: { altar: 0, dead: 0, seen: 0, 'player-x': 30, 'player-z': 30, 'reward-x': 0, 'reward-z': 0 },
       actions: { 'captain.restore': [], 'captain.wake': [], 'captain.dead': [], 'reward.start': bindings.actions['reward.start'], 'reward.finish': bindings.actions['reward.finish'] },
       changes: [], source: 'optional', initialDt: 0 }, new Map<string, unknown>([['reward', reward], ['flags', host.flags]]), host.scope, saved !== undefined, host, rows.director);
-    installNativeQuestComposition(host, { source, rows, spots, props, counters, feats: [], table: { external: [], rows: [] }, restoring: saved !== undefined }); population.settle();
+    installNativeQuestComposition(host, { source, rows, spots, props, counters, table: { external: [], rows: [] }, restoring: saved !== undefined }); population.settle();
     return { equipment, reward, release: () => { commands = []; } };
   };
   const host = createSimHost(level, { rapier }); let fork: ReturnType<typeof createSimHost> | undefined;

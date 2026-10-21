@@ -820,15 +820,10 @@
                 "spots"
               ]
             },
-            "feats": {
-              "$ref": [
-                "counters",
-                "feats"
-              ]
-            },
             "counters": {
               "$ref": [
-                "counters"
+                "constants",
+                "nativeCounters"
               ]
             },
             "props": {

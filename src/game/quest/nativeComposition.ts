@@ -10,7 +10,6 @@ import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredQuests } from './declared';
 import { QuestRewardController, installNativeQuestProps } from '../plugin/quests';
-import type { AchievementCounterRows } from '../achievements';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { NativeInventory } from '../inventoryLaw';
 import { nativeMeleeItem } from '../plugin/nativeItems';
@@ -38,7 +37,7 @@ export function readNativeQuestSpots(input: unknown): NativeQuestSpots {
 export interface NativeQuestCompositionInput {
   readonly rows: unknown; readonly counters: AchievementCounterData;
   readonly source: Shardfile; readonly table: InteractTable;
-  readonly spots: NativeQuestSpots; readonly feats: AchievementCounterRows['feats'];
+  readonly spots: NativeQuestSpots;
   readonly props: unknown; readonly restoring: boolean;
 }
 
@@ -80,10 +79,9 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   host.scope.onDispose(() => { reward.dispose(); });
   const keyPrompt = { x: 0, y: 0, z: 0 };
   const state = { iron: false };
-  const feats=ports.feats.filter(f=>f.kind===undefined);
+  const feats=ports.counters.feats;
   if(feats.length>policy.limits.rows||feats.some(f=>f.count>policy.limits.rows))throw new RangeError('Native quest feats exceed their finite bound');
-  const flagRows=feats.map(feat=>ports.counters.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
-  const counterBook=entry.achievements({...ports.counters,feats,flags:flagRows,write:'each'},Object.fromEntries(feats.map(feat=>[feat.id,0])));
+  const counterBook=entry.achievements(ports.counters,Object.fromEntries(feats.map(feat=>[feat.id,0])));
 
   const promptOf = (r: (typeof rules)[number]): { x: number; y: number; z: number } | undefined => {
     const key = props.dropAt(policy.keyDrop.id);
