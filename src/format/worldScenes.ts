@@ -7,6 +7,7 @@ import { WorldScenePlacementSchema } from './worldScenePlacement';
 import { WorldSceneBatchSchema } from './worldSceneBatch';
 import { WorldSceneWeldSourceSchema } from './worldSceneWeld';
 import { SceneDrawsSchema } from './sceneDraws';
+import { SpecimenCatalogueSchema } from './specimenCatalogue';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
@@ -92,6 +93,8 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
   v.strictObject({ version: v.literal(1), libraries: bounded(library, 32), materials: bounded(material, 128), steps: bounded(step, 64), catalogue: v.exactOptional(id),
     // the declared world entry (format/worldEntry): the ordered rows the world build runs over these scenes
     entry: v.exactOptional(WorldEntrySchema),
+    // G3: code-built specimen models (the shard's specimen catalogue rows) its placements may name beside the site catalogue's
+    specimens: v.exactOptional(SpecimenCatalogueSchema),
     dressing: v.exactOptional(v.strictObject({phone:id,desktop:id})),
     cosmeticDraws: v.exactOptional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(1000000))),
     batches: v.optional(bounded(WorldSceneBatchSchema, 32), []), lent: v.optional(bounded(lentTexture, 32), []),

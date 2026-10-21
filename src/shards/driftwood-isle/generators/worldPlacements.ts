@@ -2,6 +2,7 @@ import wreck from '../data/wreckBake.json' with { type: 'json' };
 import cove from '../data/coveBake.json' with { type: 'json' };
 import composition from '../data/coveComposition.json' with { type: 'json' };
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
+import trail from '../data/trailsideBake.json' with { type: 'json' };
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 
 interface Spot { readonly x: number; readonly y: number; readonly z: number; readonly variant?: string; readonly params?: Readonly<Record<string, unknown>> }
@@ -48,4 +49,12 @@ export const WORLD_PLACEMENTS: readonly WorldScenePlacementRow[] = [
   upright('wreck.coils', 'ropeCoil', 'wreck.root', 'wreck-coils', wreck.catalogue.coils),
   upright('wreck.reef', 'reefRock', 'wreck.root', 'wreck-reef-rocks', wreck.catalogue.rocks, true),
   upright('cove.reef', 'reefRock', composition.rocks, composition.reefPiece, cove.catalogue, true),
+];
+
+/** The sand paths' fence posts, signposts and plank steps (the section's specimens, G3), drawn into the trail's weld
+ *  (pieces `trail-*`, their colliders with them); each its own placement file `world/trail/<id>.json` (output.ts). */
+export const TRAIL_PLACEMENTS: readonly WorldScenePlacementRow[] = [
+  upright('trail.posts', 'fencePost', 'trail.mesh', 'trail-fence-posts', { placements: trail.posts.pls, boxes: trail.posts.boxes }),
+  upright('trail.signs', 'signpost', 'trail.mesh', 'trail-signposts', { placements: trail.signs.pls, boxes: trail.signs.boxes }),
+  upright('trail.planks', 'plankStep', 'trail.mesh', 'trail-steps', { placements: trail.planks.pls, boxes: trail.planks.boxes }),
 ];

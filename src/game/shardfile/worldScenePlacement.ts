@@ -24,7 +24,7 @@ function requireLive(owner: Scope): void { if (owner.disposed) throw new Error('
 export class WorldScenePlacement {
   private pending: Promise<Placed> | undefined;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
-    private readonly catalogue: ReturnType<typeof defineWorldSceneCatalogue>, private readonly owner: Scope,
+    private readonly catalogue: Pick<ReturnType<typeof defineWorldSceneCatalogue>, 'model'>, private readonly owner: Scope,
     private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>, private readonly batch?: WorldSceneBatch) {}
 
   load(): Promise<Placed> {

@@ -12,7 +12,10 @@ import zipBlobs from '../data/ziplineBlobs.generated.json' with { type: 'json' }
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';
 import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
-import { WORLD_PLACEMENTS } from './worldPlacements';
+import { WORLD_PLACEMENTS, TRAIL_PLACEMENTS } from './worldPlacements';
+import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
+import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import * as v from 'valibot';
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
 const rockRows = parseWorldScenes({ version: 1, libraries: [rocks.section.library], materials: [], steps: [rocks.section.step] });
@@ -22,6 +25,8 @@ const nativeRows = parseWorldScenes({ version: 1, libraries: [native.library], m
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export const WORLD_SCENES: WorldScenesSection = {
   version: 1, catalogue: 'models/world-scenes.json',
+  // the trail's fence post, signpost and plank step: code-built specimens its placements name (G3)
+  specimens: v.parse(SpecimenCatalogueSchema, trailSpecimens),
   libraries: [...cargoRows.libraries, ...nativeRows.libraries, REEF_SCENE_LIBRARY, ...rockRows.libraries, ...parseWorldScenes({ version: 1, libraries: foliage.libraries, materials: [], steps: [] }).libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs', ...piers.slots, 'boatHull', 'boatSail', 'boatGear', 'mooringLines', 'duneLogs', ...Object.values(inventory.groups.driftLogs)].map(id => {
     const row = inventory.draws.find(entry => entry.slot === id), file = id === 'covePools' ? 'models/scene-pools.glb' : id === 'waterfallRings' ? 'models/scene-rings.glb' : DRIFTWOOD_FIXED_SOURCES[id];
     if (row === undefined || file === undefined) throw new Error(`Missing cascade bake: ${id}`);
@@ -29,7 +34,7 @@ export const WORLD_SCENES: WorldScenesSection = {
     for (const [from, to] of row.channels) { if (from === undefined || to === undefined) throw new Error('Missing cascade channel'); attributes[from] = to; }
     return { id, file, attributes };
   }).concat(['world', 'trolley', 'specimen', 'parked'].map(key => { const name = `models/zipline/${key}.glb`, blob = zipBlobs.blobs.find(row => row.name === name); if (blob === undefined) throw new Error(`Missing zipline scene: ${key}`); return { id: `zipline-${key}`, file: name, attributes: {} }; })) }],
-  placements: [...piers.placements.map(row => ({ id: row.id, file: `world/piers/${row.id}.json` })), { id: 'foliage.logs', file: 'world/foliage/logs.json' }, { id: 'wreck.logs', file: 'world/foliage/wreck-logs.json' }, ...WORLD_PLACEMENTS, ...['phone', 'desktop'].flatMap(tier => ['palms', 'hibiscus'].map(kind => ({ id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}`, file: `world/foliage/${kind}-${tier}.json` })))],
+  placements: [...piers.placements.map(row => ({ id: row.id, file: `world/piers/${row.id}.json` })), { id: 'foliage.logs', file: 'world/foliage/logs.json' }, { id: 'wreck.logs', file: 'world/foliage/wreck-logs.json' }, ...TRAIL_PLACEMENTS.map(row => ({ id: row.id, file: `world/trail/${row.id}.json` })), ...WORLD_PLACEMENTS, ...['phone', 'desktop'].flatMap(tier => ['palms', 'hibiscus'].map(kind => ({ id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}`, file: `world/foliage/${kind}-${tier}.json` })))],
   materials: [{ id: 'solid', kind: 'lowpoly', variant: 'solid', properties: {} }, { id: 'pennant', kind: 'lowpoly', variant: 'pennant', properties: {} }, { id: 'palm', kind: 'lowpoly', variant: 'palm', properties: {} }, { id: 'reef', kind: 'look', look: REEF_LOOK }, ...Object.entries(CASCADE_LOOKS).map(([id, look]) => ({ id, kind: 'look' as const, look })),
     { id: 'shrine-pool', kind: 'look', look: SHRINE_POOL_LOOK },
     { id: 'glyphs', kind: 'basic', properties: { color: 0x7fd9ff, side: 2 } },

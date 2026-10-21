@@ -31,8 +31,8 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   expect(Object.keys(collections.models['plaques']?.trophies?.full ?? {})).toHaveLength(2);
   for (const key of ['npc', 'hutChest', 'door', 'porch']) expect(layouts.hut.anchors[key], key).toBeDefined();
   for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(layouts.lookout.anchors[key], key).toBeDefined();
-  const trail = value('custom/trailside');
-  expect(trail.worldColliders.some(row => row.kind === 'treads')).toBe(true); expect(trail.posts.pls.length * 6).toBe(trail.posts.boxes.length);
+  // the trail's posts, signs and steps are world scene placements now (G3)
+  expect(custom.sections.some(row => row.name === 'custom/trailside')).toBe(false);
   expect(loaded.shard.items.catalogue).toEqual(DRIFTWOOD_ITEMS);
   expect(loaded.shard.quests.achievements).toEqual(DRIFTWOOD_FEATS);
   expect(custom.sections.some(row => row.name === 'custom/questRows')).toBe(false);

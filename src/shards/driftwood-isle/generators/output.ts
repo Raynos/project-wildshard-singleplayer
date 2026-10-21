@@ -45,7 +45,7 @@ import { BAKED_COVE } from './bakedCove';
 import buildingLife from '../data/buildingLife.json' with { type: 'json' };
 import coveScene from '../data/coveScene.json' with { type: 'json' };
 import { WORLD_SCENES, SCENE_MODEL_BLOBS } from './worldScenes';
-import { uprightPoses } from './worldPlacements';
+import { uprightPoses, TRAIL_PLACEMENTS } from './worldPlacements';
 import cascadeScene from '../data/cascadeScene.json' with { type: 'json' };
 import { HELD_ARMS } from './heldArms';
 import questKillSteps from '../data/questKillSteps.json' with { type: 'json' };
@@ -111,6 +111,7 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
   nameBlob('scenes/moorings.json', 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['lines'] }, { kind: 'mesh', id: 'lines', geometry: 'lines', material: 'still', missing: 'empty', castShadow: true }], materials: [{ kind: 'port', id: 'still', source: 'still' }] }, imports: [] })),
   ...piers.placements.map(row => nameBlob(`world/piers/${row.id}.json`, 'json', new TextEncoder().encode(JSON.stringify(row)))),
   nameBlob('world/foliage/logs.json', 'json', new TextEncoder().encode(JSON.stringify(foliage.logPlacement))),
+  ...TRAIL_PLACEMENTS.map(row => nameBlob(`world/trail/${row.id}.json`, 'json', new TextEncoder().encode(JSON.stringify(row)))),
   nameBlob('world/foliage/wreck-logs.json', 'json', new TextEncoder().encode(JSON.stringify(foliage.wreckLogPlacement))),
   ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => nameBlob(`scenes/${kind}.json`, 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['mesh'] }, { kind: 'mesh', id: 'mesh', name: kind === 'reef' ? 'seabed' : kind === 'logs' ? 'ground-cover-driftwood' : kind, geometry: 'plant', material: 'plant', missing: 'empty', castShadow: kind !== 'reef', receiveShadow: true }], materials: [{ kind: 'port', id: 'plant', source: 'plant' }] }, imports: [] }))),
   ...(['phone', 'desktop'] as const).flatMap(tier => (['palms', 'hibiscus'] as const).map(kind => nameBlob(`world/foliage/${kind}-${tier}.json`, 'json', new TextEncoder().encode(JSON.stringify({ ...foliage.placements[tier][kind], poses: uprightPoses(foliage.placements[tier][kind].poses), id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}` }))))),

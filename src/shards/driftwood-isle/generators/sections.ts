@@ -29,8 +29,6 @@ const fixedSite = { site, origin: point, colliders: boxes, anchors: v.record(tex
 const shrineSite = v.strictObject({ ...fixedSite, descs: v.pipe(v.array(surfaced), v.maxLength(128)), baseY: number, terrace: number });
 const npcScene = v.strictObject({ recipe: PrivateSceneSchema, parts: v.pipe(v.record(text, v.picklist(['group', 'object'])), v.maxEntries(16)),
   bindings: v.pipe(v.record(text, v.strictObject({ kind: v.picklist(['group', 'object']), part: text })), v.maxEntries(16)) });
-const trailPoint = { x: number, y: number, z: number };
-const trailGroup = <T extends v.GenericSchema>(pl: T) => v.strictObject({ pls: v.pipe(v.array(pl), v.maxLength(1024)), boxes: v.pipe(v.array(number), v.maxLength(16384)) });
 const cove = v.strictObject({
   composition: v.strictObject({ root: text, rocks: text, cascade: text, look: text, reefPiece: text, piece: v.strictObject({ id: text, name: text, category: v.literal('nature'), file: text, surface: v.literal('rock'), solidFloor: v.literal(true) }) }),
   spec: v.strictObject({ pools: v.pipe(v.array(v.strictObject({ x: number, z: number, r: number })), v.maxLength(64)), crabSites: v.pipe(v.array(v.strictObject({ x: number, z: number })), v.maxLength(64)),
@@ -165,19 +163,6 @@ export const SECTIONS = {
     /** the trophy plaques' board, empty and full vertex ranges */
     hut: v.strictObject({ ...fixedSite, descs }),
     lookout: v.strictObject({ ...fixedSite, descs, zipTo: v.strictObject({ x: number, z: number }) }),
-  }),
-  /** the trail weld's spec key, post / sign / plank placements, legacy boxes and native colliders (data/trailsideBake.json) */
-  'custom/trailside': v.strictObject({
-    specKey: v.pipe(v.string(), v.maxLength(4096)),
-    posts: trailGroup(v.strictObject(trailPoint)),
-    signs: trailGroup(v.strictObject({ ...trailPoint, params: v.strictObject({ arrows: v.pipe(v.array(number), v.maxLength(8)), labels: v.pipe(v.array(text), v.maxLength(8)) }) })),
-    planks: trailGroup(v.strictObject({ ...trailPoint, params: v.strictObject({ w: number, roll: number, yaw: number, dark: v.boolean() }) })),
-    colliders: v.pipe(v.array(box), v.maxLength(1024)),
-    worldColliders: v.pipe(v.array(v.union([
-      v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: number }),
-      v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, rot: v.strictObject({ x: number, y: number, z: number, w: number }) }),
-      v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: number, count: natural }),
-    ])), v.maxLength(1024)),
   }),
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
   /** the gull flock (data/gullsLook.ts GULL_FLOCK, @wildshard/sdk/looks/ambientFlock) */

@@ -12,7 +12,7 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import * as THREE from 'three';
-import { sites, fencePost, signpost, plankStep, entryDeck } from '../models/catalogue';
+import { sites, entryDeck } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -142,12 +142,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     return flock;
   });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
-  const trail = driftwoodRows('custom/trailside'), trailMesh = scenes.mesh('trail.mesh'), trailContext = modelContext(sky), trailPlaced: Placed[] = [];
-  if (trail.posts.pls.length > 0) trailPlaced.push(place(fencePost, trail.posts.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.posts.boxes) }, piece: { id: 'trail-fence-posts' } }));
-  if (trail.signs.pls.length > 0) trailPlaced.push(place(signpost, trail.signs.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.signs.boxes) }, piece: { id: 'trail-signposts' } }));
-  if (trail.planks.pls.length > 0) trailPlaced.push(place(plankStep, trail.planks.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.planks.boxes) }, piece: { id: 'trail-steps' } }));
-  const trailside = { mesh: trailMesh, placed: trailPlaced };
-  // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
+  await entry.run('trail');
+  const trailside = { mesh: scenes.mesh('trail.mesh'), placed: entry.placedIn('trail') };
+  // its fence posts, signposts and plank steps are the entry's placements drawn into the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
   await complete('Trailside');
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)

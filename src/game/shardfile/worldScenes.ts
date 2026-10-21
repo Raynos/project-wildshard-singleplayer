@@ -7,6 +7,7 @@ import { assertSceneProfile } from './sceneProfile';
 import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
+import { defineSpecimenCatalogue } from '../models/specimenCatalogue';
 import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMaterial } from './worldSceneSurface';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
@@ -151,9 +152,9 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     const row = 'file' in declared ? parseWorldScenePlacement(JSON.parse(decoder.decode(await product.file(declared.file)))) : declared;
     if (row.id !== declared.id) throw new Error('Scene placement blob identity differs');
     placements.push(row);
-    if (catalogue?.models.some(model => model.key === row.model) !== true) throw new Error(`Missing scene placement model: ${row.model}`);
+    if (catalogue?.models.some(model => model.key === row.model) !== true && section.specimens?.some(model => model.key === row.model) !== true) throw new Error(`Missing scene placement model: ${row.model}`);
     if (row.batch !== undefined) {
-      const batch = batches.get(row.batch), model = catalogue.models.find(entry => entry.key === row.model);
+      const batch = batches.get(row.batch), model = catalogue?.models.find(entry => entry.key === row.model);
       if (batch === undefined || row.draw !== 'batched' || model === undefined || model.choices.some(choice => [choice.draws, ...choice.lods.map(level => level.draws)].some(draws => draws.length !== 1 || draws.some(draw => draw.material !== batch.material)))) throw new Error('Scene placement cannot share the declared batch');
       const count = (reservations.get(row.batch) ?? 0) + row.poses.length;
       if (count > batch.capacity.instances) throw new Error('Scene batch instance capacity exceeded');
@@ -355,7 +356,9 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         geometries.set(key, geometry); owner.onDispose(() => { geometry.dispose(); });
       }
       bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials, plumbing: product.shardfile.plumbing, scenes: modelScenes }, owner);
-      const definitions = defineWorldSceneCatalogue(catalogue);
+      // G3: a placement names a site model, or one of the section's code-built specimens (the specimen catalogue host)
+      const sites = defineWorldSceneCatalogue(catalogue), specimens = section.specimens === undefined ? null : defineSpecimenCatalogue<Record<string, Record<string, unknown>>>(section.specimens);
+      const definitions = { model: (key: string) => specimens !== null && section.specimens?.some(model => model.key === key) === true ? specimens.model(key) : sites.model(key) };
       for (const row of placements) {
         const model = catalogue.models.find(entry => entry.key === row.model);
         const needed = new Set(model?.choices.flatMap(choice => choice.draws.concat(choice.lods.flatMap(level => level.draws)).map(draw => draw.material)));

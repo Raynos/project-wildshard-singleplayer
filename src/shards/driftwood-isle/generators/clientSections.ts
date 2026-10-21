@@ -18,7 +18,6 @@ import coveBake from '../data/coveBake.json' with { type: 'json' };
 import shrineBake from '../data/shrineBake.json' with { type: 'json' };
 import hut from '../data/hutBake.json' with { type: 'json' };
 import lookout from '../data/lookoutBake.json' with { type: 'json' };
-import trailside from '../data/trailsideBake.json' with { type: 'json' };
 import piers from '../data/piers.generated.json' with { type: 'json' };
 import { GULL_FLOCK } from './gullsLook';
 import { OCEAN_SURFACE } from './oceanLook';
@@ -43,5 +42,4 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] =
   {name:'custom/cumulusPuffs', value:cumulusPuffs},
   {name:'custom/gullFlock', value:GULL_FLOCK},
   {name:'custom/fixedLayouts', value:{coverFiles,assembly:WORLD_ASSEMBLY,nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS, shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), entryDecks:ENTRY_DECKS, entryFloors:ENTRY_FLOORS, foliage:{seed:foliage.seed,tiers:foliage.tiers,islandPalms:islandFacts.extraPalms}, npcScenes, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:{...coveBake,composition:runtimeCoveComposition}, shrine:shrineBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
-  {name:'custom/trailside', value:trailside},
 ];
