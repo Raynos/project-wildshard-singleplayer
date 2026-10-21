@@ -4,7 +4,7 @@
 
 **Live:** c67d1eb3a; pushed 8842d08d30 (QA+QB, X5, ruler fix). Sim a2d07edee1: 30.3 fps avg, hitches Pine 489 / Nine 237 ms.
 
-**Tooling:** BUILD-SPEED. G568 (Jake): push loop (2.3 A + 2.4 A, <=45 s pre-push, ejects red commits) built by sp-x1, sp-x7 retires after; no per-slice batch checks (one per row). G567: goal 0 %, M3 = cut / 98,854 original, plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
+**Tooling:** BUILD-SPEED. G568 (Jake): push loop (2.3 A + 2.4 A, <=45 s pre-push, ejects red commits) built by sp-x1, sp-x7 retires after; no per-slice batch checks (one per row). G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
 
 **Rules:** lanes/common.md.
 
@@ -12,5 +12,5 @@
 
 **Zero reached:** Pastel Plain 732 -> 0 (sp-o1, 2ebb5ed64c). Template 1 1,001 -> ~21, Blender 109 -> ~0 (sp-x1), Ink 768 -> ~586 (sp-o3).
 
-**For wildshard-v:** Nine composite graph backed out (1dfd42d6d7, +77 KB sections); pick on hold until it fits the byte budget. G566 (Jake): AS body ops YES (sp-x1 61473f3bb1); +2 reads (playerIntent, declared floor) so DW barrels go to AS (sp-o5); guide body listed. Ruler fix e3a7990c5b (sp-x1, per the ruler's own rule: build tools are not runtime roots): total custom 11,570 -> 10,947 (DW -103, Nalati -185, Ink -496; Nine +101, Pine +64 unmasked).  G550 hero: art/grid/round-35-hero-retake/sq-ne-b-o24-{iphone,desktop,board}.jpg (5a410d548f); outer band now draws its ground (O24 haze fix 734f24a81a); holograms/beams still fade past 850 m by design, so G550's 'holograms in the distance' needs a pick: keep the fade (recommended, draw cost) or extend it.
+**For wildshard-v:** Nine composite graph backed out (1dfd42d6d7, +77 KB sections); pick on hold until it fits the byte budget. G566 (Jake): AS body ops YES (sp-x1 61473f3bb1); +2 reads (playerIntent, declared floor) so DW barrels go to AS (sp-o5); guide body listed. Ruler fix e3a7990c5b: total custom 11,570 -> 10,947.  G550 hero: art/grid/round-35-hero-retake/sq-ne-b-o24-{iphone,desktop,board}.jpg (5a410d548f); outer band now draws its ground (O24 haze fix 734f24a81a); holograms/beams still fade past 850 m by design, so G550's 'holograms in the distance' needs a pick: keep the fade (recommended, draw cost) or extend it.
 
