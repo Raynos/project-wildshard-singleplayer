@@ -2,7 +2,7 @@ import type { InputHashMemo } from './bake-input-hashes.mjs';
 import type { Plugin } from 'vite';
 
 export function installInputRecorder():void;
-export function recordResolution(id:string,importer:string|undefined,options?:{execution?:boolean}):void;
+export function recordResolution(id:string,importer:string|undefined):void;
 export function recordModuleInput(id:string,options?:{execution?:boolean}):void;
 export function recordBundle(result:unknown,options?:{execution?:boolean}):void;
 export function captureProductInputs(root:string,receipt:string,run:()=>Promise<void>):Promise<void>;

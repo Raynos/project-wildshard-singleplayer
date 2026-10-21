@@ -9,7 +9,7 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture subprocess runtime.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, recordModuleInput, inputRecorderPlugin, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
+import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, recordModuleInput, recordResolution, inputRecorderPlugin, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import {build as buildCompiler} from 'vite';
@@ -115,6 +115,19 @@ it('keys existence probes without treating them as source-content reads',async()
   const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),before=key();expect(before).toMatch(/^[a-f0-9]{64}$/u);
   writeFileSync(source,'// changed source, same existence');expect(key()).toBe(before);
   rmSync(source);expect(key()).toBeUndefined();
+});
+
+it('separates unselected resolution candidates from loaded source bytes',async()=>{
+  const root=fixture(),receipt=resolve(root,'receipt.json'),candidate=resolve(root,'src/engine/used.ts');
+  await captureProductInputs(root,receipt,()=>{
+    recordResolution('./src/engine/used',resolve(root,'entry.ts'));
+    recordModuleInput(resolve(root,'entry.ts'));recordBundle({output:[]});return Promise.resolve();
+  });
+  const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),before=key();expect(before).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(candidate,'// unused candidate changed');expect(key()).toBe(before);
+  writeFileSync(resolve(root,'src/engine/used.js'),'export const value=2;');expect(key()).toBeUndefined();
+  rmSync(resolve(root,'src/engine/used.js'));expect(key()).toBe(before);
+  writeFileSync(resolve(root,'entry.ts'),'// loaded source changed');expect(key()).toBeUndefined();
 });
 
 it.each(['execution','source','function-text'])('keeps %s compiler dependencies in their proper identity domain', mode => {

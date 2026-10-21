@@ -184,12 +184,13 @@ export function installInputRecorder() {
   observeChildren(childProcess.default);
   syncBuiltinESMExports();
 }
-/** Bundler resolution can select a newly added higher-priority relative file.
- * @param {string} id @param {string|undefined} importer @param {{execution?:boolean}} [options] */
-export function recordResolution(id, importer, options={}) {
+/** Bind candidate presence/type; selected modules record their actual bytes.
+ * A newly added higher-priority relative file must invalidate resolution.
+ * @param {string} id @param {string|undefined} importer */
+export function recordResolution(id, importer) {
   if (!id.startsWith('.') || importer === undefined || !isAbsolute(importer)) return;
   const at = resolve(dirname(importer.split('?')[0]),id.split('?')[0]);
-  for (const suffix of ['', '.ts','.tsx','.mts','.js','.jsx','.mjs','.json','/package.json','/index.ts','/index.tsx','/index.mts','/index.js','/index.jsx','/index.mjs','/index.json']) note(options.execution===true&&code.test(at+suffix)?'M':'F',at+suffix);
+  for (const suffix of ['', '.ts','.tsx','.mts','.js','.jsx','.mjs','.json','/package.json','/index.ts','/index.tsx','/index.mts','/index.js','/index.jsx','/index.mjs','/index.json']) note('P',at+suffix);
 }
 /** Record resolved inputs before the native bundler reads them.
  * @param {string} id @param {{execution?:boolean}} [options] */
@@ -290,7 +291,7 @@ export function inputRecorderPlugin(options={}) {
   const scope = scopes.getStore();
   return {name:'product-input-recorder',enforce:/** @type {const} */ ('pre'),
     /** @param {string} id @param {string|undefined} importer */
-    resolveId(id,importer) { if (scope !== undefined) scopes.run(scope,()=>recordResolution(id,importer,options)); return null; },
+    resolveId(id,importer) { if (scope !== undefined) scopes.run(scope,()=>recordResolution(id,importer)); return null; },
     /** @param {string} id */
     load(id) { if (scope !== undefined) scopes.run(scope,()=>recordModuleInput(id,options)); return null; },
   };
