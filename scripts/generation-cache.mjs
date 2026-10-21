@@ -13,7 +13,7 @@ const digest = v.pipe(v.string(), v.regex(/^[0-9a-f]{64}$/u));
 const name = v.pipe(v.string(), v.regex(/^[a-z0-9]+(?:[.-][a-z0-9]+)*$/u));
 const file = v.pipe(v.string(), v.check(value => value.length > 0 && !isAbsolute(value)
   && !value.includes('\\') && value.split('/').every(part => part !== '' && part !== '.' && part !== '..')
-  && !['.generation-receipt.json','.output-hashes.json'].includes(value), 'Expected a bounded repository-relative file'));
+  && !['.generation-receipt.json','.output-hashes.json','.generation-reads.json'].includes(value), 'Expected a bounded repository-relative file'));
 const Job = v.strictObject({ id: name, inputs: v.record(file, digest), command: v.array(v.string()), outputs: v.array(file),
   platform: v.picklist(['portable', 'native', 'darwin']), tools: v.optional(v.record(v.string(), v.string())) });
 const Receipt = v.strictObject({ schema: v.literal('generation-cache/1'), key: digest, files: v.record(file, digest) });
