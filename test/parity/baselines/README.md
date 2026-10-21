@@ -8,7 +8,9 @@ retained in the leak census (the 12 phone / 20 desktop `leak.textures` on every 
 per-visit leak) and `9ec299a8fd` makes exact counts information (gpu bytes, render memory/programs, scene totals and
 names, boot steps, system lists, HUD, pose calls/tris; baseline sounds must still play). Glitch gates are unchanged.
 The frozen `-legacy` copies left the parity registry. `blender-template`, `ink-cel-valley`, `pastel-plain` and
-`open-plots` have their first references. Nalati is recorded separately, after its desktop gpuMB ratchet re-record.
+`open-plots` have their first references. Nalati is recorded at the later `f7e6a527ff` descendant after its desktop gpuMB
+ratchet re-record (`f7e6a527ff`: vertex buffers +3.6 MB since 10-13). Desktop pose SSIM is information and desktop
+pose references are not stored (`feb3f3cbe9`: over the 250 KB preview cap); the phone's pose SSIM gates.
 
 ## 2026-10-08 evening re-record (parity triage, E435)
 
