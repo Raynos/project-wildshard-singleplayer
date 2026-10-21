@@ -160,5 +160,12 @@ test('Pine admitted routes preserve same-tick modal priority, actor values, canc
     host.player.position.set(0, 0, 4); expect(command(0)).toBe(false); // Exactly three metres: still outside.
     host.player.position.z = 3.99; expect(command(0)).toBe(true);
     expect(command(0, 'unrelated')).toBe(false);
+    host.player.position.set(0, 0, 0); modal['reading'] = false; calls.length = 0;
+    graph.dispatch([{ actorId: 'pine.interact', value: 0 }, { actorId: 'pine.interact', value: 1 }]);
+    expect(calls).toEqual(['talk.ranger/0', 'quest.reading.next/1']);
+    modal['reading'] = false; calls.length = 0;
+    graph.dispatch(Array.from({ length: 1025 }, () => ({ actorId: 'pine.ammo', value: 0 })));
+    expect(calls).toHaveLength(1024);
+    expect(calls.every(call => call === 'quest.ammo.cycle/0')).toBe(true);
   } finally { host.dispose(); }
 });

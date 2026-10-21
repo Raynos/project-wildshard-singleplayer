@@ -2,10 +2,25 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { QuestRewardController } from '../src/game/plugin/quests';
+import { QuestRewardController, applyQuestRewardPose } from '../src/game/plugin/quests';
 import { QuestRewardBeat } from '../src/game/quest/reward';
+import { questPhaseSpan, questPhaseAt } from '../src/game/quest/storyLaw';
 
 const player = () => ({ position: new Vector3(2, 3, 4), velocity: new Vector3(1, 0, 1), yaw: 0.3, pitch: 0.1, carried: false });
+
+test('watch continuations and reward poses take the same forward arc through midnight', () => {
+  const saved = { from: 0.875, span: 0.25, t: 1, dur: 4, to: 0.125 };
+  expect(questPhaseSpan(saved.from, saved.to)).toBe(saved.span);
+  expect(questPhaseSpan(saved.to, saved.from)).toBe(0.75);
+  expect(questPhaseAt(saved.from, saved.span, saved.t + 1, saved.dur)).toBe(0);
+  expect(questPhaseAt(saved.from, saved.span, saved.dur + 1, saved.dur)).toBe(saved.to);
+  expect(saved.t).toBe(1);
+  const actor = player(), day = { phase: saved.from }, origin = { ...actor, phase: saved.from };
+  applyQuestRewardPose(1.75, origin, { phase: saved.to }, actor, day);
+  expect(day.phase).toBe(0);
+  applyQuestRewardPose(-1, origin, { phase: saved.to }, actor, day);
+  expect(day.phase).toBe(saved.from);
+});
 
 test('old active reward saves resume quietly and reject invalid ownership before mutation', () => {
   const actor = player(), day = { phase: 0.4 }, events: string[] = [];

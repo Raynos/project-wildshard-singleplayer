@@ -10479,6 +10479,18 @@ its update phase; native continuations and actor authority are unchanged.
 The completion card publishes its existing entered control for reward carry
 handover. Pine's watch/dawn and Driftwood's ring reward use this same path.
 
+The renderer-free `game/quest/storyLaw.questPhaseSpan` and `questPhaseAt`
+share the forward clock arc between Pine's native/page watch and Driftwood's
+reward pose. Sampling leaves elapsed time and the saved envelope with their
+original owners; the page still commits its completed phase through the
+existing backdrop setter.
+
+`NativeQuestHost.dispatch(commands)` delivers at most 1024 commands in
+order through the existing admitted routes. Pine calls it at its original
+quest phase; Driftwood's declared command step calls the same dispatcher.
+Each command observes earlier effects in that batch, with no new fixed
+step or saved cursor.
+
 ## Declared Explorer catalogue (Z10, G486)
 
 `explore/catalogue` is a bounded, client-only ordered roster of references to

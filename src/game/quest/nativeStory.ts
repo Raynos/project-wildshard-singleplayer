@@ -22,7 +22,7 @@ import { DirectorScriptStageLane, type readDirectorProduct } from '../plugin/dir
 import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
 import { ContractBoard, CONTRACT_ACTION } from './contractBoard';
 import { contractKill } from './contracts';
-import { questBenchPose } from './storyLaw';
+import { questBenchPose, questPhaseSpan, questPhaseAt } from './storyLaw';
 import { Exchange } from '../loot/exchange';
 import { QuestStepRunner } from './steps';
 
@@ -56,12 +56,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const entry = prepareNativeQuestEntry(host, product.shardfile, content.table, spots.rows), { input, pack } = entry;
   const ammunition = nativeHeldAmmunition(host), launcher = readNativeRangedItem(host, policy.launcher);
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
-  const ports = { ...rows,
-    commands: input.scripts, fact: input.ledger.fact, coins: input.ledger.coins, director, ammunition,
-    addBolts: (n: number) => { launcher.item.addBolts(n); }, canSelectAmmo: () => launcher.frame.live.has(policy.launcher),
-    day: () => host.dayClock ?? null, night: () => host.dayClock?.night ?? 0,
-    takeBossReward: (eye: { x: number; y: number; z: number }) => takeNativeBossReward(host, policy.boss, eye) };
-  const EYE = policy.eye, MAX_SETS = 16, MAX_COMMANDS = 1024, TRADE_CLOSE = -1, QUEST_STEP = policy.step, PICKUP_FLAG = policy.pickup.flag,
+  const EYE = policy.eye, MAX_SETS = 16, TRADE_CLOSE = -1, QUEST_STEP = policy.step, PICKUP_FLAG = policy.pickup.flag,
     benchRows = policy.bench;
   const { touchCount: TOUCH_COUNT, readingDelay: READING_DELAY } = content.policy;
   const indexed = entry.rules, Saved = questSaved(nativeInventorySchema(entry.inventory), policy.finish.ids);
@@ -80,11 +75,11 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const people = spots.people, boardPrompt = spots.board;
   let rewardOwned = false;
   let finishes = new Set<string>();
-  const trader = new Exchange(ports.trades, new Map<string, unknown>([[policy.pack, pack],
+  const trader = new Exchange(rows.trades, new Map<string, unknown>([[policy.pack, pack],
     ['skins', { owns: (skin: string) => skin === policy.finish.id && rewardOwned || finishes.has(skin), own: (skin: string) => { finishes.add(skin); } }],
-    ['ammo', { capacity: (kind: string, n: number) => ports.ammunition.room(kind, n),
-      addBolts: ports.addBolts, grant: (kind: string, n: number) => {
-        ports.ammunition.add(kind, n);
+    ['ammo', { capacity: (kind: string, n: number) => ammunition.room(kind, n),
+      addBolts: (n: number) => { launcher.item.addBolts(n); }, grant: (kind: string, n: number) => {
+        ammunition.add(kind, n);
       } }]]));
   const initialTrader = trader.snapshot();
   const steps = new QuestStepRunner(content.steps);
@@ -113,8 +108,8 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
 
   const fast: { on: { from: number; span: number; t: number; dur: number; to: number } | null } = { on: null };
   const fastForward = (to: number, dur: number): void => {
-    const day = ports.day(); if (day === null) return;
-    fast.on = { from: day.phase, span: (((to - day.phase) % 1) + 1) % 1, t: 0, dur, to };
+    const day = host.dayClock ?? null; if (day === null) return;
+    fast.on = { from: day.phase, span: questPhaseSpan(day.phase, to), t: 0, dur, to };
   };
   const publish = (event: string, value: number): void => {
     for (const row of policy.clock.publications) if (row.event === event) {
@@ -124,24 +119,22 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
       else flags.set(row.flag);
     }
   };
-  const clock = DirectorScriptStageLane.bind(ports.director.stages, ports.director.create(), ports.director.bindings,
-    new Map<string, unknown>([['flags', flags], ['clock', { day: ports.day, night: ports.night }], ['publication', { publish }]]), host.scope);
-  const restoreClock = (saved: string): void => { clock.restore(saved); };
+  const clock = DirectorScriptStageLane.bind(director.stages, director.create(), director.bindings,
+    new Map<string, unknown>([['flags', flags], ['clock', { day: () => host.dayClock ?? null, night: () => host.dayClock?.night ?? 0 }], ['publication', { publish }]]), host.scope);
 
   const cables = cableModes(host.scope), cableId = policy.cable;
   cables.state(cableId);
   const state = { pickup: false };
 
-  const counterBook = entry.achievements(ports.counters), feats = counterBook.counters;
-  const flushFacts = counterBook.flush;
-  const board = new ContractBoard({ contracts: ports.contracts, prompt: boardPrompt, radius: boardPrompt.radius });
+  const counterBook = entry.achievements(rows.counters), feats = counterBook.counters;
+  const board = new ContractBoard({ contracts: rows.contracts, prompt: boardPrompt, radius: boardPrompt.radius });
   const useBoard = (value: number): void => {
     const claim = board.use(value, eye);
     if (claim === null) return;
     for (let i = 0; i < 16; i++) { const item = claim.reward.items[i]; if (item === undefined) break; pack.add(item.id, item.n); }
-    if (claim.reward.bolts > 0) ports.addBolts(claim.reward.bolts);
+    if (claim.reward.bolts > 0) launcher.item.addBolts(claim.reward.bolts);
     if (claim.reward.skin === policy.finish.id) rewardOwned = true;
-    feats.event('streak', claim.streak); flushFacts();
+    feats.event('streak', claim.streak); counterBook.flush();
   };
   const initialBoard = board.snapshot();
 
@@ -155,15 +148,15 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     { id: 'quest.cable', ...spots.cable.prompt }, { id: 'quest.pickup', ...spots.pickup },
   ] }, observations: new Map([
     ['riding', () => cables.state(cableId).riding], ['trading', () => trader.active], ['boarding', () => board.active], ['reading', () => dialogue.active],
-    ['selectable', ports.canSelectAmmo], ['pickup', () => !flags.has(PICKUP_FLAG)],
+    ['selectable', () => launcher.frame.live.has(policy.launcher)], ['pickup', () => !flags.has(PICKUP_FLAG)],
   ]), actions: new Map<string, (value: number) => void>([
     ['quest.cancel', () => { dialogue.dismiss(); board.use(CONTRACT_ACTION.close, eye); trader.use(TRADE_CLOSE); }],
     ['quest.trade.close', () => { trader.use(TRADE_CLOSE); }], ['quest.board.close', () => { board.use(CONTRACT_ACTION.close, eye); }],
     ['quest.reading.next', () => { dialogue.press(policy.primary); }],
-    ['quest.trade.use', value => { trader.use(value); }], ['quest.ammo.cycle', () => { ports.ammunition.cycle(); }],
+    ['quest.trade.use', value => { trader.use(value); }], ['quest.ammo.cycle', () => { ammunition.cycle(); }],
     ['quest.board.use', value => { eye.copy(host.player.position); eye.y += EYE; useBoard(value); }],
     ['quest.cable', () => { cables.start(cableId); }], ['quest.pickup', () => { flags.set(PICKUP_FLAG); state.pickup = true; }],
-    ['quest.reward', () => { eye.copy(host.player.position); eye.y += EYE; ports.takeBossReward(eye); }],
+    ['quest.reward', () => { eye.copy(host.player.position); eye.y += EYE; takeNativeBossReward(host, policy.boss, eye); }],
     ...[...indexed.keys()].map(id => [id, () => { interact(required(id)); }] as const),
     ...spots.people.map(person => [`talk.${person.kind}`, () => { dialogue.press(person.kind); }] as const),
   ]) };
@@ -175,11 +168,11 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   counterBook.observe();
   const killed = bindQuestDeathEffects(content.deaths, { kill: feats.kill, event: feats.event,
     calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
-      board.killed(contractKill(ports.contracts, body));
+      board.killed(contractKill(rows.contracts, body));
     }]]) });
   host.events.on('actor.died', ({ actor }) => {
     const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
-    if (body !== undefined) { killed(body); flushFacts(); }
+    if (body !== undefined) { killed(body); counterBook.flush(); }
   }, host.scope);
   counterBook.sync();
 
@@ -196,23 +189,18 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const followed = { kind: 'follow', target: policy.lead.target } as const;
   const followedFrame: { flags: readonly string[] } = { flags: [] };
   host.onStep(QUEST_STEP, dt => {
-    const list = ports.commands();
-    for (let c = 0; c < MAX_COMMANDS; c++) {
-      const command = list[c]; if (command === undefined) break;
-      graph.accept(command);
-    }
+    graph.dispatch(input.scripts());
     dialogue.advanceReading(dt, host.player.position);
     cables.updateNative(cableId, dt, host);
     transitions.step(touchRows);
     // the latch lifts on its own once both logs are off and latches open (Interactables.update's latching door)
     transitions.latch(latch);
     // the clock's fast-forward (a smoothstep over its span), then the clock, then the lead, as the page's quest frame
-    const day = ports.day(), ff = fast.on;
+    const day = host.dayClock ?? null, ff = fast.on;
     if (ff !== null && day !== null) {
       ff.t += dt;
-      const k = Math.min(1, ff.t / ff.dur), e = k * k * (3 - 2 * k);
-      day.phase = (ff.from + ff.span * e) % 1;
-      if (k >= 1) { day.phase = ff.to; fast.on = null; }
+      day.phase = questPhaseAt(ff.from, ff.span, ff.t, ff.dur);
+      if (ff.t / ff.dur >= 1) { day.phase = ff.to; fast.on = null; }
     }
     if (chapter.current?.id === policy.clock.step) clock.request(policy.clock.dawnRequest);
     clock.update(dt);
@@ -221,7 +209,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     if (host.state.tick % 6 !== 0) { if (lead.mode !== 'none') lead.t += dt; return; }
     const bend = content.lead.path[lead.i], player = host.player.position;
     leadInput.i = lead.i; leadInput.mode = modes.indexOf(lead.mode); leadInput.elapsed = lead.t; leadInput.dt = dt;
-    leadInput.on = Number(chapter.current?.id === policy.lead.step && ports.night() > policy.lead.nightAbove);
+    leadInput.on = Number(chapter.current?.id === policy.lead.step && (host.dayClock?.night ?? 0) > policy.lead.nightAbove);
     leadInput.playerX = player.x; leadInput.playerZ = player.z; leadInput.atX = bend?.[0] ?? 0; leadInput.atZ = bend?.[1] ?? 0;
     const answer = leadProgram.project('lead', leadInput), i = answer['i'], mode = modes[answer['mode'] ?? -1], elapsed = answer['elapsed'];
     if (i === undefined || mode === undefined || elapsed === undefined) throw leadFailure;
@@ -231,7 +219,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     snapshot: () => envelope({ lead: { ...lead }, clock: clock.snapshot(), fast: fast.on === null ? null : { ...fast.on }, cable: cables.state(cableId).riding ? { s: cables.snapshot(cableId).s, v: cables.snapshot(cableId).v } : null,
       pickup: state.pickup, counts: counterBook.snapshot(), pack: pack.snapshot(), ...(dialogue.active ? { dialogue: dialogue.snapshot() } : {}), board: board.snapshot(), ...(rewardOwned ? { rewardOwned } : {}),
       ...(trader.active || finishes.size > 0 ? { trader: { modal: trader.snapshot(), skins: [...finishes] } } : {}),
-      ...(ports.ammunition.changed ? { ammunition: ports.ammunition.snapshot() } : {}) }),
+      ...(ammunition.changed ? { ammunition: ammunition.snapshot() } : {}) }),
     restore: value => {
       const saved = v.parse(Saved, decoded(value));
       if (saved.trader?.skins.some(id => !policy.finish.ids.includes(id)) === true) throw new RangeError('Unknown saved cosmetic finish');
@@ -239,11 +227,11 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
       const boardState = saved.board === undefined ? initialBoard : saved.board;
       const restoreBoard = board.prepareRestore(boardState);
       const restoreTrader = trader.prepareRestore(saved.trader?.modal ?? initialTrader);
-      const restoreAmmo = ports.ammunition.prepareRestore(saved.ammunition);
+      const restoreAmmo = ammunition.prepareRestore(saved.ammunition);
       const finish = v.parse(v.object({ board: v.object({ claimed: v.number() }), open: v.boolean() }), boardState);
       if (saved.rewardOwned !== (finish.board.claimed >= policy.finish.claims) || (finish.open && saved.dialogue !== null)) throw new RangeError('Invalid Story board/modal ownership');
       if (saved.trader?.modal.open === true && (finish.open || saved.dialogue !== null || saved.cable !== null)) throw new RangeError('Invalid Story trader/modal ownership');
-      restoreClock(saved.clock); if (saved.lead.i >= content.lead.path.length) throw new RangeError('Invalid lead continuation');
+      clock.restore(saved.clock); if (saved.lead.i >= content.lead.path.length) throw new RangeError('Invalid lead continuation');
       Object.assign(lead, saved.lead); fast.on = saved.fast; cables.restore(cableId, { riding: saved.cable !== null, s: saved.cable?.s ?? 0, v: saved.cable?.v ?? 0 }); state.pickup = saved.pickup;
       counterBook.restore(saved.counts);
       pack.restore(saved.pack);

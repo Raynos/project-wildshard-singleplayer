@@ -20,6 +20,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { questSpawnObservations, questSpawnPublications } from './steps';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { questPhaseSpan, questPhaseAt } from './storyLaw';
 
 /** Client-only chapter/boss binding over the existing AS director and native
  * spawn owner. Content supplies rows, ids and the resolved arena position;
@@ -103,7 +104,7 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
     const effects = rows.actions[id]; if (effects === undefined) throw new Error(`Unknown chapter publication ${id}`);
     for (const effect of effects) {
       if (effect.kind === 'phase') {
-        if (day !== null) fast = { from: day.phase, span: (((effect.to - day.phase) % 1) + 1) % 1, t: 0, dur: effect.seconds, to: effect.to };
+        if (day !== null) fast = { from: day.phase, span: questPhaseSpan(day.phase, effect.to), t: 0, dur: effect.seconds, to: effect.to };
       } else if (effect.kind === 'caption') caption.show(effect.show);
       else if (effect.kind === 'objective') chapter.objective.hide(effect.hide);
       else if (effect.kind === 'cue') {
@@ -139,9 +140,8 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
   return { caption, rewardAt, rewardPose: rows.reward, run, request, takeCues: () => cues.splice(0), update: dt => {
     if (ctx.scope.disposed) return;
     if (fast !== null && day !== null) {
-      fast.t += dt; const k = Math.min(1, fast.t / fast.dur), e = k * k * (3 - 2 * k);
-      day.phase = (fast.from + fast.span * e) % 1;
-      if (k >= 1) { const to = fast.to; fast = null; void day.set(to); }
+      fast.t += dt; day.phase = questPhaseAt(fast.from, fast.span, fast.t, fast.dur);
+      if (fast.t / fast.dur >= 1) { const to = fast.to; fast = null; void day.set(to); }
     }
     clock.update(dt); reward?.update(dt, state.completed);
   } };

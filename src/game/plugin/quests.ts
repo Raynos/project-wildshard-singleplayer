@@ -12,6 +12,7 @@ import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/t
 import { bindInteractionState, type Flags } from "@wildshard/engine/world/interact/flags";
 import type { QuestData } from "@wildshard/format/quests";
 import { NativeQuestProps } from '../quest/nativeProps';
+import { questPhaseSpan, questPhaseAt } from '../quest/storyLaw';
 
 /** Bind physical quest prop declarations to the existing native world. */
 export function installNativeQuestProps(host: SimHost, input: unknown, restoring: boolean): NativeQuestProps {
@@ -35,8 +36,7 @@ export function applyQuestRewardPose(elapsed: number, from: Readonly<QuestReward
   player.yaw = from.yaw + Math.atan2(Math.sin(turn), Math.cos(turn)) * k;
   player.pitch = from.pitch + ((target.pitch ?? from.pitch) - from.pitch) * k;
   if (dayNight && target.phase !== undefined) {
-    const ahead = ((target.phase - from.phase) % 1 + 1) % 1;
-    dayNight.phase = (from.phase + ahead * MathUtils.smoothstep(elapsed, 0, 3.5)) % 1;
+    dayNight.phase = questPhaseAt(from.phase, questPhaseSpan(from.phase, target.phase), Math.max(0, elapsed), 3.5);
   }
 }
 

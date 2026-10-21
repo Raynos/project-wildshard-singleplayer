@@ -1123,6 +1123,8 @@ function questObservation(host: SimHost, row: QuestHostRow['observations'][numbe
 export interface NativeQuestHost extends ReturnType<typeof installQuestGraph> {
   /** Dispatch one accepted command at its existing owner's phase; adds no step or saved cursor. */
   readonly accept: (command: { readonly actorId: string; readonly value: number }) => boolean;
+  /** Deliver the protocol-bounded batch in order, observing each preceding command's effects. */
+  readonly dispatch: (commands: readonly { readonly actorId: string; readonly value: number }[]) => void;
 }
 export function installQuestHost(host: SimHost, quests: QuestData, input: QuestHostRow, ports: QuestHostPorts): NativeQuestHost {
   const row = parseQuestHost(input);
@@ -1192,15 +1194,17 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     }
     return false;
   };
-  if (row.commands.step !== null) host.onStep(row.commands.step, () => {
-    const commands = ports.commands();
+  const dispatch: NativeQuestHost['dispatch'] = commands => {
     for (let index = 0; index < 1024; index++) {
       const command = commands[index]; if (command === undefined) break;
       accept(command);
     }
+  };
+  if (row.commands.step !== null) host.onStep(row.commands.step, () => {
+    dispatch(ports.commands());
     for (const stage of stages) if (stage.row.tick) stage.lane.advance();
   });
-  return { ...graph, accept };
+  return { ...graph, accept, dispatch };
 }
 
 /** Borrowed world reaction owners; no hit, flag, prompt or saved state is reconstructed. */
