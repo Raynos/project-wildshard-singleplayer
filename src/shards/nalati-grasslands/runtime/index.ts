@@ -12,8 +12,6 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
-import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
-import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
 import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
 import { installNalatiQuestView } from '../quest/kokpar';
@@ -43,7 +41,7 @@ export class NalatiPlugin extends ShardPlugin {
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
     await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
-    this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress, enteredAdventurePersistence(ctx.scope)))));
+    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress, enteredAdventurePersistence(ctx.scope)));
     await prepareSabre(ctx.product);
     await prepareSpear(ctx.product);
     await prepareWeaponCatalogue();
