@@ -1,4 +1,4 @@
-import { NALATI_STRIKES, sampleStrike } from '../../../src/shards/nalati-grasslands/combat/strikes';
+import { NALATI_STRIKES, sampleStrike } from '../nalati-strikes';
 import { GroupBrain } from '@wildshard/engine/ai/GroupBrain';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';

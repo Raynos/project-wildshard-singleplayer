@@ -1,6 +1,6 @@
 // The Golden King's shipped fight (combat/goldenKing.ts at 785f57f08), kept verbatim as the oracle the platform
 // phased boss fight (src/game/shardfile/phasedBoss.ts) is replayed against (SHARD-PLATFORM SF27).
-import { NALATI_STRIKES, sampleStrike, sampleArena } from '../../../src/shards/nalati-grasslands/combat/strikes';
+import { NALATI_STRIKES, sampleStrike, sampleArena } from '../nalati-strikes';
 import { canReach } from '../../../src/engine/ai/reach';
 import { app } from '../../../src/engine/app/runtime';
 import type { Animal } from '../../../src/engine/entities/AnimalView';

@@ -3,7 +3,7 @@ import { StrikeRunner, type StrikeActor, type StrikeContext, type StrikeSpec } f
 import { Vector3 } from 'three';
 import { strike } from '@wildshard/sdk/species';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import rows from '../data/strikeProfiles.generated.json' with { type: 'json' };
+import rows from '../../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
 
 const point = (radius: number): StrikeSpec['shape'] => ({ kind: 'point', radius, exclusive: true });
 const row = (id: string, shape: StrikeSpec['shape'], damage: number, windup = 0, recover = 0, cooldown = 0, exempt = false): StrikeSpec => ({

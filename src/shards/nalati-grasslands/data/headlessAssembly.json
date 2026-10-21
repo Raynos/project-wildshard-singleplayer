@@ -23,10 +23,6 @@
       "eliteBindings",
       "installEliteEncounters"
     ],
-    "src/shards/nalati-grasslands/combat/strikes": [
-      "sampleStrike",
-      "NALATI_STRIKES"
-    ],
     "src/shards/nalati-grasslands/combat/eliteRoster": [
       "NativePouncerKeeper",
       "NativeHowlerKeeper"
@@ -52,7 +48,9 @@
       "installNativeBootRoster",
       "installNativePopulationHunt"
     ],
-    "@wildshard/game/weather/continuation": ["installWeatherContinuation"],
+    "@wildshard/game/weather/continuation": [
+      "installWeatherContinuation"
+    ],
     "@wildshard/game/weather/reactions": [
       "nativeWeatherBundle"
     ],
@@ -71,6 +69,12 @@
     ],
     "src/shards/nalati-grasslands/data/physics.generated.json": [
       "default"
+    ],
+    "@wildshard/engine/ai/strikes": [
+      "StrikeRunner"
+    ],
+    "@wildshard/engine/ai/strikeRows": [
+      "strikeFromData"
     ]
   },
   "constants": {
@@ -104,12 +108,12 @@
         "labels": {
           "mount": "Mount the stallion",
           "breaking": "Break the stallion",
-          "trust": "The herd saw you drive the wolves off · TRUST +30",
-          "start": "HOLD ON — lean against him (A / D, LEAN L / LEAN R)",
-          "thrown": "Thrown! TRUST −40 — find him again when the herd settles",
+          "trust": "The herd saw you drive the wolves off \u00b7 TRUST +30",
+          "start": "HOLD ON \u2014 lean against him (A / D, LEAN L / LEAN R)",
+          "thrown": "Thrown! TRUST \u221240 \u2014 find him again when the herd settles",
           "bonded": [
-            "TULPAR is yours · he waits at the camp's hitching rail · whistle (X / HORSE) to call him",
-            "ARGYMAQ is yours — he takes Tulpar's place at the camp's rail · whistle (X / HORSE) to call him"
+            "TULPAR is yours \u00b7 he waits at the camp's hitching rail \u00b7 whistle (X / HORSE) to call him",
+            "ARGYMAQ is yours \u2014 he takes Tulpar's place at the camp's rail \u00b7 whistle (X / HORSE) to call him"
           ]
         }
       },
@@ -232,7 +236,7 @@
           "label": "Struck by lightning",
           "text": "Struck by lightning"
         },
-        "toast": "Struck by lightning — get low in a storm"
+        "toast": "Struck by lightning \u2014 get low in a storm"
       }
     },
     "nativeBake": {
@@ -861,6 +865,81 @@
       }
     },
     {
+      "name": "strikeContacts",
+      "value": {
+        "$new": [
+          {
+            "$ref": [
+              "@wildshard/engine/ai/strikes",
+              "StrikeRunner"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "nativeEliteStrikes",
+      "value": {
+        "swipe": {
+          "$call": [
+            {
+              "$ref": [
+                "@wildshard/engine/ai/strikeRows",
+                "strikeFromData"
+              ]
+            },
+            {
+              "$ref": [
+                "constants",
+                "pageElites",
+                "strikes",
+                0,
+                "strike"
+              ]
+            }
+          ]
+        },
+        "pounce": {
+          "$call": [
+            {
+              "$ref": [
+                "@wildshard/engine/ai/strikeRows",
+                "strikeFromData"
+              ]
+            },
+            {
+              "$ref": [
+                "constants",
+                "pageElites",
+                "strikes",
+                1,
+                "strike"
+              ]
+            }
+          ]
+        },
+        "bite": {
+          "$call": [
+            {
+              "$ref": [
+                "@wildshard/engine/ai/strikeRows",
+                "strikeFromData"
+              ]
+            },
+            {
+              "$ref": [
+                "constants",
+                "pageElites",
+                "strikes",
+                2,
+                "strike"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "elites",
       "value": {
         "$call": [
@@ -1245,15 +1324,53 @@
                 }
               },
               "strike": {
-                "$ref": [
-                  "src/shards/nalati-grasslands/combat/strikes",
-                  "sampleStrike"
-                ]
+                "$fn": {
+                  "$call": [
+                    {
+                      "$ref": [
+                        "strikeContacts",
+                        "contact"
+                      ]
+                    },
+                    {
+                      "$ref": [
+                        "args",
+                        0
+                      ]
+                    },
+                    {
+                      "actor": {
+                        "$ref": [
+                          "args",
+                          1
+                        ]
+                      },
+                      "target": {
+                        "$ref": [
+                          "args",
+                          2
+                        ]
+                      },
+                      "hit": {
+                        "$ref": [
+                          "args",
+                          3
+                        ]
+                      },
+                      "canReach": {
+                        "$ref": [
+                          "args",
+                          4,
+                          "reach"
+                        ]
+                      }
+                    }
+                  ]
+                }
               },
               "strikes": {
                 "$ref": [
-                  "src/shards/nalati-grasslands/combat/strikes",
-                  "NALATI_STRIKES"
+                  "nativeEliteStrikes"
                 ]
               },
               "swipeDamage": 14,
