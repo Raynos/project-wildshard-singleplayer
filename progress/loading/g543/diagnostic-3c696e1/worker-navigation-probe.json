@@ -1,0 +1,102 @@
+{
+  "pin": "3c696e1134cea78a1d0142bb6969b02c149acd5b",
+  "base": "http://127.0.0.1:56063/",
+  "results": [
+    {
+      "mode": "all",
+      "phase": "register",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4443/sw.js",
+          "status": 200,
+          "endedAt": 1792571688354,
+          "bodyBytes": 20418,
+          "requestCache": {
+            "acceptEncoding": "gzip, deflate",
+            "serviceWorker": "script"
+          },
+          "responseCache": {
+            "etag": "W/\"56755-1792571154581\"",
+            "cacheControl": "no-cache",
+            "vary": "Origin",
+            "contentEncoding": "gzip"
+          },
+          "headerBytes": 274
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "unchanged-same-process",
+      "registrationMode": "all",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4443/sw.js",
+          "status": 304,
+          "endedAt": 1792571692152,
+          "bodyBytes": 0,
+          "requestCache": {
+            "ifNoneMatch": "W/\"56755-1792571154581\"",
+            "ifModifiedSince": "Wed, 21 Oct 2026 08:25:54 GMT",
+            "acceptEncoding": "gzip, deflate",
+            "serviceWorker": "script"
+          },
+          "responseCache": {
+            "cacheControl": "no-cache",
+            "vary": "Origin"
+          },
+          "headerBytes": 124
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "restart-navigation",
+      "registrationMode": "all",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4443/sw.js",
+          "status": 200,
+          "endedAt": 1792571698697,
+          "bodyBytes": 20418,
+          "requestCache": {
+            "acceptEncoding": "gzip, deflate",
+            "serviceWorker": "script",
+            "origin": "http://127.0.0.1:56063"
+          },
+          "responseCache": {
+            "etag": "W/\"56755-1792571154581\"",
+            "cacheControl": "no-cache",
+            "vary": "Origin",
+            "contentEncoding": "gzip"
+          },
+          "headerBytes": 327
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "unchanged-after-restart",
+      "registrationMode": "all",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4443/sw.js",
+          "status": 304,
+          "endedAt": 1792571698954,
+          "bodyBytes": 0,
+          "requestCache": {
+            "ifNoneMatch": "W/\"56755-1792571154581\"",
+            "ifModifiedSince": "Wed, 21 Oct 2026 08:25:54 GMT",
+            "acceptEncoding": "gzip, deflate",
+            "serviceWorker": "script"
+          },
+          "responseCache": {
+            "cacheControl": "no-cache",
+            "vary": "Origin"
+          },
+          "headerBytes": 124
+        }
+      ]
+    }
+  ]
+}
