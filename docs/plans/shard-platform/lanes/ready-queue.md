@@ -20,6 +20,24 @@ QA sp-o3 (+ sp-o2 on a facet split: mover, collections, map zones) Â· QB sp-x9 Â
 
 QB done 728a629a1d (sp-x9); QA done ace3b47a57 + 0c92ce88a0 (sp-o3/sp-o2); QC 9f01f130f4; QD gates dc788d5d60 + G566 API; QE 937be4e247. X5 behavioural acceptance PASS at e3a7990c5b (sp-x8). Idle-Codex overflow (G551 wait lifted, logged): sp-x1 X4 Nine charged hosts; sp-x9 Nalati phase D own-folder code (1,280) toward data + AS + <= 150 listed. sp-o4 Nine phase D own-folder graphical code (world/looks; Nine 1,605 own) the same way; DW fixed-intake rebake declined (26 MB + grid load path under G561). sp-o1 Ink Cel Valley (768) + Pastel Plain (732) own code toward zero (G567) onto shared hosts with real second users; Pine page-life row declined (net ~0, by-name host). sp-o2 Nine terrain (118 unmasked) + world/build.ts (247) onto declared ground/world-entry rows; sp-o4 Nine composite post. sp-x1 _template (1,001) + blender-template (109) toward zero (G567).
 
+## Self-pull: toward zero (G567; take the top open row of your type the moment you finish, no asking)
+
+Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real second shard, or data + AS + <= 150 listed view; no net-0 moves, no one-user hosts; types + lint + focused tests per slice, ONE batch per row (G568). Claim with a one-line pathspec commit here.
+
+| # | Type | Target | Taken |
+|---|---|---|---|
+| Z1 | Opus | Nalati C2 looks (370) + C1 world (516) graphical spans | sp-o3 (after Ink) |
+| Z2 | Opus | Nine C2 looks (807): composite post needs a byte-fitting form (1dfd42d6d7 backed out), other look spans | sp-o4 |
+| Z3 | Opus | Nine C1 world (566): drawn-in kit rows, Fei Zhua mounts, sets | sp-o2 |
+| Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | |
+| Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | |
+| Z6 | Codex | Nalati non-graphical own code (combat/quest/state) | sp-x9 |
+| Z7 | Codex | Nine C6 items (265) + C9 glue (199) | sp-x8 |
+| Z8 | Codex | Pine C9 glue (229) | |
+| Z9 | Codex | Driftwood C9 glue (271) | sp-o5 (attributing) |
+| Z10 | Codex | Ink Cel Valley residue + open-plots (148) | sp-o3 / sp-o1 |
+| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path | |
+
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
 
 Jake 2026-10-21: every lane that finishes its current task takes a row here before any other row, except the
