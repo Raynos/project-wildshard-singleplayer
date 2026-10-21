@@ -177,7 +177,9 @@ export function soakRouteScope(/** @type {string} */ value = 'catalogue', /** @t
 /** A dry run never widens or substitutes for the thirty-minute gate. */
 export function soakRunPolicy(/** @type {boolean} */ dryRun, /** @type {import('./route.ts').SoakContentCut | null} */ contentCut = null) {
   const seconds = dryRun ? 300 : contentCut === null ? 1800 : 3600;
-  return { seconds, samplerSeconds: seconds + 700, leaseMinutes: Math.ceil((seconds + 850) / 60), dryRun };
+  // O12: the 5 x 5 road tour runs once before the timed circuits (~1100 s), so the sampler and the lease cover it too
+  const tour = 1200;
+  return { seconds, samplerSeconds: seconds + tour + 700, leaseMinutes: Math.ceil((seconds + tour + 850) / 60), dryRun };
 }
 
 /** A borrowed preview stays with its owner, including when the soak fails. */

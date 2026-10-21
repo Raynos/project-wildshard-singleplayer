@@ -174,7 +174,7 @@ for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every 
 });
 
 void test('SF57 dry run retains the ordinary deadline and all leases/samplers cover setup and teardown', () => {
-  assert.deepEqual(soakRunPolicy(true), { seconds: 300, samplerSeconds: 1000, leaseMinutes: 20, dryRun: true });
+  assert.deepEqual(soakRunPolicy(true), { seconds: 300, samplerSeconds: 2200, leaseMinutes: 40, dryRun: true });
   assert.equal(soakRunPolicy(false).seconds, 1800); assert.equal(soakRunPolicy(false, { receipt: 'docs/test.md', sourceRevision: 'a'.repeat(40), approvedBy: 'Jake' }).seconds, 3600);
   for (const dry of [true, false]) {
     const p = soakRunPolicy(dry); assert.ok(p.leaseMinutes * 60 > p.samplerSeconds);
