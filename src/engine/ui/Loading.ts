@@ -76,6 +76,7 @@ export class Loading {
   private finished = false;
   private shownSetup = 0;
   private readonly admissionPhases = new Set<string>();
+  private readonly paintedRows: (LoadingRow | LoadingGap)[] = [];
 
   constructor(chunk: { id: string; name: string; trace?: boolean }) {
     this.identity = chunk.id;
@@ -259,6 +260,15 @@ export class Loading {
     }
     while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = engineString('s_a9fadf880555'); this.rowsEl.append(d); }
     shown.forEach((r, i) => {
+      const previous = this.paintedRows[i];
+      // Completed rows keep their exact values. Avoid translating their
+      // labels and reading their DOM children on every active-step paint.
+      if (previous !== undefined && previous.state === r.state && previous.ms === r.ms
+        && previous.label === r.label
+        && ('detail' in previous ? previous.detail : '') === ('detail' in r ? r.detail : '')
+        && ('key' in previous ? previous.key : 'gap') === ('key' in r ? r.key : 'gap')
+        && ('number' in previous ? previous.number : 0) === ('number' in r ? r.number : 0)) return;
+      this.paintedRows[i] = r;
       const el = this.rowsEl.children[i] as HTMLElement;
       const cls = r.state === 'on' ? 'on' : 'ok';
       if (el.className !== cls) el.className = cls;
