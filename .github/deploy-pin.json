@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "pinned",
+  "mode": "newest-ci-green",
   "sha": "cdff44f219e478a89d6f0680914189b78f9ca704",
   "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "hold until 594a2bf567, stale visited products",
-  "set": "2026-10-21T00:42:49.009Z",
+  "go": "Release 64d85dac04: push CI 39587105807 and exact-SHA smoke 39590263308 passed; stale-visit and release repairs verified",
+  "set": "2026-10-21T11:23:31.191Z",
   "by": "E357 lead"
 }
