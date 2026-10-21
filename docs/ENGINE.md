@@ -868,6 +868,14 @@ identity. Scoped `Loading` panels use this port, label their byte line as page
 activity during that load (including background downloads), and report their
 own running step instead of unrelated page-global `bootWaits()`.
 
+`Loading.setPrefetchSource(read)` accepts an application-owned read-only
+snapshot (phase/reason, products checked, known bytes/files, already present
+and newly stored bytes/files). It is polled with the loading repaint. The
+panel reports the on-disk sum against the set discovered so far; quota stops
+remain visible. These counts never credit network transfers or alter the
+wire denominator. Wire traffic, verified cache reads and pending file
+sizes retain separate labels.
+
 `waitFor(label, promise, kind?)` in `@wildshard/engine/boot/waits` observes an
 already-started promise and unregisters it on either outcome. `bootWaits()`
 returns live labels, kinds and monotonic ages. Product admission and file reads,

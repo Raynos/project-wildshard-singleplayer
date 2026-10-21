@@ -8,6 +8,7 @@ import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
 import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting } from '../boot/download';
+import { loadingDownloadText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
 import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
@@ -62,6 +63,7 @@ export class Loading {
   private textureBytes = 0;
   private readonly attempt: number;
   private admission: LoadingAdmission | null = null;
+  private prefetchSource: (() => LoadingPrefetchSnapshot | null) | undefined;
   private readonly downloads: DownloadAccounting;
   private readonly downloadObserver: PerformanceObserver;
   private readonly timeline: LoadingTimeline;
@@ -131,6 +133,9 @@ export class Loading {
     const tick = (): void => { this.tickClock(); this.raf = this.scope.raf(tick); };
     tick();
   }
+
+  /** Read application-owned disk-prefetch progress without changing this attempt's wire accounting. */
+  setPrefetchSource(source: () => LoadingPrefetchSnapshot | null): void { this.prefetchSource = source; this.dirty = true; }
 
   /** Show real pre-session work. Unknown totals stay explicit instead of inventing a percentage. */
   paintAdmission(progress: LoadingAdmission): void {
@@ -262,9 +267,9 @@ export class Loading {
     setData(this.root, 'networkBytes', String(transfer.networkBytes));
     setData(this.root, 'cachedBytes', String(transfer.cachedBytes));
     setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
-    const received = transfer.networkBytes + transfer.cachedBytes;
-    const total = received + transfer.pendingBytes + transfer.unclassifiedBytes;
-    set(this.els.dlFact, `${this.scoped ? 'Page activity during this load: ' : ''}${formatMB(transfer.networkBytes)} network · ${formatMB(transfer.cachedBytes)} offline cache · ${formatMB(received)} of ${formatMB(total)} known total · ${transfer.filesDone} / ${transfer.filesTotal} files${transfer.unclassifiedBytes > 0 ? ` · ${formatMB(transfer.unclassifiedBytes)} source unknown` : ''}`);
+    const prefetch = this.prefetchSource?.() ?? null;
+    setData(this.root, 'prefetch', prefetch === null ? '' : JSON.stringify(prefetch));
+    set(this.els.dlFact, loadingDownloadText(transfer, this.scoped, prefetch));
     return transfer.fraction;
   }
 

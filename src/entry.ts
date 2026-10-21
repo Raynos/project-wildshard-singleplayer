@@ -111,6 +111,8 @@ async function startSelected(): Promise<void> {
   const { game } = await retried(() => import('./game/shard/registry'));
   const { beginLoading } = await retried(() => import('@wildshard/engine/ui/Loading'));
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
+  const { gridPrefetchStatus } = await retried(() => import('./game/grid/prefetch'));
+  loading.setPrefetchSource(gridPrefetchStatus);
   loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
   const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue }, { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },

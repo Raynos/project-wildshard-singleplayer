@@ -14,6 +14,7 @@ import { useShardSteps } from '@wildshard/engine/boot/steps';
 import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
 import { TIER } from '@wildshard/engine/core/tier';
 import { beginLoading } from '@wildshard/engine/ui/Loading';
+import { gridPrefetchStatus } from '../grid/prefetch';
 import { resumeProgress, resumeScreen } from '@wildshard/engine/ui/Resume';
 
 async function buildData(ctx: SessionContext) {
@@ -24,6 +25,7 @@ async function buildData(ctx: SessionContext) {
   if (boot.handoff !== null) session.arrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
   setTexturePolicy(manifest.tiers?.[TIER]?.textures, manifest.slug, imagesFirstPlayingBytes(manifest.runtimeCost));
   const loading = beginLoading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });
+  loading.setPrefetchSource(gridPrefetchStatus);
   loading.endAdmission();
   app.setState('loading');
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).

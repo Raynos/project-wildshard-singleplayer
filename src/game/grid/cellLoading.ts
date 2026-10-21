@@ -10,6 +10,7 @@
  */
 import { Loading } from '@wildshard/engine/ui/Loading';
 import { loadingPath } from '../boot/loadingPaths';
+import { gridPrefetchStatus } from './prefetch';
 
 /** One waiting cell's live admission, read through the grid session's read-only port. */
 export interface CellLoadingInput {
@@ -60,6 +61,7 @@ export class CellLoading {
     if (step.kind === 'done') { this.close(); return; }
     if (this.loading === null) {
       this.loading = new Loading({ id: input.slug, name: input.name }, { scoped: true });
+      this.loading.setPrefetchSource(gridPrefetchStatus);
       this.loading.setPath(loadingPath('cell')); this.instance = input.instance; this.failed = false; this.reached = -1;
     }
     if (step.kind === 'failed') { if (!this.failed) { this.loading.scopedFail(step.reason); this.failed = true; } return; }
