@@ -4,6 +4,7 @@
 import {execFileSync} from 'node:child_process';
 import {existsSync,mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import * as v from 'valibot';
 import {GRID_READY_LATCHES,GridReadyLatchesSchema} from './grid-ready-latches.mjs';
 import {runtimeGridEvidence} from './grid-runtime-evidence.mjs';
@@ -60,7 +61,7 @@ export function latchGridEvidence(root,receipt,receiptCommit,shards) {
  } finally {rmSync(scratch,{recursive:true,force:true});}
  return added;
 }
-if(process.argv[1]!==undefined&&resolve(process.argv[1])===import.meta.filename) {
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) {
  const arg=key=>process.argv.find(value=>value.startsWith(`--${key}=`))?.slice(key.length+3)??'';
  latchGridEvidence(resolve(import.meta.dirname,'..'),arg('receipt'),arg('commit'),arg('shards').split(','));
 }
