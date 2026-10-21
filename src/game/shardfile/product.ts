@@ -196,7 +196,9 @@ export async function browserContentHash(bytes: Uint8Array): Promise<string> {
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', input));
   return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
-/** Validate a visited format-2 product again, including cached Wasm. */
+/** Validate a visited format-2 product again, including cached Wasm.
+ * Refill at most four immutable read slots after verification. A refusal stops
+ * new reads and drains started work before authored-order refusal or publication. */
 export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   return waitFor('Admit product', admitProductWork(input, options), 'admission');
 }
@@ -240,7 +242,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   options.reserve?.(source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   // Reserve the complete product first, then overlap at most four immutable transports. Validation and
-  // publication retain authored order; a failed wave settles fully before admission returns or writes cache.
+  // publication retain authored order; all started reads settle before a failure returns or writes cache.
   const unique = new Map<string, number>();
   for (const { ref, cap } of refs) {
     const hash = ref.replace(/^commons:/u, ''); if (!HASH.test(hash)) throw new Error('Invalid asset address');
@@ -273,13 +275,25 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);
     return owned;
   };
-  for (let at = 0; at < addresses.length; at += 4) {
-    const wave = addresses.slice(at, at + 4), results = await Promise.allSettled(wave.map(load));
-    for (const [index, result] of results.entries()) {
-      if (result.status === 'rejected') throw result.reason;
-      const address = wave[index]; if (address === undefined) throw new Error('Missing asset address');
-      transport.set(address[0], result.value); hashes.set(result.value, address[0]);
+  type ReadResult = { readonly ok: true; readonly bytes: Uint8Array } | { readonly ok: false; readonly error: unknown };
+  const results: (ReadResult | undefined)[] = [];
+  let next = 0, failed = false;
+  const readNext = async (): Promise<void> => {
+    while (!failed) {
+      const index = next++, address = addresses[index];
+      if (address === undefined) return;
+      try { results[index] = { ok: true, bytes: await load(address) }; }
+      catch (error: unknown) { results[index] = { ok: false, error }; failed = true; }
     }
+  };
+  // Backfill one of the same four transports as soon as its verification ends.
+  // On failure, stop launching and drain every started read before refusing.
+  await Promise.all(Array.from({ length: Math.min(4, addresses.length) }, readNext));
+  for (const [index, address] of addresses.entries()) {
+    const result = results[index];
+    if (result === undefined) throw new Error('Missing asset read result');
+    if (!result.ok) throw result.error;
+    transport.set(address[0], result.bytes); hashes.set(result.bytes, address[0]);
   }
   for (const { ref } of refs) {
     const bytes = transport.get(ref.replace(/^commons:/u, ''));

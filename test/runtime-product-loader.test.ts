@@ -408,3 +408,74 @@ test.each(['manifest', 'journal'])('%s URL images retain pixels/wire and protect
   delete source.map; source.files[0]?.dependencies.push(ref);
   expect(urlImageLibrarySource(source, assets).budgets.library.resident).toBe(before);
 });
+
+
+function admissionWindowFixture() {
+  const extra = new Map<string, Uint8Array>();
+  const names = new Map<string, string>();
+  const f = fixture(false, source => {
+    for (let i = 1; i <= 7; i++) {
+      const wire = new Uint8Array([i, 12, 24]), hash = hashImmutableBytes(wire);
+      source.files.push({ hash, kind: 'binary', compressed: wire.length, decoded: wire.length,
+        gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+      source.library.push(hash); extra.set(hash, wire); names.set(hash, `models/window-${i}.bin`);
+    }
+    source.budgets.library = { compressed: 24, resident: 24 };
+    return new Map();
+  }, names);
+  for (const [hash, wire] of extra) f.wires.set(`blobs/bin/${hash}.bin`, wire);
+  trust(f.receipt);
+  return f;
+}
+
+test('admission refills a free transport slot while the oldest asset remains pending', async () => {
+  const f = admissionWindowFixture(), original = f.options.fetch;
+  let release: (() => void) | undefined, active = 0, peak = 0;
+  const gate = new Promise<void>(resolve => { release = resolve; }), started: string[] = [];
+  const pending = admitProduct(f.index, { ...f.options, fetch: async url => {
+    if (!url.includes('/blobs/')) return original(url);
+    started.push(url); active++; peak = Math.max(peak, active);
+    try { if (url.endsWith(`${f.ref}.bin`)) await gate; return await original(url); }
+    finally { active--; }
+  } });
+  try {
+    await vi.waitFor(() => { expect(started.length).toBeGreaterThan(4); });
+    expect(peak).toBeLessThanOrEqual(4);
+    expect(active).toBe(1);
+  } finally { release?.(); await pending; }
+  const product = await pending;
+  expect(product.assets.size).toBe(8); expect(started).toHaveLength(8);
+});
+
+test('admission stops launching on refusal and drains before its authored error or publication', async () => {
+  const f = admissionWindowFixture(), original = f.options.fetch;
+  let release: (() => void) | undefined, finished = false;
+  const gate = new Promise<void>(resolve => { release = resolve; }), started: string[] = [];
+  const putAsset = vi.fn(() => Promise.resolve(true)), putProduct = vi.fn(() => Promise.resolve());
+  const cache: ProductCache = { product: () => Promise.resolve(null), asset: () => Promise.resolve(null), putAsset, putProduct };
+  // Resolve immutable descriptor sections before observing asset-publication refusal.
+  const source = await readProductDescriptor(f.options);
+  const first = f.index.files[0], second = f.index.files[1];
+  if (first === undefined || second === undefined) throw new Error('Missing fixture asset');
+  const pending = (async (): Promise<string> => {
+    try {
+      await admitProduct(source, { ...f.options, cache, fetch: async url => {
+        if (!url.includes('/blobs/')) return original(url);
+        started.push(url);
+        if (url.endsWith(`${first.hash}.bin`)) { await gate; throw new Error('First authored refusal'); }
+        if (url.endsWith(`${second.hash}.bin`)) throw new Error('Second arrived refusal');
+        return original(url);
+      } });
+      return '';
+    } catch (error: unknown) { return error instanceof Error ? error.message : String(error); }
+    finally { finished = true; }
+  })();
+  try {
+    await vi.waitFor(() => { expect(started).toHaveLength(4); });
+    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
+    expect(finished).toBe(false); expect(started).toHaveLength(4);
+    expect(putAsset).not.toHaveBeenCalled(); expect(putProduct).not.toHaveBeenCalled();
+  } finally { release?.(); await pending; }
+  expect(await pending).toBe('First authored refusal');
+  expect(started).toHaveLength(4); expect(putAsset).not.toHaveBeenCalled(); expect(putProduct).not.toHaveBeenCalled();
+});
