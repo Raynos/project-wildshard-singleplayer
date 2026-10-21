@@ -1,4 +1,4 @@
-import { SPAWN } from './data/spawn';
+import SPAWN from './data/spawn.json' with { type: 'json' };
 import { BUDGETS } from './budgets';
 import { PASTEL_CARD, EXPLORE } from './explore/art';
 

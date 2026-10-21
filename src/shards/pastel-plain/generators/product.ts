@@ -1,28 +1,52 @@
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
+import { parseRows } from '@wildshard/sdk/rows';
+import { parsePlumbing } from '@wildshard/sdk/plumbing';
+import { parseLedgerRules } from '@wildshard/sdk/ledger';
+import { parseAudioData } from '@wildshard/sdk/audio';
+import { parseQuestData } from '@wildshard/sdk/quests';
+import { parseClientScripts } from '@wildshard/sdk/clientScripts';
 import terrain from '../data/terrain.json' with { type: 'json' };
 import door from '../behaviour/door.json' with { type: 'json' };
+import hooks from '../behaviour/hooks.json' with { type: 'json' };
 import props from '../data/props.json' with { type: 'json' };
-import { PASTEL_HOOKS, PASTEL_STATE } from '../behaviour/hooks';
 import rows from '../data/rows.json' with { type: 'json' };
-import { parseRows } from '@wildshard/sdk/rows';
-import { PASTEL_PLUMBING } from '../data/plumbing';
-import { PASTEL_UI } from '../data/ui';
-import { PASTEL_LOOK } from '../data/look';
-import { PASTEL_WATER } from '../data/water';
-import { CREATURES } from '../data/creatures';
-import { ENCOUNTERS } from '../data/encounters';
-import { ADVENTURE } from '../quests/adventure';
-import { PASTEL_LEDGER } from '../data/ledger';
-import { PASTEL_AUDIO } from '../data/audio';
-import { SPAWN } from '../data/spawn';
+import plumbing from '../data/plumbing.json' with { type: 'json' };
+import water from '../data/water.json' with { type: 'json' };
+import creatures from '../data/creatures.json' with { type: 'json' };
+import encounters from '../data/encounters.json' with { type: 'json' };
+import quests from '../data/quests.json' with { type: 'json' };
+import ledger from '../data/ledger.json' with { type: 'json' };
+import audio from '../data/audio.json' with { type: 'json' };
+import spawn from '../data/spawn.json' with { type: 'json' };
+import text from '../data/text.json' with { type: 'json' };
+import clientScripts from '../data/clientScripts.json' with { type: 'json' };
+import targets from '../data/targets.json' with { type: 'json' };
+import skins from '../data/skins.json' with { type: 'json' };
 import ITEMS from '../data/items.json' with { type: 'json' };
-import { PASTEL_TARGETS } from '../data/targets';
-import { PASTEL_SKIN_COST, PASTEL_SKIN_FILES, PASTEL_SKIN_LIBRARY, PASTEL_SKIN_LOOKS } from '../data/skins';
-import { CLIENT_IDLE_BYTES, CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, PASTEL_CLIENT_SCRIPTS } from '../data/clientScripts';
+import { PASTEL_LOOK } from '../data/look';
 
 /** Pure template declarations (data/rows.json); SF16 binds these through the normal shardfile loader. */
 const PASTEL_ROWS = parseRows(rows);
+/** The template's creature looks (SF16): the SF9c exported grey blob and boar, drawn by `platform.skin` and animated from
+ *  the creature's state (`platform.clips`); `_template/generators/template-skins.mjs` writes `skins.json` and the files. */
+const PASTEL_SKIN_LOOKS = skins.map((entry) => ({ id: entry.look, species: entry.species, recipe: 'platform.skin', material: null,
+  parameters: { skin: entry.skin }, animation: { recipe: 'platform.clips', parameters: { attackSpan: 1 } } }));
+const PASTEL_SKIN_FILES = skins.flatMap((entry) => entry.files), PASTEL_SKIN_LIBRARY = skins.map((entry) => entry.skin);
+const PASTEL_SKIN_COST = PASTEL_SKIN_FILES.reduce((sum, file) => ({ resident: sum.resident + file.decoded + file.gpu, compressed: sum.compressed + file.compressed }), { resident: 0, compressed: 0 });
+/** The idle client module (compileScript(idle.as, {maximumPages: 2})): its hash, size and presentation guest reserve. */
+const CLIENT_IDLE_HASH = clientScripts.module.hash, CLIENT_IDLE_BYTES = clientScripts.module.bytes;
+const CLIENT_IDLE_RESIDENT = CLIENT_IDLE_BYTES + 3 * 2 * 65536 + 6 * 88;
+const PASTEL_CLIENT_SCRIPTS = parseClientScripts({ divisor: clientScripts.divisor, bindings: clientScripts.bindings });
+/** Baseline HUD slots, labels and bag text, and the door's panel, item actions and interaction point. */
+const PASTEL_UI = [
+  { kind: 'marker', id: 'pastel.door-pin', label: text.hut, at: terrain.sites.door },
+  { kind: 'counter', id: 'pastel.oil', label: text.oil, band: 'band.3', order: 20, min: 0, max: 1, field: 'pastel.lantern.oil' },
+  { kind: 'relabel', id: 'pastel.jump-label', spot: 'jump', label: 'JUMP', icon: null },
+  { kind: 'bagPanel', id: 'pastel.notes', tab: { id: 'notes', title: text.notes, icon: 'book', order: 50 }, order: 0, paragraphs: [text.note] },
+  ...encounters.ui,
+];
+const PASTEL_TARGETS = { ...targets, interactions: [{ id: 'pastel.door.use', at: terrain.sites.door, radius: 3, label: text.door, scene: 'pastel.door.toggle' }] };
 const base = emptyShardfile({ slug: 'pastel-plain', name: 'Pastel Plain', author: 'Wildshard', revision: 1, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
@@ -41,10 +65,10 @@ const tiles = terrain.tiles.map((tile) => {
 export default parseShardfile({ ...base, accent: 'lime',
   budgets: { library: { resident: 100_000 + PASTEL_SKIN_COST.resident + CLIENT_IDLE_RESIDENT + 2_633_280, compressed: 100_000 + CLIENT_IDLE_BYTES + PASTEL_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
-  look: PASTEL_LOOK, spawn: SPAWN, rows: { ...PASTEL_ROWS, looks: PASTEL_SKIN_LOOKS }, plumbing: PASTEL_PLUMBING, ui: PASTEL_UI,
+  look: PASTEL_LOOK, spawn, rows: { ...PASTEL_ROWS, looks: PASTEL_SKIN_LOOKS }, plumbing: parsePlumbing(plumbing), ui: PASTEL_UI,
   terrain: terrain.terrain, tiles, files: [...terrain.files, ...props.files, ...PASTEL_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,
   library: [...props.library, ...PASTEL_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: PASTEL_TARGETS, clientScripts: PASTEL_CLIENT_SCRIPTS,
-  critical: [...terrain.critical, door.hash, itemModule], water: PASTEL_WATER, creatures: CREATURES, encounters: ENCOUNTERS,
-  quests: ADVENTURE, ledger: PASTEL_LEDGER, audio: PASTEL_AUDIO, state: PASTEL_STATE, hooks: PASTEL_HOOKS,
+  critical: [...terrain.critical, door.hash, itemModule], water, creatures, encounters: encounters.encounters,
+  quests: parseQuestData(quests), ledger: parseLedgerRules(ledger), audio: parseAudioData(audio), state: hooks.state, hooks: hooks.hooks,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
 });

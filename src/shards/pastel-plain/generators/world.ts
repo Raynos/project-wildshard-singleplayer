@@ -2,7 +2,7 @@ import { BoxCollider } from '@wildshard/sdk/physics';
 import type { PropsBakeSource } from '@wildshard/sdk/bake/props';
 import { measureUv, type MeasureRole } from '@wildshard/format/materialFamilies';
 import { BoxGeometry, BufferGeometry, CircleGeometry, Float32BufferAttribute, Group, Material, Mesh, MeshStandardMaterial, PointLight, type Object3D } from 'three';
-import { HUT } from '../data/layout';
+import layout from '../data/layout.json' with { type: 'json' };
 
 /**
  * Build-time only (SHARD-PLATFORM SF16): the template's grey-box shapes as the props baker
@@ -47,19 +47,19 @@ export interface PastelWorldPorts {
 /** The hut, door, ramp, `propCount` scattered cubes and the pool disc, under `root`, each a registry piece as the runtime registered it. */
 export function buildPastelWorld(ctx: PastelWorldPorts, propCount: number): void {
   const { heightAt } = ctx, file = 'src/shards/pastel-plain/generators/world.ts';
-  const y = heightAt(HUT.x, HUT.z);
-  const hut = new Group(); hut.position.set(HUT.x, y, HUT.z);
+  const y = heightAt(layout.HUT.x, layout.HUT.z);
+  const hut = new Group(); hut.position.set(layout.HUT.x, y, layout.HUT.z);
   const roof = cube(6, 0.3, 6, 0x888888, 2); roof.position.y = 3; hut.add(roof);
   const colliders = [];
   for (const [x, z, hw, hd] of [[-3, 0, 0.15, 3], [3, 0, 0.15, 3], [0, -3, 3, 0.15], [-2, 3, 1, 0.15], [2, 3, 1, 0.15]]) {
     if (x === undefined || z === undefined || hw === undefined || hd === undefined) continue;
     const wall = cube(hw * 2, 3, hd * 2); wall.position.set(x, 1.5, z); hut.add(wall);
-    colliders.push(BoxCollider.fromData({ kind: 'box', x: HUT.x + x, y: (y + 3 + y) / 2, z: HUT.z + z, hx: hw, hy: Math.max(0.005, (y + 3 - y) / 2), hz: hd, yaw: -0, surface: 'wood' }).toColliderData());
+    colliders.push(BoxCollider.fromData({ kind: 'box', x: layout.HUT.x + x, y: (y + 3 + y) / 2, z: layout.HUT.z + z, hx: hw, hy: Math.max(0.005, (y + 3 - y) / 2), hz: hd, yaw: -0, surface: 'wood' }).toColliderData());
   }
   ctx.root.add(hut); ctx.piece({ id: 'pastel.hut', name: 'Grey hut', category: 'buildings', file, object: hut, colliders, surface: 'wood' });
-  const panel = cube(1.8, 2.5, 0.2, 0x555555, 2); panel.position.set(HUT.x, y + 1.2, HUT.doorZ);
+  const panel = cube(1.8, 2.5, 0.2, 0x555555, 2); panel.position.set(layout.HUT.x, y + 1.2, layout.HUT.doorZ);
   ctx.root.add(panel); ctx.piece({ id: 'pastel.door', name: 'Open hut door', category: 'buildings', file, object: panel,
-    colliders: [BoxCollider.fromData({ kind: 'box', x: HUT.x, y: (y + 2.5 + y) / 2, z: HUT.doorZ, hx: 0.9, hy: Math.max(0.005, (y + 2.5 - y) / 2), hz: 0.1, yaw: -0, surface: 'wood' }).toColliderData()], active: () => true });
+    colliders: [BoxCollider.fromData({ kind: 'box', x: layout.HUT.x, y: (y + 2.5 + y) / 2, z: layout.HUT.doorZ, hx: 0.9, hy: Math.max(0.005, (y + 2.5 - y) / 2), hz: 0.1, yaw: -0, surface: 'wood' }).toColliderData()], active: () => true });
   const ramp = new Group(), from: [number, number, number] = [8, heightAt(8, -8), -8], to: [number, number, number] = [8, from[1] + 2, -14];
   for (let i = 0; i < 10; i++) { const tread = cube(3, 0.2, 0.6, 0x888888, 2); tread.position.set(8, from[1] + (i + 1) * 0.2 - 0.1, -8 - (i + 0.5) * 0.6); ramp.add(tread); }
   const slope = cube(3, 0.24, Math.sqrt(40), 0x888888, 2); slope.position.set(12, from[1] + 0.9, -11); slope.rotation.x = Math.atan2(2, 6); ramp.add(slope);

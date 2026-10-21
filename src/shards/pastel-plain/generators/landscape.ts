@@ -1,8 +1,13 @@
 import { CHUNK_HALF } from '@wildshard/format/contentBounds';
-import { TRAIL } from '../data/layout';
+import layout from '../data/layout.json' with { type: 'json' };
 import { cellGround } from './ground';
 import { pastelNoise } from './landscapeNoise';
 
+/** The authored trail polylines (data/layout.json) as checked [x, z] points. */
+const TRAIL = layout.TRAIL.map(poly => poly.map(([x, z]): readonly [number, number] => {
+  if (x === undefined || z === undefined) throw new Error('Pastel trail point needs x and z');
+  return [x, z];
+}));
 // Retained authored entry grading: 15 m road, reaching 60 m into the cell.
 const ROAD_WIDTH = 15, ROAD_LENGTH = 60;
 
