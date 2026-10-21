@@ -7806,6 +7806,9 @@ receipts and offline cache reads (G491). Missing or malformed schemas and
 invalid values fail the load. `game/shardfile/customSchema.validateCustomSchema`
 uses the same pinned Ajv policy as the SDK's `validateDefinedSection`: strict
 and non-coercing. Build validators stay in the SDK's authoring-only closure.
+Runtime compilation factors large inline schema branches into local definitions
+and disables reference inlining, bounding generated validator functions. Schema
+identifiers, existing references, data literals and the original admission checks remain intact.
 `OutputDescriptorReader.pause` (forwarded by `ProductOptions.pause`) is an
 optional trusted scheduling callback after each complete custom-schema check.
 The client yields for a paint there; Node admission needs no client scheduler.
