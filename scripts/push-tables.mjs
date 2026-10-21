@@ -31,7 +31,7 @@ export function manifestTypeTables(root, folder, manifest, outputs) {
     ...(rows.audioCues === undefined ? [] : [{ ref: rows.audioCues, type: "NonNullable<import('@wildshard/game/shard/manifest').AuthoredShardBindings['audioBindings']>['cues']" }]),
     ...(rows.poses === undefined ? [] : [{ ref: rows.poses, type: "ReturnType<typeof import('@wildshard/format/minimap').parseCapturePoses>" }]),
     ...Object.entries(rows.boot ?? {}).map(([key, ref]) => ({ ref,
-      type: `NonNullable<import('@wildshard/game/shard/manifest').AuthoredShardBindings['bootBindings']>[${JSON.stringify(key)}]` })),
+      type: `NonNullable<NonNullable<import('@wildshard/game/shard/manifest').AuthoredShardBindings['bootBindings']>[${JSON.stringify(key)}]>` })),
   ];
   for (const { ref, type } of fields) {
     if (!/^\.\/(?:data|boot|assets)\/[a-zA-Z0-9_.-]+\.json$/u.test(ref.module)) continue;

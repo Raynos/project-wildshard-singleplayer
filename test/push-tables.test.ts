@@ -9,8 +9,18 @@ import { sourceWalker } from '../scripts/push-inputs.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 
 test('metadata discovery emits the same checked TypeScript table', () => {
-  expect(authoredManifestSource(resolve('.'), '_template', { metadataOnly: true }))
-    .toBe(authoredManifestSource(resolve('.'), '_template'));
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/push-discovery-parity-'));
+  try {
+    const folder = join(root, 'src/shards/example');
+    mkdirSync(join(folder, 'data'), { recursive: true });
+    writeFileSync(join(folder, 'data/budgets.json'), '{}');
+    writeFileSync(join(folder, 'manifest.json'), JSON.stringify({ slug: 'example', bindings: {
+      accent: 'sea', budgets: { module: './data/budgets.json', export: 'default' },
+    } }));
+    expect(authoredManifestSource(root, 'example', { metadataOnly: true }))
+      .toBe(authoredManifestSource(root, 'example'));
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('standard ignored bindings borrow the defining admitted contracts', () => {

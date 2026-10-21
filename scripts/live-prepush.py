@@ -68,19 +68,22 @@ def failure_paths(output):
     return sorted(set(re.findall(r'(?<![\w/])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh))\b', plain)))
 
 
-def check(root, base, tip, deadline, runner=run, files=None, tools=None):
+def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True):
     files = changed(root, base, tip) if files is None else files
     tools = root / 'scripts' if tools is None else tools
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
+    result['types'] = 'checked' if types_available else 'ci-cache-miss'
+    if not types_available:
+        result['output'] = 'No matching verified generation cache: TypeScript and type-aware lint defer to the full CI gate; ordinary oxlint remains local.'
     before = snapshot(root, files)
     (root / 'tmp').mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='live-prepush-', dir=root / 'tmp') as temporary:
         listing = Path(temporary) / 'changed.json'
         listing.write_text(json.dumps(files))
         lintable = lint_sources(root, files)
-        commands = [('types', ['node', str(tools / 'local-gate-checks.mjs'), 'types', str(listing)])]
+        commands = [('types', ['node', str(tools / 'local-gate-checks.mjs'), 'types', str(listing)])] if types_available else []
         if lintable:
-            commands.append(('lint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *lintable]))
+            commands.append(('lint', ['pnpm', 'exec', 'oxlint', *(['--type-aware'] if types_available else []), '-c', '.oxlintrc.json', *lintable]))
         env = dict(os.environ, WS_VITEST_MAX_WORKERS='4', WS_LIVE_PREPUSH='1', NO_COLOR='1')
         for phase, command in commands:
             rc, output = runner(command, root, deadline, env)
@@ -105,7 +108,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None):
                         result.update(phase='tests', output=output, files=failure_paths(output))
                         return result
                     if rc == 124:
-                        result['output'] = 'Related tests reached the ceiling; remainder runs in CI'
+                        result['output'] += '\nRelated tests reached the ceiling; remainder runs in CI'
         if before != snapshot(root, files):
             result.update(phase='working-tree', output='Inputs changed during checks; retry next minute')
             return result

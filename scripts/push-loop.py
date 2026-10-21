@@ -18,11 +18,13 @@ git = LIVE['git']
 def check_committed(root, base, tip, deadline):
     try:
         with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), deadline) as (tree, tools):
-            rc, output = LIVE['run'](['node', '--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
-                                     str(tools / 'push-tables.mjs'), str(tree)], tree, deadline)
-            if rc:
-                return {'ok': False, 'phase': 'source-tables', 'files': LIVE['failure_paths'](output), 'output': output}
-            result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip), tools=tools)
+            available = json.loads((tree / '.push-types.json').read_text())['available']
+            if available:
+                rc, output = LIVE['run'](['node', '--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
+                                         str(tools / 'push-tables.mjs'), str(tree)], tree, deadline)
+                if rc:
+                    return {'ok': False, 'phase': 'source-tables', 'files': LIVE['failure_paths'](output), 'output': output}
+            result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip), tools=tools, types_available=available)
             if not result['ok'] and result['files']:
                 rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
                 result['inputs'] = json.loads(output) if rc == 0 else []
@@ -128,6 +130,7 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         state_file.write_text(json.dumps({'fingerprint': fingerprint, 'count': count, 'pinged': pinged}))
     if candidate == base:
         return finish({'status': 'red', 'tip': tip, 'bad': bad, 'phase': result['phase'],
+                       'types': result.get('types', 'unavailable'),
                        'gateSeconds': round(time.monotonic() - started, 2), 'output': result['output']})
     env = dict(os.environ, WS_LIVE_GATE_TIP=candidate, WS_LIVE_GATE_BASE=base)
     if uploader is None:
@@ -136,6 +139,7 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     gate_seconds = round(time.monotonic() - started, 2)
     rc = uploader(candidate, env)
     return finish({'status': 'pushed' if rc == 0 else 'upload-red', 'tip': candidate, 'bad': bad,
+                   'types': result.get('types', 'unavailable'),
                    'gateSeconds': gate_seconds, 'output': result['output']})
 
 

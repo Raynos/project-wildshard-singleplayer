@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import runpy
+import re
 from pathlib import Path, PurePosixPath
 import subprocess
 import tempfile
@@ -119,6 +120,14 @@ def committed_source(repo, revision, tooling_revision, deadline):
             images(json.loads(manifest.read_text()))
         for manifest in (tree / 'src/shards').glob('*/outputs.json'):
             images(json.loads(manifest.read_text()))
+        # Fixtures import only a small set of literal public JSON tables.
+        for _, name in entries:
+            if not re.search(r'\.[cm]?[jt]sx?$', name):
+                continue
+            for reference in re.findall(r'''(?:from\s+|import\s*\(\s*)["']([^"']+\.json)["']''', (tree / name).read_text()):
+                target = os.path.normpath(str(PurePosixPath(name).parent / reference))
+                if target.startswith('public/') and '..' not in PurePosixPath(target).parts:
+                    assets.add(target)
         blobs = {name.decode(): header.split()[2] for header, name in
                  (row.split(b'\t', 1) for row in records)}
         for name in assets:
@@ -129,7 +138,8 @@ def committed_source(repo, revision, tooling_revision, deadline):
                 target.write_bytes(data)
         outputs(repo, tree, records, deadline, assets)
         cache = runpy.run_path(str(Path(__file__).with_name('push_input_cache.py')))
-        cache['restore'](repo, tree, records, deadline)
+        available = cache['restore'](repo, tree, records, deadline)
+        (tree / '.push-types.json').write_text(json.dumps({'available': available}))
         tools = tree / '.push-tools'
         tools.mkdir()
         for name in [*TOOLS, 'link-node-modules.mjs']:

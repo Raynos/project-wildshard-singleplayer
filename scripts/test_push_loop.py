@@ -1,5 +1,6 @@
 """Real Git prefix uploads, bounded children and live-check refusal paths."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import runpy
@@ -169,27 +170,61 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(len(notices), 1)
         self.assertIn('typed-check', notices[0][2])
 
-    def test_type_cache_invalidates_on_producer_and_upstream_changes(self):
-        jobs = [
-            {'id': 'upstream', 'inputRoots': ['src/author.ts'], 'outputs': ['src/up.generated.json']},
-            {'id': 'consumer', 'inputRoots': ['src/up.generated.json', 'src/consumer.ts'], 'outputs': ['src/result.generated.json']},
-        ]
-        records = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/consumer.ts']
-        keys = CACHE['identities'](jobs, records)
-        self.assertEqual(keys, CACHE['identities'](jobs, [*records, b'100644 blob ccc\tdocs/note.md']))
-        changed = CACHE['identities'](jobs, [b'100644 blob ddd\tsrc/author.ts', records[1]])
-        self.assertNotEqual(keys['upstream'], changed['upstream'])
-        self.assertNotEqual(keys['consumer'], changed['consumer'])
+    def test_source_type_cache_binds_contents_and_inventory(self):
+        records = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/data.json']
+        key = CACHE['source_key'](records, ['src'])
+        self.assertEqual(key, CACHE['source_key']([*records, b'100644 blob ccc\tdocs/note.md'], ['src']))
+        self.assertNotEqual(key, CACHE['source_key']([b'100644 blob ddd\tsrc/author.ts', records[1]], ['src']))
+        self.assertNotEqual(key, CACHE['source_key']([*records, b'100644 blob eee\tsrc/new.ts'], ['src']))
 
-    def test_unused_code_edits_carry_but_inventory_changes_invalidate(self):
-        jobs = [{'id': 'data', 'inputRoots': ['src'], 'outputs': ['src/result.generated.json'],
-                 'command': ['src/sdk/bake/json.mjs']}]
-        rows = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/unused.ts', b'100644 blob ccc\tsrc/data.json']
-        reads = {'data': ['src/author.ts']}
-        keys = CACHE['identities'](jobs, rows, reads)
-        self.assertEqual(keys, CACHE['identities'](jobs, [rows[0], b'100644 blob ddd\tsrc/unused.ts', rows[2]], reads))
-        self.assertNotEqual(keys, CACHE['identities'](jobs, [*rows, b'100644 blob eee\tsrc/new.ts'], reads))
-        self.assertNotEqual(keys, CACHE['identities'](jobs, [*rows[:2], b'100644 blob fff\tsrc/data.json'], reads))
+    def test_generation_phase_cache_rejects_changed_inputs_and_corrupt_outputs(self):
+        tip = self.git('rev-parse', 'HEAD')
+        records = [row for row in subprocess.check_output(['git', 'ls-tree', '-rz', tip], cwd=self.root).split(b'\0') if row]
+        generated = self.root / 'completed/tree'
+        generated.mkdir(parents=True)
+        (generated.parent / 'HEAD').write_text(tip)
+        source = self.git('show', tip + ':src/base.ts') + '\n'
+        output = b'{"value":1}'
+        digest = hashlib.sha256(output).hexdigest()
+        saved = {'schema': 'generation-phase/1', 'root': str(generated), 'identity': '0' * 64,
+                 'inputs': {'src/base.ts': hashlib.sha256(source.encode()).hexdigest()},
+                 'trees': {'src': ['src/base.ts']}, 'outputs': {'src/value.generated.json': digest}}
+        phase = generated / '.cache/generation-phase.json'
+        phase.parent.mkdir()
+        encoded = json.dumps(saved, ensure_ascii=False, separators=(',', ':'))
+        phase.write_text(json.dumps({**saved, 'seal': hashlib.sha256(encoded.encode()).hexdigest()}))
+        (generated / 'src').mkdir()
+        (generated / 'src/value.generated.json').write_bytes(output)
+        self.assertEqual(CACHE['publish'](self.root, tip, generated), 1)
+        target = self.root / 'checked'
+        target.mkdir()
+        self.assertTrue(CACHE['restore'](self.root, target, records, time.monotonic() + 5))
+        self.assertEqual((target / 'src/value.generated.json').read_bytes(), output)
+        self.assertFalse(CACHE['restore'](self.root, target, [*records, b'100644 blob new\tsrc/new.ts'], time.monotonic() + 5))
+        (self.root / 'tmp/push-input-cache/blobs' / digest).write_text('corrupt')
+        clean = self.root / 'another-check'
+        clean.mkdir()
+        with self.assertRaisesRegex(ValueError, 'Corrupt'):
+            CACHE['restore'](self.root, clean, records, time.monotonic() + 5)
+        saved['inputs']['src/base.ts'] = 'f' * 64
+        encoded = json.dumps(saved, ensure_ascii=False, separators=(',', ':'))
+        phase.write_text(json.dumps({**saved, 'seal': hashlib.sha256(encoded.encode()).hexdigest()}))
+        with self.assertRaisesRegex(ValueError, 'source differs'):
+            CACHE['publish'](self.root, tip, generated)
+
+    def test_cache_miss_defers_types_but_runs_lint_and_related_tests(self):
+        tip = self.commit('src/good.ts')
+        commands = []
+        def runner(command, *_):
+            commands.append(command)
+            return 0, '[]' if '--live' in command else ''
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
+                               runner, types_available=False)
+        self.assertTrue(result['ok'])
+        self.assertEqual(result['types'], 'ci-cache-miss')
+        self.assertIn('full CI gate', result['output'])
+        self.assertEqual(commands[0][:3], ['pnpm', 'exec', 'oxlint'])
+        self.assertTrue(all('types' not in command and '--type-aware' not in command for command in commands))
 
 
 if __name__ == '__main__':
