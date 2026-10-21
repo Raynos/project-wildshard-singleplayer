@@ -13,7 +13,6 @@
     "contracts": "quests/contracts.json",
     "signals": "quests/lanterns.json",
     "door": "quests/mill-door.json",
-    "transactions": "quests/transactions.json",
     "services": "quests/services.json",
     "director": "quests/chapter-director.json"
   },
@@ -29,13 +28,6 @@
   "door": {
     "building": "watermill",
     "flag": "errand:done"
-  },
-  "trades": {
-    "finishes": [
-      "hollow-ash",
-      "scarback-furnace"
-    ],
-    "figure": "trader"
   },
   "board": {
     "label": "Read the contract board",

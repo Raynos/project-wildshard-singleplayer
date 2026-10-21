@@ -10115,6 +10115,12 @@ owner path. `snapshot` and `prepareRestore` retain the version-1 modal/board
 wire; restore validates the complete continuation before mutating live state
 and never reapplies rewards. Page and native entry share this board owner;
 page storage still writes the original unwrapped `saveBoard` text.
+Both entry adapters grant returned item rows through `commitQuestEffects`;
+ammunition, cosmetic ownership and presentation keep their existing owners.
+The page keeps items → ammunition → finish → save → feedback ordering.
+Its finish captions are data in the existing story document. Retired reflected
+transaction/consequence documents live only as original-byte test fixtures;
+the primary product no longer publishes or decodes them.
 
 The host uses G473's approved-platform exception. A made-up second shard in
 `test/contracts-platform.test.ts` drives two slots, unrelated kinds and tags,

@@ -1,5 +1,6 @@
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
+import { commitQuestEffects } from '@wildshard/game/quest/effects';
 import { prepareQuestEntry } from '@wildshard/game/quest/chapter';
 import { installQuestShop } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
@@ -37,8 +38,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const runtime = ctx.game.runtime, enteredWorld = runtime?.world, play = runtime?.play;
   if (runtime === undefined || enteredWorld === undefined || enteredWorld === null || play === undefined || play === null) throw new Error('Story requires entered play services');
   const h = { ...enteredWorld, ...play, ctx, cabins: floor.cabins, trees: enteredWorld.forest.trees,
-    interactables: runtime.interactables, chunkId: ctx.manifest.slug, compendium: equipment.compendium?.state ?? null,
-    crossbow: { addBolts: (n: number) => { equipment.loadout.addAmmo(rows.ammo, n); }, addAmmo: equipment.loadout.addAmmo, room: equipment.loadout.room } };
+    interactables: runtime.interactables, chunkId: ctx.manifest.slug, compendium: equipment.compendium?.state ?? null };
   const panels = await readDataPanels(h.ctx.product);
   const boardPanel = panels[rows.panels.board], countPanel = panels[rows.panels.count];
   if (boardPanel === undefined || countPanel === undefined) throw new Error('Story requires its named quest panels');
@@ -48,7 +48,6 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.contracts))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.signals))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.door))));
-  const transactionRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.transactions))));
   const { game, sky, player, animals, hud, inventory } = h;
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services, placement: { registryReach: 20 } });
   const { story, flags, floorAt } = entry;
@@ -118,21 +117,22 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     prompt: { x: bs.x, y: heightAt(bs.x, bs.z) + 1.3, z: bs.z }, radius: 2.8 });
   const board = boardOwner.current;
   const persistBoard = (): void => { try { store.setItem(contracts.store, saveBoard(board)); } catch { /* storage unavailable */ } };
-  const traderVoice = new THREE.Vector3();
-  const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
-    owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
-      ['ammo', { add: h.crossbow.addAmmo }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
-      ['finishes', Object.fromEntries(rows.trades.finishes.map(id => [id, { wear: () => { h.wearSkin(HeldFinishes.current(h.ctx.manifest.slug).get(id)); } }]))]]) });
+  const finishes = new Map(Object.entries(rows.board.finishes).map(([id, text]) => [id, { finish: HeldFinishes.current(ctx.manifest.slug).get(id), text }]));
+  for (const id of [...contracts.rows.flatMap(row => row.reward.skin === undefined ? [] : [row.reward.skin]), ...contracts.milestones.map(row => row.skin)])
+    if (!finishes.has(id)) throw new Error('Quest board lacks finish feedback');
   const boardUi = ui.view('board', (scope) => {
     const onClaim = (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
-      const i = value;
-      const contract = board.slots[i], claimed = boardOwner.claim(i), r = claimed?.reward;
-      if (!r || contract === undefined) return;
-      transactions.run(`contract.${contract.kind}.${contract.target}`);
-      if (r.skin) transactions.run('contract.finish');
+      const r = boardOwner.claim(value)?.reward;
+      if (r === undefined) return;
+      commitQuestEffects(ctx, story.quest.id, r.items.map(item => ({ kind: 'item', item: item.id, count: item.n })));
+      if (r.bolts > 0) equipment.loadout.addAmmo(rows.ammo, r.bolts);
+      if (r.skin !== undefined) {
+        const finish = finishes.get(r.skin); if (finish === undefined) throw new Error('Missing admitted board finish');
+        h.skins.own(r.skin); h.wearSkin(finish.finish); hud.toast(finish.text);
+      }
       persistBoard();
-      transactions.run('contract.claimed');
+      kitSfx.interact('chest'); h.music.sting('pickup');
       featFacts.event('streak', board.streak);
       hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
     };
@@ -153,9 +153,6 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   entry.trader({ rows: traderStall });
   const talks = await entry.talks({ ...rows.talks, steps: native.steps });
   const { people, dialogue } = talks;
-  const trader = people.find(person => person.kind === rows.trades.figure);
-  if (trader === undefined) throw new Error('The declared trader is required');
-  traderVoice.copy(trader.fig.talkPoint);
   const trade = installQuestShop(ctx, traderStall);
   ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
     panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });

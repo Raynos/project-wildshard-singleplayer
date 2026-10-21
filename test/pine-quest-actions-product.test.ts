@@ -10,7 +10,8 @@ import { CONTRACTS } from './fixtures/pine-contracts';
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { hashImmutableBytes } from '../src/sdk/immutable';
+import { PINE_QUEST_TRANSACTIONS } from './fixtures/pine-quest-transactions';
+import { PINE_QUEST_CONSEQUENCES } from './fixtures/pine-quest-consequences';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '../src/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { Flags } from '../src/engine/world/interact/flags';
@@ -20,11 +21,6 @@ import { TRADES, tradeExchange } from '../src/shards/pine-hollow/generators/trad
 
 const serviceProducts = new Map<string, ShardProduct>();
 const admitted = new Map<string, QuestPageInteractionsData>();
-// Frozen from the original play-read tables before moving their assembly to build time.
-const originals = {
-  consequences: null,
-  transactions: '891ccf64742a1e21d5e75705d91c393e784215317a5dc522da779c37f48be04b',
-};
 beforeAll(async () => {
   for (const slug of ['pine-hollow', 'driftwood-isle']) {
     const product = await loadHeadlessProduct(`out/${slug}`);
@@ -33,10 +29,9 @@ beforeAll(async () => {
   }
   const loaded = serviceProducts.get('pine-hollow');
   if (loaded === undefined) throw new Error('Missing admitted Pine product');
-  for (const [name, hash] of Object.entries(originals)) {
-    const bytes = await loaded.file(`quests/${name}.json`);
-    if (hash !== null) expect(hashImmutableBytes(bytes)).toBe(hash);
-    admitted.set(name, parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))));
+  for (const [name, legacy] of [['transactions', PINE_QUEST_TRANSACTIONS], ['consequences', PINE_QUEST_CONSEQUENCES]] as const) {
+    expect(loaded.hasFile(`quests/${name}.json`)).toBe(false);
+    admitted.set(name, parseQuestPageInteractions(legacy));
   }
 }, 30_000);
 function rows(name: string): QuestPageInteractionsData {
@@ -80,7 +75,7 @@ test('Miller completion keeps the paid flag before rewards; binding a paid save 
   expect(events.slice(0, 2)).toEqual(['errand:done', 'wheel']); expect(events.at(-1)).toBe('chunk');
 });
 
-test('saved board and shop still decide acceptance, with costs before grants and original feedback', () => {
+test('historical page callbacks retain the board/shop payout and feedback baseline', () => {
   const flags = new Flags('published-transactions', false), events: string[] = [], pack = new Map<string, number>();
   const owned = new Set<string>(), finishes = Object.fromEntries(['hollow-ash', 'scarback-furnace'].map(id => [id, { wear() { events.push(`wear:${id}`); } }]));
   const page = bindQuestPageInteractions(rows('transactions'), { flags, toast: text => { events.push(text); }, owners: new Map<string, unknown>([

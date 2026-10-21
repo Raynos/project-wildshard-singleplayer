@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { contractCatalogue } from './contractRows';
+import { WEAPON_FINISHES } from './weaponFinishes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { ForestStoryRows } from '@wildshard/sdk/quest/forestStoryRows';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
@@ -26,9 +28,15 @@ const jumps = Object.fromEntries(Object.entries(BEATS).map(([id, beat]) => {
     ...((beat.at === 'deck' || beat.at === 'launch') ? { height: { x: layout.LOOKOUT.x, z: layout.LOOKOUT.z, up: 11.05 } } : {}),
     ...(beat.night ? { phase: sky.phases.night } : beat.day ? { phase: sky.phases.day } : {}) }];
 }));
+const finishes: Readonly<Record<string, { readonly name: string; readonly weapon: string; readonly blurb: string }>> = WEAPON_FINISHES;
+const contracts = contractCatalogue();
+const finishToasts = Object.fromEntries([...new Set([...contracts.rows.flatMap(row => row.reward.skin === undefined ? [] : [row.reward.skin]), ...contracts.milestones.map(row => row.skin)])].map(id => {
+  const row = finishes[id]; if (row === undefined) throw new Error('Missing board finish');
+  return [id, `${row.name} ${row.weapon} finish — ${row.blurb}`];
+}));
 export const FOREST_STORY: ForestStoryRows = {
   ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime', ammo: 'iron',
-  board: { ...policy.board, at: board },
+  board: { ...policy.board, at: board, finishes: finishToasts },
   signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2, lantern: { id: `waystone.${id}`, when: [`lit:${id}`, wardens.QUEST_DONE] } })),
   cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow' },

@@ -129,7 +129,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const useBoard = (value: number): void => {
     const claim = board.use(value, eye);
     if (claim === null) return;
-    for (let i = 0; i < 16; i++) { const item = claim.reward.items[i]; if (item === undefined) break; pack.add(item.id, item.n); }
+    commitQuestEffects(host, policy.pack, claim.reward.items.map(item => ({ kind: 'item', item: item.id, count: item.n })));
     if (claim.reward.bolts > 0) launcher.item.addBolts(claim.reward.bolts);
     if (claim.reward.skin === policy.finish.id) rewardOwned = true;
     feats.event('streak', claim.streak); counterBook.flush();

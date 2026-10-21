@@ -17,7 +17,7 @@ export interface ForestStoryRows {
   readonly page: string; readonly ranged: string; readonly content: `custom/${string}`;
   readonly ammo: Parameters<HeldLoadout['addAmmo']>[0];
   readonly panels: { readonly board: string; readonly count: string };
-  readonly files: Readonly<Record<'stall' | 'exchange' | 'contracts' | 'signals' | 'door' | 'transactions' | 'services' | 'director', string>>;
+  readonly files: Readonly<Record<'stall' | 'exchange' | 'contracts' | 'signals' | 'door' | 'services' | 'director', string>>;
   readonly talks: QuestPageTalksRows;
   readonly store: { readonly slot: string; readonly state: string };
   readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[];
@@ -27,8 +27,7 @@ export interface ForestStoryRows {
   readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
   readonly door: { readonly building: string; readonly flag: string };
-  readonly trades: { readonly finishes: readonly string[]; readonly figure: string };
-  readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string };
+  readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string; readonly finishes: Readonly<Record<string, string>> };
   readonly cable: { readonly id: string; readonly scene: string; readonly trolley: string; readonly prompt: Triple; readonly radius: number; readonly label: string;
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */
