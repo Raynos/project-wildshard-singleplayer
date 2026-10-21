@@ -1,0 +1,147 @@
+{
+  "pin": "7a8d7ab209f2cd4667936f9bfe9bfefc19c258cf",
+  "path": "grid",
+  "device": "Desktop Chromium",
+  "cpu": 1,
+  "errors": [],
+  "failures": [],
+  "stageSeconds": 11.823600000023843,
+  "clockSeconds": 11.8,
+  "unaccountedSeconds": -0.023600000023842327,
+  "networkBytes": 180448028,
+  "displayedNetworkBytes": 188087438,
+  "byteError": 0.042335791001273784,
+  "maxDetailGapMs": 453.9000000357628,
+  "rawSHA256": "67397f9b6a0099a30a1a4b6a50a37d340bbfb1f3c9ef0e2c39f244f71b11b343",
+  "purpose": "diagnostic; not Phase 1 acceptance",
+  "rows": [
+    {
+      "label": "\u25b8 gap before setup",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "0.10000002384185791"
+    },
+    {
+      "label": "\u25b8 1 \u00b7 Application modules",
+      "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+      "duration": "2.3 s",
+      "state": "ok",
+      "key": "modules",
+      "ms": "2301.4999999403954"
+    },
+    {
+      "label": "\u25b8 2 \u00b7 Product admission",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "admission",
+      "ms": "0.10000002384185791"
+    },
+    {
+      "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+      "detail": "",
+      "duration": "5 ms",
+      "state": "ok",
+      "key": "data",
+      "ms": "5"
+    },
+    {
+      "label": "\u25b8 4 \u00b7 Renderer",
+      "detail": "",
+      "duration": "21 ms",
+      "state": "ok",
+      "key": "renderer",
+      "ms": "21.099999964237213"
+    },
+    {
+      "label": "\u25b8 5 \u00b7 Weapons \u00b7 HUD",
+      "detail": "",
+      "duration": "4 ms",
+      "state": "ok",
+      "key": "weapon",
+      "ms": "3.699999988079071"
+    },
+    {
+      "label": "\u25b8 6 \u00b7 World assembly",
+      "detail": "11 cells \u00b7 96 seams \u00b7 road ready",
+      "duration": "1.9 s",
+      "state": "ok",
+      "key": "assembly",
+      "ms": "1852.0999999642372"
+    },
+    {
+      "label": "\u25b8 7 \u00b7 Title art \u00b7 explore",
+      "detail": "21 / 21 pictures \u00b7 UI",
+      "duration": "8 ms",
+      "state": "ok",
+      "key": "menu",
+      "ms": "8.100000023841858"
+    },
+    {
+      "label": "\u25b8 8 \u00b7 Shaders",
+      "detail": "29 / 29 textures uploaded \u00b7 188 programs",
+      "duration": "2.4 s",
+      "state": "ok",
+      "key": "shaders",
+      "ms": "2413.400000035763"
+    },
+    {
+      "label": "\u25b8 9 \u00b7 First frame",
+      "detail": "Pass 6 / 6 \u00b7 ready \u00b7 188 programs",
+      "duration": "174 ms",
+      "state": "ok",
+      "key": "firstFrame",
+      "ms": "173.79999995231628"
+    },
+    {
+      "label": "\u25b8 10 \u00b7 Audio \u00b7 music + sound effects",
+      "detail": "94 / 94 audio files",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "audio",
+      "ms": "0.40000003576278687"
+    },
+    {
+      "label": "\u25b8 11 \u00b7 Region world",
+      "detail": "",
+      "duration": "96 ms",
+      "state": "ok",
+      "key": "world",
+      "ms": "95.90000003576279"
+    },
+    {
+      "label": "\u25b8 12 \u00b7 Equipment and HUD",
+      "detail": "",
+      "duration": "42 ms",
+      "state": "ok",
+      "key": "loadout",
+      "ms": "41.5"
+    },
+    {
+      "label": "\u25b8 13 \u00b7 Gameplay and saved state",
+      "detail": "",
+      "duration": "105 ms",
+      "state": "ok",
+      "key": "gameplay",
+      "ms": "104.69999998807907"
+    },
+    {
+      "label": "\u25b8 14 \u00b7 Final activation",
+      "detail": "",
+      "duration": "82 ms",
+      "state": "on",
+      "key": "finish",
+      "ms": "82.40000003576279"
+    },
+    {
+      "label": "\u25b8 15 \u00b7 Home region",
+      "detail": "Home region 1 / 1 \u00b7 driftwood-isle \u00b7 Physics 2255 colliders \u00b7 Trees 0 forest records",
+      "duration": "4.7 s",
+      "state": "ok",
+      "key": "home",
+      "ms": "4719.800000011921"
+    }
+  ]
+}

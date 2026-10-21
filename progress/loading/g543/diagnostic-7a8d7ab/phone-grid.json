@@ -1,0 +1,264 @@
+{
+  "pin": "7a8d7ab209f2cd4667936f9bfe9bfefc19c258cf",
+  "path": "grid",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "errors": [],
+  "failures": [
+    "Detailed update gap exceeds 1 s"
+  ],
+  "stageSeconds": 38.37310000002384,
+  "clockSeconds": 38.4,
+  "unaccountedSeconds": 0.026899999976158995,
+  "networkBytes": 175022811,
+  "displayedNetworkBytes": 182428536,
+  "byteError": 0.04231291314364732,
+  "maxDetailGapMs": 1376.3999999761581,
+  "rawSHA256": "ad420acb11e40a0228e970183a77106bf1367026e783254466c6712c04e3a01d",
+  "purpose": "diagnostic; not Phase 1 acceptance",
+  "rows": [
+    {
+      "label": "\u25b8 gap before setup",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "0.10000002384185791"
+    },
+    {
+      "label": "\u25b8 1 \u00b7 Application modules",
+      "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+      "duration": "1.5 s",
+      "state": "ok",
+      "key": "modules",
+      "ms": "1506.8999999761581"
+    },
+    {
+      "label": "\u25b8 2 \u00b7 Product admission",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "admission",
+      "ms": "0.19999998807907104"
+    },
+    {
+      "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+      "detail": "",
+      "duration": "275 ms",
+      "state": "ok",
+      "key": "data",
+      "ms": "274.9000000357628"
+    },
+    {
+      "label": "\u25b8 gap after Texture and audio preparation",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "0.19999998807907104"
+    },
+    {
+      "label": "\u25b8 4 \u00b7 Renderer",
+      "detail": "",
+      "duration": "103 ms",
+      "state": "ok",
+      "key": "renderer",
+      "ms": "103"
+    },
+    {
+      "label": "\u25b8 5 \u00b7 Weapons \u00b7 HUD",
+      "detail": "",
+      "duration": "16 ms",
+      "state": "ok",
+      "key": "weapon",
+      "ms": "16.299999952316284"
+    },
+    {
+      "label": "\u25b8 6 \u00b7 World assembly",
+      "detail": "11 cells \u00b7 96 seams \u00b7 road ready",
+      "duration": "8.2 s",
+      "state": "ok",
+      "key": "assembly",
+      "ms": "8235.300000011921"
+    },
+    {
+      "label": "\u25b8 7 \u00b7 Title art \u00b7 explore",
+      "detail": "15 / 15 pictures \u00b7 UI",
+      "duration": "57 ms",
+      "state": "ok",
+      "key": "menu",
+      "ms": "57.10000002384186"
+    },
+    {
+      "label": "\u25b8 8 \u00b7 Shaders",
+      "detail": "25 / 25 textures uploaded \u00b7 181 programs",
+      "duration": "7.8 s",
+      "state": "ok",
+      "key": "shaders",
+      "ms": "7764"
+    },
+    {
+      "label": "\u25b8 9 \u00b7 First frame",
+      "detail": "Pass 6 / 6 \u00b7 ready \u00b7 181 programs",
+      "duration": "556 ms",
+      "state": "ok",
+      "key": "firstFrame",
+      "ms": "555.5"
+    },
+    {
+      "label": "\u25b8 10 \u00b7 Audio \u00b7 music + sound effects",
+      "detail": "94 / 94 audio files",
+      "duration": "13 ms",
+      "state": "ok",
+      "key": "audio",
+      "ms": "12.5"
+    },
+    {
+      "label": "\u25b8 11 \u00b7 Region world",
+      "detail": "",
+      "duration": "467 ms",
+      "state": "ok",
+      "key": "world",
+      "ms": "467.19999998807907"
+    },
+    {
+      "label": "\u25b8 gap after Region world",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "0.10000002384185791"
+    },
+    {
+      "label": "\u25b8 12 \u00b7 Equipment and HUD",
+      "detail": "",
+      "duration": "215 ms",
+      "state": "ok",
+      "key": "loadout",
+      "ms": "215.00000005960464"
+    },
+    {
+      "label": "\u25b8 gap after Equipment and HUD",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "0.09999996423721313"
+    },
+    {
+      "label": "\u25b8 13 \u00b7 Gameplay and saved state",
+      "detail": "",
+      "duration": "633 ms",
+      "state": "ok",
+      "key": "gameplay",
+      "ms": "632.6999999880791"
+    },
+    {
+      "label": "\u25b8 14 \u00b7 Final activation",
+      "detail": "",
+      "duration": "258 ms",
+      "state": "on",
+      "key": "finish",
+      "ms": "257.69999998807907"
+    },
+    {
+      "label": "\u25b8 15 \u00b7 Home region",
+      "detail": "Home region 1 / 1 \u00b7 driftwood-isle \u00b7 Physics 2102 colliders \u00b7 Trees 0 forest records",
+      "duration": "18.3 s",
+      "state": "ok",
+      "key": "home",
+      "ms": "18274.30000001192"
+    }
+  ],
+  "profileSHA256": "2eec4a085eee205484b472f6b492d15d84e9628bb01cacea267b4618682f9798",
+  "gap": {
+    "from": 9511.100000023842,
+    "to": 10887.5,
+    "inclusiveCosts": [
+      {
+        "ms": 1377.287,
+        "function": "(root)",
+        "source": "",
+        "line": 0
+      },
+      {
+        "ms": 552.7510000000002,
+        "function": "pV",
+        "source": "src/game/session/play.ts",
+        "line": 85
+      },
+      {
+        "ms": 442.68100000000004,
+        "function": "attach",
+        "source": "src/game/grid/session.ts",
+        "line": 671
+      },
+      {
+        "ms": 403.23999999999995,
+        "function": "uf",
+        "source": "src/game/grid/plotCellLayout.ts",
+        "line": 224
+      },
+      {
+        "ms": 403.23999999999995,
+        "function": "",
+        "source": "src/game/grid/plotCells.ts",
+        "line": 51
+      },
+      {
+        "ms": 403.23999999999995,
+        "function": "jk",
+        "source": "src/game/grid/plotCells.ts",
+        "line": 50
+      },
+      {
+        "ms": 260.15799999999996,
+        "function": "(program)",
+        "source": "",
+        "line": 0
+      },
+      {
+        "ms": 106.28999999999998,
+        "function": "e",
+        "source": "src/game/grid/session.ts",
+        "line": 369
+      },
+      {
+        "ms": 106.28999999999998,
+        "function": "create",
+        "source": "src/game/grid/session.ts",
+        "line": 315
+      },
+      {
+        "ms": 85.29799999999999,
+        "function": "box",
+        "source": "src/game/grid/plotCellLayout.ts",
+        "line": 92
+      },
+      {
+        "ms": 81.31099999999999,
+        "function": "_",
+        "source": "src/game/grid/plotCells.ts",
+        "line": 167
+      },
+      {
+        "ms": 81.31099999999999,
+        "function": "allocate",
+        "source": "src/game/grid/renderResidency.ts",
+        "line": 39
+      },
+      {
+        "ms": 81.31099999999999,
+        "function": "Bk",
+        "source": "src/game/grid/plotCells.ts",
+        "line": 149
+      },
+      {
+        "ms": 78.696,
+        "function": "(idle)",
+        "source": "",
+        "line": 0
+      }
+    ]
+  }
+}
