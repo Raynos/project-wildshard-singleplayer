@@ -10,8 +10,8 @@ import time
 
 TEXT = {'.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json', '.jsonc',
         '.yaml', '.yml', '.css', '.glsl', '.frag', '.vert', '.wgsl', '.as', '.py', '.sh', '.md', '.html'}
-ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', '.githooks'}
-TOOLS = ['local-gate-checks.mjs', 'gate-related-tests.mjs', 'push-inputs.mjs', 'test-products.json']
+ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', 'budgets', '.githooks'}
+TOOLS = ['local-gate-checks.mjs', 'gate-related-tests.mjs', 'push-inputs.mjs', 'test-products.json', 'push-tables.mjs']
 
 
 def source_file(name):
@@ -34,10 +34,25 @@ def outputs(repo, tree, records, deadline):
     key = hashlib.sha256(b'\0'.join(selected)).hexdigest()
     manifest = common / 'commit-inputs' / (key + '.json')
     pinned = {}
+    cached = {}
     registry = tree / 'scripts/generation-jobs.json'
     if registry.exists():
         for job in json.loads(registry.read_text())['jobs']:
-            pinned.update(job.get('buildOutputs', {}))
+            pins = {**job.get('comparisonOutputs', {}), **job.get('buildOutputs', {})}
+            pinned.update(pins)
+            cache = Path(os.environ.get('WILDSHARD_GENERATE_CACHE', str(Path.home() / '.cache/wildshard/generate'))) / job['id']
+            if cache.is_dir() and pins:
+                for directory in cache.iterdir():
+                    receipt = directory / '.generation-receipt.json'
+                    if not receipt.is_file():
+                        continue
+                    try:
+                        values = json.loads(receipt.read_text())['files']
+                    except (ValueError, KeyError):
+                        continue
+                    for name, digest in pins.items():
+                        if source_file(name) and values.get(name) == digest:
+                            cached.setdefault(name, []).append(directory / name)
     exact = json.loads(manifest.read_text()) if manifest.exists() else {}
     for name, digest in {**pinned, **exact}.items():
         if time.monotonic() >= deadline:
@@ -47,6 +62,7 @@ def outputs(repo, tree, records, deadline):
         paths = [common / 'commit-inputs/blobs' / digest]
         if name in pinned:
             paths.append(repo / name)
+            paths.extend(cached.get(name, []))
         for source in paths:
             if source.is_file():
                 data = source.read_bytes()

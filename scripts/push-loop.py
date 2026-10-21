@@ -18,6 +18,10 @@ git = LIVE['git']
 def check_committed(root, base, tip, deadline):
     try:
         with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), deadline) as (tree, tools):
+            rc, output = LIVE['run'](['node', '--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
+                                     str(tools / 'push-tables.mjs'), str(tree)], tree, deadline)
+            if rc:
+                return {'ok': False, 'phase': 'source-tables', 'files': LIVE['failure_paths'](output), 'output': output}
             result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip), tools=tools)
             if not result['ok'] and result['files']:
                 rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
