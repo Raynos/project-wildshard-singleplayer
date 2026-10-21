@@ -7,7 +7,6 @@ import { inflateSync } from 'node:zlib';
 import { expect, test } from 'vitest';
 import { Mesh, BufferGeometry, Material } from 'three';
 import { floorAtRects } from '../src/engine/physics/box';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { parseItems } from '../src/format/items';
 import { parseQuestData } from '../src/format/quests';
 import { installQuestCatalogue } from '../src/game/quest/chapter';
@@ -15,8 +14,6 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
-import { hollowLogSite, insideHollowLog } from '../src/shards/pine-hollow-legacy/quest/hollowLog';
 import pine from '../src/shards/pine-hollow/shard.config';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 import { PINE_FEATS, PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
@@ -24,6 +21,7 @@ import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/g
 import { TIMBER_MODEL_ROWS, TIMBER_PLACEMENTS } from '../src/shards/pine-hollow/generators/timberSceneContribution';
 import scenes from '../src/shards/pine-hollow/data/timberScenes.generated.json' with { type: 'json' };
 import parts from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
+import old from './fixtures/legacy-oracles/pine-hollow-log.json' with { type: 'json' };
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 
@@ -50,21 +48,18 @@ test.each([[pine, PINE_BAG_ITEMS, PINE_FEATS], [driftwood, DRIFTWOOD_ITEMS, DRIF
   });
 
 test('baked hollow floor and mouths preserve the frozen live site and the rifle floor', () => {
-  const ground = readNativeTerrain(readFileSync(resolve(import.meta.dirname, '../public/assets/baked/pine-hollow/terrain.bin')));
-  setTerrainHeight(ground.heightAt);
-  try {
-    const old = hollowLogSite(), row = scenes.sites.hollow;
-    expect(row.floorY).toBe(old.floorY); expect(row.mid).toEqual(old.mid.toArray());
-    expect(row.mouths).toEqual(old.mouths.map(point => point.toArray()));
-    for (const dx of [-6, -3, 0, 3, 6]) for (const dz of [-2, 0, 2]) {
-      const x = row.x + dx, z = row.z + dz;
-      expect(floorAtRects([row.floor], x, z, 'first')).toBe(insideHollowLog(x, z) ? old.floorY : undefined);
-    }
-    expect(scenes.sites.rifle).toEqual({ x: -13.139577422657654, y: 3.813097448348999, z: -36.01734305173898 });
-    expect(TIMBER_PLACEMENTS.find(placement => placement.id === 'quests.hollow-log')?.piece?.floors).toEqual([row.floor]);
-    const shelf = TIMBER_MODEL_ROWS.find(model => typeof model === 'object' && model !== null && 'key' in model && model.key === 'token-shelf');
-    expect(shelf).toMatchObject({ assembly: 'objects', choices: [{ draws: [{ until: 28 }] }] });
-  } finally { setTerrainHeight(() => 0); }
+  // The retired live site (hollowLogSite / insideHollowLog on the baked terrain.bin), frozen in fixtures/legacy-oracles/pine-hollow-log.json.
+  const row = scenes.sites.hollow;
+  expect(row.floorY).toBe(old.floorY); expect(row.mid).toEqual(old.mid);
+  expect(row.mouths).toEqual(old.mouths);
+  expect(old.inside).toHaveLength(15);
+  for (const [dx = 0, dz = 0, inside] of old.inside) {
+    expect(floorAtRects([row.floor], row.x + Number(dx), row.z + Number(dz), 'first')).toBe(inside === true ? old.floorY : undefined);
+  }
+  expect(scenes.sites.rifle).toEqual({ x: -13.139577422657654, y: 3.813097448348999, z: -36.01734305173898 });
+  expect(TIMBER_PLACEMENTS.find(placement => placement.id === 'quests.hollow-log')?.piece?.floors).toEqual([row.floor]);
+  const shelf = TIMBER_MODEL_ROWS.find(model => typeof model === 'object' && model !== null && 'key' in model && model.key === 'token-shelf');
+  expect(shelf).toMatchObject({ assembly: 'objects', choices: [{ draws: [{ until: 28 }] }] });
 });
 
 test('all five hollow-log GLBs preserve the original packed geometry and native indices', async () => {

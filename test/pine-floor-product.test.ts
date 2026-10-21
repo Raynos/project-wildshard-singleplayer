@@ -1,11 +1,19 @@
-import { Matrix4 } from 'three';
-import { matrixOf } from '../src/shards/pine-hollow-legacy/world/undergrowth';
+import { Matrix4, Quaternion, Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { decodeFloorRecords } from '../src/shards/pine-hollow/generators/floorRows.mjs';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { parseFloorRows } from '../src/shards/pine-hollow/generators/sections';
 import floorRows from '../src/shards/pine-hollow/data/floorLayout.generated.json' with { type: 'json' };
+
+const UP = new Vector3(0, 1, 0), normal = new Vector3(), place = new Vector3(), size = new Vector3(), tilt = new Quaternion(), turn = new Quaternion();
+/** The frozen page composer, copied verbatim from the retired legacy undergrowth's `matrixOf`:
+ *  yaw about up, then tilt up onto the ground normal, at the placement's point and uniform scale. */
+function matrixOf(it: { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number }, target = new Matrix4()): Matrix4 {
+  tilt.setFromUnitVectors(UP, normal.set(it.nx, it.ny, it.nz));
+  turn.setFromAxisAngle(UP, it.rot).premultiply(tilt);
+  return target.compose(place.set(it.x, it.y, it.z), turn, size.set(it.scale, it.scale, it.scale));
+}
 
 test('the named floor preserves all 22,250 shipping placements and refuses malformed or oversized records', () => {
   const file = output.namedFiles.find(row => row.name === 'world/floor.json');

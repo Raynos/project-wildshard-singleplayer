@@ -127,8 +127,6 @@ test('Pine declared cabin policy survives GRID trim and alternate-tier construct
   const { withTier } = await import('../src/engine/explore/tiers');
   const { default: plumbing } = await import('../src/shards/pine-hollow/data/plumbing.json');
   const { default: nine } = await import('../src/shards/nine-dragon-stack/data/plumbing.json');
-  const { TIER_CONFIG: legacy } = await import('../src/shards/pine-hollow-legacy/tier');
-  const { bindPineViewTrim } = await import('../src/shards/pine-hollow-legacy/look/viewDistance');
   const saved = { ...TIER_CONFIG }, savedTier = TIER;
   try {
     expect(plumbingKnob(nine, 'phone', 'nine.paintSize', 'number')).toBe(512);
@@ -136,8 +134,7 @@ test('Pine declared cabin policy survives GRID trim and alternate-tier construct
     expect(plumbingKnob(nine, 'phone', 'nine.decalScale', 'number')).toBe(0.5);
     expect(plumbingKnob(nine, 'desktop', 'nine.decalScale', 'number')).toBe(1);
     initializeTier('phone');
-    bindPineViewTrim(() => false); expect(legacy.cabinDetailDist).toBe(70);
-    bindPineViewTrim(() => true); expect(legacy.cabinDetailDist).toBe(52.5);
+    // 70 m and its 75 % trim, 52.5 m, are the retired Pine tier's cabin reach with the G187 view trim off and on.
     expect(plumbingKnob(plumbing, buildTier(), 'pine.cabinDetailDist', 'number', TIER_CONFIG)).toBe(70);
     applyLevelTier({ 'pine.cabinDetailDist': 52.5 });
     expect(plumbingKnob(plumbing, buildTier(), 'pine.cabinDetailDist', 'number', TIER_CONFIG)).toBe(52.5);
@@ -147,5 +144,5 @@ test('Pine declared cabin policy survives GRID trim and alternate-tier construct
     expect(plumbingKnob(plumbing, buildTier(), 'pine.cabinDetailDist', 'number', TIER_CONFIG)).toBe(70);
     initializeTier('desktop');
     expect(plumbingKnob(plumbing, buildTier(), 'pine.cabinDetailShadows', 'boolean', TIER_CONFIG)).toBe(true);
-  } finally { bindPineViewTrim(() => false); initializeTier(savedTier); Object.assign(TIER_CONFIG, saved); }
+  } finally { initializeTier(savedTier); Object.assign(TIER_CONFIG, saved); }
 });

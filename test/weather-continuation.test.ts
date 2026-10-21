@@ -4,13 +4,14 @@ import { expect, test } from 'vitest';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
-import { PineWeather } from '../src/shards/pine-hollow-legacy/world/weatherProfile';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { installWeatherReactions, nativeWeatherBundle } from '../src/game/weather/reactions';
 import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { Scope } from '../src/engine/app/scope';
 import nalati from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type:'json' };
 import saved from './fixtures/weather-continuation.json' with { type:'json' };
+import frozen from './fixtures/legacy-oracles/pine-weather.json' with { type:'json' };
 
 const rows=parseWeatherProgram(pine);
 /** Nalati's storm as its page installs it: the bundle's reactions on a plain continuation, struck at `points`. */
@@ -19,15 +20,22 @@ function steppeStorm(seed:number,points:[number,number,number][],circles:[number
   return installWeatherReactions(installWeatherContinuation({seed},bundle.weather,{phase:0},undefined),{...bundle.reactions,points},{scope});
 }
 test('DATA weather preserves phase RNG, every numeric output and held-mode transitions',()=>{
+  // The retired PineWeather's 2400 captures per case, frozen in fixtures/legacy-oracles/pine-weather.json: exact samples, then a hash of all.
+  const cases=frozen.cases[Symbol.iterator]();
   for(const seed of [1,0x4a1a])for(const mode of ['live','rain','clear','fog'] as const){
-    const current=new WeatherContinuation(rows,{seed,mode}),old=new PineWeather({seed,mode});
+    const oracle=cases.next().value;
+    if(oracle===undefined)throw new Error('Missing frozen weather case');
+    expect({seed:oracle.seed,mode:oracle.mode}).toEqual({seed,mode});
+    const current=new WeatherContinuation(rows,{seed,mode}),trace:unknown[]=[],samples=new Map(oracle.samples.map(row=>[row.step,row.weather]));
     for(let i=0;i<2400;i++){
       const dt=i%11===0?31:(i%7+1)/120,phase=(i/239)%1;
-      current.update(dt,phase);old.update(dt,phase);
-      expect(current.captureWeather()).toEqual(old.captureWeather());
-      if(i===987){current.force('rain');old.force('rain');}
-      if(i===1234){current.setMode('live');old.setMode('live');}
+      current.update(dt,phase);
+      const weather=current.captureWeather();trace.push(weather);
+      if(samples.has(i))expect(weather).toEqual(samples.get(i));
+      if(i===987)current.force('rain');
+      if(i===1234)current.setMode('live');
     }
+    expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(trace)))).toBe(oracle.sha256);
   }
 });
 test('old v1 cadence/wind saves resume exactly and malformed restore is atomic',()=>{

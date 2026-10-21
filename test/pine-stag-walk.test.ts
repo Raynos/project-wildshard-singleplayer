@@ -13,10 +13,11 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { QuestChapter } from '../src/game/quest/chapter';
 import { parseQuestLeadPage } from '../src/format/questSteps';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { StagWalk as OriginalWalk } from '../src/shards/pine-hollow-legacy/quest/stagWalk';
 import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
 import { parseQuestLeadRows } from '../src/shards/pine-hollow/generators/sections';
 import leadJson from '../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import frozen from './fixtures/legacy-oracles/pine-stag-walk.json' with { type: 'json' };
 
 const LEAD = parseQuestLeadRows(leadJson);
 const scopes: Scope[] = [];
@@ -104,23 +105,28 @@ test('the shared walk completes all bends once and resumes its existing saved fi
 
 test('v1 lead projections preserve cancellations and old-save suffixes', () => {
   const guest = ReturnProgram.page(program), modes = ['none', 'stare', 'trot', 'gone'] as const;
-  // The sealed predecessor is an independent oracle for the original law.
+  // The sealed predecessor's walk, frozen per tick (fixtures/legacy-oracles/pine-stag-walk.json), is the oracle for the original law.
+  const cases = frozen.cases[Symbol.iterator]();
   for (const mode of modes) for (const i of [0, 2, LEAD.path.length - 1]) {
-    const original = new OriginalWalk(); original.load({ i, mode, t: 0.8 });
-    const state = { i, mode: modes.indexOf(mode), elapsed: 0.8 };
+    const oracle = cases.next().value;
+    if (oracle === undefined) throw new Error('Missing frozen stag case');
+    expect({ mode: oracle.mode, i: oracle.i }).toEqual({ mode, i });
+    const state = { i, mode: modes.indexOf(mode), elapsed: 0.8 }, seen = { i: '', mode: '', event: '' }, times: number[] = [];
     for (let tick = 0; tick < 800; tick++) {
       const bend = LEAD.path[state.i];
       const player = tick % 173 === 0 ? { x: 300, z: 300 } : { x: bend?.[0] ?? 0, z: bend?.[1] ?? 0 };
       const on = tick % 197 !== 196, dt = tick % 7 === 0 ? 0.4 : 1 / 60;
-      const event = original.step(dt, on, player);
       // G565: the guest gates itself (its quest step at night); alternate which input closes the gate
       const gate = on ? { leadStep: 1, night: 1 } : tick % 2 === 0 ? { leadStep: 0, night: 1 } : { leadStep: 1, night: 0.5 };
       const { i: nextI, mode: nextMode, elapsed: nextElapsed, ...result } = guest.project('lead', { ...state, begin: 0, dt, ...gate, playerX: player.x, playerZ: player.z, atX: bend?.[0] ?? 0, atZ: bend?.[1] ?? 0 });
       Object.assign(state, { i: nextI, mode: nextMode, elapsed: nextElapsed });
-      expect({ i: state.i, mode: modes[state.mode], t: state.elapsed }).toEqual(original.save());
-      const kind = event === null ? 0 : event.kind === 'appear' ? event.first ? 1 : 2 : event.kind === 'fade' ? 3 : event.done ? 5 : 4;
+      const kind = result['event'] ?? -1;
       expect(result).toEqual({ event: kind, leadAppear: Number(kind === 1), leadDone: Number(kind === 5) });
+      seen.i += String(state.i); seen.mode += String(state.mode); seen.event += String(kind); times.push(state.elapsed);
     }
+    expect(seen).toEqual(oracle.steps);
+    expect(times.filter((_, at) => at % 50 === 0)).toEqual(oracle.tSamples);
+    expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(times)))).toBe(oracle.tSha256);
   }
 });
 
