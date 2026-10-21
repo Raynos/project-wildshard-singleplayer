@@ -34,7 +34,7 @@ imports `data/card.ts`. Keep bridge metadata synchronized until that switch.
 
 The T2 reference in `behaviour/boss.as` binds the `combat/encounters` row
 `template.boss` through the single `sim/scripts` row in `generators/output.ts`.
-`data/bossDecision.ts` declares its capabilities, actor, move, strike, timers and
+`data/bossDecision.json` declares its capabilities, actor, move, strike, timers and
 durable state. The SDK compiler generates the typed bindings; no handwritten
 transport or runtime module is needed. It approaches, alternates timed strikes and moves,
 accelerates at the second-phase threshold, wins on death and resets on stop.
