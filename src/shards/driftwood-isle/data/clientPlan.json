@@ -25,6 +25,10 @@
         "id": "paths",
         "name": "Paths"
       }
+    },
+    {
+      "kind": "world.scenes",
+      "graphs": "required"
     }
   ]
 }
