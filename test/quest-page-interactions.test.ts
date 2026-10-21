@@ -85,7 +85,8 @@ test('paired conditional prompts retain native rules, sound timing and borrowed 
   const events:string[]=[],points={pond:new Vector3(1,2,3),ridge:new Vector3(4,5,6),den:new Vector3(7,8,9)};
   const owners=new Map<string,unknown>([['points',points],
     ['sound',{shot:(name:string,at:Vector3)=>{expect(Object.values(points)).toContain(at);events.push(name);}}],
-    ['sfx',{interact:(name:string,at:Vector3)=>{expect(Object.values(points)).toContain(at);events.push(name);}}]]);
+    ['sfx',{interact:(name:string,at:Vector3)=>{expect(Object.values(points)).toContain(at);events.push(name);}}],
+    ['floor',{setLantern:()=>undefined}],['shelf',{visible:false}]]);
   const prompts:Interactable[]=[];
   try {
     const page=bindQuestPageInteractions(PINE_LANTERN_PAGE,{flags,interactions:parseInteractionRows({marks:[],rows:PINE_LANTERN_ROWS}),

@@ -17,11 +17,11 @@ export interface ForestStoryRows {
   readonly files: Readonly<Record<'stall' | 'contracts' | 'signals' | 'door' | 'services' | 'director', string>>;
   readonly talks: QuestPageTalksRows;
   readonly store: { readonly slot: string; readonly state: string };
-  readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[];
-    readonly label: string; readonly complete: string; readonly shelf?: string }[];
+  /** `completeEvent`: the story page action that notices a full collection */
+  readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[]; readonly label: string }[];
+  readonly shelf: { readonly scene: string };
   readonly pickupEvent: string;
-  /** `lantern`: the forest page lantern this signal lights while any of its `when` flags is set */
-  readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
+  readonly signals: readonly (Point & { readonly id: string; readonly height: number })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
   readonly door: { readonly id: string; readonly flag: string };
   readonly board: Omit<ContractBoardPageRows, 'contracts' | 'panel' | 'store'>;

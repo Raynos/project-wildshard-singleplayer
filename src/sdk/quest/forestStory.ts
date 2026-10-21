@@ -38,7 +38,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
 
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
   const contracts = await ctx.product.json<ContractCatalogue>(rows.files.contracts);
-  const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.signals))));
+  const pageRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.signals))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.door))));
   const { game, sky, player } = enteredWorld, { hud, inventory } = play;
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services, placement: { registryReach: 20 } });
@@ -57,26 +57,21 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
 
   const ui = new QuestViews(ctx);
   const chip = ui.view('count', (scope) => new DataPanel(countPanel, { scope }));
-  const shelf = rows.collections.find(row => row.shelf !== undefined);
-  const shelfObject = shelf?.shelf === undefined ? null : (await floor.cabins.resources.place(shelf.shelf)).object;
-  const count = (row: ForestStoryRows['collections'][number]): number => flags.count(row.prefix);
-  if (shelfObject !== null && shelf !== undefined) shelfObject.visible = count(shelf) === shelf.names.length;
+  const shelf = (await floor.cabins.resources.place(rows.shelf.scene)).object;
+  entry.bench();
+
+  // the story page lights the waystone lanterns and notices full collections (generators/questPageInteractions.ts)
+  const points = Object.fromEntries(rows.signals.map(row => [row.id, new THREE.Vector3(row.x, floorAt(row.x, row.z) + row.height, row.z)]));
+  const storyPage = bindQuestPageInteractions(pageRows, { flags, interactions: lanternRules, timer: ui,
+    promptIds: rows.signals.map(row => row.id), interactables: runtime.interactables, toast: text => { hud.toast(text); },
+    owners: new Map<string, unknown>([['points', points], ['sound', { shot }], ['sfx', kitSfx], ['floor', floor], ['shelf', shelf]]) });
+  const lanternPrompts = Object.fromEntries(rows.signals.map(row => [row.id, storyPage.prompt(row.id)]));
   const calls = new Map<string, (e: InteractEvent) => void>(rows.collections.flatMap(row => [
-    [row.event, (): void => {
-      chip().show({ label: row.label, n: count(row), of: row.names.length });
-    }],
-    [row.completeEvent, (): void => { if (count(row) === row.names.length) { hud.toast(row.complete); if (row.shelf !== undefined && shelfObject !== null) shelfObject.visible = true; } }],
+    [row.event, (): void => { chip().show({ label: row.label, n: flags.count(row.prefix), of: row.names.length }); }], [row.completeEvent, storyPage.action(row.completeEvent)],
   ]));
   calls.set(rows.pickupEvent, () => { play.music.sting('pickup'); });
   kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls,
     item: id => isItemId(id) ? { label: ITEMS[id].label, add: n => { inventory.add(id, n); } } : null });
-  entry.bench();
-
-  const points = Object.fromEntries(rows.signals.map(row => [row.id, new THREE.Vector3(row.x, floorAt(row.x, row.z) + row.height, row.z)]));
-  const lanternPage = bindQuestPageInteractions(lanternRows, { flags, interactions: lanternRules, timer: ui,
-    promptIds: rows.signals.map(row => row.id), interactables: runtime.interactables, toast: text => { hud.toast(text); },
-    owners: new Map<string, unknown>([['points', points], ['sound', { shot }], ['sfx', kitSfx]]) });
-  const lanternPrompts = Object.fromEntries(rows.signals.map(row => [row.id, lanternPage.prompt(row.id)]));
   const syncWheel = (): void => { floor.cabins.life.wheelSpeed = flags.has(rows.wheel.flag) ? rows.wheel.speed : 0; };
   syncWheel();
   ctx.scope.onDispose(flags.onChange(f => { if (f === rows.wheel.flag) syncWheel(); }));
@@ -145,11 +140,6 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   };
 
   let slowT = 0;
-  // each signal's lantern is lit while any of its declared flags is set
-  const lanternLit = new Map<string, boolean>();
-  const lightLanterns = (): void => { for (const row of rows.signals) { const on = row.lantern.when.some(flag => flags.has(flag));
-    if (lanternLit.get(row.id) !== on) { lanternLit.set(row.id, on); floor.setLantern(row.lantern.id, on); } } };
-  lightLanterns();
   ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
     talks.update(dt, t, pp);
@@ -173,7 +163,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
       for (const puff of stag.takePuffs()) leadPuffs.burst(_v.set(puff.x, puff.y + stag.puffs.height, puff.z), ...stag.puffs[puff.kind]);
       for (const puff of thralls.takePuffs()) spawnPuffs.burst(_v.set(puff.x, puff.y + thralls.puffs.height, puff.z), ...thralls.puffs.burst);
     }
-    questChip.update(t, player); lightLanterns();
+    questChip.update(t, player);
     if (t - slowT > 0.5) {
       slowT = t;
       const cam = game.camera.position;

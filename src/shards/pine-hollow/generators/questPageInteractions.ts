@@ -1,5 +1,9 @@
-/** Waystone prompts borrow native flag rules and the entered sound timer; the quest view draws lights from flags. */
-export const PINE_LANTERN_PAGE = {
+import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
+import policy from '../data/forestStory.json' with { type: 'json' };
+import wardens from '../data/wardensHollow.json' with { type: 'json' };
+
+/** Waystone prompts borrow native flag rules and the entered sound timer. */
+const LANTERN_PAGE = {
   "actions": [
     {
       "id": "pond",
@@ -431,3 +435,22 @@ export const PINE_LANTERN_PAGE = {
     ]
   }
 } as const;
+
+const lanterns = LANTERN_PAGE.actions.map(row => row.id);
+const lamp = (id: string, lit: boolean): { target: string; owner: string; path: string[]; args: [string, boolean] } =>
+  ({ target: `${id}.${lit ? 'lamp' : 'dark'}`, owner: 'floor', path: ['setLantern'], args: [`waystone.${id}`, lit] });
+const collected = (row: typeof policy.collections[number]): string[] => row.names.map((_, i) => `${row.prefix}${String(i + 1)}`);
+const shelf = policy.collections.find(row => row.completeEvent === policy.shelf.collection);
+if (shelf === undefined) throw new Error('Missing shelf collection');
+/** The forest story page: a lit waystone lights its forest-page lantern (banked at entry unless lit or the quest is done),
+ * and a collection's completion notice, with the token shelf, waits on every one of its pickup flags. */
+export const PINE_LANTERN_PAGE: QuestPageInteractionsData = parseQuestPageInteractions({ ...LANTERN_PAGE,
+  actions: [...LANTERN_PAGE.actions.map(row => ({ ...row, after: [...row.after, { kind: 'call', target: `${row.id}.lamp` }] })),
+    ...policy.collections.map(row => ({ id: row.completeEvent, needs: [{ all: collected(row) }],
+      after: [{ kind: 'toast', text: row.complete }, ...(row === shelf ? [{ kind: 'visible', target: 'shelf', value: true }] : [])] }))],
+  bindings: { ...LANTERN_PAGE.bindings, calls: [...LANTERN_PAGE.bindings.calls, ...lanterns.flatMap(id => [lamp(id, true), lamp(id, false)])],
+    visible: [{ target: 'shelf', owner: 'shelf', path: ['visible'] }] },
+  initial: [{ when: {}, effects: [{ kind: 'visible', target: 'shelf', value: false }] },
+    { when: { all: collected(shelf) }, effects: [{ kind: 'visible', target: 'shelf', value: true }] },
+    ...lanterns.map(id => ({ when: { none: [`lit:${id}`, wardens.QUEST_DONE] }, effects: [{ kind: 'call', target: `${id}.dark` }] }))],
+});

@@ -17,7 +17,8 @@ test('lantern rows boot with entered story owners and commit light flags once', 
       interactions: { marks: [], rows: PINE_LANTERN_ROWS },
       toast: text => { toasts.push(text); },
       owners: new Map<string, unknown>([['points', points],
-        ['sound', { shot: (id: string) => { sounds.push(id); } }], ['sfx', { interact: () => undefined }]]),
+        ['sound', { shot: (id: string) => { sounds.push(id); } }], ['sfx', { interact: () => undefined }],
+        ['floor', { setLantern: () => undefined }], ['shelf', { visible: false }]]),
     });
     for (const id of ['pond', 'ridge', 'den']) {
       expect(page.prompt(id).position).toBe(points[id as keyof typeof points]);

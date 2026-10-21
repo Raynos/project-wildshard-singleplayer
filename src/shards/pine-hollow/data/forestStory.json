@@ -97,10 +97,13 @@
         "under the creek bridge"
       ],
       "label": "Carved tokens",
-      "complete": "All eight carved tokens \u2014 they're on the ranger's mantel now",
-      "shelf": "timbers.token-shelf"
+      "complete": "All eight carved tokens \u2014 they're on the ranger's mantel now"
     }
   ],
+  "shelf": {
+    "scene": "timbers.token-shelf",
+    "collection": "all-tokens"
+  },
   "talks": {
     "models": [
       {

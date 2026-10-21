@@ -11,7 +11,6 @@ import scenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import roster from '../data/questNpcs.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import sky from '../data/sky.json' with { type: 'json' };
-import wardens from '../data/wardensHollow.json' with { type: 'json' };
 import { BEATS, beatFlags, type Beat } from './questBeats';
 import { QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { ContractBoardPageSchema, parseContractBoardPage } from '@wildshard/format/contracts';
@@ -47,7 +46,7 @@ export const FOREST_STORY: ForestStoryRows = {
   ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime',
   board: boardRows,
   door: { id: `cabin-${mill.index + 1}-door`, flag: policy.door.flag },
-  signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2, lantern: { id: `waystone.${id}`, when: [`lit:${id}`, wardens.QUEST_DONE] } })),
+  signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2 })),
   cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow', audio: 'ambience', shot: 'zipline' },
   mover: { id: 'pine.canoe', mesh: 'quest-rides.canoe', binding: { systemId: 'pine.movers', bindings: [{ id: 'pine.canoe', target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }] }, rest: 'heroes.canoe.root' },
