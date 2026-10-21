@@ -3,7 +3,7 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/driftwoodRet
 // Event-only projections. Queue clocks, identities and bodies remain host-owned.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void {
   if(signal==Signal.practice) {
-    const dead=get(Field.dead)+(get(Field.alive)==0?get(Field.dt):0);
+    const dead=get(Field.dead)+get(Field.deadDt);
     Do.channel(Channel.dead,dead);
     Do.channel(Channel.action,get(Field.alive)!=0||dead<get(Field.delay)||get(Field.distance)<get(Field.away)?0:get(Field.hidden)!=0?2:1);
   } else if(signal==Signal.schedule) {

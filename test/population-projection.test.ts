@@ -82,9 +82,9 @@ test('the admitted return guest retains hidden-corpse gates and samples at ten H
     { alive: false, hidden: true, distance: 5 },
   ]) {
     const calls = sample.mock.calls.length;
-    expect(law.step(.04, { ...frame, alive: Number(frame.alive), hidden: Number(frame.hidden) }).dt).toBe(0);
+    expect(law.step(.04, { ...frame, alive: Number(frame.alive), hidden: Number(frame.hidden), deadDt: frame.alive ? 0 : .04 }).dt).toBe(0);
     expect(sample).toHaveBeenCalledTimes(calls);
-    const next = law.step(.06, { ...frame, alive: Number(frame.alive), hidden: Number(frame.hidden) });
+    const next = law.step(.06, { ...frame, alive: Number(frame.alive), hidden: Number(frame.hidden), deadDt: frame.alive ? 0 : .1 });
     expect(sample).toHaveBeenCalledTimes(calls + 1);
     expect(next.values['action']).toBe(actions[ReturnGate.step(clock, rule, .1, frame.alive, frame.distance, frame.hidden)]);
     expect(law.value('dead')).toBe(clock.dead);

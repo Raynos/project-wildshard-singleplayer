@@ -57,6 +57,7 @@ export class PageActorGroups {
   private training: Animal | null = null;
   private trainingRow: Placement | null = null;
   private readonly law: ProjectedState;
+  private deadTime = 0;
   constructor(animals: AnimalManager, row: PopulationProjectionRows['practice'], scope: Scope) {
     this.owner = createCreatureSpawner(animals);
     this.law = new ProjectedState({ ...row.law, signals: { step: row.law.signal } }, ReturnProgram.page(row.program, scope));
@@ -70,7 +71,7 @@ export class PageActorGroups {
   place(centres: readonly { readonly x: number; readonly z: number }[], kinds: readonly string[], rows: readonly Placement[]): void {
     this.owner.place(centres, kinds, rows, (actor, row) => {
       this.countBody(row.kind);
-      if (row.practice === true) { this.training = actor; this.trainingRow = row; this.law.reset(); }
+      if (row.practice === true) { this.training = actor; this.trainingRow = row; this.law.reset(); this.deadTime = 0; }
     }, kind => { this.counts.groups.set(kind, this.count(kind, true) + 1); });
   }
   /** Ungrouped actors retain herd −1. Presentation attaches to the real body. */
@@ -82,14 +83,16 @@ export class PageActorGroups {
   updatePractice(dt: number, player: { readonly x: number; readonly z: number }): void {
     const actor = this.training, placed = this.trainingRow;
     if (actor === null || placed === null) return;
-    const result = this.law.step(dt, { alive: Number(actor.alive), hidden: Number(actor.hidden), distance: Math.hypot(player.x - placed.x, player.z - placed.z) });
+    this.deadTime += actor.alive ? 0 : dt;
+    const result = this.law.step(dt, { alive: Number(actor.alive), hidden: Number(actor.hidden), deadDt: this.deadTime, distance: Math.hypot(player.x - placed.x, player.z - placed.z) });
     if (result.dt === 0) return;
+    this.deadTime = 0;
     const action = v.parse(v.picklist([0, 1, 2]), result.values['action']);
     if (action === 1) actor.fadeOut();
     if (action !== 2) return;
     const [next] = this.owner.group(placed.kind, placed, [placed]);
     if (next === undefined) throw new Error('Missing training return');
-    this.training = next; this.law.reset(); this.countBody(placed.kind);
+    this.training = next; this.law.reset(); this.deadTime = 0; this.countBody(placed.kind);
   }
 
   dispose(): void { this.owner.dispose(); this.training = null; }

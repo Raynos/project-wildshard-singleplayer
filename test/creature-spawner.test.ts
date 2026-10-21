@@ -76,3 +76,20 @@ test('native corpse gates keep the original fade clock while the player returns 
   expect(ReturnGate.step(state, row, 1.5, false, 4)).toBe('none'); expect(state.fade).toBe(1.5);
   expect(ReturnGate.step(state, row, 0, false, 5)).toBe('replace');
 });
+
+
+test('a training death between samples never borrows live frame time', () => {
+  const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const scope = new Scope('marsh.clock'), animals = realManager().manager, variant = speciesDef('boar').variants[0]?.id;
+  if (variant === undefined) throw new Error('Missing fixture species');
+  const groups = new PageActorGroups(animals, { program, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 2, away: 5 }, retain: { dead: 'dead' } } }, scope);
+  try {
+    groups.place([{ x: 3, z: 4 }], ['boar'], [{ kind: 'boar', variant, x: 3, z: 4, yaw: 0, herd: 0, practice: true }]);
+    const actor = groups.practice; if (actor === null) throw new Error('Missing training body');
+    const player = { x: 30, z: 30 };
+    groups.updatePractice(.09, player);
+    actor.alive = false; actor.hidden = true;
+    groups.updatePractice(1.91, player); expect(groups.practice).toBe(actor);
+    groups.updatePractice(.1, player); expect(groups.practice).not.toBe(actor);
+  } finally { groups.dispose(); scope.dispose(); restore(); }
+});
