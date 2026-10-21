@@ -28,6 +28,7 @@ import { Sword, type SwordOptions } from '../../src/game/weapons/Sword';
 import { PracticeCreature } from '../../src/game/practice/PracticeCreature';
 import { EncounterSession } from '../../src/game/practice/EncounterSession';
 import type { ArenaProduct } from './types';
+import { validateNativeSelectionKeys } from './nativeSelection';
 import { configurePracticeOcclusion } from '../../src/practiceLighting';
 
 /** Explicit demo composition; its supplied product contains no world entry or persistent save authority. */
@@ -95,12 +96,16 @@ export async function startSharedArena(options: PracticeDemoOptions): Promise<Pr
     owner.listen(document, 'ws:pause', pause);
     listenPage(owner, 'keydown', event => { if (event.code === 'Escape' && !event.repeat) { event.preventDefault(); pause(); } });
     weapons.onHit = (_kind, headshot, killed) => { hud.showHitMarker(headshot, killed); };
+    const nativeEnabled = options.products.some(entry => entry.nativePractice !== undefined);
     const choices = options.products.flatMap(entry => {
       const program = entry.product.section('actors/species-programs').program;
       if (program === undefined) throw new Error('Arena product has no species program');
+      const ids = program.species.flatMap(species => species.variants.map(variant => `${species.kind}:${variant.id}`));
+      validateNativeSelectionKeys(ids, entry.nativePractice);
       return program.species.flatMap(species => species.variants.map(variant => ({
         id: `${species.kind}:${variant.id}`, label: entry.label, species, variant: variant.id,
         product: entry.product, strikes: program.strikes, presentation: entry.presentation,
+        nativePose: entry.nativePractice?.[`${species.kind}:${variant.id}`],
       })));
     });
     const encounter = new EncounterSession<string, PracticeCreature>({
@@ -108,6 +113,7 @@ export async function startSharedArena(options: PracticeDemoOptions): Promise<Pr
         const choice = choices.find(row => row.id === id);
         if (choice === undefined) throw new Error('Unknown demo opponent');
         return PracticeCreature.create({ species: choice.species, variant: choice.variant, strikes: choice.strikes,
+          ...(choice.nativePose === undefined ? {} : { nativePose: choice.nativePose }),
           product: choice.product, scene: game.rootScene, sky: game.sky, physics, player, weapons, owner,
           style: options.level.creatureStyle ?? 'toon', render: options.level.creatures, flash: () => hud.damageFlash(),
           onPlayerDeath: () => options.status('Defeated. Retry starts a fresh local bout.'),
@@ -122,11 +128,17 @@ export async function startSharedArena(options: PracticeDemoOptions): Promise<Pr
     app.addSystem({ id: 'engine.input.collect', phase: 'input', before: ['engine.player.input'], run: () => { player.collectActions(); } }, owner);
     game.onInput(dt => { player.input(dt); }, 'engine.player.input');
     game.onFixed('pre', dt => { ragdollsFor(physics).fixedPre(dt); }, 'physics.corpse.pre', true);
+    if (nativeEnabled) app.addSystem({ id: 'arena.native-corpse.pre', phase: 'fixed.pre',
+      when: () => app.state === 'practice', run: () => { encounter.snapshot.actor?.preFixedUpdate(); } }, owner);
     game.onFixed('step', () => { physics.step(); }, 'physics.step', true);
     game.onFixed('post', dt => { ragdollsFor(physics).fixedPost(dt); }, 'physics.corpse.post', true);
     game.onFixed('post', dt => { player.step(dt); }, 'player.step', true);
+    if (nativeEnabled) app.addSystem({ id: 'arena.native-practice', phase: 'fixed.post', after: ['player.step'],
+      when: () => app.state === 'practice', run: () => { encounter.snapshot.actor?.fixedUpdate(); } }, owner);
     game.onUpdate(dt => { player.update(dt, game.alpha); }, 'player.update');
     app.addSystem({ id: 'demo.weapon', phase: 'update', after: ['training-arena'], run: (dt, t) => { weapons.update(dt, t); } }, owner);
+    if (nativeEnabled) app.addSystem({ id: 'arena.native-publication', phase: 'update', after: ['demo.weapon'],
+      run: () => { encounter.snapshot.actor?.publishNativeFrame(); } }, owner);
     game.onUpdate(() => {
       const vitals = arena.playerVitals;
       hud.setState({ bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve,

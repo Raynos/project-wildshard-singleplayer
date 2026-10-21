@@ -2586,6 +2586,18 @@ chains keep their existing native owners and cannot use the platform/static nati
 
 ### Embedded simulation
 
+Living page-body flyers publish their already-integrated pose with
+`CharacterMotor.syncFlightPose(feet)` after the body's one `AnimalSim.step` and before its
+post-body pose hook. Direct collider contact/shape queries see that transform immediately.
+World queries use Rapier's broadphase, refreshed by the caller's next sole `fixed.step`; publication
+in `fixed.post` does not promise an immediate broadphase refresh. This does not run the grounded
+controller, a reset clearance, terrain queries or an extra physics step. The method
+rejects nonfinite feet and disabled motors, clears grounded/ride state, and never mutates the
+actor's feet. Non-page bodies, dead flyers and physical-corpse roots do not use this bridge.
+It preserves the existing flight trajectory; it is **not swept flight collision** and does not
+prove wall, floor, corpse or gameplay admission. `resetAt` remains load/respawn-only.
+
+
 `@wildshard/engine/sim` exports `SIM_API_VERSION`, `SimLevel`, `SimCommand`, `SimHost` and `createSimHost`.
 The embedding root loads Rapier WASM and supplies it to `createSimHost(level, { rapier })`; plain level data
 defines the heightfield, player, creature identities, strike timings and quests. `step(command)` advances one

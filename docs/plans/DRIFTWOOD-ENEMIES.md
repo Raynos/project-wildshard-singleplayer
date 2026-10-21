@@ -201,3 +201,7 @@ native candidate, first auditing existing clips, exact model pins and strict
 admission. Independently audit remaining reference-direction gaps while
 preserving all current approved originals. Neither task authorizes a new
 engine exemption or the still-pending Bellback five-body architecture.
+
+## Owner priority — 21 October 2026, 12:33 UTC
+
+The owner requests all nine approved identities genuinely playable in the single shared Arena. Prioritize the missing five native gameplay integrations over further polish of the four existing playable WIP. Likeness and animation/readability quality remain separate goals; do not require a new art score before implementing and testing gameplay. Real admission, isolated combat/lifecycle/persistence checks and truthful unavailable states remain required. The previously specific Bellback five-body/four-joint decision remains unresolved; this general nine-enemy goal does not silently authorize that expansion.

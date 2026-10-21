@@ -895,7 +895,15 @@ export class SimHost {
       hooks?.before?.(id, entity, dt);
       const corpse = this.nativeCorpses.get(id);
       if (corpse?.ownsRoot === true) corpse.post(this.state.tick);
-      else { entity.step(dt); hooks?.after?.(id, entity, dt); }
+      else {
+        entity.step(dt);
+        // FlightMotion owns the trajectory, not the grounded controller. Publish the living
+        // page capsule at that actual pose so contacts/queries cannot retain its spawn point.
+        // This does not introduce swept wall collision or move an admitted physical corpse.
+        if (this.pageCreatureBodies && entity.alive && entity.flying && entity.motor instanceof CharacterMotor)
+          entity.motor.syncFlightPose(entity.position);
+        hooks?.after?.(id, entity, dt);
+      }
     }
     for (const run of this.afterCallbacks.values()) run(FIXED_STEP, this);
     if (this.pageCreatureBodies) this.syncBodies();

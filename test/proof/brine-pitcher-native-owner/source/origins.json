@@ -1,0 +1,20 @@
+[
+  {
+    "file": "v3/native-source.json",
+    "origin": "art/driftwood-isle/approved-brine-pitcher/v3/native-source.json",
+    "sha256": "68f88cb3a5e5c008736ece6e72cfece99516210d3e241c20d698cc055a2aff94",
+    "bytes": 1365582
+  },
+  {
+    "file": "v3/payload.bin",
+    "origin": "art/driftwood-isle/approved-brine-pitcher/v3/payload.bin",
+    "sha256": "70cc84fae55360f410433857685713a2475a0974cf853740f1ccbde725e6957e",
+    "bytes": 34975
+  },
+  {
+    "file": "core-runtime-study/metadata.json",
+    "origin": "art/driftwood-isle/approved-brine-pitcher/core-runtime-study/metadata.json",
+    "sha256": "a1badfcd0a4039ca031356b4d5963450e1f3e472ae1ff427f95276da828cfdfa",
+    "bytes": 78444
+  }
+]

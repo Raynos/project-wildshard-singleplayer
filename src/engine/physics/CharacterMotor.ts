@@ -339,6 +339,19 @@ export class CharacterMotor {
     return true;
   }
 
+  /** Publish an externally integrated airborne pose to this living capsule. This is not a
+   * swept move: the flight owner retains its existing trajectory and collision policy. No
+   * ground snap, controller movement, terrain query, reset clearance or physics step occurs.
+   * A disabled capsule belongs to another owner and must not be repositioned here. */
+  syncFlightPose(feet: Vec3): void {
+    if (!this.enabled || ![feet.x, feet.y, feet.z].every(Number.isFinite))
+      throw new RangeError('Invalid living flight pose');
+    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
+    this.anchorBody = null;
+    Object.assign(this.result, { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0,
+      horizontalFreedom: 1, groundCollider: null });
+  }
+
   /** let go of whatever the feet ride (a teleport) */
   release(): void { this.anchorBody = null; }
 

@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "medusaBorrowedOwner.ts", "borrowed.test.ts",
+    "../../../../src/**/*.d.ts", "../../../../src/engine/boot/shardPrefetch.ts"
+  ]
+}

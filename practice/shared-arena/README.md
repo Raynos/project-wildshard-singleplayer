@@ -67,3 +67,16 @@ The QA uses a bounded static server and muted portrait cloud Chromium, not a
 Vite dev server. It logs diagnostic player positioning; enemies, clocks, health,
 AI and damage are not injected. A failed check is reported as failed. The root
 coordinator owns publication and the final browser verdict.
+
+## Native-owner composition support (21 October 2026)
+
+Source-only opt-in: an ArenaProduct may declare one exact nativePractice
+kind:variant selection. The shared runtime forwards that selection to the real
+PracticeCreature and runs its pre/physics/post/publication lifecycle in the
+existing single world. Legacy products omit the field and retain their existing
+owner. Empty, unknown, wildcard and multiple native selections are refused.
+
+This composition support is not enemy admission. The boot catalogue and current
+four product pins are unchanged; no fifth opponent or new public host is enabled.
+New products still require actual isolated combat, source/contact, lifecycle and
+persistence checks, followed by current-host shared-Arena verification.

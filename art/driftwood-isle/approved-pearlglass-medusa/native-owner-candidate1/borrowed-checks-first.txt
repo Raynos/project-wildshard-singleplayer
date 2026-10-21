@@ -1,0 +1,20 @@
+heavy-lane: queued build ticket 187
+heavy-lane: acquired build after 0.00s queue
+failed to load config from <repository>/art/driftwood-isle/approved-pearlglass-medusa/native-owner-candidate1/vitest.config.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: Run this through python3 scripts/heavy-lane.py full-test -- <command>; focused Vitest file runs remain unrestricted.
+    at assertHeavyLease (file://<repository>/node_modules/.vite-temp/vitest.config.ts.timestamp-1792586408697-92703af7fbf41.mjs:36:194)
+    at assertVitestLane (file://<repository>/node_modules/.vite-temp/vitest.config.ts.timestamp-1792586408697-92703af7fbf41.mjs:70:26)
+    at file://<repository>/node_modules/.vite-temp/vitest.config.ts.timestamp-1792586408697-92703af7fbf41.mjs:107:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async loadConfigFromBundledFile (file://<repository>/node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:37499:12)
+    at async bundleAndLoadConfigFile (file://<repository>/node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:37345:21)
+    at async loadConfigFromFile (file://<repository>/node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:37305:42)
+    at async resolveConfig (file://<repository>/node_modules/.pnpm/vite@8.3.0_@types+node@24.13.6/node_modules/vite/dist/node/chunks/node.js:36906:22)
+    at async resolveConfig$1 (file://<repository>/node_modules/.pnpm/vitest@5.0.1_@types+node@24.13.6_@vitest+coverage-v8@5.0.1_happy-dom@20.14.5_vite@8.3.0_@types+node@24.13.6_/node_modules/vitest/dist/chunks/index.DzobfTyw.js:14777:25)
+
+
+
+heavy-lane: finished build in 0.67s
