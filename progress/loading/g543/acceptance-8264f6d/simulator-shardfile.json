@@ -1,0 +1,4112 @@
+{
+  "surface": "simulator",
+  "pin": "8264f6dca2c86c2ec6ec8e2038735d750c5eed6b",
+  "path": "shardfile",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "rawSHA256": "2d1a477615fed144d42957825dc4f7915e0db74927ef578ccec1e37fb20255cb",
+  "errors": [],
+  "stageSeconds": 13.426000000000002,
+  "clockSeconds": 13.4,
+  "unaccountedSeconds": -0.026000000000001577,
+  "displayedNetworkBytes": 182016415,
+  "networkBytes": 184661666,
+  "byteError": 0.014324851807629636,
+  "visibleByteError": 0.014142978651562691,
+  "maxDetailGapMs": 267,
+  "failures": [],
+  "recorderVersion": 2,
+  "firstAt": 2078,
+  "readyAt": 14700,
+  "updates": [
+    2078,
+    2082,
+    2144,
+    2194,
+    2244,
+    2304,
+    2361,
+    2420,
+    2478,
+    2578,
+    2628,
+    2678,
+    2728,
+    2778,
+    2828,
+    2947,
+    2998,
+    3050,
+    3115,
+    3144,
+    3213,
+    3273,
+    3337,
+    3417,
+    3483,
+    3544,
+    3594,
+    3644,
+    3694,
+    3744,
+    3794,
+    3845,
+    3861,
+    3912,
+    3936,
+    3945,
+    3994,
+    4044,
+    4097,
+    4161,
+    4211,
+    4261,
+    4311,
+    4361,
+    4411,
+    4461,
+    4511,
+    4561,
+    4611,
+    4661,
+    4711,
+    4761,
+    4811,
+    4861,
+    4911,
+    4961,
+    5011,
+    5061,
+    5111,
+    5161,
+    5211,
+    5261,
+    5311,
+    5361,
+    5411,
+    5461,
+    5664,
+    5744,
+    5778,
+    5838,
+    5906,
+    5961,
+    6011,
+    6066,
+    6143,
+    6194,
+    6244,
+    6294,
+    6344,
+    6394,
+    6444,
+    6494,
+    6544,
+    6594,
+    6644,
+    6695,
+    6761,
+    6811,
+    6861,
+    6911,
+    6973,
+    7062,
+    7128,
+    7178,
+    7228,
+    7278,
+    7347,
+    7411,
+    7461,
+    7511,
+    7566,
+    7629,
+    7694,
+    7744,
+    7794,
+    7844,
+    7903,
+    7978,
+    8050,
+    8101,
+    8153,
+    8211,
+    8261,
+    8311,
+    8361,
+    8411,
+    8461,
+    8522,
+    8590,
+    8646,
+    8708,
+    8766,
+    8798,
+    8925,
+    8988,
+    9038,
+    9089,
+    9186,
+    9248,
+    9325,
+    9414,
+    9481,
+    9577,
+    9627,
+    9733,
+    9834,
+    9925,
+    9975,
+    10084,
+    10154,
+    10231,
+    10344,
+    10413,
+    10484,
+    10556,
+    10637,
+    10689,
+    10784,
+    10878,
+    10956,
+    11049,
+    11143,
+    11283,
+    11369,
+    11449,
+    11501,
+    11578,
+    11657,
+    11746,
+    11834,
+    11926,
+    11993,
+    12071,
+    12159,
+    12245,
+    12374,
+    12473,
+    12529,
+    12584,
+    12639,
+    12699,
+    12774,
+    12849,
+    12902,
+    12955,
+    13010,
+    13067,
+    13120,
+    13179,
+    13251,
+    13329,
+    13387,
+    13457,
+    13516,
+    13578,
+    13635,
+    13644,
+    13747,
+    13806,
+    13861,
+    14128,
+    14179,
+    14244,
+    14294,
+    14344,
+    14394,
+    14444,
+    14494,
+    14544,
+    14594,
+    14644,
+    14694,
+    14700
+  ],
+  "final": {
+    "at": 14700,
+    "clock": "00:13.4",
+    "detail": "gap after Audio · music + sound effects",
+    "download": "182.0 MB downloaded · 89.6 MB from cache · 0.00 MB still expected · 1747 / 1747 files",
+    "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+    "diagnostics": "Attempt 1 · JS heap unavailable on Safari · scene textures ~2 MiB\nLargest observed frame-update gap 0.2s at Props\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "Decode selected audio clip",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "shardfile",
+    "step": "gap",
+    "setup": "100",
+    "networkBytes": "182016415",
+    "cachedBytes": "89599064",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "▸ 1 · Application modules",
+        "detail": "Preparing application services · 0 / 0 files · 0.00 MB read",
+        "duration": "1.2 s",
+        "state": "ok",
+        "key": "modules",
+        "ms": "1189"
+      },
+      {
+        "label": "▸ 2 · Product admission",
+        "detail": "Product schemas 8 / 8 · custom/trailside",
+        "duration": "627 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "627"
+      },
+      {
+        "label": "▸ 3 · Texture and audio preparation",
+        "detail": "",
+        "duration": "23 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "23"
+      },
+      {
+        "label": "▸ 4 · Renderer",
+        "detail": "",
+        "duration": "21 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "21"
+      },
+      {
+        "label": "▸ 5 · Sky · lighting",
+        "detail": "",
+        "duration": "689 ms",
+        "state": "ok",
+        "key": "sky",
+        "ms": "689"
+      },
+      {
+        "label": "▸ 6 · Terrain · heightfield",
+        "detail": "256² heightfield",
+        "duration": "63 ms",
+        "state": "ok",
+        "key": "terrain",
+        "ms": "63"
+      },
+      {
+        "label": "▸ 7 · Tree cards",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "cards",
+        "ms": "1"
+      },
+      {
+        "label": "▸ 8 · Trees",
+        "detail": "0 trees",
+        "duration": "3 ms",
+        "state": "ok",
+        "key": "forest",
+        "ms": "3"
+      },
+      {
+        "label": "▸ 9 · Physics · Rapier · navmesh",
+        "detail": "5 colliders",
+        "duration": "8 ms",
+        "state": "ok",
+        "key": "physics",
+        "ms": "8"
+      },
+      {
+        "label": "▸ 10 · Chunk edge · water · horizon",
+        "detail": "",
+        "duration": "13 ms",
+        "state": "ok",
+        "key": "edge",
+        "ms": "13"
+      },
+      {
+        "label": "▸ 11 · Grass · ground cover",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "grass",
+        "ms": "0"
+      },
+      {
+        "label": "▸ 12 · Buildings",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "cabins",
+        "ms": "1"
+      },
+      {
+        "label": "▸ 13 · Props",
+        "detail": "Baked island",
+        "duration": "4.1 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "4070"
+      },
+      {
+        "label": "▸ 14 · Animals",
+        "detail": "13 animals",
+        "duration": "41 ms",
+        "state": "ok",
+        "key": "animals",
+        "ms": "41"
+      },
+      {
+        "label": "▸ 15 · Weapons · HUD",
+        "detail": "",
+        "duration": "2 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "2"
+      },
+      {
+        "label": "▸ 16 · World assembly",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "0"
+      },
+      {
+        "label": "▸ 17 · Title art · explore",
+        "detail": "40 / 40 pictures · UI",
+        "duration": "10 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "10"
+      },
+      {
+        "label": "▸ 18 · Shaders",
+        "detail": "22 / 22 textures uploaded · 120 programs",
+        "duration": "4.9 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "4859"
+      },
+      {
+        "label": "▸ 19 · First frame",
+        "detail": "Pass 6 / 6 · ready · 120 programs",
+        "duration": "163 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "163"
+      },
+      {
+        "label": "▸ gap after First frame",
+        "detail": "",
+        "duration": "2 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "2"
+      },
+      {
+        "label": "▸ 20 · Audio · music + sound effects",
+        "detail": "Prepared audio clips 89 / 91",
+        "duration": "894 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "894"
+      },
+      {
+        "label": "▸ gap after Audio · music + sound effects",
+        "detail": "",
+        "duration": "4 ms",
+        "state": "on",
+        "key": "gap",
+        "ms": "4"
+      },
+      {
+        "label": "▸ 21 · Region world",
+        "detail": "",
+        "duration": "31 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "31"
+      },
+      {
+        "label": "▸ 22 · Equipment and HUD",
+        "detail": "",
+        "duration": "489 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "489"
+      },
+      {
+        "label": "▸ 23 · Gameplay and saved state",
+        "detail": "",
+        "duration": "218 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "218"
+      },
+      {
+        "label": "▸ 24 · Final activation",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "finish",
+        "ms": "1"
+      },
+      {
+        "label": "▸ gap after Final activation",
+        "detail": "",
+        "duration": "4 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "4"
+      }
+    ]
+  },
+  "workerReceiptBatches": 676,
+  "detailSamples": [
+    {
+      "at": 2078,
+      "step": "admission.modules",
+      "detail": "Loading application modules",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "active": []
+    },
+    {
+      "at": 2082,
+      "step": "modules",
+      "detail": "step 1 / 1 · Application modules · Preparing application services · 0 / 0 files · 0.00 MB read",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "networkBytes": "3516758",
+      "cachedBytes": "0",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        }
+      ]
+    },
+    {
+      "at": 2144,
+      "step": "modules",
+      "detail": "step 1 / 1 · Application modules · Preparing application services · 0 / 0 files · 0.00 MB read",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "networkBytes": "3532342",
+      "cachedBytes": "0",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        }
+      ]
+    },
+    {
+      "at": 2194,
+      "step": "modules",
+      "detail": "step 1 / 1 · Application modules · Preparing application services · 0 / 0 files · 0.00 MB read",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "networkBytes": "3575802",
+      "cachedBytes": "0",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        }
+      ]
+    },
+    {
+      "at": 2244,
+      "step": "modules",
+      "detail": "step 1 / 1 · Application modules · Preparing application services · 0 / 0 files · 0.00 MB read",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "networkBytes": "3651286",
+      "cachedBytes": "0",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        }
+      ]
+    },
+    {
+      "at": 2304,
+      "step": "modules",
+      "detail": "step 1 / 24 · Application modules · Preparing application services · 0 / 0 files · 0.00 MB read",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "networkBytes": "7259871",
+      "cachedBytes": "0",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        }
+      ]
+    },
+    {
+      "at": 2361,
+      "step": "modules",
+      "detail": "step 1 / 24 · Application modules · Preparing application services · 0 / 0 files · 0.00 MB read",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "networkBytes": "7259871",
+      "cachedBytes": "1634",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        }
+      ]
+    },
+    {
+      "at": 2420,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/shard.json · 0.0 s · 1 files in flight",
+      "stalled": "false",
+      "networkBytes": "7259871",
+      "cachedBytes": "8074",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 2478,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/sections/actors/creatures.json · 0.0 s · 69 files in flight · 69 waits",
+      "stalled": "false",
+      "networkBytes": "7337259",
+      "cachedBytes": "8074",
+      "pendingBytes": "1752532",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 2578,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/sections/actors/species-programs.json · 0.1 s · 62 files in flight · 63 waits",
+      "stalled": "false",
+      "networkBytes": "7341636",
+      "cachedBytes": "8074",
+      "pendingBytes": "1747807",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 2628,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/sections/look/look.json · 0.2 s · 37 files in flight · 38 waits",
+      "stalled": "false",
+      "networkBytes": "7560084",
+      "cachedBytes": "8074",
+      "pendingBytes": "995407",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 2678,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/sections/look/look.json · 0.2 s · 18 files in flight · 19 waits",
+      "stalled": "false",
+      "networkBytes": "7581182",
+      "cachedBytes": "8074",
+      "pendingBytes": "936587",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 2728,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission · Product schemas 0 / 8",
+      "footer": "Now waiting for: Validate custom/assets · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "8074",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": "Product schemas 0 / 8"
+        }
+      ]
+    },
+    {
+      "at": 2778,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission · Product schemas 2 / 8 · custom/collections",
+      "footer": "Now waiting for: Validate custom/collections · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "8074",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": "Product schemas 2 / 8 · custom/collections"
+        }
+      ]
+    },
+    {
+      "at": 2828,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission · Product schemas 3 / 8 · custom/cumulusPuffs",
+      "footer": "Now waiting for: Validate custom/enemyPlacements · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "8074",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": "Product schemas 3 / 8 · custom/cumulusPuffs"
+        }
+      ]
+    },
+    {
+      "at": 2947,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission · Product schemas 5 / 8 · custom/fixedLayouts",
+      "footer": "Now waiting for: Validate custom/fixedLayouts · 0.1 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "8074",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": "Product schemas 5 / 8 · custom/fixedLayouts"
+        }
+      ]
+    },
+    {
+      "at": 2998,
+      "step": "admission",
+      "detail": "step 2 / 24 · Product admission · Product schemas 7 / 8 · custom/oceanSurface",
+      "footer": "Now waiting for: Validate custom/oceanSurface · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "8074",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        },
+        {
+          "key": "admission",
+          "detail": "Product schemas 7 / 8 · custom/oceanSurface"
+        }
+      ]
+    },
+    {
+      "at": 3050,
+      "step": "modules",
+      "detail": "step 1 / 24 · Application modules · Preparing application services · 0 / 0 files · 0.00 MB read",
+      "footer": "Now working on: Application modules",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "8074",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "modules",
+          "detail": "Preparing application services · 0 / 0 files · 0.00 MB read"
+        }
+      ]
+    },
+    {
+      "at": 3115,
+      "step": "renderer",
+      "detail": "step 4 / 24 · Renderer",
+      "footer": "Now waiting for: Read audio /assets/music/piano/pine-calm-923e0056.m4a · 0.0 s · 110 files in flight · 111 waits",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "11438",
+      "pendingBytes": "172046",
+      "active": [
+        {
+          "key": "renderer",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3144,
+      "step": "world",
+      "detail": "step 21 / 24 · Region world",
+      "footer": "Now waiting for: Read audio /assets/music/piano/pine-calm-923e0056.m4a · 0.0 s · 111 files in flight · 111 waits",
+      "stalled": "false",
+      "networkBytes": "7861373",
+      "cachedBytes": "170750",
+      "pendingBytes": "172046",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3213,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/piano/pine-calm-923e0056.m4a · 0.1 s · 110 files in flight · 110 waits",
+      "stalled": "false",
+      "networkBytes": "8553829",
+      "cachedBytes": "171060",
+      "pendingBytes": "172046",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3273,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/piano/pine-calm-923e0056.m4a · 0.2 s · 110 files in flight · 111 waits",
+      "stalled": "false",
+      "networkBytes": "12290063",
+      "cachedBytes": "171636",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3337,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/piano/pine-calm-923e0056.m4a · 0.2 s · 110 files in flight · 110 waits",
+      "stalled": "false",
+      "networkBytes": "12972011",
+      "cachedBytes": "203448",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3417,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/orchestral/pine-calm-fbc4a99e.m4a · 0.3 s · 100 files in flight · 100 waits",
+      "stalled": "false",
+      "networkBytes": "19110144",
+      "cachedBytes": "1662007",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3483,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/orchestral/pine-calm-fbc4a99e.m4a · 0.4 s · 84 files in flight · 84 waits",
+      "stalled": "false",
+      "networkBytes": "19188227",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3544,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/orchestral/pine-calm-fbc4a99e.m4a · 0.4 s · 71 files in flight · 71 waits",
+      "stalled": "false",
+      "networkBytes": "19305771",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3594,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/orchestral/pine-calm-fbc4a99e.m4a · 0.5 s · 60 files in flight · 60 waits",
+      "stalled": "false",
+      "networkBytes": "19422622",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3644,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/orchestral/pine-calm-fbc4a99e.m4a · 0.5 s · 49 files in flight · 49 waits",
+      "stalled": "false",
+      "networkBytes": "19537684",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3694,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/orchestral/pine-calm-fbc4a99e.m4a · 0.6 s · 38 files in flight · 38 waits",
+      "stalled": "false",
+      "networkBytes": "19737852",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3744,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/music/orchestral/island-tension-73116f36.m4a · 0.6 s · 27 files in flight · 27 waits",
+      "stalled": "false",
+      "networkBytes": "21916474",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3794,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/sfx/driftwood-isle/bed-island-1-4611714d.m4a · 0.7 s · 16 files in flight · 16 waits",
+      "stalled": "false",
+      "networkBytes": "25883043",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3845,
+      "step": "sky",
+      "detail": "step 5 / 24 · Sky · lighting",
+      "footer": "Now waiting for: Read audio /assets/sfx/driftwood-isle/monkey_shriek-1-1a358b4e.m4a · 0.7 s · 7 files in flight · 7 waits",
+      "stalled": "false",
+      "networkBytes": "26286831",
+      "cachedBytes": "2340569",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "sky",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3861,
+      "step": "terrain",
+      "detail": "step 6 / 24 · Terrain · heightfield",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/tile/db53f78711dd7b8b87ca34b0c8943d00da071e0b1415eedd4cd4148922b2c985.wtt · 0.0 s · 1 files in flight",
+      "stalled": "false",
+      "networkBytes": "26352818",
+      "cachedBytes": "2340569",
+      "pendingBytes": "524320",
+      "active": [
+        {
+          "key": "terrain",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3912,
+      "step": "terrain",
+      "detail": "step 6 / 24 · Terrain · heightfield · 256² heightfield",
+      "footer": "Now working on: Terrain · heightfield",
+      "stalled": "false",
+      "networkBytes": "27923587",
+      "cachedBytes": "2340636",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "terrain",
+          "detail": "256² heightfield"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3936,
+      "step": "edge",
+      "detail": "step 10 / 24 · Chunk edge · water · horizon",
+      "footer": "Now working on: Chunk edge · water · horizon",
+      "stalled": "false",
+      "networkBytes": "27923587",
+      "cachedBytes": "2340636",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "edge",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3945,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "27923587",
+      "cachedBytes": "2340636",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 3994,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/02f2b47255677bc4a8cd39bd108b926f880c5537cd3b1cc2c1a6d7f19f4aab9c.glb · 0.0 s · 3 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "32886808",
+      "cachedBytes": "2340825",
+      "pendingBytes": "144613668",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4044,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/0a99102d63f9142c278f37c215253fd72d19f5d80d17751906a6e94690af354e.glb · 0.0 s · 2 files in flight · 3 waits",
+      "stalled": "false",
+      "networkBytes": "33362762",
+      "cachedBytes": "2340825",
+      "pendingBytes": "144140714",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4097,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Admit product · 0.1 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "49104315",
+      "cachedBytes": "2340825",
+      "pendingBytes": "128400287",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4161,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/1a05c2bc7a8b1771587749cf893fe326a56a57616ef0139b5f574177fe5918e8.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "51781798",
+      "cachedBytes": "2340825",
+      "pendingBytes": "125593109",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4211,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/1fed506e88951eac2d348c9dc1e757e7e1f5b5c218bcff31efe5ca8073cb36a1.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "56174626",
+      "cachedBytes": "2340825",
+      "pendingBytes": "121124957",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4261,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/2658d4ea70347930f838c59c48cca4fa8112ca29ceca1944927bc7810d41b94f.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "64312924",
+      "cachedBytes": "2340825",
+      "pendingBytes": "112989059",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4311,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/3258cd5db51beaa637d89e96fc4d2e6c55dfac3b886f07283ea0f88681ac764f.glb · 0.0 s · 3 files in flight · 4 waits",
+      "stalled": "false",
+      "networkBytes": "67150795",
+      "cachedBytes": "2426833",
+      "pendingBytes": "110108282",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4361,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Read /shardfiles/driftwood-isle/blobs/bin/38a4f8b6ba5c423dfa20a693ea244abf4f153305d869d71f22e2c2b2742af22d.bin · 0.0 s · 1 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "67297846",
+      "cachedBytes": "2426833",
+      "pendingBytes": "109950605",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4411,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/3cafe1edd4629893bab42c6be47c9f2a4159167bffffd9802aff10f361dc0509.glb · 0.0 s · 3 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "82441053",
+      "cachedBytes": "2426833",
+      "pendingBytes": "94808898",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4461,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/418925b4346b831476c455e13d1f48118ffb34bcb6084e2d43a06290aa4e5852.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "88271764",
+      "cachedBytes": "2426833",
+      "pendingBytes": "88813733",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4511,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Admit product · 0.6 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "96974193",
+      "cachedBytes": "2426833",
+      "pendingBytes": "80114904",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4561,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Read /shardfiles/driftwood-isle/blobs/glb/564c9885df8b541c616c40d75ef3905fb75006e396a28855144ad1e5ebcec7bc.glb · 0.0 s · 1 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "100237699",
+      "cachedBytes": "2426833",
+      "pendingBytes": "76854398",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4611,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/5b800e0240b5b895aaf9a8466b1a41a2567824f88dda9218400b16afe8d23c2d.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "105828775",
+      "cachedBytes": "2426833",
+      "pendingBytes": "71266322",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4661,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/json/695392c79de3314fcb09fd8a69639f707bdf8497392aa76670228256b1b604f5.json · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "107642564",
+      "cachedBytes": "2435405",
+      "pendingBytes": "69448461",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4711,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/746c11fa74aa46cb63ab0d869b50d4a2704c87c24a7044081cf7132d5b667057.glb · 0.0 s · 1 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "112601579",
+      "cachedBytes": "2435405",
+      "pendingBytes": "64448243",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4761,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/7f1f11186487f7923e3427f9cc12b2dbaeca82af51fbd206b891ddbb3a1d2d07.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "113040028",
+      "cachedBytes": "2435405",
+      "pendingBytes": "64013994",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4811,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/8e2f3018e7a73ef6d8bdb4e4dce3c9f059948717646f83e50857133c7f9e3afe.glb · 0.0 s · 1 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "113941683",
+      "cachedBytes": "2435405",
+      "pendingBytes": "63083832",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4861,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/971bdeaae67983e806f83b4715dffb2fb94aa9f54411e8420084fedb3855524e.glb · 0.0 s · 3 files in flight · 4 waits",
+      "stalled": "false",
+      "networkBytes": "119555703",
+      "cachedBytes": "2435405",
+      "pendingBytes": "57471934",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4911,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/9e8c7d12631921e9c0f52c51537bbc0c5ab92da4bd50fd8fedd79fa8071dc9d4.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "123471581",
+      "cachedBytes": "2435405",
+      "pendingBytes": "53549124",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 4961,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/a36bb3faee3834bea613d00083fafb998d8f23a48524727f67e0ea9059ed0600.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "124771876",
+      "cachedBytes": "2435405",
+      "pendingBytes": "51322782",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5011,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/ad1f1a8e03c0a600b78037c890eff68c4c87c08f7dac4781f8977ad89d52a8f4.glb · 0.0 s · 1 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "130852109",
+      "cachedBytes": "2435405",
+      "pendingBytes": "45236941",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5061,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Admit product · 1.1 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "138582088",
+      "cachedBytes": "2435405",
+      "pendingBytes": "37509662",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5111,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/image/bb6399e07aef062169519e3c7c8265e38d16f6b0332be5ba02f7d61e138bb34f.webp · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "140014502",
+      "cachedBytes": "2435405",
+      "pendingBytes": "36080848",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5161,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/c5593160ff621cc0d547933efacaa042e3bbcc75f8fb910b4fc8d3ecb754e82d.glb · 0.0 s · 3 files in flight · 4 waits",
+      "stalled": "false",
+      "networkBytes": "140490148",
+      "cachedBytes": "2607451",
+      "pendingBytes": "35590852",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5211,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/json/d21b4e5cd2be1d75ac4bd81a0718c0c3aae2b346e4a430e7b0708f6ccc6c5eab.json · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "142424186",
+      "cachedBytes": "3859187",
+      "pendingBytes": "33659814",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5261,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Admit product · 1.3 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "149344238",
+      "cachedBytes": "3859187",
+      "pendingBytes": "26740417",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5311,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/e77237ab27d42e7bd15608edfc4f1813501e543a0fda1036a1433af3703e0bee.glb · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "153777882",
+      "cachedBytes": "4383507",
+      "pendingBytes": "22301360",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5361,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/json/f0ecb0d9ec409c407e00f35aa4ccf52565ecf3cc85038fab6f1ecb404d54b2ab.json · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "156517442",
+      "cachedBytes": "4383507",
+      "pendingBytes": "19456640",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5411,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/json/f581eb274d3de7e8090abb509ec23f44354464d7deabeaefd2cb8770586b8268.json · 0.0 s · 4 files in flight · 5 waits",
+      "stalled": "false",
+      "networkBytes": "160558822",
+      "cachedBytes": "4383507",
+      "pendingBytes": "15417017",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5461,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Fetch /shardfiles/driftwood-isle/blobs/glb/f8fb551749db9c017cc2a1b7bd2a0b0b68ed844b0014c757bee72a3e3dd9dccb.glb · 0.0 s · 3 files in flight · 4 waits",
+      "stalled": "false",
+      "networkBytes": "169259849",
+      "cachedBytes": "4383507",
+      "pendingBytes": "6661786",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5664,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 0011ca788361 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5744,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 108ba9b93bd5 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5778,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 178b7250c5b1 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5838,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 26e8222630f5 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5906,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 3c8cd3e59fc4 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 5961,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 50a961fbed1e · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6011,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 65faf8c1170f · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6066,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put 87bfdf5b798b · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6143,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put a4a04d9a24c2 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6194,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put b80205703858 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6244,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put d34ef6b52084 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6294,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put f1333cead340 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6344,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache put fc306c5a5ae6 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6394,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has 1180c0c27c44 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6444,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has 26e8222630f5 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6494,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has 3cf8036ff90c · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6544,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has 56d642ab44c9 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6594,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has 754256bbf9a4 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6644,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has 9bc45ad29e7b · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6695,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has b215817e315b · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6761,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has d7737c770136 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6811,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has f3aa5483963c · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6861,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has c736bd09c653 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6911,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache has 0b68b9752bf5 · 0.0 s · 0 files in flight · 2 waits",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 6973,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now waiting for: Content cache get d206d254e1cd · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "175915848",
+      "cachedBytes": "4383507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7062,
+      "step": "props",
+      "detail": "step 13 / 24 · Props",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "9685575",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": ""
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7128,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home models 3 / 12 · crate-0",
+      "footer": "Now waiting for: Content cache get 86a438e5020b · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "10503711",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home models 3 / 12 · crate-0"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7178,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home models 1 / 11 · shore",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "21611963",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home models 1 / 11 · shore"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7228,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home models 7 / 9 · hibiscus-flowering",
+      "footer": "Now waiting for: Content cache get c40be28442e3 · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "34227507",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home models 7 / 9 · hibiscus-flowering"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7278,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home models 15 / 45 · shipwreckKit",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "44822023",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home models 15 / 45 · shipwreckKit"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7347,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Materials and textures 6 / 14 · pool",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "53814063",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Materials and textures 6 / 14 · pool"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7411,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 1 / 11 · rocks",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "53814063",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 1 / 11 · rocks"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7461,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 7 / 11 · logs",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "53814063",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 7 / 11 · logs"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7511,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 11 / 11 · trail",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178348690",
+      "cachedBytes": "53814063",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 11 / 11 · trail"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7566,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 11 / 11 · trail",
+      "footer": "Now waiting for: Content cache get 3c8cd3e59fc4 · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "178855237",
+      "cachedBytes": "59117934",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 11 / 11 · trail"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7629,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 11 / 11 · trail",
+      "footer": "Now waiting for: Content cache get 9d7299ecc0e8 · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "178855237",
+      "cachedBytes": "67700138",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 11 / 11 · trail"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7694,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 11 / 11 · trail",
+      "footer": "Now waiting for: Content cache get b169e5f16711 · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "178855237",
+      "cachedBytes": "73676914",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 11 / 11 · trail"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7744,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 11 / 11 · trail",
+      "footer": "Now waiting for: Content cache get 3f0086256edf · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "178855237",
+      "cachedBytes": "80757506",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 11 / 11 · trail"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7794,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Home scenes 11 / 11 · trail",
+      "footer": "Now waiting for: Content cache get ae2c26097453 · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "178855237",
+      "cachedBytes": "85200134",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Home scenes 11 / 11 · trail"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7844,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Preparing world builders",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "178855237",
+      "cachedBytes": "86401062",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Preparing world builders"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7903,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Rope bridge",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "180944029",
+      "cachedBytes": "86401572",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Rope bridge"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 7978,
+      "step": "props",
+      "detail": "step 13 / 24 · Props · Bridge physics and paths",
+      "footer": "Now working on: Props",
+      "stalled": "false",
+      "networkBytes": "180944029",
+      "cachedBytes": "86401671",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "props",
+          "detail": "Bridge physics and paths"
+        },
+        {
+          "key": "world",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8050,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now waiting for: Prepare decision Wasm memories · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "180944029",
+      "cachedBytes": "86491218",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8101,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now working on: Equipment and HUD",
+      "stalled": "false",
+      "networkBytes": "180944029",
+      "cachedBytes": "86616062",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8153,
+      "step": "animals",
+      "detail": "step 14 / 24 · Animals",
+      "footer": "Now working on: Animals",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "86696254",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "animals",
+          "detail": ""
+        },
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8211,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now waiting for: Content cache get 9306d08dfb4c · 0.0 s · 0 files in flight · 258 waits",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "86806269",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8261,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now waiting for: Content cache get 216ca8228b56 · 0.1 s · 0 files in flight · 218 waits",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "87544209",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8311,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now waiting for: Content cache get 12f505632047 · 0.1 s · 0 files in flight · 169 waits",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "88108877",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8361,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now waiting for: Content cache get 26e8222630f5 · 0.2 s · 0 files in flight · 130 waits",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "88108877",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8411,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now waiting for: Content cache get 27c1fddd2e08 · 0.2 s · 0 files in flight · 82 waits",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "88108877",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8461,
+      "step": "loadout",
+      "detail": "step 22 / 24 · Equipment and HUD",
+      "footer": "Now waiting for: Content cache get 26e8222630f5 · 0.3 s · 0 files in flight · 40 waits",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "88108877",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8522,
+      "step": "weapon",
+      "detail": "step 15 / 24 · Weapons · HUD",
+      "footer": "Now working on: Weapons · HUD",
+      "stalled": "false",
+      "networkBytes": "181296663",
+      "cachedBytes": "88108942",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "weapon",
+          "detail": ""
+        },
+        {
+          "key": "loadout",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8590,
+      "step": "gameplay",
+      "detail": "step 23 / 24 · Gameplay and saved state",
+      "footer": "Now working on: Gameplay and saved state",
+      "stalled": "false",
+      "networkBytes": "181670503",
+      "cachedBytes": "88108942",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "gameplay",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8646,
+      "step": "gameplay",
+      "detail": "step 23 / 24 · Gameplay and saved state",
+      "footer": "Now waiting for: Content cache get d2370e42b5a3 · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "88115071",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "gameplay",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8708,
+      "step": "gameplay",
+      "detail": "step 23 / 24 · Gameplay and saved state",
+      "footer": "Now waiting for: Content cache get b9ada4abb7c0 · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89584327",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "gameplay",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8766,
+      "step": "gameplay",
+      "detail": "step 23 / 24 · Gameplay and saved state",
+      "footer": "Now working on: Gameplay and saved state",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89598993",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "gameplay",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8798,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "at": 8925,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 1 / 184 batches · parallel · 16 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 1 / 184 batches · parallel · 16 programs"
+        }
+      ]
+    },
+    {
+      "at": 8988,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 2 / 184 batches · parallel · 17 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 2 / 184 batches · parallel · 17 programs"
+        }
+      ]
+    },
+    {
+      "at": 9038,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 3 / 184 batches · parallel · 18 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 3 / 184 batches · parallel · 18 programs"
+        }
+      ]
+    },
+    {
+      "at": 9089,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 4 / 184 batches · parallel · 19 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 4 / 184 batches · parallel · 19 programs"
+        }
+      ]
+    },
+    {
+      "at": 9186,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 16 / 184 batches · parallel · 24 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 16 / 184 batches · parallel · 24 programs"
+        }
+      ]
+    },
+    {
+      "at": 9248,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 19 / 184 batches · parallel · 27 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 19 / 184 batches · parallel · 27 programs"
+        }
+      ]
+    },
+    {
+      "at": 9325,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 24 / 184 batches · parallel · 31 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 24 / 184 batches · parallel · 31 programs"
+        }
+      ]
+    },
+    {
+      "at": 9414,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 26 / 184 batches · parallel · 33 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 26 / 184 batches · parallel · 33 programs"
+        }
+      ]
+    },
+    {
+      "at": 9481,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 28 / 184 batches · parallel · 34 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 28 / 184 batches · parallel · 34 programs"
+        }
+      ]
+    },
+    {
+      "at": 9577,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 30 / 184 batches · parallel · 36 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 30 / 184 batches · parallel · 36 programs"
+        }
+      ]
+    },
+    {
+      "at": 9627,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 31 / 184 batches · parallel · 37 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 31 / 184 batches · parallel · 37 programs"
+        }
+      ]
+    },
+    {
+      "at": 9733,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 51 / 184 batches · parallel · 46 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 51 / 184 batches · parallel · 46 programs"
+        }
+      ]
+    },
+    {
+      "at": 9834,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 53 / 184 batches · parallel · 48 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 53 / 184 batches · parallel · 48 programs"
+        }
+      ]
+    },
+    {
+      "at": 9925,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 55 / 184 batches · parallel · 50 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 55 / 184 batches · parallel · 50 programs"
+        }
+      ]
+    },
+    {
+      "at": 9975,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 56 / 184 batches · parallel · 51 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 56 / 184 batches · parallel · 51 programs"
+        }
+      ]
+    },
+    {
+      "at": 10084,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 58 / 184 batches · parallel · 53 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 58 / 184 batches · parallel · 53 programs"
+        }
+      ]
+    },
+    {
+      "at": 10154,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 61 / 184 batches · parallel · 56 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 61 / 184 batches · parallel · 56 programs"
+        }
+      ]
+    },
+    {
+      "at": 10231,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 65 / 184 batches · parallel · 60 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 65 / 184 batches · parallel · 60 programs"
+        }
+      ]
+    },
+    {
+      "at": 10344,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 67 / 184 batches · parallel · 62 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 67 / 184 batches · parallel · 62 programs"
+        }
+      ]
+    },
+    {
+      "at": 10413,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 69 / 184 batches · parallel · 64 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 69 / 184 batches · parallel · 64 programs"
+        }
+      ]
+    },
+    {
+      "at": 10484,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 73 / 184 batches · parallel · 70 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 73 / 184 batches · parallel · 70 programs"
+        }
+      ]
+    },
+    {
+      "at": 10556,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 75 / 184 batches · parallel · 72 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 75 / 184 batches · parallel · 72 programs"
+        }
+      ]
+    },
+    {
+      "at": 10637,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 76 / 184 batches · parallel · 73 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 76 / 184 batches · parallel · 73 programs"
+        }
+      ]
+    },
+    {
+      "at": 10689,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 77 / 184 batches · parallel · 74 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 77 / 184 batches · parallel · 74 programs"
+        }
+      ]
+    },
+    {
+      "at": 10784,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 79 / 184 batches · parallel · 76 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 79 / 184 batches · parallel · 76 programs"
+        }
+      ]
+    },
+    {
+      "at": 10878,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 81 / 184 batches · parallel · 78 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 81 / 184 batches · parallel · 78 programs"
+        }
+      ]
+    },
+    {
+      "at": 10956,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 82 / 184 batches · parallel · 79 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 82 / 184 batches · parallel · 79 programs"
+        }
+      ]
+    },
+    {
+      "at": 11049,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 84 / 184 batches · parallel · 81 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 84 / 184 batches · parallel · 81 programs"
+        }
+      ]
+    },
+    {
+      "at": 11143,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 86 / 184 batches · parallel · 83 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 86 / 184 batches · parallel · 83 programs"
+        }
+      ]
+    },
+    {
+      "at": 11283,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 90 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 90 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11369,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 91 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 91 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11449,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 92 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 92 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11501,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 93 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 93 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11578,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 94 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 94 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11657,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 95 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 95 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11746,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 97 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 97 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11834,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 99 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 99 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11926,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 101 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 101 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 11993,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 102 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 102 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 12071,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 103 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 103 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 12159,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 105 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 105 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 12245,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 107 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 107 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 12374,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 109 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 109 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 12473,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 111 / 184 batches · parallel · 87 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 111 / 184 batches · parallel · 87 programs"
+        }
+      ]
+    },
+    {
+      "at": 12529,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 112 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 112 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 12584,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 113 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 113 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 12639,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 114 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 114 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 12699,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 115 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 115 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 12774,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 116 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 116 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 12849,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 117 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 117 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 12902,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 118 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 118 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 12955,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 119 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 119 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 13010,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 120 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 120 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 13067,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 121 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 121 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 13120,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 122 / 184 batches · parallel · 88 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 122 / 184 batches · parallel · 88 programs"
+        }
+      ]
+    },
+    {
+      "at": 13179,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 123 / 184 batches · parallel · 89 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 123 / 184 batches · parallel · 89 programs"
+        }
+      ]
+    },
+    {
+      "at": 13251,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 124 / 184 batches · parallel · 90 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 124 / 184 batches · parallel · 90 programs"
+        }
+      ]
+    },
+    {
+      "at": 13329,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 135 / 184 batches · parallel · 94 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 135 / 184 batches · parallel · 94 programs"
+        }
+      ]
+    },
+    {
+      "at": 13387,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 136 / 184 batches · parallel · 95 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 136 / 184 batches · parallel · 95 programs"
+        }
+      ]
+    },
+    {
+      "at": 13457,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 145 / 184 batches · parallel · 100 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 145 / 184 batches · parallel · 100 programs"
+        }
+      ]
+    },
+    {
+      "at": 13516,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 139 materials · 157 / 184 batches · parallel · 109 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "139 materials · 157 / 184 batches · parallel · 109 programs"
+        }
+      ]
+    },
+    {
+      "at": 13578,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 57 / 117 programs resolved · parallel · 120 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "57 / 117 programs resolved · parallel · 120 programs"
+        }
+      ]
+    },
+    {
+      "at": 13635,
+      "step": "shaders",
+      "detail": "step 18 / 24 · Shaders · 22 / 22 textures uploaded · 120 programs",
+      "footer": "Now working on: Shaders",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "shaders",
+          "detail": "22 / 22 textures uploaded · 120 programs"
+        }
+      ]
+    },
+    {
+      "at": 13644,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 · First frame · Pass 0 / 6 · world + shadows · 120 programs",
+      "footer": "Now working on: First frame",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "firstFrame",
+          "detail": "Pass 0 / 6 · world + shadows · 120 programs"
+        }
+      ]
+    },
+    {
+      "at": 13747,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 · First frame · Pass 3 / 6 · world, turned 270° · 120 programs",
+      "footer": "Now working on: First frame",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "firstFrame",
+          "detail": "Pass 3 / 6 · world, turned 270° · 120 programs"
+        }
+      ]
+    },
+    {
+      "at": 13806,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 0 / 91",
+      "footer": "Now working on: Audio · music + sound effects",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 0 / 91"
+        }
+      ]
+    },
+    {
+      "at": 13861,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 0 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.1 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 0 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14128,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 4 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 4 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14179,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 6 / 91",
+      "footer": "Now working on: Audio · music + sound effects",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 6 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14244,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 18 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 18 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14294,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 27 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 27 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14344,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 35 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 35 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14394,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 40 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 40 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14444,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 50 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 50 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14494,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 59 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 59 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14544,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 68 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 68 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14594,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 74 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 74 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14644,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 78 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 78 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14694,
+      "step": "audio",
+      "detail": "step 20 / 24 · Audio · music + sound effects · Prepared audio clips 88 / 91",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "audio",
+          "detail": "Prepared audio clips 88 / 91"
+        }
+      ]
+    },
+    {
+      "at": 14700,
+      "step": "gap",
+      "detail": "gap after Audio · music + sound effects",
+      "footer": "Now waiting for: Decode selected audio clip · 0.0 s · 0 files in flight",
+      "stalled": "false",
+      "networkBytes": "182016415",
+      "cachedBytes": "89599064",
+      "pendingBytes": "0",
+      "active": [
+        {
+          "key": "gap",
+          "detail": ""
+        }
+      ]
+    }
+  ]
+}

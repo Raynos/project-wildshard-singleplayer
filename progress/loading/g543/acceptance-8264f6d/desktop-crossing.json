@@ -1,0 +1,216 @@
+{
+  "surface": "desktop",
+  "pin": "8264f6dca2c86c2ec6ec8e2038735d750c5eed6b",
+  "device": "Desktop Chromium",
+  "cpu": 1,
+  "rawSHA256": "d3d1aa0ed30b856a6ef2defdc35358b7a0094cbac6c59f4d156b916757022745",
+  "transitions": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "wallMs": 37.10000002384186,
+      "stageMs": 37.10000002384186,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 4.100000023841858
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 12.399999976158142
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 0.699999988079071
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.10000002384185791
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 19.80000001192093
+        }
+      ]
+    },
+    {
+      "from": null,
+      "to": "driftwood-isle",
+      "wallMs": 2999.899999976158,
+      "stageMs": 2999.899999976158,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 2986.100000023842
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 13.699999988079071
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 0
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.09999996423721313
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 0
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "startedAt": 9575.699999988079,
+  "endedAt": 28678.600000023842,
+  "timings": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "requestedAt": 21592.80000001192,
+      "readyAt": 21596.900000035763,
+      "start": 21609.30000001192,
+      "checkpointEnd": 21610,
+      "commitEnd": 21610.100000023842,
+      "end": 21629.900000035763
+    },
+    {
+      "from": null,
+      "to": "driftwood-isle",
+      "requestedAt": 25292.30000001192,
+      "readyAt": 28278.400000035763,
+      "start": 28292.100000023842,
+      "checkpointEnd": 28292.100000023842,
+      "commitEnd": 28292.19999998808,
+      "end": 28292.19999998808
+    }
+  ],
+  "samples": [
+    {
+      "at": 9577.199999988079,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": "driftwood-isle",
+      "gameplayReady": true,
+      "feet": {
+        "x": -7.290893608846716e-7,
+        "y": 1.2011999954294879,
+        "z": -193.99999973285756
+      }
+    },
+    {
+      "at": 20961.100000023842,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": -2.391005666096957e-7,
+        "y": 0.44000518506638836,
+        "z": -250.11666662586666
+      }
+    },
+    {
+      "at": 21594.19999998808,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "preparing",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.006269363236570749,
+        "y": 0.44967915646142803,
+        "z": -260.0497740307635
+      }
+    },
+    {
+      "at": 21632.400000035763,
+      "crossing": {
+        "current": null,
+        "target": null,
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.006251251473587141,
+        "y": 0.44956507397625634,
+        "z": -260.38404283912837
+      }
+    },
+    {
+      "at": 25293.400000035763,
+      "crossing": {
+        "current": null,
+        "target": "driftwood-isle",
+        "phase": "preparing",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.007966845862831543,
+        "y": 0.4488088112442293,
+        "z": -255.9850288083269
+      }
+    },
+    {
+      "at": 28294.400000035763,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.015229397110381251,
+        "y": 0.44786492426965663,
+        "z": -255.69438448958113
+      }
+    },
+    {
+      "at": 28678.600000023842,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": "driftwood-isle",
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.013299855147927156,
+        "y": 0.4506018845801615,
+        "z": -249.90497395806028
+      }
+    }
+  ],
+  "networkBytes": 707364165,
+  "requests": 4540
+}
