@@ -27,7 +27,7 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | G0 | Phase A: delete src/engine/ai/view/DebugOverlay.ts | engine | BLOCKED: its only user is the frozen pine-hollow-legacy runtime (frozen files are never edited); deletes when the legacy copies retire (sp-x9 preflight) |
 | G1 | Pine C5 quests (748), split below; sp-x8 leads the shared page/native quest host | 748 baseline | G1a + G1b |
 | G1a | Shared entry and Pine composition convergence; owned files and acceptance below | subset of G1 | sp-x8 |
-| G1b | Pine contract-board rules/continuation onto Pine AS + admitted data; preserve the existing page/native board API and saves | subset of G1 | |
+| G1b | Pine contract-board rules/continuation onto Pine AS + admitted data; preserve the existing page/native board API and saves | subset of G1 | sp-x9 (after its Driftwood loot batch) |
 | G2 | Driftwood C5 quests (227), split below; same shared host as G1 | 227 baseline | G2a + G2b |
 | G2a | Entered NPC/catalogue and outer quest binding; four native specimen cards are ready, exact live rig/material parity required | subset of G2 | sp-x6 (G551 file boundary released) |
 | G2b | Driftwood page/native composition integration and remaining one-user presentation declarations on the shared entry | subset of G2 | sp-x8 |
