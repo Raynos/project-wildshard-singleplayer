@@ -5,9 +5,11 @@ import * as v from 'valibot';
 
 export const GRID_READY_LATCHES='progress/shard-platform/grid-ready-latches.json';
 const sha=v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u));
-export const GridReadyLatchesSchema=v.pipe(v.strictObject({schema:v.literal('grid-ready-latches/1'),entries:v.array(v.strictObject({
- shard:v.string(),criterion:v.picklist(['memory','oneFrameLooks']),source:sha,receiptCommit:sha,receipt:v.string(),latchedAt:v.string(),quiet:v.optional(v.boolean()),
-}))}),v.check(value=>new Set(value.entries.map(row=>`${row.shard}:${row.criterion}`)).size===value.entries.length,'Duplicate grid-ready latch'));
+const measurement=v.strictObject({when:v.string(),surface:v.string(),metrics:v.record(v.string(),v.pipe(v.number(),v.finite(),v.minValue(0)))});
+export const GridReadyLatchesSchema=v.pipe(v.strictObject({schema:v.literal('grid-ready-latches/1'),entries:v.array(v.pipe(v.strictObject({
+ shard:v.string(),criterion:v.picklist(['memory','oneFrameLooks']),source:sha,receiptCommit:v.optional(sha),receipt:v.optional(v.string()),latchedAt:v.string(),quiet:v.optional(v.boolean()),measurement:v.optional(measurement),
+}),v.check(row=>(row.receiptCommit===undefined)===(row.receipt===undefined),'Receipt commit and path must be paired'),
+ v.check(row=>row.measurement!==undefined||row.receipt!==undefined,'A latch requires inline measurements or a historical receipt')))}),v.check(value=>new Set(value.entries.map(row=>`${row.shard}:${row.criterion}`)).size===value.entries.length,'Duplicate grid-ready latch'));
 
 /** A measured pass is trusted until a person removes its entry for a real regression (G560).
  * Product changes, runtime changes, receipt checksums and later failing samples never expire a latch.
@@ -33,5 +35,5 @@ export function latchedGridEvidence(root,slug,revision=null) {
  }
  const latches=v.parse(GridReadyLatchesSchema,JSON.parse(text));
  return Object.fromEntries(latches.entries.filter(row=>row.shard===slug).map(row=>[row.criterion,{verdict:'pass',
-  evidence:`${GRID_READY_LATCHES}: latched G560 pass; source ${row.source}; receipt ${row.receiptCommit}:${row.receipt}${row.quiet===undefined?'':`; quiet ${row.quiet}`}; retained until manual regression removal`} ]));
+  evidence:`${GRID_READY_LATCHES}: latched G560 pass; source ${row.source}; ${row.measurement===undefined?'historical measurement':`inline measurement ${JSON.stringify(row.measurement)}`}${row.receipt===undefined?'':`; receipt ${row.receiptCommit}:${row.receipt}`}${row.quiet===undefined?'':`; quiet ${row.quiet}`}; retained until manual regression removal`} ]));
 }

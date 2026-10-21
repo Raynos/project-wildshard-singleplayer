@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {expect,it,vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small isolated Git fixture, no repository copy.
 import {execFileSync} from 'node:child_process';
@@ -7,7 +8,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate fixture Git configuration from the user's configuration.
 import process from 'node:process';
-import {GRID_READY_LATCHES,latchedGridEvidence} from '../scripts/grid-ready-latches.mjs';
+import {GRID_READY_LATCHES,GridReadyLatchesSchema,latchedGridEvidence} from '../scripts/grid-ready-latches.mjs';
 import {runtimeGridEvidence} from '../scripts/grid-runtime-evidence.mjs';
 
 it('reads pinned latches from Git when the fenced mirror omits progress',()=>{
@@ -44,4 +45,20 @@ it('reads pinned latches from Git when the fenced mirror omits progress',()=>{
   write([latch]);
   expect(latchedGridEvidence(root,'_template',before)).toEqual({});
  } finally {vi.unstubAllEnvs();rmSync(root,{recursive:true,force:true});}
+});
+
+it('carries inline measurement numbers without a receipt folder',()=>{
+ const root=mkdtempSync(resolve('tmp','grid-inline-latch-'));
+ const row={shard:'_template',criterion:'oneFrameLooks',source:'a'.repeat(40),latchedAt:'2026-10-21T16:00:00Z',quiet:true,
+  measurement:{when:'2026-10-21T15:00:00Z',surface:'chromium',metrics:{entryMaxMs:166.7,lookMaxMs:50,leaveMaxMs:116.7}}};
+ try {
+  const path=resolve(root,GRID_READY_LATCHES);mkdirSync(dirname(path),{recursive:true});
+  writeFileSync(path,JSON.stringify({schema:'grid-ready-latches/1',entries:[row]}));
+  expect(latchedGridEvidence(root,'_template').oneFrameLooks?.verdict).toBe('pass');
+  expect(latchedGridEvidence(root,'_template').oneFrameLooks?.evidence).toContain('166.7');
+  const parse=(entry:unknown)=>v.parse(GridReadyLatchesSchema,{schema:'grid-ready-latches/1',entries:[entry]});
+  expect(()=>parse({...row,measurement:undefined})).toThrow('requires inline');
+  expect(()=>parse({...row,receipt:'missing-commit'})).toThrow('paired');
+  expect(()=>parse({...row,measurement:{...row.measurement,metrics:{bad:Infinity}}})).toThrow();
+ } finally {rmSync(root,{recursive:true,force:true});}
 });
