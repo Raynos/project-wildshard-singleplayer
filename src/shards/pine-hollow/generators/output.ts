@@ -13,7 +13,7 @@ import logKit from '../data/logKit.json' with { type: 'json' };
 import { PLACE_SETS } from './placeSets';
 import { parseCoverAppearance } from '@wildshard/format/coverAppearance';
 import coverAppearance from '../data/coverAppearance.json' with { type: 'json' };
-import { parseQuestServiceActions } from '@wildshard/format/questSteps';
+import { parseQuestServiceActions, QuestServiceActionsSchema } from '@wildshard/format/questSteps';
 import keyedSky from '../data/keyedSky.generated.json' with { type: 'json' };
 import skyKeyBlobs from '../data/skyKeyBlobs.generated.json' with { type: 'json' };
 import elites from '../behaviour/elites.generated.json' with {type:'json'};
@@ -62,7 +62,8 @@ import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sectionSchemas.generated';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
+import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { parseAchievementCounterData, AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { PINE_FEAT_COUNTERS } from './questInventory';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
@@ -113,9 +114,9 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
   nameBlob('world/weather.json','json',new TextEncoder().encode(encodeCanonicalJson(parseWeatherProgram(weatherProgram)))),
-  nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(PINE_QUEST_SERVICES)))),
+  nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(PINE_QUEST_SERVICES))), { jsonSchema: namedJsonSchema(QuestServiceActionsSchema) }),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY))),
-  nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),
+  nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows))), { jsonSchema: namedJsonSchema(AchievementCounterDataSchema) }),
   nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson(contractCatalogue()))),
   nameBlob('quests/mill-door.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_MILL_DOOR)))),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(floorRows), (_key: string, value: unknown) => typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES)))]);

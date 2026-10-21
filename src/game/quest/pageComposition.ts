@@ -20,7 +20,7 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { prepareQuestEntry, type QuestChapter } from './chapter';
 import type { QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
-import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
+import type { AdventureContent } from '@wildshard/format/questStory';
 import { installChapterWakeEncounter } from './chapterDirector';
 import { installCompletion, type Completion as Complete } from '../complete/declared';
 import { installPageReturns } from '../population/pageReturns';
@@ -47,7 +47,7 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   const scope = ctx.scope, d = questPageWorld(scope, rows.world);
   const update = (run: (dt: number, time: number) => void, id: string): void => { ctx.system({ id, phase: 'update', before: rows.systems.before, run }); };
   const ironDrop = HeldClaims.current(ctx.manifest.slug).claim(rows.held);
-  const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.discovery))));
+  const content = await ctx.product.json<AdventureContent>(rows.files.discovery);
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services,
     placement: { world: rows.world, frames: rows.frames, platforms: true } });

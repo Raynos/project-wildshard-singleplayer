@@ -1,4 +1,4 @@
-import { parseQuestServiceActions } from '@wildshard/format/questSteps';
+import type { parseQuestServiceActions } from '@wildshard/format/questSteps';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { ShardContext } from '../plugin/context';
@@ -52,7 +52,7 @@ export function commitQuestEffects(context: Pick<ShardContext, 'scope' | 'game'>
 /** Client-only named actions borrow existing services; parsing creates no state, listener or save owner. */
 export async function readQuestServiceActions(ctx: Pick<ShardContext, 'scope' | 'game' | 'product'>, quest: string, file: string): Promise<{ readonly run: (id: string) => void }> {
   if (!ctx.product.shardfile.quests.quests.some(row => row.id === quest)) throw new Error('Quest service actions require a declared quest');
-  const rows = parseQuestServiceActions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(file))));
+  const rows = await ctx.product.json<ReturnType<typeof parseQuestServiceActions>>(file);
   if (ctx.scope.disposed) throw new Error('Quest left while admitting service actions');
   const actions = new Map(rows.actions.map(row => [row.id, row.effects]));
   return { run: id => {

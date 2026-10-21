@@ -2,7 +2,7 @@ import { findBoundQuestState, publishQuestFacts } from './boundState';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
 import { parseChapterStoryPresentation, type ChapterStoryPresentation, type QuestStory } from '@wildshard/format/questStory';
-import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
+import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { DialogueBox, RewardCaption } from '@wildshard/engine/quest/view/ui';
@@ -131,7 +131,7 @@ type JournalProgress = Partial<Pick<Progress, 'bindLedger' | 'refreshLedger'>> &
 /** The existing journal and ledger keep their saves; rows select the original migration and refresh boundaries. */
 export async function bindStoryAchievements(ctx: StoryContext, story: QuestStory, progress: JournalProgress | undefined,
   instance = ctx.product.shardfile.identity.slug): Promise<{ facts: RuntimeFacts; count: (id: string, total: number) => void; kill: (kind: string, variant?: string) => void; event: (name: string, total?: number) => void; syncFlags: (flags: Parameters<ReturnType<typeof createAchievementCounters>['syncFlags']>[0]) => void }> {
-  const rows = parseAchievementCounterData(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/achievements.json'))));
+  const rows = await ctx.product.json<AchievementCounterData>('quests/achievements.json');
   if (ctx.scope.disposed) throw new Error('Quest achievement owner left during admission');
   const source = ctx.product.shardfile, policy = story.journal, emit = bindRuntimeLedger(ctx, source, instance);
   const facts: RuntimeFacts = Object.assign((name: string, entity: string) => {
