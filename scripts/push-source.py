@@ -76,7 +76,7 @@ def outputs(repo, tree, records, deadline, assets=()):
 
 
 @contextlib.contextmanager
-def committed_source(repo, revision, tooling_revision, deadline):
+def committed_source(repo, revision, tooling_revision, deadline, source_only=False):
     folder = repo / 'tmp'
     folder.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='push-source-', dir=folder) as temporary:
@@ -101,6 +101,18 @@ def committed_source(repo, revision, tooling_revision, deadline):
             target.write_bytes(data)
             if header[0] == b'100755':
                 target.chmod(0o755)
+        if source_only:
+            # CI ownership needs static imports, never generated type inputs,
+            # public assets or a cached product from a different revision.
+            tools = tree / '.push-tools'
+            tools.mkdir()
+            for name in ('push-inputs.mjs', 'link-node-modules.mjs'):
+                data = command(repo, ['git', 'show', tooling_revision + ':scripts/' + name], deadline,
+                               capture_output=True).stdout
+                (tools / name).write_bytes(data)
+            command(tree, ['node', str(tools / 'link-node-modules.mjs'), str(repo), str(tree)], deadline)
+            yield tree, tools
+            return
         # Discovery validates the images its committed manifests name. Fetch
         # only those tracked blobs, never the public asset tree or loose WIP.
         assets = set()

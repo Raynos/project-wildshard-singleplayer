@@ -9,6 +9,21 @@ import time
 PUSH = runpy.run_path(str(Path(__file__).with_name('push-loop.py')))
 
 
+def committed_inputs(root, revision, files, deadline):
+    if not files:
+        return files
+    try:
+        tooling = PUSH['git'](root, 'rev-parse', 'main')
+        with PUSH['SOURCE']['committed_source'](root, revision, tooling, deadline, source_only=True) as (tree, tools):
+            rc, output = PUSH['LIVE']['run'](['node', str(tools / 'push-inputs.mjs'), *files], tree, deadline)
+            if rc == 0:
+                return sorted(set(files).union(json.loads(output)))
+    except (OSError, ValueError, TimeoutError, subprocess.SubprocessError):
+        pass
+    # Failure to expand is not evidence against an unrelated source owner.
+    return files
+
+
 def watch(root, command=subprocess.check_output, notify=PUSH['ping']):
     runs = json.loads(command(['gh', 'run', 'list', '--workflow', 'deploy', '--limit', '10',
                               '--json', 'headSha,conclusion,databaseId'], cwd=root, text=True, timeout=30))
@@ -26,7 +41,9 @@ def watch(root, command=subprocess.check_output, notify=PUSH['ping']):
         if green:
             failure = command(['gh', 'run', 'view', str(row['databaseId']), '--log-failed'], cwd=root, text=True, timeout=30)
             files = PUSH['LIVE']['failure_paths'](failure)
-            bad = PUSH['offender'](root, green, row['headSha'], files, time.monotonic() + 10)
+            deadline = time.monotonic() + 20
+            inputs = committed_inputs(root, row['headSha'], files, deadline)
+            bad = PUSH['offender'](root, green, row['headSha'], inputs, deadline)
         # A failed tip without file attribution belongs with its own owner;
         # the first unrelated landing after an old green must not be blamed.
         commits = [bad or row['headSha']]

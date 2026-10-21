@@ -209,6 +209,37 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(notices[0][1], [bad])
         self.assertIn(bad, notices[0][2])
 
+    def test_ci_unchanged_test_uses_committed_dependency_owner(self):
+        self.put('scripts/push-inputs.mjs', (ROOT / 'scripts/push-inputs.mjs').read_text())
+        self.put('scripts/link-node-modules.mjs', '// fixture resolves dependencies from the containing repo\n')
+        self.put('src/bad.ts', 'export const value = 1;\n')
+        self.put('test/unit.test.ts', "import { value } from '../src/bad';\nexport { value };\n")
+        self.git('add', '--', 'scripts', 'src/bad.ts', 'test')
+        self.git('commit', '-qm', 'fixture source graph')
+        green = self.git('rev-parse', 'HEAD')
+        self.commit('src/unrelated.ts')
+        self.put('src/bad.ts', 'export const value = 2;\n')
+        self.git('add', '--', 'src/bad.ts')
+        self.git('commit', '-qm', 'broken dependency')
+        bad = self.git('rev-parse', 'HEAD')
+        tip = self.commit('src/later.ts')
+        # A foreign edit must not alter attribution of the failed revision.
+        self.put('test/unit.test.ts', "import '../src/unrelated';\n")
+        index = (self.root / '.git/index').read_bytes()
+        notices = []
+        def command(args, **_):
+            if 'list' in args:
+                return json.dumps([{'headSha': tip, 'conclusion': 'failure', 'databaseId': 10},
+                                   {'headSha': green, 'conclusion': 'success', 'databaseId': 9}])
+            if '--log-failed' in args:
+                return 'FAIL test/unit.test.ts > dependency changed'
+            return '{"jobs":[{"name":"behaviour 7","conclusion":"failure"}]}'
+        WATCH['watch'](self.root, command=command, notify=lambda *args: notices.append(args) or True)
+        self.assertEqual(notices[0][1], [bad])
+        self.assertIn(bad, notices[0][2])
+        self.assertEqual((self.root / 'test/unit.test.ts').read_text(), "import '../src/unrelated';\n")
+        self.assertEqual((self.root / '.git/index').read_bytes(), index)
+
     def test_source_type_cache_binds_contents_and_inventory(self):
         records = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/data.json']
         key = CACHE['source_key'](records, ['src'])
