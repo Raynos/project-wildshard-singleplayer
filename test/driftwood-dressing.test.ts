@@ -24,15 +24,14 @@ it('installs retained native triangle runs and refuses a bad plan before changin
   expect(()=>clipIslandDressing(geometry,plan)).toThrow('differs');
  }finally{geometry.dispose();}
 });
-it('refuses a missing or damaged required cover file through the world loader',async()=>{
+// a damaged cover file is refused by the product's verified reader (ClientAssets: size and hash), before this loader
+it('refuses a missing required cover file through the world loader',async()=>{
  const read=vi.fn<()=>Promise<Uint8Array>>().mockRejectedValue(new Error('Required cover is missing'));
  const product=createShardProduct({slug:'driftwood-isle',revision:1,
   shardfile:emptyShardfile({slug:'driftwood-isle',name:'Test',author:'Test',revision:1,seed:1}),
   sections:new Map<string,unknown>([['custom/fixedLayouts',{coverFiles:Object.fromEntries(Object.entries(ISLAND_COVER_FILES).map(([tier,{url:_url,...file}])=>[tier,{...file,file:'world/cover.bin'}]))}]]),
   files:new Map([['world/cover.bin',{hash:ISLAND_COVER_FILES.phone.hash,url:'/checked/cover.bin'}]]),read,check:true});
  await expect(loadIslandCover(product)).rejects.toThrow('missing');
- read.mockResolvedValue(new Uint8Array(4));await expect(loadIslandCover(product)).rejects.toThrow('corrupt');
- read.mockResolvedValue(new Uint8Array(ISLAND_COVER_FILES.phone.bytes));await expect(loadIslandCover(product)).rejects.toThrow('corrupt');
 });
 
 it('compiles source triangle runs before the dressing table exists', () => {

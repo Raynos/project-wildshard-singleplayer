@@ -9,13 +9,11 @@ import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
  *  (data/lookGraphs.json, the cover mix): part 0 the faceted ground, then the island's terrain tiles in load order. */
 export interface IslandCover { readonly ground: THREE.DataTexture; readonly groundRect: readonly number[]; wear: (geometry: THREE.BufferGeometry, part: number) => void }
 
-/** Required declared boot file; immutable URL caching and hash admission precede borrowing its storage. */
+/** Required declared boot file, read through the product (immutable URL caching and hash admission). */
 export async function loadIslandCover(product?: ShardProduct): Promise<IslandCover> {
   const admitted = product ?? await loadDriftwoodProduct();
+  // the product's verified reader has checked the named file's size and hash
   const file = admitted.section<CustomSections['custom/fixedLayouts']>('custom/fixedLayouts').coverFiles[TIER], bytes = Uint8Array.from(await admitted.file(file.file)).buffer;
-  if (bytes.byteLength !== file.bytes) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), hash = Array.from(digest, v => v.toString(16).padStart(2, '0')).join('');
-  if (hash !== file.hash) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
   const { width, height } = file.texture, ground = new THREE.DataTexture(new Uint16Array(bytes, 0, width * height * 4), width, height, THREE.RGBAFormat, THREE.HalfFloatType);
   ground.magFilter = THREE.LinearFilter; ground.minFilter = THREE.LinearFilter; ground.colorSpace = THREE.NoColorSpace; ground.needsUpdate = true;
   return { ground, groundRect: file.groundRect, wear: (geometry, part) => {
