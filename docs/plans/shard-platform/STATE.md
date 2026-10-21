@@ -8,7 +8,7 @@
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
-**G564 phase B lanes (top priority):** sp-x8 shared chapter/pageComposition + DW G2b; sp-o3 G1c Pine forestStory rules; sp-x9 G1d Pine native story; sp-o5 G1e lead/spawn; sp-o4 G2e DW install/people/trader. Zero paperwork sent to all lanes.
+**G565 lanes (quest-host-mini-plan.md):** QA sp-o3; QB sp-x9; QC sp-o5; QD sp-x1 (next boundary); QE sp-o4 (after entry decks); QX sp-x8 integrator. Zero paperwork sent to all lanes.
 
 **For wildshard-v:** pick needed: G517 exception for AS body ops (spawn declared body, teleport, collider enable) so DW's barrel/gate quest props (~106) move to DW AS? Recommended: no for now (one user, ABI growth); without it DW C5 floors near ~160 (props 106, bridge 22, people/trader 31 charged), not 30.  G550 hero: art/grid/round-35-hero-retake/sq-ne-b-o24-{iphone,desktop,board}.jpg (5a410d548f); outer band now draws its ground (O24 haze fix 734f24a81a); holograms/beams still fade past 850 m by design, so G550's 'holograms in the distance' needs a pick: keep the fade (recommended, draw cost) or extend it.
 

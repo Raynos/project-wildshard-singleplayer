@@ -14,6 +14,10 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | R3 | G555: delete every low-detail loading overlay and its code, incl. the grid cell-entry hex card ('SKY REACH · step 3 / 4 · colliders · 75 %'); every load incl. cell entry and re-entry shows the full step-by-step screen; no Debug row | G555 | done 2628c3a7c5 + 90b7a542de (sp-o5): hex card deleted, cell entry opens the full Loading screen on a 'cell' path; platform -398 |
 | R4 | G556: the 1.2 / 1.8 GB limits are per shard; grid/budgetOverlay.ts and memoryWarning.ts score each shard against its own limit and show the page total as information only (no red, no % of 1.2 GB); the ruler's M2 memory criterion is per shard; keep per-shard findings visible (Sky Reach 200% of its budget, Nine +377.9 MB estimate) | G556 | done 59d09655c3 (sp-o5; platform +29); allocator admission per shard follows (sp-o5) |
 
+## G565 quest host (top priority; rows in quest-host-mini-plan.md)
+
+QA sp-o3 · QB sp-x9 · QC sp-o5 · QD sp-x1 · QE sp-o4 · QX sp-x8 (integrator). G1c-G2e below are superseded by these rows.
+
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
 
 Jake 2026-10-21: every lane that finishes its current task takes a row here before any other row, except the
