@@ -23,8 +23,8 @@ The look (`data/look.ts`) is the ink / cel valley admitted by `test/shardfile-g1
   edges inked over the tone-mapped colour, faded with distance. It reads colour, depth and the normal pre-pass; the
   stack's static cost includes the pre-pass (budget v1: 1,000 per pixel at 2×, summed with the heaviest neighbour).
 
-All three draw only while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on; with the row off the ground draws its toon
-family and the rock its plain fallback, and the post stack is not built.
+All three are this shard's default look (`look.graphs: 'required'`, SF88e): they draw whatever Settings ▸ Debug ▸
+Look ▸ "Graph materials" says, standalone and in the grid (its regional world and its baked tiles).
 
 The template binds terrain and props to one `pbr` material, so this shard keeps its own copy of the generators:
 `generators/terrain.ts` bakes the valley field bound to `ground` (`inkField`, shared with the props bake),

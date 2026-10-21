@@ -114,7 +114,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture | Material) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
-  const graphsOn = options.graphs ?? setting('graphMaterials') === 'on';
+  // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
+  const graphsOn = shard.look.graphs === 'required' || (options.graphs ?? setting('graphMaterials') === 'on');
   if (offersMeasurePlain(shard)) installMeasurePlainRow(scope);
   const sampledMaterials = graphsOn ? shard.look.materials : Object.fromEntries(Object.entries(shard.look.materials).filter(([, entry]) => entry.family !== 'graph' || 'preset' in entry));
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();

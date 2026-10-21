@@ -13,8 +13,8 @@ The look (`data/look.ts`) is the pastel alien plain admitted by `test/shardfile-
   gradient, a half-Lambert pastel ramp with a cool shadow tint, a mint rim, a sky / ground ambient and a lift grade).
 - **`look.post`**: one authored pass, the lilac wash with a soft vignette.
 
-All three draw only while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on; with the row off the ground draws its
-painterly family and the rock its plain fallback, and the post stack is not built.
+All three are this shard's default look (`look.graphs: 'required'`, SF88e): they draw whatever Settings ▸ Debug ▸
+Look ▸ "Graph materials" says, standalone and in the grid (its regional world and its baked tiles).
 
 The template binds terrain and props to one `pbr` material, so this shard keeps its own copy of the generators:
 `generators/terrain.ts` bakes the terrain bound to `ground`, `generators/props.ts` (the template's props bake source)
