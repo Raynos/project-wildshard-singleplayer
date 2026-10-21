@@ -10101,13 +10101,16 @@ descriptions and rewards from admitted rows,
 preserving the original serial and bounded progress of older saves.
 
 `game/quest/contractBoard` adds a renderer-free modal owner. Its constructor
-accepts only catalogue rows, prompt coordinates and a radius. `use` opens inside
+accepts catalogue rows, prompt coordinates, a radius and optional legacy page
+save text. `current` lends the live panel/Developer state, and `killed` returns
+the affected slots. `claim` and `tear` serve an already-open page panel; `use` opens inside
 the prompt radius, closes, claims or tears a slot through `CONTRACT_ACTION`.
 Successful claims return `{ reward, streak }`; the caller's inventory and
 cosmetic owners apply those ids. It accepts no callback, subclass or reflected
 owner path. `snapshot` and `prepareRestore` retain the version-1 modal/board
 wire; restore validates the complete continuation before mutating live state
-and never reapplies rewards. Page panels use the same pure board operations.
+and never reapplies rewards. Page and native entry share this board owner;
+page storage still writes the original unwrapped `saveBoard` text.
 
 The host uses G473's approved-platform exception. A made-up second shard in
 `test/contracts-platform.test.ts` drives two slots, unrelated kinds and tags,

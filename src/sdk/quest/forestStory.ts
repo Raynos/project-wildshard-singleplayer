@@ -21,7 +21,8 @@ import type { ForestStoryRows, ForestStoryContent, ForestStory } from './forestS
 import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
-import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
+import { saveBoard, contractKill, isFilled } from '@wildshard/game/quest/contracts';
+import { ContractBoard } from '@wildshard/game/quest/contractBoard';
 import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
 import { isItemId } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
@@ -112,7 +113,10 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const store = { getItem: (_key: string): string => String(lodge.read()), setItem: (_key: string, raw: string): void => {
     v.parse(jsonSchema, JSON.parse(raw) as unknown); lodge.write(raw);
   } };
-  const board: Board = loadBoard(contracts, store.getItem(contracts.store));
+  const bs = rows.board.at;
+  const boardOwner = new ContractBoard({ contracts, saved: store.getItem(contracts.store),
+    prompt: { x: bs.x, y: heightAt(bs.x, bs.z) + 1.3, z: bs.z }, radius: 2.8 });
+  const board = boardOwner.current;
   const persistBoard = (): void => { try { store.setItem(contracts.store, saveBoard(board)); } catch { /* storage unavailable */ } };
   const traderVoice = new THREE.Vector3();
   const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
@@ -123,7 +127,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     const onClaim = (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
       const i = value;
-      const contract = board.slots[i], r = claim(contracts, board, i);
+      const contract = board.slots[i], claimed = boardOwner.claim(i), r = claimed?.reward;
       if (!r || contract === undefined) return;
       transactions.run(`contract.${contract.kind}.${contract.target}`);
       if (r.skin) transactions.run('contract.finish');
@@ -134,11 +138,10 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     };
     const onReroll = (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
-      reroll(contracts, board, value); persistBoard(); kitSfx.interact('door');
+      boardOwner.tear(value); persistBoard(); kitSfx.interact('door');
     };
     return new DataPanel(boardPanel, { scope, values: () => board, actions: new Map([['claim', onClaim], ['tear', onReroll]]) });
   });
-  const bs = rows.board.at;
   const boardPrompt: Interactable = {
     position: new THREE.Vector3(bs.x, heightAt(bs.x, bs.z) + 1.3, bs.z),
     get radius() { return boardUi().isOpen ? 0 : 2.8; },
@@ -160,7 +163,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   ctx.on('actor.died', ({ actor }) => {
     const animal = animals.animals.find(value => value.combatActor() === actor);
     if (animal === undefined) return;
-    const moved = recordKill(contracts, board, contractKill(contracts, animal));
+    const moved = boardOwner.killed(contractKill(contracts, animal));
     if (moved.length === 0) return;
     persistBoard();
     for (const i of moved) {

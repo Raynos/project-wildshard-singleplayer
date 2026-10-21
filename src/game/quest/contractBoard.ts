@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { ContractCatalogue, ContractReward } from '@wildshard/format/contracts';
-import { claim, contractFor, newBoard, recordKill, reroll, type Board, type KillInfo } from './contracts';
+import { claim, contractFor, loadBoard, recordKill, reroll, type Board, type KillInfo } from './contracts';
 
 const integer = v.pipe(v.number(), v.finite(), v.safeInteger(), v.minValue(0));
 const BoardState = v.strictObject({ next: integer,
@@ -15,6 +15,8 @@ export const CONTRACT_ACTION = { open: 0, close: 1, claim0: 10, tear0: 20 } as c
 /** Data-only modal board. A successful claim returns rewards for the existing inventory owner. */
 export interface ContractBoardRows {
   readonly contracts: ContractCatalogue; readonly prompt: Point; readonly radius: number;
+  /** Existing page save text; native continuation still uses prepareRestore. */
+  readonly saved?: string | null;
 }
 export interface ContractClaim { readonly reward: ContractReward; readonly streak: number }
 
@@ -40,13 +42,29 @@ export class ContractBoard {
   private opened = false;
   private readonly ports: ContractBoardRows;
   constructor(ports: ContractBoardRows) {
-    this.ports = ports; this.board = newBoard(ports.contracts);
+    this.ports = ports; this.board = loadBoard(ports.contracts, ports.saved ?? null);
     if (![ports.prompt.x, ports.prompt.y, ports.prompt.z, ports.radius].every(Number.isFinite) || ports.radius <= 0) {
       throw new RangeError('Invalid contract board prompt');
     }
   }
   get active(): boolean { return this.opened; }
-  killed(kill: KillInfo): void { recordKill(this.ports.contracts, this.board, kill); }
+  /** The page borrows this live value for its existing panel and Developer view. */
+  get current(): Board { return this.board; }
+  killed(kill: KillInfo): number[] { return recordKill(this.ports.contracts, this.board, kill); }
+  /** Page panels own their modal; native use() applies the same slot operation. */
+  claim(slot: number): ContractClaim | null {
+    if (!this.validSlot(slot)) return null;
+    const reward = claim(this.ports.contracts, this.board, slot);
+    return reward === null ? null : { reward, streak: this.board.streak };
+  }
+  tear(slot: number): void {
+    if (this.validSlot(slot)) reroll(this.ports.contracts, this.board, slot);
+  }
+  private validSlot(slot: number): boolean {
+    if (!Number.isInteger(slot) || this.board.slots[slot] === undefined) return false;
+    if (this.board.next === Number.MAX_SAFE_INTEGER) throw new RangeError('contract board draw capacity exhausted');
+    return true;
+  }
   use(value: number, eye: Point): ContractClaim | null {
     if (value === CONTRACT_ACTION.close) { this.opened = false; return null; }
     if (value === CONTRACT_ACTION.open) {
@@ -58,10 +76,8 @@ export class ContractBoard {
     const claiming = value >= CONTRACT_ACTION.claim0 && value <= CONTRACT_ACTION.claim0 + this.ports.contracts.slots - 1;
     const tearing = value >= CONTRACT_ACTION.tear0 && value <= CONTRACT_ACTION.tear0 + this.ports.contracts.slots - 1;
     if (!claiming && !tearing) return null;
-    if (this.board.next === Number.MAX_SAFE_INTEGER) throw new RangeError('contract board draw capacity exhausted');
-    if (tearing) { reroll(this.ports.contracts, this.board, value - CONTRACT_ACTION.tear0); return null; }
-    const reward = claim(this.ports.contracts, this.board, value - CONTRACT_ACTION.claim0);
-    return reward === null ? null : { reward, streak: this.board.streak };
+    if (tearing) { this.tear(value - CONTRACT_ACTION.tear0); return null; }
+    return this.claim(value - CONTRACT_ACTION.claim0);
   }
   snapshot(): { version: 1; open: boolean; board: v.InferOutput<typeof BoardState> } {
     const b = this.board;

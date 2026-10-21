@@ -45,7 +45,9 @@ test('compiled targets retain native thralls and the older labelled coat', () =>
 
 test('the old board save restores silently on page and native, then claims the same offer and payout', () => {
   const contracts = catalogue();
+  const page = new ContractBoard({ contracts, saved: oldPageSave, prompt: { x: 0, y: 1.68, z: 0 }, radius: 3 });
   const board = loadBoard(contracts, oldPageSave);
+  expect(page.current).toEqual(board);
   const rewritten = saveBoard(board);
   expect(rewritten).toBe(oldPageSave);
   const events: string[] = [];
@@ -60,10 +62,14 @@ test('the old board save restores silently on page and native, then claims the s
   const kill = { kind: slot.kind === 'species' ? slot.target : slot.kind === 'elite' ? elite?.kind ?? '' : 'deer',
     variant: elite?.variant, rarity: slot.kind === 'rarity' ? slot.target : 'common',
     elite: slot.kind === 'elite' ? slot.target : null, tags: slot.kind === 'thrall' ? ['thrall'] : [] };
-  for (let i = 0; i < slot.need; i++) { recordKill(contracts, board, kill); native.killed(kill); }
+  for (let i = 0; i < slot.need; i++) { recordKill(contracts, board, kill); page.killed(kill); native.killed(kill); }
   const reward = claim(contracts, board, 0);
   if (reward === null) throw new Error('The restored board must accept the completed offer');
+  expect(page.claim(0)).toEqual({ reward, streak: board.streak });
   expect(native.use(CONTRACT_ACTION.claim0, { x: 0, y: 1.68, z: 0 })).toEqual({ reward, streak: board.streak });
   const expected = saveBoard(board);
+  expect(saveBoard(page.current)).toBe(expected);
   expect(native.snapshot().board).toEqual(JSON.parse(expected));
+  page.tear(1); native.use(CONTRACT_ACTION.tear0 + 1, { x: 0, y: 1.68, z: 0 });
+  expect(native.snapshot().board).toEqual(JSON.parse(saveBoard(page.current)));
 });

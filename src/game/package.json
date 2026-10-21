@@ -74,6 +74,7 @@
     "./shard/declaredEntry": "./shard/declaredEntry.ts",
     "./population/spawnScript": "./population/spawnScript.ts",
     "./quest/contracts": "./quest/contracts.ts",
+    "./quest/contractBoard": "./quest/contractBoard.ts",
     "./boss/native": "./boss/native.ts",
     "./boss/lane": "./boss/lane.ts",
     "./boss/wake": "./boss/wake.ts",
