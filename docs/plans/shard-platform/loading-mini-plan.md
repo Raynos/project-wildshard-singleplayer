@@ -440,3 +440,14 @@ bootstrap/core without validators. The game's trace matches that miss.
 The real wire denominator and failed byte verdict remain unchanged.
 No production workaround or cap change is introduced. O5/O6 continue:
 cold CPU-4x phone grid is 28.7 s, still above the roughly 20 s target.
+
+The current cold shader CPU profile is retained in
+[`shader-profile-de6833b`](../../../progress/loading/g543/shader-profile-de6833b/README.md)
+(`4d80949abd`): node-material building takes 7.657 / 3.988 s inclusive
+in SHARD SELECT/grid; nested costs are not summed. Maintained Chromium
+eviction probe `f164da3f97` passes baseline and 192 MiB pressure runs.
+Harness `e8dbe98b5c` reads existing bounded node-build diagnostics after
+the recorded first frame without extending any measurement window.
+The next O5/O6 proof is pinned to `97cb8c6723`, carrying panel row reuse
+`52860bd662` and sp-o2's `d2c53597a4` / `bd71395512`. sp-o2 owns its one
+combined Nine/Pine/Driftwood source batch; this lane reuses that verdict.

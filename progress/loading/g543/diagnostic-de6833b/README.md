@@ -39,6 +39,19 @@ still reach the controlled client. The two retained fixture receipts record
 those requests. This reproduces the cache-pressure miss independently of
 the game, compression and page lifetime; the game trace matches it.
 
+The maintained [Chromium fixture](../../../../scripts/loading-benchmark/worker-core-chromium.mjs)
+is `f164da3f97`. Run it through browser-lane with Node's existing loader:
+
+```sh
+scripts/browser-lane.sh --max 5 node --experimental-transform-types \
+  --import ./scripts/sim-node-loader.mjs \
+  scripts/loading-benchmark/worker-core-chromium.mjs --pressure=192 \
+  --out=tmp/loading-lane/worker-core-chromium/reproduction.json
+```
+
+Use `--pressure=0` for the no-pressure comparison. The diagnostic transfers
+the requested MiB sequentially; it does not change browser cache limits.
+
 The coordinator accepted O2/O4 on 2026-10-21 with this Chromium-only
 cache-pressure residual recorded explicitly. Safari warm acceptance is
 green. No production workaround, cache-cap increase, guessed byte credit,
