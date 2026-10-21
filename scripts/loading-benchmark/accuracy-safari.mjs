@@ -92,12 +92,13 @@ try {
       const events = [], errors = [];
       let collected, networkBytes = null, report;
       try {
-        const initialURL = new URL('/version.json', base).href;
+        const initialURL = new URL('/', base).href;
         execFileSync('xcrun', ['simctl', 'openurl', udid, initialURL]);
         await connect(initialURL);
         const previousOrigin = await inspector.evaluate('performance.timeOrigin');
         // A controlled navigation would cache a fixture document as the app shell.
-        // Set the same save fixtures on this inspected origin, then load the real title.
+        // Inspect the real title too: navigating to JSON would replace the cached shell.
+        // Set the same save fixtures on this origin, then reload the real title.
         await inspector.evaluate(setup(path));
         await sleep(500); await connect();
         await wait(`performance.timeOrigin !== ${previousOrigin} && window.__loadingAccuracy !== undefined && document.querySelector('.ws-main-select') !== null`, 60000);
