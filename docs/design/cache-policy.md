@@ -7,7 +7,7 @@ schema rejects unknown keys (no `$comment`), so the rationale lives here. **Keep
 
 Vercel applies every matching rule and the **last match wins per header key**, so `vercel.json`
 reads top to bottom: the catch-all, then the long-lived classes, then the content types, then the
-files that must never be cached.
+files that must always check freshness.
 
 | rule | value | why |
 |---|---|---|
@@ -19,7 +19,7 @@ files that must never be cached.
 | `/basis/(.*)` | `public, max-age=2592000` | Reserved for the KTX2/Basis transcoder (P1). Unhashed, versioned with the static cache like the art. |
 | `/(.*).hdr` → `image/vnd.radiance`, `/(.*).glb` → `model/gltf-binary`, `/(.*).gltf` → `model/gltf+json`, `/(.*).ktx2` → `image/ktx2`, `/(.*).webmanifest` → `application/manifest+json` | `Content-Type` | Vercel's default MIME table serves `.hdr` / `.ktx2` as `application/octet-stream`; the loaders do not care, but Safari's PWA install and the SW's `content-length` byte accounting are happier with real types, and `.webmanifest` must be `application/manifest+json` for the iOS home-screen install. |
 | `/`, `/index.html` | `no-store` | The service worker owns the document (cache-first with a background revalidate). A cached `index.html` in the HTTP cache would pin an old build id and an old entry chunk beneath the worker. |
-| `/sw.js` | `no-store` | `sw.js` is how a new build is discovered: the browser byte-compares it on `reg.update()`. A cached copy is an update the player can never take. |
+| `/sw.js` | `no-cache` | Every update revalidates its ETag. An unchanged script returns 304 with no body; a changed script returns its full current bytes for the browser to compare. This retains immediate update discovery without re-downloading the unchanged worker on warm visits. |
 | `/version.json` | `no-store` | The title-screen build pill (`src/engine/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
 | `/asset-index.json` | `no-store` | The byte table the loading screen sums; regenerated every build. Network-first in the SW with the last copy as the offline fallback. |
 | `/asset-manifest.json` | `no-store` | E160 / E161: every file under `public/assets` (packs included) → its content hash (sha256, first 8 hex). What the build names: the worker reads it on `activate` to keep exactly those entries and drop the rest. Fetched by the worker only, never by the page. |
@@ -87,13 +87,18 @@ Chromium the HTTP cache answered nothing even without Clear-Site-Data (the `--no
 
 ## What the loading screen's DOWNLOAD track can and cannot tell you
 
-DOWNLOAD counts the bytes the boot's fetches deliver (`src/engine/boot/bytes.ts` tees every `/assets/**`
-body) **regardless of where they came from** — the worker's cache, the HTTP cache or the network
-all read the same. A wiped or missing cache therefore still shows `30.5 MB / 30.5 MB · 100 %`; the
-tell is the SETUP rows: every step that fetches (sky, terrain, cards, cabins, props) takes seconds
-while every step that only computes (forest, edge, grass, herds) stays in the tens of ms. That
-pattern on 2026-09-18 (cabins 16.0 s) was the static cache being rolled by a deploy that added
-`terrain.bin`, not a CPU regression.
+G543 separates network downloads from verified cache bytes. The page, content
+workers and service worker report their actual resource timings, while product
+indexes declare pending file sizes. The visible MB count and stage rows are
+checked against an independent HTTP observer on cold and warm served builds.
+
+Browser-internal service-worker script checks do not appear in page resource
+timing. A warm `8264f6dca2` comparison exposed two full unchanged `/sw.js`
+responses, about 41 KB missing from the counter: 23.46% of a 175.9 KB warm
+shardfile load and 10.50% of a 433.1 KB warm grid load. Those failures remain
+in the loading receipts. Revalidation with `no-cache` removes those repeated
+bodies while still fetching a changed worker in full. The remaining response
+headers are included in the independent network measurement and its 5% gate.
 
 ## iOS eviction (gauntlet `PWA_OFFLINE.md` §4.1)
 

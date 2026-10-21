@@ -15,7 +15,7 @@
  *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
  *
  * Preview: replays the `vercel.json` header rules (last match wins, same as the host) so the bench measures
- * what production sends — `immutable` on the hashed bundle, `no-store` on the document/sw.js/version.json.
+ * what production sends — `immutable` on the hashed bundle, revalidated `sw.js`, no-store document/version.json.
  *
  * Dev: no service worker by default — a stale worker would serve yesterday's bundle over HMR. `/sw.js` is
  * served (stamped `dev`) only when the page was opened with `?sw=1`; src/engine/boot/sw.ts registers it only then.
