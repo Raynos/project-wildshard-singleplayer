@@ -6,7 +6,7 @@
     "@wildshard/engine/physics/navmesh": ["readNavmesh"],
     "@wildshard/engine/world/BakedTerrain": ["bakedSamplers", "parseBakedTerrain"],
     "@wildshard/format/weaponProfiles": ["parseNativeFirearmProfile", "parseWeaponProfile"],
-    "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion", "readItemInventory"],
+    "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion"],
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
     "@wildshard/game/quest/nativeStory": ["prepareNativeStory", "installNativeStory"],
