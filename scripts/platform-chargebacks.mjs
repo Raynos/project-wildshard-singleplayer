@@ -43,7 +43,6 @@ const declarations = new Map([
   ['src/game/looks/posedInstances.ts', new Map(['PosedLibrary', 'ProductPosedLibrary'].map(name => [name, 'C1']))],
   ['src/game/shardfile/clientCatalogue.ts', new Map([['CatalogueEconomy', 'C6']])],
   ['src/game/shardfile/clientPlan.ts', new Map([['CatalogueEconomy', 'C6']])],
-  ['src/game/models/figureCatalogue.ts', new Map(['admitted', 'ProductFigureCatalogue', 'ProductFigureImports'].map(name => [name, 'C5']))],
   ['src/game/models/explorerCatalogue.ts', new Map(['Presentation', 'ProductExplorerDispatch'].map(name => [name, 'C9']))],
   ['src/format/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
   ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', 'C5']])],
@@ -101,9 +100,6 @@ const inline = new Map([
     ['  static library(product:', 41],
   ]]])],
   ['src/game/shardfile/clientPlan.ts', new Map([['CatalogueEconomy', [['const required = row.kind', 4]]]])],
-  ['src/game/models/figureCatalogue.ts', new Map([['ProductFigureImports', [
-    ["import { GeometryPack }", 5],
-  ]]])],
   ['src/game/models/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', [
     ["import { ProductFigureCatalogue }", 7], ["} else if (row.kind === 'figure')", 11],
   ]]])],
@@ -122,7 +118,7 @@ function reviewedOwner(path, name) {
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/systems/viewmodel/graphArms.ts') return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts', 'src/format/water.ts', 'src/game/systems/looks/waterSurface.ts',
     'src/engine/models/geometrySources.ts', 'src/game/looks/posedInstances.ts',
-    'src/game/models/figureCatalogue.ts', 'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
+    'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
   if (['src/engine/models/ownedGeometry.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',
     'src/game/quest/pageComposition.ts', 'src/format/questPageComposition.ts'].includes(path)) return 'driftwood-isle';
   return 'nalati-grasslands';

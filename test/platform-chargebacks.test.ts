@@ -72,10 +72,13 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   expect(charges.get('driftwood-isle')?.map(row => row.name)).toContain('DeclaredGeometryBatch');
   const figure = 'src/game/models/figureCatalogue.ts', hull = 'src/game/looks/speciesBook.ts';
   const both = new Set(['pine-hollow', 'driftwood-isle']);
-  const bindings = new Map([[`${figure}\0ProductFigureCatalogue`, both], [`${figure}\0FigureCatalogue`, both]]);
+  const bindings = new Map(['admitted','ProductFigureCatalogue','ProductFigureImports','FigureCatalogue'].map(name=>[`${figure}\0${name}`,both]));
   chargePlatformUsers(new Map([[figure, both]]), bindings);
-  expect([...bindings.get(`${figure}\0ProductFigureCatalogue`) ?? []]).toEqual(['pine-hollow']);
-  expect(bindings.get(`${figure}\0FigureCatalogue`)).toEqual(both);
+  for(const name of ['admitted','ProductFigureCatalogue','ProductFigureImports','FigureCatalogue']) {
+    expect(bindings.get(`${figure}\0${name}`)).toEqual(both);
+    expect(platformChargeback(figure,name)).toBeNull();
+  }
+  expect(inlinePlatformPaths()).not.toContain(figure);
   expect(platformChargeback(hull, 'HullLookBook')).toBeNull();
   expect(platformChargeback('src/engine/models/geometryPack.ts', 'GeometryPack')).toBeNull();
 });

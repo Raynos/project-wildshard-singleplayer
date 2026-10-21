@@ -105,3 +105,14 @@ Native meshes, material construction and resource checks retain their
 one-user charge (HOST-BAR 4/6); named JSON remains the existing 6/6 host.
 Runtime physical TS: **shards 0, platform -31**; build-only **+39**, total
 physical TS **+8**. No visual behavior, collider, AS or ceiling changes.
+
+
+X4 ProductFigureCatalogue: HOST-BAR **111111, 6/6**, with real Pine
+`sdk/quest/forestStory.ts` fromProduct and Driftwood
+`runtime/boot/blobAssets.ts` constructor/admit callers. The client-only
+owner takes product/file ids and scene handles, has no shard branches or
+author callbacks, and either live caller needs it independently.
+Release only its catalogue, admitted cache and five import lines from
+Pine C5: **43 charged Pine lines -> existing shared platform credit**.
+Physical runtime source change: **shards 0, platform 0**. Geometry-source,
+posed-library and other reviewed chargebacks from sp-x8 remain intact.
