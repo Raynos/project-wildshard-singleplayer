@@ -63,7 +63,7 @@ const nativeAssemblySchema = { ...HEADLESS_ASSEMBLY_JSON_SCHEMA,
 export function driftwoodJsonBlob(name: string, kind: 'json', bytes: Uint8Array): NamedBlob {
   try {
   const schema = name.startsWith('scenes/') ? WorldSceneSchema
-    : name.startsWith('world/piers/') || name.startsWith('world/foliage/') || name.startsWith('world/trail/') ? WorldScenePlacementSchema : schemas[name];
+    : name.startsWith('world/piers/') || name.startsWith('world/foliage/') ? WorldScenePlacementSchema : schemas[name];
   const jsonSchema = name === 'sim/headless-assembly.json' ? nativeAssemblySchema : schema === undefined ? undefined : namedJsonSchema(schema);
   if (jsonSchema === undefined) throw new Error(`Missing Driftwood named JSON schema: ${name}`);
   return nameBlob(name, kind, bytes, { jsonSchema });

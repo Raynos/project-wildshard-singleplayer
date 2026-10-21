@@ -52,7 +52,7 @@ export const WORLD_PLACEMENTS: readonly WorldScenePlacementRow[] = [
 ];
 
 /** The sand paths' fence posts, signposts and plank steps (the section's specimens, G3), drawn into the trail's weld
- *  (pieces `trail-*`, their colliders with them); each its own placement file `world/trail/<id>.json` (output.ts). */
+ *  (pieces `trail-*`, their colliders with them); inline in the section (a named blob each would be a custom section). */
 export const TRAIL_PLACEMENTS: readonly WorldScenePlacementRow[] = [
   upright('trail.posts', 'fencePost', 'trail.mesh', 'trail-fence-posts', { placements: trail.posts.pls, boxes: trail.posts.boxes }),
   upright('trail.signs', 'signpost', 'trail.mesh', 'trail-signposts', { placements: trail.signs.pls, boxes: trail.signs.boxes }),
