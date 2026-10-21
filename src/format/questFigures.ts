@@ -15,7 +15,7 @@ const object = v.variant('kind', [
   v.strictObject({ kind: v.literal('cloud'), id, name: id, draw: id, look: id, at, center: triple, radius: n, order: n, seeds: v.boolean() }),
 ]);
 const system = v.strictObject({ id, before: v.pipe(v.array(id), v.maxLength(8)) });
-const ids = v.pipe(v.record(id, id), v.check(rows => Object.keys(rows).length <= 16, 'at most 16 figure parts'));
+const ids = v.pipe(v.record(id, id), v.maxEntries(16));
 export const QuestFigureSchema = v.strictObject({
   id, kit: id, feet: place, fire: v.exactOptional(place),
   /** each kit part's fixed draw slot; campAt 'fire' moves the camp part to the fire */

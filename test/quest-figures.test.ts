@@ -1,4 +1,6 @@
 import { expect, test } from 'vitest';
+import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import * as v from 'valibot';
 import { Group, Vector3 } from 'three';
 import { QuestFiguresSchema } from '../src/format/questFigures';
@@ -24,4 +26,13 @@ test('the fire sits in the figure frame exactly where the castaway camp put it',
     const world = local.clone().applyMatrix4(group.matrixWorld);
     expect(world.distanceTo(new Vector3(fire.x, fire.y, fire.z))).toBeLessThan(1e-9);
   }
+});
+
+test('named figure admission emits and enforces the same sixteen-part bound', () => {
+  const schema = namedJsonSchema(QuestFiguresSchema), valid = { figures: [row] };
+  const encode = (input: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(input));
+  expect(validateNamedJsonSchema(schema, encode(valid))).toEqual(v.parse(QuestFiguresSchema, valid));
+  const invalid = { figures: [{ ...row, parts: Object.fromEntries(Array.from({ length: 17 }, (_, i) => [`part${i}`, `draw${i}`])) }] };
+  expect(v.safeParse(QuestFiguresSchema, invalid).success).toBe(false);
+  expect(() => validateNamedJsonSchema(schema, encode(invalid))).toThrow();
 });
