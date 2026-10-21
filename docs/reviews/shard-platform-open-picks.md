@@ -1,7 +1,5 @@
 # SHARD-PLATFORM: Jake's open picks (coordinator, 2026-10-10)
 
-**Status:** `superseded` (2026-10-21 ~09:30 Cancun: Jake read the current pages and asked which still matter; the plan agent marked the rest superseded, history kept).
-
 These are the picks still open (SF67 audio and the public SHARD SELECT flip were decided as G325 / G326) in `docs/plans/shard-platform/STATE.md`. Each one says what the choice is, gives a
 recommendation and points to its evidence. Where no board exists yet, that's stated, along with what a lane would make.
 

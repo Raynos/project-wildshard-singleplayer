@@ -1,6 +1,6 @@
 # SF19a: The Shard You Stand In Owns the Frame
 
-**Status:** `superseded` (2026-10-21 ~09:30 Cancun: Jake read the current pages and asked which still matter; the plan agent marked the rest superseded, history kept). Was: `unread` 2026-10-04: real-capture boards of G158 (the "Grid one frame" Debug row OFF vs ON): inside
+**Status:** `unread` 2026-10-04: real-capture boards of G158 (the "Grid one frame" Debug row OFF vs ON): inside
 Driftwood, inside Signal Dunes, on the road, from the road at Nalati, inside Nalati, and a three-step walk over Signal
 Dunes' edge. Decides G122 (turn the row on in the grid and delete it?). Supersedes the SF19b boards.
 **Link:** this page; the boards are in [art/grid/sf19a-frame-owner/](../../art/grid/sf19a-frame-owner/)
