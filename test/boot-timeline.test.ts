@@ -35,6 +35,8 @@ it('uses actual path rows and keeps unnamed work visible', () => {
   expect(timeline.snapshot().rows.find(row => row.key === 'world')?.ms).toBe(100);
   expect(timeline.snapshot().rows.find(row => row.key === 'Unexpected preparation')?.ms).toBe(200);
   expect(loadingPath('legacy').steps.map(row => row.key)).toContain('terrain');
+  expect(loadingPath('shardfile', undefined, true).id).toBe('shardfile');
+  expect(loadingPath('shardfile', undefined, true).steps.map(row => row.key)).toContain('props');
   expect(loadingPath('crossing').steps.map(row => row.key)).toContain('checkpoint');
 });
 

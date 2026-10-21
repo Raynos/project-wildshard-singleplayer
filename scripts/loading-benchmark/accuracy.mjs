@@ -49,6 +49,7 @@ try {
     let status = 'passed';
     try {
       await page.goto(transport.base, { waitUntil: 'load' });
+      if (arg('profile', '0') === '1') { await cdp.send('Profiler.enable'); await cdp.send('Profiler.start'); }
       if (path === 'grid') await page.locator('.ws-main-grid').click();
       else {
         await page.locator('.ws-main-select').click();
@@ -72,6 +73,7 @@ try {
     const received = transport.receipts.filter(receipt => receipt.endedAt >= collected.origin && receipt.endedAt <= collected.origin + ready);
     const networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
     const report = accuracyReport(collected.accuracy, networkBytes);
+    if (arg('profile', '0') === '1') writeFileSync(resolve(out, `${path}.cpuprofile`), JSON.stringify((await cdp.send('Profiler.stop')).profile));
     if (collected.fatal) errors.push(collected.fatal);
     if (errors.length > 0) status = 'failed';
     const receipt = { pin, path, device: 'iPhone 16 Pro', cpu: 4, status, errors, cdpNetworkBytes, transportReceipts: received, ...report, ...collected };
