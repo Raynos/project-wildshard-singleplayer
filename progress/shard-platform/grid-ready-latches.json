@@ -1,0 +1,37 @@
+{
+  "schema": "grid-ready-latches/1",
+  "entries": [
+    {
+      "shard": "ink-cel-valley",
+      "criterion": "memory",
+      "source": "8c7861b92613fcdb04faaf7234ed868183984982",
+      "receiptCommit": "2fc35330d35135d29151d413c793bfe74dd2a24f",
+      "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/ink-cel-valley/memory/receipt.json",
+      "latchedAt": "2026-10-21T13:44:13.133Z"
+    },
+    {
+      "shard": "ink-cel-valley",
+      "criterion": "oneFrameLooks",
+      "source": "8c7861b92613fcdb04faaf7234ed868183984982",
+      "receiptCommit": "cb025a094ac5251809080889c150033b6ce110a0",
+      "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/ink-cel-valley/receipt.json",
+      "latchedAt": "2026-10-21T13:44:13.221Z"
+    },
+    {
+      "shard": "pastel-plain",
+      "criterion": "memory",
+      "source": "8c7861b92613fcdb04faaf7234ed868183984982",
+      "receiptCommit": "2fc35330d35135d29151d413c793bfe74dd2a24f",
+      "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/pastel-plain/memory/receipt.json",
+      "latchedAt": "2026-10-21T13:44:12.960Z"
+    },
+    {
+      "shard": "pastel-plain",
+      "criterion": "oneFrameLooks",
+      "source": "8c7861b92613fcdb04faaf7234ed868183984982",
+      "receiptCommit": "2fc35330d35135d29151d413c793bfe74dd2a24f",
+      "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/pastel-plain/receipt.json",
+      "latchedAt": "2026-10-21T13:44:13.050Z"
+    }
+  ]
+}

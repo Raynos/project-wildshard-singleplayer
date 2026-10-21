@@ -60,10 +60,10 @@ export function gridReady(root,slug,products,{revision=null,receipts=[],reader}=
     for(const [name,criterion] of Object.entries(structural.criteria))criteria[name]={...criterion,
       evidence:`index sha256:${hash(bytes)}, validation sha256:${hash(readFileSync(receiptPath))}: ${criterion.evidence}`};
     const caps=JSON.parse(readFileSync(resolve(root,'src/format/memoryGates.json'),'utf8'));
-    criteria.memory={verdict:'unknown',evidence:'No qualified matching-product/runtime memory receipt; declared costs alone are not readings'};
-    criteria.oneFrameLooks={verdict:'unknown',evidence:'No qualified matching-product/runtime phone grid look/travel witness'};
+    criteria.memory={verdict:'unknown',evidence:'No latched memory pass or qualified current-source reading; declared costs alone are not readings'};
+    criteria.oneFrameLooks={verdict:'unknown',evidence:'No latched look/travel pass or qualified current-source phone grid witness'};
     if([caps.explorerMB,caps.loadingMB].every(value=>typeof value==='number'&&Number.isFinite(value)&&value>0)) {
-      const {frameFloor:measuredFloor,...readiness}=runtimeGridEvidence(root,slug,revision,receipts,caps,{productKey:receipt.buildKey});
+      const {frameFloor:measuredFloor,...readiness}=runtimeGridEvidence(root,slug,revision,receipts,caps);
       frameFloor=measuredFloor??unmeasuredFloor;Object.assign(criteria,readiness);
     }
   } catch(error) {

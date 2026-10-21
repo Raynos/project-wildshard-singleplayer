@@ -3,7 +3,7 @@ import {existsSync,readFileSync,readdirSync,statSync} from 'node:fs';
 import {resolve,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
-import {GridRuntimeBindingSchema,gridRuntimeKey} from './grid-runtime-keys.mjs';
+import {latchedGridEvidence} from './grid-ready-latches.mjs';
 
 const sha=v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u));
 const positive=v.pipe(v.number(),v.finite(),v.minValue(1));
@@ -36,25 +36,15 @@ export function runtimeReceiptPaths(root) {
   walk(directory);return out.sort((a,b)=>a.localeCompare(b));
 }
 
-/** Exact-SHA legacy receipts or matching measured product/shared-runtime keys qualify. Receipt bytes are hashed into each verdict;
- * the newest eligible observation overrides older passes, including with a fail.
+/** Unlatched observations require their measured source. G560 passes stay latched until manually removed.
+ * The newest eligible unlatched observation overrides earlier observations, including with a fail.
  * Current frame-floor receipts have no native memory readings: they cannot supply memory.
  * @param {string} root @param {string} slug @param {string|null} revision
  * @param {readonly string[]} paths @param {{explorerMB:number,loadingMB:number}} caps
- * @param {{productKey?:string,runtimeKey?:string}} [keys]
  * @returns {Partial<Record<'memory'|'oneFrameLooks'|'frameFloor',import('./shard-milestones.mjs').Criterion>>} */
-export function runtimeGridEvidence(root,slug,revision,paths,caps,keys={}) {
+export function runtimeGridEvidence(root,slug,revision,paths,caps) {
   if(revision===null||!v.is(sha,revision))return {};
-  let basis=`source ${revision}; exact source SHA`;
-  const applies=(source,input)=>{
-    if(source===revision){basis=`source ${source}; exact source SHA`;return true;}
-    const binding=v.safeParse(GridRuntimeBindingSchema,input);
-    if(!binding.success||binding.output.source!==source||keys.productKey===undefined)return false;
-    const runtime=keys.runtimeKey??gridRuntimeKey(root,revision);
-    if(runtime===undefined||binding.output.runtime!==runtime||binding.output.products[slug]!==keys.productKey)return false;
-    basis=`source ${source}; carried to ${revision}: unchanged B1 product ${keys.productKey} and grid runtime ${runtime}`;
-    return true;
-  };
+  const basis=`source ${revision}; exact source SHA`;
   /** @type {Record<'memory'|'oneFrameLooks'|'frameFloor',Array<{at:number,path:string,criterion:import('./shard-milestones.mjs').Criterion}>>} */
   const candidates={memory:[],oneFrameLooks:[],frameFloor:[]};
   const add=(name,when,path,bytes,verdict,evidence)=>{
@@ -69,13 +59,13 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps,keys={}) {
     const bytes=readFileSync(file);
     let input;try{input=JSON.parse(bytes.toString('utf8'));}catch{continue;}
     const recordedSoak=v.safeParse(soak,input);
-    if(recordedSoak.success&&recordedSoak.output.grade.admitted.includes(slug)&&applies(recordedSoak.output.sha,input.contentKeys)) {
+    if(recordedSoak.success&&recordedSoak.output.grade.admitted.includes(slug)&&recordedSoak.output.sha===revision) {
       const receipt=recordedSoak.output;
       if(receipt.seconds>=receipt.grade.requiredSeconds)measured(receipt.driveStarted,path,bytes,receipt.grade.peakBytes,receipt.grade.loadingPeakBytes);
     }
     const recordedMilestone=v.safeParse(milestone,input);if(!recordedMilestone.success)continue;
     for(const value of recordedMilestone.output.runs) {
-      const parsed=v.safeParse(run,value);if(!parsed.success||parsed.output.sha!==recordedMilestone.output.source||!applies(parsed.output.sha,input.contentKeys))continue;
+      const parsed=v.safeParse(run,value);if(!parsed.success||parsed.output.sha!==recordedMilestone.output.source||parsed.output.sha!==revision)continue;
       const receipt=parsed.output;
       const chromium=receipt.surface==='chromium'&&receipt.profile!==undefined;
       if(receipt.surface==='chromium'&&!chromium)continue;
@@ -106,7 +96,7 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps,keys={}) {
       }
     }
   }
-  return Object.fromEntries(Object.entries(candidates).flatMap(([name,rows])=>{
+  return {...Object.fromEntries(Object.entries(candidates).flatMap(([name,rows])=>{
     rows.sort((a,b)=>b.at-a.at||a.path.localeCompare(b.path));return rows.slice(0,1).map(row=>[name,row.criterion]);
-  }));
+  })),...latchedGridEvidence(root,slug)};
 }

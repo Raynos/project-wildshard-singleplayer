@@ -1,8 +1,10 @@
 import {expect,it} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned small evidence fixtures, never repository copies.
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confined fixture paths.
-import {resolve} from 'node:path';
+import {resolve,dirname} from 'node:path';
+import * as v from 'valibot';
+import {GRID_READY_LATCHES,GridReadyLatchesSchema} from '../scripts/grid-ready-latches.mjs';
 import {runtimeGridEvidence} from '../scripts/grid-runtime-evidence.mjs';
 
 const sha='a'.repeat(40),caps={explorerMB:1200,loadingMB:1800};
@@ -87,27 +89,6 @@ it('separates visual stalls from frame floor and refuses unmeasured timing',()=>
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
-it('carries unchanged B1/runtime bindings and refuses either changed key', () => {
- const root=mkdtempSync(resolve('tmp','grid-key-witness-'));
- const measured='b'.repeat(40),product='c'.repeat(64),runtime='d'.repeat(64);
- const receipt={schema:1,source:measured,contentKeys:{schema:'grid-runtime-keys/1',source:measured,runtime,products:{'pine-hollow':product}},
-  protocol:{profiler:false,glObserver:'off'},runs:[{sha:measured,when:'2026-10-21T01:00:00Z',surface:'sim',cohort:'grid',complete:true,glObserver:'off',
-   cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'pine-entry',after:{current:'pine-hollow'}}],
-    rows:[{name:'grid-pine-entry-drive',frames:120,pass:true,contextLost:false,maxMs:100,p95Ms:33,medianFps:30}]}]}]};
- try {
-  writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));
-  const read=(productKey=product,runtimeKey=runtime)=>runtimeGridEvidence(root,'pine-hollow',sha,['receipt.json'],caps,{productKey,runtimeKey});
-  expect(read().oneFrameLooks?.verdict).toBe('pass');
-  expect(read().oneFrameLooks?.evidence).toContain(`source ${measured}; carried to ${sha}`);
-  expect(read().oneFrameLooks?.evidence).toContain(`unchanged B1 product ${product} and grid runtime ${runtime}`);
-  expect(read('e'.repeat(64))).toEqual({});
-  expect(read(product,'f'.repeat(64))).toEqual({});
-  receipt.contentKeys.source=sha;
-  writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));
-  expect(read()).toEqual({});
- } finally {rmSync(root,{recursive:true,force:true});}
-});
-
 it('accepts a qualified Chromium phone witness and separately observed CDP memory', () => {
  const root=mkdtempSync(resolve('tmp','grid-chromium-witness-'));
  const reading={measurement:'chromium-residency+cdp',owner:'pine-hollow',samples:4,playingPeakBytes:100_000_000,loadingPeakBytes:200_000_000,
@@ -137,5 +118,26 @@ it('matches a template product slug while retaining its distinct entered instanc
   writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));
   expect(runtimeGridEvidence(root,'_template',sha,['receipt.json'],caps).oneFrameLooks?.verdict).toBe('pass');
   expect(runtimeGridEvidence(root,'blender-template',sha,['receipt.json'],caps)).toEqual({});
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+it('retains a measured pass across source/product changes and later failing samples until manual removal',()=>{
+ const root=mkdtempSync(resolve('tmp','grid-latch-')),source='a'.repeat(40),revision='b'.repeat(40);
+ const latch={shard:'_template',criterion:'oneFrameLooks',source,receiptCommit:'c'.repeat(40),receipt:'old/receipt.json',latchedAt:'2026-10-21T13:00:00Z'};
+ const path=resolve(root,GRID_READY_LATCHES),write=(entries:unknown[])=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,JSON.stringify({schema:'grid-ready-latches/1',entries}));};
+ try {
+  write([latch]);
+  // No old receipt, checksum, product or runtime source is required after the pass latches.
+  const read=()=>runtimeGridEvidence(root,'_template',revision,['new.json'],caps);
+  expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().oneFrameLooks?.evidence).toContain(`${latch.receiptCommit}:${latch.receipt}`);
+  expect(runtimeGridEvidence(root,'other',revision,[],caps)).toEqual({});
+  writeFileSync(resolve(root,'new.json'),JSON.stringify({schema:1,source:revision,protocol:{profiler:false,glObserver:'off'},runs:[{
+   sha:revision,when:'2026-10-22T01:00:00Z',surface:'sim',cohort:'grid',complete:true,glObserver:'off',
+   cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'template-entry',after:{current:'_template'}}],
+    rows:[{name:'grid-template-entry-drive',frames:120,pass:false,contextLost:false,maxMs:900,p95Ms:40,medianFps:25}]}]}]}));
+  expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().frameFloor?.verdict).toBe('fail');
+  write([]);expect(read().oneFrameLooks?.verdict).toBe('fail');
+  rmSync(resolve(root,'new.json'));expect(read().oneFrameLooks).toBeUndefined();
+  expect(()=>v.parse(GridReadyLatchesSchema,{schema:'grid-ready-latches/1',entries:[latch,latch]})).toThrow('Duplicate');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
