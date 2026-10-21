@@ -16,11 +16,12 @@ export function accuracyRecorder() {
           duration: row.children.item(2)?.textContent ?? '', state: row.className,
           key: row.dataset.key, ms: row.dataset.ms,
         }));
-        const sample = { at: now, clock: text('clock'), detail: text('suFact'), download: text('dlFact'),
+        const sample = { at: now, clock: text('clock'), detail: text('suFact'), download: text('dlFact'), footer: text('foot'), diagnostics: text('diagnostics'),
+          waiting: root.dataset.waiting, filesInFlight: root.dataset.filesInFlight, stalled: root.dataset.stalled,
           path: root.dataset.path, step: root.dataset.step, setup: root.dataset.setup,
           networkBytes: root.dataset.networkBytes, cachedBytes: root.dataset.cachedBytes,
           pendingBytes: root.dataset.pendingBytes, rows };
-        const detailed = `${sample.detail}|${rows.map(row => `${row.detail}:${row.duration}`).join('|')}`;
+        const detailed = `${sample.detail}|${sample.footer}|${rows.map(row => row.detail).join('|')}`;
         const changed = detailed !== state.last;
         if (changed) { state.updates.push(now); state.last = detailed; }
         if (changed || now - state.lastSampleAt >= 250) { state.samples.push(sample); state.lastSampleAt = now; }

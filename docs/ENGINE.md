@@ -843,7 +843,9 @@ publish; disposal releases the existing allocator leases.
 `declareDownloadFile(url, bytes)` and `recordCachedDownload(hash, bytes, url?)`
 in `@wildshard/engine/boot/download` report expected product-index sizes and verified
 cache reads to the active loading attempt. Resource Timing supplies page-wide
-network receipts, including modules and undeclared fetches. The loading screen
+network receipts, including modules and undeclared fetches. Worker-owned install,
+prefetch and document revalidation requests forward their own Resource Timing
+receipts to the page, preserving HTTP-cache hits and worker clock offsets. The loading screen
 shows downloaded bytes and cache bytes separately; unclassified worker receipts
 stay explicit. Service-worker responses carry transport provenance through
 Server-Timing without extra response-body reads. Expected files remain pending
