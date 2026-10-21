@@ -15,6 +15,7 @@ import source from '../src/shards/driftwood-isle/shard.config';
 import { TRADER_STALL as coinRows } from '../src/shards/driftwood-isle/generators/questShop';
 import { TRADER_STALL as barterRows } from '../src/shards/pine-hollow/generators/questShop';
 import { TRADES } from '../src/shards/pine-hollow/generators/trades';
+import { FIGURE_CATALOGUE } from '../src/shards/pine-hollow/generators/figureCatalogue';
 import { Owned } from '../src/game/loot/Owned';
 import { Purse, publishPurse, enteredPurse } from '../src/game/loot/Purse';
 import { installQuestTrader, installQuestShop } from '../src/game/quest/trader';
@@ -88,9 +89,12 @@ test('an unrelated barter counter uses the same shop, pays before grants and pre
 });
 
 test('Pine cards retain all original post-grant feedback as data and malformed feedback refuses before construction', () => {
+  const trader = FIGURE_CATALOGUE.figures.trader;
+  if (trader === undefined) throw new Error('Missing authored trader figure');
+  expect(trader.phone.id).toBe(trader.desktop.id);
   for (const trade of TRADES) expect(barterRows.shop?.after[trade.id]).toEqual([
     ...('skin' in trade.get ? [{ kind: 'wear', finish: trade.get.skin }] : []),
-    { kind: 'bark', audio: 'ambience', group: 'trader', figure: 'trader' }, { kind: 'chime', at: 'none', gain: 1 }, { kind: 'toast', text: `Traded · ${trade.label}` },
+    { kind: 'bark', audio: 'ambience', group: 'trader', figure: trader.phone.id }, { kind: 'chime', at: 'none', gain: 1 }, { kind: 'toast', text: `Traded · ${trade.label}` },
   ]);
   const { ctx, scope } = page(), rows = { name: 'Bad shop', reopen: true, shop: { place: 'Bad', barter: false, lifetime: 'resident', after: {} } };
   try {
