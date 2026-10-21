@@ -6,6 +6,7 @@
   "exports": {
     "./arenaScriptRows": "./arenaScriptRows.ts",
     "./encounterRows": "./encounterRows.ts",
+    "./speciesBookRows": "./speciesBookRows.ts",
     "./bakedTiles": "./bakedTiles.ts",
     "./findsCatalogue": "./findsCatalogue.ts",
     "./forestWeather": "./forestWeather.ts",

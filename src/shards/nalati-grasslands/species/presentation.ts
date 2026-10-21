@@ -6,16 +6,15 @@ import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' 
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { SpeciesLookBook } from '@wildshard/game/looks/speciesBook';
 import type * as THREE from 'three';
-import * as schema from 'valibot';
+import type { SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
 
 let crackGeometry: THREE.BufferGeometry | null = null;
 let book:SpeciesLookBook|null=null;
 let speciesData: { packedBodies: unknown; program: unknown; strike: unknown } | null = null;
 /** Product JSON is admitted before the first creature build or frame. */
-export async function prepareNalatiSpecies(input: unknown, programs: readonly { readonly id: string }[], bytes: Uint8Array): Promise<void> {
-  const data = schema.parse(schema.object({ poses: schema.record(schema.string(), schema.object({ prefix: schema.string(), group: schema.string(), scalars: schema.array(schema.unknown()), look: schema.exactOptional(schema.unknown()), alive: schema.exactOptional(schema.boolean()) })), packedBodies: schema.unknown(), program: schema.unknown(), strike: schema.unknown(),lookBook:schema.object({slug:schema.string(),rows:schema.unknown(),program:schema.optional(schema.unknown())}), cracks: schema.unknown() }), input);
+export async function prepareNalatiSpecies(data: SpeciesPresentationRows, programs: readonly { readonly id: string }[], bytes: Uint8Array): Promise<void> {
   const poses = Object.entries(data.poses).map(([key, { prefix, ...row }]) => [key, { ...row, programs: programs.filter(program => program.id.startsWith(prefix)) }] as const);
-  const row = schema.parse(schema.object({ attrs: schema.array(schema.tuple([schema.string(), schema.picklist(['f32', 'u16']), schema.number(), schema.boolean()])), count: schema.number(), index: schema.literal('u32'), indexCount: schema.number(), box: schema.boolean() }), data.cracks);
+  const row=data.cracks;
   const { readBakedGeometry } = await import('@wildshard/game/plugin/geometry');
   const geometry = readBakedGeometry(bytes, 0, row);
   if (crackGeometry === null) crackGeometry = geometry; else geometry.dispose();

@@ -295,3 +295,22 @@ Root/layer types, typed lint, five suites / 26 tests, Nalati product and
 existing exact 2160-case joint/floor/memory parity all pass. The two real
 Titan victories remain green. Retire only the deleted wrapper fixture.
 No collider, material, style, codec, resource bounds or budget changes.
+
+
+X4 species catalogue admission: move the complete SpeciesLookBook schema,
+compact body metadata and Nalati presentation shape to defining build-only
+speciesBookRows. The existing actors/sheep.json named file carries that
+schema and the product reader validates before native body allocation.
+Use inferred row types, preserve every original scalar/array bound, and
+leave the shared packed geometry owner and native drawing unchanged.
+SpeciesLookBook and packedRows remain Nalati-only HOST-BAR 4/6/C1,
+fully charged; remove only the retired runtime schema charge. Fixtures
+still grant no second shard. Existing named-file admission retains real
+multi-shard HOST-BAR 6/6 with no new codec or host API.
+Runtime TS: **Nalati 0 / platform -17**. Build TS **+42**, authored AS **0**;
+physical TS **+25**. Private JSON stays **46 / 12,497,444 bytes** exactly.
+Root/layer types, typed lint, native body copy/looks/pose and boss suites
+pass. Malformed compact attributes, oversized catalogue, crack indices
+and material rows refuse both production and product read. The old
+constructor-only callback refusal now runs at the defining admission.
+No collider descriptors, rendering, style, resource bounds or budgets change.

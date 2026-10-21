@@ -9,7 +9,8 @@ import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';
 import { packedCreatureBodies,type BakedGeometryRow } from '../plugin/geometry';
 import { productRiggedHulls } from './riggedHulls';
-import { HullLookBookSchema, SpeciesLookBookSchema } from '@wildshard/format/speciesLooks';
+import { HullLookBookSchema } from '@wildshard/format/speciesLooks';
+import type { CompactSpeciesBodiesRows, NativeSpeciesLookBookRows } from '@wildshard/format/speciesBookRows';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { speciesDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
@@ -66,11 +67,8 @@ export class HullLookBook {
 
 /** Expand compact byte addressing only; the native packed owner admits every
  * geometry block, skeleton and dimension before it copies a body. */
-function packedRows(input:unknown):unknown{
-  const part=v.tuple([v.number(),v.number(),v.number(),v.array(v.tuple([v.number(),v.number(),v.number()])),v.picklist(['u16','u32'])]);
-  const data=v.parse(v.object({file:v.string(),bytes:v.number(),attrs:v.array(v.tuple([v.string(),v.picklist(['f32','u16']),v.number(),v.boolean()])),skeletons:v.array(v.object({bones:v.unknown(),dims:v.unknown()})),
-    rows:v.array(v.object({kind:v.string(),variant:v.string(),skeleton:v.number(),fur:v.array(part),hard:v.array(part),eye:v.array(part)}))}),input);
-  const parts=(rows:v.InferOutput<typeof part>[])=>rows.map(([count,indexCount,start,groups,index])=>{
+function packedRows(data:CompactSpeciesBodiesRows):unknown{
+  const parts=(rows:CompactSpeciesBodiesRows['rows'][number]['fur'])=>rows.map(([count,indexCount,start,groups,index])=>{
     let at=start;const offsets=data.attrs.map(([,type,width])=>{const offset=at,length=count*width*(type==='u16'?2:4);at+=length+(4-length%4)%4;return offset;});
     offsets.push(at);const row:BakedGeometryRow={attrs:data.attrs,count,index,indexCount,box:false};return {offsets,groups,indexEncoding:'raw',row};
   });
@@ -87,8 +85,8 @@ export class SpeciesLookBook {
   readonly looks:readonly SpeciesLook[];
   private readonly bodies;
   private readonly hulls;
-  constructor(input:unknown){
-    const book=v.parse(SpeciesLookBookSchema,input);this.bodies=packedCreatureBodies(packedRows(book.body));this.hulls=productRiggedHulls(book.slug);
+  constructor(book:NativeSpeciesLookBookRows){
+    this.bodies=packedCreatureBodies(packedRows(book.body));this.hulls=productRiggedHulls(book.slug);
     for (const [id, pose] of Object.entries(book.poses ?? {})) this.poses.set(id, numericCreaturePose(pose));
     for (const row of book.rows) if (row.postPose !== undefined) {
       if (!this.poses.has(row.postPose.alive) || row.postPose.dead !== undefined && !this.poses.has(row.postPose.dead)) throw new Error('Missing species pose programme');

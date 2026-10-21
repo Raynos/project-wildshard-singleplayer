@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { SpeciesSchema } from './speciesPrograms';
-import { RidingPresentationSchema } from './riding';
 import { SkinClipNameSchema } from './skinData';
 import { NumericPoseSchema } from './clientChannels';
 
@@ -48,17 +47,3 @@ export const DirectedSpeciesSchema = v.strictObject({ signal: text, clock: text,
   states: v.pipe(v.array(text), v.minLength(1), v.maxLength(32)),
   damage: v.exactOptional(v.strictObject({ signal: text, player: v.tuple([text, text]), radius: number, scale: number, elite: v.boolean() })),
 });
-/** Packed body keys, rig contracts and painterly material measurements. */
-export const SpeciesLookBookSchema=v.pipe(v.unknown(),v.check(isJsonData),v.object({slug:text,body:v.unknown(),poses:v.optional(v.record(text,v.unknown())),program:v.optional(v.unknown()),
-  rows:v.pipe(v.array(v.object({metadata:SpeciesSchema,id:text,family:text,
-    rigContract:v.object({skeleton:text,clips:v.array(SkinClipNameSchema),sockets:v.array(text)}),
-    rig:v.optional(v.picklist(['quadruped','custom'])),pose:v.optional(v.object({grazeNeck:number,gallopTail:number})),gait:v.optional(v.object({trot:number,gallop:number})),
-    eyeGlow:v.optional(rgb),eyeGlowIntensity:v.optional(number),
-    variants:v.record(text,v.object({body:text,tint:v.optional(v.record(text,rgb)),traits:v.optional(v.record(text,v.union([number,v.boolean()]))) })),
-    group: v.optional(SpeciesGroupSchema), directed: v.optional(DirectedSpeciesSchema), guard: v.optional(v.literal(true)),
-    /** a named elite: its think / act / damage are the elite page's (game/quest/elitePage) */
-    elite: v.optional(v.literal(true)),
-    postPose: v.optional(v.strictObject({ alive: text, dead: v.exactOptional(text), envelopes: v.exactOptional(RidingPresentationSchema) })),
-    material:v.object({rim:number,bands:number}),
-  })),v.maxLength(256)),
-}));

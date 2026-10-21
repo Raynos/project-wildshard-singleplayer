@@ -197,10 +197,10 @@ test('shared hull imports grant no second user to the packed species adapter',()
   const path='src/game/looks/speciesBook.ts',format='src/format/speciesLooks.ts',both=new Set(['nalati-grasslands','pine-hollow']);
   const modules=new Map([[path,both],[format,both]]),bindings=new Map([
     [`${path}\0HullLookBook`,both],[`${path}\0SpeciesLookBook`,both],[`${path}\0packedRows`,both],
-    [`${format}\0HullLookBookSchema`,both],[`${format}\0SpeciesLookBookSchema`,both],
+    [`${format}\0HullLookBookSchema`,both],
   ]);
   chargePlatformUsers(modules,bindings);
-  for(const [file,name]of [[path,'SpeciesLookBook'],[path,'packedRows'],[format,'SpeciesLookBookSchema']]as const){
+  for(const [file,name]of [[path,'SpeciesLookBook'],[path,'packedRows']]as const){
     expect([...bindings.get(`${file}\0${name}`)??[]]).toEqual(['nalati-grasslands']);
     expect(platformChargeback(file,name)).toBe('C1');
   }

@@ -1,7 +1,7 @@
 import type { SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import * as v from 'valibot';
 import rows from '../data/speciesLooks.json' with { type: 'json' };
-import { SpeciesLookBookSchema } from '@wildshard/format/speciesLooks';
+import { SpeciesLookBookSchema } from '@wildshard/format/speciesBookRows';
 /** Build-only variant facts shared with the admitted body catalogue. */
 export function bodySpecies(kind: string): Pick<SpeciesDef, 'kind' | 'label' | 'variants' | 'spawnOnly' | 'pose' | 'gait'> {
   const source = rows.find(row => row.metadata.kind === kind);

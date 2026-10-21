@@ -1,3 +1,4 @@
+import { SpeciesActorsFileSchema } from '@wildshard/format/speciesBookRows';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
 import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
@@ -148,6 +149,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'speciesBookRows.SpeciesActorsFile': SpeciesActorsFileSchema,
   'arenaScriptRows.ArenaScriptFightFile': ArenaScriptFightFileSchema,
   'arenaScriptRows.ArenaScriptGeometry': ArenaScriptGeometrySchema,
   'encounterRows.TimedEncounters': TimedEncountersSchema,
