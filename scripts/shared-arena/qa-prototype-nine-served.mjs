@@ -3,7 +3,7 @@
  * KIND restricts diagnostic reruns and can never establish all-nine completion.
  */
 import { createServer } from 'node:http';
-import { mkdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
 import { resolve, extname, sep } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { execFileSync } from 'node:child_process';
@@ -43,10 +43,16 @@ function verify() {
   return { built, retained, mount: '/shared-arena/', fallbackCount: fallbackFiles.size, receiptHash, inventoryHash, receipt, fileCount: Object.keys(actual).length };
 }
 const identity = verify(); mkdirSync(out, { recursive: false });
-const report = { schema: 'wildshard.prototype-nine.functional-qa.v1', mode, onlyKind, identity, startedAt: new Date().toISOString(), checks: {}, enemies: [], errors: [], stores: [],
+const report = { schema: 'wildshard.prototype-nine.functional-qa.v1', mode, onlyKind, identity, startedAt: new Date().toISOString(), checks: {}, enemies: [], errors: [], consoleErrors: [], stores: [],
   method: 'Muted cloud Chromium, iPhone 16 Pro portrait. Real trusted touch controls and actual damage pipeline. Explicit logged player-only placements test functional combat, NOT player navigation. No HP, clock, enemy AI, pose or callback writes. Retained opponent.targets proves despawn death. Observed RAF cadence and recorder cadence are separate, neither physical-phone FPS. Smoke is NOT complete cycles; neither mode establishes likeness, animation quality or native corpse admission.' };
 const save = () => writeFileSync(resolve(out, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
 let browser, context, page, server;
+let stopRequested = false;
+process.on('SIGINT', () => { stopRequested = true; });
+const stopFile = resolve(out, 'STOP');
+const assertRunning = () => {
+  if (stopRequested || existsSync(stopFile)) { report.interrupted = true; report.interruption = { at: new Date().toISOString(), reason: stopRequested ? 'SIGINT' : 'STOP file' }; throw new Error('Cooperative interruption; incomplete checks remain unproven'); }
+};
 try {
   server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost');
@@ -68,6 +74,7 @@ try {
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/chromium', headless: true, args: ['--no-sandbox', '--mute-audio', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   context = await browser.newContext({ ...devices['iPhone 16 Pro'], viewport: { width: 402, height: 874 }, deviceScaleFactor: 1, recordVideo: { dir: resolve(out, 'video'), size: { width: 402, height: 874 } } });
   page = await context.newPage(); page.setDefaultTimeout(90000); page.on('pageerror', e => { report.errors.push(String(e)); save(); });
+  page.on('console', message => { if (message.type() === 'error') { report.consoleErrors.push({ at: new Date().toISOString(), text: message.text() }); save(); } });
   const cdp = await context.newCDPSession(page);
   const storage = async () => { const s = await page.evaluate(async () => {
     const saves = window.__practiceDemo?.game.app.saves;
@@ -83,9 +90,13 @@ try {
     q.read = (pose = false) => {
       const d = window.__practiceDemo, o = d?.arena.opponent, a = o?.targets[0], c = a?.rigCtx, control = a && o?.callbacks?.control?.(a);
       return { wall: performance.now(), phase: q.phase, frame: d?.game.frameTime, clock: d?.game.app.clock.snapshot(), elapsed: o?.elapsed,
+        systems: d ? Object.entries(d.game.app.systemsByPhase()).flatMap(([phaseName, specs]) => specs.map(spec => {
+          const fault = d.game.faultSystems.get(spec);
+          return { phase: phaseName, id: spec.id, observed: Boolean(fault), on: fault?.on, faults: fault?.faults, streak: fault?.streak, lastFrame: fault?.lastFrame };
+        })) : [], gameDead: d?.game.dead,
         sameGame: d?.game === q.game, entered: d?.arena.entered, targets: d?.arena.activeTargets.length, canvas: document.querySelectorAll('canvas').length, iframes: document.querySelectorAll('iframe').length,
         player: d?.arena.playerVitals, playerPosition: d?.player.position.toArray(), yaw: d?.player.yaw, pitch: d?.player.pitch, loot: o?.loot?.receipt,
-        enemy: a ? { kind: a.kind, hp: a.hp, maxHp: a.maxHp, alive: a.alive, hidden: a.hidden, visible: a.mesh.visible, state: a.state, position: a.position.toArray(), control: control ? JSON.parse(control.snapshot()) : null,
+        enemy: a ? { kind: a.kind, hp: a.hp, maxHp: a.maxHp, alive: a.alive, hidden: a.hidden, visible: a.mesh.visible, state: a.state, mem: { ...a.mem }, position: a.position.toArray(), control: control ? JSON.parse(control.snapshot()) : null,
           poseInputs: c ? Object.fromEntries(['dt', 't', 'speed', 'strafe', 'phase', 'state', 'alive', 'deathT', 'flinch', 'brace', 'attack', 'yaw'].map(key => [key, c[key]])) : null,
           ...(pose ? { root: { position: a.mesh.position.toArray(), quaternion: a.mesh.quaternion.toArray(), world: a.mesh.matrixWorld.toArray() }, bones: Object.entries(a.bones).map(([name, b]) => ({ name, position: b.position.toArray(), quaternion: b.quaternion.toArray(), world: b.matrixWorld.toArray() })) } : {}) } : null };
     };
@@ -103,10 +114,10 @@ try {
       requestAnimationFrame(tick);
     }; tick();
   });
-  const sample = () => page.evaluate(() => window.__nineQA.read());
+  const sample = () => { assertRunning(); return page.evaluate(() => window.__nineQA.read()); };
   const fresh = s => s.enemy?.alive === true && s.enemy.hp === s.enemy.maxHp && s.player?.health === 100 && s.targets === 1 && s.loot?.coins === 0 && s.loot?.complete === false;
   for (const [kind, coins] of kinds.filter(([k]) => !onlyKind || k === onlyKind)) {
-    await page.selectOption('#arena-opponent', kind); await page.waitForFunction(k => window.__practiceDemo?.arena.activeTargets[0]?.kind === k && !document.querySelector('#arena-opponent').disabled, kind);
+    assertRunning(); await page.selectOption('#arena-opponent', kind); await page.waitForFunction(k => window.__practiceDemo?.arena.activeTargets[0]?.kind === k && !document.querySelector('#arena-opponent').disabled, kind);
     const row = { kind, coins, checks: {}, actions: [], entry: await sample() }; report.enemies.push(row);
     const phase = async name => { row.phase = name; await page.evaluate(p => { window.__nineQA.phase = p; }, `${kind}:${name}`); save(); };
     const screenshot = name => page.screenshot({ path: resolve(out, `${kind}-${name}.jpg`), type: 'jpeg', quality: 78, scale: 'css' });
@@ -123,8 +134,11 @@ try {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + 22, y: y - 18, id: 1 }] });
     await page.waitForTimeout(1000); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     row.afterMove = await sample(); row.checks.realJoystickMovement = Math.hypot(...row.afterMove.playerPosition.map((v, i) => v - beforeMove.playerPosition[i])) > .05;
-    await phase('observe-ai-locomotion'); await place(7, 'AI approach setup only; no enemy movement writes'); row.aiStart = await sample(); await page.waitForTimeout(6000); row.aiEnd = await sample();
-    row.checks.aiLocomotion = Math.hypot(...row.aiEnd.enemy.position.map((v, i) => v - row.aiStart.enemy.position[i])) > .05;
+    await phase('observe-ai-locomotion'); await place(kind === 'tideRootColossus' ? .85 : 7, kind === 'tideRootColossus' ? 'Stationary colossus attack observation, no translation expectation' : 'AI approach setup only; no enemy movement writes'); row.aiStart = await sample(); await page.waitForTimeout(6000); row.aiEnd = await sample();
+    row.observedTranslation = Math.hypot(...row.aiEnd.enemy.position.map((v, i) => v - row.aiStart.enemy.position[i]));
+    row.movementContract = kind === 'tideRootColossus' ? 'Authored colossus.face speed0: stationary AI/attack, NOT locomotion' : 'AI approach must translate';
+    row.checks.livingOpponentClockAdvances = Number.isFinite(row.aiStart.elapsed) && Number.isFinite(row.aiEnd.elapsed) && row.aiEnd.elapsed > row.aiStart.elapsed + .1;
+    if (kind !== 'tideRootColossus') row.checks.aiLocomotion = row.observedTranslation > .05;
     if (mode === 'cycles') {
       await phase('sword-kill'); row.killStart = await retry(); const deadline = Date.now() + 180000; row.attackCount = 0;
       while (Date.now() < deadline) {
@@ -153,6 +167,9 @@ try {
     const trace = await page.evaluate(() => { const q = window.__nineQA, recorded = { frames: q.frames, poses: q.poses, hits: q.hits, inputs: q.inputs, errors: q.errors }; q.frames = []; q.poses = []; q.hits = []; q.inputs = []; q.errors = []; return recorded; });
     writeFileSync(resolve(out, `${kind}-trace.json`), `${JSON.stringify(trace)}\n`, { flag: 'wx' });
     row.frameCount = trace.frames.length; row.cadence = { first: trace.frames[0]?.wall, last: trace.frames.at(-1)?.wall, rafDeltasMs: trace.frames.slice(1).map((s, i) => s.wall - trace.frames[i].wall) };
+    row.checks.noHandledSystemFaults = trace.frames.length > 1 && trace.frames.every(s => s.gameDead === false && s.systems.every(system => !system.observed || (system.on === true && system.faults === 0)));
+    row.checks.trainingArenaObservedRunning = trace.frames.some(s => s.entered && s.systems.some(system => system.id === 'training-arena' && system.observed && system.on && system.faults === 0));
+    if (kind === 'tideRootColossus') row.checks.stationaryAttackObserved = row.checks.livingOpponentClockAdvances && trace.frames.some(s => s.phase === `${kind}:observe-ai-locomotion` && ['windup', 'active', 'recover'].includes(s.enemy?.control?.strike?.phase));
     row.checks.liveClock = trace.frames.length > 1 && trace.frames.every(s => s.clock?.captureFps === null && s.clock?.scale === 1);
     row.checks.sameGameCanvas = trace.frames.length > 1 && trace.frames.every(s => s.sameGame && s.canvas === 1 && s.iframes === 0);
     row.checks.poseWorldEvidence = trace.poses.some(s => s.enemy?.bones?.length > 0 && s.enemy?.poseInputs && s.enemy.root.world.length === 16);
@@ -177,13 +194,13 @@ try {
   report.checks.originalFourProductsRetained = ['mantis', 'conch', 'colossus', 'puffer'].every(id => requests.some(row => row.url === `/${id}-engine/practice-product/shard.json` && row.source === 'retained'));
   report.checks.newFiveProductsOwned = ['bellback', 'pitcher', 'medusa', 'keelmaw', 'iguana'].every(id => requests.some(row => row.url === `/shared-arena/products/${id}/shard.json` && row.source === 'candidate'));
   report.checks.physicsRetained = requests.some(row => row.url === '/mantis-engine/assets/physics/rapier.wasm' && row.source === 'retained');
-  report.checks.noPageErrors = report.errors.length === 0; report.identityAfter = verify(); report.checks.exactBytesUnchanged = true;
+  report.checks.noConsoleErrors = report.consoleErrors.length === 0; report.checks.noPageErrors = report.errors.length === 0; report.identityAfter = verify(); report.checks.exactBytesUnchanged = true;
 } catch (e) { report.fatal = String(e); if (page) { try { const partial = await page.evaluate(() => { const q = window.__nineQA; if (!q) return null; q.recording = false; return { frames: q.frames, poses: q.poses, hits: q.hits, inputs: q.inputs, errors: q.errors }; }); writeFileSync(resolve(out, 'failure-trace.json'), JSON.stringify(partial), { flag: 'wx' }); } catch (captureError) { report.captureError = String(captureError); } } }
 finally {
   try { if (context) { await context.close(); if (page?.video()) { const path = await page.video().path(); const probe = JSON.parse(execFileSync(process.env.FFPROBE_PATH ?? '/usr/bin/ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_read_frames,r_frame_rate,avg_frame_rate,duration:format=duration', '-of', 'json', path], { encoding: 'utf8' })); report.video = { path, bytes: statSync(path).size, sha256: digest(readFileSync(path)), probe }; report.checks.videoFinalized = Number(probe.streams[0]?.nb_read_frames) > 0; } } } catch (e) { report.videoError = String(e); }
   if (browser) await browser.close(); if (server) await new Promise(_resolve => { server.close(() => { _resolve(); }); });
   report.requests = requests;
-  report.endedAt = new Date().toISOString(); report.passed = !report.fatal && !report.videoError && Object.values(report.checks).every(v => v === true) && report.enemies.length === (onlyKind ? 1 : 9) && report.enemies.every(r => Object.values(r.checks).every(v => v === true));
+  report.endedAt = new Date().toISOString(); report.passed = !report.interrupted && !report.fatal && !report.videoError && Object.values(report.checks).every(v => v === true) && report.enemies.length === (onlyKind ? 1 : 9) && report.enemies.every(r => Object.values(r.checks).every(v => v === true));
   report.allNineCompleteCycles = mode === 'cycles' && !onlyKind && report.passed;
   save(); writeFileSync(resolve(out, 'completed-report.json'), `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx' });
   if (!report.passed) process.exitCode = 1; console.log(JSON.stringify({ out, passed: report.passed, allNineCompleteCycles: report.allNineCompleteCycles, fatal: report.fatal }));

@@ -99,8 +99,12 @@ for (const row of snapshot.catalogue) {
   const pins = Object.fromEntries(Object.entries(productFiles).map(([name, hash]) => [`practice-product/${name}`, hash]));
   const indexBytes = readFileSync(safeFile(host, 'practice-product/shard.json'));
   const index = JSON.parse(indexBytes), validation = JSON.parse(readFileSync(safeFile(host, 'practice-product/validation.json')));
-  if (validation.indexHash !== digest(indexBytes) || validation.revision !== revision
-    || sourceReceipt.products.find(entry => entry.id === row.id)?.sourceHash !== index.build.sourceHash) throw new Error('Invalid exact prototype validation receipt');
+  // Historic product verdicts remain bound to their original validator. A changed
+  // runtime revision requires the real current SDK pass below, never relabelling.
+  const originalProduct = sourceReceipt.products.find(entry => entry.id === row.id);
+  if (validation.indexHash !== digest(indexBytes) || validation.revision !== index.build.validator
+    || originalProduct?.originalValidator !== validation.revision
+    || originalProduct.sourceHash !== index.build.sourceHash) throw new Error('Invalid exact historic prototype validation receipt');
   const read = name => {
     const rows = index.files.filter(file => file.name === name);
     if (rows.length !== 1) throw new Error(`Missing or duplicate prototype file: ${name}`);
@@ -231,7 +235,7 @@ const compositionBytes = Buffer.from(`${JSON.stringify(composition, null, 2)}\n`
 writePinnedOutput(reservation, 'served-composition.json', compositionBytes, digest(compositionBytes));
 verifyPinnedOutputs(reservation,copiedPins);
 assertUnchanged(); assertSource(); assertReuse(); retainedCandidateProducts(root, hostRoot);
-const report={schema:'wildshard.prototype-nine.build.v1',admitted:false,localOnly:true,acceptance:ACCEPTANCE,sourceSnapshotSha256:digest(Buffer.from(JSON.stringify(snapshot))),permissionSha256:digest(readFileSync(permissionPath)),delivery:'served-exact-opaque-reuse',sourceReceiptSha256:digest(sourceReceiptBytes),sourceInventorySha256:digest(sourceInventoryBytes),builtAt:new Date().toISOString(),revision,singleRuntime:true,worldPersistence:false,buildPolicy:policy,status:'NOT YET PLAYTESTED',qualityComplete:false,prototypeAcceptance:false,sourceAssets:snapshot.catalogue.map(row=>({id:row.id,metadataPath:row.metadataPath,metadataSha256:row.metadataSha256,payloadPath:row.payloadPath,payloadSha256:row.payloadSha256})),products:entries.map(row=>({id:row.id,candidate:row.preview.candidate,mode:row.preview.mode,sourceHash:row.index.build.sourceHash,originalValidator:row.validation.revision,currentSdkValidation:'passed'}))};
+const report={schema:'wildshard.prototype-nine.build.v1',admitted:false,localOnly:true,acceptance:ACCEPTANCE,sourceSnapshotSha256:digest(Buffer.from(JSON.stringify(snapshot))),permissionSha256:digest(readFileSync(permissionPath)),delivery:'served-exact-opaque-reuse',sourceReceiptSha256:digest(sourceReceiptBytes),sourceInventorySha256:digest(sourceInventoryBytes),builtAt:new Date().toISOString(),revision,singleRuntime:true,worldPersistence:false,buildPolicy:policy,status:'NOT YET PLAYTESTED',qualityComplete:false,prototypeAcceptance:false,sourceAssets:snapshot.catalogue.map(row=>({id:row.id,metadataPath:row.metadataPath,metadataSha256:row.metadataSha256,payloadPath:row.payloadPath,payloadSha256:row.payloadSha256})),products:entries.map(row=>({id:row.id,candidate:row.preview.candidate,mode:row.preview.mode,sourceHash:row.index.build.sourceHash,originalValidator:row.validation.revision,currentSdkValidator:revision,currentSdkValidation:'passed'}))};
 const reportBytes = Buffer.from(`${JSON.stringify(report,null,2)}\n`);
 writePinnedOutput(reservation,'prototype-nine-build.json',reportBytes,digest(reportBytes));
 assertUnchanged();

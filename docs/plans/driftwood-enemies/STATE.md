@@ -1,10 +1,10 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-21 17:10 UTC. Public: 4/9 playable WIP; 0/9 quality-complete.
+Updated 2026-10-21 17:50 UTC. Public: 4/9 playable WIP; 0/9 quality-complete.
 
 LATEST OWNER: Build all nine as playable WIP prototypes now. Simple existing movement/attacks/death/despawn first; bespoke corpse physics and 4/5 polish off critical path. Bellback's five-body/four-joint expansion explicitly APPROVED17:08; do not let it delay first playable prototype. See PROTOTYPE-NINE.md. Earlier automated unapproved-Bellback wording is superseded.
 
-ACTIVE: Product worker builds five compatible model/product adapters under practice/prototype-nine/products. Runtime worker builds opt-in prototype lifecycle in existing practice systems. Root integrates one nine-selector Arena, checkpoints and publishes. Site-source recovery investigated independently. No duplicate writers; heavy lanes serialized.
+ACTIVE: All nine SDK products and one shared runtime build successfully. Actual smoke spawns all9; Back/restart/reload/stores pass. Medusa legLen0 causes NaN grounded gait and disables the shared updater, freezing later enemies. Minimal positive-leg-length integration fix and handled-fault QA are being checked. Colossus is intentionally stationary, not a movement defect. Fresh mounted cycles follow the fix.
 
 PROTOTYPE ACCEPTANCE: Each enemy must really spawn/move/attack/damage/be damaged/die/reward/Retry. Back/change enemy/reload, one Game/canvas and empty persistent stores remain required. Explicit WIP labels. No native-corpse or quality admission implied; no weakened old gates. Preserve all editable models, advanced sources, failures and exact public/fallback hosts.
 
@@ -14,4 +14,4 @@ RETAINED SHARED: Current-four1553 smoke passes all4. Conch QA2 passes33 function
 
 OTHER RETAINED: Keelmaw rigid-held fails unchanged floor gate in4phases; no tuning. Iguana mesh hits/current bounds and10tests retained; Medusa flight/brain/pose44+8tests retained. Old custom-corpse gaps are not prototype prerequisites. Bellback negative studies preserved.
 
-PUBLIC/PROTECTION: Site98 retains Mantis7/Conch4/Colossus2/Puffer70. Remote2602dbba exact verified through XYZ sources/evidence and new convex pin. Site raw-evidence push rejected on memory limit; failed local history intact. Root investigating supported fresh-source recovery, no force/rewrite. Latest owner update17:08. Original references and18approximate sheets remain noncanonical; other16concepts rejected.
+PUBLIC/PROTECTION: Site98 retains Mantis7/Conch4/Colossus2/Puffer70. Remote987f4cb exact verified through prototype runtime/build/served sources. Native Site source recovery succeeded in fresh checkout; failed history intact. No new deployment yet. Latest owner update17:45. Original references and18approximate sheets remain noncanonical; other16concepts rejected.
