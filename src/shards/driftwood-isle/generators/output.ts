@@ -1,5 +1,6 @@
 import { DRIFTWOOD_NATIVE_QUEST } from './nativeQuest';
 import { GULL_DRAW } from './gullDraw';
+import { FISH_DRAW } from './fishDraw';
 import nativeQuestSpots from '../data/spots.generated.json' with { type: 'json' };
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import pageComposition from '../data/questPageComposition.json' with { type: 'json' };
@@ -133,6 +134,7 @@ const placements = emitNamedBlobs([nameBlob('quests/continuation.json', 'json', 
   nameBlob('quests/wake-boss.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WAKE_ENCOUNTER))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: null, seed: 357 }))),
   nameBlob('look/gull-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(GULL_DRAW))),
+  nameBlob('look/fish-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FISH_DRAW))),
   nameBlob('look/creature-looks.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ rows: creatureLookRows, poses: { sailor: sailorClips, crab: crabClips, captain: captainClips } }))),
   nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ clips: monkeyClips, program: RETURN_PROGRAM, perch: mixedPopulation.perch }))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),

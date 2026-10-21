@@ -89,9 +89,13 @@ export interface PosedLayout {
   readonly attributes: readonly [string, string?];
   readonly channels: readonly [readonly [PosedLane, PosedLane, PosedLane, PosedLane], (readonly [PosedLane, PosedLane, PosedLane, PosedLane])?];
   readonly scale?: number;
+  /** turns every instance by this much about +y (a model authored facing the other way) */
+  readonly yaw?: number | undefined;
   readonly glow?: string | undefined;
 }
-interface PosedLibrary { readonly name: string; readonly preload: () => Promise<void>; readonly draw: (capacity: number) => PosedDraw; readonly models: readonly RosterEntry[] }
+interface PosedLibrary { readonly name: string; readonly preload: () => Promise<void>; readonly draw: (capacity: number) => PosedDraw; readonly models: readonly RosterEntry[];
+  /** the loaded library as a flock's look (its own posed draw packs it) */
+  readonly look: () => { readonly name: string; readonly geometry: THREE.BufferGeometry; readonly material: THREE.Material; readonly yaw?: number } }
 interface DrawPose { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly pitch: number; readonly roll: number; readonly scale?: number }
 
 /** Data-driven pose packing shared by free wildlife and platform flock draws.
@@ -130,7 +134,7 @@ export class PosedDraw {
   /** Pack one pose without changing the caller's state or allocating a frame buffer. */
   add(pose: DrawPose): void {
     const lanes = this.lanes;
-    this.posed.add(pose.x, pose.y, pose.z, pose.pitch, pose.yaw, pose.roll, this.row.scale ?? pose.scale ?? 1,
+    this.posed.add(pose.x, pose.y, pose.z, pose.pitch, pose.yaw + (this.row.yaw ?? 0), pose.roll, this.row.scale ?? pose.scale ?? 1,
       lanes[0]?.(pose) ?? 0, lanes[1]?.(pose) ?? 0, lanes[2]?.(pose) ?? 0, lanes[3]?.(pose) ?? 0,
       lanes[4]?.(pose) ?? 0, lanes[5]?.(pose) ?? 0, lanes[6]?.(pose) ?? 0, lanes[7]?.(pose) ?? 0);
   }
@@ -178,6 +182,6 @@ export class PosedDraw {
       if (definition === undefined) throw new Error('Missing posed model definition');
       return live(definition, { copies: model.copies, drawnAs: 'instanced' });
     });
-    return { name: row.name, preload, draw, models };
+    return { name: row.name, preload, draw, models, look: () => ({ name: row.name, geometry: ready().geometry, material: lentLook(row.name), ...(row.yaw === undefined ? {} : { yaw: row.yaw }) }) };
   }
 }

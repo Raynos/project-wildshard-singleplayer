@@ -41,6 +41,7 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
   'look/creature-looks.json': PackedCreatureLooksSchema,
   'look/gull-draw.json': PosedLibrarySchema,
+  'look/fish-draw.json': PosedLibrarySchema,
   'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch }),
   'quests/stall.json': QuestTraderSchema,
   'quests/trader.json': QuestPageInteractionsSchema,

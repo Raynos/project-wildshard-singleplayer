@@ -11,7 +11,7 @@ import { loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/bo
  * budget), then the rope bridge's jointed deck, the island's walkway ramps and the Blender spawn cove over the procedural
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { sites } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -24,9 +24,6 @@ import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { hasLentLook, lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
-import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import SEABED from '../data/seabedLook.json' with { type: 'json' };
-import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
 import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
@@ -132,16 +129,11 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await complete('Trailside');
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
   const bridge = await stage('Rope bridge', () => placeRopeBridge(sky, assembly.bridge, registry));
-  // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
+  // coral, kelp and starfish on the lagoon shelf (what you dive for); its fish school is page life (generators/fishDraw.ts)
   const seabed = await stage('Seabed', () => {
     const mesh = scenes.mesh('reef.mesh'), update = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);
-    const s = REEF_LAYOUT.school, swim = SEABED.swim, centre = { x: s.x, y: s.y, z: s.z };
-    const school = createAmbientFlock({ ...swim, count: s.n, wheeling: { ...swim.wheeling, centre: { x: s.x, z: s.z }, radius: s.r, altitude: [s.y, s.y] } },
-      { name: SEABED.fishMesh, geometry: fixedDraw('reefFish').copy().rotateY(Math.PI), material: lowPolyLookMaterial(sky, 'still') });
-    const tint = new THREE.Color();
-    for (const [i, fish] of s.fish.entries()) school.mesh.setColorAt(i, tint.setHex(fish.colour));
-    game.scene.add(mesh, school.mesh);
-    return { mesh, fish: school.mesh, tick: (dt: number) => { update(); school.update(dt, centre); } };
+    game.scene.add(mesh);
+    return { mesh, tick: () => { update(); } };
   });
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
   const palmSpecs = [...foliage.palms.specs];
@@ -188,7 +180,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   palmSpecs.push(...fixed.foliage.islandPalms);
   await slice(total, total, 'Baked island');
   gpuOnlyTrees([pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,
-    wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, seabed.fish, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
+    wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
   return { pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }

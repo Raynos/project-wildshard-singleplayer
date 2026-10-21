@@ -4,7 +4,7 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parsePageLife } from '../src/format/pageLife';
 import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
 import { PAGE_LIFE } from '../src/shards/pine-hollow/generators/pageLife';
-import { PAGE_LIFE as coast } from '../src/shards/driftwood-isle/generators/pageLife';
+import { PAGE_LIFE as coastLife } from '../src/shards/driftwood-isle/generators/pageLife';
 import { AmbientFlockDraw } from '../src/sdk/looks/ambientFlock';
 import { installPageLife } from '../src/sdk/looks/pageLife';
 import type { ShardContext, GameServices } from '../src/game/plugin/context';
@@ -61,6 +61,8 @@ test('hollow admission retains the original floor-plane distance and strict vert
   }
 });
 
+// the coast's borrowed gull flock (its reef fish school draws from its own product library, read through a real product)
+const coast = parsePageLife({ ...coastLife, flocks: coastLife.flocks.filter(row => row.library === undefined) });
 test('page owner preserves the real coast flock and an independent marsh draw', async () => {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));

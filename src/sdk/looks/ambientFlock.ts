@@ -19,7 +19,7 @@ import { PosedDraw } from './posedInstances';
 
 interface Point { x: number; y: number; z: number }
 /** the flock's look: the authored bird and the posed material (its vertex stage reads `attributes`) */
-export interface AmbientFlockLook { readonly name: string; readonly geometry: THREE.BufferGeometry; readonly material: THREE.Material; readonly castShadow?: boolean }
+export interface AmbientFlockLook { readonly name: string; readonly geometry: THREE.BufferGeometry; readonly material: THREE.Material; readonly castShadow?: boolean; readonly yaw?: number }
 
 /** A flock row and its one posed draw. */
 export class AmbientFlockDraw {
@@ -34,7 +34,7 @@ export class AmbientFlockDraw {
     this.row = row;
     this.flock = new AmbientGroup(row, perches);
     const [, second] = row.attributes;
-    this.posed = new PosedDraw({ name: look.name, attributes: second === null ? [row.attributes[0]] : [row.attributes[0], second], channels: row.channels[1] === null ? [row.channels[0]] : [row.channels[0], row.channels[1]], scale: row.scale }, row.count, look.geometry, look.material);
+    this.posed = new PosedDraw({ name: look.name, attributes: second === null ? [row.attributes[0]] : [row.attributes[0], second], channels: row.channels[1] === null ? [row.channels[0]] : [row.channels[0], row.channels[1]], scale: row.scale, yaw: look.yaw }, row.count, look.geometry, look.material);
     this.mesh = this.posed.mesh;
     this.mesh.castShadow = look.castShadow ?? false; this.mesh.receiveShadow = false;
     this.group.add(this.mesh);

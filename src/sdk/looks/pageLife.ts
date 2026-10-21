@@ -25,6 +25,8 @@ import { parsePageLife, type PageLifeRows } from '@wildshard/format/pageLife';
 import { CrowdRoster, CrowdWeaponTarget, ForagerTargets } from '@wildshard/game/shardfile/crowdRuntime';
 import { type AmbientFlockDraw, createAmbientFlock, installAmbientFlock } from './ambientFlock';
 import { PosedDraw } from './posedInstances';
+import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
+import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 
 interface Pose {kind:number;x:number;y:number;z:number;yaw:number;pitch:number;roll:number;scale:number;a0:number;a1:number;a2:number;a3:number;b1:number;b2:number}
 const newPose=(kind:number):Pose=>({kind,x:0,y:-999,z:0,yaw:0,pitch:0,roll:0,scale:1,a0:0,a1:0,a2:0,a3:0,b1:0,b2:0});
@@ -63,6 +65,13 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
     } else if (entry.packed) {
       if (wild === null) throw new Error('Packed ambient group needs its draw');
       const group = new AmbientGroup(entry.row, entry.perches); groups.set(entry.id, group); packed.push(group);
+    } else if (entry.library !== undefined) {
+      const own = await PosedDraw.library(ctx.product, entry.library); await own.preload();
+      // as a graph on every tier (a boot pass with graph materials off lends its classic fallback)
+      lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [own.name]));
+      const draw = createAmbientFlock(entry.row, own.look(), entry.perches), tint = new THREE.Color();
+      for (const [i, hex] of (entry.tints ?? []).entries()) draw.mesh.setColorAt(i, tint.setHex(hex));
+      game.scene.add(draw.group); installAmbientFlock(ctx, draw, entry.anchor === undefined ? player : { position: entry.anchor }); groups.set(entry.id, draw.flock);
     } else {
       if (wild === null) throw new Error('Ambient guide needs its model library');
       const draw = createAmbientFlock(entry.row, wild.look, entry.perches);
