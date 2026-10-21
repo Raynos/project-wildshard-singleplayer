@@ -8,6 +8,7 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
 import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
+import { WorldEntrySchema } from '@wildshard/format/worldEntry';
 import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { PageLifeSchema } from '@wildshard/format/pageLife';
 import { BuildingLifeRowsSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
@@ -30,6 +31,7 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'actors/page-life.json': PageLifeSchema,
   'world/cover-composition.json': CoverCompositionSchema,
   'world/entry-landings.json': EntryLandingsSchema,
+  'world/entry.json': WorldEntrySchema,
   'people/catalogue.json': FigureCatalogueSchema,
   'sim/returns.json': PageReturnRowsSchema,
   'models/world-scenes.json': WorldSceneModelsSchema,
