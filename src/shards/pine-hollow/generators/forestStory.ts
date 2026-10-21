@@ -2,7 +2,6 @@ import * as v from 'valibot';
 import { contractCatalogue } from './contractRows';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { nameBlob } from '@wildshard/sdk/blobs';
-import type { ForestStoryRows } from '@wildshard/sdk/quest/forestStoryRows';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import loadout from '../data/loadout.json' with { type: 'json' };
 import policy from '../data/forestStory.json' with { type: 'json' };
@@ -42,12 +41,12 @@ const finishToasts = Object.fromEntries([...new Set([...contracts.rows.flatMap(r
 }));
 const boardRows = { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } };
 parseContractBoardPage({ contracts, panel: PINE_PANELS.board, store: policy.store, ...boardRows });
-export const FOREST_STORY: ForestStoryRows = {
+export const FOREST_STORY = {
   ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime',
   board: boardRows,
   door: { id: `cabin-${mill.index + 1}-door`, flag: policy.door.flag },
   signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2 })),
-  cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
+  cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: triple([zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]]),
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow', audio: 'ambience', shot: 'zipline' },
   mover: { id: 'pine.canoe', mesh: 'quest-rides.canoe', binding: { systemId: 'pine.movers', bindings: [{ id: 'pine.canoe', target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }] }, rest: 'heroes.canoe.root' },
   secret: { ...scenes.sites.hollow, mid: triple(scenes.sites.hollow.mid), mouths: scenes.sites.hollow.mouths.map(triple), scene: 'quests.hollow-log' },

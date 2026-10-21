@@ -14,7 +14,8 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactables, InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { Interactable, InteractTable, QuestPlace, QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
 import { perfLap } from '@wildshard/engine/core/perfLap';
-import { ITEMS } from '../bag/itemCatalog';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { ITEMS, isItemId } from '../bag/itemCatalog';
 import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../plugin/context';
 import { QuestViews, bindQuestPageInteractions, type QuestPageInteractions } from '../plugin/ui';
@@ -155,6 +156,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
   if (talks.people.length === 0) throw new Error('Quest requires its declared speaker');
   facets.people = talks.people;
   adventure.spine = { ...chapter, get places() { return chapter.places; }, get dialogue() { return talks.dialogue(); } };
+  scope.onDispose(() => { chapter.objective.root.remove(); ui.disposeLegacy(() => { talks.dialogue().dispose(); }); });
   entry.deaths({ effects: rows.deaths, moves: rows.deathMoves, order: rows.deathOrder });
   if (rows.deathKill !== undefined) entry.deaths({ effects: [{ effects: [{ kind: 'kill' }] }], order: rows.deathKill });
   adventure.trader = entry.trader({ rows: traderStall, ...(rows.trader === undefined ? {} : { resources: { ...rows.trader, before: rows.systems.before,
@@ -222,6 +224,18 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
   } }, rows.systems.places);
   ctx.debug.expose(rows.debug, { content, flags, kit, spine: adventure.spine, places, finale: adventure.finale,
     ecology: adventure.ecology, complete: adventure.complete, trader: adventure.trader, ...facets });
+  const goto = (id: string): void => {
+    const jump = rows.jumps[id]; if (jump === undefined) return;
+    flags.reset(); for (const flag of jump.flags) flags.set(flag);
+    world.player.spawn(jump.x, jump.z, Math.atan2(-(jump.look.x - jump.x), -(jump.look.z - jump.z)));
+    if (jump.height !== undefined) world.player.position.y = terrainHeight(jump.height.x, jump.height.z) + jump.height.up;
+    if (jump.phase !== undefined && world.sky.dayNight !== null) void world.sky.dayNight.set(jump.phase);
+  };
+  if (rows.browser !== undefined) ui.exposeBrowser(rows.browser, { flags, people: talks.people, zip: cable, cables: cable.cables, movers: facets.motion,
+    board: facets.board?.state ?? null, kit, goto, jump: goto, dawn: (): void => { director?.request('dawn.request'); }, night: (): void => { director?.run('debug.night'); },
+    give: (id: string, n = 1): void => { if (isItemId(id)) h.inventory.add(id, n); },
+    openBoard: (): void => { facets.board?.panel().open(); }, openTrade: (): void => { facets.shop?.().open(); } });
+  ctx.debug.expose(`harness.quest.${ctx.manifest.slug}`, () => flags.all.slice().sort());
   if (rows.presentation?.mapPois === true) chapter.publishMap({ tally: true });
   if (rows.map !== undefined) installPageMap(ctx, rows.map, chapter);
   if (rows.presentation?.flags === true) page.shell.hooks.adventureFlags = () => flags.all.slice().sort();

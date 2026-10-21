@@ -48,6 +48,10 @@ export const QuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest pa
     ends: v.exactOptional(v.strictObject({ a: id, b: id, anchor: id, publish: id })) }),
   /** discovered places: authored rows, else the discovery file's places */
   places: v.exactOptional(v.pipe(v.array(v.strictObject({ id, label: id, x: n, z: n, r: n, quiet: v.boolean() })), v.maxLength(256))),
+  /** debug jumps (window `browser`): reset the flags to a beat's, stand at (x, z) facing `look`, optionally lift and set the hour */
+  jumps: v.optional(v.pipe(v.record(id, v.strictObject({ x: n, z: n, flags: v.pipe(v.array(id), v.maxLength(256)), look: v.object({ x: n, z: n }),
+    height: v.exactOptional(v.strictObject({ x: n, z: n, up: n })), phase: v.exactOptional(n) })), v.maxEntries(32)), {}),
+  browser: v.exactOptional(id),
   boss: v.exactOptional(v.strictObject({ pool: place, reward: id })),
   sway: v.exactOptional(v.strictObject({ piece: id, height: n, ease: n, threshold: n, rate: n, speed: n, rollHz: n, roll: n, dipHz: n, dip: n })),
   guideHeight: v.exactOptional(n), placeInterval: n,

@@ -56,7 +56,7 @@ export class PineLandmarks {
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins: floor.cabins, props: floor.props, streams: floor.streams, pineLife: life });
   }
 
-  update(dt: number, t: number): void { this.chapter?.present(dt); this.crags?.cave.presentFrame(t, this.sky); }
+  update(dt: number, t: number): void { this.chapter?.present(dt, t); this.crags?.cave.presentFrame(t, this.sky); }
 }
 
 /**

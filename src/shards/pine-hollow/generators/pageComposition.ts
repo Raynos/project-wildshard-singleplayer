@@ -38,7 +38,7 @@ export const PINE_QUEST_PAGE = v.parse(QuestPageSchema, {
     feedback: { weapons: 'enabled', start: { sound: 'lever', at: at(cable.launch) }, end: { sound: 'plate', at: at(cable.landing) }, arrival: cable.arrival,
       shot: { audio: cable.audio, family: cable.shot, at: at(cable.top) } } } },
   places: story.map.pois.map(p => ({ id: p.id, label: p.name, x: p.x, z: p.z, r: p.r, quiet: true })),
-  placeInterval: 0.5,
+  placeInterval: 0.5, jumps: story.jumps, browser: story.debug.browser,
   systems: { kit: 'quest.kit', kitAfter: ['engine.compendium.installCompendium'], talks: 'quest', cable: 'quest.cable', places: 'quest.places', before },
 });
 /** the page's published rows (game shard install reads them as Driftwood's: quests/page-composition.json) */

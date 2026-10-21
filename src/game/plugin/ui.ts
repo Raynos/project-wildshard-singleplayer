@@ -194,11 +194,10 @@ export class QuestViews {
     this.resident.onDispose(() => { this.cancelTimer(timer); });
     return hold;
   }
-  /** The retained browser observer leaves with its cell; false preserves the original resident assignment. */
-  exposeBrowser(name: string, observer: object): boolean {
-    if (!this.retained) return false;
+  /** The retained browser observer leaves with its cell; a resident one is assigned on the window for the scope. */
+  exposeBrowser(name: string, observer: object): void {
+    if (!this.retained) { this.resident.expose(window, name, observer); return; }
     installEnteredRuntimeObserver(this.context, name, observer);
-    return true;
   }
   /** The resident objective/caption keep their exact DOM insertion positions while hidden on the road. */
   retainRoot(root: HTMLElement, reset: () => void): void {
