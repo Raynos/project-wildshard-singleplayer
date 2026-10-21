@@ -36,15 +36,19 @@ try {
   await page.waitForFunction(()=>window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady,undefined,{timeout:240000});
   const initialOverlay=page.locator('.ws-grid-reveal');if(await initialOverlay.isVisible())await initialOverlay.click();
   await page.waitForFunction(()=>!document.querySelector('#hud')?.classList.contains('ws-grid-revealing'),undefined,{timeout:30000});
+  const initialState=await page.evaluate(()=>window.__wildshard.shard.grid.state());
+  const targets=slugs.map(slug=>({slug,instance:initialState.cells.find(row=>row.slug===slug)?.instance}));
   if(arg('plots','1')==='1') {
-   const plots=await page.evaluate(()=>window.__wildshard.shard.grid.state().cells.filter(row=>row.slug.startsWith('open-plot-')).map(row=>row.slug));
-   if(plots.length!==15||new Set(plots).size!==15)throw new Error('Expected all fifteen authored plot products');
-   slugs.push(...plots.filter(slug=>!slugs.includes(slug)));
+   const plots=initialState.cells.filter(row=>row.slug.startsWith('open-plot-'));
+   if(plots.length!==15||new Set(plots.map(row=>row.instance)).size!==15)throw new Error('Expected all fifteen authored plot cells');
+   targets.push(...plots.map(row=>({slug:row.slug,instance:row.instance})));
   }
- for(const slug of slugs) {
+ for(const target of targets) {
+  const {slug,instance}=target;
+  const caseName=`${slug}--${instance}`;
   errors=[];
   const run={sha:pin,when:new Date().toISOString(),surface:'chromium',cohort:'grid',complete:false,glObserver:'off',
-   profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},cases:[],processSamples:[]};
+   instance,profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},cases:[],processSamples:[]};
   const scene={shard:'grid',complete:false,errors,routes:[],rows:[]};run.cases.push(scene);receipt.runs.push(run);
   const dump=async phase=>{
    const events=[];
@@ -67,7 +71,7 @@ try {
    if(meta.tier!=='phone'||meta.clock!=='live'||meta.renderScale!==2)throw new Error(`Invalid phone configuration: ${JSON.stringify(meta)}`);
    run.observedProfile=meta;
    const state=await page.evaluate(()=>window.__wildshard.shard.grid.state());
-   const cell=state.cells.find(row=>row.slug===slug);if(!cell)throw new Error(`No grid cell: ${slug}`);
+   const cell=state.cells.find(row=>row.instance===instance);if(!cell)throw new Error(`No grid cell: ${slug}`);
    const identity=await page.evaluate(gridFloorDocumentIdentity);
    await page.evaluate(`(${installReadinessProbe.toString()})(${JSON.stringify(cell.instance)},${JSON.stringify(slug)},(${ownedResidencyBytes.toString()}))`);
    const plans=gridFloorPlans(state,'cell',{cell:cell.instance,roadApproach:true});
@@ -96,7 +100,7 @@ try {
     caption.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#08131f;color:white;padding:8px;font:12px sans-serif;text-align:center;pointer-events:none';
     document.body.append(caption);
    },`${pin.slice(0,7)} · ${slug} entered · iPhone 16 Pro · CPU 4x`);
-   await page.screenshot({path:resolvePath(out,`${slug}.jpg`),type:'jpeg',quality:70,scale:'css'});
+   await page.screenshot({path:resolvePath(out,`${caseName}.jpg`),type:'jpeg',quality:70,scale:'css'});
    const road=entry.waypoints[0];
    const leave=await gridFloorDeclaredPlan(page,entered.after,{name:`${slug}-leave`,from:cell.instance,to:null,movement:'road-hover',
     waypoints:[road],requiredResidents:[],finishOnArrival:false});
@@ -113,9 +117,9 @@ try {
    if(scene.rows.some(row=>!row.stallPass)||!scene.complete)failed=true;
   }catch(error){errors.push(String(error));failed=true;}
   finally {
-   writeFileSync(resolvePath(out,`${slug}.json`),JSON.stringify(run,null,2));
+   writeFileSync(resolvePath(out,`${caseName}.json`),JSON.stringify(run,null,2));
    writeFileSync(resolvePath(out,'receipt.json'),JSON.stringify(receipt,null,2));
-   console.info(JSON.stringify({slug,complete:run.complete,errors,memory:run.memory,rows:scene.rows}));
+   console.info(JSON.stringify({slug,instance,complete:run.complete,errors,memory:run.memory,rows:scene.rows}));
   }
  }
 }finally{await browser.close();}
