@@ -20,10 +20,12 @@ for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`
   }
   if (mode.developer) {
     expect(assembly.cells.filter(row => Math.abs(row.cell[0]) <= 1 && Math.abs(row.cell[1]) <= 1)).toHaveLength(8);
-    const outer = assembly.plots.filter(row => Math.abs(row.cell[0]) === 2 || Math.abs(row.cell[1]) === 2);
-    expect(outer).toHaveLength(14);
-    // G529: the 14 billboard plots show each of the 14 ideas once
-    expect(outer.map(row => row.billboard).sort()).toEqual([...PLOT_IDEAS].sort());
+    const ring = (cell: readonly [number, number]): boolean => Math.abs(cell[0]) === 2 || Math.abs(cell[1]) === 2;
+    // SF88g: behind Developer an idea's plot may be its open-plots shardfile (instance open-plot-<idea>) in place of the billboard
+    const outer = assembly.plots.filter(row => ring(row.cell)), shardfiles = assembly.cells.filter(row => ring(row.cell) && row.instance.startsWith('open-plot-'));
+    expect(outer.length + shardfiles.length).toBe(14);
+    // G529: the 14 outer plots show each of the 14 ideas once
+    expect([...outer.map(row => row.billboard), ...shardfiles.map(row => row.instance.slice('open-plot-'.length))].sort()).toEqual([...PLOT_IDEAS].sort());
   }
   const road = roadLayout(assembly, slug => slug);
   expect(road.segments).toHaveLength(60);
