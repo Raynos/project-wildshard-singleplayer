@@ -10,7 +10,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | # | Task | Refs | Taken |
 |---|---|---|---|
 | O1 | Nalati C7 drawing remainder to zero: mountedFigure (66) + pastureView (27), charged by G520; onto approved riding/view hosts with a real second shard, or into Nalati AS + data rows; then C7 locks closed | G530, G520, G518 | sp-o5 19:03 |
-| O2 | Nine look/render.ts (222) onto look-graph / post-chain rows; an AO/uniform-link host only with a real second shard | G513, G533 step 6 | |
+| O2 | Nine look/render.ts (222) onto look-graph / post-chain rows; an AO/uniform-link host only with a real second shard | G513, G533 step 6 | sp-o4 20:20 |
 | O3 | Driftwood looks: runtime/looks/creatureLooks.ts, captain looks and coat as look graphs, toon/day-sky exports as rows | G532 research D5/D6 | |
 | O4 | G536 menu hero: three real in-engine captures of the whole 5x5 at the menu hero framing, phone tier, into art/grid/round-28-hero/, SHA to wildshard-new (only once the outer band is filled) | G536 | |
 | O5 | Nalati remaining view code (world/view.ts and look tails) toward 5 % custom | G533 step 6 | |
