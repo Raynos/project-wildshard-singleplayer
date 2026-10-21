@@ -99,4 +99,7 @@ schema validation plus cache-index and other queued work; factoring
 products with a paint before each validator; `4313fc6482` coalesces index
 metadata in the existing flush window, preserving durable blob writes.
 All 23 focused descriptor/cache/residency/download tests and strict lint
-pass. One new source batch and served proof run on exact `4313fc6482`.
+pass. Source batch `4313fc6482` passed in 786.1 s. Its served proof uses
+recorder v2 (`6324155e85`): wait ages cannot count as progress, while real
+byte/cache counters, dependencies and completed units do. The serialized
+recorder check and strict lint pass. Phase 1 remains open for those receipts.
