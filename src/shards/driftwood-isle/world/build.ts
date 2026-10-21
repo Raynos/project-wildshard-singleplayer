@@ -1,6 +1,7 @@
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { driftwoodRows, driftwoodProduct, driftwoodTierShadows } from '../runtime/boot/rows';
+import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
+import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
 import { TIER, buildTier } from '@wildshard/engine/core/tier';
 import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
@@ -12,7 +13,7 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  */
 import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { sites, fencePost, signpost, plankStep, shoreBoulder, smallRock, entryDeck } from '../models/catalogue';
+import { sites, fencePost, signpost, plankStep, shoreBoulder, entryDeck } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -75,6 +76,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
+  const entry = WorldEntry.admit(await driftwoodProduct().json<unknown>('world/entry.json'), { scenes, root: game.scene, tier: game.tier });
   const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
   const sea = { level: LOWERED_SEA };
@@ -168,11 +170,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await slice();
   if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
   const foliage = fixed.foliage.tiers[game.tier];
-  const bushes = await stages.build('Bushes', async () => {
-    const placed = await scenes.place(`foliage.bushes.${game.tier}`), mesh = scenes.mesh('hibiscus.mesh');
-    mesh.name = placed.model; mesh.castShadow = driftwoodTierShadows().bush; mesh.userData['islandDressingClipped'] = true;
-    return { placed, mesh };
-  }, { objects: value => [value.mesh] });
+  const bushes = await stages.build('Bushes', async () => { await entry.run('bushes'); return { placed: entry.placed(`foliage.bushes.${game.tier}`), mesh: scenes.mesh('hibiscus.mesh') }; });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = await stages.build('Gulls', () => createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
@@ -212,9 +210,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   cove.placed.push(await scenes.place('cove.reef'));
   cutTerrain(world.physics, structuredClone(coveRows.native.cuts)); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('Cove');
-  const palms = { placed: await scenes.place(`foliage.palms.${game.tier}`), mesh: scenes.mesh('palms.mesh'), update: updateWind };
-  palms.mesh.name = palms.placed.model; palms.mesh.userData['islandDressingClipped'] = true;
-  game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
+  await entry.run('palms'); // The registry borrows the compacted batch and its native boxes.
+  const palms = { placed: entry.placed(`foliage.palms.${game.tier}`), mesh: scenes.mesh('palms.mesh'), update: updateWind };
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
   const coverComposition = await driftwoodProduct().json<CoverComposition>('world/cover-composition.json');
   const coverPlaced = await scenes.place(coverComposition.placement);
@@ -243,8 +240,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   for (const [id, c] of [[looks.cover, reach.cover], [looks.coverBig, reach.big]] as const) {
     setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...islandCover.groundRect]); setLentTexture(id, 'groundMap', islandCover.ground);
   }
-  await scenes.place('rocks.small.copies'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
-  const smallRocks = scenes.mesh('rocks.small'); smallRocks.name = smallRock.id; game.scene.add(smallRocks);
+  await entry.run('smallRocks'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
+  const smallRocks = scenes.mesh('rocks.small');
   palmSpecs.push(...fixed.foliage.islandPalms);
   await slice(total, total, 'Baked island');
   gpuOnlyTrees([ocean.group, pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,

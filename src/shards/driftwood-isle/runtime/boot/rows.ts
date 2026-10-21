@@ -1,4 +1,3 @@
-import { buildTier } from '@wildshard/engine/core/tier';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { CustomSections } from '../productSections.generated.d.ts';
 
@@ -23,7 +22,6 @@ export function driftwoodRows<K extends RowSection>(name: K): CustomSections[K] 
 }
 
 /** Only live view shadow choices remain; geometry counts and dimensions compile offline. */
-export function driftwoodTierShadows(): { bush: boolean; boulder: boolean } { return driftwoodRows('custom/fixedLayouts').shadowTiers[buildTier()]; }
 
 /** Native boot consumers borrow the same session-admitted named bytes as their sections. */
 export function driftwoodProduct(): ShardProduct {

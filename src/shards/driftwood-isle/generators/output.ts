@@ -29,6 +29,7 @@ import entryLandings from '../data/entryFloors.generated.json' with { type: 'jso
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
+import { driftwoodWorldEntry } from './worldEntry';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { QUEST_SERVICES } from './questServiceEffects';
 import { TOON_LOOK } from './toonPresentation';
@@ -102,6 +103,7 @@ const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(enco
 const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page })))), nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/place-sets.json', 'json', new TextEncoder().encode(JSON.stringify(parse(PlaceSetsSchema, placeSets)))),
+  nameBlob('world/entry.json', 'json', new TextEncoder().encode(JSON.stringify(driftwoodWorldEntry()))),
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
   nameBlob('world/entry-landings.json', 'json', new TextEncoder().encode(JSON.stringify(parse(EntryLandingsSchema, entryLandings)))),
 

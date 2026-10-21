@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { NATIVE_VIEW } from '../src/shards/driftwood-isle/generators/nativeView';
 import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/generators/tiers';
-import { driftwoodTierShadows, driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
-import { _buildAs } from '../src/engine/core/tier';
+import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { driftwoodWorldEntry } from '../src/shards/driftwood-isle/generators/worldEntry';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
@@ -52,14 +52,13 @@ test('canonical palette key order retains authored rock geometry', () => {
 
 test('admitted shadow tiers retain both original view choices', () => {
   admitDriftwoodFixtureRows();
-  const rows = driftwoodRows('custom/fixedLayouts').shadowTiers;
-  try {
-    for (const tier of ['phone','desktop'] as const) {
-      _buildAs(tier);
-      expect(driftwoodTierShadows()).toBe(rows[tier]);
-      expect(driftwoodTierShadows()).toEqual({bush:ISLAND_KNOBS[tier].bushShadows,boulder:ISLAND_KNOBS[tier].boulderShadows});
-    }
-  } finally { _buildAs(null); }
+  const rows = driftwoodRows('custom/fixedLayouts').shadowTiers, bushes = driftwoodWorldEntry().blocks['bushes'] ?? [];
+  for (const tier of ['phone','desktop'] as const) {
+    expect(rows[tier]).toEqual({bush:ISLAND_KNOBS[tier].bushShadows,boulder:ISLAND_KNOBS[tier].boulderShadows});
+    // the world entry's hibiscus draw casts its shadow as the tier's knob says
+    const draw = bushes.find(row => row.kind === 'attach' && row.when?.tier === tier);
+    expect(draw?.kind === 'attach' ? draw.castShadow : undefined).toBe(ISLAND_KNOBS[tier].bushShadows);
+  }
 });
 
 test('all named fixed draws retain the assembler identities and admitted blobs', () => {
