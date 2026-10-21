@@ -142,7 +142,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   w.game.onUpdate((_dt, t) => { if (t - placeT > rows.placeInterval) { placeT = t; places.update(w.player.position.x, w.player.position.z); } }, rows.systems.places);
   ctx.debug.expose(rows.debug, { content, flags, kit, spine: adventure.spine, places, finale: adventure.finale,
     ecology: adventure.ecology, complete: adventure.complete, trader: adventure.trader });
-  if (rows.presentation?.mapPois === true) h.fullMap.setPois(places.mapPois, { tally: true });
+  if (rows.presentation?.mapPois === true) chapter.publishMap({ tally: true });
   if (rows.presentation?.flags === true) page.shell.hooks.adventureFlags = () => flags.all.slice().sort();
   if (rows.presentation?.hints !== undefined && h.firstHints !== undefined)
     installQuestHints(ctx, await ctx.product.json(rows.presentation.hints), new Map([['quest', { hints: h.firstHints, animals: h.animals, player: page.world.player, ui: ctx.app.ui }]]));

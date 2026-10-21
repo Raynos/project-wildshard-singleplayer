@@ -9524,6 +9524,11 @@ completion progress directly. Rows may supply world marker coordinates
 keyed by the authored placement, a completion projection and its remaining
 objective label. `chapter.discover(rows)` registers the ordered discovery
 catalogue at its original phase, after late placement anchors exist.
+`chapter.publishMap(rows)` lends that same live discovery and quest-marker
+projection to the entered full map. Data selects tally/decluttering, an
+optional unknown-place label and full or short marker labels; it adds no
+discovery flags, quest cursor or polling clock. Call it once, after discovery,
+at the composition's original map-registration phase.
 The optional anchor coordinate table stays owned by the
 existing placement resolver, so late zipline anchors remain live data.
 Unknown rows, missing placements, unbound quests and disposed entries

@@ -10,7 +10,6 @@ import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
-import type { MapPoi } from '@wildshard/engine/ui/Map';
 import { test } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -209,11 +208,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const leadPuffs = new DomePuffs(game.scene, new THREE.Color(...stag.puffs.color), stag.puffs.count), spawnPuffs = new DomePuffs(game.scene, new THREE.Color(...thralls.puffs.color), thralls.puffs.count);
   ctx.scope.onDispose(() => { leadPuffs.dispose(); spawnPuffs.dispose(); });
 
-  const liveMarkers = (): { label: string; x: number; z: number; short: string }[] => quest.markers().map((m) => ({ label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));
-  h.fullMap.setPois((): MapPoi[] => [
-    ...rows.map.pois.map((p): MapPoi => (flags.has(`seen:${p.id}`) ? { x: p.x, z: p.z, label: p.name, kind: 'place' } : { x: p.x, z: p.z, label: '?', kind: 'unknown' })),
-    ...liveMarkers().map((m): MapPoi => ({ x: m.x, z: m.z, label: m.label, kind: 'quest' })),
-  ], { declutter: true });
+  presentation.publishMap({ declutter: true, unknownLabel: '?', markerLabels: 'full' });
   const placeNames = new Set(rows.map.pois.map((p) => p.name.toUpperCase()));
   h.fullMap.setZones(rows.map.zones.filter((zn) => !placeNames.has(zn.label)));
   h.fullMap.setFeatures({ trees: h.trees, roofs: h.cabins.roofs });

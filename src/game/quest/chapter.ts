@@ -46,6 +46,8 @@ const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
 const discoverySchema = v.pipe(v.array(v.strictObject({ id: v.string(), label: v.string(), x: finite, z: finite,
   r: v.pipe(finite, v.minValue(0)), quiet: v.exactOptional(v.boolean()) })), v.maxLength(64));
+const mapSchema = v.strictObject({ declutter: v.exactOptional(v.boolean()), tally: v.exactOptional(v.boolean()),
+  unknownLabel: v.exactOptional(v.pipe(v.string(), v.maxLength(256))), markerLabels: v.optional(v.picklist(['full', 'short']), 'short') });
 const schema = v.strictObject({
   placements: v.exactOptional(v.record(v.string(), point)),
   completion: v.exactOptional(v.boolean()),
@@ -74,6 +76,8 @@ export interface QuestChapter {
   readonly objective: ObjectiveLine;
   readonly places: Places | null;
   readonly discover: (rows: unknown) => Places;
+  /** Publish this chapter's live discovery and marker owners to the entered full map. */
+  readonly publishMap: (rows: unknown) => void;
   readonly chip: ReturnType<typeof presentQuestStory>['chip'];
   readonly markers: () => LiveMarker[];
 }
@@ -331,6 +335,23 @@ function buildQuestChapter(ctx: QuestChapterContext, storyInput: unknown, input:
       open: () => { entered?.game.runtime?.play?.audio.weaponSwap(); },
       ...(persistence === null ? {} : { feat: persistence.feat }), fullMap, toast, sting, ...(completeStory === null ? {} : options) });
   let places: Places | null = completeStory === null && 'places' in presentation ? presentation.places : null;
+  let mapPublished = false;
+  const publishMap = (mapInput: unknown): void => {
+    if (!isJsonData(mapInput)) throw new Error('Quest map requires JSON rows');
+    const policy = v.parse(mapSchema, mapInput), map = entered?.game.runtime?.play?.fullMap, points = places;
+    if (ctx.scope.disposed || map === undefined || points === null) throw new Error('Quest map requires its entered discovery owner');
+    if (mapPublished) throw new Error('Quest map already published');
+    map.setPois(() => {
+      const pins = points.mapPois();
+      if (policy.unknownLabel === undefined && policy.markerLabels === 'short') return pins;
+      return pins.map(pin => {
+        const projected = { x: pin.x, z: pin.z, kind: pin.kind,
+          label: pin.kind === 'unknown' ? policy.unknownLabel ?? pin.label : pin.label };
+        return policy.markerLabels === 'short' && pin.short !== undefined ? Object.assign(projected, { short: pin.short }) : projected;
+      });
+    }, { ...(policy.declutter === undefined ? {} : { declutter: policy.declutter }), ...(policy.tally === undefined ? {} : { tally: policy.tally }) });
+    mapPublished = true;
+  };
   const discover = (catalogue: unknown): Places => {
     if (places !== null) throw new Error('Quest discovery is already installed');
     places = placesWithDiscovery(v.parse(discoverySchema, catalogue), quest.flags, text => { play.hud.toast(text); }, markers);
@@ -366,7 +387,7 @@ function buildQuestChapter(ctx: QuestChapterContext, storyInput: unknown, input:
     return presentation.dialogue();
   }, talk: personId => { if ('talk' in presentation) presentation.talk(personId); },
     update: (dt, player) => { if ('dialogue' in presentation) presentation.update(dt, player); },
-    installFeats: () => { if ('installFeats' in presentation) presentation.installFeats(); }, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, markers: completeStory === null && 'markers' in presentation ? presentation.markers : markers };
+    installFeats: () => { if ('installFeats' in presentation) presentation.installFeats(); }, chip: presentation.chip, objective: presentation.chip.line, get places() { return places; }, discover, publishMap, markers: completeStory === null && 'markers' in presentation ? presentation.markers : markers };
   publishBoundChapter(ctx.scope, story.quest.id, chapter);
   return chapter;
 }
