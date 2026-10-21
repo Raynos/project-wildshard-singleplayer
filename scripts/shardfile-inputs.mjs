@@ -147,21 +147,26 @@ export function installInputRecorder() {
   syncBuiltinESMExports();
 }
 /** Bundler resolution can select a newly added higher-priority relative file.
- * @param {string} id @param {string|undefined} importer */
-export function recordResolution(id, importer) {
+ * @param {string} id @param {string|undefined} importer @param {{execution?:boolean}} [options] */
+export function recordResolution(id, importer, options={}) {
   if (!id.startsWith('.') || importer === undefined || !isAbsolute(importer)) return;
   const at = resolve(dirname(importer.split('?')[0]),id.split('?')[0]);
-  for (const suffix of ['', '.ts','.tsx','.mts','.js','.jsx','.mjs','.json','/package.json','/index.ts','/index.tsx','/index.mts','/index.js','/index.jsx','/index.mjs','/index.json']) note('F',at+suffix);
+  for (const suffix of ['', '.ts','.tsx','.mts','.js','.jsx','.mjs','.json','/package.json','/index.ts','/index.tsx','/index.mts','/index.js','/index.jsx','/index.mjs','/index.json']) note(options.execution===true&&code.test(at+suffix)?'M':'F',at+suffix);
 }
 /** Record resolved inputs before the native bundler reads them.
- * @param {string} id */
-export function recordModuleInput(id) { if (isAbsolute(id)) note('F',id.split('?')[0]); }
-/** @param {unknown} result */
-export function recordBundle(result) {
+ * @param {string} id @param {{execution?:boolean}} [options] */
+export function recordModuleInput(id,options={}) {
+  if(!isAbsolute(id))return;
+  const file=id.split('?')[0];
+  if(options.execution===true)modules.add(file);
+  note(options.execution===true&&code.test(file)?'M':'F',file);
+}
+/** @param {unknown} result @param {{execution?:boolean}} [options] */
+export function recordBundle(result,options={}) {
   const scope = inputScope(); if (scope === undefined) return;
   scope.bundles++;
   for (const build of Array.isArray(result) ? result : [result]) if (build !== null && typeof build === 'object' && 'output' in build && Array.isArray(build.output)) {
-    for (const chunk of build.output) if (chunk.type === 'chunk') for (const id of chunk.moduleIds ?? Object.keys(chunk.modules ?? {})) if (typeof id === 'string' && isAbsolute(id)) note('F',id.split('?')[0]);
+    for (const chunk of build.output) if (chunk.type === 'chunk') for (const id of chunk.moduleIds ?? Object.keys(chunk.modules ?? {})) if (typeof id === 'string')recordModuleInput(id,options);
   }
 }
 /** A successful, complete compiler writes its receipt after checking read stability.
@@ -236,14 +241,16 @@ export function productToolchainKey(root,memo) {
 }
 
 /** Native plugin callbacks cross an async boundary; bind the product scope at
- * plugin creation rather than assuming Rolldown preserves AsyncLocalStorage. */
-export function inputRecorderPlugin() {
+ * plugin creation rather than assuming Rolldown preserves AsyncLocalStorage.
+ * Execution mode is only for the trusted compiler bundle; product/runtime
+ * bundles retain byte-exact source. @param {{execution?:boolean}} [options] */
+export function inputRecorderPlugin(options={}) {
   const scope = scopes.getStore();
   return {name:'product-input-recorder',enforce:/** @type {const} */ ('pre'),
     /** @param {string} id @param {string|undefined} importer */
-    resolveId(id,importer) { if (scope !== undefined) scopes.run(scope,()=>recordResolution(id,importer)); return null; },
+    resolveId(id,importer) { if (scope !== undefined) scopes.run(scope,()=>recordResolution(id,importer,options)); return null; },
     /** @param {string} id */
-    load(id) { if (scope !== undefined) scopes.run(scope,()=>recordModuleInput(id)); return null; },
+    load(id) { if (scope !== undefined) scopes.run(scope,()=>recordModuleInput(id,options)); return null; },
   };
 }
 

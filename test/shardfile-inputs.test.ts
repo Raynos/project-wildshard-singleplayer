@@ -9,9 +9,10 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture subprocess runtime.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
+import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, inputRecorderPlugin, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
+import {build as buildCompiler} from 'vite';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -125,4 +126,17 @@ it.each(['execution','source','function-text'])('keeps %s compiler dependencies 
   writeFileSync(compiler,initial.replace('initial documentation','additional compiler documentation'));
   if(mode==='execution')expect(key()).toBe(before);else expect(key()).toBeUndefined();
   writeFileSync(compiler,initial.replace('return 1','return 2'));expect(key()).toBeUndefined();
+});
+
+it.each([true,false])('keeps native compiler execution %s separate from raw runtime bytes',async execution=>{
+  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
+  const before='/** compiler docs */ export const compile=()=>1;';writeFileSync(compiler,before);
+  await captureProductInputs(root,receipt,async()=>{
+    const result=await buildCompiler({root,configFile:false,publicDir:false,logLevel:'silent',plugins:[inputRecorderPlugin({execution})],build:{write:false,minify:false,lib:{entry:compiler,formats:['es'],fileName:'compiler'}}});
+    recordBundle(result,{execution});
+  });
+  const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),initial=key();expect(initial).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(compiler,before.replace('compiler docs','changed compiler docs'));
+  if(execution)expect(key()).toBe(initial);else expect(key()).toBeUndefined();
+  writeFileSync(compiler,before.replace('()=>1','()=>2'));expect(key()).toBeUndefined();
 });
