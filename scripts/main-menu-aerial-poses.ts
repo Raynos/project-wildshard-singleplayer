@@ -78,6 +78,8 @@ export interface LandscapeHeroPose {
   readonly aspect?: 'square' | 'landscape';
   /** G343: the cell the eye stands over; the capture enters it first so it draws its own runtime, not a placeholder */
   readonly over?: { readonly instance: string; readonly slug: string; readonly stand: { readonly x: number; readonly z: number } };
+  /** G536: a capture-time far plane for this shot only (the whole 5 × 5 lies farther than the game's own); absent = the game's */
+  readonly farMetres?: number;
 }
 
 /** One shot aimed exactly at `target` from `headingDegrees` round it, `distance` metres away on the ground, `height` up. */
@@ -242,6 +244,31 @@ export function round6HeroPlan(): ReturnType<typeof round5HeroPlan> {
       poses.push({ ...aimedPose(target, placed, { id: `${aspect === 'square' ? 'SQ' : 'LS'}-NE-${variant}`, name: `Above Nalati's far edge toward Driftwood, ${label}`,
         headingDegrees, height, distance: Math.round(span * reach + half), aspect, fovDegrees: HERO_1X_FOV[aspect] }), over });
     }
+  }
+  return { ...round5, poses };
+}
+
+/**
+ * G536 (Jake: "If the 5x5 grid is live, we have to retake this hero image in the game"): the whole 5 × 5 (the eleven
+ * shard cells and the fourteen billboard plots, ±2 pitches round Driftwood) in the portrait centre band, at the phone-1x
+ * square lens. Three candidates aimed at Driftwood's centre: `A` round 6's side (east, over Nalati and Ink-cel), an
+ * oblique that keeps a strip of sky; `B` from Pine's side, steep and map-like; `C` low over template-2's
+ * corner, the grid receding to the horizon. The player stays on round 5's road; every cell keeps its shipped tier.
+ * The eye has to stand 1.5–3 km from the cells to hold all 25 at 62°, so the engine's distance fog pales them.
+ */
+export function grid5x5HeroPlan(): ReturnType<typeof round5HeroPlan> {
+  const round5 = round5HeroPlan(), grid = new GridAssembly({ developer: true, devserver: false });
+  const driftwood = grid.cells.find(c => c.slug === 'driftwood-isle');
+  if (driftwood === undefined) throw new Error('The 5 × 5 hero is aimed at Driftwood');
+  const target = { x: driftwood.origin.x, y: 0, z: driftwood.origin.z };
+  const poses: LandscapeHeroPose[] = [];
+  for (const [id, label, headingDegrees, height, distance] of [
+    ['A', 'from the east over Nalati and Ink-cel, oblique with sky', 70, 1350, 2600],
+    ['B', 'from Pine’s side, steep and map-like', 0, 2300, 1500],
+    ['C', 'low over the template-2 corner, receding', 45, 600, 2600],
+  ] as const) {
+    const pose = aimedPose(target, grid.cells, { id, name: `The whole 5 × 5, ${label}`, headingDegrees, height, distance, aspect: 'square', fovDegrees: HERO_1X_FOV.square });
+    poses.push({ ...pose, farMetres: Math.ceil(Math.hypot(height, distance) + 3 * grid.pitch) });
   }
   return { ...round5, poses };
 }
