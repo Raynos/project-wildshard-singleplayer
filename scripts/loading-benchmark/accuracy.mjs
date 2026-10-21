@@ -84,7 +84,12 @@ try {
     writeFileSync(resolve(out, `${path}.json`), JSON.stringify(receipt, null, 2));
     console.info(JSON.stringify({ path, status, networkBytes, displayedNetworkBytes: receipt.displayedNetworkBytes,
       stageSeconds: receipt.stageSeconds, clockSeconds: receipt.clockSeconds, unaccountedSeconds: receipt.unaccountedSeconds, maxDetailGapMs: receipt.maxDetailGapMs, errors }));
-    if (status === 'passed') await page.locator('.ws-load').waitFor({ state: 'detached', timeout: 10_000 });
+    if (status === 'passed') {
+      const frame = await page.evaluate(() => window.__wildshard?.world?.game.renderer.info.render.frame ?? -1);
+      await page.locator('.ws-load').waitFor({ state: 'detached', timeout: 10_000 });
+      await page.waitForFunction(previous => (window.__wildshard?.world?.game.renderer.info.render.frame ?? -1) > previous,
+        frame, { timeout: 10_000 });
+    }
     if (!desktop) {
       await page.evaluate(accuracyCaption, `${pin.slice(0, 7)} · ${collected.accuracy.final?.path ?? `${path} request`} · iPhone 16 Pro · CPU ${cpu}x`);
       await page.screenshot({ path: resolve(out, `${path}-${status === 'passed' ? 'first-frame' : 'stalled'}.jpg`), type: 'jpeg', quality: 75, scale: 'css' });

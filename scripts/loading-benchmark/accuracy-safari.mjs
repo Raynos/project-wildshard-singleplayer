@@ -117,6 +117,10 @@ try {
     const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
       ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };
     try {
+      if (errors.length === 0) {
+        const frame = await inspector.evaluate('window.__wildshard?.world?.game.renderer.info.render.frame ?? -1');
+        await wait(`document.querySelector('.ws-load') === null && (window.__wildshard?.world?.game.renderer.info.render.frame ?? -1) > ${frame}`, 10000);
+      }
       const caption = `${pin.slice(0, 7)} · ${collected?.accuracy?.final?.path ?? `${path} request`} · iPhone 16 Pro · Simulator`;
       await inspector.evaluate(`(${accuracyCaption.toString()})(${JSON.stringify(caption)})`);
     } catch (error) { errors.push(`Capture caption: ${String(error)}`); }
