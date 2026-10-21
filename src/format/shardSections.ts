@@ -55,7 +55,22 @@ export const TilesSchema = v.pipe(v.array(tile), v.maxLength(tileCount));
 export const LibrarySchema = ShardReferencesSchema;
 /** Ordered admitted critical roots. */
 export const CriticalSchema = ShardReferencesSchema;
-/** Nullable far proxy references, bounds and conservative costs. */
-export const FarSchema = v.nullable(v.strictObject({ files: ShardReferencesSchema, bounds: CellBoundsSchema, ...costs }));
+/**
+ * G539: the far tier's camera-facing impostor, baked with the proxy (`@wildshard/sdk/bake/farImpostor`): `views` renders
+ * round the cell (view k seen from compass azimuth k × 360° / views), `cols` × rows tiles of `tile` pixels in one image
+ * file, each tile `width` metres wide about the cell centre and spanning `bottom` … `top` metres; texels hold the lit
+ * colour sRGB-encoded over `range` (linear = decoded × range) and a 1-bit coverage alpha. Its costs are in the far row's.
+ */
+export const FarImpostorSchema = v.strictObject({
+  file: ShardReferenceSchema, views: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16)), cols: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16)),
+  tile: v.tuple([v.pipe(v.number(), v.integer(), v.minValue(8), v.maxValue(1024)), v.pipe(v.number(), v.integer(), v.minValue(8), v.maxValue(1024))]),
+  width: v.pipe(ShardFiniteSchema, v.minValue(1), v.maxValue(4 * CHUNK_HALF)), bottom: v.pipe(ShardFiniteSchema, v.minValue(-CELL_BELOW)), top: v.pipe(ShardFiniteSchema, v.maxValue(CELL_ABOVE)),
+  range: v.pipe(ShardFiniteSchema, v.minValue(0.01), v.maxValue(16)),
+});
+/** One far impostor row. */
+export type FarImpostor = v.InferOutput<typeof FarImpostorSchema>;
+/** Nullable far proxy references, bounds and conservative costs (its impostor's file is one of `files`). */
+export const FarSchema = v.nullable(v.pipe(v.strictObject({ files: ShardReferencesSchema, bounds: CellBoundsSchema, impostor: v.exactOptional(FarImpostorSchema), ...costs }),
+  v.check((far) => far.impostor === undefined || (far.files.includes(far.impostor.file) && far.impostor.bottom < far.impostor.top), 'far impostor file and span')));
 /** Finite local player position and yaw; its default remains in root composition. */
 export const SpawnSchema = v.strictObject({ x: ShardFiniteSchema, y: ShardFiniteSchema, z: ShardFiniteSchema, yaw: ShardFiniteSchema });

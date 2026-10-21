@@ -71,6 +71,8 @@
     "./quest/elitePage": "./quest/elitePage.ts",
     "./ambient/flock": "./ambient/flock.ts",
     "./grid/pageMode": "./grid/pageMode.ts",
+    "./grid/farView": "./grid/farView.ts",
+    "./grid/frameModel": "./grid/frameModel.ts",
     "./shard/declaredEntry": "./shard/declaredEntry.ts",
     "./population/spawnScript": "./population/spawnScript.ts",
     "./quest/contracts": "./quest/contracts.ts",

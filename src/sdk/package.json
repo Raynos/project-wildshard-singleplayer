@@ -42,6 +42,7 @@
     "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/nearPlaceholder": "./bake/nearPlaceholder.ts",
     "./bake/placeholders": "./bake/placeholders.ts",
+    "./bake/farImpostor": "./bake/farImpostor.ts",
     "./bake/kinds": "./bake/kinds.ts",
     "./bake/texture": "./bake/texture.ts",
     "./bake/export": "./bake/export.ts",

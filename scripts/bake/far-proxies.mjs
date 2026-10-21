@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM SF23: deterministically regenerate every grid shard's far proxy (public/assets/baked/<slug>/far.glb +
-// far.json) from its height grid and its own far look; prints each proxy's resident MB, wire KB and triangles.
+// far.json, and G539's camera-facing impostor far-impostor.png) from its height grid and its own far look; prints each
+// proxy's resident MB, wire KB and triangles.
 // G348: the shards are the ones that declare a far row in their own `data/placeholder.json` (look, and a grid or model
 // parts when their land is not a height field); the baker is the SDK's (`@wildshard/sdk/bake/placeholders`), the same
 // one `wildshard build` runs for any shardfile. No shard table lives here.
@@ -35,9 +36,9 @@ try {
     const look = await exported(dir, declared.look), parts = declared.parts === undefined ? [] : await (await exported(dir, declared.parts))(tools);
     const ground = declared.grid === undefined ? placeholderGridBytes(repo, dir, slug) : null;
     const grid = ground === null ? (await exported(dir, declared.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
-    const { manifest, bytes } = sdk.bakeFarPlaceholder(grid, look, parts), out = join(repo, 'public/assets/baked', slug);
+    const { manifest, bytes, impostor } = await sdk.bakeFarPlaceholder(grid, look, parts), out = join(repo, 'public/assets/baked', slug);
     mkdirSync(out, { recursive: true });
-    writeFileSync(join(out, 'far.glb'), bytes); writeFileSync(join(out, 'far.json'), sdk.placeholderJson(manifest));
+    writeFileSync(join(out, 'far.glb'), bytes); writeFileSync(join(out, 'far-impostor.png'), impostor); writeFileSync(join(out, 'far.json'), sdk.placeholderJson(manifest));
     const { far } = manifest;
     console.log(`${slug.padEnd(18)} resident ${((far.decoded + far.gpu) / 1e6).toFixed(3)} MB  wire ${(far.compressed / 1e3).toFixed(0)} KB  ${far.triangles} tris  ${far.draws} draw`);
   }

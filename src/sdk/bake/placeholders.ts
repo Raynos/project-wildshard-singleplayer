@@ -2,7 +2,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder, MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
-import { Color, Matrix4, MeshStandardMaterial, Quaternion, SRGBColorSpace, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Color, Matrix4, MeshStandardMaterial, Quaternion, SRGBColorSpace, Vector3 } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
@@ -14,6 +14,7 @@ import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type Pl
 import { parseGlb } from '../assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { staticGlb } from './glb';
+import { bakeFarImpostor } from './farImpostor';
 import { nearGroundReducer, nearPlaceholderParts, type NearPlaceholderOptions, type NearPlaceholderReport, type NearPrototype } from './nearPlaceholder';
 
 /**
@@ -117,8 +118,8 @@ export async function placeholderModelTools(root: string, scale = 1): Promise<{
 
 /** One immutable file row of a baked placeholder GLB. */
 export type PlaceholderFile = Shardfile['files'][number];
-/** far.json: the shardfile `far` row, the GLB's file row and the runtime look. */
-export interface FarManifest { far: NonNullable<Shardfile['far']>; file: PlaceholderFile; look: PlaceholderLookRuntime }
+/** far.json: the shardfile `far` row, the GLB's file row, its impostor image's file row (G539) and the runtime look. */
+export interface FarManifest { far: NonNullable<Shardfile['far']>; file: PlaceholderFile; impostorFile: PlaceholderFile; look: PlaceholderLookRuntime }
 /** near.json: the near GLB's cost row (with its content and forest counts), its file row and the runtime look. */
 export interface NearManifest {
   near: { files: string[]; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; content: number; trees?: number; treeTriangles?: number;
@@ -137,14 +138,21 @@ function oneDraw(geometry: ReturnType<typeof placeholderGeometry>, name: string)
   return staticGlb([{ geometry, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true }), castShadow: false }], name);
 }
 
-/** Bake one far proxy: a single-draw GLB, refused over any §3.2 far cap. */
-export function bakeFarPlaceholder(grid: PlaceholderGrid, look: PlaceholderLook, parts: readonly PlaceholderPart[] = []): { manifest: FarManifest; bytes: Uint8Array } {
+/**
+ * Bake one far proxy (a single-draw GLB) and its impostor (G539: the camera-facing tile atlas the far tier draws past the
+ * proxy's band, `bakeFarImpostor`), refused over any §3.2 far cap. Only one of the two draws at a time; both are resident.
+ */
+export async function bakeFarPlaceholder(grid: PlaceholderGrid, look: PlaceholderLook, parts: readonly PlaceholderPart[] = []): Promise<{ manifest: FarManifest; bytes: Uint8Array; impostor: Uint8Array }> {
   const geometry = placeholderGeometry(grid, look, parts);
   const bytes = oneDraw(geometry, 'far-proxy'), file = fileRow(bytes);
   geometry.computeBoundingBox(); const box = geometry.boundingBox; if (box === null) throw new Error('Missing far bounds');
-  const far: NonNullable<Shardfile['far']> = { bounds: { min: box.min.toArray(), max: box.max.toArray() }, files: [file.hash], compressed: file.compressed, decoded: file.decoded, gpu: file.gpu, triangles: file.triangles, draws: file.draws };
+  const baked = await bakeFarImpostor(geometry, look.family);
+  // its pixels decode, pack to RGBA 5551 and upload once, then go: only the texels stay resident
+  const impostorFile: PlaceholderFile = { hash: hashImmutableBytes(baked.png), kind: 'image', compressed: baked.png.length, decoded: 0, gpu: baked.gpu, triangles: 0, draws: 0, dependencies: [], critical: false };
+  const far: NonNullable<Shardfile['far']> = { bounds: { min: box.min.toArray(), max: box.max.toArray() }, files: [file.hash, impostorFile.hash], impostor: { file: impostorFile.hash, ...baked.row },
+    compressed: file.compressed + impostorFile.compressed, decoded: file.decoded, gpu: file.gpu + impostorFile.gpu, triangles: file.triangles, draws: file.draws };
   if (far.decoded + far.gpu > CONTENT_CAPS.far.resident || far.compressed > CONTENT_CAPS.far.compressed || far.triangles > CONTENT_CAPS.far.triangles || far.draws > CONTENT_CAPS.far.draws) throw new Error(`Far proxy exceeds content caps: ${JSON.stringify(far)}`);
-  return { manifest: { far, file, look: { family: look.family, haze: look.haze, ...(look.grade === undefined ? {} : { grade: look.grade }), ...(look.band === undefined ? {} : { band: look.band }) } }, bytes };
+  return { manifest: { far, file, impostorFile, look: { family: look.family, haze: look.haze, ...(look.grade === undefined ? {} : { grade: look.grade }), ...(look.band === undefined ? {} : { band: look.band }) } }, bytes, impostor: baked.png };
 }
 
 /** A baked `terrain.bin` (the WSTR lattice) as a placeholder grid. */
@@ -457,12 +465,51 @@ export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<strin
 }
 
 /**
+ * G539: an authored mesh world's own far GLB (`props.far`) gets its impostor too, baked from the GLB's meshes (world
+ * positions and vertex colours, else each material's base colour); unchanged when it has one, or when the pair would
+ * breach a §3.2 far cap (the proxy then draws at every distance).
+ */
+async function authoredFarImpostor(shard: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
+  const far = shard.far, ref = shard.props?.far, glb = ref === null || ref === undefined ? undefined : assets.get(ref);
+  if (far === null || far.impostor !== undefined || glb === undefined) return shard;
+  await MeshoptDecoder.ready;
+  const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder }).readBinary(glb);
+  const pos: number[] = [], col: number[] = [], idx: number[] = [], e = [0, 0, 0, 0];
+  for (const node of doc.getRoot().listNodes()) {
+    const mesh = node.getMesh(); if (mesh === null) continue;
+    const m = node.getWorldMatrix();
+    for (const prim of mesh.listPrimitives()) {
+      const p = prim.getAttribute('POSITION'), c = prim.getAttribute('COLOR_0'), index = prim.getIndices(), factor = prim.getMaterial()?.getBaseColorFactor() ?? [1, 1, 1, 1];
+      if (p === null) continue;
+      const base = pos.length / 3;
+      for (let i = 0; i < p.getCount(); i++) {
+        p.getElement(i, e);
+        const [x = 0, y = 0, z = 0] = e;
+        pos.push(m[0] * x + m[4] * y + m[8] * z + m[12], m[1] * x + m[5] * y + m[9] * z + m[13], m[2] * x + m[6] * y + m[10] * z + m[14]);
+        if (c === null) col.push(factor[0], factor[1], factor[2]); else { c.getElement(i, e); col.push((e[0] ?? 1) * factor[0], (e[1] ?? 1) * factor[1], (e[2] ?? 1) * factor[2]); }
+      }
+      const n = index === null ? p.getCount() : index.getCount();
+      for (let k = 0; k < n; k++) idx.push(base + (index === null ? k : index.getScalar(k)));
+    }
+  }
+  if (idx.length < 3) return shard;
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(pos), 3)).setAttribute('color', new BufferAttribute(new Float32Array(col), 3)).setIndex(idx);
+  const baked = await bakeFarImpostor(geometry, 'pbr');
+  const file: PlaceholderFile = { hash: hashImmutableBytes(baked.png), kind: 'image', compressed: baked.png.length, decoded: 0, gpu: baked.gpu, triangles: 0, draws: 0, dependencies: [], critical: false };
+  const next = { ...far, files: [...far.files, file.hash], impostor: { file: file.hash, ...baked.row }, compressed: far.compressed + file.compressed, gpu: far.gpu + file.gpu };
+  if (next.decoded + next.gpu > CONTENT_CAPS.far.resident || next.compressed > CONTENT_CAPS.far.compressed) return shard;
+  assets.set(file.hash, baked.png);
+  return { ...shard, files: [...shard.files, file], far: next };
+}
+
+/**
  * G348: `wildshard build`'s placeholders for any shardfile with a terrain: its far proxy when it ships none, and its near
  * placeholder (one render-only GLB in `near.content`) when it declares none, both from its own terrain collider, its own
  * coarse tiles' meshes and its own look. A shard without a height field (an authored mesh world ships its own far) keeps
  * its far and gets its near view from its coarse tiles over a flat floor (G380). New files are added to `assets` and the returned shardfile.
  */
-export async function projectPlaceholders(shard: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
+export async function projectPlaceholders(project: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
+  const shard = await authoredFarImpostor(project, assets);
   const collider = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
   if (shard.terrain === null && shard.near === undefined) {
     // G380: a world with no height field (an authored mesh world, which ships its own far) gets its near view from its
@@ -478,8 +525,9 @@ export async function projectPlaceholders(shard: Shardfile, assets: Map<string, 
   const grid = colliderGrid(collider), look = shardfileLook(shard), files = [...shard.files];
   let far = shard.far, near = shard.near;
   if (far === null) {
-    const baked = bakeFarPlaceholder(grid, look);
-    far = baked.manifest.far; files.push(baked.manifest.file); assets.set(baked.manifest.file.hash, baked.bytes);
+    const baked = await bakeFarPlaceholder(grid, look);
+    far = baked.manifest.far; files.push(baked.manifest.file, baked.manifest.impostorFile);
+    assets.set(baked.manifest.file.hash, baked.bytes); assets.set(baked.manifest.impostorFile.hash, baked.impostor);
   }
   if (near === undefined) {
     const baked = await bakeNearPlaceholder({ grid, look, prototypes: await shardfileWorld(shard, assets), residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
