@@ -11048,3 +11048,37 @@ in the entered scope, then prepares the existing finish catalogue and menu.
 Packed URLs, labels, indices and the existing bag/finish owners are unchanged;
 leaving removes the source registrations. The feature selects no TS export,
 property path or callback and installs no additional gameplay clock.
+
+### Entered quest continuation (G571)
+
+`game/quest/continuation.installQuestContinuation(ctx, rows)` reads
+`format/questContinuation` rows over exact entered `quest` and `collection`
+loans. Rows identify the existing keepsake section, cosmetic catalogue keys,
+loot presentation and shop file. The host preserves the shared model context,
+entered specimen scope, item effects, keepsake binding and loot ordering.
+Leaving during either awaited product read prevents later construction or
+bindings. Existing quest, collection, inventory and save owners remain live.
+
+### Native body-script assembly capability (G571)
+
+`sdk/headlessAssembly` accepts one top-level install expression
+`{ $native: 'native.body-scripts' }` after real static-ground admission and
+before quest props. It reads the admitted `sim/scripts` and `sim/bodies`
+sections through the installation's concrete product and host frame. Prepare,
+constant, nested, unknown and duplicate native capabilities refuse at admission.
+The existing body post/decision/pre order, adapters and quest-envelope
+continuation remain unchanged; no new clock or save owner is registered.
+
+`engine/physics/query.hasStaticGround(physics)` checks actual enabled,
+non-sensor static colliders tagged as ground. It is an admission query that
+requires no simulation tick or query-pipeline update. Disabled, sensor,
+dynamic and untagged colliders establish no ground readiness.
+
+### Stateless herd shelter projections (G571)
+
+`game/population/shelter.HerdShelter` and `installNativeHerdShelter` consume
+admitted stateless `shelterStep` and `shelterGoal` projections at at most ten Hz.
+The existing roster, weather, step and live herd own actors and movement;
+the guest decides wet/dry conditions, hold expiry and goals. The original
+v1 shelter envelope and owner ids remain unchanged. No durable guest
+continuation or additional simulation clock is introduced.
