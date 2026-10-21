@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { ReturnProgramSchema } from './namedJsonContracts';
+import { parsePanelDefinition, type PanelDefinition } from './panelTemplate';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(400));
 const integer = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
@@ -52,4 +53,30 @@ export function parseContractCatalogue(input: unknown): ContractCatalogue {
     || new Set(rows.eliteIds).size !== rows.eliteIds.length || rows.eliteIds.length !== Object.keys(rows.elites).length
     || rows.eliteIds.some(id => rows.elites[id] === undefined)) throw new Error('Invalid contract catalogue references');
   return rows;
+}
+
+const pageId = v.pipe(v.string(), v.minLength(1), v.maxLength(256)), finite = v.pipe(v.number(), v.finite());
+const caption = v.pipe(v.string(), v.maxLength(2048));
+/** Build admission for the existing board panel and feedback data. Panel bytes
+ * are also admitted by the shared panel product before page construction. */
+export const ContractBoardPageSchema = v.strictObject({ contracts: ContractCatalogueSchema, panel: v.unknown(),
+  store: v.strictObject({ slot: pageId, state: pageId }),
+  at: v.strictObject({ x: finite, z: finite, yaw: finite }),
+  label: caption, filled: caption, height: finite, radius: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
+  ammunition: v.exactOptional(v.strictObject({ loadout: pageId, kind: pageId })),
+  finishes: v.record(pageId, caption),
+  notices: v.strictObject({ claimed: caption, filled: caption, progress: caption }),
+});
+/** Already-admitted catalogue, panel and entered-service identities. */
+export type ContractBoardPageRows = Omit<v.InferOutput<typeof ContractBoardPageSchema>, 'panel'> & { readonly panel: PanelDefinition };
+/** Validate author rows before publishing; runtime keeps only live owner checks. */
+export function parseContractBoardPage(input: unknown): ContractBoardPageRows {
+  if (!isJsonData(input)) throw new Error('Quest board requires JSON rows');
+  const rows = v.parse(ContractBoardPageSchema, input), contracts = parseContractCatalogue(rows.contracts), panel = parsePanelDefinition(rows.panel);
+  for (const [key, allowed] of [['claimed', ['claimed', 'streak']], ['filled', ['goal']], ['progress', ['goal', 'have', 'need']]] as const)
+    for (const token of rows.notices[key].matchAll(/\{([^{}]+)\}/gu)) if (!allowed.some(name => name === token[1])) throw new Error('Unknown board notice field');
+  for (const key of [...contracts.rows.flatMap(row => row.reward.skin === undefined ? [] : [row.reward.skin]), ...contracts.milestones.map(row => row.skin)])
+    if (!Object.hasOwn(rows.finishes, key)) throw new Error('Quest board lacks finish feedback');
+  if (rows.ammunition === undefined && contracts.rows.some(row => row.reward.bolts > 0)) throw new Error('Quest board requires its declared ammunition owner');
+  return { ...rows, contracts, panel };
 }
