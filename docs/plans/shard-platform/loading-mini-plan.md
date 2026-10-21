@@ -22,7 +22,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **L5 — source `7d02e8806a`, shader slice `19c10b2c0c`, plot slice `ccecd7678f`, reuse `e0b3064e09`, schema yield `760a8c9846`, audio counts `21a07a76d5`; final cadence pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
 | **L6 — source `977a0d1303`; proof pending** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
 | **L7 — framework `04027abce7`, measured table `8dd0eeaa0e`, actual-unit fractions `09bdb72199`; final proof pending** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
-| **L8 — harness `88a252c39a`; exact-build receipts pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
+| **L8 — harness `88a252c39a`, real crossing proof `abd2957d63`; exact-build receipts pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
 
 ## Phase 2: fast (after Phase 1 is accepted)
 
@@ -70,3 +70,12 @@ to duplicate `plotCellColliders` generation in `GridSession.attach`.
 Desktop profiles had 198 / 454 ms detail gaps; the earlier 4.35 / 2.33 s
 first-frame pauses did not recur. All remain diagnostic receipts: final
 acceptance must include the newer worker accounting and collider reuse.
+
+The `47f83b6aca` six-case proof is retained in
+[`diagnostic-47f83b6`](../../../progress/loading/g543/diagnostic-47f83b6/README.md)
+(`98b14708b3`): five entries pass, phone grid fails cadence at 1073.3 ms;
+every byte error is within 5% and every stage sum balances. Schema checks
+now yield between completed validations. Batch `0c1f42bb2f` passed types,
+lint and 1246 tests but failed Nalati's inventory fixture; `9e2f4db11c`
+repairs its generator input. The replacement batch and served proof use
+`90efdf502c`, including the repair and all current accuracy source.
