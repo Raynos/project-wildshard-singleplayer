@@ -12,7 +12,7 @@
  * cell's clock ticks in whole seconds), never per frame. Each live slot is admitted before allocation and freed outside
  * the existing nearest-cell/distance selection; hidden canvases never remain as an unbounded cache.
  */
-import { CanvasTexture, ColorManagement, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, Texture, Vector2, type Object3D } from 'three';
+import { CanvasTexture, ColorManagement, Frustum, Group, Matrix4, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, Texture, Vector2, type Camera, type Object3D } from 'three';
 import { frameBudgetSpent, presenting } from '@wildshard/engine/core/framePacing';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { PlatformRenderAdmissionError, type PlatformRenderAdmission } from './renderResidency';
@@ -316,6 +316,9 @@ export function installCellScreens(input: {
   /** Reupload changed canvases after paint under the existing shared build budget; absent, retain the ordinary draw upload.
    * With `copyTextureToTexture` and `state`, a clock-only change uploads just SCREEN_CLOCK (sp-o105). */
   readonly renderer?: Pick<Renderer, 'initTexture'> & { readonly copyTextureToTexture?: Renderer['copyTextureToTexture']; readonly state?: Pick<Renderer['state'], 'pixelStorei'> } & { readonly getContext: () => Pick<WebGL2RenderingContext, 'isContextLost'> };
+  /** The camera that draws the screens: one outside its view paints and uploads nothing until it is seen again (O14).
+   *  Absent, every screen in range repaints. */
+  readonly camera?: Camera;
 }): { step: () => void; state: () => CellScreensState } {
   const { cells, ports, wall, time } = input, count = input.slots ?? 3, byInstance = new Map(cells.map((cell) => [cell.instance, cell]));
   // Four plane vertices: position, normal and UV, plus six uint16 indices, retained on both CPU and GPU.
@@ -403,6 +406,14 @@ export function installCellScreens(input: {
       else { m.position.set(cell.x + s.along, y, cell.z + side * (wall - SETBACK)); m.rotation.set(0, side > 0 ? 0 : Math.PI, 0); }
       m.updateMatrix();
     };
+    // O14: a canvas re-upload costs ~5 ms on the Simulator (a missed vsync at 30 fps); Nine Dragon's road entry made ~100
+    // for screens behind or beside the camera. Last frame's camera matrices are close enough for a whole-screen test.
+    const frustum = new Frustum(), viewProjection = new Matrix4();
+    const seen = (mesh: Mesh): boolean => {
+      const camera = input.camera; if (camera === undefined) return true;
+      mesh.updateWorldMatrix(true, false);
+      return frustum.setFromProjectionMatrix(viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)).intersectsObject(mesh);
+    };
     const step = (): void => {
       if (ticks++ % REFRESH === 0) snapshot = ports.read();
       const feet = ports.feet(), now = time();
@@ -441,14 +452,19 @@ export function installCellScreens(input: {
         s.mesh.visible = s.ready;
         const last = s.inputs, due = s.stale && now - s.painted >= FULL_EVERY;
         if (!due && last?.state === state && last.elapsedS === frame.elapsedS && last.near === near && last.art === (picture !== null)) continue;
-        s.inputs = { state, elapsedS: frame.elapsedS, near, art: picture !== null };
-        // the near layout paints no clock; the full layout's clock alone repaints and uploads only its rectangle
-        const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(near ? nearScreenFacts(screen) : { ...screen, clock: '' })}`;
-        if (s.context === null) continue;
-        const shape = `${state.status}${key.slice(0, 2)}`, held = shape === s.shape && now - s.painted < FULL_EVERY;
-        if (key !== s.key && !held) { s.key = key; s.clock = screen.clock; s.shape = shape; s.painted = now; s.stale = false; drawCellScreen(s.context, screen, picture, near); s.upload('full'); draws++; }
-        else if (key !== s.key) s.stale = true;
-        if (!near && screen.clock !== s.clock) { s.clock = screen.clock; s.upload(drawCellScreenClock(s.context, screen, picture) ? 'clock' : 'full'); draws++; }
+        const inputs = { state, elapsedS: frame.elapsedS, near, art: picture !== null };
+        if (s.context === null) { s.inputs = inputs; continue; }
+        // a screen the camera cannot see keeps its last pixels: its inputs stay unpainted, so what changed paints once it is
+        // seen (a new slot paints once, so it never shows blank)
+        if (s.key === '' || seen(s.mesh)) {
+          s.inputs = inputs;
+          // the near layout paints no clock; the full layout's clock alone repaints and uploads only its rectangle
+          const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(near ? nearScreenFacts(screen) : { ...screen, clock: '' })}`;
+          const shape = `${state.status}${key.slice(0, 2)}`, held = shape === s.shape && now - s.painted < FULL_EVERY;
+          if (key !== s.key && !held) { s.key = key; s.clock = screen.clock; s.shape = shape; s.painted = now; s.stale = false; drawCellScreen(s.context, screen, picture, near); s.upload('full'); draws++; }
+          else if (key !== s.key) s.stale = true;
+          if (!near && screen.clock !== s.clock) { s.clock = screen.clock; s.upload(drawCellScreenClock(s.context, screen, picture) ? 'clock' : 'full'); draws++; }
+        }
         if (!s.ready && !s.preparing && input.prepare !== undefined) {
           s.preparing = true;
           const pending = s, current = (): boolean => !owner.disposed && pending.mesh.parent === group;
