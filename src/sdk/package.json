@@ -131,7 +131,6 @@
     "./decisionSource": "./decisionSource.ts",
     "./buildDecisionScripts": "./buildDecisionScripts.ts",
     "./projectDecisions": "./projectDecisions.ts",
-    "./populationShelter": "./populationShelter.ts",
     "./models/geometrySources": "./models/geometrySources.ts",
     "./looks/pageLife": "./looks/pageLife.ts",
     "./bake/practiceCourse": "./bake/practiceCourse.ts"

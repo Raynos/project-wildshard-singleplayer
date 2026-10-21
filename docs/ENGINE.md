@@ -9821,8 +9821,9 @@ Named `actors/page-life.json` data is emitted with its defining source.
 Native population author rows use the defining format/populationRoster
 parser. The trusted headless assembly imports installPopulationRoster
 from game/population/roster directly; the redundant SDK forwarding module
-was retired in X20. SDK shelter and respawn facades still borrow the same
-game implementation and install nothing on import. Native identity
+was retired in X20, as was the shelter forwarding module. The trusted
+assembly selects game/population/shelter.installNativeHerdShelter directly.
+The respawn facade still borrows the game implementation. Native identity
 and respawn retain the approved **native actor interface + spawn director**
 feature (`actor-spawn`, G474/G475/G477) in
 `lint/platform-pending-users.json`. The fabricated salt-marsh fixture drives
