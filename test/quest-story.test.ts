@@ -1,14 +1,19 @@
 // @vitest-environment happy-dom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
-import { Flags } from '../src/engine/world/interact/flags';
+import { App } from '../src/engine/app/app';
+import { createLevelInstallation } from '../src/engine/level/installation';
+import { WorldRegistry } from '../src/engine/world/registry';
+import { shardContext } from '../src/game/plugin/context';
+import { prepareQuestEntry } from '../src/game/quest/chapter';
+import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { parseQuestStory } from '../src/format/questStory';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { Progress } from '../src/game/Progress';
 import { progressSave } from '../src/game/saves';
-import { bindStoryAchievements, readQuestStory, observeStoryFlags, bindStoryBench } from '../src/game/quest/story';
+import { bindStoryAchievements, readQuestStory, bindStoryBench } from '../src/game/quest/story';
 import { questBenchPose } from '../src/game/quest/storyLaw';
 import { PAGE_STORY as driftStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
@@ -20,7 +25,7 @@ import pine from '../src/shards/pine-hollow/shard.config';
 function product(source: typeof drift, story: typeof driftStory, counters: typeof DRIFTWOOD_FEAT_COUNTERS | typeof PINE_FEAT_COUNTERS) {
   const policy = { ...counters, feats: counters.feats.map(({ id, count, ...row }) => ({ id, count,
     ...('kind' in row ? { kind: row.kind } : {}), ...('event' in row ? { event: row.event } : {}), ...('variant' in row ? { variant: row.variant } : {}) })) };
-  const values = new Map<string, unknown>([['quests/story.json', story], ['quests/achievements.json', policy]]);
+  const values = new Map<string, unknown>([['quests/story.json', story], ['quests/achievements.json', policy], ['quests/services.json', { version: 1, actions: [] }]]);
   return createShardProduct({ slug: source.identity.slug, revision: source.identity.revision, shardfile: source, sections: new Map(),
     files: new Map([...values.keys()].map(name => [name, { hash: name, url: name }])),
     read: name => Promise.resolve(new TextEncoder().encode(JSON.stringify(values.get(name)))) });
@@ -64,15 +69,26 @@ test('Pine replays its old saved counters, retains its record and prefixed ledge
   } finally { scope.dispose(); next.dispose(); }
 });
 
-test('story flag effects keep sync-before-notice order, filtering and entry disposal', () => {
-  const scope = new Scope('story-flags'), flags = new Flags('story-flags', false), events: string[] = [];
+test('story flag effects keep sync-before-notice order, filtering and entry disposal', async () => {
+  const scope = new Scope('story-flags'), events: string[] = [], host = new App();
   const story = parseQuestStory({ ...driftStory, notices: [{ prefix: 'glass:', total: 2, text: 'Every piece' }] });
-  observeStoryFlags(story, scope, flags, new Map<string, unknown>([['counters', { syncFlags: () => { events.push('sync'); } }], ['hud', { toast: (text: string) => { events.push(text); } }]]));
+  const p = product(drift, story, DRIFTWOOD_FEAT_COUNTERS);
+  const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const ctx = shardContext(level.context, { ...TEMPLATE, slug: drift.identity.slug }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, p);
+  Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry() }, play: { hud: { toast: (text: string) => { events.push(text); } } } } });
+  const entry = await prepareQuestEntry(ctx, story, { services: 'quests/services.json', placement: {} }), flags = entry.flags;
+  flags.reset();
+  expect(() => entry.observe()).toThrow('entered achievements');
+  const request = entry.achievements(); expect(entry.achievements()).toBe(request);
+  const achievements = await request;
+  vi.spyOn(achievements, 'syncFlags').mockImplementation(() => { events.push('sync'); });
+  entry.observe();
   flags.set('plate:test'); flags.set('lever:test'); expect(events).toEqual(['sync']);
   flags.set('glass:1'); flags.set('glass:2'); expect(events).toEqual(['sync', 'sync', 'sync', 'Every piece']);
   scope.dispose(); flags.set('after:dispose'); expect(events).toHaveLength(4);
   expect(() => parseQuestStory({ ...story, journal: { ...story.journal, refresh: 'later' } })).toThrow();
   expect(() => parseQuestStory({ ...story, bench: { ...story.bench, forward: Infinity } })).toThrow();
+  expect(() => parseQuestStory({ ...story, bindings: { ...story.bindings, sync: { owner: 'foreign', path: ['run'] } } })).toThrow();
 });
 
 test('page and native seats retain the original two floor laws, yaw, pitch and velocity reset', () => {

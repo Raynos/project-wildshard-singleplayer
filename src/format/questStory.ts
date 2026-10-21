@@ -47,7 +47,7 @@ export function parseChapterStoryPresentation(input: unknown): ChapterStoryPrese
 
 export const QuestStorySchema = v.strictObject({
   chapters: v.exactOptional(ChapterPresentation),
-  bindings: v.strictObject({ sync: borrowed, toast: borrowed, floor: v.exactOptional(borrowed) }),
+  bindings: v.strictObject({ toast: borrowed, floor: v.exactOptional(borrowed) }),
   quest: v.strictObject({ id: text, markers: v.record(text, markerAt) }),
   presentation: v.strictObject({ introTitle: text, worldPins: v.boolean(), mapMarkers: v.boolean(), minimapMarks: v.boolean(),
     messages: v.strictObject({ firstStep: text, started: text, objective: text, completed: text }) }),

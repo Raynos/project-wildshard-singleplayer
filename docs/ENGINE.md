@@ -6622,6 +6622,9 @@ ledger or save is created. Entry rows admit no functions or reflected methods.
 `chapter(rows)` installs presentation against that same story and live anchor
 map after the existing progression and borrowed figures enter. It retains the
 original chapter, flags, marker and notice owners and refuses a disposed entry.
+`achievements()` admits the original ledger/counter binding once; `observe()`
+then synchronizes those counters before notices at the caller's original phase.
+No author-supplied counter method or reflected synchronization path is accepted.
 
 Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing

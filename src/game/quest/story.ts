@@ -135,10 +135,10 @@ export async function readQuestStory(ctx: Pick<ShardContext, 'product'>): Promis
 }
 /** The existing journal and ledger keep their saves; rows select the original migration and refresh boundaries. */
 export async function bindStoryAchievements(ctx: StoryContext, story: QuestStory, progress: JournalProgress | undefined,
-  instance = ctx.product.shardfile.identity.slug, supplied?: RuntimeFacts): Promise<{ facts: RuntimeFacts; count: (id: string, total: number) => void; kill: (kind: string, variant?: string) => void; event: (name: string, total?: number) => void; syncFlags: (flags: Parameters<ReturnType<typeof createAchievementCounters>['syncFlags']>[0]) => void }> {
+  instance = ctx.product.shardfile.identity.slug): Promise<{ facts: RuntimeFacts; count: (id: string, total: number) => void; kill: (kind: string, variant?: string) => void; event: (name: string, total?: number) => void; syncFlags: (flags: Parameters<ReturnType<typeof createAchievementCounters>['syncFlags']>[0]) => void }> {
   const rows = parseAchievementCounterData(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/achievements.json'))));
   if (ctx.scope.disposed) throw new Error('Quest achievement owner left during admission');
-  const source = ctx.product.shardfile, policy = story.journal, emit = supplied ?? bindRuntimeLedger(ctx, source, instance);
+  const source = ctx.product.shardfile, policy = story.journal, emit = bindRuntimeLedger(ctx, source, instance);
   const facts: RuntimeFacts = Object.assign((name: string, entity: string) => {
     const receipt = emit(name, entity); if (policy.refresh === 'emit') progress?.refreshLedger?.(); return receipt;
   }, { flush: emit.flush, achievement: emit.achievement });
@@ -158,18 +158,6 @@ export async function bindStoryAchievements(ctx: StoryContext, story: QuestStory
   publishQuestFacts(ctx.scope, story.quest.id, facts);
   return { facts, count: counters.count, kill: (kind: string, variant?: string): void => { counters.kill(kind, variant); refresh(); }, event,
     syncFlags: (flags: Parameters<typeof counters.syncFlags>[0]): void => { counters.syncFlags(flags, policy.syncEvents ? event : undefined); } };
-}
-/** Subscribe at the original installation phase, retaining ordered synchronous flag consequences. */
-export function observeStoryFlags(story: QuestStory, scope: Pick<Scope, 'onDispose'> | undefined, flags: Flags,
-  owners: ReadonlyMap<string, unknown>): void {
-  const sync = bindBorrowedMethod(owners, story.bindings.sync), toast = bindBorrowedMethod(owners, story.bindings.toast);
-  sync(flags);
-  const off = flags.onChange((flag, on) => {
-    if (!on || story.ignoredFlagPrefixes.some(prefix => flag.startsWith(prefix))) return;
-    sync(flags);
-    for (const row of story.notices) if (flag.startsWith(row.prefix) && flags.count(row.prefix) === row.total) toast(row.text);
-  });
-  scope?.onDispose(off);
 }
 /** Bind the existing kit seat and player, without adding a prompt, flag or saved state. */
 export function bindStoryBench(story: QuestStory, kit: { onSit?: (at: Vector3, yaw: number) => void },

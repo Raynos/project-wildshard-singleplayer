@@ -27,7 +27,7 @@ import { completionProjection, type CompletionProgress } from '../complete/decla
 import type { QuestPresentationHost, QuestPresentationOptions } from '../plugin/ui';
 import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from './boundState';
 import { bindRuntimeQuest } from '../plugin/headless';
-import { bindStoryChapters, presentChapterStory, presentQuestStory } from './story';
+import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory } from './story';
 import { questPageWorld } from './pageResources';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -94,6 +94,8 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   readonly services: Awaited<ReturnType<typeof readQuestServiceActions>>;
   interact: (interactions: Parameters<typeof installQuestInteractables>[2], system: unknown) => Promise<Awaited<ReturnType<typeof installQuestInteractables>>>;
   chapter: (input?: unknown) => QuestChapter;
+  achievements: () => ReturnType<typeof bindStoryAchievements>;
+  observe: () => void;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -111,8 +113,25 @@ export async function prepareQuestEntry(ctx: ShardContext, storyInput: unknown, 
     ...(policy.registryReach === undefined ? {} : { registryReach: policy.registryReach }) });
   const flags = installQuestFlags(ctx, story.quest.id, ctx.manifest.slug);
   const services = await readQuestServiceActions(ctx, story.quest.id, rows.services);
+  let achievements: Awaited<ReturnType<typeof bindStoryAchievements>> | null = null;
+  let achievementRequest: ReturnType<typeof bindStoryAchievements> | null = null;
   let installed = false;
   return { story, flags, services, ...placement,
+    achievements: (): ReturnType<typeof bindStoryAchievements> => {
+      achievementRequest ??= bindStoryAchievements(ctx, story, ctx.game.runtime?.play?.progress, ctx.manifest.slug)
+        .then(service => { achievements = service; return service; });
+      return achievementRequest;
+    },
+    observe: (): void => {
+      const counters = achievements, play = ctx.game.runtime?.play;
+      if (counters === null || play === undefined || play === null || ctx.scope.disposed) throw new Error('Quest flag observation requires its entered achievements');
+      counters.syncFlags(flags);
+      ctx.scope.onDispose(flags.onChange((flag, on) => {
+        if (!on || story.ignoredFlagPrefixes.some(prefix => flag.startsWith(prefix))) return;
+        counters.syncFlags(flags);
+        for (const row of story.notices) if (flag.startsWith(row.prefix) && flags.count(row.prefix) === row.total) play.hud.toast(row.text);
+      }));
+    },
     chapter: (chapterInput: unknown = {}): QuestChapter => {
       if (ctx.scope.disposed) throw new Error('Quest entry left before chapter installation');
       return buildQuestChapter(ctx, story, chapterInput, placement.anchors, ctx);

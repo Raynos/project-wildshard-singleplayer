@@ -22,7 +22,7 @@ import type { ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import * as THREE from 'three';
 import type { ForestStoryRows, ForestStoryContent, ForestStoryGood, ForestStory } from './forestStoryRows';
 import { FigureCatalogue } from '../npc/figures';
@@ -33,7 +33,7 @@ import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
-import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
+import { readQuestStory, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { DataPanel, readDataPanels } from '../dataPanels';
@@ -70,11 +70,11 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const figuresBook = await FigureCatalogue.fromProduct(ctx.product, rows.figures.catalogue);
   const parts = new GeometryPack(await fetchDeflated(rows.parts.url), packedRows(rows.parts.rows), rows.parts.label);
   if (ctx.scope.disposed) throw new Error('Story left during model admission');
-  const { game, sky, player, animals, hud, inventory, progress } = h;
+  const { game, sky, player, animals, hud, inventory } = h;
   const figureScenes = new SceneHandles(sky);
   const entry = await prepareQuestEntry(ctx, story, { services: rows.files.services, placement: { registryReach: 20 } });
   const { flags, services: serviceActions, floorAt } = entry;
-  const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = await bindStoryAchievements(ctx, story, progress, h.chunkId, facts);
+  const featFacts = await entry.achievements(), facts = featFacts.facts;
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
   const sfx = equipment.ambience.sfx;
@@ -268,7 +268,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   h.fullMap.setZones(rows.map.zones.filter((zn) => !placeNames.has(zn.label)));
   h.fullMap.setFeatures({ trees: h.trees, roofs: h.cabins.roofs });
 
-  observeStoryFlags(story, ctx.scope, flags, new Map<string, unknown>([['counters', featFacts], ['hud', hud]]));
+  entry.observe();
   const journalFull = (): boolean => {
     const st = h.compendium; if (!st) return false;
     return st.def.entries.every((e) => { const s = st.stats(e.id).state; return s === 'seen' || s === 'taken'; });

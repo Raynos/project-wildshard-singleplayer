@@ -21,7 +21,7 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { bindQuestDeathEffects } from '../plugin/quests';
 import { prepareQuestEntry, ownQuestTree, type QuestChapter } from './chapter';
-import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from './story';
+import { readQuestStory, bindStoryBench, installStoryTalks } from './story';
 import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
@@ -91,7 +91,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   preparations.get(ctx.scope)?.delete(id);
   const { entry, rows, h, scope, declaration, d, w, onDeath, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
   const adventure: QuestPageComposition = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
-  const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
+  const grants = await entry.achievements();
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
   const placements = Object.fromEntries(Object.values(story.quest.markers).map(at => {
     const p = place(at); return [JSON.stringify(at), { x: p.x, y: p.y, z: p.z }];
@@ -123,8 +123,8 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const feet = place(placement.feet), ax = feet.x + Math.sin(feet.yaw) * placement.tradeAhead, az = feet.z + Math.cos(feet.yaw) * placement.tradeAhead;
   adventure.trader = installQuestTrader(ctx, traderStall, { figure: rows.trader.figure, counter: rows.trader.counter, offer: rows.trader.offer,
     at: { x: ax, y: floorAt(ax, az) + placement.tradeHeight, z: az }, prompt: { label: rows.trader.label, radius: rows.trader.radius }, before: rows.systems.before });
-  const storyOwners = new Map<string, unknown>([['counters', grants], ['hud', w.hud], ['placement', { floorAt }]]);
-  observeStoryFlags(story, scope, flags, storyOwners);
+  const storyOwners = new Map<string, unknown>([['hud', w.hud], ['placement', { floorAt }]]);
+  entry.observe();
   bindStoryBench(story, kit, w.player, storyOwners);
   w.ironDrop?.bindGuardFlags(flags.all);
   {
