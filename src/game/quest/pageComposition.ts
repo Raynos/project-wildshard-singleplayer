@@ -23,6 +23,7 @@ import type { MoverRuntime } from '../plugin/mover';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { prepareQuestEntry, type QuestCableView, type QuestChapter } from './chapter';
+import { bindRuntimeQuest } from '../plugin/headless';
 import { installQuestShop, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import type { AdventureContent } from '@wildshard/format/questStory';
@@ -93,6 +94,8 @@ async function preparePage(ctx: ShardContext, rows: QuestPageRows, lent: Readonl
     owners.set('sound', { shot: (name: Parameters<typeof sfx.shot>[0], at?: THREE.Vector3): void => { sfx.shot(name, at ? { at } : {}); } });
   }
   for (const row of rows.placed) owners.set(row.owner, (await scenes.place(row.scene)).object);
+  // the door's flag gate reads the entered quest, so bind it first (with the achievements' facts); the chapter reuses it
+  if (rows.door !== undefined) bindRuntimeQuest(ctx, ctx.product.shardfile, story.quest.id, { flags, facts: (await entry.achievements()).facts });
   const door = rows.door === undefined ? null : installPageDoor(ctx, rows.door);
   if (door !== null) owners.set('door', door);
   const interactions = ctx.product.shardfile.questHost?.interactions;
