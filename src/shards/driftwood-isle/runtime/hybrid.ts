@@ -3,7 +3,7 @@ import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
-import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
+import { buildDriftwoodWorld, keepDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
 import { islandSystems } from './world/systems';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
@@ -44,12 +44,13 @@ export class DriftwoodPlugin extends ShardPlugin {
     const resident = boundResidentWorldScope(ctx.scope);
     let built: DriftwoodWorld;
     if (resident === undefined) {
+      lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [MOOR_LOOK]));
       const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'));
       built = await buildDriftwoodWorld(world, viewer, progress, scenes, await residentBakedTiles(ctx, ctx.scope));
     } else {
       admitDriftwoodRows(ctx.product);
       built = await residentWorld(ctx).load(ctx, async owner => {
-        lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, ctx.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS)]));
+        lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, ctx.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS), MOOR_LOOK]));
         const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), baked = await residentBakedTiles(ctx, owner);
         return buildDriftwoodWorld(world, viewer, progress, scenes, baked);
       });

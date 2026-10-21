@@ -37,6 +37,9 @@ import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
 
+/** The mooring lines' look: a graph on every tier (its vertex lift has no classic form), lent before the world builds. */
+export const MOOR_LOOK = 'driftwood-kit-moor';
+
 /** What the world build hands the rest of the level: each part it built. */
 export type DriftwoodWorld = Awaited<ReturnType<typeof build>>;
 
@@ -80,7 +83,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const boatPlaced = await scenes.place('harbour.boat'), ropes = scenes.mesh('moorings.mesh'), [bowZ, sternZ] = fixed.boat.cleats, lift: [number, number] = [0, 0];
   const boat = { placed: boatPlaced, group: boatPlaced.object, ropes, floorHeightAt: (x: number, z: number) => scenes.floorAt('harbour.boat', x, z),
     refreshPose: () => { const heave = boatPlaced.object.position.y - fixed.boat.spec.waterY, pitch = Math.sin(boatPlaced.object.rotation.x);
-      lift[0] = heave - bowZ * pitch; lift[1] = heave - sternZ * pitch; setLentParam('driftwood-kit-moor', 'moor', lift); } };
+      lift[0] = heave - bowZ * pitch; lift[1] = heave - sternZ * pitch; setLentParam(MOOR_LOOK, 'moor', lift); } };
   game.scene.add(ropes);
   await complete('Pier and boat');
   // faceted shore boulders along the beach
