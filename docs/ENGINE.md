@@ -9642,6 +9642,12 @@ It validates the declaration and refuses actor rows before allocation.
 `await installDeclaredBodyOps(ctx, rows)` retains page species-model
 prewarming before entering the same body host.
 
+`DecisionWorld.player` may lend the trusted numeric player identity.
+At call start, only bindings declaring `playerIntent` observe that handle
+as a player. Observation grants no actor ownership, and scalar read
+capabilities remain separate. `ShardDecisions` lends its existing
+`DECISION_PLAYER_HANDLE` at this boundary.
+
 `ops.setPlayerIntent({x, z})` copies requested world walk velocity in
 metres per second before collision, at the caller's existing phase.
 `Read.playerIntent(axis)` (scalar opcode 26) reads that sample: axis 0
