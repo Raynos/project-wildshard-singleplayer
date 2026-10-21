@@ -6,8 +6,23 @@ import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const ROOT = resolve(import.meta.dirname, '..');
-export const PIN = 'docs/reviews/rooted-pitcher-app/ROOTED-PITCHER-BUILD-PIN1.json';
-export const OUTPUT = 'tmp/rooted-pitcher-app1';
+const LEGACY_PIN = 'docs/reviews/rooted-pitcher-app/ROOTED-PITCHER-BUILD-PIN1.json';
+const LEGACY_OUTPUT = 'tmp/rooted-pitcher-app1';
+/** Explicit retry destinations only; refuse traversal, symlinks and nested prior evidence. */
+export function proofPath(path, kind) {
+  const valid = kind === 'pin' ? /^docs\/reviews\/rooted-pitcher-app\/[A-Za-z0-9_-]+\.json$/u
+    : /^tmp\/rooted-pitcher-[A-Za-z0-9_-]+$/u;
+  if (typeof path !== 'string' || !valid.test(path)) throw new Error(`Unsafe rooted proof ${kind} path`);
+  let at = ROOT;
+  for (const part of path.split('/')) {
+    at = join(at, part);
+    if (lstatSync(at, { throwIfNoEntry: false })?.isSymbolicLink()) throw new Error('Symlink in rooted proof path');
+  }
+  return path;
+}
+export const PIN = proofPath(process.env.ROOTED_PITCHER_PIN ?? LEGACY_PIN, 'pin');
+export const OUTPUT = proofPath(process.env.ROOTED_PITCHER_OUTPUT ?? LEGACY_OUTPUT, 'output');
+if ((PIN === LEGACY_PIN) !== (OUTPUT === LEGACY_OUTPUT)) throw new Error('A new attempt requires both a new pin and a new output');
 export const CANONICAL = 'test/proof/brine-pitcher-native-owner/source';
 export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 export const INPUTS = [
@@ -67,6 +82,9 @@ export function verifyPin() {
     || typeof pin.rootGo !== 'string' || !pin.rootGo.trim() || typeof pin.reviewPath !== 'string'
     || !pin.reviewPath.startsWith('docs/reviews/') || pin.reviewSha256 !== hash(read(pin.reviewPath)))
     throw new Error('Missing exact root-reviewed isolated engineering build pin');
+  if (pin.pinPath !== undefined || pin.outputPath !== undefined) {
+    if (pin.pinPath !== PIN || pin.outputPath !== OUTPUT) throw new Error('Proof destination differs from reviewed pin');
+  } else if (PIN !== LEGACY_PIN || OUTPUT !== LEGACY_OUTPUT) throw new Error('New attempt requires pinned destinations');
   assertCommittedSources(pin.sourceCommit);
   if (pin.sourceTree !== git(['rev-parse', `${pin.sourceCommit}^{tree}`]) || pin.nodeVersion !== process.version
     || JSON.stringify(pin.sourceRoots) !== JSON.stringify(SOURCE_ROOTS)
@@ -89,7 +107,7 @@ if (command !== undefined && import.meta.url === pathToFileURL(resolve(command))
   const sourceCommit = git(['rev-parse', 'HEAD']); assertCommittedSources(sourceCommit);
   const sourceFiles = sourceInventory(), tracked = new Set(git(['ls-tree', '-r', '--name-only', sourceCommit, '--', ...SOURCE_ROOTS]).split('\n'));
   const pin = { schema: 'wildshard.rooted-pitcher.isolated-build-pin.v2', synthetic: false, buildAllowed: true, browserAllowed: true,
-    modelAdmission: false, publicAdmission: false, reviewedAt: new Date().toISOString(), rootGo, reviewPath,
+    modelAdmission: false, publicAdmission: false, pinPath: PIN, outputPath: OUTPUT, reviewedAt: new Date().toISOString(), rootGo, reviewPath,
     sourceCommit, sourceTree: git(['rev-parse', `${sourceCommit}^{tree}`]), nodeVersion: process.version,
     sourceRoots: SOURCE_ROOTS, sourceFiles, untrackedSourceFiles: Object.keys(sourceFiles).filter(path => !tracked.has(path)),
     reviewSha256: hash(read(reviewPath)), files: Object.fromEntries(INPUTS.map(path => [path, hash(read(path))])) };

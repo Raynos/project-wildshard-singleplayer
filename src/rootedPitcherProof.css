@@ -1,0 +1,5 @@
+/* Isolated diagnostic only: leave the ordinary health HUD and central combat visible. */
+.ws-practice-demo.ws-rooted-proof { top: max(8px, env(safe-area-inset-top)); left: auto; right: 8px; width: 172px; max-width: calc(50vw - 12px); padding: 6px; box-sizing: border-box; font-size: 10px; }
+.ws-practice-demo.ws-rooted-proof p { font-size: 9px; line-height: 1.2; }
+.ws-practice-demo.ws-rooted-proof button { min-height: 36px; padding: 4px 7px; }
+.ws-practice-demo.ws-rooted-proof output { font-size: 9px; }

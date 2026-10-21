@@ -1,3 +1,9 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Spawn regression subprocesses with explicit sanitized environment.
+import process from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute isolated harness expressions against regression fixtures without a browser.
+import { runInNewContext } from 'node:vm';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise explicit path selection in fresh Node processes, without pin/build writes.
+import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read exact source fixtures and own tiny disposable resolver fixture only.
 import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolver fixture uses explicit repository-relative temporary paths.
@@ -78,4 +84,38 @@ test('rooted source retains both real strikes and bounded native guest', () => {
   ]));
   for (const [path, bytes] of expectedSections.files) expect(output.platform?.files.get(path)).toEqual(bytes);
   expect(brinePitcherNativeOwnerClips().strikeIds).toEqual(['strike.pitcher.crown', 'strike.pitcher.bilateral']);
+});
+
+
+test('capture reads the real singular strike snapshot and refuses plural or inactive fixtures', () => {
+  const harness = readFileSync('scripts/qa-rooted-pitcher-proof.mjs', 'utf8');
+  const begin = harness.indexOf('  const strikes = cycle.fixed.map(');
+  const end = harness.indexOf('  report.checks.actualPlayerReceipts', begin);
+  expect(begin).toBeGreaterThan(0); expect(end).toBeGreaterThan(begin);
+  const expression = `${harness.slice(begin, end)}; report.checks.bothRealStrikes;`;
+  const ids = ['strike.pitcher.crown', 'strike.pitcher.bilateral'];
+  const check = (key: string, phase: string): unknown => runInNewContext(expression, {
+    cycle: { fixed: ids.map(currentId => ({ control: JSON.stringify({ [key]: { currentId, phase } }) })) }, report: { checks: {} },
+  });
+  expect(readFileSync('src/game/shardfile/borrowedDecisions.ts', 'utf8')).toContain('strike: runner.snapshot()');
+  expect(check('strike', 'active')).toBe(true);
+  expect(check('strikes', 'active')).toBe(false);
+  expect(check('strike', 'windup')).toBe(false);
+});
+
+test('proof paths preserve legacy defaults and require explicit safe paired retry destinations', () => {
+  const inspect = (pin: string | undefined, output: string | undefined): string => {
+    const env = { ...process.env }; delete env['ROOTED_PITCHER_PIN']; delete env['ROOTED_PITCHER_OUTPUT'];
+    if (pin !== undefined) env['ROOTED_PITCHER_PIN'] = pin;
+    if (output !== undefined) env['ROOTED_PITCHER_OUTPUT'] = output;
+    return execFileSync(process.execPath, ['--input-type=module', '-e',
+      "import { PIN, OUTPUT } from './scripts/rooted-pitcher-proof-pin.mjs'; console.log(JSON.stringify({ PIN, OUTPUT }));"],
+    { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  };
+  const pin = 'docs/reviews/rooted-pitcher-app/REGRESSION-UNWRITTEN.json';
+  expect(JSON.parse(inspect(undefined, undefined))).toEqual({ PIN: 'docs/reviews/rooted-pitcher-app/ROOTED-PITCHER-BUILD-PIN1.json', OUTPUT: 'tmp/rooted-pitcher-app1' });
+  expect(JSON.parse(inspect(pin, 'tmp/rooted-pitcher-regression'))).toEqual({ PIN: pin, OUTPUT: 'tmp/rooted-pitcher-regression' });
+  expect(() => inspect(pin, undefined)).toThrow();
+  for (const output of ['/tmp/escape', 'tmp/../escape', 'tmp/rooted-pitcher-app1/nested']) expect(() => inspect(pin, output)).toThrow();
+  expect(() => inspect('docs/reviews/rooted-pitcher-app/../escape.json', 'tmp/rooted-pitcher-regression')).toThrow();
 });
