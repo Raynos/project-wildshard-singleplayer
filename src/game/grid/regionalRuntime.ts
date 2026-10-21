@@ -1,4 +1,5 @@
 import {bindEquipmentActors} from '../loadout/actors';
+import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientHomeBytes } from '../shardfile/clientResidency';
 import { Object3D } from 'three';
@@ -229,7 +230,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           for (const key of Reflect.ownKeys(runtime.objects)) Reflect.deleteProperty(runtime.objects, key);
           Reflect.deleteProperty(runtime, 'buildEquipment'); Reflect.deleteProperty(runtime, 'menu');
           // a named build step starts after the frame when the frame's build budget is already spent (pacedResolve)
-          runtime.step = (_key, work) => pacedResolve(undefined).then(() => work(request.page.context.progress));
+          runtime.step = (key, work) => pacedResolve(undefined).then(() => timeClientPreparation(request.cell.slug, `runtime.${key}`, () => work(request.page.context.progress)));
           const installation = createLevelInstallation(app, owner, app.levelAdapters, () => request.page.context.progress);
           view.root.add(installation.context.root);
           const base = shardContext(installation.context, request.manifest, { ...request.page.context.game,
