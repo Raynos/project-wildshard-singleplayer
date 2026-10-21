@@ -28,7 +28,8 @@ it('refuses a missing or damaged required cover file through the world loader',a
  const read=vi.fn<()=>Promise<Uint8Array>>().mockRejectedValue(new Error('Required cover is missing'));
  const product=createShardProduct({slug:'driftwood-isle',revision:1,
   shardfile:emptyShardfile({slug:'driftwood-isle',name:'Test',author:'Test',revision:1,seed:1}),
-  sections:new Map([['custom/assets',{byUrl:Object.fromEntries(Object.values(ISLAND_COVER_FILES).map(file=>[file.url,'world/cover.bin']))}]]),
+  sections:new Map<string,unknown>([['custom/assets',{byUrl:Object.fromEntries(Object.values(ISLAND_COVER_FILES).map(file=>[file.url,'world/cover.bin']))}],
+    ['custom/fixedLayouts',{coverFiles:ISLAND_COVER_FILES}]]),
   files:new Map([['world/cover.bin',{hash:ISLAND_COVER_FILES.phone.hash,url:'/checked/cover.bin'}]]),read,check:true});
  await expect(loadIslandCover(product)).rejects.toThrow('missing');
  read.mockResolvedValue(new Uint8Array(4));await expect(loadIslandCover(product)).rejects.toThrow('corrupt');

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
-import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
-import { readDriftwoodBlob } from '../runtime/boot/blobAssets';
+import type { CustomSections } from '../runtime/productSections.generated.d.ts';
+import { readDriftwoodBlob, loadDriftwoodProduct } from '../runtime/boot/blobAssets';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 /** E156, baked (generators/islandCover.ts `bakeFullIslandCover`): the ground wears the cover. The cover plants fade into
@@ -11,7 +11,8 @@ export interface IslandCover { readonly ground: THREE.DataTexture; readonly grou
 
 /** Required declared boot file; immutable URL caching and hash admission precede borrowing its storage. */
 export async function loadIslandCover(product?: ShardProduct): Promise<IslandCover> {
-  const file = ISLAND_COVER_FILES[TIER], bytes = Uint8Array.from(await readDriftwoodBlob(file.url, product)).buffer;
+  const admitted = product ?? await loadDriftwoodProduct();
+  const file = admitted.section<CustomSections['custom/fixedLayouts']>('custom/fixedLayouts').coverFiles[TIER], bytes = Uint8Array.from(await readDriftwoodBlob(file.url, admitted)).buffer;
   if (bytes.byteLength !== file.bytes) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), hash = Array.from(digest, v => v.toString(16).padStart(2, '0')).join('');
   if (hash !== file.hash) throw new Error('Required island cover is corrupt or mismatched; rebuild its declared boot file');

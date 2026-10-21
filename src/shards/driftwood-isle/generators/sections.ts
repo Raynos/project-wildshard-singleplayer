@@ -83,6 +83,10 @@ export const FixedGeometryGroupsSchema = v.strictObject({
     cover: v.record(text, text), piers: v.record(text, v.strictObject({ deck: text, cloth: v.nullable(text) })),
 });
 
+const islandCoverFile = v.strictObject({ url: text, hash: v.pipe(v.string(), v.hash(['sha256'])), bytes: natural, used: natural,
+  texture: v.strictObject({ width: natural, height: natural }), groundRect: v.tuple([number, number, number, number]),
+  parts: v.tuple([v.tuple([natural, natural]), v.tuple([natural, natural]), v.tuple([natural, natural]), v.tuple([natural, natural]), v.tuple([natural, natural])]) });
+
 /** Product-owned logical names and the client's build-time rows (W2b, G449); runtime/ never imports data/. */
 export const SECTIONS = {
   'custom/enemyPlacements': EnemyPlacementsSchema,
@@ -94,6 +98,7 @@ export const SECTIONS = {
   'custom/cumulusPuffs': v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.maxLength(1024)),
   /** Entry decks, tiered foliage and fixed models: draw slots, colliders, anchors and floors. */
   'custom/fixedLayouts': v.strictObject({
+    coverFiles: v.strictObject({ phone: islandCoverFile, desktop: islandCoverFile }),
     /** Authored native view parameters, read only after product admission. */
     nativeView: v.strictObject({
       BOSS_ENCOUNTER: WakeEncounterSchema,
