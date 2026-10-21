@@ -64,7 +64,7 @@ it('syncs only what differs, drops art/progress/sources, and leaves the checkout
   expect(execFileSync('git', ['status', '--porcelain'], { cwd: repo, encoding: 'utf8' })).toBe('');
   expect(spawnSync('git', ['rev-parse', 'HEAD'], { cwd: two.dir, encoding: 'utf8' }).status).not.toBe(0);
 
-  const full = openMirror(second, { repo, env, slot: 'full', full: true });
+  const full = openMirror(second, { repo, env, slot: 'check2', full: true });
   full.release();
   expect(readFileSync(join(full.dir, 'art/big.png'), 'utf8')).toBe('x');
 });
@@ -84,6 +84,11 @@ it('links workspace packages to the mirror sources, takes over a dead lock and q
   mirror.release();
   expect(existsSync(lock)).toBe(false);
   expect(() => openMirror(sha, { repo, env, slot: '../escape' })).toThrow(/invalid slot/u);
+  expect(() => openMirror(sha, { repo, env, slot: 'check6' })).toThrow(/invalid slot/u);
+  expect(() => openMirror(sha, { repo, env, slot: 'lane-x6' })).toThrow(/invalid slot/u);
+  for (const slot of ['gate', 'commit', 'check', 'check2', 'check3', 'check4', 'check5']) {
+    const admitted = openMirror(sha, { repo, env, slot }); admitted.release();
+  }
 });
 
 it('keeps whole generated jobs, invalidates partial jobs and prunes retired outputs', () => {

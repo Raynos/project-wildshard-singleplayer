@@ -13,10 +13,11 @@ import sys
 import time
 import uuid
 
-# The push gate has its own lease (process audit 2026-10-09: a lane's suite delayed pushes by a median 115 s). A gate
-# lease covers every heavy resource for its own descendants, so its nested vitest / vite build need no second lease.
-RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build'), 'gate': ('push-gate',)}
-LANES = ('full-test', 'build', 'push-gate')
+# G547: two app builds, including the gate. A queued gate gets the next free build slot.
+# Keep the original build lock as slot one so running old wrappers remain accounted for.
+BUILD_SLOTS = ('build', 'build-2')
+RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build'), 'gate': ('push-gate', 'build')}
+LANES = ('full-test', *BUILD_SLOTS, 'push-gate')
 
 
 # SF74 W1 (Jake, G280 / process audit 2026-10-09): no local full suite (since 2026-10-15 not even the push gate's). Lanes still ran 56 full
@@ -60,7 +61,8 @@ def inherited(root, resources):
     family = ancestors()
     if owns(root, 'push-gate', token, family):
         return True
-    return all(owns(root, resource, token, family) for resource in resources)
+    return all(any(owns(root, slot, token, family) for slot in BUILD_SLOTS) if resource == 'build'
+               else owns(root, resource, token, family) for resource in resources)
 
 
 def owns(root, resource, token, family):
@@ -94,6 +96,29 @@ def write_active(root, resource, entry):
     temporary.replace(path)
 
 
+def write_compat(root, entry):
+    """Older guards know only build.active.json. Give each owner its own truthful marker view."""
+    view = root / 'leases' / entry['token']
+    view.mkdir(parents=True, exist_ok=True)
+    entry['compatRoot'] = str(view)
+    for resource in entry['resources']:
+        write_active(view, resource, entry)
+    return view
+
+
+def clear_compat(root, entry):
+    view = root / 'leases' / entry['token']
+    for resource in entry['resources']:
+        path = view / (resource + '.active.json')
+        if path.exists() and json.loads(path.read_text()).get('token') == entry['token']:
+            path.unlink()
+    for directory in (view, view.parent):
+        try:
+            directory.rmdir()
+        except OSError:
+            pass  # Another lease or an older nested status command may still own entries.
+
+
 def remove_ticket(root, token):
     with scheduler(root) as state:
         state['queue'] = [entry for entry in state['queue'] if entry['token'] != token]
@@ -108,21 +133,87 @@ def acquire(root, entry):
                 break
             if set(previous['resources']).intersection(entry['resources']):
                 return None
-        held = []
+        held, leases = [], []
         for resource in sorted(entry['resources']):
-            lock = (root / (resource + '.lock')).open('a+')
-            try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
-                lock.close()
+            slots = BUILD_SLOTS if resource == 'build' else (resource,)
+            # An old running gate owns only push-gate.lock: reserve slot two for it during migration.
+            if resource == 'build' and legacy_gate(root):
+                slots = BUILD_SLOTS[:1]
+            selected = None
+            for slot in slots:
+                lock = (root / (slot + '.lock')).open('a+')
+                try:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    lock.close()
+                    continue
+                selected = (slot, lock)
+                break
+            if selected is None:
                 for fd in held:
                     fd.close()
                 return None
-            held.append(lock)
+            leases.append(selected[0]); held.append(selected[1])
         state['queue'] = [row for row in state['queue'] if row['token'] != entry['token']]
-        for resource in entry['resources']:
+        entry['leases'] = leases
+        for resource in leases:
             write_active(root, resource, entry)
         return held
+
+
+def legacy_gate(root):
+    """Account for a live gate started before G547, without taking or replacing its lock."""
+    with (root / 'push-gate.lock').open('a+') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return False
+        except BlockingIOError:
+            try:
+                return 'build' not in json.loads((root / 'push-gate.active.json').read_text())['resources']
+            except (OSError, ValueError, KeyError):
+                return True
+
+
+def load_average():
+    try:
+        return os.getloadavg()
+    except OSError:
+        return None
+
+
+def inherited_fds():
+    """Forward the lock descriptors that an exec would preserve to an observed nested command."""
+    result = []
+    for name in os.listdir('/dev/fd'):
+        if name.isdigit() and int(name) > 2:
+            try:
+                if os.get_inheritable(int(name)):
+                    result.append(int(name))
+            except OSError:
+                pass
+    return tuple(result)
+
+
+def record_build(root, queued, started, load, code, inherited_lease=False):
+    """One report-only log, for 24 hours from the first observation. Never change the command verdict."""
+    try:
+        ended = time.time()
+        with scheduler(root):
+            path = root / 'build-day.log'
+            if not path.exists():
+                path.write_text(json.dumps({'schema': 'build-day/1', 'startedAt': started,
+                                            'expiresAt': started + 86400}) + '\n')
+            with path.open() as stream:
+                header = json.loads(stream.readline())
+            if ended > header['expiresAt']:
+                return
+            with path.open('a') as stream:
+                stream.write(json.dumps({'startedAt': started, 'endedAt': ended,
+                    'queueSeconds': started - queued, 'buildSeconds': ended - started,
+                    'loadStart': load, 'loadEnd': load_average(), 'exitCode': code,
+                    'inherited': inherited_lease, 'cwd': os.getcwd()}) + '\n')
+    except (OSError, ValueError, KeyError) as error:
+        print('heavy-lane: build observation unavailable: ' + str(error), file=sys.stderr)
 
 
 def terminate(child):
@@ -174,7 +265,7 @@ def main():
     separator = argv.index('--') if '--' in argv else len(argv)
     command = argv[separator + 1:]
     args = parser.parse_args(argv[:separator])
-    root = Path(os.environ.get('WS_HEAVY_ROOT', str(Path.home() / '.wildshard-heavy-lanes'))).resolve()
+    root = Path(os.environ.get('WS_HEAVY_SCHEDULER_ROOT', os.environ.get('WS_HEAVY_ROOT', str(Path.home() / '.wildshard-heavy-lanes')))).resolve()
     root.mkdir(parents=True, exist_ok=True)
     if args.kind == 'status':
         print(json.dumps(status(root), indent=2))
@@ -186,6 +277,14 @@ def main():
         env = dict(os.environ)
         if args.kind == 'gate':
             env['WS_HEAVY_GATE'] = '1'
+        if args.kind == 'build':
+            # This is the actual app build inside an existing gate/build lease, not another lease.
+            started, load, code = time.time(), load_average(), 127
+            try:
+                code = subprocess.call(command, env=env, pass_fds=inherited_fds())
+            finally:
+                record_build(root, started, started, load, code, inherited_lease=True)
+            return code if code >= 0 else 128 - code
         os.execvpe(command[0], command, env)
     if args.kind in ('full-test', 'check') and not full_suite_allowed():
         print(FULL_SUITE_REFUSAL, file=sys.stderr)
@@ -196,7 +295,7 @@ def main():
     entry = {'token': token, 'pid': os.getpid(), 'runnerPid': os.getpid(), 'childPid': None,
              'resources': resources, 'priority': 0 if args.kind == 'gate' else 1,
              'cwd': os.getcwd(), 'command': command, 'queuedAt': time.time()}
-    held, child = None, None
+    held, child, started, load, code = None, None, None, None, 130
     def interrupted(_signal, _frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, interrupted)
@@ -212,8 +311,11 @@ def main():
             if held is None:
                 time.sleep(0.1)
         started = time.time()
+        load = load_average()
         print('heavy-lane: acquired ' + args.kind + ' after %.2fs queue' % (started - entry['queuedAt']), file=sys.stderr, flush=True)
-        env = {**os.environ, 'WS_HEAVY_TOKEN': token, 'WS_HEAVY_ROOT': str(root)}
+        compat = write_compat(root, entry)
+        env = {**os.environ, 'WS_HEAVY_TOKEN': token, 'WS_HEAVY_ROOT': str(compat),
+               'WS_HEAVY_SCHEDULER_ROOT': str(root)}
         if args.kind == 'gate':
             env['WS_HEAVY_GATE'] = '1'
         # Owned heavy commands and their descendants yield CPU to interactive lanes.
@@ -222,7 +324,8 @@ def main():
                                  pass_fds=tuple(fd.fileno() for fd in held))
         entry['childPid'] = child.pid
         with scheduler(root):
-            for resource in resources:
+            write_compat(root, entry)
+            for resource in entry['leases']:
                 write_active(root, resource, entry)
         try:
             code = child.wait(timeout=args.max * 60)
@@ -239,12 +342,15 @@ def main():
         remove_ticket(root, token)
         if held is not None:
             with scheduler(root):
-                for resource in resources:
+                for resource in entry['leases']:
                     path = root / (resource + '.active.json')
                     if path.exists() and json.loads(path.read_text()).get('token') == token:
                         path.unlink()
+                clear_compat(root, entry)
             for fd in held:
                 fd.close()
+        if args.kind == 'build' and started is not None:
+            record_build(root, entry['queuedAt'], started, load, code)
 
 
 if __name__ == '__main__':

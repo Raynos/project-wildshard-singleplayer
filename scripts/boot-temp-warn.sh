@@ -3,7 +3,7 @@
 #   1. A folder macOS empties at boot before login holds over 500,000 files: /private/tmp and $TMPDIR, each counted on
 #      its own (Jake, 2026-10-15: two separate thresholds). On 2026-10-15
 #      millions of leftover export files there held the laptop at the login progress bar for hours.
-#   2. ./tmp/build-mirror holds a slot other than gate, commit and check (G429: no per-lane or per-agent copies).
+#   2. ./tmp/build-mirror holds a slot outside gate, commit, check..check5 (G547: seven shared slots).
 # Counting takes seconds, so the hook prints the last count at once and starts a background recount when that count is
 # over 10 minutes old. The recount also sweeps ./tmp/vitest (Vitest's module cache, scripts/vitest-tmp.ts): a run's
 # <pid> dir goes once that process is gone and nothing in it changed for an hour (a killed run leaves one behind). `scripts/boot-temp-warn.sh --top` lists the biggest folders by file count.
@@ -63,9 +63,8 @@ extra=""
 if [ -d "$root/tmp/build-mirror" ]; then
   for slot in "$root"/tmp/build-mirror/*/; do
     name="$(basename "$slot")"
-    # check2 and check3: temporary, until W2 of SHARD-PLATFORM closes (Jake, 2026-10-15, G435); then delete them here.
-    case "$name" in gate|commit|check|check2|check3|*.lock|*.queue) ;; *) extra="$extra $name" ;; esac
+    case "$name" in gate|commit|check|check2|check3|check4|check5|*.lock|*.queue) ;; *) extra="$extra $name" ;; esac
   done
 fi
-[ -n "$extra" ] && echo "boot-temp: WARNING build-mirror slots beyond gate/commit/check (G429):$extra; delete the ones no process holds." >&2
+[ -n "$extra" ] && echo "boot-temp: WARNING build-mirror slots beyond gate/commit/check..check5 (G547):$extra; delete the ones no process holds." >&2
 exit 0

@@ -28,10 +28,10 @@ Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open.
   when Jake asks for it (~3 cores per page). No `--disable-frame-rate-limit`. One Android emulator at a time, killed
   when the run ends.
 
-## Full suites and app builds: one of each machine-wide (E435 SF62)
+## One full suite and two app builds machine-wide (G547)
 
 Ten simultaneous full suites pushed machine load above 150 and timed out real worker proofs. Python 3 and `flock`
-now provide separate full-test and build lanes across working trees and clean exports:
+now provide one full-test lease and two shared app-build leases:
 
 - `python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run` (coverage and sharded full runs also take this lane).
   **Lanes don't run full suites** (SF74 W1): `full-test` and `check` (so `pnpm test`, `pnpm test:coverage`) refuse
@@ -46,13 +46,23 @@ and app Vite builds refuse an absent or copied lease before workers start. Focus
 unrestricted; `--project`, `--shard` and reporter flags alone are still full runs. Listing tests needs no lease.
 An SDK package build that includes its app clients also runs through the build wrapper.
 
-The push gate has its **own `push-gate` lease** (process audit 2026-10-09: a lane's suite held pushes a median 115 s):
-one gate at a time, running beside lanes' suites and builds, and its lease covers both guards for its descendants.
-Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate takes it for its `pnpm build`; its
+The push gate has its **own `push-gate` lease** and consumes one of the two build slots (G547).
+One gate runs at a time and takes the next free build slot ahead of queued ordinary builds. Its descendants reuse
+the lease. Running older wrappers keep their original locks; an older gate reserves one build slot during migration.
+Each child receives a private legacy marker view in `WS_HEAVY_ROOT`; the shared queue remains in
+`WS_HEAVY_SCHEDULER_ROOT`. Thus older Vite guards still read their owner's `build.active.json` in either slot,
+with the same token and process-ancestor checks. Marker views are removed when their owner finishes.
+Ordinary builds remain FIFO; independent full-test and build jobs may overlap. The gate takes its lease for `pnpm build`; its
 related-test run is focused and needs no lease (4 workers). Local Vitest defaults to six workers (`WS_VITEST_MAX_WORKERS`
 accepts a positive integer); CI keeps its runner default. Owned heavy commands run under `nice -n 10`, inherited by
 nested wrappers. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
 full-test lease; request `check` up front when one ordinary command needs both resources (`gate` is push priority).
+
+For 24 hours from the first observed build, the wrapper writes queue seconds, build seconds, exit code and start/end
+load averages to one report-only `~/.wildshard-heavy-lanes/build-day.log` (or `WS_HEAVY_ROOT/build-day.log`). Nested
+builds are labelled `inherited`; they take no additional slot. An expired log stops collecting automatically, and
+logging errors never change the build's result. Batch first-frame checks share one preview containing every requested
+shard, while each shard keeps its own muted iPhone check and the preview closes on success or failure.
 
 The default owned-command deadline is 30 minutes (`--max <minutes>`); queue time is separate. Signals and deadlines
 stop only the wrapper's own process group. The command inherits the lock descriptors, so killing a wrapper cannot
@@ -122,8 +132,9 @@ machine does not boot up cleanly because it has to delete millions of files in t
 attack."* On 2026-10-15 millions of leftover `git archive` export files in `/tmp` and `$TMPDIR` held the laptop at the
 login progress bar for hours: macOS empties both at boot, before login.
 - **One checkout.** No exports, clones, worktrees or copies of `public/` assets, ever.
-- **At most three build-mirror slots machine-wide** (`./tmp/build-mirror`): `gate` (the push gate), `commit` (pre-commit)
-  and `check` (the default every agent queues for; `serve-build.sh` uses it). Never a slot per lane, agent or subagent:
+- **At most seven build-mirror slots machine-wide** (`./tmp/build-mirror`, G547): `gate` (push), `commit` (pre-commit)
+  and `check`, `check2`…`check5`. Set `WILDSHARD_MIRROR_SLOT` to spread checks across those five shared slots.
+  Previews and ordinary builds use a check slot, never `commit` or `gate`. Never a slot per lane, agent or subagent:
   each slot is a ~2 GB copy of the tree.
 - **Reuse one served build of HEAD**; rebuild only when your change needs it, and then with the fast path above. Focused tests and quick checks, no repeated
   full rebakes or builds for a small change.

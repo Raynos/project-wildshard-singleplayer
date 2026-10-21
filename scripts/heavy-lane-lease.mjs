@@ -11,10 +11,10 @@ export function assertHeavyLease(resource, env = process.env) {
   const root = env.WS_HEAVY_ROOT ?? join(homedir(), '.wildshard-heavy-lanes');
   /** @type {unknown} */
   let lease;
-  try { lease = JSON.parse(readFileSync(join(root, `${resource}.active.json`), 'utf8')); } catch { /* Refuse below. */ }
-  // The push gate's own lease covers every heavy resource for its descendants (heavy-lane.py RESOURCES).
-  if (lease === undefined || lease === null || typeof lease !== 'object' || !('token' in lease) || lease.token !== env.WS_HEAVY_TOKEN) {
-    try { lease = JSON.parse(readFileSync(join(root, 'push-gate.active.json'), 'utf8')); } catch { /* Refuse below. */ }
+  // A build can own either physical build slot; the gate's lease covers its descendants.
+  for (const slot of resource === 'build' ? ['build', 'build-2', 'push-gate'] : [resource, 'push-gate']) {
+    try { lease = JSON.parse(readFileSync(join(root, `${slot}.active.json`), 'utf8')); } catch { continue; }
+    if (lease !== null && typeof lease === 'object' && 'token' in lease && lease.token === env.WS_HEAVY_TOKEN) break;
   }
   const message = `Run this through python3 scripts/heavy-lane.py ${resource} -- <command>; focused Vitest file runs remain unrestricted.`;
   if (lease === null || typeof lease !== 'object' || !('token' in lease) || !env.WS_HEAVY_TOKEN || lease.token !== env.WS_HEAVY_TOKEN ||

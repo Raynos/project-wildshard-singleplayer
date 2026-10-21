@@ -18,5 +18,5 @@ AGENTS.md and docs/process/ hold the rest.
 - **Commits (GIT.md):** pathspec or a private index built on the current HEAD; never stash, reset or restore others'
   files; Conventional subject ≤ 50 chars, body wrapped at 72 with `net -N shard lines (<shard> -N)` and
   `Assisted-by: Codex:<model>`; never `git push` (sp-x7 pushes). Strict TS; never disable a guard or raise a limit.
-- **Machine:** ≤ 4 muted browsers via `scripts/browser-lane.sh`; `scripts/serve-build.sh` (mirror first); scratch
-  only in `./tmp/<lane>-<task>`, deleted when done.
+- **Machine:** 4 muted browsers via `scripts/browser-lane.sh`; `scripts/serve-build.sh`; scratch `./tmp`.
+  `WILDSHARD_MIRROR_SLOT`: shared `check`…`check5` (G547); previews/builds never `commit`/`gate`.

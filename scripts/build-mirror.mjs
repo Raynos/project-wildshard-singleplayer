@@ -9,8 +9,8 @@
 // The mirror is a work tree with its own index (GIT_INDEX_FILE), so `read-tree -u` rewrites only the files that differ
 // from the commit it last held: a sync to a nearby commit writes kilobytes, never a fresh 23k-file export. It holds the
 // commit minus art/, progress/ and sources/ (what the exports always excluded; --full keeps them). There is one mirror
-// per slot under the git-ignored ./tmp/build-mirror (Jake 2026-10-15: three slots machine-wide, gate, commit and the
-// shared default `check` that every lane queues for; no per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
+// per slot under git-ignored ./tmp/build-mirror (G547: gate, commit, check and check2..check5;
+// seven shared slots, never per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
 // at boot, before login, and the piled-up exports stalled the boot for hours on 2026-10-15), and `du -sh tmp` shows
 // what this repo holds. A lock serializes users of a slot: the mirror cannot change under a running build.
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
@@ -100,8 +100,10 @@ export function defaultSlot(env = process.env) {
   return env.WILDSHARD_MIRROR_SLOT ?? 'check';
 }
 
+const MIRROR_SLOTS = new Set(['gate', 'commit', 'check', 'check2', 'check3', 'check4', 'check5']);
+
 export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
-  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(slot)) throw new Error(`build-mirror: invalid slot ${slot}`);
+  if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use gate, commit or check..check5`);
   const root = join(mirrorRoot(env, repo), slot);
   const dir = join(root, 'tree');
   mkdirSync(dir, { recursive: true });
