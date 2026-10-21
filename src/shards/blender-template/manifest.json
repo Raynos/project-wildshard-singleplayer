@@ -22,8 +22,8 @@
   "bindings": {
     "accent": "teal",
     "budgets": {
-      "export": "BUDGETS",
-      "module": "./data/budgets"
+      "module": "./data/budgets.json",
+      "export": "default"
     }
   },
   "biome": "Blender clay prototype",
