@@ -2,7 +2,8 @@
 import { openSync, closeSync, fstatSync, readSync } from 'node:fs';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
-/** Read a file within its declared wire bound, detecting growth without an unbounded readFile allocation. */
+/** Read a file within its declared wire bound, detecting growth without an unbounded readFile allocation.
+ * A short read returns only the bytes actually read from the open descriptor. */
 export function readBoundedFile(path: string, maximum: number): Uint8Array {
   if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > limits.wireBytes) throw new Error('Invalid file admission bound');
   const descriptor = openSync(path, 'r');
