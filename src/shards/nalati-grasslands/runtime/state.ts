@@ -6,17 +6,13 @@ import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { Group, Mesh, type Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
-import type { Game } from '@wildshard/engine/core/Game';
-import type { Player } from '@wildshard/engine/player/Player';
-import type { Forest } from '@wildshard/engine/world/forest/Forest';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
 
 
@@ -25,14 +21,13 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 
 import { buildNalatiPOIs } from '../world/view';
-import type { NalatiPOIs } from '../world/viewTypes';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
-import { type ArenaRoomEncounter, arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
+import { arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { shapeBook } from '@wildshard/game/models/shapeBook';
 import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { installForestWeather, type ForestWeatherRig } from '@wildshard/sdk/looks/forestWeather';
+import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
@@ -44,7 +39,7 @@ import { reseedGrassV2 } from '../look/field';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { loadShepherdRider } from './looks/rider';
 import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
-import type { CosmeticFinishLocker, CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
+import type { CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
@@ -52,55 +47,12 @@ import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 type Wildlife = PageWildlife<Flock>;
 
-/** What the steppe's systems read of the weather: the painted sky's clock, look and dome, the continuation and its storm. */
-type PaintedSky = NonNullable<ForestWeatherRig['sky']>;
-export interface NalatiWeather {
-  readonly clock: PaintedSky['clock']; readonly look: PaintedSky['look']; readonly dome: PaintedSky['dome']; readonly air: ForestWeatherRig['weather']; readonly weather: NonNullable<ForestWeatherRig['storm']>;
-}
+/** The defining builders keep the published state and its consumers on one contract. */
+export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
+export type NalatiWeather = Nalati['weather'];
+export type NalatiCtx = NonNullable<ShardRuntime['world']>;
 
-export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
-
-export interface Nalati {
-  readonly persistence: NalatiPersistence | undefined;
-  /** every frame (main.ts game.onUpdate) */
-  /** every POI (poi agent, B5): camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags */
-  pois: NalatiPOIs;
-  /** the day/night clock + storms (weather agent, B10): `weather.clock.onDusk(fn)`, `weather.weather.stormActive` */
-  weather: NalatiWeather;
-  /** the great kurgan's dungeon + the Golden King (boss agent, B13; src/shards/nalati-grasslands/kurganBoss.ts): `boss.bind(play)` from main.ts
-   *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
-   *  handled it: the player is back at the phase checkpoint); `boss.inside` while the player is in the dungeon */
-  boss: ArenaRoomEncounter;
-  /** the named elites (elites agent, B12; src/shards/nalati-grasslands/elites.ts): Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq — `elites.bind(play)`
-   *  from main.ts once the animals, the wildlife and the HUD exist */
-  elites: EliteRosterPage<Flock>;
-  wildlife: Wildlife | null;
-  /** main.ts once the kit + HUD exist: knock-downs, howl / stampede toasts */
-  bindPlay: (kit: NalatiLoadout) => void;
-  /** weapons.onFire: a shot reveals you for a second (the stealth model) */
-  onShot: () => void;
-  /** weapons.onImpact: an arrow / javelin landing near a herd or the flock spooks it */
-  onImpact: (surface: ImpactSurface, point: Vector3) => void;
-  /** main's Targets.raycast: the nearer of `hit` (the animals) and a sheep on the ray — the flock is not an AnimalManager crowd */
-  sheepTarget: (origin: Vector3, dir: Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
-  /** anything a later system wants to find: named groups added to the scene by this wiring */
-  groups: Record<string, Object3D>;
-  /** crouch + grass stealth (melee agent, B9; src/shards/nalati-grasslands/stealth.ts): `stealth.state` (hidden / visible / noticed /
-   *  detected), `stealth.cover`, `stealth.latched` — taming reads it (TRUST builds only crouched) */
-  stealth: Stealth | null;
-  /** riding + taming (creatures agent B7 / B8; src/shards/nalati-grasslands/ride/ride.ts): built in `attachAnimals`. main.ts pushes
-   *  `ride.interactable` (the one nearest horse prompt: Mount / Dismount / Break the stallion) into its interactables and
-   *  hands `ride.taming` to `elites.bind` (Argymaq, BROKEN → the bucking rounds) */
-  ride: Ride | null;
-  /** Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): main.ts `titan.bind({...})` once the kit / ride / HUD exist,
-   *  `titan.onPlayerDeath()` in its death check; `titan.engaged` holds the storm and stands the elites down */
-  titan: ArenaScriptEncounter;
-  /** the wearable skins (B15; src/shards/nalati-grasslands/weapons/nalatiSkins.ts): the elites' drops + the Sky-Marked Saddle, owned / worn per slot —
-   *  main.ts's menu lists `skins.entries()` in the Inventory tab and wears them with `skins.toggle(id)` */
-  skins: CosmeticFinishLocker;
-}
-
-export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence): Promise<Nalati> {
+async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence) {
   const { admission } = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
@@ -152,7 +104,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const rows = v.parse(v.object({ page: v.unknown() }), await plugin.product.json('world/weather.json')).page;
   const rig = await installForestWeather(plugin, rows), storm = rig?.storm ?? null, painted = rig?.sky ?? null;
   if (rig === null || storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
-  const weather: NalatiWeather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
+  const weather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
   groups['weather'] = rig.group;
   updates.push(() => undefined); // The weather host owns this frame slot.
 
@@ -210,35 +162,35 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const night = await NalatiNight.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
-  const nalati: Nalati = {
-    persistence, pois, weather, groups, boss, elites, stealth, ride, titan,
+  const nalati = {
+    persistence, pois, weather, groups, boss, elites, titan,
+    get stealth(): Stealth | null { return stealth; },
+    get ride(): Ride | null { return ride; },
     get wildlife() { return clientWildlife(plugin); },
     get skins() { return clientCosmeticFinishes(plugin).locker; },
-    bindPlay(p) {
+    bindPlay(p: NalatiLoadout): void {
       playKit = p;
       wildlife = clientWildlife(plugin);
       const attachedAnimals = plugin.game.runtime?.play?.animals;
       if (attachedAnimals === undefined) throw new Error('Missing animal play owner');
       night.attach(attachedAnimals);
       stealth = new StealthController(plugin,player,stealthRows);
-      nalati.stealth = stealth;
       if (wildlife === null) throw new Error('Nalati creatures have not been built');
       ride = enterClientRiding(plugin);
-      nalati.ride = ride;
       if (ride.raid.shepherd !== null) rider.attach(ride.raid.shepherd);
       plugin.debug.expose('nalati.ride',ride);
 
       const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
       painter = clientCosmeticFinishes(plugin).painter;
     },
-    onShot() { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; },
-    onImpact(_surface, point) {
+    onShot(): void { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; },
+    onImpact(_surface: ImpactSurface, point: Vector3): void {
       // a landing arrow / javelin (not a sabre / spear blow at arm's length)
       if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;
       wildlife.disturb(point.x, point.z);
       ride?.noteShot(point.x, point.z);
     },
-    sheepTarget(origin, dir, maxDist, hit) {
+    sheepTarget(origin: Vector3, dir: Vector3, maxDist: number, hit: TargetHit | null): TargetHit | null {
       if (wildlife === null) return hit;
       return titan.target(origin,dir,maxDist,night.target(origin,dir,maxDist,wildlife.raycastWeapon(origin,dir,maxDist,hit)));
     },
@@ -305,3 +257,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   await slice(total, total, 'World services');
   return nalati;
 }
+
+/** The public boundary keeps the defining builder's complete input and state contract. */
+export const buildNalatiWorld: typeof buildNalatiState = buildNalatiState;
