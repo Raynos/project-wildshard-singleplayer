@@ -413,6 +413,7 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "public/assets/nalati",
+        "public/assets/nalati/baked/crags.bin",
         "public/assets/baked/nalati-grasslands",
         "public/assets/baked/common",
         "public/assets/gpu/nalati",
