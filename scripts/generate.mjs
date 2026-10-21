@@ -44,7 +44,7 @@ function postGenerationTable(root,catalog,file) {
 }
 
 /** A shared producer is explicitly unowned, never assigned a fake shard; helpers cannot masquerade as producers.
- * @param {import('./generate.mjs').ShardGenerationJob} job */
+ * @param {v.InferOutput<typeof Descriptor>} job */
 function validateProducer(job) {
   const owned=job.shard===null
     ? /^scripts\/bake-[a-z0-9-]+\.(?:mjs|ts)$/u.test(job.entry) && !sharedHelpers.has(job.entry.slice('scripts/'.length))
@@ -52,17 +52,21 @@ function validateProducer(job) {
   if(!owned || !job.command.includes(job.entry)) throw new Error(`Generator must be owned by ${job.shard ?? 'shared tooling'}: ${job.entry}`);
   if(job.preview && (job.capture || !job.browser || !job.command.some(arg=>arg.includes('<preview-url>')))) throw new Error(`Preview command must name its fenced URL: ${job.id}`);
   if(!job.preview && job.command.some(arg=>arg.includes('<preview-url>'))) throw new Error(`Undeclared preview command: ${job.id}`);
-  const comparisons=Object.keys(job.comparisonOutputs ?? {});
-  if(comparisons.some(file=>!job.outputs.includes(file)) || comparisons.some(file=>Object.hasOwn(job.buildOutputs ?? {},file))) throw new Error(`Invalid comparison-only outputs: ${job.id}`);
+  const comparisons=Object.keys(job.comparisonOutputs);
+  if(comparisons.some(file=>!job.outputs.includes(file)) || comparisons.some(file=>Object.hasOwn(job.buildOutputs,file))) throw new Error(`Invalid comparison-only outputs: ${job.id}`);
   if (job.buildTimeOutputs.length > 0 && (job.seedOutputs.length > 0 || job.capture || job.browser || job.recordedInputs || job.platform === 'darwin' || job.buildTimeOutputs.some(file => !job.outputs.includes(file)) || Object.keys(job.buildOutputs).length > 0 || Object.keys(job.comparisonOutputs).length > 0)) throw new Error(`Invalid cheap build outputs: ${job.id}`);
-  const buildOutputs=Object.keys(job.buildOutputs ?? {});
-  if(buildOutputs.some(file=>!job.outputs.includes(file) || job.seedOutputs?.includes(file)) ||
+  const buildOutputs=Object.keys(job.buildOutputs);
+  if(buildOutputs.some(file=>!job.outputs.includes(file) || job.seedOutputs.includes(file)) ||
     (buildOutputs.length>0 && (job.platform==='darwin' || job.capture || job.browser || job.recordedInputs))) throw new Error(`Invalid build-time outputs: ${job.id}`);
 }
 
 /** Recursively collect regular inputs; links cannot escape the declared source tree. @param {string} root @param {string[]} roots @param {InputHashMemo} [memo] @param {(file:string)=>boolean} [include] */
 export function generationInputs(root,roots,memo,include=()=>true) {
   const base=realpathSync(root), files=new Set();
+  if(memo?.snapshot) {
+    for(const relative of roots)for(const file of memo.paths(relative))if(include(file))files.add(file);
+    return bakeInputHashes(base,files,memo);
+  }
   /** @param {string} relative */
   function walk(relative) {
     v.parse(path,relative);
@@ -77,6 +81,7 @@ export function generationInputs(root,roots,memo,include=()=>true) {
   // Infrastructure roots often contain dozens of explicit inputs too. Validate
   // every declared path, then traverse each covered subtree only once.
   for(const relative of roots) v.parse(path,relative);
+  /** @type {string[]} */
   const visited=[];
   for(const relative of [...new Set(roots)].sort((a,b)=>a.length-b.length || a.localeCompare(b))) {
     if(visited.some(parent=>relative.startsWith(`${parent}/`))) continue;
@@ -117,7 +122,7 @@ export function discoverGeneration(root,catalogPath='scripts/generation-jobs.jso
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} job @param {string} catalog */
 function catalogueProjection(root, job, catalog) {
   if (job.catalogueDependencies === undefined) return undefined;
-  /** @type {{schema:string,notice:string,jobs:ShardGenerationJob[]}} */
+  /** @type {{schema:string,notice:string,jobs:import('./generate.mjs').ShardGenerationJob[]}} */
   const source=JSON.parse(readFileSync(resolve(root,catalog),'utf8'));
   const parsed=v.parse(Catalog,source), wanted=[job.id,...job.catalogueDependencies];
   if(new Set(wanted).size!==wanted.length)throw new Error(`Duplicate catalogue dependency: ${job.id}`);
@@ -263,6 +268,8 @@ export async function prepareGeneration(root,options={}) {
   for(const job of jobs)for(const file of job.outputs)if(!job.buildTimeOutputs.includes(file) && !Object.hasOwn(job.buildOutputs,file))retained.add(file);
   /** @type {import('./generate.mjs').GenerationPreparation} */
   const preparation={outputs:jobs.flatMap(job=>job.outputs),retained,upstream:new Map()};
+  const generated=new Set(preparation.outputs.filter(file=>!retained.has(file)));
+  inputHashes.enableSnapshot(file=>generated.has(file)||postGenerationTable(root,'scripts/generation-jobs.json',file));
   try { while(completed.size<jobs.length) {
     for(const [index,job] of jobs.entries()) {
       if(running.size>=concurrency) break;
@@ -287,6 +294,7 @@ export async function prepareGeneration(root,options={}) {
     }
     completed.add(finished.index);
   }
+  inputHashes.verifySnapshot();
   } finally { inputHashes.flush(); }
   return report;
 }

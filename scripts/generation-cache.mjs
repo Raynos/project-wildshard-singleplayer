@@ -123,6 +123,7 @@ async function execute(root, directory, key, job, options) {
     if (options.forceCompare !== true && hadCache) return { directory: touch(directory), key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
     await options.generate(stage);
     // A producer that changed its inputs cannot publish under the old key.
+    options.inputHashes?.verifyInputs(job.inputs);
     if (generationKey(root, job, options) !== key) throw new Error(`Generation inputs changed during job: ${job.id}`);
     const hashes = generationOutputHashes(stage, job.outputs);
     if (hadCache && canonical(hashes) !== canonical(generationOutputHashes(directory, job.outputs))) throw new Error(`Regenerate-and-compare failed: ${job.id}`);

@@ -6,10 +6,15 @@ export function refreshBakeInputs(root: string): Promise<Record<string, string>>
 /** Exact SHA256 input map; nonregular and absent files refuse generation. */
 export function bakeInputHashes(root:string,paths:Iterable<string>,memo?:InputHashMemo):Record<string,string>;
 
-/** Run-scoped exact hashes, stat-validated on every lookup; optional persistent optimization. */
+/** Exact stat-validated hashes. Optional phase snapshots verify frozen bytes/inventories at completion and before cold publication. */
 export class InputHashMemo {
   constructor(root:string,file?:string);
   readonly root:string; readonly reads:number;
-  hash(path:string):string;
+  readonly snapshot:boolean;
+  hash(path:string,fresh?:boolean):string;
+  enableSnapshot(ignore:(file:string)=>boolean):void;
+  paths(path:string,fresh?:boolean,nested?:boolean):string[];
+  verifyInputs(inputs:Record<string,string>):void;
+  verifySnapshot():void;
   flush():void;
 }

@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
 import { bakeInputHashes, InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { generationKey, runGenerationJob } from '../scripts/generation-cache.mjs';
+import { generationInputs } from '../scripts/generate.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -42,9 +43,24 @@ it('rejects same-size edits even after restoring mtime, and rejects links, missi
 
 it('still refuses a producer that changes its source after the initial memo hit', async () => {
   const root = fixture(), memo = new InputHashMemo(root), descriptor = job(root, memo);
+  memo.enableSnapshot(()=>false);
+  job(root,memo);
   await expect(runGenerationJob(root, descriptor, { inputHashes: memo, cacheDir: resolve(root, 'cache'), generate: stage => {
     writeFileSync(resolve(stage, 'output.txt'), readFileSync(resolve(root, 'input.txt')));
     writeFileSync(resolve(root, 'input.txt'), 'other');
     return Promise.resolve();
   } })).rejects.toThrow('Generation input changed');
+});
+
+it('verifies frozen authored bytes and inventories while allowing generated restoration', () => {
+  const root=fixture(), memo=new InputHashMemo(root);
+  mkdirSync(resolve(root,'source')); writeFileSync(resolve(root,'source/authored.txt'),'source');
+  memo.enableSnapshot(file=>file==='source/generated.json');
+  const inputs=generationInputs(root,['source'],memo), reads=memo.reads;
+  writeFileSync(resolve(root,'source/generated.json'),'generated');
+  expect(generationInputs(root,['source'],memo)).toEqual(inputs); expect(memo.reads).toBe(reads); memo.verifySnapshot();
+  writeFileSync(resolve(root,'source/new.txt'),'new');
+  expect(()=>memo.verifySnapshot()).toThrow('source inventory changed');
+  rmSync(resolve(root,'source/new.txt')); writeFileSync(resolve(root,'source/authored.txt'),'edited');
+  expect(()=>memo.verifySnapshot()).toThrow('Generation input changed');
 });
