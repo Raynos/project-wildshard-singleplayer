@@ -1,6 +1,6 @@
 /** Local experiment only. This module never grants or substitutes for source admission. */
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, lstatSync, realpathSync, readlinkSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, lstatSync, realpathSync, readlinkSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, relative, sep, dirname } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 
@@ -58,7 +58,7 @@ export function retainedCandidateProducts(root, hostRoot) {
       if (keys.has(key)) throw new Error(`Duplicate candidate content key: ${key}`);
       keys.add(key);
     }
-    return { id, host, previewFile, preview, index, validation, bodies, looks };
+    return { id, host, previewFile, preview, index, validation, bodies, looks, pins: pin.files };
   });
 }
 /** Conservative superset of build/validator dependencies; no historical source is loaded. */
@@ -87,11 +87,74 @@ export function sourceSnapshot(root) {
     if (original !== current) conchDeltas.push({ path, original, current });
   }
   if (!isDeepStrictEqual(conchDeltas.map(row => row.path), CONCH_DELTAS)) throw new Error('Expected exactly nine reviewed Conch source deltas');
-  return { schema: 'wildshard.shared-arena.candidate-source.v1', root: realpathSync(root), node: process.version, executable: digest(readFileSync(process.execPath)), files, links, conchDeltas };
+  return { schema: 'wildshard.shared-arena.candidate-source.v1', root: realpathSync(root), buildPolicy: candidateBuildPolicy(), node: process.version, executable: digest(readFileSync(process.execPath)), files, links, conchDeltas };
 }
 export function assertPermission(permission, snapshot, hostRoot, destination, root) {
   if (permission?.schema !== 'wildshard.shared-arena.candidate-permission.v1' || permission.buildAllowed !== true || permission.localOnly !== true || permission.admitted !== false || permission.reviewedBy !== 'root' || typeof permission.rootGo !== 'string' || !permission.rootGo.trim() || typeof permission.reviewPath !== 'string' || !permission.reviewPath.startsWith('docs/reviews/') || !isDeepStrictEqual(permission.acceptance, ACCEPTANCE) || !isDeepStrictEqual(permission.products, FOUR)) throw new Error('Missing explicit root-reviewed local-only candidate permission');
   if (permission.sourceSnapshotSha256 !== digest(Buffer.from(JSON.stringify(snapshot))) || permission.reviewSha256 !== digest(readFileSync(safeFile(root, permission.reviewPath))) || permission.hostRoot !== realpathSync(hostRoot) || permission.destination !== resolve(destination)) throw new Error('Candidate exact-source permission mismatch');
   const localBase = resolve(root, 'tmp/shared-arena-candidates');
   if (!resolve(destination).startsWith(`${localBase}${sep}`) || realpathSync(dirname(destination)) !== dirname(resolve(destination)) || existsSync(destination)) throw new Error('Candidate output must be a NEW local tmp/shared-arena-candidates child, never an existing output or Site destination');
+}
+
+/** Only public constants belong here. Never snapshot ambient environment values. */
+export function candidateBuildPolicy() {
+  const env = { MODE: 'candidate', BASE_URL: './', DEV: false, PROD: true, SSR: false, VITE_SENTRY_DSN: '' };
+  return { configFile: false, publicDir: false, envDir: false, envPrefix: [], mode: 'candidate', base: './',
+    css: { postcss: { plugins: [] } },
+    define: { ...Object.fromEntries(Object.entries(env).map(([key, value]) => [`import.meta.env.${key}`, JSON.stringify(value)])), 'process.env.NODE_ENV': JSON.stringify('production') } };
+}
+/** mkdir (without recursive) is the exclusive claim, not the earlier existence check. */
+export function reserveOutput(destination) {
+  const path = resolve(destination);
+  if (realpathSync(dirname(path)) !== dirname(path)) throw new Error('Symlink candidate output parent');
+  mkdirSync(path, { mode: 0o700 });
+  const ancestors = [];
+  for (let current = path;; current = dirname(current)) {
+    const stat = lstatSync(current);
+    if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error('Unsafe candidate output directory');
+    ancestors.push({ path: current, dev: stat.dev, ino: stat.ino });
+    if (dirname(current) === current) break;
+  }
+  return { path, makeParents(name) {
+    let current = path;
+    for (const part of name.split('/').slice(0, -1)) {
+      this.assert();
+      current = resolve(current, part);
+      if (ancestors.some(row => row.path === current)) continue;
+      // Refuse directories supplied by another writer, including symlinks.
+      mkdirSync(current, { mode: 0o700 });
+      const stat = lstatSync(current);
+      if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error('Unsafe candidate output directory');
+      ancestors.push({ path: current, dev: stat.dev, ino: stat.ino });
+      this.assert();
+    }
+  }, assert(empty = false) {
+    for (const original of ancestors) {
+      const stat = lstatSync(original.path);
+      if (!stat.isDirectory() || stat.isSymbolicLink() || stat.dev !== original.dev || stat.ino !== original.ino) throw new Error('Candidate output directory replaced or symlinked');
+    }
+    if (realpathSync(path) !== path) throw new Error('Symlink candidate output path');
+    if (empty && readdirSync(path).length > 0) throw new Error('Candidate output reservation is not empty');
+  } };
+}
+export function pinnedBytes(root, name, expected) {
+  const data = readFileSync(safeFile(root, name));
+  if (typeof expected !== 'string' || digest(data) !== expected) throw new Error(`Candidate copy pin mismatch: ${name}`);
+  return data;
+}
+export function writePinnedOutput(reservation, name, data, expected) {
+  reservation.assert();
+  if (typeof name !== 'string' || !name || name.includes('\\') || name.startsWith('/') || name.split('/').some(part => !part || part === '.' || part === '..')) throw new Error('Unsafe candidate output file');
+  if (digest(data) !== expected) throw new Error(`Candidate copy pin mismatch: ${name}`);
+  const path = resolve(reservation.path, name);
+  reservation.makeParents(name);
+  if (realpathSync(dirname(path)) !== dirname(path)) throw new Error('Symlink candidate output ancestor');
+  reservation.assert();
+  writeFileSync(path, data, { flag: 'wx' });
+  reservation.assert();
+  pinnedBytes(reservation.path, name, expected);
+}
+export function verifyPinnedOutputs(reservation, expected) {
+  reservation.assert();
+  for (const [name, hash] of Object.entries(expected)) pinnedBytes(reservation.path, name, hash);
 }

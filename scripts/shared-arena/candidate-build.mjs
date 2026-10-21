@@ -1,5 +1,5 @@
 import { build } from 'vite';
-import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, copyFileSync, realpathSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
 import { resolve, dirname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Buffer } from 'node:buffer';
@@ -9,10 +9,13 @@ import { assertHeavyLease } from '../../scripts/heavy-lane-lease.mjs';
 import { starterArmClipsTableSource } from '../../scripts/gen-starter-arm-clips.mjs';
 import { starterEffectsTableSource } from '../../scripts/gen-starter-effects.mjs';
 import { shardfileValidationRevision } from '../../scripts/shardfile-validation-revision.mjs';
-import { retainedCandidateProducts, digest, sourceSnapshot, assertPermission, inventory, ACCEPTANCE } from './candidate-inputs.mjs';
+import { retainedCandidateProducts, digest, sourceSnapshot, assertPermission, inventory, ACCEPTANCE, candidateBuildPolicy, reserveOutput, pinnedBytes, writePinnedOutput, verifyPinnedOutputs, safeFile } from './candidate-inputs.mjs';
 
 assertHeavyLease('build');
 const root = resolve('.');
+// Fix Vite's production decision; do not retain or log ambient values.
+process.env.NODE_ENV = 'production';
+const policy = candidateBuildPolicy();
 const [hostRoot, destination, snapshotPath, permissionPath] = process.argv.slice(2);
 if (process.argv.length !== 6) throw new Error('Usage: candidate-build.mjs <retained-host-directory> <NEW tmp/shared-arena-candidates/name> <snapshot.json> <root-permission.json>');
 const outDir = resolve(destination);
@@ -39,8 +42,8 @@ const frozenModules = () => ({ name: 'candidate-reviewed-module-closure', genera
 const revision = shardfileValidationRevision(root);
 // Run real current SDK validation, not just historic receipt matching. Stale runtime receipts fall back to normal admission.
 const require = createRequire(resolve('src/sdk/package.json'));
-const validated = await build({ configFile: false, publicDir: false, logLevel: 'warn', resolve: { alias: rapierAlias },
-  define: { __SHARDFILE_VALIDATOR__: JSON.stringify(revision), 'import.meta.dirname': JSON.stringify(resolve('src/sdk')) },
+const validated = await build({ ...policy, logLevel: 'warn', resolve: { alias: rapierAlias },
+  define: { ...policy.define, __SHARDFILE_VALIDATOR__: JSON.stringify(revision), 'import.meta.dirname': JSON.stringify(resolve('src/sdk')) },
   plugins: [frozenModules(), { name: 'shared-arena-node-validation', enforce: 'pre', resolveId(id) {
     if (id === 'vite') return { id: import.meta.resolve('vite'), external: true };
     if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(require.resolve(id)).href, external: true };
@@ -63,12 +66,17 @@ for (const entry of entries.slice(1)) {
   if (JSON.stringify(entry.looks.arenaLighting)!==JSON.stringify(entries[0].looks.arenaLighting)) throw new Error('Arena lighting mismatch');
   for (const name of ['held/arms','look/materials','look/look']) if (JSON.stringify(section(entry,name))!==JSON.stringify(section(entries[0],name))) throw new Error(`Arena shared presentation mismatch: ${name}`);
 }
-const assets = new Map(), bytes = {}, versions = {};
-const include = (url,path) => { const data=readFileSync(path), hash=digest(data); if (assets.has(url) && digest(readFileSync(assets.get(url)))!==hash) throw new Error(`Shared asset collision: ${url}`); assets.set(url,path); bytes[url]=data.length; versions[url]=hash.slice(0,8); };
+const assets = new Map(), bytes = {}, versions = {}, copiedPins = {};
+const include = (url, entry, name) => {
+  const expected = entry.pins[name], data = pinnedBytes(entry.host, name, expected);
+  if (assets.has(url) && digest(assets.get(url)) !== expected) throw new Error(`Shared asset collision: ${url}`);
+  assets.set(url, data); copiedPins[url.slice(1)] = expected;
+  bytes[url] = data.length; versions[url] = expected.slice(0, 8);
+};
 for (const entry of entries) {
-  for (const asset of [entry.preview.bodyFile.slice(1),'assets/models/driftwood-fp/fp-arms.glb','assets/physics/rapier.wasm']) include(`/${asset}`,resolve(entry.host,asset));
-  const walk = (folder,prefix='') => { for (const item of readdirSync(folder,{withFileTypes:true})) { const path=join(folder,item.name), next=prefix ? `${prefix}/${item.name}` : item.name; if(item.isDirectory())walk(path,next);else include(`/products/${entry.id}/${next}`,path); } };
-  walk(resolve(entry.host,'practice-product'));
+  for (const asset of [entry.preview.bodyFile.slice(1), 'assets/models/driftwood-fp/fp-arms.glb', 'assets/physics/rapier.wasm']) include(`/${asset}`, entry, asset);
+  for (const name of Object.keys(entry.pins)) if (name.startsWith('practice-product/')) include(`/products/${entry.id}/${name.slice(17)}`, entry, name);
+  include(`/${entry.previewFile}`, entry, entry.previewFile);
 }
 const tables = new Map([
  [resolve('src/game/systems/viewmodel/clips.generated'), starterArmClipsTableSource()],
@@ -76,23 +84,38 @@ const tables = new Map([
  [resolve('src/game/boot/bytes.generated'),`export const PUBLIC_BYTES = ${JSON.stringify(bytes)};`],
  [resolve('src/game/boot/versions.generated'),`export const ASSET_VERSIONS = ${JSON.stringify(versions)};`],
 ]);
-const template=readFileSync(resolve('practice/shared-arena/arena.html'),'utf8').replace('./page.ts','/practice/shared-arena/page.ts').replace('./page.css','/practice/shared-arena/page.css').replace('./arena-compact.css','/practice/shared-arena/arena-compact.css').replace('<body>', '<body><div role="status" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#8b0000;color:white;text-align:center;font:700 14px sans-serif;pointer-events:none">NOT ADMITTED · LOCAL CURRENT-RUNTIME TEST ONLY</div>');
+const template=readFileSync(resolve('practice/shared-arena/arena.html'),'utf8').replace('./page.ts','/practice/shared-arena/page.ts').replace('./page.css','/practice/shared-arena/page.css').replace('./arena-compact.css','/practice/shared-arena/arena-compact.css').replace('<head>', `<head><meta http-equiv="Content-Security-Policy" content="connect-src 'self'">`).replace('<body>', '<body><div role="status" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#8b0000;color:white;text-align:center;font:700 14px sans-serif;pointer-events:none">NOT ADMITTED · LOCAL CURRENT-RUNTIME TEST ONLY</div>');
 assertUnchanged();
 assertPermission(permission, snapshot, hostRoot, outDir, root);
-let written=false;
-await build({ configFile: false, publicDir:false, base:'./', resolve:{alias:rapierAlias},
- define:{__DEVSERVER__:true,__BUILD_ID__:JSON.stringify('NOT-ADMITTED-shared-arena-candidate'),__SAVE_NAMESPACES__:'[]',__SHARDFILE_VALIDATOR__:JSON.stringify(revision),__SHARDFILE_VERDICTS__:JSON.stringify(entries.map(row=>row.validation))},
- build:{outDir,emptyOutDir:false,target:'es2022',sourcemap:false,cssCodeSplit:false,rolldownOptions:{input:resolve('practice.html')}},
+const reservation = reserveOutput(outDir);
+const bundled = await build({ ...policy, resolve:{alias:rapierAlias},
+ define:{...policy.define,__DEVSERVER__:true,__BUILD_ID__:JSON.stringify('NOT-ADMITTED-shared-arena-candidate'),__SAVE_NAMESPACES__:'[]',__SHARDFILE_VALIDATOR__:JSON.stringify(revision),__SHARDFILE_VERDICTS__:JSON.stringify(entries.map(row=>row.validation))},
+ build:{write:false,outDir,emptyOutDir:false,target:'es2022',sourcemap:false,cssCodeSplit:false,rolldownOptions:{input:resolve('practice.html')}},
  plugins:[frozenModules(),rapierPreviewPlugin(),{name:'shared-arena-entry',transformIndexHtml:{order:'pre',handler:()=>template},
  resolveId(source,importer){if(!importer||!source.startsWith('.'))return null;const path=resolve(dirname(importer),source).replace(/\.ts$/u,'');return tables.has(path)?`\0shared-arena:${path}`:null;},
  load(id){return id.startsWith('\0shared-arena:')?tables.get(id.slice('\0shared-arena:'.length))??null:null;},
- writeBundle(){written=true;},closeBundle(){if(!written)return;copyFileSync(join(outDir,'practice.html'),join(outDir,'arena.html'));copyFileSync(join(outDir,'practice.html'),join(outDir,'index.html'));
- for(const [url,path]of assets){const dest=join(outDir,url.slice(1));mkdirSync(dirname(dest),{recursive:true});copyFileSync(path,dest);}
- for(const entry of entries)copyFileSync(join(entry.host,entry.previewFile),join(outDir,entry.previewFile));
- assertUnchanged(); retainedCandidateProducts(root, hostRoot);
- const report={schema:'wildshard.shared-arena.candidate-build.v1',admitted:false,localOnly:true,acceptance:ACCEPTANCE,sourceSnapshotSha256:digest(Buffer.from(JSON.stringify(snapshot))),permissionSha256:digest(readFileSync(permissionPath)),builtAt:new Date().toISOString(),revision,singleRuntime:true,worldPersistence:false,bellback:'unavailable',products:entries.map(row=>({id:row.id,candidate:row.preview.candidate,mode:row.preview.mode,sourceHash:row.index.build.sourceHash,originalValidator:row.validation.revision,currentSdkValidation:'passed'}))};
- writeFileSync(join(outDir,'shared-arena-build.json'),`${JSON.stringify(report,null,2)}\n`);
- }}]});
+ buildStart(){reservation.assert(true);},
+ generateBundle(){reservation.assert(true);},
+ }]});
+// Vite never writes into a shared pathname. Every output is exclusively created.
+const output = Array.isArray(bundled) ? bundled[0] : bundled;
+for (const file of output.output) {
+ const data = Buffer.from(file.type === 'chunk' ? file.code : file.source);
+ writePinnedOutput(reservation,file.fileName,data,digest(data));
+}
+reservation.assert();
+const html = readFileSync(safeFile(outDir,'practice.html'));
+for(const name of ['arena.html','index.html'])writePinnedOutput(reservation,name,html,digest(html));
+for(const [url,data]of assets)writePinnedOutput(reservation,url.slice(1),data,copiedPins[url.slice(1)]);
+verifyPinnedOutputs(reservation,copiedPins);
+assertUnchanged(); retainedCandidateProducts(root, hostRoot);
+const report={schema:'wildshard.shared-arena.candidate-build.v1',admitted:false,localOnly:true,acceptance:ACCEPTANCE,sourceSnapshotSha256:digest(Buffer.from(JSON.stringify(snapshot))),permissionSha256:digest(readFileSync(permissionPath)),builtAt:new Date().toISOString(),revision,singleRuntime:true,worldPersistence:false,buildPolicy:policy,bellback:'unavailable',products:entries.map(row=>({id:row.id,candidate:row.preview.candidate,mode:row.preview.mode,sourceHash:row.index.build.sourceHash,originalValidator:row.validation.revision,currentSdkValidation:'passed'}))};
+const reportBytes = Buffer.from(`${JSON.stringify(report,null,2)}\n`);
+writePinnedOutput(reservation,'shared-arena-build.json',reportBytes,digest(reportBytes));
 assertUnchanged();
+verifyPinnedOutputs(reservation,copiedPins);
+reservation.assert();
 writeFileSync(join(outDir,'candidate-inventory.json'), `${JSON.stringify({schema:'wildshard.shared-arena.candidate-inventory.v1',excludes:['candidate-inventory.json'],files:inventory(outDir)},null,2)}\n`, {flag:'wx'});
+reservation.assert();
+verifyPinnedOutputs(reservation,copiedPins);
 console.info(JSON.stringify({outDir,products:entries.length,singleRuntime:true,admitted:false,acceptance:ACCEPTANCE}));

@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, readFileSync, renameSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { FOUR, ACCEPTANCE, CONCH_DELTAS, digest, inventory, retainedCandidateProducts, sourceSnapshot, assertPermission, safeFile } from './candidate-inputs.mjs';
+import { FOUR, ACCEPTANCE, CONCH_DELTAS, digest, inventory, retainedCandidateProducts, sourceSnapshot, assertPermission, safeFile, candidateBuildPolicy, reserveOutput, pinnedBytes, writePinnedOutput, verifyPinnedOutputs } from './candidate-inputs.mjs';
 
 const base = resolve('tmp/candidate-unit-fixtures');
 mkdirSync(base, { recursive: true });
@@ -75,3 +75,83 @@ await test('candidate builder uses current validator and does not call or modify
   const validator = readFileSync(new URL('../../practice/shared-arena/validate.ts', import.meta.url), 'utf8');
   assert.match(validator, /validateOutputProduct\(path\)/);
 });
+
+await test('candidate policy never exposes ambient env or discovers PostCSS configuration', () => fixture((root, put) => {
+  put('.env', 'VITE_SENTRY_DSN=https://not-allowed.invalid\nVITE_SECRET=private-fixture');
+  put('postcss.config.cjs', 'throw new Error("ambient PostCSS must not execute")');
+  const before = process.env.VITE_SENTRY_DSN;
+  try {
+    process.env.VITE_SENTRY_DSN = 'https://not-allowed.invalid';
+    const policy = candidateBuildPolicy();
+    assert.equal(policy.envDir, false);
+    assert.deepEqual(policy.envPrefix, []);
+    assert.deepEqual(policy.css.postcss, { plugins: [] });
+    assert.equal(policy.configFile, false);
+    assert.equal(policy.mode, 'candidate');
+    assert.equal(policy.define['import.meta.env.VITE_SENTRY_DSN'], '""');
+    assert.equal(policy.define['import.meta.env.PROD'], 'true');
+    assert.equal(policy.define['import.meta.env.DEV'], 'false');
+    assert.doesNotMatch(JSON.stringify(policy), /not-allowed|private-fixture/);
+    const code = readFileSync(new URL('candidate-build.mjs', import.meta.url), 'utf8');
+    assert.equal((code.match(/build\(\{ \.\.\.policy/g) ?? []).length, 2);
+    assert.match(code, /connect-src 'self'/);
+    assert.match(code, /build:\{write:false,outDir/);
+    assert.doesNotMatch(code, /copyFileSync|writeBundle/);
+    assert.match(code, /process.env.NODE_ENV = 'production'/);
+  } finally {
+    if (before === undefined) delete process.env.VITE_SENTRY_DSN;
+    else process.env.VITE_SENTRY_DSN = before;
+  }
+}));
+await test('exclusive reservation refuses existing, concurrent and dangling symlink destinations', () => fixture((root) => {
+  const destination = resolve(root, 'out');
+  const reservation = reserveOutput(destination);
+  reservation.assert(true);
+  assert.throws(() => reserveOutput(destination), /EEXIST/);
+  writeFileSync(resolve(destination, 'foreign'), 'preserve');
+  assert.throws(() => reservation.assert(true), /not empty/);
+  assert.equal(readFileSync(resolve(destination, 'foreign'), 'utf8'), 'preserve');
+  symlinkSync(resolve(root, 'absent'), resolve(root, 'dangling'));
+  assert.throws(() => reserveOutput(resolve(root, 'dangling')), /EEXIST/);
+}));
+await test('reserved directory replacement and symlink ancestors fail closed', () => fixture((root) => {
+  const destination = resolve(root, 'out'), reservation = reserveOutput(destination);
+  renameSync(destination, resolve(root, 'old')); mkdirSync(destination);
+  assert.throws(() => reservation.assert(), /replaced/);
+  const second = reserveOutput(resolve(root, 'second'));
+  renameSync(second.path, resolve(root, 'saved'));
+  symlinkSync(resolve(root, 'saved'), second.path);
+  assert.throws(() => second.assert(), /replaced or symlinked/);
+  symlinkSync(resolve(root, 'old'), resolve(root, 'alias'));
+  assert.throws(() => reserveOutput(resolve(root, 'alias/new')), /Symlink/);
+}));
+await test('copies bind immutable pinned bytes, refuse overwrite and detect changed output', () => fixture((root, put) => {
+  const expected = digest('pinned'), source = put('source/body.bin', 'pinned');
+  const data = pinnedBytes(resolve(root, 'source'), 'body.bin', expected);
+  writeFileSync(source, 'changed after read');
+  assert.throws(() => pinnedBytes(resolve(root, 'source'), 'body.bin', expected), /pin mismatch/);
+  const reservation = reserveOutput(resolve(root, 'out'));
+  writePinnedOutput(reservation, 'assets/body.bin', data, expected);
+  const pins = { 'assets/body.bin': expected };
+  verifyPinnedOutputs(reservation, pins);
+  assert.throws(() => writePinnedOutput(reservation, 'assets/body.bin', data, expected), /EEXIST/);
+  assert.throws(() => writePinnedOutput(reservation, 'bad.bin', Buffer.from('wrong'), expected), /pin mismatch/);
+  writeFileSync(resolve(reservation.path, 'assets/body.bin'), 'changed output');
+  assert.throws(() => verifyPinnedOutputs(reservation, pins), /pin mismatch/);
+  symlinkSync(resolve(root, 'source'), resolve(reservation.path, 'alias'));
+  assert.throws(() => writePinnedOutput(reservation, 'alias/new', data, expected), /EEXIST|Symlink/);
+  assert.throws(() => writePinnedOutput(reservation, '../escape', data, expected), /Unsafe/);
+}));
+
+await test('replaced output subdirectories and foreign parent trees cannot receive copies', () => fixture((root, put) => {
+  const reservation = reserveOutput(resolve(root, 'out')), data = Buffer.from('pinned'), hash = digest(data);
+  writePinnedOutput(reservation, 'assets/one', data, hash);
+  renameSync(resolve(reservation.path, 'assets'), resolve(reservation.path, 'saved-assets'));
+  mkdirSync(resolve(reservation.path, 'assets'));
+  assert.throws(() => writePinnedOutput(reservation, 'assets/two', data, hash), /replaced/);
+  const other = reserveOutput(resolve(root, 'other'));
+  put('outside/preserve', 'unchanged');
+  symlinkSync(resolve(root, 'outside'), resolve(other.path, 'foreign'));
+  assert.throws(() => writePinnedOutput(other, 'foreign/nested/file', data, hash), /EEXIST/);
+  assert.deepEqual(inventory(resolve(root, 'outside')), { preserve: digest('unchanged') });
+}));
