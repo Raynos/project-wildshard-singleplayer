@@ -162,6 +162,7 @@ test('entered talk rows borrow the actual castaway and preserve opening, stow an
   try {
     const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
     entry.flags.reset();
+    await expect(entry.talks({ ...driftPage.talks, models: [...driftPage.talks.models, ...driftPage.talks.models] })).rejects.toThrow('Duplicate quest talk model');
     const talks = await entry.talks(driftPage.talks), person = talks.people[0];
     if (person === undefined) throw new Error('Missing declared castaway');
     expect(person.fig).toBe(figure); expect(scene.children).toContain(figure.group);
@@ -191,10 +192,9 @@ test('leaving during a catalogue read cannot create figures or dialogue on the d
   } finally { read.mockRestore(); scope.dispose(); }
 });
 
-test('both authored talk policies admit and reject executable or duplicate model policies', () => {
+test('both authored talk policies admit and reject executable model policies', () => {
   for (const rows of [pinePage.talks, driftPage.talks]) {
     expect(v.safeParse(QuestPageTalksSchema, rows).success).toBe(true);
-    expect(v.safeParse(QuestPageTalksSchema, { ...rows, models: [...rows.models, ...rows.models] }).success).toBe(false);
     expect(v.safeParse(QuestPageTalksSchema, { ...rows, calls: { arbitrary: { kind: 'callback', run: 'window.alert' } } }).success).toBe(false);
   }
 });

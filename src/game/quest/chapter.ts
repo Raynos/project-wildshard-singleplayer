@@ -132,6 +132,7 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
     talks: async talkInput => {
       if (!isJsonData(talkInput)) throw new Error('Quest talks require JSON rows');
       const talkRows = v.parse(QuestPageTalksSchema, talkInput), runtime = ctx.game.runtime, play = runtime?.play;
+      if (new Set(talkRows.models.map(row => row.id)).size !== talkRows.models.length) throw new Error('Duplicate quest talk model');
       if (runtime === undefined || play === undefined || play === null) throw new Error('Quest talks require their entered play owners');
       const requireLive = (): void => { if (ctx.scope.disposed) throw new Error('Quest talks left during model admission'); };
       requireLive();

@@ -24,7 +24,7 @@ export const QuestPageTalksSchema = v.strictObject({
     v.strictObject({ source: v.literal('catalogue'), id: npcRowName, library: text,
       bark: v.strictObject({ audio: npcRowName, group: npcRowName }) }),
     v.strictObject({ source: v.literal('entered'), id: npcRowName, approach: npcRowName, swap: v.boolean(), stow: v.boolean() }),
-  ])), v.maxLength(64), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length)),
+  ])), v.maxLength(64)),
   calls: v.pipe(v.record(npcRowName, v.variant('kind', [
     v.strictObject({ kind: v.literal('trader'), trader: text }),
     v.strictObject({ kind: v.literal('talk'), target: npcRowName,
