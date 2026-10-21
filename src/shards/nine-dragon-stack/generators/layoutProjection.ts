@@ -6,6 +6,13 @@ import lantern from '../data/lantern.json' with { type: 'json' };
 /** One layout geometry's bounds as the layout bake measured them (bake-nine-layout.mjs): [x, y, z, radius], [min, max] */
 export interface LayoutBounds { readonly sphere: readonly number[]; readonly box: readonly number[] }
 
+/** The shortest decimal that rounds back to the same float32 (a float32 box word restores with Math.fround). */
+function shortFloat32(value: number): number {
+  const word = Math.fround(value);
+  for (let digits = 1; digits <= 17; digits++) { const short = Number(word.toPrecision(digits)); if (Math.fround(short) === word) return short; }
+  return word;
+}
+
 /** Decode the predecessor's mixed stream once at build time, retaining every double and signed zero. */
 export function layoutProjection(rows: LayoutRows, records: readonly number[], bounds: readonly LayoutBounds[]): LayoutProjection {
   if (rows.kitxs.length > 0) throw new Error('Nine layout requires offline merged kits');
@@ -31,9 +38,12 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
     const row = rows.geometries[id]; if (row === undefined) throw new Error(`Missing Nine geometry ${id}`);
     // O19: the layout bake's bounds, so entry assigns them instead of scanning vertices
     const baked = bounds[id]; if (baked === undefined || bounds.length !== rows.geometries.length) throw new Error(`Missing Nine layout bounds ${id}`);
-    const geometry: { id: number; box: boolean; sphere: readonly number[]; bounds?: readonly number[] } = { id, box: row.box, sphere: baked.sphere };
-    if (row.box) geometry.bounds = baked.box;
-    return geometry;
+    // Packed (custom-section budget): the box's float32 words in their shortest digits and the radius; three's sphere
+    // centre is the box centre, so the runtime derives it exactly
+    const box = baked.box.map(shortFloat32), radius = baked.sphere[3];
+    if (radius === undefined || box.length !== 6 || box.some((value, i) => Math.fround(value) !== baked.box[i])
+      || [0, 1, 2].some(i => ((baked.box[i] ?? Number.NaN) + (baked.box[i + 3] ?? Number.NaN)) * 0.5 !== baked.sphere[i])) throw new Error(`Nine layout bounds ${id} do not pack exactly`);
+    return { id, box: row.box, s: [...box, radius] };
   }), kits: rows.kits.map(row => [row.name, row.geo]), alphaKits: rows.alphaKits.map(row => [row.name, row.geo]),
   farOf: rows.farOf, inKit: rows.inKit, shell: rows.shell, lanterns, acs, hooks, hookMounts, inst,
   fixed: { lanterns: fixed.lanterns.map(row => row.map(Number)), drop: lantern.drop } });

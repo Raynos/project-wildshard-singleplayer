@@ -13,9 +13,10 @@ import type { Ctx } from './ctx';
  *  (generators/bake-layout-bounds.mjs, O19): assigned, never scanned at entry (30-40 ms Simulator tasks each). */
 export function prepareLayout(rows: LayoutProjection, scenes: SceneHandles): void {
   for (const row of rows.geometries) {
-    const geometry = scenes.geometry(`layout.${row.id}`), [x, y, z, radius] = row.sphere, box = row.bounds;
-    geometry.boundingSphere = new Sphere(new Vector3(x, y, z), radius);
-    geometry.boundingBox = box === undefined ? null : new Box3(new Vector3(box[0], box[1], box[2]), new Vector3(box[3], box[4], box[5]));
+    const geometry = scenes.geometry(`layout.${row.id}`), [x0, y0, z0, x1, y1, z1, radius] = row.s;
+    const box = new Box3(new Vector3(Math.fround(x0), Math.fround(y0), Math.fround(z0)), new Vector3(Math.fround(x1), Math.fround(y1), Math.fround(z1)));
+    geometry.boundingSphere = new Sphere(box.getCenter(new Vector3()), radius);
+    geometry.boundingBox = row.box ? box : null;
   }
 }
 

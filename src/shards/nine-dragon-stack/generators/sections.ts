@@ -56,8 +56,8 @@ export const LayoutRowsSchema = v.strictObject({
 export type LayoutRows = v.InferOutput<typeof LayoutRowsSchema>;
 /** Only the layout maps and poses used by the client, decoded from the author record stream offline. */
 export const LayoutProjectionSchema = v.strictObject({
-  geometries: v.array(v.strictObject({ id: finite, box: v.boolean(), sphere: v.tuple([finite, finite, finite, finite]),
-    bounds: v.exactOptional(v.tuple([finite, finite, finite, finite, finite, finite])) })),
+  // `s`: the geometry's float32 box [min, max] in shortest digits and its sphere radius; the sphere centre is the box's
+  geometries: v.array(v.strictObject({ id: finite, box: v.boolean(), s: v.tuple([finite, finite, finite, finite, finite, finite, finite]) })),
   kits: v.array(v.tuple([v.string(), v.nullable(finite)])), alphaKits: v.array(v.tuple([v.string(), finite])),
   farOf: LayoutRowsSchema.entries.farOf, inKit: LayoutRowsSchema.entries.inKit, shell: v.nullable(finite),
   lanterns: v.array(v.array(finite)), acs: v.array(v.array(finite)), hooks: v.array(V3),
