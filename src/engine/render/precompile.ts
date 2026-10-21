@@ -25,6 +25,7 @@ import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { setting } from '../ui/Settings';
 import { workSlice } from '../core/workSlice';
+import { presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
 
 /**
@@ -648,8 +649,12 @@ export const LIVE_PROGRAMS_PER_FRAME = 1;
  * O14: how long live preparation leaves an unfinished link before it asks again (ms). WebKit answers COMPLETION_STATUS
  * through its GPU process, behind every compile still queued there: ~20 ms a query on the Simulator. Asked once a slice,
  * Nine Dragon's entry polled one Lambert program 154 times (3.2 s), one long frame each, before its link finished.
+ * Only while the page presents (a build in play): a loading screen or first frame waits on the link itself, and a 4 Hz
+ * poll stretched the native shard select's first frame from ~300 ms to 1.5 s.
  */
 export const LIVE_LINK_POLL_MS = 250;
+/** the wait before asking an unfinished link again: LIVE_LINK_POLL_MS in play, none while loading */
+const linkPollMs = (): number => (presenting() ? LIVE_LINK_POLL_MS : 0);
 
 // Program identities are renderer-owned; preparation must not keep a retired renderer or revisit its resolved links.
 const resolvedPrograms = new WeakSet<ProgramLike>();
@@ -825,7 +830,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   };
   const settleOne = (): void => {
     const program = queued[settled];
-    if (program === undefined || parallel && performance.now() - unreadyAt < LIVE_LINK_POLL_MS) return;
+    if (program === undefined || parallel && performance.now() - unreadyAt < linkPollMs()) return;
     if (parallel && !program.isReady()) { unreadyAt = performance.now(); return; }
     if (!resolvedPrograms.has(program)) program.getUniforms();
     prepareBlocks(program); resolvedPrograms.add(program); enqueued.delete(program); settled++;
@@ -929,7 +934,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (parallel && isolateImageUploads) {
       while (!p.isReady()) {
         const asked = performance.now();
-        do { await pause(); checkCurrent(); } while (performance.now() - asked < LIVE_LINK_POLL_MS);
+        do { await pause(); checkCurrent(); } while (performance.now() - asked < linkPollMs());
       }
     }
     if (!resolvedPrograms.has(p)) p.getUniforms();
