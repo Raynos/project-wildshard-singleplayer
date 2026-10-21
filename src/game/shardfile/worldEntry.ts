@@ -41,6 +41,12 @@ export class WorldEntry {
     return placed;
   }
 
+  /** The placements one block's `place` rows loaded, in row order (rows another tier or variant skipped are absent). */
+  placedIn(block: string): Placed[] {
+    if (!this.ran.has(block)) throw new Error(`World entry block has not run: ${block}`);
+    return (this.rows.blocks[block] ?? []).flatMap(row => row.kind === 'place' && this.applies(row) ? [this.placed(row.id)] : []);
+  }
+
   private applies(row: WorldEntryStep): boolean {
     const when = row.when;
     return when === undefined || (when.tier === undefined || when.tier === this.ports.tier) && (when.variant === undefined || when.variant === this.ports.variant);

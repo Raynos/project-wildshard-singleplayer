@@ -19,6 +19,8 @@ export function driftwoodWorldEntry(): WorldEntryRows {
     palms: foliage('palms', 'palms.mesh', () => undefined),
     decks: [{ kind: 'place', id: 'entry.decks' }],
     trail: ['trail.posts', 'trail.signs', 'trail.planks'].map(id => ({ kind: 'place', id })),
+    // the wreck and its cargo, drift logs and reef rocks (generators/worldPlacements.ts), then its root into the world
+    wreck: [...['wreck.ship', 'wreck.barrels', 'wreck.crates', 'wreck.coils', 'wreck.logs', 'wreck.reef'].map(id => ({ kind: 'place', id })), { kind: 'attach', id: 'wreck.root', as: 'group' }],
     shore: [{ kind: 'place', id: 'rocks.shore.copies' }, { kind: 'attach', id: 'rocks.shore', as: 'mesh', nameAfter: 'rocks.shore.copies' }],
     smallRocks: [{ kind: 'place', id: 'rocks.small.copies' }, { kind: 'attach', id: 'rocks.small', as: 'mesh', nameAfter: 'rocks.small.copies' }],
   } });

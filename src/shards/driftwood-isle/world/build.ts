@@ -134,11 +134,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const lookout = await stages.build('Lookout', () => sites.site('lookout', 'world', sharedModelContext(sky, game), registry));
   // the shipwreck with the cove's cargo, drift logs and reef rocks: declared copies drawn into the wreck site's meshes
   // (piece `wreck`: the site's colliders and floors; the Wreck cove set)
-  const wreck = await stages.build('Wreck', async () => {
-    const group = scenes.group('wreck.root'), row = wreckBake, placed: Placed[] = [];
-    for (const id of ['wreck.ship', 'wreck.barrels', 'wreck.crates', 'wreck.coils', 'wreck.logs', 'wreck.reef']) placed.push(await scenes.place(id));
-    return { group, placed, anchors: structuredClone(row.anchors), holdBounds: { ...row.holdBounds }, floorHeightAt: (x: number, z: number) => scenes.floorAt('wreck.ship', x, z) };
-  }, { objects: value => [value.group] });
+  const wreck = await stages.build('Wreck', async () => { await entry.run('wreck');
+    return { group: scenes.group('wreck.root'), placed: entry.placedIn('wreck'), anchors: structuredClone(wreckBake.anchors), holdBounds: { ...wreckBake.holdBounds }, floorHeightAt: (x: number, z: number) => scenes.floorAt('wreck.ship', x, z) }; });
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
   const shrine = await stages.build('Shrine', async () => {
     const ctx = sharedModelContext(sky, game), { baseY, terrace } = fixed.shrine.world;
@@ -164,7 +161,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const gulls = await stages.build('Gulls', () => createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
   await entry.run('trail');
-  const trailside = { mesh: scenes.mesh('trail.mesh'), placed: ['trail.posts', 'trail.signs', 'trail.planks'].map(id => entry.placed(id)) };
+  const trailside = { mesh: scenes.mesh('trail.mesh'), placed: entry.placedIn('trail') };
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
   await stages.next('Trailside');
