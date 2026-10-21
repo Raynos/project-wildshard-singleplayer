@@ -54,8 +54,14 @@ try {
   const run={sha:pin,when:new Date().toISOString(),surface:'chromium',cohort:'grid',complete:false,glObserver:'off',
    instance,profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},cases:[],processSamples:[]};
   const scene={shard:'grid',complete:false,errors,routes:[],rows:[]};run.cases.push(scene);receipt.runs.push(run);
-  const profileStart=async()=>{if(profiling){await cdp.send('Profiler.enable');await cdp.send('Profiler.start');}};
-  const profileEnd=async phase=>{if(profiling)writeFileSync(resolvePath(out,`${caseName}-${phase}.cpuprofile`),JSON.stringify((await cdp.send('Profiler.stop')).profile));};
+  const profileStart=async()=>{if(profiling){await cdp.send('Performance.enable');await cdp.send('Profiler.enable');await cdp.send('Profiler.start');}};
+  const profileEnd=async phase=>{if(profiling){
+   const profile=(await cdp.send('Profiler.stop')).profile;
+   const metrics=await cdp.send('Performance.getMetrics');
+   const navigationStart=metrics.metrics.find(row=>row.name==='NavigationStart')?.value;
+   if(navigationStart===undefined)throw new Error('CPU profile page clock unavailable');
+   writeFileSync(resolvePath(out,`${caseName}-${phase}.cpuprofile`),JSON.stringify({...profile,pageNavigationStartUs:navigationStart*1e6}));
+  }};
   const dump=async phase=>{
    const events=[];
    const collect=event=>{events.push(...event.value);};session.on('Tracing.dataCollected',collect);
