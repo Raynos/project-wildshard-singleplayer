@@ -21060,7 +21060,7 @@
       ],
       "inputRoots": [
         "src/shards/blender-template/shard.config.ts",
-        "src/shards/blender-template/data/source.ts",
+        "src/shards/blender-template/data/source.json",
         "src/shards/blender-template/assets/world.glb",
         "scripts/map-painter.mjs",
         "scripts/bake-data-maps.mjs",

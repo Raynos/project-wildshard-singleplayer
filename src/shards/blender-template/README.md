@@ -6,4 +6,9 @@ The Blender script owns the whole 500 m cell (G220, G276): a set piece at each m
 
 The AssemblyScript door toggles its independent visual and collider. Open it, meet the guardian, collect five coins; the quest fact grants one durable achievement. The guardian can kill the player; retry preserves the completed reward. Native tests cover mid-loop restore in a fresh worker and duplicate ledger admission.
 
-The catalogue and build share identity, accent, spawn, look and presentation in `data/source.ts`. The SDK's pure `sourceManifest` facade maps those fields into the normal SHARD SELECT card. Its JPEG is the unchanged, labelled Opus capture of the real textured door; the same content-addressed bytes are charged to the product's image library. The shard remains behind Developer in the grid cell at (−1, −1). Both-surface quiet frame floors remain SF55 work.
+The catalogue and build share identity, accent, spawn, look and presentation in `data/source.json`. The SDK's pure `sourceManifest` facade maps those fields into the normal SHARD SELECT card. Its JPEG is the unchanged, labelled Opus capture of the real textured door; the same content-addressed bytes are charged to the product's image library. The shard remains behind Developer in the grid cell at (−1, −1). Both-surface quiet frame floors remain SF55 work.
+
+The door, hall quest, creature rows and card costs are JSON declarations.
+The card bytes stay in their original hash-named asset; no base64 module or
+unused byte-decoding bridge is needed. The normal SDK parser validates the
+whole declaration before building its sections.
