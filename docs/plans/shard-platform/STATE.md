@@ -4,7 +4,7 @@
 
 **G515/G516:** C6 items and the nalatiArms rename are ready rows (X2 with sp-x6).
 
-**Jake's 16:38/16:44 live reports:** pier + grid stall FIXED and proven (e1799246dd: standalone and grid 8-leg Driftwood walk 0 stuck incl. pier and wreck, grid collider parity clean); release dispatched with the next CI + boot-smoke-green head (sp-x7). Stale-PWA fix ae06555bcf.
+**Jake's 16:38/16:44 live reports:** pier + grid stall FIXED and proven (e1799246dd: standalone + grid walks 0 stuck incl. pier/wreck); release dispatched with the next CI + boot-smoke-green head (sp-x7).
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
