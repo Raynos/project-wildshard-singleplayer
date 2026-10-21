@@ -3,7 +3,7 @@ import { CONTRACTS } from './fixtures/pine-contracts';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
-import { DataPanel } from '../src/sdk/dataPanels';
+import { DataPanel } from '../src/game/ui/dataPanels';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import { parsePanelDefinition } from '../src/format/panelTemplate';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };

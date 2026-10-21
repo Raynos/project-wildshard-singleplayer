@@ -36,7 +36,7 @@ import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled
 import { readQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
-import { DataPanel, readDataPanels } from '../dataPanels';
+import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
 import { isItemId } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
 import { QuestViews, bindQuestPageInteractions, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';

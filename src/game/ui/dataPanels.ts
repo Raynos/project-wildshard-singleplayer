@@ -1,12 +1,18 @@
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { UiHandle } from '@wildshard/engine/ui/layers';
-import type { PanelAction, PanelDefinition } from '@wildshard/format/panelTemplate';
+import { parsePanelDefinition, type PanelAction, type PanelDefinition } from '@wildshard/format/panelTemplate';
 import { DeclaredPanel, panelScope } from './panels';
 import { expandPanelTemplates, panelCondition, panelValue } from './panelTemplates';
 
 /** Existing action owners receive captured button values or a form's current text. */
 export type PanelActions = ReadonlyMap<string, (value: unknown) => void>;
+/** Admit named quest panels before constructing their entered view owners. */
+export async function readDataPanels(product: { file: (name: string) => Promise<Uint8Array> }): Promise<Readonly<Record<string, PanelDefinition>>> {
+  const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file('quests/panels.json')));
+  if (typeof input !== 'object' || input === null || Array.isArray(input) || Object.keys(input).length > 16) throw new Error('Invalid named panels');
+  return Object.fromEntries(Object.entries(input).map(([name, definition]) => [name, parsePanelDefinition(definition)]));
+}
 /** Data-driven repeated panels and forms over the existing scoped panel, input and modal owners. */
 export class DataPanel extends DeclaredPanel {
   private readonly data: PanelDefinition;

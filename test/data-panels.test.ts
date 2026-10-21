@@ -2,8 +2,8 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { parsePanelDefinition } from '../src/format/panelTemplate';
-import { DataPanel, readDataPanels } from '../src/sdk/dataPanels';
-import { expandPanelTemplates } from '../src/sdk/panelTemplates';
+import { DataPanel, readDataPanels } from '../src/game/ui/dataPanels';
+import { expandPanelTemplates } from '../src/game/ui/panelTemplates';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };

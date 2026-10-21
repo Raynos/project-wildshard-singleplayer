@@ -9,8 +9,6 @@
     "./npc/figures": "./npc/figures.ts",
     "./kit/specimenSchemas": "./kit/specimenSchemas.ts",
     "./headlessAssembly": "./headlessAssembly.ts",
-    "./panelTemplates": "./panelTemplates.ts",
-    "./dataPanels": "./dataPanels.ts",
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",

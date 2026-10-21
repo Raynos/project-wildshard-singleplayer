@@ -7209,9 +7209,9 @@ content. Close refs, bounded close-key lists and pointer isolation are policy;
 `bind(view, scope, close)` retains custom submit keys, focus/input guards and UI
 layer ownership with the caller. A closed/disposed owner cannot reopen.
 `@wildshard/format/panelTemplate` admits bounded read-only templates and
-input policy; `@wildshard/sdk/panelTemplates` expands their markup without
-a DOM. `@wildshard/sdk/dataPanels` reads named `quests/panels.json` and
-installs `DataPanel` over the existing scoped panel and modal owners. Pine's
+input policy; `@wildshard/game/ui/panelTemplates` expands their markup without
+a DOM. `@wildshard/game/ui/dataPanels` reads named `quests/panels.json`
+and installs `DataPanel` over the existing scoped panel and modal owners. Pine's
 lodge rows and transient count, and Nalati's horse-name form, are real users.
 Templates select scalar fields, finite repeats, comparisons, text and named
 actions; they cannot write gameplay state. Original claim/reroll payouts and
