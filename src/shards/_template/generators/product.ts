@@ -5,7 +5,8 @@ import terrain from '../data/terrain.json' with { type: 'json' };
 import door from '../behaviour/door.json' with { type: 'json' };
 import props from '../data/props.json' with { type: 'json' };
 import { TEMPLATE_HOOKS, TEMPLATE_STATE } from '../behaviour/hooks';
-import { TEMPLATE_ROWS } from '../data/rows';
+import rows from '../data/rows.json' with { type: 'json' };
+import { parseRows } from '@wildshard/sdk/rows';
 import { TEMPLATE_PLUMBING } from '../data/plumbing';
 import { TEMPLATE_UI } from '../data/ui';
 import { TEMPLATE_LOOK } from '../data/look';
@@ -21,6 +22,7 @@ import { TEMPLATE_TARGETS } from '../data/targets';
 import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from '../data/skins';
 import { CLIENT_IDLE_BYTES, CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, TEMPLATE_CLIENT_SCRIPTS } from '../data/clientScripts';
 
+const TEMPLATE_ROWS = parseRows(rows);
 const base = emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 2, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };

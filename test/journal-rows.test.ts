@@ -5,9 +5,10 @@ import { parseRows } from '../src/format/rows';
 import { preflightAssetGraph } from '../src/format/product';
 import { emptyShardfile } from '../src/sdk/author';
 import { declaredCompendium } from '../src/game/shard/declaredRows';
-import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';
+import templateRows from '../src/shards/_template/data/rows.json' with { type: 'json' };
 import emitted from '../src/shards/pine-hollow/data/journal.generated.json' with { type: 'json' };
 
+const TEMPLATE_ROWS = parseRows(templateRows);
 const row = v.parse(JournalRowSchema, emitted.row);
 const base = emptyShardfile({ slug: 'journal-test', name: 'Journal', author: 'Test', revision: 1, seed: 1 });
 const def = declaredCompendium(row, base.rows, row.chunkId, hash => `https://test.invalid/${hash}.webp`);
