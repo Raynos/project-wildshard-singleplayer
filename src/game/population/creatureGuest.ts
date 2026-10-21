@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { Vector3 } from 'three';
+import type { Vector3 } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -17,7 +17,6 @@ export class PageCreatureGuest {
   private get program():ReturnProgram{return ReturnProgram.page(this.row.program,app.levelScope??undefined);}
   private readonly strike;
   private readonly contacts=new StrikeRunner();
-  private readonly point=new Vector3();
   readonly binding:Required<Pick<SpeciesDef,'think'|'damageMul'>>={
     think:(actor,context)=>{this.think(actor,context);},
     damageMul:(actor,point,_direction,request)=>this.damage(actor,point,request),
@@ -28,10 +27,9 @@ export class PageCreatureGuest {
   }
   /** A geometric observation shared by damage and local hit presentation. */
   weakPoint(actor:Animal,point:Vector3):boolean{
-    this.point.copy(point).sub(actor.position);this.point.y-=actor.yOffset;
-    const cos=Math.cos(-actor.yaw),sin=Math.sin(-actor.yaw),x=this.point.x*cos+this.point.z*sin,z=-this.point.x*sin+this.point.z*cos;
-    this.point.set(x,this.point.y,z).multiplyScalar(1/actor.scale);
-    return this.row.weak.some(([px,py,pz])=>Math.hypot(this.point.x-px,this.point.y-py,this.point.z-pz)<this.row.radius);
+    const yaw=-actor.yaw;
+    return this.program.project('weakPoint',{x:actor.position.x,ay:actor.position.y,z:actor.position.z,
+      cos:Math.cos(yaw),sin:Math.sin(yaw),scale:actor.scale,yOffset:actor.yOffset,hitX:point.x,hitY:point.y,hitZ:point.z})['weakPoint']===1;
   }
   private think(actor:Animal,context:ThinkCtx):void{
     const row=this.row,memory=actor.mem,previous=memory[row.clock],dt=previous===undefined?context.dt:context.t-previous;

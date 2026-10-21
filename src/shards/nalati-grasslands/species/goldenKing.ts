@@ -2,7 +2,7 @@ import { arenaRoomBrain } from '@wildshard/game/boss/arenaRoom';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef,ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import type { Vector3 } from 'three';
-import speciesRows from './speciesRows.json' with { type:'json' };
+import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' };
 import { animateGoldenKing } from './presentation';
 
 export const GOLDEN_KING = speciesRows.king.kind;

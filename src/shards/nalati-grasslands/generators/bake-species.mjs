@@ -1,3 +1,6 @@
+import { resolve } from 'node:path';
+import * as v from 'valibot';
+import speciesRows from '../data/speciesRows.json' with {type:'json'};
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 import SPECIES_LOOK_ROWS from '../data/speciesLooks.json' with { type: 'json' };
 import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
@@ -12,6 +15,12 @@ import { SPECIES_POSES } from './speciesPoses.ts';
 import { buildCracks } from './balbalCracks.ts';
 
 const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url)));
+// The existing weak-point row bounds move with their build-time admission.
+const finite=v.pipe(v.number(),v.finite());
+const weak=v.parse(v.pipe(v.array(v.tuple([finite,finite,finite])),v.maxLength(32)),speciesRows.weak);
+const radius=v.parse(v.pipe(finite,v.minValue(0)),speciesRows.balbalGuest.radius);
+const tests=weak.map(([x,y,z])=>`Math.sqrt((x-(${x}))*(x-(${x}))+(y-(${y}))*(y-(${y}))+(z-(${z}))*(z-(${z})))<${radius}`);
+authored.set('behaviour/weakPoints.generated.as',`export function weakPoint(x:f64,y:f64,z:f64):bool{\n  return ${tests.join('\n    || ')||'false'};\n}\n`);
 const text=['heldWeapons','balbal'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
 const names=prefix=>[...new Set([...text.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
 const fields=names('Field'),channels=names('Channel'),signals=names('Signal');
@@ -82,4 +91,6 @@ const presentation={packedBodies:compactBodies,poses:poseConfigs,cracks:crackRow
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL(`../../../../public${file}`,import.meta.url)),compressed);
 writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,crackBytes:Array.from(crackBytes),program}));
+const {balbal,king,slam,kingFrame,kingPoseDefaults,balbalGuest}=speciesRows;
+writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes({balbal:{kind:balbal.kind},king:{kind:king.kind},slam,kingFrame,kingPoseDefaults,balbalGuest}));
 writer.finish();

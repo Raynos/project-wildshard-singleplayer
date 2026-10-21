@@ -1,6 +1,6 @@
 import { CreatureFrame } from '@wildshard/game/population/creatureFrame';
 import { parseClientChannels } from '@wildshard/format/clientChannels';
-import speciesRows from './speciesRows.json' with { type:'json' };
+import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { SpeciesLookBook } from '@wildshard/game/looks/speciesBook';
 import type * as THREE from 'three';

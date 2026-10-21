@@ -116,3 +116,17 @@ Release only its catalogue, admitted cache and five import lines from
 Pine C5: **43 charged Pine lines -> existing shared platform credit**.
 Physical runtime source change: **shards 0, platform 0**. Geometry-source,
 posed-library and other reviewed chargebacks from sp-x8 remain intact.
+
+
+X4 Nalati weak-point policy: the existing balbal AS guest evaluates the
+three authored crack spheres and strict radius. Native code supplies
+body position, scale, lift and orientation basis as numeric observations;
+no new host or guest fuel/line ceiling is introduced. The native adapter
+retains its one-user HOST-BAR 4/6 charge. Canonical species metadata moves
+to build data; the existing baker emits its runtime boot rows and the
+nine-line JSON type facade is deleted. All dependent job roots follow.
+Physical runtime TS: **Nalati -9, platform -3**; authoring MJS **+11**,
+AS **+6**. JSON metadata relocation is not counted as a source deletion.
+Root/layer types, typed lint and three focused suites (six tests) pass,
+including translated, yawed, scaled and lifted hit comparisons against
+the previous geometric calculation. No collider or AS engine changes.

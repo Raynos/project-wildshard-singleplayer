@@ -11,7 +11,6 @@ export const CreatureGuestSchema=v.pipe(v.unknown(),v.check(isJsonData),v.object
     when:v.optional(v.object({field:key,equal:number,value:number}))})),v.maxEntries(64)),
   writes:v.pipe(v.array(key),v.maxLength(64)),states:v.pipe(v.array(key),v.maxLength(32)),sounds:v.pipe(v.array(v.string()),v.maxLength(32)),
   attack:v.pipe(number,v.minValue(0)),strike:CreatureStrikeSchema,strikeSound:v.string(),length:v.tuple([number,v.pipe(number,v.minValue(.000001)),number]),
-  weak:v.pipe(v.array(v.tuple([number,number,number])),v.maxLength(32)),radius:v.pipe(number,v.minValue(0)),
   piercing:v.object({legacy:key,tags:v.pipe(v.array(key),v.maxLength(16)),equipment:v.pipe(v.array(key),v.maxLength(16))}),
 }));
 export type CreatureGuestRows=v.InferOutput<typeof CreatureGuestSchema>;

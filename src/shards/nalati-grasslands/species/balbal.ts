@@ -4,7 +4,7 @@ import type { SpeciesDef,RigAnimCtx } from '@wildshard/engine/entities/species/r
 import { smooth01,step } from '@wildshard/engine/entities/species/rigs';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { PageCreatureGuest } from '@wildshard/game/population/creatureGuest';
-import speciesRows from './speciesRows.json' with { type:'json' };
+import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' };
 import { poseNalatiCreature,balbalCrackGeometry,speciesGuestRows } from './presentation';
 
 export const BALBAL = speciesRows.balbal.kind;
@@ -13,7 +13,7 @@ const cracks = new WeakMap<Animal, THREE.MeshBasicMaterial>();
 let guest: PageCreatureGuest | null = null;
 /** The balbal's guest (its weak points and damage model), built once. */
 export function creatureGuest(): PageCreatureGuest {
-  guest ??= new PageCreatureGuest({ ...speciesRows.balbalGuest,...speciesGuestRows(),weak: speciesRows.weak });
+  guest ??= new PageCreatureGuest({ ...speciesRows.balbalGuest,...speciesGuestRows() });
   return guest;
 }
 function animateBalbal(c: RigAnimCtx): void {

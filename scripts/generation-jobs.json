@@ -254,8 +254,7 @@
         "src/format/runtimeBinds.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
       ],
       "outputs": [
@@ -326,8 +325,7 @@
         "src/format",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/generators/speciesPoses.ts"
       ],
       "outputs": [
@@ -376,6 +374,7 @@
       ],
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-species.mjs",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/generators/speciesPoses.ts",
         "src/shards/nalati-grasslands/generators/balbalCracks.ts",
         "src/shards/nalati-grasslands/behaviour/balbal.as",
@@ -394,11 +393,13 @@
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
-        "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin"
+        "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
+        "src/shards/nalati-grasslands/boot/speciesRows.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
-        "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin"
+        "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
+        "src/shards/nalati-grasslands/boot/speciesRows.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": [
@@ -658,8 +659,7 @@
         "src/format/runtimeBinds.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "src/shards/nalati-grasslands/data/navigation.generated.json",
         "src/shards/nalati-grasslands/boot/geography.generated.json"
@@ -18478,8 +18478,7 @@
         "src/format/runtimeBinds.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
+        "src/shards/nalati-grasslands/data/speciesRows.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/peopleFallback.generated.json"
@@ -18522,8 +18521,7 @@
         "pnpm-workspace.yaml",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "src/shards/nalati-grasslands/data/navigation.generated.json",
         "src/shards/nalati-grasslands/boot/geography.generated.json"
@@ -18715,8 +18713,7 @@
         "src/format/runtimeBinds.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "src/shards/nalati-grasslands/data/navigation.generated.json"
@@ -18889,8 +18886,7 @@
         "src/format/runtimeBinds.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
+        "src/shards/nalati-grasslands/data/speciesRows.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/water.generated.json"
@@ -19422,8 +19418,7 @@
         "src/format/runtimeBinds.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "src/shards/nalati-grasslands/data/navigation.generated.json",
         "src/shards/nalati-grasslands/boot/geography.generated.json"
@@ -19571,8 +19566,7 @@
         "src/format/runtimeBinds.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/species/speciesRows.json",
-        "src/shards/nalati-grasslands/species/speciesRows.d.json.ts"
+        "src/shards/nalati-grasslands/data/speciesRows.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/poiPaint.json",

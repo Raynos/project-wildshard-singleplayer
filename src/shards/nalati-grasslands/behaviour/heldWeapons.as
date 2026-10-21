@@ -18,7 +18,7 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiHeldWeapons'
 }
 // Three native weapon projections share one stateless ABI-v1 module.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void{
- if(signal==Signal.polearm)polearm();else if(signal==Signal.blade)blade();else if(signal==Signal.power)power();else if(signal==Signal.step)stealth();else if(signal==Signal.think||signal==Signal.damage)balbal(signal,value,source);
+ if(signal==Signal.polearm)polearm();else if(signal==Signal.blade)blade();else if(signal==Signal.power)power();else if(signal==Signal.step)stealth();else if(signal==Signal.think||signal==Signal.damage||signal==Signal.weakPoint)balbal(signal,value,source);
 }
 // Native observations and impulses; at most one snapshot per 100 ms.
 @inline export function polearm():void{
