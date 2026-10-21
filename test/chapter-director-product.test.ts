@@ -1,9 +1,11 @@
 // @vitest-environment happy-dom
-import { beforeAll, expect, test } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
+import { prepareScriptMemoryLease } from '../src/engine/script/host';
+import { readDirectorProduct } from '../src/game/plugin/director';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState } from '../src/engine/quest/core';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
@@ -57,7 +59,7 @@ test('Driftwood native product shares its page chapter and retires reflected bin
   expect(v.parse(v.object({ bindings: v.null() }), director).bindings).toBeNull();
 });
 
-async function fixture(slug: string, saved: readonly string[]) {
+async function fixture(slug: string, saved: readonly string[], beforeDirector?: (scope: Scope) => void) {
   const product = products.get(slug); if (product === undefined) throw new Error('Missing real product');
   const scope = new Scope('chapter-director-test'), flags = new Flags('chapter-director-test', false), events: string[] = [];
   flags.restore([...saved]);
@@ -71,8 +73,11 @@ async function fixture(slug: string, saved: readonly string[]) {
     inventory, weapons, hud: { toast: (text: string) => { events.push(text); } }, music: { sting: (name: string) => { events.push(name); } }, fullMap: { setQuest: () => undefined },
   } } } });
   const chapter = scope.run(() => installChapterStory(context, slug === 'pine-hollow' ? pineStory : driftwoodStory, slug === 'pine-hollow' ? { program: pineLife } : {}));
-  const clock = await scope.run(() => readChapterDirector(context, 'quests/chapter-director.json'));
-  return { scope, quest, flags, events, player, day, weapons, chapter, clock };
+  beforeDirector?.(scope);
+  try {
+    const clock = await scope.run(() => readChapterDirector(context, 'quests/chapter-director.json'));
+    return { scope, quest, flags, events, player, day, weapons, chapter, clock, context };
+  } catch (error) { scope.dispose(); quest.dispose(); throw error; }
 }
 
 test('Pine watch and dawn retain phase duration, ordered payout and quiet completed-save reload', async () => {
@@ -183,4 +188,38 @@ test('Pine chapter uses the same entered numeric decision owner as its client st
     expect(f.events).toEqual(['On the west road, something pale is standing very still']);
     expect(f.quest.flags.all).toEqual(saved);
   } finally { f.scope.dispose(); f.quest.dispose(); }
+});
+
+test.each(['pine-hollow', 'driftwood-isle'])('chapter admission owns and consumes one prepared memory: %s', async slug => {
+  const NativeMemory = WebAssembly.Memory, allocated: WebAssembly.Memory[] = [];
+  const memory = vi.spyOn(WebAssembly, 'Memory').mockImplementation(class extends NativeMemory {
+    constructor(descriptor: WebAssembly.MemoryDescriptor) { super(descriptor); allocated.push(this); }
+  });
+  let before = 0, waits = 0;
+  try {
+    const f = await fixture(slug, [], scope => {
+      before = allocated.length;
+      const timeout = scope.timeout.bind(scope);
+      vi.spyOn(scope, 'timeout').mockImplementation((ms, run) => { waits++; return timeout(ms, run); });
+    });
+    try {
+      expect(allocated.length - before).toBe(1);
+      expect(waits).toBeGreaterThanOrEqual(2);
+      const director = await readDirectorProduct(products.get(slug) ?? f.context.product, f.scope);
+      const release = await prepareScriptMemoryLease([director.bytes], f.scope, 'task');
+      release();
+    } finally { f.scope.dispose(); f.quest.dispose(); }
+  } finally { memory.mockRestore(); }
+});
+
+test.each(['pine-hollow', 'driftwood-isle'])('leaving during chapter memory admission refuses installation: %s', async slug => {
+  let disposed: Scope | undefined;
+  await expect(fixture(slug, [], scope => {
+    disposed = scope;
+    const timeout = scope.timeout.bind(scope);
+    vi.spyOn(scope, 'timeout').mockImplementation((ms, run) => {
+      const handle = timeout(ms, run); scope.dispose(); return handle;
+    });
+  })).rejects.toThrow('disposed');
+  expect(disposed?.disposed).toBe(true);
 });

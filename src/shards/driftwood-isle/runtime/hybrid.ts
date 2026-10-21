@@ -6,8 +6,6 @@ import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/p
 import { buildDriftwoodWorld, keepDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
 import { islandSystems } from './world/systems';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
-import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
-import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
 import { installDriftwoodCreatures } from '../creatures/install';
@@ -78,10 +76,7 @@ export class DriftwoodPlugin extends ShardPlugin {
 
 
   override async play(ctx: ShardContext): Promise<void> {
-    // Warm the actual finale memory after audio, then install the same adventure in its owner.
-    const director = await readDirectorProduct(ctx.product, ctx.scope);
-    ctx.scope.expose(this.adventure, 'value', await withPreparedScriptMemories([director.bytes], ctx.scope,
-      null, () => installDriftwoodAdventure(ctx)));
+    ctx.scope.expose(this.adventure, 'value', await ctx.scope.run(() => installDriftwoodAdventure(ctx)));
   }
 }
 

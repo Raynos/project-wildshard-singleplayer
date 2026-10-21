@@ -10684,6 +10684,11 @@ There are no shard callbacks or reflected service paths. The caller retains
 its update phase; native continuations and actor authority are unchanged.
 The completion card publishes its existing entered control for reward carry
 handover. Pine's watch/dawn and Driftwood's ring reward use this same path.
+The reader prepares one memory from the admitted director bytes immediately
+before constructing its clock, then releases the lease in `finally`.
+Preparation waits for a drawn frame while presenting and an owned task otherwise;
+leaving during preparation refuses construction. Both ordinary and retained
+entries use this path without reserving memory around the outer quest install.
 `format/chapterDirector.chapterObservations(rows, frame)` reads their
 closed observation selectors from current flags, clock and positions without
 a renderer or callback ports. Both actual page chapters and Pine's native

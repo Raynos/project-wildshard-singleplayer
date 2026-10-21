@@ -1,7 +1,7 @@
 /** Counted custom view binding around data-only native page contracts. */
 import { ShardPlugin, type ShardContext } from '@wildshard/game/plugin/context';
 import { prepareForestPage, prepareForestPageLooks, placeForestPageModels } from '@wildshard/game/shardfile/forestPage';
-import { preparePageScripts, punchPageTerrain } from '@wildshard/game/shardfile/pagePreparation';
+import { punchPageTerrain } from '@wildshard/game/shardfile/pagePreparation';
 import { bindPageWater } from '@wildshard/game/shardfile/pageWater';
 import { prepareRangedPage } from '@wildshard/game/loadout/rangedPage';
 import type { ForestPageRows } from '@wildshard/format/forestPage';
@@ -36,11 +36,8 @@ export class PineHollow extends ShardPlugin {
   }
   override async kit(ctx: ShardContext): Promise<void> { await preparePineModelViews(ctx); }
   override async play(ctx: ShardContext): Promise<void> {
-    const release = await preparePageScripts(ctx, { modules: ['behaviour/director.wasm'], yield: 'frame' });
-    try {
-      if (this.landmarks === null) throw new Error('Missing landmark views');
-      await this.landmarks.installChapter(ctx, await ctx.product.json<RangedPageRows>('client/ranged-page.json'));
-    } finally { release(); }
+    if (this.landmarks === null) throw new Error('Missing landmark views');
+    await this.landmarks.installChapter(ctx, await ctx.product.json<RangedPageRows>('client/ranged-page.json'));
   }
 }
 // oxlint-disable-next-line import/no-default-export -- The trusted loader consumes the counted view constructor.

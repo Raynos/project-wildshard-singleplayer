@@ -1,10 +1,7 @@
 import * as v from 'valibot';
-import { SCRIPT_LIMITS } from './scriptLimits';
 import { isJsonData } from './json';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
-/** Owner-local preparation; host limits and one memory per module stay fixed. */
-export const PageScriptPreparationSchema = v.strictObject({ modules: v.pipe(v.array(id), v.maxLength(SCRIPT_LIMITS.instances)), yield: v.picklist(['frame', 'task']) });
 /** A generated cave cut consists of physics rectangles and triangle-AABB holes. */
 export const PageTerrainCutSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   frame: v.strictObject({ x: n, z: n, yaw: n }),

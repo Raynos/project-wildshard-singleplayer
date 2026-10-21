@@ -4,21 +4,12 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { TRAILS, heightAt, normalAt } from '@wildshard/engine/world/Heightfield';
 import * as v from 'valibot';
-import { prepareScriptMemoryLease } from '@wildshard/engine/script/host';
 import { cutTerrain } from '@wildshard/engine/physics/terrain';
 import { yawLocal, yawWorld } from '@wildshard/engine/world/yawFrame';
 import { slicer } from '@wildshard/engine/boot/plan';
-import { waitFor } from '@wildshard/engine/boot/waits';
-import { PagePathRampSchema, PageScriptPreparationSchema, PageTerrainCutSchema, type PageTerrainCutRows } from '@wildshard/format/pagePreparation';
-import { retainsRuntimeServices } from '../shard/retainedHooks';
+import { PagePathRampSchema, PageTerrainCutSchema, type PageTerrainCutRows } from '@wildshard/format/pagePreparation';
 import type { ShardContext } from '../plugin/context';
 
-/** The actual Wasm owner lends allocation capacity until this lease ends. */
-export async function preparePageScripts(ctx: ShardContext, input: unknown): Promise<() => void> {
-  const rows = v.parse(PageScriptPreparationSchema, input);
-  if (!retainsRuntimeServices(ctx)) return () => undefined;
-  return waitFor('Prepare Wasm memories', prepareScriptMemoryLease(await Promise.all(rows.modules.map(name => ctx.product.file(name))), ctx.scope, rows.yield), 'wasm');
-}
 /** Exact native triangle/AABB overlap law over a yawed generated opening. */
 export function terrainOpeningHits(rows: PageTerrainCutRows, ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number): boolean {
   const [alx, alz] = yawLocal(rows.frame, ax, az), [blx, blz] = yawLocal(rows.frame, bx, bz), [clx, clz] = yawLocal(rows.frame, cx, cz);

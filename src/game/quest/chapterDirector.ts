@@ -20,6 +20,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ChapterClock } from './chapterClock';
+import { prepareScriptMemoryLease } from '@wildshard/engine/script/host';
 
 /** Client-only chapter/boss binding over the existing AS director and native
  * spawn owner. Content supplies rows, ids and the resolved arena position;
@@ -98,7 +99,10 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
       release: () => { play.weapons.visible = true; chapter.objective.hide(false); },
     });
   ctx.scope.onDispose(() => { reward?.dispose(); caption.scope.dispose(); });
-  const clock = ctx.scope.run(() => new ChapterClock(ctx.scope, director, rows, flags,
+  const release = await prepareScriptMemoryLease([director.bytes], ctx.scope, 'frame');
+  let clock: ChapterClock;
+  try {
+    clock = ctx.scope.run(() => new ChapterClock(ctx.scope, director, rows, flags,
     { day, player: world.player.position, reward: rewardAt, finish: 'set' }, effect => {
       if (effect.kind === 'caption') caption.show(effect.show);
       else if (effect.kind === 'objective') chapter.objective.hide(effect.hide);
@@ -108,6 +112,7 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
       } else if (effect.kind === 'reward') state[effect.state] = true;
       else commitQuestEffects(ctx, rows.quest, [effect]);
     }));
+  } finally { release(); }
   timeline = clock;
   const request = (id: string): void => { clock.lane.request(id); };
   ctx.scope.onDispose(chapter.quest.observe({ step: step => { clock.requestStep(step?.id); } }));
