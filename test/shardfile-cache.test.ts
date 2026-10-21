@@ -68,5 +68,5 @@ it('publishes a cold build under its completed input receipt key', async () => {
     write(out,{'shard.json':'compiled'}); return Promise.resolve(complete);
   }})).toBe('built');
   expect(existsSync(join(cacheRoot,'alpha',complete,'shard.json'))).toBe(true);
-  expect(await reuseOrBuild({slug:'alpha',key:complete,destination,cacheRoot,build:()=>Promise.reject(new Error('must reuse'))})).toBe('slot');
+  expect(await reuseOrBuild({slug:'alpha',key:complete,destination,cacheRoot,build:():Promise<void>=>Promise.reject(new Error('must reuse'))})).toBe('slot');
 });
