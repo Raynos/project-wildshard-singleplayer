@@ -153,7 +153,7 @@ export class ShardDecisions {
       }), ids: map.ids, reads: row.reads.filter(readName), lists: row.reads.filter(listName) });
       return { id: index + 1, script: row.id, self, actors: actorIds, instance: 0 };
     });
-    const world: DecisionWorld = { read: (op, a, b, context) => this.read(op, a, b, context), list: (op, a, b, out) => this.list(op, a, b, out),
+    const world: DecisionWorld = { player: DECISION_PLAYER_HANDLE, read: (op, a, b, context) => this.read(op, a, b, context), list: (op, a, b, out) => this.list(op, a, b, out),
       prepare: (commands, context) => this.prepare(commands, context), failed: (mode, context, reason) => {
         onDisabled?.({ module: context.script.module, entity: `binding:${context.binding.id}`, reason, failures: 3 });
         if (mode === 'hold') return;
