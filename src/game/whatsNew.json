@@ -1,9 +1,10 @@
 {
-  "date": "20 OCT 2026",
-  "updated": "2026-10-20T04:14:30Z",
+  "date": "21 OCT 2026",
+  "updated": "2026-10-21T04:27:00Z",
   "entries": [
-    "Infinite Wildshard: fixed cold-start grid entry",
-    "Nine Dragon Stack: reduced repeated fog and material work",
-    "Animated creatures: reduced repeated GPU uploads"
+    "Infinite Wildshard: open plots now show turning holograms",
+    "Infinite Wildshard: distant cells drawn as far impostors",
+    "Nalati Grasslands: much lower memory while playing",
+    "Loading screen: honest byte counts and steady progress"
   ]
 }
