@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
 import * as v from 'valibot';
 import { resolveSpecifier } from './check-graph.mjs';
+import { g571HostApprovals, approvedG571Host } from './g571-hosts.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { discoverGeneration } from './generate.mjs';
@@ -599,7 +600,7 @@ function readPendingPlatformUsers(root,symbolsFor) {
 }
 /** Separate temporary planned users from the remaining sole-user charges.
  * @param {string} slug
- * @param {{path:string;lines:number}[]} modules
+ * @param {import('./shard-platform.mjs').PlatformModuleCharge[]} modules
  * @param {{path:string;name:string;exported:boolean;lines:number}[]} exports
  * @param {import('./shard-platform.mjs').PendingPlatformUser[]} allowances */
 export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
@@ -651,7 +652,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || hasChargebackDeclarations(path);
   const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
-  const {probes,targets,edges,texts,graphs,sources}=memo;
+  const {probes,targets,edges,texts,graphs,sources,masks}=memo;
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
   const counts = new Map();
   const frozen = legacyInventory(root);
@@ -679,7 +680,24 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
   const symbolsOf = path => { if (!memo.symbols.has(path)) memo.symbols.set(path, info(path).symbols ?? moduleSymbols(info(path).tree.program)); return memo.symbols.get(path); };
   if(!memo.pending.has(root))memo.pending.set(root,readPendingPlatformUsers(root,path=>symbolsOf(path)));
-  const pendingUsers=memo.pending.get(root);
+  const pendingUsers=memo.pending.get(root), dayOneHosts=g571HostApprovals(root), dayOneMasks=new Map();
+  // Named approvals waive only their nonblank declaration lines. A physical
+  // line shared with any unapproved declaration stays charged conservatively.
+  const dayOneMask = path => {
+    if (dayOneMasks.has(path)) return dayOneMasks.get(path);
+    const names=dayOneHosts.get(path), selected=new Set(), unapproved=new Set();
+    if (names !== undefined && names !== null) {
+      const sym=symbolsOf(path);
+      for (const name of names) if (!sym.bindings.has(name)) throw new Error(`Missing G571 binding: ${path}#${name}`);
+      if (!masks.has(path)) masks.set(path,codeLineMask(text(path),info(path).comments));
+      const {code,lineOf}=masks.get(path);
+      for (const [name,row] of sym.bindings) for (const span of row.spans)
+        for (let line=lineOf(span.start);line<=lineOf(Math.max(span.start,span.end-1));line++)
+          if (code[line]) (names.has(name)?selected:unapproved).add(line);
+      for (const line of unapproved) selected.delete(line);
+    }
+    dayOneMasks.set(path,selected);return selected;
+  };
   const shaders = path => ignored(path) ? 0 : info(path).shaderLines ?? rawShaderLines(text(path), path, RULES.typescript.test(path) && !path.endsWith('.glsl') ? info(path).tree?.program : undefined);
   const count = path => { if (!counts.has(path)) counts.set(path, ignored(path) ? 0 : (path.endsWith('.json') ? shaders(path) : path.endsWith('.glsl') ? shaderCodeLines(text(path)) : linesWithoutComments(text(path), info(path).comments))); return counts.get(path); };
   const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
@@ -789,12 +807,14 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     // This format module enters attribution only for the reviewed arena rows.
     if (path.startsWith('src/format/') && platformChargeback(path) === null) continue;
     if (RULES.buildOnlySdk.test(path) || users.has(SHELL_USER) || users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
-    const lines = count(path);
-    if (lines > 0) recordPrivateCharge(privateModules, [...users][0], { path, lines });
+    if (approvedG571Host(dayOneHosts,path)) continue;
+    const lines = count(path)-dayOneMask(path).size;
+    const excludedLines=[...dayOneMask(path)].map(line=>line+1);
+    if (lines > 0) recordPrivateCharge(privateModules, [...users][0], { path, lines, ...(excludedLines.length===0?{}:{excludedLines}) });
   }
   // G294 per export: a module that two or more shards reach as a file still charges every top-level declaration that
   // exactly one shard reaches, through its own imports or transitively through the platform code it reaches.
-  const {masks}=memo, bindingUsers = new Map();
+  const bindingUsers = new Map();
   const parsedTs = path => RULES.typescript.test(path) && !path.endsWith('.d.ts');
   for (const [slug, files] of consumers) {
     if (slug === RULES.template) continue;
@@ -864,11 +884,12 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const privateExports = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
     if (RULES.buildOnlySdk.test(path) || (users.size < RULES.publicUserCount && !hasChargebackDeclarations(path)) || !parsedTs(path) || ignored(path)) continue;
-    const sym = symbolsOf(path), claimed = new Set((inlineSpans.get(path) ?? []).flatMap(span => span.lines));
+    if (approvedG571Host(dayOneHosts,path)) continue;
+    const sym = symbolsOf(path), claimed = new Set([...(inlineSpans.get(path) ?? []).flatMap(span => span.lines),...dayOneMask(path)]);
     if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
     const { code, lineOf } = masks.get(path), exportedLocals = new Set([...sym.exports.values()].flatMap(row => row.local ?? []));
     const sole = [...sym.bindings].map(([local, row]) => ({ local, row, owners: bindingUsers.get(`${path}\0${local}`) }))
-      .filter(entry => entry.owners?.size === 1 && !entry.owners.has(SHELL_USER)
+      .filter(entry => entry.owners?.size === 1 && !entry.owners.has(SHELL_USER) && !approvedG571Host(dayOneHosts,path,entry.local)
         && (!path.startsWith('src/format/') || platformChargeback(path, entry.local) !== null)
         && (users.size >= RULES.publicUserCount || platformChargeback(path, entry.local) !== null)).sort((a, b) => a.row.spans[0].start - b.row.spans[0].start);
     for (const { local, row, owners } of sole) {
@@ -885,7 +906,8 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
     const { code } = masks.get(path);
     for (const span of spans) {
-      const lines = span.lines.filter(line => code[line]).length;
+      if (approvedG571Host(dayOneHosts,path,span.name)) continue;
+      const lines = span.lines.filter(line => code[line] && !dayOneMask(path).has(line)).length;
       if (lines > 0) recordPrivateCharge(privateExports, undefined, { path, name: span.name, exported: false, lines });
     }
   }
@@ -960,7 +982,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports, pendingSecondUser:pending },
     };
     if (collectSources) {
-      for (const module of modules) customSources.push({path:module.path, lines:module.lines, kind:'sole-module'});
+      for (const module of modules) customSources.push({...module, kind:'sole-module'});
       for (const entry of exports) customSources.push({path:entry.path, lines:entry.lines, name:entry.name, kind:'sole-export'});
       row.listedView = listedViewInventory(root, slug, customSources, customRuntimeLines, listedViews);
       if (includeSources) row.customSources = customSources;

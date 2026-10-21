@@ -73,7 +73,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G571 quest continuation: `game/quest/continuation` consumes `format/questContinuation` rows and concrete entered quest/collection loans, binds the native item effects and keepsakes before loot, and keeps each original save and specimen owner. Client-only; no shard factory or reflected path. Test 1 waived; tests 2–6 covered by `test/quest-continuation.test.ts`, including leaving during both awaited reads.
 - G571 page-mode policy: `game/shard/pagePolicy` `pageModeValue` and `pageModeCap` read two declared JSON rows at the existing page-mode boundary, with no callback, selector path, clock or side effect. Pine boot and keyed sky use standalone/grid rows; caps retain the authored input ceiling. Test 1 waived; tests 2–6 covered by `test/page-mode-policy.test.ts`.
 - G571 keyed-sky look: `game/looks/keyedSky` `keyedSkyRender` builds a shard's look (the engine chain under its keyed day / night sky) from the manifest's declared `render: { platform: 'keyed', channels, looks, trim, trimRow }` rows: the look/keyed-sky section, its dome / env look ids and a page-policy trim row (packed keys, small environment). No shard module, callback or selector. Client-only (a look). Test 1 waived; tests 2-6: no shard nouns, rows only, server-safe by being client presentation, deletes with its binding, data-only API (`test/product-in-look.test.ts`).
-- G571 grouped page actors: `game/population/pageGroups` `PageActorGroups` (with `Placement` and `Counts`) binds declared placements and an admitted return guest to the existing client animal manager. The guest owns refill timing/range/hidden-corpse decisions at ten Hz; the host retains ordered identity, counts and scope retirement. Client-only; no shard callback or selector. Test 1 waived; tests 2–6 covered by `test/population-projection.test.ts` and `test/native-roster-returns.test.ts`.
+- G571 grouped page actors: `game/population/pageGroups#PageActorGroups`, `game/population/pageGroups#Placement` and `game/population/pageGroups#Counts` binds declared placements and an admitted return guest to the existing client animal manager. The guest owns refill timing/range/hidden-corpse decisions at ten Hz; the host retains ordered identity, counts and scope retirement. Client-only; no shard callback or selector. Test 1 waived; tests 2–6 covered by `test/population-projection.test.ts` and `test/native-roster-returns.test.ts`.
 - G478 riding presentation: `game/riding/mount` consumes profile rows and actor identities (fixture second shard).
 - G478 riding HUD: `game/riding/hud` consumes observation rows and retains the baseline HUD slots (fixture second shard).
 
@@ -86,6 +86,12 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
   they are removed from the shared water surface and count to Pine C2.
 
 - G571 ranged page preparation: `game/loadout/rangedPage#prepareRangedPage` consumes admitted finish/collection source ids and ranged-page rows in the entered world phase. Existing equipment, inventory, geometry and menu owners stay authoritative. Client-only; tests 2–6 covered by `test/ranged-entry-capability.test.ts`; test 1 waived.
+
+The ruler reads exact module or `module#binding` selectors from the G571
+list entries above. A named binding never approves other declarations in its
+file; shared physical lines stay charged if an unapproved binding occupies
+them. Ordinary prose, other decisions and unnamed one-user hosts grant no
+G571 credit. Imports and dependencies retain their own attribution.
 
 ## Still owed
 

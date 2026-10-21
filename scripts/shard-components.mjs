@@ -311,7 +311,7 @@ export function componentInventory(root, shard, sources, canonical) {
     if(role===null)unknown.push(`${row.path}${row.name?`#${row.name}`:''}`);
     const owner=role??'C9';
     if(row.kind==='runtime-ts'||row.kind==='sole-module') {
-      const tags=runtimeTags(readFileSync(resolve(root,row.path),'utf8'),ownerPath,owner);
+      const tags=runtimeTags(readFileSync(resolve(root,row.path),'utf8'),ownerPath,owner).filter(tag=>!row.excludedLines?.includes(tag.line));
       if(tags.length!==row.lines)throw new Error(`Component line mismatch: ${row.path} ${tags.length}/${row.lines}`);
       for(const tag of tags) {
         counts[tag.component]++;

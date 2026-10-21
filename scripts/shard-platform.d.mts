@@ -2,6 +2,8 @@ import type {OutputReader} from './shard-platform-output.mjs';
 import type { ComponentInventory } from './shard-components.mjs';
 import type {ListedViewInventory} from './listed-view-code.mjs';
 
+export interface PlatformModuleCharge {path:string;lines:number;excludedLines?:readonly number[]}
+
 /** G291's primary measure; native shards have no frozen denominator. */
 export interface ConversionMeasure {
   metric: 'runtime-vs-legacy' | 'native'; customRuntimeLines: number; shardRuntimeLines: number; rawGlslLines: number; additionalGlslLines: number;
@@ -14,10 +16,10 @@ export interface ConversionMeasure {
    * are consumers through named reach for the documented control-plane modules and UI bridges only.
    * Loading species/models/rendering content never supplies a second content user.
    */
-  gameSystemAttribution: { status: 'import-graph'; review: 'G294-primary-reach'; lines: number; modules: { path: string; lines: number }[];
+  gameSystemAttribution: { status: 'import-graph'; review: 'G294-primary-reach'; lines: number; modules: PlatformModuleCharge[];
     exports: { path: string; name: string; exported: boolean; lines: number }[]; pendingSecondUser?: PendingPlatformCharge[] };
 }
-export interface CustomSource {path:string;ownerPath?:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string}
+export interface CustomSource {path:string;ownerPath?:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string;excludedLines?:readonly number[]}
 export interface ShardLines {
   /** G570 additive labels only; custom totals, percentages and gates remain unchanged. */
   listedView?:ListedViewInventory;
@@ -67,6 +69,6 @@ export interface PendingPlatformUser {
 }
 export interface PendingPlatformCharge {path:string;name?:string;lines:number;status:'pending second user';users:PendingPlatformUser[]}
 export function pendingPlatformUsers(root:string):PendingPlatformUser[];
-export function partitionPendingPlatformUsers(slug:string,modules:{path:string;lines:number}[],exports:{path:string;name:string;exported:boolean;lines:number}[],allowances:PendingPlatformUser[]):{
-  modules:{path:string;lines:number}[];exports:{path:string;name:string;exported:boolean;lines:number}[];pending:PendingPlatformCharge[];
+export function partitionPendingPlatformUsers(slug:string,modules:PlatformModuleCharge[],exports:{path:string;name:string;exported:boolean;lines:number}[],allowances:PendingPlatformUser[]):{
+  modules:PlatformModuleCharge[];exports:{path:string;name:string;exported:boolean;lines:number}[];pending:PendingPlatformCharge[];
 };

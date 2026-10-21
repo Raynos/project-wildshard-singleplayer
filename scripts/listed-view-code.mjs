@@ -71,8 +71,8 @@ export function listedViewInventory(root,slug,sources,total,rows=loadListedViews
         const text=readFileSync(file,'utf8'),assigned=new Set();
         for(const row of matching){
           if(row.name===undefined)continue;
-          const selected=selectedLines(text,source.path,[row.name]);let owned=0;
-          if(selected.size>0)matched.add(row);
+          const selected=[...selectedLines(text,source.path,[row.name])].filter(line=>!source.excludedLines?.includes(line+1));let owned=0;
+          if(selected.length>0)matched.add(row);
           for(const line of selected)if(!assigned.has(line)){assigned.add(line);owned++;}
           counts.set(row,(counts.get(row)??0)+owned);
         }

@@ -1,0 +1,41 @@
+// G571 grants day-one credit only to the exact reviewed HOST-BAR entries.
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+/** Read module or #binding selectors only from explicit G571 list entries.
+ * Missing fixture documentation grants no approvals. Ordinary prose and other
+ * decisions cannot waive a one-user host. A binding never approves its module.
+ * @param {string} root @returns {Map<string,Set<string>|null>} */
+export function g571HostApprovals(root) {
+  const file = resolve(root, 'docs/HOST-BAR.md');
+  /** @type {Map<string,Set<string>|null>} */
+  const result = new Map();
+  if (!existsSync(file)) return result;
+  for (const line of readFileSync(file, 'utf8').split('\n').filter(row => /^- G571\b/u.test(row))) {
+    for (const match of line.matchAll(/`((?:engine|game|sdk|format)\/[A-Za-z0-9_./-]+)(?:#([A-Za-z_$][\w$]*))?`/gu)) {
+      /** @type {readonly (string|undefined)[]} */
+      const captures = match;
+      const module = captures[1], name = captures[2];
+      if (module === undefined) throw new Error('Invalid G571 host selector');
+      if (module.split('/').some(part => part === '.' || part === '..' || part === '') || module.endsWith('.ts')) throw new Error(`Invalid G571 host selector: ${module}`);
+      const path = `src/${module}.ts`;
+      if (!existsSync(resolve(root, path))) throw new Error(`Missing G571 host: ${path}`);
+      if (name === undefined) {
+        if (result.has(path)) throw new Error(`Overlapping G571 host: ${path}`);
+        result.set(path, null);
+      } else {
+        if (result.has(path) && result.get(path) === null) throw new Error(`Overlapping G571 host: ${path}`);
+        const names = result.get(path) ?? new Set();
+        if (names.has(name)) throw new Error(`Duplicate G571 host: ${path}#${name}`);
+        names.add(name); result.set(path, names);
+      }
+    }
+  }
+  return result;
+}
+/** @param {ReadonlyMap<string,ReadonlySet<string>|null>} approvals
+ * @param {string} path @param {string} [name] */
+export function approvedG571Host(approvals, path, name) {
+  const names = approvals.get(path);
+  return names === null || names !== undefined && name !== undefined && names.has(name);
+}
