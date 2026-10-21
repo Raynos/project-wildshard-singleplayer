@@ -162,6 +162,17 @@ it.each([true,false])('keeps native compiler execution %s separate from raw runt
   if(execution)expect(key()).toBe(initial);else expect(key()).toBeUndefined();
   writeFileSync(compiler,before.replace('()=>1','()=>2'));expect(key()).toBeUndefined();
 });
+it.each([false,true])('keys an explicitly executed author declaration separately from runtime source: %s',async execution=>{
+  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
+  const source='/** declaration documentation */ export const value=1;';writeFileSync(compiler,source);
+  await captureProductInputs(root,receipt,async()=>{
+    await build({root,configFile:false,publicDir:false,logLevel:'silent',plugins:execution?[{name:'wildshard-author-execution',api:{wildshardInputIdentity:'execution'}}]:[],build:{write:false,minify:false,lib:{entry:compiler,formats:['es'],fileName:'config'}}});
+  });
+  const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),initial=key();expect(initial).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(compiler,source.replace('declaration documentation','revised declaration documentation'));
+  if(execution)expect(key()).toBe(initial);else expect(key()).toBeUndefined();
+  writeFileSync(compiler,source.replace('value=1','value=2'));expect(key()).toBeUndefined();
+});
 it.each([false,true])('guards function text after the native bundle execution boundary: %s',async executed=>{
   const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
   const source='/** first docs */ export const compile=()=>1;';writeFileSync(compiler,source);

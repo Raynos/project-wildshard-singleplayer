@@ -46,7 +46,9 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
 }
 
 async function authorModule(project: string, file: string): Promise<Record<string, unknown>> {
-  const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, file), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
+  // The compiled declaration executes here; only its returned data is emitted.
+  // Source-text inspection still enters the recorder's exact-content guard.
+  const result = await build({ configFile: false, logLevel: 'silent', plugins: [{name:'wildshard-author-execution',api:{wildshardInputIdentity:'execution'}}], build: { write: false, minify: false, lib: { entry: resolve(project, file), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built) || (Array.isArray(result) && result.length !== 1)) throw new Error('config build produced unexpected output');
   const chunks = built.output.filter((out) => out.type === 'chunk');
