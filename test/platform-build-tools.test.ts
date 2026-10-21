@@ -5,7 +5,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {dirname,join} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable fixture, never a repository export.
 import {tmpdir} from 'node:os';
-import {checkShares,shardLines} from '../scripts/shard-platform.mjs';
+import {checkShares,shardLines,sourceProgressInventory} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 import {legacyLineBasis} from './fixtures/legacyLineBasis';
 
@@ -54,5 +54,41 @@ it('reports the AS tenth without adding its excess to custom TS or enforcing it'
   expect(checkShares({baseline:{'pine-hollow':10},enforced:{'pine-hollow':2}},{'pine-hollow':row})).toEqual([]);
   platformOutput(root,'pastel-plain',{'runtime/index.ts':'export const LIVE=1;'});
   expect(shardLines(root)['pastel-plain']?.assemblyScriptBudget).toEqual({ceiling:null,share:null,passed:null,enforcement:'report-only'});
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+it('never roots build-only data, generators or project config as runtime users',()=>{
+ const root=mkdtempSync(join('tmp/','platform-build-roots-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./painter':'./painter.ts'}}));
+  put('src/game/painter.ts','export function paint() { return 1; }');
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':'export const live=1;'});
+  for(const path of ['data/table.ts','generators/atlas.ts','shard.config.ts']){
+   put(`src/shards/pine-hollow/${path}`,"import {paint} from '@wildshard/game/painter'; export const baked=paint();");
+  }
+  const row=sourceProgressInventory(root)['pine-hollow'];
+  expect(row?.conversion.gameSystemAttribution.lines).toBe(0);
+  expect(row?.customSources?.some(source=>source.path==='src/game/painter.ts')).toBe(false);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+it('keeps a sole runtime user charged until a second runtime reaches the generator',()=>{
+ const root=mkdtempSync(join('tmp/','platform-generator-users-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./shared':'./shared.ts'}}));
+  put('src/game/shared.ts','export function live() { return 1; }\nexport function other() { return 2; }');
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {live} from '@wildshard/game/shared'; export const value=live();"});
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {other} from '@wildshard/game/shared'; export const value=other();"});
+  put('src/shards/driftwood-isle/data/bridge.ts',"import {baked} from '../generators/atlas'; export const value=baked;");
+  put('src/shards/driftwood-isle/generators/atlas.ts',"import {live} from '@wildshard/game/shared';\nexport const baked=live();");
+  const before=sourceProgressInventory(root);
+  expect(before['pine-hollow']?.conversion.gameSystemAttribution.exports).toEqual([{path:'src/game/shared.ts',name:'live',exported:true,lines:1}]);
+  expect(before['driftwood-isle']?.customSources?.some(source=>source.path.endsWith('generators/atlas.ts'))).toBe(false);
+  put('src/shards/driftwood-isle/runtime/index.ts',"import {other} from '@wildshard/game/shared'; export async function value() { return [other(),(await import('../data/bridge')).value]; }");
+  const after=sourceProgressInventory(root);
+  expect(after['pine-hollow']?.conversion.gameSystemAttribution.exports).toEqual([]);
+  expect(after['driftwood-isle']?.customSources).toContainEqual(expect.objectContaining({path:'src/shards/driftwood-isle/generators/atlas.ts',kind:'runtime-ts',lines:2}));
  }finally{rmSync(root,{recursive:true,force:true});}
 });

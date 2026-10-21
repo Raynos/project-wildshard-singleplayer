@@ -61,7 +61,7 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 //   - names match top-level bindings lexically (no scope analysis): a local that shadows one still counts as a use;
 //   - literal members and destructuring of an awaited import reach those exports; escaping namespaces, import
 //     promises, `require()` and unqualified `import('x')` types conservatively reach every export;
-//   - a shard's own non-test files are roots in full: every declaration, named import and re-export in them is used;
+//   - a shard's runtime roots and their local dependencies are used in full; build-only folders supply no users;
 //   - evaluating a module runs its non-declaration top-level statements, so what they reference is used by every shard
 //     that reaches the file; a variable initialiser belongs to its binding. Import lines and top-level statements of a
 //     shared file stay shared, and a declaration no shard reaches counts for no shard.
@@ -723,17 +723,19 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))])));
   const authoredFiles=memo.authored.get(root);
   // Build tools are visible debt, never a runtime root or a second runtime user.
+  const buildFile = (slug, path) => {
+    const prefix = `src/shards/${slug}/`;
+    return path.startsWith(prefix) && /^(?:data|generators)\/|^shard\.config\./u.test(path.slice(prefix.length));
+  };
   const buildUsers = new Map();
   for (const [slug, files] of Object.entries(authoredFiles)) {
     if (slug === RULES.template) continue;
-    const prefix = `src/shards/${slug}/`;
-    const buildFile = path => path.startsWith(prefix) && /^(?:data|generators)\/|^shard\.config\./u.test(path.slice(prefix.length));
-    const queue = files.filter(buildFile), seen = new Set();
+    const queue = files.filter(path => buildFile(slug, path)), seen = new Set();
     while (queue.length > 0) {
       const path = queue.pop();
       if (seen.has(path) || !exists(path) || !sourceFile.test(path)) continue;
       seen.add(path);
-      if (!buildFile(path) && !/^src\/(?:engine|game|sdk|commons)\//u.test(path)) continue;
+      if (!buildFile(slug, path) && !/^src\/(?:engine|game|sdk|commons)\//u.test(path)) continue;
       if (path.startsWith('src/sdk/')) {
         if (!buildUsers.has(path)) buildUsers.set(path, new Set());
         buildUsers.get(path).add(slug);
@@ -755,12 +757,16 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     texts.set(path, `${sectionHostImports(output.sections, sourceProgress ? '../../' : '../../src/')}\n${native ?? ''}`); probes.set(path, true);
     hostFiles.set(slug, path);
   }
-  const consumers = [...Object.entries(shardFiles).map(([slug, files]) => [slug, hostFiles.has(slug) ? [...files, hostFiles.get(slug)] : files]), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
+  // Source progress still reports the authored inventory, but build-only imports
+  // supply no runtime users. A live import into those folders is followed below.
+  const runtimeRoots = Object.entries(shardFiles).map(([slug, files]) => [slug, sourceProgress ? files.filter(path => !buildFile(slug, path)) : files]);
+  const consumers = [...runtimeRoots.map(([slug, files]) => [slug, hostFiles.has(slug) ? [...files, hostFiles.get(slug)] : files]), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
+  const runtimeReached = new Map();
   const moduleUsers = new Map();
   for (const [slug, files] of consumers) {
     // G312: templates are authoring fixtures, never an independent consumer of a platform system.
-    if (slug === RULES.template) continue;
     const prefix = prefixOf(slug), seen = new Set(), queue = files.filter(path => !RULES.tests.test(path));
+    runtimeReached.set(slug, seen);
     while (queue.length > 0) {
       const path = queue.pop();
       if (seen.has(path)) continue;
@@ -769,7 +775,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       // Other shards are never consumers of this one's closure; follow defining engine modules too (G303).
       if (slug === SHELL_USER ? !path.startsWith('src/') || path.startsWith('src/shards/')
         : !path.startsWith(prefix) && !platform(path)) continue;
-      if (attributed(path) && (slug !== SHELL_USER || shellControl(path))) {
+      if (slug !== RULES.template && attributed(path) && (slug !== SHELL_USER || shellControl(path))) {
         if (!moduleUsers.has(path)) moduleUsers.set(path, new Set());
         moduleUsers.get(path).add(slug);
       }
@@ -907,7 +913,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       const lines = count(path);
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
-      const sourceOnlyData = sourceProgress && (top==='generators'
+      const sourceOnlyData = sourceProgress && (top==='generators'&&!runtimeReached.get(slug)?.has(path)
         || local==='manifest.ts'&&declarationOnlyManifest(text(path),path)
         || local==='shard.config.ts'&&declarationOnlyConfig(text(path),path));
       if (RULES.typescript.test(path) && !RULES.tests.test(local) && !sourceOnlyData) {
