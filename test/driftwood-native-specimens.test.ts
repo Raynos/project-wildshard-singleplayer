@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, Object3D, Vector3, WebGLRenderer } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -14,6 +14,10 @@ import { captainHat, sailclothCape, trader, tradeCounter, traderOf as originalTr
 import { enteredTrader, traderOf } from '../src/shards/driftwood-isle/runtime/models/trader';
 import { trader as traderCard } from '../src/shards/driftwood-isle/models/catalogue';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
+import { ownQuestTree } from '@wildshard/game/quest/chapter';
+import { clientMaterials } from '../src/game/shardfile/clientMaterials';
+import { emptyShardfile } from '../src/sdk/author';
+import { parseFamilyMaterial } from '../src/format/materialFamilies';
 import { castaway, castawayFigure } from '../src/shards/driftwood-isle/runtime/models/people';
 import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
@@ -144,12 +148,23 @@ test('native card rows preserve the actual factories, pivots, colliders and shad
       expect(flames).toBe(1);
     };
     compareCastaway(false);
-    const entered = owner.child('entered-smoke'), smokeLook = new MeshBasicMaterial();
-    entered.own(smokeLook);
-    lendLooks(entered, { materials: new Map([[smokeRows.SMOKE_LOOK, smokeLook]]), setParam: () => undefined,
-      setTexture: () => undefined, bindMeshMap: () => smokeLook });
+    const entered = owner.child('entered-smoke'), source = emptyShardfile({ slug: 'camp-fixture', name: 'Camp', author: 'Test', seed: 1, revision: 1 });
+    source.look.materials[smokeRows.SMOKE_LOOK] = parseFamilyMaterial({ family: 'pbr' });
+    const renderer: unknown = Object.create(WebGLRenderer.prototype);
+    if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing fixture renderer');
+    const compiled = await clientMaterials(source, new Map(), renderer, entered, { graphs: false });
+    lendLooks(entered, compiled);
+    const smokeLook = compiled.materials.get(smokeRows.SMOKE_LOOK);
+    if (smokeLook === undefined) throw new Error('Missing compiled fixture smoke');
     compareCastaway(true, smokeLook);
+    const disposedLook = vi.spyOn(smokeLook, 'dispose'), borrower = entered.child('castaway-borrower');
+    borrower.run(() => {
+      const figure = castawayFigure(sky, { x: 12, y: 3, z: -9, yaw: 1 }, { x: 10, y: 3, z: -8 }, new SceneHandles(sky), borrower);
+      ownQuestTree(figure.group, borrower);
+    });
+    borrower.dispose(); expect(disposedLook).not.toHaveBeenCalled();
     entered.dispose();
+    expect(disposedLook).toHaveBeenCalledTimes(1);
     compareCastaway(false);
 
   } finally {

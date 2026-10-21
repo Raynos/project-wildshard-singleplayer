@@ -15,6 +15,7 @@ import { familyMaterial, moveFamilyMaterial } from '@wildshard/engine/render/fam
 import { bindStandardLightmap, setStandardLightmap } from '@wildshard/engine/render/lightmaps';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -144,20 +145,22 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   };
   for (const entry of shard.props?.textures ?? []) resolveTexture(entry.colour, 'colour');
   const toon = new ToonLook(shard.look.familyLooks.toon ?? {}), painterly = new PainterlyLook(shard.look.familyLooks.painterly ?? {}), emissive = new EmissiveLook(shard.look.familyLooks.emissive ?? {});
+  // Entered trees borrow these materials; their first capture must not claim them.
+  const ownMaterial = (material: Material): Material => { ownSceneResource(material, scope); return material; };
   const context = { toon, painterly, emissive, textures: resolveTexture, scope, emitterPools: (id: string) => sceneVectors(shard.identity.slug, id, 4) }, materials = new MaterialCatalogue();
   const defaults = new Set([...shard.look.families, ...(shard.terrain === null || shard.terrain.form === 'query' ? [] : [shard.terrain.family]), ...(shard.props === null ? [] : [shard.props.family])]);
   // a family's implicit surface is plain and vertex-coloured; PBR's metalness default is a map multiplier, so the plain one is dielectric
-  for (const id of defaults) if (!Object.hasOwn(shard.look.materials, id)) materials.set(id, scope.own(familyMaterial({ family: id, vertexColours: true, ...(id === 'pbr' ? { metalness: 0 } : {}) }, context)));
+  for (const id of defaults) if (!Object.hasOwn(shard.look.materials, id)) materials.set(id, ownMaterial(familyMaterial({ family: id, vertexColours: true, ...(id === 'pbr' ? { metalness: 0 } : {}) }, context)));
   // graph entries: the lazy compiler loads only when the row is on and the shard carries one (a shard without pays nothing)
   const compiler = graphsOn && carriesGraph(shard, assets) ? await loadGraphCompiler(renderer) : null;
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
   const graphs = clientGraphs(shard, { compiler, toon, trustedGraphs: options.trustedGraphs === true, fallback: (entry) => familyMaterial(entry, context), textures: (ref, role = 'colour') => resolveTexture(ref, role), file: (hash) => assets.get(hash) });
   if (options.sources !== undefined) graphs.bind(options.sources);
   const compile = (entry: unknown, meshMap?: Texture): Material => {
-    if (!isGraphEntry(entry)) return scope.own(familyMaterial(entry, context));
+    if (!isGraphEntry(entry)) return ownMaterial(familyMaterial(entry, context));
     const material = graphs.compile(entry), outline = graphs.outline(material);
-    if (outline !== null) scope.own(outline.material);
-    return bindGraphMeshMap(scope.own(material), meshMap, scope);
+    if (outline !== null) ownMaterial(outline.material);
+    return ownMaterial(bindGraphMeshMap(ownMaterial(material), meshMap, scope));
   };
   // state-bound curves (look.curves): compiled at the fields' values now, moved in `tick` when a field moves
   let stateOf = options.sources?.state;
@@ -193,7 +196,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const bindMeshMap = (id: string, map: Texture | Material): Material => {
     const material = materials.get(id);
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
-    return bindGraphMeshMap(material, map, scope);
+    return ownMaterial(bindGraphMeshMap(material, map, scope));
   };
   const standardSurface = (id: string, material: Material): material is MeshStandardMaterial => {
     const entry = shard.look.materials[id]; return entry !== undefined && !isGraphEntry(entry) && material instanceof MeshStandardMaterial;
