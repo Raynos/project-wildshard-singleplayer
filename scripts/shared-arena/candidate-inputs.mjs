@@ -72,7 +72,7 @@ export function sourceSnapshot(root) {
     if (lstatSync(real).isDirectory()) for (const child of readdirSync(real).sort()) walk(resolve(real, child));
     else files[relative(root, real).split(sep).join('/')] = digest(readFileSync(real));
   };
-  for (const directory of ['src', 'practice', 'scripts', 'vite', 'node_modules']) walk(resolve(root, directory));
+  for (const directory of ['src', 'practice', 'scripts', 'vite', 'budgets', 'node_modules']) walk(resolve(root, directory));
   for (const name of readdirSync(root).sort()) if (/^(?:package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|practice\.html|tsconfig.*\.json|vite.*\.[cm]?[jt]s)$/u.test(name)) walk(resolve(root, name));
   const conchDeltas = [], baseline = {};
   for (const name of ['freeze-manifest.json', 'reviewed-build-pin.json']) {

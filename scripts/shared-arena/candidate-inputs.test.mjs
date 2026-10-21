@@ -55,13 +55,15 @@ await test('exact-source permission binds review, output, products and false acc
   mkdirSync(destination); assert.throws(() => check(permission), /NEW local/);
 }));
 await test('source proposal inventory binds all nine deltas and dependency bytes', () => fixture((root, put) => {
-  for (const dir of ['src', 'practice', 'scripts', 'vite', 'node_modules']) mkdirSync(resolve(root, dir));
+  for (const dir of ['src', 'practice', 'scripts', 'vite', 'budgets', 'node_modules']) mkdirSync(resolve(root, dir));
   put('package.json', {}); put('pnpm-lock.yaml', 'fixture lock'); put('node_modules/dependency.js', 'original dependency');
   const files = Object.fromEntries(CONCH_DELTAS.map(path => { put(path, `current ${path}`); return [path, digest(`old ${path}`)]; }));
   const conchBase = 'art/driftwood-isle/approved-conch/runtime-admission/arena-motion4/';
   put(`${conchBase}freeze-manifest.json`, { files }); put(`${conchBase}reviewed-build-pin.json`, { files: {} });
   const first = sourceSnapshot(root);
   assert.deepEqual(first.conchDeltas.map(row => row.path), CONCH_DELTAS);
+  put('budgets/desktop-reference.json', { fixture: 'explicit build dependency' });
+  assert.notEqual(digest(JSON.stringify(sourceSnapshot(root))), digest(JSON.stringify(first)));
   put('node_modules/dependency.js', 'changed dependency');
   assert.notEqual(digest(JSON.stringify(sourceSnapshot(root))), digest(JSON.stringify(first)));
   put(CONCH_DELTAS[0], `old ${CONCH_DELTAS[0]}`);
