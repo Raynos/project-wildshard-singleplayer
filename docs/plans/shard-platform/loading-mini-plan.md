@@ -142,5 +142,10 @@ cell; all three readiness parts and a real motor reframe remain required.
 All eight native mouth/mode cases now pass, along with four crossing and
 admission checks (12 tests total) and strict lint. One exact-SHA source
 batch, the six entries/three crossings and the required grid physics walk
-are queued on that fix. The sp-x6 B6 quiet window released both surfaces
-before its checks resumed. No Phase 1 acceptance is claimed yet.
+were queued on that fix. The sp-x6 B6 quiet window released both surfaces
+before its checks resumed. The source batch passed types, lint and 750
+tests, including the fence regressions, but stopped on two Pine native
+quest witness mismatches. Its dependent preview and physical proofs did
+not run. Coordinator-confirmed repair `5e7c50bd89` is in newer HEAD; one
+replacement batch follows its consolidated compatibility verdict. No
+Phase 1 acceptance is claimed yet.
