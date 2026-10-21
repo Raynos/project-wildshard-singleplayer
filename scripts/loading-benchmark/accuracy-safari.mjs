@@ -15,8 +15,8 @@ const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.
 const udid = process.env.SIM_UDID, upstream = arg('base'), pin = arg('pin'), dist = arg('dist'), out = arg('out');
 if (!udid || !upstream || !dist || !out || !/^[a-f0-9]{40}$/u.test(pin ?? '')) throw new Error('Requires sim-lane and base/pin/dist/out');
 const start = `<!doctype html><script>${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};location.replace('/');</script>`;
-const transport = await observeTransport(upstream, { recorder: accuracyRecorder, start }), base = transport.base;
-const version = await (await fetch(new URL('/version.json', base))).json();
+let transport, base;
+const version = await (await fetch(new URL('/version.json', upstream))).json();
 if (!version.build?.startsWith(pin.slice(0, 7)) || JSON.parse(readFileSync(resolvePath(dist, 'version.json'), 'utf8')).build !== version.build) throw new Error('HTTP/disk pin mismatch');
 mkdirSync(out, { recursive: true });
 const socket = execFileSync('xcrun', ['simctl', 'getenv', udid, 'RWI_LISTEN_SOCKET'], { encoding: 'utf8' }).trim();
@@ -78,6 +78,8 @@ async function gesture(expression) {
 let failed = false;
 try {
   for (const path of (arg('paths') ?? 'shardfile,grid').split(',')) {
+    transport = await observeTransport(upstream, { recorder: accuracyRecorder, start });
+    base = transport.base;
     const events = [], errors = [];
     let collected, networkBytes = null, report;
     try {
@@ -126,13 +128,14 @@ try {
     try { await inspector?.evaluate(`location.replace('about:blank')`); } catch { /* The target already left. */ }
     inspector?.close(); inspector = undefined;
     try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
+    await transport.close(); transport = undefined;
     if (errors.length > 0 || (arg('accept') === '1' && (report?.failures.length ?? 0) > 0)) failed = true;
   }
 } finally {
   try { await inspector?.evaluate(`location.replace('about:blank')`); } catch { /* Unloaded target. */ }
   inspector?.close(); proxy.kill('SIGTERM');
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
-  await transport.close();
+  await transport?.close();
   writeFileSync(resolvePath(out, 'proxy.log'), proxyErrors.join(''));
 }
 
