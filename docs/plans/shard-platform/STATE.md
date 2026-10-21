@@ -10,6 +10,7 @@
 
 **G565 lanes (quest-host-mini-plan.md):** QA sp-o3; QB sp-x9; QC sp-o5; QD sp-x1 (next boundary); QE sp-o4 (after entry decks); QX sp-x8 integrator. Zero paperwork sent to all lanes.
 
+**Zero reached:** Pastel Plain 732 -> 0 (sp-o1, 2ebb5ed64c). Template 1 1,001 -> ~21, Blender 109 -> ~0 (sp-x1), Ink 768 -> ~586 (sp-o3).
+
 **For wildshard-v:** Nine composite pick: art/nine-composite/round-1-graph-ab/board.jpg A GLSL / B Graph; B recommended if Sim fps holds (-296). G566 (Jake): AS body ops YES (sp-x1 61473f3bb1); +2 reads (playerIntent, declared floor) so DW barrels go to AS (sp-o5); guide body listed. Ruler fix e3a7990c5b (sp-x1, per the ruler's own rule: build tools are not runtime roots): total custom 11,570 -> 10,947 (DW -103, Nalati -185, Ink -496; Nine +101, Pine +64 unmasked).  G550 hero: art/grid/round-35-hero-retake/sq-ne-b-o24-{iphone,desktop,board}.jpg (5a410d548f); outer band now draws its ground (O24 haze fix 734f24a81a); holograms/beams still fade past 850 m by design, so G550's 'holograms in the distance' needs a pick: keep the fade (recommended, draw cost) or extend it.
 
-**Lanes (14:00):** Opus sp-o1 G4; sp-o2 O24; sp-o3 G7; sp-o4 G3; sp-o5 G8. Codex sp-x1 GR3; sp-x6 G2a; sp-x8 G1a/G2b; sp-x9 G9 then G1b; sp-x7 push.
