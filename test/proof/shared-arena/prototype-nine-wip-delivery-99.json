@@ -1,0 +1,14 @@
+{
+  "schema": "wildshard.prototype-nine.wip-delivery.v1",
+  "siteVersion": 99,
+  "sourceCommit": "00fc2311a6b3e0de7c43c47ccd5c09d22cc04a37",
+  "deploymentId": "appgdep_6ad942eee5408191946c3c65692832db",
+  "deploymentStatus": "succeeded",
+  "url": "https://wildshard-enemy-lab.raynos.chatgpt.site/arena.html",
+  "availablePrototypes": 9,
+  "qualityComplete": 0,
+  "fullCurrentHostCombatVerified": false,
+  "hostReceiptSha256": "20227267ccfb93b7d371f7ee4fb2033ab6b95ae5c8ca36405e92974600bda114",
+  "ownerDirection": "Publish unfinished nine-enemy prototypes without waiting for browser infrastructure; disclose incomplete testing.",
+  "deliveryConversions": "Ten historical evidence JSON deliveries whitespace-minified with identical parsed values; exact originals retained in native Site source-evidence and history."
+}
