@@ -10108,6 +10108,16 @@ owner path. `snapshot` and `prepareRestore` retain the version-1 modal/board
 wire; restore validates the complete continuation before mutating live state
 and never reapplies rewards. Page and native entry share this board owner;
 page storage still writes the original unwrapped `saveBoard` text.
+`QuestEntry.board(rows)` binds the client panel, prompt, saved board and
+payout feedback to the entry's existing interaction and achievement owners.
+Rows declare its catalogue, panel, state/legacy slot, position, radius,
+ammunition owner, finish captions and notice templates; functions refuse.
+The existing board law remains renderer-free. Installation preflights live
+owners and finish ids, and refuses a second board on the same entry.
+`observe()` attaches deaths at the caller's original phase, after its earlier
+death rows; `panel()` and Developer `fill(slot)` retain the original modal
+and save phases. Scope disposal removes the prompt and its view. This client
+binding is Pine-only under G473, with no second-shard credit claimed.
 Both entry adapters grant returned item rows through `commitQuestEffects`;
 ammunition, cosmetic ownership and presentation keep their existing owners.
 The page keeps items → ammunition → finish → save → feedback ordering.

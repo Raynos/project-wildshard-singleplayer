@@ -1,29 +1,23 @@
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
-import { commitQuestEffects } from '@wildshard/game/quest/effects';
 import { prepareQuestEntry } from '@wildshard/game/quest/chapter';
 import { installQuestShop } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { MoverRuntime } from '@wildshard/game/plugin/mover';
-import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import { jsonSchema, jsonSlot } from '@wildshard/engine/saves/slots';
 import { test } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ItemId } from '@wildshard/game/Inventory';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeQuest } from '@wildshard/game/shardfile/hybridRows';
 import * as THREE from 'three';
 import type { ForestStoryRows, ForestStoryContent, ForestStory } from './forestStoryRows';
 import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
-import { HeldFinishes } from '@wildshard/game/loadout/finishes';
-import { saveBoard, contractKill, isFilled } from '@wildshard/game/quest/contracts';
-import { ContractBoard } from '@wildshard/game/quest/contractBoard';
 import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
 import { isItemId } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
@@ -48,7 +42,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.contracts))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.signals))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.door))));
-  const { game, sky, player, animals, hud, inventory } = h;
+  const { game, sky, player, hud, inventory } = h;
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services, placement: { registryReach: 20 } });
   const { story, flags, floorAt } = entry;
   const featFacts = await entry.achievements(), facts = featFacts.facts;
@@ -107,48 +101,8 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     owners: new Map<string, unknown>([['door', millDoor], ['sfx', kitSfx]]) });
   const thralls = await installQuestSpawnDirector(ctx, native);
   thralls.useSfx(sfx);
-  const savedBoard = jsonSlot(rows.store.slot, 'shard');
-  const lodge = bindRuntimeState(ctx, source, rows.store.state, () => JSON.stringify(savedBoard.read(h.chunkId)), h.chunkId);
-  const store = { getItem: (_key: string): string => String(lodge.read()), setItem: (_key: string, raw: string): void => {
-    v.parse(jsonSchema, JSON.parse(raw) as unknown); lodge.write(raw);
-  } };
-  const bs = rows.board.at;
-  const boardOwner = new ContractBoard({ contracts, saved: store.getItem(contracts.store),
-    prompt: { x: bs.x, y: heightAt(bs.x, bs.z) + 1.3, z: bs.z }, radius: 2.8 });
-  const board = boardOwner.current;
-  const persistBoard = (): void => { try { store.setItem(contracts.store, saveBoard(board)); } catch { /* storage unavailable */ } };
-  const finishes = new Map(Object.entries(rows.board.finishes).map(([id, text]) => [id, { finish: HeldFinishes.current(ctx.manifest.slug).get(id), text }]));
-  for (const id of [...contracts.rows.flatMap(row => row.reward.skin === undefined ? [] : [row.reward.skin]), ...contracts.milestones.map(row => row.skin)])
-    if (!finishes.has(id)) throw new Error('Quest board lacks finish feedback');
-  const boardUi = ui.view('board', (scope) => {
-    const onClaim = (value: unknown): void => {
-      if (typeof value !== 'number') throw new Error('Contract action requires its slot');
-      const r = boardOwner.claim(value)?.reward;
-      if (r === undefined) return;
-      commitQuestEffects(ctx, story.quest.id, r.items.map(item => ({ kind: 'item', item: item.id, count: item.n })));
-      if (r.bolts > 0) equipment.loadout.addAmmo(rows.ammo, r.bolts);
-      if (r.skin !== undefined) {
-        const finish = finishes.get(r.skin); if (finish === undefined) throw new Error('Missing admitted board finish');
-        h.skins.own(r.skin); h.wearSkin(finish.finish); hud.toast(finish.text);
-      }
-      persistBoard();
-      kitSfx.interact('chest'); h.music.sting('pickup');
-      featFacts.event('streak', board.streak);
-      hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
-    };
-    const onReroll = (value: unknown): void => {
-      if (typeof value !== 'number') throw new Error('Contract action requires its slot');
-      boardOwner.tear(value); persistBoard(); kitSfx.interact('door');
-    };
-    return new DataPanel(boardPanel, { scope, values: () => board, actions: new Map([['claim', onClaim], ['tear', onReroll]]) });
-  });
-  const boardPrompt: Interactable = {
-    position: new THREE.Vector3(bs.x, heightAt(bs.x, bs.z) + 1.3, bs.z),
-    get radius() { return boardUi().isOpen ? 0 : 2.8; },
-    get label() { return board.slots.some(isFilled) ? rows.board.filled : rows.board.label; },
-    onInteract: () => { boardUi().open(); kitSfx.interact('door', boardPrompt.position, { gain: 0.5 }); },
-  };
-  h.interactables.push(boardPrompt);
+  const boardPage = entry.board({ contracts, panel: boardPanel, store: rows.store, ...rows.board });
+  const board = boardPage.state, boardUi = boardPage.panel;
 
   entry.trader({ rows: traderStall });
   const talks = await entry.talks({ ...rows.talks, steps: native.steps });
@@ -157,17 +111,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
     panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
   entry.deaths({ effects: native.pageDeaths, order: 0 });
-  ctx.on('actor.died', ({ actor }) => {
-    const animal = animals.animals.find(value => value.combatActor() === actor);
-    if (animal === undefined) return;
-    const moved = boardOwner.killed(contractKill(contracts, animal));
-    if (moved.length === 0) return;
-    persistBoard();
-    for (const i of moved) {
-      const c = board.slots[i];
-      if (c) hud.toast(isFilled(c) ? `Contract filled · ${c.goal} — claim it at the lodge` : `Contract · ${c.goal} · ${c.have} / ${c.need}`);
-    }
-  });
+  boardPage.observe();
 
   const cableId = rows.cable.id;
   let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> };
@@ -283,7 +227,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
     callThralls: (): void => { thralls.force(); },
     give: (id: ItemId, n = 1): void => { inventory.add(id, n); },
-    fill: (i: number): void => { const c = board.slots[i]; if (c) { c.have = c.need; persistBoard(); } },
+    fill: boardPage.fill,
     test: (c: { all?: string[] }): boolean => test(flags, c),
   };
   ctx.debug.expose(rows.debug.id, debug);
@@ -291,7 +235,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   if (!ui.exposeBrowser(rows.debug.browser, debug)) ctx.scope.expose(window, rows.debug.browser, debug);
   ctx.scope.onDispose(() => {
     objective.root.remove(); clock.caption.root.remove();
-    ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
+    ui.disposeLegacy(() => { dialogue().dispose(); trade().root.remove(); chip().root.remove(); });
   });
   return { flags, stag, thralls, motion };
 }

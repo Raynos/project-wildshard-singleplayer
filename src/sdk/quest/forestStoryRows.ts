@@ -1,4 +1,3 @@
-import type { HeldLoadout } from '@wildshard/game/loadout/held';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
@@ -15,7 +14,6 @@ export interface ForestStoryContent {
 /** Data-only page composition over forest, ranged equipment and quest hosts. */
 export interface ForestStoryRows {
   readonly page: string; readonly ranged: string; readonly content: `custom/${string}`;
-  readonly ammo: Parameters<HeldLoadout['addAmmo']>[0];
   readonly panels: { readonly board: string; readonly count: string };
   readonly files: Readonly<Record<'stall' | 'exchange' | 'contracts' | 'signals' | 'door' | 'services' | 'director', string>>;
   readonly talks: QuestPageTalksRows;
@@ -27,7 +25,9 @@ export interface ForestStoryRows {
   readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
   readonly door: { readonly building: string; readonly flag: string };
-  readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string; readonly finishes: Readonly<Record<string, string>> };
+  readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string; readonly finishes: Readonly<Record<string, string>>;
+    readonly height: number; readonly radius: number; readonly ammunition: { readonly loadout: string; readonly kind: string };
+    readonly notices: { readonly claimed: string; readonly filled: string; readonly progress: string } };
   readonly cable: { readonly id: string; readonly scene: string; readonly trolley: string; readonly prompt: Triple; readonly radius: number; readonly label: string;
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */

@@ -4,6 +4,7 @@ import { WEAPON_FINISHES } from './weaponFinishes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { ForestStoryRows } from '@wildshard/sdk/quest/forestStoryRows';
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
+import loadout from '../data/loadout.json' with { type: 'json' };
 import policy from '../data/forestStory.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import scenes from '../data/timberScenes.generated.json' with { type: 'json' };
@@ -35,8 +36,8 @@ const finishToasts = Object.fromEntries([...new Set([...contracts.rows.flatMap(r
   return [id, `${row.name} ${row.weapon} finish — ${row.blurb}`];
 }));
 export const FOREST_STORY: ForestStoryRows = {
-  ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime', ammo: 'iron',
-  board: { ...policy.board, at: board, finishes: finishToasts },
+  ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime',
+  board: { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } },
   signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2, lantern: { id: `waystone.${id}`, when: [`lit:${id}`, wardens.QUEST_DONE] } })),
   cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow' },

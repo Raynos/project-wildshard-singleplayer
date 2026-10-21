@@ -2,7 +2,6 @@
   "page": "pine.forest",
   "ranged": "pine.ranged",
   "content": "custom/questRuntime",
-  "ammo": "iron",
   "panels": {
     "board": "board",
     "count": "count"
@@ -30,6 +29,13 @@
     "flag": "errand:done"
   },
   "board": {
+    "height": 1.3,
+    "radius": 2.8,
+    "notices": {
+      "claimed": "Contract claimed · {claimed} so far · {streak} in a row",
+      "filled": "Contract filled · {goal} — claim it at the lodge",
+      "progress": "Contract · {goal} · {have} / {need}"
+    },
     "label": "Read the contract board",
     "filled": "Read the contract board \u2014 one is filled"
   },

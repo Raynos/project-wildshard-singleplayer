@@ -18,6 +18,7 @@ import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui
 import { parseQuestStory, parseChapterStoryPresentation } from '@wildshard/format/questStory';
 import { FigureRows } from '../systems/npc/figureRows';
 import { NpcDialogueRowSchema, bindQuestDeathEffects } from '../plugin/quests';
+import { installContractBoardPage, type ContractBoardPage } from './contractBoardPage';
 import { ReturnProgram } from '../population/returnProgram';
 import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from './chapterBindings';
 import { commitQuestEffects, readQuestServiceActions } from './effects';
@@ -133,6 +134,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   deaths: (input: unknown) => void;
   cable: (input: unknown) => Promise<QuestCableView>;
   trader: (input: unknown) => QuestTrader;
+  board: (input: unknown) => ContractBoardPage;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -155,8 +157,13 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
   let achievements: Awaited<ReturnType<typeof bindStoryAchievements>> | null = null;
   let achievementRequest: ReturnType<typeof bindStoryAchievements> | null = null;
   let interaction: Awaited<ReturnType<typeof installQuestInteractables>> | null = null;
-  let installed = false, talksInstalled = false;
+  let installed = false, talksInstalled = false, boardInstalled = false;
   return { story, flags, services, ...placement,
+    board: boardInput => {
+      if (boardInstalled || interaction === null || achievements === null || ctx.scope.disposed) throw new Error('Quest board requires its live table and achievement owners');
+      const board = installContractBoardPage(ctx, story.quest.id, boardInput, interaction.sfx, achievements);
+      boardInstalled = true; return board;
+    },
     trader: traderInput => {
       if (ctx.scope.disposed || !isJsonData(traderInput)) throw new Error('Quest trader requires live JSON rows');
       const trader = v.parse(entryTrader, traderInput), resources = trader.resources;
