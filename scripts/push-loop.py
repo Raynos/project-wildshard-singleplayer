@@ -76,6 +76,17 @@ def offender(root, base, tip, files, deadline):
 def tick(root, checker=LIVE['check'], uploader=None, notify=ping):
     started = time.monotonic()
     deadline = started + LIVE['LIMIT']
+    pending_notice = None
+
+    def finish(result):
+        # Lane notification is outside the check budget and never delays upload.
+        if pending_notice is not None:
+            path, state, commits, message = pending_notice
+            if notify(root, commits, message):
+                state['pinged'] = True
+                path.write_text(json.dumps(state))
+        return result
+
     base = git(root, 'rev-parse', 'origin/main')
     tip = git(root, 'rev-parse', 'main')
     if base == tip:
@@ -105,18 +116,19 @@ def tick(root, checker=LIVE['check'], uploader=None, notify=ping):
             message = '[push-loop] ' + result['phase'] + ' red at ' + (bad or tip)[:10] + '; ' + \
                 ('prefix checked; offending suffix stays local. ' if bad else 'same live refusal three times. ') + \
                 'Log: tmp/push-loop/current.log. Fix forward and commit.'
-            pinged = notify(root, commits, message)
+            pending_notice = (state_file, {'fingerprint': fingerprint, 'count': count, 'pinged': False}, commits, message)
         state_file.write_text(json.dumps({'fingerprint': fingerprint, 'count': count, 'pinged': pinged}))
     if candidate == base:
-        return {'status': 'red', 'tip': tip, 'bad': bad, 'phase': result['phase'], 'output': result['output']}
+        return finish({'status': 'red', 'tip': tip, 'bad': bad, 'phase': result['phase'],
+                       'gateSeconds': round(time.monotonic() - started, 2), 'output': result['output']})
     env = dict(os.environ, WS_LIVE_GATE_TIP=candidate, WS_LIVE_GATE_BASE=base)
     if uploader is None:
         def uploader(revision, environment):
             return subprocess.run(['git', 'push', '-q', 'origin', revision + ':refs/heads/main'], cwd=root, env=environment).returncode
     gate_seconds = round(time.monotonic() - started, 2)
     rc = uploader(candidate, env)
-    return {'status': 'pushed' if rc == 0 else 'upload-red', 'tip': candidate, 'bad': bad,
-            'gateSeconds': gate_seconds, 'output': result['output']}
+    return finish({'status': 'pushed' if rc == 0 else 'upload-red', 'tip': candidate, 'bad': bad,
+                   'gateSeconds': gate_seconds, 'output': result['output']})
 
 
 def main():

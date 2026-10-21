@@ -115,7 +115,12 @@ class PushLoop(unittest.TestCase):
         def checker(root, base, candidate, deadline):
             return {'ok': candidate == good, 'phase': 'lint', 'files': ['src/bad.ts'], 'output': 'bad'}
 
-        result = PUSH['tick'](self.root, checker=checker, notify=lambda *args: notices.append(args) or True)
+        def notify(*args):
+            self.assertEqual(self.git('rev-parse', 'origin/main'), good)
+            notices.append(args)
+            return True
+
+        result = PUSH['tick'](self.root, checker=checker, notify=notify)
         self.assertEqual(result['status'], 'pushed')
         self.assertEqual(result['tip'], good)
         self.assertEqual(result['bad'], bad)
