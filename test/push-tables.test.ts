@@ -5,6 +5,12 @@ import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { sectionTables } from '../scripts/push-tables.mjs';
 import { writeSectionSchemaBridge } from '../scripts/bake-section-schemas.mjs';
+import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
+
+test('metadata discovery emits the same checked TypeScript table', () => {
+  expect(authoredManifestSource(resolve('.'), '_template', { metadataOnly: true }))
+    .toBe(authoredManifestSource(resolve('.'), '_template'));
+});
 
 test('push declarations equal the product producer without reading data WIP', async () => {
   mkdirSync('tmp', { recursive: true });

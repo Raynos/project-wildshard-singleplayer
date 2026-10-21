@@ -52,15 +52,15 @@ export async function sectionTables(root, slug) {
 /** @param {string} root */
 export async function pushTables(root) {
   genStarterArmClips(root); genStarterWeapons(root); genStarterBag(root); genStarterEffects(root);
+  for (const folder of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
+    if (folder.isDirectory()) await sectionTables(root, folder.name);
+  }
   for (const product of shardProducts(root, manifestFolders(root))) {
     if (!existsSync(resolve(root, 'src/shards', product.folder, 'manifest.json'))) continue;
     const composed = product.output === null ? null : outputManifest(root, product.folder, product.output);
     writeFileSync(resolve(root, productManifestPath(root, product)), authoredManifestSource(root, product.slug, {
-      folder: product.folder, composed, generation: true,
+      folder: product.folder, composed, generation: true, metadataOnly: true,
     }));
-  }
-  for (const folder of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
-    if (folder.isDirectory()) await sectionTables(root, folder.name);
   }
 }
 

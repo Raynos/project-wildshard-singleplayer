@@ -3,6 +3,7 @@ import contextlib
 import hashlib
 import json
 import os
+import runpy
 from pathlib import Path, PurePosixPath
 import subprocess
 import tempfile
@@ -127,6 +128,8 @@ def committed_source(repo, revision, tooling_revision, deadline):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(data)
         outputs(repo, tree, records, deadline, assets)
+        cache = runpy.run_path(str(Path(__file__).with_name('push_input_cache.py')))
+        cache['restore'](repo, tree, records, deadline)
         tools = tree / '.push-tools'
         tools.mkdir()
         for name in [*TOOLS, 'link-node-modules.mjs']:

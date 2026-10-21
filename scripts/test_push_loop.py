@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PUSH = runpy.run_path(str(ROOT / 'scripts/push-loop.py'))
 LIVE = PUSH['LIVE']
 WATCH = runpy.run_path(str(ROOT / 'scripts/ci-watch.py'))
+CACHE = runpy.run_path(str(ROOT / 'scripts/push_input_cache.py'))
 
 
 class PushLoop(unittest.TestCase):
@@ -167,6 +168,18 @@ class PushLoop(unittest.TestCase):
             WATCH['watch'](self.root, command=command, notify=lambda *args: notices.append(args) or True)
         self.assertEqual(len(notices), 1)
         self.assertIn('typed-check', notices[0][2])
+
+    def test_type_cache_invalidates_on_producer_and_upstream_changes(self):
+        jobs = [
+            {'id': 'upstream', 'inputRoots': ['src/author.ts'], 'outputs': ['src/up.generated.json']},
+            {'id': 'consumer', 'inputRoots': ['src/up.generated.json', 'src/consumer.ts'], 'outputs': ['src/result.generated.json']},
+        ]
+        records = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/consumer.ts']
+        keys = CACHE['identities'](jobs, records)
+        self.assertEqual(keys, CACHE['identities'](jobs, [*records, b'100644 blob ccc\tdocs/note.md']))
+        changed = CACHE['identities'](jobs, [b'100644 blob ddd\tsrc/author.ts', records[1]])
+        self.assertNotEqual(keys['upstream'], changed['upstream'])
+        self.assertNotEqual(keys['consumer'], changed['consumer'])
 
 
 if __name__ == '__main__':
