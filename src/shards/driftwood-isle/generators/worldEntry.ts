@@ -11,13 +11,14 @@ const foliage = (kind: 'bushes' | 'palms', mesh: string, castShadow: (tier: type
 
 /**
  * Driftwood Isle's declared world entry (world/entry.json, run by @wildshard/game/shardfile/worldEntry in
- * world/build.ts): the entry decks, the shore boulders, the hibiscus bushes and the coconut palms for this tier, and the cove's small rocks.
+ * world/build.ts): the entry decks, the shore boulders, the hibiscus bushes and the coconut palms for this tier, the trail's posts, signs and steps, and the cove's small rocks.
  */
 export function driftwoodWorldEntry(): WorldEntryRows {
   return parseWorldEntry({ blocks: {
     bushes: foliage('bushes', 'hibiscus.mesh', tier => ISLAND_KNOBS[tier].bushShadows),
     palms: foliage('palms', 'palms.mesh', () => undefined),
     decks: [{ kind: 'place', id: 'entry.decks' }],
+    trail: ['trail.posts', 'trail.signs', 'trail.planks'].map(id => ({ kind: 'place', id })),
     shore: [{ kind: 'place', id: 'rocks.shore.copies' }, { kind: 'attach', id: 'rocks.shore', as: 'mesh', nameAfter: 'rocks.shore.copies' }],
     smallRocks: [{ kind: 'place', id: 'rocks.small.copies' }, { kind: 'attach', id: 'rocks.small', as: 'mesh', nameAfter: 'rocks.small.copies' }],
   } });

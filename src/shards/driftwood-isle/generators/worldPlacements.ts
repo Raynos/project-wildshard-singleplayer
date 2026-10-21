@@ -4,6 +4,7 @@ import composition from '../data/coveComposition.json' with { type: 'json' };
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import landings from '../data/entryFloors.generated.json' with { type: 'json' };
+import trail from '../data/trailsideBake.json' with { type: 'json' };
 import { ENTRY_DECKS } from './entryDecks';
 import { ENTRY_FLOORS } from './staticWorld';
 
@@ -52,6 +53,10 @@ function entryDecks(): WorldScenePlacementRow {
 
 export const WORLD_PLACEMENTS: readonly WorldScenePlacementRow[] = [
   entryDecks(),
+  // the sand paths' fence posts, signposts and plank steps, drawn into the trail's weld (pieces `trail-*`, their colliders with them)
+  upright('trail.posts', 'fencePost', 'trail.mesh', 'trail-fence-posts', { placements: trail.posts.pls, boxes: trail.posts.boxes }),
+  upright('trail.signs', 'signpost', 'trail.mesh', 'trail-signposts', { placements: trail.signs.pls, boxes: trail.signs.boxes }),
+  upright('trail.planks', 'plankStep', 'trail.mesh', 'trail-steps', { placements: trail.planks.pls, boxes: trail.planks.boxes }),
   baked('rocks.small.copies', 'smallRock', 'rocks.small', { id: 'cove-small-rocks' }, rocks.world.small),
   baked('rocks.shore.copies', 'shoreBoulder', 'rocks.shore', { id: 'rocks', solidFloor: true }, rocks.world.shore),
   parseWorldScenePlacement({ id: 'wreck.ship', model: 'shipwreck', draw: 'merged', drawnInto: { part: 'wreck.root', boxes: wreck.shipBox },
