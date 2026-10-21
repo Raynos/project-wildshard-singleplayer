@@ -8,8 +8,9 @@ import hooks from '../behaviour/hooks.json' with { type: 'json' };
 import rows from '../data/rows.json' with { type: 'json' };
 import { parseRows } from '@wildshard/sdk/rows';
 import TEMPLATE_PLUMBING from '../data/plumbing.json' with { type: 'json' };
-import { TEMPLATE_UI } from '../data/ui';
-import { TEMPLATE_LOOK } from '../data/look';
+import ui from '../data/ui.json' with { type: 'json' };
+import text from '../data/text.json' with { type: 'json' };
+import TEMPLATE_LOOK from '../data/look.json' with { type: 'json' };
 import TEMPLATE_WATER from '../data/water.json' with { type: 'json' };
 import CREATURES from '../data/creatures.json' with { type: 'json' };
 import ENCOUNTERS from '../data/encounters.json' with { type: 'json' };
@@ -18,13 +19,17 @@ import TEMPLATE_LEDGER from '../data/ledger.json' with { type: 'json' };
 import TEMPLATE_AUDIO from '../data/audio.json' with { type: 'json' };
 import SPAWN from '../data/spawn.json' with { type: 'json' };
 import ITEMS from '../data/items.json' with { type: 'json' };
-import { TEMPLATE_TARGETS } from '../data/targets';
+import targets from '../data/targets.json' with { type: 'json' };
 import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from '../data/skins';
 import idle from '../data/clientScripts.json' with { type: 'json' };
 
 // The idle reserve retains three pairs of Wasm pages and six particle slots.
 const { hash: CLIENT_IDLE_HASH, bytes: CLIENT_IDLE_BYTES, resident: CLIENT_IDLE_RESIDENT } = idle.module;
 const TEMPLATE_ROWS = parseRows(rows);
+// Keep generated door positions and the shared teaching text authoritative.
+const TEMPLATE_UI = [{ ...ui.marker, label: text.hut, at: terrain.sites.door }, ui.oil, ui.jump,
+  { ...ui.notes, tab: { ...ui.notes.tab, title: text.notes }, paragraphs: [text.note] }, ...ENCOUNTERS.ui];
+const TEMPLATE_TARGETS = { ...targets.rows, interactions: [{ ...targets.interaction, at: terrain.sites.door, label: text.door }] };
 const base = emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 2, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };

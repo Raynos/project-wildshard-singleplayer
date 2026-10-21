@@ -10,18 +10,19 @@ import { clientWorld } from '../../../../src/game/shardfile/clientWorld';
 import { ClientAssets } from '../../../../src/game/shardfile/clientAssets';
 import { TRAIL } from '../../../../src/shards/_template/data/layout';
 import { poolMask } from '../../../../src/shards/_template/generators/world';
-import { TEMPLATE_LOOK } from '../../../../src/shards/_template/data/look';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
 import source from '../../../../src/shards/_template/shard.config';
 
 const scene = new Scene(), renderer = new WebGLRenderer({ antialias: true }); renderer.setPixelRatio(2); renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = PCFSoftShadowMap; document.body.append(renderer.domElement);
-const key = TEMPLATE_LOOK.keys[0], camera = new PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1200);
+const TEMPLATE_LOOK = source.look, key = TEMPLATE_LOOK.keys[0], day = TEMPLATE_LOOK.day;
+if (key === undefined || day === undefined) throw new Error('Template look requires its declared key and day');
+const camera = new PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1200);
 scene.fog = new Fog(new Color().setRGB(...key.fog.colour), key.fog.near, key.fog.far);
 const dome = new Mesh(new SphereGeometry(600, 24, 12), new ShaderMaterial({ side: DoubleSide, depthWrite: false, fog: false,
   vertexShader: 'varying float h; void main(){ h=normalize(position).y; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
   fragmentShader: 'varying float h; void main(){ gl_FragColor=vec4(mix(vec3(0.75),vec3(0.35,0.42,0.5),clamp(h,0.0,1.0)),1.0); }' }));
-const elevation = TEMPLATE_LOOK.day.maxElevation * Math.PI / 180, azimuth = TEMPLATE_LOOK.day.azimuth * Math.PI / 180;
+const elevation = day.maxElevation * Math.PI / 180, azimuth = day.azimuth * Math.PI / 180;
 const sun = new DirectionalLight(new Color().setRGB(...key.sun.colour), key.sun.intensity);
 sun.position.set(Math.cos(elevation) * Math.sin(azimuth) * 100, Math.sin(elevation) * 100, Math.cos(elevation) * Math.cos(azimuth) * 100);
 sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -80, right: 80, top: 80, bottom: -80, near: 1, far: 300 }); sun.shadow.bias = -0.0005;
