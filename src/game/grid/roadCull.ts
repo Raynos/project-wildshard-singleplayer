@@ -44,14 +44,14 @@ export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number): Gener
   const index = geometry.getIndex(), names = Object.keys(geometry.attributes);
   if (index === null || index.count === 0) return;
   const attrs = names.map((name) => geometry.getAttribute(name)), sizes = attrs.map((a) => a.itemSize), stride = sizes.reduce((a, b) => a + b, 0);
-  const count = attrs[0]?.count ?? 0;
+  const count = attrs[0]?.count ?? 0, position = geometry.getAttribute('position');
   const read = (n: number): Float64Array => {
     const v = new Float64Array(stride); let o = 0;
     attrs.forEach((a, k) => { for (let c = 0; c < (sizes[k] ?? 0); c++) v[o + c] = a.array[n * (sizes[k] ?? 0) + c] ?? 0; o += sizes[k] ?? 0; });
     return v;
   };
   const at = names.indexOf('position'), px = at === -1 ? 0 : sizes.slice(0, at).reduce((a, b) => a + b, 0);
-  const { extra, out } = yield* clipCore(index.count / 3, (i) => index.getX(i), count, stride, px, read, pitch);
+  const { extra, out } = yield* clipCore(index.count / 3, (i) => index.getX(i), count, stride, px, read, (n, axis) => position.array[n * position.itemSize + axis] ?? 0, pitch);
   if (extra.length === 0) return;
   const total = count + extra.length / stride;
   let o = 0;
@@ -70,7 +70,7 @@ export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number): Gener
  * x then z, a new vertex interpolating all `stride` values linearly (position at `px`). A plan that reads only positions
  * gets exactly the builder's positions, new vertices and triangles: every value interpolates on its own.
  */
-function* clipCore(triangles: number, indexAt: (i: number) => number, count: number, stride: number, px: number, read: (n: number) => Float64Array, pitch: number): Generator<void, { extra: number[]; out: number[] }> {
+function* clipCore(triangles: number, indexAt: (i: number) => number, count: number, stride: number, px: number, read: (n: number) => Float64Array, coordinate: (n: number, axis: number) => number, pitch: number): Generator<void, { extra: number[]; out: number[] }> {
   const s = pitch / BIN_DIVISOR, extra: number[] = [], out: number[] = [];
   const add = (v: Float64Array): number => { for (const x of v) extra.push(x); return count + extra.length / stride - 1; };
   interface V { n: number; v: Float64Array }
@@ -91,7 +91,14 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
   };
   for (let t = 0; t < triangles; t++) {
     if (t % 256 === 0) yield;
-    const tri: V[] = [0, 1, 2].map((c) => { const n = indexAt(t * 3 + c); return { n, v: read(n) }; });
+    const a = indexAt(t * 3), b = indexAt(t * 3 + 1), third = indexAt(t * 3 + 2);
+    // Most triangles already fit one bin. Keep their indices without allocating
+    // polygons or copying attributes; only an interior cut needs interpolation.
+    if (!crossesBin(coordinate(a, 0), coordinate(b, 0), coordinate(third, 0), s)
+      && !crossesBin(coordinate(a, 2), coordinate(b, 2), coordinate(third, 2), s)) {
+      out.push(a, b, third); continue;
+    }
+    const tri: V[] = [a, b, third].map((n) => ({ n, v: read(n) }));
     let polys: V[][] = [tri];
     for (const axis of [0, 2]) {
       const next: V[][] = [];
@@ -112,6 +119,13 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
   return { extra, out };
 }
 
+
+/** Match clipCore's strict interior-line test, including vertices on bin edges. */
+function crossesBin(a: number, b: number, c: number, size: number): boolean {
+  const lo = Math.min(a, b, c), hi = Math.max(a, b, c);
+  const k = Math.ceil(lo / size - 0.5), edge = (k + 0.5) * size;
+  return (edge > lo ? edge : (k + 1.5) * size) < hi;
+}
 
 /** Sort the identical bin/LOD runs with pauses inside triangle batches; no partial plan is published. */
 export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = []): Generator<void, CullPlan> {
@@ -205,7 +219,7 @@ export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, 
   let vertices = 0, clipped = 0, source = 0;
   for (const run of sources) {
     const read = (n: number): Float64Array => Float64Array.of(run.position(n * 3), run.position(n * 3 + 1), run.position(n * 3 + 2));
-    const { extra, out } = yield* clipCore(run.indices.length / 3, (i) => run.indices[i] ?? 0, run.vertices, 3, 0, read, pitch);
+    const { extra, out } = yield* clipCore(run.indices.length / 3, (i) => run.indices[i] ?? 0, run.vertices, 3, 0, read, (n, axis) => run.position(n * 3 + axis), pitch);
     vertices += run.vertices; clipped += run.vertices + extra.length / 3; source += out.length;
     const at = (n: number, c: number): number => (n < run.vertices ? run.position(n * 3 + c) : Math.fround(extra[(n - run.vertices) * 3 + c] ?? 0));
     for (const tier of lod) {
