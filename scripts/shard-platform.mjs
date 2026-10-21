@@ -13,6 +13,7 @@ import { legacyInventory } from './legacy-shards.mjs';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { discoverGeneration } from './generate.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
+import { loadListedViews, listedViewInventory } from './listed-view-code.mjs';
 import { createOutputReader } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
@@ -903,11 +904,11 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     return false;
   };
   // SF54 dissolved the kit, so no shard-unique kit lines remain to count as custom (the former kit-only column).
-  const out = {};
+  const out = {}, listedViews = loadListedViews(root);
   for (const [slug, files] of Object.entries(shardFiles)) {
     const row = { runtimeLines: 0, trustedRuntimeLines: 0, assemblyScriptLines: 0, conversion: null };
     let shardRuntimeLines = 0, rawGlslLines = 0, additionalGlslLines = 0;
-    const customSources = [], collectSources = includeSources || COMPONENT_SHARDS.includes(slug);
+    const customSources = [], collectSources = includeSources || COMPONENT_SHARDS.includes(slug) || Object.hasOwn(listedViews.shards, slug) && listedViews.shards[slug].length > 0;
     for (const path of files) {
       const local = path.slice(prefixOf(slug).length), top = local.split('/')[0];
       const lines = count(path);
@@ -961,9 +962,11 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     if (collectSources) {
       for (const module of modules) customSources.push({path:module.path, lines:module.lines, kind:'sole-module'});
       for (const entry of exports) customSources.push({path:entry.path, lines:entry.lines, name:entry.name, kind:'sole-export'});
+      row.listedView = listedViewInventory(root, slug, customSources, customRuntimeLines, listedViews);
       if (includeSources) row.customSources = customSources;
       if (COMPONENT_SHARDS.includes(slug)) row.components = componentInventory(root, slug, customSources, customRuntimeLines);
     }
+    row.listedView ??= listedViewInventory(root, slug, [], customRuntimeLines, listedViews);
     out[slug] = row;
   }
   return out;

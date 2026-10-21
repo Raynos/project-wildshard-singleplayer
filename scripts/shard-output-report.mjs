@@ -69,7 +69,8 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
       const progress=source[slug];
       return [slug,{...state,customPercent:null,port:null,linesRemovedSince12Z:dailyLines.shards[slug]??null,gridReady:ready,scriptMetrics,m3:m3Progress(slug,progress),
         customSections:sections[slug].customSections,customSectionBytes:sections[slug].customSectionBytes,
-        assemblyScriptLines:progress.assemblyScriptLines,assemblyScriptBudget:progress.assemblyScriptBudget}];
+        assemblyScriptLines:progress.assemblyScriptLines,assemblyScriptBudget:progress.assemblyScriptBudget,
+        listedView:inventory[slug]?.listedView}];
     }
     if(!Object.hasOwn(measures,slug))throw new Error(`${slug}: closed runtime has no output measure`);
     const measured=measures[slug];

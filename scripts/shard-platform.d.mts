@@ -1,5 +1,6 @@
 import type {OutputReader} from './shard-platform-output.mjs';
 import type { ComponentInventory } from './shard-components.mjs';
+import type {ListedViewInventory} from './listed-view-code.mjs';
 
 /** G291's primary measure; native shards have no frozen denominator. */
 export interface ConversionMeasure {
@@ -18,6 +19,8 @@ export interface ConversionMeasure {
 }
 export interface CustomSource {path:string;ownerPath?:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string}
 export interface ShardLines {
+  /** G570 additive labels only; custom totals, percentages and gates remain unchanged. */
+  listedView?:ListedViewInventory;
   measurement?:'built-output'|'source';
   customSectionBytes?:number;
   customSections?:{name:string;bytes:number}[];

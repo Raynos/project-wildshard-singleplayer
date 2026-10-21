@@ -50,6 +50,7 @@ export async function runShardPlatformCli() {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
         if(row.measurementError!==undefined){console.log(`${slug}: custom percentage unknown; ${row.measurementError}`);console.log(`  grid-ready ${row.gridReady.verdict}; ${JSON.stringify(row.gridReady.criteria)}; frame floor ${row.gridReady.frameFloor?.verdict??'unknown'}`);continue;}
+        if(row.listedView!==undefined)console.log(`  ${slug} listed view ${row.listedView.listedViewLines}; other custom ${row.listedView.otherCustomLines}; total custom ${row.listedView.totalCustomLines} (unchanged, ${row.status==='unclosed'?'source':'built-output'} basis)`);
         const m3=row.m3===null?'native':`${(100*row.m3.fraction).toFixed(1)}% ${row.m3.basis}`;
         const ready=Object.entries(row.gridReady.criteria).map(([name,value])=>`${name}:${value.verdict}`).join(', ');
         const metrics=row.scriptMetrics,delta=row.linesRemovedSince12Z;

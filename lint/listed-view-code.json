@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "shards": {
+    "far-reach": [],
+    "sunscar-dunes": [],
+    "pine-hollow": [
+      { "path": "src/shards/pine-hollow/world/poolSurface.ts", "reason": "Per-frame wet-bed projection retains the original pool transition and geometry.", "decision": "G520" },
+      { "path": "src/shards/pine-hollow/runtime/models/antlerKing.ts", "reason": "The King's private limb rig and specimen presentation have no second drawing user.", "decision": "G570" },
+      { "path": "src/game/quest/chapterDirector.ts", "name": "installChapterLead", "reason": "The remaining lead presentation reads the existing AS channels and presents its view.", "decision": "G570" }
+    ],
+    "driftwood-isle": [
+      { "path": "src/shards/driftwood-isle/quest/install.ts", "name": "BridgeSwayRows", "reason": "The rope deck's camera projection retains its authored visual tuning contract.", "decision": "G532" },
+      { "path": "src/shards/driftwood-isle/quest/install.ts", "name": "installBridgeSway", "reason": "Per-frame rope-deck camera sway remains listed shard view code until the view frame lane.", "decision": "G532" },
+      { "path": "src/shards/driftwood-isle/runtime/models/people.ts", "reason": "The castaway's KitFigure, fitted camp and borrowed smoke are private scene presentation.", "decision": "G565" },
+      { "path": "src/shards/driftwood-isle/runtime/models/trader.ts", "reason": "The entered trader's rig, specimen and pose ownership retain their actual view lifetime.", "decision": "G565" }
+    ],
+    "nalati-grasslands": [
+      { "path": "src/shards/nalati-grasslands/runtime/looks/rider.ts", "reason": "The shepherd's mounted meshes, eased clips and whip cue project the existing riding signals.", "decision": "G530" },
+      { "path": "src/shards/nalati-grasslands/look/index.ts", "reason": "The painterly panorama, key and grass projection follow their declared world and weather owners.", "decision": "G478" },
+      { "path": "src/shards/nalati-grasslands/look/render.ts", "reason": "The private painterly render strategy retains its fog, terrain and grade projection.", "decision": "G478" }
+    ],
+    "nine-dragon-stack": [
+      { "path": "src/shards/nine-dragon-stack/look/render.ts", "reason": "The retained post/composite render strategy remains listed view code after the graph cost audit.", "decision": "G570" },
+      { "path": "src/shards/nine-dragon-stack/runtime/viewmodel/graphArms.ts", "reason": "The admitted native held rig draws weapon poses, materials, textures and trails.", "decision": "G570" }
+    ]
+  }
+}
