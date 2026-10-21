@@ -1,6 +1,7 @@
 import { PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
+import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
@@ -54,12 +55,16 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'sim/keeper.json': KeeperRowsSchema,
 };
 
+const nativeAssemblySchema = { ...HEADLESS_ASSEMBLY_JSON_SCHEMA,
+  allOf: [namedJsonSchema(v.object({ constants: v.object({ nativeQuest: NativeQuestCompositionSchema }) }))],
+};
+
 /** Every scene, placement and document names its actual defining consumer. */
 export function driftwoodJsonBlob(name: string, kind: 'json', bytes: Uint8Array): NamedBlob {
   try {
   const schema = name.startsWith('scenes/') ? WorldSceneSchema
     : name.startsWith('world/piers/') || name.startsWith('world/foliage/') || name.startsWith('world/trail/') ? WorldScenePlacementSchema : schemas[name];
-  const jsonSchema = name === 'sim/headless-assembly.json' ? HEADLESS_ASSEMBLY_JSON_SCHEMA : schema === undefined ? undefined : namedJsonSchema(schema);
+  const jsonSchema = name === 'sim/headless-assembly.json' ? nativeAssemblySchema : schema === undefined ? undefined : namedJsonSchema(schema);
   if (jsonSchema === undefined) throw new Error(`Missing Driftwood named JSON schema: ${name}`);
   return nameBlob(name, kind, bytes, { jsonSchema });
   } catch (error) { throw new Error(`Driftwood named JSON ${name}: ${String(error)}`, { cause: error }); }

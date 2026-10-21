@@ -12,3 +12,6 @@ export const NativeQuestCompositionSchema = v.strictObject({
   talkRadius: n, swordRadius: n, limits: v.strictObject({ rows: v.pipe(n, v.integer(), v.minValue(1), v.maxValue(64)) }),
   barrelOwner: v.strictObject({ kind: key, id: key }), keyDrop: v.strictObject({ kind: key, id: key }),
 });
+
+/** Build-admitted service identities for the existing native composition. */
+export type NativeQuestCompositionRows = v.InferOutput<typeof NativeQuestCompositionSchema>;

@@ -1,4 +1,4 @@
-import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
+import type { NativeQuestCompositionRows } from '@wildshard/format/nativeQuestComposition';
 import { nativeQuestChannels } from './nativeInputs';
 import { prepareNativeQuestEntry } from './nativeEntry';
 import { nativeStageLane } from '../plugin/director';
@@ -35,7 +35,7 @@ export function readNativeQuestSpots(input: unknown): NativeQuestSpots {
 
 /** Native composition consumes only immutable declarations and service ids. */
 export interface NativeQuestCompositionInput {
-  readonly rows: unknown; readonly counters: AchievementCounterData;
+  readonly rows: NativeQuestCompositionRows; readonly counters: AchievementCounterData;
   readonly source: Shardfile; readonly table: InteractTable;
   readonly spots: NativeQuestSpots;
   readonly props: unknown; readonly restoring: boolean;
@@ -49,7 +49,7 @@ const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.s
 /** Renderer-free quest step composition on existing prop, cable, input, roster,
  * equipment and director owners. The post-player phase owns live continuation. */
 export function installNativeQuestComposition(host: SimHost, ports: NativeQuestCompositionInput): { quests: DeclaredQuests; pack: NativeInventory<string> } {
-  const policy = v.parse(NativeQuestCompositionSchema, ports.rows);
+  const policy = ports.rows;
   const population = mixedPopulation(host, policy.population), equipment = nativeMeleeItem(host, policy.equipment);
   const finale = nativeStageLane(host, policy.director), channels = nativeQuestChannels(host, policy.reward.channels);
   const { table, spots } = ports, flags = host.flags;
