@@ -1,0 +1,176 @@
+{
+  "pin": "f8f5ee9a9dd3dd49020c18b6c3bb7715eaa629aa",
+  "diagnosticOnly": true,
+  "rawSHA256": "2fae1477e773dd0323b3210971f14b573ba308a45f8c224ef98a15bd9dcce806",
+  "clockSeconds": 19.6,
+  "stageSeconds": 19.643,
+  "maxDetailGapMs": 333,
+  "networkBytes": 140375614,
+  "displayedNetworkBytes": 140391747,
+  "errors": [],
+  "failures": [],
+  "controller": "http://127.0.0.1:50188/sw.js",
+  "dropped": 0,
+  "firstFrameRows": [
+    {
+      "label": "\u25b8 19 \u00b7 First frame",
+      "detail": "Pass 6 / 6 \u00b7 ready \u00b7 119 programs",
+      "duration": "136 ms",
+      "state": "ok",
+      "key": "firstFrame",
+      "ms": "136"
+    }
+  ],
+  "firstFrameSlowGL": [
+    {
+      "key": "texSubImage2D",
+      "at": 15185,
+      "ms": 9,
+      "program": "graph:material/1a3c7f6+graph:material/8e54bc6a",
+      "framebuffer": 9,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 0 / 6 \u00b7 world + shadows \u00b7 119 programs"
+    }
+  ],
+  "firstFrameLinks": [],
+  "firstFrameParallelPolls": [],
+  "warmMatchingDraws": [
+    {
+      "key": "drawArrays",
+      "at": 15034,
+      "ms": 0,
+      "program": "EffectMaterial/65b32cdb+EffectMaterial/99a32224",
+      "framebuffer": 9,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 1 / 8 post pipelines drawn \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15069,
+      "ms": 0,
+      "program": "LuminanceMaterial/c725791c+LuminanceMaterial/fa358384",
+      "framebuffer": 10,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 1 / 8 post pipelines drawn \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15107,
+      "ms": 0,
+      "program": "DownsamplingMaterial/63345184+DownsamplingMaterial/83f90dd1",
+      "framebuffer": 11,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 5 / 8 post pipelines drawn \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15110,
+      "ms": 0,
+      "program": "UpsamplingMaterial/5916361f+UpsamplingMaterial/9a66ec87",
+      "framebuffer": 11,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 5 / 8 post pipelines drawn \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15119,
+      "ms": 0,
+      "program": "EffectMaterial/6b1cbfac+EffectMaterial/cd93f3c9",
+      "framebuffer": 0,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 5 / 8 post pipelines drawn \u00b7 119 programs"
+    }
+  ],
+  "firstPostDraws": [
+    {
+      "key": "drawArrays",
+      "at": 15269,
+      "ms": 0,
+      "program": "LuminanceMaterial/c725791c+LuminanceMaterial/fa358384",
+      "framebuffer": 10,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15269,
+      "ms": 0,
+      "program": "DownsamplingMaterial/63345184+DownsamplingMaterial/83f90dd1",
+      "framebuffer": 13,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "DownsamplingMaterial/63345184+DownsamplingMaterial/83f90dd1",
+      "framebuffer": 14,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "DownsamplingMaterial/63345184+DownsamplingMaterial/83f90dd1",
+      "framebuffer": 15,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "DownsamplingMaterial/63345184+DownsamplingMaterial/83f90dd1",
+      "framebuffer": 16,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "UpsamplingMaterial/5916361f+UpsamplingMaterial/9a66ec87",
+      "framebuffer": 17,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "UpsamplingMaterial/5916361f+UpsamplingMaterial/9a66ec87",
+      "framebuffer": 18,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "UpsamplingMaterial/5916361f+UpsamplingMaterial/9a66ec87",
+      "framebuffer": 11,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "EffectMaterial/65b32cdb+EffectMaterial/99a32224",
+      "framebuffer": 19,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    },
+    {
+      "key": "drawArrays",
+      "at": 15270,
+      "ms": 0,
+      "program": "EffectMaterial/6b1cbfac+EffectMaterial/cd93f3c9",
+      "framebuffer": 0,
+      "step": "firstFrame",
+      "detail": "step 19 / 24 \u00b7 First frame \u00b7 Pass 4 / 6 \u00b7 world, turned 360\u00b0 \u00b7 119 programs"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "pin": "f8f5ee9a9dd3dd49020c18b6c3bb7715eaa629aa",
+  "owner": "sp-x1",
+  "batchSeconds": 147.2,
+  "verdict": "batch-check: PASS",
+  "sourceProof": {
+    "id": "20261021T060656-loading-road-allocation-batch-74345",
+    "label": "loading-road-allocation-batch",
+    "state": "passed",
+    "rc": 0,
+    "startedAt": 1792580816,
+    "endedAt": 1792581315,
+    "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T060656-loading-road-allocation-batch-74345.log",
+    "pane": "wT:p3",
+    "command": "python3 tmp/loading-lane/check-road-batch.py"
+  },
+  "rawLogSHA256": "88ecc415e38ce49cc8dcf65cc95c0f1467040273b1779b11bd45e819eb380e30"
+}
