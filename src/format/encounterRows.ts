@@ -45,7 +45,7 @@ export const ArenaEncounterSchema = v.strictObject({
   schedules: v.pipe(v.array(schedule), v.maxLength(16)),
   shared: v.record(v.string(), v.strictObject({ clock: v.string(), slot: v.string() })),
   volley: v.strictObject({ launcher: v.string(), capacity: v.pipe(count, v.maxValue(8)),
-    landing: EncounterScheduleSchema, trail: v.strictObject({ capacity: count, seconds: v.pipe(finite, v.minValue(.1)) }) }),
+    landing: EncounterScheduleSchema, trail: v.strictObject({ initial:numbers,parameters:numbers,retain:v.record(v.string(),v.string()),signals:v.strictObject({step:v.string(),pick:v.string()}) }) }),
 });
 export const ArenaWhirlsSchema = v.strictObject({
  laws: v.pipe(v.array(EncounterScheduleSchema), v.minLength(1), v.maxLength(8)), ease: finite, spin: finite, sink: finite, breathe: pair,

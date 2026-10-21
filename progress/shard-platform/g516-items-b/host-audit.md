@@ -130,3 +130,18 @@ AS **+6**. JSON metadata relocation is not counted as a source deletion.
 Root/layer types, typed lint and three focused suites (six tests) pass,
 including translated, yawed, scaled and lifted hit comparisons against
 the previous geometric calculation. No collider or AS engine changes.
+
+
+X4 arena position history: delete the complete EncounterTrail native
+class. The existing ProjectedState host retains declared numeric slots;
+the Titan AS guest owns sample cadence, oldest-first retention, overflow,
+selection and exact reset behavior at the existing ten-Hz decision step.
+The current twelve positions use 26 channels, below the unchanged 32
+output bound. No coordinate quantization or catch-up sampling is added.
+ProjectedState keeps its existing real Nalati + Nine HOST-BAR 6/6;
+the surrounding arena owner remains charged to Nalati at 4/6.
+Physical runtime TS: **shards 0, platform -20**. Build TS **+2**,
+authoring MJS **+3**, AS **+51**. Root/layer types, typed lint and three
+focused suites (14 tests) pass, including history comparison, delayed
+strikes, pause/RNG, reset and the real headless boss fight. No collider,
+AS engine, resource bound or budget changes.

@@ -4,7 +4,6 @@ import { ProjectedState, type ReturnProgram } from '../population/returnProgram'
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ArenaFieldRows,ArenaEncounterRows } from '@wildshard/format/encounterRows';
-import { EncounterTrail } from './encounterPatrol';
 
 /** Plain rows and an already admitted module; no shard callbacks or rendering. */
 export class ArenaField {
@@ -116,7 +115,7 @@ export class ArenaEncounter {
   readonly schedules: ReadonlyMap<string, ProjectedState>;
   readonly landings: readonly ProjectedState[];
   private readonly rows: ArenaEncounterRows;
-  private readonly trail: EncounterTrail;
+  private readonly trail: ProjectedState;
   private elapsed = 0;
   constructor(input: ArenaEncounterRows, private readonly program: ReturnProgram, private readonly random: Rng) {
     this.rows = input;
@@ -124,10 +123,10 @@ export class ArenaEncounter {
     this.schedules = new Map(this.rows.schedules.map(row => [row.id, new ProjectedState(row.law, program)]));
     if (!this.schedules.has(this.rows.volley.launcher)) throw new Error('Missing arena launcher');
     this.landings = Array.from({ length: this.rows.volley.capacity }, () => new ProjectedState(this.rows.volley.landing, program));
-    this.trail = new EncounterTrail(this.rows.volley.trail);
+    this.trail = new ProjectedState(this.rows.volley.trail,this.program);
   }
   clock(id: string): ProjectedState { const clock = this.schedules.get(id); if (clock === undefined) throw new Error('Missing arena clock'); return clock; }
-  reset(): void { this.elapsed = 0; this.trail.clear(); for (const clock of this.schedules.values()) clock.reset(); for (const clock of this.landings) clock.reset(); }
+  reset(): void { this.elapsed = 0; this.trail.reset(); for (const clock of this.schedules.values()) clock.reset(); for (const clock of this.landings) clock.reset(); }
   /** No catch-up burst: one atomic projection batch at most every 100 ms. A
    * paused arena neither samples history nor consumes its borrowed RNG stream. */
   update(dt: number, frame: Readonly<Record<string, number>>, point: { readonly x: number; readonly z: number }): { dt: number; effects: readonly ArenaClockEffect[] } {
@@ -135,7 +134,7 @@ export class ArenaEncounter {
     if (this.elapsed + 1e-9 < .1) return { dt: 0, effects: [] };
     const step = this.elapsed; this.elapsed = 0;
     const gate = this.program.project(this.rows.gate.signal, { ...this.rows.gate.parameters, ...frame, dt: step });
-    if (gate['active'] === 1) this.trail.update(step, point);
+    if (gate['active'] === 1) this.trail.event('step',{dt:step,x:point.x,z:point.z});
     const effects: ArenaClockEffect[] = [];
     for (const [index, row] of this.rows.schedules.entries()) {
       if (((gate['mask'] ?? 0) & (1 << index)) === 0) continue;
@@ -143,11 +142,11 @@ export class ArenaEncounter {
       // Explicit clock ids are scalar observations; the guest never receives
       // mutable schedules or a second owner of their retained slots.
       for (const [name, source] of Object.entries(this.rows.shared)) shared[name] = this.clock(source.clock).value(source.slot);
-      const values = clock.project({ ...shared, ...frame, dt: step, count: this.trail.points.length }, this.random);
+      const values = clock.project({ ...shared, ...frame, dt: step, count: this.trail.value('count') }, this.random);
       effects.push({ id: row.id, index, values });
       if (row.id === this.rows.volley.launcher && values['strike'] === 1) {
-        const at = this.trail.points[values['index'] ?? -1] ?? point, landing = this.landings.find(candidate => candidate.value('on') === 0);
-        landing?.reset({ on: 1, x: at.x, z: at.z });
+        const at = this.trail.event('pick',{index:values['index']??-1,x:point.x,z:point.z}), landing = this.landings.find(candidate => candidate.value('on') === 0);
+        landing?.reset({ on: 1,x: at['x']??point.x,z: at['z']??point.z });
       }
     }
     if (gate['land'] === 1) for (const [index, clock] of this.landings.entries()) {

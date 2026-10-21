@@ -109,7 +109,9 @@ export const TITAN_PHASE_FEED = ['', TITAN_LINES.kneels, TITAN_LINES.grassFire];
 export const TITAN_TIE_FEED = [TITAN_LINES.wantsRider, TITAN_LINES.quiet, TITAN_LINES.wakes];
 export const TITAN_IMMUNE_FEED = [TITAN_LINES.immuneSpear, TITAN_LINES.immuneDome];
 
-export const TITAN_TRAIL = { capacity: 12, seconds: .1 };
+const trailInitial={count:0,elapsed:0,...Object.fromEntries(Array.from({length:12},(_,i)=>[[`trailX${i}`,0] as const,[`trailZ${i}`,0] as const]).flat())};
+export const TITAN_TRAIL = { initial:trailInitial,parameters:{capacity:12,every:.1},retain:Object.fromEntries(Object.keys(trailInitial).map(key=>[key,key] as const)),
+  signals:{step:'arenaTrail',pick:'arenaTrailPick'} };
 /** the three whirlwinds (game/boss/arenaFire ArenaWhirlsView): their wander laws, the funnels' ease and spin, the debris spiral */
 export const TITAN_WHIRLS = { laws: [0,1,2].map(i => ({ signal: 'whirl',
   initial: { x: TITAN_ARENA.center.x + Math.cos(i*2.1)*30, z: TITAN_ARENA.center.z + Math.sin(i*2.1)*30, vx: 0, vz: 0, cd: 0 },

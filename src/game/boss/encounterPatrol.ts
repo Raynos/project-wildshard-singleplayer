@@ -304,22 +304,3 @@ export class CoupledEncounter {
     return { state, retired, members: results };
   }
 }
-
-/** A bounded native position history; authored sample cadence is never faster
- * than the decision host. Samples are values, with no actor or view references. */
-export class EncounterTrail {
-  readonly points: { x: number; z: number }[] = [];
-  private elapsed = 0;
-  private readonly capacity: number;
-  private readonly seconds: number;
-  constructor(row: { readonly capacity:number; readonly seconds:number }) {
-    this.capacity = row.capacity; this.seconds = row.seconds;
-  }
-  clear(): void { this.points.length = 0; this.elapsed = 0; }
-  update(dt: number, point: { readonly x: number; readonly z: number }): void {
-    this.elapsed += dt;
-    if (this.elapsed + 1e-9 < this.seconds) return;
-    this.elapsed = 0; this.points.push({ x: point.x, z: point.z });
-    if (this.points.length > this.capacity) this.points.shift();
-  }
-}

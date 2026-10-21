@@ -1,3 +1,4 @@
+import { trailEntry } from './titanTrail';
 import { Signal } from './generated/nalatiTitanCombined';
 import { attackEntry } from './titan';
 import { fireEntry } from './titanFire';
@@ -6,7 +7,8 @@ import { rulesEntry } from './titanRules';
 @inline export function fire(signal:i32,value:f64,source:i32):void{fireEntry(signal,value,source);}
 @inline export function rules(signal:i32,value:f64,source:i32):void{rulesEntry(signal,value,source);}
 @inline export function onSignal(signal:i32,value:f64,source:i32):void{
- if(signal==Signal.arenaSpear||signal==Signal.arenaChain||signal==Signal.spearResolve||signal==Signal.spear||signal==Signal.rider||signal==Signal.chain||signal==Signal.chainLand)attack(signal,value,source);
+ if(signal==Signal.arenaTrail||signal==Signal.arenaTrailPick)trailEntry(signal);
+ else if(signal==Signal.arenaSpear||signal==Signal.arenaChain||signal==Signal.spearResolve||signal==Signal.spear||signal==Signal.rider||signal==Signal.chain||signal==Signal.chainLand)attack(signal,value,source);
  else if(signal==Signal.fieldClock||signal==Signal.fieldIgnite||signal==Signal.ignite||signal==Signal.fire||signal==Signal.fieldContact||signal==Signal.fireContact)fire(signal,value,source);
  else rules(signal,value,source);
 }

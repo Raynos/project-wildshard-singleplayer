@@ -3,7 +3,7 @@ import { parse } from 'valibot';
 import { ArenaFieldSchema } from '../src/format/encounterRows';
 import { ArenaEncounter, ArenaField,installArenaBoundary,arenaBoundaryBlocked } from '../src/game/boss/arenaField';
 import { Scope } from '../src/engine/app/scope';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
@@ -80,7 +80,7 @@ test('arena clocks own delayed tells once, pause RNG and reset pending strikes',
 test('an orchard frost boss binds different clock ids and two landing slots', () => {
   const rows = { ...TITAN_CLOCKS, schedules: TITAN_CLOCKS.schedules.map((row, i) => ({ ...row, id: i === 0 ? 'icicle' : 'hail' })),
     shared: { spearMode: { clock: 'icicle', slot: 'mode' }, chainLeft: { clock: 'hail', slot: 'chain' } },
-    volley: { ...TITAN_CLOCKS.volley, launcher: 'hail', capacity: 2, trail: { capacity: 3, seconds: .2 } } };
+    volley: { ...TITAN_CLOCKS.volley, launcher: 'hail', capacity: 2, trail: {...TITAN_CLOCKS.volley.trail,parameters:{capacity:3,every:.2}} } };
   const host = new ArenaEncounter(rows, ReturnProgram.page(program.attack), new Rng(714));
   host.clock('hail').set({ cd: 0 });
   const effects = host.update(.1, { phase: 2, fighting: 1, px: -20, pz: 50 }, { x: -20, z: 50 }).effects;
@@ -116,4 +116,19 @@ test('the orchard field binds a different contact footprint and damage', () => {
   field.ignite(13, 21);
   expect(field.sense(.1, { x: 11, z: 21 }, { mounted: 1 })['speed']).toBe(-1);
   expect(field.sense(.1, { x: 13, z: 21 }, { mounted: 0 })['hurt']).toBe(6);
+});
+
+
+test('AS position history preserves native sample order, cadence and reset',()=>{
+  const row=TITAN_CLOCKS.volley.trail,history=new ProjectedState(row,ReturnProgram.page(program.attack));
+  const points:{x:number;z:number}[]=[];let elapsed=0;
+  for(let i=0;i<38;i++){
+    const dt=i%3===0?.05:i===20?.35:.1,point={x:i*.237-3,z:i*i*.17};elapsed+=dt;
+    if(elapsed+1e-9>=row.parameters.every){elapsed=0;points.push(point);if(points.length>row.parameters.capacity)points.shift();}
+    history.event('step',{dt,...point});expect(history.value('count')).toBe(points.length);
+    for(const [index,at]of points.entries())expect(history.event('pick',{index,x:999,z:998})).toEqual(at);
+    for(const index of [-1,points.length,1.5])expect(history.event('pick',{index,x:999,z:998})).toEqual({x:999,z:998});
+  }
+  history.reset();expect(history.value('count')).toBe(0);expect(history.value('elapsed')).toBe(0);
+  expect(history.event('pick',{index:0,x:7,z:8})).toEqual({x:7,z:8});
 });
