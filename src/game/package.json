@@ -100,6 +100,7 @@
     "./shardfile/worldTargets": "./shardfile/worldTargets.ts",
     "./shardfile/decisions": "./shardfile/decisions.ts",
     "./shardfile/outputDescriptor": "./shardfile/outputDescriptor.ts",
+    "./shardfile/calibrationScripts": "./shardfile/calibrationScripts.ts",
     "./shardfile/productData": "./shardfile/productData.ts",
     "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
     "./systems/looks/grassField": "./systems/looks/grassField.ts",

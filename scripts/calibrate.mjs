@@ -28,7 +28,7 @@ try {
   const targetUrl = args.url ?? server?.url;
   if (!targetUrl) throw new Error('No calibration preview origin');
   await page.goto(new URL('/calibration/', targetUrl).href, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => ['done', 'error'].includes(window.__calibration?.status ?? ''), undefined, { timeout: 210000 });
+  await page.waitForFunction(() => ['done', 'error'].includes(window.__calibration?.status ?? ''), undefined, { timeout: 360000 });
   const handle = await page.evaluate(() => window.__calibration);
   const out = resolve(args.out ?? root); mkdirSync(join(out, 'budgets/calibration'), { recursive: true });
   if (handle?.error || !handle?.result) { writeFileSync(join(out, 'budgets/calibration/error.json'), JSON.stringify(handle, null, 2)); throw new Error(handle?.error ?? 'No calibration result'); }

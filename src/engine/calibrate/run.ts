@@ -1,5 +1,6 @@
 import { CalibrationGpu, type Timing, type Work } from '../render/calibrationGpu';
 import { measureJs } from './js';
+import { measureWasm, type CalibrationScript, type WasmCalibration } from './wasm';
 import { fit, median, type Fit } from './math';
 import { Scope } from '../app/scope';
 import { mountUi } from '../ui/ownership';
@@ -10,6 +11,8 @@ export interface CalibrationRun extends Calibration {
   renderer: string; userAgent: string; pixels: number;
   cold: Observation[]; hot: Observation[]; js: Awaited<ReturnType<typeof measureJs>>;
   coldJs: Awaited<ReturnType<typeof measureJs>>; coldLinks: { n: number; ms: number }[]; links: { n: number; ms: number }[];
+  /** WASM-HOST H0: the script boundary's prices on this device */
+  wasm: WasmCalibration;
   heat: { seconds: number; ms: number; change: number | null }[];
   fits: Record<string, Fit>;
   stable: boolean; lowPowerMode: 'unknown'; flags: string[];
@@ -38,7 +41,8 @@ async function sweeps(g: CalibrationGpu, scope: Scope, progress: (s: string) => 
   }
   return rows;
 }
-export async function runCalibration(progress: (s: string) => void = () => undefined, measured: (samples: CalibrationMeasurements) => void = () => undefined): Promise<CalibrationRun> {
+export async function runCalibration(progress: (s: string) => void = () => undefined, measured: (samples: CalibrationMeasurements) => void = () => undefined,
+  scripts: readonly CalibrationScript[] = []): Promise<CalibrationRun> {
   if (document.querySelector('canvas')) throw new Error('Calibration requires the empty capture state');
   const g = new CalibrationGpu(), scope = new Scope('calibration');
   mountUi(g.renderer.domElement, scope, document.body);
@@ -66,6 +70,7 @@ export async function runCalibration(progress: (s: string) => void = () => undef
     for (const n of [64, 256, 1024]) { progress(`Link · ${n} programs`); links.push({ n, ms: g.link(n) }); }
     const points = (sweep: string, kind: string, cpu = false): { n: number; ms: number }[] => hot.filter((r) => r.sweep === sweep && r.kind === kind).map((r) => ({ n: sweep === 'triangles' ? r.work.tris : r.n, ms: cpu ? r.work.submitMs - r.baseline.submitMs : r.work.throughputMs - r.baseline.throughputMs }));
     measured({ cold, hot, js, coldJs, coldLinks, links, heat, stable });
+    const wasm = await measureWasm(scripts, progress);
     const fits: Record<string, Fit> = {};
     const fitted = (name: string, samples: { n: number; ms: number }[]): number => {
       try { const result = fit(samples); fits[name] = result; return result.slope; }
@@ -80,7 +85,7 @@ export async function runCalibration(progress: (s: string) => void = () => undef
     };
     return { schema: 1, measuredAt: new Date().toISOString(), device: 'Apple M5 Max', renderer, userAgent: navigator.userAgent, pixels: 804 * 1748,
       source: 'budgets/calibration.json (scripts/calibrate.mjs)', phone: { ratio: 10, source: 'docs/tasks/asks/E283.md; hot phone:M5 ≈10× (cool ≈6×)', assumption: 'ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)' },
-      combine: 'serial', costs, fits, cold, hot, js, coldJs, coldLinks, links, heat, stable, lowPowerMode: 'unknown',
+      combine: 'serial', costs, fits, cold, hot, js, coldJs, coldLinks, links, wasm, heat, stable, lowPowerMode: 'unknown',
       flags: [...stable ? [] : ['preheat did not converge below 2% in 30-second windows'], 'Low Power Mode cannot be detected reliably by Web APIs; unknown'],
       protocol: { timing: '5 batches ×16–128 frozen draws (100ms pilot target); pass range 8/32/128, pending 1px write/readPixels sync; p50; interleaved empty baselines; positive linear fits require r² >=0.9. Fresh 64/256/1024-program compile + first-use + readback measures link/warm-up including conservative first-use overhead, without 10ms async polling. Throughput is a GPU ruler including submission, not timer-query GPU time.',
         combine: 'serial (conservative): frozen throughput overlap sweep cannot establish live CPU/GPU overlap; do not infer pipelining from throughput alone', vertexClasses: 'static and wind; skinned is synthetic two-matrix vertex blending, not a production creature shader', js: '16-bone skeleton pose/skin-matrix update; Rapier step plus capsule character-controller queries; nearest-poly query on a synthetic 64-poly tile' } };
