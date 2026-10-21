@@ -42,6 +42,13 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   expect(loaded.shard.questHost?.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
   expect(hash(rows.content)).toBe(originals.content);
   expect(rows.table.rows).toHaveLength(44);
+  const nativeFile = loaded.output.namedFiles?.find(row => row.name === 'quests/native-story.json');
+  const nativeBytes = nativeFile === undefined ? undefined : loaded.assets.get(nativeFile.hash);
+  if (nativeBytes === undefined) throw new Error('Missing admitted native story');
+  const nativePolicy: unknown = JSON.parse(new TextDecoder().decode(nativeBytes));
+  expect(nativePolicy).toMatchObject({ transitions: { ids: [...Array.from({ length: 30 }, (_unused, i) => `resin-${i + 1}`), 'dam-sluice'],
+    rowLimit: 31, flagLimit: 16, touch: 'direct', pickup: 'walk-in' } });
+  for (const selector of ['touch', 'latch', 'actor', 'trade', 'ammo']) expect(nativePolicy).not.toHaveProperty(selector);
   const resin = FOREST_STORY.collections[0], tokens = FOREST_STORY.collections[1];
   expect(resin?.prefix).toBe(rows.policy.resinFlag);
   expect(resin?.names).toHaveLength(rows.policy.resinCount);

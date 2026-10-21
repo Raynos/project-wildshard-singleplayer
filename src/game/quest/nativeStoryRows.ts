@@ -22,19 +22,18 @@ export interface NativeStoryRows {
   readonly content: {
     readonly table: InteractTable;
     readonly steps: unknown; readonly deaths: unknown; readonly readings: QuestReadingRows<NpcDialogueRow>;
-    readonly policy: { readonly touchCount: number; readonly readingDelay: number };
+    readonly policy: { readonly readingDelay: number };
     readonly lead: { readonly program: unknown; readonly path: readonly (readonly [number, number])[] };
   };
   readonly counters: AchievementCounterData; readonly contracts: ContractCatalogue; readonly trades: unknown;
   readonly spots: NativeStorySpots;
   readonly policy: {
     readonly savedNames: Readonly<Record<string, string>>;
-    readonly actor: string; readonly trade: string; readonly ammo: string; readonly step: string;
+    readonly step: string;
     readonly eye: number; readonly launcher: number; readonly boss: string; readonly cable: string; readonly pack: string;
     readonly primary: string; readonly trader: string;
-    readonly latch: string; readonly benchRow: string; readonly bench: QuestStory['bench'];
+    readonly transitions: unknown; readonly benchRow: string; readonly bench: QuestStory['bench'];
     readonly pickup: { readonly flag: string };
-    readonly touch: { readonly prefix: string; readonly item: string };
     readonly finish: { readonly id: string; readonly claims: number; readonly ids: readonly string[] };
     readonly lead: { readonly step: string; readonly target: string; readonly nightAbove: number };
     readonly clock: ChapterDirectorRows;

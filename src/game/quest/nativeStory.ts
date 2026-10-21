@@ -7,7 +7,7 @@ import { isJsonData } from '@wildshard/format/json';
 import { ChapterDirectorSchema, parseChapterDirector } from '@wildshard/format/chapterDirector';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import type { ShardProduct } from '../shardfile/shardProduct';
-import type { NativeStoryRows, NativeStorySpots } from './nativeStoryRows';
+import type { NativeStoryRows } from './nativeStoryRows';
 import { prepareNativeQuestEntry } from './nativeEntry';
 import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/nativeAmmunition';
 import { readNativeRangedItem } from '../plugin/nativeItems';
@@ -15,7 +15,6 @@ import { takeNativeBossReward } from '../boss/native';
 import { commitQuestEffects } from './effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
-import type { InteractionState } from '@wildshard/engine/world/interact/flags';
 import { bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
 import type { installDeclaredQuestHost } from '../plugin/simulation';
 import { ReturnProgram } from '../population/returnProgram';
@@ -32,7 +31,6 @@ import { mixedPopulation } from '../population/mixedRoster';
 import { installWakeBoss } from '../boss/nativeWake';
 
 const finite = v.pipe(v.number(), v.finite());
-interface Rule extends InteractionState { readonly spot: NativeStorySpots['rows'][number] }
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
 const chapterName = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const nativeChapter = v.strictObject({ id: chapterName, rows: ChapterDirectorSchema, reward: v.exactOptional(chapterName),
@@ -99,17 +97,13 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const entry = prepareNativeQuestEntry(host, product.shardfile, content.table, spots.rows), { input, pack } = entry;
   const ammunition = nativeHeldAmmunition(host), launcher = readNativeRangedItem(host, policy.launcher);
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
-  const EYE = policy.eye, MAX_SETS = 16, TRADE_CLOSE = -1, QUEST_STEP = policy.step, PICKUP_FLAG = policy.pickup.flag,
+  const EYE = policy.eye, TRADE_CLOSE = -1, QUEST_STEP = policy.step, PICKUP_FLAG = policy.pickup.flag,
     benchRows = policy.bench;
-  const { touchCount: TOUCH_COUNT, readingDelay: READING_DELAY } = content.policy;
+  const { readingDelay: READING_DELAY } = content.policy;
   const indexed = entry.rules, Saved = questSaved(nativeInventorySchema(entry.inventory), policy.finish.ids);
-  const required = (id: string): Rule => {
-    const row = indexed.get(id);
-    if (row === undefined) throw new Error(`Missing story quest row ${id}`);
-    return row;
-  };
-  const latch = required(policy.latch), benchRule = required(policy.benchRow), bench = benchRule.spot;
-  if (benchRule.d.kind !== 'bench' || benchRule.spot.prompt === null) throw new Error('Story bench requires its prompt');
+  const benchRule = indexed.get(policy.benchRow);
+  if (benchRule?.d.kind !== 'bench' || benchRule.spot.prompt === null) throw new Error('Story bench requires its prompt');
+  const bench = benchRule.spot;
   const cables = cableModes(host.scope), cableId = policy.cable;
   cables.state(cableId);
   const graph = entry.install(commandOwners());
@@ -139,13 +133,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     at.set(pose.x, pose.y, pose.z); host.player.motor.resetAt(at); host.player.position.copy(at);
     host.player.yaw = pose.yaw; host.playerFall.vy = 0;
   };
-  const touchRows = Array.from({ length: TOUCH_COUNT }, (_unused, i) => {
-    const row = required(`${policy.touch.prefix}${i + 1}`);
-    if (row.d.kind !== 'pickup' || row.d.touch !== true || row.d.item !== policy.touch.item) throw new Error('Story needs its touchRows take law');
-    return row;
-  });
-  const transitions = entry.transitions({ ids: [...touchRows, latch].map(row => row.d.id), rowLimit: TOUCH_COUNT + 1,
-    flagLimit: MAX_SETS, touch: 'direct', pickup: 'walk-in' });
+  const transitions = entry.transitions(policy.transitions);
 
   const chapterClock = installNativeChapterDirector(host, director, { id: `${policy.step}.chapter`, rows: policy.clock });
   const { clock, fast } = chapterClock;
@@ -217,9 +205,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     graph.dispatch(input.scripts());
     dialogue.advanceReading(dt, host.player.position);
     cables.updateNative(cableId, dt, host);
-    transitions.step(touchRows);
-    // the latch lifts on its own once both logs are off and latches open (Interactables.update's latching door)
-    transitions.latch(latch);
+    transitions.step();
     // the clock's fast-forward (a smoothstep over its span), then the clock, then the lead, as the page's quest frame
     chapterClock.update(dt, chapter.current?.id);
     // The fixed 60 Hz host tick is already saved; its six-tick phase needs

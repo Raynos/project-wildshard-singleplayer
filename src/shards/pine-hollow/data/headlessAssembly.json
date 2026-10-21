@@ -999,13 +999,6 @@
                 ]
               },
               "policy": {
-                "touchCount": {
-                  "$ref": [
-                    "content",
-                    "policy",
-                    "resinCount"
-                  ]
-                },
                 "readingDelay": {
                   "$ref": [
                     "content",
