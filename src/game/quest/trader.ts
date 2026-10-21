@@ -21,6 +21,14 @@ const enteredTraders = new WeakMap<Scope, Map<string, QuestTrader>>();
 const installedShops = new WeakSet<QuestTrader>();
 type QuestShopGood = ShopGood & { readonly needs?: string };
 
+/** Open the registered counter by data identity from a prompt or a completed talk. */
+export function openQuestTrader(scope: Scope, name: string): void {
+  if (scope.disposed) return;
+  const trader = enteredTraders.get(scope)?.get(name);
+  if (trader === undefined) throw new Error(`Missing entered trader ${name}`);
+  trader.open();
+}
+
 /** Immutable trader placement and view policy; stock and payments stay with the existing shop. */
 export type QuestTraderRows = v.InferOutput<typeof QuestTraderSchema>;
 /** Validate admitted rows before placing a model or changing a camera. */
@@ -82,7 +90,7 @@ export function installQuestTrader(ctx: QuestTraderContext, input: unknown, reso
     const prompts = ctx.game.runtime?.interactables;
     if (prompts === undefined) throw new Error('Missing trader prompt owner');
     const prompt: Interactable = { position: at, label: resources.prompt.label,
-      get radius() { return stall.shop !== null && !stall.shop.isOpen ? resources.prompt.radius : 0; }, onInteract: stall.open };
+      get radius() { return stall.shop !== null && !stall.shop.isOpen ? resources.prompt.radius : 0; }, onInteract: () => { openQuestTrader(ctx.scope, row.name); } };
     prompts.push(prompt); ctx.scope.onDispose(() => { const i = prompts.indexOf(prompt); if (i !== -1) prompts.splice(i, 1); });
     ctx.system({ id: row.placement.system, phase: 'update', before: [...resources.before], run: () => {
       if (ctx.scope.disposed || row.view === undefined) return;

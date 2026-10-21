@@ -1,8 +1,6 @@
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
-import { commitQuestEffects } from '@wildshard/game/quest/effects';
 import { prepareQuestEntry } from '@wildshard/game/quest/chapter';
-import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader, installQuestShop } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -26,17 +24,15 @@ import * as THREE from 'three';
 import type { ForestStoryRows, ForestStoryContent, ForestStory } from './forestStoryRows';
 import { FigureCatalogue } from '../npc/figures';
 import { GeometryPack, fetchDeflated, packedRows } from '../kit/geometryPack';
-import type { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
-import { installStoryTalks } from '@wildshard/game/quest/story';
 import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
 import { isItemId } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
-import { QuestViews, bindQuestPageInteractions, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
+import { QuestViews, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 
 const defineBoardSave = (key: string) => saves.define({ key, scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
 const stores = new Map<string, ReturnType<typeof defineBoardSave>>();
@@ -67,7 +63,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const { game, sky, player, animals, hud, inventory } = h;
   const figureScenes = new SceneHandles(sky);
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services, placement: { registryReach: 20 } });
-  const { story, flags, services: serviceActions, floorAt } = entry;
+  const { story, flags, floorAt } = entry;
   const featFacts = await entry.achievements(), facts = featFacts.facts;
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
@@ -166,26 +162,13 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   };
   h.interactables.push(boardPrompt);
 
-  const tradeOwner = installQuestTrader(ctx, traderStall);
-  const steps = new QuestStepRunner(native.steps);
-  const payMiller = (): void => {
-    const paid = flags.has(rows.payment.flag);
-    commitQuestEffects(ctx, story.quest.id, steps.signal({ kind: 'talk', target: rows.payment.speaker }, { flags: flags.all,
-      inventory: Object.fromEntries(inventory.items.map(item => [item.id, item.count])) }));
-    if (!paid && flags.has(rows.payment.flag)) serviceActions.run(rows.payment.action);
-  };
-
-  const figures: QuestNpcTalkPorts<FigureRows>['figures'] = new Map(rows.figures.ids.map(kind => [kind, {
-    kind: 'posed', create: (at, yaw) => figuresBook.create(kind, figureScenes, [at.x, at.y, at.z], yaw, ctx.scope), bark: fig => { sfx.bark(kind, fig.talkPoint); },
-  }]));
-  const talks = installStoryTalks(ui, source, { flags, scene: game.scene, registry: h.registry,
-    prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([[rows.payment.call, payMiller], [rows.trades.call, openTrade]]) });
+  installQuestTrader(ctx, traderStall);
+  const talks = await entry.talks({ ...rows.talks, steps: native.steps });
   const { people, dialogue } = talks;
   const trader = people.find(person => person.kind === rows.trades.figure);
   if (trader === undefined) throw new Error('The declared trader is required');
   traderVoice.copy(trader.fig.talkPoint);
   const trade = installQuestShop(ctx, traderStall);
-  function openTrade(): void { tradeOwner.shop = trade(); tradeOwner.open(); }
   ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
     panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
   const killed = bindQuestDeathEffects(native.pageDeaths, { flags, kill: featFacts.kill, event: featFacts.event,

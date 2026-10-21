@@ -4,6 +4,7 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
 import type { MoverRuntime, MoverInstallation } from '@wildshard/game/plugin/mover';
 import type { PackedGeometryJson } from '../kit/geometryPack';
+import type { QuestPageTalksRows } from '@wildshard/format/npcs';
 
 interface Point { x: number; z: number }
 type Triple = [number, number, number];
@@ -18,7 +19,8 @@ export interface ForestStoryRows {
   readonly ammo: Parameters<HeldLoadout['addAmmo']>[0];
   readonly panels: { readonly board: string; readonly count: string };
   readonly files: Readonly<Record<'stall' | 'exchange' | 'contracts' | 'signals' | 'door' | 'transactions' | 'services' | 'director', string>>;
-  readonly figures: { readonly catalogue: string; readonly ids: string[] };
+  readonly figures: { readonly catalogue: string };
+  readonly talks: QuestPageTalksRows;
   readonly parts: { readonly url: string; readonly rows: PackedGeometryJson; readonly label: string };
   readonly store: { readonly slot: string; readonly state: string };
   readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[];
@@ -28,9 +30,8 @@ export interface ForestStoryRows {
   readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
   readonly door: { readonly building: string; readonly flag: string };
-  readonly trades: { readonly finishes: readonly string[]; readonly name: string; readonly place: string; readonly figure: string; readonly call: string };
+  readonly trades: { readonly finishes: readonly string[]; readonly figure: string };
   readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string };
-  readonly payment: { readonly flag: string; readonly speaker: string; readonly action: string; readonly call: string };
   readonly cable: { readonly id: string; readonly geometry: number; readonly prompt: Triple; readonly radius: number; readonly label: string;
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */

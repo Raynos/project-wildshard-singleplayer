@@ -1,10 +1,9 @@
 /** Client-only entered quest presentation over existing native owners. */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import * as v from 'valibot';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { installQuestHints } from './hints';
 import { questPageWorld } from './pageResources';
-import { FigureRows } from '../systems/npc/figureRows';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { installWorldScenes } from '../shardfile/worldScenes';
@@ -18,10 +17,8 @@ import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../plugin/context';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { bindQuestDeathEffects } from '../plugin/quests';
-import { prepareQuestEntry, ownQuestTree, type QuestChapter } from './chapter';
-import { installStoryTalks } from './story';
+import { prepareQuestEntry, type QuestChapter } from './chapter';
 import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
@@ -48,7 +45,7 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   const shell = ctx.game.runtime, world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Quest page requires its entered play host');
   if (ctx.scope.disposed) throw new Error('Quest page left during admission');
-  const scope = ctx.scope, declaration = ctx.product.shardfile, d = questPageWorld(scope, rows.world);
+  const scope = ctx.scope, d = questPageWorld(scope, rows.world);
   // Delegate the getters: spreading Game loses its live regional scene/camera.
   const w = { ...world, ...h, chunk: ctx.manifest, prompts: shell.interactables,
     game: { get scene() { return world.game.scene; }, get camera() { return world.game.camera; },
@@ -73,7 +70,7 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { w.hud.toast(text); },
     item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
     calls: new Map(rows.services.map(id => [id, () => { services.run(id); }])) });
-  return { entry, rows, shell, world, h, scope, declaration, d, w, onDeath, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx };
+  return { entry, rows, shell, world, h, scope, d, w, onDeath, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx };
 }
 const preparations = new WeakMap<Scope, Map<string, Awaited<ReturnType<typeof preparePage>>>>();
 /** Prepare the real placement/interaction owners before borrowed figures enter.
@@ -88,7 +85,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const id = v.parse(QuestPageCompositionSchema, input).id, page = preparations.get(ctx.scope)?.get(id);
   if (page === undefined || ctx.scope.disposed) throw new Error('Quest page is not prepared');
   preparations.get(ctx.scope)?.delete(id);
-  const { entry, rows, h, scope, declaration, d, w, onDeath, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
+  const { entry, rows, h, scope, d, w, onDeath, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
   const adventure: QuestPageComposition = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = await entry.achievements();
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
@@ -96,18 +93,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
     const p = place(at); return [JSON.stringify(at), { x: p.x, y: p.y, z: p.z }];
   }));
   const chapter = entry.chapter({ placements, completion: true, remainingLabel: rows.remaining });
-  const figures: QuestNpcTalkPorts<FigureRows>['figures'] = new Map(rows.figures.map(row => {
-    const figure = FigureRows.entered(scope, row.id);
-    return [row.id, { kind: 'borrowed' as const, create: () => figure,
-      own: (value: FigureRows, register: () => void) => { ownQuestTree(value.group, scope); scope.run(register); },
-      at: (value: FigureRows) => value.headWorld(new THREE.Vector3()),
-      advance: (value: FigureRows) => { value.syncAnchors(); },
-      open: () => { w.audio.weaponSwap(); }, stow: (on: boolean) => { h.weapons.stowed = on; },
-      approach: { at: (value: FigureRows) => value.group.position, run: (value: FigureRows) => { value.signal(row.approach); } },
-    }];
-  }));
-  const talks = installStoryTalks(new QuestViews(ctx), declaration, { flags, scene: w.game.scene, registry: w.registry,
-    prompts: w.prompts, calls: new Map(), figures });
+  const talks = await entry.talks(rows.talks);
   if (talks.people.length === 0) throw new Error('Quest requires its declared speaker');
   adventure.spine = { ...chapter, get places() { return chapter.places; }, get dialogue() { return talks.dialogue(); } };
   onDeath(bindQuestDeathEffects<Animal>(rows.deaths, { flags, toast: text => { w.hud.toast(text); },

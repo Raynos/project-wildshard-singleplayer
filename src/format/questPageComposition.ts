@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { QuestPageTalksSchema } from './npcs';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const frame = v.strictObject({ x: n, z: n, rot: n });
@@ -12,7 +13,7 @@ export const QuestPageCompositionSchema = v.pipe(v.unknown(), v.check(isJsonData
   frames: v.pipe(v.record(id, frame), v.maxEntries(4096)),
   files: v.strictObject({ discovery: id, services: id, assembly: id, stall: id, encounter: id, returns: id }),
   events: v.unknown(), deaths: v.unknown(), services: v.array(id), deathMoves: v.array(v.strictObject({ effect: id, target: id })),
-  figures: v.array(v.strictObject({ id, approach: id })), held: id, remaining: id, quietPlaces: v.array(id),
+  talks: QuestPageTalksSchema, held: id, remaining: id, quietPlaces: v.array(id),
   speaker: v.strictObject({ figure: id, feet: place, fire: place }),
   trader: v.strictObject({ figure: id, counter: id, offer: id, label: id, radius: n }),
   cable: v.strictObject({ scene: id, mode: id, carriage: id, prompt: id, radius: n, label: id, a: id, b: id, anchor: id, publish: id }),

@@ -18,12 +18,7 @@
     "director": "quests/chapter-director.json"
   },
   "figures": {
-    "catalogue": "people/catalogue.json",
-    "ids": [
-      "ranger",
-      "miller",
-      "trader"
-    ]
+    "catalogue": "people/catalogue.json"
   },
   "store": {
     "slot": "lodge",
@@ -43,20 +38,11 @@
       "hollow-ash",
       "scarback-furnace"
     ],
-    "name": "Mott",
-    "place": "Pine Hollow",
-    "figure": "trader",
-    "call": "trade"
+    "figure": "trader"
   },
   "board": {
     "label": "Read the contract board",
     "filled": "Read the contract board \u2014 one is filled"
-  },
-  "payment": {
-    "flag": "errand:paid",
-    "speaker": "miller",
-    "action": "miller.pay",
-    "call": "pay-miller"
   },
   "debug": {
     "id": "pine.quest",
@@ -123,5 +109,50 @@
       "complete": "All eight carved tokens \u2014 they're on the ranger's mantel now",
       "shelf": "timbers.token-shelf"
     }
-  ]
+  ],
+  "talks": {
+    "models": [
+      {
+        "source": "catalogue",
+        "id": "ranger",
+        "library": "people/catalogue.json",
+        "bark": {
+          "audio": "ambience",
+          "group": "ranger"
+        }
+      },
+      {
+        "source": "catalogue",
+        "id": "miller",
+        "library": "people/catalogue.json",
+        "bark": {
+          "audio": "ambience",
+          "group": "miller"
+        }
+      },
+      {
+        "source": "catalogue",
+        "id": "trader",
+        "library": "people/catalogue.json",
+        "bark": {
+          "audio": "ambience",
+          "group": "trader"
+        }
+      }
+    ],
+    "calls": {
+      "pay-miller": {
+        "kind": "talk",
+        "target": "miller",
+        "after": {
+          "flag": "errand:paid",
+          "service": "miller.pay"
+        }
+      },
+      "trade": {
+        "kind": "trader",
+        "trader": "Mott"
+      }
+    }
+  }
 }

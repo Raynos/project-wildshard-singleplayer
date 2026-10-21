@@ -6,7 +6,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import type { Interactable } from '../src/engine/world/interact/types';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { installQuestTrader, type TraderShop, type QuestTraderContext } from '../src/game/quest/trader';
+import { installQuestTrader, openQuestTrader, type TraderShop, type QuestTraderContext } from '../src/game/quest/trader';
 import driftwood from '../src/shards/driftwood-isle/data/traderStall.json';
 import pine from '../src/shards/pine-hollow/data/traderStall.json';
 
@@ -59,7 +59,7 @@ test('Mott opens the existing lazy panel without a camera or walking-close owner
   player.yaw = .7; player.pitch = -.1;
   try {
     const stall = installQuestTrader(ctx, pine);
-    const talk = (): void => { stall.shop = getShop(); stall.open(); };
+    const talk = (): void => { stall.shop = getShop(); openQuestTrader(scope, pine.name); };
     expect(getShop).not.toHaveBeenCalled(); expect(stall.trader).toBeNull(); expect(frames).toEqual([]); expect(prompts).toEqual([]);
     stall.open(); expect(shop.opens).toBe(0);
     talk(); talk(); player.position.set(100, 100, 100);
@@ -67,6 +67,7 @@ test('Mott opens the existing lazy panel without a camera or walking-close owner
     expect(player.yaw).toBe(.7); expect(player.pitch).toBe(-.1);
     expect(() => installQuestTrader(ctx, { ...pine, view: { pitch: 0, closeDistance: 5 } })).toThrow('resources');
     expect(() => installQuestTrader(ctx, { ...pine, reopen: 'yes' })).toThrow();
-    scope.dispose(); stall.open(); expect(shop.opens).toBe(2);
+    expect(() => openQuestTrader(new Scope('other-trader'), pine.name)).toThrow('Missing entered trader');
+    scope.dispose(); openQuestTrader(scope, pine.name); expect(shop.opens).toBe(2);
   } finally { scope.dispose(); }
 });

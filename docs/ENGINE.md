@@ -6663,6 +6663,15 @@ No author-supplied counter method or reflected synchronization path is accepted.
 `bench()` binds the entered table's seat to that same player, HUD and floor
 policy. Story rows supply the seat pose and words, without borrowed method paths.
 
+`talks(rows)` installs the story's declared NPC talks once. Model rows name
+an admitted product catalogue plus its ambience bank, or an existing entered
+figure plus its greeting/stow policy. Completion rows name the entered trader
+or a talk-step target and optional once-only service after a flag transition.
+Pine's posed people and Driftwood's borrowed castaway share this intake;
+figure placement, dialogue clock, saved flags, inventory, shop lifetime and
+the caller's update phase keep their original owners. Leaving during catalogue
+admission refuses before figures or dialogue are installed.
+
 The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
 the admitted table and pack for both native quest compositions. It borrows
 the worker's existing command and ledger adapter; `install(owners)` binds the

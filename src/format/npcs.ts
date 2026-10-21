@@ -18,6 +18,21 @@ const dialogue = v.strictObject({ id: npcRowName, name: text,
 export type NpcDialogueRow = v.InferOutput<typeof dialogue>;
 /** Strict dialogue admission with a bounded named output contract. */
 export const NpcDialogueRowSchema: v.GenericSchema<v.InferInput<typeof dialogue>, NpcDialogueRow> = dialogue;
+/** Page talks borrow declared catalogue or resident figures; completions select named mechanics only. */
+export const QuestPageTalksSchema = v.strictObject({
+  models: v.pipe(v.array(v.variant('source', [
+    v.strictObject({ source: v.literal('catalogue'), id: npcRowName, library: text,
+      bark: v.strictObject({ audio: npcRowName, group: npcRowName }) }),
+    v.strictObject({ source: v.literal('entered'), id: npcRowName, approach: npcRowName, swap: v.boolean(), stow: v.boolean() }),
+  ])), v.maxLength(64), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length)),
+  calls: v.pipe(v.record(npcRowName, v.variant('kind', [
+    v.strictObject({ kind: v.literal('trader'), trader: text }),
+    v.strictObject({ kind: v.literal('talk'), target: npcRowName,
+      after: v.exactOptional(v.strictObject({ flag: npcRowName, service: npcRowName })) }),
+  ])), v.maxEntries(64)),
+  steps: v.exactOptional(v.unknown()),
+});
+export type QuestPageTalksRows = v.InferOutput<typeof QuestPageTalksSchema>;
 /** Validate the dialogue without inventing pivot-figure fields for a skinned NPC. */
 export function parseNpcDialogueRow(input: unknown): NpcDialogueRow { return v.parse(NpcDialogueRowSchema, input); }
 

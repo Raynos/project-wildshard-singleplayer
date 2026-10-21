@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
-import { BatchedMesh, type Object3D, type Vector3 } from 'three';
+import { BatchedMesh, Vector3, type Object3D } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
 import { bindInteractPlacements, createQuestPlacements, type InteractTable } from '@wildshard/engine/world/interact/types';
@@ -24,12 +24,18 @@ import { commitQuestEffects, readQuestServiceActions } from './effects';
 import { QuestEffectSchema } from '@wildshard/format/questSteps';
 import type { ShardContext } from '../plugin/context';
 import { completionProjection, type CompletionProgress } from '../complete/declared';
-import type { QuestPresentationHost, QuestPresentationOptions } from '../plugin/ui';
+import { QuestViews, type QuestNpcTalkPorts, type QuestPresentationHost, type QuestPresentationOptions } from '../plugin/ui';
 import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from './boundState';
 import { bindRuntimeQuest } from '../plugin/headless';
-import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory } from './story';
+import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory, installStoryTalks } from './story';
 import { questPageWorld } from './pageResources';
 import { questBenchPose } from './storyLaw';
+import { QuestPageTalksSchema } from '@wildshard/format/npcs';
+import { ProductFigureCatalogue } from '../models/figureCatalogue';
+import { SceneHandles } from '../shardfile/sceneHandles';
+import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
+import { QuestStepRunner } from './steps';
+import { openQuestTrader } from './trader';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -98,6 +104,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   achievements: () => ReturnType<typeof bindStoryAchievements>;
   observe: () => void;
   bench: () => void;
+  talks: (input: unknown) => Promise<ReturnType<typeof installStoryTalks<FigureRows>>>;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -120,8 +127,47 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
   let achievements: Awaited<ReturnType<typeof bindStoryAchievements>> | null = null;
   let achievementRequest: ReturnType<typeof bindStoryAchievements> | null = null;
   let interaction: Awaited<ReturnType<typeof installQuestInteractables>> | null = null;
-  let installed = false;
+  let installed = false, talksInstalled = false;
   return { story, flags, services, ...placement,
+    talks: async talkInput => {
+      if (!isJsonData(talkInput)) throw new Error('Quest talks require JSON rows');
+      const talkRows = v.parse(QuestPageTalksSchema, talkInput), runtime = ctx.game.runtime, play = runtime?.play;
+      if (runtime === undefined || play === undefined || play === null) throw new Error('Quest talks require their entered play owners');
+      const requireLive = (): void => { if (ctx.scope.disposed) throw new Error('Quest talks left during model admission'); };
+      requireLive();
+      if (talksInstalled) throw new Error('Quest talks already installed');
+      talksInstalled = true;
+      const figures = new Map<string, QuestNpcTalkPorts<FigureRows>['figures'] extends ReadonlyMap<string, infer Model> ? Model : never>();
+      for (const row of talkRows.models) {
+        if (row.source === 'catalogue') {
+          const book = await ProductFigureCatalogue.fromProduct(ctx.product, row.library), audio = runtime.objects[row.bark.audio];
+          requireLive();
+          if (!(audio instanceof DeclaredAmbience)) throw new Error('Quest talk lost its figure or audio owner');
+          const scene = new SceneHandles(world.sky);
+          figures.set(row.id, { kind: 'posed', create: (at, yaw) => book.create(row.id, scene, [at.x, at.y, at.z], yaw, ctx.scope),
+            bark: figure => { audio.sfx.bark(row.bark.group, figure.talkPoint); } });
+        } else {
+          const figure = FigureRows.entered(ctx.scope, row.id);
+          figures.set(row.id, { kind: 'borrowed', create: () => figure,
+            own: (value, register) => { ownQuestTree(value.group, ctx.scope); ctx.scope.run(register); },
+            at: value => value.headWorld(new Vector3()), advance: value => { value.syncAnchors(); },
+            open: () => { if (row.swap) play.audio.weaponSwap(); }, stow: on => { if (row.stow) play.weapons.stowed = on; },
+            approach: { at: value => value.group.position, run: value => { value.signal(row.approach); } },
+          });
+        }
+      }
+      const steps = Object.values(talkRows.calls).some(call => call.kind === 'talk') ? new QuestStepRunner(talkRows.steps) : null;
+      const calls = new Map(Object.entries(talkRows.calls).map(([id, row]) => [id, () => {
+        if (row.kind === 'trader') { openQuestTrader(ctx.scope, row.trader); return; }
+        if (steps === null) throw new Error('Quest talk lacks its admitted step runner');
+        const paid = row.after === undefined ? false : flags.has(row.after.flag);
+        commitQuestEffects(ctx, story.quest.id, steps.signal({ kind: 'talk', target: row.target }, { flags: flags.all,
+          inventory: Object.fromEntries(play.inventory.items.map(item => [item.id, item.count])) }));
+        if (row.after !== undefined && !paid && flags.has(row.after.flag)) services.run(row.after.service);
+      }]));
+      return installStoryTalks(new QuestViews(ctx), ctx.product.shardfile, { flags, scene: world.game.scene, registry: world.registry,
+        prompts: runtime.interactables, groundAt: placement.floorAt, figures, calls });
+    },
     bench: (): void => {
       const kit = interaction, play = ctx.game.runtime?.play;
       if (kit === null || play === undefined || play === null || ctx.scope.disposed) throw new Error('Quest seat requires its entered interaction table');

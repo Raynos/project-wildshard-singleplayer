@@ -23,6 +23,13 @@ import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import drift from '../src/shards/driftwood-isle/shard.config';
 import pine from '../src/shards/pine-hollow/shard.config';
+import * as v from 'valibot';
+import { FigureRows } from '../src/game/systems/npc/figureRows';
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
+import { QuestPageTalksSchema } from '../src/format/npcs';
+import driftPage from '../src/shards/driftwood-isle/data/questPageComposition.json';
+import pinePage from '../src/shards/pine-hollow/data/forestStory.json';
 
 function product(source: typeof drift, story: typeof driftStory, counters: typeof DRIFTWOOD_FEAT_COUNTERS | typeof PINE_FEAT_COUNTERS) {
   const policy = { ...counters, feats: counters.feats.map(({ id, count, ...row }) => ({ id, count,
@@ -133,4 +140,61 @@ test('an entry that leaves during named story admission never installs saved fla
   const pending = prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
   const refused = expect(pending).rejects.toThrow('left during story admission');
   scope.dispose(); release(); await refused;
+});
+
+function talkPage(source: typeof drift, story: typeof driftStory, counters: typeof DRIFTWOOD_FEAT_COUNTERS | typeof PINE_FEAT_COUNTERS) {
+  const scope = new Scope('story-talk-entry'), host = new App(), swaps = vi.fn(), scene = new Scene();
+  const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(source.identity.slug) }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product(source, story, counters));
+  const weapons = { stowed: false };
+  Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), game: { scene }, sky: { setupMaterial: () => undefined } },
+    objects: {}, interactables: [], play: { audio: { weaponSwap: swaps }, weapons, inventory: { items: [] } } } });
+  return { ctx, scope, swaps, scene, weapons };
+}
+
+test('entered talk rows borrow the actual castaway and preserve opening, stow and greeting cadence', async () => {
+  const { ctx, scope, swaps, scene, weapons } = talkPage(drift, driftStory, DRIFTWOOD_FEAT_COUNTERS);
+  const figure = new FigureRows(new SceneHandles({ setupMaterial: () => undefined }), {
+    id: 'castaway', name: 'Wendell', feet: [0, 0, 0], yaw: 0, talkHeight: 1.4,
+    collider: { kind: 'box', half: .3, top: 1.8, bottom: 0 }, rig: { skeleton: 'npc.legs.v1', clips: ['idle'], sockets: [] },
+    visible: [], joints: [], sockets: [], drawDistance: 80, pointAt: [0, 0, 0], points: false,
+  }, scope);
+  try {
+    const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
+    entry.flags.reset();
+    const talks = await entry.talks(driftPage.talks), person = talks.people[0];
+    if (person === undefined) throw new Error('Missing declared castaway');
+    expect(person.fig).toBe(figure); expect(scene.children).toContain(figure.group);
+    person.prompt.onInteract(); person.update(.1, 1, new Vector3());
+    expect(swaps).toHaveBeenCalledTimes(1); expect(weapons.stowed).toBe(true);
+    expect(figure.takeSignal('wave')).toBe(true);
+    person.update(.1, 2, new Vector3(100, 0, 0));
+    expect(weapons.stowed).toBe(false); expect(figure.talking).toBe(false);
+    await expect(entry.talks(driftPage.talks)).rejects.toThrow('already installed');
+  } finally { scope.dispose(); }
+  expect(figure.active).toBe(false);
+});
+
+test('leaving during a catalogue read cannot create figures or dialogue on the departed page', async () => {
+  const { ctx, scope, scene } = talkPage(pine, pineStory, PINE_FEAT_COUNTERS);
+  const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
+  let release = (): void => { throw new Error('Catalogue did not wait'); };
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const read = vi.spyOn(ProductFigureCatalogue, 'fromProduct').mockImplementation(async () => {
+    await gate; return new ProductFigureCatalogue('test', 'people/catalogue.json');
+  });
+  try {
+    const pending = entry.talks(pinePage.talks), refused = expect(pending).rejects.toThrow('left during model admission');
+    scope.dispose(); release(); await refused;
+    expect(read).toHaveBeenCalledWith(ctx.product, 'people/catalogue.json');
+    expect(scene.children).toEqual([]);
+  } finally { read.mockRestore(); scope.dispose(); }
+});
+
+test('both authored talk policies admit and reject executable or duplicate model policies', () => {
+  for (const rows of [pinePage.talks, driftPage.talks]) {
+    expect(v.safeParse(QuestPageTalksSchema, rows).success).toBe(true);
+    expect(v.safeParse(QuestPageTalksSchema, { ...rows, models: [...rows.models, ...rows.models] }).success).toBe(false);
+    expect(v.safeParse(QuestPageTalksSchema, { ...rows, calls: { arbitrary: { kind: 'callback', run: 'window.alert' } } }).success).toBe(false);
+  }
 });

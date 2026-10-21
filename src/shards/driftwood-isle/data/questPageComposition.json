@@ -11,7 +11,7 @@
   },
   "services": ["glass", "pickup"],
   "deathMoves": [{ "effect": "hold-key", "target": "hold-key" }],
-  "figures": [{ "id": "castaway", "approach": "wave" }],
+  "talks": { "models": [{ "source": "entered", "id": "castaway", "approach": "wave", "swap": true, "stow": true }], "calls": {} },
   "held": "iron-sword", "remaining": "Still to find", "quietPlaces": ["pier"],
   "speaker": {
     "figure": "castaway",
