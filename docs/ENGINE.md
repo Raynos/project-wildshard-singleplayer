@@ -1100,9 +1100,15 @@ ordinary grouping and 12 ms bound; readiness still awaits the complete inventory
 
 For a running WebKit game, `Game.warmEnteredFrame` supplies `waitForDrawnFrame` as the
 `pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
-Entered-frame diagnostics are scalar: `Game.entryPreparation` records compile/link/upload, composer,
-parked-draw and offscreen-draw elapsed times and completed units, including their painted waits. It holds
-no materials, textures, scenes or native handles. `PrecompileStage` is the optional `onStage` callback
+Entered-frame diagnostics are scalar: `Game.entryPreparation` records the exact destination
+`root` UUID, scope `owner` name, `completed`, running `phase` and optional
+`progress: { done, total, detail }`, plus compile/link/upload, composer, parked-draw and
+offscreen-draw elapsed times and completed units, including their painted waits. A region must
+match the trace root to its destination before reading it. It holds no materials, textures, scenes or
+native handles. `warmParkedDraws` accepts `options.onProgress(done, total)` for actual completed
+drawables; `warmOffscreenPasses` accepts a trailing optional callback after `excludedRoots`
+for actual completed registered passes. Observers run after draw flags are restored and change
+no pacing, work inventory or readiness. `PrecompileStage` is the optional `onStage` callback
 of `precompileLevel` (and the argument after `uploadBudget` in `runPrecompile`); observers do not change
 work ordering or readiness. Older frame-floor captures omit this field.
 
