@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scene } from 'three';
 import { DeclaredBodyOpsSchema } from '../src/format/bodySlots';
-import { installDeclaredBodyOps } from '../src/game/quest/bodyOps';
+import { DeclaredBodyOps, installDeclaredBodyOps } from '../src/game/quest/bodyOps';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
@@ -61,7 +61,7 @@ test('caller-owned old save handles rebind without allocating or replaying scrip
     if (handle === undefined) throw new Error('Missing original handle');
     const saved = snapshotSimHost(host), restored = restoreSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }, saved);
     try {
-      const rebound = await installDeclaredBodyOps(restored, rows), before = restored.physics.world.bodies.len();
+      const rebound = DeclaredBodyOps.native(restored, rows), before = restored.physics.world.bodies.len();
       rebound.restoreHandles({ crate: handle });
       expect(restored.physics.world.bodies.len()).toBe(before); expect(rebound.body('crate')?.rb.handle).toBe(handle);
       rebound.prepare([[18, 1, 3, 4, 5]]).commit(); expect(rebound.position('crate')).toEqual({ x: 3, y: 4, z: 5 });
@@ -81,7 +81,7 @@ test('rows are plain data and absent targets refuse before publishing any body',
   try {
     const baseline = host.physics.world.bodies.len();
     await expect(installDeclaredBodyOps(host, { bodies: [], colliders: [{ id: 'missing', target: { kind: 'box', box: { x: 20, z: 20, hw: 1, hd: 1, yTop: 2, yBottom: 0 } } }] })).rejects.toThrow('baked box');
-    await expect(installDeclaredBodyOps(host, { bodies: [{ id: 'guide', kind: 'actor', species: 'deer', variant: 'ghost', at: { x: 0, y: 0, z: 0 }, yaw: 0 }], colliders: [] })).rejects.toThrow('client-only');
+    expect(() => DeclaredBodyOps.native(host, { bodies: [{ id: 'guide', kind: 'actor', species: 'deer', variant: 'ghost', at: { x: 0, y: 0, z: 0 }, yaw: 0 }], colliders: [] })).toThrow('client-only');
     expect(host.physics.world.bodies.len()).toBe(baseline);
   } finally { host.dispose(); }
 });

@@ -47,14 +47,21 @@ export class DeclaredBodyOps {
     for (const row of rows.colliders) if (row.target.kind === 'box' && staticBoxCollider(this.physics(), row.target.box) === null) throw new Error('Declared collider requires its original baked box');
     this.captureCleanup();
   }
-  /** Prepare native species models before any guest can spawn. No actor is
-   * allocated at install time and an invalid declaration publishes nothing. */
+  /** Synchronous prop-only native installation, including restore callbacks.
+   * Species rows refuse before allocating a native body or owner. */
+  static native(host: SimHost, input: unknown): DeclaredBodyOps {
+    const rows = v.parse(DeclaredBodyOpsSchema, input);
+    requireLive(host);
+    if (rows.bodies.some(row => row.kind === 'actor')) throw new Error('Declared species actors are client-only');
+    return new DeclaredBodyOps(host, rows);
+  }
+  /** Page actors prepare their real models; prop-only native restore stays synchronous. */
   static async install(owner: Owner, input: unknown): Promise<DeclaredBodyOps> {
+    if ('physics' in owner) return DeclaredBodyOps.native(owner, input);
     const rows = v.parse(DeclaredBodyOpsSchema, input);
     if (owner.scope.disposed) throw new Error('Declared bodies require a live owner');
     const actors = rows.bodies.filter(row => row.kind === 'actor');
     if (actors.length > 0) {
-      if ('physics' in owner) throw new Error('Declared species actors are client-only');
       const manager = owner.game.runtime?.play?.animals;
       if (manager === undefined) throw new Error('Declared actors require the entered native manager');
       await owner.scope.run(() => manager.factory.prepareModels(actors.map(row => ({ kind: row.species, variant: row.variant }))));
