@@ -1,9 +1,14 @@
 // Compiler execution identity: parse emitted JavaScript, never strip source
 // comments with a regular expression. Raw source/content reads use other keys.
-import {createHash} from 'node:crypto';
+import {createHash,randomBytes} from 'node:crypto';
+import {mkdirSync,readFileSync,renameSync,rmSync,writeFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
+import {homedir} from 'node:os';
+import {resolve} from 'node:path';
+import * as v from 'valibot';
 
 const require=createRequire(import.meta.url);
+const Cache=v.strictObject({key:v.string(),result:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u)),seal:v.string()});
 /** @type {typeof import('@typescript/typescript6')|undefined} */
 let compiler;
 /** Pure content normalization, never an input-validity or admission verdict.
@@ -16,8 +21,17 @@ const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
  * used only on a normalization miss and must still return those exact bytes.
  * @param {string} file @param {string} rawHash @param {()=>Uint8Array} read */
 export function compilerCodeHash(file,rawHash,read) {
-  const key=`${file}\0${rawHash}`,cached=normalized.get(key);
+  const version=v.parse(v.object({version:v.string()}),require('@typescript/typescript6/package.json')).version;
+  const directory=resolve(process.env.WILDSHARD_COMPILER_CODE_CACHE??resolve(homedir(),'.cache/wildshard/compiler-code/1'));
+  const key=digest(JSON.stringify({schema:'compiler-code/1',typescript:version,file,rawHash})),memoryKey=`${directory}\0${key}`,cached=normalized.get(memoryKey);
   if(cached!==undefined)return cached;
+  const at=resolve(directory,`${key}.json`);
+  try {
+    const saved=v.parse(Cache,JSON.parse(readFileSync(at,'utf8')));
+    if(saved.key===key&&saved.seal===digest(JSON.stringify({key,result:saved.result}))) {
+      normalized.set(memoryKey,saved.result);return saved.result;
+    }
+  } catch { /* Missing/corrupt pure transform memo: parse the verified bytes. */ }
   const bytes=read();
   if(digest(bytes)!==rawHash)throw new Error(`Compiler input changed while normalizing: ${file}`);
   const ts=compiler ??= require('@typescript/typescript6');
@@ -41,5 +55,11 @@ export function compilerCodeHash(file,rawHash,read) {
   };
   visit(source);
   const result=digest(JSON.stringify({schema:'compiler-code/1',typescript:ts.version,tokens}));
-  normalized.set(key,result);return result;
+  const temporary=resolve(directory,`${key}.${process.pid}.${randomBytes(8).toString('hex')}.tmp`);
+  try {
+    mkdirSync(directory,{recursive:true});
+    const body={key,result};writeFileSync(temporary,JSON.stringify({...body,seal:digest(JSON.stringify(body))}));renameSync(temporary,at);
+  } catch { /* A read-only/full cache must not change compilation semantics. */ }
+  finally {try {rmSync(temporary,{force:true});}catch { /* Best-effort own temporary cleanup. */ }}
+  normalized.set(memoryKey,result);return result;
 }
