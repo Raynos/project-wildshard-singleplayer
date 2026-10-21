@@ -28,11 +28,12 @@ import type { ModelDef } from '../../models/model';
  * y comes from the walkable floor there (platforms, else the terrain) unless `y` pins it (absolute) or `dy` lifts it.
  */
 
-/** Authored frame identity; `world` selects untransformed coordinates. */
-export type PoiId = string;
-
-export interface Place {
-  poi: PoiId;
+/** Frozen compatibility vocabulary: remove with legacy shards (NEXT N5).
+ * Live placement rows use QuestPlace and authored frame records instead. */
+export type PoiId = 'world' | 'hut' | 'lookout' | 'wreck' | 'shrine' | 'cave' | 'pier';
+/** Generic authored placement; `world` selects untransformed coordinates. */
+export interface QuestPlace {
+  poi: string;
   x: number;
   z: number;
   /** facing in the POI's frame (radians about +Y; 0 = the model's front faces +Z) */
@@ -44,6 +45,9 @@ export interface Place {
   /** a model anchor name (`<poi>.<name>`, e.g. `wreck.holdDoor`); used instead of x / z / yaw when the model exports it */
   anchor?: string;
 }
+
+/** Frozen compatibility placement: remove with legacy shards (NEXT N5). */
+export interface Place extends QuestPlace { poi: PoiId }
 
 /** A borrowed world-space quest anchor; an explicit height bypasses floor lookup. */
 export interface QuestPlaceAnchor { readonly x: number; readonly z: number; readonly y?: number; readonly yaw?: number }
@@ -77,7 +81,7 @@ function questAnchor(raw: unknown): QuestPlaceAnchor {
  */
 export function createQuestPlacements(ports: QuestPlacementPorts): {
   readonly floorAt: (x: number, z: number) => number;
-  readonly place: (at: Place) => { x: number; y: number; z: number; yaw: number };
+  readonly place: (at: QuestPlace) => { x: number; y: number; z: number; yaw: number };
   readonly setAnchor: (name: string, anchor: QuestPlaceAnchor) => void;
   /** Borrow current validated anchors without introducing a second placement owner. */
   readonly anchors: ReadonlyMap<string, Readonly<QuestPlaceAnchor>>;

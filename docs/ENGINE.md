@@ -6583,9 +6583,11 @@ No helper creates a second simulation or random stream.
 
 `engine/world/interact/types.createQuestPlacements` borrows terrain,
 platforms, registry floors and authored POI frames. Frame names are bounded
-authored strings (`PoiId`); `world` selects untransformed coordinates. Frame
-records admit up to 4096 entries and refuse unsafe or inherited identities.
-The page, story and trader schemas share this open frame vocabulary.
+authored strings in `QuestPlace`; `world` selects untransformed coordinates.
+Frame records admit up to 4096 entries and refuse unsafe or inherited identities.
+The page and trader schemas use this open frame vocabulary. Historical `Place`,
+`PoiId` and story marker grammar retain the frozen compatibility vocabulary
+until SHARD-PLATFORM-NEXT N5; live frame records do not depend on that union.
 `registryReach` is a
 strict maximum rise above the already selected floor; omission preserves
 unbounded higher-floor selection. The returned `place` respects explicit

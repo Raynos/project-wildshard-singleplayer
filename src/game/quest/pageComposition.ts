@@ -13,7 +13,7 @@ import { readQuestServiceActions } from './effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
-import { createQuestPlacements, type Interactable, type InteractTable, type Place, type QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
+import { createQuestPlacements, type Interactable, type InteractTable, type QuestPlace, type QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { ITEMS } from '../bag/itemCatalog';
 import type { ItemId } from '../Inventory';
@@ -41,7 +41,7 @@ export interface QuestPageComposition {
   spine: (QuestChapter & { readonly dialogue: DialogueBox }) | null; places: Places | null;
   finale: PageFinale | null; ecology: ReturnType<typeof installPageReturns> | null;
   complete: Complete | null; zipline: PageCable | null; trader: QuestTrader | null;
-  readonly place: (p: Place) => { x: number; y: number; z: number; yaw: number };
+  readonly place: (p: QuestPlace) => { x: number; y: number; z: number; yaw: number };
   readonly floorAt: (x: number, z: number) => number;
   readonly setAnchor: (name: string, a: QuestPlaceAnchor) => void;
 }
