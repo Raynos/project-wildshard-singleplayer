@@ -40,7 +40,7 @@ beforeAll(async () => {
 test('Pine native product uses the shared request rows and retires executable binding data', async () => {
   const product = products.get('pine-hollow'); if (product === undefined) throw new Error('Missing real Pine product');
   const native: unknown = JSON.parse(new TextDecoder().decode(await product.file('quests/native-story.json')));
-  const clock = v.parse(v.object({ clock: ChapterDirectorSchema }), native).clock;
+  const clock = v.parse(v.object({ chapter: ChapterDirectorSchema }), native).chapter;
   expect(clock.requests).toEqual(pineRows.requests);
   const director: unknown = JSON.parse(new TextDecoder().decode(await product.file('directors/main.json')));
   expect(v.parse(v.object({ bindings: v.null() }), director).bindings).toBeNull();
