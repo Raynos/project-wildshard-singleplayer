@@ -37,7 +37,7 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | G6 | Pine C9 glue (167): runtime entry glue onto the declared runtime entry | 167 | |
 | G7 | Driftwood C4 creatures (202): creature looks/bodies onto shared species rows (Pine species as second user) | 202 | |
 | G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows | 198 | |
-| G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 |  sp-x9 07:50 |
+| G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 | Driftwood loot: sp-x9 (e52acff6ae, finishing); Pine creatures 62 + Pine items 7: OPEN |
 | G10 | Grid containment (G550, Jake): in grid mode nothing draws outside its cell's bounds except the platform's declared layers (road, outer floor, sky); the shardfile validator refuses out-of-cell bounds in any section, and the grid loader clips or refuses any cell-owned object whose world bounds leave the cell, with a test that walks every drawn object on the 5x5 and fails on a stray one | platform | |
 
 ### G1/G2 file boundaries (G551, sp-x8)
