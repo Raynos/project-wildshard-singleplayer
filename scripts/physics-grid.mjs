@@ -10,7 +10,8 @@ export function gridSeamRoute(state, speed) {
   const hx = home.cell[0] * 555, hz = home.cell[1] * 555;
   return { home: home.instance, peer: peer.instance, speed,
     start: { x: hx + dx * 230, z: hz + dz * 230 },
-    waypoints: [{ x: hx + dx * 325, z: hz + dz * 325 }, { x: hx + dx * 230, z: hz + dz * 230 }], timeout: 60 };
+    waypoints: [{ x: hx + dx * 277.5, z: hz + dz * 277.5 }, { x: hx + dx * 325, z: hz + dz * 325 },
+      { x: hx + dx * 277.5, z: hz + dz * 277.5 }, { x: hx + dx * 230, z: hz + dz * 230 }], timeout: 60 };
 }
 
 /** This function is serialized into the browser. Only the initial home pose is positioned; a stuck leg never teleports. */
@@ -27,19 +28,12 @@ export async function driveGridSeam(route) {
   player.setHover(true); player.hoverSpeedLimit = () => Math.min(route.speed, oldLimit());
   const trace = [], stuck = []; let wi = 0, elapsed = 0, lastProgress = { time: 0, x: route.start.x, z: route.start.z }, timedOut = false;
   try {
-    // Wait for real collider/sim/module admission while stationary inside home. Entered hooks remain the gameplay fence.
-    const deadline = performance.now() + 120_000;
-    while (!read().residents.includes(route.peer)) {
-      if (performance.now() > deadline) throw new Error('Grid neighbour admission timed out');
-      const issues = routeIssues(read());
-      if (Object.keys(issues).length > 0) throw new Error(`Grid admission failed: ${JSON.stringify(issues)}`);
-      await new Promise((resolve) => { setTimeout(resolve, 100); });
-    }
-    await new Promise((resolve) => { setTimeout(resolve, 600); });
+    // Owned residency admits the peer after the real source leave. Drive to the
+    // road first; readiness still fences the normal incoming cell boundary.
     const before = read();
     await new Promise((resolve, reject) => {
-      let stop = () => undefined;
-      const wallTimer = setTimeout(() => { timedOut = true; finish(); }, route.timeout * 1000);
+      let stop = () => undefined, waitingSince = 0, waitingSeconds = 0;
+      const wallTimer = setTimeout(() => { timedOut = true; finish(); }, (route.timeout + 240) * 1000);
       function finish() { input.clear(); stop(); clearTimeout(wallTimer); resolve(undefined); }
       stop = world.game.watchFrames((dt) => {
         try {
@@ -47,7 +41,17 @@ export async function driveGridSeam(route) {
           const state = read(), feet = state.worldFeet;
           trace.push({ time: elapsed, x: feet.x, y: feet.y, z: feet.z, current: state.current, enabled: player.motor.collider.isEnabled(), gameplayReady: state.gameplayReady });
           if (wi >= route.waypoints.length) { finish(); return; }
-          if (elapsed > route.timeout) { timedOut = true; finish(); return; }
+          const incoming = wi === 1 ? route.peer : wi === 3 ? route.home : null;
+          if (state.current === null && incoming !== null && !state.residents.includes(incoming)) {
+            input.clear(); waitingSeconds += dt;
+            if (waitingSince === 0) waitingSince = performance.now();
+            const issues = routeIssues(state);
+            if (Object.keys(issues).length > 0) throw new Error(`Grid admission failed: ${JSON.stringify(issues)}`);
+            if (performance.now() - waitingSince > 120_000) throw new Error('Grid neighbour admission timed out on the road');
+            lastProgress = { time: elapsed, x: feet.x, z: feet.z }; return;
+          }
+          waitingSince = 0;
+          if (elapsed - waitingSeconds > route.timeout) { timedOut = true; finish(); return; }
           const wp = route.waypoints[wi], dx = wp.x - feet.x, dz = wp.z - feet.z, distance = Math.hypot(dx, dz);
           if (distance < 1) { wi++; input.clear(); lastProgress = { time: elapsed, x: feet.x, z: feet.z }; return; }
           // A real board brakes before reversing. Its outward motion is not a collision snag;
