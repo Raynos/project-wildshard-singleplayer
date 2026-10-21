@@ -5,6 +5,14 @@ claims it with a one-line pathspec commit to this file (`<lane> <HH:MM>`), sends
 A brief sent by wildshard-new always wins over this queue. The coordinator keeps at least five open rows per type.
 Every row is decided work (Jake's G-rows); the refs are the brief.
 
+## RED-LIVE and loading (Jake's phone, live 64d85dac0, 2026-10-21 07:46)
+
+| # | Task | Refs | Taken |
+|---|---|---|---|
+| R1 | RED-LIVE: INFINITE WILDSHARD into Driftwood from the offline cache finishes loading, then sits on 'ARRIVING AT DRIFTWOOD ISLE' over the pier with no HUD and no controls; repro on phone Safari with a warm cache, fix forward, release at once | art/grid/round-33-loading-live/ | sp-x1 |
+| R2 | G554: the download line shows network and cache separately against the full total (it read '0.00 MB downloaded · 134.2 MB from …' at 99%); the step line names the step actually running (it read 'step 2 / 16' after steps 3-15 had times; 8-10 missing); prefetch the grid's whole known set (every cell's products, far tiers, impostors, seams, neighbours' entries) into the content cache during loading and in the background from the menu, disk not memory; reopens L1/L2/L8 | G554 | sp-x1 after R1 |
+| R3 | G555: delete every low-detail loading overlay and its code, incl. the grid cell-entry hex card ('SKY REACH · step 3 / 4 · colliders · 75 %'); every load incl. cell entry and re-entry shows the full step-by-step screen; no Debug row | G555 | |
+
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
 
 Jake 2026-10-21: every lane that finishes its current task takes a row here before any other row, except the
