@@ -5,7 +5,7 @@
     "@wildshard/game/quest/nativeChapter": ["installNativeChapterDirector"],
     "@wildshard/game/quest/killSteps": ["installQuestKillSteps"],
     "@wildshard/game/quest/nativeComposition": ["readNativeQuestSpots", "installNativeQuestComposition"],
-    "src/shards/driftwood-isle/world/sea": ["DRIFTWOOD_SEA", "LOWERED_SEA"],
+    "@wildshard/engine/world/water/declared": ["declaredWaterBody"],
     "@wildshard/game/looks/dayClock": ["dayClock"],
     "@wildshard/format/toonLook": ["TOON_DAY_PRESET"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
@@ -327,6 +327,19 @@
       }
     },
     {
+      "name": "sea",
+      "value": {
+        "$call": [
+          {
+            "$ref": ["@wildshard/engine/world/water/declared", "declaredWaterBody"]
+          },
+          {
+            "$ref": ["constants", "sea"]
+          }
+        ]
+      }
+    },
+    {
       "name": "water",
       "value": {
         "$call": [
@@ -335,7 +348,7 @@
           },
           {
             "surfaceAt": {
-              "$ref": ["src/shards/driftwood-isle/world/sea", "DRIFTWOOD_SEA", "restAt"]
+              "$ref": ["sea", "restAt"]
             },
             "bob": {
               "$fn": {
@@ -517,8 +530,8 @@
             },
             "waterLevel": {
               "$ref": [
-                "src/shards/driftwood-isle/world/sea",
-                "LOWERED_SEA"
+                "sea",
+                "level"
               ]
             },
             "spawnY": {
