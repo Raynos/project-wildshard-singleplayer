@@ -47,6 +47,15 @@ export function nativeDecisionAuthority(source: Shardfile, assets: ReadonlyMap<s
   });
   nativeAuthorities.set(host, authority); return authority;
 }
+/** The product's fixed-size sim guest memories, prepared under the shard's scope one per drawn frame. Repeated calls
+ *  share one preparation, so a page that builds guests before its decision authority awaits this first: each Memory it
+ *  would allocate cold is an iOS JSC full GC inside a hook, and the later preparation's copies then go unused. */
+export function prepareProductDecisionMemories(ctx: ShardContext): Promise<void> {
+  const descriptor = outputDescriptor(ctx.product.shardfile);
+  if (descriptor === undefined) return Promise.reject(new Error('Decision memories require a verified product'));
+  return waitFor('Prepare decision Wasm memories', prepareDecisionMemories(scriptAdmissionRows(descriptor.sections).filter(row => row.side === 'sim').map(row => row.pages), ctx.scope), 'wasm');
+}
+
 /** Prepare flag-free species guests before the page builds its bodies. All physics, contacts and fixed ticks
  * come from the existing page. Flag-using guests must use the quest-bound catalogue instead of this port.
  */
@@ -62,7 +71,7 @@ export async function pageDecisionAuthority(ctx: ShardContext): Promise<SpeciesD
     if (file?.name === undefined) throw new Error('Decision module has no admitted logical file');
     assets.set(hash, await ctx.product.file(file.name));
   }));
-  await waitFor('Prepare decision Wasm memories', prepareDecisionMemories(scriptAdmissionRows(descriptor.sections).filter(row => row.side === 'sim').map(row => row.pages), ctx.scope), 'wasm');
+  await prepareProductDecisionMemories(ctx);
   let authority: SpeciesDecisionAuthority | undefined;
   return { bind: (actor, row, body) => {
     const world = ctx.game.runtime?.world, physics = ctx.app.physics, health = ctx.app.player;

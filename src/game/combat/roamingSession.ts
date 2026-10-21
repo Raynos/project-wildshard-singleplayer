@@ -6,6 +6,7 @@ import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
 import { installBossEncounter, PageCombatSession, type BossEncounter } from '../Boss';
 import { Elites, GroundTell, type EliteRule } from '../Elite';
 import { installRoamingBossProjection } from '../boss/roamingProjection';
+import { prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
 import { enteredHeldLoadout } from '../loadout/held';
 import { HeldFinishes } from '../loadout/finishes';
 import { HeldLauncher } from '../plugin/heldLauncher';
@@ -67,6 +68,8 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
     canSee: (from, to) => context.app.physics === null || lineOfSight(context.app.physics, from, to, .6),
   }, eliteUi, source.identity.slug, persistence.elites));
   const eliteRows = await readEliteFeature(context.product, rows.elites);
+  // The elite fights' spawn scripts take the prepared memories the boss projection's authority would prepare after them.
+  await prepareProductDecisionMemories(context);
   const eliteFeature = context.scope.run(() => installEliteFeaturePage(game, animals, player, sky, elites, parked, eliteRows, source.identity.seed, play.hud, rows.session.god));
   const fight = await installRoamingBossProjection(context, rows.projection);
   const night = (): boolean => ctx.night() > rows.availability;
