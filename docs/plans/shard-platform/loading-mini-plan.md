@@ -32,7 +32,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **O2 — accepted `de6833b8b7`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3 — done; accepted `32cde80543`, receipts `fd69ae2b29`, pushed** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4 — accepted `de6833b8b7`; source `0f63b7b167`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
-| **O5 — accepted `61e45099ae`; receipts `7e37b39b44`; source pushed; receipt/tick carrier pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
+| **O5 — accepted `61e45099ae`; receipts `7e37b39b44`; source, receipts and tick pushed** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6 — accepted `f8f5ee9a9d`; ordinary native receipt `28302b9183`; 20.7 s approximate target accepted; pushed** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
@@ -558,3 +558,8 @@ documented with the native post-chain pause retained openly. The accepted
 Chromium warm cache-pressure residual and actual-wire denominator remain.
 Source/API and O6 acceptance are verified on `origin/main` at `6b0ab1dd8f`;
 the final O5 evidence and this tick are with the normal carrier.
+
+Final carrier verification: `origin/main` at `b9cabb4aeb` includes O5 source,
+API, evidence `7e37b39b44` and final row tick `6cf6d4e51b`. Every loading
+row is accepted and pushed with its local gates green. No CI/deploy wait
+is added; the recorded Chromium warm residual remains accepted explicitly.

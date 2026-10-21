@@ -1,0 +1,69 @@
+{
+  "sourceRevision": "dbd454c443e8733266296ed92d26c4e4412c8c10",
+  "snapshotCommit": "e954900567166dfff680ad38a2c3a20377335fe5",
+  "focusedTests": 11,
+  "batchSeconds": 527.9,
+  "m2": {
+    "ready": 0,
+    "fail": 0,
+    "unknown": 10,
+    "total": 10,
+    "shards": [
+      "_template",
+      "blender-template",
+      "driftwood-isle",
+      "far-reach",
+      "ink-cel-valley",
+      "nalati-grasslands",
+      "nine-dragon-stack",
+      "pastel-plain",
+      "pine-hollow",
+      "sunscar-dunes"
+    ],
+    "plots": 15
+  },
+  "checks": {
+    "focused": {
+      "proof": {
+        "id": "20261021T073657-ruler-x21-focused-types-69081",
+        "label": "ruler-x21-focused-types",
+        "state": "passed",
+        "rc": 0,
+        "startedAt": 1792586217,
+        "endedAt": 1792586232,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T073657-ruler-x21-focused-types-69081.log",
+        "pane": "wT:p3",
+        "command": "python3 tmp/loading-lane/check-x21-focused.py"
+      },
+      "logSHA256": "9483534dd290c7b51e1f5bcb2bd7b7005a68b91ad2ce88879b89904c0459b210"
+    },
+    "refresh": {
+      "proof": {
+        "id": "20261021T073834-ruler-x21-refresh-80525",
+        "label": "ruler-x21-refresh",
+        "state": "passed",
+        "rc": 0,
+        "startedAt": 1792586314,
+        "endedAt": 1792586507,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T073834-ruler-x21-refresh-80525.log",
+        "pane": "wT:p3",
+        "command": "python3 tmp/loading-lane/refresh-x21-ruler.py"
+      },
+      "logSHA256": "7655b19d5a76a8278f84c334020955ccabb235bcabb1523610de18caf34b233a"
+    },
+    "batch": {
+      "proof": {
+        "id": "20261021T073834-ruler-x21-source-batch-80424",
+        "label": "ruler-x21-source-batch",
+        "state": "passed",
+        "rc": 0,
+        "startedAt": 1792586314,
+        "endedAt": 1792586842,
+        "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T073834-ruler-x21-source-batch-80424.log",
+        "pane": "wT:p3",
+        "command": "python3 tmp/loading-lane/check-x21-batch.py"
+      },
+      "logSHA256": "e4594ab465c2858cd16225b807b9fbe99da2ed566307d50c067a56c3db39d8a6"
+    }
+  }
+}
