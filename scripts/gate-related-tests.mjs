@@ -76,7 +76,7 @@ export function scriptScenarioTests(changed, tests) {
 /** Disk readers have no import edge to the author modules that publish their bytes.
  * @param {string[]} changed @param {Record<string, string[]>} registry @returns {string[]} */
 export function productReaderTests(changed, registry) {
-  const shared = changed.some(file => /^(?:src\/(?:sdk|format)\/|scripts\/(?:build-shardfiles\.mjs|shardfile-cache\.mjs|gate-test-products\.json)$)/u.test(file));
+  const shared = changed.some(file => /^(?:src\/(?:sdk|format)\/|scripts\/(?:build-shardfiles\.mjs|shardfile-cache\.mjs|test-products\.json)$)/u.test(file));
   return Object.entries(registry).filter(([, slugs]) => shared || changed.some(file => slugs.some(slug =>
     file.startsWith(`src/shards/${slug}/`) || file.startsWith(`public/assets/${slug}/`))))
     .map(([test]) => test).sort((a, b) => a.localeCompare(b));
@@ -133,7 +133,7 @@ if (isMain) {
   }
   const scenarioDir = resolve(ROOT, 'test/scripts');
   const scenarios = existsSync(scenarioDir) ? readdirSync(scenarioDir).filter(file => file.endsWith('.test.ts')).map(file => `test/scripts/${file}`) : [];
-  const registryPath = existsSync(resolve(ROOT, 'scripts/gate-test-products.json')) ? resolve(ROOT, 'scripts/gate-test-products.json') : resolve(import.meta.dirname, 'gate-test-products.json');
+  const registryPath = existsSync(resolve(ROOT, 'scripts/test-products.json')) ? resolve(ROOT, 'scripts/test-products.json') : resolve(import.meta.dirname, 'test-products.json');
   /** @type {Record<string, string[]>} */
   const products = JSON.parse(readFileSync(registryPath, 'utf8'));
   const live = process.argv.includes('--live');

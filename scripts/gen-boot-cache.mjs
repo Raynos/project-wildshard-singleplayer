@@ -4,12 +4,12 @@ import fs, { existsSync, globSync as globPaths, lstatSync, mkdirSync, readFileSy
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
 import { dirname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { inputValue, treeEntries } from './gate-cache.mjs';
+import { inputValue, treeEntries } from './input-snapshot.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const preloaded = process.execArgv.some((arg, i) => arg === '--import'
   && typeof process.execArgv[i + 1] === 'string' && resolve(process.execArgv[i + 1]) === import.meta.filename);
-const modules = new Set([`F ${import.meta.filename}`, `F ${resolve(ROOT, 'scripts/gate-cache.mjs')}`]);
+const modules = new Set([`F ${import.meta.filename}`, `F ${resolve(ROOT, 'scripts/input-snapshot.mjs')}`]);
 /** @type {Set<string> | null} */
 let reads = null;
 /** @type {Set<string> | null} */
@@ -135,7 +135,7 @@ export function generateBootTablesCached(inputRoot, cache, run) {
     if (!existsSync(object) || bytesHash(readFileSync(object)) !== hash) writeFileSync(object, bytes);
     outputs[file] = hash; entries.push(`F ${file}`);
   }
-  for (const file of ['scripts/gen-boot-cache.mjs', 'scripts/gate-cache.mjs', 'pnpm-lock.yaml', 'package.json',
+  for (const file of ['scripts/gen-boot-cache.mjs', 'scripts/input-snapshot.mjs', 'pnpm-lock.yaml', 'package.json',
     ...['engine', 'game', 'sdk', 'format', 'commons'].map(layer => `src/${layer}/package.json`)]) {
     if (existsSync(resolve(root, file))) entries.push(`F ${file}`);
   }

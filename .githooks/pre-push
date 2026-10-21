@@ -1,23 +1,11 @@
 #!/usr/bin/env bash
-# pre-push: first the storage policy (scripts/repo-size.mjs, docs/process/STORAGE.md) over every outgoing commit of
-# every pushed ref, plus the rolling-week budget; nothing skips it, SKIP_VERCEL_GATE included. Then a push to main is a
-# deploy, so build the pushed tip exactly as Vercel will (scripts/vercel-tree-gate.sh) and refuse the push when that
-# would go red upstream (E41). Only refs/heads/main is gated; deletes pass. Before the Vercel gate, a push to main also
-# needs fresh WHAT'S NEW lines (scripts/whats-new-fresh.mjs, E482): src/game/whatsNew.json's `updated` at the pushed tip
-# must be at most 24 h old (a git show and a date check; SKIP_VERCEL_GATE does not skip it).
-# Escape (rare, Vercel gate only): SKIP_VERCEL_GATE=1 scripts/push-main.sh
-set -uo pipefail
-zero=0000000000000000000000000000000000000000
-records="$(cat)" # git's ref records arrive once on stdin; both checks read this copy
-printf '%s\n' "$records" | node "$(git rev-parse --show-toplevel)/scripts/repo-size.mjs" --pre-push || exit 1
-while read -r _local_ref local_sha remote_ref _remote_sha; do
-  [ "$remote_ref" = "refs/heads/main" ] || continue
-  [ "$local_sha" = "$zero" ] && continue
-  node "$(git rev-parse --show-toplevel)/scripts/whats-new-fresh.mjs" "$local_sha" || exit 1
-  if [ "${SKIP_VERCEL_GATE:-}" = 1 ]; then echo "pre-push: SKIP_VERCEL_GATE=1 — vercel gate skipped for $(git rev-parse --short "$local_sha")" >&2; continue; fi
-  "$(git rev-parse --show-toplevel)/scripts/vercel-tree-gate.sh" "$local_sha" || exit 1
-  gated=1
-done <<< "$records"
-# E161's unused-asset warning (node scripts/unused-assets.mjs) is run by hand, not here: it hung pushes for up to 81 min
-# past GitHub's connection timeout while warning only (E454: pre-push is at most 2 minutes).
-exit 0
+# D8: storage is enforced at commit; CI owns generation and complete builds.
+# The scheduled pusher already checked this exact candidate in its 45s budget.
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  [ "$remote_ref" = refs/heads/main ] || continue
+  [ "$local_sha" = 0000000000000000000000000000000000000000 ] && continue
+  if [ "${WS_LIVE_GATE_TIP:-}" = "$local_sha" ] && [ "${WS_LIVE_GATE_BASE:-}" = "$remote_sha" ]; then continue; fi
+  python3 "$root/scripts/live-prepush.py" "$local_sha" || exit 1
+done

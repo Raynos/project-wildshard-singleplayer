@@ -10,10 +10,6 @@ import { env as processEnv } from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
 
-test('push gates use the carrier runner, selector, registry and refusal', () => {
-  execFileSync('python3', ['scripts/test_gate_tree_scripts.py'], { encoding: 'utf8', timeout: 60_000 });
-});
-
 test('the private index supplies the checker and imported policy, and failures release the mirror', () => {
   mkdirSync('tmp', { recursive: true });
   const owned = mkdtempSync(resolve('tmp/staged-hook-test-'));

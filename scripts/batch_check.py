@@ -43,8 +43,8 @@ def check_sources(root, sha, base):
             run(['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *lintable])
         selected = run(['node', 'scripts/gate-related-tests.mjs', str(changes)], stdout=subprocess.PIPE, text=True)
         tests = json.loads(selected.stdout.strip().splitlines()[-1])
-        registry = json.loads((tree / 'scripts/gate-test-products.json').read_text())
-        products = runpy.run_path(str(root / 'scripts/local-gate.py'))['required_test_products'](tests, registry)
+        registry = json.loads((tree / 'scripts/test-products.json').read_text())
+        products = runpy.run_path(str(root / 'scripts/test_products.py'))['required_test_products'](tests, registry)
         env = dict(os.environ, WS_VITEST_MAX_WORKERS='4')
         if products:
             run(['python3', 'scripts/heavy-lane.py', 'build', '--', 'node', 'scripts/build-shardfiles.mjs',

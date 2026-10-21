@@ -23,7 +23,15 @@ if [ "${LEDGER_AUTOCOMMIT:-0}" != 1 ] && ! git -C "$repo" diff --quiet HEAD -- "
   echo "  - dirty sweep ledger deferred until parent PID $PPID exits" >&2
 fi
 
-# No automatic push (Jake, 2026-10-15): a commit stays local until someone runs scripts/push-main.sh. The SF74 W14
-# auto-pusher started a full push gate and a production deploy after every commit.
+# D8's CI watcher maps each committed revision to its actual lane/pane.
+python3 - "$common/commit-lanes.jsonl" <<'LEDGER'
+import json, os, subprocess, sys, time
+sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+row = {'sha': sha, 'pane': os.environ.get('HERDR_PANE_ID'),
+       'lane': os.environ.get('WS_COMMIT_LANE'), 'at': int(time.time())}
+with open(sys.argv[1], 'a') as stream:
+    stream.write(json.dumps(row, separators=(',', ':')) + '\n')
+LEDGER
 
+# launchd owns push cadence; commits never wait for an upload.
 exit 0

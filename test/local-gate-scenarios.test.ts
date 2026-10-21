@@ -5,8 +5,8 @@ import { execFileSync } from 'node:child_process';
 test('selected disk readers require exactly their published products', () => {
   const result = execFileSync('python3', ['-c', `
 import json, runpy
-select = runpy.run_path('scripts/local-gate.py')['required_test_products']
-registry = json.load(open('scripts/gate-test-products.json'))
+select = runpy.run_path('scripts/test_products.py')['required_test_products']
+registry = json.load(open('scripts/test-products.json'))
 cases = [
  ['test/scripts/_template-boss.test.ts'],
  ['test/unit.test.ts', 'test/scripts/far-reach-roc.test.ts'],
@@ -37,7 +37,7 @@ test('old carriers skip a checkout-only checker and new carriers run their own',
 import json, runpy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-command = runpy.run_path('scripts/local-gate.py')['custom_section_growth_command']
+command = runpy.run_path('scripts/test_products.py')['custom_section_growth_command']
 Path('tmp').mkdir(exist_ok=True)
 with TemporaryDirectory(dir='tmp') as temporary:
  root = Path(temporary).resolve()
