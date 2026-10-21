@@ -31,7 +31,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **O1 — done `02fb4e4288`, `8f220455e8`, `94bf308bc1`** | Grid edges read from each neighbour's product index only, not the whole product (today 3,237 requests, 137.5 MB, 75.7 s) | `grid/edgeSources.ts:73-86`, `grid/products.ts:42-60`, `grid/session.ts:305-322` | 0.5 day |
 | **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`, `bf332be4cc`; batch green `bd459dadaf`; native warm/cadence proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3** | Home region reads files in parallel / prefetched from the product's file list (today one request in flight for 25 s) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
-| **O4** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
+| **O4 — source `0f63b7b167`, API `4c025e81bd`; served proof pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
 | **O5 — pulled forward: `b2e4c86d92`; desktop AO repair `32cde80543` first frames green; native warm/full acceptance pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes) | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
@@ -255,11 +255,30 @@ SHARD SELECT passes in 26.6 s with a 352.7 ms gap. Both byte errors are
 under 0.05%. The viewed phone portrait and compact receipts are committed
 in [`post-ao-fix-32cde80`](../../../progress/loading/g543/post-ao-fix-32cde80/README.md)
 (`1e53d45c22`). The old queued matrix was cancelled before launch when
-this regression was confirmed. One source batch on the repair is pending;
-the corrected native cold/warm proof still owns O2 and warm L2/L8 closure.
+this regression was confirmed. The repair's one exact-SHA source batch
+passed in 345.4 s; the corrected native cold/warm matrix still owns O2
+and warm L2/L8 closure.
 
 Carrier verification: `origin/main` at `62556d91e3` includes the accepted
 `8264f6dca2` cold build, its receipt/plan and O2 source through `bf332be4cc`.
 The Phase 1 cold rows above are pushed; their old pending-push notes were
 historical. The newer post warm-up and `32cde80543` repair are still carrier
 pending. Native warm acceptance and the remaining optimization rows stay open.
+
+O6 inspection distinguishes production encoding from local preview bytes.
+The three largest live Driftwood GLBs return HTTP 200 with Brotli; the
+14.61 MB hibiscus GLB transfers a 3.96 MB encoded body. The local preview
+serves those GLBs without that encoding, and its retained network counters
+remain accurate for that server. Raw meshopt savings alone therefore do
+not justify replacing the SDK's existing compressed-size selection. A
+like-for-like Brotli comparison follows before any payload change; no
+compression, content, tier, admission or cap policy has changed here.
+
+O4 source `0f63b7b167` refills each of the same four immutable transport
+slots immediately after verification. A refusal stops new launches and
+drains every started read before authored-order refusal or publication.
+Reservation, byte/hash checks and the one page-wide GLTF parser are
+unchanged. The held-oldest regression fails on the old waves and passes
+on the new window; strict lint and 40 product/descriptor/residency tests
+pass. API notes are `4c025e81bd`. Its next batch and served proof remain
+separate from the in-flight exact-`32cde80543` cache acceptance matrix.
