@@ -1,4 +1,4 @@
-/** Independent transport bytes are supplied by the browser protocol, never the displayed counter. */
+/** Independent transport bytes come from the HTTP observer, never the displayed counter. */
 export function accuracyReport(accuracy, networkBytes) {
   const final = accuracy.final;
   const seconds = duration => {

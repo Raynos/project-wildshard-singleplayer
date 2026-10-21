@@ -15,8 +15,8 @@ Phase 1 is accepted.
 
 | Row | What | Code (from the audit) | Effort (est.) |
 |---|---|---|---|
-| **L1 — source `0e5a42feb3`; proof pending** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
-| **L2 — source `56b1bdf71`; parity proof pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
+| **L1 — source `0e5a42feb3`; Chromium first-frame proof green at `e1799246dd`; final gate pending** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
+| **L2 — source `56b1bdf71`; Chromium byte parity green (1.46% / 4.07%); Simulator pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
 | **L3 — source `583123db2a`; proof pending** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
 | **L4 — source `c54a3c5c54`; proof pending** | A step table per load path (grid, shardfile, legacy) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
 | **L5 — source `7d02e8806a`; cadence proof pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
@@ -38,5 +38,8 @@ Phase 1 is accepted.
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
 
 The L1 receipt at `0e5a42feb3` stalled in Props for 240 s (no first frame).
-Rows account for 238.1 / 239.9 s. sp-x8 is checking the decode-bound cause;
-keep first-frame acceptance open, and carry any remaining Props cost into O6.
+Rows account for 238.1 / 239.9 s. It did not recur at `e1799246dd`:
+SHARD SELECT first frame 33.5 s and grid 32.8 s. Stage sums are 33.769 /
+32.824 s; observed HTTP byte errors 1.46% / 4.07%. Cadence remains open
+(1.69 / 1.24 s), with shader/first-frame and assembly gaps retained in
+`tmp/loading-lane/current-chromium/` until final evidence is committed.
