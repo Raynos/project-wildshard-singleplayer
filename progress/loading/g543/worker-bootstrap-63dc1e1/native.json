@@ -1,0 +1,160 @@
+{
+  "base": "http://127.0.0.1:56781",
+  "results": [
+    {
+      "phase": "register",
+      "version": "first",
+      "requests": [
+        {
+          "path": "/sw.js",
+          "version": "first",
+          "status": 200,
+          "bodyBytes": 95,
+          "etag": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+          "requestCache": {
+            "serviceWorker": "script"
+          }
+        },
+        {
+          "path": "/sw-core/de81a3a179d84880998235b1a923d678d585005f66ee7c53e102b40bd1e24feb.js",
+          "version": "first",
+          "status": 200,
+          "bodyBytes": 32265,
+          "etag": "\"de81a3a179d84880998235b1a923d678d585005f66ee7c53e102b40bd1e24feb\"",
+          "requestCache": {}
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "unchanged-same-process",
+      "registrationMode": "all",
+      "requests": [
+        {
+          "path": "/sw.js",
+          "version": "first",
+          "status": 304,
+          "bodyBytes": 0,
+          "etag": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+          "requestCache": {
+            "ifNoneMatch": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+            "serviceWorker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "phase": "unchanged-restart-navigation",
+      "requests": []
+    },
+    {
+      "mode": "all",
+      "phase": "unchanged-after-restart",
+      "registrationMode": "all",
+      "requests": [
+        {
+          "path": "/sw.js",
+          "version": "first",
+          "status": 304,
+          "bodyBytes": 0,
+          "etag": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+          "requestCache": {
+            "ifNoneMatch": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+            "serviceWorker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "changed-body",
+      "registrationMode": "all",
+      "requests": [
+        {
+          "path": "/sw.js",
+          "version": "other",
+          "status": 200,
+          "bodyBytes": 95,
+          "etag": "\"7faa40071e849f668a945e1eb19d96043f97ff58b726a553660a406caba1e753\"",
+          "requestCache": {
+            "ifNoneMatch": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+            "serviceWorker": "script"
+          }
+        },
+        {
+          "path": "/sw-core/23290def7f88a34bc8b1ce393be106c30ec9fcce91fd580d639c692ac5035c91.js",
+          "version": "other",
+          "status": 200,
+          "bodyBytes": 32265,
+          "etag": "\"23290def7f88a34bc8b1ce393be106c30ec9fcce91fd580d639c692ac5035c91\"",
+          "requestCache": {}
+        }
+      ]
+    },
+    {
+      "phase": "changed-core-reached-client",
+      "version": "other"
+    }
+  ],
+  "requests": [
+    {
+      "path": "/sw.js",
+      "version": "first",
+      "status": 200,
+      "bodyBytes": 95,
+      "etag": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+      "requestCache": {
+        "serviceWorker": "script"
+      }
+    },
+    {
+      "path": "/sw-core/de81a3a179d84880998235b1a923d678d585005f66ee7c53e102b40bd1e24feb.js",
+      "version": "first",
+      "status": 200,
+      "bodyBytes": 32265,
+      "etag": "\"de81a3a179d84880998235b1a923d678d585005f66ee7c53e102b40bd1e24feb\"",
+      "requestCache": {}
+    },
+    {
+      "path": "/sw.js",
+      "version": "first",
+      "status": 304,
+      "bodyBytes": 0,
+      "etag": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+      "requestCache": {
+        "ifNoneMatch": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+        "serviceWorker": "script"
+      }
+    },
+    {
+      "path": "/sw.js",
+      "version": "first",
+      "status": 304,
+      "bodyBytes": 0,
+      "etag": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+      "requestCache": {
+        "ifNoneMatch": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+        "serviceWorker": "script"
+      }
+    },
+    {
+      "path": "/sw.js",
+      "version": "other",
+      "status": 200,
+      "bodyBytes": 95,
+      "etag": "\"7faa40071e849f668a945e1eb19d96043f97ff58b726a553660a406caba1e753\"",
+      "requestCache": {
+        "ifNoneMatch": "\"91258cacb3eeabc2d01b7eb6e771d62fbeba3ff4122487653ed0470723ce6c3b\"",
+        "serviceWorker": "script"
+      }
+    },
+    {
+      "path": "/sw-core/23290def7f88a34bc8b1ce393be106c30ec9fcce91fd580d639c692ac5035c91.js",
+      "version": "other",
+      "status": 200,
+      "bodyBytes": 32265,
+      "etag": "\"23290def7f88a34bc8b1ce393be106c30ec9fcce91fd580d639c692ac5035c91\"",
+      "requestCache": {}
+    }
+  ]
+}

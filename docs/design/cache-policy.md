@@ -19,7 +19,8 @@ files that must always check freshness.
 | `/basis/(.*)` | `public, max-age=2592000` | Reserved for the KTX2/Basis transcoder (P1). Unhashed, versioned with the static cache like the art. |
 | `/(.*).hdr` → `image/vnd.radiance`, `/(.*).glb` → `model/gltf-binary`, `/(.*).gltf` → `model/gltf+json`, `/(.*).ktx2` → `image/ktx2`, `/(.*).webmanifest` → `application/manifest+json` | `Content-Type` | Vercel's default MIME table serves `.hdr` / `.ktx2` as `application/octet-stream`; the loaders do not care, but Safari's PWA install and the SW's `content-length` byte accounting are happier with real types, and `.webmanifest` must be `application/manifest+json` for the iOS home-screen install. |
 | `/`, `/index.html` | `no-store` | The service worker owns the document (cache-first with a background revalidate). A cached `index.html` in the HTTP cache would pin an old build id and an old entry chunk beneath the worker. |
-| `/sw.js` | `no-cache` | Registration uses `updateViaCache: 'all'`, so every update consults the HTTP cache and this header requires ETag revalidation. An unchanged script returns 304 with no body; a changed script returns its full current bytes for the browser to compare. This retains immediate update discovery without re-downloading the unchanged worker on warm visits. |
+| `/sw.js` | `no-cache` | A tiny bootstrap imports the exact SHA-256-named worker core. Registration uses `updateViaCache: 'all'`; explicit ETag revalidation returns 304, and a browser-owned unconditional check transfers only the bootstrap. Changing core bytes changes the import URL and bootstrap, preserving update discovery. |
+| `/sw-core/(.*)` | `public, max-age=31536000, immutable` | Each filename is the SHA-256 of its complete stamped worker source. The browser reuses an unchanged imported core through its HTTP cache; changed bytes get a new path and are fetched in full. |
 | `/version.json` | `no-store` | The title-screen build pill (`src/engine/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
 | `/asset-index.json` | `no-store` | The byte table the loading screen sums; regenerated every build. Network-first in the SW with the last copy as the offline fallback. |
 | `/asset-manifest.json` | `no-store` | E160 / E161: every file under `public/assets` (packs included) → its content hash (sha256, first 8 hex). What the build names: the worker reads it on `activate` to keep exactly those entries and drop the rest. Fetched by the worker only, never by the page. |
@@ -36,7 +37,7 @@ They expire on three different clocks, which is why there are three:
 | `ws-static-<assetsHash>` | `/assets/**` that is not the hashed bundle: the boot packs, the art, the bakes, every `.m4a` under `/assets/music|sfx/**`; `/basis/**`, `/fonts/**` (precached at install since E44), root icons — what the loading bar streams, cached as it passes through, plus the other shards' boot files (E158, below) | keyed by a hash of the `public/assets` (+ basis, fonts) files' **content** (E160; it was list + sizes, so a same-size edit kept the name). A JS-only deploy keeps the whole cache. An asset change names a new cache, and `activate` **carries over by content**: a `<path>?v=<h>` entry while `/asset-manifest.json` still says `h`, a content-named file (a pack part, `<name>-<hash8>.m4a`) while the manifest lists it, an unversioned entry only when its body hashes to the manifest's `h` (it moves to the `?v=` key). Everything else is dropped and counted (E161: `[sw] gc: freed … MB` in the worker's console, `gc` in the VERSION reply). Before E160 the migration matched decoded **size** (a same-size re-bake stayed stale, which is why the baked files were purged on every activate) and skipped the packs (absent from `asset-index.json`): every asset deploy re-downloaded every pack. |
 | `ws-shell-<build>` | `index.html`, `manifest.webmanifest`, `asset-index.json` | keyed by the build id (`<sha>-<content hash>`); dropped on `activate` of the next build |
 
-`__BUILD_ID__` in `sw.js` is `vite.config.ts`'s `BUILD_ID` **plus** a content hash of the emitted
+`__BUILD_ID__` in the imported worker core is `vite.config.ts`'s `BUILD_ID` **plus** a content hash of the emitted
 files + the `public/` list, so an identical rebuild is the same worker (the browser does not
 reinstall a byte-identical `sw.js`) and the player's cache survives it.
 
@@ -132,6 +133,15 @@ no validators and transfer the full unchanged script; neither page nor
 worker Resource Timing exposes that response. The independent wire
 observer retains it. Its measured 20,743-byte net shortfall is reported
 for a coordinator decision, not replaced with a guessed script credit.
+
+The coordinator's follow-up decision shrinks that unobservable request:
+the top-level `sw.js` contains only `importScripts` with a SHA-256 core URL.
+An unchanged core has a one-year immutable HTTP policy and registration
+keeps `updateViaCache: 'all'`. A changed core changes the bootstrap URL;
+the browser fetches that new source and installs its new worker normally.
+This reduces the missed request's cost without adding estimated bytes to
+the counter. The real-worker regression checks same-length core changes
+reach the controlled client and unchanged updates do not fetch the core.
 
 ## iOS eviction (gauntlet `PWA_OFFLINE.md` §4.1)
 
