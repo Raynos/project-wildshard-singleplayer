@@ -9,7 +9,7 @@ import type { HUD } from '../src/engine/ui/HUD';
 import { parseRuntimeSpawns } from '../src/format/runtimeSpawns';
 import { arenaRoomFight } from '../src/game/boss/arenaRoom';
 import { NALATI_RUNTIME_SPAWNS } from '../src/shards/nalati-grasslands/generators/spawns';
-import { expect, test } from 'vitest';
+import { expect, test,vi } from 'vitest';
 import { parse } from 'valibot';
 import { PatrolViewSchema } from '../src/format/encounterRows';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
@@ -109,6 +109,17 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
   let support:Animal|null=null,supportChecked=false;
   try {
+    const chain=data.clocks.schedules.find(row=>row.id===data.clocks.volley.launcher);if(chain===undefined)throw new Error('Missing real chain clock');
+    const initial=chain.law.initial['cd'];chain.law.initial['cd']=0;fight.reset(2);fight.begin(2);fight.body.setVisible(true);
+    const raised=vi.spyOn(weather.weather,'raise'),random=app.rng.stream('ai'),before=random.snapshot();
+    fight.update(.05,0,true);expect(random.snapshot()).toEqual(before);
+    fight.update(.05,.05,true);const paused=random.snapshot();fight.update(1,1,false);expect(random.snapshot()).toEqual(paused);
+    for(let i=0;i<45;i++){owner.mount.horse=horse;owner.mount.feet.copy(f.player.position);fight.update(.1,2+i*.1,true);}
+    expect(raised).toHaveBeenCalledTimes(7);raised.mockClear();fight.reset(0);
+    for(let i=0;i<20;i++)fight.update(.1,8+i*.1,false);
+    expect(raised).not.toHaveBeenCalled();raised.mockRestore();
+    if(initial===undefined)throw new Error('Missing native chain cooldown');chain.law.initial['cd']=initial;
+    fight.reset(0);
     e.brain.arm();
     for (let frame = 0; frame < 12000 && e.brain.state !== 'victory'; frame++) {
       const dt = 1 / 30, t = frame * dt;

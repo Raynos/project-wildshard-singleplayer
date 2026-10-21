@@ -245,3 +245,19 @@ Runtime TS: **shards 0 / platform -16**; build TS **+12**; AS/data **0**
 focused suites pass, including real boss play, native shared patterns,
 named JSON admission and unchanged life/damage/tell/boundary decisions.
 No collider descriptors, visuals, resource limits, codec or budgets change.
+
+
+X4 arena clocks: delete the complete ArenaEncounter wrapper and its
+separate landing array and timer. The actual native chain/tell roster
+owns each landing continuation; existing ProjectedState samples the
+unchanged AS gate at ten Hz. Preserve shared clock reads, source order,
+borrowed AI draws, twelve-position trail, delayed landings and reset.
+Native arena remains Nalati-only HOST-BAR 4/6/C4, fully charged; no
+optional dispatcher or fixture grants credit. ProjectedState retains
+real Nalati + Nine HOST-BAR 6/6; no new host API is added.
+Physical runtime TS: **shards 0 / platform -20**; build/AS/data **0**.
+Remove wrapper-only clock fixtures; strengthen the actual mounted Titan
+fight with sub-step RNG, paused RNG, exactly seven delayed strikes and
+reset cancelling pending strikes, then retain both full victory traces.
+Root/layer types, typed lint and five focused suites pass.
+No collider descriptors, visuals, codec, resources or budgets change.
