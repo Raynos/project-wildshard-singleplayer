@@ -29,7 +29,7 @@ export interface ForestStoryRows {
     readonly height: number; readonly radius: number; readonly ammunition: { readonly loadout: string; readonly kind: string };
     readonly notices: { readonly claimed: string; readonly filled: string; readonly progress: string } };
   readonly cable: { readonly id: string; readonly scene: string; readonly trolley: string; readonly prompt: Triple; readonly radius: number; readonly label: string;
-    readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string };
+    readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string; readonly audio: string; readonly shot: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */
   readonly mover: { readonly id: string; readonly mesh: string; readonly binding: { readonly systemId: string; readonly bindings: NonNullable<MoverInstallation['borrowed']>['rows'] }; readonly rest: string };
   readonly secret: { readonly scene: string; readonly flag: string; readonly text: string; readonly floorY: number; readonly mid: Triple; readonly mouths: Triple[] };

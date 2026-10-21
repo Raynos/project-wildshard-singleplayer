@@ -107,10 +107,14 @@ const entrySystem = v.strictObject({ id: entryId, before: v.pipe(v.array(entryId
   after: v.optional(v.pipe(v.array(entryId), v.maxLength(64)), []) });
 const entryDeaths = v.strictObject({ effects: v.unknown(), order: v.pipe(finite, v.integer()),
   moves: v.optional(v.pipe(v.array(v.strictObject({ effect: entryId, target: entryId })), v.maxLength(64)), []) });
+const cableSound = v.strictObject({ at: v.union([entryId, point]), sound: v.picklist(['lever', 'plate']) });
 const entryCable = v.strictObject({ mode: entryId, carriage: entryId,
   scene: v.strictObject({ kind: v.picklist(['placement', 'object']), id: entryId }),
   prompt: v.union([entryId, point]), radius: v.pipe(finite, v.minValue(Number.MIN_VALUE)), label: entryId,
-  camera: v.optional(v.boolean(), false) });
+  camera: v.optional(v.boolean(), false),
+  feedback: v.exactOptional(v.strictObject({ weapons: v.picklist(['visible', 'enabled']),
+    start: cableSound, end: cableSound, arrival: v.exactOptional(entryId),
+    shot: v.exactOptional(v.strictObject({ audio: entryId, family: entryId, at: v.union([entryId, point]) })) })) });
 const entryTrader = v.strictObject({ rows: v.unknown(), resources: v.exactOptional(v.strictObject({
   figure: entryId, counter: entryId, offer: entryId, label: entryId,
   radius: v.pipe(finite, v.minValue(0), v.maxValue(100)), before: v.pipe(v.array(entryId), v.maxLength(64)),
@@ -120,6 +124,8 @@ export interface QuestCableView {
   readonly group: Object3D; readonly placed: Placed | null; readonly trolley: Mesh;
   readonly prompt: ReturnType<ReturnType<typeof cableModes>['bindView']>;
   readonly cables: ReturnType<typeof cableModes>; readonly mode: string;
+  /** Advance the original mode and drain its feedback once at the caller's phase. */
+  readonly update: (dt: number) => void;
 }
 /** Prepared services retain the entered story's original state owners. */
 export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
@@ -184,11 +190,29 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
       const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
       const placed = cable.scene.kind === 'placement' ? await scenes.place(cable.scene.id) : null;
       requireLive();
+      const feedback = cable.feedback, play = runtime.play;
+      if (feedback !== undefined && play === null) throw new Error('Cable feedback requires its entered play owners');
+      const audio = feedback?.shot === undefined ? null : runtime.objects[feedback.shot.audio];
+      if (feedback?.shot !== undefined && (!(audio instanceof DeclaredAmbience) || !audio.sfx.acceptsShot(feedback.shot.family))) throw new Error('Cable feedback requires its declared sound bank');
+      const at = (value: string | v.InferOutput<typeof point>): Vector3 => typeof value === 'string' ? scenes.vector(value) : new Vector3(value.x, value.y, value.z);
+      const start = feedback === undefined ? null : at(feedback.start.at), end = feedback === undefined ? null : at(feedback.end.at);
+      const shotAt = feedback?.shot === undefined ? null : at(feedback.shot.at), sfx = play === null ? null : new InteractSfx(play.audio);
       const group = placed?.object ?? scenes.object(cable.scene.id), trolley = scenes.mesh(cable.carriage);
       const position = typeof cable.prompt === 'string' ? scenes.vector(cable.prompt) : new Vector3(cable.prompt.x, cable.prompt.y, cable.prompt.z);
       const prompt = cables.bindView(cable.mode, trolley, world.player, { position, radius: cable.radius, label: cable.label }, cable.camera ? world.game.camera : undefined);
       world.game.scene.add(group); runtime.interactables.push(prompt);
-      return { group, placed, trolley, prompt, cables, mode: cable.mode };
+      return { group, placed, trolley, prompt, cables, mode: cable.mode, update: dt => {
+        if (ctx.scope.disposed) return;
+        cables.update(cable.mode, dt);
+        if (feedback === undefined || play === null || sfx === null) return;
+        for (const on of cables.takeTransitions(cable.mode)) {
+          play.weapons.visible = !on;
+          if (feedback.weapons === 'enabled') play.weapons.setEnabled(!on);
+          if (on && audio instanceof DeclaredAmbience && feedback.shot !== undefined && shotAt !== null) audio.sfx.shot(feedback.shot.family, { at: shotAt });
+          sfx.interact(on ? feedback.start.sound : feedback.end.sound, (on ? start : end) ?? undefined);
+          if (!on && feedback.arrival !== undefined) play.hud.toast(feedback.arrival);
+        }
+      } };
     },
     deaths: deathInput => {
       if (!isJsonData(deathInput)) throw new Error('Quest deaths require JSON rows');

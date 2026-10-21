@@ -66,7 +66,7 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { w.hud.toast(text); },
     item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
     calls: new Map(rows.services.map(id => [id, () => { services.run(id); }])) });
-  return { entry, rows, shell, world, h, scope, d, w, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx };
+  return { entry, rows, shell, world, h, scope, d, w, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit };
 }
 const preparations = new WeakMap<Scope, Map<string, Awaited<ReturnType<typeof preparePage>>>>();
 /** Prepare the real placement/interaction owners before borrowed figures enter.
@@ -81,7 +81,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const id = v.parse(QuestPageCompositionSchema, input).id, page = preparations.get(ctx.scope)?.get(id);
   if (page === undefined || ctx.scope.disposed) throw new Error('Quest page is not prepared');
   preparations.get(ctx.scope)?.delete(id);
-  const { entry, rows, h, scope, d, w, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
+  const { entry, rows, h, scope, d, w, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit } = page;
   const adventure: QuestPageComposition = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   await entry.achievements();
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
@@ -104,16 +104,11 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   w.ironDrop?.bindGuardFlags(flags.all);
   {
     const cable = await entry.cable({ mode: rows.cable.mode, carriage: rows.cable.carriage, scene: { kind: 'placement', id: rows.cable.scene },
-      prompt: rows.cable.prompt, radius: rows.cable.radius, label: rows.cable.label });
+      prompt: rows.cable.prompt, radius: rows.cable.radius, label: rows.cable.label,
+      feedback: { weapons: 'visible', start: { sound: 'lever', at: rows.cable.a }, end: { sound: 'plate', at: rows.cable.b } } });
     if (cable.placed === null) throw new Error('Quest cable requires its declared placement');
     const zip = { ...cable, placed: cable.placed, a: scenes.vector(rows.cable.a), b: scenes.vector(rows.cable.b) };
-    w.game.onUpdate((dt) => {
-      zip.cables.update(zip.mode, dt);
-      for (const on of zip.cables.takeTransitions(zip.mode)) {
-        h.weapons.visible = !on;
-        sfx.interact(on ? 'lever' : 'plate', on ? zip.a : zip.b);
-      }
-    }, rows.systems.cable);
+    w.game.onUpdate(cable.update, rows.systems.cable);
     adventure.zipline = zip;
     adventure.setAnchor(rows.cable.publish, { x: scenes.vector(rows.cable.anchor).x, z: scenes.vector(rows.cable.anchor).z });
   }

@@ -6716,6 +6716,12 @@ point or literal coordinates and optional camera roll. Both entered quest
 pages use this same intake; it preserves their update phases, completion flags
 and native save envelopes. Scene ownership remains with the resident, and
 leaving during asynchronous admission refuses before binding the player.
+Its `update(dt)` advances the same cable continuation at the caller's existing
+system phase. Optional JSON feedback rows drain each start/end transition once:
+weapon visibility (and optional enable state), positional lever/plate sounds,
+an optional admitted ambience shot, and arrival text. Feedback preflights the
+entered play and named audio owners before binding the view. It adds no clock,
+save state or movement law; a disposed view cannot advance the cable.
 
 `trader(rows)` installs the existing talk-opened or placed shop binding.
 Optional resource ids name an entered figure, counter, offer signal and

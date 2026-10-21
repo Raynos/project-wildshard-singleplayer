@@ -45,17 +45,23 @@ test('quest cable intake borrows the installed mode, trolley and scene lifetime'
     const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(drift.identity.slug) },
       { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
     const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, platforms: [] };
+    const feedback: string[] = [], enabled: boolean[] = [];
+    const weapons = { visible: true, setEnabled: (on: boolean) => { enabled.push(on); } };
+    const play = { weapons, audio: { voices: { play: (id: string) => { feedback.push(id); } } }, hud: { toast: (text: string) => { feedback.push(text); } } };
     const prompts: ReturnType<ReturnType<typeof installCableModes>['bindView']>[] = [];
-    Object.defineProperty(ctx.game, 'runtime', { value: { world: { player, registry: new WorldRegistry(), game: { scene, camera }, sky: { setupMaterial: () => undefined } }, interactables: prompts } });
+    Object.defineProperty(ctx.game, 'runtime', { value: { world: { player, registry: new WorldRegistry(), game: { scene, camera }, sky: { setupMaterial: () => undefined } }, play, objects: {}, interactables: prompts } });
     try {
       const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
       const modesOwner = installCableModes(scope, modes.traverse, entry.flags), mode = modes.traverse[0];
       if (mode === undefined) throw new Error('Missing authored cable');
       const scenes = await installWorldScenes(ctx, section), trolley = scenes.mesh('cable.carriage');
       const rows = { mode: mode.id, carriage: 'cable.carriage', scene: modes === PINE_MODES ? { kind: 'object', id: 'cable.root' } : { kind: 'placement', id: 'cable.placement' },
-        prompt: modes === PINE_MODES ? { x: 3, y: 7, z: 9 } : 'cable.prompt', radius: 2.4, label: 'Ride', camera: modes === PINE_MODES };
+        prompt: modes === PINE_MODES ? { x: 3, y: 7, z: 9 } : 'cable.prompt', radius: 2.4, label: 'Ride', camera: modes === PINE_MODES,
+        feedback: { weapons: modes === PINE_MODES ? 'enabled' : 'visible', start: { sound: 'lever', at: 'cable.prompt' },
+          end: { sound: 'plate', at: { x: 3, y: 7, z: 9 } }, arrival: 'Arrived' } };
       await expect(entry.cable({ ...rows, mode: 'missing' })).rejects.toThrow('Unknown cable mode');
       await expect(entry.cable({ ...rows, prompt: () => new Vector3() })).rejects.toThrow('JSON rows');
+      await expect(entry.cable({ ...rows, feedback: { ...rows.feedback, shot: { audio: 'missing', family: 'zipline', at: 'cable.prompt' } } })).rejects.toThrow('declared sound bank');
       expect(prompts).toEqual([]); expect(scene.children).toEqual([]);
       const view = await entry.cable(rows);
       expect(view.cables).toBe(modesOwner); expect(view.trolley).toBe(trolley);
@@ -65,12 +71,20 @@ test('quest cable intake borrows the installed mode, trolley and scene lifetime'
       expect(prompts).toEqual([view.prompt]); expect(scene.children).toEqual([view.group]);
       const initial = modesOwner.snapshot(mode.id);
       view.prompt.onInteract(); expect(modesOwner.state(mode.id).riding).toBe(true);
-      expect(view.prompt.radius).toBe(0); view.cables.update(mode.id, .1);
+      expect(view.prompt.radius).toBe(0); view.update(.1);
       expect(modesOwner.snapshot(mode.id)).not.toEqual(initial);
-      expect(view.cables.takeTransitions(mode.id)).toEqual([true]);
+      expect(weapons.visible).toBe(false); expect(feedback).toEqual(['ui-lever']);
+      expect(enabled).toEqual(modes === PINE_MODES ? [false] : []);
+      view.update(.1); expect(feedback).toEqual(['ui-lever']);
+      for (let i = 0; i < 10000 && modesOwner.state(mode.id).riding; i++) view.update(.1);
+      expect(modesOwner.state(mode.id)).toEqual({ riding: false, atEnd: true });
+      expect(weapons.visible).toBe(true); expect(feedback).toEqual(['ui-lever', 'ui-plate', 'Arrived']);
+      expect(enabled).toEqual(modes === PINE_MODES ? [false, true] : []);
+      expect(view.cables.takeTransitions(mode.id)).toEqual([]);
       await expect(entry.cable(rows)).rejects.toThrow('already bound');
       expect(prompts).toEqual([view.prompt]);
       scope.dispose(); expect(scene.children).toEqual([]);
+      view.update(1); expect(feedback).toEqual(['ui-lever', 'ui-plate', 'Arrived']);
       await expect(entry.cable(rows)).rejects.toThrow('scene admission');
     } finally { scope.dispose(); }
   }

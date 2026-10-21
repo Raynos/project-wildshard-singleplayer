@@ -115,11 +115,16 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
 
   const cableId = rows.cable.id;
   let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> };
+  let updateCable: (dt: number) => void;
   let canoe: { group: THREE.Mesh };
   let motion: MoverRuntime;
   {
     const cable = await entry.cable({ mode: cableId, carriage: rows.cable.trolley, scene: { kind: 'object', id: rows.cable.scene },
-      prompt: { x: rows.cable.prompt[0], y: rows.cable.prompt[1], z: rows.cable.prompt[2] }, radius: rows.cable.radius, label: rows.cable.label, camera: true });
+      prompt: { x: rows.cable.prompt[0], y: rows.cable.prompt[1], z: rows.cable.prompt[2] }, radius: rows.cable.radius, label: rows.cable.label, camera: true,
+      feedback: { weapons: 'enabled', start: { sound: 'lever', at: { x: rows.cable.launch[0], y: rows.cable.launch[1], z: rows.cable.launch[2] } },
+        end: { sound: 'plate', at: { x: rows.cable.landing[0], y: rows.cable.landing[1], z: rows.cable.landing[2] } }, arrival: rows.cable.arrival,
+        shot: { audio: rows.cable.audio, family: rows.cable.shot, at: { x: rows.cable.top[0], y: rows.cable.top[1], z: rows.cable.top[2] } } } });
+    updateCable = cable.update;
     zip = { trolley: cable.trolley, prompt: cable.prompt };
     const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
     canoe = { group: floor.resources.mesh(rows.mover.mesh) };
@@ -167,14 +172,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
     talks.update(dt, t, pp);
-    {
-      cables.update(cableId, dt);
-      for (const on of cables.takeTransitions(cableId)) {
-        h.weapons.visible = !on; h.weapons.setEnabled(!on);
-        if (on) { shot('zipline', new THREE.Vector3(...rows.cable.top)); kitSfx.interact('lever', new THREE.Vector3(...rows.cable.launch)); }
-        else { kitSfx.interact('plate', new THREE.Vector3(...rows.cable.landing)); hud.toast(rows.cable.arrival); }
-      }
-    }
+    updateCable(dt);
     for (const event of motion.takeRideTransitions(rows.mover.id)) {
       h.weapons.visible = !event.riding; h.weapons.setEnabled(!event.riding);
       const rest = h.cabins.resources.object(rows.mover.rest);
