@@ -140,6 +140,8 @@ export interface LiveGridSessionState {
   readonly runtimeTiming: ReturnType<HybridRuntimeSession['timings']>;
   /** Committed synchronous transitions; approach preparation wall intervals remain separate. */
   readonly crossingTiming: ReturnType<GridCrossingSession['crossing']['timings']>;
+  /** O20: each road crossing's entered-callback leave (ms) before its source region retires */
+  readonly leaveTiming?: readonly { instance: string; leaveMs: number }[];
   readonly crossingLoading: readonly ReturnType<typeof crossingLoadingRows>[];
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
   readonly hoverCap: number | null; readonly homeActive: boolean | null;
@@ -199,6 +201,7 @@ export class LiveGridSession {
   private homeSim: GridHomeSimulation | null = null;
   private readonly runtimeScope: Scope;
   private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
+  private readonly leaveTiming: { instance: string; leaveMs: number }[] = [];
   private readonly runtimeResidents = new Map<string, HybridResident>();
   private readonly runtimeEntries: TrustedRuntimeEntry[] = [];
   private readonly hybrid: HybridRuntimeSession;
@@ -387,7 +390,9 @@ export class LiveGridSession {
       return this.startedRuntimes.has(instance) ? runtime.loadout : { ...runtime.loadout, checkpoint: flush };
     }, this.ports.scope, (from, to) => {
       if (this.page.ownedHome !== true || to !== null || from === null) return;
+      const leaveStart = diagnosticNow();
       gridCells.leave(); // entered callbacks must finish before their retained native world retires
+      this.leaveTiming.push({ instance: from, leaveMs: diagnosticNow() - leaveStart }); if (this.leaveTiming.length > 16) this.leaveTiming.shift();
       this.live.unload(from); // false retains the full source claim and the next materialization fence
     });
   }
@@ -877,7 +882,7 @@ export class LiveGridSession {
 
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
-    return { bootPrograms: this.bootPrograms, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
+    return { bootPrograms: this.bootPrograms, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
       hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }

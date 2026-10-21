@@ -5,6 +5,7 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import { TraversalReadiness, readinessModel, type ReadinessBundle, type ReadinessLink, type ReadinessTicket } from '@wildshard/engine/sim/readiness';
 import type { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
 import { CHUNK_HALF, ENTRY_WIDTH } from '@wildshard/engine/core/config';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './allocator';
 import type { PreparedGridCrossing } from './crossing';
@@ -75,6 +76,8 @@ export interface LiveGridState {
   residents: readonly string[]; pending: readonly string[]; issues: Readonly<Record<string, string>>;
   gameplayReady: boolean;
   continuations: { entries: number; storedChars: number; capacityChars: number; claimedBytes: number };
+  /** O20: the latest region retirements, how long each one's checkpoint and disposal took (ms) */
+  retirements?: readonly { instance: string; checkpointMs: number; disposeMs: number }[];
 }
 interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; exclusiveRuntime: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean; outsideSince?: number }
 
@@ -128,6 +131,7 @@ export class LiveGridHost {
   private readonly saved = new GridContinuationCache();
   private readonly cacheLease: ResidencyLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
+  private readonly retirements: { instance: string; checkpointMs: number; disposeMs: number }[] = [];
   private readonly products = new Map<string, LiveGridAdmission>();
   private readonly productRequests = new Map<string, Promise<LiveGridAdmission>>();
   private readonly issues = new Map<string, string>();
@@ -486,11 +490,14 @@ export class LiveGridHost {
   prepareUnload(instance: string): ResidencyEviction | null {
     const resident = this.residents.get(instance);
     if (resident === undefined || this.disposed || instance === this.active || resident.reservations > 0 || resident.evicting) return null;
+    const checkpointStart = diagnosticNow();
     try { if (!resident.disposalFailed && !this.checkpoint(instance)) return null; } catch { return null; }
+    const checkpointMs = diagnosticNow() - checkpointStart;
     resident.evicting = true; let closed = false;
     return { abort: () => { if (closed) return; closed = true; resident.evicting = false; }, commit: () => {
       if (closed) return; closed = true;
-      try { resident.region.dispose(); }
+      const disposeStart = diagnosticNow();
+      try { resident.region.dispose(); this.retirements.push({ instance, checkpointMs, disposeMs: diagnosticNow() - disposeStart }); if (this.retirements.length > 16) this.retirements.shift(); }
       catch (error) {
         resident.evicting = false; resident.disposalFailed = true; resident.lease.update({ needed: true });
         this.readiness.invalidate(instance); this.issues.set(`cleanup:${instance}`, error instanceof Error ? error.message : String(error)); return;
@@ -540,7 +547,7 @@ export class LiveGridHost {
     } };
   }
   /** Read-only crossing evidence and failures for the real grid physics harness. */
-  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
+  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), retirements: this.retirements.map(row => ({ ...row })), continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
   /** Return the traveller to its page world before retiring regions. Failed disposals keep their full claims
    * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {
