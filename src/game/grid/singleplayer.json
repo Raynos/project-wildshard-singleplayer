@@ -451,179 +451,158 @@
           0,
           -1
         ]
-      }
-    ],
-    "plots": [
+      },
       {
         "instance": "open-plot-nw",
+        "slug": "open-plot-night-market",
         "cell": [
           -1,
           1
-        ],
-        "billboard": "night-market",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-sw",
+        "slug": "open-plot-frostline-peaks",
         "cell": [
           -1,
           -1
-        ],
-        "billboard": "frostline-peaks",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-se",
+        "slug": "open-plot-lantern-bayou",
         "cell": [
           1,
           -1
-        ],
-        "billboard": "lantern-bayou",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-0-0",
+        "slug": "open-plot-coral-drift",
         "cell": [
           -2,
           -2
-        ],
-        "billboard": "coral-drift",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-1-0",
+        "slug": "open-plot-night-market",
         "cell": [
           -1,
           -2
-        ],
-        "billboard": "night-market",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-2-0",
+        "slug": "open-plot-sky-race",
         "cell": [
           0,
           -2
-        ],
-        "billboard": "sky-race",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-3-0",
+        "slug": "open-plot-desert-ruin",
         "cell": [
           1,
           -2
-        ],
-        "billboard": "desert-ruin",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-4-0",
+        "slug": "open-plot-alien-plain",
         "cell": [
           2,
           -2
-        ],
-        "billboard": "alien-plain",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-0-1",
+        "slug": "open-plot-lantern-bayou",
         "cell": [
           -2,
           -1
-        ],
-        "billboard": "lantern-bayou",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-4-1",
+        "slug": "open-plot-ember-forge",
         "cell": [
           2,
           -1
-        ],
-        "billboard": "ember-forge",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-0-2",
+        "slug": "open-plot-ember-forge",
         "cell": [
           -2,
           0
-        ],
-        "billboard": "ember-forge",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-4-2",
+        "slug": "open-plot-mosslight-ruins",
         "cell": [
           2,
           0
-        ],
-        "billboard": "mosslight-ruins",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-0-3",
+        "slug": "open-plot-mosslight-ruins",
         "cell": [
           -2,
           1
-        ],
-        "billboard": "mosslight-ruins",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-4-3",
+        "slug": "open-plot-clockwork-canyon",
         "cell": [
           2,
           1
-        ],
-        "billboard": "clockwork-canyon",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-0-4",
+        "slug": "open-plot-frostline-peaks",
         "cell": [
           -2,
           2
-        ],
-        "billboard": "frostline-peaks",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-1-4",
+        "slug": "open-plot-thin-ice",
         "cell": [
           -1,
           2
-        ],
-        "billboard": "thin-ice",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-2-4",
+        "slug": "open-plot-showcase-template",
         "cell": [
           0,
           2
-        ],
-        "billboard": "showcase-template",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-3-4",
+        "slug": "open-plot-starfall-observatory",
         "cell": [
           1,
           2
-        ],
-        "billboard": "starfall-observatory",
-        "hoverSpeedClass": "road"
+        ]
       },
       {
         "instance": "open-plot-4-4",
+        "slug": "open-plot-sky-harbor",
         "cell": [
           2,
           2
-        ],
-        "billboard": "sky-harbor",
-        "hoverSpeedClass": "road"
+        ]
       }
     ],
     "developer": [
@@ -656,14 +635,6 @@
         "slug": "nine-dragon-stack",
         "cell": [
           1,
-          -1
-        ]
-      },
-      {
-        "instance": "open-plot-ember-forge",
-        "slug": "open-plot-ember-forge",
-        "cell": [
-          2,
           -1
         ]
       }
