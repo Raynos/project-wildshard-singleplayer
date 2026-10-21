@@ -39,6 +39,7 @@ import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { TIER } from '../core/tier';
 import { NO_AUDIO, type LevelAudioProfile, type LevelAudioBank } from '../audio/levelAudio';
 import { bootAudioFiles } from './audioInventory';
+import { loadingUnits, waitFor } from './waits';
 
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
@@ -169,7 +170,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
   // Cache Storage is unavailable; all other styles/sets remain in the service worker's offline cache.
   const selectedBytes = new Map<string, ArrayBuffer>();
-  const downloads = urls.map(async (url) => {
+  const downloads = urls.map(url => waitFor(`Read audio ${url}`, (async () => {
     try {
       await whenPrefetched(url);
       const response = await fetch(url);
@@ -179,7 +180,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
       downloaded.add(url);
     } catch { downloaded.delete(url); /* a missing sound keeps its synth fallback */ }
     c.tick();
-  });
+  })(), 'file'));
   let decoding: Promise<AudioBanks> | undefined;
   return {
     style,
@@ -189,17 +190,28 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
       decoding = (async () => {
         await Promise.all(downloads);
         let tail: Promise<void> = Promise.resolve();
+        const addresses = new WeakMap<ArrayBuffer, string>(), ready = new Set<string>();
+        const progress = loadingUnits('Prepared audio clips', selected.size);
+        progress(0);
         // decodeStyle and decodeSfxSet both start every file at once. Gate their decoder, not their reads,
         // so WebKit never holds dozens of simultaneous native PCM outputs during this memory A/B.
         const oneAtATime = (bytes: ArrayBuffer): Promise<AudioBuffer> => {
-          const next = tail.then(async () => { await macrotask(); return decodeBytes(bytes); });
+          const next = tail.then(async () => {
+            await macrotask();
+            const buffer = await waitFor('Decode selected audio clip', decodeBytes(bytes));
+            const address = addresses.get(bytes);
+            if (address !== undefined) { ready.add(address); progress(ready.size); }
+            return buffer;
+          });
           tail = next.then(() => undefined, () => undefined);
           return next;
         };
         const read = (url: string): Promise<ArrayBuffer> => {
           const bytes = selectedBytes.get(url);
           if (!bytes) return Promise.reject(new Error(`${url} was not downloaded during the loading bar`));
-          return Promise.resolve(bytes.slice(0)); // decodeAudioData detaches its argument
+          const copy = bytes.slice(0); // decodeAudioData detaches its argument
+          addresses.set(copy, url);
+          return Promise.resolve(copy);
         };
         try {
           const bank = await (profile ?? NO_AUDIO).decode(style, read, oneAtATime);
