@@ -1,7 +1,7 @@
 import PINE_SKY from '../data/sky.json' with { type: 'json' };
 import { parseChapterDirector, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import native from '../data/nativeStory.json' with { type: 'json' };
-import bindings from '../data/directorBindings.json' with { type: 'json' };
+import director from '../data/director.json' with { type: 'json' };
 
 /** The director publishes closed chapter effects; the existing sky owns phase keys. */
 export const CHAPTER_DIRECTOR = parseChapterDirector({
@@ -134,13 +134,13 @@ export const CHAPTER_DIRECTOR = parseChapterDirector({
 /** Preserve the original renderer-free projection, including its quiet
  * presentation-only events, using the same closed chapter contract. */
 export const NATIVE_CHAPTER_DIRECTOR = parseChapterDirector({ ...CHAPTER_DIRECTOR,
-  actions: Object.fromEntries(Object.entries(bindings.actions).map(([event, calls]) => {
+  actions: Object.fromEntries(director.events.filter(row => row.direction === 'output').map(({ key: event }) => {
     const effects: ChapterDirectorRows['actions'][string] = [];
     for (const publication of native.clock.publications) if (publication.event === event) {
       if (publication.kind === 'phase' && 'to' in publication) {
-        const call = calls.find(row => row.args[0] === event), seconds = call?.args[1];
-        if (typeof seconds !== 'number') throw new Error('Missing original native phase duration');
-        effects.push({ kind: 'phase', to: publication.to, seconds });
+        const phase = CHAPTER_DIRECTOR.actions[event]?.find(effect => effect.kind === 'phase');
+        if (phase === undefined) throw new Error('Missing declared native phase duration');
+        effects.push({ kind: 'phase', to: publication.to, seconds: phase.seconds });
       } else if (publication.kind === 'flags' && 'flags' in publication) {
         for (const flag of publication.flags) effects.push({ kind: 'flag', flag });
       } else if ('flag' in publication) effects.push({ kind: 'flag', flag: publication.flag, ...(publication.kind === 'clear' ? { value: false } : {}) });

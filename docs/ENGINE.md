@@ -10580,6 +10580,11 @@ page keeps its original step-edge requests; native keeps its original
 per-tick step requests and flag-change delivery. Pine's main director product
 no longer publishes the unused reflected bindings payload (`bindings` is
 null); the existing module, stage contract and cursor remain unchanged.
+The producer derives output identities from the admitted AS declaration
+and phase durations from the closed chapter actions. The original reflected
+binding bytes live only in the compatibility fixture; they are no longer
+an authoring or runtime input. That fixture still drives the unchanged
+legacy director/state comparison, alongside the actual native replay.
 
 The renderer-free `game/quest/storyLaw.questPhaseSpan` and `questPhaseAt`
 share the forward clock arc between Pine's native/page watch and Driftwood's

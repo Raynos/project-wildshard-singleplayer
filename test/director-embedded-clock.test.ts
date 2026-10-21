@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import declaration from '../src/shards/pine-hollow/data/director.json';
 import module from '../src/shards/pine-hollow/behaviour/director.json';
 import rows from '../src/shards/pine-hollow/data/watchStages.json';
-import bindings from '../src/shards/pine-hollow/data/directorBindings.json';
+import bindings from './fixtures/pine-director-bindings.json' with { type: 'json' };
 import { Flags } from '../src/engine/world/interact/flags';
 import { pineDirectorClock } from './fixtures/director-pine/stageClock';
 
