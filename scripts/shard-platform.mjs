@@ -562,6 +562,9 @@ const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1
 /** Read documented general hosts backed by a real future user or an explicit day-one approval.
  * @param {string} root @returns {import('./shard-platform.mjs').PendingPlatformUser[]} */
 export function pendingPlatformUsers(root) {
+  return readPendingPlatformUsers(root,(path,source)=>moduleSymbols(parseSync(path,source).program));
+}
+function readPendingPlatformUsers(root,symbolsFor) {
   const file=resolve(root,'lint/platform-pending-users.json');
   if(!existsSync(file))return [];
   const entries=v.parse(PendingUsers,JSON.parse(readFileSync(file,'utf8'))).entries
@@ -580,7 +583,7 @@ export function pendingPlatformUsers(root) {
     const source=readFileSync(resolve(root,entry.module),'utf8');
     if(/src\/shards\/|@wildshard\/shards\/|sunscar-dunes|far-reach|driftwood-isle|pine-hollow|nalati-grasslands|nine-dragon-stack/u.test(source))
       throw new Error(`Pending feature names a shard: ${entry.module}`);
-    const symbols=moduleSymbols(parseSync(entry.module,source).program);
+    const symbols=symbolsFor(entry.module,source);
     if(entry.export!==undefined&&!symbols.exports.has(entry.export))throw new Error(`Missing pending platform export: ${key}`);
     const documentation=readFileSync(resolve(root,entry.documentation),'utf8');
     if(!documentation.includes(entry.module.replace(/^src\//u,'').replace(/\.ts$/u,'')))
@@ -636,15 +639,20 @@ const SHELL_UI_CONTROL = new Set([
 const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix => path.startsWith(prefix))
   || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
 
+// Scoped to one immutable census; no policy verdict survives another report.
+function censusMemo() {
+  return {sources:new Map(),texts:new Map(),graphs:new Map(),probes:new Map(),targets:new Map(),edges:new Map(),
+    symbols:new Map(),masks:new Map(),pending:new Map(),authored:new Map()};
+}
 /** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress @param {string} sectionProducts */
-function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out'), sources = new Map()) {
+function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out'), memo = censusMemo()) {
   const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || hasChargebackDeclarations(path);
   const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
-  const probes = new Map(), targets = new Map(), edges = new Map();
+  const {probes,targets,edges,texts,graphs,sources}=memo;
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
-  const texts = new Map(), graphs = new Map(), counts = new Map();
-  const frozen = legacyInventory(root), pendingUsers = pendingPlatformUsers(root);
+  const counts = new Map();
+  const frozen = legacyInventory(root);
   const generated = new Set(exists('scripts/generation-jobs.json') ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
   // Retained source tables also have exact producer/output identities; older tooling predates generation jobs.
   const sourceOutputs = 'scripts/source-generation-outputs.json';
@@ -667,6 +675,9 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const parseCache = process.env.WS_SHARD_PARSE_CACHE;
   const parseRecipe = parseCache ? createHash('sha256').update(readFileSync(import.meta.filename)).update(exists('pnpm-lock.yaml') ? text('pnpm-lock.yaml') : '').digest('hex') : '';
   const info = path => { if (!sources.has(path)) sources.set(path, parseCache ? cachedSourceInfo(text(path), path, parseCache, parseRecipe) : sourceInfo(text(path), path)); return sources.get(path); };
+  const symbolsOf = path => { if (!memo.symbols.has(path)) memo.symbols.set(path, info(path).symbols ?? moduleSymbols(info(path).tree.program)); return memo.symbols.get(path); };
+  if(!memo.pending.has(root))memo.pending.set(root,readPendingPlatformUsers(root,path=>symbolsOf(path)));
+  const pendingUsers=memo.pending.get(root);
   const shaders = path => ignored(path) ? 0 : info(path).shaderLines ?? rawShaderLines(text(path), path, RULES.typescript.test(path) && !path.endsWith('.glsl') ? info(path).tree?.program : undefined);
   const count = path => { if (!counts.has(path)) counts.set(path, ignored(path) ? 0 : (path.endsWith('.json') ? shaders(path) : path.endsWith('.glsl') ? shaderCodeLines(text(path)) : linesWithoutComments(text(path), info(path).comments))); return counts.get(path); };
   const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
@@ -706,9 +717,10 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     if (!graphs.has(path)) graphs.set(path, info(path).specs.map(spec => resolveEdge(path, spec)));
     return graphs.get(path);
   };
-  const authoredFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
+  if(!memo.authored.has(root))memo.authored.set(root,Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name)).sort((a, b) => a.name.localeCompare(b.name))
-    .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
+    .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))])));
+  const authoredFiles=memo.authored.get(root);
   // Build tools are visible debt, never a runtime root or a second runtime user.
   const buildUsers = new Map();
   for (const [slug, files] of Object.entries(authoredFiles)) {
@@ -774,9 +786,8 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   }
   // G294 per export: a module that two or more shards reach as a file still charges every top-level declaration that
   // exactly one shard reaches, through its own imports or transitively through the platform code it reaches.
-  const symbols = new Map(), masks = new Map(), bindingUsers = new Map();
+  const {masks}=memo, bindingUsers = new Map();
   const parsedTs = path => RULES.typescript.test(path) && !path.endsWith('.d.ts');
-  const symbolsOf = path => { if (!symbols.has(path)) symbols.set(path, info(path).symbols ?? moduleSymbols(info(path).tree.program)); return symbols.get(path); };
   for (const [slug, files] of consumers) {
     if (slug === RULES.template) continue;
     const rootFiles = new Set(files);
@@ -988,9 +999,9 @@ function progressLines(rows) {
  * @param {string} root @param {string} products */
 export function outputCensus(root = ROOT, products = resolve(root,'out')) {
   const closure=runtimeClosures(root),closed=Object.keys(closure).filter(slug=>closure[slug].status==='closed');
-  const sources=new Map();
-  const measures=countOutput(root,true,products,closed,false,products,sources);
-  const rows=countOutput(root,true,resolve(root,'src/shards'),Object.keys(closure),true,products,sources);
+  const memo=censusMemo();
+  const measures=countOutput(root,true,products,closed,false,products,memo);
+  const rows=countOutput(root,true,resolve(root,'src/shards'),Object.keys(closure),true,products,memo);
   const inventory=Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{...row,measurement:'source'}]));
   return {measures,inventory,source:progressLines(rows)};
 }
