@@ -43,6 +43,8 @@ export class DeclaredPanel {
   onOpen?: () => void;
   onClose?: () => void;
   private opened = false;
+  /** when it last opened (the event clock): the key press that opened it must not also close it */
+  private openedAt = 0;
   private mounted: { view: PanelView; scope: Scope } | null = null;
   private rows: Scope | null = null;
   constructor(private readonly content: () => PanelNode, private readonly owner: Scope,
@@ -67,7 +69,7 @@ export class DeclaredPanel {
     if (this.policy.closeRef !== undefined) view.on(this.policy.closeRef, 'click', e => { e.stopPropagation(); this.close(); }, scope);
     for (const event of this.policy.stopEvents ?? []) view.on('', event, e => { e.stopPropagation(); }, scope);
     if (this.policy.closeKeys !== undefined) listenPage(scope, 'keydown', e => {
-      if (!this.opened || e.repeat || !this.policy.closeKeys?.includes(e.code)) return;
+      if (!this.opened || e.repeat || e.timeStamp <= this.openedAt || !this.policy.closeKeys?.includes(e.code)) return;
       e.preventDefault(); e.stopPropagation(); this.close();
     }, { capture: true, on: 'document' });
     this.policy.bind?.(view, scope, () => { this.close(); });
@@ -85,7 +87,7 @@ export class DeclaredPanel {
   open(): void {
     if (this.opened || this.owner.disposed) return;
     if (this.mounted === null) this.mount();
-    this.opened = true; this.render();
+    this.opened = true; this.openedAt = performance.now(); this.render();
     if (this.policy.showClass !== undefined) this.view.flag('', this.policy.showClass, true);
     this.onOpen?.();
   }

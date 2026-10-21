@@ -69,6 +69,8 @@ const bare = (c: ShopCost): string => c.text.replace(/ \(\d+\)$/u, '');
 export class ShopPanel<G extends ShopGood> {
   readonly scope: Scope;
   private layer: UiHandle | null = null;
+  /** when it opened (real ms): the E press that opened it must not also close it (as DialogueBox) */
+  private openT = 0;
   private get open_(): boolean { return this.layer?.active === true; }
   /** the counter: the top (CLOSE, the title) and the G87 sheet */
   private readonly counter: HTMLDivElement;
@@ -111,7 +113,7 @@ export class ShopPanel<G extends ShopGood> {
     app.input.bind('nav.left', () => { this.flip(-1); }, this.scope, onTop);
     app.input.bind('nav.right', () => { this.flip(1); }, this.scope, onTop);
     app.input.bind('confirm', () => { this.tryBuy(); }, this.scope, onTop);
-    app.input.bind('use', () => { this.close(); }, this.scope, onTop);
+    app.input.bind('use', () => { this.close(); }, this.scope, () => onTop() && app.clock.real * 1000 - this.openT >= 150);
     mountUi(this.counter, this.scope);
   }
 
@@ -128,7 +130,7 @@ export class ShopPanel<G extends ShopGood> {
     const first = this.o.goods.findIndex((g) => this.o.state(g) !== 'owned');
     this.i = first === -1 ? 0 : first;
     this.render();
-    this.layer = app.ui.push('modal', { root: this.counter, order: -40, back: () => { this.close(); } }, this.scope);
+    this.layer = app.ui.push('modal', { root: this.counter, order: -40, back: () => { this.close(); } }, this.scope); this.openT = app.clock.real * 1000;
     this.hideHud(true);
     this.counter.classList.add('show');
     this.onOpen?.();
