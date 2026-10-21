@@ -219,6 +219,7 @@
     "./worldSceneSurface": "./worldSceneSurface.ts",
     "./pageLife": "./pageLife.ts",
     "./worldSceneWeld": "./worldSceneWeld.ts",
+    "./worldEntry": "./worldEntry.ts",
     "./populationEnvironment": "./populationEnvironment.ts",
     "./explorerCatalogue": "./explorerCatalogue.ts",
     "./sceneDraws": "./sceneDraws.ts",

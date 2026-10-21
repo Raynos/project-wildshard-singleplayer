@@ -21,11 +21,10 @@ import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCata
 import { placeSet } from '@wildshard/engine/models/sets';
 import { type DrawnPlaced as InKitPlaced, registerDrawnInto } from '../runtime/kit/drawnInto';
 import { defineModel, sharedModelContext, type ModelContext, type ModelDef, type ModelPart, type Placement } from '@wildshard/engine/models/model';
-import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
+import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
 import { jiehuaMaterial as facadeMaterial, facadeUniforms, syncLooks } from '../look/facadeMaterial';
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
-import type { LookRows } from '../boot/lookTypes.generated';
 import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
@@ -44,7 +43,6 @@ import { loadCastLods, loadSignAtlas, loadSpill } from './casts';
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
-const canopyRows = metadata.looks.canopy as LookRows['canopy'];
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
 
 
@@ -93,6 +91,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const shared = new Shared(restoreWeave(await product.file('looks/silk-weave.r8')), (await product.json<{ readonly look: { readonly shared: ConstructorParameters<typeof Shared>[1] } }>('weapons/jian-row.json')).look.shared);
   const root = new Group();
   root.name = 'nine-dragon-stack';
+  const entry = WorldEntry.admit(await product.json<unknown>('world/entry.json'), { scenes: opts.scenes, root, tier, variant: opts.caps === true ? 'capped' : 'open' });
   // op-hitch29: the placing below runs in slices (`placeSliced` pauses between a model's levels, copies and parts; `slice()`
   // between the synchronous phases): a ~30 ms task while loading, an 8 ms work slice when a grid cell builds it in play
   const slice = slicer(30);
@@ -130,7 +129,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   ctx.kits.set('entries', entries);
   for (const row of entryCaps ? fixed.lanterns : []) ctx.lanterns.push(new Matrix4().fromArray(row));
   for (const frame of worldRows.portalLanterns) ctx.lanterns.push(new Matrix4().fromArray(worldData, frame));
-  root.add(opts.scenes.group('portals.root'));
+  await entry.run('portals');
   progress(0.3, 'signs');
   await opts.pause();
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
@@ -156,14 +155,14 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await loadSpill(kitGeos, tier, entryCaps);
   // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (its crown spilled like the kits; its
   // leaf atlas, the paint and the scroll are the step's lent textures)
-  for (const row of canopyRows.draws) lentLook(row.look).setValues(row.state);
+  await entry.run('canopy');
   if (opts.scenes.has('dressing.crown-core')) {
     const crownPart = (id: string): BufferGeometry => { const part = opts.scenes.object(`dressing.${id}`); if (!isMesh(part)) throw new Error(`Nine dressing ${id} is no mesh`); return part.geometry; };
     const crown = [['canopy-cards', crownPart('crown-cards')], ['canopy-core', crownPart('crown-core')]] as const;
     await loadSpill(crown, tier, entryCaps);
     for (const [, geometry] of crown) gpuOnlyAttributes(geometry, STATIC_GEOMETRY);
   }
-  root.add(opts.scenes.group('dressing.root'));
+  await entry.run('dressing');
   // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error
   // under SCULPT_PX px where each starts, data/lod.ts; the facade dressing's and the balustrade's thin parts dropped where
   // they are ~half a pixel wide), handed to the culler with their batches
@@ -238,9 +237,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.6, 'streaks + dressing');
 
   // the wet floor's reflection cards and the lanterns' halos: the catalogue's cards step for this deck ending
-  Object.assign(lentLook('nine-streaks'), { transparent: true, ...BLEND_ADD_KEEP_ALPHA });
-  lentLook('nine-halo').setValues((metadata.looks.light as LookRows['light']).haloState);
-  root.add(opts.scenes.group(entryCaps ? 'cards-capped.root' : 'cards-open.root'));
+  await entry.run('cards');
   await slice();
 
   // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)

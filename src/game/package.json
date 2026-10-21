@@ -248,6 +248,7 @@
     "./quest/effects": "./quest/effects.ts",
     "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts",
     "./shardfile/sceneHandles": "./shardfile/sceneHandles.ts",
+    "./shardfile/worldEntry": "./shardfile/worldEntry.ts",
     "./population/environment": "./population/environment.ts",
     "./shardfile/sceneSources": "./shardfile/sceneSources.ts",
     "./shardfile/hybridPresentation": "./shardfile/hybridPresentation.ts",
