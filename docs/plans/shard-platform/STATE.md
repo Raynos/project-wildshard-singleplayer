@@ -8,4 +8,4 @@
 
 **For wildshard-v:** G517 bug-fix exception granted to sp-o3: stateless AS return programs share one WebAssembly.Memory per page size (iOS full GC per new Memory, 40-80 ms each); please log it in WASM-HOST. Hologram board: art/grid/round-32-holograms/board.jpg (be813c67e0). G536 hero: art/grid/round-28-hero/{A,B,C} (e471dbd7ae); rec. B; fog pales far cells, a thinner capture fog is Jake's call.
 
-**Idle lanes (17:50 reply):** cause: lanes wait 20-60 min on three shared check slots, plus two briefs lost after /clear; fix: lanes/ready-queue.md (self-pull) + prepare the next cut while a check runs. **Lanes (21:55):** Opus sp-o1 far impostors; sp-o2 open plots; sp-o3 between-hooks stall; sp-o4 O6 Pine King; sp-o5 next row. Codex sp-x1 loading proof; sp-x6 X13; sp-x8 Nalati memory; sp-x9 X3 then X4; sp-x7 push.
+**Idle lanes (17:50):** fixed by lanes/ready-queue.md self-pull. **Lanes (21:55):** Opus sp-o1 far impostors; sp-o2 open plots; sp-o3 between-hooks stall; sp-o4 O6 Pine King; sp-o5 next row. Codex sp-x1 loading proof; sp-x6 X13; sp-x8 Nalati memory; sp-x9 X3 then X4; sp-x7 push.
