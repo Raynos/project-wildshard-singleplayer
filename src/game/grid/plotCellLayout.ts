@@ -1,5 +1,5 @@
 /**
- * The open plot's geometry (SHARD-PLATFORM G198 / G213 / G219), pure and Node-safe: everything `openPlot.ts` draws and
+ * The open plot's geometry (SHARD-PLATFORM G198 / G213 / G219), pure and Node-safe: everything `plotCells.ts` draws and
  * everything the platform collides with, as flat arrays in the plot's own frame (origin at the plot's centre, y up).
  *
  * A plot is a 500 × 500 m surveyed cell with no shard (G213 B: the cyan border line, four striped corner beacons with sky
@@ -49,7 +49,7 @@ export function plotEntries(billboard: PlotIdea): PlotEntries {
 type V3 = readonly [number, number, number];
 type Rgb = readonly [number, number, number];
 /** The plot's buffers, all in plot-local metres. */
-export interface OpenPlotGeometry {
+export interface PlotCellGeometry {
   /** colours are 8-bit (normalized RGB): a quarter of float bytes, and the baked light needs no more */
   readonly solid: { readonly positions: Float32Array; readonly colours: Uint8Array; readonly indices: Uint32Array };
   readonly lines: Float32Array;
@@ -221,7 +221,7 @@ function demoPieces(idea: DemoIdea): { ground: number; pieces: Piece[] } { const
 /** G539: the corner beacons' sky beams' height (m); the shorter twin stands at three quarters of it. */
 export const BEAM_TOP = 60;
 /** The plot's whole geometry for its billboard idea (the catalogue row's `billboard`). */
-export function openPlotGeometry(billboard: PlotIdea): OpenPlotGeometry {
+export function plotCellGeometry(billboard: PlotIdea): PlotCellGeometry {
   const solid = new Solid(), lines = new Lines(), holo = new Lines(), pictures = new Quads(PICTURE_ATLAS), text = new Quads(TEXT_ATLAS), cards = new Quads(PICTURE_ATLAS);
   const entries = plotEntries(billboard), H = CHUNK_HALF;
   // corner beacons (B): white-and-orange striped posts, a cyan beam to the sky
@@ -324,7 +324,7 @@ export function openPlotGeometry(billboard: PlotIdea): OpenPlotGeometry {
 }
 
 /** Bytes a plot's buffers retain (each is uploaded once: counted as JS + GPU by the caller). */
-export function openPlotBytes(g: OpenPlotGeometry): number {
+export function plotCellBytes(g: PlotCellGeometry): number {
   const arrays = [g.solid.positions, g.solid.colours, g.solid.indices, g.lines, g.pictures.positions, g.pictures.uvs, g.pictures.indices, g.text.positions, g.text.uvs, g.text.indices, g.holoLines, g.holoCards.positions, g.holoCards.uvs, g.holoCards.indices];
   return arrays.reduce((sum, a) => sum + a.byteLength, 0);
 }

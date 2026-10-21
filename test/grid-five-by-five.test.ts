@@ -4,7 +4,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { parseGridCatalogue } from '../src/game/grid/catalogue';
 import { GridContinuationCache } from '../src/game/grid/continuations';
 import { roadLayout, segmentPoint, RAIL_OFFSET } from '../src/game/grid/roadLayout';
-import { PLOT_IDEAS } from '../src/game/grid/openPlotLayout';
+import { PLOT_IDEAS } from '../src/game/grid/plotCellLayout';
 import { generatePlatform, type PlatformCell } from '../src/engine/sim/strips';
 
 const modes = [{ developer: false, devserver: false }, { developer: true, devserver: false },

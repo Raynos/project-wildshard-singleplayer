@@ -3,7 +3,7 @@
  * Each is a 500 × 500 m surveyed plot on the VR void's grid floor with a showroom at all four entries (a billboard of the
  * plot's one shard idea, a half-built demo corner, the survey sign "THIS PLOT IS YOURS TO BUILD") and a centrepiece (a
  * turning hologram of a shard being built over a stepped plinth, ringed by picture cards of every idea). The geometry is
- * `openPlotLayout.ts`; this file draws it and hands the platform its colliders.
+ * `plotCellLayout.ts`; this file draws it and hands the platform its colliders.
  *
  * Cheap on the phone by construction: per plot one floor quad (grid shader, no texture), one vertex-coloured solid mesh
  * (light baked in), one static line draw, one picture-quad draw and one text-quad draw from two shared atlases, and the
@@ -22,7 +22,7 @@ import type { StripMesh } from '@wildshard/engine/sim/strips';
 import type { GridPlot } from './assembly';
 import type { PlatformRenderAdmission } from './renderResidency';
 import { GAME_STRINGS } from '../strings';
-import { DEMO_IDEAS, FACE, PICTURE_ATLAS, PLAQUE_RECT, PLOT_IDEAS, SIGN_RECT, TEXT_ATLAS, faceRect, labelRect, openPlotBytes, openPlotGeometry, type AtlasRect, type OpenPlotGeometry, type PlotEntries, type PlotIdea } from './openPlotLayout';
+import { DEMO_IDEAS, FACE, PICTURE_ATLAS, PLAQUE_RECT, PLOT_IDEAS, SIGN_RECT, TEXT_ATLAS, faceRect, labelRect, plotCellBytes, plotCellGeometry, type AtlasRect, type PlotCellGeometry, type PlotEntries, type PlotIdea } from './plotCellLayout';
 
 /** A plot farther than this (m, from the feet to its square) is hidden whole. */
 const VISIBLE = 900;
@@ -47,9 +47,9 @@ const HOLO = new Color(0x0b9fd8);
 const DISPLAY = "'Rajdhani', 'Bahnschrift', 'DIN Alternate', 'Helvetica Neue', Arial, sans-serif", MONO = "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace";
 
 /** The platform colliders of every plot: its floor and every solid, one trimesh each in grid metres (origin = the plot centre). */
-export function openPlotColliders(plots: readonly GridPlot[]): StripMesh[] {
+export function plotCellColliders(plots: readonly GridPlot[]): StripMesh[] {
   return plots.map((plot) => {
-    const { collider } = openPlotGeometry(plot.billboard);
+    const { collider } = plotCellGeometry(plot.billboard);
     return { origin: { x: plot.origin.x, z: plot.origin.z }, positions: collider.positions, indices: collider.indices, colours: new Float32Array(collider.positions.length) };
   });
 }
@@ -153,15 +153,15 @@ export function installPlotCells(input: {
 }): { readonly step: (dt: number) => void; readonly state: () => PlotCellState } {
   const { plots, home } = input;
   if (plots.length === 0) return { step: () => undefined, state: () => ({ plots: [], pictures: 0, draws: 0, triangles: 0 }) };
-  const built = plots.map((plot) => ({ plot, geometry: openPlotGeometry(plot.billboard) }));
+  const built = plots.map((plot) => ({ plot, geometry: plotCellGeometry(plot.billboard) }));
   const canvasOk = typeof document !== 'undefined';
   const atlasBytes = canvasOk ? (PICTURE_ATLAS.w * PICTURE_ATLAS.h + TEXT_ATLAS.w * TEXT_ATLAS.h) * 4 : 0;
-  const bufferBytes = built.reduce((sum, row) => sum + openPlotBytes(row.geometry), 0) + 4 * 3 * 4 * plots.length;
+  const bufferBytes = built.reduce((sum, row) => sum + plotCellBytes(row.geometry), 0) + 4 * 3 * 4 * plots.length;
   // every buffer once each side, and the atlases' textures with mips (GPU, 4/3). The atlas canvases are construction
   // transients (the cost model's overlap allowance): each shrinks to 1 × 1 once its final content is uploaded, so only those
   // two pixels stay JS-resident (SF57: 17.3 MB of atlas GL and no resident canvas, progress/memory/sf57/calibration-243da2c5e)
   const plan = { id: 'grid.plot-cells', jsBytes: bufferBytes + (canvasOk ? 2 * 4 : 0), gpuBytes: bufferBytes + Math.ceil(atlasBytes * 4 / 3) };
-  const groups: { group: Group; holo: Group; scan: Mesh; plot: GridPlot; geometry: OpenPlotGeometry }[] = [];
+  const groups: { group: Group; holo: Group; scan: Mesh; plot: GridPlot; geometry: PlotCellGeometry }[] = [];
   let decoded = 0, draws = 0, triangles = 0, t = 0;
   let lineMaterial: LineBasicMaterial | null = null, holoMaterial: LineBasicMaterial | null = null, cardMaterial: MeshBasicMaterial | null = null, scanMaterial: MeshBasicMaterial | null = null;
   const build = (owner: Scope): void => {
@@ -192,7 +192,7 @@ export function installPlotCells(input: {
             paintFace(pg, idea, image); decoded++;
             if ('close' in image) image.close();
             settle();
-          } catch (error) { console.warn(`[grid] open plot picture ${idea}:`, error); if (!owner.disposed) settle(); }
+          } catch (error) { console.warn(`[grid] plot cell picture ${idea}:`, error); if (!owner.disposed) settle(); }
         };
         for (const idea of PLOT_IDEAS) void load(idea);
       }

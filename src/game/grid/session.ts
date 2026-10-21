@@ -84,7 +84,7 @@ import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
 import { cellScreenStatus, installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
-import { installPlotCells, openPlotColliders, type PlotCellState } from './openPlot';
+import { installPlotCells, plotCellColliders, type PlotCellState } from './plotCells';
 import type { MemoryAdmissionWarning } from '@wildshard/format/product';
 import { TIER } from '@wildshard/engine/core/tier';
 import { horizonFade } from './horizonFade';
@@ -440,7 +440,7 @@ export class GridSession {
     const nativeMesh = (mesh: CollisionMesh): CollisionMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
     for (const { mesh } of this.strips) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
-    for (const mesh of openPlotColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
+    for (const mesh of plotCellColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     try {
       this.plots = installPlotCells({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
         feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } });
@@ -664,7 +664,7 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      platform: openPlotColliders(this.assembly.plots),
+      platform: plotCellColliders(this.assembly.plots),
       residency: this.host.residency.home(),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;

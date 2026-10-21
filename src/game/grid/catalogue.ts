@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { GRID_RADIUS, GRID_CELL_COUNT } from '@wildshard/format/contentBounds';
 import { AccentSchema } from '@wildshard/format/accent';
-import { PLOT_IDEAS } from './openPlotLayout';
+import { PLOT_IDEAS } from './plotCellLayout';
 
 const id = v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const signed = v.pipe(v.number(), v.integer(), v.minValue(-GRID_RADIUS), v.maxValue(GRID_RADIUS));

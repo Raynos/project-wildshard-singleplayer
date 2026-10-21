@@ -1,7 +1,7 @@
 import catalogue from './singleplayer.json' with { type: 'json' };
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { parseGridCatalogue, type CopyIdentity, type GridMode } from './catalogue';
-import type { PlotIdea } from './openPlotLayout';
+import type { PlotIdea } from './plotCellLayout';
 
 /** A world-space or cell-local point; authoritative simulations only receive the latter. */
 export interface GridPoint { x: number; y: number; z: number }
@@ -11,7 +11,7 @@ export interface GridCell { readonly instance: string; readonly slug: string; re
   readonly identity?: CopyIdentity }
 /**
  * G198 / G219: an open plot. A platform cell with no shard: the platform draws its floor, its four entry showrooms and its
- * centrepiece (`openPlot.ts`) and owns its colliders, so it is road-like ground (never in `cells`, never a sim, a save
+ * centrepiece (`plotCells.ts`) and owns its colliders, so it is road-like ground (never in `cells`, never a sim, a save
  * namespace, a crossing or a ring tile). `billboard` is the idea every one of its billboards pictures (G529).
  */
 export interface GridPlot { readonly instance: string; readonly cell: readonly [number, number]; readonly origin: Readonly<GridPoint>; readonly billboard: PlotIdea; readonly hoverSpeedClass: 'road' }
