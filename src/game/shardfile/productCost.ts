@@ -242,14 +242,19 @@ export function jsonResidentBytes(input: unknown): number {
   if (!isJsonData(input)) throw new Error('Product residency needs bounded plain JSON');
   let heap = 0;
   const pending: unknown[] = [input];
+  // O14: a primitive is counted where it is met, never queued: the products' row arrays are mostly numbers
+  const count = (item: unknown): void => {
+    if (typeof item === 'string') heap += 24 + item.length * 2;
+    else if (typeof item === 'object' && item !== null) pending.push(item);
+    else heap += 8;
+  };
   while (pending.length > 0) {
     const value = pending.pop();
-    if (typeof value === 'string') heap += 24 + value.length * 2;
-    else if (Array.isArray(value)) { const items: readonly unknown[] = value; heap += 40 + items.length * 8; pending.push(...items); }
+    if (Array.isArray(value)) { const items: readonly unknown[] = value; heap += 40 + items.length * 8; for (const item of items) count(item); }
     else if (typeof value === 'object' && value !== null) {
       const entries = Object.entries(value); heap += 64 + entries.length * 16;
-      for (const [key, item] of entries) { heap += 24 + key.length * 2; pending.push(item); }
-    } else heap += 8;
+      for (const [key, item] of entries) { heap += 24 + key.length * 2; count(item); }
+    } else count(value);
   }
   return heap;
 }
@@ -269,11 +274,13 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
   const descriptor = outputDescriptor(source), paths = new Map(descriptor?.index.files.map(file => [file.path, file.hash]));
   const pending: unknown[] = [{ ...source, files: [], critical: [], library: [] },
     ...[...descriptor?.sections ?? []].flatMap(([name, value]) => isPlatformDataSection(name) ? [value] : [])];
+  // O14: only strings can name a file: numbers, booleans and nulls (most of a product's rows) are never queued
+  const queue = (item: unknown): void => { if (typeof item === 'string' || typeof item === 'object' && item !== null) pending.push(item); };
   while (pending.length > 0) {
     const value = pending.pop();
     if (typeof value === 'string') { const ref = paths.get(value) ?? value; if (files.has(ref)) keep.add(ref); }
-    else if (Array.isArray(value)) { const items: readonly unknown[] = value; pending.push(...items); }
-    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) pending.push(key, child);
+    else if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) queue(item); }
+    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { pending.push(key); queue(child); }
   }
   const dependencies = [...keep];
   while (dependencies.length > 0) {
