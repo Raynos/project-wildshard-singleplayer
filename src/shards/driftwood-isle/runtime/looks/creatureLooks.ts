@@ -19,24 +19,16 @@ function body(id: string): MeshStandardNodeMaterial {
   return m;
 }
 
-/** `look` drawn on the graph body: faceted, one copy of the body per animal; a species with an eye glow wears the glowing
- *  body, its glow the species' colour × intensity. */
+/** `look` drawn on its graph body: faceted, one copy of the body per animal. A species with an eye glow wears the glowing
+ *  body, its glow the species' colour × intensity; the Drowned Captain always wears his own painted body (its coat the
+ *  graph's admitted texture). */
 export function graphCreatureLook(look: SpeciesLook): SpeciesLook {
-  return { ...look, faceted: true, sharedBody: (glow) => {
+  const name = (glow: unknown): string => {
     const looks = driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS;
-    return body(glow === undefined ? looks.body : looks.glowing);
-  }, material: (_sky, glow, intensity = 1) => {
-    if (glow === undefined) return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.body).clone();
-    setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.glowing, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
-    return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.glowing).clone();
-  } };
-}
-
-/** The Drowned Captain's `look` on his graph body: faceted, his painted coat the graph's admitted texture, his eye glow the
- *  species' colour × intensity. */
-export function graphCaptainLook(look: SpeciesLook): SpeciesLook {
-  return { ...look, faceted: true, sharedBody: () => body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain), material: (_sky, glow, intensity = 1) => {
-    if (glow !== undefined) setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
-    return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain).clone();
+    return look.kind === 'captain' ? looks.captain : glow === undefined ? looks.body : looks.glowing;
+  };
+  return { ...look, faceted: true, sharedBody: (glow) => body(name(glow)), material: (_sky, glow, intensity = 1) => {
+    if (glow !== undefined) setLentParam(name(glow), 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
+    return body(name(glow)).clone();
   } };
 }
