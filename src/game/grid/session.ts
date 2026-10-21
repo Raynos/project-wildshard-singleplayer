@@ -523,7 +523,7 @@ export class GridSession {
         view.band(farBandShare(Math.hypot(Math.max(0, Math.abs(eye.x - root.position.x) - CHUNK_HALF), Math.max(0, Math.abs(eye.z - root.position.z) - CHUNK_HALF))));
       }
     };
-    host.frame?.onLate((dt) => { this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
+    host.frame?.onLate((dt) => { this.viewStep(); this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
     const tiles = neighbourTiles(host.scope, async (tile) => {
       // Patch the final shader identity before preparation; no live parent or visibility changes while it yields.
       horizon.patch(tile.group, 'outside');
@@ -540,7 +540,11 @@ export class GridSession {
       this.rings.dispose();
       for (const root of roots.values()) root.removeFromParent();
     });
-    host.onFixed((dt) => { this.step(dt); this.life.fixed(); });
+    // O15: with a drawn frame, what only draws (rings, screens, shimmer, near view) steps once a frame in the late
+    // system above, not on every 60 Hz fixed step: at the phone's 30 fps cap the second step of each frame redid it
+    // (rings.step's tile choice and its per-frame upload budget twice a frame, on Driftwood's road entry ~1.6k Simulator
+    // samples); headless hosts keep it in the fixed step
+    host.onFixed((dt) => { this.step(dt, host.frame === undefined); this.life.fixed(); });
     const homeResidency = { instance: residency.home().instance, bytes: residency.home().bytes };
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state(), roadView: () => this.roadBudget.view(), roadResident: () => this.roadBudget.resident(),
       // G144 admission receipts read the same allocator, without reserving or changing any claim.
@@ -666,28 +670,36 @@ export class GridSession {
     const feet = this.host.feet(); return { x: feet.x + this.home.origin.x, z: feet.z + this.home.origin.z };
   }
 
-  /** One fixed step: the rings from the player's world pose and velocity, then the cell events. */
-  step(dt: number): void {
+  /** One fixed step: the rings from the player's world pose and velocity, then the cell events. `view` false: the
+   *  drawn parts (`viewStep`) wait for the frame's late system. */
+  step(dt: number, view = true): void {
     const at = this.world();
     if (this.last !== null && dt > 0) { this.velocity = { x: (at.x - this.last.x) / dt, z: (at.z - this.last.z) / dt }; }
     this.last = at;
-    const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
+    const speed = Math.hypot(this.velocity.x, this.velocity.z);
     // Match L1's 400 m reach plus the rings' four-second travel lookahead. Distant
     // cells keep their baked proxy without admitting their full product at boot.
     for (const cell of this.neighbours) {
       const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
       if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) this.admitNeighbour?.(cell);
     }
-    this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
-    for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.softWalls.step();
-    this.screens.step();
-    this.shimmer.step();
+    if (view) this.viewStep();
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
-    const eye = this.host.eye?.();
-    this.near.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
     if (inside === undefined || inside.instance !== active) gridCells.leave();
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
+  }
+
+  /** What only draws, from the last fixed step's pose and velocity: the rings, the screens, the shimmer, the near view. */
+  private viewStep(): void {
+    const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
+    this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
+    for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
+    this.screens.step();
+    this.shimmer.step();
+    const active = this.live === null ? this.home.instance : this.live.live.current();
+    const eye = this.host.eye?.();
+    this.near.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
   }
 
   /** every visible neighbour is drawn now (the entry reveal's readiness, G98) */
