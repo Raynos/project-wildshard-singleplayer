@@ -19,7 +19,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **L2 — source `56b1bdf71`, worker receipts `e7f949385e`, startup replay `55b310a603`, cached section paths `0912242443`; final parity pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
 | **L3 — source `583123db2a`; proof pending** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
 | **L4 — source `c54a3c5c54`; proof pending** | A step table per load path (shardfile, grid entry, grid crossing; legacy comparison retained) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
-| **L5 — source `7d02e8806a`, shader slice `19c10b2c0c`, plot slice `ccecd7678f`, reuse `e0b3064e09`, schema yield `760a8c9846`, page queue `fb4b943579`, index batching `4313fc6482`, audio counts `21a07a76d5`; final cadence pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
+| **L5 — source `7d02e8806a`, shader slice `19c10b2c0c`, plot slice `ccecd7678f`, reuse `e0b3064e09`, schema yield `760a8c9846`, page queue `fb4b943579`, consumer paint `91a491c8a8`, parallel detail `390a57867c`, index batching `4313fc6482`, audio counts `21a07a76d5`; final cadence pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
 | **L6 — source `977a0d1303`; proof pending** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
 | **L7 — framework `04027abce7`, measured table `8dd0eeaa0e`, actual-unit fractions `09bdb72199`; final proof pending** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
 | **L8 — harness `88a252c39a`, real crossing proof `abd2957d63`; exact-build receipts pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
@@ -103,3 +103,17 @@ pass. Source batch `4313fc6482` passed in 786.1 s. Its served proof uses
 recorder v2 (`6324155e85`): wait ages cannot count as progress, while real
 byte/cache counters, dependencies and completed units do. The serialized
 recorder check and strict lint pass. Phase 1 remains open for those receipts.
+
+The `4313fc6482` receipts are retained in
+[`diagnostic-4313fc6`](../../../progress/loading/g543/diagnostic-4313fc6/README.md):
+all six entries balance their stages and bytes; five pass cadence, while phone
+grid reaches 1070.8 ms. All three surfaces pass the actual road exit and home
+re-entry, with the five crossing phases summing exactly to transition time.
+The phone profile attributes 370 ms of the remaining gap to the unchanged
+validator, followed by consumer work. `91a491c8a8` restores a paint after each
+completed validation as well as before it; `390a57867c` shows completed counts
+from parallel stages without charging their overlapping time twice. All 23
+focused tests and strict lint pass. The source batch at `390a57867c` stopped
+before loading checks because generation omitted its new snapshot helper.
+`c6a7a68b9d` repairs that staging inventory; one replacement batch and its
+dependent exact-build proof are running on `6b3f3f58ec`. Phase 1 stays open.
