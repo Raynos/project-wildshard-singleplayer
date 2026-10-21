@@ -1,5 +1,5 @@
 /** Real held input leaves the home through its south road and enters it again. */
-function installCrossingProbe() {
+export function installCrossingProbe() {
   const api = window.__wildshard, grid = api.shard.grid.state();
   const home = grid.cells.find(cell => cell.instance === grid.home);
   if (!home || grid.live?.live.current !== home.instance) throw new Error('Crossing proof needs its entered home');
@@ -21,7 +21,9 @@ function installCrossingProbe() {
     const entered = left && live?.live.current === home.instance && current.inside === home.instance;
     if (!entered && performance.now() - state.startedAt < 120000 && live) {
       const feet = live.live.worldFeet, dx = x - feet.x, dz = z - (left ? 210 : 277.5) - feet.z;
-      player.setHover(!left); player.yaw = Math.atan2(-dx, -dz); game.app.input.setHeld('move.forward', true);
+      // Keep the ordinary travel mode on both legs. Dismounting at the road
+      // boundary tests the deck's walking lip instead of transfer loading.
+      player.setHover(true); player.yaw = Math.atan2(-dx, -dz); game.app.input.setHeld('move.forward', true);
       return;
     }
     if (!entered) state.errors.push(`Crossing route did not re-enter home: ${JSON.stringify({ left, feet: live?.live.worldFeet, issues: live?.live.issues })}`);
