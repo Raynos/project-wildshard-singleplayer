@@ -24,7 +24,7 @@ export interface ForestStoryRows {
   /** `lantern`: the forest page lantern this signal lights while any of its `when` flags is set */
   readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
-  readonly door: { readonly building: string; readonly flag: string };
+  readonly door: { readonly id: string; readonly flag: string };
   readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string; readonly finishes: Readonly<Record<string, string>>;
     readonly height: number; readonly radius: number; readonly ammunition: { readonly loadout: string; readonly kind: string };
     readonly notices: { readonly claimed: string; readonly filled: string; readonly progress: string } };

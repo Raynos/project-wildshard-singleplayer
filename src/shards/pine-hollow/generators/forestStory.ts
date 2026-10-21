@@ -17,6 +17,9 @@ import { QuestPageTalksSchema } from '@wildshard/format/npcs';
 
 const triple = (input: unknown): [number, number, number] => v.parse(v.tuple([v.number(), v.number(), v.number()]), input);
 const landmarks = timbers.landmarks, board = landmarks.contractBoardSite;
+const mill = timbers.cabins.buildings.find(row => row.id === policy.door.building);
+if (mill === undefined) throw new Error('Missing declared quest building');
+const placeNames = new Set(layout.PINE_HOLLOW_POIS.map(row => row.name.toUpperCase()));
 const zip = { top: triple(landmarks.zip.top), bottom: triple(landmarks.zip.bottom), launch: triple(landmarks.zip.launch), landing: triple(landmarks.zip.landing) };
 const tower = timbers.placements.lookout, ranger = roster.ranger;
 const jumps = Object.fromEntries(Object.entries(BEATS).map(([id, beat]) => {
@@ -38,11 +41,12 @@ const finishToasts = Object.fromEntries([...new Set([...contracts.rows.flatMap(r
 export const FOREST_STORY: ForestStoryRows = {
   ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime',
   board: { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } },
+  door: { id: `cabin-${mill.index + 1}-door`, flag: policy.door.flag },
   signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2, lantern: { id: `waystone.${id}`, when: [`lit:${id}`, wardens.QUEST_DONE] } })),
   cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow', audio: 'ambience', shot: 'zipline' },
   mover: { id: 'pine.canoe', mesh: 'quest-rides.canoe', binding: { systemId: 'pine.movers', bindings: [{ id: 'pine.canoe', target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }] }, rest: 'heroes.canoe.root' },
   secret: { ...scenes.sites.hollow, mid: triple(scenes.sites.hollow.mid), mouths: scenes.sites.hollow.mouths.map(triple), scene: 'quests.hollow-log', flag: 'secret:log', text: 'Inside the fallen giant. It smells of rain and old resin' },
-  map: { pois: layout.PINE_HOLLOW_POIS, zones: layout.PINE_HOLLOW_ZONES }, jumps,
+  map: { pois: layout.PINE_HOLLOW_POIS, zones: layout.PINE_HOLLOW_ZONES.filter(zone => !placeNames.has(zone.label)) }, jumps,
 };
 export const FOREST_STORY_BLOB = nameBlob('quests/forest-story.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_STORY)));

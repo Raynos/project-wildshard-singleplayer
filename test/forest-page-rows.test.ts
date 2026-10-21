@@ -3,6 +3,9 @@ import * as v from 'valibot';
 import { ForestPageSchema, ForestGroundLayoutSchema } from '../src/format/forestPage';
 import { RangedPageSchema, ForestWeatherObservationSchema } from '../src/format/rangedPage';
 import { ForestRoofMask } from '../src/game/looks/forestRoofMask';
+import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import { CABIN_LIVING_BLOBS } from '../src/shards/pine-hollow/generators/cabinLivingContribution';
+import { BuildingLifeRowsSchema } from '../src/format/buildings';
 import { FOREST_PAGE } from '../src/shards/pine-hollow/generators/forestPage';
 import { RANGED_PAGE, WEATHER_OBSERVATIONS } from '../src/shards/pine-hollow/generators/rangedPage';
 
@@ -55,4 +58,14 @@ test('an orchard page declares its own lanterns, bounded and numeric', () => {
   expect(forest.lanterns.rows.map(row => row.id)).toEqual(['waystone.pond', 'waystone.ridge', 'waystone.den']);
   expect(() => v.parse(ForestPageSchema, { ...forest, lanterns: { ...lanterns, rows: Array.from({ length: 17 }, (_, i) => ({ id: `l${String(i)}`, at: [0, 0, 0] })) } })).toThrow();
   expect(() => v.parse(ForestPageSchema, { ...forest, lanterns: { ...lanterns, onLit: () => undefined } })).toThrow();
+});
+
+
+test('the admitted quest mill door resolves in all eight living topologies', () => {
+  expect(FOREST_STORY.door.id).toBe('cabin-7-door');
+  expect(CABIN_LIVING_BLOBS).toHaveLength(8);
+  for (const blob of CABIN_LIVING_BLOBS) {
+    const topology = v.parse(v.object({ life: BuildingLifeRowsSchema }), JSON.parse(new TextDecoder().decode(blob.bytes)));
+    expect(topology.life.doors.filter(door => door.id === FOREST_STORY.door.id)).toHaveLength(1);
+  }
 });

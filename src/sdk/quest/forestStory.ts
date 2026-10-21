@@ -81,8 +81,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   syncWheel();
   ctx.scope.onDispose(flags.onChange(f => { if (f === rows.wheel.flag) syncWheel(); }));
   const millDoor = ((): { prompt: Interactable; use: () => void } | null => {
-    const mill = floor.cabins.buildings.find((b) => b.id === rows.door.building);
-    const pieces = floor.cabins.life.doorPieces(), index = mill === undefined ? -1 : pieces.findIndex(d => d.id === `cabin-${mill.index + 1}-door`);
+    const pieces = floor.cabins.life.doorPieces(), index = pieces.findIndex(d => d.id === rows.door.id);
     const piece = pieces[index], prompt = floor.cabins.life.interactables[index];
     if (piece === undefined || prompt === undefined) return null;
     enteredWorld.registry.add({ id: `${piece.id}-bar`, name: 'Mill door bar', category: 'buildings', file: 'src/sdk/quest/forestStory.ts', surface: 'wood',
@@ -145,8 +144,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   ctx.scope.onDispose(() => { leadPuffs.dispose(); spawnPuffs.dispose(); });
 
   presentation.publishMap({ declutter: true, unknownLabel: '?', markerLabels: 'full' });
-  const placeNames = new Set(rows.map.pois.map((p) => p.name.toUpperCase()));
-  play.fullMap.setZones(rows.map.zones.filter((zn) => !placeNames.has(zn.label)));
+  play.fullMap.setZones(rows.map.zones);
   play.fullMap.setFeatures({ trees: enteredWorld.forest.trees, roofs: floor.cabins.roofs });
 
   entry.observe();
