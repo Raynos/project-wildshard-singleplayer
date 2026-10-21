@@ -1,0 +1,13 @@
+{
+  "memoryTrim": {
+    "shard": false,
+    "grid": true
+  },
+  "setCap": {
+    "shard": null,
+    "grid": {
+      "through": 1024,
+      "max": 512
+    }
+  }
+}

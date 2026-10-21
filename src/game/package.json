@@ -118,6 +118,7 @@
     "./systems/species/bear": "./systems/species/bear.ts",
     "./systems/species/boar": "./systems/species/boar.ts",
     "./shard/runtimeVariant": "./shard/runtimeVariant.ts",
+    "./shard/pagePolicy": "./shard/pagePolicy.ts",
     "./Boss": "./Boss.ts",
     "./Elite": "./Elite.ts",
     "./eliteSystem": "./eliteSystem.ts",
