@@ -1,17 +1,16 @@
 import { expect,test } from 'vitest';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { ProjectedState, ReturnProgram } from '@wildshard/game/population/returnProgram';
 import program from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with {type:'json'};
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with {type:'json'};
 
 function scenario(): { sample:(signal:string,values?:Readonly<Record<string,number>>)=>Readonly<Record<string,number>>; snapshot:()=>Record<string,number>; restore:(value:Record<string,number>)=>void } {
   const guest=ReturnProgram.page(program),start=course.pads.findIndex(pad=>pad.id===course.run.from),finish=course.pads.findIndex(pad=>pad.id===course.run.to);
   const from=course.pads[start];if(from===undefined)throw new Error('Missing real start pad');
-  let state:Record<string,number>={phase:0,started:0,elapsed:0,best:-1,checkpoint:start};
+  const host=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:start}},guest);
   const fixed={startPad:start,finishPad:finish,startX:from.x,startZ:from.z,startWidth:from.w,startDepth:from.d,
     lowest:Math.min(...course.pads.map(pad=>pad.top)),fallY:course.fallY};
-  return {snapshot:()=>({...state}),restore:value=>{state={...value};},sample:(signal,values={})=>{
-    const out=guest.project(signal,{...fixed,...state,now:0,x:from.x,y:from.top,z:from.z,pad:start,eligible:0,...values});
-    state={phase:out['phase']??0,started:out['started']??0,elapsed:out['elapsed']??0,best:out['best']??-1,checkpoint:out['checkpoint']??start};
+  return {snapshot:()=>({...host.state}),restore:value=>{host.set(value);},sample:(signal,values={})=>{
+    const out=host.event(signal,{...fixed,now:0,x:from.x,y:from.top,z:from.z,pad:start,eligible:0,...values});
     return out;
   }};
 }

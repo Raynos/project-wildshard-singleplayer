@@ -22,11 +22,11 @@ import { replaceSpecimenInstances } from '../models/specimenCatalogue';
 import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
 import { LightningStrip } from '../weapons/arcPower';
-import type { ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
-import { EncounterPatrol, EncounterSchedule, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
+import { EncounterPatrol, EncounterScheduleSchema, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
 
 const finite = v.pipe(v.number(), v.finite()), cue = v.pipe(v.string(), v.regex(/^cue\.[a-zA-Z0-9.-]+$/u)), name = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u));
 const shader = v.pipe(v.string(), v.maxLength(4096));
@@ -230,13 +230,13 @@ export interface PatrolHit<A> { readonly damage: number; readonly from: A | null
 interface Rider<A> { readonly a: A; readonly scope: Scope; readonly fades: THREE.IUniform<number>[]; readonly law: PatrolMember; readonly bone: THREE.Object3D }
 const seat = new THREE.Vector3(), back = new THREE.Vector3(), aimed = new THREE.Vector3(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), crossing = new THREE.Vector3();
 
-/** A patrol encounter drawn from rows: `EncounterPatrol` owns the law and `EncounterSchedule` the motion; this draws them. */
+/** A patrol encounter drawn from rows: `EncounterPatrol` owns the law and `ProjectedState` the motion; this draws them. */
 export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   readonly riders: Rider<A>[] = [];
   readonly patrol: EncounterPatrol<A>;
   readonly arrows: Projectiles;
   private readonly rows: v.InferOutput<typeof PatrolViewSchema>;
-  private readonly motion: EncounterSchedule;
+  private readonly motion: ProjectedState;
   private readonly time: THREE.IUniform<number> = { value: 0 };
   private readonly hits: PatrolHit<A>[] = [];
   private readonly hit: TargetHit;
@@ -245,7 +245,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   constructor(input: { readonly patrol: unknown; readonly motion: unknown; readonly view: unknown }, private readonly program: ReturnProgram,
     private readonly ports: ProjectileWorld & { readonly cues: CueDirector; readonly figures: Readonly<Record<string, THREE.BufferGeometry>> }) {
     this.rows = v.parse(PatrolViewSchema, input.view);
-    this.patrol = new EncounterPatrol<A>(input.patrol, program, app.rng.stream('ai')); this.motion = new EncounterSchedule(input.motion, program);
+    this.patrol = new EncounterPatrol<A>(input.patrol, program, app.rng.stream('ai')); this.motion = new ProjectedState(v.parse(EncounterScheduleSchema,input.motion), program);
     for (const key of Object.keys(this.rows.looks)) if (ports.figures[key] === undefined) throw new Error(`Missing patrol figure: ${key}`);
     const { geometry, colour, renderOrder, ...kind } = this.rows.arrow;
     this.arrows = new Projectiles(ports, undefined, { ...kind, geometry: new THREE.BufferGeometryLoader().parse(geometry),

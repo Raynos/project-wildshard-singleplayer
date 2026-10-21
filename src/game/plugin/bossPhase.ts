@@ -1,6 +1,6 @@
 import { easeField } from '@wildshard/engine/world/easedFields';
 import { ArenaScriptBossProfileSchema, ScriptBossProfileSchema, type ArenaScriptBossProfile, type BossProfile } from '@wildshard/format/bossProfiles';
-import type { ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import { EliteScriptLane } from './brain';
 import { createRoamingBossFight } from "../shardfile/phasedBossRoaming";
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
@@ -928,36 +928,10 @@ function bodyBossFight<B extends BodyBossActor>(profile: Extract<BossFightProfil
     restore: (saved: unknown) => { const value = v.parse(HeldContinuation, saved); hp = value.hp; invulnerable = value.invulnerable; } };
 }
 
-/** Numeric state and event admission for the existing boss host. The AS module
- * returns values only; native projections consume each event answer once. */
-export class ArenaBossScript {
-  readonly state: Record<string, number>;
-  private elapsed = 0;
-  constructor(readonly row: ArenaScriptBossProfile['fight'], private readonly program: ReturnProgram) {
-    this.state = { ...row.initial };
-    for (const field of Object.values(row.retain)) if (!(field in this.state)) throw new Error('Missing arena script state');
-  }
-  value(field: string): number { const value = this.state[field]; if (value === undefined) throw new Error('Missing arena script field'); return value; }
-  event(event: string, frame: Readonly<Record<string, number>> = {}): Readonly<Record<string, number>> {
-    const signal = this.row.signals[event]; if (signal === undefined) throw new Error('Missing arena script event');
-    const answer = this.program.project(signal, { ...this.row.parameters, ...this.state, ...frame });
-    for (const [output, field] of Object.entries(this.row.retain)) if (answer[output] !== undefined) this.state[field] = answer[output];
-    return answer;
-  }
-  reset(frame: Readonly<Record<string, number>> = {}): Readonly<Record<string, number>> {
-    this.elapsed = 0; Object.assign(this.state,this.row.initial); return this.event('reset',frame);
-  }
-  /** One decision at most every 100 ms; no catch-up burst or repeated effects. */
-  step(dt: number, frame: Readonly<Record<string, number>>): { dt: number; values: Readonly<Record<string, number>> } {
-    this.elapsed += dt; if (this.elapsed + 1e-9 < .1) return { dt: 0, values: {} };
-    const step = this.elapsed; this.elapsed = 0; return { dt: step, values: this.event('step',{ ...frame,dt: step }) };
-  }
-}
-
 const bossKind = (kind: unknown): boolean => kind === 'boss';
 
 /** Run arena lifecycle and retained state on the admitted AS decision owner. */
-export function bossFight(profile: ArenaScriptBossProfile, ports: { readonly program: ReturnProgram }): ArenaBossScript;
+export function bossFight(profile: ArenaScriptBossProfile, ports: { readonly program: ReturnProgram }): ProjectedState;
 /** Run the complete fixed-arena boss law on the host's actual bodies, strikes and views. */
 export function bossFight<B extends PhasedBossBody>(profile: Extract<BossFightProfile,{pattern:'arena'}>, ports: PhasedBossPorts<B>): PhasedBossFight<B>;
 /** Run roaming strikes, hazards, adds and native lane/RNG continuation without changing their clock. */
@@ -969,9 +943,9 @@ export function bossFight<B extends BodyBossActor>(profile: Extract<BossFightPro
 /** Run an admitted existing AS fight policy with its original lane clock, rewind law and command order. */
 export function bossFight(profile: ScriptBossProfile, ports: ScriptBossPorts): EliteScriptLane;
 /** Strict pattern-to-host resolution happens before allocation, RNG, actor changes or view calls. */
-export function bossFight<B extends PhasedBossBody,C extends RoamingBossBody,D extends BodyBossActor,L,R,K extends string,A extends string,Q extends string>(profile: BossFightProfile<K,A,Q>|ScriptBossProfile|ArenaScriptBossProfile,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>|SpawnedBossPorts<D>|HeldBossPorts<D>|ScriptBossPorts|{ readonly program: ReturnProgram }): PhasedBossFight<B>|RoamingBossFight<C,L,R>|SpawnedBossFight<D>|HeldBossFight|EliteScriptLane|ArenaBossScript {
+export function bossFight<B extends PhasedBossBody,C extends RoamingBossBody,D extends BodyBossActor,L,R,K extends string,A extends string,Q extends string>(profile: BossFightProfile<K,A,Q>|ScriptBossProfile|ArenaScriptBossProfile,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>|SpawnedBossPorts<D>|HeldBossPorts<D>|ScriptBossPorts|{ readonly program: ReturnProgram }): PhasedBossFight<B>|RoamingBossFight<C,L,R>|SpawnedBossFight<D>|HeldBossFight|EliteScriptLane|ProjectedState {
   if (!bossKind(profile.kind)) throw new Error('Unknown boss row kind');
-  if (profile.pattern === 'arena-script' && 'program' in ports) return new ArenaBossScript(v.parse(ArenaScriptBossProfileSchema,profile).fight,ports.program);
+  if (profile.pattern === 'arena-script' && 'program' in ports) return new ProjectedState(v.parse(ArenaScriptBossProfileSchema,profile).fight,ports.program);
   if (profile.pattern === 'script' && 'bytes' in ports && ports.bytes instanceof Uint8Array && 'random' in ports && typeof ports.random === 'function') {
     const admitted = v.parse(ScriptBossProfileSchema, profile);
     return new EliteScriptLane(admitted.fight, ports.bytes, ports.random);

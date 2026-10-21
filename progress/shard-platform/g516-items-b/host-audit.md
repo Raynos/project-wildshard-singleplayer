@@ -66,3 +66,12 @@ real users (6/6); the native arena stays charged (4/6).
 Runtime physical TS delta: **shards 0, platform -41**. Build-only TS **+55**
 (schema +50, converter +4, producer +1); total physical TS **+14**. Native
 fight scenarios and producer/read-side malformed-row refusals cover the move.
+
+X4 retained-projection follow-up: `EncounterSchedule` and `ArenaBossScript`
+are deleted as state owners. `ProjectedState` in the defining ReturnProgram
+module serves real Nalati arena clocks and real Nine grapple practice (not a
+fixture). HOST-BAR **111111, 6/6**: two shipping users, no shard identities,
+plain numeric rows, renderer-free, needed by either user alone, and no author
+callbacks. The shared ten-Hz sampler drops catch-up bursts. Native field grids,
+rosters and per-course controllers keep their individual one-user charges.
+Runtime physical TS delta: **shards 0, platform -12**; AS and data unchanged.

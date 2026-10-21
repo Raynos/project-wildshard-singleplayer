@@ -1,10 +1,10 @@
 /** Bounded arena field storage. AS chooses ignition, propagation and lifetime;
  * the host owns grid addressing, delayed writes and its ten-Hz clock. */
-import type { ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Scope } from '@wildshard/engine/app/scope';
 import * as v from 'valibot';
-import { EncounterSchedule, EncounterScheduleSchema, EncounterTrail } from './encounterPatrol';
+import { EncounterScheduleSchema, EncounterTrail } from './encounterPatrol';
 
 const finite = v.pipe(v.number(), v.finite());
 const count = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(64));
@@ -27,10 +27,10 @@ export class ArenaField {
   private elapsed = 0;
   private clock = 0;
   private contactElapsed = 0;
-  private readonly contact: EncounterSchedule | null;
+  private readonly contact: ProjectedState | null;
   constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
     this.rows = v.parse(ArenaFieldSchema, input);
-    this.contact = this.rows.contact === undefined ? null : new EncounterSchedule(this.rows.contact.law, program);
+    this.contact = this.rows.contact === undefined ? null : new ProjectedState(this.rows.contact.law, program);
     this.modes = new Uint8Array(this.rows.width * this.rows.depth);
     this.lifetimes = new Float32Array(this.modes.length);
   }
@@ -138,20 +138,20 @@ export interface ArenaClockEffect { readonly id: string; readonly index: number;
 /** The existing arena host owns attack cadence, delayed strikes and sharing of
  * cooldown slots. Choices and telegraph windows belong to the admitted guest. */
 export class ArenaEncounter {
-  readonly schedules: ReadonlyMap<string, EncounterSchedule>;
-  readonly landings: readonly EncounterSchedule[];
+  readonly schedules: ReadonlyMap<string, ProjectedState>;
+  readonly landings: readonly ProjectedState[];
   private readonly rows: v.InferOutput<typeof ArenaEncounterSchema>;
   private readonly trail: EncounterTrail;
   private elapsed = 0;
   constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
     this.rows = v.parse(ArenaEncounterSchema, input);
     if (new Set(this.rows.schedules.map(row => row.id)).size !== this.rows.schedules.length) throw new Error('Duplicate arena clock');
-    this.schedules = new Map(this.rows.schedules.map(row => [row.id, new EncounterSchedule(row.law, program)]));
+    this.schedules = new Map(this.rows.schedules.map(row => [row.id, new ProjectedState(row.law, program)]));
     if (!this.schedules.has(this.rows.volley.launcher)) throw new Error('Missing arena launcher');
-    this.landings = Array.from({ length: this.rows.volley.capacity }, () => new EncounterSchedule(this.rows.volley.landing, program));
+    this.landings = Array.from({ length: this.rows.volley.capacity }, () => new ProjectedState(this.rows.volley.landing, program));
     this.trail = new EncounterTrail(this.rows.volley.trail);
   }
-  clock(id: string): EncounterSchedule { const clock = this.schedules.get(id); if (clock === undefined) throw new Error('Missing arena clock'); return clock; }
+  clock(id: string): ProjectedState { const clock = this.schedules.get(id); if (clock === undefined) throw new Error('Missing arena clock'); return clock; }
   reset(): void { this.elapsed = 0; this.trail.clear(); for (const clock of this.schedules.values()) clock.reset(); for (const clock of this.landings) clock.reset(); }
   /** No catch-up burst: one atomic projection batch at most every 100 ms. A
    * paused arena neither samples history nor consumes its borrowed RNG stream. */

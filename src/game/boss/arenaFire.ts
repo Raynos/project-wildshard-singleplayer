@@ -5,9 +5,9 @@ import { app } from '@wildshard/engine/app/runtime';
 import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
-import type { ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import type { ArenaField } from './arenaField';
-import { EncounterSchedule, EncounterScheduleSchema } from './encounterPatrol';
+import { EncounterScheduleSchema } from './encounterPatrol';
 
 const finite = v.pipe(v.number(), v.finite());
 const pair = v.tuple([finite,finite]);
@@ -168,14 +168,14 @@ const _axis = new THREE.Vector3();
 /** The whirlwinds' funnels (the caller's meshes, one per law) and debris (its instanced mesh), moved by their laws. */
 export class ArenaWhirlsView {
   private readonly rows: v.InferOutput<typeof ArenaWhirlsSchema>;
-  private readonly whirls: { readonly law: EncounterSchedule; readonly funnel: THREE.Object3D; on: boolean; k: number }[];
+  private readonly whirls: { readonly law: ProjectedState; readonly funnel: THREE.Object3D; on: boolean; k: number }[];
   private readonly hits: THREE.Vector3[] = [];
   constructor(input: unknown, program: ReturnProgram, funnels: readonly THREE.Object3D[], private readonly debris: THREE.InstancedMesh) {
     this.rows = v.parse(ArenaWhirlsSchema, input);
     if (funnels.length !== this.rows.laws.length || debris.instanceMatrix.count < this.rows.laws.length * this.rows.debris.count) throw new Error('Whirlwinds need a funnel each and room for their debris');
     this.whirls = this.rows.laws.map((row, i) => {
       const funnel = funnels[i]; if (funnel === undefined) throw new Error('Missing whirlwind funnel');
-      return { law: new EncounterSchedule(row, program), funnel, on: false, k: 0 };
+      return { law: new ProjectedState(row, program), funnel, on: false, k: 0 };
     });
   }
   /** Which whirlwinds blow (bit i: whirlwind i). */

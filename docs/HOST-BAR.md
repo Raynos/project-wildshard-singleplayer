@@ -84,6 +84,11 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G478 grapple traversal: `game/grapple/sim`, `game/grapple/course`, `game/grapple/headless`, `game/grapple/tool`, and `game/grapple/ribbon` consume course/profile rows; client presentation is labelled.
 - G478 practice courses: `game/practice/course` `PracticeCourse` shares the native room lifecycle between Nalati riding and Nine grapple rows (6/6). Its mounted and grapple controllers remain individually charged to their actual shard; the shared dispatcher grants no second user to those laws.
 
+- G520 numeric projection continuation: `game/population/returnProgram`
+  `ProjectedState` is renderer-free and data-only (6/6), used live by Nalati's
+  arena clocks and Nine's grapple practice course. It retains guest channels
+  and samples at ten Hz; neither arena grids nor actor-roster code gains credit.
+
 - G478 stealth: `game/stealth/controller` consumes detection observations and ABI-v1 program rows; `StealthDetection` is server-safe and `StealthController` is client-only baseline HUD presentation.
 
 - G475 held weapons: `game/weapons/heldPolearm`, `game/weapons/mountedBlade`, `game/weapons/arcPower` and `game/weapons/heldDecision` consume `format/heldMelee` schemas for admitted model, pose, contact and ABI-v1 guest rows. Native presentation is client-only; `heldDecision` is renderer-free. An unrelated orchard weapon fixture drives the same projection runner in `test/held-weapon-laws.test.ts`.

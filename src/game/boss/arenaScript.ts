@@ -22,15 +22,15 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
-import { bossFight, type ArenaBossScript } from '../plugin/bossPhase';
+import { bossFight } from '../plugin/bossPhase';
 import type { ShardContext } from '../plugin/context';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import type { WeatherReactions } from '../weather/reactions';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { installBossEncounter, type Boss } from '../Boss';
-import { ReturnProgram } from '../population/returnProgram';
+import { type ProjectedState, ReturnProgram } from '../population/returnProgram';
 import { wildEnv } from '../population/pageGroups';
-import { CoupledEncounter, type CoupledMember, type EncounterSchedule } from './encounterPatrol';
+import { CoupledEncounter, type CoupledMember } from './encounterPatrol';
 import { ArenaField, ArenaEncounter, arenaBlockedAt, installArenaBoundary, type ArenaBoundary, type ArenaClockEffect } from './arenaField';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
@@ -55,7 +55,7 @@ export function arenaScriptCloud(scene: THREE.Scene, state: Readonly<Record<stri
 }
 export interface ArenaScriptWorld { readonly game: Game; readonly player: Player; readonly weather: WeatherReactions; readonly air: WeatherContinuation; readonly tieSpot: THREE.Vector3 | null }
 interface SupportActor { readonly a: Animal; readonly lane: GroundTell; readonly law: CoupledMember }
-interface Chain { readonly tell: GroundTell; readonly law: EncounterSchedule }
+interface Chain { readonly tell: GroundTell; readonly law: ProjectedState }
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
 export class ArenaScriptFight implements BossScript {
   private readonly data: ArenaScriptData;
@@ -70,8 +70,8 @@ export class ArenaScriptFight implements BossScript {
   private get open(): boolean { return this.life.value('open')===1; }
   private get victoryT(): number { return this.life.value('victoryT'); }
   // the spear
-  private readonly spearLaw: EncounterSchedule;
-  private readonly chainLaw: EncounterSchedule;
+  private readonly spearLaw: ProjectedState;
+  private readonly chainLaw: ProjectedState;
   private readonly spearAt = new THREE.Vector3();
   // phase II
   private stormRiders: SupportActor[] = [];
@@ -98,7 +98,7 @@ export class ArenaScriptFight implements BossScript {
   private arenaReady = false; private arenaShield = false; private refusalMask = 0;
   private readonly author: ReturnProgram;
   private readonly rules: ReturnProgram;
-  readonly life: ArenaBossScript;
+  readonly life: ProjectedState;
   private readonly fightDraw: ReturnType<typeof installChannelPrograms>;
   private readonly viewRead = { fighting: 0, victoryT: -1, phase: 0, domeBroken: 0, open: 0, flash: 0 };
 
@@ -154,7 +154,7 @@ export class ArenaScriptFight implements BossScript {
   cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(this.data.arena.anchor.x, heightAt(this.data.arena.anchor.x, this.data.arena.anchor.z), this.data.arena.anchor.z); }
 
   reset(phase: number): void {
-    this.life.reset({ phase,share: this.data.phases[phase]?.at ?? 1,tied: Number(this.tied),sealed: Number(this.sealed) }); this.clocks.reset(); this.introT = -1;
+    this.life.restart({ phase,share: this.data.phases[phase]?.at ?? 1,tied: Number(this.tied),sealed: Number(this.sealed) }); this.clocks.reset(); this.introT = -1;
     for (const key of Object.keys(this.frame)) delete this.frame[key];
     this.tellFrame = {}; this.boundaryEffect = null; this.hazardDt = 0;
     this.arenaReady = false; this.arenaShield = false; this.refusalMask = 0; this.boundary.mask = 0;

@@ -9633,6 +9633,13 @@ factories use their built-in terrain authorities. This owner neither advances a
 second clock nor changes the existing v8 creature envelope. Delay, sight/night
 gates and six-attempt land placement are Driftwood's behaviour/returns.as.
 
+`game/population/returnProgram.ProjectedState` retains only row-declared
+numeric guest channels and event aliases. Its state/reset operations do not
+invoke rules; `restart` resets then requests the guest's reset event, and
+`step` requests at most one decision per 100 ms without catch-up bursts.
+Nalati's actual arena clocks and Nine's actual grapple course share this
+renderer-free owner. Bodies, field grids and presentation remain external.
+
 RespawnQueue can select this concrete policy owner; place retains entry
 identity when a guest defers it. ReturnGate keeps native corpse/fade clocks in
 the existing save object, or observes the page body's real hidden state.

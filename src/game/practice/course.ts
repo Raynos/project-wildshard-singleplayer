@@ -10,7 +10,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { parseRidingPractice, type RidingPracticeLayout, type HookPracticeLayout, type HookPracticeRow } from '@wildshard/format/practiceCourse';
 import { isJsonData } from '@wildshard/format/json';
 import type { ShardContext } from '../plugin/context';
-import { ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, ReturnProgram } from '../population/returnProgram';
 import { pageRidingMount } from '../riding/client';
 import { GrappleTool } from '../grapple/tool';
 import { buildPracticeScene } from './scene';
@@ -173,12 +173,13 @@ class HookCourseController implements CourseController {
   private readonly course: HookCourseCourse;
   /** the lowest pad floor: a fall `fallY` under it is a fall */
   private readonly lowest: number;
-  private readonly state={phase:0,started:0,elapsed:0,best:-1,checkpoint:0};
-  private pending=0;
+  private readonly law:ProjectedState<{phase:number;started:number;elapsed:number;best:number;checkpoint:number}>;
+  private get state(){return this.law.state;}
   private readonly reached=new Set<string>();
 
-  constructor(host:PlaygroundHost,layout:HookPracticeLayout,private readonly law:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
+  constructor(host:PlaygroundHost,layout:HookPracticeLayout,program:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
     this.host=host;this.row=layout.course;this.map=map;
+    this.law=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:0}},program);
     this.lowest=Math.min(...this.row.pads.map(p=>p.top));
     const o=room.origin;this.hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
     this.course={name:room.title,hooks:this.hooks};
@@ -197,7 +198,7 @@ class HookCourseController implements CourseController {
 
   /** The guest resets its continuation; the native presenter moves the body. */
   restart(): void {
-    this.pending=0;this.reached.clear();this.project('reset',null);
+    this.law.reset({...this.state});this.reached.clear();this.project('reset',null);
     this.place(this.pad(this.state.checkpoint),true);
     this.room.chip.status(this.row.words.ready);this.room.chip.time(0,this.best);
   }
@@ -205,16 +206,13 @@ class HookCourseController implements CourseController {
   private pad(index:number):HookCoursePad {
     const pad=this.row.pads[index];if(pad===undefined)throw new Error('Invalid practice checkpoint');return pad;
   }
-  private project(signal:string,pad:HookCoursePad|null):Readonly<Record<string,number>> {
+  private project(signal:string,pad:HookCoursePad|null,delta?:number):Readonly<Record<string,number>> {
     const row=this.row,start=hookCoursePad(row,row.run.from),p=this.host.player.position,o=this.room.origin;
-    const out=this.law.project(signal,{...this.state,now:performance.now()/1000,x:p.x-o.x,y:p.y-o.y,z:p.z-o.z,
+    const frame={now:performance.now()/1000,x:p.x-o.x,y:p.y-o.y,z:p.z-o.z,
       startPad:row.pads.indexOf(start),finishPad:row.pads.indexOf(hookCoursePad(row,row.run.to)),pad:pad===null?-1:row.pads.indexOf(pad),
       eligible:Number(pad!==null&&pad.kind!=='start'&&pad.kind!=='range'),
-      startX:start.x,startZ:start.z,startWidth:start.w,startDepth:start.d,lowest:this.lowest,fallY:row.fallY});
-    for(const key of ['phase','started','elapsed','best','checkpoint'] as const) {
-      const value=out[key];if(value===undefined)throw new Error('Missing practice continuation');this.state[key]=value;
-    }
-    return out;
+      startX:start.x,startZ:start.z,startWidth:start.w,startDepth:start.d,lowest:this.lowest,fallY:row.fallY};
+    return delta===undefined?this.law.event(signal,frame):this.law.step(delta,frame).values;
   }
 
   /** on a pad's floor facing its next pad's hook (the start: 3 m in from its near end, the next pad dead ahead) */
@@ -241,10 +239,8 @@ class HookCourseController implements CourseController {
   update(delta:number): void {
     const {player}=this.host,row=this.row,words=row.words;
     if(player.hover)player.setHover(false);
-    this.pending+=delta;
-    if(this.pending>=.1-1e-9) {
-      this.pending=0;
-      const pad=player.onGround?this.padUnder():null,out=this.project('step',pad);
+    const pad=player.onGround?this.padUnder():null,out=this.project('step',pad,delta);
+    if(Object.keys(out).length>0) {
       const visit=out['visit'];if(visit!==undefined&&visit>=0)this.reached.add(this.pad(visit).id);
       if(out['finish']===1) {
         const time=clock(this.state.elapsed);

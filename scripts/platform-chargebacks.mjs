@@ -14,7 +14,6 @@ const modules = new Map([
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
   ['src/game/practice/course.ts', new Map(['RidingCourseRun', 'MountedCourseController', 'HookCourseController', 'hookCoursePad', 'yawToward', 'HookCourseCourse', 'HookCourseRow', 'HookCoursePad'].map(name => [name, 'C6']))],
-  ['src/game/plugin/bossPhase.ts', new Map([['ArenaBossScript', 'C4']])],
   ['src/format/bossProfiles.ts', new Map([['ArenaScriptBossProfileSchema', 'C4'], ['ArenaScriptBossProfile', 'C4']])],
   ['src/game/population/pageGroups.ts', new Map([
     'Placement', 'Counts', 'point', 'whole', 'PageActorGroups', 'PagePopulationPlanner',

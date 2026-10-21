@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { CoupledEncounter, EncounterSchedule } from '../src/game/boss/encounterPatrol';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { CoupledEncounter } from '../src/game/boss/encounterPatrol';
+import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import * as fight from '../src/shards/nalati-grasslands/generators/stormTitanFight';
@@ -8,7 +8,7 @@ import * as fight from '../src/shards/nalati-grasslands/generators/stormTitanFig
 const author = (): ReturnProgram => ReturnProgram.page(programs.attack);
 
 test('the boss schedule retains committed target and emits a strike once', () => {
-  const clock = new EncounterSchedule(fight.TITAN_SCHEDULES.spear, author()), random = new Rng(513);
+  const clock = new ProjectedState(fight.TITAN_SCHEDULES.spear, author()), random = new Rng(513);
   clock.set({ cd: 0 });
   clock.project({ dt: .1, phase: 0, px: 10, pz: 20, chain: 0 }, random);
   expect(clock.value('mode')).toBe(1);
@@ -16,7 +16,7 @@ test('the boss schedule retains committed target and emits a strike once', () =>
   for (let i = 0; i < 20; i++) hits += clock.project({ dt: .1, phase: 0, px: 10, pz: 20, chain: 0 }, random)['strike'] ?? 0;
   expect(hits).toBe(1); expect(clock.value('x')).toBe(10); expect(clock.value('z')).toBe(20);
   clock.reset(); expect(clock.value('mode')).toBe(0); expect(clock.value('cd')).toBe(2.5);
-  expect(() => clock.set({ missing: 1 })).toThrow('schedule state');
+  expect(() => clock.set({ missing: 1 })).toThrow('projection state');
 });
 
 test('support death chips the boss once and commits only one surviving member', () => {
@@ -53,7 +53,7 @@ test('phase and arena rules are decided in the admitted module', () => {
 });
 
 test('mounted field refusal consumes numeric samples in AS without a second page rule', () => {
-  const schedule = new EncounterSchedule(fight.TITAN_SCHEDULES.contact, author());
+  const schedule = new ProjectedState(fight.TITAN_SCHEDULES.contact, author());
   const samples = [{ hit: 0 }, { hit: 1 }];
   expect(schedule.project({ dt: .1, mounted: 1, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: -1 });
   expect(schedule.project({ dt: .1, mounted: 0, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: 0 });

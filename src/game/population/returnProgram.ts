@@ -144,3 +144,41 @@ export class ProjectedMotionSample {
     return frame.speed;
   }
 }
+
+
+/** Native continuation for admitted numeric projections. The guest owns rules;
+ * rows name retained channels and event aliases. Both live arena clocks and
+ * practice courses use the same state owner and optional ten-Hz sampling. */
+export class ProjectedState<S extends Record<string,number> = Record<string,number>> {
+  readonly state:S;
+  private elapsed=0;
+  private readonly retain:Readonly<Record<string,string>>;
+  constructor(private readonly row:{ readonly initial:S; readonly parameters?:Readonly<Record<string,number>>;
+    readonly retain?:Readonly<Record<string,string>>; readonly signals?:Readonly<Record<string,string>>; readonly signal?:string },
+    private readonly program:ReturnProgram) {
+    this.state={...row.initial};this.retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
+    if(Object.values(this.retain).some(key=>!Object.hasOwn(row.initial,key)))throw new Error('Missing projection state slot');
+  }
+  value(key:string):number {const value=this.state[key];if(value===undefined)throw new Error('Unknown projection state slot');return value;}
+  set(values:Readonly<Record<string,number>>):void {
+    if(Object.entries(values).some(([key,value])=>!Object.hasOwn(this.row.initial,key)||!Number.isFinite(value)))throw new Error('Invalid projection state');
+    Object.assign(this.state,values);
+  }
+  reset(values:Readonly<Record<string,number>>={}):void {this.elapsed=0;Object.assign(this.state,this.row.initial);this.set(values);}
+  /** Reset retained slots, then let the guest interpret reset observations. */
+  restart(frame:Readonly<Record<string,number>>={}):Readonly<Record<string,number>> {this.reset();return this.event('reset',frame);}
+  event(event:string,frame:Readonly<Record<string,number>>={},random?:Rng,candidates:readonly Readonly<Record<string,number>>[]=[]):Readonly<Record<string,number>> {
+    const signal=this.row.signals===undefined?event:this.row.signals[event];if(signal===undefined)throw new Error('Missing projection event');
+    const out=this.program.project(signal,{...this.row.parameters,...this.state,...frame},random,candidates),next:Record<string,number>={};
+    for(const [channel,slot]of Object.entries(this.retain)){const value=out[channel];if(value!==undefined)next[slot]=value;}
+    this.set(next);return out;
+  }
+  project(frame:Readonly<Record<string,number>>,random?:Rng,candidates:readonly Readonly<Record<string,number>>[]=[]):Readonly<Record<string,number>> {
+    if(this.row.signal===undefined)throw new Error('Missing projection signal');return this.event(this.row.signal,frame,random,candidates);
+  }
+  /** At most one decision each 100 ms; long frames produce no catch-up burst. */
+  step(dt:number,frame:Readonly<Record<string,number>>):{dt:number;values:Readonly<Record<string,number>>} {
+    this.elapsed+=dt;if(this.elapsed+1e-9<.1)return {dt:0,values:{}};
+    const step=this.elapsed;this.elapsed=0;return {dt:step,values:this.event('step',{...frame,dt:step})};
+  }
+}

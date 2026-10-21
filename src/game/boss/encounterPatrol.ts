@@ -326,26 +326,6 @@ export class CoupledEncounter {
 }
 
 export const EncounterScheduleSchema = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()) });
-/** A projected attack clock retains only declared numeric slots. Rendering
- * borrows the last result; an event never installs a second decision owner. */
-export class EncounterSchedule {
-  readonly state: Record<string, number>;
-  private readonly rows: v.InferOutput<typeof EncounterScheduleSchema>;
-  constructor(input: unknown, private readonly program: ReturnProgram) { this.rows = v.parse(EncounterScheduleSchema, input); this.state = { ...this.rows.initial }; }
-  value(key: string): number { const value = this.state[key]; if (value === undefined) throw new Error('Unknown encounter schedule slot'); return value; }
-  set(values: Readonly<Record<string, number>>): void {
-    if (Object.entries(values).some(([key, value]) => !Object.hasOwn(this.rows.initial, key) || !Number.isFinite(value))) throw new Error('Invalid encounter schedule state');
-    Object.assign(this.state, values);
-  }
-  reset(values: Readonly<Record<string, number>> = {}): void { Object.assign(this.state, this.rows.initial); this.set(values); }
-  project(frame: Readonly<Record<string, number>>, random?: Rng, candidates: readonly Readonly<Record<string, number>>[] = []): Readonly<Record<string, number>> {
-    const result = this.program.project(this.rows.signal, { ...this.rows.parameters, ...this.state, ...frame }, random, candidates);
-    const next: Record<string, number> = {};
-    for (const [channel, slot] of Object.entries(this.rows.retain)) { const value = result[channel]; if (value !== undefined) next[slot] = value; }
-    this.set(next); return result;
-  }
-}
-
 /** A bounded native position history; authored sample cadence is never faster
  * than the decision host. Samples are values, with no actor or view references. */
 export class EncounterTrail {
