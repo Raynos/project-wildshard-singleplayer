@@ -26,7 +26,7 @@ The first-party manifest keeps the canonical `_template` slug, grey picker art a
 `template-solo` save identity, and points at `/shardfiles/_template/shard.json`.
 The existing Game admits the product before its normal world/kit/play stages, sharing
 one player, physics world, fixed-step driver and HUD. There is no custom runtime chunk.
-`shard.config.ts` includes build-time `data/card.ts` metadata;
+`shard.config.ts` includes build-time `data/card.json` metadata;
 `generators/output.ts` declares named blobs and platform sections. Budgets live in `data/` too. Root
 `manifest.json` is a temporary discovery bridge only: P3 catalog activation
 removes it, together with the generated discovery module. Runtime code never

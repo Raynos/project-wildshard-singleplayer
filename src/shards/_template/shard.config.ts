@@ -1,5 +1,5 @@
 import product from './generators/product';
-import { CARD } from './data/card';
+import CARD from './data/card.json' with { type: 'json' };
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import boss from './behaviour/boss.json' with { type: 'json' };
 import { BUILD_OPTIONS } from './generators/buildOptions';

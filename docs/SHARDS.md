@@ -209,7 +209,7 @@ cp -R test/shards/_template test/shards/<slug>        # the headless contract te
 
 Then, in the copy:
 
-1. Edit identity and picker metadata in `data/card.ts`, keeping the temporary root `manifest.json` discovery
+1. Edit identity and picker metadata in `data/card.json`, keeping the temporary root `manifest.json` discovery
    bridge synchronized until P3 catalog activation. A fresh `wildshard new` project starts with only a build-time identity.
 2. Rename every `template.*` id (systems, events, actions, rows, save keys, Debug rows) to your own prefix. Ids are
    global: two shards with the same row id collide.

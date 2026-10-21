@@ -5,7 +5,7 @@ import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { manifestImages, packManifestImages } from '@wildshard/sdk/projectManifest';
 import { emitNamedBlobs } from '@wildshard/sdk/blobs';
 import metadata from '../src/shards/far-reach/manifest.json';
-import { CARD as template } from '../src/shards/_template/data/card';
+import template from '../src/shards/_template/data/card.json' with { type: 'json' };
 
 it('packs all level image fields once by content hash with exact admitted bytes', () => {
   const input = parseManifestMetadata(metadata), bytes = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
