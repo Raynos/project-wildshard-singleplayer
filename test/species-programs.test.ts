@@ -39,12 +39,12 @@ test('both populations admit the same gameplay fields without visual or callback
 // The gameplay bake strips tint/traits; the existing view must restore exactly the same factory variants.
 test('both emitted populations keep the original resolved visual variants', async () => {
   const loaded = await readProjectAssets('src/shards/pine-hollow');
-  const file = loaded.output.namedFiles?.find(row => row.name === 'look/native-view.json');
-  const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
-  if (file === undefined || bytes === undefined) throw new Error('Missing admitted Pine native view');
-  await admitPineView(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile: loaded.shard,
-    sections: new Map(), files: new Map([['look/native-view.json', { hash: file.hash, url: file.path }]]),
-    read: () => Promise.resolve(bytes) }));
+  const section = loaded.output.custom?.sections.find(row => row.name === 'custom/nativeView');
+  const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);
+  if (section === undefined || bytes === undefined) throw new Error('Missing admitted Pine native view');
+  admitPineView(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile: loaded.shard,
+    sections: new Map([['custom/nativeView', JSON.parse(new TextDecoder().decode(bytes))]]), files: new Map(),
+    read: () => Promise.reject(new Error('Native view must use its section')) }));
   registerKing();
   const authored = [...PINE_SPECIES, pineDeer(), pineElk(), ISLAND_BOAR, ISLAND_BEAR];
   const programs = [...PINE_SPECIES_PROGRAMS.page, ...DRIFTWOOD_SPECIES_PROGRAMS.page];

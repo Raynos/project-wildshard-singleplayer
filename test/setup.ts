@@ -89,7 +89,7 @@ shapeBook(shapeRows).use(unshuffleBodyLanes(new Uint8Array(inflateSync(readFileS
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/generators/speciesRows');
 const { pineLook, preparePineGrazers } = await import('../src/shards/pine-hollow/species/looks');
 const { SPECIES_LOOKS } = await import('../src/shards/pine-hollow/generators/nativeView');
-await preparePineGrazers({ json: () => Promise.resolve({ SPECIES_LOOKS }) });
+await preparePineGrazers({ section: () => ({ SPECIES_LOOKS }) });
 const { THRALL_CLIPS } = await import('../src/shards/pine-hollow/generators/thrallClips');
 const { numericCreaturePose } = await import('../src/game/plugin/channelPrograms');
 registerSpecies(speciesWithLook(PINE_BOAR, { ...pineLook('boar'), postPose: numericCreaturePose(THRALL_CLIPS) }));

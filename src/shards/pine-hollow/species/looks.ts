@@ -4,9 +4,9 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 let admitted: HullLookBook | undefined;
 function book(): HullLookBook { if (admitted === undefined) throw new Error('Pine grazers are not admitted'); return admitted; }
 /** Page and cold Explorer admit the same checked rest-body and coat rows. */
-export async function preparePineGrazers(product: { readonly json: (name: string) => Promise<{ SPECIES_LOOKS: unknown }> }): Promise<void> {
-  const rows = await product.json('look/native-view.json');
-  admitted = new HullLookBook(rows.SPECIES_LOOKS);
+export function preparePineGrazers(product: { readonly section: (name: 'custom/nativeView') => { SPECIES_LOOKS: unknown } }): Promise<void> {
+  admitted = new HullLookBook(product.section('custom/nativeView').SPECIES_LOOKS);
+  return Promise.resolve();
 }
 export function pineGrazer(kind: 'deer' | 'elk'): ReturnType<HullLookBook['definition']> { return book().definition(kind); }
 export function pineLook(kind: string): SpeciesLook { return book().look(kind); }

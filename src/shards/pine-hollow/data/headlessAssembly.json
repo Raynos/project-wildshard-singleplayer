@@ -68,25 +68,7 @@
         ]
       }
     },
-    {
-      "name": "bossView",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "assembly",
-              "json"
-            ]
-          },
-          {
-            "$ref": [
-              "product"
-            ]
-          },
-          "look/native-view.json"
-        ]
-      }
-    },
+    {"name":"bossView","value":{"$call":[{"$ref":["product","section"]},"custom/nativeView"]}},
     {
       "name": "bowRow",
       "value": {

@@ -198,6 +198,7 @@ export function parseFloorRows(input: unknown): v.InferOutput<typeof FloorRowsSc
 
 
 export const SECTIONS = {
+  'custom/nativeView': NativeViewSchema,
   'custom/cabinAppearance': CabinAppearanceSchema,
   'custom/questRuntime': PineQuestRowsSchema,
   'custom/grazers': PineGrazersSchema,

@@ -62,7 +62,7 @@ import { PINE_QUEST_CONSEQUENCES, PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './
 import { PINE_QUEST_TRANSACTIONS } from './questTransactions';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,NativeViewSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sectionSchemas.generated';
+import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sectionSchemas.generated';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -99,7 +99,6 @@ const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures)
 const clientJson=emitNamedBlobs([nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(nativeStory))), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB, ...RANGED_PAGE_BLOBS, ROAMING_COMBAT_BLOB, LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
-  nameBlob('look/native-view.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit })))),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorModule.module, bytes: directorModule.bytes }, stages: directorStages, bindings: directorBindings, seed: 357 }))),
@@ -120,7 +119,7 @@ nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJ
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=name==='custom/cabinAppearance'?cabinAppearance:name==='custom/questRuntime'?PINE_QUEST_RUNTIME:name==='custom/grazers'?grazers:name==='custom/thrallLook'?{pose:THRALL_CLIPS,...thrallLook}:name==='custom/runtimeGraphs'?lookMaterials.runtime:name==='custom/placeSets'?PLACE_SETS:name==='custom/cabinAmbience'?cabinAmbienceRows():name==='custom/paintedTextures'?{textures:collectionTextures,chalk:paintedRows.chalk}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
+ const value=name==='custom/nativeView'?{ ...NATIVE_VIEW, ...logKit }:name==='custom/cabinAppearance'?cabinAppearance:name==='custom/questRuntime'?PINE_QUEST_RUNTIME:name==='custom/grazers'?grazers:name==='custom/thrallLook'?{pose:THRALL_CLIPS,...thrallLook}:name==='custom/runtimeGraphs'?lookMaterials.runtime:name==='custom/placeSets'?PLACE_SETS:name==='custom/cabinAmbience'?cabinAmbienceRows():name==='custom/paintedTextures'?{textures:collectionTextures,chalk:paintedRows.chalk}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
  if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
  return {name,jsonSchema,value:v.parse(schema,value)};
 }));

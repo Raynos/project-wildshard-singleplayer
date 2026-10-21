@@ -26,14 +26,15 @@ import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import { ASTC6_PHONE } from '../src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated';
 import { bootSources, usePineGpuFiles } from '../src/shards/pine-hollow/runtime/boot/files';
 
-test('world view rows come from the admitted named product', async () => {
-  const file = output.namedFiles.find(row => row.name === 'look/native-view.json');
-  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
-  if (file === undefined || bytes === undefined) throw new Error('Missing Pine native view');
+test('world view rows come from the admitted section', () => {
+  const section = output.custom.sections.find(row => row.name === 'custom/nativeView');
+  const bytes = section === undefined ? undefined : output.custom.files.get(section.path);
+  if (section === undefined || bytes === undefined) throw new Error('Missing Pine native view');
+  expect(output.namedFiles.some(row => row.name === 'look/native-view.json')).toBe(false);
   const product = createShardProduct({ slug:'pine-hollow', revision:1,
     shardfile:emptyShardfile({ slug:'pine-hollow', name:'Pine', author:'Wildshard', revision:1, seed:1 }),
-    sections:new Map(), files:new Map([['look/native-view.json', { hash:file.hash, url:file.path }]]), read:() => Promise.resolve(bytes) });
-  await admitPineView(product);
+    sections:new Map([['custom/nativeView', JSON.parse(new TextDecoder().decode(bytes))]]), files:new Map(), read:() => Promise.reject(new Error('Native view must use its section')) });
+  admitPineView(product);
   expect(pineView()).toEqual(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit }));
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, KING_ARENA_FOG:'31' })).toThrow();
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, BOSS_ENCOUNTER: { ...NATIVE_VIEW.BOSS_ENCOUNTER, profile: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile, fight: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight, strike: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight.strike, action: 'unknown' } } } } })).toThrow();

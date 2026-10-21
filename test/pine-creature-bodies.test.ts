@@ -12,7 +12,7 @@ import { HullLookBook } from '../src/game/looks/speciesBook';
 // species/bodies.ts, never lofting them. Those rows must stay what the offline lofts (generators/creatureLofts.ts) build,
 // for every variant: the hulls were skinned to that skeleton.
 test('the baked deer and elk bodies match their lofts for every variant', async () => {
-  await preparePineGrazers({ json: () => Promise.resolve({ SPECIES_LOOKS }) });
+  await preparePineGrazers({ section: () => ({ SPECIES_LOOKS }) });
   for (const [kind, def] of [['deer', DEER], ['elk', ELK]] as const) {
     const first = def.variants[0];
     if (first === undefined) throw new Error('Missing grazer variant');
