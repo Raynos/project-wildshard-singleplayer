@@ -14,7 +14,10 @@ export function nativeBodySpecSchema(rig: 'segments' | 'axis'): v.GenericSchema<
 /** Decode an owned copy of one native base64 buffer; typed views never share
  * caller storage. Malformed data is refused by atob or its typed-array reader. */
 export function nativeBakeBytes(text: string): Uint8Array<ArrayBuffer> {
-  return Uint8Array.from(atob(text), character => character.codePointAt(0) ?? 0);
+  // String iteration materializes a temporary character list before the byte copy.
+  const binary = atob(text), bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.codePointAt(i) ?? 0;
+  return bytes;
 }
 /** The original column-major native float payload, with no resampling. */
 export function nativeBakeFloats(text: string): Float32Array<ArrayBuffer> {

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createNativeBakeReader, nativeColliderSchema, nativeBakeFloats } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, nativeColliderSchema, nativeBakeBytes, nativeBakeFloats } from '../src/game/population/nativeBake';
 import { pineBake, parsePineSolid } from '../src/shards/pine-hollow/runtime/baked';
 import baked from '../src/shards/pine-hollow/data/physics.generated.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
@@ -12,6 +12,16 @@ function input() {
   return { version: 1, tag: 'owned', ground: { rows: 1, cols: 1, heights, scale: { x: 4, y: 1, z: 4 }, at: { x: 0, y: 0, z: 0 }, friction: 0.9, groups: 1 },
     solids: [], actors: [], parked: [], herds: [] };
 }
+
+test('native byte decode preserves every byte, whitespace, refusal and ownership', () => {
+  const expected = Uint8Array.from({ length: 256 }, (_, index) => index);
+  const encoded = btoa(String.fromCodePoint(...expected));
+  const first = nativeBakeBytes(`\n${encoded}\t`), second = nativeBakeBytes(encoded);
+  expect(first).toEqual(expected); expect(second).toEqual(expected);
+  first[0] = 255; expect(second[0]).toBe(0);
+  expect(nativeBakeBytes('')).toHaveLength(0);
+  expect(() => nativeBakeBytes('not-base64!')).toThrow();
+});
 
 test('the full Pine product retains its ground, collider provenance, ordered recipes and private metadata', () => {
   const value = pineBake();
