@@ -567,6 +567,7 @@
               "$ref": [
                 "constants",
                 "nativeQuest",
+                "reward",
                 "director"
               ]
             },
@@ -589,6 +590,7 @@
                 "$ref": [
                   "constants",
                   "nativeQuest",
+                  "acquisition",
                   "population"
                 ]
               },

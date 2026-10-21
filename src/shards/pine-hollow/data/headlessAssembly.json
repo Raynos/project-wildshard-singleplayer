@@ -9,7 +9,7 @@
     "@wildshard/game/plugin/nativeItems": ["installNativeItems", "observeNativeCombatMotion"],
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
-    "@wildshard/game/quest/nativeStory": ["installNativeStory"],
+    "@wildshard/game/quest/nativeComposition": ["installNativeQuestComposition"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
     "@wildshard/format/lootEconomy": ["parseBarterEconomy"],
     "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
@@ -915,8 +915,8 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/quest/nativeStory",
-              "installNativeStory"
+              "@wildshard/game/quest/nativeComposition",
+              "installNativeQuestComposition"
             ]
           },
           {
@@ -925,12 +925,19 @@
             ]
           },
           {
-            "$ref": [
-              "product"
-            ]
-          },
-          {
-            "policy": {
+            "source": {
+              "$ref": [
+                "product",
+                "shardfile"
+              ]
+            },
+            "table": {
+              "$ref": [
+                "content",
+                "table"
+              ]
+            },
+            "rows": {
               "$ref": [
                 "storyPolicy"
               ]
@@ -940,50 +947,27 @@
                 "storySpots"
               ]
             },
-            "content": {
-              "table": {
-                "$ref": [
-                  "content",
-                  "table"
-                ]
-              },
-              "steps": {
-                "$ref": [
-                  "content",
-                  "steps"
-                ]
-              },
-              "readings": {
-                "$ref": [
-                  "content",
-                  "readings"
-                ]
-              },
-              "deaths": {
-                "$ref": [
-                  "content",
-                  "deaths"
-                ]
-              },
-              "lead": {
-                "$ref": [
-                  "content",
-                  "lead"
-                ]
-              },
-              "policy": {
-                "readingDelay": {
-                  "$ref": [
-                    "content",
-                    "policy",
-                    "readingDelay"
-                  ]
-                }
-              }
-            },
             "counters": {
               "$ref": [
                 "counters"
+              ]
+            },
+            "steps": {
+              "$ref": [
+                "content",
+                "steps"
+              ]
+            },
+            "deaths": {
+              "$ref": [
+                "content",
+                "deaths"
+              ]
+            },
+            "readings": {
+              "$ref": [
+                "content",
+                "readings"
               ]
             },
             "contracts": {
@@ -995,10 +979,18 @@
               "$ref": [
                 "trades"
               ]
+            },
+            "lead": {
+              "$ref": [
+                "content",
+                "lead"
+              ]
+            },
+            "director": {
+              "$ref": [
+                "director"
+              ]
             }
-          },
-          {
-            "$ref": ["director"]
           }
         ]
       }

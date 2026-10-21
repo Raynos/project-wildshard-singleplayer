@@ -1,14 +1,14 @@
-import { NativeStoryPolicySchema, NativeStorySpotsSchema, parseNativeStoryPolicy, parseNativeStorySpots } from '@wildshard/format/nativeStoryRows';
+import { PINE_NATIVE_QUEST } from './nativeQuest';
+import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
 import forestWeather from '../data/forestWeather.json' with { type: 'json' };
 import { FOREST_STORY_BLOB } from './forestStory';
 import { PINE_QUEST_PAGE_BLOB } from './pageComposition';
-import nativeStory from '../data/nativeStory.json' with { type: 'json' };
 import spots from '../data/spots.generated.json' with { type: 'json' };
 import { RANGED_PAGE_BLOBS } from './rangedPage';
 import { FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB } from './forestPage';
 import { ROAMING_COMBAT_BLOB } from './roamingCombat';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
-import { CHAPTER_DIRECTOR, NATIVE_CHAPTER_DIRECTOR } from './chapterDirector';
+import { CHAPTER_DIRECTOR } from './chapterDirector';
 import { PINE_HULL_BOOK } from './riggedHulls';
 import { PAGE_LIFE, LIFE_WASM } from './pageLife';
 import logKit from '../data/logKit.json' with { type: 'json' };
@@ -42,7 +42,7 @@ import { PINE_PANELS } from './panels';
 import { TRADER_STALL as traderStall } from './questShop';
 import { THRALL_CLIPS } from './thrallClips';
 import thrallLook from '../data/thrallLook.json' with { type: 'json' };
-import { PINE_QUEST_PAYLOAD, PINE_QUEST_RUNTIME } from './questRuntime';
+import { PINE_QUEST_PAYLOAD } from './questRuntime';
 import { PAGE_STORY } from './pageStory';
 import weatherProgram from '../data/weather.json' with { type: 'json' };
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
@@ -98,15 +98,7 @@ const paintedRows=PINE_OUTPUT.custom['custom/paintedTextures'];
 const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'endGrain','glow']);
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
-const { actions: _nativeActions, cancel: _nativeCancel, actor: _nativeActor, trade: _nativeTrade, ammo: _nativeAmmo, touch, latch, ...nativeStoryBase } = nativeStory;
-const touchIds = Array.from({ length: PINE_QUEST_RUNTIME.policy.resinCount }, (_unused, i) => `${touch.prefix}${i + 1}`);
-for (const id of touchIds) {
- const row = PINE_QUEST_PAYLOAD.table.rows.find(candidate => candidate.id === id);
- if (row?.kind !== 'pickup' || row.touch !== true || row.item !== touch.item) throw new Error('Story needs its declared touch pickup law');
-}
-const nativeStoryPolicy = { ...nativeStoryBase, clock: NATIVE_CHAPTER_DIRECTOR,
- transitions: { ids: [...touchIds, latch], rowLimit: touchIds.length + 1, flagLimit: 16, touch: 'direct', pickup: 'walk-in' } };
-const clientJson=emitNamedBlobs([nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeStoryPolicy(nativeStoryPolicy))), { jsonSchema: namedJsonSchema(NativeStoryPolicySchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeStorySpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeStorySpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB, ROAMING_COMBAT_BLOB, LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const clientJson=emitNamedBlobs([nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB, ROAMING_COMBAT_BLOB, LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),

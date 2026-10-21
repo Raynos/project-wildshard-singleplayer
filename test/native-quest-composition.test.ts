@@ -1,3 +1,6 @@
+import { DRIFTWOOD_NATIVE_QUEST } from '../src/shards/driftwood-isle/generators/nativeQuest';
+import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
+import * as v from 'valibot';
 import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compose the native owners over real Rapier.
 import { readFileSync } from 'node:fs';
@@ -51,7 +54,13 @@ test('an orchard quest resolves native services by ids and restores carried rewa
     bindLegacyDirector(stages, create(), { observations: { altar: 0, dead: 0, seen: 0, 'player-x': 30, 'player-z': 30, 'reward-x': 0, 'reward-z': 0 },
       actions: { 'captain.restore': [], 'captain.wake': [], 'captain.dead': [], 'reward.start': bindings.actions['reward.start'], 'reward.finish': bindings.actions['reward.finish'] },
       changes: [], source: 'optional', initialDt: 0 }, new Map<string, unknown>([['reward', reward], ['flags', host.flags]]), host.scope, saved !== undefined, host, rows.director);
-    installNativeQuestComposition(host, { source, rows, spots, props, counters, table: { external: [], rows: [] }, restoring: saved !== undefined }); population.settle();
+    const compositionRows = parseNativeQuestComposition({ ...DRIFTWOOD_NATIVE_QUEST, step: rows.step, cable: rows.cable,
+      transitions: { ...DRIFTWOOD_NATIVE_QUEST.transitions, ids: [] },
+      props: { ...DRIFTWOOD_NATIVE_QUEST.props, barrel: rows.barrelOwner, drop: rows.keyDrop },
+      acquisition: { ...DRIFTWOOD_NATIVE_QUEST.acquisition, population: rows.population, equipment: rows.equipment,
+        id: rows.heldId, kind: rows.guardKind },
+      reward: { ...DRIFTWOOD_NATIVE_QUEST.reward, director: rows.director, ...rows.reward, seen: rows.rewardFlag } });
+    installNativeQuestComposition(host, { source, rows: compositionRows, spots, props, counters, table: { external: [], rows: [] }, restoring: saved !== undefined }); population.settle();
     return { equipment, reward, release: () => { commands = []; } };
   };
   const host = createSimHost(level, { rapier }); let fork: ReturnType<typeof createSimHost> | undefined;
@@ -59,6 +68,8 @@ test('an orchard quest resolves native services by ids and restores carried rewa
     const state = install(host); expect(state.reward['completed']).toBe(false); host.step(); expect(state.equipment.held()).toBe(1); state.release();
     state.reward['started'] = true; host.step();
     const saved = snapshotSimHost(host); expect(cableModes(host.scope).nativeRider(mode.id).carried).toBe(true);
+    const owner = host.adapters.get(rows.step); if (owner === undefined) throw new Error('Missing native quest owner');
+    expect(Object.keys(v.parse(v.record(v.string(), v.unknown()), owner.snapshot()))).toEqual(['key', 'finale', 'iron', 'pack', 'zipline', 'reward', 'counts', 'barrel']);
     fork = restoreSimHost(level, { rapier }, saved, fresh => { install(fresh, saved).release(); });
     expect(snapshotSimHost(fork)).toEqual(saved);
   } finally { host.dispose(); fork?.dispose(); }

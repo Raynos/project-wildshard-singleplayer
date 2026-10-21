@@ -1,4 +1,4 @@
-import type { SimHost } from '@wildshard/engine/sim';
+import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { NativeInventory } from '../inventoryLaw';
@@ -34,7 +34,12 @@ interface NativeQuestAchievements extends AchievementCounterBook {
 export function prepareNativeQuestEntry<Spot extends { readonly id: string; readonly kind: string }>(
   host: SimHost, source: Shardfile, table: InteractTable, spots: readonly Spot[],
   bounds: Parameters<typeof bindQuestTableSpots>[3] = {},
+  savedNames: Readonly<Record<string, string>> = {},
 ): {
+  readonly saved: {
+    readonly encode: (value: Record<string, SimValue>) => Record<string, SimValue>;
+    readonly decode: (value: unknown) => Record<string, unknown>;
+  };
   readonly input: ReturnType<typeof nativeQuestInputs>; readonly inventory: ItemCatalogue['inventory'];
   readonly rules: ReturnType<typeof bindQuestTableSpots<Spot>>; readonly pack: NativeInventory<string>;
   readonly achievements: (rows: AchievementCounterRows, initial?: Readonly<Record<string, number>>) => NativeQuestAchievements;
@@ -46,6 +51,20 @@ export function prepareNativeQuestEntry<Spot extends { readonly id: string; read
   const rules = bindQuestTableSpots(table, spots, host.flags, bounds), pack = new NativeInventory(inventory, host);
   let installed = false, graph: ReturnType<typeof installDeclaredQuestHost> | null = null;
   return { input, inventory, rules, pack,
+    saved: {
+      encode: value => Object.fromEntries(Object.entries(value).map(([key, saved]) => [savedNames[key] ?? key, saved])),
+      decode: value => {
+        if (Array.isArray(value)) throw new TypeError('Native saved envelope requires an object');
+        const envelope = v.parse(v.record(v.string(), v.unknown()), value);
+        const names = new Map(Object.entries(savedNames).map(([key, name]) => [name, key]));
+        const seen = new Set<string>();
+        return Object.fromEntries(Object.entries(envelope).map(([key, saved]) => {
+          const role = names.get(key) ?? key;
+          if ((savedNames[role] ?? role) !== key || seen.has(role)) throw new TypeError('Non-canonical native saved key');
+          seen.add(role); return [role, saved];
+        }));
+      },
+    },
     transitions: data => {
       if (host.scope.disposed || !isJsonData(data)) throw new Error('Native transitions require live JSON rows');
       const rows = v.parse(transitionRows, data), selected = rows.ids.map(id => {

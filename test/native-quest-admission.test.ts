@@ -14,8 +14,8 @@ test('native quest policy is admitted inside the existing headless product befor
     const input = { ...assembly, constants: { ...assembly.constants, nativeQuest } };
     expect(() => validateNamedJsonSchema(jsonSchema, new TextEncoder().encode(JSON.stringify(input)))).toThrow('refuses its schema');
   };
-  refuses({ ...policy, equipment: '' });
-  refuses({ ...policy, limits: { rows: 65 } });
-  refuses({ ...policy, heldSlot: 32 });
+  refuses({ ...policy, acquisition: { ...policy.acquisition, equipment: '' } });
+  refuses({ ...policy, bounds: { ...policy.bounds, rows: 65 } });
+  refuses({ ...policy, acquisition: { ...policy.acquisition, slot: 32 } });
   refuses({ ...policy, runtimeHook: 'foreign' });
 });
