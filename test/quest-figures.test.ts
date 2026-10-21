@@ -16,6 +16,7 @@ const row = { id: 'castaway', kit: 'castaway', feet: { poi: 'hut', x: 3, z: -2, 
 test('figure rows admit the castaway shape and refuse an unknown object kind', () => {
   expect(v.parse(QuestFiguresSchema, { figures: [row] }).figures[0]?.objects).toHaveLength(2);
   expect(v.safeParse(QuestFiguresSchema, { figures: [{ ...row, objects: [{ ...row.objects[0], kind: 'script' }] }] }).success).toBe(false);
+  expect(v.safeParse(QuestFiguresSchema, { figures: [row, { ...row, id: 'castaway-2' }] }).success).toBe(false); // one live figure per kit
 });
 
 test('the fire sits in the figure frame exactly where the castaway camp put it', () => {

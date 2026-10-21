@@ -28,7 +28,10 @@ export const QuestFigureSchema = v.strictObject({
   counter: v.exactOptional(v.strictObject({ model: id, ahead: n, piece: id, name: id, solidFloor: v.boolean() })),
   system,
 });
+/** One live figure per kit: a kit's catalogue rows name its part sources (`<kit>.<part>.source`) and its attention
+ *  programs (`npc.<kit>`), so two rows reusing a kit would collide in the page's resources; ids are unique too. */
 export const QuestFiguresSchema = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON figures'),
-  v.strictObject({ figures: v.pipe(v.array(QuestFigureSchema), v.maxLength(8)) }));
+  v.strictObject({ figures: v.pipe(v.array(QuestFigureSchema), v.maxLength(8),
+    v.check(rows => new Set(rows.map(row => row.kit)).size === rows.length && new Set(rows.map(row => row.id)).size === rows.length, 'one figure per kit, unique ids')) }));
 export type QuestFigureRows = v.InferOutput<typeof QuestFigureSchema>;
 export type QuestFiguresRows = v.InferOutput<typeof QuestFiguresSchema>;
