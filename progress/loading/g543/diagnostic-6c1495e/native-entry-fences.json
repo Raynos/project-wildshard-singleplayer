@@ -1,0 +1,27 @@
+{
+  "source": "e77e887075a290a023374705ccacd56e34e7d2de",
+  "test": "test/grid-entry-fences.test.ts",
+  "modes": [
+    "walk",
+    "hover"
+  ],
+  "sides": [
+    "north",
+    "east",
+    "south",
+    "west"
+  ],
+  "originalStoppedDistances": [
+    6.648895698817796,
+    6.647009677421011,
+    6.648522365395081,
+    6.649005200637475,
+    6.644924656123521,
+    6.64705294041778,
+    6.648287805738221,
+    6.650107233072049
+  ],
+  "focusedTestsPassed": 12,
+  "beforeLogSHA256": "3399c600527bf0175a1861ab3520c2c2db88b6cb4809442acd90584bb9a8ccb2",
+  "afterLogSHA256": "899a86c8053a33acc85162a18dfcb91d9ba43c4ec8758d53dbd5c4267e4bd2af"
+}
