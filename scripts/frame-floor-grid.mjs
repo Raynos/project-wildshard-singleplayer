@@ -370,6 +370,11 @@ export async function driveFloorGrid(plan, documentOrigin) {
               if (near(plan.portal.destination)) exitSeen = true;
               if (exitSeen && near(plan.portal.road) && player.onGround && active.current === plan.from && active.gameplayReady) {
                 portal.roadSeen = true; portal.landed = true;
+                // The real portal can transfer before the source-centre waypoint
+                // is reached. Continue after its observed outgoing landing.
+                const landing = waypoints.findIndex(point => point.x === plan.portal.road.x && point.z === plan.portal.road.z);
+                if (landing === -1) throw new Error('Declared portal landing waypoint missing');
+                waypoint = Math.max(waypoint, landing + 1);
               }
             } else {
               if (near(plan.portal.road)) portal.roadSeen = true;
@@ -412,7 +417,8 @@ export async function driveFloorGrid(plan, documentOrigin) {
           }
           const dx = target.x - feet.x, dz = target.z - feet.z;
           distance = Math.hypot(dx, dz);
-          if (distance < 1.5) {
+          const exitNode = plan.portal?.reverse === true && target.x === plan.portal.destination.x && target.z === plan.portal.destination.z;
+          if (distance < (exitNode ? 0.25 : 1.5)) {
             waypoint++; input.clear(); return;
           }
           if (!active.gameplayReady) { input.clear(); return; }
