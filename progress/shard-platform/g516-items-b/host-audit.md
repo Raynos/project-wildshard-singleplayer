@@ -95,3 +95,13 @@ pools and malformed view rows before allocation. The native drawing code
 and its one-user HOST-BAR 4/6 charge remain; the named-JSON host stays 6/6.
 Runtime physical TS: **shards 0, platform -40**; build-only **+40**, total
 physical TS **0**. No renderer behavior, collider, AS or ceiling changes.
+
+
+X4 cloud/arena scene admission: complete CloudBodySchema, ArenaSceneSchema
+and encounter material declarations move to build-only encounter rows.
+Real arena geometry and cloud specimen files carry the defining schemas;
+runtime specimens read through product.json instead of parsing raw bytes.
+Native meshes, material construction and resource checks retain their
+one-user charge (HOST-BAR 4/6); named JSON remains the existing 6/6 host.
+Runtime physical TS: **shards 0, platform -31**; build-only **+39**, total
+physical TS **+8**. No visual behavior, collider, AS or ceiling changes.

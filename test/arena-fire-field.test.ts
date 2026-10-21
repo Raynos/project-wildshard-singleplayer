@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import { parse } from 'valibot';
-import { ArenaWhirlsSchema,ArenaFireSchema } from '../src/format/encounterRows';
+import { ArenaWhirlsSchema,ArenaFireSchema,ArenaSceneSchema } from '../src/format/encounterRows';
 import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshLambertMaterial, Scene, Vector3 } from 'three';
 import { parsePrivateScene } from '../src/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
@@ -99,10 +99,10 @@ const curtain = parsePrivateScene({ version: 1, root: 'pit', materials: ['dust',
   { kind: 'mesh', id: 'rocks', geometry: 'rock', material: 'rock', missing: 'empty', instances: 4 },
   { kind: 'mesh', id: 'burnt', geometry: 'rock', material: 'burn', missing: 'empty', instances: 2 }] });
 const box = (): Omit<ReturnType<BufferGeometry['toJSON']>, 'uuid'> => { const { uuid: _uuid, ...row } = new BufferGeometry().copy(new BoxGeometry()).toJSON(); return row; };
-const quarry = { scene: curtain, geometry: { ring: box(), rock: box() },
+const quarry = parse(ArenaSceneSchema,{ scene: curtain, geometry: { ring: box(), rock: box() },
   materials: { dust: { kind: 'fx', mode: 'stream', colour: [0.6, 0.5, 0.4], alpha: 0.7, additive: false }, rock: { kind: 'lambert', colour: 0x806040 },
     burn: { kind: 'decal', colour: 0x101010, size: 2, alpha: [0, 0, 0, 255, 0, 0, 0, 128, 0, 0, 0, 64, 0, 0, 0, 0], opacity: 0.5, offset: -1 } },
-  wall: { parts: ['curtain'], spin: [2], at: [5, 6], sink: 1, ease: 10 }, tells: { rockfall: { kind: 'ring', colour: [2, 1, 0.5], count: 2 } } };
+  wall: { parts: ['curtain'], spin: [2], at: [5, 6], sink: 1, ease: 10 }, tells: { rockfall: { kind: 'ring', colour: [2, 1, 0.5], count: 2 } } });
 
 test('a second shard\'s arena dresses in its own materials and raises its curtain only while sealed', () => {
   restore = overrideTerrain({ heightAt: () => 4, normalAt: () => [0, 1, 0] });
@@ -117,5 +117,7 @@ test('a second shard\'s arena dresses in its own materials and raises its curtai
   expect(() => view.instances('curtain')).toThrow('instances');
   expect(view.tells('rockfall')).toHaveLength(2); expect(view.tell('rockfall', 1)).toBe(view.tells('rockfall')[1]); expect(() => view.tell('rockfall', 2)).toThrow('tell');
   view.tell('rockfall').ring(5, 6, 3, 1); expect(view.tell('rockfall').mesh.visible).toBe(true);
-  expect(() => new ArenaSceneView(new Scene(), { ...quarry, materials: { ...quarry.materials, burn: { ...quarry.materials.burn, alpha: [0] } } })).toThrow('RGBA');
+  const burn=quarry.materials['burn'];
+  if(burn?.kind!=='decal')throw new Error('Expected fixture decal');
+  expect(() => new ArenaSceneView(new Scene(), { ...quarry, materials: { ...quarry.materials, burn: { ...burn, alpha: [0] } } })).toThrow('RGBA');
 });

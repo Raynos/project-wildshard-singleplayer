@@ -107,3 +107,41 @@ export type EncounterScheduleRows=v.InferOutput<typeof EncounterScheduleSchema>;
 export type SlotViewRows=v.InferOutput<typeof SlotViewSchema>;
 export type PatrolViewRows=v.InferOutput<typeof PatrolViewSchema>;
 export type ArenaFireRows=v.InferOutput<typeof ArenaFireSchema>;
+
+
+const id=v.pipe(v.string(),v.minLength(1),v.maxLength(64)),triple=vector;
+const hex=v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(0xffffff)),unit=v.pipe(finite,v.minValue(0),v.maxValue(1));
+const puffRow=v.strictObject({bone:id,p:triple,r:finite,ph:finite,colour:triple});
+
+export const EncounterMaterialSchema = v.variant('kind', [
+  v.strictObject({ kind: v.literal('basic'), colour: triple, additive: v.boolean(), opacity: v.exactOptional(unit) }),
+  v.strictObject({ kind: v.literal('fx'), mode: v.picklist(['shaft','flame','ring','stream','dome','beam','decal','curtain','streak']), colour: triple, alpha: finite, additive: v.exactOptional(v.boolean()) }),
+  v.strictObject({ kind: v.literal('lambert'), colour: hex }),
+  v.strictObject({ kind: v.literal('decal'), colour: hex, size: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256)), alpha: v.pipe(v.array(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(255))), v.maxLength(65536)),
+    opacity: unit, offset: finite }),
+]);
+export const CloudBodySchema = v.strictObject({
+  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, EncounterMaterialSchema),
+  poses: v.unknown(), group: id, root: id, scale: finite, shown: v.pipe(v.array(id), v.maxLength(16)),
+  puffs: v.strictObject({ rows: v.pipe(v.array(puffRow), v.maxLength(4096)), bones: v.pipe(v.array(id), v.maxLength(32)), detail: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(4)),
+    name: id, look: id, swell: pair, drift: triple, spin: finite, squash: finite }),
+  params: v.strictObject({ time: id, focus: id, glow: id, flash: id, alpha: id, fogColour: id, fog: id }),
+  focus: v.strictObject({ part: id, open: id, colour: v.tuple([triple, triple]), glow: id, glowAlpha: pair, lookGlow: pair, ring: id, spin: finite, pulse: triple, dome: id }),
+  /** a lightning strip in `from`'s hand (`segments`, `colour`), re-jagged every `every` s: held `reach` m out along `back` → `from`
+   *  ([jag, width] `held`) or struck to a point ([jag, width] `struck`) */
+  strip: v.exactOptional(v.strictObject({ from: id, back: id, reach: finite, colour: triple, segments: v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(64)),
+    every: v.pipe(finite, v.minValue(0.01)), held: pair, struck: pair })),
+});
+export const ArenaSceneSchema = v.strictObject({
+  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, EncounterMaterialSchema),
+  wall: v.strictObject({ parts: v.pipe(v.array(id), v.maxLength(8)), spin: v.pipe(v.array(finite), v.maxLength(8)), at: pair, sink: finite, ease: finite }),
+  /** ground tells by id: `count` rings or lanes in a self-lit `colour` */
+  tells: v.record(id, v.strictObject({ kind: v.picklist(['ring', 'lane']), colour: triple, count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(16)) })),
+});
+const cloudHeight=v.strictObject({heightAt:pair});
+export const CloudSpecimenSchema=v.strictObject({name:id,phone:CloudBodySchema,desktop:CloudBodySchema,
+ pose:v.record(id,finite),ports:v.record(id,v.record(id,v.union([finite,cloudHeight])))});
+export type CloudBodyRows=v.InferOutput<typeof CloudBodySchema>;
+export type ArenaSceneRows=v.InferOutput<typeof ArenaSceneSchema>;
+export type EncounterMaterialRows=v.InferOutput<typeof EncounterMaterialSchema>;
+export type CloudSpecimenRows=v.InferOutput<typeof CloudSpecimenSchema>;

@@ -1,5 +1,5 @@
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
-import { TimedEncountersSchema } from '@wildshard/format/encounterRows';
+import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
@@ -151,6 +151,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'arenaScriptRows.ArenaScriptFightFile': ArenaScriptFightFileSchema,
   'arenaScriptRows.ArenaScriptGeometry': ArenaScriptGeometrySchema,
   'encounterRows.TimedEncounters': TimedEncountersSchema,
+  'encounterRows.CloudSpecimen': CloudSpecimenSchema,
   'roamingCombat.RoamingCombat': RoamingCombatSchema,
   'populationProjection.PopulationProjection': PopulationProjectionSchema,
   'sceneDressing.SceneDressing': SceneDressingSchema,

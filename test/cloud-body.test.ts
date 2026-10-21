@@ -9,6 +9,8 @@ import { BufferGeometry, IcosahedronGeometry, Matrix4, MeshBasicMaterial, Perspe
 import { Scope } from '../src/engine/app/scope';
 import { numericChannelPrograms } from '../src/sdk/clientChannels';
 import { parsePrivateScene } from '../src/format/clientChannels';
+import { parse } from 'valibot';
+import { CloudBodySchema,CloudSpecimenSchema } from '../src/format/encounterRows';
 import { CloudBody } from '../src/game/boss/encounterView';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 
@@ -21,7 +23,7 @@ const scene = parsePrivateScene({ version: 1, root: 'view', materials: ['pearl',
   { kind: 'mesh', id: 'eyes', geometry: 'pearl', material: 'eyes', missing: 'empty' }, { kind: 'mesh', id: 'band', geometry: 'band', material: 'band', missing: 'empty', visible: false }] });
 const poses = numericChannelPrograms('whale.pose', 'whale.pose', [
   { target: 'root', path: ['position', 'y'], expr: (b, r) => b.binary('add', r('sky', ['height']), b.binary('mul', b.constant(5), r('pose', ['rise']))) }]);
-const whale = { scene, poses, group: 'whale.pose', root: 'root', scale: 2, shown: ['pearl', 'eyes'],
+const whale = parse(CloudBodySchema,{ scene, poses, group: 'whale.pose', root: 'root', scale: 2, shown: ['pearl', 'eyes'],
   geometry: { pearl: geometry(new IcosahedronGeometry(1, 1)), halo: geometry(new SphereGeometry(2, 8, 6)), shell: geometry(new SphereGeometry(3, 8, 6)), band: geometry(new TorusGeometry(3, 0.2, 4, 12)) },
   materials: { pearl: { kind: 'basic', colour: [1, 1, 1], additive: false }, halo: { kind: 'fx', mode: 'beam', colour: [0.5, 0.5, 1], alpha: 0.5 },
     band: { kind: 'basic', colour: [1, 0.8, 0.2], additive: true, opacity: 0 }, shell: { kind: 'fx', mode: 'dome', colour: [1, 1, 1], alpha: 0.5 }, eyes: { kind: 'basic', colour: [2, 2, 2], additive: false } },
@@ -29,7 +31,7 @@ const whale = { scene, poses, group: 'whale.pose', root: 'root', scale: 2, shown
     bones: ['root', 'tail'], detail: 0, name: 'whale-cloud', look: 'whale-cloud', swell: [0, 1], drift: [1, 1, 0], spin: 0, squash: 1 },
   params: { time: 'uT', focus: 'uPearl', glow: 'uGlow', flash: 'uFlash', alpha: 'uAlpha', fogColour: 'uFogC', fog: 'uFog' },
   focus: { part: 'pearl', open: 'open', colour: [[1, 1, 1], [3, 2, 1]], glow: 'halo', glowAlpha: [0.2, 0.6], lookGlow: [0.1, 0.9], ring: 'band', spin: 1, pulse: [1, 0, 1], dome: 'shell' },
-  strip: { from: 'pearl', back: 'tail', reach: 10, colour: [1, 1, 2], segments: 4, every: 0.1, held: [0.5, 0.2], struck: [1, 0.3] } };
+  strip: { from: 'pearl', back: 'tail', reach: 10, colour: [1, 1, 2], segments: 4, every: 0.1, held: [0.5, 0.2], struck: [1, 0.3] } });
 
 let scope = new Scope('unused');
 afterEach(() => { scope.dispose(); });
@@ -90,7 +92,7 @@ test('the sky whale catalogue prepares verified rows and normalizes the same clo
   build();
   const input = { name: 'whale-specimen', phone: whale, desktop: whale, pose: { rise: 1, open: 0 }, ports: { sky: { height: 40 } } };
   const supplied = absentShardProduct('sky-whale');
-  Object.defineProperty(supplied, 'file', { value: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(input))) });
+  Object.defineProperty(supplied, 'json', { value: () => Promise.resolve(parse(CloudSpecimenSchema,input)) });
   const files = vi.spyOn(product, 'loadFirstPartyProduct').mockResolvedValueOnce(supplied);
   try {
     const catalogue = defineRuntimeSpecimens([{ key: 'whale', model: { id: 'sky-whale/preview', name: 'Sky whale', file: 'fixture', category: 'creatures', pipeline: 'code', defaults: {} }, source: { kind: 'cloud', slug: 'sky-whale', json: 'models/whale.json' } }]);

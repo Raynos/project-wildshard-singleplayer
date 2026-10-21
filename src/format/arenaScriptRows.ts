@@ -3,7 +3,7 @@ import { ArenaScriptBossProfileSchema } from './bossProfiles';
 import { BossEncounterDefinitionSchema,BossEncounterPresentationSchema } from './bossEncounter';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { CreatureStrikeSchema } from './creatures';
-import { ArenaEncounterSchema,ArenaFieldSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema } from './encounterRows';
+import { ArenaEncounterSchema,ArenaFieldSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema,CloudBodySchema,ArenaSceneSchema } from './encounterRows';
 
 /** Build-only validation; runtime readers import the inferred types only. */
 const finite = v.pipe(v.number(),v.finite()), label = v.pipe(v.string(),v.minLength(1));
@@ -34,9 +34,9 @@ export const ArenaScriptRowsSchema = v.strictObject({
   weather: v.strictObject({ strike: label,clearing: label,storm: label }),record: v.strictObject({ kind: label,variant: label }),
 });
 export type ArenaScriptRows = v.InferOutput<typeof ArenaScriptRowsSchema>;
-const tier = v.strictObject({ flames: v.unknown(),puffs: v.unknown() });
-export const ArenaScriptGeometrySchema = v.object({ body: v.looseObject({ geometry: v.record(label,v.unknown()),puffs: v.record(label,v.unknown()) }),
-  eyes: v.unknown(),poses: v.unknown(),phone: tier,desktop: tier,arena: v.unknown() });
+const tier = v.strictObject({ flames: v.unknown(),puffs: CloudBodySchema.entries.puffs.entries.rows });
+export const ArenaScriptGeometrySchema = v.object({ body: v.looseObject({ ...v.omit(CloudBodySchema,['poses','puffs']).entries,puffs: v.omit(CloudBodySchema.entries.puffs,['rows']) }),
+  eyes: v.unknown(),poses: v.unknown(),phone: tier,desktop: tier,arena: ArenaSceneSchema });
 export type ArenaScriptData = ArenaScriptRows & { geometry: v.InferOutput<typeof ArenaScriptGeometrySchema> };
 /** The original named fight file retains its other encounter rows. */
 export const ArenaScriptFightFileSchema=v.looseObject({

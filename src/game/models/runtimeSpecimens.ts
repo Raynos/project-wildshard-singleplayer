@@ -6,14 +6,12 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { SpecimenModelMetadataSchema, assertSpecimenJson } from '@wildshard/format/specimenCatalogue';
 import { createPageCrowds, readCrowdBody } from '../ambient/crowdPage';
 import type { CrowdBody } from '../ambient/crowdDraw';
-import { CloudBody, CloudBodySchema } from '../boss/encounterView';
+import { CloudBody } from '../boss/encounterView';
+import type { CloudSpecimenRows } from '@wildshard/format/encounterRows';
 import { productRiggedHulls } from '../looks/riggedHulls';
 import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
 
 const id = v.pipe(v.string(), v.minLength(1)), number = v.pipe(v.number(), v.finite());
-const height = v.strictObject({ heightAt: v.tuple([number, number]) });
-const cloud = v.strictObject({ name: id, phone: CloudBodySchema, desktop: CloudBodySchema,
-  pose: v.record(id, number), ports: v.record(id, v.record(id, v.union([number, height]))) });
 const sources = v.variant('kind', [
   v.strictObject({ kind: v.literal('cloud'), slug: id, json: id }),
   v.strictObject({ kind: v.literal('crowd'), slug: id, json: id, binary: id, seed: number,
@@ -22,7 +20,7 @@ const sources = v.variant('kind', [
 const declarations = v.pipe(v.array(v.strictObject({ key: id, model: SpecimenModelMetadataSchema, source: sources })), v.maxLength(64));
 
 
-function cloudSpecimen(rows: v.InferOutput<typeof cloud>): THREE.Group {
+function cloudSpecimen(rows: CloudSpecimenRows): THREE.Group {
   const scene = new THREE.Scene(), input = TIER === 'phone' ? rows.phone : rows.desktop;
   const ports = new Map(Object.entries(rows.ports).map(([port, values]) => [port, Object.fromEntries(Object.entries(values).map(([key, value]) =>
     [key, typeof value === 'number' ? value : terrainHeight(...value.heightAt)]))]));
@@ -45,13 +43,13 @@ export function defineRuntimeSpecimens(input: unknown): { readonly model: (key: 
   if (new Set(rows.map(row => row.key)).size !== rows.length) throw new Error('Duplicate runtime specimen');
   for (const row of rows) {
     let body: CrowdBody | null = null, crowdRows: unknown;
-    let cloudRows: v.InferOutput<typeof cloud> | null = null, ready: Promise<void> | undefined;
+    let cloudRows: CloudSpecimenRows | null = null, ready: Promise<void> | undefined;
     const prepare = (): Promise<void> => {
       ready ??= (async (): Promise<void> => {
         const product = await loadFirstPartyProduct(row.source.slug);
-        const content: unknown = JSON.parse(new TextDecoder().decode(await product.file(row.source.json)));
-        if (row.source.kind === 'cloud') cloudRows = v.parse(cloud, content);
+        if (row.source.kind === 'cloud') cloudRows = await product.json<CloudSpecimenRows>(row.source.json);
         else {
+          const content: unknown = JSON.parse(new TextDecoder().decode(await product.file(row.source.json)));
           body = await readCrowdBody(product, row.source);
           crowdRows = v.parse(v.object({ page: v.object({ specimen: v.unknown() }) }), content).page.specimen;
         }

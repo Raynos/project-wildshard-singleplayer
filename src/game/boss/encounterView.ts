@@ -27,7 +27,7 @@ import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import { EncounterPatrol, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
-import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows,SlotViewRows,PatrolViewRows } from '@wildshard/format/encounterRows';
+import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows,SlotViewRows,PatrolViewRows,CloudBodyRows,ArenaSceneRows,EncounterMaterialRows } from '@wildshard/format/encounterRows';
 
 const finite = v.pipe(v.number(), v.finite());
 /**
@@ -321,21 +321,11 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   }
 }
 
-const id = v.pipe(v.string(), v.minLength(1), v.maxLength(64));
-const triple = v.tuple([finite, finite, finite]), pair = v.tuple([finite, finite]);
-const hex = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff)), unit = v.pipe(finite, v.minValue(0), v.maxValue(1));
 /** An encounter material: a self-lit `basic` colour (additive, or faded to `opacity`), an FX program (`mode`, its
  *  `alpha`, additive unless `additive` is false), a lit `lambert` colour (sRGB hex), or a ground `decal` (sRGB hex) cut
  *  by its `size` × `size` RGBA `alpha` bytes at `opacity`, pulled `offset` toward the camera. */
-const material = v.variant('kind', [
-  v.strictObject({ kind: v.literal('basic'), colour: triple, additive: v.boolean(), opacity: v.exactOptional(unit) }),
-  v.strictObject({ kind: v.literal('fx'), mode: v.picklist(Object.keys(FX) as [keyof typeof FX, ...(keyof typeof FX)[]]), colour: triple, alpha: finite, additive: v.exactOptional(v.boolean()) }),
-  v.strictObject({ kind: v.literal('lambert'), colour: hex }),
-  v.strictObject({ kind: v.literal('decal'), colour: hex, size: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256)), alpha: v.pipe(v.array(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(255))), v.maxLength(65536)),
-    opacity: unit, offset: finite }),
-]);
 /** Build declared materials (the caller's scope owns their lifetime). */
-function encounterMaterials(rows: Readonly<Record<string, v.InferOutput<typeof material>>>): Map<string, THREE.Material> {
+function encounterMaterials(rows: Readonly<Record<string, EncounterMaterialRows>>): Map<string, THREE.Material> {
   const made = new Map<string, THREE.Material>();
   for (const [key, row] of Object.entries(rows)) {
     if (row.kind === 'fx') made.set(key, fxMaterial(FX[row.mode], new THREE.Color(...row.colour), row.alpha, row.additive ?? true));
@@ -350,7 +340,6 @@ function encounterMaterials(rows: Readonly<Record<string, v.InferOutput<typeof m
   }
   return made;
 }
-const puffRow = v.strictObject({ bone: id, p: triple, r: finite, ph: finite, colour: triple });
 /**
  * A cloud body: `scene` and its `geometry` (`materials` by port id: a self-lit basic colour or an FX program), posed by
  * the `group` of `poses` channel rows reading the caller's `pose` fields (and its extra ports), scaled by `scale` at
@@ -360,18 +349,6 @@ const puffRow = v.strictObject({ bone: id, p: triple, r: finite, ph: finite, col
  * and the look's glow ride `glowAlpha` and `lookGlow` [base, gain], and its `ring` faces the camera, spinning at `spin`
  * and pulsing `pulse` [base, gain, rate] while open; `shown` parts show and hide with the body.
  */
-export const CloudBodySchema = v.strictObject({
-  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, material),
-  poses: v.unknown(), group: id, root: id, scale: finite, shown: v.pipe(v.array(id), v.maxLength(16)),
-  puffs: v.strictObject({ rows: v.pipe(v.array(puffRow), v.maxLength(4096)), bones: v.pipe(v.array(id), v.maxLength(32)), detail: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(4)),
-    name: id, look: id, swell: pair, drift: triple, spin: finite, squash: finite }),
-  params: v.strictObject({ time: id, focus: id, glow: id, flash: id, alpha: id, fogColour: id, fog: id }),
-  focus: v.strictObject({ part: id, open: id, colour: v.tuple([triple, triple]), glow: id, glowAlpha: pair, lookGlow: pair, ring: id, spin: finite, pulse: triple, dome: id }),
-  /** a lightning strip in `from`'s hand (`segments`, `colour`), re-jagged every `every` s: held `reach` m out along `back` → `from`
-   *  ([jag, width] `held`) or struck to a point ([jag, width] `struck`) */
-  strip: v.exactOptional(v.strictObject({ from: id, back: id, reach: finite, colour: triple, segments: v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(64)),
-    every: v.pipe(finite, v.minValue(0.01)), held: pair, struck: pair })),
-});
 interface Puff { readonly bone: THREE.Object3D; readonly p: THREE.Vector3; readonly r: number; readonly ph: number }
 const at = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), turn = new THREE.Quaternion(), size = new THREE.Vector3(), matrix = new THREE.Matrix4();
 
@@ -382,7 +359,7 @@ export class CloudBody {
   readonly fogColour = new THREE.Color(0.3, 0.32, 0.4); readonly fog = { value: 0.1 };
   readonly focusPoint = new THREE.Vector3();
   visible = false;
-  private readonly rows: v.InferOutput<typeof CloudBodySchema>;
+  private readonly rows: CloudBodyRows;
   private readonly parts: ReadonlyMap<string, THREE.Object3D>;
   readonly puffs: THREE.InstancedMesh;
   private readonly list: Puff[];
@@ -393,8 +370,8 @@ export class CloudBody {
   private time = 0;
   private readonly strip: LightningStrip | null = null;
   private stripAt: THREE.Vector3 | null = null; private stripT = 0;
-  constructor(scene: THREE.Scene, input: unknown, private readonly pose: Readonly<Record<string, number>>, ports: ReadonlyMap<string, unknown> = new Map()) {
-    const rows = this.rows = v.parse(CloudBodySchema, input);
+  constructor(scene: THREE.Scene, input: CloudBodyRows, private readonly pose: Readonly<Record<string, number>>, ports: ReadonlyMap<string, unknown> = new Map()) {
+    const rows = this.rows = input;
     this.made = encounterMaterials(rows.materials);
     const loader = new THREE.BufferGeometryLoader();
     const built = createClientScene(rows.scene, { geometry: new Map(Object.entries(rows.geometry).map(([key, row]) => [key, loader.parse(row)])), materials: this.made });
@@ -483,21 +460,15 @@ function isFx(made: THREE.Material): made is FxMaterial { return made instanceof
  * `at` `sink` m into the ground) that rises with the seal at `ease`/s, each part spinning at its own `spin` rad/s, and
  * its ground `tells`.
  */
-export const ArenaSceneSchema = v.strictObject({
-  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, material),
-  wall: v.strictObject({ parts: v.pipe(v.array(id), v.maxLength(8)), spin: v.pipe(v.array(finite), v.maxLength(8)), at: pair, sink: finite, ease: finite }),
-  /** ground tells by id: `count` rings or lanes in a self-lit `colour` */
-  tells: v.record(id, v.strictObject({ kind: v.picklist(['ring', 'lane']), colour: triple, count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(16)) })),
-});
 /** The arena's dressing built from rows; the caller lends its parts to the hazards that move them. */
 export class ArenaSceneView {
-  private readonly rows: v.InferOutput<typeof ArenaSceneSchema>;
+  private readonly rows: ArenaSceneRows;
   private readonly parts: ReadonlyMap<string, THREE.Object3D>;
   private readonly wall: { readonly part: THREE.Object3D; readonly spin: number; readonly time: THREE.IUniform<number> | null }[];
   private readonly tellRows = new Map<string, GroundTell[]>();
   private rise = 0;
-  constructor(scene: THREE.Scene, input: unknown) {
-    const rows = this.rows = v.parse(ArenaSceneSchema, input), loader = new THREE.BufferGeometryLoader();
+  constructor(scene: THREE.Scene, input: ArenaSceneRows) {
+    const rows = this.rows = input, loader = new THREE.BufferGeometryLoader();
     const built = createClientScene(rows.scene, { geometry: new Map(Object.entries(rows.geometry).map(([key, row]) => [key, loader.parse(row)])), materials: encounterMaterials(rows.materials) });
     this.parts = built.parts;
     const [x, z] = rows.wall.at;

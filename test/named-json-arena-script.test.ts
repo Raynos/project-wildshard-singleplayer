@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
-import { TimedEncountersSchema } from '@wildshard/format/encounterRows';
+import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
@@ -72,5 +72,27 @@ test('timed encounter admission bounds rosters before native owners allocate',as
     expect(()=>nameBlob('combat/timed-encounters.json','json',encode(bad),{jsonSchema:schema})).toThrow('refuses its schema');
     payload=encode(bad);
     await expect(product.json('combat/timed-encounters.json')).rejects.toThrow('refuses its schema');
+  }
+});
+
+
+test('cloud specimen file admission refuses invalid materials and puff capacity',async()=>{
+  const body={...geometry.body,geometry:{...geometry.body.geometry,eyes:geometry.eyes},poses:geometry.poses};
+  const phone={...body,puffs:{...body.puffs,rows:geometry.phone.puffs}},desktop={...body,puffs:{...body.puffs,rows:geometry.desktop.puffs}};
+  const rows={name:'cloud-schema',phone,desktop,pose:{rise:1},ports:{place:{ground:0}}};
+  const schema=namedJsonSchema(CloudSpecimenSchema);
+  const blob=nameBlob('models/cloud.json','json',encode(rows),{jsonSchema:schema});
+  let payload=blob.bytes;
+  const identity={slug:'cloud-schema',name:'Cloud schema',author:'Wildshard',revision:1,seed:1};
+  const product=createShardProduct({slug:identity.slug,revision:1,shardfile:emptyShardfile(identity),sections:new Map(),
+    files:new Map([['models/cloud.json',{...blob.file,url:'https://example.test/cloud'}]]),read:()=>Promise.resolve(payload)});
+  expect(await product.json('models/cloud.json')).toEqual(rows);
+  for(const bad of [
+    {...rows,phone:{...phone,puffs:{...phone.puffs,detail:5}}},
+    {...rows,phone:{...phone,materials:{...phone.materials,bad:{kind:'fx',mode:'missing',colour:[1,1,1],alpha:1}}}},
+  ]) {
+    expect(()=>nameBlob('models/cloud.json','json',encode(bad),{jsonSchema:schema})).toThrow('refuses its schema');
+    payload=encode(bad);
+    await expect(product.json('models/cloud.json')).rejects.toThrow('refuses its schema');
   }
 });
