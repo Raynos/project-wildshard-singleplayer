@@ -5,10 +5,14 @@ import ts from '@typescript/typescript6';
 import * as v from 'valibot';
 
 /** Preserve every ordinary rule and override while deferring typed rules.
+ * Directive usage needs the complete rule set too: an active typed-rule
+ * suppression otherwise appears unused solely because that rule is deferred.
+ * The full CI lint validates directives with type-aware rules enabled.
  * @param {unknown} raw */
 export function untypedLintConfig(raw) {
   const config = v.parse(v.looseObject({ options: v.looseObject({ typeAware: v.boolean() }) }), raw);
   config.options.typeAware = false;
+  config.options.reportUnusedDisableDirectives = 'off';
   return config;
 }
 

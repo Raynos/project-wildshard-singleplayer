@@ -311,7 +311,8 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(result['files'], ['src/bad.ts'])
 
     def test_real_cache_miss_config_defers_typed_rules_only(self):
-        self.put('.oxlintrc.json', json.dumps({'plugins': ['typescript'], 'options': {'typeAware': True},
+        self.put('.oxlintrc.json', json.dumps({'plugins': ['typescript'], 'options': {
+                 'typeAware': True, 'reportUnusedDisableDirectives': 'error'},
                  'rules': {'typescript/no-unsafe-assignment': 'error', 'no-eval': 'error'}}))
         self.put('tsconfig.json', '{"compilerOptions":{"strict":true,"target":"esnext"},"include":["src"]}')
         self.put('src/unsafe.ts', "export const value = JSON.parse('{}');")
@@ -320,6 +321,11 @@ class PushLoop(unittest.TestCase):
         self.assertNotEqual(original.returncode, 0)
         subprocess.run(['node', str(ROOT / 'scripts/push-lint-config.mjs')], cwd=self.root, check=True)
         ordinary = [executable, '-c', '.push-untyped.oxlint.json', 'src/unsafe.ts']
+        self.assertEqual(subprocess.run(ordinary, cwd=self.root, capture_output=True).returncode, 0)
+        self.put('src/unsafe.ts', '// oxlint-disable-next-line typescript/no-unsafe-assignment -- Deliberate fixture boundary\n'
+                 "export const value = JSON.parse('{}');")
+        self.assertEqual(subprocess.run([executable, '-c', '.oxlintrc.json', 'src/unsafe.ts'],
+                                       cwd=self.root, capture_output=True).returncode, 0)
         self.assertEqual(subprocess.run(ordinary, cwd=self.root, capture_output=True).returncode, 0)
         self.put('src/unsafe.ts', "eval('1');")
         refusal = subprocess.run(ordinary, cwd=self.root, capture_output=True, text=True)

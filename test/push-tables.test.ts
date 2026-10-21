@@ -12,7 +12,7 @@ import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 test('cache-miss lint retains architecture rules and ordinary options', () => {
   const original = { options: { typeAware: true, denyWarnings: true }, jsPlugins: ['./lint/guard.js'],
     rules: { 'no-eval': 'error' }, overrides: [{ files: ['src/**'], rules: { 'local/guard': 'error' } }] };
-  expect(untypedLintConfig(original)).toEqual({ ...original, options: { typeAware: false, denyWarnings: true } });
+  expect(untypedLintConfig(original)).toEqual({ ...original, options: { typeAware: false, denyWarnings: true, reportUnusedDisableDirectives: 'off' } });
   expect(original.options.typeAware).toBe(true);
 });
 
