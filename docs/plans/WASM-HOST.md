@@ -1,6 +1,6 @@
 # Plan: WASM-HOST — a fast, batched Wasm host for shard AssemblyScript
 
-**State:** `open`, parked (2026-10-20): design now (two council rounds, H0 numbers); **nothing is built until Jake says
+**State:** `in progress` (view lane only) 2026-10-21: Jake started **H0, H0b, H1–H6, H9, H13** scoped to Pine Hollow and Driftwood's per-frame view code (SHARD-PLATFORM G570, [dw-pine-zero-mini-plan.md](shard-platform/dw-pine-zero-mini-plan.md) row ZF); every other row stays parked until Jake says. Was: `open`, parked (2026-10-20): design now (two council rounds, H0 numbers); **nothing is built until Jake says
 so**. Not built by the SHARD-PLATFORM builder or its lanes (G517).
 
 Jake, 2026-10-20 (E489): *"It goes off the shard platform. I don't want to fuck around the builder with changing the
@@ -156,3 +156,5 @@ listed here with its lines instead of being forced into a one-user host.
   `WebAssembly.Memory` per page size instead of creating one each, because iOS runs a full GC for every new Memory
   (40–80 ms each). H-rows that redesign memory ownership start from this.
 - 2026-10-21, Jake (SHARD-PLATFORM G566): AssemblyScript **body operations** (spawn a declared body, teleport, enable/disable its collider) land now for Driftwood's quest barrels, ahead of this plan's design. The H-rows that design the AS physics surface start from this API.
+
+**Pine and Driftwood lines this plan takes (G570, measured at d16f3c3ae3):** Pine per-frame view 174 (`quest/views.ts` 63, `poolSurface.ts` 62, `beaverPool.ts` 33, `water.ts` 13) plus per-frame one-user code (King pose 54, posedInstances 61); Driftwood per-frame view 166 (rope bridge 128, creatureLooks 21, per-frame systems 17) plus NPC head focus, figures, gulls and cover (~150). Full span list: the plan agent's inventory, re-run with `sourceProgressInventory()`.
