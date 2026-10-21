@@ -11,7 +11,7 @@ import tarfile
 
 ARCHIVE = 'test-products.tar'
 PROOF = 'test-products-proof.json'
-GENERATED_ROOTS = ['src', 'public', 'out', 'docs/api', 'lint/api-surface.json']
+GENERATED_ROOTS = ['src', 'public', 'out', 'docs/api', 'lint']
 EXCLUDED = {'.git', 'node_modules', '.cache', '__pycache__'}
 
 

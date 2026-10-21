@@ -20,7 +20,7 @@ class PreparedProducts(unittest.TestCase):
         self.addCleanup(self.scratch.cleanup)
         self.root = Path(self.scratch.name)
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
-        (self.root / '.gitignore').write_text('src/*.generated.ts\npublic/generated.bin\nout/\nnode_modules/\n')
+        (self.root / '.gitignore').write_text('src/*.generated.ts\npublic/generated.bin\nout/\nnode_modules/\nlint/*.generated.json\n')
         (self.root / 'scripts').mkdir()
         self.catalogue = {'jobs': [{'outputs': ['src/shards/fictional/assets/hash'],
                                    'buildOutputs': {'public/generated.bin': 'hash'},
@@ -34,6 +34,7 @@ class PreparedProducts(unittest.TestCase):
         self.addCleanup(self.env.stop)
         for name, content in {'src/table.generated.ts': b'export const value=7;', 'public/generated.bin': b'\0\x01', 'out/fictional/shard.json': b'{"format":2}',
                               'src/shards/fictional/assets/hash': b'retained bytes',
+                              'lint/shard-words.generated.json': b'{"slugs":["fictional"]}',
                               'src/shards/fictional/.wildshard/build-policy.json': b'{"version":1,"decisionLegacyLines":100}'}.items():
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -43,12 +44,14 @@ class PreparedProducts(unittest.TestCase):
     def test_round_trip_restores_inputs_and_products(self):
         declared, required = products.catalogue_outputs(self.root)
         policy = 'src/shards/fictional/.wildshard/build-policy.json'
-        for name in declared | required | {policy, 'out/fictional/shard.json'}:
+        words = 'lint/shard-words.generated.json'
+        for name in declared | required | {policy, words, 'out/fictional/shard.json'}:
             (self.root / name).unlink()
         products.unpack(self.root)
         for name in declared | required:
             self.assertTrue((self.root / name).is_file(), name)
         self.assertEqual(json.loads((self.root / policy).read_text())['decisionLegacyLines'], 100)
+        self.assertEqual(json.loads((self.root / words).read_text())['slugs'], ['fictional'])
         repo = Path(__file__).resolve().parents[1]
         probe = f"""
           import {{projectDecisionBudget}} from '{(repo / 'src/sdk/projectPolicy.ts').as_uri()}';
