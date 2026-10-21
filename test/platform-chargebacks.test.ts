@@ -213,3 +213,18 @@ test('shared hull imports grant no second user to the packed species adapter',()
   expect(recordPrivateCharge(charges,'fixture',{path,name:'SpeciesLookBook',lines:7})).toBe(true);
   expect(charges.get('nalati-grasslands')?.map(row=>row.name)).toEqual(['SpeciesLookBook']);
 });
+
+
+test('placed actor groups charge their real Driftwood caller while wildlife groups stay Nalati',()=>{
+  const path='src/game/population/pageGroups.ts',broad=new Set(['nalati-grasslands','driftwood-isle','pine-hollow']);
+  const names=['Placement','Counts','PageActorGroups','PagePopulationPlanner','PageGroups'];
+  const bindings=new Map(names.map(name=>[`${path}\0${name}`,broad]));
+  chargePlatformUsers(new Map(),bindings);
+  for(const name of names){
+    const placed=['Placement','Counts','PageActorGroups'].includes(name),owner=placed?'driftwood-isle':'nalati-grasslands';
+    expect(bindings.get(`${path}\0${name}`)).toEqual(new Set([owner]));expect(platformChargeback(path,name)).toBe('C4');
+    const row={path,name,lines:7},charges=new Map<string,typeof row[]>([['nalati-grasslands',[]],['driftwood-isle',[]]]);
+    expect(recordPrivateCharge(charges,'fixture-only-user',row)).toBe(true);
+    expect(charges.get(owner)).toEqual([row]);expect(charges.get(placed?'nalati-grasslands':'driftwood-isle')).toEqual([]);
+  }
+});

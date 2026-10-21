@@ -369,3 +369,17 @@ authored AS **0**; physical TS **-1**. Private JSON remains exactly
 exact POI paint/gesture pose tests, native specimen catalogue and the
 Nalati product build pass. Invalid seat/material/gesture rows refuse
 production and product read. No visual, collider, codec or budget change.
+
+
+X4 placed-group ownership correction: Placement, Counts and PageActorGroups
+have exactly one live caller: PopulationProjection, installed by Driftwood
+creatures/install.ts. Nalati's PageWildlife instead uses PageGroups and
+PagePopulationPlanner. Broad transitive reach is not a second user.
+Route these three existing C4 charges to Driftwood; retain all wildlife
+charges on Nalati. PageActorGroups stays single-shard HOST-BAR 4/6,
+fully charged, with no platform credit or host/API change.
+The canonical code-line counter finds **43** lines: Placement 1, Counts 1,
+PageActorGroups 41. Attribution **Nalati -43 / Driftwood +43**, total 0.
+Runtime source **0 shard / 0 platform**; this is not a source reduction.
+Typed lint, 12 focused chargeback cases, root types and real hooks pass.
+No budgets, payloads, physics, drawing or gameplay change.

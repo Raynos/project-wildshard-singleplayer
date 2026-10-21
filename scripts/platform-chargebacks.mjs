@@ -114,6 +114,7 @@ const inline = new Map([
 
 /** @param {string} path @param {string} [name] */
 function reviewedOwner(path, name) {
+  if(path === 'src/game/population/pageGroups.ts' && ['Placement','Counts','PageActorGroups'].includes(name ?? '')) return 'driftwood-isle';
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/systems/viewmodel/graphArms.ts') return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts', 'src/format/water.ts', 'src/game/systems/looks/waterSurface.ts',
