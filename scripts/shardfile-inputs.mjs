@@ -8,11 +8,13 @@ import { registerHooks, syncBuiltinESMExports } from 'node:module';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
+import {compilerCodeHash} from './compiler-code.mjs';
 
 const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync.native, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
-const schema = 'shardfile-inputs/2', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs')]);
-const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FD] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
+const schema = 'shardfile-inputs/3', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs')]);
+const code=/\.[cm]?[jt]sx?$/u;
+const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FDM] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
 /** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean}>} */
 const scopes = new AsyncLocalStorage();
 let installed = false;
@@ -41,7 +43,8 @@ function value(root, entry, memo) {
     if (!raw.real(at).startsWith(root+sep)) throw new Error(`Escaped product input: ${file}`);
     if (stat.isDirectory()) return kind === 'D' ? `directory:${digest(raw.list(at).sort().join('\0'))}` : 'directory';
     if (!stat.isFile()) throw new Error(`Nonregular product input: ${file}`);
-    return memo === undefined ? digest(raw.read(at)) : memo.hash(file);
+    const hash=memo === undefined ? digest(raw.read(at)) : memo.hash(file);
+    return kind==='M'&&code.test(file)?`module:${compilerCodeHash(file,hash,()=>raw.read(at))}`:hash;
   } catch (error) {
     if (error instanceof Error && 'code' in error && (error.code === 'ENOENT' || error.code === 'ENOTDIR')) return 'absent';
     throw error;
@@ -62,7 +65,35 @@ function note(kind, target) {
 /** Install once in the compiler process, before its entry imports load. */
 export function installInputRecorder() {
   if (installed) return; installed = true;
-  registerHooks({load(url,context,next) { if (url.startsWith('file:')) modules.add(fileURLToPath(url)); return next(url,context); }});
+  registerHooks({load(url,context,next) {
+    const file=url.startsWith('file:')?fileURLToPath(url):undefined,scope=scopes.getStore();
+    if(file!==undefined)modules.add(file);
+    // Reading a module to execute it differs from consuming its source text.
+    // Hide only the loader's own I/O; explicit reads after evaluation stay F.
+    const observing=scope?.observing;
+    if(scope!==undefined)scope.observing=true;
+    let loaded;
+    try {loaded=next(url,context);}
+    finally {if(scope!==undefined)scope.observing=observing ?? false;}
+    if(file!==undefined)note(code.test(file)?'M':'F',file);
+    return loaded;
+  }});
+  /** @type {unknown} */
+  const functionText=Object.getOwnPropertyDescriptor(Function.prototype,'toString')?.value;
+  if(typeof functionText!=='function')throw new Error('Function source reader is unavailable');
+  // oxlint-disable-next-line no-extend-native -- Isolated compiler instrumentation must observe function-source content reads; it preserves the original result outside recording scopes.
+  Function.prototype.toString=function toString() {
+    /** @type {unknown} */
+    const text=Reflect.apply(functionText,this,[]);
+    if(typeof text!=='string')throw new Error('Function source reader returned non-text');
+    const scope=scopes.getStore();
+    if(scope!==undefined&&!scope.observing&&!/\{\s*\[native code\]\s*\}$/u.test(text)) {
+      // A function can originate in transformed TypeScript or a closure. Mark
+      // all executing modules as raw content rather than guess its source.
+      for(const file of modules)note('F',file);
+    }
+    return text;
+  };
   /** @param {Record<string,unknown>} table @param {string[]} names @param {string} kind */
   const wrap = (table,names,kind) => {
     for (const name of names) {
@@ -103,7 +134,7 @@ export async function captureProductInputs(root,receipt,run) {
   installInputRecorder();
   const scope = {root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false};
   await scopes.run(scope,async () => {
-    for (const file of modules) note('F',file);
+    for (const file of modules) note(code.test(file)?'M':'F',file);
     await run();
   });
   if (scope.invalid.length > 0 || scope.bundles === 0) throw new Error(`Incomplete product input trace: ${scope.invalid.join('; ')}`);
@@ -159,24 +190,12 @@ export function publishProductInputs(directory,receipt,key) {
 }
 if (process.execArgv.some((arg,index)=>arg==='--import' && process.execArgv[index+1] === import.meta.filename)) installInputRecorder();
 
-/** SDK/format changes deliberately rebuild every product; unread generated tables
- * are omitted here and enter individual receipts only when actually consumed.
+/** Workspace/dependency installation identity. Compiler execution and runtime
+ * source enter complete per-product receipts; unused SDK files do not.
  * @param {string} root @param {import('./bake-input-hashes.mjs').InputHashMemo} memo */
 export function productToolchainKey(root,memo) {
-  /** @type {string[]} */
-  const files = [];
-  /** @param {string} folder */
-  const walk = folder => {
-    for (const row of raw.list(resolve(root,folder),{withFileTypes:true})) {
-      if (['node_modules','dist','client','client-devserver'].includes(row.name)) continue;
-      const file = `${folder}/${row.name}`;
-      if (row.isDirectory()) walk(file);
-      else if (row.isFile() && /\.(?:[cm]?[jt]s|json)$/u.test(row.name) && !row.name.includes('.generated.')) files.push(file);
-    }
-  };
-  for (const folder of ['src/sdk','src/format']) walk(folder);
-  for (const file of ['package.json','pnpm-lock.yaml','pnpm-workspace.yaml']) files.push(file);
-  return digest(JSON.stringify(files.sort().map(file=>[file,memo.hash(file)])));
+  const files=['package.json','pnpm-lock.yaml','pnpm-workspace.yaml'];
+  return digest(JSON.stringify(files.map(file=>[file,memo.hash(file)])));
 }
 
 /** Native plugin callbacks cross an async boundary; bind the product scope at

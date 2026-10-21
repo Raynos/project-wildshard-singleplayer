@@ -75,11 +75,12 @@ it('keys compiler writes, refuses concurrent source edits and rejects incomplete
   })).rejects.toThrow('Product input changed during build');
   await expect(captureProductInputs(root,receipt,() => Promise.resolve())).rejects.toThrow('Incomplete');
 });
-it('keeps mandatory SDK and format sources in every recipe without unread generated tables', () => {
+it('keys workspace installation while complete receipts own SDK and format source freshness', () => {
   const root = fixture(), memo = new InputHashMemo(root), key = () => productToolchainKey(root,memo), before = key();
   writeFileSync(resolve(root,'src/sdk/unread.generated.ts'),'generated'); expect(key()).toBe(before);
-  writeFileSync(resolve(root,'src/sdk/compiler.ts'),'compiler'); expect(key()).not.toBe(before);
-  const sdk = key(); writeFileSync(resolve(root,'src/format/schema.ts'),'schema'); expect(key()).not.toBe(sdk);
+  writeFileSync(resolve(root,'src/sdk/compiler.ts'),'compiler'); expect(key()).toBe(before);
+  writeFileSync(resolve(root,'src/format/schema.ts'),'schema'); expect(key()).toBe(before);
+  writeFileSync(resolve(root,'pnpm-lock.yaml'),'changed dependency installation');expect(key()).not.toBe(before);
 });
 
 it('invalidates when a new native directory entry can take precedence', async () => {
@@ -104,4 +105,24 @@ it('rechecks absent descendants after a file parent becomes a directory', async 
   rmSync(resolve(root,'asset.txt'));mkdirSync(resolve(root,'asset.txt'));
   writeFileSync(resolve(root,'asset.txt/child.ts'),'new input');
   expect(productInputKey(root,receipt,[],memo)).toBeUndefined();
+});
+
+it.each(['execution','source','function-text'])('keeps %s compiler dependencies in their proper identity domain', mode => {
+  const root=fixture(),compiler=resolve(root,'compiler.mjs'),receipt=resolve(root,'receipt.json');
+  const initial='/** initial documentation */\nexport function compile(){return 1;}\n';
+  writeFileSync(compiler,initial);
+  const script=`import fs from 'node:fs';import {pathToFileURL}from'node:url';
+    const {installInputRecorder,captureProductInputs,recordBundle}=await import(process.argv[3]);
+    installInputRecorder();const compiler=await import(pathToFileURL(process.argv[1]).href);
+    await captureProductInputs(process.argv[4],process.argv[2],()=>{
+      compiler.compile();
+      ${mode==='source'?"fs.readFileSync(process.argv[1]);":mode==='function-text'?"compiler.compile.toString();":''}
+      recordBundle({output:[]});return Promise.resolve();
+    });`;
+  execFileSync(process.execPath,['--input-type=module','-e',script,compiler,receipt,resolve('scripts/shardfile-inputs.mjs'),root],{encoding:'utf8'});
+  const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),before=key();
+  expect(before).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(compiler,initial.replace('initial documentation','additional compiler documentation'));
+  if(mode==='execution')expect(key()).toBe(before);else expect(key()).toBeUndefined();
+  writeFileSync(compiler,initial.replace('return 1','return 2'));expect(key()).toBeUndefined();
 });
