@@ -53,7 +53,8 @@ for (const { layout, leg, name } of runs) {
   const drive = soakDriveBounds(original);
   const grade = gradeSoak({ drive, samples, windows: original.windows, seconds: original.seconds, circuits: original.circuits,
     evictions: original.evictions.length, errors: original.errors, leak: original.leak,
-    expected: original.expected, entries: original.entries, crossroads: original.crossroads, engineBase: summary.engineBase, rehearsal: true, leg });
+    expected: original.expected, entries: original.entries, crossroads: original.crossroads,
+    expectedCrossroads: original.expectedCrossroads ?? 16, engineBase: summary.engineBase, rehearsal: true, leg });
   const artifacts = [];
   for (const suffix of ['native.jsonl', 'gl.jsonl', ...(loadingEvents.length > 0 ? ['gl-events.jsonl'] : [])]) {
     const file = `${name}-${suffix}`, bytes = readFileSync(join(from, file));

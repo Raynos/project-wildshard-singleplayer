@@ -1,6 +1,8 @@
 import { publicGridIntentCode } from '../public-grid.mjs';
 import { gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 import memoryGates from '../../src/format/memoryGates.json' with { type: 'json' };
+import catalogue from '../../src/game/grid/singleplayer.json' with { type: 'json' };
+import openPlots from '../../src/shards/open-plots/outputs.json' with { type: 'json' };
 
 /** The Explorer cap of the one memory switch (src/format/memoryGates.json, G433), decimal bytes. */
 const EXPLORER_CAP_BYTES = memoryGates.explorerMB * 1_000_000;
@@ -45,7 +47,7 @@ export function ownedSoakPlans(state, leg = 'cells', routeScope = 'catalogue', h
 /** @typedef {{ name: string, from: string | null, to: string | null, movement: string, hoverMaxSpeed: number,
  *   waypoints: {x:number,z:number}[], requiredResidents: string[], retiredResidents?: string[], crossroads?: string | null,
  *   borrowedHome?: string }} SoakPlan */
-/** @typedef {{ reference: {x:number,z:number}, plans: SoakPlan[], coveragePlans?: SoakPlan[], leadIn?: SoakPlan[], omitted?: string[] }} SoakRoute */
+/** @typedef {{ reference: {x:number,z:number}, plans: SoakPlan[], coveragePlans?: SoakPlan[], leadIn?: SoakPlan[], omitted?: string[], roadOnly?: string[] }} SoakRoute */
 
 /** Strict borrowed-home witness on top of the floor's: the page level and its `sim:<home>` claim survive every leg.
  * @param {Parameters<typeof gridFloorWitnessFailures>[0]} witness */
@@ -64,6 +66,24 @@ export function soakWitnessFailures(witness) {
   return failures;
 }
 
+/** O12 (SF88f): the platform's crossroads, one each, in driving order: a serpentine over the inner roads, then round the
+ * outer road. The extent is the catalogue's (every layout fills the same 5 × 5).
+ * @param {number} pitch @returns {{x:number,z:number}[]} */
+export function soakRoadTour(pitch) {
+  const grid = catalogue.grid, ring = Math.max(...[...grid.cells, ...grid.developer].flatMap(row => row.cell.map(Math.abs)));
+  const roads = Array.from({ length: 2 * ring + 2 }, (_, n) => (n - ring - 0.5) * pitch), inner = roads.slice(1, -1), points = [];
+  for (const [row, z] of inner.entries()) for (const x of row % 2 ? [...inner].reverse() : inner) points.push({ x, z });
+  const edge = roads.at(-1), last = points.at(-1);
+  if (edge === undefined || last === undefined) throw new Error('Missing road circuit');
+  // out along the last inner road to the outer road, once round it and back to that crossroads
+  const perimeter = [...roads.map(x => ({ x, z: edge })), ...roads.slice(0, -1).reverse().map(z => ({ x: edge, z })),
+    ...roads.slice(0, -1).reverse().map(x => ({ x, z: -edge })), ...roads.slice(1, -1).map(z => ({ x: -edge, z }))];
+  const join = perimeter.findIndex(point => point.x === last.x && point.z === Math.sign(last.z) * edge);
+  if (join === -1) throw new Error('Inner roads do not meet the outer road');
+  points.push(...perimeter.slice(join), ...perimeter.slice(0, join + 1));
+  return points;
+}
+
 /** @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
  * @param {'cells' | 'road'} leg @param {'catalogue' | 'prepared'} routeScope */
 function ownedHomeSoakPlans(state, leg, routeScope) {
@@ -73,20 +93,21 @@ function ownedHomeSoakPlans(state, leg, routeScope) {
   const origin = cell => ({ x: cell.cell[0] * pitch, z: cell.cell[1] * pitch });
   const h = origin(home), reference = { x: h.x, z: h.z + inset };
   if (leg === 'road') {
-    const roads = [-1.5, -0.5, 0.5, 1.5].map(n => n * pitch), points = [];
-    for (const [row, z] of roads.entries()) for (const x of row % 2 ? [...roads].reverse() : roads) points.push({ x, z });
-    const first = points.at(0);
+    // O12 (SF88f): every crossroads of the 5 × 5, a serpentine over the inner roads then the whole outer loop
+    const points = soakRoadTour(pitch), crossings = points.length, first = points.at(0);
     if (!first) throw new Error('Missing road circuit');
     const start = { x: half, z: first.z };
     points.push({ x: half, z: points.at(-1).z }, start);
     return { reference: start, plans: points.map((point, index) => ({ name: `road-${index}`, from: null, to: null,
-      movement: 'road-hover', hoverMaxSpeed: 30, waypoints: [point], requiredResidents: [], crossroads: index < 16 ? `${point.x},${point.z}` : null })) };
+      movement: 'road-hover', hoverMaxSpeed: 30, waypoints: [point], requiredResidents: [], crossroads: index < crossings ? `${point.x},${point.z}` : null })) };
   }
   const pine = state.cells.find(cell => cell.slug === 'pine-hollow'), nalati = state.cells.find(cell => cell.slug === 'nalati-grasslands');
   if (routeScope === 'prepared' && (!pine || !nalati)) throw new Error('Prepared soak requires Pine and Nalati');
   const runtimes = [pine, nalati].filter(cell => cell !== undefined);
-  const omitted = routeScope === 'prepared' ? state.cells.filter(cell => !['driftwood-isle', 'pine-hollow', 'nalati-grasslands', '_template'].includes(cell.slug)).map(cell => cell.instance) : [];
-  const remaining = state.cells.filter(cell => ![home.instance, ...runtimes.map(runtime => runtime.instance), ...omitted].includes(cell.instance))
+  // O12: an open plot (an open-plots output, G538) is no playable shard: the road tour passes it, nothing enters it
+  const plots = new Set(openPlots.outputs.map(row => row.slug)), roadOnly = state.cells.filter(cell => plots.has(cell.slug)).map(cell => cell.instance);
+  const omitted = routeScope === 'prepared' ? state.cells.filter(cell => !plots.has(cell.slug) && !['driftwood-isle', 'pine-hollow', 'nalati-grasslands', '_template'].includes(cell.slug)).map(cell => cell.instance) : [];
+  const remaining = state.cells.filter(cell => ![home.instance, ...runtimes.map(runtime => runtime.instance), ...omitted, ...roadOnly].includes(cell.instance))
     .sort((a, b) => Number(b.slug === '_template') - Number(a.slug === '_template') || a.instance.localeCompare(b.instance));
   const sequence = [...runtimes, ...remaining, home], plans = [];
   let source = home, portal = { x: h.x, z: h.z + half };
@@ -118,7 +139,7 @@ function ownedHomeSoakPlans(state, leg, routeScope) {
     waypoints: [{ x: h.x, z: h.z + half }, { x: first.x, z: h.z + half }, first], requiredResidents: [], retiredResidents: [home.instance] },
     ...road.plans, { name: 'road-tour-to-home', from: null, to: home.instance, movement: 'road-hover', hoverMaxSpeed: 30,
       waypoints: [{ x: half, z: h.z + half }, { x: h.x, z: h.z + half }, reference], requiredResidents: [home.instance] }];
-  return { reference, plans, coveragePlans, omitted };
+  return { reference, plans, coveragePlans, omitted, roadOnly };
 }
 
 /** Validate an explicitly partial, three-entry diagnostic; it can never select a qualifying soak.
@@ -319,6 +340,26 @@ export function soakLapMemory(samples, circuits) {
   return laps;
 }
 
+
+/** O12 (SF88f): per place, the peak native + GL bytes and the worst frame over every leg that leaves or enters it (`road`
+ * for the tour's legs), against the Explorer cap. A place's dwell is the start of the leg that leaves it.
+ * @param {readonly {plan:{from:string|null,to:string|null},wall?:{start:number,end:number},worstFrameMs?:number}[]} routes
+ * @param {readonly {phase:string,elapsed:number,footprint:number,interval?:number,gl?:{totalBytes:number}}[]} samples */
+export function soakCellPeaks(routes, samples) {
+  /** @type {Record<string,{legs:number,samples:number,peakBytes:number,worstFrameMs:number,overCapBytes:number}>} */
+  const cells = {};
+  for (const route of routes) {
+    if (route.wall === undefined) continue;
+    const { start, end } = route.wall, inside = samples.filter(row => /^(drive|settle)/u.test(row.phase) && row.gl !== undefined && row.elapsed >= start && row.elapsed <= end);
+    const peak = Math.max(0, ...inside.map(row => Math.max(row.footprint, row.interval ?? row.footprint) + (row.gl?.totalBytes ?? 0)));
+    for (const place of new Set([route.plan.from ?? 'road', route.plan.to ?? 'road'])) {
+      const cell = cells[place] ??= { legs: 0, samples: 0, peakBytes: 0, worstFrameMs: 0, overCapBytes: 0 };
+      cell.legs++; cell.samples += inside.length; cell.peakBytes = Math.max(cell.peakBytes, peak);
+      cell.worstFrameMs = Math.max(cell.worstFrameMs, route.worstFrameMs ?? 0); cell.overCapBytes = Math.max(0, cell.peakBytes - EXPLORER_CAP_BYTES);
+    }
+  }
+  return cells;
+}
 
 /** Fix the game PID after admission, never switch to a smaller process if the game later dies. */
 export function soakGamePid(native) {

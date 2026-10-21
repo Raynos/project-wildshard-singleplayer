@@ -25,7 +25,7 @@ import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDia
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDriveBounds, soakPhaseByTime } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, soakCellPeaks, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
 import { gridFloorDocumentIdentity, driveFloorGrid, stageFloorGrid, runFloorGridRoute } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -158,7 +158,6 @@ async function worker() {
       || entryState.live.live.residents.includes(entryState.home) || entryState.live.live.current !== entryState.home)) throw new Error('Public soak home is not the borrowed Driftwood page level');
     const cells = result.metadata.state.cells;
     result.catalogue = cells.map(cell => cell.instance);
-    result.expected = leg === 'road' ? [] : result.catalogue;
     const catalogue = JSON.parse(execFileSync('git', ['show', `${sha}:src/game/grid/singleplayer.json`], { cwd: root, encoding: 'utf8' })).grid;
     if (layout !== 'shipped' && layout !== 'dev') throw new Error('Unknown soak layout');
     if (!validateSoakCatalogue(cells, soakCatalogue(catalogue, layout))) throw new Error(`Wrong ${layout} catalogue: ${result.catalogue}`);
@@ -166,6 +165,9 @@ async function worker() {
     result.route = diagnosticReentry === null ? ownedSoakPlans(result.metadata.state, leg, routeScope, bootEntry.home)
       : reentrySoakPlans(result.metadata.state, diagnosticReentry, bootEntry.home);
     result.openCoverage = result.route.omitted ?? [];
+    // O12: the cells the route enters; open plots are passed on the road tour (roadOnly), never entered
+    result.expected = leg === 'road' ? [] : result.catalogue.filter(id => !(result.route.roadOnly ?? []).includes(id));
+    result.expectedCrossroads = new Set([...(result.route.leadIn ?? []), ...result.route.plans, ...(result.route.coveragePlans ?? [])].map(plan => plan.crossroads).filter(Boolean)).size;
     result.documentOrigin = await driver.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
     result.documentId = await driver.evaluate('window.__sf57DocumentId');
     const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
@@ -193,15 +195,15 @@ async function worker() {
     while (!complete) {
       const cycle = result.circuits;
       await driver.evaluate(`window.__sf57MarkGLCycle(${cycle});true`);
-      // Ordinary warm-up covers all sixteen crossroads; the explicitly labelled attribution mode repeats only cell circuits.
+      // Ordinary warm-up covers every crossroads; the explicitly labelled attribution mode repeats only cell circuits.
       const plans = circuitPlans(result.route, cycle, diagnosticCircuits);
       for (const plan of plans) {
         result.stage = plan.name;
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
         console.log(JSON.stringify({ layout, cycle, route: plan.name, seconds: (Date.now() - driveStart) / 1000 }));
-        const witness = await runFloorGridRoute(page, plan, result.documentOrigin);
+        const legStart = Date.now() / 1000, witness = await runFloorGridRoute(page, plan, result.documentOrigin);
         const failures = soakWitnessFailures(witness);
-        result.routes.push({ cycle, ...witness, failures });
+        result.routes.push({ cycle, ...witness, wall: { start: legStart, end: Date.now() / 1000 }, failures });
         if (plan.crossroads) result.crossroads.push(plan.crossroads);
         if (plan.to !== null && plan.to !== plan.from) result.entries.push({ cycle, instance: plan.to, admitted: failures.length === 0, feet: witness.after.live.live.worldFeet });
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
@@ -279,8 +281,9 @@ async function worker() {
   const drive = soakDriveBounds(result);
   result.grade = gradeSoak({ drive, samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
-    expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal, leg, contentCut });
+    expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, expectedCrossroads: result.expectedCrossroads ?? 0, engineBase: result.engineBase, rehearsal, leg, contentCut });
   result.perLap = soakLapMemory(soakPhaseByTime(samples, drive), result.circuits ?? 0);
+  result.perCell = soakCellPeaks(result.routes, soakPhaseByTime(samples, drive));
   const routeComplete = diagnosticReentry !== null ? result.circuits === 3
     : diagnosticCircuits === null ? (result.seconds ?? 0) >= duration : result.circuits === diagnosticCircuits;
   result.functionalPass = result.failure === undefined && result.errors.length === 0 && routeComplete

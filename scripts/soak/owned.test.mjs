@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
+import { ownedSoakPlans, soakRoadTour, soakCellPeaks, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 import { circuitPlans } from './boundary.mjs';
 
@@ -129,8 +129,8 @@ void test('SF57 prepared-cell rehearsal records open coverage and refuses qualif
   const cells = soakCatalogue(catalogue, 'dev');
   const route = ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', soakRouteScope('prepared'));
   assert.deepEqual(route.plans.map(plan => plan.to), ['pine-hollow', 'nalati-grasslands', 'template-2', 'driftwood-isle']);
-  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['blender-template-1', 'far-reach', 'ink-cel-valley-1', 'pastel-plain-1', 'sunscar-dunes']);
-  assert.equal(new Set(route.coveragePlans.map(plan => plan.crossroads).filter(Boolean)).size, 16);
+  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['blender-template-1', 'far-reach', 'ink-cel-valley-1', 'nine-dragon-stack', 'pastel-plain-1', 'sunscar-dunes']);
+  assert.equal(new Set(route.coveragePlans.map(plan => plan.crossroads).filter(Boolean)).size, 36);
   assert.throws(() => soakRouteScope('prepared', true), /rehearsal only/u);
   assert.throws(() => soakRouteScope('typo'), /Unknown soak route/u);
   assert.equal(soakRouteScope('catalogue', true), 'catalogue');
@@ -157,7 +157,9 @@ for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every 
       assert.deepEqual(route.plans.find(plan => plan.from === native)?.retiredResidents, [native]);
     }
   }
-  assert.deepEqual(route.plans.map(p => p.to).sort(), cells.map(c => c.instance).sort());
+  // O12: every playable shard is entered; the open plots are passed on the road tour
+  assert.deepEqual(route.plans.map(p => p.to).sort(), cells.map(c => c.instance).filter(id => !route.roadOnly.includes(id)).sort());
+  assert.ok(route.roadOnly.length > 0 && route.roadOnly.every(id => id.startsWith('open-plot-')));
   let previous = route.reference, from = 'driftwood-isle';
   for (const plan of [...route.plans, ...route.coveragePlans]) {
     assert.equal(plan.from, from); assert.equal(plan.start, undefined); assert.equal(plan.movement, 'road-hover'); assert.equal(plan.hoverMaxSpeed, 30);
@@ -168,7 +170,7 @@ for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every 
     from = plan.to;
   }
   assert.equal(from, 'driftwood-isle'); assert.deepEqual(previous, route.reference);
-  assert.equal(new Set(route.coveragePlans.map(p => p.crossroads).filter(Boolean)).size, 16);
+  assert.equal(new Set(route.coveragePlans.map(p => p.crossroads).filter(Boolean)).size, 36);
 });
 
 void test('SF57 dry run retains the ordinary deadline and all leases/samplers cover setup and teardown', () => {
@@ -293,4 +295,23 @@ void test('reentry diagnostics retain real roads and report every unvisited cell
   assert.throws(() => reentrySoakPlans(state, 'absent'), /actual neighbour/u);
   assert.throws(() => reentrySoakPlans(state, state.home), /actual neighbour/u);
   assert.equal(state.cells.length, cells.length);
+});
+
+void test('O12 the road tour drives every 5 x 5 crossroads, the outer loop whole, on roads only', () => {
+  const tour = soakRoadTour(555), edge = 2.5 * 555, key = point => `${point.x},${point.z}`;
+  assert.equal(new Set(tour.map(key)).size, 36);
+  for (let i = 1; i < tour.length; i++) assert.ok(tour[i].x === tour[i - 1].x || tour[i].z === tour[i - 1].z, 'axis-aligned roads');
+  const ring = tour.filter(point => Math.max(Math.abs(point.x), Math.abs(point.z)) === edge);
+  assert.equal(ring.length, 21); assert.deepEqual(ring.at(0), ring.at(-1), 'once round the outer road, back to where it joined');
+});
+
+void test('O12 per-place peaks fold every leg leaving or entering a place, with its worst frame', () => {
+  const sample = (elapsed, bytes) => ({ phase: 'drive', elapsed, footprint: bytes, gl: { totalBytes: 100 } });
+  const cells = soakCellPeaks([
+    { plan: { from: 'a', to: null }, wall: { start: 0, end: 10 }, worstFrameMs: 40 },
+    { plan: { from: null, to: 'b' }, wall: { start: 10, end: 20 }, worstFrameMs: 250 },
+  ], [sample(5, 1000), sample(15, 3000), { ...sample(16, 9000), phase: 'loading' }]);
+  assert.deepEqual(Object.keys(cells).sort(), ['a', 'b', 'road']);
+  assert.equal(cells.a.peakBytes, 1100); assert.equal(cells.b.peakBytes, 3100); assert.equal(cells.road.peakBytes, 3100);
+  assert.equal(cells.b.worstFrameMs, 250); assert.equal(cells.road.legs, 2); assert.equal(cells.b.overCapBytes, 0);
 });

@@ -356,7 +356,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
   const before = read(), trace = [], started = performance.now();
   const destination = before.cells.find(cell => cell.instance === plan.to);
   const arrival = plan.observePreparation !== true ? undefined : { blockedFrames: 0, blockedMs: 0, visibleBeforeReadyFrames: 0 };
-  let previousFrameAt = started, exitSeen = false;
+  let previousFrameAt = started, exitSeen = false, worstFrameMs = 0;
   try {
     await new Promise((resolve, reject) => {
       let stop = () => undefined, waypoint = 0, lastSample = -1;
@@ -394,7 +394,8 @@ export async function driveFloorGrid(plan, documentOrigin) {
             }
             if (!ready && world.game.rootScene.getObjectByName(`region:${plan.to}`)?.visible === true) arrival.visibleBeforeReadyFrames++;
           }
-          previousFrameAt = now;
+          // O12: the longest frame interval of the leg (a soak's per-cell worst frame)
+          worstFrameMs = Math.max(worstFrameMs, now - previousFrameAt); previousFrameAt = now;
           window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: waypoints[waypoint] ?? null };
           if (plan.movement === 'road-hover') player.setHover(active.current === null);
           if (seconds - lastSample >= 0.25) {
@@ -431,7 +432,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
       });
     });
     window.__frameFloorGridStop = { leg: plan.name, phase: 'destination-standing', waypoint: waypoints.length, target: null };
-    return { plan, before, after: read(), trace, elapsedSeconds: (performance.now() - started) / 1000,
+    return { plan, before, after: read(), trace, elapsedSeconds: (performance.now() - started) / 1000, worstFrameMs: Math.round(worstFrameMs),
       ...(arrival === undefined ? {} : { arrival }), ...(portal === null ? {} : { portal }) };
   } finally { input.clear(); player.hoverSpeedLimit = oldLimit; player.setHover(oldHover); }
 }
