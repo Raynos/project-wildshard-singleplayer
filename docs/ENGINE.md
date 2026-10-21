@@ -7823,6 +7823,9 @@ identifiers, existing references, data literals and the original admission check
 optional trusted scheduling callback after each complete custom-schema check.
 The client yields for a paint there; Node admission needs no client scheduler.
 Schema counts and live waits describe the actual checks; file reads stay parallel.
+`OutputDescriptorReader.cacheHit(path, hash, bytes)` reports a cached section or
+schema only after size/hash verification. The product reader connects that hit
+to the named pending path and the existing idempotent cache-byte accounting.
 Missing, streamed and absent-product reads keep the normal product refusals.
 Checked products deep-freeze these values; schema-backed reads remain
 available for external or unconverted readers. Immutable product content
