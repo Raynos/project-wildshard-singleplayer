@@ -36,7 +36,7 @@ Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real secon
 | Z8 | Codex | Pine C9 glue (229) | sp-o3 (Opus, after Ink) |
 | Z9 | Codex | Driftwood C9 glue (271) | sp-o5 (attributing) |
 | Z10 | Codex | Ink Cel Valley residue + open-plots (148) | sp-o3 / sp-o1 |
-| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path | |
+| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path |sp-x9 |
 
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
 
