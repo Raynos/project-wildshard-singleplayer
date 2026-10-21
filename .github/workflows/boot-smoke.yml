@@ -23,29 +23,17 @@ jobs:
     concurrency:
       group: boot-smoke-build-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
       sha: ${{ steps.tested.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
-        env:
-          GIT_CONFIG_COUNT: 1
-          GIT_CONFIG_KEY_0: http.version
-          GIT_CONFIG_VALUE_0: HTTP/1.1
-        with:
-          ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/progress/
-            !/art/
-            !/sources/
-            !/docs/
-          sparse-checkout-cone-mode: false
       - name: Bind the tested commit
         id: tested
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+        run: echo "sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)" >> "$GITHUB_OUTPUT"
       - name: Mark exact-SHA proof pending
         env:
           GH_TOKEN: ${{ github.token }}
@@ -54,35 +42,67 @@ jobs:
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
             -f context=boot-smoke -f state=pending -f description='Real built-dist title and gameplay proof running' \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Build the exact commit's real products and dist
+      - name: Select the exact successful main push build
+        id: source
         env:
-          VERCEL_GIT_COMMIT_SHA: ${{ steps.tested.outputs.sha }}
-          # All ten products share one builder process; macOS defaults to a 2 GiB heap.
-          NODE_OPTIONS: --max-old-space-size=4096
+          GH_TOKEN: ${{ github.token }}
+          TESTED_SHA: ${{ steps.tested.outputs.sha }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
         run: |
-          python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && node scripts/build-shardfiles.mjs && pnpm exec vite build'
-      - name: Pack the exact built dist
-        run: tar -cf boot-dist.tar -C dist .
+          run_id="$SOURCE_RUN"
+          if [ -z "$run_id" ]; then
+            run_id=$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/deploy.yml/runs" \
+              -f event=push -f head_sha="$TESTED_SHA" -f status=success -f per_page=100 \
+              --jq ".workflow_runs[] | select(.head_branch == \"main\" and .head_sha == \"$TESTED_SHA\") | .id" | head -1)
+          fi
+          test -n "$run_id" || { echo '::error::No successful exact-SHA main push build'; exit 1; }
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" > source-run.json
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const run = JSON.parse(readFileSync('source-run.json', 'utf8'));
+          if (run.event !== 'push' || run.head_branch !== 'main' || run.status !== 'completed' || run.conclusion !== 'success'
+            || run.head_sha !== process.env.TESTED_SHA || run.head_repository.full_name !== process.env.GITHUB_REPOSITORY
+            || run.path !== '.github/workflows/deploy.yml') throw new Error('Artifact source is not the exact successful main push CI');
+          NODE
+          echo "run=$run_id" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.source.outputs.run }}
+      - name: Verify the exact push artifact
+        env:
+          TESTED_SHA: ${{ steps.tested.outputs.sha }}
+          SOURCE_RUN: ${{ steps.source.outputs.run }}
+        run: |
+          sha256sum --check boot-dist.sha256
+          tar -xOf boot-dist.tar ./version.json > boot-version.json
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const proof = JSON.parse(readFileSync('boot-dist-proof.json', 'utf8'));
+          const { build } = JSON.parse(readFileSync('boot-version.json', 'utf8'));
+          const prefix = build.split('-')[0];
+          if (proof.sha !== process.env.TESTED_SHA || proof.run !== process.env.SOURCE_RUN
+            || !/^[a-f0-9]{7,40}$/u.test(prefix) || !proof.sha.startsWith(prefix)) throw new Error('Push artifact does not match tested SHA and run');
+          NODE
       - uses: actions/upload-artifact@v4
         with:
           name: boot-dist
-          path: boot-dist.tar
+          path: |
+            boot-dist.tar
+            boot-dist.sha256
+            boot-dist-proof.json
           compression-level: 0
           retention-days: 1
           if-no-files-found: error
 
   boot-smoke:
     needs: build
-    # Every browser drives the same exact-SHA bytes; cold generation/build has
-    # its own unchanged 20-minute budget, outside each browser leg's budget.
+    # Every browser drives the verified exact-SHA push-CI artifact; no cold
+    # generation/build is repeated inside the smoke workflow.
     strategy:
       fail-fast: false
       matrix:

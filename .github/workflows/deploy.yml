@@ -154,6 +154,25 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: pnpm gen && pnpm run build:native
 
+      - name: Pack the exact web build for boot smoke
+        if: github.event_name == 'push'
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          tar -cf boot-dist.tar -C dist .
+          sha256sum boot-dist.tar > boot-dist.sha256
+          printf '{"sha":"%s","run":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > boot-dist-proof.json
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: boot-dist
+          path: |
+            boot-dist.tar
+            boot-dist.sha256
+            boot-dist-proof.json
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
+
       - name: Build Vercel output in GitHub Actions
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
         env:

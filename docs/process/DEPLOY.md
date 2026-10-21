@@ -9,7 +9,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs the whole vitest suite once**, in eight `behaviour` shards (`pnpm gen` then `vitest --shard=N/8`, **without
+- **Push / PR CI runs the whole vitest suite once**, in ten `behaviour` shards (`pnpm gen` then `vitest --shard=N/10`, **without
   coverage**, Jake G287); `typecheck-lint` runs typecheck and lint; `build-and-deploy` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage runs nightly and at
   milestones** (`.github/workflows/coverage.yml`: 09:23 UTC, or `gh workflow run coverage [-f sha=<candidate>]`): the
@@ -51,8 +51,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The hourly
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
   `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
-  `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), builds that exact
-  commit and drives every public primary shard to entered, unpaused page-ready with ten live gameplay frames.
+  `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), reuses that exact
+  successful main push run's `boot-dist` artifact, and drives every public primary shard to entered, unpaused page-ready
+  with ten live gameplay frames. Push CI archives its actual web dist with its full commit, run ID and tar checksum.
+  Smoke verifies that provenance and the version stamp before sharing the same bytes with all five browser legs;
+  it never regenerates products. Missing or expired artifacts refuse the proof: push a head containing the artifact
+  publisher and prove that head; an older run without the artifact cannot supply this proof.
   Cases come from that build's actual title catalogue, excluding hidden levels and frozen copies. Experimental
   primaries (including Signal) use their real Developer entry. While Nine is experimental, its public leg is an
   explicit PUBLIC-POLICY ADMISSION proof (call44): the existing `?chunk=` document fully hydrates Nine to the title
