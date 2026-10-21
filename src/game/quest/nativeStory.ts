@@ -96,9 +96,6 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   director: Awaited<ReturnType<typeof readDirectorProduct>>): NativeStory {
   if (!isJsonData(rows)) throw new Error('Native story requires JSON rows');
   const policy = rows.policy, content = rows.content, spots = rows.spots, flags = host.flags;
-  const clockRows = parseChapterDirector(policy.clock);
-  if (Object.values(clockRows.actions).some(effects => effects.some(effect => effect.kind !== 'flag' && effect.kind !== 'phase')))
-    throw new Error('Native chapter publications require flag or phase effects');
   const entry = prepareNativeQuestEntry(host, product.shardfile, content.table, spots.rows), { input, pack } = entry;
   const ammunition = nativeHeldAmmunition(host), launcher = readNativeRangedItem(host, policy.launcher);
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
@@ -150,7 +147,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   const transitions = entry.transitions({ ids: [...touchRows, latch].map(row => row.d.id), rowLimit: TOUCH_COUNT + 1,
     flagLimit: MAX_SETS, touch: 'direct', pickup: 'walk-in' });
 
-  const chapterClock = installNativeChapterDirector(host, director, { id: `${policy.step}.chapter`, rows: clockRows });
+  const chapterClock = installNativeChapterDirector(host, director, { id: `${policy.step}.chapter`, rows: policy.clock });
   const { clock, fast } = chapterClock;
 
   const state = { pickup: false };
@@ -243,7 +240,6 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
       ...(ammunition.changed ? { ammunition: ammunition.snapshot() } : {}) }),
     restore: value => {
       const saved = v.parse(Saved, decoded(value));
-      if (saved.trader?.skins.some(id => !policy.finish.ids.includes(id)) === true) throw new RangeError('Unknown saved cosmetic finish');
       const restoreDialogue = dialogue.prepareRestore(saved.dialogue);
       const boardState = saved.board === undefined ? initialBoard : saved.board;
       const restoreBoard = board.prepareRestore(boardState);
