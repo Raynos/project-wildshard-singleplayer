@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned source and cache fixtures.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths only.
 import { dirname, resolve } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -19,6 +19,16 @@ it('uses upstream producer identities and a clean stage on cold, warm and previo
   const log=vi.spyOn(console,'info').mockImplementation(()=>{ /* Capture independent job verdicts. */ }), cacheDir=resolve(root,'cache');
   await prepareGeneration(root,{cacheDir});
   const expected=readFileSync(resolve(root,second),'utf8'); expect(JSON.parse(expected)).toEqual({source:'authored',sawLater:false,second:true});
+  // An unchanged warm restoration preserves the file, including its exact stat
+  // identity; an edited or missing output must still be repaired from evidence.
+  const outputPath=resolve(root,second);
+  utimesSync(outputPath,123,456);
+  const before=statSync(outputPath,{bigint:true});
+  await prepareGeneration(root,{cacheDir});
+  expect(statSync(outputPath,{bigint:true})).toMatchObject({dev:before.dev,ino:before.ino,size:before.size,mtimeNs:before.mtimeNs,ctimeNs:before.ctimeNs});
+  writeFileSync(outputPath,'corrupt');utimesSync(outputPath,123,456);
+  await prepareGeneration(root,{cacheDir});
+  expect(readFileSync(outputPath,'utf8')).toBe(expected);
   const legacy:GenerationPreparation={outputs:[first,second],upstream:new Map()};
   const indexed:GenerationPreparation={outputs:[first,second],outputRoots:new Map([[shard,[first,second]]]),completedOutputs:new Map(),upstream:new Map()};
   try {

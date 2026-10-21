@@ -245,7 +245,13 @@ export async function generateShardJob(root,descriptor,options={}) {
     }
   });
   if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
-  if(options.restore===true) for(const file of restoreOutputs) if(job.buildTimeOutputs.includes(file) || Object.hasOwn(job.buildOutputs, file) || !existsSync(resolve(root,file))) {mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(result.directory,file),resolve(root,file));}
+  if(options.restore===true) for(const file of restoreOutputs) if(job.buildTimeOutputs.includes(file) || Object.hasOwn(job.buildOutputs, file) || !existsSync(resolve(root,file))) {
+    // Preserve matching bytes and their stat identity. Re-copying every verified
+    // cache output makes downstream digest memos cold on an unchanged run.
+    if(existsSync(resolve(root,file)) && inputHashes.hash(file,true)===result.hashes[file])continue;
+    mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(result.directory,file),resolve(root,file));
+    if(inputHashes.hash(file,true)!==result.hashes[file])throw new Error(`Generation output changed while restoring: ${file}`);
+  }
   return {...result,retention:generationRetention(result.directory,job.outputs,coldSeconds)};
 }
 
