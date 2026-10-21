@@ -4725,6 +4725,13 @@ remains a separate G318 change, requiring the complete product fixtures.
 
 ### Runtime-owned admission transports (G384)
 
+Product admission reserves the complete product before immutable reads. At
+most four transport slots overlap, and each completed size/hash check lets
+that slot read the next indexed file. The first refusal stops new reads;
+all started reads settle before the earliest authored refusal returns.
+Asset-map and cache publication happen only after every read succeeds.
+This transport window never changes the page-wide one-slot GLTF decoder.
+
 First-party `AdmittedProduct.releaseTransport(refs)` owns its admission
 Map; it releases `runtimeBoundWorldFiles` after a decoder handoff, or
 `runtimeOnlyProductFiles` before neighbour readers copy it, and only when
