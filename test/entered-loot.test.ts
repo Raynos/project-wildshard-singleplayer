@@ -9,12 +9,14 @@ import type {ShardRuntime} from '../src/game/shard/runtime';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {legacyDouble} from './fake/FakeGame';
-import {INK_ROWS as INK} from '../src/shards/ink-cel-valley/data/rows';
+import inkRows from '../src/shards/ink-cel-valley/data/rows.json' with {type:'json'};
 import {parseRows} from '../src/format/rows';
 import {parseLootEconomy} from '../src/format/lootEconomy';
 import {declaredLootEconomy} from '../src/game/shard/declaredRows';
 import {fixtureLootPresentation} from './fixtures/loot-page';
 import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with {type:'json'};
+
+const INK = parseRows(inkRows);
 
 test('the real ink coin-only page uses the same entered row API without rich Bag owners',()=>{
  const scope=new Scope('ink.loot'),cue=vi.fn(),rows=parseRows(INK),row=rows.loot[0];if(row===undefined||!('gear'in row))throw new Error('Missing shipping Ink loot');

@@ -4,7 +4,8 @@ import terrain from './data/terrain.json' with { type: 'json' };
 import door from './behaviour/door.json' with { type: 'json' };
 import props from './data/props.json' with { type: 'json' };
 import { INK_HOOKS, INK_STATE } from './behaviour/hooks';
-import { INK_ROWS } from './data/rows';
+import rows from './data/rows.json' with { type: 'json' };
+import { parseRows } from '@wildshard/sdk/rows';
 import { INK_PLUMBING } from './data/plumbing';
 import { INK_UI } from './data/ui';
 import { INK_LOOK } from './data/look';
@@ -15,11 +16,12 @@ import { ADVENTURE } from './quests/adventure';
 import { INK_LEDGER } from './data/ledger';
 import { INK_AUDIO } from './data/audio';
 import { SPAWN } from './data/spawn';
-import { ITEMS } from './data/items';
+import ITEMS from './data/items.json' with { type: 'json' };
 import { INK_TARGETS } from './data/targets';
 import { INK_SKIN_COST, INK_SKIN_FILES, INK_SKIN_LIBRARY, INK_SKIN_LOOKS } from './data/skins';
 import { CLIENT_IDLE_BYTES, CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, INK_CLIENT_SCRIPTS } from './data/clientScripts';
 
+const INK_ROWS = parseRows(rows);
 const base = emptyShardfile({ slug: 'ink-cel-valley', name: 'Ink & Cel Valley', author: 'Wildshard', revision: 1, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };

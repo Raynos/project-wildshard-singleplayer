@@ -1,5 +1,4 @@
-/** Template item data: kit families and one content-addressed admitted hook; installed at SF16. */
-export const ITEMS = {
+{
   "version": 1,
   "rows": [
     {
@@ -11,7 +10,7 @@ export const ITEMS = {
       "ui": {
         "name": "Whip",
         "icon": "sword",
-        "swapIcon": "〰",
+        "swapIcon": "\u3030",
         "blurb": "A quick whip with a poisoned heavy strike."
       },
       "view": {
@@ -70,7 +69,7 @@ export const ITEMS = {
       "ui": {
         "name": "Iron sword",
         "icon": "sword",
-        "swapIcon": "⚔",
+        "swapIcon": "\u2694",
         "blurb": "The shared iron sword."
       },
       "view": {
@@ -170,4 +169,4 @@ export const ITEMS = {
       "tool.ink-lantern"
     ]
   }
-} as const;
+}
