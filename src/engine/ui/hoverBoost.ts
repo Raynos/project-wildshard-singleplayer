@@ -9,7 +9,7 @@ interface HoverBoostPort { hover: boolean; hoverBoost: boolean }
 /** G540: a live Developer-only toggle beside HOVER; it never consumes a move/look gesture. */
 export function mountHoverBoost(root: HTMLElement, player: HoverBoostPort, events: Events, scope: Scope): void {
   const button = document.createElement('button');
-  button.type = 'button'; button.className = 'ws-hover-boost'; button.hidden = true;
+  button.type = 'button'; button.className = 'ws-touch-boost'; button.hidden = true;
   button.textContent = engineString('s_hover_boost');
   button.setAttribute('aria-label', engineString('s_hover_boost_label'));
   const sync = (): void => {
