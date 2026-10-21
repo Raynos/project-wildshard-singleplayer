@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths stay inside its owned root.
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
-import { prepareMissingCheapInputs } from '../scripts/precommit-inputs.mjs';
+import { prepareMissingCheapInputs } from '../scripts/check-staged-inputs.mjs';
 
 test('a warm mirror fills missing cheap outputs in catalogue order and retains real producer failures', async () => {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'precommit-cheap-')));
