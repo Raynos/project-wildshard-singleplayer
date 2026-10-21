@@ -22340,6 +22340,42 @@
       "buildTimeOutputs": [
         "src/shards/nine-dragon-stack/data/entryProof.generated.json"
       ]
+    },
+    {
+      "id": "driftwood-native-specimens",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-native-specimens.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-native-specimens.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/format",
+        "src/shards/driftwood-isle",
+        "scripts/bake",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "catalogueDependencies": [
+        "driftwood-fixed-models",
+        "driftwood-npc-scenes"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/nativeSpecimens.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/nativeSpecimens.generated.json"
+      ],
+      "platform": "native"
     }
   ]
 }
