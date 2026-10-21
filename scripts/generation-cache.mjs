@@ -60,12 +60,16 @@ export function generationOutputHashes(directory, outputs) {
 }
 
 /** @param {string} directory @param {string} key @param {string[]} outputs */
-function valid(directory, key, outputs) {
+function verifiedOutputHashes(directory, key, outputs) {
   try {
     const receipt = v.parse(Receipt, JSON.parse(readFileSync(resolve(directory, NOTICE), 'utf8')));
-    return receipt.key === key && canonical(receipt.files) === canonical(generationOutputHashes(directory, outputs));
-  } catch { return false; }
+    if(receipt.key!==key)return undefined;
+    const hashes=generationOutputHashes(directory,outputs);
+    return canonical(receipt.files)===canonical(hashes)?hashes:undefined;
+  } catch { return undefined; }
 }
+/** @param {string} directory @param {string} key @param {string[]} outputs */
+const valid=(directory,key,outputs)=>verifiedOutputHashes(directory,key,outputs)!==undefined;
 /** @param {string} lock */
 function abandoned(lock) {
   try {
@@ -112,7 +116,8 @@ async function execute(root, directory, key, job, options) {
   const started = performance.now(), lock = `${directory}.lock`, until = Date.now() + 600_000;
   mkdirSync(dirname(directory), { recursive: true });
   for (;;) {
-    if (!existsSync(lock) && options.forceCompare !== true && valid(directory, key, job.outputs)) return { directory: touch(directory), key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
+    const verified=!existsSync(lock) && options.forceCompare!==true?verifiedOutputHashes(directory,key,job.outputs):undefined;
+    if (verified!==undefined) return { directory: touch(directory), key, hit: true, hashes: verified, elapsedMs: performance.now() - started };
     try { mkdirSync(lock); break; } catch (error) {
       if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') throw error;
       if (abandoned(lock)) { reclaim(lock); continue; }
@@ -123,8 +128,8 @@ async function execute(root, directory, key, job, options) {
   writeFileSync(resolve(lock, 'owner.json'), JSON.stringify({ pid: process.pid }));
   const stage = mkdtempSync(resolve(dirname(directory), 'generating-'));
   try {
-    const hadCache = valid(directory, key, job.outputs);
-    if (options.forceCompare !== true && hadCache) return { directory: touch(directory), key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
+    const verified=verifiedOutputHashes(directory,key,job.outputs),hadCache=verified!==undefined;
+    if (options.forceCompare !== true && verified!==undefined) return { directory: touch(directory), key, hit: true, hashes: verified, elapsedMs: performance.now() - started };
     await options.generate(stage);
     // A producer that changed its inputs cannot publish under the old key.
     options.inputHashes?.verifyInputs(job.inputs);

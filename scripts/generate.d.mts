@@ -20,4 +20,4 @@ export function reportGeneration(root:string):ReturnType<typeof discoverGenerati
 export function prepareGeneration(root:string,options?:{cacheDir?:string;concurrency?:number}):Promise<ReturnType<typeof reportGeneration>>;
 
 /** Completed producers supply immutable cache files and identity to later broad-folder consumers. */
-export interface GenerationPreparation { outputs:string[]; /** Retained source files stay byte-keyed even when another job names them. */retained?:Set<string>; upstream:Map<string,GenerationResult> }
+export interface GenerationPreparation { outputs:string[]; /** Retained source files stay byte-keyed even when another job names them. */retained?:Set<string>; /** Phase indexes avoid scanning unrelated outputs for each consumer. */outputRoots?:Map<string,string[]>;completedOutputs?:Map<string,{id:string;result:GenerationResult;hash:string}>;upstream:Map<string,GenerationResult> }

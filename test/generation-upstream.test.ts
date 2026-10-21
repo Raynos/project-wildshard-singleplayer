@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths only.
 import { dirname, resolve } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
-import { prepareGeneration } from '../scripts/generate.mjs';
+import { generateShardJob, prepareGeneration, type GenerationPreparation } from '../scripts/generate.mjs';
 
 const owned: string[] = [];
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -12,13 +12,25 @@ it('uses upstream producer identities and a clean stage on cold, warm and previo
   mkdirSync('tmp',{recursive:true}); const root=mkdtempSync(resolve('tmp/generation-upstream-'));owned.push(root);
   const shard='src/shards/alpha', first=`${shard}/data/first.json`, second=`${shard}/data/second.json`;
   mkdirSync(resolve(root,'scripts'),{recursive:true}); put(root,`${shard}/source.txt`,'authored');
-  const jobs=[{id:'first',output:first},{id:'second',output:second}].map(({id,output})=>({id:`fixture-${id}`,shard:'alpha',entry:`${shard}/generators/bake-${id}.mjs`,command:[`${shard}/generators/bake-${id}.mjs`],inputRoots:[shard],outputs:[output],buildTimeOutputs:[output],platform:'portable'}));
+  const jobs=[{id:'first',output:first},{id:'second',output:second}].map(({id,output})=>({id:`fixture-${id}`,shard:'alpha',entry:`${shard}/generators/bake-${id}.mjs`,command:[`${shard}/generators/bake-${id}.mjs`],inputRoots:[shard],outputs:[output],buildTimeOutputs:[output],platform:'portable' as const}));
   put(root,`${shard}/generators/bake-first.mjs`,`import fs from 'node:fs'; fs.writeFileSync('${first}',JSON.stringify({source:fs.readFileSync('${shard}/source.txt','utf8'),sawLater:fs.existsSync('${second}')}));`);
   put(root,`${shard}/generators/bake-second.mjs`,`import fs from 'node:fs'; fs.writeFileSync('${second}',JSON.stringify({...JSON.parse(fs.readFileSync('${first}','utf8')),second:true}));`);
   put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs}));
   const log=vi.spyOn(console,'info').mockImplementation(()=>{ /* Capture independent job verdicts. */ }), cacheDir=resolve(root,'cache');
   await prepareGeneration(root,{cacheDir});
   const expected=readFileSync(resolve(root,second),'utf8'); expect(JSON.parse(expected)).toEqual({source:'authored',sawLater:false,second:true});
+  const legacy:GenerationPreparation={outputs:[first,second],upstream:new Map()};
+  const indexed:GenerationPreparation={outputs:[first,second],outputRoots:new Map([[shard,[first,second]]]),completedOutputs:new Map(),upstream:new Map()};
+  try {
+    for(const job of jobs) {
+      const previous=await generateShardJob(root,job,{cacheDir,preparation:legacy});legacy.upstream.set(job.id,previous);
+      const current=await generateShardJob(root,job,{cacheDir,preparation:indexed});indexed.upstream.set(job.id,current);
+      expect(current.key).toBe(previous.key);expect(current.hashes).toEqual(previous.hashes);expect(current.hit).toBe(true);
+      for(const [file,hash] of Object.entries(current.hashes))indexed.completedOutputs?.set(file,{id:job.id,result:current,hash});
+    }
+  } finally {
+    for(const result of [...legacy.upstream.values(),...indexed.upstream.values()])result.release();
+  }
   for (const history of ['populated','empty']) {
     if(history==='empty') {rmSync(resolve(root,first));rmSync(resolve(root,second));}
     log.mockClear(); await prepareGeneration(root,{cacheDir});

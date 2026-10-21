@@ -186,17 +186,26 @@ export async function generateShardJob(root,descriptor,options={}) {
   const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
   const roots=[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog];
+  const ownOutputs=new Set(job.outputs),explicitInputs=new Set(job.inputRoots);
   // Only a whole-folder input absorbs other producers implicitly. Explicit file
   // dependencies, retained/committed outputs and schema seeds keep exact hashes.
-  const foreign=new Set((options.preparation?.outputs ?? []).filter(file=>!options.preparation?.retained?.has(file) && !job.outputs.includes(file) && !job.inputRoots.includes(file) && roots.some(folder=>file.startsWith(`${folder}/`))));
-  const inputs=generationInputs(root,roots,inputHashes,file=>(projected===undefined || file!==catalog) && (!job.outputs.includes(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file) && !foreign.has(file));
+  const candidates=options.preparation?.outputRoots===undefined?options.preparation?.outputs ?? []:roots.flatMap(folder=>options.preparation?.outputRoots?.get(folder) ?? []);
+  const foreign=new Set(candidates.filter(file=>!options.preparation?.retained?.has(file) && !ownOutputs.has(file) && !explicitInputs.has(file) && roots.some(folder=>file.startsWith(`${folder}/`))));
+  const inputs=generationInputs(root,roots,inputHashes,file=>(projected===undefined || file!==catalog) && (!ownOutputs.has(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file) && !foreign.has(file));
   /** @type {Map<string,{source:string,hash:string}>} */
   const upstreamFiles=new Map();
   /** @type {Record<string,string>} */
   const upstreamKeys={};
-  for(const [id,result] of options.preparation?.upstream ?? []) {
-    for(const [file,hash] of Object.entries(result.hashes)) if(foreign.has(file)) {
-      upstreamFiles.set(file,{source:resolve(result.directory,file),hash}); upstreamKeys[id]=result.key;
+  if(options.preparation?.completedOutputs!==undefined) {
+    for(const file of foreign) {
+      const row=options.preparation.completedOutputs.get(file);
+      if(row!==undefined) {upstreamFiles.set(file,{source:resolve(row.result.directory,file),hash:row.hash});upstreamKeys[row.id]=row.result.key;}
+    }
+  } else {
+    for(const [id,result] of options.preparation?.upstream ?? []) {
+      for(const [file,hash] of Object.entries(result.hashes)) if(foreign.has(file)) {
+        upstreamFiles.set(file,{source:resolve(result.directory,file),hash}); upstreamKeys[id]=result.key;
+      }
     }
   }
   // Earlier jobs provide verified immutable files, even if only some outputs are
@@ -266,8 +275,17 @@ export async function prepareGeneration(root,options={}) {
   const running=new Map();
   const retained=committedGenerationFiles(root);
   for(const job of jobs)for(const file of job.outputs)if(!job.buildTimeOutputs.includes(file) && !Object.hasOwn(job.buildOutputs,file))retained.add(file);
+  const phaseOutputs=jobs.flatMap(job=>job.outputs);
+  /** @type {Map<string,string[]>} */
+  const outputRoots=new Map();
+  for(const file of phaseOutputs)if(!retained.has(file)) {
+    for(let end=file.indexOf('/');end!==-1;end=file.indexOf('/',end+1)) {
+      const folder=file.slice(0,end),entries=outputRoots.get(folder) ?? [];
+      entries.push(file);outputRoots.set(folder,entries);
+    }
+  }
   /** @type {import('./generate.mjs').GenerationPreparation} */
-  const preparation={outputs:jobs.flatMap(job=>job.outputs),retained,upstream:new Map()};
+  const preparation={outputs:phaseOutputs,retained,outputRoots,completedOutputs:new Map(),upstream:new Map()};
   const generated=new Set(preparation.outputs.filter(file=>!retained.has(file)));
   inputHashes.enableSnapshot(file=>generated.has(file)||postGenerationTable(root,'scripts/generation-jobs.json',file));
   try { while(completed.size<jobs.length) {
@@ -279,6 +297,7 @@ export async function prepareGeneration(root,options={}) {
         const started=performance.now(), outputs=[...Object.keys(job.buildOutputs), ...job.buildTimeOutputs];
         const result=await generateShardJob(root,job,{...options,preparation,inputHashes,restore:true,restoreOutputs:outputs});
         preparation.upstream.set(job.id,result);
+        for(const [file,hash] of Object.entries(result.hashes))preparation.completedOutputs?.set(file,{id:job.id,result,hash});
         console.info(`generate: ${job.id}, ${result.hit?'verified cache':'generated'}, ${String(outputs.length)} admitted build outputs, ${((performance.now()-started)/1000).toFixed(3)}s`);
         return {index};
         } catch(error) { return {index,error}; }
