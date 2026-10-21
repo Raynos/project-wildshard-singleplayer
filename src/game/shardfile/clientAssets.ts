@@ -1,7 +1,7 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
-import { declareDownloadFile } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
-import { outputBlobUrl } from './outputDescriptor';
+import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Release admitted transport copies after decoding; revisiting a tile rechecks immutable bytes from cache or the product. */
@@ -23,7 +23,9 @@ export class ClientAssets {
     const present = this.wire.get(ref); if (present !== undefined) return pacedResolve(present);
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
     const cap = file?.compressed ?? this.source.requires.commonsWire[hash] ?? 0;
-    declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
+    // Residency rereads may have no format-2 descriptor. Accounting observes
+    // those unknown-path reads on completion and never changes cache refusals.
+    if (outputDescriptor(this.source) !== undefined) declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
     let bytes = await this.options.cache?.asset(base, hash), downloaded = false;
     if (bytes === null || bytes === undefined) {
       if (this.options.offline) throw new Error('Missing cached resident tile');
@@ -32,6 +34,7 @@ export class ClientAssets {
     }
     if (bytes.length !== cap || await this.options.hash(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
     if (downloaded) await this.options.cache?.putAsset(base, hash, bytes);
+    else recordCachedDownload(hash, bytes.length);
     return bytes;
   }
   /** Bind legacy catalogue identities to the admitted library, never to their old network URLs.
