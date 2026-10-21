@@ -7,7 +7,47 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/_template--template-2/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.317Z"
+      "latchedAt": "2026-10-21T14:09:10.317Z",
+      "measurement": {
+        "when": "2026-10-21T13:48:39.753Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 223,
+          "playingPeakBytes": 15983772,
+          "loadingPeakBytes": 15983772,
+          "browserProcessPeakBytes": 914851840,
+          "rendererProcessPeakBytes": 1895897088,
+          "gpuProcessPeakBytes": 994427904
+        }
+      }
+    },
+    {
+      "shard": "_template",
+      "criterion": "oneFrameLooks",
+      "source": "9a60a22397e6c4250524df97982f57a0ae6228fb",
+      "latchedAt": "2026-10-21T16:01:56.687530+00:00",
+      "quiet": true,
+      "measurement": {
+        "when": "2026-10-21T15:40:00.460Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-_template-road-entry-drive.frames": 669,
+          "grid-_template-road-entry-drive.maxMs": 166.70000000000073,
+          "grid-_template-road-entry-drive.p95Ms": 50.099999999998545,
+          "grid-_template-road-entry-drive.medianFps": 30.030030030027405,
+          "grid-_template-road-entry-drive.skipped": 0,
+          "grid-_template-road-entry.frames": 180,
+          "grid-_template-road-entry.maxMs": 50,
+          "grid-_template-road-entry.p95Ms": 33.400000000001455,
+          "grid-_template-road-entry.medianFps": 30.030030030027405,
+          "grid-_template-road-entry.skipped": 0,
+          "grid-_template-road-entry-travel.frames": 408,
+          "grid-_template-road-entry-travel.maxMs": 116.69999999999709,
+          "grid-_template-road-entry-travel.p95Ms": 33.40000000000873,
+          "grid-_template-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-_template-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "blender-template",
@@ -15,7 +55,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/blender-template--blender-template-1/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.384Z"
+      "latchedAt": "2026-10-21T14:09:10.384Z",
+      "measurement": {
+        "when": "2026-10-21T13:49:36.892Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 199,
+          "playingPeakBytes": 10896601,
+          "loadingPeakBytes": 11304817,
+          "browserProcessPeakBytes": 1009404928,
+          "rendererProcessPeakBytes": 1826970624,
+          "gpuProcessPeakBytes": 927417344
+        }
+      }
     },
     {
       "shard": "blender-template",
@@ -23,7 +75,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/blender-template--blender-template-1/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.385Z"
+      "latchedAt": "2026-10-21T14:09:10.385Z",
+      "measurement": {
+        "when": "2026-10-21T13:49:36.892Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-blender-template-road-entry-drive.frames": 694,
+          "grid-blender-template-road-entry-drive.maxMs": 183.29999999998836,
+          "grid-blender-template-road-entry-drive.p95Ms": 33.40000000000873,
+          "grid-blender-template-road-entry-drive.medianFps": 30.030030030027405,
+          "grid-blender-template-road-entry-drive.skipped": 0,
+          "grid-blender-template-road-entry.frames": 182,
+          "grid-blender-template-road-entry.maxMs": 33.5,
+          "grid-blender-template-road-entry.p95Ms": 33.40000000000873,
+          "grid-blender-template-road-entry.medianFps": 30.030030030027405,
+          "grid-blender-template-road-entry.skipped": 0,
+          "grid-blender-template-road-entry-travel.frames": 408,
+          "grid-blender-template-road-entry-travel.maxMs": 100,
+          "grid-blender-template-road-entry-travel.p95Ms": 33.40000000000873,
+          "grid-blender-template-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-blender-template-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "far-reach",
@@ -31,7 +104,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/far-reach--far-reach/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.453Z"
+      "latchedAt": "2026-10-21T14:09:10.453Z",
+      "measurement": {
+        "when": "2026-10-21T13:51:25.853Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 226,
+          "playingPeakBytes": 222019983,
+          "loadingPeakBytes": 226197771,
+          "browserProcessPeakBytes": 1079954432,
+          "rendererProcessPeakBytes": 2123832320,
+          "gpuProcessPeakBytes": 1095796736
+        }
+      }
     },
     {
       "shard": "far-reach",
@@ -40,7 +125,28 @@
       "receiptCommit": "72c53005993d07b6359464ce6a06488d6446fb38",
       "receipt": "progress/shard-platform/grid-ready-9a60a22/far-reach--far-reach/receipt.json",
       "latchedAt": "2026-10-21T14:56:42.906Z",
-      "quiet": false
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-21T14:53:40.153Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-far-reach-road-entry-drive.frames": 923,
+          "grid-far-reach-road-entry-drive.maxMs": 133.39999999999418,
+          "grid-far-reach-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-far-reach-road-entry-drive.medianFps": 30.03003003001428,
+          "grid-far-reach-road-entry-drive.skipped": 0,
+          "grid-far-reach-road-entry.frames": 175,
+          "grid-far-reach-road-entry.maxMs": 66.60000000000582,
+          "grid-far-reach-road-entry.p95Ms": 50,
+          "grid-far-reach-road-entry.medianFps": 30.03003003001428,
+          "grid-far-reach-road-entry.skipped": 0,
+          "grid-far-reach-road-entry-travel.frames": 142,
+          "grid-far-reach-road-entry-travel.maxMs": 116.70000000001164,
+          "grid-far-reach-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-far-reach-road-entry-travel.medianFps": 30.03003003001428,
+          "grid-far-reach-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "ink-cel-valley",
@@ -48,7 +154,20 @@
       "source": "8c7861b92613fcdb04faaf7234ed868183984982",
       "receiptCommit": "2fc35330d35135d29151d413c793bfe74dd2a24f",
       "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/ink-cel-valley/memory/receipt.json",
-      "latchedAt": "2026-10-21T13:44:13.133Z"
+      "latchedAt": "2026-10-21T13:44:13.133Z",
+      "measurement": {
+        "when": "2026-10-21T03:54:46.353Z",
+        "surface": "sim",
+        "metrics": {
+          "samples": 637,
+          "gamePid": 88495,
+          "playingPeakBytes": 861867209,
+          "loadingPeakBytes": 879598825,
+          "gpuPeakBytes": 206748577,
+          "gpuUnattributedBytes": 14794468,
+          "gpuSamples": 96
+        }
+      }
     },
     {
       "shard": "ink-cel-valley",
@@ -56,7 +175,28 @@
       "source": "8c7861b92613fcdb04faaf7234ed868183984982",
       "receiptCommit": "cb025a094ac5251809080889c150033b6ce110a0",
       "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/ink-cel-valley/receipt.json",
-      "latchedAt": "2026-10-21T13:44:13.221Z"
+      "latchedAt": "2026-10-21T13:44:13.221Z",
+      "measurement": {
+        "when": "2026-10-21T05:29:41.072Z",
+        "surface": "sim",
+        "metrics": {
+          "grid-ink-cel-valley-road-entry-travel.frames": 120,
+          "grid-ink-cel-valley-road-entry-travel.maxMs": 50,
+          "grid-ink-cel-valley-road-entry-travel.p95Ms": 34,
+          "grid-ink-cel-valley-road-entry-travel.medianFps": 30.303,
+          "grid-ink-cel-valley-road-entry-travel.skipped": 0,
+          "grid-ink-cel-valley-road-entry-drive.frames": 420,
+          "grid-ink-cel-valley-road-entry-drive.maxMs": 50,
+          "grid-ink-cel-valley-road-entry-drive.p95Ms": 34,
+          "grid-ink-cel-valley-road-entry-drive.medianFps": 30.303,
+          "grid-ink-cel-valley-road-entry-drive.skipped": 0,
+          "grid-ink-cel-valley-road-entry.frames": 120,
+          "grid-ink-cel-valley-road-entry.maxMs": 35,
+          "grid-ink-cel-valley-road-entry.p95Ms": 34,
+          "grid-ink-cel-valley-road-entry.medianFps": 30.303,
+          "grid-ink-cel-valley-road-entry.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-alien-plain",
@@ -64,7 +204,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-alien-plain--open-plot-4-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.521Z"
+      "latchedAt": "2026-10-21T14:09:10.521Z",
+      "measurement": {
+        "when": "2026-10-21T13:56:26.508Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 203,
+          "playingPeakBytes": 25589225,
+          "loadingPeakBytes": 25589225,
+          "browserProcessPeakBytes": 1056459776,
+          "rendererProcessPeakBytes": 1777098752,
+          "gpuProcessPeakBytes": 939198464
+        }
+      }
     },
     {
       "shard": "open-plot-alien-plain",
@@ -72,7 +224,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-alien-plain--open-plot-4-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.522Z"
+      "latchedAt": "2026-10-21T14:09:10.522Z",
+      "measurement": {
+        "when": "2026-10-21T13:56:26.508Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-alien-plain-road-entry-drive.frames": 701,
+          "grid-open-plot-alien-plain-road-entry-drive.maxMs": 150,
+          "grid-open-plot-alien-plain-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-alien-plain-road-entry-drive.medianFps": 30.03003003004053,
+          "grid-open-plot-alien-plain-road-entry-drive.skipped": 0,
+          "grid-open-plot-alien-plain-road-entry.frames": 181,
+          "grid-open-plot-alien-plain-road-entry.maxMs": 50,
+          "grid-open-plot-alien-plain-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-alien-plain-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-alien-plain-road-entry.skipped": 0,
+          "grid-open-plot-alien-plain-road-entry-travel.frames": 409,
+          "grid-open-plot-alien-plain-road-entry-travel.maxMs": 166.69999999995343,
+          "grid-open-plot-alien-plain-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-alien-plain-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-alien-plain-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-clockwork-canyon",
@@ -80,7 +253,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-clockwork-canyon--open-plot-4-3/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.590Z"
+      "latchedAt": "2026-10-21T14:09:10.590Z",
+      "measurement": {
+        "when": "2026-10-21T13:59:45.640Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 197,
+          "playingPeakBytes": 23513656,
+          "loadingPeakBytes": 23513656,
+          "browserProcessPeakBytes": 1055247360,
+          "rendererProcessPeakBytes": 1687887872,
+          "gpuProcessPeakBytes": 885475328
+        }
+      }
     },
     {
       "shard": "open-plot-clockwork-canyon",
@@ -88,7 +273,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-clockwork-canyon--open-plot-4-3/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.591Z"
+      "latchedAt": "2026-10-21T14:09:10.591Z",
+      "measurement": {
+        "when": "2026-10-21T13:59:45.640Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-clockwork-canyon-road-entry-drive.frames": 696,
+          "grid-open-plot-clockwork-canyon-road-entry-drive.maxMs": 150,
+          "grid-open-plot-clockwork-canyon-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-clockwork-canyon-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-clockwork-canyon-road-entry-drive.skipped": 0,
+          "grid-open-plot-clockwork-canyon-road-entry.frames": 181,
+          "grid-open-plot-clockwork-canyon-road-entry.maxMs": 33.40000000002328,
+          "grid-open-plot-clockwork-canyon-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-clockwork-canyon-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-clockwork-canyon-road-entry.skipped": 0,
+          "grid-open-plot-clockwork-canyon-road-entry-travel.frames": 407,
+          "grid-open-plot-clockwork-canyon-road-entry-travel.maxMs": 150,
+          "grid-open-plot-clockwork-canyon-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-clockwork-canyon-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-clockwork-canyon-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-coral-drift",
@@ -96,7 +302,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-coral-drift--open-plot-0-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.657Z"
+      "latchedAt": "2026-10-21T14:09:10.657Z",
+      "measurement": {
+        "when": "2026-10-21T13:53:09.941Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 199,
+          "playingPeakBytes": 25697602,
+          "loadingPeakBytes": 25697602,
+          "browserProcessPeakBytes": 1046072320,
+          "rendererProcessPeakBytes": 1728338944,
+          "gpuProcessPeakBytes": 922568704
+        }
+      }
     },
     {
       "shard": "open-plot-coral-drift",
@@ -104,7 +322,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-coral-drift--open-plot-0-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.658Z"
+      "latchedAt": "2026-10-21T14:09:10.658Z",
+      "measurement": {
+        "when": "2026-10-21T13:53:09.941Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-coral-drift-road-entry-drive.frames": 691,
+          "grid-open-plot-coral-drift-road-entry-drive.maxMs": 150,
+          "grid-open-plot-coral-drift-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-coral-drift-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-coral-drift-road-entry-drive.skipped": 0,
+          "grid-open-plot-coral-drift-road-entry.frames": 181,
+          "grid-open-plot-coral-drift-road-entry.maxMs": 33.5,
+          "grid-open-plot-coral-drift-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-coral-drift-road-entry.medianFps": 30.03003003004053,
+          "grid-open-plot-coral-drift-road-entry.skipped": 0,
+          "grid-open-plot-coral-drift-road-entry-travel.frames": 408,
+          "grid-open-plot-coral-drift-road-entry-travel.maxMs": 116.59999999997672,
+          "grid-open-plot-coral-drift-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-coral-drift-road-entry-travel.medianFps": 30.03003003004053,
+          "grid-open-plot-coral-drift-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-desert-ruin",
@@ -112,7 +351,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-desert-ruin--open-plot-3-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.726Z"
+      "latchedAt": "2026-10-21T14:09:10.726Z",
+      "measurement": {
+        "when": "2026-10-21T13:55:35.993Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 205,
+          "playingPeakBytes": 25844619,
+          "loadingPeakBytes": 25844619,
+          "browserProcessPeakBytes": 1055869952,
+          "rendererProcessPeakBytes": 2011684864,
+          "gpuProcessPeakBytes": 940574720
+        }
+      }
     },
     {
       "shard": "open-plot-desert-ruin",
@@ -120,7 +371,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-desert-ruin--open-plot-3-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.726Z"
+      "latchedAt": "2026-10-21T14:09:10.726Z",
+      "measurement": {
+        "when": "2026-10-21T13:55:35.993Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-desert-ruin-road-entry-drive.frames": 695,
+          "grid-open-plot-desert-ruin-road-entry-drive.maxMs": 150,
+          "grid-open-plot-desert-ruin-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-desert-ruin-road-entry-drive.medianFps": 30.03003003004053,
+          "grid-open-plot-desert-ruin-road-entry-drive.skipped": 0,
+          "grid-open-plot-desert-ruin-road-entry.frames": 181,
+          "grid-open-plot-desert-ruin-road-entry.maxMs": 33.5,
+          "grid-open-plot-desert-ruin-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-desert-ruin-road-entry.medianFps": 30.03003003004053,
+          "grid-open-plot-desert-ruin-road-entry.skipped": 0,
+          "grid-open-plot-desert-ruin-road-entry-travel.frames": 409,
+          "grid-open-plot-desert-ruin-road-entry-travel.maxMs": 166.70000000001164,
+          "grid-open-plot-desert-ruin-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-desert-ruin-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-desert-ruin-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-ember-forge",
@@ -128,7 +400,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-ember-forge--open-plot-4-1/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.792Z"
+      "latchedAt": "2026-10-21T14:09:10.792Z",
+      "measurement": {
+        "when": "2026-10-21T13:58:07.257Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 204,
+          "playingPeakBytes": 26003711,
+          "loadingPeakBytes": 26003711,
+          "browserProcessPeakBytes": 1058049024,
+          "rendererProcessPeakBytes": 1850417152,
+          "gpuProcessPeakBytes": 878823424
+        }
+      }
     },
     {
       "shard": "open-plot-ember-forge",
@@ -136,7 +420,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-ember-forge--open-plot-4-1/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.793Z"
+      "latchedAt": "2026-10-21T14:09:10.793Z",
+      "measurement": {
+        "when": "2026-10-21T13:58:07.257Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-ember-forge-road-entry-drive.frames": 695,
+          "grid-open-plot-ember-forge-road-entry-drive.maxMs": 133.39999999990687,
+          "grid-open-plot-ember-forge-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-ember-forge-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-ember-forge-road-entry-drive.skipped": 0,
+          "grid-open-plot-ember-forge-road-entry.frames": 181,
+          "grid-open-plot-ember-forge-road-entry.maxMs": 33.40000000002328,
+          "grid-open-plot-ember-forge-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-ember-forge-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-ember-forge-road-entry.skipped": 0,
+          "grid-open-plot-ember-forge-road-entry-travel.frames": 408,
+          "grid-open-plot-ember-forge-road-entry-travel.maxMs": 116.59999999997672,
+          "grid-open-plot-ember-forge-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-ember-forge-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-ember-forge-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-frostline-peaks",
@@ -144,7 +449,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-frostline-peaks--open-plot-0-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.856Z"
+      "latchedAt": "2026-10-21T14:09:10.856Z",
+      "measurement": {
+        "when": "2026-10-21T14:00:33.575Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 199,
+          "playingPeakBytes": 23730612,
+          "loadingPeakBytes": 23730612,
+          "browserProcessPeakBytes": 1057360896,
+          "rendererProcessPeakBytes": 1731142656,
+          "gpuProcessPeakBytes": 873711616
+        }
+      }
     },
     {
       "shard": "open-plot-frostline-peaks",
@@ -152,7 +469,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-frostline-peaks--open-plot-0-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.857Z"
+      "latchedAt": "2026-10-21T14:09:10.857Z",
+      "measurement": {
+        "when": "2026-10-21T14:00:33.575Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-frostline-peaks-road-entry-drive.frames": 695,
+          "grid-open-plot-frostline-peaks-road-entry-drive.maxMs": 133.30000000004657,
+          "grid-open-plot-frostline-peaks-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-frostline-peaks-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-frostline-peaks-road-entry-drive.skipped": 0,
+          "grid-open-plot-frostline-peaks-road-entry.frames": 181,
+          "grid-open-plot-frostline-peaks-road-entry.maxMs": 50.09999999997672,
+          "grid-open-plot-frostline-peaks-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-frostline-peaks-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-frostline-peaks-road-entry.skipped": 0,
+          "grid-open-plot-frostline-peaks-road-entry-travel.frames": 411,
+          "grid-open-plot-frostline-peaks-road-entry-travel.maxMs": 133.40000000002328,
+          "grid-open-plot-frostline-peaks-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-frostline-peaks-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-frostline-peaks-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-lantern-bayou",
@@ -160,7 +498,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-lantern-bayou--open-plot-0-1/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.918Z"
+      "latchedAt": "2026-10-21T14:09:10.918Z",
+      "measurement": {
+        "when": "2026-10-21T13:57:16.108Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 204,
+          "playingPeakBytes": 25854666,
+          "loadingPeakBytes": 25854666,
+          "browserProcessPeakBytes": 1060211712,
+          "rendererProcessPeakBytes": 1810931712,
+          "gpuProcessPeakBytes": 920422400
+        }
+      }
     },
     {
       "shard": "open-plot-lantern-bayou",
@@ -169,7 +519,28 @@
       "receiptCommit": "72c53005993d07b6359464ce6a06488d6446fb38",
       "receipt": "progress/shard-platform/grid-ready-9a60a22/open-plot-lantern-bayou--open-plot-0-1/receipt.json",
       "latchedAt": "2026-10-21T14:56:42.971Z",
-      "quiet": false
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-21T14:54:26.767Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-lantern-bayou-road-entry-drive.frames": 694,
+          "grid-open-plot-lantern-bayou-road-entry-drive.maxMs": 83.39999999999418,
+          "grid-open-plot-lantern-bayou-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-lantern-bayou-road-entry-drive.medianFps": 30.03003003001428,
+          "grid-open-plot-lantern-bayou-road-entry-drive.skipped": 0,
+          "grid-open-plot-lantern-bayou-road-entry.frames": 181,
+          "grid-open-plot-lantern-bayou-road-entry.maxMs": 33.40000000002328,
+          "grid-open-plot-lantern-bayou-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-lantern-bayou-road-entry.medianFps": 30.03003003001428,
+          "grid-open-plot-lantern-bayou-road-entry.skipped": 0,
+          "grid-open-plot-lantern-bayou-road-entry-travel.frames": 407,
+          "grid-open-plot-lantern-bayou-road-entry-travel.maxMs": 150,
+          "grid-open-plot-lantern-bayou-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-lantern-bayou-road-entry-travel.medianFps": 30.03003003001428,
+          "grid-open-plot-lantern-bayou-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-mosslight-ruins",
@@ -177,7 +548,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-mosslight-ruins--open-plot-0-3/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.983Z"
+      "latchedAt": "2026-10-21T14:09:10.983Z",
+      "measurement": {
+        "when": "2026-10-21T13:58:57.147Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 199,
+          "playingPeakBytes": 23552041,
+          "loadingPeakBytes": 23552041,
+          "browserProcessPeakBytes": 1056525312,
+          "rendererProcessPeakBytes": 1922883584,
+          "gpuProcessPeakBytes": 874366976
+        }
+      }
     },
     {
       "shard": "open-plot-mosslight-ruins",
@@ -185,7 +568,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-mosslight-ruins--open-plot-0-3/receipt.json",
-      "latchedAt": "2026-10-21T14:09:10.984Z"
+      "latchedAt": "2026-10-21T14:09:10.984Z",
+      "measurement": {
+        "when": "2026-10-21T13:58:57.147Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-mosslight-ruins-road-entry-drive.frames": 694,
+          "grid-open-plot-mosslight-ruins-road-entry-drive.maxMs": 133.40000000002328,
+          "grid-open-plot-mosslight-ruins-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-mosslight-ruins-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-mosslight-ruins-road-entry-drive.skipped": 0,
+          "grid-open-plot-mosslight-ruins-road-entry.frames": 181,
+          "grid-open-plot-mosslight-ruins-road-entry.maxMs": 33.5,
+          "grid-open-plot-mosslight-ruins-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-mosslight-ruins-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-mosslight-ruins-road-entry.skipped": 0,
+          "grid-open-plot-mosslight-ruins-road-entry-travel.frames": 409,
+          "grid-open-plot-mosslight-ruins-road-entry-travel.maxMs": 133.40000000002328,
+          "grid-open-plot-mosslight-ruins-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-mosslight-ruins-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-mosslight-ruins-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-night-market",
@@ -193,7 +597,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-night-market--open-plot-1-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.048Z"
+      "latchedAt": "2026-10-21T14:09:11.048Z",
+      "measurement": {
+        "when": "2026-10-21T13:53:58.122Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 200,
+          "playingPeakBytes": 25431899,
+          "loadingPeakBytes": 25431899,
+          "browserProcessPeakBytes": 1048333312,
+          "rendererProcessPeakBytes": 1787764736,
+          "gpuProcessPeakBytes": 929220608
+        }
+      }
     },
     {
       "shard": "open-plot-night-market",
@@ -201,7 +617,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-night-market--open-plot-1-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.049Z"
+      "latchedAt": "2026-10-21T14:09:11.049Z",
+      "measurement": {
+        "when": "2026-10-21T13:53:58.122Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-night-market-road-entry-drive.frames": 696,
+          "grid-open-plot-night-market-road-entry-drive.maxMs": 150,
+          "grid-open-plot-night-market-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-night-market-road-entry-drive.medianFps": 30.03003003004053,
+          "grid-open-plot-night-market-road-entry-drive.skipped": 0,
+          "grid-open-plot-night-market-road-entry.frames": 180,
+          "grid-open-plot-night-market-road-entry.maxMs": 66.70000000001164,
+          "grid-open-plot-night-market-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-night-market-road-entry.medianFps": 30.03003003004053,
+          "grid-open-plot-night-market-road-entry.skipped": 0,
+          "grid-open-plot-night-market-road-entry-travel.frames": 409,
+          "grid-open-plot-night-market-road-entry-travel.maxMs": 116.59999999997672,
+          "grid-open-plot-night-market-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-night-market-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-night-market-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-showcase-template",
@@ -209,7 +646,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-showcase-template--open-plot-2-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.172Z"
+      "latchedAt": "2026-10-21T14:09:11.172Z",
+      "measurement": {
+        "when": "2026-10-21T14:02:11.091Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 197,
+          "playingPeakBytes": 24745343,
+          "loadingPeakBytes": 24745343,
+          "browserProcessPeakBytes": 1064373248,
+          "rendererProcessPeakBytes": 1760650240,
+          "gpuProcessPeakBytes": 877594624
+        }
+      }
     },
     {
       "shard": "open-plot-showcase-template",
@@ -217,7 +666,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-showcase-template--open-plot-2-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.173Z"
+      "latchedAt": "2026-10-21T14:09:11.173Z",
+      "measurement": {
+        "when": "2026-10-21T14:02:11.091Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-showcase-template-road-entry-drive.frames": 695,
+          "grid-open-plot-showcase-template-road-entry-drive.maxMs": 116.59999999997672,
+          "grid-open-plot-showcase-template-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-showcase-template-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-showcase-template-road-entry-drive.skipped": 0,
+          "grid-open-plot-showcase-template-road-entry.frames": 181,
+          "grid-open-plot-showcase-template-road-entry.maxMs": 50,
+          "grid-open-plot-showcase-template-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-showcase-template-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-showcase-template-road-entry.skipped": 0,
+          "grid-open-plot-showcase-template-road-entry-travel.frames": 412,
+          "grid-open-plot-showcase-template-road-entry-travel.maxMs": 133.30000000004657,
+          "grid-open-plot-showcase-template-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-showcase-template-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-showcase-template-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-sky-harbor",
@@ -225,7 +695,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-harbor--open-plot-4-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.237Z"
+      "latchedAt": "2026-10-21T14:09:11.237Z",
+      "measurement": {
+        "when": "2026-10-21T14:03:47.768Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 194,
+          "playingPeakBytes": 24067146,
+          "loadingPeakBytes": 24067146,
+          "browserProcessPeakBytes": 1066568704,
+          "rendererProcessPeakBytes": 1769972736,
+          "gpuProcessPeakBytes": 882231296
+        }
+      }
     },
     {
       "shard": "open-plot-sky-harbor",
@@ -233,7 +715,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-harbor--open-plot-4-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.238Z"
+      "latchedAt": "2026-10-21T14:09:11.238Z",
+      "measurement": {
+        "when": "2026-10-21T14:03:47.768Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-sky-harbor-road-entry-drive.frames": 696,
+          "grid-open-plot-sky-harbor-road-entry-drive.maxMs": 116.70000000006985,
+          "grid-open-plot-sky-harbor-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-sky-harbor-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-sky-harbor-road-entry-drive.skipped": 0,
+          "grid-open-plot-sky-harbor-road-entry.frames": 181,
+          "grid-open-plot-sky-harbor-road-entry.maxMs": 33.5,
+          "grid-open-plot-sky-harbor-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-sky-harbor-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-sky-harbor-road-entry.skipped": 0,
+          "grid-open-plot-sky-harbor-road-entry-travel.frames": 411,
+          "grid-open-plot-sky-harbor-road-entry-travel.maxMs": 83.39999999990687,
+          "grid-open-plot-sky-harbor-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-sky-harbor-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-sky-harbor-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-sky-race",
@@ -241,7 +744,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-race--open-plot-2-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.301Z"
+      "latchedAt": "2026-10-21T14:09:11.301Z",
+      "measurement": {
+        "when": "2026-10-21T13:54:46.877Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 202,
+          "playingPeakBytes": 25655467,
+          "loadingPeakBytes": 25655467,
+          "browserProcessPeakBytes": 1049267200,
+          "rendererProcessPeakBytes": 1807589376,
+          "gpuProcessPeakBytes": 931727360
+        }
+      }
     },
     {
       "shard": "open-plot-sky-race",
@@ -249,7 +764,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-race--open-plot-2-0/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.302Z"
+      "latchedAt": "2026-10-21T14:09:11.302Z",
+      "measurement": {
+        "when": "2026-10-21T13:54:46.877Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-sky-race-road-entry-drive.frames": 697,
+          "grid-open-plot-sky-race-road-entry-drive.maxMs": 166.70000000001164,
+          "grid-open-plot-sky-race-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-sky-race-road-entry-drive.medianFps": 30.03003003004053,
+          "grid-open-plot-sky-race-road-entry-drive.skipped": 0,
+          "grid-open-plot-sky-race-road-entry.frames": 182,
+          "grid-open-plot-sky-race-road-entry.maxMs": 33.5,
+          "grid-open-plot-sky-race-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-sky-race-road-entry.medianFps": 30.03003003004053,
+          "grid-open-plot-sky-race-road-entry.skipped": 0,
+          "grid-open-plot-sky-race-road-entry-travel.frames": 410,
+          "grid-open-plot-sky-race-road-entry-travel.maxMs": 116.69999999995343,
+          "grid-open-plot-sky-race-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-sky-race-road-entry-travel.medianFps": 30.03003003004053,
+          "grid-open-plot-sky-race-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-starfall-observatory",
@@ -257,7 +793,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-starfall-observatory--open-plot-3-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.368Z"
+      "latchedAt": "2026-10-21T14:09:11.368Z",
+      "measurement": {
+        "when": "2026-10-21T14:02:59.352Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 198,
+          "playingPeakBytes": 23601314,
+          "loadingPeakBytes": 23601314,
+          "browserProcessPeakBytes": 1068190720,
+          "rendererProcessPeakBytes": 1766843392,
+          "gpuProcessPeakBytes": 882182144
+        }
+      }
     },
     {
       "shard": "open-plot-starfall-observatory",
@@ -265,7 +813,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-starfall-observatory--open-plot-3-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.369Z"
+      "latchedAt": "2026-10-21T14:09:11.369Z",
+      "measurement": {
+        "when": "2026-10-21T14:02:59.352Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-starfall-observatory-road-entry-drive.frames": 696,
+          "grid-open-plot-starfall-observatory-road-entry-drive.maxMs": 133.29999999993015,
+          "grid-open-plot-starfall-observatory-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-starfall-observatory-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-starfall-observatory-road-entry-drive.skipped": 0,
+          "grid-open-plot-starfall-observatory-road-entry.frames": 181,
+          "grid-open-plot-starfall-observatory-road-entry.maxMs": 33.5,
+          "grid-open-plot-starfall-observatory-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-starfall-observatory-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-starfall-observatory-road-entry.skipped": 0,
+          "grid-open-plot-starfall-observatory-road-entry-travel.frames": 410,
+          "grid-open-plot-starfall-observatory-road-entry-travel.maxMs": 100.09999999997672,
+          "grid-open-plot-starfall-observatory-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-starfall-observatory-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-starfall-observatory-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "open-plot-thin-ice",
@@ -273,7 +842,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-thin-ice--open-plot-1-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.442Z"
+      "latchedAt": "2026-10-21T14:09:11.442Z",
+      "measurement": {
+        "when": "2026-10-21T14:01:22.080Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 201,
+          "playingPeakBytes": 23529913,
+          "loadingPeakBytes": 23529913,
+          "browserProcessPeakBytes": 1058786304,
+          "rendererProcessPeakBytes": 1728881664,
+          "gpuProcessPeakBytes": 877987840
+        }
+      }
     },
     {
       "shard": "open-plot-thin-ice",
@@ -281,7 +862,28 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-thin-ice--open-plot-1-4/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.443Z"
+      "latchedAt": "2026-10-21T14:09:11.443Z",
+      "measurement": {
+        "when": "2026-10-21T14:01:22.080Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-open-plot-thin-ice-road-entry-drive.frames": 694,
+          "grid-open-plot-thin-ice-road-entry-drive.maxMs": 150.09999999997672,
+          "grid-open-plot-thin-ice-road-entry-drive.p95Ms": 33.40000000002328,
+          "grid-open-plot-thin-ice-road-entry-drive.medianFps": 30.030030029988037,
+          "grid-open-plot-thin-ice-road-entry-drive.skipped": 0,
+          "grid-open-plot-thin-ice-road-entry.frames": 181,
+          "grid-open-plot-thin-ice-road-entry.maxMs": 50,
+          "grid-open-plot-thin-ice-road-entry.p95Ms": 33.40000000002328,
+          "grid-open-plot-thin-ice-road-entry.medianFps": 30.030030029988037,
+          "grid-open-plot-thin-ice-road-entry.skipped": 0,
+          "grid-open-plot-thin-ice-road-entry-travel.frames": 409,
+          "grid-open-plot-thin-ice-road-entry-travel.maxMs": 133.29999999993015,
+          "grid-open-plot-thin-ice-road-entry-travel.p95Ms": 33.40000000002328,
+          "grid-open-plot-thin-ice-road-entry-travel.medianFps": 30.030030029988037,
+          "grid-open-plot-thin-ice-road-entry-travel.skipped": 0
+        }
+      }
     },
     {
       "shard": "pastel-plain",
@@ -289,7 +891,20 @@
       "source": "8c7861b92613fcdb04faaf7234ed868183984982",
       "receiptCommit": "2fc35330d35135d29151d413c793bfe74dd2a24f",
       "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/pastel-plain/memory/receipt.json",
-      "latchedAt": "2026-10-21T13:44:12.960Z"
+      "latchedAt": "2026-10-21T13:44:12.960Z",
+      "measurement": {
+        "when": "2026-10-21T03:53:19.545Z",
+        "surface": "sim",
+        "metrics": {
+          "samples": 701,
+          "gamePid": 76466,
+          "playingPeakBytes": 701103397,
+          "loadingPeakBytes": 1628032637,
+          "gpuPeakBytes": 206711541,
+          "gpuUnattributedBytes": 14794468,
+          "gpuSamples": 104
+        }
+      }
     },
     {
       "shard": "pastel-plain",
@@ -297,7 +912,28 @@
       "source": "8c7861b92613fcdb04faaf7234ed868183984982",
       "receiptCommit": "2fc35330d35135d29151d413c793bfe74dd2a24f",
       "receipt": "progress/shard-platform/m2-outer-pair-2026-10-20/pastel-plain/receipt.json",
-      "latchedAt": "2026-10-21T13:44:13.050Z"
+      "latchedAt": "2026-10-21T13:44:13.050Z",
+      "measurement": {
+        "when": "2026-10-21T04:21:26.162Z",
+        "surface": "sim",
+        "metrics": {
+          "grid-pastel-plain-road-entry-travel.frames": 120,
+          "grid-pastel-plain-road-entry-travel.maxMs": 49,
+          "grid-pastel-plain-road-entry-travel.p95Ms": 34,
+          "grid-pastel-plain-road-entry-travel.medianFps": 30.303,
+          "grid-pastel-plain-road-entry-travel.skipped": 0,
+          "grid-pastel-plain-road-entry-drive.frames": 420,
+          "grid-pastel-plain-road-entry-drive.maxMs": 117,
+          "grid-pastel-plain-road-entry-drive.p95Ms": 34,
+          "grid-pastel-plain-road-entry-drive.medianFps": 30.303,
+          "grid-pastel-plain-road-entry-drive.skipped": 0,
+          "grid-pastel-plain-road-entry.frames": 120,
+          "grid-pastel-plain-road-entry.maxMs": 34,
+          "grid-pastel-plain-road-entry.p95Ms": 34,
+          "grid-pastel-plain-road-entry.medianFps": 30.303,
+          "grid-pastel-plain-road-entry.skipped": 0
+        }
+      }
     },
     {
       "shard": "sunscar-dunes",
@@ -305,7 +941,19 @@
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/sunscar-dunes--sunscar-dunes/receipt.json",
-      "latchedAt": "2026-10-21T14:09:11.516Z"
+      "latchedAt": "2026-10-21T14:09:11.516Z",
+      "measurement": {
+        "when": "2026-10-21T13:50:25.175Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 246,
+          "playingPeakBytes": 125394493,
+          "loadingPeakBytes": 128911957,
+          "browserProcessPeakBytes": 1015974912,
+          "rendererProcessPeakBytes": 1872747520,
+          "gpuProcessPeakBytes": 1036273664
+        }
+      }
     },
     {
       "shard": "sunscar-dunes",
@@ -314,7 +962,28 @@
       "receiptCommit": "72c53005993d07b6359464ce6a06488d6446fb38",
       "receipt": "progress/shard-platform/grid-ready-9a60a22/sunscar-dunes--sunscar-dunes/receipt.json",
       "latchedAt": "2026-10-21T14:56:42.834Z",
-      "quiet": false
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-21T14:52:42.301Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-sunscar-dunes-road-entry-drive.frames": 973,
+          "grid-sunscar-dunes-road-entry-drive.maxMs": 133.29999999998836,
+          "grid-sunscar-dunes-road-entry-drive.p95Ms": 33.40000000000873,
+          "grid-sunscar-dunes-road-entry-drive.medianFps": 30.030030030027405,
+          "grid-sunscar-dunes-road-entry-drive.skipped": 0,
+          "grid-sunscar-dunes-road-entry.frames": 182,
+          "grid-sunscar-dunes-road-entry.maxMs": 33.5,
+          "grid-sunscar-dunes-road-entry.p95Ms": 33.40000000000873,
+          "grid-sunscar-dunes-road-entry.medianFps": 30.030030030027405,
+          "grid-sunscar-dunes-road-entry.skipped": 0,
+          "grid-sunscar-dunes-road-entry-travel.frames": 409,
+          "grid-sunscar-dunes-road-entry-travel.maxMs": 50.10000000000582,
+          "grid-sunscar-dunes-road-entry-travel.p95Ms": 33.40000000000873,
+          "grid-sunscar-dunes-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-sunscar-dunes-road-entry-travel.skipped": 0
+        }
+      }
     }
   ]
 }
