@@ -62,6 +62,22 @@ function preparedMemory(initial: number, maximum: number): WebAssembly.Memory | 
   return undefined;
 }
 
+/** Fixed-size memories that stateless modules take turns in, one per page count, for the page's life. iOS JSC runs a
+ *  synchronous full GC for each new Memory past its fast-memory cap (40-80 ms a Nalati entry paid per return program);
+ *  a stateless module rewinds its own image before and after every call, so sharing changes no output. */
+const sharedMemories = new Map<number, WebAssembly.Memory>();
+function sharedMemory(pages: number): WebAssembly.Memory {
+  let memory = sharedMemories.get(pages);
+  if (memory === undefined) {
+    const created = pageScope.run(() => new WebAssembly.Memory({ initial: pages, maximum: pages }));
+    observeWasmMemory(created, { owner: 'engine/script', asset: 'decision/shared' });
+    sharedMemories.set(pages, created); memory = created;
+  }
+  // A fresh memory is zeroed: the next module instantiates exactly as it would alone.
+  new Uint8Array(memory.buffer).fill(0);
+  return memory;
+}
+
 /** One shared, admitted instance. Durable binding state never lives in this memory. */
 export class DecisionModule {
   readonly memory: WebAssembly.Memory;
@@ -74,14 +90,19 @@ export class DecisionModule {
   private readonly image: Uint8Array;
   private readonly bytes: Uint8Array;
   private readonly globals: { global: WebAssembly.Global; value: number | bigint }[];
+  /** `stateless`: the caller rewinds before and after every call and keeps no state in memory between calls (a return
+   *  program), so a fixed-size module takes its turn in the page's shared memory for its page count. */
   constructor(bytes: Uint8Array, seed: readonly [number, number], ports: {
     read: (op: number, a: number, b: number) => number;
     list: (op: number, a: number, b: number, out: number, cap: number) => number;
-  }) {
+  }, stateless = false) {
     const admission = admitScript(bytes, 1);
-    this.memory = preparedMemory(admission.initialPages, admission.maximumPages)
-      ?? new WebAssembly.Memory({ initial: admission.initialPages, maximum: admission.maximumPages });
-    observeWasmMemory(this.memory, { owner: 'engine/script', asset: 'decision/module' });
+    if (stateless && admission.initialPages === admission.maximumPages) this.memory = sharedMemory(admission.initialPages);
+    else {
+      this.memory = preparedMemory(admission.initialPages, admission.maximumPages)
+        ?? new WebAssembly.Memory({ initial: admission.initialPages, maximum: admission.maximumPages });
+      observeWasmMemory(this.memory, { owner: 'engine/script', asset: 'decision/module' });
+    }
     this.begin(2_000_000);
     this.instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(bytes)), { env: {
       memory: this.memory,

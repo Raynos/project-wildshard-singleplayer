@@ -53,7 +53,7 @@ export class ReturnProgram {
         for (let i = 0; i < count; i++) this.module.view.setFloat64(out + i * 8, values[i] ?? 0, true);
         return count;
       },
-    });
+    }, true); // stateless: rewound around every request, so it shares the page's memory for its page count
     if (this.module.io + this.layout.bytes > this.module.memory.buffer.byteLength) throw new Error('Return IO outside module');
   }
   private static owned(owner: Scope, input: unknown, floor: (x: number, z: number) => number): ReturnProgram {
