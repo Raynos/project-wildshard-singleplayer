@@ -49,11 +49,11 @@ function finiteGuards(body: V2Body,type: V2Signature,code: readonly V2Instructio
 }
 export interface ScriptAdmissionV2 {
   initialPages: number; maximumPages: number; globals: readonly string[];
-  fuel: number; io: number; entries: ReadonlyMap<string,number>;
+  fuel: number; io: number; ioBytes: number; entries: ReadonlyMap<string,number>;
 }
 /** No instantiation, getters or initialization occurs during admission. The
  * runtime must still validate host-owned output regions before publishing. */
-export function admitScriptV2(bytes: Uint8Array): ScriptAdmissionV2 {
+export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number } = {}): ScriptAdmissionV2 {
   const image = readV2Module(bytes), fuel = inspectV2Fuel(bytes);
   const floats = new Map(image.globals.flatMap((global,index): [number,number][] => global.type === f32 || global.type === f64 ? [[index,global.type]] : []));
   for (let i = 0; i < image.bodies.length; i++) {
@@ -62,5 +62,8 @@ export function admitScriptV2(bytes: Uint8Array): ScriptAdmissionV2 {
   }
   const index = image.exports.get('ws_io')?.index, io = image.bodies[index ?? -1]?.code[0]?.literal;
   if (typeof io !== 'number') throw new Error('Missing v2 IO constant');
-  return { initialPages: fuel.pages,maximumPages: fuel.pages,globals: fuel.globals,fuel: fuel.fuel,io,entries: fuel.entries };
+  const ioBytes = options.ioBytes ?? 656;
+  if (!Number.isSafeInteger(ioBytes) || ioBytes < 656 || ioBytes > image.pages*65536-io) throw new Error('V2 IO does not fit fixed memory');
+  if (image.data.some(row => row.length > 0 && row.offset < io+ioBytes && row.offset+row.length > io)) throw new Error('V2 static data overlaps host IO');
+  return { initialPages: fuel.pages,maximumPages: fuel.pages,globals: fuel.globals,fuel: fuel.fuel,io,ioBytes,entries: fuel.entries };
 }

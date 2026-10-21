@@ -56,3 +56,15 @@ test('v2 verifies finite helper returns after Binaryen flattens their outer guar
   const bytes = instrumentV2Fuel(instrumentV2Finite(input)); expect(() => admitScriptV2(bytes)).not.toThrow();
   const instance = await guest(bytes); expect(() => instance.call('ws_step',-1,10000)).toThrow(WebAssembly.RuntimeError);
 });
+
+test('v2 reserves the full trusted IO area outside AS data and refuses hostile active-data overlap', async () => {
+  const bytes = await compileScriptV2(source('assert(dtick>0,"static payload");return 0;'),{ ioBytes: 4096 });
+  const data = (await import('../src/format/scriptModuleV2')).readV2Module(bytes).data;
+  expect(data.length).toBeGreaterThan(0); expect(data.every(row => row.offset >= 1024+4096)).toBe(true);
+  expect(admitScriptV2(bytes,{ ioBytes: 4096 }).ioBytes).toBe(4096);
+  const header = instrumentV2Fuel(raw('(nop)','(data (i32.const 1400) "a")'));
+  expect(() => admitScriptV2(header)).toThrow('static data overlaps');
+  const later = instrumentV2Fuel(raw('(nop)','(data (i32.const 2048) "a")'));
+  expect(() => admitScriptV2(later)).not.toThrow(); expect(() => admitScriptV2(later,{ ioBytes: 4096 })).toThrow('static data overlaps');
+  await expect(compileScriptV2(source(),{ ioBytes: 65536 })).rejects.toThrow('IO does not fit');
+});

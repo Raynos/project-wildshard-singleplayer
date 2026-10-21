@@ -4,6 +4,7 @@ import binaryen from 'binaryen';
 import { loadAssemblyScriptCompiler } from '../assemblyscriptCompiler.mjs';
 import { instrumentV2Finite } from './v2Finite';
 import { instrumentV2Fuel } from './v2Fuel';
+import { readV2Module } from '@wildshard/format/scriptModuleV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 
 interface Compiler { main: (args: string[],options: { readFile: (name: string) => string | null; writeFile: (name: string,contents: string | Uint8Array) => void }) => Promise<{ error: Error | null; stderr?: { toString: () => string } }> }
@@ -30,17 +31,28 @@ function localStartAndAbort(bytes: Uint8Array): Uint8Array {
 /** Source exports the H0b signatures, including the final i32 fuel parameter
  * and i32 result for each work entry. Generated wrappers return the real fuel
  * remainder rather than trusting the authored result. */
-export async function compileScriptV2(source: string,options: { maximumPages?: number; sources?: Readonly<Record<string,string>> } = {}): Promise<Uint8Array> {
+export async function compileScriptV2(source: string,options: { maximumPages?: number; ioBytes?: number; sources?: Readonly<Record<string,string>> } = {}): Promise<Uint8Array> {
   const pages = options.maximumPages ?? 1;
   if (!Number.isInteger(pages) || pages < 1 || pages > 4) throw new Error('V2 fixed memory must be 1..4 pages');
   const sources = new Map(Object.entries(options.sources ?? {}));
   if (sources.size > 64 || [...sources].some(([name,value]) => name === 'main.ts' || !/^(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.ts$/u.test(name) || typeof value !== 'string')) throw new Error('Invalid v2 virtual sources');
   const asc = await loadAssemblyScriptCompiler(); if (!compiler(asc)) throw new Error('Invalid pinned AssemblyScript compiler');
-  let bytes: Uint8Array = new Uint8Array();
-  const result = await asc.main(['main.ts','--outFile','v2.wasm','--runtime','stub','--importMemory','--noExportMemory','--initialMemory',String(pages),'--maximumMemory',String(pages),'--exportStart','__v2_start','--disable','bulk-memory','-O3'],{
-    readFile: name => name === 'main.ts' ? source : sources.get(name) ?? null,
-    writeFile: (name,value) => { if (name === 'v2.wasm' && value instanceof Uint8Array) bytes = value; },
-  });
-  if (result.error || bytes.length === 0) throw new Error(`V2 AssemblyScript compile failed: ${result.error?.message ?? 'no output'}${result.stderr?.toString() ?? ''}`);
-  const output = instrumentV2Fuel(instrumentV2Finite(localStartAndAbort(bytes))); admitScriptV2(output); return output;
+  const compile = async (memoryBase: number): Promise<Uint8Array> => {
+    let bytes: Uint8Array = new Uint8Array();
+    const result = await asc.main(['main.ts','--outFile','v2.wasm','--runtime','stub','--importMemory','--noExportMemory','--initialMemory',String(pages),'--maximumMemory',String(pages),'--memoryBase',String(memoryBase),'--exportStart','__v2_start','--disable','bulk-memory','-O3'],{
+      readFile: name => name === 'main.ts' ? source : sources.get(name) ?? null,
+      writeFile: (name,value) => { if (name === 'v2.wasm' && value instanceof Uint8Array) bytes = value; },
+    });
+    if (result.error || bytes.length === 0) throw new Error(`V2 AssemblyScript compile failed: ${result.error?.message ?? 'no output'}${result.stderr?.toString() ?? ''}`);
+    return localStartAndAbort(bytes);
+  };
+  // Discover the literal IO base without executing the getter. Compile again
+  // with all static data and the AS stack/heap beyond the entire host IO range.
+  const first = readV2Module(await compile(0)), entry = first.exports.get('ws_io'), code = first.bodies[entry?.index ?? -1]?.code;
+  const io = code?.[0]?.literal, ioBytes = options.ioBytes ?? 656;
+  if (entry?.kind !== 0 || code?.length !== 2 || code[0]?.op !== 0x41 || code[1]?.op !== 0x0b || typeof io !== 'number' || io < 0 || io%8 !== 0
+    || !Number.isSafeInteger(ioBytes) || ioBytes < 656 || ioBytes > pages*65536-io) throw new Error('V2 IO does not fit fixed memory');
+  const reserved = await compile(Math.ceil((io+ioBytes)/16)*16);
+  const output = instrumentV2Fuel(instrumentV2Finite(reserved)), admitted = admitScriptV2(output,{ ioBytes });
+  if (admitted.io !== io) throw new Error('V2 IO getter depends on compiler allocation'); return output;
 }

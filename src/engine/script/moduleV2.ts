@@ -19,12 +19,12 @@ export class ScriptModuleV2 {
   private busy = false;
   constructor(bytes: Uint8Array,options: {
     readonly seed: readonly [number,number]; readonly initFuel: number;
-    readonly output: readonly FloatColumnV2[];
+    readonly output: readonly FloatColumnV2[]; readonly ioBytes?: number;
     readonly initialize?: (view: DataView,io: number) => void;
   }) {
     budget(options.initFuel);
     if (options.seed.some(value => !Number.isInteger(value) || value < 0 || value > 0xffffffff)) throw new Error('Invalid v2 seed words');
-    const source = Uint8Array.from(bytes), admitted = admitScriptV2(source);
+    const source = Uint8Array.from(bytes), admitted = admitScriptV2(source,options.ioBytes === undefined ? {} : { ioBytes: options.ioBytes });
     this.io = admitted.io; this.memory = new WebAssembly.Memory({ initial: admitted.initialPages,maximum: admitted.maximumPages });
     observeWasmMemory(this.memory,{ owner: 'engine/script',asset: 'v2/module' });
     this.instance = new WebAssembly.Instance(new WebAssembly.Module(source),{ env: { memory: this.memory } });

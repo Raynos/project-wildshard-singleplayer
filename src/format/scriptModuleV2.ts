@@ -11,7 +11,7 @@ export interface V2Section { id: number; bytes: Uint8Array }
 export interface V2Module {
   types: readonly V2Signature[]; functions: readonly number[]; bodies: readonly V2Body[];
   globals: readonly V2Global[]; exports: ReadonlyMap<string, V2Export>;
-  pages: number; sections: readonly V2Section[];
+  pages: number; sections: readonly V2Section[]; data: readonly { offset: number; length: number }[];
 }
 const numeric = new Set([0x7f,0x7e,0x7d,0x7c]);
 class Reader {
@@ -70,7 +70,7 @@ export function readV2Module(bytes: Uint8Array): V2Module {
   if (bytes.length > SCRIPT_ABI.maxBytes || !WebAssembly.validate(new Uint8Array(bytes))) throw new Error('Invalid or oversized v2 module');
   const reader = new Reader(bytes); reader.take(8);
   const types: V2Signature[] = [], functions: number[] = [], globals: V2Global[] = [], bodies: V2Body[] = [];
-  const exports = new Map<string,V2Export>(), sections: V2Section[] = []; let pages = 0;
+  const exports = new Map<string,V2Export>(), sections: V2Section[] = [], dataRanges: { offset: number; length: number }[] = []; let pages = 0;
   while (reader.pos < bytes.length) {
     const id = reader.byte(), data = reader.take(reader.uint()), section = new Reader(data); sections.push({ id,bytes: data });
     if (id === 0) continue;
@@ -105,11 +105,11 @@ export function readV2Module(bytes: Uint8Array): V2Module {
       for (let i = 0; i < count; i++) {
         if (section.uint() !== 0 || section.byte() !== 0x41) throw new Error('V2 only active data');
         const offset = Number(section.signed(32)); if (section.byte() !== 0x0b || offset < 0) throw new Error('V2 data offset');
-        const length = section.uint(); if (length > pages*65536-offset) throw new Error('V2 data outside memory'); section.take(length);
+        const length = section.uint(); if (length > pages*65536-offset) throw new Error('V2 data outside memory'); section.take(length); dataRanges.push({ offset,length });
       }
     } else throw new Error('Forbidden v2 section (start, tables, private memory or data count)');
     section.done();
   }
   if (pages === 0 || bodies.length !== functions.length) throw new Error('Missing v2 memory or bodies');
-  return { types,functions,bodies,globals,exports,pages,sections };
+  return { types,functions,bodies,globals,exports,pages,sections,data: dataRanges };
 }
