@@ -129,9 +129,11 @@ function exclusiveMaterials(scene: THREE.Scene, excluded: ReadonlySet<THREE.Obje
 }
 
 function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6,
-  resolve?: ShadowDepthResolver): CompileJob[] {
-  const state = exteriorLighting.get(scene);
-  if (state === undefined) return [];
+  resolve?: ShadowDepthResolver, leaving: readonly THREE.Object3D[] = []): CompileJob[] {
+  const registered = exteriorLighting.get(scene);
+  if (registered === undefined) return [];
+  // `leaving`: content that goes with the entered frame's owner (its staged camera models) never draws outside either
+  const state = leaving.length === 0 ? registered : { environment: registered.environment, roots: new Set([...registered.roots, ...leaving]) };
   const target = new THREE.Scene();
   const lights = new CompileLights();
   target.fog = scene.fog; target.environment = state.environment;
@@ -1050,6 +1052,7 @@ export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPa
 export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
     /** A parked content subtree whose lights become visible on entry; no live light/visibility change. */ futureLighting?: THREE.Object3D;
+    /** Content that leaves with the entered frame's owner (its staged camera models): no exterior variant (O14). */ leaving?: readonly THREE.Object3D[];
     /** The installing scene's PMREM when futureLighting includes sibling content outside that scene. */ futureEnvironment?: THREE.Texture;
     /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'>;
     /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean;
@@ -1115,7 +1118,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
       ? kinded('previous-shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)) : [];
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
-    if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants)));
+    if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving)));
     const owner = options.owner ?? resourceScope();
     if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);

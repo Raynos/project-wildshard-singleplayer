@@ -847,7 +847,10 @@ export class Game {
       return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs };
     };
     const nodesBefore = nodeStats();
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, ...(sliceMs === undefined ? {} : { sliceMs }),
+    // O14: the entering owner's camera models (a cell's weapons) go with it, so the road's exterior frame never draws them
+    const leaving = this.viewmodel.staged(owner);
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
+      ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const nodesAfter = nodeStats();
