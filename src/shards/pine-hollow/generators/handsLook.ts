@@ -1,9 +1,9 @@
 // Pine Hollow's first-person hands as data (SHARD-PLATFORM M3, the viewmodel system ../runtime/viewmodel/gloveHands):
 // the hunter's gloves on the Longbow, the crossbow and the lever-action (E322 F-M6, Jake's pick B: always on).
-import type { ARM_PAL } from '@wildshard/engine/player/nalatiArms';
+import type { ArmStyle } from '@wildshard/engine/player/firstPersonArms';
 
-/** A palette key of the engine's arm builder (nalatiArms.ARM_PAL). */
-export type ArmPaletteKey = keyof typeof ARM_PAL;
+/** A palette key of the engine's arm builder (firstPersonArms). */
+export type ArmPaletteKey = keyof ArmStyle;
 /** A palette row over the arm builder's: each key's colour as sRGB hex (linearised when it builds). */
 export type ArmPaletteRow = Readonly<Partial<Record<ArmPaletteKey, number>>>;
 /** A shard's gloved hands as data: the arm palette, the coat cuff's worn lip and its stitches (sRGB hex). */
@@ -20,7 +20,7 @@ export interface GloveHandsLook {
 export type V3 = [number, number, number];
 /** One hand as data: the fist's grip, curl and wrist, its forearm and its tints. */
 export interface HandSpec {
-  /** radius of what the fist closes on (nalatiArms.gloveFist) */
+  /** radius of what the fist closes on (firstPersonArms.gloveFist) */
   R: number;
   /** the left hand */
   mirror?: boolean;
@@ -50,7 +50,7 @@ export interface HandSpec {
 
 
 /** The hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches (sRGB hex
- *  over nalatiArms' palette); the coat cuff's worn lip and its stitches. */
+ *  over the arm builder's palette); the coat cuff's worn lip and its stitches. */
 export const HUNTER_HANDS: GloveHandsLook = {
   palette: {
     leather: 0x6a4a30, leatherLight: 0x8a6646, leatherDark: 0x3a281a, leatherEdge: 0x4a3424, thread: 0xa89878,

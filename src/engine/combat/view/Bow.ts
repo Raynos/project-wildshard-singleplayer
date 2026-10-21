@@ -8,7 +8,7 @@ import { fovForAspect, FOV_HIP, isMesh } from './ranged';
 import { Weapon, quiverState } from '../Weapon';
 import type { Game } from '../../core/Game';
 import { weaponActionGate } from '../../input/weaponActions';
-import { placeArm } from '../../player/nalatiArms';
+import { placeArm } from '../../player/firstPersonArms';
 import type { Player } from '../../player/Player';
 import { getSetting } from '../../ui/Settings';
 import type { Forest } from '../../world/forest/Forest';

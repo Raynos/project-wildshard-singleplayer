@@ -1,3 +1,4 @@
+import ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 // Nalati's composite recurve, baked (SHARD-PLATFORM C6 view, G467): the horn-and-sinew bow with the left glove on it, the
 // right thumb-draw fist, both rider sleeves and the birch arrow (loose and nocked), built once here with the engine's arm
 // builder (nalatiArms) and written as one rest-geometry pool GLB plus the held bow draw's rows (@wildshard/game/plugin/
@@ -8,7 +9,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
+import { gloveFist, riderArm } from '@wildshard/engine/player/firstPersonArms';
 import items from '../data/items.json' with { type: 'json' };
 import { BowWeaponProfileSchema, type HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';
 import { BOW } from '@wildshard/game/weapons/starterBowProfile';
@@ -286,11 +287,11 @@ const CHANNELS = [{ name: 'paintRecurve', semantic: '_PAINT_RECURVE' }, { name: 
 /** Every recurve part as one rest-geometry pool GLB, and the held bow draw's rows. */
 export async function recurvePool(): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: readonly string[]; channels: readonly unknown[] }; bow: unknown; base: ReturnType<typeof recurveBase> } }> {
   await MeshoptSimplifier.ready;
-  const lf = gloveFist(L_FIST), rf = gloveFist(R_FIST);
+  const lf = gloveFist(ARM_STYLE, L_FIST), rf = gloveFist(ARM_STYLE, R_FIST);
   const stave = staveRest(lf.geometry);
   const parts = new Map<string, THREE.BufferGeometry>([
     [PARTS.stave, stave.geometry], [PARTS.rightFist, pnc(rf.geometry)],
-    [PARTS.leftSleeve, decimate(riderArm(1.0, 1), SLEEVE_VERTS)], [PARTS.rightSleeve, decimate(riderArm(0.9, 2), SLEEVE_VERTS)],
+    [PARTS.leftSleeve, decimate(riderArm(ARM_STYLE, 1.0, 1), SLEEVE_VERTS)], [PARTS.rightSleeve, decimate(riderArm(ARM_STYLE, 0.9, 2), SLEEVE_VERTS)],
     [PARTS.arrow, arrowGeometry()], [PARTS.nocked, arrowGeometry()],
   ]);
   const neutral = new THREE.MeshStandardMaterial();

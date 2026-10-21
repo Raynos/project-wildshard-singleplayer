@@ -3,9 +3,10 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { lin } from '@wildshard/engine/math/color';
-import { ARM_PAL, gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
+import { armPalette, gloveFist, riderArm, type ArmStyle } from '@wildshard/engine/player/firstPersonArms';
+import BASE_ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from './longbowLook';
-import { BUCKSKIN, HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL, type ArmPaletteKey, type ArmPaletteRow, type GloveHandsLook, type HandSpec } from './handsLook';
+import { BUCKSKIN, HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL, type ArmPaletteRow, type GloveHandsLook, type HandSpec } from './handsLook';
 import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from './longbowPresentation';
 import { CROSSBOW_HAND_HOLDS } from './crossbowRows';
 
@@ -13,19 +14,14 @@ import { CROSSBOW_HAND_HOLDS } from './crossbowRows';
  * Pine Hollow's first-person hands, baked (SHARD-PLATFORM, sp-o190): every gloved hand a weapon holds (the crossbow's and
  * the lever-action's: HAND_SPECS, each its weapon's HandHold spec verbatim; test/pine-hands-baked.test.ts keeps them equal) and the Longbow's parts (the stave's painted rings with the left fist on it,
  * the right fist, both rider sleeves, the arrow loose and nocked), built once here with the engine's arm builder
- * (nalatiArms) in the hunter's palette and written as one rest-geometry pool. The runtime (runtime/viewmodel/gloveHands.ts and
+ * (firstPersonArms) in the hunter's palette and written as one rest-geometry pool. The runtime (runtime/viewmodel/gloveHands.ts and
  * the held bow draw, heldLauncher heldBowProfile) borrows them by part name; it no longer builds a hand.
  */
 
 type V3 = [number, number, number];
 type Geo = THREE.BufferGeometry;
 
-/** Build with `palette` over the arm builder's palette, then put the old colours back (the module's palette is shared). */
-function withArmPalette<T>(palette: ArmPaletteRow, build: () => T): T {
-  const saved = new Map<ArmPaletteKey, THREE.Color>();
-  for (const k of Object.keys(palette) as ArmPaletteKey[]) { const hex = palette[k]; if (hex === undefined) continue; saved.set(k, ARM_PAL[k].clone()); ARM_PAL[k].copy(lin(hex)); }
-  try { return build(); } finally { for (const [k, c] of saved) ARM_PAL[k].copy(c); }
-}
+const armStyle=(palette:ArmPaletteRow):ArmStyle=>({...BASE_ARM_STYLE,...palette});
 
 // ───────────────────────────── the forearms ─────────────────────────────
 
@@ -52,8 +48,8 @@ function tube(rings: number, RAD: number, pos: number[], col: number[], uv: numb
 const GAUNT = 0.068, CUFF = 0.118;
 /** The forearm along +Y, `len` m: the glove's flared gauntlet (a rolled, stitched edge), a ribbed knit cuff, the canvas
  *  sleeve (soft folds, a darker seam). */
-function gloveSleeve(len = 0.55, seed = 1): Geo {
-  const P = ARM_PAL, leather = P.leather, leatherLight = P.leatherLight, leatherDark = P.leatherDark, edge = P.leatherEdge, thread = P.thread;
+function gloveSleeve(style:ArmStyle, len = 0.55, seed = 1): Geo {
+  const P = armPalette(style), leather = P.leather, leatherLight = P.leatherLight, leatherDark = P.leatherDark, edge = P.leatherEdge, thread = P.thread;
   const knit = P.fleece, knitShade = P.fleeceShade, knitDeep = P.fleeceDeep, canvas = P.wool, canvasShade = P.woolShade;
   const RAD = 32;
   const ys: number[] = [];
@@ -93,8 +89,8 @@ function gloveSleeve(len = 0.55, seed = 1): Geo {
 }
 
 /** The glove's gauntlet alone, `len` m along +Y from the wrist: flared leather, a rolled edge (it tucks into the coat's cuff). */
-function gloveGauntlet(len = 0.06): Geo {
-  const P = ARM_PAL, leather = P.leather, light = P.leatherLight, dark = P.leatherDark, edge = P.leatherEdge;
+function gloveGauntlet(style:ArmStyle, len = 0.06): Geo {
+  const P = armPalette(style), leather = P.leather, light = P.leatherLight, dark = P.leatherDark, edge = P.leatherEdge;
   const RAD = 24, ys: number[] = [];
   for (let y = 0; y < len; y += 0.008) ys.push(y);
   ys.push(len);
@@ -115,8 +111,8 @@ const COAT_FROM = 0.02;
 const CUFF_LEN = 0.075;
 /** The coat sleeve along +Y from its cuff's edge: a turned-back cuff (a rolled lip, two stitched seams), then the sleeve
  *  (bunched compression folds, long soft folds, the seam along the underside); the uv lays the runtime's waxed canvas. */
-function coatSleeve(look: GloveHandsLook, len = 1, seed = 1): Geo {
-  const cloth = ARM_PAL.wool, shade = ARM_PAL.woolShade;
+function coatSleeve(style:ArmStyle, look: GloveHandsLook, len = 1, seed = 1): Geo {
+  const palette=armPalette(style), cloth=palette.wool, shade=palette.woolShade;
   const RAD = 40, ys: number[] = [];
   for (let y = 0; y < len;) { ys.push(y); y += y < CUFF_LEN + 0.004 ? 0.004 : y < 0.3 ? 0.008 : 0.03; }
   ys.push(len);
@@ -165,24 +161,23 @@ const onlyPNC = (g: Geo): Geo => { for (const k of Object.keys(g.attributes)) if
 interface BuiltHand { geometry: Geo; sleeve: Geo | null; wrist: THREE.Vector3; dir: THREE.Vector3 }
 function buildHand(look: GloveHandsLook, spec: HandSpec, free: boolean): BuiltHand {
   const mirror = spec.mirror === true, sx = mirror ? -1 : 1, k = spec.tint ?? 1, tint: V3 = [k, k, k], glove = spec.gloveTint ?? tint;
-  return withArmPalette(look.palette, () => {
-    const fist = gloveFist({ R: spec.R, mirror, span: spec.span ?? 1, curl: spec.curl ?? 1, thumbCurl: spec.thumbCurl ?? spec.curl ?? 1 });
+  const style=armStyle(look.palette);
+    const fist = gloveFist(style, { R: spec.R, mirror, span: spec.span ?? 1, curl: spec.curl ?? 1, thumbCurl: spec.thumbCurl ?? spec.curl ?? 1 });
     const bend = spec.bend ?? [0.12, 0];
     const d = new THREE.Vector3(sx * bend[0], bend[1], 1).normalize(), toD = new THREE.Quaternion().setFromUnitVectors(Y_AXIS, d);
     const start = fist.wrist.clone().addScaledVector(d, -0.016); // the gauntlet laps over the back of the hand
     if (spec.coat === true) {
-      const g = onlyPNC(gloveGauntlet(0.06)).applyQuaternion(toD).translate(start.x, start.y, start.z);
+      const g = onlyPNC(gloveGauntlet(style, 0.06)).applyQuaternion(toD).translate(start.x, start.y, start.z);
       const out = mergeGeometries([onlyPNC(fist.geometry), g], false);
-      const coat = tintGeo(coatSleeve(look, spec.armLen ?? 1, mirror ? 2 : 1), tint);
+      const coat = tintGeo(coatSleeve(style, look, spec.armLen ?? 1, mirror ? 2 : 1), tint);
       return { geometry: zeroUv(tintGeo(out, glove)), sleeve: coat, wrist: start.clone().addScaledVector(d, COAT_FROM), dir: d };
     }
-    const arm = tintGeo(onlyPNC(gloveSleeve(spec.armLen ?? 0.55, mirror ? 2 : 1)), tint);
+    const arm = tintGeo(onlyPNC(gloveSleeve(style, spec.armLen ?? 0.55, mirror ? 2 : 1)), tint);
     tintGeo(onlyPNC(fist.geometry), glove);
     if (free) return { geometry: zeroUv(fist.geometry), sleeve: zeroUv(arm), wrist: start, dir: d };
     arm.applyQuaternion(toD);
     arm.translate(start.x, start.y, start.z);
     return { geometry: zeroUv(mergeGeometries([fist.geometry, arm], false)), sleeve: null, wrist: start, dir: d };
-  });
 }
 
 // ───────────────────────────── the Longbow ─────────────────────────────
@@ -399,7 +394,8 @@ export async function handsPool(): Promise<{ glb: Uint8Array; rows: unknown }> {
     hands[handKey(HUNTER_HANDS, spec, free)] = { geometry: `hand-${name}`, sleeve: made.sleeve === null ? null : `sleeve-${name}`, wrist: v3(made.wrist), dir: v3(made.dir) };
   }
   const look = LONGBOW_LOOK;
-  const { lf, rf, lArm, rArm } = withArmPalette(look.hands, () => ({ lf: gloveFist(look.leftFist), rf: gloveFist(look.rightFist), lArm: riderArm(...look.leftSleeve), rArm: riderArm(...look.rightSleeve) }));
+  const style=armStyle(look.hands);
+  const lf=gloveFist(style,look.leftFist),rf=gloveFist(style,look.rightFist),lArm=riderArm(style,...look.leftSleeve),rArm=riderArm(style,...look.rightSleeve);
   const stave = staveRest(look, lf.geometry);
   parts.set('bow-stave', stave.geometry);
   parts.set('bow-right-fist', planarUv(rf.geometry));

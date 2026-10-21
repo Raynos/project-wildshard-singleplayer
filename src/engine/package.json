@@ -216,6 +216,7 @@
     "./player/WeaponPickup": "./player/WeaponPickup.ts",
     "./player/modes": "./player/modes.ts",
     "./player/nalatiArms": "./player/nalatiArms.ts",
+    "./player/firstPersonArms": "./player/firstPersonArms.ts",
     "./player/viewmodelTextures": "./player/viewmodelTextures.ts",
     "./practice/TrainingArena": "./practice/TrainingArena.ts",
     "./practice/playground/Playground": "./practice/playground/Playground.ts",

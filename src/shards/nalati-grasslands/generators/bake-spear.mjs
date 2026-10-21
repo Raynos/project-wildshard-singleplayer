@@ -1,9 +1,10 @@
+import ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { MeshBasicMaterial, Vector3 } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
+import { gloveFist, riderArm } from '@wildshard/engine/player/firstPersonArms';
 import { byteWriter } from '../../../../scripts/bake-output.mjs';
 import { merge } from './meleeGeo.ts';
 import { installPortableMath } from '@wildshard/commons/bake/portableMath';
@@ -17,14 +18,14 @@ const spear = buildSpear(), javelin = buildJavelin(), { hands, leftHandY } = SPE
 const restInv = SPEAR_VIEW.poses.rest.q.clone().invert();
 const fist = (direction, mirror) => {
   const d = new Vector3(...direction).normalize().applyQuaternion(restInv);
-  return gloveFist({ R: hands.radius, mirror, yaw: Math.atan2(d.x, d.z) - Math.atan2(mirror ? -hands.splay : hands.splay, 1) });
+  return gloveFist(ARM_STYLE, { R: hands.radius, mirror, yaw: Math.atan2(d.x, d.z) - Math.atan2(mirror ? -hands.splay : hands.splay, 1) });
 };
 const left = fist(hands.left, true), right = fist(hands.right, false);
 const parts = [
   ['spear-paint', spear.paint], ['spear-metal', spear.metal],
   ['javelin-paint', javelin.paint], ['javelin-metal', javelin.metal],
   ['held-spear', merge([spear.paint.clone(), left.geometry.clone().translate(0, leftHandY, 0)])],
-  ['right-fist', right.geometry], ['left-arm', riderArm(hands.sleeve, 2)], ['right-arm', riderArm(hands.sleeve, 1)],
+  ['right-fist', right.geometry], ['left-arm', riderArm(ARM_STYLE, hands.sleeve, 2)], ['right-arm', riderArm(ARM_STYLE, hands.sleeve, 1)],
   ['world-javelin', merge([javelin.paint.clone(), javelin.metal.clone().deleteAttribute('uv')])],
 ];
 const material = new MeshBasicMaterial();

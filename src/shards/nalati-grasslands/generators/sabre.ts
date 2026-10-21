@@ -1,3 +1,4 @@
+import ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import items from '../data/items.json' with { type: 'json' };
 import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
@@ -8,7 +9,7 @@ import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { key } from '@wildshard/game/weapons/starterMoves';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { lin } from '@wildshard/engine/math/color';
-import { forearm } from '@wildshard/engine/player/nalatiArms';
+import { forearm } from '@wildshard/engine/player/firstPersonArms';
 import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 
@@ -128,8 +129,8 @@ export function buildSabre(material: THREE.Material, steel: THREE.Material, blad
   // ── the rider's right hand round the grip; the forearm (its own rig, the cheap elbow) leaves toward the lower right ──
   const restInv = SABRE_REST.q.clone().invert();
   const armDir = new THREE.Vector3(0.86, -0.42, 0.28).normalize().applyQuaternion(restInv);
-  paint.push(forearm(armDir, 0.62, 0.016, { part: 'fist', fistLen: 0.09 }));
-  const arms = forearm(armDir, 0.62, 0.016, { part: 'arm', fistLen: 0.09 });
+  paint.push(forearm(ARM_STYLE, armDir, 0.62, 0.016, { part: 'fist', fistLen: 0.09 }));
+  const arms = forearm(ARM_STYLE, armDir, 0.62, 0.016, { part: 'arm', fistLen: 0.09 });
   return { sword: merge(paint), arms, tipY, baseY: y0, tipX: cx(1), material, extras: [{ geometry: withUV(merge(metal)), material: steel }] };
 }
 
