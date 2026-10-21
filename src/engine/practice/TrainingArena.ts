@@ -292,6 +292,8 @@ export interface PracticeOpponent {
   exit: () => void;
   update: (dt: number) => void;
   raycast: (origin: THREE.Vector3, direction: THREE.Vector3, distance: number) => TargetHit | null;
+  /** Optional trusted current-geometry broadphase; undefined retains the weapon's legacy cull. */
+  inReach?: (origin: THREE.Vector3, range: number) => boolean | undefined;
 }
 
 export class TrainingArena {
@@ -471,6 +473,10 @@ export class TrainingArena {
     this.overlay.parentElement?.classList.remove('practice-active');
     for (const f of this.floats) f.el.remove();
     this.floats.length = 0;
+  }
+
+  inReach(origin: THREE.Vector3, range: number): boolean | undefined {
+    return this.active ? this.opponent?.inReach?.(origin, range) : undefined;
   }
 
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {

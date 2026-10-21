@@ -1,3 +1,4 @@
+import type { NativeCorpseMode } from './physics/nativeRigidCorpse';
 import { validateLocalMovement, type LocalMovementCommand } from './input/commands';
 import { Vector3 } from 'three';
 import { Scope } from './app/scope';
@@ -409,10 +410,10 @@ export class SimHost {
   /** Wrap every body's step (SimBodyStep), once, by the installer that owns the bodies' brains (restoring too: hooks hold
    *  no state of the host's). A body that does not step this tick (paused, the off tick of 'half') runs neither hook. */
   /** Bind one opt-in concrete corpse owner; this creates no body and advances nothing. */
-  bindNativeCorpse(actor: AnimalSim, pose: NativeCorpsePosePort, lease: NativeCorpseReservation): NativeCorpseOwner {
+  bindNativeCorpse(actor: AnimalSim, pose: NativeCorpsePosePort, lease: NativeCorpseReservation, mode: NativeCorpseMode = 'rigid'): NativeCorpseOwner {
     if (this.disposed || !this.embedded || !this.pageCreatureBodies || this.entities.get(actor.entityId) !== actor
       || this.nativeCorpses.has(actor.entityId) || lease.physics !== this.physics) throw new Error('Invalid native corpse binding');
-    const owner = new NativeCorpseOwner(actor, pose, lease, this.scope, this.clock); this.nativeCorpses.set(actor.entityId, owner); return owner;
+    const owner = new NativeCorpseOwner(actor, pose, lease, this.scope, this.clock, mode); this.nativeCorpses.set(actor.entityId, owner); return owner;
   }
   /** Existing borrowed-world pre phase only; never steps clocks, physics, decisions, events or player. */
   preEmbeddedBodies(): void {

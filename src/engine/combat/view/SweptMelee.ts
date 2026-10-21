@@ -474,7 +474,7 @@ export class SweptMelee extends Melee {
   private sweepHit(move: Move, active: boolean): void {
     this.bladeDirs(_g1, _t1);
     if (active && !this.clanged) this.clangTest(move);
-    if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach()) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
+    if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach(move.reach ?? this.reach)) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
     const physics = app.physics; this.aimPose(_aimOrigin, _aimRotation);
     const ang = Math.max(this.sweepGrip.angleTo(_g1), this.sweepTip.angleTo(_t1));
     const subs = Math.min(this.profile.sweep.maxSamples, Math.max(1, Math.ceil(ang / this.profile.sweep.step)));
@@ -523,8 +523,10 @@ export class SweptMelee extends Melee {
     this.defaults.events.onClang?.(point, k, clang);
   }
   /** a live animal's body is within REACH (+ its radius, + a metre of slack) of the eye */
-  private anyInReach(): boolean {
+  private anyInReach(range: number): boolean {
     this.aimPose(_aimOrigin, _aimRotation); const e = _aimOrigin;
+    const exactOwnerReach = this.targets?.inReach?.(e, range);
+    if (exactOwnerReach !== undefined) return exactOwnerReach;
     for (const t of app.aimTargets) {
       if (!t.alive || t.hidden) continue;
       const r = this.reach + 0.6 + targetRadius(t) + 1; // + 0.6: a move may reach further than the rig (the sabre's pass)

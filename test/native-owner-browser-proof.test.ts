@@ -60,12 +60,12 @@ test('new strict product exercises real native multiple hits, physical handoff, 
   } finally { f.owner.dispose(); }
 });
 
-function observer(f: Awaited<ReturnType<typeof fixture>>) {
+function observer(f: Awaited<ReturnType<typeof fixture>>, provenance?: { synthetic: boolean; clockOverlay?: boolean }) {
   const token = Symbol('actual-render-result'), render = vi.fn(() => token);
   const owner = { native: f.native, targets: [f.view], events: f.events, practicePlayer: f.player,
     bout: f.owner, retry: vi.fn(), loot: { receipt: { coins: 0, complete: false } } };
   const demo = { arena: { entered: true, opponent: owner, playerVitals: { health: 100, maxHealth: 100 } },
-    player: f.outside.player, game: { frameCount: 0, frameTime: 0, alpha: 1, composer: { render } } };
+    player: f.outside.player, game: { frameCount: 0, frameTime: 0, alpha: 1, composer: { render }, levelScope: f.owner } };
   const browser: { __practiceDemo: typeof demo; __nativeOwnerSample?: () => unknown;
     __nativeOwnerTrace?: { errors: unknown[]; lifecycle: { event: string; outcome?: string }[] } } = { __practiceDemo: demo };
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -74,10 +74,10 @@ function observer(f: Awaited<ReturnType<typeof fixture>>) {
     if (previousWindow === undefined) Reflect.deleteProperty(globalThis, 'window');
     else Object.defineProperty(globalThis, 'window', previousWindow);
   };
-  installNativeOwnerObservation();
+  const receipt = installNativeOwnerObservation(provenance);
   const sample = browser.__nativeOwnerSample, trace = browser.__nativeOwnerTrace;
   if (sample === undefined || trace === undefined) throw new Error('Observer failed to install');
-  return { demo, trace, sample, token, render, restoreWindow };
+  return { demo, trace, sample, token, render, restoreWindow, receipt };
 }
 
 test('actual native observer quiet reads and one forwarded tick/render do not acquire lifecycle authority', async () => {
@@ -122,4 +122,38 @@ test('actual removal failure remains the same original exception and counted qua
     expect(o.trace.errors).toEqual([]); expect(o.trace.lifecycle.some(row => row.outcome === 'threw')).toBe(true);
     remove.mockRestore(); f.native.dispose(); expect(calls).toHaveBeenCalledTimes(2); expect(system.occupied).toBe(0);
   } finally { f.owner.dispose(); restoreWindow(); }
+});
+
+test('observer provenance defaults to prior synthetic behavior and accepts explicit real-source identity without changing state', async () => {
+  for (const provenance of [undefined, { synthetic: false }]) {
+    const f = await fixture(product, true), before = f.native.snapshot();
+    let restoreWindow: () => void = () => undefined;
+    try {
+      const o = observer(f, provenance); restoreWindow = o.restoreWindow;
+      expect(o.receipt.synthetic).toBe(provenance?.synthetic ?? true);
+      expect(f.native.snapshot()).toEqual(before); expect(o.trace.errors).toEqual([]);
+    } finally { f.owner.dispose(); restoreWindow(); }
+  }
+});
+
+test('optional clock overlay follows the actual forwarded draw and disposes without advancing native state', async () => {
+  const f = await fixture(product, true), before = f.native.snapshot();
+  const overlay = { id: '', style: { cssText: '' }, textContent: '', remove: vi.fn() }, append = vi.fn();
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement: () => overlay, body: { append } } });
+  let restoreWindow: () => void = () => undefined;
+  try {
+    const o = observer(f, { synthetic: false, clockOverlay: true }); restoreWindow = o.restoreWindow;
+    expect(o.receipt.clockOverlay).toBe(true); expect(append).toHaveBeenCalledWith(overlay);
+    expect(overlay.textContent).toBe('');
+    expect(o.demo.game.composer.render()).toBe(o.token); expect(o.render).toHaveBeenCalledOnce();
+    expect(overlay.textContent).toContain('PASSIVE DRAW 0 / BOUT 1');
+    expect(overlay.textContent).toContain('NATIVE 0 / 0s');
+    expect(f.native.snapshot()).toEqual(before); expect(o.trace.errors).toEqual([]);
+    f.owner.dispose(); expect(overlay.remove).toHaveBeenCalledOnce();
+  } finally {
+    f.owner.dispose(); restoreWindow();
+    if (previousDocument === undefined) Reflect.deleteProperty(globalThis, 'document');
+    else Object.defineProperty(globalThis, 'document', previousDocument);
+  }
 });

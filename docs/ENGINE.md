@@ -1728,6 +1728,14 @@ build a `DamageRequest` → occlusion (`lineOfSight`, unless `throughWalls`) →
 | `Targets`, `TargetAnimal`, `TargetHit`, `authoredTargets`, `RayTargets`, `getAimTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`, `bladeBlocked`, `bladeContact`, `Clang` | what a weapon can hit, aim assist and lock-on, blade occlusion |
 | `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `SiteLights`, `LightSite`, `SiteLightAnchor`, `SiteLightKind`, `SiteFlicker`, `SiteRoom`, `SiteWave`, `SiteLightsLook`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX (`SiteLights`: shared point lights that visit the nearest lit site's anchors and flicker by intensity) |
 
+**Trusted target reach broadphase.** `Targets.inReach?(origin, range)` returns a conservative
+current-geometry reach decision, or `undefined` to preserve the existing root/radius cull.
+`authoredTargets` forwards only the active practice owner's optional query, through
+`TrainingArena` and `PracticeOpponent`. Swept melee asks it with the current move's actual
+reach before its unchanged ray sweep. A positive result is not a hit: ordinary triangle or
+volume narrowphase and wall occlusion still decide. This internal owner port is not an
+executable model/shard declaration and creates no colliders or expanded hit volumes.
+
 **Site light state ports.** `engine/fx/SiteLights` borrows a
 `SiteLightState` (`{ lit: boolean }`) through `LightSite.state` or the
 fifth argument of `addLamp`. The page publishes ignition before `step`;
@@ -2585,6 +2593,20 @@ dedicated road lifts; an empty list preserves durable mid-travel poses and pendi
 chains keep their existing native owners and cannot use the platform/static native restore path.
 
 ### Embedded simulation
+
+Practice native corpse selection supports explicit `anchored-held` alongside the
+unchanged default `rigid` mode. Anchored-held is a distinct stationary death design:
+one fixed compound retains the exact lethal root and local pose, with no fold,
+throw, moving-part velocity or dynamic-corpse equivalence claim. It keeps its
+existing reservation and solid world obstacles until bout disposal. Before any
+damage or allocation, current-transform contacts with enabled, nonsensor world,
+player, creature and item colliders are checked; only the retiring live motor is
+excluded. Invalid/nonfinite data and allocation/cleanup faults still throw.
+Finite obstructed preparation raises the internal `DamageRefusalError` signal.
+`CombatPipeline.hit` catches only that signal from `applyDamage`, returns null and
+emits no damage/death receipt. Damage request/modifier hooks run as before; terminal
+`fall` deliberately does not consume this recoverable ordinary-hit signal.
+
 
 Living page-body flyers publish their already-integrated pose with
 `CharacterMotor.syncFlightPose(feet)` after the body's one `AnimalSim.step` and before its
@@ -9898,6 +9920,35 @@ retry; normal engine context teardown is unchanged. The supported preview's
 The loader receives the validated authored `/assets/` archive path; compositions
 may resolve it within their page mount without rewriting or weakening metadata
 admission. Ordinary callers retain `fetchBuildFile` and the existing decode.
+
+### Optional native practice source-triangle hits (implementation study)
+
+`PracticeNativeSelection.hitMode: 'source-mesh'` is absent by default. The isolated
+practice provider can query all triangles of its real current `SkinnedMesh`, with one
+rigid owner per triangle (head owner `head`, every other owner body). Admission is bounded
+to 16,384 vertices, 16,384 triangles and 32 bones, without changing source or physics caps.
+The route requires unshelled low-poly/single-material factory presentation, no fur rim or
+replacement hull, no morph attributes, and no material displacement. Actual node-material
+`positionNode`, `vertexNode`, and `geometryNode` must be null; unverified classic shader
+hooks refuse. These checks concern CPU-skinned source surfaces, not pixel shading/coverage.
+
+The shared arena uses `content.ts`'s cloned lit graph materials through the existing
+AnimalFactory custom-material branch. Its graph compiler only installs vertex position,
+offset or clip outputs when declared. The query checks the resulting material fields,
+not the look's label: colour/light styling does not replace the actual source geometry.
+The renderer remains the sole pose consumer. A query updates matrices from unchanged
+published locals, not the pose or any clock. Before the next render publication it hits
+the last displayed pose, not an invisible newer fixed endpoint. It never publishes alpha=1.
+
+An owned CPU-only triangle cache reads `SkinnedMesh.getVertexPosition` once per changed
+mesh/bone matrix; repeated sword rays reuse it. Current deformed bounds drive both triangle
+ray broadphase and conservative melee reach. Original geometry/materials/skeleton remain
+borrowed and unchanged; exit/retry disposes only query-owned geometry. No Rapier body or
+collider is added. Ray headshot classification follows the triangle owner, while melee's
+existing damage request and legacy head-sphere semantics are deliberately unchanged.
+Packed geometry/clip tests are not full actor admission, physical-corpse acceptance,
+physical-device performance or a playable claim. The retained Iguana capsule failures and
+unadmitted corpse remain separate evidence.
 
 ### Optional rigid corpse point hulls (implementation study)
 

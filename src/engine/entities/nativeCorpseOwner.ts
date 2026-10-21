@@ -3,7 +3,7 @@ import type { Scope } from '../app/scope';
 import type { GameClock } from '../core/clock';
 import { FIXED_STEP } from '../core/fixedStep';
 import { CharacterMotor } from '../physics/CharacterMotor';
-import { NativeRigidCorpse, type CorpseRootEndpoint } from '../physics/nativeRigidCorpse';
+import { NativeRigidCorpse, type CorpseRootEndpoint, type NativeCorpseMode } from '../physics/nativeRigidCorpse';
 import type { NativeCorpseReservation } from '../physics/ragdoll';
 import type { NumericCorpseJoint } from '../physics/rigidCorpse';
 
@@ -58,6 +58,7 @@ export class NativeCorpseOwner {
   readonly lease: NativeCorpseReservation;
   private readonly pose: NativeCorpsePosePort;
   private readonly clock: GameClock;
+  private readonly mode: NativeCorpseMode;
   private resource: NativeRigidCorpse | undefined;
   private retired: CharacterMotor | undefined;
   private birthFrame = -1;
@@ -66,8 +67,10 @@ export class NativeCorpseOwner {
   private prepared = false;
   private terminal = false;
   private lethalRoot: CorpseRootEndpoint | undefined;
-  constructor(actor: AnimalSim, pose: NativeCorpsePosePort, lease: NativeCorpseReservation, scope: Scope, clock: GameClock) {
+  constructor(actor: AnimalSim, pose: NativeCorpsePosePort, lease: NativeCorpseReservation, scope: Scope, clock: GameClock, mode: NativeCorpseMode = 'rigid') {
     if (pose.entityId !== actor.entityId || !scope.belongsTo(lease.owner) || lease.state !== 'reserved') throw new Error('Invalid native corpse owner');
+    if (!['rigid', 'anchored-held'].includes(mode)) throw new Error('Invalid native corpse mode');
+    this.mode = mode;
     this.actor = actor; this.pose = pose; this.lease = lease; this.scope = lease.owner; this.clock = clock;
     this.scope.onDispose(() => { this.dispose(); });
   }
@@ -87,7 +90,7 @@ export class NativeCorpseOwner {
       throw new Error('Invalid native corpse motor owner');
     try {
       const resource = NativeRigidCorpse.prepare(this.lease, { ...pose, recipe: this.actor.dims.rigidCorpse,
-        dims: this.actor.dims, scale: this.actor.scale, dir: hit.direction, damage: hit.amount });
+        mode: this.mode, retiringCollider: motor.collider, dims: this.actor.dims, scale: this.actor.scale, dir: hit.direction, damage: hit.amount });
       return new NativeCorpseHandoff(this, motor, resource);
     } catch (error) { if (this.lease.state !== 'reserved') this.fail(error); throw error; }
   }
@@ -103,7 +106,7 @@ export class NativeCorpseOwner {
     this.preTick = tick; this.prepared = false;
     try { this.retireMotor(); } catch (error) { this.fail(error); }
     const resource = this.resource;
-    if (resource === undefined || resource.state === 'frozen') return;
+    if (resource === undefined || resource.state === 'frozen' || this.mode === 'anchored-held') return;
     try {
       const next = this.pose.prepareCorpseStep(FIXED_STEP, time);
       resource.updateLocal(next.joints, next.complete); this.prepared = true;

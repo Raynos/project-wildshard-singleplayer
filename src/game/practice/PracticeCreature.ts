@@ -29,6 +29,7 @@ import { PracticeNativeActor, practiceNativeRecipe, practiceNativeSpawn, type Pr
 import { numericCreaturePose } from '../plugin/channelPrograms';
 import { practicePoseTransition } from '../plugin/practicePoseContract';
 import { FIXED_STEP } from '@wildshard/engine/core/fixedStep';
+import { PracticeNativeMeshHit } from './PracticeNativeMeshHit';
 
 /** Grounded admitted melee bodies and single-actor decision guests; unsupported movement remains explicit. */
 export function practiceCreatureSupport(species: BrainedSpecies, variant: string): { supported: boolean; reason?: string } {
@@ -103,6 +104,7 @@ export class PracticeCreature {
   private readonly previousPlayer = new Vector3();
   private readonly origin = new Vector3();
   private native: PracticeNativeActor | null = null;
+  private meshHit: PracticeNativeMeshHit | null = null;
   private contactSurface: PracticeContactSurface | undefined;
   private readonly nativePoseInput: unknown;
 
@@ -210,6 +212,11 @@ export class PracticeCreature {
     const decision = this.decision; if (decision === undefined) throw new Error('Missing admitted native practice decision');
     const model = this.model, variant = model.variantDef, scale = this.rng.range(variant.scale[0], variant.scale[1]);
     const pagePlayer = this.options.player;
+    const nativeLook = app.species.look(model.kind);
+    if (this.options.nativePose?.hitMode === 'source-mesh' && (!model.render.lowPoly || !model.render.oneMaterial
+      || model.render.furRim || model.shells.length > 0 || model.hull !== undefined
+      || nativeLook?.skin !== undefined || nativeLook?.hasSkin !== undefined))
+      throw new Error('Native source hits require the unshelled low-poly factory route');
     const rig = scope.run(() => instantiatePracticeRig(this.factory, model, this.rng));
     const spawn = practiceNativeSpawn(model, 7001, scale, at,
       Math.atan2(this.options.player.position.x - at.x, this.options.player.position.z - at.z));
@@ -232,6 +239,10 @@ export class PracticeCreature {
       now: () => native.host.clock.now * 1000, hit: request => combat.hit(request),
     }).bindSimulation(native.actor);
     animal.bindPublishedPose(native.pose);
+    if (this.options.nativePose?.hitMode === 'source-mesh') {
+      const meshHit = new PracticeNativeMeshHit(animal.mesh); this.meshHit = meshHit;
+      scope.onDispose(() => { meshHit.dispose(); });
+    }
     this.options.scene.add(animal.mesh); ownSceneTree(animal.mesh, scope, app.assets);
     this.targets.push(animal); this.bodies = new CreatureBodies(this.options.physics);
     scope.onDispose(() => { animal.hidden = true; this.bodies?.remove(animal); animal.retireBody(); animal.mesh.removeFromParent(); });
@@ -329,7 +340,20 @@ export class PracticeCreature {
 
   land(hard: boolean): void { this.practicePlayer?.land(hard); }
 
+  /** Trusted arena query owner, absent for legacy volumes. No authored callback or envelope expansion. */
+  inReach(origin: Vector3, range: number): boolean | undefined {
+    if (this.meshHit === null) return undefined;
+    const animal = this.targets[0];
+    return this.bout !== null && animal !== undefined && animal.alive && !animal.hidden && this.meshHit.inReach(origin, range);
+  }
+
   raycast(origin: Vector3, dir: Vector3, maxDist: number): TargetHit | null {
+    if (this.meshHit !== null) {
+      const animal = this.targets[0];
+      if (this.bout === null || animal === undefined || !animal.alive || animal.hidden) return null;
+      const hit = this.meshHit.cast(origin, dir, maxDist);
+      return hit === null ? null : { animal, ...hit };
+    }
     const hit = this.bodies?.cast(origin, dir, maxDist);
     return hit === undefined || hit === null ? null : { animal: hit.creature, point: hit.point, distance: hit.distance, headshot: hit.head };
   }
@@ -340,7 +364,7 @@ export class PracticeCreature {
     try { scope?.dispose(); } catch (error) { errors.push(error); }
     try { this.native?.dispose(); } catch (error) { errors.push(error); }
     if (errors.length > 0) throw new AggregateError(errors, 'Practice bout cleanup failed', { cause: errors[0] });
-    this.native = null; this.targets.length = 0; this.bodies = null; this.context = null; this.events = null; this.practicePlayer = null; this.loot = null; this.callbacks = null; this.fixed.clear();
+    this.native = null; this.meshHit = null; this.targets.length = 0; this.bodies = null; this.context = null; this.events = null; this.practicePlayer = null; this.loot = null; this.callbacks = null; this.fixed.clear();
   }
 
   /** Reuse the loaded model but rebuild all bout health, guest, contacts and reward state. */

@@ -1,3 +1,4 @@
+import type { NativeCorpseMode } from '@wildshard/engine/physics/nativeRigidCorpse';
 import type { PracticeContactSurface } from '../plugin/practiceFootContact';
 import { ragdollsFor } from '@wildshard/engine/physics/ragdoll';
 import { prepareNumericRigidCorpse, validateRigidCorpse } from '@wildshard/engine/physics/rigidCorpse';
@@ -19,12 +20,14 @@ import type { preparePracticeDecision } from './PracticeDecisions';
 export interface PracticeNativeSelection {
   /** Logical JSON file in the already verified loaded product. No URL, callback or alternate rig. */
   readonly poseFile: string;
-  readonly corpse?: 'rigid';
+  /** Opt-in exact published source triangles; absence retains native legacy hit volumes. */
+  readonly hitMode?: 'source-mesh';
+  readonly corpse?: NativeCorpseMode;
 }
 type Decision = Awaited<ReturnType<typeof preparePracticeDecision>>;
 interface Options {
   readonly contactSurface?: PracticeContactSurface;
-  readonly corpse?: 'rigid';
+  readonly corpse?: NativeCorpseMode;
   readonly scope: Scope;
   readonly ports: Required<Pick<SimHostPorts, 'physics' | 'player' | 'events' | 'combat'>>;
   readonly spawn: SimSpawn;
@@ -118,7 +121,7 @@ export class PracticeNativeActor {
       actor.bindVolumes(this.pose); this.pose.sampleTerrain(); this.pose.initializePractice();
       if (lease !== undefined) {
         prepareNumericRigidCorpse(options.ports.physics.R, actor.dims.rigidCorpse, this.pose.corpseJoints(), actor.scale);
-        this.corpse = this.host.bindNativeCorpse(actor, this.pose, lease); this.pose.bindCorpse(this.corpse);
+        this.corpse = this.host.bindNativeCorpse(actor, this.pose, lease, options.corpse); this.pose.bindCorpse(this.corpse);
       }
       this.host.useBodyStep({ after: (_id, _actor, dt) => {
         this.pose.advance(dt, this.clock.now, true); this.pose.publish();

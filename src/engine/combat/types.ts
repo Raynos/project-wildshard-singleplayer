@@ -13,4 +13,9 @@ export interface TargetAnimal {
   stuckFrame?: (point: Vector3) => TargetFrame | null;
 }
 export interface TargetHit { animal: TargetAnimal; point: Vector3; distance: number; headshot: boolean }
-export interface Targets { raycast: (origin: Vector3, dir: Vector3, maxDist: number) => TargetHit | null }
+export interface Targets {
+  raycast: (origin: Vector3, dir: Vector3, maxDist: number) => TargetHit | null;
+  /** Trusted target-owner conservative current-geometry reach query, never an authored model callback.
+   * Undefined retains legacy root/radius culling. True only admits the unchanged exact ray narrowphase. */
+  inReach?: (origin: Vector3, range: number) => boolean | undefined;
+}

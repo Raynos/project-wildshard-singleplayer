@@ -50,7 +50,7 @@ Focused tests exercise the real Vite resolver on a tiny temporary module fixture
 - src/shards/driftwood-isle/generators/actualConchProof.ts: a69af729bdbf379627f1047ffe4fcefe85589c92d86a4e00a6d56ceb19b98441
 - scripts/actual-conch-native-proof-composition.ts: bbdf241bea842f937b35912396dde282162fddcf8e33daa52b1fb1f8cc534c30
 - scripts/actual-conch-native-proof-inputs.mjs: cc96ea8129994bf0dddf5e05be449040593c2e09705fd6b08414478d2c3c7049
-- test/actual-conch-native-proof-composition.test.ts: c15ec8a25141b4811888a4436e40de9228b692b4d7183d4ae1ef15e5a626464b
+- test/actual-conch-native-proof-composition.test.ts: f3a04bdb18b7ff0f390c1a211eedb43c0ac0c74618eafe04b032555df7fd91a2
 
 ## Final source-only checks
 

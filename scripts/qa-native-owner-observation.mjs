@@ -1,8 +1,17 @@
-/** Passive browser observer for the private synthetic fixture. Every wrapped owner call forwards once.
+/** Passive browser observer for explicitly identified private fixtures. Every wrapped owner call forwards once.
  * No pose evaluation, event flush, damage, clock step, body write or state restoration is permitted here. */
-export function installNativeOwnerObservation() {
+export function installNativeOwnerObservation(provenance) {
+  const options = provenance === undefined ? { synthetic: true } : provenance;
+  if (typeof options?.synthetic !== 'boolean') throw new Error('Explicit boolean observer provenance required');
   const demo = window.__practiceDemo;
   if (!demo?.arena.entered) throw new Error('Missing real private practice demo');
+  const overlay = options.clockOverlay === true ? document.createElement('output') : null;
+  if (overlay !== null) {
+    overlay.id = 'native-owner-observation-clock';
+    overlay.style.cssText = 'position:fixed;left:4px;top:4px;z-index:2147483647;pointer-events:none;background:#000;color:#fff;font:10px monospace;padding:3px;white-space:pre';
+    document.body.append(overlay);
+    demo.game.levelScope.onDispose(() => { overlay.remove(); });
+  }
   const trace = { fixed: [], render: [], events: [], lifecycle: [], errors: [], overflow: false };
   window.__nativeOwnerTrace = trace; window.__nativeOwnerPhase = 'entry';
   let attached = null, attachedOwner = null, bout = 0;
@@ -67,11 +76,19 @@ export function installNativeOwnerObservation() {
   attach();
   const composer = demo.game.composer, originalRender = composer.render;
   composer.render = function render(...args) {
-    attachQuietly(); const result = originalRender.apply(this, args); observe('render', sample); return result;
+    attachQuietly(); const result = originalRender.apply(this, args);
+    observe('render', () => {
+      const row = sample();
+      if (overlay !== null) overlay.textContent = `PASSIVE DRAW ${row.frame} / BOUT ${row.bout}\nNATIVE ${row.nativeClock?.frame ?? 'closed'} / ${row.nativeClock?.now ?? '-'}s\nPERF ${row.wallTime.toFixed(3)}ms / ${row.phase}`;
+      return row;
+    });
+    return result;
   };
   window.__nativeOwnerSample = sample;
   return { schema: 'wildshard.native-owner.passive-observer.v1', installed: stamp(),
     clocks: 'frame is Game.frameCount: completed draws before the current composer return increments it, not a fixed tick. nativeClock is the authoritative actor clock.',
     scope: 'Read-only snapshots after original pre/post/render calls and existing queued receipts; no extra evaluator or clock.',
-    camera: 'Unmodified real player camera and viewmodel', synthetic: true, modelAdmission: false };
+    camera: 'Unmodified real player camera and viewmodel',
+    clockOverlay: overlay !== null,
+    clockCorrelation: 'When enabled, overlay is updated after the original draw from that same passive render sample. Match visible PERF/BOUT/NATIVE text to render trace rows; recorder may omit or repeat draws. Wall anchors alone are approximate, not exact video PTS mapping.', synthetic: options.synthetic, modelAdmission: false };
 }

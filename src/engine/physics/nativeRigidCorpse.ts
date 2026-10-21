@@ -1,12 +1,19 @@
+import { Quaternion, Vector3 } from 'three';
+import { groups, queryGroups } from './groups';
 import type { Collider, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
 import { FIXED_STEP } from '../core/fixedStep';
+import { DamageRefusalError } from '../combat/damageRefusal';
 import type { NativeCorpseReservation } from './ragdoll';
 import { CORPSE_SETTLE, numericCorpseTransforms, prepareNumericRigidCorpse, rigidCorpseBodyDescriptor,
   rigidCorpseCollider, validateRigidCorpse, type NumericCorpseJoint, type NumericCorpseTransform, type RigidCorpseBodyInput } from './rigidCorpse';
 
+export type NativeCorpseMode = 'rigid' | 'anchored-held';
 export interface NativeRigidCorpseInput extends RigidCorpseBodyInput {
+  /** Explicit fixed obstacle holding the lethal pose; never an animated rigid-body shortcut. */
+  readonly mode?: NativeCorpseMode;
+  readonly retiringCollider?: Collider;
   readonly recipe: unknown;
   readonly joints: readonly NumericCorpseJoint[];
 }
@@ -26,6 +33,7 @@ export class NativeRigidCorpse {
   private age = 0;
   private quiet = 0;
   private complete = false;
+  private readonly anchored: boolean;
   private readonly topology;
   private readonly scale: number;
   private readonly reservation: NativeCorpseReservation;
@@ -33,6 +41,7 @@ export class NativeRigidCorpse {
   private readonly parts: readonly PhysicalPart[];
   private readonly allocation: Scope;
   private constructor(reservation: NativeCorpseReservation, body: RigidBody, parts: readonly PhysicalPart[], allocation: Scope, input: NativeRigidCorpseInput) {
+    this.anchored = input.mode === 'anchored-held';
     this.reservation = reservation; this.body = body; this.parts = parts; this.allocation = allocation;
     this.current = copyRoot({ position: body.translation(), rotation: body.rotation() }); this.previous = copyRoot(this.current); this.scale = input.scale;
     this.topology = input.joints.map(joint => ({ name: joint.name, parent: joint.parent }));
@@ -55,13 +64,44 @@ export class NativeRigidCorpse {
       || input.damage < 0 || input.scale <= 0 || Math.abs(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w - 1) > 1e-6
       || !Number.isFinite(input.dims.bodyY)
       || [input.dims.halfWidth, input.dims.bodyHalfLen, input.dims.bodyRadius].some(n => !Number.isFinite(n) || n <= 0)) throw new Error('Unsafe native corpse body');
+    if (input.mode !== undefined && !['rigid', 'anchored-held'].includes(input.mode)) throw new Error('Invalid native corpse mode');
     const prepared = prepareNumericRigidCorpse(physics.R, input.recipe, input.joints, input.scale);
-    const desc = rigidCorpseBodyDescriptor(physics.R, input).setEnabled(false);
+    const anchored = input.mode === 'anchored-held';
+    if (anchored) {
+      if (input.retiringCollider === undefined || !input.retiringCollider.isValid() || physics.world.getCollider(input.retiringCollider.handle) !== input.retiringCollider) throw new Error('Anchored corpse requires its retiring live collider');
+      const rootRotation = new Quaternion(input.rotation.x,input.rotation.y,input.rotation.z,input.rotation.w);
+      const query = queryGroups(['WORLD','PLAYER','CREATURE','ITEM'],'WORLD');
+      const candidates: Collider[] = [];
+      // Like canStandAt, inspect current collider transforms, not the broadphase from
+      // the previous step. A lethal hit can follow player/creature movement in fixed.post.
+      // The recipe already bounds hull count; inspect every relevant world collider,
+      // with no arbitrary candidate cap that could admit an overlapping obstacle.
+      physics.world.forEachCollider(collider => {
+        const collision = collider.collisionGroups();
+        if (!collider.isEnabled() || collider.isSensor() || collider === input.retiringCollider
+          || ((collision >>> 16) & query & 0xffff) === 0
+          || ((query >>> 16) & collision & 0xffff) === 0) return;
+        candidates.push(collider);
+      });
+      for (const part of prepared) {
+        const at = new Vector3().copy(part.pose.position).applyQuaternion(rootRotation).add(input.position);
+        const rotation = rootRotation.clone().multiply(new Quaternion().copy(part.pose.rotation));
+        for (const collider of candidates) {
+          const contact = collider.contactShape(part.desc.shape,at,rotation,0);
+          // Match existing numeric-rig transform precision; zero-distance touching is allowed.
+          if (contact !== null && !Number.isFinite(contact.distance)) throw new Error(`Unsafe anchored corpse contact: ${part.bone}`);
+          if (contact !== null && contact.distance < -1e-6)
+            throw new DamageRefusalError(`Anchored corpse has obstructed lethal hull: ${part.bone}`);
+        }
+      }
+    }
+    const desc = (anchored ? physics.R.RigidBodyDesc.fixed().setTranslation(input.position.x,input.position.y,input.position.z).setRotation(input.rotation)
+      : rigidCorpseBodyDescriptor(physics.R, input)).setEnabled(false);
     const bodyVectors = [desc.translation, desc.linvel, desc.angvel, desc.centerOfMass, desc.principalAngularInertia];
     // bodyY is a pivot coordinate, not an extent; zero/negative pivots do not license zero inertia.
     const inertia = desc.principalAngularInertia;
     if (bodyVectors.some(v => ![v.x, v.y, v.z].every(n => Number.isFinite(Math.fround(n))))
-      || ![inertia.x, inertia.y, inertia.z].every(n => Math.fround(n) > 0)) throw new Error('Unsafe native corpse body descriptor');
+      || !anchored && ![inertia.x, inertia.y, inertia.z].every(n => Math.fround(n) > 0)) throw new Error('Unsafe native corpse body descriptor');
     const retained = new Set<RigidBody>(); physics.world.forEachRigidBody(body => { retained.add(body); });
     reservation.begin(); const allocation = reservation.owner.child('native-rigid-corpse');
     let body: RigidBody | undefined; const parts: PhysicalPart[] = [];
@@ -70,7 +110,9 @@ export class NativeRigidCorpse {
       const parent = body;
       for (const part of prepared) {
         const pose = part.pose;
-        const collider = withOwner(allocation, () => physics.world.createCollider(rigidCorpseCollider(part.desc, 0), parent));
+        const shape = rigidCorpseCollider(part.desc, 0);
+        if (anchored) shape.setCollisionGroups(groups('WORLD')).setSolverGroups(groups('WORLD'));
+        const collider = withOwner(allocation, () => physics.world.createCollider(shape, parent));
         // Use the same native setter normalization at creation, updates and rollback.
         collider.setTranslationWrtParent(pose.position); collider.setRotationWrtParent(pose.rotation);
         parts.push({ bone: part.bone, pose, collider });
@@ -119,6 +161,7 @@ export class NativeRigidCorpse {
   }
   /** Existing pre-physics boundary supplies the one numeric owner's locals. Validate the whole set first. */
   updateLocal(joints: readonly NumericCorpseJoint[], complete: boolean): void {
+    if (this.anchored) throw new Error('Anchored corpse holds its lethal pose');
     if (this.status !== 'live' || this.reservation.physics.disposed) throw new Error('Native corpse is not live');
     if (joints.length !== this.topology.length || joints.some((joint, i) => { const expected = this.topology[i]; return expected === undefined || joint.name !== expected.name || joint.parent !== expected.parent; }))
       throw new Error('Native corpse hierarchy changed');
@@ -155,6 +198,8 @@ export class NativeRigidCorpse {
     if (![p.x, p.y, p.z, q.x, q.y, q.z, q.w, v.x, v.y, v.z, w.x, w.y, w.z].every(Number.isFinite)
       || Math.abs(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w - 1) > 1e-6) throw new Error('Unsafe physical corpse endpoint');
     this.previous = this.current; this.current = copyRoot({ position: p, rotation: q });
+    // Fixed obstacles remain real and keep their existing slot until bout disposal.
+    if (this.anchored) { this.status = 'frozen'; return; }
     this.age += dt;
     const fastest = Math.max(Math.hypot(v.x, v.y, v.z), Math.hypot(w.x, w.y, w.z) * CORPSE_SETTLE.spinLever);
     this.quiet = this.complete && fastest < CORPSE_SETTLE.speed ? this.quiet + dt : 0;
@@ -164,7 +209,7 @@ export class NativeRigidCorpse {
   }
   dispose(): void {
     if (this.status === 'disposed') return;
-    if (this.status === 'frozen') { this.status = 'disposed'; return; }
+    if (this.status === 'frozen' && !this.anchored) { this.status = 'disposed'; return; }
     this.retire(false, 'disposed');
   }
   private retire(retain: boolean, next: 'frozen' | 'disposed'): void {

@@ -5,6 +5,7 @@ import type { Physics } from '../physics/Physics';
 import { lineOfSight } from '../physics/query';
 import type { AttributeSet } from './effects/types';
 import type { TargetAnimal } from './types';
+import { DamageRefusalError } from './damageRefusal';
 
 export type CombatTag = `${string}.${string}`;
 export type StringKey = string;
@@ -154,7 +155,12 @@ export class CombatPipeline {
     req.target.onDamageRequest?.(req);
     const modified = this.events.ask('damage.modify', req);
     if (modified === null) return null;
-    const killed = modified.target.applyDamage(modified);
+    let killed: boolean;
+    try { killed = modified.target.applyDamage(modified); }
+    catch (error) {
+      if (error instanceof DamageRefusalError) return null;
+      throw error;
+    }
     const dealt = { req: modified, dealt: modified.amount, killed };
     this.events.emit('damage.dealt', dealt);
     if (killed) this.events.emit('actor.died', { actor: modified.target, req: modified });
