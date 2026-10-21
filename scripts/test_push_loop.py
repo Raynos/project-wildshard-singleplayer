@@ -15,6 +15,7 @@ PUSH = runpy.run_path(str(ROOT / 'scripts/push-loop.py'))
 LIVE = PUSH['LIVE']
 WATCH = runpy.run_path(str(ROOT / 'scripts/ci-watch.py'))
 CACHE = runpy.run_path(str(ROOT / 'scripts/push_input_cache.py'))
+INSTALL = runpy.run_path(str(ROOT / 'scripts/install-push-loop.py'))
 
 
 class PushLoop(unittest.TestCase):
@@ -47,6 +48,16 @@ class PushLoop(unittest.TestCase):
         self.git('add', '--', '.')
         self.git('commit', '-qm', 'fixture')
         return self.git('rev-parse', 'HEAD')
+
+    def test_schedules_keep_the_notification_session_without_a_stale_pane(self):
+        context = {'HERDR_SESSION': 'fixture', 'HERDR_SOCKET_PATH': '/fixture/herdr.sock',
+                   'HERDR_PANE_ID': 'w1:p1'}
+        jobs = INSTALL['jobs'](self.root, sys.executable, '/bin', context)
+        self.assertEqual(len(jobs), 2)
+        for job in jobs:
+            self.assertEqual(job['EnvironmentVariables'], {
+                'PATH': '/bin', 'HERDR_ENV': '1', 'HERDR_SESSION': 'fixture',
+                'HERDR_SOCKET_PATH': '/fixture/herdr.sock'})
 
     def test_green_checks_only_live_types_lint_and_budgeted_tests(self):
         tip = self.commit('src/good.ts')

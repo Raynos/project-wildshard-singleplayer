@@ -8,12 +8,17 @@ import subprocess
 import sys
 
 
-def jobs(root, python, path):
+def jobs(root, python, path, herdr=None):
     common = Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=root, text=True).strip())
+    context = os.environ if herdr is None else herdr
+    environment = {'PATH': path, 'HERDR_ENV': '1'}
+    for key in ('HERDR_SESSION', 'HERDR_SOCKET_PATH', 'HERDR_CONFIG_PATH'):
+        if context.get(key):
+            environment[key] = context[key]
     return [{'Label': 'com.wildshard.' + name,
              'ProgramArguments': [python, str(root / 'scripts' / script)],
              'WorkingDirectory': str(root), 'StartInterval': interval,
-             'EnvironmentVariables': {'PATH': path, 'HERDR_ENV': '1'},
+             'EnvironmentVariables': environment,
              'StandardOutPath': str(common / (name + '-launchd.log')),
              'StandardErrorPath': str(common / (name + '-launchd.log'))}
             for name, script, interval in [('push', 'push-loop.py', 60), ('ci-watch', 'ci-watch.py', 300)]]
