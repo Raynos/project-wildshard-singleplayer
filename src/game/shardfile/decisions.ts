@@ -1,7 +1,7 @@
 import type { DecisionPublication } from '@wildshard/format/decisionPublication';
 import { nativeRuntimeActorIds } from '@wildshard/format/nativeRuntimePlan';
 import * as v from 'valibot';
-import { actorDecisionRows, parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
+import { decisionScriptContract, actorDecisionRows, parseDecisionScripts, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import { buildDecisionRegistries, decisionBindingMap, decisionSpawnGroups, DECISION_PLAYER_HANDLE, type DecisionRegistries } from '@wildshard/format/decisionBindings';
 import { parseActorMoves, actorMoveRules, type ActorMove } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
@@ -118,7 +118,7 @@ export class ShardDecisions {
     if (moveErrors.length > 0) throw new Error(moveErrors.join('; '));
     // Display and admission provenance never change the executable continuation.
     const { achievements: _achievements, ...quests } = source.quests;
-    this.contract = JSON.stringify({ rows: this.rows.map(({ sourceHash: _sourceHash, ...row }) => row), moves: this.moves, ...(this.spots.size === 0 ? {} : { spots: [...this.spots] }), actors: [...this.names], state: source.state,
+    this.contract = JSON.stringify({ rows: this.rows.map(decisionScriptContract), moves: this.moves, ...(this.spots.size === 0 ? {} : { spots: [...this.spots] }), actors: [...this.names], state: source.state,
       ...(this.spawnGroups.size === 0 ? {} : { spawnGroups: [...this.spawnGroups] }),
       ...(sim.borrowedActors === undefined ? {} : { borrowed: [...sim.borrowedActors].sort() }),
       strikes: source.rows.strikes, ...(nativeStrikes.length === 0 ? {} : { nativeStrikes }), quests, encounters: source.encounters, ledger: source.ledger, cues: source.audio.cues, channels: source.clientChannels, movers: source.movers });

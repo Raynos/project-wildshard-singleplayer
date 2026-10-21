@@ -13,7 +13,7 @@ const readNames = [...keys(SCRIPT_V1_READS), ...keys(SCRIPT_V1_LISTS)];
 const state = v.strictObject({ name: local, type: v.picklist(['bool', 'i32', 'f64']), default: v.union([v.boolean(), finite]),
   scope: v.picklist(['binding', 'actor', 'player', 'local']), min: v.exactOptional(finite), max: v.exactOptional(finite) });
 /** Named ids that must resolve in another platform section. Timers are binding-local names. */
-export const SCRIPT_V1_REFERENCE_KINDS = ['actors', 'moves', 'strikes', 'cues', 'fields', 'flags', 'zones', 'spots', 'targets', 'spawns', 'signals', 'facts', 'rewards', 'channels', 'impulses', 'weather'] as const;
+export const SCRIPT_V1_REFERENCE_KINDS = ['actors', 'moves', 'strikes', 'cues', 'fields', 'flags', 'zones', 'spots', 'targets', 'spawns', 'signals', 'facts', 'rewards', 'channels', 'impulses', 'weather', 'bodies', 'colliders'] as const;
 export type ScriptV1ReferenceKind = typeof SCRIPT_V1_REFERENCE_KINDS[number];
 const row = v.strictObject({
   id, abi: v.literal('1.0'), side: v.picklist(['sim', 'view']),
@@ -31,6 +31,7 @@ const row = v.strictObject({
   fields: v.optional(aliases, {}), flags: v.optional(aliases, {}), zones: v.optional(aliases, {}), spots: v.optional(aliases, {}),
   targets: v.optional(aliases, {}), spawns: v.optional(aliases, {}), signals: v.optional(aliases, {}), facts: v.optional(aliases, {}),
   rewards: v.optional(aliases, {}), channels: v.optional(aliases, {}), impulses: v.optional(aliases, {}), weather: v.optional(aliases, {}),
+  bodies: v.optional(aliases, {}), colliders: v.optional(aliases, {}),
   timers: v.optional(v.pipe(v.array(local), v.maxLength(64), v.check(values => unique(values), 'unique timer names')), []),
   stateVersion: positive, state: v.pipe(v.array(state), v.maxLength(16)),
   params: v.pipe(v.record(local, finite), v.check(value => Object.keys(value).length <= 32, 'bounded script parameters')),
@@ -91,6 +92,12 @@ export type DecisionScripts = v.InferOutput<typeof DecisionScriptsSchema>;
 export function parseDecisionScripts(input: unknown): DecisionScripts {
   if (!isJsonData(input)) throw new Error('Decision scripts must be plain JSON');
   return v.parse(DecisionScriptsSchema, input);
+}
+/** Mechanical continuation identity excludes provenance and unused additive body namespaces.
+ * Pre-extension scripts retain their exact original serialized declaration. */
+export function decisionScriptContract(script: DecisionScriptRow): Omit<DecisionScriptRow, 'sourceHash' | 'bodies' | 'colliders'> & Partial<Pick<DecisionScriptRow, 'bodies' | 'colliders'>> {
+  const { sourceHash: _sourceHash, bodies, colliders, ...original } = script;
+  return { ...original, ...(Object.keys(bodies).length === 0 ? {} : { bodies }), ...(Object.keys(colliders).length === 0 ? {} : { colliders }) };
 }
 /** One authored group row resolves to one logical invocation/state owner per member.
  * Every invocation still shares the admitted module image. Alias order never changes identities.

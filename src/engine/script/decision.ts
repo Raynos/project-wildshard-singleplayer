@@ -2,7 +2,7 @@ import { SCRIPT_V1_COMMANDS, SCRIPT_V1_EVENTS, SCRIPT_V1_LAYOUT, SCRIPT_V1_LISTS
 import { DecisionModule } from './decisionModule';
 
 /** Resolved ids are produced from admitted rows, never looked up through a shard runtime module. */
-export type DecisionIdKind = 'actors' | 'moves' | 'strikes' | 'timers' | 'cues' | 'fields' | 'flags' | 'zones' | 'spots' | 'targets' | 'spawns' | 'signals' | 'facts' | 'rewards' | 'channels' | 'impulses' | 'weather';
+export type DecisionIdKind = 'actors' | 'moves' | 'strikes' | 'timers' | 'cues' | 'fields' | 'flags' | 'zones' | 'spots' | 'targets' | 'spawns' | 'signals' | 'facts' | 'rewards' | 'channels' | 'impulses' | 'weather' | 'bodies' | 'colliders';
 /** Durable numeric slots; JSON boolean values occupy f64 0/1 in the IO block. */
 export interface DecisionStateSlot { name: string; type: 'bool' | 'i32' | 'f64'; default: number | boolean; scope: 'binding' | 'actor' | 'player' | 'local'; min?: number; max?: number }
 /** Renderer-free, resolved script declaration. Wire-schema admission remains the format's responsibility. */
@@ -55,7 +55,7 @@ export interface DecisionHostOptions {
 }
 type Command = [number, number, number, number, number];
 type Slots = Record<string, number | boolean>;
-const idKinds: readonly DecisionIdKind[] = ['actors', 'moves', 'strikes', 'timers', 'cues', 'fields', 'flags', 'zones', 'spots', 'targets', 'spawns', 'signals', 'facts', 'rewards', 'channels', 'impulses', 'weather'];
+const idKinds: readonly DecisionIdKind[] = ['actors', 'moves', 'strikes', 'timers', 'cues', 'fields', 'flags', 'zones', 'spots', 'targets', 'spawns', 'signals', 'facts', 'rewards', 'channels', 'impulses', 'weather', 'bodies', 'colliders'];
 const readNames = new Map<number, ScriptV1ReadName>(Object.entries(SCRIPT_V1_READS).map(([key, value]) => [value, key as ScriptV1ReadName]));
 const listNames = new Map<number, ScriptV1ListName>(Object.entries(SCRIPT_V1_LISTS).map(([key, value]) => [value, key as ScriptV1ListName]));
 const commandNames = new Map<number, ScriptV1CommandName>(Object.entries(SCRIPT_V1_COMMANDS).map(([key, value]) => [value, key as ScriptV1CommandName]));
@@ -297,7 +297,7 @@ export class DecisionHost {
         const command = row.pool[i]; check(command !== undefined, 'command pool');
         for (let j = 0; j < 5; j++) { const value = row.io[row.layout.outbox + i * 5 + j] ?? Number.NaN; check(Number.isFinite(value), 'nonfinite command'); command[j] = value; }
         this.validateCommand(row, command);
-        if (command[0] === 5) spawns++;
+        if (command[0] === 5 || command[0] === SCRIPT_V1_COMMANDS['body.spawn']) spawns++;
         if (command[0] === 8) {
           timers++; const index = row.timerIds.indexOf(command[2]); check(index !== -1, 'timer id');
           row.nextTimers[index] = command[3] === 0 ? 0 : this.tick + command[3] * 60;
@@ -335,6 +335,7 @@ export class DecisionHost {
     if (op === 13) this.id(row, 'zones', b);
     if (op === 14) this.id(row, 'zones', a);
     if (op === 18) this.id(row, 'spawns', a);
+    if (op >= SCRIPT_V1_READS.bodyX && op <= SCRIPT_V1_READS.bodyVisible) { this.id(row, 'bodies', a); check(b === 0, 'body read arguments'); }
     let result: number;
     if (op === 11) { this.id(row, 'timers', a); result = Math.max(0, ((row.timers[row.timerIds.indexOf(a)] ?? 0) - this.tick) / 60); }
     else if (op === 12) {
@@ -370,6 +371,16 @@ export class DecisionHost {
     check(capability !== undefined && (row.script.side === 'sim' ? op < 100 : op === SCRIPT_V1_COMMANDS['view.field']) && row.script.commands.includes(capability), 'command capability');
     check(integer(target), 'command target');
     if (op === SCRIPT_V1_COMMANDS['view.field']) { check(target === 0 && command[4] === 0, 'client field target'); this.id(row, 'fields', a); return; }
+    if (op === SCRIPT_V1_COMMANDS['body.spawn']) {
+      check(target === 0 && b === 0 && command[4] === 0, 'body spawn arguments'); this.id(row, 'bodies', a); return;
+    }
+    if (op === SCRIPT_V1_COMMANDS['body.teleport'] || op === SCRIPT_V1_COMMANDS['body.place']) { this.id(row, 'bodies', target); return; }
+    if (op === SCRIPT_V1_COMMANDS['body.visible'] || op === SCRIPT_V1_COMMANDS['body.retire']) {
+      this.id(row, 'bodies', target); check(b === 0 && command[4] === 0 && (op === SCRIPT_V1_COMMANDS['body.visible'] ? a === 0 || a === 1 : a === 0), 'body state arguments'); return;
+    }
+    if (op === SCRIPT_V1_COMMANDS['collider.enabled']) {
+      check(target === 0 && (b === 0 || b === 1) && command[4] === 0, 'collider arguments'); this.id(row, 'colliders', a); return;
+    }
     if (ownedCommands.has(op)) check(row.owners.has(target), 'command ownership');
     else if (target !== 0) { this.actor(row, target); check(playerCommands.has(op) || row.players.has(target) || row.owners.has(target), 'command ownership'); }
     if (op === 1 || op === 2) { this.id(row, op === 1 ? 'moves' : 'strikes', a); if (b !== 0) this.actor(row, b); }
@@ -446,7 +457,7 @@ export class DecisionHost {
         for (const command of pending.commands) {
           check(width(command, 5) && command.every(Number.isFinite), 'snapshot command');
           this.validateCommand(validation, command);
-          if (command[0] === 5) spawns++;
+          if (command[0] === 5 || command[0] === SCRIPT_V1_COMMANDS['body.spawn']) spawns++;
           if (command[0] === 8) timerCount++;
         }
         check(spawns <= 4 && timerCount <= 8, 'snapshot spawn/timer quotas');

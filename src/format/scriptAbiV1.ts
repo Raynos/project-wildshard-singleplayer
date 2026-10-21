@@ -9,6 +9,7 @@ export const SCRIPT_V1_READS = Object.freeze({
   x: 1, y: 2, z: 3, yaw: 4, hpShare: 5, alive: 6, field: 7, distance: 8, nearestPlayer: 9,
   flag: 10, timerLeft: 11, random: 12, actorInZone: 13, playersInZone: 14, moving: 15,
   strikeState: 16, playerFlag: 17, spawnGroupAlive: 18, bearing: 19,
+  bodyX: 20, bodyY: 21, bodyZ: 22, bodyAlive: 23, bodyYaw: 24, bodyVisible: 25,
 });
 /** Bounded list queries. Ground/navigation keep the existing physics query semantics. */
 export const SCRIPT_V1_LISTS = Object.freeze({ actorsInZone: 1, playersWithin: 2, groundHeight: 3, nearestWalkable: 4, path: 5, radial: 6 });
@@ -16,6 +17,8 @@ export const SCRIPT_V1_LISTS = Object.freeze({ actorsInZone: 1, playersWithin: 2
 export const SCRIPT_V1_COMMANDS = Object.freeze({
   move: 1, strike: 2, stop: 3, field: 4, spawn: 5, despawn: 6, flag: 7, timer: 8,
   signal: 9, grant: 10, reward: 11, cue: 12, channel: 13, impulse: 14, encounter: 15, weather: 16,
+  'body.spawn': 17, 'body.teleport': 18, 'collider.enabled': 19,
+  'body.place': 20, 'body.visible': 21, 'body.retire': 22,
   'view.channel': 100, 'view.clip': 101, 'view.vfx': 102, 'view.sound': 103, 'view.visible': 104, 'view.field': 105,
 });
 export type ScriptV1EventName = keyof typeof SCRIPT_V1_EVENTS;

@@ -13,6 +13,9 @@ const reads: Record<keyof typeof SCRIPT_V1_READS, Method> = {
   playersInZone:{args:'zone:i32',values:'f64(zone)',result:'i32'},moving:{args:'actor:i32',values:'f64(actor)',result:'bool'},
   strikeState:{args:'actor:i32',values:'f64(actor)',result:'i32'},playerFlag:{args:'player:i32,flag:i32',values:'f64(player),f64(flag)',result:'bool'},
   spawnGroupAlive:{args:'spawn:i32',values:'f64(spawn)',result:'i32'},bearing:{args:'actor:i32,target:i32',values:'f64(actor),f64(target)'},
+  bodyX:{args:'body:i32',values:'f64(body)'},bodyY:{args:'body:i32',values:'f64(body)'},bodyZ:{args:'body:i32',values:'f64(body)'},
+  bodyAlive:{args:'body:i32',values:'f64(body)',result:'bool'},
+  bodyYaw:{args:'body:i32',values:'f64(body)'},bodyVisible:{args:'body:i32',values:'f64(body)',result:'bool'},
 };
 const lists: Record<keyof typeof SCRIPT_V1_LISTS, Method> = {
   actorsInZone:{args:'zone:i32',values:'f64(zone)'},playersWithin:{args:'actor:i32,radius:f64',values:'f64(actor),radius'},
@@ -28,6 +31,12 @@ const commands: Record<keyof typeof SCRIPT_V1_COMMANDS, Method> = {
   reward:{args:'reward:i32,player:i32=0',values:'player,f64(reward)'},cue:{args:'cue:i32,actor:i32=0',values:'actor,f64(cue)'},
   channel:{args:'channel:i32,value:f64',values:'0,f64(channel),value'},impulse:{args:'target:i32,impulse:i32',values:'target,f64(impulse)'},
   encounter:{args:'verb:i32,value:f64=0',values:'0,f64(verb),value'},weather:{args:'weather:i32',values:'0,f64(weather)'},
+  'body.spawn':{args:'body:i32',values:'0,f64(body)'},
+  'body.teleport':{args:'body:i32,x:f64,y:f64,z:f64',values:'body,x,y,z'},
+  'collider.enabled':{args:'collider:i32,on:bool',values:'0,f64(collider),on?1.0:0.0'},
+  'body.place':{args:'body:i32,x:f64,z:f64,yaw:f64',values:'body,x,z,yaw'},
+  'body.visible':{args:'body:i32,on:bool',values:'body,on?1.0:0.0'},
+  'body.retire':{args:'body:i32',values:'body'},
   'view.channel':{args:'channel:i32,value:f64',values:'0,f64(channel),value'},'view.clip':{args:'actor:i32,clip:i32',values:'actor,f64(clip)'},
   'view.vfx':{args:'actor:i32,cue:i32',values:'actor,f64(cue)'},'view.sound':{args:'actor:i32,cue:i32',values:'actor,f64(cue)'},
   'view.visible':{args:'actor:i32,value:bool',values:'actor,value?1.0:0.0'},
@@ -47,7 +56,7 @@ export const DECISION_HANDLERS: Record<ScriptV1EventName, { name: string; args: 
   field:{name:'onField',args:'i32(__ws.value(1)),i32(__ws.value(2)),__ws.value(3)'},cue:{name:'onCue',args:'i32(__ws.value(1)),i32(__ws.value(2))'},
   channel:{name:'onChannel',args:'i32(__ws.value(1)),__ws.value(2)'},
 };
-const namespaces = {actors:'Actor',moves:'Move',strikes:'Strike',cues:'Cue',fields:'Field',flags:'Flag',zones:'Zone',spots:'Spot',targets:'Target',spawns:'Spawn',signals:'Signal',facts:'Fact',rewards:'Reward',channels:'Channel',impulses:'Impulse',weather:'Weather'} as const;
+const namespaces = {actors:'Actor',moves:'Move',strikes:'Strike',cues:'Cue',fields:'Field',flags:'Flag',zones:'Zone',spots:'Spot',targets:'Target',spawns:'Spawn',signals:'Signal',facts:'Fact',rewards:'Reward',channels:'Channel',impulses:'Impulse',weather:'Weather',bodies:'Body',colliders:'Collider'} as const;
 /** Safe generated filename shared by the compiler and author imports. */
 export function decisionBindingsPath(row: Pick<DecisionScriptRow,'id'>): string { return `behaviour/generated/${scriptV1Identifier(row.id)}.ts`; }
 /** Allocation-free, capability-specific AssemblyScript bindings plus the only ABI entry point. */
