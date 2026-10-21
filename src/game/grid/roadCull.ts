@@ -223,13 +223,18 @@ export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, 
     vertices += run.vertices; clipped += run.vertices + extra.length / 3; source += out.length;
     const at = (n: number, c: number): number => (n < run.vertices ? run.position(n * 3 + c) : Math.fround(extra[(n - run.vertices) * 3 + c] ?? 0));
     for (const tier of lod) {
-      const keys = new Map<number, string | null>();
-      const key = (n: number): string | null => { let k = keys.get(n); if (k === undefined) { k = lodKey(at(n, 0), at(n, 1), at(n, 2), run.layer ?? 0, run.unlit ?? 0, pitch, tier.cell); keys.set(n, k); } return k; };
-      const same = (a: number, b: number): boolean => a === b || (key(a) !== null && key(a) === key(b));
+      const memo = new Int32Array(run.vertices + extra.length / 3).fill(-1), first = new Map<string, number>();
+      const representative = (n: number): number => {
+        const known = memo[n] ?? -1; if (known >= 0) return known;
+        const key = lodKey(at(n, 0), at(n, 1), at(n, 2), run.layer ?? 0, run.unlit ?? 0, pitch, tier.cell);
+        let rep = n;
+        if (key !== null) { const seen = first.get(key); if (seen === undefined) first.set(key, n); else rep = seen; }
+        memo[n] = rep; return rep;
+      };
       for (let i = 0; i < out.length; i += 3) {
         if (i % 768 === 0) yield;
-        const a = out[i] ?? 0, b = out[i + 1] ?? 0, c = out[i + 2] ?? 0;
-        if (!same(a, b) && !same(b, c) && !same(a, c)) source += 3;
+        const a = representative(out[i] ?? 0), b = representative(out[i + 1] ?? 0), c = representative(out[i + 2] ?? 0);
+        if (a !== b && b !== c && a !== c) source += 3;
       }
     }
   }
