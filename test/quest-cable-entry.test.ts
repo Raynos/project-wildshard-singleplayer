@@ -1,0 +1,77 @@
+// @vitest-environment happy-dom
+import { expect, test } from 'vitest';
+import { BoxGeometry, MeshStandardMaterial, PerspectiveCamera, Scene, Vector3 } from 'three';
+import { App } from '../src/engine/app/app';
+import { Scope } from '../src/engine/app/scope';
+import { createLevelInstallation } from '../src/engine/level/installation';
+import { WorldRegistry } from '../src/engine/world/registry';
+import { installCableModes } from '../src/engine/player/modes';
+import { prepareQuestEntry } from '../src/game/quest/chapter';
+import { shardContext } from '../src/game/plugin/context';
+import { parseShardSlug } from '../src/game/shard/slug';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { installWorldScenes } from '../src/game/shardfile/worldScenes';
+import { parseWorldScenes } from '../src/format/worldScenes';
+import { staticGlb } from '../src/sdk/bake/glb';
+import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
+import drift from '../src/shards/driftwood-isle/shard.config';
+import { PAGE_STORY as story } from '../src/shards/driftwood-isle/generators/pageStory';
+import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/generators/modes';
+import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
+
+const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
+const section = parseWorldScenes({ version: 1, catalogue: 'catalogue.json',
+  placements: [{ id: 'cable.placement', model: 'line', draw: 'merged',
+    drawnInto: { part: 'cable.root', boxes: [-1, -1, -1, 1, 1, 1] }, poses: [{ x: 0, y: 0, z: 0, matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }] }],
+  libraries: [{ kind: 'owned', id: 'cable', models: [{ id: 'carriage', file: 'carriage.glb' }] }],
+  materials: [{ kind: 'standard', id: 'body', properties: {} }],
+  steps: [{ id: 'cable', scene: 'scene.json', geometry: { carriage: { library: 'cable', model: 'carriage' } }, materials: { body: 'body' },
+    publish: { carriage: { kind: 'mesh', part: 'carriage' }, prompt: { kind: 'vector', value: [3, 7, 9] } } }] });
+const recipe = { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['carriage'] },
+  { kind: 'mesh', id: 'carriage', geometry: 'carriage', material: 'body', missing: 'empty' }],
+  materials: [{ kind: 'port', id: 'body', source: 'body' }] }, imports: [] };
+
+test('quest cable intake borrows the installed mode, trolley and scene lifetime', async () => {
+  for (const modes of [PINE_MODES, DRIFTWOOD_MODES]) {
+    const scope = new Scope('quest-cable-entry'), host = new App(), scene = new Scene(), camera = new PerspectiveCamera();
+    const shape = new BoxGeometry(), material = new MeshStandardMaterial();
+    const files = new Map([['quests/story.json', encode(story)], ['quests/services.json', encode({ version: 1, actions: [] })],
+      ['scene.json', encode(recipe)], ['catalogue.json', encode({ product: drift.identity.slug, models: [{ key: 'line', id: `${drift.identity.slug}/line`, name: 'Cable line', category: 'props', pipeline: 'code', file: 'catalogue.json', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'carriage', library: 'cable', model: 'carriage', material: 'body' }] }] }] })], ['carriage.glb', staticGlb([{ geometry: shape, material }])]]);
+    shape.dispose(); material.dispose();
+    const product = createShardProduct({ slug: drift.identity.slug, revision: 1, shardfile: drift,
+      sections: new Map([['world/scenes', section]]), files: new Map([...files.keys()].map(name => [name, { hash: name, url: name }])),
+      read: name => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture file')) : Promise.resolve(value); } });
+    const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+    const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(drift.identity.slug) },
+      { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
+    const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, platforms: [] };
+    const prompts: ReturnType<ReturnType<typeof installCableModes>['bindView']>[] = [];
+    Object.defineProperty(ctx.game, 'runtime', { value: { world: { player, registry: new WorldRegistry(), game: { scene, camera }, sky: { setupMaterial: () => undefined } }, interactables: prompts } });
+    try {
+      const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
+      const modesOwner = installCableModes(scope, modes.traverse, entry.flags), mode = modes.traverse[0];
+      if (mode === undefined) throw new Error('Missing authored cable');
+      const scenes = await installWorldScenes(ctx, section), trolley = scenes.mesh('cable.carriage');
+      const rows = { mode: mode.id, carriage: 'cable.carriage', scene: modes === PINE_MODES ? { kind: 'object', id: 'cable.root' } : { kind: 'placement', id: 'cable.placement' },
+        prompt: modes === PINE_MODES ? { x: 3, y: 7, z: 9 } : 'cable.prompt', radius: 2.4, label: 'Ride', camera: modes === PINE_MODES };
+      await expect(entry.cable({ ...rows, mode: 'missing' })).rejects.toThrow('Unknown cable mode');
+      await expect(entry.cable({ ...rows, prompt: () => new Vector3() })).rejects.toThrow('JSON rows');
+      expect(prompts).toEqual([]); expect(scene.children).toEqual([]);
+      const view = await entry.cable(rows);
+      expect(view.cables).toBe(modesOwner); expect(view.trolley).toBe(trolley);
+      expect(view.group).toBe(scenes.object('cable.root')); expect(trolley.parent).toBe(view.group);
+      if (modes === PINE_MODES) expect(view.placed).toBeNull();
+      else expect(view.placed).toBe(await scenes.place('cable.placement')); expect(view.prompt.position.toArray()).toEqual([3, 7, 9]);
+      expect(prompts).toEqual([view.prompt]); expect(scene.children).toEqual([view.group]);
+      const initial = modesOwner.snapshot(mode.id);
+      view.prompt.onInteract(); expect(modesOwner.state(mode.id).riding).toBe(true);
+      expect(view.prompt.radius).toBe(0); view.cables.update(mode.id, .1);
+      expect(modesOwner.snapshot(mode.id)).not.toEqual(initial);
+      expect(view.cables.takeTransitions(mode.id)).toEqual([true]);
+      await expect(entry.cable(rows)).rejects.toThrow('already bound');
+      expect(prompts).toEqual([view.prompt]);
+      scope.dispose(); expect(scene.children).toEqual([]);
+      await expect(entry.cable(rows)).rejects.toThrow('scene admission');
+    } finally { scope.dispose(); }
+  }
+});

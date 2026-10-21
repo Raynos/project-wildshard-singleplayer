@@ -180,11 +180,9 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   let canoe: { group: THREE.Mesh };
   let motion: MoverRuntime;
   {
-    game.scene.add(floor.resources.object(rows.cable.scene));
-    const trolley = floor.resources.mesh(rows.cable.trolley);
-    zip = { trolley, prompt: cables.bindView(cableId, trolley, player,
-      { position: new THREE.Vector3(...rows.cable.prompt), radius: rows.cable.radius, label: rows.cable.label }, game.camera) };
-    h.interactables.push(zip.prompt);
+    const cable = await entry.cable({ mode: cableId, carriage: rows.cable.trolley, scene: { kind: 'object', id: rows.cable.scene },
+      prompt: { x: rows.cable.prompt[0], y: rows.cable.prompt[1], z: rows.cable.prompt[2] }, radius: rows.cable.radius, label: rows.cable.label, camera: true });
+    zip = { trolley: cable.trolley, prompt: cable.prompt };
     const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
     canoe = { group: floor.resources.mesh(rows.mover.mesh) };
     motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.mover.binding, { canoe }, { flags, prompts: h.interactables });

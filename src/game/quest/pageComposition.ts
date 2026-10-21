@@ -8,7 +8,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { installWorldScenes } from '../shardfile/worldScenes';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
-import { cableModes } from '@wildshard/engine/player/modes';
+import type { cableModes } from '@wildshard/engine/player/modes';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
 import type { Interactable, InteractTable, QuestPlace, QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
@@ -107,11 +107,10 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   entry.bench();
   w.ironDrop?.bindGuardFlags(flags.all);
   {
-    const placed = await scenes.place(rows.cable.scene), cables = cableModes(ctx.scope), mode = rows.cable.mode;
-    const prompt = cables.bindView(mode, scenes.mesh(rows.cable.carriage), w.player, { position: scenes.vector(rows.cable.prompt), radius: rows.cable.radius, label: rows.cable.label });
-    const zip = { group: placed.object, placed, prompt, cables, mode, a: scenes.vector(rows.cable.a), b: scenes.vector(rows.cable.b) };
-    w.game.scene.add(zip.group);
-    w.prompts.push(zip.prompt);
+    const cable = await entry.cable({ mode: rows.cable.mode, carriage: rows.cable.carriage, scene: { kind: 'placement', id: rows.cable.scene },
+      prompt: rows.cable.prompt, radius: rows.cable.radius, label: rows.cable.label });
+    if (cable.placed === null) throw new Error('Quest cable requires its declared placement');
+    const zip = { ...cable, placed: cable.placed, a: scenes.vector(rows.cable.a), b: scenes.vector(rows.cable.b) };
     w.game.onUpdate((dt) => {
       zip.cables.update(zip.mode, dt);
       for (const on of zip.cables.takeTransitions(zip.mode)) {

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
-import { BatchedMesh, Vector3, type Object3D } from 'three';
+import { BatchedMesh, Vector3, type Object3D, type Mesh } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
 import { bindInteractPlacements, createQuestPlacements, type InteractTable } from '@wildshard/engine/world/interact/types';
@@ -37,6 +37,10 @@ import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { QuestStepRunner } from './steps';
 import { openQuestTrader } from './trader';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { cableModes } from '@wildshard/engine/player/modes';
+import type { Placed } from '@wildshard/engine/models/place';
+import { installWorldScenes } from '../shardfile/worldScenes';
+import { residentWorldScope } from '../shardfile/hybridPresentation';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -98,6 +102,16 @@ const entrySystem = v.strictObject({ id: entryId, before: v.pipe(v.array(entryId
   after: v.optional(v.pipe(v.array(entryId), v.maxLength(64)), []) });
 const entryDeaths = v.strictObject({ effects: v.unknown(), order: v.pipe(finite, v.integer()),
   moves: v.optional(v.pipe(v.array(v.strictObject({ effect: entryId, target: entryId })), v.maxLength(64)), []) });
+const entryCable = v.strictObject({ mode: entryId, carriage: entryId,
+  scene: v.strictObject({ kind: v.picklist(['placement', 'object']), id: entryId }),
+  prompt: v.union([entryId, point]), radius: v.pipe(finite, v.minValue(Number.MIN_VALUE)), label: entryId,
+  camera: v.optional(v.boolean(), false) });
+/** Client cable view borrows the existing scene and mode continuation. */
+export interface QuestCableView {
+  readonly group: Object3D; readonly placed: Placed | null; readonly trolley: Mesh;
+  readonly prompt: ReturnType<ReturnType<typeof cableModes>['bindView']>;
+  readonly cables: ReturnType<typeof cableModes>; readonly mode: string;
+}
 /** Prepared services retain the entered story's original state owners. */
 export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   readonly story: ReturnType<typeof parseQuestStory>; readonly flags: Flags;
@@ -109,6 +123,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   bench: () => void;
   talks: (input: unknown) => Promise<ReturnType<typeof installStoryTalks<FigureRows>>>;
   deaths: (input: unknown) => void;
+  cable: (input: unknown) => Promise<QuestCableView>;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -133,6 +148,22 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
   let interaction: Awaited<ReturnType<typeof installQuestInteractables>> | null = null;
   let installed = false, talksInstalled = false;
   return { story, flags, services, ...placement,
+    cable: async cableInput => {
+      if (!isJsonData(cableInput)) throw new Error('Quest cable requires JSON rows');
+      const cable = v.parse(entryCable, cableInput), runtime = ctx.game.runtime;
+      if (runtime === undefined) throw new Error('Quest cable requires its entered world');
+      const requireLive = (): void => { if (ctx.scope.disposed) throw new Error('Quest cable left during scene admission'); };
+      requireLive();
+      const cables = cableModes(ctx.scope); cables.state(cable.mode);
+      const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
+      const placed = cable.scene.kind === 'placement' ? await scenes.place(cable.scene.id) : null;
+      requireLive();
+      const group = placed?.object ?? scenes.object(cable.scene.id), trolley = scenes.mesh(cable.carriage);
+      const position = typeof cable.prompt === 'string' ? scenes.vector(cable.prompt) : new Vector3(cable.prompt.x, cable.prompt.y, cable.prompt.z);
+      const prompt = cables.bindView(cable.mode, trolley, world.player, { position, radius: cable.radius, label: cable.label }, cable.camera ? world.game.camera : undefined);
+      world.game.scene.add(group); runtime.interactables.push(prompt);
+      return { group, placed, trolley, prompt, cables, mode: cable.mode };
+    },
     deaths: deathInput => {
       if (!isJsonData(deathInput)) throw new Error('Quest deaths require JSON rows');
       const deathRows = v.parse(entryDeaths, deathInput), play = ctx.game.runtime?.play, counters = achievements, kit = interaction;

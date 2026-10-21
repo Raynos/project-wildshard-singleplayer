@@ -6697,6 +6697,13 @@ its explicit priority and ends with the entry scope. Pine's contract board
 remains its following listener; Driftwood keeps key drops before notices and
 its later kill-counter listener. Rows accept no callbacks or method paths.
 
+`cable(rows)` borrows a published scene root or named placement, its trolley
+mesh and the already installed cable mode. Rows select the prompt's published
+point or literal coordinates and optional camera roll. Both entered quest
+pages use this same intake; it preserves their update phases, completion flags
+and native save envelopes. Scene ownership remains with the resident, and
+leaving during asynchronous admission refuses before binding the player.
+
 The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
 the admitted table and pack for both native quest compositions. It borrows
 the worker's existing command and ledger adapter; `install(owners)` binds the
