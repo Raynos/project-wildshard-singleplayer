@@ -154,7 +154,7 @@ Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real secon
 | Z8 (REOPENED G571) | Codex | Pine C9 glue (229): no honest cut found (boot lists filePolicy/files/gpuTable 91 hang on grid-only ASTC 6x6; hybrid 36 wires Pine-only forest/ranged pages; shelter 25 and manifest forest/clip 13 have no second user, Nalati forest is a mask; explorer 18 a listed chargeback) | triaged, no honest cut (sp-o3 547b24916d: boot lists need page-mode rows, hybrid wires Pine-only pages, shelter/forest readers one user) |
 | Z9 | Codex | Driftwood C9 glue (271) | done sp-o5: 24d00f9c66 C9 271 -> 252 (shims, rows, probe handles); rest stays (hybrid hooks, NPC focus DW-only, blobAssets, type-narrowing shims, owner reads) |
 | Z10 | Codex | Ink Cel Valley residue + open-plots (148) | sp-o3 / open-plots done (sp-o1 7f6a9df314: 148 -> 19, batch PASS; residue = shard.config per-idea projection, an SDK override would be a one-user host) |
-| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path | sp-x9 (non-graphical) + sp-o4 (graphical, empty); Nalati C9 1,037 split: sp-x8 owns runtime/{index,state}.ts + manifest/plugin metadata (314 own C9 lines); sp-x9 keeps population/pageGroups/sensory/mounted admission |
+| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path | sp-x9 (non-graphical) + sp-o4 (graphical, empty); Nalati C9 1,037 split: sp-x8 owns runtime/{index,state}.ts + manifest/plugin metadata (314 own C9 lines); sp-x9 keeps population/pageGroups/sensory/mounted admission ; sensory slice CLOSED (sp-x9: a48913acfa + 3556eff0c6 + 802fee96fa, Nalati first frame PASS, runtime -6, sections -25,612 B) |
 
 ## Opus (graphical)
 
