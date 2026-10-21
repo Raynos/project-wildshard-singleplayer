@@ -111,21 +111,6 @@ export const GAME_STRINGS = {
       claims: (count: number, declared: string): string => `Claims ${count} · declared wire ${declared}`,
       line: { loading: (pct: number): string => `LOADING · ${pct}%`, waiting: 'PLAY IT THROUGH SHARD SELECT' },
     },
-    /** G198 / G219: an open plot's showrooms (never the word "upload": there is no upload, it is singleplayer) */
-    plot: {
-      sign: 'THIS PLOT IS YOURS TO BUILD',
-      signSub: 'BUILT WITH CLAUDE CODE + THE WILDSHARD SDK',
-      billboard: 'WHAT WOULD YOU BUILD?',
-      demo: (idea: string): string => `DEMO · ${idea}`,
-      centre: '500 × 500 M · 4 ENTRIES',
-      turnIn: 'OPEN PLOT',
-      ideas: {
-        'showcase-template': 'SHOWCASE TEMPLATE', 'thin-ice': 'THIN ICE', 'frostline-peaks': 'FROSTLINE PEAKS', 'ember-forge': 'EMBER FORGE',
-        'lantern-bayou': 'LANTERN BAYOU', 'sky-harbor': 'SKY HARBOR', 'coral-drift': 'CORAL DRIFT', 'clockwork-canyon': 'CLOCKWORK CANYON',
-        'starfall-observatory': 'STARFALL OBSERVATORY', 'mosslight-ruins': 'MOSSLIGHT RUINS', 'alien-plain': 'PASTEL ALIEN PLAIN',
-        'desert-ruin': 'DESERT RUIN', 'night-market': 'NEON NIGHT MARKET', 'sky-race': 'FLOATING ISLAND RACE',
-      },
-    },
     reveal: (home: string): string => `Arriving at ${home}`,
     revealSkip: 'Tap to skip',
     /** G78: the chip above ATTACK on the road and in no-man's land (the weapon is stowed there, G68) */

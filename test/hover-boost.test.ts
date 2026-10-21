@@ -6,7 +6,6 @@ import { isDev, setDev } from '../src/engine/core/devMode';
 import { hoverSpeed } from '../src/engine/player/hoverSpeed';
 import { mountHoverBoost } from '../src/engine/ui/hoverBoost';
 import { gridHoverSpeed, installGridHoverSpeed, installShardHoverSpeed, type GridHoverPort } from '../src/game/grid/rules';
-import { GridAssembly } from '../src/game/grid/assembly';
 import { CARD } from '../src/shards/_template/data/card';
 import { MANIFEST as padding } from '../src/shards/_template/discovery.generated';
 import { MANIFEST as main } from '../src/shards/driftwood-isle/discovery.generated';
@@ -34,9 +33,6 @@ test('real padding declarations select road cruise; a main shard keeps its defau
   expect(player.hoverSpeedLimit).toBe(null);
   expect(hoverSpeed(player.hoverSpeedLimit?.(), true)).toBe(56);
   scope.dispose();
-  for (const plot of new GridAssembly({ developer: false, devserver: false }).plots) {
-    expect(gridHoverSpeed(centre, 14, plot.hoverSpeedClass)).toBe(30);
-  }
 });
 
 test('the live cap follows a class change and restores its previous owner', () => {

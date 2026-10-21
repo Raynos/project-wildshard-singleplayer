@@ -11,7 +11,6 @@ T=$R/tmp/open-plots/refs
 mkdir -p "$D" "$T"
 run() {
   id=$1; desc=$2; art="$R/art/grid/round-27-billboards/$id.jpg"
-  [ -f "$art" ] || art="$R/public/assets/grid/open-plot/$id.webp"
   [ -f "$art" ] || { echo "FAILED $id (no billboard)"; return; }
   prompt="Look at the attached billboard artwork only for WHAT this world's signature landmark looks like and its palette. Create a NEW image: a single 3D game asset reference for an image-to-3D model generator, $desc. Plain very light warm-grey seamless studio background, nothing else in the frame: no ground plane, no grass, no water around it, no scenery, no sky, no text, no border, no second object. Soft even front lighting, no strong cast shadows, no dramatic rim light, no fog, no glow halos. The object is centred and fills about 80 percent of the square frame with a small margin on every side. Chunky, clearly readable stylised forms with solid volumes; avoid thin wires, ropes, flags and spindly parts that cannot be modelled; every part is attached to the main body, and any thin part (chain, rail, mast, crane arm) stands clear of the body with plain background visible around it, never overlapping another part. Stylised game-asset rendering as a turnaround-sheet single view. Square 1:1 image.
 TASK FOR CODEX: generate exactly one image with your built-in image_gen tool, then copy the PNG path that YOUR image_gen call reported (other runs are writing to ~/.codex/generated_images at the same time, so never pick 'the newest file') to $T/$id.png. Do not read or edit any other file."

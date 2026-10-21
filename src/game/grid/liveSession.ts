@@ -64,7 +64,7 @@ import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../plugin/simulation';
 import { withCopyLayout } from './copyLayout';
-import type { CollisionMesh, CollisionStrip } from './collisionStrips';
+import type { CollisionStrip } from './collisionStrips';
 import type { LocalSaveInstance } from '../instanceSaves';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
 import { enteredRuntime, pickInFrame } from './enteredInteract';
@@ -127,8 +127,6 @@ export interface LiveGridSessionPorts {
   readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly CollisionStrip[]; readonly allocator: ResidencyAllocator;
-  /** G219: platform ground past the strips (the open plots' floors and showrooms), grid metres; the highway collides with it too */
-  readonly platform?: readonly CollisionMesh[];
   readonly neighbourEdges: (cell: GridCell, origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
   readonly rimEdges: (origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
 }
@@ -260,7 +258,6 @@ export class LiveGridSession {
     }
     const player = { get position() { return traveller.position; }, get yaw() { return traveller.yaw; }, health: page.health, owner: traveller, motor: traveller.motor };
     const highwayBytes = ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0)
-      + (ports.platform ?? []).reduce((sum, mesh) => sum + mesh.positions.byteLength + mesh.indices.byteLength, 0)
       + assembly.cells.length * TRANSFER_WALL_BYTES;
     try { this.live = new LiveGridHost(assembly, {
       continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
@@ -278,7 +275,6 @@ export class LiveGridSession {
         const host = createSimHost(PLATFORM_LEVEL, { rapier, playerBody: false, ground: false });
         try {
           for (const strip of ports.strips) installStripCollider(host.physics, strip.mesh, host.scope);
-          for (const mesh of ports.platform ?? []) installStripCollider(host.physics, mesh, host.scope);
           const origin = { x: 0, z: 0 };
           const walls = new ReadinessWalls(host.physics, [...assembly.cells.flatMap((cell) => ports.neighbourEdges(cell, origin)), ...ports.rimEdges(origin)], host.scope);
           this.transferWalls.set(null, new TransferWalls(() => host.physics, assembly.cells.map(cell => cell.origin), traveller.motor.opts.radius, 'entry', host.scope));
@@ -311,7 +307,6 @@ export class LiveGridSession {
     // Resolve immutable authored classes once; the physics tick reads the geometric cell, never the active motor frame.
     const hoverClasses = new Map<string, 'shard' | 'road'>();
     for (const cell of assembly.cells) hoverClasses.set(cell.cell.join(','), findShard(cell.slug)?.hoverSpeedClass ?? 'shard');
-    for (const plot of assembly.plots) hoverClasses.set(plot.cell.join(','), plot.hoverSpeedClass);
     // SF20d/G540: 30 m/s on the deck and road-class padding; ordinary interiors ease down to 14 over the strip.
     installGridHoverSpeed(traveller, scope, () => {
       const feet = this.live.worldFeet(), p = assembly.pitch;

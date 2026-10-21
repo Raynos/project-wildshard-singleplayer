@@ -610,7 +610,7 @@ export async function proveAuthoredGrid(source: Shardfile, assets: ReadonlyMap<s
   const instance = 'author-4', allocator = new ResidencyAllocator();
   const assembly = new GridAssembly({ developer: false, devserver: false }, {
     version: 0, pitch: CONTENT_CAPS.pitch, cells: Array.from({ length: 9 }, (_, index) => ({ instance: `author-${index}`, slug: source.identity.slug, cell: [index % 3 - 1, Math.floor(index / 3) - 1] })),
-    plots: [], developer: [], devserver: [], emptyNeighbour: { kind: 'sea', level: 0, edgeColour: [0.5, 0.5, 0.5], fog: { colour: [0.5, 0.5, 0.5], near: 10, far: 1000 } },
+    developer: [], devserver: [], emptyNeighbour: { kind: 'sea', level: 0, edgeColour: [0.5, 0.5, 0.5], fog: { colour: [0.5, 0.5, 0.5], near: 10, far: 1000 } },
   });
   interface Fact { name: string; actorId: string; tick: number }
   const facts: Fact[] = [], baselineFacts: Fact[] = [];

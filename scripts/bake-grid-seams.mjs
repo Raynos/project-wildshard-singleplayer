@@ -25,7 +25,7 @@ const fetchFile = async path => {
 const plans = new Map(), seen = new Set(), products = new Map();
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
   const assembly = new GridAssembly({ developer, devserver, nineDragon });
-  const key = JSON.stringify([assembly.cells, assembly.plots]);
+  const key = JSON.stringify(assembly.cells);
   if (seen.has(key)) continue;
   seen.add(key);
   const empty = assembly.emptyNeighbour.edge;

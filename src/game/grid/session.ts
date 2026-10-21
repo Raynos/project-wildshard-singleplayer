@@ -84,7 +84,6 @@ import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
 import { cellScreenStatus, installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
-import { installPlotCells, plotCellColliders, type PlotCellState } from './plotCells';
 import type { MemoryAdmissionWarning } from '@wildshard/format/product';
 import { TIER } from '@wildshard/engine/core/tier';
 import { horizonFade } from './horizonFade';
@@ -151,8 +150,6 @@ export interface GridSessionState {
   readonly shimmer: BorderShimmerState;
   /** G217: the cells you can't enter that wear the full loading screen now, and its redraw count */
   readonly screens: CellScreensState;
-  /** G198 / G219: the open plots (their showrooms' ideas, which are drawn, their draws and triangles) */
-  readonly plots: PlotCellState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
@@ -259,7 +256,7 @@ function neighbourEdges(cell: GridCell, home: Readonly<{ origin: Readonly<{ x: n
 }
 /** The closed outer rim on the outer road's shoulder: the void's rail (G89; the empty neighbour has no sim to wait for). */
 function rimEdges(assembly: GridAssembly, home: Readonly<{ origin: Readonly<{ x: number; z: number }> }>): ReadinessEdge[] {
-  const placements = [...assembly.cells, ...assembly.plots], xs = placements.map((c) => c.cell[0]), zs = placements.map((c) => c.cell[1]), p = assembly.pitch;
+  const xs = assembly.cells.map((c) => c.cell[0]), zs = assembly.cells.map((c) => c.cell[1]), p = assembly.pitch;
   const minX = Math.min(...xs) * p - p / 2 - RAIL_OFFSET, maxX = Math.max(...xs) * p + p / 2 + RAIL_OFFSET, minZ = Math.min(...zs) * p - p / 2 - RAIL_OFFSET, maxZ = Math.max(...zs) * p + p / 2 + RAIL_OFFSET;
   const cx = (minX + maxX) / 2 - home.origin.x, cz = (minZ + maxZ) / 2 - home.origin.z, hx = (maxX - minX) / 2, hz = (maxZ - minZ) / 2;
   return [
@@ -279,7 +276,6 @@ export class GridSession {
   /** G107 / SF66: each shard's baked map, downscaled once and shared by all its copies. */
   private readonly mapImages: CellMinimaps;
   private readonly strips: readonly CollisionStrip[];
-  private readonly plotColliders: readonly CollisionMesh[];
   private readonly host: GridSessionHost;
   private last: { x: number; z: number } | null = null;
   private velocity = { x: 0, z: 0 };
@@ -309,8 +305,6 @@ export class GridSession {
   private readonly names = new Map<string, string>();
   /** G217: the full loading screen on every cell you can't enter */
   private readonly screens: { readonly step: () => void; readonly state: () => CellScreensState };
-  /** G198 / G219: the open plots, platform ground with four entry showrooms and a centrepiece each */
-  private readonly plots: { readonly step: (dt: number) => void; readonly state: () => PlotCellState };
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost, progress?: StepProgress): Promise<GridSession> {
@@ -354,22 +348,15 @@ export class GridSession {
         camera: () => host.frame?.camera, plans, admission }, async () => {
           progress?.detail(`Road geometry · ${++batches} batches · ${strips.length} seams`); await construction.check();
         });
-      const plotColliders: CollisionMesh[] = [];
-      for (const [index, plot] of assembly.plots.entries()) {
-        progress?.detail(`Plot ground · ${index} / ${assembly.plots.length}`);
-        await construction.check();
-        plotColliders.push(...plotCellColliders([plot]));
-      }
-      progress?.detail(`Plot ground · ${assembly.plots.length} / ${assembly.plots.length}`);
       await construction.yield();
-      const session = new GridSession(host, edges, allocator, strips, { road, plans, plotColliders });
+      const session = new GridSession(host, edges, allocator, strips, { road, plans });
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams · road ready`);
       await construction.yield();
       return session;
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad; readonly plans: Map<Mesh, CullPlan>; readonly plotColliders?: readonly CollisionMesh[] }) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad; readonly plans: Map<Mesh, CullPlan> }) {
     this.host = host;
     this.mapImages = new CellMinimaps(host.scope, async slug => {
       const pending = gridShardfileProduct(slug, { allocator: this.allocator, scope: host.scope });
@@ -450,18 +437,6 @@ export class GridSession {
     const nativeOrigin = host.ownedHome === true ? { origin: { x: 0, z: 0 } } : home;
     const nativeMesh = (mesh: CollisionMesh): CollisionMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
     for (const { mesh } of this.strips) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
-    // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
-    this.plotColliders = (preparedRoad?.plotColliders ?? plotCellColliders(this.assembly.plots))
-      .map(({ origin, positions, indices }) => ({ origin, positions, indices }));
-    for (const mesh of this.plotColliders) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
-    try {
-      this.plots = installPlotCells({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
-        feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } });
-    } catch (error) {
-      if (!(error instanceof PlatformRenderAdmissionError)) throw error;
-      console.warn('[grid] the plot cells did not fit the envelope:', error);
-      this.plots = { step: () => undefined, state: () => ({ plots: [], pictures: 0, draws: 0, triangles: 0 }) };
-    }
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
     installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - nativeOrigin.origin.x, z: cell.origin.z - nativeOrigin.origin.z })));
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, nativeOrigin)), ...rimEdges(this.assembly, nativeOrigin)], host.scope);
@@ -677,7 +652,6 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      platform: this.plotColliders,
       residency: this.host.residency.home(),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
@@ -714,7 +688,6 @@ export class GridSession {
     this.softWalls.step();
     this.screens.step();
     this.shimmer.step();
-    this.plots.step(dt);
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
     const eye = this.host.eye?.();
     this.near.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
@@ -751,7 +724,7 @@ export class GridSession {
     return {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => { const d = drawn(cell.instance); return { instance: cell.instance, slug: cell.slug, cell: cell.cell, shows: shows(cell.instance, d), drawn: d }; }),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), screens: this.screens.state(), plots: this.plots.state(), ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), screens: this.screens.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
       rings: { frame: stats.frame, far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },
