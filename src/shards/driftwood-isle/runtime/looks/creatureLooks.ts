@@ -2,7 +2,7 @@ import { driftwoodRows } from '../boot/rows';
 import type * as THREE from 'three';
 import type { MeshStandardNodeMaterial } from 'three/webgpu';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 
 /**
  * The island's creatures on their graph toon looks (data/creatureLook.ts): the runtime lends the compiled bodies before
@@ -32,14 +32,11 @@ export function graphCreatureLook(look: SpeciesLook): SpeciesLook {
   } };
 }
 
-/** The Drowned Captain's `look` on his graph body: faceted, his painted coat (`coat()`, the GLB's map) lent to it, his eye
- *  glow the species' colour × intensity. */
-export function graphCaptainLook(look: SpeciesLook, coat: () => THREE.Texture | null): SpeciesLook {
+/** The Drowned Captain's `look` on his graph body: faceted, his painted coat the graph's admitted texture, his eye glow the
+ *  species' colour × intensity. */
+export function graphCaptainLook(look: SpeciesLook): SpeciesLook {
   return { ...look, faceted: true, sharedBody: () => body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain), material: (_sky, glow, intensity = 1) => {
-    const captain = body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain), map = coat();
-    if (map === null) throw new Error('Creature looks: the captain has no painted coat');
-    setLentTexture(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain, 'coatMap', map);
     if (glow !== undefined) setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
-    return captain.clone();
+    return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain).clone();
   } };
 }

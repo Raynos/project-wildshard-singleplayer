@@ -8,7 +8,6 @@ import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { installPopulationProjection } from '@wildshard/game/shardfile/clientPopulationProjection';
 import { preloadCreatureBodies } from '../species/bodies';
 import { CAPTAIN_LOOK } from '../species/captain';
-import { captainMesh } from '../species/captainMesh';
 import { graphCaptainLook, graphCreatureLook } from '../runtime/looks/creatureLooks';
 
 
@@ -20,7 +19,7 @@ export async function installDriftwoodCreatures(ctx: ShardContext, decisions: Sp
   if (program === undefined || respawn === undefined) throw new Error('Driftwood requires its admitted creature recipes');
   ctx.rows.species([...monkey.species(ctx, program, decisions), ...section.page]);
   // the boar and bear from the bake; every creature on the graph toon look, the Drowned Captain on his painted coat
-  ctx.rows.speciesLook([...await driftwoodLooks(ctx.product), ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look.kind === 'monkey' ? { ...look, animate: monkey.animate } : look))));
+  ctx.rows.speciesLook([...await driftwoodLooks(ctx.product), ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look) : graphCreatureLook(look.kind === 'monkey' ? { ...look, animate: monkey.animate } : look))));
   ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
   const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
   ctx.rows.lootTable(loot);

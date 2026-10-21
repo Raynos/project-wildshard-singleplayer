@@ -4,7 +4,6 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { creatureBody } from './bodies';
-import { captainMesh, type CaptainMesh } from './captainMesh';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -13,8 +12,8 @@ import { captainMesh, type CaptainMesh } from './captainMesh';
  * frock coat with tarnished gold trim and epaulettes, a battered tricorn, a beard of kelp, barnacles on the shoulders,
  * glowing cyan eyes and a heavy boarding cutlass. Humanoid custom rig (the sailor's bones). 320 hp.
  *
- * The mesh is the generated hull of ./captainMesh.ts on the sailor's humanoid rig (the rig contract is the bone list +
- * the animate() of ./captainPose.ts).
+ * The body is the baked creature body on the sailor's humanoid rig; his painted coat is an admitted look texture his
+ * graph samples (data/captainCoat.json).
  *
  * The fight (`think`), three phases by hp:
  *   I   (100–66 %) — he wades after you (1.2 m/s) and swings: a 0.7 s over-the-head wind-up (a readable telegraph),
@@ -29,22 +28,16 @@ import { captainMesh, type CaptainMesh } from './captainMesh';
  * `mem.poolX / poolZ` = where he rises (default: where he was spawned).
  */
 
-/** The prepared body retains the original groups, skin indices, eyes and texture. */
-function buildCaptain(mesh: CaptainMesh = captainMesh): AnimalSpecies {
-  const map = mesh.textureFor();
-  return { ...creatureBody('captain', 'captain'), ...(map ? { map, selfLight: 0.5 } : {}), facetJitter: 0 };
-}
+/** The prepared body retains the original groups, skin indices and eyes. */
+function buildCaptain(): AnimalSpecies { return { ...creatureBody('captain', 'captain'), facetJitter: 0 }; }
 
-
-/** the captain's look over a mesh (the page's by default; a test passes its own) */
-export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { return {
+export const CAPTAIN_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'captain.v1', clips: [], sockets: ['body', 'head'] },
   id: 'driftwood.look.captain', species: 'creature.captain', kind: 'captain',
   standMem: { init: 1, rise: 1 }, // it waits sunk in its pool until woken: the Explorer shows it risen
   fur: NO_FUR,
   rig: 'custom',
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,
-  build: () => buildCaptain(mesh),
+  build: buildCaptain,
   animate: numericCreaturePose(captainClips),
-}; }
-export const CAPTAIN_LOOK: SpeciesLook = captainLook();
+};

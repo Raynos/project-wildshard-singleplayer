@@ -1,0 +1,16 @@
+{
+  "source": "public/assets/models/driftwood-hero/captain/captain.glb#images/0",
+  "width": 1024,
+  "height": 1024,
+  "file": {
+    "hash": "a3fca362de406d3063f6aff3083eb852967dfbb73afb7ff67daaaddaed262e3a",
+    "kind": "ktx2",
+    "compressed": 1263018,
+    "decoded": 0,
+    "gpu": 5592404,
+    "triangles": 0,
+    "draws": 0,
+    "dependencies": [],
+    "critical": false
+  }
+}

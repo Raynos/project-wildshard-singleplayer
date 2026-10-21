@@ -9,6 +9,13 @@
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
   "pins": [
     {
+      "path": "src/shards/driftwood-isle/assets/a3fca362de406d3063f6aff3083eb852967dfbb73afb7ff67daaaddaed262e3a",
+      "oid": "d40b8b5cf0dc5409eabbec757660b4cb13225c31",
+      "bytes": 1263018,
+      "kind": "runtime",
+      "purpose": "Driftwood's Drowned Captain painted coat (G7): the 1024 atlas as a mipmapped UASTC KTX2 look texture, replacing the runtime load of the whole captain GLB; ASTC on the phone is ~1.4 MB of GPU against the 5.6 MB RGBA8 it replaces"
+    },
+    {
       "path": "src/shards/blender-template/assets/world.glb",
       "oid": "55f92056db514b8e343fa27cf49024ee2258429b",
       "bytes": 1034748,

@@ -22,7 +22,6 @@ import { captainHat, sailclothCape } from '../runtime/models/captainHat';
 import { driftwoodRows } from '../runtime/boot/rows';
 import { installItemEffects } from '@wildshard/game/loadout/effects';
 import { driftwoodLootPresentation } from '../loot/presentation';
-import { preloadCaptainMesh } from '../species/captainMesh';
 import { preloadCreatureBodies } from '../species/bodies';
 
 /** Prewarm the real hulls before the entered chapter can restore a saved altar. */
@@ -31,7 +30,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Driftwood adventure requires the play host');
   // Saved used:altar restores the boss synchronously in Finale; resolve the hull before any quest restore/spawn.
-  await Promise.all([preloadCaptainMesh(), preloadCreatureBodies()]);
+  await preloadCreatureBodies();
   if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
   const { player } = world;
   const d = driftwoodWorld(shell);
