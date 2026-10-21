@@ -1565,6 +1565,11 @@ epilogue is unchanged. `toonGraph` refuses caustics and `painterlyGraph` a wind 
 today's families stay hand-written GLSL.
 
 
+Node builds scope `render/nodes/nodeChildren.ts` child snapshots to one synchronous build. Immediate children
+retain stock order, duplicates and eager snapshot semantics without property/index descriptor allocations; custom
+collectors retain the original traversal. Success and failure restore the previous method, including nested builds.
+No graph snapshot survives the build, and shader sources, uniform declarations and program keys stay unchanged.
+
 SF59 effect graphs may add `effectState: { blend?, fog?, depthWrite?, depthBias? }`.
 `blend` is `alpha` (straight RGB), `additive` (straight RGB multiplied by alpha
 and added), or `premultiplied` (RGB already multiplied by alpha, One /
