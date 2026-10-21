@@ -1,0 +1,385 @@
+{
+  "id": "pine.lodge",
+  "store": "lodge",
+  "slots": 3,
+  "attempts": 24,
+  "initial": [
+    {
+      "kind": "species",
+      "target": "deer"
+    }
+  ],
+  "fallback": {
+    "kind": "thrall",
+    "target": "thrall"
+  },
+  "draws": [
+    {
+      "below": 0.45,
+      "kind": "species",
+      "targets": [
+        "deer",
+        "boar",
+        "elk",
+        "bear"
+      ]
+    },
+    {
+      "below": 0.65,
+      "kind": "rarity",
+      "targets": [
+        "uncommon",
+        "rare"
+      ]
+    },
+    {
+      "below": 0.8,
+      "kind": "elite",
+      "targets": [
+        "ironhide",
+        "ghost-stag",
+        "blackpaw",
+        "imperial-bull"
+      ]
+    },
+    {
+      "below": 1,
+      "kind": "thrall",
+      "targets": [
+        "thrall"
+      ]
+    }
+  ],
+  "ranks": {
+    "common": 0,
+    "uncommon": 1,
+    "rare": 2,
+    "legendary": 3
+  },
+  "defaultRank": "common",
+  "tags": [
+    {
+      "tag": "thrall",
+      "any": [
+        {
+          "variant": "thrall"
+        },
+        {
+          "label": "Thrall"
+        }
+      ]
+    }
+  ],
+  "matches": [
+    {
+      "kind": "species",
+      "match": "species",
+      "excludeTags": [
+        "thrall"
+      ],
+      "excludeElite": false
+    },
+    {
+      "kind": "rarity",
+      "match": "rarity",
+      "excludeTags": [
+        "thrall"
+      ],
+      "excludeElite": true,
+      "belowRank": 3
+    },
+    {
+      "kind": "elite",
+      "match": "elite",
+      "excludeTags": [],
+      "excludeElite": false
+    },
+    {
+      "kind": "thrall",
+      "match": "tag",
+      "excludeTags": [],
+      "excludeElite": false
+    }
+  ],
+  "milestones": [
+    {
+      "claimed": 3,
+      "skin": "hollow-ash"
+    }
+  ],
+  "species": [
+    {
+      "id": "deer",
+      "plural": "deer",
+      "need": 3,
+      "title": "Venison for the lodge"
+    },
+    {
+      "id": "boar",
+      "plural": "boar",
+      "need": 3,
+      "title": "The rooting boar"
+    },
+    {
+      "id": "elk",
+      "plural": "elk",
+      "need": 2,
+      "title": "Elk for the smokehouse"
+    },
+    {
+      "id": "bear",
+      "plural": "bear",
+      "need": 1,
+      "title": "A bear too bold"
+    }
+  ],
+  "rarity": [
+    {
+      "id": "uncommon",
+      "need": 2,
+      "title": "Something unusual"
+    },
+    {
+      "id": "rare",
+      "need": 1,
+      "title": "A rare coat"
+    }
+  ],
+  "elites": {
+    "ironhide": {
+      "name": "Old Ironhide",
+      "kind": "boar",
+      "variant": "ironhide"
+    },
+    "ghost-stag": {
+      "name": "the Ghost Stag",
+      "kind": "deer",
+      "variant": "ghost"
+    },
+    "blackpaw": {
+      "name": "Old Blackpaw",
+      "kind": "bear",
+      "variant": "black-old"
+    },
+    "imperial-bull": {
+      "name": "the Imperial Bull",
+      "kind": "elk",
+      "variant": "imperial"
+    }
+  },
+  "eliteIds": [
+    "ironhide",
+    "ghost-stag",
+    "blackpaw",
+    "imperial-bull"
+  ],
+  "rows": [
+    {
+      "id": "contract.species.deer",
+      "kind": "species",
+      "target": "deer",
+      "need": 3,
+      "title": "Venison for the lodge",
+      "goal": "Take 3 deer",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 1
+          }
+        ],
+        "bolts": 10
+      }
+    },
+    {
+      "id": "contract.species.boar",
+      "kind": "species",
+      "target": "boar",
+      "need": 3,
+      "title": "The rooting boar",
+      "goal": "Take 3 boar",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 1
+          }
+        ],
+        "bolts": 10
+      }
+    },
+    {
+      "id": "contract.species.elk",
+      "kind": "species",
+      "target": "elk",
+      "need": 2,
+      "title": "Elk for the smokehouse",
+      "goal": "Take 2 elk",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 1
+          }
+        ],
+        "bolts": 10
+      }
+    },
+    {
+      "id": "contract.species.bear",
+      "kind": "species",
+      "target": "bear",
+      "need": 1,
+      "title": "A bear too bold",
+      "goal": "Take 1 bear",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 1
+          }
+        ],
+        "bolts": 10
+      }
+    },
+    {
+      "id": "contract.rarity.uncommon",
+      "kind": "rarity",
+      "target": "uncommon",
+      "need": 2,
+      "title": "Something unusual",
+      "goal": "Take 2 uncommon animals",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 2
+          }
+        ],
+        "bolts": 0
+      }
+    },
+    {
+      "id": "contract.rarity.rare",
+      "kind": "rarity",
+      "target": "rare",
+      "need": 1,
+      "title": "A rare coat",
+      "goal": "Take a rare animal",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 2
+          }
+        ],
+        "bolts": 0
+      }
+    },
+    {
+      "id": "contract.elite.ironhide",
+      "kind": "elite",
+      "target": "ironhide",
+      "need": 1,
+      "title": "A name on the board",
+      "goal": "Take Old Ironhide",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 3
+          },
+          {
+            "id": "amber-resin",
+            "n": 4
+          }
+        ],
+        "bolts": 0
+      }
+    },
+    {
+      "id": "contract.elite.ghost-stag",
+      "kind": "elite",
+      "target": "ghost-stag",
+      "need": 1,
+      "title": "A name on the board",
+      "goal": "Take the Ghost Stag",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 3
+          },
+          {
+            "id": "amber-resin",
+            "n": 4
+          }
+        ],
+        "bolts": 0
+      }
+    },
+    {
+      "id": "contract.elite.blackpaw",
+      "kind": "elite",
+      "target": "blackpaw",
+      "need": 1,
+      "title": "A name on the board",
+      "goal": "Take Old Blackpaw",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 3
+          },
+          {
+            "id": "amber-resin",
+            "n": 4
+          }
+        ],
+        "bolts": 0
+      }
+    },
+    {
+      "id": "contract.elite.imperial-bull",
+      "kind": "elite",
+      "target": "imperial-bull",
+      "need": 1,
+      "title": "A name on the board",
+      "goal": "Take the Imperial Bull",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 3
+          },
+          {
+            "id": "amber-resin",
+            "n": 4
+          }
+        ],
+        "bolts": 0
+      }
+    },
+    {
+      "id": "contract.thrall.thrall",
+      "kind": "thrall",
+      "target": "thrall",
+      "need": 3,
+      "title": "Cull the moss-grown",
+      "goal": "Put down 3 thralls",
+      "reward": {
+        "items": [
+          {
+            "id": "lodge-ribbon",
+            "n": 2
+          },
+          {
+            "id": "amber-resin",
+            "n": 3
+          }
+        ],
+        "bolts": 0
+      }
+    }
+  ]
+}
