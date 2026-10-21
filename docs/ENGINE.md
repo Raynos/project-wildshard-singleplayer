@@ -9646,6 +9646,20 @@ restoreHandles({id:oldNativeHandleOrNull}) after physics restoration through
 their existing save owner. Handles never enter AS. Original collision
 owner/material and unique handles are verified before rebinding.
 
+`ops.setPlayerIntent({x, z})` copies requested world walk velocity in
+metres per second before collision, at the caller's existing phase.
+`Read.playerIntent(axis)` (scalar opcode 26) reads that sample: axis 0
+is x and axis 1 is z. The script declares `playerIntent` in its reads;
+other axes, reserved arguments and an uninitialized sample refuse.
+`rows.floors` optionally declares captured grids as
+`{x, z, step, width, height, values: (number | null)[]}`.
+`Read.declaredFloor(x, z)` (list opcode 7) returns a count; `List.at(0)`
+is the nearest grid sample layered by maximum height over native ground.
+`ops.list(op, x, z, out)` lends that query to native decision owners.
+Grid dimensions and sample counts are admitted together. Original ground
+queries retain their meaning. `bodyTeleport` restores the declared upright
+yaw; `bodyPlace` uses its explicitly requested heading.
+
 ### Build-emitted numeric creature poses
 
 `game/plugin/channelPrograms.numericCreaturePose(input)` lends existing
