@@ -8,7 +8,7 @@ import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
 import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting } from '../boot/download';
-import { loadingDownloadText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
+import { loadingDownloadText, loadingDownloadFraction, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
 import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
@@ -250,9 +250,7 @@ export class Loading {
   private downloadProgress(done: boolean) {
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
     const transfer = this.downloads.snapshot();
-    const received = transfer.networkBytes + transfer.cachedBytes;
-    const fraction = done && transfer.filesDone === transfer.filesTotal && transfer.unclassifiedFiles === 0 ? 1
-      : Math.min(0.999, received / (received + transfer.pendingBytes + transfer.unclassifiedBytes + 1));
+    const fraction = loadingDownloadFraction(transfer, done, this.prefetchSource?.() ?? null);
     return { ...transfer, fraction };
   }
 

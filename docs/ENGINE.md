@@ -874,7 +874,9 @@ and newly stored bytes/files). It is polled with the loading repaint. The
 panel reports the on-disk sum against the set discovered so far; quota stops
 remain visible. These counts never credit network transfers or alter the
 wire denominator. Wire traffic, verified cache reads and pending file
-sizes retain separate labels.
+sizes retain separate labels. The Download track also waits for discovered
+prefetch files and product checks before claiming 100 percent; this does not
+delay gameplay handover.
 
 All-zero worker timings remain `unclassifiedFiles`, never zero-byte
 cache hits. `unclassifiedBytes` is the known body/index size for those

@@ -1,9 +1,20 @@
 import { expect, it } from 'vitest';
-import { loadingDownloadText, type LoadingPrefetchSnapshot } from '../src/engine/boot/loadingDownloadText';
+import { loadingDownloadText, loadingDownloadFraction, type LoadingPrefetchSnapshot } from '../src/engine/boot/loadingDownloadText';
 
 const traffic = { networkBytes: 1_300_000, cachedBytes: 2_000_000, pendingBytes: 500_000, filesDone: 4, filesTotal: 5, unclassifiedBytes: 100_000, unclassifiedFiles: 0 };
 const prefetch: LoadingPrefetchSnapshot = { phase: 'running', reason: null, products: 25, productsRead: 3,
   knownFiles: 10, knownBytes: 20_000_000, presentFiles: 2, presentBytes: 4_000_000, storedFiles: 3, storedBytes: 6_000_000 };
+
+it('does not show download completion while known prefetch files or indexes remain', () => {
+  const done = { ...traffic, filesDone: 5, pendingBytes: 0, unclassifiedBytes: 0 };
+  expect(loadingDownloadFraction(done, true, null)).toBe(1);
+  expect(loadingDownloadFraction(done, true, prefetch)).toBe(0.5);
+  expect(loadingDownloadFraction(done, true, { ...prefetch, phase: 'quota' })).toBe(0.5);
+  const cached = { ...prefetch, productsRead: 25, presentFiles: 7, presentBytes: 14_000_000 };
+  expect(loadingDownloadFraction(done, true, cached)).toBeLessThan(1);
+  expect(loadingDownloadFraction(done, true, { ...cached, phase: 'done' })).toBe(1);
+  expect(loadingDownloadFraction({ ...done, unclassifiedFiles: 1 }, true, { ...cached, phase: 'done' })).toBeLessThan(1);
+});
 
 it('keeps actual wire bytes separate from cached and discovered disk-prefetch bytes', () => {
   const text = loadingDownloadText(traffic, true, prefetch);

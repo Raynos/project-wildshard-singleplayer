@@ -11,6 +11,18 @@ export interface LoadingPrefetchSnapshot {
   readonly storedFiles: number; readonly storedBytes: number;
 }
 
+/** The download track completes only when both declared load work and discovered prefetch work finish. */
+export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean, prefetch: LoadingPrefetchSnapshot | null): number {
+  const received = transfer.networkBytes + transfer.cachedBytes;
+  const activity = done && transfer.filesDone === transfer.filesTotal && transfer.unclassifiedFiles === 0 ? 1
+    : Math.min(0.999, received / (received + transfer.pendingBytes + transfer.unclassifiedBytes + 1));
+  if (prefetch === null) return activity;
+  const complete = prefetch.phase === 'done' && prefetch.productsRead === prefetch.products
+    && prefetch.presentFiles + prefetch.storedFiles === prefetch.knownFiles;
+  const disk = complete ? 1 : Math.min(0.999, (prefetch.presentBytes + prefetch.storedBytes) / Math.max(1, prefetch.knownBytes));
+  return Math.min(activity, disk);
+}
+
 /** Wire traffic, verified cache reads and disk-prefetch completion have separate units and totals. */
 export function loadingDownloadText(transfer: DownloadSnapshot, scoped: boolean, prefetch: LoadingPrefetchSnapshot | null): string {
   const unknown = transfer.unclassifiedFiles > 0 ? ` · wire size unavailable for ${transfer.unclassifiedFiles} files (${formatMB(transfer.unclassifiedBytes)} known body)` : '';

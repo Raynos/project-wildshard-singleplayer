@@ -24,11 +24,11 @@ export function accuracyRecorder() {
           waiting: root.dataset.waiting, filesInFlight: root.dataset.filesInFlight, stalled: root.dataset.stalled,
           path: root.dataset.path, step: root.dataset.step, setup: root.dataset.setup,
           networkBytes: root.dataset.networkBytes, cachedBytes: root.dataset.cachedBytes,
-          pendingBytes: root.dataset.pendingBytes, unclassifiedFiles: root.dataset.unclassifiedFiles, rows };
+          pendingBytes: root.dataset.pendingBytes, unclassifiedFiles: root.dataset.unclassifiedFiles, prefetch: root.dataset.prefetch, rows };
         // Wait ages are clocks, not completed work. Real transport/cache byte
         // changes still count during a long read before its file completes.
         const footer = sample.footer.replaceAll(/ · \d+(?:\.\d+)? s(?= ·|$)/gu, '');
-        const detailed = `${sample.detail}|${footer}|${sample.networkBytes}|${sample.cachedBytes}|${sample.pendingBytes}|${rows.map(row => row.detail).join('|')}`;
+        const detailed = `${sample.detail}|${footer}|${sample.networkBytes}|${sample.cachedBytes}|${sample.pendingBytes}|${sample.unclassifiedFiles}|${sample.prefetch}|${rows.map(row => row.detail).join('|')}`;
         const changed = detailed !== state.last;
         if (changed) { state.updates.push(now); state.last = detailed; }
         if (changed || now - state.lastSampleAt >= 250) { state.samples.push(sample); state.lastSampleAt = now; }
