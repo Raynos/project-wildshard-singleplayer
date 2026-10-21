@@ -1,3 +1,4 @@
+import { EncounterSlotsSchema } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Scene, Vector3 } from 'three';
 import * as v from 'valibot';
@@ -6,14 +7,13 @@ import { app } from '../src/engine/app/runtime';
 import type { Game } from '../src/engine/core/Game';
 import { overrideTerrain } from './fake/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
-import { EncounterSlotsSchema } from '../src/game/boss/encounterPatrol';
 import { SlotEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 
 // A made-up orchard (the slot view's fixture second user): crowned guard statues on their own plinths, cues and wedge,
 // on the roster law Nalati's balbals share.
-const slots = { ...v.parse(EncounterSlotsSchema, night.slots), actors: { kind: 'orchard-statue', variant: 'guard', variants: { '2': 'crowned' }, herd: -2, yaw: .5, sink: -1,
+const slots = { ...v.parse(EncounterSlotsSchema,night.slots), actors: { kind: 'orchard-statue', variant: 'guard', variants: { '2': 'crowned' }, herd: -2, yaw: .5, sink: -1,
   memory: { rising: 0 }, home: { x: 'originX', z: 'originZ', yaw: 'facing' }, dawn: 'returning', gone: 'buried' } };
 const cue = (id: string) => ({ id, vfx: [] });
 const ids = ['cue.orchard.wake', 'cue.orchard.chip', 'cue.orchard.weak', 'cue.orchard.hard', 'cue.orchard.break', 'cue.orchard.stomp', 'cue.orchard.petal'];

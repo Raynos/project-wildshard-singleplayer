@@ -3,22 +3,9 @@
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Scope } from '@wildshard/engine/app/scope';
-import * as v from 'valibot';
-import { EncounterScheduleSchema, EncounterTrail } from './encounterPatrol';
+import type { ArenaFieldRows,ArenaEncounterRows } from '@wildshard/format/encounterRows';
+import { EncounterTrail } from './encounterPatrol';
 
-const finite = v.pipe(v.number(), v.finite());
-const count = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(64));
-const offset = v.pipe(finite, v.integer(), v.minValue(-1), v.maxValue(1));
-export const ArenaFieldSchema = v.strictObject({
-  x: finite, z: finite, width: count, depth: count,
-  cell: v.pipe(finite, v.minValue(.01)),
-  observations: v.record(v.string(), finite),
-  neighbours: v.pipe(v.array(v.tuple([offset, offset])), v.maxLength(8)),
-  signals: v.strictObject({ ignite: v.string(), step: v.string(), clock: v.string() }),
-  contact: v.optional(v.strictObject({ law: EncounterScheduleSchema,
-    samples: v.pipe(v.array(v.strictObject({ x: finite, z: finite })), v.maxLength(8)) })),
-});
-export type ArenaFieldRows = v.InferOutput<typeof ArenaFieldSchema>;
 /** Plain rows and an already admitted module; no shard callbacks or rendering. */
 export class ArenaField {
   readonly rows: ArenaFieldRows;
@@ -28,8 +15,8 @@ export class ArenaField {
   private clock = 0;
   private contactElapsed = 0;
   private readonly contact: ProjectedState | null;
-  constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
-    this.rows = v.parse(ArenaFieldSchema, input);
+  constructor(input: ArenaFieldRows, private readonly program: ReturnProgram, private readonly random: Rng) {
+    this.rows = input;
     this.contact = this.rows.contact === undefined ? null : new ProjectedState(this.rows.contact.law, program);
     this.modes = new Uint8Array(this.rows.width * this.rows.depth);
     this.lifetimes = new Float32Array(this.modes.length);
@@ -122,29 +109,17 @@ export function arenaBoundaryBlocked(scope: Scope, x: number, z: number): boolea
   return false;
 }
 
-const numeric = v.record(v.string(), finite);
-const schedule = v.strictObject({ id: v.string(), law: EncounterScheduleSchema });
-/** A bounded set of authored clocks. The AS gate chooses which clocks advance;
- * projections observe shared health/phase inputs and publish one-shot effects.
- * Landing slots borrow a position history; no view or shard callback is stored. */
-export const ArenaEncounterSchema = v.strictObject({
-  gate: v.strictObject({ signal: v.string(), parameters: numeric }),
-  schedules: v.pipe(v.array(schedule), v.maxLength(16)),
-  shared: v.record(v.string(), v.strictObject({ clock: v.string(), slot: v.string() })),
-  volley: v.strictObject({ launcher: v.string(), capacity: v.pipe(count, v.maxValue(8)),
-    landing: EncounterScheduleSchema, trail: v.strictObject({ capacity: count, seconds: v.pipe(finite, v.minValue(.1)) }) }),
-});
 export interface ArenaClockEffect { readonly id: string; readonly index: number; readonly values: Readonly<Record<string, number>> }
 /** The existing arena host owns attack cadence, delayed strikes and sharing of
  * cooldown slots. Choices and telegraph windows belong to the admitted guest. */
 export class ArenaEncounter {
   readonly schedules: ReadonlyMap<string, ProjectedState>;
   readonly landings: readonly ProjectedState[];
-  private readonly rows: v.InferOutput<typeof ArenaEncounterSchema>;
+  private readonly rows: ArenaEncounterRows;
   private readonly trail: EncounterTrail;
   private elapsed = 0;
-  constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
-    this.rows = v.parse(ArenaEncounterSchema, input);
+  constructor(input: ArenaEncounterRows, private readonly program: ReturnProgram, private readonly random: Rng) {
+    this.rows = input;
     if (new Set(this.rows.schedules.map(row => row.id)).size !== this.rows.schedules.length) throw new Error('Duplicate arena clock');
     this.schedules = new Map(this.rows.schedules.map(row => [row.id, new ProjectedState(row.law, program)]));
     if (!this.schedules.has(this.rows.volley.launcher)) throw new Error('Missing arena launcher');

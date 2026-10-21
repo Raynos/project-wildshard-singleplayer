@@ -75,3 +75,14 @@ plain numeric rows, renderer-free, needed by either user alone, and no author
 callbacks. The shared ten-Hz sampler drops catch-up bursts. Native field grids,
 rosters and per-course controllers keep their individual one-user charges.
 Runtime physical TS delta: **shards 0, platform -12**; AS and data unchanged.
+
+
+X4 encounter validation follow-up: the complete patrol, slot, coupled roster,
+schedule, field, clock, whirlwind and timed-file schema declarations move to
+build-only `format/encounterRows`. Existing named JSON admission checks the
+arena and timed files before native allocation; play imports only row types.
+Dynamic native slot metadata still rejects non-finite values. Native grids,
+rosters and arena presentation keep their one-user charge: HOST-BAR 4/6.
+The existing named-JSON host remains 6/6; no grown host earns new user credit.
+Runtime physical TS delta: **shards 0, platform -60**. Build-only TS **+73**;
+total physical TS **+13**. Data payloads, colliders, AS and ceilings unchanged.

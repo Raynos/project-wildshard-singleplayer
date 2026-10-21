@@ -1,13 +1,11 @@
 import type { ShardContext } from '../plugin/context';
 import { clientNativeBook } from '../shardfile/clientNativeBook';
-import * as v from 'valibot';
+import type { TimedEncountersRows } from '@wildshard/format/encounterRows';
 import { Vector3, type BufferGeometry } from 'three';
-import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { app } from '@wildshard/engine/app/runtime';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -21,13 +19,6 @@ import { wildEnv } from '../population/pageGroups';
 import type { PageCreatureGuest } from '../population/creatureGuest';
 import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
 
-const tag = v.custom<CombatTag>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value));
-/** A timed encounter composition names phase membership, native rows and contact. */
-export const TimedEncountersSchema = v.object({ program: v.unknown(), slots: v.unknown(), view: v.unknown(),
-  patrol: v.unknown(), motion: v.unknown(), ride: v.unknown(), phases: v.strictObject({ slots: v.array(v.string()), patrol: v.array(v.string()) }),
-  lightFloor: v.pipe(v.number(), v.finite(), v.minValue(0)),
-  contact: v.strictObject({ strike: CreatureStrikeSchema, tags: v.array(tag), origin: v.picklist(['actor', 'player']) }),
-});
 interface TimedEncounterContext {
   readonly game: Game; readonly sky: SkyRig; readonly player: Player; readonly forest: Forest;
   readonly sites: EncounterSites | null; readonly clock: DayCycleClock;
@@ -38,9 +29,9 @@ export class TimedEncounters {
   readonly slots: SlotEncounterView; readonly riders: PatrolEncounterView;
   private readonly rows; private readonly strike;
   private readonly contacts = new StrikeRunner(); private readonly direction = new Vector3();
-  constructor(private readonly ctx: TimedEncounterContext, input: unknown,
+  constructor(private readonly ctx: TimedEncounterContext, input: TimedEncountersRows,
     figures: Readonly<Record<string, BufferGeometry>>, guest: PageCreatureGuest, private readonly cues: CueDirector) {
-    const rows = this.rows = v.parse(TimedEncountersSchema, input), scope = ctx.game.levelScope;
+    const rows = this.rows = input, scope = ctx.game.levelScope;
     if (scope.disposed) throw new Error('Encounter owner was disposed during admission');
     this.strike = strikeFromData(rows.contact.strike);
     const program = ReturnProgram.page(rows.program, scope);
@@ -51,8 +42,8 @@ export class TimedEncounters {
   /** Borrow declared presentation owners while the encounter keeps its clock. */
   static async install(owner: ShardContext, ctx: TimedEncounterContext, file: string,
     figures: Readonly<Record<string, BufferGeometry>>, guest: PageCreatureGuest): Promise<TimedEncounters> {
-    const input = await owner.product.json(file), row = v.parse(v.object({ presentation: v.string() }), input);
-    const presentation = clientNativeBook(owner).presentations.get(row.presentation);
+    const input = await owner.product.json<TimedEncountersRows>(file);
+    const presentation = clientNativeBook(owner).presentations.get(input.presentation);
     if (presentation === undefined) throw new Error('Missing declared encounter presentation');
     return new TimedEncounters(ctx, input, figures, guest, presentation);
   }

@@ -1,4 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
+import { parse } from 'valibot';
+import { ArenaWhirlsSchema } from '../src/format/encounterRows';
 import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshLambertMaterial, Scene, Vector3 } from 'three';
 import { parsePrivateScene } from '../src/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
@@ -74,7 +76,7 @@ const devils = { laws: [devil(-8), devil(8)], ease: 4, spin: 2, sink: 0.2, breat
 test('a second shard\'s dust devils ease in only while armed and live, spin their funnels and climb their debris', () => {
   restore = overrideTerrain({ heightAt: () => 3, normalAt: () => [0, 1, 0] });
   const funnels = [new Group(), new Group()], debris = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 6);
-  const view = new ArenaWhirlsView(devils, ReturnProgram.page(program.wind), funnels, debris);
+  const view = new ArenaWhirlsView(parse(ArenaWhirlsSchema, devils), ReturnProgram.page(program.wind), funnels, debris);
   view.update(0.1, 0, true, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
   expect(funnels.every(funnel => !funnel.visible)).toBe(true); expect(debris.count).toBe(0);
   view.arm(0b10);
@@ -86,7 +88,7 @@ test('a second shard\'s dust devils ease in only while armed and live, spin thei
   for (let i = 0; i < 40; i++) view.update(0.1, 1 + i * 0.1, false, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
   expect(funnels[1]?.visible).toBe(false);
   view.reset(); expect(debris.count).toBe(0);
-  expect(() => new ArenaWhirlsView(devils, ReturnProgram.page(program.wind), [new Group()], debris)).toThrow('funnel');
+  expect(() => new ArenaWhirlsView(parse(ArenaWhirlsSchema, devils), ReturnProgram.page(program.wind), [new Group()], debris)).toThrow('funnel');
 });
 
 // The quarry's own dressing (the arena scene's fixture second user): a dust curtain that rises with its seal, a lit spoil

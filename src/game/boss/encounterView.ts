@@ -26,7 +26,8 @@ import { ProjectedState, type ReturnProgram } from '../population/returnProgram'
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
-import { EncounterPatrol, EncounterScheduleSchema, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
+import { EncounterPatrol, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
+import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows } from '@wildshard/format/encounterRows';
 
 const finite = v.pipe(v.number(), v.finite()), cue = v.pipe(v.string(), v.regex(/^cue\.[a-zA-Z0-9.-]+$/u)), name = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u));
 const shader = v.pipe(v.string(), v.maxLength(4096));
@@ -133,7 +134,7 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
   private readonly rows: v.InferOutput<typeof SlotViewSchema>;
   private readonly wedges: GroundTell[] = [];
   private trailT = 0;
-  constructor(slots: unknown, view: unknown, program: ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
+  constructor(slots: EncounterSlotsRows, view: unknown, program: ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
     readonly sites: readonly EncounterSlotSite[] | null; readonly guest: { readonly weakPoint: (actor: A, at: THREE.Vector3) => boolean } }) {
     this.slots = new EncounterSlots<A>(slots, program); this.rows = v.parse(SlotViewSchema, view);
     const tell = this.rows.tell;
@@ -242,10 +243,10 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   private readonly hit: TargetHit;
   private shooter: A | null = null;
   get killsTonight(): number { return this.patrol.kills; }
-  constructor(input: { readonly patrol: unknown; readonly motion: unknown; readonly view: unknown }, private readonly program: ReturnProgram,
+  constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: unknown }, private readonly program: ReturnProgram,
     private readonly ports: ProjectileWorld & { readonly cues: CueDirector; readonly figures: Readonly<Record<string, THREE.BufferGeometry>> }) {
     this.rows = v.parse(PatrolViewSchema, input.view);
-    this.patrol = new EncounterPatrol<A>(input.patrol, program, app.rng.stream('ai')); this.motion = new ProjectedState(v.parse(EncounterScheduleSchema,input.motion), program);
+    this.patrol = new EncounterPatrol<A>(input.patrol, program, app.rng.stream('ai')); this.motion = new ProjectedState(input.motion, program);
     for (const key of Object.keys(this.rows.looks)) if (ports.figures[key] === undefined) throw new Error(`Missing patrol figure: ${key}`);
     const { geometry, colour, renderOrder, ...kind } = this.rows.arrow;
     this.arrows = new Projectiles(ports, undefined, { ...kind, geometry: new THREE.BufferGeometryLoader().parse(geometry),

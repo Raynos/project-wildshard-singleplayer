@@ -7,7 +7,7 @@ import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import type { ArenaField } from './arenaField';
-import { EncounterScheduleSchema } from './encounterPatrol';
+import type { ArenaWhirlsRows } from '@wildshard/format/encounterRows';
 
 const finite = v.pipe(v.number(), v.finite());
 const pair = v.tuple([finite,finite]);
@@ -159,19 +159,14 @@ export class ArenaFireView {
  *  spins at `spin` rad/s and breathes `breathe` [share, rate], `sink` m into the ground, and its debris climbing a spiral
  *  (`count` pieces, `climb` turns a second, `turn` rad/s, `step` rad apart, `radius` [base, growth to the top], `height` m,
  *  rolling `roll` rad/s about `axis`, sized `scale` [base, step, steps]). */
-export const ArenaWhirlsSchema = v.strictObject({
- laws: v.pipe(v.array(EncounterScheduleSchema), v.minLength(1), v.maxLength(8)), ease: finite, spin: finite, sink: finite, breathe: pair,
- debris: v.strictObject({ count: v.pipe(count, v.maxValue(64)), climb: finite, turn: finite, step: finite, radius: pair, height: finite,
-  axis: v.tuple([finite, finite, finite]), roll: finite, scale: v.tuple([finite, finite, v.pipe(count, v.maxValue(16))]) }),
-});
 const _axis = new THREE.Vector3();
 /** The whirlwinds' funnels (the caller's meshes, one per law) and debris (its instanced mesh), moved by their laws. */
 export class ArenaWhirlsView {
-  private readonly rows: v.InferOutput<typeof ArenaWhirlsSchema>;
+  private readonly rows: ArenaWhirlsRows;
   private readonly whirls: { readonly law: ProjectedState; readonly funnel: THREE.Object3D; on: boolean; k: number }[];
   private readonly hits: THREE.Vector3[] = [];
-  constructor(input: unknown, program: ReturnProgram, funnels: readonly THREE.Object3D[], private readonly debris: THREE.InstancedMesh) {
-    this.rows = v.parse(ArenaWhirlsSchema, input);
+  constructor(input: ArenaWhirlsRows, program: ReturnProgram, funnels: readonly THREE.Object3D[], private readonly debris: THREE.InstancedMesh) {
+    this.rows = input;
     if (funnels.length !== this.rows.laws.length || debris.instanceMatrix.count < this.rows.laws.length * this.rows.debris.count) throw new Error('Whirlwinds need a funnel each and room for their debris');
     this.whirls = this.rows.laws.map((row, i) => {
       const funnel = funnels[i]; if (funnel === undefined) throw new Error('Missing whirlwind funnel');

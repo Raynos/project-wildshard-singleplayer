@@ -1,4 +1,6 @@
 import { expect, test } from 'vitest';
+import { parse } from 'valibot';
+import { ArenaFieldSchema } from '../src/format/encounterRows';
 import { ArenaEncounter, ArenaField,installArenaBoundary,arenaBoundaryBlocked } from '../src/game/boss/arenaField';
 import { Scope } from '../src/engine/app/scope';
 import { ReturnProgram } from '../src/game/population/returnProgram';
@@ -24,7 +26,7 @@ test('mounted refusal borrows only its entered scope and releases on disposal', 
 });
 
 test('the arena field obeys ignition bounds and cannot rekindle spent cells', () => {
-  const field = new ArenaField(fight.TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));
+  const field = new ArenaField(parse(ArenaFieldSchema, fight.TITAN_FIRE_FIELD), ReturnProgram.page(program.fire), new Rng(513));
   const { x, z } = fight.TITAN_ARENA.center;
   field.ignite(x, z);
   const cell = field.cellAt(x, z), lifetime = field.remaining(cell);

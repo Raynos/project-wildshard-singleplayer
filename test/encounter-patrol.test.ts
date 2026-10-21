@@ -1,13 +1,14 @@
+import { EncounterPatrolSchema, EncounterSlotsSchema } from '@wildshard/format/encounterRows';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { CoupledEncounter, coupledActorDamage, EncounterPatrol, EncounterPatrolSchema, EncounterSlots, EncounterSlotsSchema } from '../src/game/boss/encounterPatrol';
+import { CoupledEncounter, coupledActorDamage, EncounterPatrol, EncounterSlots } from '../src/game/boss/encounterPatrol';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import { TITAN_SUPPORT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
-const patrolRows = v.parse(EncounterPatrolSchema, night.patrol);
+const patrolRows = v.parse(EncounterPatrolSchema,night.patrol);
 const frame = { px: 0, py: 30, pz: 24, hold: 0, night: 1 };
 const make = (): EncounterPatrol => new EncounterPatrol(night.patrol, ReturnProgram.page(night.program), new Rng(513));
 
@@ -126,7 +127,7 @@ test('an orchard mounted patrol borrows its roster, leader and memory mapping', 
 });
 
 test('orchard statue slots own spawning, dawn return and delayed plinth release', () => {
-  const rows = { ...v.parse(EncounterSlotsSchema, night.slots), actors: { kind: 'orchard-statue', variant: 'guard', variants: { '2': 'crowned' }, herd: -2, yaw: .5, sink: -1,
+  const rows = { ...v.parse(EncounterSlotsSchema,night.slots), actors: { kind: 'orchard-statue', variant: 'guard', variants: { '2': 'crowned' }, herd: -2, yaw: .5, sink: -1,
     memory: { rising: 0 }, home: { x: 'originX', z: 'originZ', yaw: 'facing' }, dawn: 'returning', gone: 'buried' } };
   const body = (id: string, x: number, z: number, yaw: number, variant: string) => ({ entityId: id, position: { x,z }, yaw, variant, herd: 0, alive: true, hidden: false, scale: 2, yOffset: 0, mem: {} as Record<string,number> });
   type Body = ReturnType<typeof body>;

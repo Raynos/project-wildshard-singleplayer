@@ -2,18 +2,8 @@
  * This value host owns groups and clocks; bodies and drawing remain external. */
 import type { ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
-import * as v from 'valibot';
+import type { EncounterPatrolRows,EncounterSlotsRows,CoupledEncounterRows } from '@wildshard/format/encounterRows';
 
-const finite = v.pipe(v.number(), v.finite());
-const numbers = v.record(v.string(), finite);
-export const EncounterPatrolSchema = v.strictObject({
-  parameters: numbers, member: numbers, group: numbers,
-  actors: v.optional(v.strictObject({ kind: v.string(), variant: v.string(), leader: v.string(), count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(8)),
-    herd: finite, player: v.strictObject({ x: v.string(), z: v.string() }),
-    target: v.strictObject({ x: v.string(), z: v.string() }), steering: v.record(v.string(), v.string()) })),
-  signals: v.strictObject({ cycle: v.string(), empty: v.string(), dissolve: v.string(),
-    member: v.string(), fire: v.string(), retry: v.string(), start: v.string(), slot: v.string(), group: v.string(), target: v.string() }),
-});
 export interface PatrolMember { readonly id: string; readonly state: Record<string, number>; group: PatrolGroup | null; slot: number }
 export interface PatrolGroup { readonly members: PatrolMember[]; readonly state: Record<string, number> }
 export interface PatrolObservation { readonly id: string; readonly x: number; readonly z: number; readonly alive: number; readonly hidden: number }
@@ -31,12 +21,12 @@ export interface PatrolActorBinding<A extends PatrolActor> { readonly a: A; read
 export class EncounterPatrol<A extends PatrolActor = PatrolActor> {
   readonly members: PatrolMember[] = [];
   readonly groups: PatrolGroup[] = [];
-  private readonly rows: v.InferOutput<typeof EncounterPatrolSchema>;
+  private readonly rows: EncounterPatrolRows;
   private elapsed = 0;
   private readonly cycle = { respawn: -1, phase: -1, kills: 0 };
   private roster: PatrolActorRoster<A> | null = null;
   private readonly actors = new Map<string, PatrolActorBinding<A>>();
-  constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) { this.rows = v.parse(EncounterPatrolSchema, input); }
+  constructor(input: EncounterPatrolRows, private readonly program: ReturnProgram, private readonly random: Rng) { this.rows = input; }
   get kills(): number { return this.cycle.kills; }
   get living(): number { return this.members.filter(member => member.state['dead'] !== 1).length; }
   attachActors(roster: PatrolActorRoster<A>): void {
@@ -143,14 +133,6 @@ export class EncounterPatrol<A extends PatrolActor = PatrolActor> {
   }
 }
 
-export const EncounterSlotsSchema = v.strictObject({
-  actors: v.optional(v.strictObject({ kind: v.string(), variant: v.string(), variants: v.record(v.string(), v.string()), herd: finite, yaw: finite, sink: finite,
-    memory: numbers, home: v.strictObject({ x: v.string(), z: v.string(), yaw: v.string() }), dawn: v.string(), gone: v.string() })),
-  release: v.string(),
-  cycle: v.strictObject({ signal: v.string(), initial: numbers }),
-  member: v.strictObject({ signal: v.string(), initial: numbers }),
-  select: v.strictObject({ signal: v.string(), count: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(8)) }),
-});
 export interface SlotActor extends PatrolActor { readonly scale: number; yOffset: number }
 export interface EncounterSlotSite { readonly x: number; readonly z: number; readonly yaw: number; readonly variant: number }
 export interface EncounterSlotActor<A extends SlotActor> { readonly a: A; readonly index: number }
@@ -158,14 +140,14 @@ export interface EncounterSlotActor<A extends SlotActor> { readonly a: A; readon
  * The guest owns each cycle's selection and each occupied slot's lifetime. */
 export class EncounterSlots<A extends SlotActor = SlotActor> {
   readonly cycle: Record<string, number>;
-  private readonly rows: v.InferOutput<typeof EncounterSlotsSchema>;
+  private readonly rows: EncounterSlotsRows;
   private readonly members = new Map<string, Record<string, number>>();
   private readonly retired = new Map<string, Readonly<Record<string, number>>>();
   private elapsed = 0;
   private roster: PatrolActorRoster<A> | null = null;
   private readonly actors = new Map<string, EncounterSlotActor<A>>();
-  constructor(input: unknown, private readonly program: ReturnProgram) {
-    this.rows = v.parse(EncounterSlotsSchema, input); this.cycle = { ...this.rows.cycle.initial };
+  constructor(input: EncounterSlotsRows, private readonly program: ReturnProgram) {
+    this.rows = input; this.cycle = { ...this.rows.cycle.initial };
   }
   attachActors(roster: PatrolActorRoster<A>): void {
     const rows = this.rows.actors; if (rows === undefined) throw new Error('Missing slot actor rows');
@@ -207,7 +189,8 @@ export class EncounterSlots<A extends SlotActor = SlotActor> {
   remove(id: string): void { this.members.delete(id); }
   retire(id: string, metadata: Readonly<Record<string, number>>): void {
     if (!this.members.has(id)) throw new Error('Unknown retired encounter slot');
-    const retained = v.parse(numbers, metadata); this.members.delete(id); this.retired.set(id, retained);
+    if(Object.values(metadata).some(value=>!Number.isFinite(value)))throw new Error('Invalid retired slot metadata');
+    this.members.delete(id); this.retired.set(id, {...metadata});
   }
   select(observations: Readonly<Record<string, number>>): number[] {
     const selected = new Set<number>();
@@ -242,9 +225,6 @@ export class EncounterSlots<A extends SlotActor = SlotActor> {
   }
 }
 
-const CoupledRows = v.strictObject({ initial: numbers, member: numbers, commit: numbers, parameters: numbers,
-  actors: v.optional(v.strictObject({ hp: v.pipe(finite, v.minValue(1)), memory: v.record(v.string(), v.string()) })),
-  signals: v.strictObject({ couple: v.string(), member: v.string(), damage: v.string() }) });
 export interface CoupledMember { readonly id: string; readonly state: Record<string, number> }
 /** Native actors remain owned by their roster; the encounter borrows only its
  * declared health, steering slots and live position for cohort effects. */
@@ -263,11 +243,11 @@ export function coupledActorDamage(actor: CoupledActor, point: { readonly x: num
  * The guest selects commits and retirements; native slots retain numeric state. */
 export class CoupledEncounter {
   readonly members: CoupledMember[] = [];
-  private readonly rows: v.InferOutput<typeof CoupledRows>;
+  private readonly rows: CoupledEncounterRows;
   private state: Record<string, number>;
   private readonly actors = new Map<string, CoupledActor>();
-  constructor(input: unknown, private readonly program: ReturnProgram, private readonly random: Rng) {
-    this.rows = v.parse(CoupledRows, input); this.state = { ...this.rows.initial };
+  constructor(input: CoupledEncounterRows, private readonly program: ReturnProgram, private readonly random: Rng) {
+    this.rows = input; this.state = { ...this.rows.initial };
   }
   add(id: string, initial: Readonly<Record<string, number>>): CoupledMember {
     if (this.members.some(member => member.id === id) || this.members.length >= 8) throw new Error('Invalid coupled encounter member');
@@ -325,7 +305,6 @@ export class CoupledEncounter {
   }
 }
 
-export const EncounterScheduleSchema = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()) });
 /** A bounded native position history; authored sample cadence is never faster
  * than the decision host. Samples are values, with no actor or view references. */
 export class EncounterTrail {
@@ -333,8 +312,7 @@ export class EncounterTrail {
   private elapsed = 0;
   private readonly capacity: number;
   private readonly seconds: number;
-  constructor(input: unknown) {
-    const row = v.parse(v.strictObject({ capacity: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(64)), seconds: v.pipe(finite, v.minValue(.1)) }), input);
+  constructor(row: { readonly capacity:number; readonly seconds:number }) {
     this.capacity = row.capacity; this.seconds = row.seconds;
   }
   clear(): void { this.points.length = 0; this.elapsed = 0; }

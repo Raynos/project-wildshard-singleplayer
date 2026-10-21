@@ -3,6 +3,7 @@ import { ArenaScriptBossProfileSchema } from './bossProfiles';
 import { BossEncounterDefinitionSchema,BossEncounterPresentationSchema } from './bossEncounter';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { CreatureStrikeSchema } from './creatures';
+import { ArenaEncounterSchema,ArenaFieldSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema } from './encounterRows';
 
 /** Build-only validation; runtime readers import the inferred types only. */
 const finite = v.pipe(v.number(),v.finite()), label = v.pipe(v.string(),v.minLength(1));
@@ -13,10 +14,10 @@ const tuning = v.strictObject({ spearDamage: finite,spearRadius: finite,spearAim
   cell: finite,burnSeconds: finite,fireDps: finite,maxFlames: finite,chainDamage: finite,chainRadius: finite,chainLand: finite,fullDraw: finite,fullDrawMul: finite });
 const lines = v.strictObject({ kneels: label,grassFire: label,immuneDome: label,immuneSpear: label,spearStuck: label,riderBreaks: label,lastRider: label,
   burning: label,chain: label,wall: label,tie: label,tieOnFoot: label,tieQuiet: label,wantsRider: label,quiet: label,wakes: label,spear: label,charge: label,whirl: label });
-/** Declared resources and effect bindings for an AS arena script. Every sub-host
- * admits its own bounded field, support, clock and view rows before allocation. */
+/** Declared resources and effect bindings for an AS arena script. Named-file
+ * admission checks bounded field, support and clock rows before allocation. */
 export const ArenaScriptRowsSchema = v.strictObject({
-  script: ArenaScriptBossProfileSchema,clocks: v.unknown(),field: v.unknown(),support: v.unknown(),whirls: v.unknown(),arenaFire: v.unknown(),
+  script: ArenaScriptBossProfileSchema,clocks: ArenaEncounterSchema,field: ArenaFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: v.unknown(),
   programs: v.strictObject({ attack: ReturnProgramSchema,fire: ReturnProgramSchema,wind: ReturnProgramSchema,rules: ReturnProgramSchema }),
   supportSites: v.pipe(v.array(v.strictObject({ x: finite,z: finite,theta: finite })),v.maxLength(8)),
   arena: v.strictObject({ center: point,body: point,anchor: point,ground: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),

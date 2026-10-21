@@ -1,5 +1,6 @@
 import { expect,test } from 'vitest';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
+import { TimedEncountersSchema } from '@wildshard/format/encounterRows';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
@@ -10,6 +11,8 @@ import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generate
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with {type:'json'};
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import night from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with {type:'json'};
 
 const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(value));
 
@@ -36,4 +39,33 @@ test('real arena payloads have one defining schema at production and product rea
   await expect(readArenaScriptData(product,files)).rejects.toThrow('refuses its schema');
   const badGeometry={...geometry,phone:'missing'};
   expect(()=>validateNamedJsonSchema(geometrySchema,encode(badGeometry))).toThrow('refuses its schema');
+  for(const arenaScript of [
+    {...fight.arenaScript,field:{...fight.arenaScript.field,width:65}},
+    {...fight.arenaScript,support:{...fight.arenaScript.support,actors:{...fight.arenaScript.support.actors,hp:0}}},
+    {...fight.arenaScript,whirls:{...fight.arenaScript.whirls,debris:{...fight.arenaScript.whirls.debris,count:65}}},
+  ]) {
+    expect(()=>nameBlob('combat/titan-fight.json','json',encode({...fight,arenaScript}),{jsonSchema:fightSchema})).toThrow('refuses its schema');
+    expect(()=>validateNamedJsonSchema(fightSchema,encode({...fight,arenaScript}))).toThrow('refuses its schema');
+  }
+});
+
+test('timed encounter admission bounds rosters before native owners allocate',async()=>{
+  const rows={...night,presentation:'night',phases:{slots:['night'],patrol:['night']},lightFloor:.2,
+    contact:{strike:strikes.arrow,tags:['creature.rider'],origin:'actor'}};
+  const schema=namedJsonSchema(TimedEncountersSchema);
+  const blob=nameBlob('combat/timed-encounters.json','json',encode(rows),{jsonSchema:schema});
+  const identity={slug:'timed-schema',name:'Timed schema',author:'Wildshard',revision:1,seed:1};
+  let payload=blob.bytes;
+  const product=createShardProduct({slug:identity.slug,revision:1,shardfile:emptyShardfile(identity),sections:new Map(),
+    files:new Map([['combat/timed-encounters.json',{...blob.file,url:'https://example.test/timed'}]]),read:()=>Promise.resolve(payload)});
+  expect(await product.json('combat/timed-encounters.json')).toEqual(rows);
+  for(const bad of [
+    {...rows,patrol:{...rows.patrol,actors:{...rows.patrol.actors,count:9}}},
+    {...rows,slots:{...rows.slots,select:{...rows.slots.select,count:9}}},
+    {...rows,motion:{...rows.motion,parameters:{bad:'not numeric'}}},
+  ]) {
+    expect(()=>nameBlob('combat/timed-encounters.json','json',encode(bad),{jsonSchema:schema})).toThrow('refuses its schema');
+    payload=encode(bad);
+    await expect(product.json('combat/timed-encounters.json')).rejects.toThrow('refuses its schema');
+  }
 });

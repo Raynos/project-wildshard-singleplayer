@@ -1,3 +1,4 @@
+import { EncounterPatrolSchema } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Bone, BoxGeometry, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, Vector3, type Vector2 } from 'three';
 import * as v from 'valibot';
@@ -9,7 +10,6 @@ import type { Forest } from '../src/engine/world/forest/Forest';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { overrideTerrain } from './fake/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
-import { EncounterPatrolSchema } from '../src/game/boss/encounterPatrol';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
@@ -24,7 +24,7 @@ const view = { looks: { scout: look('orchard-scout'), warden: look('orchard-ward
   targets: [{ at: [0, 1.5, 0], radius: 0.3, head: true }],
   arrow: { geometry: { data: new BufferGeometry().copy(new BoxGeometry(0.02, 0.02, 0.5)).toJSON().data }, colour: [1, 0.8, 0.3], renderOrder: 9, length: 0.5, gravity: 4, drag: 0, windCoupling: 0, bury: 0, recover: 0,
     maxFlying: 4, maxStuck: 0, stick: false, hitsAnimals: false, puffs: false, hurtsPlayer: { radius: 0.4, height: 1.8 } } };
-const patrol = { ...v.parse(EncounterPatrolSchema, night.patrol), actors: { kind: 'orchard-watch', variant: 'scout', leader: 'warden', count: 2, herd: -2,
+const patrol = { ...v.parse(EncounterPatrolSchema,night.patrol), actors: { kind: 'orchard-watch', variant: 'scout', leader: 'warden', count: 2, herd: -2,
   player: { x: 'px', z: 'pz' }, target: { x: 'tx', z: 'tz' }, steering: { tx: 'tx', tz: 'tz', v: 'v', turn: 'turn' } } };
 const ids = ['form', 'tear', 'loose', 'hurt', 'impact', 'trail'].map(id => `cue.orchard.${id}`);
 
