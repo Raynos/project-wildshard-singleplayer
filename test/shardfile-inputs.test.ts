@@ -57,3 +57,16 @@ it('keeps mandatory SDK and format sources in every recipe without unread genera
   writeFileSync(resolve(root,'src/sdk/compiler.ts'),'compiler'); expect(key()).not.toBe(before);
   const sdk = key(); writeFileSync(resolve(root,'src/format/schema.ts'),'schema'); expect(key()).not.toBe(sdk);
 });
+
+it('invalidates when a new native directory entry can take precedence', async () => {
+  const root=fixture(), receipt=resolve(root,'receipt.json'), memo=new InputHashMemo(root);
+  mkdirSync(resolve(root,'module'));
+  writeFileSync(resolve(root,'module/index.ts'),'export const value=1;');
+  writeFileSync(resolve(root,'entry.ts'),"import {value} from './module'; export const answer=value;");
+  await captureProductInputs(root,receipt,async()=>{
+    await build({root,configFile:false,publicDir:false,logLevel:'silent',build:{write:false,lib:{entry:resolve(root,'entry.ts'),formats:['es'],fileName:'fixture'}}});
+  });
+  const before=productInputKey(root,receipt,[],memo); expect(before).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(resolve(root,'module/index.mts'),'export const value=2;');
+  expect(productInputKey(root,receipt,[],memo)).not.toBe(before);
+});
