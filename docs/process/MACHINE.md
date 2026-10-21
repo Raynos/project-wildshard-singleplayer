@@ -119,11 +119,13 @@ preview past its `--hours` (default 4), an unregistered one after 6 h and any de
 
 Through `scripts/sim-lane.sh`: `run [--max <min>] <device> <cmd…>` boots, runs and shuts down; `lease <device> [<min>]`
 holds it while you drive it; `release` shuts it down. Startup preserves boot and bootstatus failures, then probes
-Safari with `openurl about:blank` until it succeeds (120 s wall deadline; `SIM_SAFARI_READY_TIMEOUT` can set 0–600 s,
+Safari with `openurl http://127.0.0.1:9/` until it succeeds (120 s wall deadline; `SIM_SAFARI_READY_TIMEOUT` can set 0–600 s,
 exclusive of zero). A failed new boot is shut down without handing over or publishing a lease; renewing a valid
 manual lease checks bootstatus without navigating its current page. The hook blocks a raw `simctl boot`. How to drive one:
 `.claude/skills/ios-simulator/SKILL.md`. The Simulator runs on the Mac GPU: it cannot show the iPhone's memory limit,
 GPU cost or throttling.
+After changing startup readiness or its probe URL, also run one real Simulator smoke through sim-lane. Command
+fixtures verify control flow and failures; they do not verify the runtime's URL-scheme support.
 The reaper quits Simulator.app once nothing is booted: one AppleScript quit, then one SIGTERM on a later reap if the app
 ignored it, each logged once per app PID (`~/.sim-lane/app-quit.<pid>`); it used to retry from every hook, 2,024 times in 12 h.
 
