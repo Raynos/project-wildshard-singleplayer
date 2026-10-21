@@ -13,6 +13,7 @@ const initial = v.pipe(v.array(observations), v.maxLength(64));
 const inputs = v.pipe(v.record(name, v.pipe(name, v.regex(/^(?:flag|event):[a-z][a-z0-9.-]*$/u))), v.check(value => Object.keys(value).length <= 16, 'Bounded quest command inputs'));
 const raw = v.strictObject({
   version: v.literal(1), graph: QuestGraphSchema, interactions: InteractionRowsSchema,
+  flags: v.exactOptional(names),
   page: v.exactOptional(v.union([QuestPageInteractionsSchema, DeclaredQuestPageSchema])),
   npcs: v.pipe(v.array(NpcRowSchema), v.maxLength(64)), drive: v.picklist(['commands', 'external']),
   actors: v.strictObject({ ids: names, error: name }),
@@ -55,6 +56,7 @@ function pageActionEffects(action: PageAction): readonly PageEffect[] {
 export function questHostRules(row: QuestHostRow): readonly string[] {
   const errors: string[] = [], stages = new Set(row.stages.map(stage => stage.row.id)), bindings = new Set(row.observations.map(observation => observation.binding));
   const unique = (values: readonly (string | number)[]): boolean => new Set(values).size === values.length;
+  if (!unique(row.flags ?? [])) errors.push('Unique quest-owned flags');
   if (!unique(row.actors.ids) || !unique(row.stages.map(stage => stage.row.id)) || !unique(row.observations.map(observation => observation.binding))
     || !unique(row.summons.map(request => request.target)) || !unique(row.commands.routes.map(route => route.value))
     || !unique(row.npcs.map(npc => npc.id)) || !unique(row.npcs.map(npc => npc.spot))) errors.push('Unique native quest identities');
@@ -108,7 +110,7 @@ export function questHostBindingRules(row: QuestHostRow | null | undefined, flag
   if (row === null || row === undefined) return [];
   const errors: string[] = [];
   if (!bound) errors.push('native quest host requires its bound quest owner');
-  const declared = new Set(flags), marks = new Set(row.interactions.marks.map(mark => mark.id));
+  const declared = new Set([...flags, ...row.flags ?? []]), marks = new Set(row.interactions.marks.map(mark => mark.id));
   const check = (values: readonly string[], transient = false): void => {
     for (const flag of values) if (!declared.has(flag) && !(transient && marks.has(flag))) errors.push(`undeclared native quest flag ${flag}`);
   };

@@ -18,7 +18,7 @@ import looks from '../data/lookMaterials.generated.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import people from '../data/questNpcs.generated.json' with { type: 'json' };
 import journal from '../data/journal.generated.json' with { type: 'json' };
-import { PINE_QUEST_HOST, PINE_HOST_FLAGS } from './questHost';
+import { PINE_QUEST_HOST } from './questHost';
 
 // The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
 // SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the
@@ -42,6 +42,6 @@ export default parseShardfile({
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
   runtime: { entry: 'runtime/hybrid.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state', 'modes', 'movers', 'clientChannels'], spawns: PINE_RUNTIME_SPAWNS },
   clientChannels: [...weatherChannels.clientChannels, ...skyChannels.clientChannels],
-  quests: parseQuestData({ ...people.quests, flags: [...new Set([...people.quests.flags, ...PINE_HOST_FLAGS])], achievements: PINE_FEATS }),
+  quests: parseQuestData({ ...people.quests, achievements: PINE_FEATS }),
   questHost: PINE_QUEST_HOST, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: AUDIO.audio, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });

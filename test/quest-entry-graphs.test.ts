@@ -5,7 +5,7 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { installQuestGraph } from '../src/game/plugin/quests';
 import { installDeclaredQuestHost } from '../src/game/plugin/simulation';
-import { questHostBindingRules } from '../src/format/questHost';
+import { parseQuestHost, questHostBindingRules } from '../src/format/questHost';
 import pine from '../src/shards/pine-hollow/generators/product';
 import driftwood from '../src/shards/driftwood-isle/generators/product';
 import people from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
@@ -13,15 +13,19 @@ import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from '../src/shards/pine-hollo
 import { parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
-test('both quest entries use an admitted host and Pine preserves the existing flag prefix', () => {
+test('both quest entries use an admitted host without changing Pine decision flag handles', () => {
   for (const source of [pine, driftwood]) {
     expect(source.questHost).toBeDefined();
     expect(questHostBindingRules(source.questHost, source.quests.flags, true)).toEqual([]);
   }
-  expect(pine.quests.flags.slice(0, people.quests.flags.length)).toEqual(people.quests.flags);
-  expect(pine.questHost?.graph).toEqual(PINE_QUEST_RUNTIME.graph);
-  expect(pine.questHost?.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
-  expect(pine.questHost?.commands.step).toBeNull();
+  expect(pine.quests.flags).toEqual(people.quests.flags);
+  expect(pine.questHost?.flags).toContain('lever:dam-log-a');
+  if (pine.questHost === undefined || pine.questHost === null) throw new Error('Missing Pine quest host');
+  expect(questHostBindingRules({ ...pine.questHost, flags: [] }, pine.quests.flags, true)).not.toEqual([]);
+  expect(() => parseQuestHost({ ...pine.questHost, flags: ['local', 'local'] })).toThrow('Valid native quest host');
+  expect(pine.questHost.graph).toEqual(PINE_QUEST_RUNTIME.graph);
+  expect(pine.questHost.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
+  expect(pine.questHost.commands.step).toBeNull();
   expect(parsePineQuestRows(PINE_QUEST_PAYLOAD)).not.toHaveProperty('graph');
   expect(parsePineQuestRows(PINE_QUEST_PAYLOAD)).not.toHaveProperty('interactions');
   expect(() => parsePineQuestRows(PINE_QUEST_RUNTIME)).toThrow();
