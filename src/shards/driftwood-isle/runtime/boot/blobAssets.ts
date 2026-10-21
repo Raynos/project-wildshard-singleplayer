@@ -9,26 +9,12 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { CustomSections, FixedGeometryGroups } from '../productSections.generated.d.ts';
 
-/** Legacy labels identify existing authored parts; only the product decides their named bytes and URLs. */
-export function driftwoodBlobName(product: ShardProduct, label: string): string {
-  if (product.hasFile(label)) return label;
-  const name = product.section<CustomSections['custom/assets']>('custom/assets').byUrl[label];
-  if (name === undefined || !product.hasFile(name)) throw new Error(`Driftwood product is missing its named asset: ${label}`);
-  return name;
-}
-
 /** Renderer services stay behind the explicit page/Explorer load, outside offline geometry authoring. */
 export async function loadDriftwoodProduct(owner: Scope = resourceScope()): Promise<ShardProduct> {
   const { loadFirstPartyProduct } = await import('@wildshard/game/shardfile/runtimeProduct');
   const product = await loadFirstPartyProduct('driftwood-isle', owner);
   admitDriftwoodRows(product);
   return product;
-}
-
-/** Both world owners and cold Explorer cards read the same verified immutable product content. */
-export async function readDriftwoodBlob(label: string, admitted?: ShardProduct): Promise<Uint8Array> {
-  const product = admitted ?? await loadDriftwoodProduct();
-  return product.file(driftwoodBlobName(product, label));
 }
 
 export const FIGURES = new FigureCatalogue('driftwood-isle', 'people/catalogue.json');
@@ -60,17 +46,13 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
   const product = bytes === undefined && owner === undefined ? await loadDriftwoodProduct() : driftwoodProduct();
   await FIGURES.admit(product);
   const rows = product.section<CustomSections['custom/fixedLayouts']>('custom/fixedLayouts').fixedDraws;
-  const aliases = Object.entries(driftwoodRows('custom/assets').byUrl).filter(([key]) => key.startsWith('fixed:'));
-  if (rows.length === 0 || rows.length > MAX_FIXED_DRAWS || aliases.length !== rows.length || aliases.some(([key]) => !rows.some(row => row.slot === key.slice(6)))) throw new Error('Undeclared fixed draw slots');
+  if (rows.length === 0 || rows.length > MAX_FIXED_DRAWS) throw new Error('Undeclared fixed draw slots');
   inventory ??= await product.json<FixedGeometryGroups>('models/fixed-geometry.json');
   prepareFixedTemplates();
-  const sources = new Map(aliases.map(([key, name]) => [key.slice(6), name]));
   const assembled = owner === undefined ? undefined : await (await import('@wildshard/game/plugin/geometry')).readWholeGeometry(owner, 'driftwood-isle');
   try {
     const admitted = new Map(await Promise.all(rows.map(async row => {
-      const name = sources.get(row.slot);
-      if (name === undefined) throw new Error('Missing Driftwood source draw');
-      const geometry = assembled?.get(name.slice(name.lastIndexOf('/') + 1, -4))?.geometry;
+      const name = row.file, geometry = assembled?.get(name.slice(name.lastIndexOf('/') + 1, -4))?.geometry;
       const value = assembled === undefined ? bytes?.get(name) ?? (bytes === undefined ? await product.file(name) : undefined) : geometry;
       if (value === undefined) throw new Error('Missing Driftwood source draw');
       return [row.slot, value] as const;

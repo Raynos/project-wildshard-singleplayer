@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createShardProduct } from '../../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
-import { DRIFTWOOD_OUTPUT, DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/generators/assets';
+import { DRIFTWOOD_OUTPUT } from '../../src/shards/driftwood-isle/generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
 import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/figureCatalogue';
 
@@ -22,7 +22,7 @@ export async function driftwoodFixedProduct(): Promise<ReturnType<typeof createS
   const assets = new Map(blobs.map(row => [row.hash, row.bytes]));
   return createShardProduct({slug: 'driftwood-isle', revision: 1,
     shardfile: emptyShardfile({slug: 'driftwood-isle', name: 'Test', author: 'Test', revision: 1, seed: 1}),
-    sections: new Map<string, unknown>([...DRIFTWOOD_CLIENT_SECTIONS.map(row => [row.name, row.value] as const), ['custom/assets', {byUrl: DRIFTWOOD_ASSET_NAMES}]]),
+    sections: new Map<string, unknown>(DRIFTWOOD_CLIENT_SECTIONS.map(row => [row.name, row.value] as const)),
     files: new Map(blobs.map(row => [row.name, {hash: row.hash, url: `/${row.source}`} ])),
     read: hash => { const bytes = assets.get(hash); return bytes === undefined ? Promise.reject(new Error('Missing fixed bytes')) : Promise.resolve(bytes); }, check: true});
 }

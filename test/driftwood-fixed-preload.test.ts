@@ -3,8 +3,8 @@ import { expect, it, vi } from 'vitest';
 import { FIXED_DRAW_ROWS } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { BoxGeometry } from 'three';
-import { DRIFTWOOD_FIXED_SOURCES as FIXED_MODEL_FILES, DRIFTWOOD_ASSET_NAMES } from '../src/shards/driftwood-isle/generators/assets';
-import { admitDriftwoodFixtureRows, admitDriftwoodFixtureAliases } from './fixtures/driftwoodRows';
+import { DRIFTWOOD_FIXED_SOURCES as FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/assets';
+import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { loadFixedGeometry, fixedGeometryReady, fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 
 it('declares inert handles before admission and refuses unresolved slot data', async () => {
@@ -14,17 +14,6 @@ it('declares inert handles before admission and refuses unresolved slot data', a
     expect(fixedGeometryReady()).toBe(false);
     expect(fetch).not.toHaveBeenCalled();
   } finally { fetch.mockRestore(); }
-});
-
-it('refuses a replaced slot before template intake or URL fallback', async () => {
-  const aliases = { ...DRIFTWOOD_ASSET_NAMES }, fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));
-  delete aliases['fixed:hat']; aliases['fixed:unowned'] = 'models/fixed/hat.glb';
-  admitDriftwoodFixtureAliases(aliases);
-  try {
-    await expect(loadFixedGeometry(new Map())).rejects.toThrow('Undeclared fixed draw slots');
-    expect(fixedGeometryReady()).toBe(false);
-    expect(fetch).not.toHaveBeenCalled();
-  } finally { fetch.mockRestore(); admitDriftwoodFixtureRows(); }
 });
 
 it('preloads fixed and cover handles from admitted geometry without fetching', async () => {
@@ -46,7 +35,8 @@ it('preloads fixed and cover handles from admitted geometry without fetching', a
 it('admits the original source declarations plus native bridge units and every original channel alias', () => {
   admitDriftwoodFixtureRows();
   const rows = driftwoodRows('custom/fixedLayouts').fixedDraws;
-  expect(rows).toEqual(FIXED_DRAW_ROWS);
+  expect(rows.map(({ slot, channels }) => ({ slot, channels }))).toEqual(FIXED_DRAW_ROWS);
+  expect(rows.map(row => row.file)).toEqual(FIXED_DRAW_ROWS.map(row => FIXED_MODEL_FILES[row.slot]));
   const original = rows.filter(row => !['bridgePlankUnit', 'bridgeRopeUnit'].includes(row.slot));
   expect(rows).toHaveLength(original.length + 2);
 });

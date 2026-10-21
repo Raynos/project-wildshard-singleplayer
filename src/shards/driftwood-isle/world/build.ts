@@ -4,7 +4,7 @@ import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
 import { TIER } from '@wildshard/engine/core/tier';
-import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
+import { loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -57,7 +57,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const fixed = driftwoodRows('custom/fixedLayouts');
   const { game, sky, player, registry } = world;
   const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier, piece: (piece) => { registry.add(piece); } });
-  const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
   const slice = slicer(30, progress);
   const assembly = fixed.assembly, total = 15 + assembly.piers.length;

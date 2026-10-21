@@ -62,5 +62,4 @@ export const DRIFTWOOD_OUTPUT = {
     const result = { ...row };
     return Object.assign(result, { options: { meshopt: true } });
   }),
-  custom: {byUrl: activeByUrl},
 };

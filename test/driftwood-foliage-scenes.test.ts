@@ -11,13 +11,13 @@ import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generat
 import reef from '../src/shards/driftwood-isle/data/reefLayout.generated.json' with { type: 'json' };
 import dressingBlobs from '../src/shards/driftwood-isle/data/dressingBlobs.generated.json' with { type: 'json' };
 import reefBlobs from '../src/shards/driftwood-isle/data/reefBlobs.generated.json' with { type: 'json' };
-import { DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
+import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
 
 const project = new URL('../src/shards/driftwood-isle/', import.meta.url);
 test('runtime foliage uses the finished GLBs without dangling retired transport aliases', () => {
   const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));
   expect([...names].filter(name => /^world\/(?:palms\/|hibiscus\/|reef\.bin$)/u.test(name))).toEqual([]);
-  for (const name of Object.values(DRIFTWOOD_OUTPUT.custom.byUrl)) expect(names.has(name), name).toBe(true);
+  for (const name of Object.values(DRIFTWOOD_ASSET_NAMES)) expect(names.has(name), name).toBe(true);
   for (const model of data.libraries.flatMap(library => library.models)) {
     const files = typeof model.file === 'string' ? [model.file] : Object.values(model.file);
     for (const file of files) expect(names.has(file) || data.blobs.some(blob => blob.name === file), file).toBe(true);

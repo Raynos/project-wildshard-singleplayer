@@ -87,7 +87,7 @@ import { DRIFTWOOD_CLIENT_SECTIONS, OCEAN_WATER_ROW } from './clientSections';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const placed = enemyPlacements();
-const values=[{name:'custom/assets',value:DRIFTWOOD_OUTPUT.custom},...DRIFTWOOD_CLIENT_SECTIONS, {name:'custom/enemyPlacements',value:placed}];
+const values=[...DRIFTWOOD_CLIENT_SECTIONS, {name:'custom/enemyPlacements',value:placed}];
 if(values.length!==Object.keys(schemas).length)throw new Error('Incomplete Driftwood section inventory');
 const custom=emitDefinedSections(values.map(({name,value})=>{
  const schema=schemas[name],jsonSchema=WIRE_SCHEMAS[name];

@@ -72,7 +72,7 @@ export const FixedGeometryGroupsSchema = v.strictObject({
     cover: v.record(text, text), piers: v.record(text, v.strictObject({ deck: text, cloth: v.nullable(text) })),
 });
 
-const islandCoverFile = v.strictObject({ url: text, hash: v.pipe(v.string(), v.hash(['sha256'])), bytes: natural, used: natural,
+const islandCoverFile = v.strictObject({ file: text, hash: v.pipe(v.string(), v.hash(['sha256'])), bytes: natural, used: natural,
   texture: v.strictObject({ width: natural, height: natural }), groundRect: v.tuple([number, number, number, number]),
   parts: v.tuple([v.tuple([natural, natural]), v.tuple([natural, natural]), v.tuple([natural, natural]), v.tuple([natural, natural]), v.tuple([natural, natural])]) });
 
@@ -80,9 +80,6 @@ const islandCoverFile = v.strictObject({ url: text, hash: v.pipe(v.string(), v.h
 export const SECTIONS = {
   'custom/enemyPlacements': EnemyPlacementsSchema,
   'custom/collections': CollectionDisplaysSchema,
-  'custom/assets': v.strictObject({
-    byUrl: v.record(v.pipe(v.string(), v.maxLength(512)), v.pipe(v.string(), v.maxLength(240))),
-  }),
   /** the faceted sky's cumulus ring: rows `[x, y, z, r, puff, cluster, baseY]` (generators/cumulus.ts) */
   'custom/cumulusPuffs': v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.maxLength(1024)),
   /** Entry decks, tiered foliage and fixed models: draw slots, colliders, anchors and floors. */
@@ -129,7 +126,7 @@ export const SECTIONS = {
     assembly: v.strictObject({ ocean: v.strictObject({ level: number, shallowColor: v.tuple([number, number, number]), deepColor: v.tuple([number, number, number]), deepDepth: number }),
       bridge: v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number }),
       piers: v.pipe(v.array(v.strictObject({ id: text, label: text })), v.length(4)) }),
-    fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(90)),
+    fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, file: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(90)),
     shadowTiers: v.strictObject({ phone: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }), desktop: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }) }),
     foliage: v.strictObject({ seed: natural, tiers: v.strictObject({ phone: foliageTier, desktop: foliageTier }), islandPalms: v.pipe(v.array(v.strictObject({ x: number, z: number, ...palm })), v.maxLength(64)) }),
     /** All seven authored pier collider sets, keyed to the exact primitive parameters. */
