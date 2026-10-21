@@ -8,7 +8,8 @@ import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/len
  * The island's creatures on their graph toon looks (data/creatureLook.ts): the runtime lends the compiled bodies before
  * the world builds (@wildshard/sdk/looks/lentLooks), and `graphCreatureLook` turns a species look into one whose `material`
  * is a copy of the body per animal (the factory tints its colour and flashes its emissive) on the faceted one-group body.
- * There is no classic stand-in: a creature made before the bodies were lent refuses.
+ * Each copy is the animal's port (`sharedBody`): the rigs draw one body per model, so the entry builds one graph per
+ * model, not one per animal (O15). There is no classic stand-in: a creature made before the bodies were lent refuses.
  */
 const isLitGraph = (m: THREE.Material): m is MeshStandardNodeMaterial => Reflect.get(m, 'isMeshStandardNodeMaterial') === true;
 /** a lent creature body (a lit graph); refuses before the lend or on another kind of look */
@@ -21,7 +22,7 @@ function body(id: string): MeshStandardNodeMaterial {
 /** `look` drawn on the graph body: faceted, one copy of the body per animal; a species with an eye glow wears the glowing
  *  body, its glow the species' colour × intensity. */
 export function graphCreatureLook(look: SpeciesLook): SpeciesLook {
-  return { ...look, faceted: true, material: (_sky, glow, intensity = 1) => {
+  return { ...look, faceted: true, sharedBody: true, material: (_sky, glow, intensity = 1) => {
     if (glow === undefined) return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.body).clone();
     setLentParam(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.glowing, 'glow', [glow[0] * intensity, glow[1] * intensity, glow[2] * intensity]);
     return body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.glowing).clone();
@@ -31,7 +32,7 @@ export function graphCreatureLook(look: SpeciesLook): SpeciesLook {
 /** The Drowned Captain's `look` on his graph body: faceted, his painted coat (`coat()`, the GLB's map) lent to it, his eye
  *  glow the species' colour × intensity. */
 export function graphCaptainLook(look: SpeciesLook, coat: () => THREE.Texture | null): SpeciesLook {
-  return { ...look, faceted: true, material: (_sky, glow, intensity = 1) => {
+  return { ...look, faceted: true, sharedBody: true, material: (_sky, glow, intensity = 1) => {
     const captain = body(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain), map = coat();
     if (map === null) throw new Error('Creature looks: the captain has no painted coat');
     setLentTexture(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS.captain, 'coatMap', map);

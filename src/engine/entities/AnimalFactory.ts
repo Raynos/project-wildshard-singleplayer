@@ -115,6 +115,8 @@ export interface AnimalModel {
   map?: THREE.Texture | null;
   /** the hull is thin sheets (the eagle's wings): every instance's material is double-sided */
   doubleSided?: boolean;
+  /** a `sharedBody` look's one drawn body (`instantiate`): made with the first animal, drawn by every rig of the model */
+  sharedBody?: AnimalMaterial;
 }
 
 /** one fur-shell layer's uniforms (see patchFur) */
@@ -576,7 +578,8 @@ export class AnimalFactory {
       }
     }
     // painterly: a fresh material (a clone would drop the painterly shader patch)
-    const fur = app.species.look(model.kind)?.material?.(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) ?? model.fur.clone();
+    const look = app.species.look(model.kind);
+    const fur = look?.material?.(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) ?? model.fur.clone();
     if (model.map) fur.map = model.map;
     if (model.doubleSided === true) fur.side = THREE.DoubleSide;
     if (model.render.furRim && model.rim !== undefined) {
@@ -589,9 +592,19 @@ export class AnimalFactory {
     if (Reflect.get(fur, 'isNodeMaterial') !== true) this.sky.setupMaterial(fur);
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
     // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
-    const mesh = new THREE.SkinnedMesh(model.geometry, model.render.oneMaterial || model.hull !== undefined ? [fur] : [fur, model.hard, model.eye]);
-    app.species.look(model.kind)?.decorateMaterials?.(mesh.material);
-    this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur });
+    // a `sharedBody` look (O15): the rigs draw the model's one body; `fur` stays this animal's port, copied in per draw
+    const first = look?.sharedBody === true && look.material !== undefined && model.sharedBody === undefined;
+    if (first) model.sharedBody = fur.clone();
+    const drawn = look?.sharedBody === true && look.material !== undefined ? model.sharedBody ?? fur : fur;
+    const mesh = new THREE.SkinnedMesh(model.geometry, model.render.oneMaterial || model.hull !== undefined ? [drawn] : [drawn, model.hard, model.eye]);
+    if (drawn !== fur) {
+      mesh.onBeforeRender = (_renderer, _scene, _camera, _geometry, material) => {
+        if (material !== drawn) return;
+        drawn.color.copy(fur.color); drawn.emissive.copy(fur.emissive); drawn.emissiveIntensity = fur.emissiveIntensity;
+      };
+    }
+    if (drawn === fur || first) look?.decorateMaterials?.(mesh.material);
+    this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur: drawn });
     const root = bones['body'];
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);
     mesh.add(root);

@@ -459,9 +459,10 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     this.setDrawLod(0);
     this.fadeT = 0;
     this.setShellLevel(0);
-    // give this mesh its own transparent materials (hard + eye are shared per model)
+    // give this mesh its own transparent materials (hard + eye are shared per model); the body from this animal's own
+    // material, which a `sharedBody` look keeps as its port while the rig draws the model's one body
     const mats = this.mesh.material as THREE.Material[];
-    this.fadeMats = mats.map((m) => { const c = m.clone(); c.transparent = true; c.depthWrite = true; this.prepareMaterial?.(c); return c; });
+    this.fadeMats = mats.map((m, i) => { const c = (i === 0 && this.flashMat !== null ? this.flashMat : m).clone(); c.transparent = true; c.depthWrite = true; this.prepareMaterial?.(c); return c; });
     // the fur clone loses its rim patch; a plain transparent fade is fine for 1.5 s
     this.mesh.material = this.fadeMats;
   }
