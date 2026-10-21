@@ -1,10 +1,5 @@
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
-import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
 import data from '../boot/modelCatalogue.generated.json' with { type: 'json' };
-import type { CatalogueParams } from '../boot/specimenParams.generated';
-
-const catalogue = defineSpecimenCatalogue<CatalogueParams>(data.catalogue);
-export const entryDeck = catalogue.model('entryDeck');
 
 export const sites = defineWorldSceneCatalogue(data.siteCatalogue);
 export const captainHat = sites.model('captainHat');

@@ -24,9 +24,8 @@ import { CHAPTER_DIRECTOR } from './chapterDirector';
 import { PAGE_LIFE } from './pageLife';
 import placeSets from '../data/placeSets.json' with { type: 'json' };
 import { parse } from 'valibot';
-import { CoverCompositionSchema, EntryLandingsSchema, PlaceSetsSchema } from './sections';
+import { CoverCompositionSchema, PlaceSetsSchema } from './sections';
 import coverComposition from '../data/coverComposition.json' with { type: 'json' };
-import entryLandings from '../data/entryFloors.generated.json' with { type: 'json' };
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
@@ -106,7 +105,6 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
 
   nameBlob('world/place-sets.json', 'json', new TextEncoder().encode(JSON.stringify(parse(PlaceSetsSchema, placeSets)))),
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
-  nameBlob('world/entry-landings.json', 'json', new TextEncoder().encode(JSON.stringify(parse(EntryLandingsSchema, entryLandings)))),
 
   nameBlob('scenes/zipline.json', 'json', sceneBytes(piers.zipScene)),
   nameBlob('scenes/moorings.json', 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['lines'] }, { kind: 'mesh', id: 'lines', geometry: 'lines', material: 'still', missing: 'empty', castShadow: true }], materials: [{ kind: 'port', id: 'still', source: 'still' }] }, imports: [] })),

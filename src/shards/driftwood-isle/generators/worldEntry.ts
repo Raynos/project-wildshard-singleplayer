@@ -2,6 +2,7 @@ import { parseWorldEntry, type WorldEntryRows, type WorldEntryStep } from '@wild
 import { ISLAND_KNOBS } from './tiers';
 import cove from '../data/coveBake.json' with { type: 'json' };
 import composition from '../data/coveComposition.json' with { type: 'json' };
+import { ENTRY_LANDINGS } from './entryLandings';
 
 const TIERS = ['phone', 'desktop'] as const;
 /** a tier's foliage placement and its draw, named for its model, clipped by the island dressing */
@@ -23,6 +24,11 @@ export function driftwoodWorldEntry(): WorldEntryRows {
     // the wreck and its cargo, drift logs and reef rocks (generators/worldPlacements.ts), then its root into the world
     wreck: [...['wreck.ship', 'wreck.barrels', 'wreck.crates', 'wreck.coils', 'wreck.logs', 'wreck.reef'].map(id => ({ kind: 'place', id })), { kind: 'attach', id: 'wreck.root', as: 'group' }],
     shore: [{ kind: 'place', id: 'rocks.shore.copies' }, { kind: 'attach', id: 'rocks.shore', as: 'mesh', nameAfter: 'rocks.shore.copies' }],
+    // the declared entry landings (the shardfile's socket-landing proof, as declared: solid stone at road height), then the
+    // road decks that carry each on over the water (generators/worldPlacements.ts)
+    decks: [{ kind: 'piece', id: 'entry-landings', name: 'Entry landings', file: 'src/shards/driftwood-isle/generators/entryLandings.ts', category: 'props',
+      surface: 'stone', colliders: ENTRY_LANDINGS.map(({ box }) => box), floors: ENTRY_LANDINGS.map(({ box }) => ({ x: box.x, z: box.z, hw: box.hx, hd: box.hz, y: 0 })),
+      floorPolicy: 'first', solidFloor: true, object: null }, { kind: 'place', id: 'entry.decks' }],
     // the trail's posts, signs and steps, drawn into its weld (generators/worldPlacements.ts)
     trail: ['trail.posts', 'trail.signs', 'trail.planks'].map(id => ({ kind: 'place', id })),
     smallRocks: [{ kind: 'place', id: 'rocks.small.copies' }, { kind: 'attach', id: 'rocks.small', as: 'mesh', nameAfter: 'rocks.small.copies' }],

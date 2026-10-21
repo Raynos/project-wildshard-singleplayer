@@ -41,14 +41,6 @@ const cove = v.strictObject({
   catalogue: v.strictObject({ placements: v.pipe(v.array(v.strictObject({ x: number, y: number, z: number, params: v.strictObject({ r: number, squash: number, moss: number }) })), v.maxLength(512)),
     boxes: v.pipe(v.array(number), v.maxLength(8192)) }),
 });
-const deckFinite = v.pipe(number, v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));
-const deckExtent = v.pipe(deckFinite, v.minValue(0.005), v.maxValue(500));
-// Ordered entry decks retain their exact original socket/slab/column contracts.
-const entryDeck = <E extends 'north' | 'east' | 'south' | 'west'>(edge: E) => v.strictObject({ edge: v.literal(edge),
-  rect: v.strictObject({ minX: deckFinite, minZ: deckFinite, maxX: deckFinite, maxZ: deckFinite }),
-  slab: v.strictObject({ x: deckFinite, z: deckFinite, hw: deckExtent, hd: deckExtent, rot: v.literal(0), yTop: v.literal(0), yBottom: v.literal(-0.55) }),
-  placement: v.strictObject({ x: deckFinite, y: v.literal(0), z: deckFinite, yaw: deckFinite, params: v.strictObject({ run: v.literal(16.5), bed: v.pipe(deckFinite, v.minValue(-14), v.maxValue(-0.4)) }) }),
-});
 const palm = { h: number, lean: number, leanDir: number, rot: number, fronds: natural };
 const bush = { r: number, flowers: v.boolean() };
 const foliageTier = v.strictObject({
@@ -139,7 +131,6 @@ export const SECTIONS = {
       piers: v.pipe(v.array(v.strictObject({ id: text, label: text })), v.length(4)) }),
     fixedDraws: v.pipe(v.array(v.strictObject({ slot: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(8)) })), v.length(90)),
     shadowTiers: v.strictObject({ phone: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }), desktop: v.strictObject({ bush: v.boolean(), boulder: v.boolean() }) }),
-    entryDecks: v.tuple([entryDeck('north'), entryDeck('east'), entryDeck('south'), entryDeck('west')]),
     foliage: v.strictObject({ seed: natural, tiers: v.strictObject({ phone: foliageTier, desktop: foliageTier }), islandPalms: v.pipe(v.array(v.strictObject({ x: number, z: number, ...palm })), v.maxLength(64)) }),
     /** All seven authored pier collider sets, keyed to the exact primitive parameters. */
     piers: v.pipe(v.array(v.strictObject({ paramKey: v.pipe(v.string(), v.maxLength(4096)), colliders: v.pipe(v.array(v.variant('kind', [
@@ -147,7 +138,6 @@ export const SECTIONS = {
       v.strictObject({ kind: v.literal('hull'), x: number, y: number, z: number, points: v.pipe(v.array(number), v.maxLength(24)) }),
     ])), v.maxLength(128)) })), v.length(7)),
     npcScenes: v.strictObject({ castaway: npcScene, trader: npcScene }),
-    entryFloors: floors,
     gullPerches: v.pipe(v.array(point), v.maxLength(256)),
     boat: v.strictObject({ spec: v.strictObject({ x: number, z: number, heading: v.literal(0), waterY: number }), placement: point,
       walls: boxes, floors, cleats: v.tuple([number, number]),
@@ -174,7 +164,5 @@ export const FILE_SCHEMAS = { 'data/bridgeRows.json': v.strictObject({ world: br
 
 /** Named world blobs share their build validator and generated runtime type. */
 export const CoverCompositionSchema = v.strictObject({ name: text, placement: text, mesh: text, userData: v.record(text, v.boolean()) });
-export const EntryLandingsSchema = v.strictObject({ notice: text, rows: v.pipe(v.array(v.strictObject({ edge: v.picklist(['north', 'east', 'south', 'west']),
-  box: v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, surface: v.literal('stone'), hx: number, hy: number, hz: number }) })), v.length(4)) });
 
 export const PlaceSetsSchema = v.pipe(v.array(v.strictObject({ id: text, name: text, place: text, explicit: v.exactOptional(text) })), v.length(9));

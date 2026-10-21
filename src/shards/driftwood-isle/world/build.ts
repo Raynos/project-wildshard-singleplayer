@@ -12,11 +12,10 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import * as THREE from 'three';
-import { sites, entryDeck } from '../models/catalogue';
+import { sites } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
-import { floorAtRects } from '@wildshard/engine/physics/box';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import manifest from '../discovery.generated';
 import { MooringLines } from '../runtime/props/mooringLines';
@@ -31,13 +30,13 @@ import SEABED from '../data/seabedLook.json' with { type: 'json' };
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
-import type { CoverComposition, EntryLandings } from '../runtime/productSections.generated.d.ts';
+import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
 import { followToonLook } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover } from '@wildshard/game/looks/streamedCover';
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
-import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
-import { place, type Placed } from '@wildshard/engine/models/place';
+import { sharedModelContext } from '@wildshard/engine/models/model';
+import type { Placed } from '@wildshard/engine/models/place';
 
 /** What the world build hands the rest of the level: each part it built, nullable off Driftwood (its lists stay lists). */
 export type DriftwoodWorld = { [K in keyof BuiltWorld]: BuiltWorld[K] extends readonly unknown[] ? BuiltWorld[K] : BuiltWorld[K] | null };
@@ -55,8 +54,7 @@ export function buildDriftwoodWorld(...args: Parameters<typeof build>): Promise<
 async function build(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>) {
   // G164: the whole island lowered, the sea at road level; G170: each declared entry landing is the inner end of an asphalt
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
-  const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
-  if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
+  const fixed = driftwoodRows('custom/fixedLayouts');
   const { game, sky, player, registry } = world;
   const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier, piece: (piece) => { registry.add(piece); } });
   const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
@@ -71,12 +69,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     return value;
   };
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
-  // the road decks each declared landing carries (the sea itself is the client plan's `world.water` row, O7)
-  const deckRows = landings.map(({ edge }) => {
-    const row = fixed.entryDecks.find(deck => deck.edge === edge);
-    if (row === undefined) throw new Error('Missing admitted entry deck');
-    return row;
-  });
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
@@ -86,13 +78,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
   const pier = await placePier(firstPier.id);
-  // G170: the four asphalt road decks over the water (the catalogue's entryDeck): the platform's socket floor carried on over the
-  // declared entry landings (the shardfile's socket-landing proof, installed exactly as declared); each ramp rises from one
-  registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/build.ts', surface: 'stone',
-    colliders: landings.map(({ box }) => ({ ...box })), solidFloor: true,
-    floor: (x, z) => (landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
-  place(entryDeck, deckRows.map(({ placement: { x, y, z, yaw } }) => ({ x, y, z, yaw, params: { deck: 'world' } })), { ctx: modelContext(sky), draw: 'merged', registry,
-    piece: { id: 'entry-decks', floor: (x, z) => floorAtRects(fixed.entryFloors, x, z, 'first'), solidFloor: true } });
+  // G170: the declared entry landings and the four asphalt road decks over the water carrying them on; each ramp rises from one
+  await entry.run('decks');
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers

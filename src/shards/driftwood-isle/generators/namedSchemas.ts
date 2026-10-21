@@ -20,7 +20,7 @@ import { QuestStepRowsSchema, QuestHintRowsSchema, QuestServiceActionsSchema } f
 import { QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
-import { EnemyPlacementsSchema, FixedGeometryGroupsSchema, PlaceSetsSchema, CoverCompositionSchema, EntryLandingsSchema } from './sections';
+import { EnemyPlacementsSchema, FixedGeometryGroupsSchema, PlaceSetsSchema, CoverCompositionSchema } from './sections';
 import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/format/populationKeeper';
 
 const text = v.string(), number = v.number();
@@ -30,7 +30,6 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'world/place-sets.json': PlaceSetsSchema,
   'actors/page-life.json': PageLifeSchema,
   'world/cover-composition.json': CoverCompositionSchema,
-  'world/entry-landings.json': EntryLandingsSchema,
   'people/catalogue.json': FigureCatalogueSchema,
   'sim/returns.json': PageReturnRowsSchema,
   'models/world-scenes.json': WorldSceneModelsSchema,

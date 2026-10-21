@@ -3,6 +3,9 @@ import cove from '../data/coveBake.json' with { type: 'json' };
 import composition from '../data/coveComposition.json' with { type: 'json' };
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import trail from '../data/trailsideBake.json' with { type: 'json' };
+import landings from '../data/entryFloors.generated.json' with { type: 'json' };
+import { ENTRY_DECKS } from './entryDecks';
+import { ENTRY_FLOORS } from './staticWorld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 
 interface Spot { readonly x: number; readonly y: number; readonly z: number; readonly variant?: string; readonly params?: Readonly<Record<string, unknown>> }
@@ -38,7 +41,18 @@ export function uprightPoses(poses: readonly Readonly<{ matrix: readonly number[
  * small rocks, the wreck and its cargo and reef rocks, the sea cave's reef rocks. Each is a world
  * scene placement drawn into the part its scene step publishes, registering its piece's colliders and floors.
  */
+/** G170: the asphalt road deck under each declared entry landing (the section's entryDeck specimen), in the landings'
+ *  order: merged, the platform's socket floor carried on over it (piece `entry-decks`, its slabs as solid floors) */
+function entryDecks(): WorldScenePlacementRow {
+  return parseWorldScenePlacement({ id: 'entry.decks', model: 'entryDeck', draw: 'merged', piece: { id: 'entry-decks', floors: ENTRY_FLOORS, floorPolicy: 'first', solidFloor: true },
+    poses: landings.rows.map(({ edge }) => {
+      const deck = ENTRY_DECKS.find(row => row.edge === edge); if (deck === undefined) throw new Error('Missing admitted entry deck');
+      const { x, y, z, yaw } = deck.placement; return { x, y, z, params: { deck: 'world' }, yxz: { yaw, scale: 1 } };
+    }) });
+}
+
 export const WORLD_PLACEMENTS: readonly WorldScenePlacementRow[] = [
+  entryDecks(),
   baked('rocks.small.copies', 'smallRock', 'rocks.small', { id: 'cove-small-rocks' }, rocks.world.small),
   baked('rocks.shore.copies', 'shoreBoulder', 'rocks.shore', { id: 'rocks', solidFloor: true }, rocks.world.shore),
   parseWorldScenePlacement({ id: 'wreck.ship', model: 'shipwreck', draw: 'merged', drawnInto: { part: 'wreck.root', boxes: wreck.shipBox },

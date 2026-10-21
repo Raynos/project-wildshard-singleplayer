@@ -1,7 +1,7 @@
 /**
  * G532: the entry road deck as a specimen catalogue row (boot/modelCatalogue.generated.json, bake-specimens.mjs): one inline
  * draw per baked deck (entryDeckGeometry.ts) on the kit's still material, selected by its `deck`: the world's four entries
- * share `world`, the Explorer shows `deep` and `shallow`. Only the specimen catalogue job imports this file.
+ * share `world`, the Explorer shows `deep` and `shallow`. The specimen catalogue job and the world scenes section import it.
  */
 import type * as THREE from 'three';
 import { zlibSync } from 'fflate';

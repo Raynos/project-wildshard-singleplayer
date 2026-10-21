@@ -30,10 +30,11 @@ const surface = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone
 const FloorRectSchema = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), y: finite,
   rot: v.exactOptional(finite), slope: v.exactOptional(finite), tilt: v.exactOptional(finite), profile: v.exactOptional(v.pipe(v.array(v.tuple([finite, finite, finite])), v.maxLength(8))) });
 /** register one world piece: its box / tread colliders (each with its surface), its floor rects (`first` keeps authored
- *  priority, `highest` the top surface) and the scene object it stands for (absent: the world root) */
+ *  priority, `highest` the top surface) and the scene object it stands for (absent: the world root; null: none, a piece
+ *  that only collides and holds floors) */
 const PieceSchema = v.strictObject({ kind: v.literal('piece'), when: v.exactOptional(when), id, name: id, file: id,
   category: v.picklist(['ground', 'nature', 'buildings', 'props']), surface, colliders: v.pipe(v.array(v.unknown()), v.maxLength(2048)),
-  floors: v.pipe(v.array(FloorRectSchema), v.maxLength(4096)), floorPolicy: v.picklist(['first', 'highest']), solidFloor: v.boolean(), object: v.exactOptional(id) });
+  floors: v.pipe(v.array(FloorRectSchema), v.maxLength(4096)), floorPolicy: v.picklist(['first', 'highest']), solidFloor: v.boolean(), object: v.exactOptional(v.nullable(id)) });
 export const WorldEntryStepSchema = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema, PieceSchema]);
 export const WorldEntrySchema = v.strictObject({ blocks: v.record(id, v.pipe(v.array(WorldEntryStepSchema), v.maxLength(1024))) });
 export type WorldEntryStep = v.InferOutput<typeof WorldEntryStepSchema>;

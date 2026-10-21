@@ -15,6 +15,7 @@ import { CASCADE_LOOKS } from './waterfallLook';
 import { WORLD_PLACEMENTS, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import { entryDeckSpecimen } from './entryDeckSpecimen';
 import * as v from 'valibot';
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
@@ -25,8 +26,8 @@ const nativeRows = parseWorldScenes({ version: 1, libraries: [native.library], m
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export const WORLD_SCENES: WorldScenesSection = {
   version: 1, catalogue: 'models/world-scenes.json',
-  // the trail's fence post, signpost and plank step: code-built specimens its placements name (G3)
-  specimens: v.parse(SpecimenCatalogueSchema, trailSpecimens),
+  // the trail's fence post, signpost and plank step and the entry road deck: code-built specimens its placements name (G3)
+  specimens: [...v.parse(SpecimenCatalogueSchema, trailSpecimens), entryDeckSpecimen()],
   libraries: [...cargoRows.libraries, ...nativeRows.libraries, REEF_SCENE_LIBRARY, ...rockRows.libraries, ...parseWorldScenes({ version: 1, libraries: foliage.libraries, materials: [], steps: [] }).libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs', ...piers.slots, 'boatHull', 'boatSail', 'boatGear', 'mooringLines', 'duneLogs', ...Object.values(inventory.groups.driftLogs)].map(id => {
     const row = inventory.draws.find(entry => entry.slot === id), file = id === 'covePools' ? 'models/scene-pools.glb' : id === 'waterfallRings' ? 'models/scene-rings.glb' : DRIFTWOOD_FIXED_SOURCES[id];
     if (row === undefined || file === undefined) throw new Error(`Missing cascade bake: ${id}`);
