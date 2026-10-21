@@ -1,0 +1,65 @@
+{
+  "observedAt": "2026-10-21T11:53:51.623021+00:00",
+  "base": "https://wildshard-singleplayer.vercel.app",
+  "version": {
+    "build": "64d85dac0-mvi1u8vt",
+    "time": "2026-10-21T11:49:25.355Z"
+  },
+  "sha": "64d85dac0458fecf5ee5c0775ceabc2cad864b26",
+  "bootstrap": [
+    {
+      "request": "Origin absent",
+      "status": 200,
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Content-Length": "95",
+        "Content-Type": "application/javascript; charset=utf-8",
+        "Date": "Wed, 21 Oct 2026 11:53:50 GMT",
+        "Etag": "\"bb3d8754827b60a9ca4eafe619122be8\"",
+        "Last-Modified": "Wed, 21 Oct 2026 11:50:25 GMT"
+      },
+      "bodyBytes": 95,
+      "bodySHA256": "9ad9dde73ee848bc7712c3f9133994bbd3e4a829708e92afd2ee0ff958fdf595"
+    },
+    {
+      "request": "Origin present",
+      "status": 200,
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Content-Length": "95",
+        "Content-Type": "application/javascript; charset=utf-8",
+        "Date": "Wed, 21 Oct 2026 11:53:50 GMT",
+        "Etag": "\"bb3d8754827b60a9ca4eafe619122be8\"",
+        "Last-Modified": "Wed, 21 Oct 2026 11:50:25 GMT"
+      },
+      "bodyBytes": 95,
+      "bodySHA256": "9ad9dde73ee848bc7712c3f9133994bbd3e4a829708e92afd2ee0ff958fdf595"
+    },
+    {
+      "request": "Conditional with Origin",
+      "status": 304,
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Date": "Wed, 21 Oct 2026 11:53:50 GMT",
+        "Etag": "\"bb3d8754827b60a9ca4eafe619122be8\""
+      },
+      "bodyBytes": 0,
+      "bodySHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "core": {
+    "path": "/sw-core/4682a5b8a04c5ec4ac6c93cebb7ae1105a60ae29a3e344cbb02277642270b84a.js",
+    "status": 200,
+    "headers": {
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Length": "57092",
+      "Content-Type": "application/javascript; charset=utf-8",
+      "Date": "Wed, 21 Oct 2026 11:53:51 GMT",
+      "Etag": "\"018d8a7cea056c74be852fadc7cd6e7b\"",
+      "Last-Modified": "Wed, 21 Oct 2026 11:50:25 GMT"
+    },
+    "bodyBytes": 57092,
+    "bodySHA256": "4682a5b8a04c5ec4ac6c93cebb7ae1105a60ae29a3e344cbb02277642270b84a"
+  },
+  "changedBodyProof": "progress/loading/g543/worker-bootstrap-63dc1e1/README.md"
+}
