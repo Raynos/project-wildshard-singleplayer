@@ -1,13 +1,22 @@
 /** Final rock geometry and native hulls. No sculpting or normal work survives admission. */
-import { type BufferGeometry, Matrix4 } from 'three';
+import { BufferAttribute, BufferGeometry, Matrix4 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { drawnHullWorld, poseGeometry, poseOf } from '@wildshard/engine/models/colliders';
+import { supportPoints } from '@wildshard/engine/models/hull';
 import type { Placement } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { authoredRockGeometry } from './rocks';
 import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
+
+/** A boulder's hull as its drawn mesh's support points (models/hull.ts: ~50 of its ~1,800 vertices, within ~5 cm of the
+ *  surface): Rapier's quickhull ran on every vertex of the 91 shore boulders each time a world registered them. */
+function supportHull(desc: ColliderDesc): ColliderDesc {
+  if (desc.kind !== 'hull') return desc;
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(desc.points, 3));
+  try { return { ...desc, points: supportPoints(geometry, new Matrix4()) }; } finally { geometry.dispose(); }
+}
 
 export interface ShoreParams { readonly r: number; readonly squash: number }
 export interface SmallParams { readonly r: number; readonly sq: number }
@@ -71,7 +80,7 @@ function buildRockScenes(shore: readonly Placement<ShoreParams>[], small: readon
     if (row.params?.r === undefined || row.params.squash === undefined) throw new Error('Missing shore parameters');
     const part = shoreGeometry({ r: row.params.r, squash: row.params.squash }, shoreRng);
     poseGeometry(part, row);
-    const colliders = row.params.r > 0.9 ? [drawnHullWorld([part], poseOf(row))] : [];
+    const colliders = row.params.r > 0.9 ? [supportHull(drawnHullWorld([part], poseOf(row)))] : [];
     shoreColliders.push(...colliders);
     record(shoreCopies, part, row, row.params, colliders);
     return part;
@@ -91,7 +100,7 @@ function buildRockScenes(shore: readonly Placement<ShoreParams>[], small: readon
       const params = { ...defaults, ...variant.params }, part = build(params, new Rng(seed)), source = `${key}-${variant.id}`;
       geometry.set(source, part);
       return { id: variant.id, params, geometry: source, size: [params.r * 2, params.r * 2, params.r * 2],
-        colliders: solid && params.r > 0.9 ? [drawnHullWorld([part], poseOf({ x: 0, y: 0, z: 0 }))] : [] };
+        colliders: solid && params.r > 0.9 ? [supportHull(drawnHullWorld([part], poseOf({ x: 0, y: 0, z: 0 })))] : [] };
     });
     catalogue.push({ key, id: `driftwood-isle/${id}`, name, seed, defaults, variants, choices });
   }
