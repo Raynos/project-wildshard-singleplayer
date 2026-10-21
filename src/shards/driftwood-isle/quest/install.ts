@@ -56,7 +56,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   ctx.system({ id: rows.systems.speakerPose, phase: 'update', before: [rows.systems.talks], run: (dt, time) => { npc.update(dt, time, player.position); } });
   ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
   const adventure = await installQuestPageComposition(ctx, rows);
-  installBridgeSway(ctx, await ctx.product.json<BridgeSwayRows>('quests/bridge-sway.json'));
+  installBridgeSway(ctx, { ...rows.sway, system: rows.systems.sway, before: rows.systems.before });
   if (adventure.places === null) throw new Error('Driftwood adventure requires its discovery catalogue');
   const placed = [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
     ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed];

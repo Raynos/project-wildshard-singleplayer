@@ -10,7 +10,9 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { installBridgeSway } from '../src/shards/driftwood-isle/quest/install';
-import rows from '../src/shards/driftwood-isle/data/bridgeSway.json' with { type: 'json' };
+import page from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
+
+const rows = { ...page.sway, system: page.systems.sway, before: page.systems.before };
 
 test('listed rope deck keeps its update ordering, original camera sample and floor membership', () => {
   const host = new App(), scope = new Scope('bridge-sway'), registry = new WorldRegistry(), camera = new PerspectiveCamera();

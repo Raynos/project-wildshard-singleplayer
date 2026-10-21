@@ -26,12 +26,13 @@
     "anchor": "zipline.anchor", "publish": "lookout.zipline"
   },
   "boss": { "pool": { "poi": "shrine", "anchor": "shrine.pool", "x": 0, "z": 8 }, "reward": "shrine.reward" },
+  "sway": { "piece": "bridge", "height": 0.35, "ease": 3, "threshold": 0.001, "rate": 0.8, "speed": 0.25, "rollHz": 1.7, "roll": 0.018, "dipHz": 3.4, "dip": 0.025 },
   "guideHeight": 300, "placeInterval": 0.25,
   "systems": {
     "speakerPose": "driftwood.speaker.pose", "traderPose": "driftwood.trader.pose",
     "kit": "shard.driftwood.adventure", "talks": "shard.driftwood-isle.installSpine",
     "trader": "shard.driftwood-isle.installTrader", "cable": "shard.driftwood.adventure.2",
-    "guide": "shard.driftwood-isle.installGullGuide",
+    "guide": "shard.driftwood-isle.installGullGuide", "sway": "shard.driftwood.adventure.3",
     "places": "shard.driftwood.adventure.4",
     "before": ["game.loot", "body-shadow", "keepsakes", "last place", "first hints", "main.world"]
   }

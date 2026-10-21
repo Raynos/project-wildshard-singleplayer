@@ -25,8 +25,6 @@ import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/forma
 const text = v.string(), number = v.number();
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/page-composition.json': QuestPageCompositionSchema,
-  'quests/bridge-sway.json': v.strictObject({ piece: text, system: text, before: v.array(text),
-    ...Object.fromEntries(['height', 'ease', 'threshold', 'rate', 'speed', 'rollHz', 'roll', 'dipHz', 'dip'].map(key => [key, v.pipe(number, v.finite())])) }),
   'actors/projection.json': PopulationProjectionSchema,
   'world/place-sets.json': PlaceSetsSchema,
   'actors/page-life.json': PageLifeSchema,
