@@ -164,12 +164,12 @@ test('whole-module cuts retire their old receipts while unknown missing modules 
 
 test('shared practice lifetime preserves each real controller charge', () => {
   const path = 'src/game/practice/course.ts', both = new Set(['nalati-grasslands', 'nine-dragon-stack']);
-  const names = ['PracticeCourse', 'RidingCourseRun', 'MountedCourseController', 'HookCourseController', 'hookCoursePad'];
+  const names = ['PracticeCourse', 'MountedCourseController', 'HookCourseController', 'hookCoursePad'];
   const modules = new Map([[path, both]]), bindings = new Map(names.map(name => [`${path}\0${name}`, both]));
   chargePlatformUsers(modules, bindings);
   expect(modules.get(path)).toEqual(both);
   expect(bindings.get(`${path}\0PracticeCourse`)).toEqual(both);
-  for (const name of ['RidingCourseRun', 'MountedCourseController']) {
+  for (const name of ['MountedCourseController']) {
     expect([...bindings.get(`${path}\0${name}`) ?? []]).toEqual(['nalati-grasslands']);
     expect(platformChargeback(path, name)).toBe('C6');
   }
@@ -179,6 +179,6 @@ test('shared practice lifetime preserves each real controller charge', () => {
   }
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['nalati-grasslands', []], ['nine-dragon-stack', []]]);
   for (const name of names.slice(1)) recordPrivateCharge(charges, 'fixture', {path, name, lines: 1});
-  expect(charges.get('nalati-grasslands')?.map(row => row.name)).toEqual(['RidingCourseRun', 'MountedCourseController']);
+  expect(charges.get('nalati-grasslands')?.map(row => row.name)).toEqual(['MountedCourseController']);
   expect(charges.get('nine-dragon-stack')?.map(row => row.name)).toEqual(['HookCourseController', 'hookCoursePad']);
 });

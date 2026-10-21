@@ -180,3 +180,16 @@ Runtime source: **shards 0 / platform 0**; build TS **0**, MJS **0**,
 authored AS **+14**. Existing host scores/charges are unchanged.
 Root/layer types, typed lint, field/history/RNG/real boss suites and the
 emitted Nalati product pass. No collider or visual change.
+
+
+X4 mounted-course continuation: delete the complete RidingCourseRun
+wrapper and use existing ProjectedState directly. The existing Kokpar
+AS still owns laps, back-straight admission, reset, falls and records;
+Native retains the same ten-Hz cadence, body placement and UI notices.
+ProjectedState retains HOST-BAR 6/6 from real Nalati + Nine callers.
+The mounted controller remains Nalati-only, HOST-BAR 4/6 and charged C6;
+retire only the deleted wrapper's named charge, with all other G520 rows
+preserved. Runtime physical TS: **shards 0 / platform -20**; build/AS **0**.
+Root/layer types, typed lint and two focused suites (12 tests) pass,
+including original and alternate-data AS lap/record/fall sequences.
+No collider, data-byte, codec, guest-resource or budget change.

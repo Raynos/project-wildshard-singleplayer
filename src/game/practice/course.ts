@@ -37,28 +37,6 @@ function hookCoursePad(row: HookCourseRow, id: string): HookCoursePad {
 /** the way the player faces to look from (x, z) toward (tx, tz): Player.forward is (−sin yaw, −cos yaw) */
 const yawToward = (x: number, z: number, tx: number, tz: number): number => Math.atan2(-(tx - x), -(tz - z));
 
-/** Numeric continuation of a mounted practice guest. No renderer or wall clock is owned here. */
-export class RidingCourseRun {
-  readonly state={lap:0,started:0,running:0,half:0,best:-1,last:-1,prevX:0};
-  private readonly brain:ReturnProgram;
-  constructor(program:unknown,scope?:Scope){this.brain=ReturnProgram.page(program,scope);}
-  get best():number|null{return this.state.best<0?null:this.state.best;}
-  elapsed(now:number):number{return this.state.running?now-this.state.started:0;}
-  reset(x:number):void{this.project('courseReset',{courseX:x,courseY:0,courseZ:0,courseTime:0,courseMounted:0});}
-  step(now:number,x:number,y:number,z:number,mounted:boolean):{fell:boolean;notice:number|null;lap:number;time:number;best:boolean}{
-    const lap=this.state.lap,out=this.project('courseStep',{courseX:x,courseY:y,courseZ:z,courseTime:now,courseMounted:Number(mounted)});
-    return{fell:out['courseFell']===1,notice:out['courseEvent']===1?1:out['courseEvent']===2?2:null,lap,
-      time:out['courseEvent']===1?this.state.last:this.elapsed(now),best:this.state.best===this.state.last};
-  }
-  private project(signal:string,observed:Readonly<Record<string,number>>):Readonly<Record<string,number>>{
-    const out=this.brain.project(signal,{...this.state,...observed});
-    for(const key of ['lap','started','running','half','best','last','prevX']as const){
-      const value=out[key];if(value===undefined)throw new Error('Missing practice continuation');this.state[key]=value;
-    }
-    return out;
-  }
-}
-
 /** Only rows and native page authority enter the shared room lifecycle. */
 export type PracticeCourseRows = { kind:'horse'; layout:unknown } | { kind:'grapple'; layout:HookPracticeLayout };
 interface CourseController {
@@ -79,12 +57,13 @@ class MountedCourseController implements CourseController {
   private horse: Animal | null = null;
   private readonly rows: RidingPracticeLayout;
   private readonly mount: ReturnType<typeof pageRidingMount>;
-  readonly run: RidingCourseRun;
+  readonly run:ProjectedState<{lap:number;started:number;running:number;half:number;best:number;last:number;prevX:number}>;
   private pending = 0;
 
   constructor(private readonly host:PlaygroundHost,rows:RidingPracticeLayout,
     mount:ReturnType<typeof pageRidingMount>,scope:Scope,private readonly room:PracticeCourse,map:RoomMap) {
-    this.rows=rows;this.mount=mount;this.run=new RidingCourseRun(rows.program,scope);
+    this.rows=rows;this.mount=mount;this.run=new ProjectedState({initial:{lap:0,started:0,running:0,half:0,best:-1,last:-1,prevX:0},
+      signals:{reset:'courseReset',step:'courseStep'}},ReturnProgram.page(rows.program,scope));
     const o=room.origin,lap=rows.road.map(([x,z])=>[o.x+x,o.z+z]as const);this.road=[...lap,...lap.slice(1)];
     const mark:RoomMarker={x:0,z:0},marks=[mark],none:RoomMarker[]=[];
     this.map={...map,markers:()=>{const h=this.horse;if(h===null||h.hidden)return none;mark.x=h.position.x;mark.z=h.position.z;return marks;}};
@@ -133,9 +112,9 @@ class MountedCourseController implements CourseController {
     const yaw = Math.atan2(-(a.position.x + this.rows.shoulder - px), -(a.position.z - pz));
     this.host.player.spawn(px, pz, yaw, o.y);
     this.host.player.pitch = this.rows.riderPitch;
-    this.pending=0; this.run.reset(px-o.x);
+    this.pending=0;this.run.event('reset',{courseX:px-o.x,courseY:0,courseZ:0,courseTime:0,courseMounted:0});
     this.room.chip.status(this.rows.words.ready);
-    this.room.chip.time(0, this.run.best);
+    this.room.chip.time(0,this.run.state.best<0?null:this.run.state.best);
   }
 
   update(dt:number): void {
@@ -152,13 +131,14 @@ class MountedCourseController implements CourseController {
     this.pending+=dt;
     if(this.pending>=.1){
       this.pending=0;
-      const event=this.run.step(now,p.position.x-o.x,p.position.y-o.y,p.position.z-o.z,mounted);
-      if(event.fell){this.restart();this.host.toast(this.rows.words.fell);return;}
-      if(event.notice!==null)this.host.toast(fill(event.notice===1?this.rows.words.lapNotice:this.rows.words.halfNotice,
-        {lap:event.lap,time:clock(event.time),best:event.best?this.rows.words.best:''}));
+      const lap=this.run.state.lap,out=this.run.event('step',{courseTime:now,courseX:p.position.x-o.x,courseY:p.position.y-o.y,courseZ:p.position.z-o.z,courseMounted:Number(mounted)});
+      if(out['courseFell']===1){this.restart();this.host.toast(this.rows.words.fell);return;}
+      const notice=out['courseEvent'],state=this.run.state;
+      if(notice===1||notice===2)this.host.toast(fill(notice===1?this.rows.words.lapNotice:this.rows.words.halfNotice,
+        {lap,time:clock(notice===1?state.last:state.running?now-state.started:0),best:state.best===state.last?this.rows.words.best:''}));
     }
-    const state=this.run.state,elapsed=this.run.elapsed(now),words=this.rows.words;
-    this.room.chip.time(elapsed,this.run.best);
+    const state=this.run.state,elapsed=state.running?now-state.started:0,words=this.rows.words;
+    this.room.chip.time(elapsed,state.best<0?null:state.best);
     this.room.chip.status(!mounted&&!state.running?words.ready:!state.running?words.ride:
       fill(words.lap,{lap:state.lap,half:state.half?words.half:'',last:state.last<0?'':fill(words.last,{time:clock(state.last)})}),state.running||mounted?'go':undefined);
   }
