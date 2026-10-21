@@ -1,0 +1,101 @@
+{
+  "revision": "4bed5e57d8918429be2fabdcba2608151f2e2487",
+  "nice": 0,
+  "mode": "sdk-first",
+  "targetSeconds": 35,
+  "samples": [
+    {
+      "name": "sdk-first",
+      "seconds": 41.816892167000006,
+      "status": 0,
+      "spans": {
+        "gen": 16.784273833,
+        "preparation": 0.06328624999999738,
+        "products": 20.392837042000007,
+        "census": 4.013618125000001
+      },
+      "producerSpawns": 26,
+      "generated": 26,
+      "verified": 217,
+      "snapshotVerified": 0,
+      "built": 6,
+      "reused": 18,
+      "parsed": true,
+      "measurementError": null,
+      "productFailures": {},
+      "cpu": {
+        "basis": "Each phase sums process self user/system CPU, including native threads and observed Node descendants; time(1) independently measures the whole command tree.",
+        "phases": {
+          "launch": {
+            "wallSeconds": 0.5628769170000041,
+            "userSeconds": 0.485741,
+            "systemSeconds": 0.11315
+          },
+          "gen": {
+            "wallSeconds": 16.784273833,
+            "userSeconds": 55.486550000000015,
+            "systemSeconds": 11.206270000000005
+          },
+          "preparation": {
+            "wallSeconds": 0.06328624999999738,
+            "userSeconds": 0.104927,
+            "systemSeconds": 0.008641
+          },
+          "products": {
+            "wallSeconds": 20.392837042000007,
+            "userSeconds": 92.32755999999999,
+            "systemSeconds": 10.563735999999999
+          },
+          "census": {
+            "wallSeconds": 4.013618125000001,
+            "userSeconds": 4.057285,
+            "systemSeconds": 0.682714
+          }
+        },
+        "total": {
+          "wallSeconds": 41.81,
+          "userSeconds": 155.29,
+          "systemSeconds": 23.38
+        },
+        "complete": true,
+        "observedTotal": {
+          "userSeconds": 152.46208800000005,
+          "systemSeconds": 22.574522000000005
+        }
+      }
+    }
+  ],
+  "pass": false,
+  "schema": "build-speed-proof/1",
+  "command": "node scripts/shard-platform.mjs --json --source-progress",
+  "base": "072e36da1034906784b71281f9bcdbc44678d555",
+  "sdkDescendant": "4bed5e57d8918429be2fabdcba2608151f2e2487",
+  "sdkDelta": "src/sdk/sourceReader.ts",
+  "isolation": "Only the immediate parent warmed private generation, product and compiler-normalization caches; descendant first invocation ran under the quiet and push locks.",
+  "scope": "SDK first-read case; the earlier official unchanged acceptance is quiet-61b2.json.",
+  "proof": "20261021T025402-sp-x6-x13-sdk-argv-quiet-50563",
+  "quietReleasedAfterSeconds": 45.98,
+  "unchangedCounter": {
+    "seconds": 17.072050333,
+    "status": 0,
+    "generated": 0,
+    "producerSpawns": 0,
+    "built": 0,
+    "reused": 24,
+    "measurementError": null,
+    "productFailures": {},
+    "scope": "Non-quiet correctness only; the official <=15 s proof remains quiet-61b2.json."
+  },
+  "followup": {
+    "recorderRevision": "9066d921a2e39cb962e2bd160aab5bfac725ed4d",
+    "authorExecutionRevision": "ca120b08ffed281a8b1e62c2dae314f60e3adb69",
+    "scope": "A real Nine product build on the measured tree with those exact authored files overlaid; diagnostic only, not a B6 timing.",
+    "proof": "20261021T031333-sp-x6-x13-nine-execution-proof-55641",
+    "commentReuses": true,
+    "tokenInvalidates": true,
+    "inputs": [
+      "M src/sdk/sourceReader.ts",
+      "P src/sdk/sourceReader.ts"
+    ]
+  }
+}
