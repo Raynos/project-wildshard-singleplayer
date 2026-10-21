@@ -8831,7 +8831,7 @@ comparison once before score binding; shards supply no selection callback.
 Pine and Driftwood both use this installer; their lifecycle and catalogue rows
 remain the source of their differences.
 
-`readItemAmmunition(items, id)` in `game/plugin/nativeItems` reads the
+`new ItemCatalogue(items).ammunition(id)` in `game/plugin/nativeItems` reads the
 admitted ranged ammunition as page `AmmoRow` values and bounded target-damage
 coefficients. Optional presentation declares labels and pouch capacity; missing
 presentation refuses. Native flight remains additive in rain; page rows retain
@@ -9045,7 +9045,7 @@ the shipping discovery imports no generator and never falls back to source.
 `combat/items.loadout.inventory` carries the bounded saved-pack policy consumed
 by `@wildshard/game/inventoryLaw.NativeInventory`: ordered kinds, slot/count
 bounds, quantity and snapshot modes, and the existing refusal message. The
-public `@wildshard/game/plugin/nativeItems.readItemInventory(items)` admits
+public `new ItemCatalogue(items).inventory` from `@wildshard/game/plugin/nativeItems` admits
 that data without a fallback. Callers keep their original save envelopes and
 use `nativeInventorySchema(policy)` before restoration; the shared stacking
 and trade laws remain the sole inventory state owner. Missing policy, repeated
@@ -10501,3 +10501,16 @@ declare `combat: { target: { kind, damage }, preyY, hits }`; their entered
 scope answers weapon rays, and leaving removes the answer. Pine's hares
 and Nalati's sheep are the two real weapon-projection users. No authored
 callback supplies selection, damage, retirement or lifetime.
+
+### Shared item metadata admission (G516)
+
+`ItemCatalogue` in `game/plugin/nativeItems` admits a `combat/items` payload
+once. Its `equipment(id)`, `ammunition(id)` and `inventory` reads replace
+the three standalone reader facades. Kit registration reuses the same
+catalogue for all equipment and ammunition rows. Native inventory remains
+the saved stacking owner; this catalogue installs no state or callbacks.
+Pine, Driftwood, Nalati and Nine consume the real admitted metadata.
+
+The rifle bake reads Nalati's item profile directly. SDK firearm/melee
+compatibility types remain solely for frozen legacy source; no current
+shard runtime imports those facades.

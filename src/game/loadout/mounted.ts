@@ -12,7 +12,7 @@ import { BladeSet } from '../weapons/mountedBlade';
 import { PolearmSet, type HeldPolearmWorld } from '../weapons/heldPolearm';
 import { Bow } from '../weapons/Bow';
 import { loadHeldBow } from '../plugin/heldLauncher';
-import { readItemEquipment } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../plugin/nativeItems';
 import type { ArcWeaponPower } from '../weapons/arcPower';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -57,14 +57,15 @@ export class MountedArsenal {
     const runtime=ctx.game.runtime,page=this.rows.page;
     if(ctx.scope.disposed||runtime===undefined||page===undefined)throw new Error('Mounted page needs its live native equipment declaration');
     const world=runtime.world;if(world===null)throw new Error('Mounted page needs its actual world');
-    ctx.rows.weapon([this.rows.bow.item,this.rows.blade.item,this.rows.polearm.item,page.firearm.item].map(id=>readItemEquipment(ctx.product.shardfile.items,id)));
+    const catalogue=new ItemCatalogue(ctx.product.shardfile.items);
+    ctx.rows.weapon([this.rows.bow.item,this.rows.blade.item,this.rows.polearm.item,page.firearm.item].map(id=>catalogue.equipment(id)));
     ctx.scope.onDispose(()=>{this.pageKits.delete(ctx.scope);});
     runtime.buildEquipment=async(targets,allowUnlocked)=>{
       const kit=await this.build(world,targets,allowUnlocked,ctx.product.shardfile.items);await macrotask();
       const data=v.parse(v.object({feel:v.looseObject({ads:v.looseObject({blend:v.number()})}),view:v.unknown(),rows:v.unknown()}),await ctx.product.json<unknown>(page.firearm.file));
       const item=ctx.product.shardfile.items.rows.find(row=>row.id===page.firearm.item);
       const profile={...parse(FirearmWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined),...data.feel};
-      const rifle=new HeldFirearm(world,targets,{row:readItemEquipment(ctx.product.shardfile.items,page.firearm.item),allowUnlocked,muzzleLight:page.firearm.muzzleLight,
+      const rifle=new HeldFirearm(world,targets,{row:catalogue.equipment(page.firearm.item),allowUnlocked,muzzleLight:page.firearm.muzzleLight,
         profile,view:parseHeldFirearmView(data.view),rows:parseHeldFirearmRows(data.rows),model:{}});
       if(ctx.scope.disposed)throw new Error('Mounted page left during equipment assembly');
       bindRuntimeEquipment(ctx,ctx.product.shardfile,[kit.bow,kit.sabre,kit.spear,rifle].map(weapon=>{
@@ -81,7 +82,7 @@ export class MountedArsenal {
     const sabre=new this.blade.Weapon(world,targets,{allowUnlocked});await macrotask();
     const spear=new this.polearm.Weapon(world,targets,{allowUnlocked});await macrotask();
     const {profile}=await loadHeldBow(this.rows.bow.file);
-    const bow=new Bow(world,targets,{row:readItemEquipment(items,this.rows.bow.item),profile,allowUnlocked});
+    const bow=new Bow(world,targets,{row:new ItemCatalogue(items).equipment(this.rows.bow.item),profile,allowUnlocked});
     const kit:MountedLoadout={
       base:sabre,bow,sabre,spear,extras:[bow,spear],
       install:weapons=>{for(const weapon of kit.extras)weapons.unlock(weapon.id);weapons.select(({blade:kit.sabre,polearm:kit.spear,bow:kit.bow})[this.rows.initial].id,true);},

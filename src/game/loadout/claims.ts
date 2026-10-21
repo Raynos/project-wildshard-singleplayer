@@ -13,7 +13,7 @@ import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { createClientScene } from '../plugin/ui';
 import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from '../plugin/headless';
-import { readItemEquipment } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../plugin/nativeItems';
 import { heldArmsGear } from '../models/heldGear';
 import { ToonArms } from '../systems/viewmodel/toonArms';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
@@ -146,7 +146,7 @@ export class HeldClaims {
     const profiles = this.rows.weapons.map(row => {
       const item = items.rows.find(entry => entry.id === row.item);
       if (item?.kind !== 'weapon' || item.profile?.family !== 'melee') throw new Error('Held melee needs its native item profile');
-      const profile: MeleeProfile = applyMeleeCombatProfile({ ...(row.blade === 'iron' ? SWORD_IRON : SWORD_WOOD), ...readItemEquipment(items, row.item) }, item.profile);
+      const profile: MeleeProfile = applyMeleeCombatProfile({ ...(row.blade === 'iron' ? SWORD_IRON : SWORD_WOOD), ...new ItemCatalogue(items).equipment(row.item) }, item.profile);
       const claim = this.rows.claims.find(entry => entry.item === row.item);
       if (claim !== undefined) profile.pickup = { owned: claim.owned, prompt: claim.prompt, toast: claim.toast, create: (at, prompt) => {
         if (at !== claim.at) throw new Error('Unknown held claim site');

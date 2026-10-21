@@ -12,7 +12,7 @@ import { RangedPageSchema, type RangedPageRows } from '@wildshard/format/rangedP
 import { forestPage } from '../shardfile/forestPage';
 import { HeldFinishes } from './finishes';
 import { installHeldLoadout, type HeldLoadout } from './held';
-import { readItemInventory } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../plugin/nativeItems';
 import { ClaimedPickupRoster } from '../loot/runtime';
 import { HeldLauncher } from '../plugin/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';
@@ -41,7 +41,7 @@ export async function prepareRangedPage(ctx: ShardContext, input: unknown): Prom
   const rows = v.parse(RangedPageSchema, input), runtime = ctx.game.runtime;
   if (runtime === undefined) throw new Error('Ranged page requires its runtime');
   await HeldFinishes.prepare(ctx.product, ctx.scope, rows.finishSource);
-  const kinds = readItemInventory(ctx.product.section('combat/items').items).kinds;
+  const kinds = new ItemCatalogue(ctx.product.section('combat/items').items).inventory.kinds;
   runtime.menu = { skins: () => runtime.play ? runtime.play.skins.cardRows(HeldFinishes.current(ctx.manifest.slug).cards) : [],
     onWearSkin: id => { runtime.hooks.wearFinish?.(id); }, skinsTitle: rows.menu.title,
     pack: { note: rows.menu.note, hint: rows.menu.hint, gearHint: rows.menu.gearHint, line: id => kinds.includes(id) ? rows.menu.lines[id] ?? rows.menu.noTrade : null } };

@@ -15,7 +15,7 @@ import { installDeclaredQuestHost } from '../plugin/simulation';
 import { AchievementCounterBook, type AchievementCounterRows } from '../achievements';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import { NativeInventory } from '../inventoryLaw';
-import { readItemInventory, nativeMeleeItem } from '../plugin/nativeItems';
+import { ItemCatalogue, nativeMeleeItem } from '../plugin/nativeItems';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration } from './interactionRows';
 
@@ -58,7 +58,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const { table, spots } = ports, flags = host.flags;
   const rules = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
 
-  const pack = new NativeInventory(readItemInventory(ports.source.items), host);
+  const pack = new NativeInventory(new ItemCatalogue(ports.source.items).inventory, host);
   const props = installNativeQuestProps(host, ports.props, ports.restoring);
   const walked = { x: 0, z: 0 };
 

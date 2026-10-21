@@ -8,7 +8,7 @@ import type { ShardProduct } from '../shardfile/shardProduct';
 import type { NativeStoryRows, NativeStorySpots } from './nativeStoryRows';
 import { nativeQuestInputs } from './nativeInputs';
 import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/nativeAmmunition';
-import { readNativeRangedItem, readItemInventory } from '../plugin/nativeItems';
+import { readNativeRangedItem, ItemCatalogue } from '../plugin/nativeItems';
 import { takeNativeBossReward } from '../boss/native';
 import { commitQuestEffects } from './effects';
 import { cableModes } from '@wildshard/engine/player/modes';
@@ -61,7 +61,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
   const director = prepared.get(product);
   if (director === undefined) throw new Error('Native story has no prepared director');
-  const ports = { ...rows, inventory: readItemInventory(product.shardfile.items), quests: product.shardfile.quests,
+  const ports = { ...rows, inventory: new ItemCatalogue(product.shardfile.items).inventory, quests: product.shardfile.quests,
     commands: input.scripts, fact: input.ledger.fact, coins: input.ledger.coins, director, ammunition,
     addBolts: (n: number) => { launcher.item.addBolts(n); }, canSelectAmmo: () => launcher.frame.live.has(policy.launcher),
     day: () => host.dayClock ?? null, night: () => host.dayClock?.night ?? 0,

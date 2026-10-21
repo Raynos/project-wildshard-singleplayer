@@ -23,7 +23,7 @@ import * as THREE from 'three';
 import * as schema from 'valibot';
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
-import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
@@ -543,7 +543,7 @@ export class PolearmSet {
   const {family:_family,...javelin}=schema.parse(ThrownWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined);
   const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[rows.pool]},'held-polearm');await parts.preload();
   const p=rows.view.poses;
-  this.data={parts,rows,profile:{...SWORD_WOOD,...readItemEquipment(product.shardfile.items,this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin:{id:this.rows.item,...javelin},view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
+  this.data={parts,rows,profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin:{id:this.rows.item,...javelin},view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
  }
  geometry(name:string):THREE.BufferGeometry{const part=this.need().parts.geometry(name);if(part===null)throw new Error(`Missing polearm part ${name}`);return part;}
  profile():HeldPolearmProfile{return this.need().profile;}

@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { Events } from '../src/engine/events/events';
 import * as feel from '../src/engine/combat/view/rangedFeel';
-import { readItemEquipment } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/plugin/nativeItems';
 import { installHeldRangedFeel } from '../src/game/plugin/heldEquipment';
 import type { ShardContext } from '../src/game/plugin/context';
 import { parseClientPlan } from '../src/format/clientPlan';
@@ -20,7 +20,7 @@ test('Pine and Nalati declare the real ranged-feel host with nonzero live equipm
   for (const plan of [pinePlan, nalatiPlan]) expect(parseClientPlan(plan).features.filter(row => row.kind === 'held.ranged-feel')).toHaveLength(1);
   for (const [items, ids] of [[PINE_ITEMS, ['weapon.crossbow', 'weapon.lever', 'weapon.longbow']], [nalatiItems, ['weapon.bow', 'weapon.rifle']]] as const) {
     for (const id of ids) {
-      const row = readItemEquipment(items, id);
+      const row = new ItemCatalogue(items).equipment(id);
       expect(row.rangedFeel?.kick.body).toBeGreaterThan(0);
       expect(row.rangedFeel?.kick.kill).toBeGreaterThan(0);
     }
@@ -32,13 +32,13 @@ test('entered ranged feel resolves the current weapon row after a replacement', 
   let read: Parameters<ReturnType<typeof feel.prepareRangedFeel>>[2] | undefined;
   const prepare = vi.spyOn(feel, 'prepareRangedFeel').mockImplementation(() => (_events, _scope, reader) => { read = reader; });
   const scope = new Scope('ranged-feel-adoption'), base: Pick<ShardContext, 'scope'> = { scope }, context = base as ShardContext;
-  const weapons = { events: new Events(), list: [{ row: readItemEquipment(nalatiItems, 'weapon.bow') }] };
+  const weapons = { events: new Events(), list: [{ row: new ItemCatalogue(nalatiItems).equipment('weapon.bow') }] };
   Object.defineProperty(context, 'game', { value: { runtime: { world: { game: {} }, play: { weapons } } } });
   try {
     installHeldRangedFeel(context);
     if (read === undefined) throw new Error('Missing live equipment reader');
     expect(read('weapon.bow')).toBe(weapons.list[0]?.row);
-    weapons.list.splice(0, 1, { row: readItemEquipment(nalatiItems, 'weapon.rifle') });
+    weapons.list.splice(0, 1, { row: new ItemCatalogue(nalatiItems).equipment('weapon.rifle') });
     expect(read('weapon.bow')).toBeUndefined();
     expect(read('weapon.rifle')).toBe(weapons.list[0]?.row);
   } finally { scope.dispose(); prepare.mockRestore(); }

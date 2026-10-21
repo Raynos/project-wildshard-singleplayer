@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import * as schema from 'valibot';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
-import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
@@ -127,7 +127,7 @@ export class BladeSet {
   const item=product.shardfile.items.rows.find(row=>row.id===this.declaration.item),policy=schema.parse(MeleeWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined);
   if(policy.mounted===undefined)throw new Error('Blade requires mounted passes');
   const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[rows.pool]},'held-blade');await parts.preload();
-  this.data={rows,parts,passes:{left:sabreMove(rows.moves.passes.left),right:sabreMove(rows.moves.passes.right)},profile:{...SWORD_WOOD,...readItemEquipment(product.shardfile.items,this.declaration.item),parent:SWORD_WOOD.id,damage:policy.damage,swingScale:policy.swingScale,reach:policy.reach,cooldown:policy.cooldown,comboGap:policy.comboGap,chainLag:policy.chainLag,heavyCharge:policy.heavyCharge,lunge:policy.lunge,sweep:policy.sweep,hitStop:{body:.045,head:.045,kill:.045},portraitPullX:.85,mounted:policy.mounted,blade:rows.blade,moves:{rest:sabreKey(rows.moves.rest),charge:sabreKey(rows.moves.charge),sprint:sabreKey(rows.moves.sprint),combo:rows.moves.combo.map(sabreMove),heavy:sabreMove(rows.moves.heavy)}}};
+  this.data={rows,parts,passes:{left:sabreMove(rows.moves.passes.left),right:sabreMove(rows.moves.passes.right)},profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.declaration.item),parent:SWORD_WOOD.id,damage:policy.damage,swingScale:policy.swingScale,reach:policy.reach,cooldown:policy.cooldown,comboGap:policy.comboGap,chainLag:policy.chainLag,heavyCharge:policy.heavyCharge,lunge:policy.lunge,sweep:policy.sweep,hitStop:{body:.045,head:.045,kill:.045},portraitPullX:.85,mounted:policy.mounted,blade:rows.blade,moves:{rest:sabreKey(rows.moves.rest),charge:sabreKey(rows.moves.charge),sprint:sabreKey(rows.moves.sprint),combo:rows.moves.combo.map(sabreMove),heavy:sabreMove(rows.moves.heavy)}}};
  }
  build(material:THREE.Material,steel:THREE.Material):SwordRig{
   const {rows,parts}=this.need(),geometry=(name:string):THREE.BufferGeometry=>{const part=parts.geometry(name);if(part===null)throw new Error(`Missing blade part ${name}`);return part;};

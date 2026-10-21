@@ -17,7 +17,7 @@ import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRo
 import { HeldLauncher, bindHeldBow, type HeldLauncherRows, type HeldLauncherProfile } from './heldLauncher';
 import { HeldTool, heldToolRows, type HeldToolBeat } from './heldTool';
 import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from './headless';
-import { readItemEquipment } from './nativeItems';
+import { ItemCatalogue } from './nativeItems';
 import { Bow } from '../weapons/Bow';
 
 /** Install row-selected ranged feel alongside the held families, retaining entered-cell lifetime. */
@@ -88,10 +88,11 @@ export class HeldEquipment {
     const runtime = context.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === undefined || world === null) throw new Error('Held equipment needs its world stage');
     const items = context.product.section('combat/items').items;
+    const catalogue = new ItemCatalogue(items);
     const factories = new Map<string, RuntimeEquipmentFactory>();
     for (const item of items.rows) {
       if (item.kind !== 'weapon') continue;
-      const row = readItemEquipment(items, item.id), profile = item.profile;
+      const row = catalogue.equipment(item.id), profile = item.profile;
       if (profile?.family === 'firearm' && profile.action === 'bolt') factories.set(item.id, {
         prepare: this.prepareHands,
         create: (native, targets, allowUnlocked) => this.launcher(world, targets, { row, allowUnlocked, profile: native.profile }),

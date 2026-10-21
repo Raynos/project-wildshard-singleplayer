@@ -1,5 +1,5 @@
 import items from '../data/items.json' with { type: 'json' };
-import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as schema from 'valibot';
 import * as THREE from 'three';
@@ -205,7 +205,7 @@ export const SABRE_MOVES: SwordMoveSet = { rest: SABRE_REST, charge: SABRE_CHARG
 // ───────────────────────────── the weapon ─────────────────────────────
 
 export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown: number; sense: number; chainWindow: number; chainStep: number; chainMax: number; speedDivisor: number; behind: number }; blade: { length: number; curve: number } } = {
-  ...SWORD_WOOD, ...readItemEquipment(items, 'weapon.sabre'), parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
+  ...SWORD_WOOD, ...new ItemCatalogue(items).equipment('weapon.sabre'), parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
   reach: SABRE_WEAPON_PROFILE.reach, cooldown: SABRE_WEAPON_PROFILE.cooldown, comboGap: SABRE_WEAPON_PROFILE.comboGap,
   chainLag: SABRE_WEAPON_PROFILE.chainLag, heavyCharge: SABRE_WEAPON_PROFILE.heavyCharge,
   lunge: SABRE_WEAPON_PROFILE.lunge, sweep: SABRE_WEAPON_PROFILE.sweep,

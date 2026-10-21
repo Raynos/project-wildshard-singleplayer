@@ -6,7 +6,7 @@ import {bindEquipmentActors,equipmentAnimals} from '../src/game/loadout/actors';
 import {AnimalManager} from '../src/engine/entities/AnimalManager';
 import {Animal} from '../src/engine/entities/AnimalView';
 import {Scope} from '../src/engine/app/scope';
-import {readItemEquipment} from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/plugin/nativeItems';
 import rows from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
 import items from '../src/shards/nalati-grasslands/data/items.json' with {type:'json'};
 
@@ -20,7 +20,7 @@ function owner(scope:Scope){
 }
 function bow(targets:ReturnType<typeof owner>['targets']):Bow{
   const value:unknown=Object.create(Bow.prototype);if(!(value instanceof Bow))throw new Error('Missing native bow');
-  Object.assign(value,{targets,row:readItemEquipment(items,'weapon.bow'),drawSpeedScale:1,carrierVelocity:new THREE.Vector3(),damageMultiplier:()=>2,
+  Object.assign(value,{targets,row:new ItemCatalogue(items).equipment('weapon.bow'),drawSpeedScale:1,carrierVelocity:new THREE.Vector3(),damageMultiplier:()=>2,
     arrows:{predict:(_o:THREE.Vector3,_v:THREE.Vector3,points:Float32Array)=>{points.set([0,0,-10,0,0,-20]);return 2;}}});return value;
 }
 

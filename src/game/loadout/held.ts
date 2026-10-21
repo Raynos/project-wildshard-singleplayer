@@ -11,7 +11,7 @@ import { listenPage } from '@wildshard/engine/input/dom';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { bindRuntimeState } from '../plugin/headless';
-import { readItemAmmunition } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../plugin/nativeItems';
 import { runtimeAudio, sharedWeaponVoices } from '../plugin/audio';
 import { PLAIN_BOLT, HeldLauncher, type HeldBolt } from '../plugin/heldLauncher';
 import { AmmoPouch } from './pouch';
@@ -77,7 +77,7 @@ export function installHeldLoadout(context: ShardContext, input: unknown): HeldL
   const savedSchema = v.object(Object.fromEntries([...kinds.filter(kind => kind !== base), row.persistence.firearm, row.persistence.bow].map(key => [key, v.optional(v.pipe(v.number(), v.finite()))])));
   let saved: Record<string, number | undefined> = {};
   try { saved = v.parse(savedSchema, JSON.parse(String(state.read())) as unknown); } catch { /* Existing malformed state falls back to empty stacks. */ }
-  const ammunition = readItemAmmunition(source.items, row.launcher.item);
+  const ammunition = new ItemCatalogue(source.items).ammunition(row.launcher.item);
   const ammoFor = (kind: string) => { const ammo = ammunition.get(kind); if (ammo === undefined) throw new Error(`Unknown ammo ${kind}`); return ammo; };
   const quiver = new AmmoPouch(row.pouch, Object.fromEntries(kinds.filter(kind => kind !== base).map(kind => [kind, saved[kind] ?? 0])));
   const num = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.round(value)) : null;

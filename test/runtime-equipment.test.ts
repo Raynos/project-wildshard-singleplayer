@@ -20,7 +20,7 @@ import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { NativeHeldAmmunition } from '../src/game/loadout/nativeAmmunition';
 import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 import driftwood from '../src/shards/driftwood-isle/shard.config';
-import { createNativeCombatFrame, installNativeItems, readItemEquipment } from '../src/game/plugin/nativeItems';
+import { createNativeCombatFrame, installNativeItems, ItemCatalogue } from '../src/game/plugin/nativeItems';
 import { parseItems } from '../src/format/items';
 
 class NativeWeapon extends Weapon {
@@ -80,7 +80,7 @@ test('factory DATA keeps Driftwood pickup rows and wood-first extras while Pine 
     for (const shard of [driftwood, source]) {
       const policy = shard.items.loadout.runtime;
       if (policy === undefined) throw new Error('Missing real factory policy');
-      const log: string[] = [], owners = new Map(policy.owners.map(owner => [owner.item, new NativeWeapon(readItemEquipment(shard.items, owner.item))]));
+      const log: string[] = [], owners = new Map(policy.owners.map(owner => [owner.item, new NativeWeapon(new ItemCatalogue(shard.items).equipment(owner.item))]));
       const before = new Map([...owners].map(([id, weapon]) => [id, weapon.row]));
       const target = { raycast: () => null };
       const build = bindRuntimeEquipment(ctx, shard, { factories: new Map(policy.owners.map(owner => [owner.item, {

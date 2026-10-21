@@ -6,7 +6,7 @@ import { Sword } from '@wildshard/game/weapons/Sword';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
-import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { bindRuntimeEquipment, bindRuntimeItems, bindRuntimeLedger, projectRuntimeFacts } from '@wildshard/game/plugin/headless';
 import { BufferGeometryLoader, MaterialLoader, Group, type PerspectiveCamera } from 'three';
 import * as v from 'valibot';
@@ -68,10 +68,10 @@ export class NdPlugin extends ShardPlugin {
     const item = ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
     const profile = v.parse(MeleeWeaponProfileSchema, item?.kind === 'weapon' ? item.profile : undefined);
     this.profile = profile;
-    const row = { ...applyMeleeCombatProfile(SWORD_WOOD, profile), ...readItemEquipment(ctx.product.shardfile.items, 'weapon.jian'),
+    const row = { ...applyMeleeCombatProfile(SWORD_WOOD, profile), ...new ItemCatalogue(ctx.product.shardfile.items).equipment('weapon.jian'),
       parent: SWORD_WOOD.id, feel: { ...SWORD_WOOD.feel, portraitFov: view.portraitFov } };
     ctx.rows.weapon(row);
-    ctx.rows.tool(readItemEquipment(ctx.product.shardfile.items, 'tool.fei-zhua'));
+    ctx.rows.tool(new ItemCatalogue(ctx.product.shardfile.items).equipment('tool.fei-zhua'));
     const shell = this.shell;
     if (shell === undefined) throw new Error('Nine Dragon equipment requires the game session');
     shell.buildEquipment = (targets, nolock, viewmodel) => {
@@ -98,7 +98,7 @@ export class NdPlugin extends ShardPlugin {
     // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
     const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, ctx.product.shardfile, ctx.product.slug), this.shell?.play?.progress);
     if (this.ndWorld === null) throw new Error('Grapple needs its constructed world');
-    const grapple = new GrappleTool(ctx, { equipment: readItemEquipment(ctx.product.shardfile.items, 'tool.fei-zhua'), profile: parseGrappleProfile(grappleProfile),
+    const grapple = new GrappleTool(ctx, { equipment: new ItemCatalogue(ctx.product.shardfile.items).equipment('tool.fei-zhua'), profile: parseGrappleProfile(grappleProfile),
       presentation: await ctx.product.json<GrappleRows>('weapons/jian-row.json'), hooks: this.ndWorld.ctx.hooks });
     this.grapple = grapple;
     const source = ctx.product.shardfile, items = source.items, tool = grapple.row;

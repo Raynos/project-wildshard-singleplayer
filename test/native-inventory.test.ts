@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import { NativeInventory } from '../src/game/inventoryLaw';
-import { readItemInventory } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/plugin/nativeItems';
 import PINE from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
 import DRIFTWOOD from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };
 
-const DRIFTWOOD_NATIVE_PACK = readItemInventory(DRIFTWOOD);
-const createPinePack = () => new NativeInventory(readItemInventory(PINE));
+const DRIFTWOOD_NATIVE_PACK = new ItemCatalogue(DRIFTWOOD).inventory;
+const createPinePack = () => new NativeInventory(new ItemCatalogue(PINE).inventory);
 
 test('both native quest packs load old inventories and continue stacking/trading', () => {
   const drift = new NativeInventory<string>(DRIFTWOOD_NATIVE_PACK); drift.restore({ counts: { doubloon: 4, coconut: 2 }, order: ['coconut', 'doubloon'] });
@@ -28,7 +28,7 @@ test('native inventory refuses corrupt rosters, duplicate order and original bou
 });
 
 test('admitted item policies keep both exact native save laws and refuse malformed policy data', () => {
-  const pine = readItemInventory(PINE), drift = readItemInventory(DRIFTWOOD);
+  const pine = new ItemCatalogue(PINE).inventory, drift = new ItemCatalogue(DRIFTWOOD).inventory;
   expect(pine).toEqual({ kinds: ['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon'], slots: 7,
     counts: { min: -1_000_000, max: 1_000_000, integer: false, complete: false }, quantity: 'unchecked', snapshot: 'roster', restoreError: 'Incompatible Pine pack continuation' });
   expect(drift).toEqual({ kinds: ['crab-meat', 'crab-claw', 'crab-shell', 'coconut', 'monkey-fur', 'silver-fur', 'doubloon'], slots: 12,
@@ -36,7 +36,7 @@ test('admitted item policies keep both exact native save laws and refuse malform
     stackLimit: Number.MAX_SAFE_INTEGER, restoreError: 'Incompatible Driftwood pack continuation' });
   for (const inventory of [{ ...pine, kinds: [] }, { ...pine, kinds: ['a', 'a'] }, { ...pine, slots: 0 }, { ...pine, slots: 257 },
     { ...pine, counts: { ...pine.counts, min: 2, max: 1 } }, { ...pine, quantity: () => true }]) {
-    expect(() => readItemInventory({ ...PINE, loadout: { ...PINE.loadout, inventory } })).toThrow();
+    expect(() => new ItemCatalogue({ ...PINE, loadout: { ...PINE.loadout, inventory } }).inventory).toThrow();
   }
-  expect(() => readItemInventory({ ...PINE, loadout: { primary: PINE.loadout.primary, secondary: PINE.loadout.secondary, tools: PINE.loadout.tools } })).toThrow('Missing declared inventory policy');
+  expect(() => new ItemCatalogue({ ...PINE, loadout: { primary: PINE.loadout.primary, secondary: PINE.loadout.secondary, tools: PINE.loadout.tools } }).inventory).toThrow('Missing declared inventory policy');
 });

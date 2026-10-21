@@ -2,7 +2,7 @@ import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { HeldFinishes } from '../loadout/finishes';
 import { heldFinishEffect } from '../loadout/effects';
-import { readItemEquipment, readItemAmmunition } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../plugin/nativeItems';
 import { STARTER_EFFECTS } from '../plugin/ui';
 import { installQuestCatalogue } from '../quest/chapter';
 import { declaredLootEconomy, declaredProductCompendium } from '../shard/declaredRows';
@@ -11,9 +11,9 @@ import { declaredLootEconomy, declaredProductCompendium } from '../shard/declare
  * the resident resource owner; this feature registers no frame or save owner. */
 export function installClientCatalogue(ctx: ShardContext, row: ClientFeatureRow): void {
   if (row.kind !== 'content.catalogue' || ctx.scope.disposed) throw new Error('Invalid content catalogue feature');
-  const items = ctx.product.section('combat/items').items;
-  const weapons = row.weapons.map(id => readItemEquipment(items, id));
-  const ammunition = row.ammunition.flatMap(id => [...readItemAmmunition(ctx.product.shardfile.items, id).values()].map(ammo => ammo.row));
+  const items = new ItemCatalogue(ctx.product.section('combat/items').items);
+  const weapons = row.weapons.map(id => items.equipment(id));
+  const ammunition = row.ammunition.flatMap(id => [...items.ammunition(id).values()].map(ammo => ammo.row));
   const finishes = row.finishes || row.effects.includes('finishes') ? HeldFinishes.current(ctx.product.slug) : null;
   const journals = row.compendiums.map(id => Object.assign(declaredProductCompendium(ctx.product, id), { id }));
   const economy = row.economy === true ? declaredLootEconomy(ctx.product.section('economy/loot').rows.loot) : undefined;

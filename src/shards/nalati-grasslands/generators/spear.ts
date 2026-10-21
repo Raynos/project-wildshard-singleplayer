@@ -1,5 +1,5 @@
 import items from '../data/items.json' with { type: 'json' };
-import { readItemEquipment } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as schema from 'valibot';
 import { lin } from '@wildshard/engine/math/color';
@@ -177,7 +177,7 @@ export const SPEAR_PROFILE: MeleeProfile & {
   thrust: { damage: number; stagger: number; windup: number; activeEnd: number; total: number; fan: typeof THRUST_FAN };
   lance: { reach: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number; rehit: number };
 } = {
-  ...SWORD_WOOD, ...readItemEquipment(items, 'weapon.spear'), parent: SWORD_WOOD.id, damage: THRUST_DAMAGE, reach: REACH,
+  ...SWORD_WOOD, ...new ItemCatalogue(items).equipment('weapon.spear'), parent: SWORD_WOOD.id, damage: THRUST_DAMAGE, reach: REACH,
   hitStop: { body: 0, head: 0, kill: 0 },
   cues: { fire: 'cue.spear.thrust', reload: 'cue.reload', impact: 'cue.javelin.hit', hit: 'cue.javelin.hit', charge: { throw: 'cue.javelin.throw', recover: 'cue.javelin.pickup' } },
   thrust: { damage: THRUST_DAMAGE, stagger: THRUST_STAGGER, windup: T_WIND, activeEnd: T_ACTIVE_END, total: T_TOTAL, fan: THRUST_FAN },
