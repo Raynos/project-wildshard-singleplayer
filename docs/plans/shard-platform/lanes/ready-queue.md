@@ -52,7 +52,7 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 
 | # | Task | Lines | Taken |
 |---|---|---|---|
-| G0 | Phase A: delete src/engine/ai/view/DebugOverlay.ts | engine | BLOCKED: its only user is the frozen pine-hollow-legacy runtime (frozen files are never edited); deletes when the legacy copies retire (sp-x9 preflight) |
+| G0 | Phase A: delete src/engine/ai/view/DebugOverlay.ts | engine | dropped (G573, Jake: the -legacy copies stay for debugging, so DebugOverlay stays with them) |
 | G1 | Pine C5 quests (748), split below; sp-x8 leads the shared page/native quest host | 748 baseline | G1a + G1b |
 | G1a | Shared entry and Pine composition convergence; owned files and acceptance below | subset of G1 | sp-x8 |
 | G1b | Pine contract-board rules/continuation onto Pine AS + admitted data; preserve the existing page/native board API and saves | subset of G1 | sp-x9: source landed 089c096a5c; -64 charged/runtime lines, AS117; sp-x8 combined batch pending |
