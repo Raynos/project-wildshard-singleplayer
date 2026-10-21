@@ -24,7 +24,8 @@ import clientScripts from '../data/clientScripts.json' with { type: 'json' };
 import targets from '../data/targets.json' with { type: 'json' };
 import skins from '../data/skins.json' with { type: 'json' };
 import ITEMS from '../data/items.json' with { type: 'json' };
-import { PASTEL_LOOK } from '../data/look';
+import look from '../data/look.json' with { type: 'json' };
+import rock from '../data/rock.graph.json' with { type: 'json' };
 
 /** Pure template declarations (data/rows.json); SF16 binds these through the normal shardfile loader. */
 const PASTEL_ROWS = parseRows(rows);
@@ -65,7 +66,7 @@ const tiles = terrain.tiles.map((tile) => {
 export default parseShardfile({ ...base, accent: 'lime',
   budgets: { library: { resident: 100_000 + PASTEL_SKIN_COST.resident + CLIENT_IDLE_RESIDENT + 2_633_280, compressed: 100_000 + CLIENT_IDLE_BYTES + PASTEL_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
-  look: PASTEL_LOOK, spawn, rows: { ...PASTEL_ROWS, looks: PASTEL_SKIN_LOOKS }, plumbing: parsePlumbing(plumbing), ui: PASTEL_UI,
+  look: { ...look, materials: { ...look.materials, rock: { ...look.materials.rock, graph: rock } } }, spawn, rows: { ...PASTEL_ROWS, looks: PASTEL_SKIN_LOOKS }, plumbing: parsePlumbing(plumbing), ui: PASTEL_UI,
   terrain: terrain.terrain, tiles, files: [...terrain.files, ...props.files, ...PASTEL_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,
   library: [...props.library, ...PASTEL_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: PASTEL_TARGETS, clientScripts: PASTEL_CLIENT_SCRIPTS,
   critical: [...terrain.critical, door.hash, itemModule], water, creatures, encounters: encounters.encounters,

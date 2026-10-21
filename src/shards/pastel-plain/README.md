@@ -5,7 +5,7 @@ Developer only, placed on the grid's north-west plot (−1, +1). A copy of [`_te
 [SHARDS.md](../../../docs/SHARDS.md): the same playable level (the hut and its door, the blob, the elite and the boss,
 the whip, the lantern, the jump course and the 500 m cell fill), with every `template.*` id renamed to `pastel.*`.
 
-The look (`data/look.ts`) is the pastel alien plain admitted by `test/shardfile-g169-looks.test.ts`:
+The look (`data/look.json`) is the pastel alien plain admitted by `test/shardfile-g169-looks.test.ts`:
 
 - **`ground`**: the terrain's material, an engine-owned painterly preset reference in lilac
   (`{ family: 'graph', preset, version: 1 }`).

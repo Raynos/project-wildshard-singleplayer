@@ -14115,7 +14115,7 @@
         "src/shards/pastel-plain/data/encounters.json",
         "src/shards/pastel-plain/data/items.json",
         "src/shards/pastel-plain/data/ledger.json",
-        "src/shards/pastel-plain/data/look.ts",
+        "src/shards/pastel-plain/data/look.json",
         "src/shards/pastel-plain/data/plumbing.json",
         "src/shards/pastel-plain/data/props.json",
         "src/shards/pastel-plain/data/quests.json",

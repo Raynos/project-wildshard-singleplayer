@@ -1,6 +1,6 @@
 /**
  * Build-time only: the pastel plain's far proxy look (SHARD-PLATFORM SF23, SF88e), read by the far baker
- * (scripts/bake/far-proxies.mjs): its own lilac ground (the `ground` graph's painterly preset, data/look.ts) faceted in
+ * (scripts/bake/far-proxies.mjs): its own lilac ground (the `ground` graph's painterly preset, data/look.json) faceted in
  * the toon kit with a slow pink drift, the pool (bed −3) a lilac blue, under its pink fog.
  */
 export const farLook = {
