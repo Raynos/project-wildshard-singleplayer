@@ -15,11 +15,12 @@ import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { buildShardfiles } from '../scripts/build-shardfiles.mjs';
 import { mapPixelHash, mapTilesHash } from '../scripts/map-hash.mjs';
+import * as dataMaps from '../scripts/bake-data-maps.mjs';
 import { outputProductsPlugin } from '../vite/outputProducts';
 import metadata from '../src/shards/far-reach/manifest.json';
 
 const owned: string[] = [], png = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
-afterEach(() => { vi.unstubAllEnvs(); for (const folder of owned.splice(0)) rmSync(folder, { recursive: true, force: true }); });
+afterEach(() => { vi.restoreAllMocks();vi.unstubAllEnvs(); for (const folder of owned.splice(0)) rmSync(folder, { recursive: true, force: true }); });
 function put(root: string, path: string, bytes: string | Uint8Array): void {
   const target = resolve(root, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, bytes);
 }
@@ -43,7 +44,7 @@ function builder(calls: string[][], fail?: string): (args: string[]) => Promise<
     calls.push([...args]); const [command, project, destination] = args;
     if (command === 'catalog') { await runCli(args); return; }
     if (command !== 'build' || project === undefined || destination === undefined) throw new Error('Unexpected fixture build');
-    const slug = basename(project); if (slug === fail) throw new Error('Fixture build refused');
+    const slug = args.find(arg=>arg.startsWith('--output='))?.slice('--output='.length) ?? basename(project); if (slug === fail) throw new Error('Fixture build refused');
     const authored = parseManifestMetadata({ ...metadata, slug, name: slug, order: slug === 'alpha' ? 1 : 2 }, slug);
     const packed = packManifestImages(slug, authored, new Map(manifestImages(authored).map(row => [row.url, png])));
     const source = emptyShardfile({ slug, name: slug, author: 'Test', revision: 1, seed: 1 });
@@ -55,6 +56,25 @@ function builder(calls: string[][], fail?: string): (args: string[]) => Promise<
 function productCalls(calls: string[][]): string[][] {
   return calls.filter(call => call[0] === 'build').sort((a,b) => (a[1] ?? '').localeCompare(b[1] ?? ''));
 }
+it('prepares a multi-output folder once per report while checking every output raster',async()=>{
+  const root=await fixture(),calls:string[][]=[],failures:Record<string,string>={},project=resolve(root,'src/shards/beta');
+  vi.stubEnv('WILDSHARD_SHARDFILE_CACHE',resolve(root,'tmp/cache'));
+  put(project,'outputs.json',JSON.stringify({outputs:[{slug:'beta-first'},{slug:'beta-second'}]}));
+  const stamps=[];
+  for(const slug of ['beta-first','beta-second']) {
+    const image=`/assets/${slug}/map/top.webp`,path=`look/map.${slug}.baked.json`;
+    put(root,`public${image}`,png);const stamp={image,tilesHash:mapTilesHash(project),pixelHash:await mapPixelHash(resolve(root,`public${image}`))};
+    put(project,path,JSON.stringify(stamp));stamps.push({path,stamp});
+  }
+  const prepare=vi.spyOn(dataMaps,'prepareDataMaps'),options={strict:false,reuse:true,build:builder(calls),onFailure:(slug:string,error:unknown)=>{failures[slug]=String(error);}};
+  expect(await buildShardfiles(root,options)).toBe(3);expect(failures).toEqual({});
+  expect(prepare.mock.calls.filter(([,only])=>only?.includes('beta'))).toHaveLength(1);
+  const second=stamps[1];if(second===undefined)throw new Error('Fixture needs two maps');
+  put(project,second.path,JSON.stringify({...second.stamp,pixelHash:'0'.repeat(64)}));prepare.mockClear();
+  expect(await buildShardfiles(root,options)).toBe(2);
+  expect(failures['beta-second']).toContain('decoded pixels differ');expect(failures['beta-first']).toBeUndefined();
+  expect(prepare.mock.calls.filter(([,only])=>only?.includes('beta'))).toHaveLength(1);
+});
 it('builds both copied runtimes before one complete output-only catalog and publishes it with the app', async () => {
   const root = await fixture(), calls: string[][] = [];
   expect(await buildShardfiles(root, { strict: true, catalog: true, build: builder(calls) })).toBe(2);

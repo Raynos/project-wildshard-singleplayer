@@ -39,7 +39,17 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const projects = resolve(root, 'src/shards'), frozen = legacyInventory(root);
   let count = 0;
   const stale = [], runtimeReport = [];
+  // A folder may emit many products. Its shared source closure and prerequisite
+  // generation are one immutable build-phase fact; output stamps/pixels stay
+  // product-specific and are still checked for every output below.
+  /** @type {Map<string,{file:string,message:string}[]>} */
+  const runtimeChecks=new Map();
+  /** @type {Map<string,string>} */
+  const mapTileHashes=new Map();
+  /** @type {Map<string,Promise<void>>} */
+  const folderPreparation=new Map();
   const runtimeIssues = project => {
+    const previous=runtimeChecks.get(project);if(previous!==undefined)return previous;
     const issues = [];
     const walk = directory => {
       if (!existsSync(directory)) return;
@@ -49,7 +59,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
         else if (file.name.endsWith('.ts')) for (const issue of shardfileBoundaryViolations(root, path.slice(root.length + 1), readFileSync(path, 'utf8')).filter(row => row.rule === 'runtime-standalone')) issues.push({ file: path.slice(project.length + 1), message: issue.message });
       }
     };
-    walk(resolve(project, 'runtime')); return issues;
+    walk(resolve(project, 'runtime'));runtimeChecks.set(project,issues);return issues;
   };
   const folders = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort((a, b) => a.localeCompare(b));
   // SF88g: a folder with declared outputs (scripts/shard-outputs.mjs) builds one product per output, each to out/<slug>
@@ -77,11 +87,19 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
     const project = resolve(projects, folder);
     try {
-    if(onFailure!==undefined){await prepareDataMaps(root,[folder]);checkHeadlessAssembly(root,folder);}
+    if(onFailure!==undefined){
+      let preparation=folderPreparation.get(folder);
+      if(preparation===undefined) {
+        preparation=(async()=>{await prepareDataMaps(root,[folder]);checkHeadlessAssembly(root,folder);})();
+        folderPreparation.set(folder,preparation);
+      }
+      await preparation;
+    }
     const started = performance.now();
     const stamp = output === undefined ? mapStampPath(project) : resolve(project, `look/map.${output}.baked.json`);
     const expected = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')).tilesHash : null;
-    const actual = mapTilesHash(project);
+    let actual=mapTileHashes.get(project);
+    if(actual===undefined){actual=mapTilesHash(project);mapTileHashes.set(project,actual);}
     if (expected !== actual) {
       stale.push(name);
       console.error(`wildshard map inputs: ${JSON.stringify({ shard: name, expected, actual, files: mapInputHashes(project) })}`);
