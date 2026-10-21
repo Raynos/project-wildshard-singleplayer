@@ -64,7 +64,7 @@ function damage(actor:Animal,point:THREE.Vector3,_direction:THREE.Vector3,reques
     return v.parse(v.pipe(v.number(),v.finite()),program().project('damage',{field:actor.mem['field']??0,rise:actor.mem['rise']??1,open:actor.mem['open']??0,
       range:Math.hypot(point.x-(actor.mem[row.playerKeys[0]]??0),point.z-(actor.mem[row.playerKeys[1]]??0)),piercing:Number(piercing),crack:Number(weakPoint(actor,point))})['damage']);
   }
-const nativeGuest={weakPoint,binding:{think,damageMul:damage}};
+const nativeGuest={weakPoint,program,binding:{think,damageMul:damage}};
 /** Borrow the actual balbal's numeric guest observations and contact binding. */
 export function creatureGuest():typeof nativeGuest{guestRows();nativeStrike();return nativeGuest;}
 function animateBalbal(c: RigAnimCtx): void {

@@ -1710,6 +1710,10 @@ fields and absent required sound owners throw. Field clocks use the entered
 scope's update phase; geometry belongs to that scope and materials remain
 borrowed from the resident scene. `engine/fx/effectField` is the canonical
 seeded-field implementation used by both this director and direct draws.
+
+`CueDirector.entered(ctx, id)` borrows the director already prepared for that
+entered product and scope. It returns `undefined` for an unprepared id and
+refuses a disposed scope; it never creates a second director or clock.
 G478 approved this director; its pending second user is Sky's gust cue
 row in the Z1 lockstep (G486).
 

@@ -330,3 +330,25 @@ owned. The cadence test now drives the actual balbal binding rather
 than a configurable orchard wrapper; keep all exact weak-point cases
 and real boss victories. Root/layer types, typed lint and focused suites
 pass. No collider, visual, schema, codec, resource or budget changes.
+
+
+X4 night binding: delete the complete TimedEncounters game module and
+list its unchanged native composition as Nalati world/nightView.ts.
+Native view wiring stays Nalati-only HOST-BAR 4/6, fully counted, with
+no platform credit. The existing slot/patrol views, AS, contacts,
+identities, continuation, cues and update clock remain authoritative.
+The already charged slot view consumes the same ReturnProgram reference
+and numeric actor/hit facts, replacing its arbitrary TS callback. No
+second-user credit is assigned to this tightened native observation.
+Native contacts use StrikeRunner.contains and the same cover/damage
+authorities locally, without shard closures crossing a host API.
+CueDirector.entered(ctx, id) borrows the scope/product-owned director;
+Pine roamingProjection and NalatiNight are its two REAL live callers.
+The reader passes HOST-BAR 6/6: rows/ids only, no shard nouns, labelled
+client-only, preserved if either user disappears, no callbacks. Native
+objects are borrowed; no book, cache, resource or clock is duplicated.
+Runtime TS: **Nalati +67 / platform -69**, net **-2**. Build/AS/data **0**.
+This is honest charge-back ownership, with the same admitted AS weak-point reference.
+Root/layer types, typed lint, real boss/slot/patrol/cue tests and entered
+product/lifetime isolation pass. No collider, payload, codec or budget
+changes. One Pine+Nalati batch covers the accumulated wiring cuts.

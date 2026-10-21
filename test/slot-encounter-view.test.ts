@@ -38,7 +38,8 @@ function orchard(): { view: SlotEncounterView<Body>; heard: { id: string; at: nu
   const cues = new CueDirector(game, { version: 1, fields: [], rows: ids.map(cue) }), heard: { id: string; at: number[] }[] = [], bodies: Body[] = [], retired:Body[]=[], weak = { on: false };
   vi.spyOn(cues, 'cue').mockImplementation((id, at) => { heard.push({ id, at: at.toArray() }); });
   const sites = [{ x: 2, z: 5, yaw: 1, variant: 2 }, { x: 7, z: 9, yaw: 0, variant: 0 }];
-  const slotView = new SlotEncounterView<Body>(slots, view, ReturnProgram.page(night.program), { scene, cues, sites, guest: { weakPoint: () => weak.on } });
+  const guest=ReturnProgram.page(night.program);vi.spyOn(guest,'project').mockImplementation(()=>({weakPoint:Number(weak.on)}));
+  const slotView = new SlotEncounterView<Body>(slots, view, ReturnProgram.page(night.program), { scene, cues, sites, guest });
   slotView.attachActors({ factory: { model: () => undefined }, spawn: (_kind, x, z, yaw, variant) => { const b = body(String(bodies.length), x, z, yaw, variant); bodies.push(b); return b; }, retire: a => { a.hidden = true; retired.push(a); } });
   return { view: slotView, heard, bodies, retired, scene, weak };
 }

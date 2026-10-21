@@ -1,5 +1,4 @@
-import type { ShardContext } from '../plugin/context';
-import { clientNativeBook } from '../shardfile/clientNativeBook';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import type { TimedEncountersRows } from '@wildshard/format/encounterRows';
 import { Vector3, type BufferGeometry } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
@@ -13,26 +12,22 @@ import type { Player } from '@wildshard/engine/player/Player';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { CueDirector } from '../audio/cueDirector';
-import { ReturnProgram } from '../population/returnProgram';
-import { wildEnv } from '../population/pageGroups';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
-
-interface CreatureObservation {readonly weakPoint:(actor:Animal,point:Vector3)=>boolean}
+import { CueDirector } from '@wildshard/game/audio/cueDirector';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { wildEnv } from '@wildshard/game/population/pageGroups';
+import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from '@wildshard/game/boss/encounterView';
 
 interface TimedEncounterContext {
   readonly game: Game; readonly sky: SkyRig; readonly player: Player; readonly forest: Forest;
   readonly sites: EncounterSites | null; readonly clock: DayCycleClock;
 }
-/** Client-only composition of approved slot and patrol owners. Content supplies
- * rows and prepared geometry; existing authorities retain bodies and damage. */
-export class TimedEncounters {
+/** Listed Nalati night binding over existing AS and native slot/patrol views. */
+export class NalatiNight {
   readonly slots: SlotEncounterView; readonly riders: PatrolEncounterView;
   private readonly rows; private readonly strike;
   private readonly contacts = new StrikeRunner(); private readonly direction = new Vector3();
   constructor(private readonly ctx: TimedEncounterContext, input: TimedEncountersRows,
-    figures: Readonly<Record<string, BufferGeometry>>, guest: CreatureObservation, private readonly cues: CueDirector) {
+    figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram, private readonly cues: CueDirector) {
     const rows = this.rows = input, scope = ctx.game.levelScope;
     if (scope.disposed) throw new Error('Encounter owner was disposed during admission');
     this.strike = strikeFromData(rows.contact.strike);
@@ -43,11 +38,11 @@ export class TimedEncounters {
   }
   /** Borrow declared presentation owners while the encounter keeps its clock. */
   static async install(owner: ShardContext, ctx: TimedEncounterContext, file: string,
-    figures: Readonly<Record<string, BufferGeometry>>, guest: CreatureObservation): Promise<TimedEncounters> {
+    figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram): Promise<NalatiNight> {
     const input = await owner.product.json<TimedEncountersRows>(file);
-    const presentation = clientNativeBook(owner).presentations.get(input.presentation);
+    const presentation = CueDirector.entered(owner,input.presentation);
     if (presentation === undefined) throw new Error('Missing declared encounter presentation');
-    return new TimedEncounters(ctx, input, figures, guest, presentation);
+    return new NalatiNight(ctx, input, figures, guest, presentation);
   }
   update(dt: number, time: number): void {
     const { ctx, rows } = this, player = ctx.player;
@@ -55,12 +50,10 @@ export class TimedEncounters {
     for (const { damage, from } of this.riders.update(dt, time, { hold: 0, night: Number(rows.phases.patrol.includes(ctx.clock.dayPhase)) })) {
       const actor = from ?? this.riders.riders[0]?.a, target = app.player;
       if (actor === undefined || target === null) continue;
-      this.contacts.contact(this.strike, { actor, target: player.position,
-        ...(rows.contact.origin === 'player' ? { origin: player.position } : {}), canReach: () => true, hit: () => {
-          if (!canReach(actor, player.position, app.physics)) return;
-          app.combat.hit({ source: 'env', sourceTags: rows.contact.tags, target, amount: damage,
-            point: actor.position, dir: this.direction.set(0, 0, 0), cause: { kind: actor.kind, label: actor.label } });
-        } });
+      if (!this.contacts.contains(this.strike, { actor, target: player.position,
+        ...(rows.contact.origin === 'player' ? { origin: player.position } : {}) }) || !canReach(actor, player.position, app.physics)) continue;
+      app.combat.hit({ source: 'env', sourceTags: rows.contact.tags, target, amount: damage,
+        point: actor.position, dir: this.direction.set(0, 0, 0), cause: { kind: actor.kind, label: actor.label } });
     }
     this.cues.setLight(Math.max(rows.lightFloor, wildEnv.light)); this.cues.update(dt);
   }

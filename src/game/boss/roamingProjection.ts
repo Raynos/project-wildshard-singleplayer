@@ -1,4 +1,4 @@
-import { clientNativeBook } from '../shardfile/clientNativeBook';
+import { CueDirector } from '../audio/cueDirector';
 /** Client-only roaming boss projection. All author input is rows and ids. */
 import * as THREE from 'three';
 import * as v from 'valibot';
@@ -117,7 +117,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   const lane = new ProjectionLane(scene, new THREE.Color(...rows.colours.tell), bossLane, ctx.reach);
   const addLanes = Array.from({ length: encounterRows.lanes.count }, () => new ProjectionLane(scene, new THREE.Color(...rows.colours.wave), thrallLane, ctx.reach));
   const C = encounterRows.profile.fight.origin, R = rows.wall.radius;
-  const cues = clientNativeBook(context).presentations.get(rows.presentation);
+  const cues = CueDirector.entered(context,rows.presentation);
   if (cues === undefined) throw new Error('Missing declared roaming presentation');
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R * rows.wall.bottom, rows.wall.height, rows.wall.segments, 1, true).translate(0, rows.wall.height / 2, 0), lentLook(rows.wall.look));
   wall.position.set(C.x, heightAt(C.x, C.z) + rows.wall.lift, C.z); wall.visible = false; wall.frustumCulled = false; wall.renderOrder = rows.wall.order;

@@ -1,3 +1,4 @@
+import { clientNativeBook } from '../shardfile/clientNativeBook';
 import { AdditiveBlending, NormalBlending, ShaderMaterial, Vector3, type IUniform } from 'three';
 import { parse } from 'valibot';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -78,6 +79,9 @@ class CueSpray {
 /** Client-only cue director over real audio, particle, spray and effect-field owners.
  * Callers supply cue ids and native point/direction values, never handlers. */
 export class CueDirector {
+  /** Borrow a declared director from this entered product without creating another owner. */
+  static entered(ctx:ShardContext,id:string):CueDirector|undefined { return clientNativeBook(ctx).presentations.get(id); }
+
   private readonly rows: CueDirectorRows;
   private readonly fields = new Map<string, EffectField>();
   private readonly sprays = new Map<string, CueSpray>();

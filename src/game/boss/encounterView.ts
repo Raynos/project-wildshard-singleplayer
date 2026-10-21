@@ -125,7 +125,7 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
   private readonly wedges: GroundTell[] = [];
   private trailT = 0;
   constructor(private readonly slots:EncounterSlotsRows, view: SlotViewRows, private readonly program:ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
-    readonly sites: readonly Pick<EncounterSite,'x'|'z'|'yaw'|'variant'>[] | null; readonly guest: { readonly weakPoint: (actor: A, at: THREE.Vector3) => boolean } }) {
+    readonly sites: readonly Pick<EncounterSite,'x'|'z'|'yaw'|'variant'>[] | null; readonly guest: ReturnProgram }) {
     this.cycle=new ProjectedState({...slots.cycle,signals:{step:slots.cycle.signal}},program);this.rows=view;
     const tell = this.rows.tell;
     for (let i = 0; i < tell.pool; i++) {
@@ -184,7 +184,8 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
       const a = w.a, sc = a.scale, state = members.get(w) ?? {};
       if (a.hp < w.lastHp) {
         point.set(a.position.x, a.position.y + rows.lift.hit * sc, a.position.z);
-        cues.cue(this.ports.guest.weakPoint(a, point) ? rows.cues.weak : a.hp < w.lastHp - rows.cues.hard.drop ? rows.cues.hard.cue : rows.cues.hit, point, UP);
+        const weak=this.ports.guest.project('weakPoint',{x:a.position.x,ay:a.position.y,z:a.position.z,cos:Math.cos(-a.yaw),sin:Math.sin(-a.yaw),scale:a.scale,yOffset:a.yOffset,hitX:point.x,hitY:point.y,hitZ:point.z})['weakPoint']===1;
+        cues.cue(weak ? rows.cues.weak : a.hp < w.lastHp - rows.cues.hard.drop ? rows.cues.hard.cue : rows.cues.hit, point, UP);
         w.lastHp = a.hp;
       }
       if (!a.alive) {
