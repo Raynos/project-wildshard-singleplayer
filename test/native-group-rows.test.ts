@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { installNativeGroupRows, nativeGroupCollection, nativeHerds } from '../src/game/shardfile/groupRuntime';
+import { installNativeGroupRows, nativeGroupCollection, nativeHerdCollection } from '../src/game/shardfile/groupRuntime';
 import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { GrassField } from '../src/game/systems/looks/grassField';
 import { TrampleField } from '../src/game/systems/looks/trample';
@@ -39,7 +39,10 @@ test('orchard rows bind native senses, prey, adopted herd and deferred pack iden
     expect(() => installNativeGroupRows(host,{ ...rows, owned: ['orchard.missing'] },grid,env)).toThrow('Missing group actor');
     expect(host.rng.snapshot()).toEqual(before); expect(host.entities.get('orchard.buck')?.mem['owned']).toBeUndefined();
     const owner = installNativeGroupRows(host,rows,grid,env), kid = host.entities.get('orchard.kid'), buck = host.entities.get('orchard.buck');
-    expect(nativeGroupCollection(host,rows.id)).toBe(owner); expect(nativeHerds(host,rows.herds)).toBe(owner.herds);
+    expect(nativeGroupCollection(host,rows.id)).toBe(owner);
+    const admitted = nativeHerdCollection(host,rows.herds);
+    expect(admitted.herds).toBe(owner.herds); expect(admitted.wind).toBe(env.wind);
+    env.wind.strength = .75; expect(admitted.wind.strength).toBe(.75);
     expect(owner.herds[0]?.stallion).toBe(buck); expect(buck?.mem['owned']).toBe(1);
     expect(owner.packs[0]?.findPrey?.(3,4,10)).toBe(kid); expect(owner.herds[0]?.findThreat?.(3,4,10)?.entityId).toBe('orchard.scout');
     const point = new Vector3(), visible = env.visibility(8,0,point,1,10);
@@ -50,4 +53,5 @@ test('orchard rows bind native senses, prey, adopted herd and deferred pack iden
     const packOwner = owner.addPack([next],1,2); expect(packOwner.findPrey?.(3,4,10)).toBe(kid);
     expect(() => installNativeGroupRows(host,rows,grid,env)).toThrow('installed');
   } finally { host.dispose(); }
+  expect(() => nativeHerdCollection(host,rows.herds)).toThrow('Missing native herd collection');
 });

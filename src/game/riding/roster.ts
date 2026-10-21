@@ -6,7 +6,7 @@ import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
 import { NativeActors } from '../population/actors';
 import { creatureFloor, nativeCreatureRecipes } from '../shardfile/homeKeeper';
-import { nativeHerds } from '../shardfile/groupRuntime';
+import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { ReturnProgram } from '../population/returnProgram';
 
 interface Services { identities: NativeActors<HuntBody>; random: Rng; hunt: StalkerBrain<HuntBody>; bodies: HuntBody[]; sight: (boolean | null | undefined)[]; retired: Set<string>; flocks: readonly FlockBrain[] }
@@ -92,7 +92,7 @@ export class BondedMountRoster {
   hide(id: string): void {
     const actor = this.host.entities.get(id);
     if (actor === undefined || !actor.alive || this.hidden.has(id) || !this.rows.wildKinds.includes(actor.kind)
-      || !this.service.bodies.some(body => body === actor) || !nativeHerds(this.host, this.rows.herds).some(herd => herd.members.includes(actor) || herd.stallion === actor)) throw new Error('Foreign tamed mount');
+      || !this.service.bodies.some(body => body === actor) || !nativeHerdCollection(this.host, this.rows.herds).herds.some(herd => herd.members.includes(actor) || herd.stallion === actor)) throw new Error('Foreign tamed mount');
     Object.assign(actor, { hidden: true }); actor.position.y = -1e4; actor.motor?.dispose(); actor.motor = null;
     const owner = this.service.identities.identity(id); if (owner !== null) this.service.identities.own(id, { ...owner, listed: false });
     this.host.bodyDt(id); this.host.brainDt(id); this.hidden.add(id);

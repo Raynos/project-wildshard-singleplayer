@@ -146,14 +146,9 @@ export function admitNativeHerds(host: SimHost, id: string, herds: readonly Herd
   services.set(id, { herds, wind: wind ?? { x: 0, z: 0, strength: 0 } }); nativeHerdCollections.set(host, services);
   host.scope.onDispose(() => { services.delete(id); });
 }
-/** Resolve the built-in herd owner for a data-only feature install. */
-export function nativeHerds(host: SimHost, id: string): readonly HerdBrain<AnimalSim>[] {
-  const herds = nativeHerdCollections.get(host)?.get(id); if (herds === undefined) throw new Error('Missing native herd collection'); return herds.herds;
-}
-
-/** Shared numeric wind observation; no world or weather callback is retained. */
-export function nativeHerdWind(host: SimHost, id: string): { x: number; z: number; strength: number } {
-  const rows = nativeHerdCollections.get(host)?.get(id); if (rows === undefined) throw new Error('Missing native herd wind'); return rows.wind;
+/** Resolve the admitted herd controllers and their live numeric wind together. */
+export function nativeHerdCollection(host: SimHost, id: string): { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } } {
+  const rows = nativeHerdCollections.get(host)?.get(id); if (rows === undefined) throw new Error('Missing native herd collection'); return rows;
 }
 
 const collections = new WeakMap<SimHost, Map<string, NativeGroupCollection>>();

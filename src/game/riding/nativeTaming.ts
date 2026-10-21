@@ -4,7 +4,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import { pickPrompt, setPromptSight } from '@wildshard/engine/world/interact/prompts';
-import { nativeHerds, nativeHerdWind } from '../shardfile/groupRuntime';
+import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { bondedMountRoster } from './roster';
 import { mountedPlayerOf } from './native';
 import { TamingBinding } from './binding';
@@ -48,7 +48,7 @@ export function nativeTamingOf(host: SimHost): NativeTamingOwner | undefined { r
  * The creature manager calls update after Wildlife, BEFORE raid and think. Only this law's owned clocks are saved here.
  */
 export function installNativeTaming(host: SimHost, context: NativeTamingContext, rows: NativeTamingRows): NativeTamingOwner {
-  const herds = nativeHerds(host, rows.herds), wind = nativeHerdWind(host, rows.herds), creatures = bondedMountRoster(host, rows.roster), mounted = mountedPlayerOf(host);
+  const { herds, wind } = nativeHerdCollection(host, rows.herds), creatures = bondedMountRoster(host, rows.roster), mounted = mountedPlayerOf(host);
   if (mounted === undefined) throw new Error('Missing native mounted owner');
   const draw = numericCreaturePose(rows.poseProgram);
   if (installed.has(host)) throw new Error('native taming already installed');

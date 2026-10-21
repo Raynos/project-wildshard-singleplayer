@@ -1,6 +1,6 @@
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { NativeRidingSchema } from '@wildshard/format/nativeRiding';
-import { nativeHerds } from '../shardfile/groupRuntime';
+import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { unzlibSync } from 'fflate';
 import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame } from '@wildshard/game/riding/physics';
@@ -43,7 +43,7 @@ export function mountedPlayerOf(host: SimHost): NativeMountedPlayer | undefined 
 /** The page's native reins/body and gait phase under the host's single physics authority. The ordinary player driver
  * remains authoritative on foot. Companions, taming and the weapons are subsequent installs, never simulated here. */
 export function installMountedPlayer(host: SimHost, profile: unknown): NativeMountedPlayer {
-  const rows = v.parse(NativeRidingSchema, profile), herds = nativeHerds(host, rows.herds);
+  const rows = v.parse(NativeRidingSchema, profile), { herds } = nativeHerdCollection(host, rows.herds);
   const mask = (encoded: string): ((x: number, z: number) => number) => {
     const bytes = unzlibSync(Uint8Array.from(atob(encoded), value => value.codePointAt(0) ?? 0));
     if (bytes.byteLength !== rows.world.res * rows.world.res * 4) throw new Error('Invalid riding terrain channel');
