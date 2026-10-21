@@ -14,7 +14,8 @@ import { ShopPanel, type ShopGood } from '../loot/ui/ShopPanel';
 import { enteredHeldLoadout } from '../loadout/held';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { HeldFinishes } from '../loadout/finishes';
-import { QuestViews } from '../plugin/ui';
+import { QuestViews, bindQuestPageInteractions } from '../plugin/ui';
+import type { QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import type { Scope } from '@wildshard/engine/app/scope';
 
 const enteredTraders = new WeakMap<Scope, Map<string, QuestTrader>>();
@@ -58,6 +59,9 @@ export interface QuestTraderResources {
   readonly at: { readonly x: number; readonly y: number; readonly z: number };
   readonly prompt: { readonly label: string; readonly radius: number };
   readonly before: readonly string[];
+  /** The shop's admitted page rows (G1c): its placed prompt binds through the shared page binder over the owners `shop`
+   *  (`at`, `ready`, `open`) and `commands` (`trade`); absent, the prompt is built from `prompt` as before. */
+  readonly page?: QuestPageInteractionsData;
 }
 /** Client-only trader binding shared by talk-opened and placed shops. Models,
  * panels, inventory and saves stay with their original entered owners. */
@@ -89,8 +93,13 @@ export function installQuestTrader(ctx: QuestTraderContext, input: unknown, reso
   if (resources !== undefined && row.placement !== undefined) {
     const prompts = ctx.game.runtime?.interactables;
     if (prompts === undefined) throw new Error('Missing trader prompt owner');
-    const prompt: Interactable = { position: at, label: resources.prompt.label,
-      get radius() { return stall.shop !== null && !stall.shop.isOpen ? resources.prompt.radius : 0; }, onInteract: () => { openQuestTrader(ctx.scope, row.name); } };
+    const page = resources.page;
+    const prompt: Interactable = page === undefined ? { position: at, label: resources.prompt.label,
+      get radius() { return stall.shop !== null && !stall.shop.isOpen ? resources.prompt.radius : 0; }, onInteract: () => { openQuestTrader(ctx.scope, row.name); } }
+      : bindQuestPageInteractions(page, { flags: { has: () => false, set: () => { throw new Error('Trader page owns no flags'); } },
+        toast: () => { throw new Error('Trader page shows no toasts'); }, promptIds: ['trade'],
+        owners: new Map<string, unknown>([['shop', { at, get ready() { return stall.shop !== null; }, get open() { return stall.shop?.isOpen === true; } }],
+          ['commands', { trade: () => { openQuestTrader(ctx.scope, row.name); } }]]) }).prompt('trade');
     prompts.push(prompt); ctx.scope.onDispose(() => { const i = prompts.indexOf(prompt); if (i !== -1) prompts.splice(i, 1); });
     ctx.system({ id: row.placement.system, phase: 'update', before: [...resources.before], run: () => {
       if (ctx.scope.disposed || row.view === undefined) return;
