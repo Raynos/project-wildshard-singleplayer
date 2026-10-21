@@ -1,0 +1,74 @@
+{
+  "revision": "61b2cf44f62641f98335576ad2855e53bada8b9a",
+  "nice": 0,
+  "mode": "acceptance",
+  "targetSeconds": 15,
+  "samples": [
+    {
+      "name": "unchanged",
+      "seconds": 13.419838167,
+      "status": 0,
+      "spans": {
+        "gen": 4.839184792,
+        "preparation": 0.07255916699999944,
+        "products": 3.143274083,
+        "census": 4.837365999999999
+      },
+      "producerSpawns": 0,
+      "generated": 0,
+      "verified": 242,
+      "snapshotVerified": 242,
+      "built": 0,
+      "reused": 24,
+      "parsed": true,
+      "measurementError": null,
+      "productFailures": {},
+      "cpu": {
+        "basis": "Each phase sums process self user/system CPU, including native threads and observed Node descendants; time(1) independently measures the whole command tree.",
+        "phases": {
+          "launch": {
+            "wallSeconds": 0.5274541250000002,
+            "userSeconds": 0.457918,
+            "systemSeconds": 0.100412
+          },
+          "gen": {
+            "wallSeconds": 4.839184792,
+            "userSeconds": 4.428977000000001,
+            "systemSeconds": 1.3165450000000003
+          },
+          "preparation": {
+            "wallSeconds": 0.07255916699999944,
+            "userSeconds": 0.068834,
+            "systemSeconds": 0.010545
+          },
+          "products": {
+            "wallSeconds": 3.143274083,
+            "userSeconds": 2.387055,
+            "systemSeconds": 1.039064
+          },
+          "census": {
+            "wallSeconds": 4.837365999999999,
+            "userSeconds": 4.622111,
+            "systemSeconds": 0.770629
+          }
+        },
+        "total": {
+          "wallSeconds": 13.41,
+          "userSeconds": 11.99,
+          "systemSeconds": 3.33
+        },
+        "complete": true,
+        "observedTotal": {
+          "userSeconds": 11.964928999999996,
+          "systemSeconds": 3.2372129999999997
+        }
+      }
+    }
+  ],
+  "pass": true,
+  "schema": "build-speed-proof/1",
+  "command": "node scripts/shard-platform.mjs --json --source-progress",
+  "proof": "20261020T235211-sp-x6-x13-quiet-warm-b6-checked-93009",
+  "quietReleasedAfterSeconds": 15.35,
+  "scope": "Non-SDK unchanged acceptance only; SDK/format first-build case remains open."
+}
