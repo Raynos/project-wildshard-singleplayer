@@ -1,16 +1,22 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, BufferGeometry, Group, Material, Mesh, Object3D, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { modelContext, specimenReady, type ModelBuild, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { hydrateWorldSceneWeld } from '../src/game/shardfile/worldSceneWeld';
+import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
+import { collectionCosmetic } from '../src/game/models/collectionDisplay';
 import { nativeSpecimenCatalogue } from '../src/shards/driftwood-isle/generators/nativeSpecimens';
-import { captainHat, sailclothCape } from '../src/shards/driftwood-isle/runtime/models/captainHat';
-import { trader, tradeCounter } from '../src/shards/driftwood-isle/runtime/models/trader';
+import { captainHat, sailclothCape, trader, tradeCounter, traderOf as originalTraderOf } from './fixtures/driftwoodNativeFactories';
+import { enteredTrader, traderOf } from '../src/shards/driftwood-isle/runtime/models/trader';
+import { trader as traderCard } from '../src/shards/driftwood-isle/models/catalogue';
+import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
+import { castaway, castawayFigure } from '../src/shards/driftwood-isle/runtime/models/people';
+import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import { loadFixedGeometry } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { DRIFTWOOD_ASSET_NAMES } from '../src/shards/driftwood-isle/generators/assets';
 import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
@@ -73,13 +79,15 @@ test('native card rows preserve the actual factories, pivots, colliders and shad
     const sourceGeometry = new Map([...geometry].map(([id, shape]) => [JSON.stringify(['native-specimens', id]), shape]));
     const ctx = modelContext(sky);
     const materials = new Map([['kit', lowPolyLookMaterial(sky)], ['still', lowPolyLookMaterial(sky, 'still')]]);
+    bindWorldSceneModelSources(ctx, 'driftwood-isle', { catalogue: baked, geometries: sourceGeometry, materials }, owner);
+    const native = defineWorldSceneCatalogue(baked);
     const compare = async <P extends object>(key: string, model: ModelDef<P>): Promise<void> => {
       const before = owner.run(() => group(model.build(ctx, model.defaults, new Rng(0))));
       await specimenReady(before);
-      const row = baked.models.find(candidate => candidate.key === key), scene = row?.choices[0]?.scene;
-      if (row === undefined || scene === undefined || !('nodes' in scene)) throw new Error('Missing native scene');
-      const handles = new SceneHandles(sky); handles.publish(scene.root, new Group());
-      const after = hydrateWorldSceneWeld(scene, handles, { geometry: sourceGeometry, materials }, owner);
+      const row = baked.models.find(candidate => candidate.key === key), actual = native.model(key);
+      if (row === undefined) throw new Error('Missing native card');
+      const after = owner.run(() => group(actual.build(ctx, actual.defaults, new Rng(0))));
+      await specimenReady(after);
       expect(snapshot(after), key).toEqual(snapshot(before));
       expect(row.id).toBe(model.id);
       expect(row.defaults).toEqual(model.defaults);
@@ -87,7 +95,63 @@ test('native card rows preserve the actual factories, pivots, colliders and shad
     };
     await compare('captainHat', captainHat); await compare('sailclothCape', sailclothCape);
     await compare('tradeCounter', tradeCounter); await compare('trader', trader);
+    // The native card must not replace the entered gesture/offer owner.
+    const liveTrader = enteredTrader(traderCard);
+    const oldScope = owner.child('original-live-trader'), liveScope = owner.child('entered-live-trader');
+    const oldBody = oldScope.run(() => group(trader.build(ctx, trader.defaults, new Rng(0))));
+    const liveBody = liveScope.run(() => group(liveTrader.build(ctx, liveTrader.defaults, new Rng(0))));
+    const oldRig = originalTraderOf(oldBody), liveRig = traderOf(liveBody);
+    if (oldRig === null || liveRig === null) throw new Error('Missing actual live trader owner');
+    expect(FigureRows.entered(liveScope, 'trader')).toBe(liveRig.presentation);
+    expect(liveTrader.specimen).toBe(traderCard.build);
+    const oldCounter = new Group(), liveCounter = new Group();
+    oldRig.companions.push(oldCounter); liveRig.companions.push(liveCounter);
+    for (const [time, distance, talking] of [[0, 100, false], [1, 14, false], [4, 3, true], [7, 100, false]] as const) {
+      oldRig.talking = talking; liveRig.talking = talking;
+      oldRig.presentation.signal('offer'); liveRig.presentation.signal('offer');
+      const player = new Vector3(distance, 1.8, 0);
+      oldRig.update(0.5, time, player); liveRig.update(0.5, time, player);
+      expect(snapshot(liveBody)).toEqual(snapshot(oldBody));
+      expect(liveCounter.visible).toBe(oldCounter.visible);
+    }
+    liveScope.dispose(); oldScope.dispose();
+    expect(liveRig.presentation.active).toBe(false);
+    expect(() => FigureRows.entered(liveScope, 'trader')).toThrow();
+    // Keep single-mesh pickup/socket roots and names, not only Explorer images.
+    for (const [key, original] of [['captainHat', captainHat], ['sailclothCape', sailclothCape]] as const) {
+      const old = owner.run(() => collectionCosmetic(original, ctx));
+      const card = native.model(key);
+      const bound: ModelDef<Record<string, unknown>> = { ...card,
+        build: (_context, params, rng) => card.build({ ...ctx, specimenScope: owner }, params, rng) };
+      const fresh = owner.run(() => collectionCosmetic(bound, ctx));
+      expect(fresh).toBeInstanceOf(Mesh);
+      expect(snapshot(fresh)).toEqual(snapshot(old));
+    }
     expect(baked.models.map(row => row.key)).toEqual(['captainHat', 'sailclothCape', 'tradeCounter', 'trader']);
+    // The real card is the entered rigid figure at its card pose. Its smoke is a
+    // Mesh, hidden before a look is lent and borrowing that exact look afterward.
+    const smokeRows = driftwoodRows('custom/fixedLayouts').nativeView;
+    const compareCastaway = (visible: boolean, material?: Material): void => {
+      const before = owner.run(() => castawayFigure(sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(sky), owner).group);
+      const after = owner.run(() => group(castaway.build(ctx, castaway.defaults, new Rng(0))));
+      expect(snapshot(after)).toEqual(snapshot(before));
+      const smoke = after.getObjectByName(smokeRows.CASTAWAY_SMOKE.name);
+      if (!(smoke instanceof Mesh)) throw new Error('Castaway requires its actual smoke mesh');
+      expect(smoke.visible).toBe(visible);
+      if (material !== undefined) expect(smoke.material).toBe(material);
+      let flames = 0;
+      after.traverse(node => { if (node instanceof Mesh && node.material instanceof MeshBasicMaterial && node.material.color.r === 1.8) flames++; });
+      expect(flames).toBe(1);
+    };
+    compareCastaway(false);
+    const entered = owner.child('entered-smoke'), smokeLook = new MeshBasicMaterial();
+    entered.own(smokeLook);
+    lendLooks(entered, { materials: new Map([[smokeRows.SMOKE_LOOK, smokeLook]]), setParam: () => undefined,
+      setTexture: () => undefined, bindMeshMap: () => smokeLook });
+    compareCastaway(true, smokeLook);
+    entered.dispose();
+    compareCastaway(false);
+
   } finally {
     owner.dispose();
     for (const shape of geometry.values()) shape.dispose();

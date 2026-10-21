@@ -4,30 +4,30 @@ import { BufferGeometry, Material, Mesh, MeshStandardMaterial, Object3D } from '
 import { Rng } from '@wildshard/engine/core/rng';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { live } from '@wildshard/engine/models/live';
-import { modelContext, seedOf, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
+import { modelContext, specimenReady, seedOf, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import * as lowPolyKit from '@wildshard/engine/world/lowpolyKit';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { loadFixedGeometry, fixedGeometryReady, fixedDraw, fixedGeometryGroups, COLLECTIONS } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
-import { sites } from '../src/shards/driftwood-isle/models/catalogue';
+import { sites, captainHat, sailclothCape, tradeCounter, trader as traderCard } from '../src/shards/driftwood-isle/models/catalogue';
 import { bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { Scope } from '../src/engine/app/scope';
+import native from '../src/shards/driftwood-isle/data/nativeSpecimens.generated.json' with { type: 'json' };
 import cargo from '../src/shards/driftwood-isle/data/cargoScenes.generated.json' with { type: 'json' };
 import boot from '../src/shards/driftwood-isle/boot/modelCatalogue.generated.json' with { type: 'json' };
-import { captainHat, sailclothCape } from '../src/shards/driftwood-isle/runtime/models/captainHat';
 import { castaway } from '../src/shards/driftwood-isle/runtime/models/people';
-import { trader, tradeCounter } from '../src/shards/driftwood-isle/runtime/models/trader';
+import { enteredTrader } from '../src/shards/driftwood-isle/runtime/models/trader';
 
+const trader = enteredTrader(traderCard);
 const barrel = sites.model('barrel'), crate = sites.model('crate'), ropeCoil = sites.model('ropeCoil');
-const entries = [live(captainHat), live(sailclothCape), live(castaway), live(trader), live(tradeCounter)];
+const entries = [live(castaway), live(trader)];
 
 it('forwards cold fixed preparation to the existing live roster', () => {
   expect(fixedGeometryReady()).toBe(false);
   for (const entry of entries) expect(entry.prepare).toBe(loadFixedGeometry);
-  expect(() => captainHat.build(modelContext(SkyRig.prototype), captainHat.defaults, new Rng(1))).toThrow('not loaded');
-  for (const def of [barrel, crate, ropeCoil]) expect(live(def).prepare).toBeUndefined();
+  for (const def of [barrel, crate, ropeCoil, captainHat, sailclothCape, tradeCounter]) expect(live(def).prepare).toBeUndefined();
 });
 
 async function geometryHash(geometry: BufferGeometry): Promise<string> {
@@ -61,16 +61,18 @@ it('matches the original warm cards for every authored geometry and variant', as
   const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(product);
   const signatures: Record<string, unknown> = {}, ctx = modelContext(SkyRig.prototype);
   const owner = new Scope('cargo-card-proof'), geometries = new Map<string, BufferGeometry>();
-  for (const row of cargo.library.models) {
+  for (const [library, rows] of [['cargo', cargo.library.models], ['native-specimens', native.library.models]] as const) for (const row of rows) {
     const intake = createOwnedGeometry(row.file, row.attributes); await intake.load(await product.file(row.file));
-    geometries.set(JSON.stringify(['cargo', row.id]), intake.take());
+    geometries.set(JSON.stringify([library, row.id]), intake.take());
   }
-  bindWorldSceneModelSources(ctx, 'driftwood-isle', { catalogue: parseWorldSceneModels(boot.siteCatalogue), geometries, materials: new Map([['still', material]]) }, owner);
+  bindWorldSceneModelSources(ctx, 'driftwood-isle', { catalogue: parseWorldSceneModels(boot.siteCatalogue), geometries, materials: new Map([['still', material], ['kit', material]]) }, owner);
   async function check<P extends object>(def: ModelDef<P>, allBorrowed = true): Promise<void> {
     // The parent oracle explicitly preloads the same warm-world templates; the new cards use their roster preparation.
     await (def.prepare ?? loadFixedGeometry)();
     for (const [id, params] of [['default', def.defaults] as const, ...(def.variants ?? []).map(row => [row.id, {...def.defaults, ...row.params}] as const)]) {
-      const parts = partsOf(def.build(ctx, params, new Rng(seedOf(def))));
+      const built = def.build(ctx, params, new Rng(seedOf(def)));
+      if (built instanceof Object3D && def.specimenLifetime === 'view') await specimenReady(built);
+      const parts = partsOf(built);
       signatures[`${def.id}/${id}`] = await Promise.all(parts.map(async part => ({geometry: await geometryHash(part.geometry), castShadow: part.castShadow ?? false, receiveShadow: part.receiveShadow ?? false})));
       for (const part of parts) {
         if (allBorrowed) expect(part.material).toBe(material);

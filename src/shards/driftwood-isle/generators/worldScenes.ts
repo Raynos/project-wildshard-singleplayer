@@ -1,4 +1,5 @@
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
+import native from '../data/nativeSpecimens.generated.json' with { type: 'json' };
 import cargo from '../data/cargoScenes.generated.json' with { type: 'json' };
 import { REEF_SCENE_LIBRARY } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
@@ -16,11 +17,12 @@ import { WORLD_PLACEMENTS } from './worldPlacements';
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
 const rockRows = parseWorldScenes({ version: 1, libraries: [rocks.section.library], materials: [], steps: [rocks.section.step] });
 const cargoRows = parseWorldScenes({ version: 1, libraries: [cargo.library], materials: [], steps: [] });
+const nativeRows = parseWorldScenes({ version: 1, libraries: [native.library], materials: [], steps: [] });
 
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export const WORLD_SCENES: WorldScenesSection = {
   version: 1, catalogue: 'models/world-scenes.json',
-  libraries: [...cargoRows.libraries, REEF_SCENE_LIBRARY, ...rockRows.libraries, ...parseWorldScenes({ version: 1, libraries: foliage.libraries, materials: [], steps: [] }).libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs', ...piers.slots, 'boatHull', 'boatSail', 'boatGear', 'mooringLines', 'duneLogs', ...Object.values(inventory.groups.driftLogs)].map(id => {
+  libraries: [...cargoRows.libraries, ...nativeRows.libraries, REEF_SCENE_LIBRARY, ...rockRows.libraries, ...parseWorldScenes({ version: 1, libraries: foliage.libraries, materials: [], steps: [] }).libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs', ...piers.slots, 'boatHull', 'boatSail', 'boatGear', 'mooringLines', 'duneLogs', ...Object.values(inventory.groups.driftLogs)].map(id => {
     const row = inventory.draws.find(entry => entry.slot === id), file = id === 'covePools' ? 'models/scene-pools.glb' : id === 'waterfallRings' ? 'models/scene-rings.glb' : DRIFTWOOD_FIXED_SOURCES[id];
     if (row === undefined || file === undefined) throw new Error(`Missing cascade bake: ${id}`);
     const attributes: Record<string, string> = {};

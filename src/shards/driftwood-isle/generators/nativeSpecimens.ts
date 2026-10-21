@@ -25,7 +25,7 @@ export function nativeSpecimenCatalogue(geometry: ReadonlyMap<string, BufferGeom
   const sources = new Map<object, string>([...geometry].map(([id, source]) => [source, id]));
   const models: WorldSceneModels['models'][number][] = [];
   const add = (key: string, id: string, name: string, category: 'gear' | 'people' | 'props', surface: 'felt' | 'flesh' | 'wood', root: Object3D,
-    defaults: Record<string, number> = {}, specimenYaw?: number, colliders: readonly unknown[] = []): void => {
+    defaults: Record<string, number> = {}, specimenYaw?: number, colliders: readonly unknown[] = [], draw?: { geometry: string; material: string }): void => {
     root.updateMatrixWorld(true);
     const nodes: WorldSceneWeldNode[] = [], names = new Map<Object3D, string>();
     root.traverse(object => { names.set(object, `part-${names.size}`); });
@@ -54,8 +54,8 @@ export function nativeSpecimenCatalogue(geometry: ReadonlyMap<string, BufferGeom
     const scene = parseWorldSceneWeld({ id: `native-${key}`, root: 'root', result: 'part-0', nodes });
     const size = new Box3().setFromObject(root).getSize(new Vector3());
     models.push({ key, id: `driftwood-isle/${id}`, name, file: 'src/shards/driftwood-isle/data/nativeSpecimens.generated.json',
-      category, pipeline: 'code', surface, defaults, variants: [], assembly: 'scene', ...(specimenYaw === undefined ? {} : { specimenYaw }),
-      choices: [{ id: 'native', params: defaults, size: [size.x, size.y, size.z], draws: [], lods: [], colliders: [...colliders], scene }] });
+      category, pipeline: 'code', surface, defaults, variants: [], assembly: draw === undefined ? 'scene' : 'parts', ...(specimenYaw === undefined ? {} : { specimenYaw }),
+      choices: [{ id: 'native', params: defaults, size: [size.x, size.y, size.z], draws: draw === undefined ? [] : [{ id: key, library: LIBRARY, model: draw.geometry, material: draw.material, castShadow: true, receiveShadow: true, renderOrder: 0 }], lods: [], colliders: [...colliders], ...(draw === undefined ? { scene } : {}) }] });
   };
   try {
     for (const [key, id, name, slot, yaw] of [
@@ -63,11 +63,11 @@ export function nativeSpecimenCatalogue(geometry: ReadonlyMap<string, BufferGeom
       ['sailclothCape', 'sailcloth-cape', 'Sailcloth cape', 'cape', Math.PI],
     ] as const) {
       const mesh = new Mesh(get(slot), coat); mesh.castShadow = true; mesh.receiveShadow = true;
-      add(key, id, name, 'gear', 'felt', new Group().add(mesh), { size: 1 }, yaw);
+      add(key, id, name, 'gear', 'felt', new Group().add(mesh), { size: 1 }, yaw, [], { geometry: slot, material: 'kit' });
     }
     const counter = new Mesh(get('tradeCounter'), still); counter.castShadow = true; counter.receiveShadow = true;
     add('tradeCounter', 'trade-counter', "The trader's counter", 'props', 'wood', new Group().add(counter), {}, undefined,
-      [{ kind: 'box', x: 0, y: COUNTER_TOP.y / 2, z: 0, hx: COUNTER_TOP.w / 2, hy: COUNTER_TOP.y / 2, hz: COUNTER_TOP.d / 2 + 0.02 }]);
+      [{ kind: 'box', x: 0, y: COUNTER_TOP.y / 2, z: 0, hx: COUNTER_TOP.w / 2, hy: COUNTER_TOP.y / 2, hz: COUNTER_TOP.d / 2 + 0.02 }], { geometry: 'tradeCounter', material: 'still' });
     const kit = (rows: Readonly<Record<string, string>>): Map<string, BufferGeometry> => new Map(Object.entries(rows).map(([part, slot]) => [part, get(slot)]));
     const trader = createClientScene(TRADER_SCENE, { geometry: kit(groups.trader), materials: new Map([['coat', coat]]) }).root;
     add('trader', 'trader', 'The trader', 'people', 'flesh', trader, {}, undefined, FigureRows.collidersFor(FIGURE_CATALOGUE.figures['trader']?.phone));

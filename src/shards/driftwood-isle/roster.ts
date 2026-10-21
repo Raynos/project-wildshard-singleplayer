@@ -8,7 +8,7 @@ import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { gull } from './runtime/models/creatures';
 import { castaway } from './runtime/models/people';
 import { COLLECTIONS } from './runtime/boot/blobAssets';
-import { captainHat, sailclothCape } from './runtime/models/captainHat';
+import { captainHat, sailclothCape } from './models/catalogue';
 
 export async function roster(): Promise<readonly RosterEntry[]> {
   await COLLECTIONS.prepare();

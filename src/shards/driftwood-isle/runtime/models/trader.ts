@@ -1,4 +1,3 @@
-import { driftwoodRows } from '../boot/rows';
 /**
  * Driftwood Isle's trader and her counter (E314, Jake's picks 2026-09-30: "a trader at Wendell's hut", the goods laid
  * out on a small driftwood counter in front of her — board 9 and board 2 A in art/loot/round-1-loop/). Code models on
@@ -16,8 +15,7 @@ import { driftwoodRows } from '../boot/rows';
  * The world side (where they stand, the per-frame update) is src/shards/driftwood-isle/quest/TraderStall.ts. No shop logic here.
  */
 import type * as THREE from 'three';
-import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
-import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -28,20 +26,15 @@ const byGroup = new WeakMap<THREE.Object3D, KitFigure>();
 /** the live Trader behind a placed copy of `trader` (null: not one) */
 export function traderOf(o: THREE.Object3D): KitFigure | null { return byGroup.get(o) ?? null; }
 
-export const trader: ModelDef<object> = defineModel<object>({
-  id: 'driftwood-isle/trader', name: 'The trader', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'flesh',
-  prepare: loadFixedGeometry, defaults: {},
-  build: (ctx) => {
-    const geometry = new Map(Object.entries(fixedGeometryGroups().npc.trader).map(([part, slot]) => [part, fixedDraw(slot).copy()]));
-    const rig = new KitFigure(ctx.sky, 'trader', FIGURES.rows('trader'), FIGURES.kit('trader'), { geometry }, new SceneHandles(ctx.sky));
-    byGroup.set(rig.group, rig); return rig.group;
-  },
-  colliders: () => FigureRows.collidersFor(FIGURES.rows('trader')),
-});
-
-export const tradeCounter: ModelDef<object> = defineModel<object>({
-  id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/trader.ts', surface: 'wood',
-  prepare: loadFixedGeometry, defaults: {},
-  build: (ctx): readonly ModelPart[] => [{ geometry: fixedDraw('tradeCounter').copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }],
-  colliders: () => [{ kind: 'box', x: 0, y: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.y / 2, z: 0, hx: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.w / 2, hy: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.y / 2, hz: driftwoodRows('custom/fixedLayouts').nativeView.COUNTER_TOP.d / 2 + 0.02 }],
-});
+/** Preserve the live owner while the admitted model supplies its static card. */
+export function enteredTrader(nativeTrader: ModelDef<Record<string, unknown>>): ModelDef<Record<string, unknown>> {
+  return defineModel({
+    ...nativeTrader, prepare: loadFixedGeometry, specimen: nativeTrader.build,
+    build: (ctx) => {
+      const geometry = new Map(Object.entries(fixedGeometryGroups().npc.trader).map(([part, slot]) => [part, fixedDraw(slot).copy()]));
+      const rig = new KitFigure(ctx.sky, 'trader', FIGURES.rows('trader'), FIGURES.kit('trader'), { geometry }, new SceneHandles(ctx.sky));
+      byGroup.set(rig.group, rig); return rig.group;
+    },
+    colliders: () => FigureRows.collidersFor(FIGURES.rows('trader')),
+  });
+}

@@ -8,6 +8,7 @@ import hut from '../data/hutBake.json' with { type: 'json' };
 import lookout from '../data/lookoutBake.json' with { type: 'json' };
 import shrine from '../data/shrineBake.json' with { type: 'json' };
 import wreck from '../data/wreckSites.json' with { type: 'json' };
+import native from '../data/nativeSpecimens.generated.json' with { type: 'json' };
 
 interface Layout {
   readonly origin: unknown;
@@ -36,5 +37,5 @@ export function siteCatalogue(): unknown {
       else throw new Error(`Missing scene model layout: ${model.key}/${choice.id}`);
     }
   }
-  return { ...rows, models: [...rows.models, ...rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...cargo.models] };
+  return { ...rows, models: [...rows.models, ...rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...cargo.models, ...native.catalogue.models] };
 }

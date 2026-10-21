@@ -3,7 +3,7 @@
  * (@wildshard/game/systems/npc/kitFigure on the figure catalogue's kit rows, generators/figureCatalogue.ts): the striped
  * shirt, the straw hat, the driftwood staff, and his campfire and its smoke column beside him. Not skinned: his body,
  * head and waving arm turn on pivots. The quest stands him by the hut; the card is the same build at his own origin, his
- * fire where it burns beside him — without the smoke column (the world animates it, and it would frame the card 12 m tall).
+ * fire where it burns beside him. Its mesh smoke stays hidden until the entered world lends its compiled look.
  */
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
@@ -39,17 +39,8 @@ export function castawayFigure(sky: Sky, feet: Pos, fire: Pos, resources: SceneH
   return figure;
 }
 
-/** the particle columns stripped from the card (today one: his campfire smoke) */
-const MAX_SMOKE = 8;
-
 export const castaway: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/runtime/models/people.ts', surface: 'flesh',
   prepare: loadFixedGeometry, defaults: {},
-  build: (ctx) => {
-    const g = castawayFigure(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(ctx.sky)).group;
-    const smoke: THREE.Object3D[] = [];
-    g.traverse((o) => { if (o instanceof THREE.Points) smoke.push(o); });
-    for (let i = 0; i < Math.min(smoke.length, MAX_SMOKE); i++) smoke[i]?.removeFromParent();
-    return g;
-  },
+  build: ctx => castawayFigure(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(ctx.sky)).group,
 });

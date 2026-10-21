@@ -1,5 +1,5 @@
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
-import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
+import { installRuntimeLoot, enteredLootPresentation } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
@@ -11,17 +11,16 @@ import type { QuestPageCompositionRows } from '@wildshard/format/questPageCompos
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import { castawayFigure } from '../runtime/models/people';
-import { trader, tradeCounter, traderOf } from '../runtime/models/trader';
-import { modelContext } from '@wildshard/engine/models/model';
+import { enteredTrader, traderOf } from '../runtime/models/trader';
+import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place as placeModel } from '@wildshard/engine/models/place';
 import { ownQuestTree } from '@wildshard/game/quest/chapter';
 import { parseQuestTrader } from '@wildshard/game/quest/trader';
 import { installDeclaredCollectionKeepsakes } from '@wildshard/game/compendium/keepsakes';
 import { COLLECTIONS } from '../runtime/boot/blobAssets';
-import { captainHat, sailclothCape } from '../runtime/models/captainHat';
+import { captainHat, sailclothCape, tradeCounter, trader as traderCard } from '../models/catalogue';
 import { driftwoodRows } from '../runtime/boot/rows';
 import { installItemEffects } from '@wildshard/game/loadout/effects';
-import { driftwoodLootPresentation } from '../loot/presentation';
 import { preloadCreatureBodies } from '../species/bodies';
 
 /** Prewarm the real hulls before the entered chapter can restore a saved altar. */
@@ -45,8 +44,8 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   if (stallPlacement === undefined) throw new Error('Missing declared trader placement');
   const feet = placement.place(stallPlacement.feet), fx = Math.sin(feet.yaw), fz = Math.cos(feet.yaw), cx = feet.x + fx * stallPlacement.counterAhead, cz = feet.z + fz * stallPlacement.counterAhead;
   const rig = ctx.scope.run(() => {
-    const context = modelContext(world.sky);
-    const figure = placeModel(trader, [feet], { ctx: context, draw: 'single', registry: world.registry, piece: { id: rows.trader.figure, name: 'The trader' } });
+    const context = { ...sharedModelContext(world.sky), specimenScope: ctx.scope };
+    const figure = placeModel(enteredTrader(traderCard), [feet], { ctx: context, draw: 'single', registry: world.registry, piece: { id: rows.trader.figure, name: 'The trader' } });
     const counter = placeModel(tradeCounter, [{ x: cx, y: placement.floorAt(cx, cz), z: cz, yaw: feet.yaw }], { ctx: context, draw: 'single', registry: world.registry, piece: { id: rows.trader.counter, name: "The trader's counter", solidFloor: false } });
     ownQuestTree(figure.object, ctx.scope); ownQuestTree(counter.object, ctx.scope);
     const made = traderOf(figure.object); if (made === null) throw new Error('Missing entered trader figure'); made.companions.push(counter.object); return made;
@@ -70,10 +69,14 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');
   const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
   installItemEffects(ctx);
+  const cosmetics = new Map([['hat', captainHat], ['cape', sailclothCape]] as const);
+  const modelSources = sharedModelContext(world.sky);
+  const bindCosmetic = (model: ModelDef<Record<string, unknown>>): ModelDef<Record<string, unknown>> => ({ ...model,
+    build: (_context, params, rng) => model.build({ ...modelSources, specimenScope: ctx.scope }, params, rng) });
   await installDeclaredCollectionKeepsakes(ctx, driftwoodRows('custom/collections').keepsakes, economy,
     new Map([['collection', { adventure, world, play: h, swords, catalogue: COLLECTIONS,
-      models: new Map([['hat', captainHat], ['cape', sailclothCape]]) }]]));
-  const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio });
+      models: new Map([...cosmetics].map(([id, model]) => [id, bindCosmetic(model)])) }]]));
+  const presentation = enteredLootPresentation(ctx, 'driftwood.loot');
   installRuntimeLoot(ctx, presentation, { shop: await ctx.product.json(rows.files.stall), minimap: true, before: rows.systems.before.filter(id => id !== 'game.loot') });
   return adventure;
 }

@@ -10,6 +10,10 @@ export const plankStep = catalogue.model('plankStep');
 export const entryDeck = catalogue.model('entryDeck');
 
 export const sites = defineWorldSceneCatalogue(data.siteCatalogue);
+export const captainHat = sites.model('captainHat');
+export const sailclothCape = sites.model('sailclothCape');
+export const tradeCounter = sites.model('tradeCounter');
+export const trader = sites.model('trader');
 export const hut = sites.model('hut');
 export const lookout = sites.model('lookout');
 export const shipwreck = sites.model('shipwreck');
