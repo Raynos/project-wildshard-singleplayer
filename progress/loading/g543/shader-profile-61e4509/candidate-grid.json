@@ -1,0 +1,303 @@
+{
+  "input": "tmp/loading-lane/node-child-phone/grid.cpuprofile",
+  "rootIds": [
+    3670,
+    3672,
+    3673,
+    3675,
+    9220,
+    9222,
+    9223,
+    9225,
+    9124,
+    9126,
+    9127,
+    9129,
+    9310,
+    9312,
+    9313,
+    9315,
+    8034,
+    8036,
+    8037,
+    8039,
+    8303,
+    8305,
+    8306,
+    8308
+  ],
+  "totalBuildSelfMs": 2671.7789999999995,
+  "top": [
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 2515,
+      "functionName": "build",
+      "selfMs": 371.094
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 3119,
+      "functionName": "build",
+      "selfMs": 147.35899999999998
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 2400,
+      "functionName": "analyze",
+      "selfMs": 114.64499999999998
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 2375,
+      "functionName": "setup",
+      "selfMs": 108.17000000000002
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 53698,
+      "functionName": "getNodeFromHash",
+      "selfMs": 100.95499999999994
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 54613,
+      "functionName": "getDataFromNode",
+      "selfMs": 96.14199999999998
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 9307,
+      "functionName": "build",
+      "selfMs": 60.882999999999996
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 2241,
+      "functionName": "getNodeType",
+      "selfMs": 60.343
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 54967,
+      "functionName": "registerDeclaration",
+      "selfMs": 58.282000000000004
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 51931,
+      "functionName": "setData",
+      "selfMs": 52.457
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 53496,
+      "functionName": "setHashNode",
+      "selfMs": 48.769000000000005
+    },
+    {
+      "source": "",
+      "line": -1,
+      "functionName": "RegExp: ;\\s*$",
+      "selfMs": 45.068
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 53507,
+      "functionName": "addNode",
+      "selfMs": 44.230999999999995
+    },
+    {
+      "source": "../../../../build-mirror/check/tree/src/engine/render/nodes/nodeChildren.ts",
+      "line": 9,
+      "functionName": "lO",
+      "selfMs": 42.732
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 9299,
+      "functionName": "isAssign",
+      "selfMs": 38.797
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 53747,
+      "functionName": "addContext",
+      "selfMs": 38.057
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 6794,
+      "functionName": "generate",
+      "selfMs": 37.421
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 4584,
+      "functionName": "build",
+      "selfMs": 35.414
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 2162,
+      "functionName": "getHash",
+      "selfMs": 34.904
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 36324,
+      "functionName": "build",
+      "selfMs": 34.831999999999994
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 51911,
+      "functionName": "getData",
+      "selfMs": 31.686000000000003
+    },
+    {
+      "source": "../../../../build-mirror/check/tree/src/engine/render/nodes/nodeChildren.ts",
+      "line": 40,
+      "functionName": "",
+      "selfMs": 28.717
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 9254,
+      "functionName": "isIntent",
+      "selfMs": 25.835
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 7554,
+      "functionName": "generate",
+      "selfMs": 24.927
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 6706,
+      "functionName": "generateNodeType",
+      "selfMs": 22.952
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 4343,
+      "functionName": "a",
+      "selfMs": 21.976000000000003
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 2310,
+      "functionName": "getShared",
+      "selfMs": 21.378
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 54815,
+      "functionName": "getVarFromNode",
+      "selfMs": 21.113
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 3092,
+      "functionName": "xn",
+      "selfMs": 20.69
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 9441,
+      "functionName": "_hasStack",
+      "selfMs": 17.950999999999997
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 54360,
+      "functionName": "getVectorType",
+      "selfMs": 16.762
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 54452,
+      "functionName": "getTypeLength",
+      "selfMs": 16.5
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 53630,
+      "functionName": "addChain",
+      "selfMs": 15.830000000000002
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 55704,
+      "functionName": "getClosestSubBuild",
+      "selfMs": 14.526
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 53649,
+      "functionName": "removeChain",
+      "selfMs": 13.770000000000003
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 7440,
+      "functionName": "getInputType",
+      "selfMs": 13.736
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 4840,
+      "functionName": "",
+      "selfMs": 13.463000000000001
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 54264,
+      "functionName": "isMatrix",
+      "selfMs": 13.311000000000002
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 54663,
+      "functionName": "getNodeProperties",
+      "selfMs": 12.875
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 9163,
+      "functionName": "",
+      "selfMs": 12.122
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 55096,
+      "functionName": "addLineFlowCode",
+      "selfMs": 11.905000000000001
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 36098,
+      "functionName": "addToStack",
+      "selfMs": 11.879
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 4361,
+      "functionName": "a",
+      "selfMs": 11.628
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 53542,
+      "functionName": "buildUpdateNodes",
+      "selfMs": 11.298
+    },
+    {
+      "source": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+      "line": 4427,
+      "functionName": "call",
+      "selfMs": 10.746
+    }
+  ],
+  "build": "61e45099ae3afba4bd35261ebb0a9be92bc36128"
+}

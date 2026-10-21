@@ -1,0 +1,26 @@
+[
+  {
+    "path": "shardfile",
+    "baselineBuilds": 67,
+    "candidateBuilds": 67,
+    "sameMaterialObjectMultiset": true,
+    "baselineBuildMs": 6171.199999630451,
+    "candidateBuildMs": 5481.199999988079,
+    "baselineWallSeconds": 22.8,
+    "candidateWallSeconds": 19.5,
+    "baselineRawSHA256": "38616d705f312512def59044986990a4e018b79380d4f16b67d4895ed3407d12",
+    "candidateRawSHA256": "c46dd02101731853f6bf4f70ab692b03fd35308590d11c7490f257d909e09f1c"
+  },
+  {
+    "path": "grid",
+    "baselineBuilds": 74,
+    "candidateBuilds": 74,
+    "sameMaterialObjectMultiset": true,
+    "baselineBuildMs": 2724.600000023842,
+    "candidateBuildMs": 2725.300000011921,
+    "baselineWallSeconds": 20.7,
+    "candidateWallSeconds": 20.4,
+    "baselineRawSHA256": "199b5f60d145f40a38ff9a79c02035d55fcf768c7253c9474c8bd20f94b0284e",
+    "candidateRawSHA256": "2bf471743a7e9cc1b7f00a1dab61de8d2999f42959fa2d32efafca0b906be089"
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "pin": "61e45099ae3afba4bd35261ebb0a9be92bc36128",
+  "owner": "sp-x1",
+  "batchSeconds": 180.6,
+  "verdict": "batch-check: PASS",
+  "sourceProof": {
+    "id": "20261021T064637-loading-node-child-source-batch-36807",
+    "label": "loading-node-child-source-batch",
+    "state": "passed",
+    "rc": 0,
+    "startedAt": 1792583197,
+    "endedAt": 1792585371,
+    "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T064637-loading-node-child-source-batch-36807.log",
+    "pane": "wT:p3",
+    "command": "python3 tmp/loading-lane/check-node-child-batch.py"
+  },
+  "rawLogSHA256": "f1d163c9f2bea9fc5d2f36923e00f1cc5d2c5d1287671c95bb4e94551885ea81"
+}
