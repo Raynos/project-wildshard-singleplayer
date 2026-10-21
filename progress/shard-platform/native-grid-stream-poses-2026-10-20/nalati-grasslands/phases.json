@@ -1,0 +1,201 @@
+{
+  "before": {
+    "source": "9bed83c7b2c442c757bd1f4441e18d7f1406d0f3",
+    "complete": true,
+    "playingMB": 1855.400961,
+    "loadingMB": 969.979041,
+    "native": {
+      "playing": 1534810592,
+      "loading": 649388672
+    },
+    "gpuMB": 320.590369,
+    "peak": {
+      "pageSeconds": 52.069,
+      "currentMB": 1106.696672,
+      "intervalMB": 1534.810592
+    },
+    "initialLoadingPeak": {
+      "pageSeconds": 10.409,
+      "aggregateNativeMB": 649.388672,
+      "precedesTargetBuild": true,
+      "hooks": [
+        "driftwood-isle:kit"
+      ]
+    },
+    "firstPlayingPageSeconds": 15.612,
+    "finalNativeMB": 569.31836,
+    "ranges": [
+      {
+        "name": "initialGridPlaying",
+        "samples": 298,
+        "nativeHighMB": 690.573296,
+        "pageSeconds": 16.093,
+        "hooks": []
+      },
+      {
+        "name": "targetPreparationAndPlaying",
+        "samples": 388,
+        "nativeHighMB": 1534.810592,
+        "pageSeconds": 52.069,
+        "hooks": [
+          "nalati-grasslands:world"
+        ]
+      }
+    ],
+    "phases": [
+      {
+        "hook": "beforeWorld",
+        "ms": 0,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "constructor",
+        "ms": 1,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "world",
+        "ms": 13148,
+        "samples": 124,
+        "nativeHighMB": 1534.810592
+      },
+      {
+        "hook": "afterWorld",
+        "ms": 0,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "kit",
+        "ms": 30,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "afterKit",
+        "ms": 656.0000000000073,
+        "samples": 7,
+        "nativeHighMB": 638.8848
+      },
+      {
+        "hook": "play",
+        "ms": 587,
+        "samples": 5,
+        "nativeHighMB": 592.026536
+      },
+      {
+        "hook": "afterPlay",
+        "ms": 7238,
+        "samples": 68,
+        "nativeHighMB": 583.621544
+      },
+      {
+        "hook": "activate",
+        "ms": 17.000000000014552,
+        "samples": 0,
+        "nativeHighMB": null
+      }
+    ]
+  },
+  "after": {
+    "source": "9bcd2d71781215ec38d69d774515f29f7ec9542c",
+    "complete": true,
+    "playingMB": 970.588425,
+    "loadingMB": 1089.475889,
+    "native": {
+      "playing": 648319344,
+      "loading": 767206808
+    },
+    "gpuMB": 322.269081,
+    "peak": {
+      "pageSeconds": 42.107,
+      "currentMB": 648.30296,
+      "intervalMB": 648.319344
+    },
+    "initialLoadingPeak": {
+      "pageSeconds": 26.791,
+      "aggregateNativeMB": 767.206808,
+      "precedesTargetBuild": true,
+      "hooks": []
+    },
+    "firstPlayingPageSeconds": 27.8,
+    "finalNativeMB": 598.118768,
+    "ranges": [
+      {
+        "name": "initialGridPlaying",
+        "samples": 85,
+        "nativeHighMB": 560.337216,
+        "pageSeconds": 29.837,
+        "hooks": []
+      },
+      {
+        "name": "targetPreparationAndPlaying",
+        "samples": 291,
+        "nativeHighMB": 648.319344,
+        "pageSeconds": 42.107,
+        "hooks": [
+          "nalati-grasslands:afterKit"
+        ]
+      }
+    ],
+    "phases": [
+      {
+        "hook": "beforeWorld",
+        "ms": 0,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "constructor",
+        "ms": 1,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "world",
+        "ms": 4951,
+        "samples": 46,
+        "nativeHighMB": 644.403568
+      },
+      {
+        "hook": "afterWorld",
+        "ms": 0,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "kit",
+        "ms": 29,
+        "samples": 0,
+        "nativeHighMB": null
+      },
+      {
+        "hook": "afterKit",
+        "ms": 579,
+        "samples": 6,
+        "nativeHighMB": 648.319344
+      },
+      {
+        "hook": "play",
+        "ms": 318.0000000000073,
+        "samples": 3,
+        "nativeHighMB": 621.613424
+      },
+      {
+        "hook": "afterPlay",
+        "ms": 6631,
+        "samples": 62,
+        "nativeHighMB": 617.25528
+      },
+      {
+        "hook": "activate",
+        "ms": 8,
+        "samples": 0,
+        "nativeHighMB": null
+      }
+    ]
+  },
+  "playingReductionMB": 884.812536
+}

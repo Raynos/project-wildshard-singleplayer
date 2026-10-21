@@ -1,0 +1,371 @@
+{
+  "protocol": "Postprocess only; kernel native peak and bracketing scalar ledger snapshots. Tracked RAM is a subset, not a decomposition of WebContent footprint. No heap or JIT allocator claims.",
+  "playingPolicy": "Playing includes every interval after the first ready witness, including later target preparation. A bracketing scalar phase of loading does not reclassify this peak.",
+  "nativePeak": {
+    "atMs": 42107,
+    "nativeMB": 648.319344
+  },
+  "overlap": [],
+  "scalarBefore": {
+    "distanceMs": -34,
+    "pageMs": 42072,
+    "phase": "loading",
+    "current": null,
+    "trackedRamMB": 299.077035,
+    "trackedGpuMB": 168.325311,
+    "nativeMinusTrackedRamMB": 349.242309
+  },
+  "scalarAfter": {
+    "distanceMs": 480,
+    "pageMs": 42586,
+    "phase": "loading",
+    "current": null,
+    "trackedRamMB": 305.874351,
+    "trackedGpuMB": 168.325311,
+    "nativeMinusTrackedRamMB": 342.444993
+  },
+  "inspectorErrorsNearPeak": [],
+  "independentGpuPeak": {
+    "pageMs": 53831,
+    "totalMB": 322.269081,
+    "unattributedMB": 2.134732,
+    "owners": [
+      {
+        "owner": "engine/render-target",
+        "MB": 72.14196
+      },
+      {
+        "owner": "scene:region:nalati-grasslands",
+        "MB": 67.63164
+      },
+      {
+        "owner": "scene:grid-deck",
+        "MB": 27.030172
+      },
+      {
+        "owner": "scene:grid-open-plot-billboards",
+        "MB": 22.93836
+      },
+      {
+        "owner": "grid.world:nalati-grasslands",
+        "MB": 19.4646
+      },
+      {
+        "owner": "engine/loadRigFile",
+        "MB": 15.546468
+      },
+      {
+        "owner": "scene:grid-signs",
+        "MB": 11.930222
+      },
+      {
+        "owner": "scene:grid-cell-screen",
+        "MB": 10.485872
+      },
+      {
+        "owner": "engine/ktx2Texture",
+        "MB": 10.478016
+      },
+      {
+        "owner": "runtime:nalati-grasslands",
+        "MB": 10.197246
+      },
+      {
+        "owner": "engine/scene",
+        "MB": 6.2383
+      },
+      {
+        "owner": "scene:grid-junctions",
+        "MB": 5.663476
+      },
+      {
+        "owner": "scene:near-placeholder",
+        "MB": 5.070752
+      },
+      {
+        "owner": "grid.view:nalati-grasslands",
+        "MB": 4.300284
+      },
+      {
+        "owner": "level",
+        "MB": 3.725645
+      },
+      {
+        "owner": "scene:grid-open-plot-signs",
+        "MB": 3.146956
+      },
+      {
+        "owner": "scene:grid-asphalt",
+        "MB": 2.890284
+      },
+      {
+        "owner": "shrine",
+        "MB": 2.48976
+      },
+      {
+        "owner": "scene:far-impostor",
+        "MB": 2.359296
+      },
+      {
+        "owner": "unattributed",
+        "MB": 2.134732
+      },
+      {
+        "owner": "scene:far-proxy",
+        "MB": 1.942452
+      },
+      {
+        "owner": "nalati-grasslands/balbal",
+        "MB": 1.44464
+      },
+      {
+        "owner": "engine/bakedTexture",
+        "MB": 1.3981
+      },
+      {
+        "owner": "lookout",
+        "MB": 1.05864
+      },
+      {
+        "owner": "hut",
+        "MB": 0.568728
+      },
+      {
+        "owner": "scene:grid-open-plot-solid",
+        "MB": 0.56331
+      },
+      {
+        "owner": "scene:grid-cell:template-2",
+        "MB": 0.535616
+      },
+      {
+        "owner": "scene:nalati-yard",
+        "MB": 0.524288
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-1-0",
+        "MB": 0.442422
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-3-0",
+        "MB": 0.442422
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-2-0",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-0-0",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-0-1",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-0-3",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-0-4",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-1-4",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-4-3",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-2-4",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-3-4",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-4-4",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:grid-open-plot:open-plot-4-0",
+        "MB": 0.44175
+      },
+      {
+        "owner": "scene:cloud-sea",
+        "MB": 0.349664
+      },
+      {
+        "owner": "scene:grid-cell:blender-template-1",
+        "MB": 0.349552
+      },
+      {
+        "owner": "scene:sheep-flock",
+        "MB": 0.150216
+      },
+      {
+        "owner": "scene:grid-border-shimmer-line",
+        "MB": 0.148192
+      },
+      {
+        "owner": "scene:props120",
+        "MB": 0.122544
+      },
+      {
+        "owner": "scene:nalatigroundl013",
+        "MB": 0.12012
+      },
+      {
+        "owner": "scene:nalatigroundl014",
+        "MB": 0.12012
+      },
+      {
+        "owner": "scene:nalatigroundl023",
+        "MB": 0.12012
+      },
+      {
+        "owner": "scene:nalatigroundl022",
+        "MB": 0.12012
+      },
+      {
+        "owner": "scene:nalatigroundl024",
+        "MB": 0.119952
+      },
+      {
+        "owner": "scene:nalatigroundl025",
+        "MB": 0.119784
+      },
+      {
+        "owner": "scene:nalatigroundl003",
+        "MB": 0.114192
+      },
+      {
+        "owner": "scene:nalatigroundl004",
+        "MB": 0.114192
+      },
+      {
+        "owner": "scene:props100",
+        "MB": 0.076608
+      },
+      {
+        "owner": "scene:props101",
+        "MB": 0.074448
+      },
+      {
+        "owner": "scene:props110",
+        "MB": 0.070992
+      },
+      {
+        "owner": "scene:props121",
+        "MB": 0.061632
+      },
+      {
+        "owner": "scene:grid-seam-curtain",
+        "MB": 0.059616
+      },
+      {
+        "owner": "scene:props111",
+        "MB": 0.047808
+      },
+      {
+        "owner": "scene:grid-open-plot-lines",
+        "MB": 0.021288
+      },
+      {
+        "owner": "scene:copy-layout",
+        "MB": 0.015624
+      },
+      {
+        "owner": "scene:terrain:-125,-250",
+        "MB": 0.013476
+      },
+      {
+        "owner": "scene:terrain:-250,-250",
+        "MB": 0.013476
+      },
+      {
+        "owner": "scene:terrain:-250,-125",
+        "MB": 0.013476
+      },
+      {
+        "owner": "scene:terrain:-125,-125",
+        "MB": 0.013476
+      },
+      {
+        "owner": "scene:terrain:0,-250",
+        "MB": 0.013476
+      },
+      {
+        "owner": "scene:terrain:0,-125",
+        "MB": 0.013476
+      },
+      {
+        "owner": "BackdropLayer",
+        "MB": 0.013248
+      },
+      {
+        "owner": "scene:grid-open-plot-holo-lines",
+        "MB": 0.010224
+      },
+      {
+        "owner": "scene:marmots",
+        "MB": 0.00954
+      },
+      {
+        "owner": "scene:grid-soft-wall",
+        "MB": 0.004752
+      },
+      {
+        "owner": "scene:grid-open-plot-holo-cards",
+        "MB": 0.002912
+      },
+      {
+        "owner": "scene:copy-identity-number",
+        "MB": 0.00288
+      },
+      {
+        "owner": "grid.world:driftwood-isle",
+        "MB": 0.001024
+      },
+      {
+        "owner": "scene:grid-open-plot-holo-glass",
+        "MB": 0.00084
+      },
+      {
+        "owner": "scene:impacts",
+        "MB": 0.000768
+      },
+      {
+        "owner": "scene:copy-identity-plate",
+        "MB": 0.000576
+      },
+      {
+        "owner": "scene:haze-band",
+        "MB": 0.000368
+      },
+      {
+        "owner": "scene:grid-void-floor",
+        "MB": 0.000144
+      },
+      {
+        "owner": "scene:grid-open-plot-scan",
+        "MB": 0.00014
+      },
+      {
+        "owner": "scene:grid-open-plot-floor",
+        "MB": 0.000072
+      },
+      {
+        "owner": "engine/renderer",
+        "MB": 0.000036
+      },
+      {
+        "owner": "scene:trailside_p3_1_n3",
+        "MB": 0.000008
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "source": "9d40530bad62f1f2747e5c49f37c80c1d2db61c4",
+  "schemaSource": "Nalati dressing schema emitted at 529f3def428c158557b3bd2241536ec75b871586",
+  "schemaSha256": "811f7cba2f1e9adb0f194fbfcc56aa2cc7406440b811bd3f1685b6cdb30099fc",
+  "helperSha256": "faa75d9fbd48d3d153a3aadb650d0fbd8c550f8e819c730af73530a4d3eb3b87",
+  "node": "v24.18.1",
+  "ajv": "6.15.0",
+  "note": "Static code-generation diagnostic; no Safari or memory-cap credit.",
+  "rows": [
+    {
+      "factored": false,
+      "compileMs": 68.59562500000001,
+      "functions": 1,
+      "largestFunctionCharacters": 2617306,
+      "totalGeneratedCharacters": 2617306
+    },
+    {
+      "factored": true,
+      "compileMs": 93.76583400000001,
+      "functions": 340,
+      "largestFunctionCharacters": 18040,
+      "totalGeneratedCharacters": 840030
+    }
+  ]
+}
