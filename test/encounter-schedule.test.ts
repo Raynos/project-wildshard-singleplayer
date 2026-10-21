@@ -31,7 +31,7 @@ test('phase and arena rules are decided in the admitted module', () => {
 });
 
 test('mounted field refusal consumes numeric samples in AS without a second page rule', () => {
-  const schedule = new ProjectedState(fight.TITAN_SCHEDULES.contact, author());
+  const schedule = new ProjectedState(fight.TITAN_SCHEDULES.contact, ReturnProgram.page(programs.fire));
   const samples = [{ hit: 0 }, { hit: 1 }];
   expect(schedule.project({ dt: .1, mounted: 1, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: -1 });
   expect(schedule.project({ dt: .1, mounted: 0, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: 0 });
