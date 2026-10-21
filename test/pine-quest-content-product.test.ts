@@ -50,22 +50,24 @@ test('the retained producer preserves the entire quest and NPC declarations in t
     rowLimit: 31, flagLimit: 16, touch: 'direct', pickup: 'walk-in' } });
   for (const selector of ['touch', 'latch', 'actor', 'trade', 'ammo']) expect(nativePolicy).not.toHaveProperty(selector);
   const resin = FOREST_STORY.collections[0], tokens = FOREST_STORY.collections[1];
-  expect(resin?.prefix).toBe(rows.policy.resinFlag);
-  expect(resin?.names).toHaveLength(rows.policy.resinCount);
-  expect(tokens?.prefix).toBe(rows.policy.tokenFlag);
-  expect(tokens?.names).toEqual(rows.policy.tokenNames);
+  expect(resin?.prefix).toBe(PINE_QUEST_RUNTIME.policy.resinFlag);
+  expect(resin?.names).toHaveLength(PINE_QUEST_RUNTIME.policy.resinCount);
+  expect(tokens?.prefix).toBe(PINE_QUEST_RUNTIME.policy.tokenFlag);
+  expect(tokens?.names).toEqual(PINE_QUEST_RUNTIME.policy.tokenNames);
   expect(nativeStory.boss).toBe(boss.steps.fight);
   expect(hash(NATIVE_CHAPTER_DIRECTOR)).toBe(originals.nativeClock);
   expect(NATIVE_CHAPTER_DIRECTOR.actions['night.start']?.find(row => row.kind === 'phase')?.to).toBe(sky.phases.night);
   expect(NATIVE_CHAPTER_DIRECTOR.actions['dawn.sunrise']?.find(row => row.kind === 'phase')?.to).toBe(sky.phases.sunrise + 0.012);
-  expect(nativeStory.actions.filter(row => row.kind === 'lantern').map(row => row.row)).toEqual(Object.values(rows.policy.lanternIds));
+  expect(nativeStory.actions.filter(row => row.kind === 'lantern').map(row => row.row)).toEqual(Object.values(PINE_QUEST_RUNTIME.policy.lanternIds));
   expect(rows.table.rows.filter(row => row.id.startsWith('resin-'))).toHaveLength(30);
   expect(rows.table.rows.filter(row => row.id.startsWith('token-'))).toHaveLength(8);
   // Custom-section JSON canonicalizes record keys; continuation order is data.
   expect(Object.keys(rows.readings.speakers).sort()).toEqual(['miller', 'ranger', 'trader']);
   expect(rows.readings.continuation).toEqual({ bare: 'ranger', wrapped: ['miller', 'trader'] });
-  expect(rows.beats['hamlet']?.flags).toEqual([]);
-  expect(rows.beats['done']?.flags).toEqual(['talked:ranger', 'lever:dam-log-a', 'lever:dam-log-b', 'open:dam-sluice', 'taken:pond-glass', 'lit:pond', 'taken:ridge-flint', 'lit:ridge', 'used:ph-zip', 'lit:den', 'followed:stag', 'dead:king', 'seen:dawn', 'quest:warden-done']);
+  expect(rows).not.toHaveProperty('beats');
+  expect(rows.policy).toEqual({ readingDelay: PINE_QUEST_RUNTIME.policy.readingDelay });
+  expect(FOREST_STORY.jumps['hamlet']?.flags).toEqual([]);
+  expect(FOREST_STORY.jumps['done']?.flags).toEqual(['talked:ranger', 'lever:dam-log-a', 'lever:dam-log-b', 'open:dam-sluice', 'taken:pond-glass', 'lit:pond', 'taken:ridge-flint', 'lit:ridge', 'used:ph-zip', 'lit:den', 'followed:stag', 'dead:king', 'seen:dawn', 'quest:warden-done']);
   expect(() => parsePineQuestRows({ ...rows, table: { ...rows.table, rows: [{ ...rows.table.rows[0], at: { poi: 'world', x: Number.NaN, y: 0, z: 0, yaw: 0 } }] } })).toThrow();
   const { ranger: RANGER, miller: MILLER, trader: TRADER } = rows.readings.speakers;
   for (const [id, npc] of Object.entries({ ranger: RANGER, miller: MILLER, trader: TRADER })) {

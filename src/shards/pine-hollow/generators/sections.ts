@@ -71,11 +71,8 @@ const table = v.strictObject({ external: questNames, rows: v.pipe(v.array(v.vari
 ])), v.maxLength(256)) });
 export const PineQuestRowsSchema = v.strictObject({ lead: v.strictObject({ ...QuestLeadRowsSchema.entries, program: v.unknown() }), leadPage: QuestLeadPageSchema, steps: QuestStepRowsSchema, spawns: QuestSpawnPageSchema, table,
   readings: v.strictObject({ speakers: v.record(questText, NpcDialogueRowSchema), continuation: v.strictObject({ bare: questText, wrapped: questNames }) }),
-  policy: v.strictObject({ resinCount: v.pipe(questFinite, v.integer(), v.minValue(0), v.maxValue(64)), resinFlag: questText, tokenFlag: questText, tokenNames: questNames,
-    readingDelay: v.pipe(finite, v.minValue(0)), lanternIds: v.strictObject({ pond: questText, ridge: questText, den: questText }) }),
+  policy: v.strictObject({ readingDelay: v.pipe(finite, v.minValue(0)) }),
   events: v.unknown(), deaths: v.unknown(), pageDeaths: v.unknown(), content: v.unknown(),
-  beats: v.record(questText, v.strictObject({ adds: questNames, flags: questNames, at: v.picklist(['ranger', 'deck', 'launch', 'lodge', 'xz']),
-    ...questPoint, look: v.strictObject(questPoint), night: v.exactOptional(v.boolean()), day: v.exactOptional(v.boolean()) })),
 });
 /** Admit immutable content before either original quest host installs effects; effect hosts validate their own rows. */
 export function parsePineQuestRows(input: unknown): v.InferOutput<typeof PineQuestRowsSchema> {

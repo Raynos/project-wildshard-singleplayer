@@ -40,7 +40,7 @@ import { PINE_PANELS } from './panels';
 import { TRADER_STALL as traderStall } from './questShop';
 import { THRALL_CLIPS } from './thrallClips';
 import thrallLook from '../data/thrallLook.json' with { type: 'json' };
-import { PINE_QUEST_PAYLOAD } from './questRuntime';
+import { PINE_QUEST_PAYLOAD, PINE_QUEST_RUNTIME } from './questRuntime';
 import { PAGE_STORY } from './pageStory';
 import weatherProgram from '../data/weather.json' with { type: 'json' };
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
@@ -95,7 +95,7 @@ const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'e
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
 const { actions: _nativeActions, cancel: _nativeCancel, actor: _nativeActor, trade: _nativeTrade, ammo: _nativeAmmo, touch, latch, ...nativeStoryBase } = nativeStory;
-const touchIds = Array.from({ length: PINE_QUEST_PAYLOAD.policy.resinCount }, (_unused, i) => `${touch.prefix}${i + 1}`);
+const touchIds = Array.from({ length: PINE_QUEST_RUNTIME.policy.resinCount }, (_unused, i) => `${touch.prefix}${i + 1}`);
 for (const id of touchIds) {
  const row = PINE_QUEST_PAYLOAD.table.rows.find(candidate => candidate.id === id);
  if (row?.kind !== 'pickup' || row.touch !== true || row.item !== touch.item) throw new Error('Story needs its declared touch pickup law');
