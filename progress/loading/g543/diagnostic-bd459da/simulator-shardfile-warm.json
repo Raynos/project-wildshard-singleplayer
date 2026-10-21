@@ -1,0 +1,26 @@
+{
+  "pin": "bd459dadaf9da655af6b37bdb91aed3ec3aad63f",
+  "surface": "simulator",
+  "path": "shardfile",
+  "visit": "warm",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "errors": [
+    "Error: Safari timeout: window.__loadingAccuracy?.readyAt > 0",
+    "TypeError: Cannot read properties of undefined (reading 'final')"
+  ],
+  "failures": [],
+  "rawSHA256": "ccecb6f8410148eb89c9e3c4942d98340c51cef61a844e86d9e76daab42973e8",
+  "stageSeconds": null,
+  "clockSeconds": null,
+  "networkBytes": null,
+  "displayedNetworkBytes": null,
+  "byteError": null,
+  "maxDetailGapMs": null,
+  "cacheBytes": 0,
+  "final": null,
+  "firstAt": null,
+  "readyAt": null,
+  "updates": [],
+  "workerChecks": []
+}

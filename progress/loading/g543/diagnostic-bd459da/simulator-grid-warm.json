@@ -1,0 +1,29 @@
+{
+  "pin": "bd459dadaf9da655af6b37bdb91aed3ec3aad63f",
+  "surface": "simulator",
+  "path": "grid",
+  "visit": "warm",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "errors": [
+    "Error: Safari timeout: window.__loadingAccuracy?.readyAt > 0"
+  ],
+  "failures": [
+    "Expected grid load path, observed none",
+    "First frame was not reached",
+    "Network bytes are unavailable or differ by more than 5%"
+  ],
+  "rawSHA256": "730ce6ddcdb8713dd266225eff2a2ed3a92de5c05b01b184f21fda53b67062c5",
+  "stageSeconds": 0,
+  "clockSeconds": 0,
+  "networkBytes": 0,
+  "displayedNetworkBytes": null,
+  "byteError": null,
+  "maxDetailGapMs": 1,
+  "cacheBytes": 0,
+  "final": null,
+  "firstAt": -1,
+  "readyAt": 0,
+  "updates": [],
+  "workerChecks": []
+}
