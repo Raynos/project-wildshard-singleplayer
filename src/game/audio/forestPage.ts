@@ -1,10 +1,10 @@
 /** Client-only forest ambience over native building, animal and encounter owners. */
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
 import * as terrain from '@wildshard/engine/world/Heightfield';
-import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import { placedGroups } from '@wildshard/engine/models/place';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { forestPage } from '../shardfile/forestPage';
+import { bindClientPlaceSets } from '../shardfile/clientPlaceSets';
 import type { RangedPage } from '../loadout/rangedPage';
 import { installRuntimeGameplayAudio, runtimeAudio } from '../plugin/audio';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
@@ -14,8 +14,9 @@ import type { ShardContext } from '../plugin/context';
 export async function finishForestPageAudio(ctx: ShardContext, page: Pick<RangedPage, 'rows' | 'loadout' | 'fights'>): Promise<DeclaredAmbience> {
   const floor = forestPage(ctx.scope, page.rows.forest), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Forest audio requires entered play services');
-  const { game, sky, registry } = world, { animals, audio, music } = play, cabins = floor.cabins, row = floor.rows.buildings, fights = page.fights;
-  registerPlaceSets(page.rows.places, { file: 'declared forest page', registry, centres: { placed: placedGroups(), point: place => place } });
+  const { game, sky } = world, { animals, audio, music } = play, cabins = floor.cabins, row = floor.rows.buildings, fights = page.fights;
+  // the named places are the client plan's world.sets rows (Nalati, Driftwood, Pine): bound to every placed copy by its centre
+  await bindClientPlaceSets(ctx, new Map(), placedGroups());
   const ambience = installDeclaredAudio(runtimeAudio(ctx, ctx.product.shardfile.audio), { audio, sea: 0, floorRows: { cabins: row.floors }, sites: { cabins: terrain.CABIN_SITES },
     owners: { terrain, cabins: { ...cabins.life.audioState, firePits: row.firePits } }, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) }, 'ambience');
   fights.useSfx(ambience.sfx);

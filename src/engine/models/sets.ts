@@ -13,7 +13,7 @@
 import { app } from '../app/runtime';
 import * as THREE from 'three';
 import type { RegisteredSet, WorldRegistry } from '../world/registry';
-import { copiesNear, type Placed } from './place';
+import type { Placed } from './place';
 
 export interface SetOptions {
   /** `<slug>/<name>`, unique on the shard */
@@ -73,38 +73,3 @@ export function placedWithin(p: Placed, x: number, z: number, radius: number, mo
   };
 }
 
-/** Register ordered named places from borrowed whole placements and/or spatial views. The caller resolves content
- * and explicit membership; empty sets register by default, or are skipped with skipEmpty. Optional centres batch
- * centre-selected copies in one pass per source, using copiesNear views (including their no-op cull). Returns count. */
-export function registerPlaceSets<R extends Pick<SetOptions, 'id' | 'name' | 'place' | 'pending'> & { readonly file?: string }>(rows: readonly R[], options: {
-  readonly file: string;
-  readonly registry?: WorldRegistry;
-  readonly skipEmpty?: boolean;
-  readonly centres?: {
-    readonly placed: readonly Placed[];
-    readonly point: (row: R) => { readonly x: number; readonly z: number; readonly r: number };
-  };
-  readonly members?: (row: R) => {
-    readonly whole?: readonly Placed[];
-    readonly near?: { readonly placed: readonly (Placed | null | undefined)[]; readonly x: number; readonly z: number; readonly r: number; readonly mode: 'bounds' | 'centre' };
-  };
-}): number {
-  const centreMembers: Placed[][] = options.centres ? rows.map(() => []) : [];
-  if (options.centres) {
-    const circles = rows.map(options.centres.point);
-    for (const placed of options.centres.placed) copiesNear(placed, circles).forEach((view, i) => { if (view) centreMembers[i]?.push(view); });
-  }
-  let count = 0;
-  for (const [i, row] of rows.entries()) {
-    const selection = options.members?.(row) ?? {}, members = [...(selection.whole ?? []), ...(centreMembers[i] ?? [])], near = selection.near;
-    if (near) for (const placed of near.placed) {
-      if (placed === null || placed === undefined || placed.copies <= 0) continue;
-      const view = placedWithin(placed, near.x, near.z, near.r, near.mode);
-      if (view) members.push(view);
-    }
-    if (options.skipEmpty === true && members.length === 0) continue;
-    placeSet({ ...row, file: row.file ?? options.file, members, ...(options.registry === undefined ? {} : { registry: options.registry }) });
-    count++;
-  }
-  return count;
-}

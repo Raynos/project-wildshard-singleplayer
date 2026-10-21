@@ -7310,11 +7310,8 @@ muzzle flash, shot callbacks and active-only automatic reload stay ordered.
 `bounds` selects intersecting horizontal boxes and uses box distance for nearest; `centre` selects box centres
 and uses squared centre distance. Whole selections keep the original placement; partial views borrow its
 object and boxes and own no colliders. Bounds views retain the original registration promise; centre views
-follow the source promise. `registerPlaceSets(rows, {file, registry?, skipEmpty?, members})` registers rows
-in order, combining borrowed `whole` placements with optional `near` views. Each row may override `file`;
-empty sets register unless `skipEmpty` is true. Content resolution and any inter-row pacing stay with the caller.
-Optional `centres: {placed, point(row)}` batches centre-selected views in one pass over each source, preserving
-source/copy order, nearest-by-centre, borrowed objects and the existing no-op cull of `copiesNear` views.
+follow the source promise. Named places register as the client plan's `world.sets` rows
+(`game/shardfile/clientPlaceSets.ts`), which select their members with `placedWithin`.
 
 **Declared panel lifetime (W2 C5).** `@wildshard/sdk/panels` defines
 `DeclaredPanel` and `DeclaredPanelPolicy`. Persistent panels mount once and
