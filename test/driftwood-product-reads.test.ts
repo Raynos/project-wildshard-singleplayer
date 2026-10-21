@@ -37,12 +37,13 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   expect(loaded.shard.quests.achievements).toEqual(DRIFTWOOD_FEATS);
   expect(custom.sections.some(row => row.name === 'custom/questRows')).toBe(false);
   const economy = source.rows.loot[0]?.economy;
-  expect(economy?.effects).toEqual(DRIFTWOOD_EFFECTS); expect(economy?.goods).toEqual(GOODS);
+  if (economy === undefined || 'kind' in economy) throw new Error('Missing coin economy');
+  expect(economy.effects).toEqual(DRIFTWOOD_EFFECTS); expect(economy.goods).toEqual(GOODS);
 }, 30000);
 
 test('effect rows retain identity values while refusing invalid effect ids and unnamespaced tags', () => {
   const schema = LootEconomySchema, base = source.rows.loot[0]?.economy;
-  if (base === undefined) throw new Error('Missing admitted economy payload');
+  if (base === undefined || 'kind' in base) throw new Error('Missing admitted coin economy payload');
   const section = (effects: unknown) => ({ ...base, effects });
   const read = (effects: unknown) => v.parse(schema, section(effects));
   // The payload now ships in the platform section: re-admit the serialized wire through RowsSchema.
@@ -50,7 +51,7 @@ test('effect rows retain identity values while refusing invalid effect ids and u
     const previous = { id: 'effect.previous', kind: 'permanent', tags: [], modifiers: [], stacking: 'none' };
     const wire: unknown = JSON.parse(encodeCanonicalJson({ ...source.rows, loot: [{ ...source.rows.loot[0], economy: section([...base.effects, previous, ...effects]) }] }));
     const parsed = parseRows(wire).loot[0]?.economy;
-    if (parsed === undefined) throw new Error('Missing parsed economy');
+    if (parsed === undefined || 'kind' in parsed) throw new Error('Missing parsed coin economy');
     return parsed.effects.slice(-effects.length);
   };
   const row = { id: 'effect.perk', kind: 'permanent', tags: ['status.perk'], modifiers: [], stacking: 'none',

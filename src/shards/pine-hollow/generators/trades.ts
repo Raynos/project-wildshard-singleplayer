@@ -1,4 +1,6 @@
 import type { ExchangeRows } from '@wildshard/format/exchange';
+import { parseBarterEconomy } from '@wildshard/format/lootEconomy';
+import { pinePickups } from './pickups';
 import type { PineItem } from './questInventory';
 
 /** Authored swaps; native affordability, quiver capacity and shop presentation stay runtime-owned. */
@@ -71,4 +73,14 @@ export function tradeExchange(): ExchangeRows {
       else if ('ammo' in trade.get) offer.capacity = { item: trade.get.ammo, n: trade.get.n };
       return offer;
     }) };
+}
+
+/** Shared admission retains Mott's exact card, payment, grant and pickup order. */
+export function tradeEconomy(): ReturnType<typeof parseBarterEconomy> {
+  return parseBarterEconomy({ kind: 'barter',
+    goods: tradeCatalogue().goods.map(({ id, name, does, icon, price, tile }) => ({ id, name, does, icon, price, tile })),
+    exchange: tradeExchange(), tables: [{ id: 'finish-drops', domain: 'trophies', table: { mode: 'each', rows:
+      Object.entries(pinePickups()).flatMap(([item, row]) => row.death === undefined ? []
+        : [{ item, weight: 1, match: { kind: row.death.kind, ...(row.death.variant === undefined ? {} : { variant: row.death.variant }) } }]) } }],
+  });
 }

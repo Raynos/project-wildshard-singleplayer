@@ -66,7 +66,7 @@ test('missing, sparse, duplicate or unknown reward states refuse before ownershi
     { ...economy.progression, states: economy.progression.states.map(state => ({ displayCount: state.displayCount, next: state.next, earned: [{ id: 'charm-1', text: '' }, { id: 'charm-1', text: '' }] })) },
   ]) expect(() => parseLootEconomy({ ...LOOT.economy, progression })).toThrow();
   const bad = source(), payload = bad[0]?.economy;
-  if (payload?.progression === undefined) throw new Error('Missing fixture');
+  if (payload === undefined || 'kind' in payload || payload.progression === undefined) throw new Error('Missing fixture');
   payload.progression.glow.owned = 'missing'; expect(() => declaredLootEconomy(bad)).toThrow('Unknown economy ownership');
   delete payload.progression; expect(() => declaredLootEconomy(bad)).toThrow('Missing economy progression');
 });

@@ -363,7 +363,7 @@ export class ShardfileClient {
       }
       baseFov = base;
     } });
-    const lootRow = source.rows.loot[0], loot = lootRow === undefined ? null : installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
+    const lootRow = source.rows.loot[0], loot = lootRow === undefined || !('gear' in lootRow) ? null : installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
       player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: declaredLootPresentation(lootRow, (id) => { if (!id.startsWith('cue.')) throw new Error('Unknown registered loot cue'); play.cues.cue(`cue.${id.slice(4)}`); }),
     });
     if (source.rows.compendiums.length > 0) {

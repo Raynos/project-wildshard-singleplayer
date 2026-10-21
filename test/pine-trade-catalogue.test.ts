@@ -4,19 +4,27 @@ import { readProjectAssets } from '../src/sdk/project';
 import { parseTradeCatalogue, type TradeCatalogue } from '../src/shards/pine-hollow/generators/sections';
 import { Exchange, parseExchange } from '../src/game/loot/exchange';
 import type { ExchangeRows } from '../src/format/exchange';
+import { parseBarterEconomy, type BarterEconomy } from '../src/format/lootEconomy';
+import { declaredLootEconomy } from '../src/game/shard/declaredRows';
+import { tradeCatalogue } from '../src/shards/pine-hollow/generators/trades';
+import { pinePickups } from '../src/shards/pine-hollow/generators/pickups';
+import { Scope } from '../src/engine/app/scope';
+import { app } from '../src/engine/app/runtime';
+import { readLootTables, registerLootTable, rollLoot } from '../src/game/loot/tables';
 
 let declared: TradeCatalogue | undefined;
 let exchangeRows: ExchangeRows | undefined;
+let economy: BarterEconomy | undefined;
 beforeAll(async () => {
   const loaded = await readProjectAssets('src/shards/pine-hollow');
-  const section = loaded.output.custom?.sections.find(row => row.name === 'custom/tradeCatalogue');
-  const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);
-  if (bytes === undefined) throw new Error('Missing emitted barter catalogue');
+  economy = declaredLootEconomy(loaded.shard.rows.loot, 'barter');
+  expect(loaded.output.custom?.sections.some(row => row.name === 'custom/tradeCatalogue')).toBe(false);
   const exchange = loaded.output.namedFiles?.find(file => file.name === 'quests/exchange.json');
   const exchangeBytes = exchange === undefined ? undefined : loaded.assets.get(exchange.hash);
   if (exchangeBytes === undefined) throw new Error('Missing emitted exchange');
-  exchangeRows = parseExchange(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(exchangeBytes)));
-  declared = parseTradeCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  expect(economy.exchange).toEqual(parseExchange(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(exchangeBytes))));
+  exchangeRows = economy.exchange;
+  declared = parseTradeCatalogue(tradeCatalogue());
 }, 30_000);
 function catalogue(): TradeCatalogue {
   if (declared === undefined) throw new Error('The emitted catalogue is required');
@@ -26,11 +34,30 @@ function catalogue(): TradeCatalogue {
 test('the named catalogue preserves every original offer, panel tile, cost noun and Bag line', () => {
   const rows = catalogue();
   expect(rows).toEqual(ORIGINAL);
+  expect(economy?.goods).toEqual(ORIGINAL.goods.map(({ id, name, does, icon, price, tile }) => ({ id, name, does, icon, price, tile })));
   for (const [id, text] of Object.entries(ORIGINAL.lines)) expect(rows.lines[id]).toBe(text);
   expect(rows.lines['unkept'] ?? 'Mott has no use for it').toBe('Mott has no use for it');
   for (const good of rows.goods) for (const have of [0, 1, 3, 10]) {
     expect(new Exchange(exchangeRows, new Map<string, unknown>([['pack', { count: () => have, take: () => true }], ['skins', { owns: () => false, own: () => undefined }], ['ammo', { capacity: () => true, grant: () => undefined, addBolts: () => undefined }]])).cost(rows.goods.indexOf(good))).toEqual(good.cost.map(cost => ({ text: `${cost.text} (${have})`, have: have >= cost.n })));
   }
+});
+
+test('barter admission aligns cards and transactions and scoped drop tables retain pickup candidates', () => {
+  if (economy === undefined) throw new Error('Missing product economy');
+  const admitted = economy;
+  expect(() => parseBarterEconomy({ ...admitted, goods: admitted.goods.slice(1) })).toThrow();
+  expect(() => parseBarterEconomy({ ...admitted, goods: admitted.goods.slice().reverse() })).toThrow();
+  const scope = new Scope('pine.economy'), previous = app.levelScope;
+  try {
+    app.levelScope = scope;
+    for (const table of readLootTables(economy.tables)) registerLootTable(table, scope);
+    const pickups = Object.entries(pinePickups());
+    for (const kind of ['deer', 'boar', 'elk', 'bear', 'antler-king', 'unknown']) for (const variant of [undefined, 'ghost', 'ironhide', 'blackpaw', 'imperial']) {
+      const expected = pickups.filter(([, row]) => row.death?.kind === kind && (row.death.variant === undefined || row.death.variant === variant)).map(([id]) => id);
+      expect(rollLoot('finish-drops', { kind, variant }, () => { throw new Error('Fixed drops must not draw RNG'); }).map(drop => drop.item)).toEqual(expected);
+    }
+    scope.dispose(); expect(rollLoot('finish-drops', { kind: 'deer', variant: 'ghost' })).toEqual([]);
+  } finally { scope.dispose(); app.levelScope = previous; }
 });
 
 test('an old open shop resumes silently and pays/grants each original offer in order', () => {

@@ -91,3 +91,18 @@ export function parseLootEconomy(input: unknown): LootEconomy {
   if (lootEconomyRules(row).length > 0) throw new TypeError('Invalid economy row references');
   return row;
 }
+
+/** Barter admission keeps cards and transactions in one order, without coin-only ownership fields. */
+export const BarterEconomySchema = v.pipe(v.strictObject({ kind: v.literal('barter'),
+  goods: v.pipe(v.array(v.strictObject({ id: key, name: text, does: text,
+    icon: v.picklist(['bolt', 'rifle', 'longbow', 'crossbow']), price: count, tile: text })), v.minLength(1), v.maxLength(64)),
+  exchange: ExchangeSchema, tables: LootTablesSchema,
+}), v.check(row => new Set(row.goods.map(good => good.id)).size === row.goods.length
+  && row.goods.length === row.exchange.goods.length && row.goods.every((good, index) => good.id === row.exchange.goods[index]?.id)
+  && lootTableRules(row.tables).length === 0, 'Aligned unique barter cards, transactions and drop tables'));
+export type BarterEconomy = v.InferOutput<typeof BarterEconomySchema>;
+/** Admit detached barter data before inventory, finish or ammunition owners are borrowed. */
+export function parseBarterEconomy(input: unknown): BarterEconomy {
+  if (!isJsonData(input)) throw new TypeError('JSON-only economy rows');
+  return v.parse(BarterEconomySchema, input);
+}

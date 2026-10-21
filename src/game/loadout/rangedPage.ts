@@ -25,6 +25,8 @@ import { installItemEffects } from './effects';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { ShardContext } from '../plugin/context';
 import { finishForestPageAudio } from '../audio/forestPage';
+import { declaredLootEconomy } from '../shard/declaredRows';
+import { readLootTables, registerLootTable, rollLoot } from '../loot/tables';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 
 export interface RangedPage {
@@ -60,6 +62,8 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
     if (pick.act === 'wear') { wearSkin(pick.skin); return; }
     clearSkin(pick.skin.weapon === slots.firearm.slot ? rifle.model : launcher.model); ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
   };
+  const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot, 'barter');
+  for (const table of readLootTables(economy.tables)) registerLootTable(table, ctx.scope);
   const pickups = ctx.product.section('combat/items').items.pickups;
   if (pickups === undefined) throw new Error('Ranged page requires declared finish pickups');
   const drops = new ClaimedPickupRoster<SkinId>(pickups, { scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: random(rows.drops.stream),
@@ -71,7 +75,7 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
       audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
   });
   ctx.on('actor.died', ({ actor }) => { const body = animals.animals.find(candidate => candidate.combatActor() === actor); if (body === undefined) return;
-    const drop = drops.death(body, player.position); if (drop === null || runtime.hooks.isElite?.(body) === true) return;
+    const drop = drops.death(body, player.position, rollLoot('finish-drops', body).map(reward => reward.item)); if (drop === null || runtime.hooks.isElite?.(body) === true) return;
     drop.at.y = Math.max(drop.at.y, terrainHeight(drop.at.x, drop.at.z)); drops.spawn(drop.id, drop.at, true); });
   const loadout = installHeldLoadout(ctx, slots), pickup = rows.drops.rifle;
   const rifleDrop = ctx.scope.run(() => new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new Vector3(...pickup.at), tier: 'common', prompt: pickup.label, scale: pickup.scale, random: random(rows.drops.rifleStream) }));

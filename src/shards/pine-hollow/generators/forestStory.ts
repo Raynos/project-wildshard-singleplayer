@@ -27,7 +27,7 @@ const jumps = Object.fromEntries(Object.entries(BEATS).map(([id, beat]) => {
     ...(beat.night ? { phase: sky.phases.night } : beat.day ? { phase: sky.phases.day } : {}) }];
 }));
 export const FOREST_STORY: ForestStoryRows = {
-  ...policy, content: 'custom/questRuntime', trades: { ...policy.trades, section: 'custom/tradeCatalogue' }, ammo: 'iron', parts: { url: packed.url, rows: packed.rows, label: 'chapter props' },
+  ...policy, content: 'custom/questRuntime', ammo: 'iron', parts: { url: packed.url, rows: packed.rows, label: 'chapter props' },
   board: { ...policy.board, at: board },
   signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2, lantern: { id: `waystone.${id}`, when: [`lit:${id}`, wardens.QUEST_DONE] } })),
   cable: { id: 'pine.zipline', geometry: packed.parts['zip-trolley'], prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],

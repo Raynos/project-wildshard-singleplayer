@@ -35,6 +35,7 @@ import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
+import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { DataPanel, readDataPanels } from '../dataPanels';
 import { isItemId } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
@@ -60,8 +61,8 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const native = h.ctx.product.section<ForestStoryContent>(rows.content);
 
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.stall)));
-  const exchangeRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.exchange)));
-  const trades = h.ctx.product.section<{ goods: ForestStoryGood[] }>(rows.trades.section);
+  const trades = declaredLootEconomy(h.ctx.product.section('economy/loot').rows.loot, 'barter');
+  const exchangeRows = trades.exchange;
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.contracts))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.signals))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.door))));
@@ -179,10 +180,10 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const trade = ui.view('trade', (scope) => {
     const panel = new ShopPanel<ForestStoryGood>({
       trader: rows.trades.name, place: rows.trades.place, goods: trades.goods, verb: 'Trade',
-      state: (g) => exchange.state(trades.goods.indexOf(g)), cost: (g) => exchange.cost(trades.goods.indexOf(g)),
+      state: (g) => exchange.state(trades.goods.findIndex(row => row.id === g.id)), cost: (g) => exchange.cost(trades.goods.findIndex(row => row.id === g.id)),
       scope,
     });
-    panel.onBuy = ({ trade: t }) => transactions.run(`trade.${t.id}`);
+    panel.onBuy = ({ id }) => transactions.run(`trade.${id}`);
     return panel;
   });
 

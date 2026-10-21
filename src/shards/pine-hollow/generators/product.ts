@@ -1,4 +1,5 @@
 import { PINE_FEATS } from './questInventory';
+import { tradeEconomy } from './trades';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import identity from '../data/identity.json' with { type: 'json' };
 import weatherChannels from '../data/weatherChannels.generated.json' with {type:'json'};
@@ -34,7 +35,7 @@ export default parseShardfile({
   // Seven admitted one-page v1 images reserve live and rewind copies.
   budgets: { ...base.budgets, sim: { resident: 14*65536 + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 14*65536 + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
-  accent: 'moss', rows: { ...base.rows, compendiums: [journal.row] },
+  accent: 'moss', rows: { ...base.rows, compendiums: [journal.row], loot: [{ id: 'barter', economy: tradeEconomy() }] },
   // the material graphs the runtime draws its own meshes in, built at build time (generators/lookMaterials.ts)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(looks.graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },

@@ -15,7 +15,7 @@ export interface ForestStoryContent {
   readonly lead: { program: unknown }; readonly events: unknown; readonly pageDeaths: unknown; readonly content: unknown;
 }
 /** Existing shop cards carry the authored transaction identity. */
-export interface ForestStoryGood extends ShopGood { readonly trade: { readonly id: string } }
+export type ForestStoryGood = ShopGood;
 /** Data-only page composition over forest, ranged equipment and quest hosts. */
 export interface ForestStoryRows {
   readonly page: string; readonly ranged: string; readonly content: `custom/${string}`;
@@ -32,7 +32,7 @@ export interface ForestStoryRows {
   readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
   readonly door: { readonly building: string; readonly flag: string };
-  readonly trades: { readonly section: `custom/${string}`; readonly finishes: readonly string[]; readonly name: string; readonly place: string; readonly figure: string; readonly call: string };
+  readonly trades: { readonly finishes: readonly string[]; readonly name: string; readonly place: string; readonly figure: string; readonly call: string };
   readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string };
   readonly payment: { readonly flag: string; readonly speaker: string; readonly action: string; readonly call: string };
   readonly cable: { readonly id: string; readonly geometry: number; readonly prompt: Triple; readonly radius: number; readonly label: string;

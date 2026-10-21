@@ -10473,3 +10473,14 @@ in the play phase. It requires at least one weapon with `rangedFeel` rows.
 Pine's held kit and Nalati's bow/rifle declare it once. The installer reads
 the current weapon rows for every event, including replacement weapons,
 and uses the existing entered scope for kick, trauma and impact debris.
+
+### Coin and barter economy rows (G516)
+
+`declaredLootEconomy(rows)` admits existing owned upgrades, progression and
+finds. `declaredLootEconomy(rows, 'barter')` admits aligned shop cards and
+Exchange transactions without coin-only state. Both resolve exactly one
+payload from `economy/loot`; barter rows carry no purse presentation.
+Pine's real shop consumes its admitted cards and transactions. Its finish
+pickups register/read the same scoped loot-table service as Driftwood.
+Existing Exchange ordering, modal continuation and pickup ownership stay
+with their native owners. No row accepts executable affordability hooks.

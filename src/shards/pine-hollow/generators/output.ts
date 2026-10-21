@@ -50,7 +50,7 @@ import { KNIFE_LOOK } from './knifeLook';
 import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
-import { tradeCatalogue, tradeExchange } from './trades';
+import { tradeExchange } from './trades';
 import movers from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
@@ -62,7 +62,7 @@ import { PINE_QUEST_CONSEQUENCES, PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './
 import { PINE_QUEST_TRANSACTIONS } from './questTransactions';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,NativeViewSchema,CabinSeedsSchema,parseTradeCatalogue,parseFloorRows,PoolGroundSchema} from './sectionSchemas.generated';
+import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,NativeViewSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sectionSchemas.generated';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -120,7 +120,7 @@ nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJ
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const custom=emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=name==='custom/cabinAppearance'?cabinAppearance:name==='custom/questRuntime'?PINE_QUEST_RUNTIME:name==='custom/tradeCatalogue'?parseTradeCatalogue(tradeCatalogue()):name==='custom/grazers'?grazers:name==='custom/thrallLook'?{pose:THRALL_CLIPS,...thrallLook}:name==='custom/runtimeGraphs'?lookMaterials.runtime:name==='custom/placeSets'?PLACE_SETS:name==='custom/cabinAmbience'?cabinAmbienceRows():name==='custom/paintedTextures'?{textures:collectionTextures,chalk:paintedRows.chalk}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
+ const value=name==='custom/cabinAppearance'?cabinAppearance:name==='custom/questRuntime'?PINE_QUEST_RUNTIME:name==='custom/grazers'?grazers:name==='custom/thrallLook'?{pose:THRALL_CLIPS,...thrallLook}:name==='custom/runtimeGraphs'?lookMaterials.runtime:name==='custom/placeSets'?PLACE_SETS:name==='custom/cabinAmbience'?cabinAmbienceRows():name==='custom/paintedTextures'?{textures:collectionTextures,chalk:paintedRows.chalk}:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
  if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
  return {name,jsonSchema,value:v.parse(schema,value)};
 }));

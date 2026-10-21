@@ -1,5 +1,5 @@
 import type { FindsCatalogueRows } from '../bag/findsCatalogue';
-import { parseLootEconomy, type LootEconomy } from '@wildshard/format/lootEconomy';
+import { parseLootEconomy, parseBarterEconomy, type BarterEconomy, type LootEconomy } from '@wildshard/format/lootEconomy';
 import { isOwnedId, isCosmetic, type OwnedId, type CosmeticId } from '../loot/Owned';
 import { Weather, type WeatherProfile } from '@wildshard/engine/world/weather';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
@@ -80,7 +80,7 @@ export function declaredProductCompendium(product: ShardProduct, id: string, ske
   });
 }
 /** Presentation uses the existing purse and a registered cue; data cannot install callbacks. */
-export function declaredLootPresentation(row: ShardRows['loot'][number], cue: (id: string) => void): LootPresentation {
+export function declaredLootPresentation(row: Extract<ShardRows['loot'][number], { gear: string }>, cue: (id: string) => void): LootPresentation {
   return { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => row.charted, chime: () => { cue(row.chime); } };
 }
 
@@ -93,9 +93,12 @@ export interface DeclaredLootEconomy extends Omit<LootEconomy, 'goods' | 'grants
   finds: FindsCatalogueRows<OwnedId>;
 }
 /** Resolve portable economy rows before any live state is touched. The current Owned service remains authoritative. */
-export function declaredLootEconomy(rows: ShardRows['loot']): DeclaredLootEconomy {
+export function declaredLootEconomy(rows: ShardRows['loot'], kind: 'barter'): BarterEconomy;
+export function declaredLootEconomy(rows: ShardRows['loot']): DeclaredLootEconomy;
+export function declaredLootEconomy(rows: ShardRows['loot'], kind?: 'barter'): DeclaredLootEconomy | BarterEconomy {
   const sources = rows.filter(row => row.economy !== undefined);
   if (sources.length !== 1) throw new Error('Exactly one admitted economy payload is required');
+  if (kind === 'barter') return parseBarterEconomy(sources[0]?.economy);
   const economy = parseLootEconomy(sources[0]?.economy);
   const owned = (id: string): OwnedId => { if (!isOwnedId(id)) throw new Error('Unknown economy ownership'); return id; };
   const worn = (id: string): CosmeticId => { const key = owned(id); if (!isCosmetic(key)) throw new Error('Economy worn grant requires a cosmetic'); return key; };

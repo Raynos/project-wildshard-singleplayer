@@ -39,7 +39,6 @@
     "flag": "errand:done"
   },
   "trades": {
-    "section": "custom/tradeCatalogue",
     "finishes": [
       "hollow-ash",
       "scarback-furnace"
