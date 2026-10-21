@@ -14,7 +14,7 @@ import { loadingCardIndex } from './catalogue.mjs';
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const udid = process.env.SIM_UDID, upstream = arg('base'), pin = arg('pin'), dist = arg('dist'), out = arg('out');
 if (!udid || !upstream || !dist || !out || !/^[a-f0-9]{40}$/u.test(pin ?? '')) throw new Error('Requires sim-lane and base/pin/dist/out');
-const start = `<!doctype html><script>${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};location.replace('/');</script>`;
+const start = path => `<!doctype html><script>${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};location.replace('/');</script>`;
 let transport, base;
 const version = await (await fetch(new URL('/version.json', upstream))).json();
 if (!version.build?.startsWith(pin.slice(0, 7)) || JSON.parse(readFileSync(resolvePath(dist, 'version.json'), 'utf8')).build !== version.build) throw new Error('HTTP/disk pin mismatch');
@@ -78,7 +78,8 @@ async function gesture(expression) {
 let failed = false;
 try {
   for (const path of (arg('paths') ?? 'shardfile,grid').split(',')) {
-    transport = await observeTransport(upstream, { recorder: accuracyRecorder, start });
+    if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
+    transport = await observeTransport(upstream, { recorder: accuracyRecorder, start: start(path) });
     base = transport.base;
     const events = [], errors = [];
     let collected, networkBytes = null, report;
@@ -97,7 +98,7 @@ try {
         const titles = JSON.parse(await inspector.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(el => el.textContent))`));
         const index = loadingCardIndex(titles, 'driftwood-isle');
         await gesture(`document.querySelector('.ws-menu-dots i[data-i="${index}"]').click()`);
-        await gesture(`(() => { const explicit = document.querySelector('.ws-menu-shardfile'); (explicit && explicit.getClientRects().length ? explicit : document.querySelector('.ws-menu-play')).click(); })()`);
+        await gesture(`(() => { const explicit = document.querySelector('.ws-menu-shardfile'); (${path !== 'legacy'} && explicit && explicit.getClientRects().length ? explicit : document.querySelector('.ws-menu-play')).click(); })()`);
       }
       await sleep(500); await connect();
       await inspector.send('Network.enable');

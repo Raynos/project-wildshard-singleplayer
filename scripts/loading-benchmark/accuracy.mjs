@@ -23,10 +23,11 @@ const cpu = desktop ? 1 : 4;
 let failed = false;
 try {
   for (const path of arg('paths', 'shardfile,grid').split(',')) {
-    if (path !== 'shardfile' && path !== 'grid') throw new Error('Unsupported load path');
+    if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
     const transport = await observeTransport(base);
     const context = await browser.newContext(desktop ? { viewport: { width: 1440, height: 900 } } : phone);
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
+    await saveFixture(context, { scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' });
     await context.addInitScript(accuracyRecorder);
     const page = await context.newPage(), errors = [], requests = new Map();
     page.on('pageerror', error => errors.push(error.message));
@@ -59,7 +60,7 @@ try {
         const index = loadingCardIndex(titles, 'driftwood-isle');
         await page.locator(`.ws-menu-dots i[data-i="${index}"]`).click();
         const explicit = page.locator('.ws-menu-shardfile');
-        await (await explicit.isVisible() ? explicit : page.locator('.ws-menu-play')).click();
+        await (path !== 'legacy' && await explicit.isVisible() ? explicit : page.locator('.ws-menu-play')).click();
       }
       await page.waitForFunction(() => Reflect.get(window, '__loadingAccuracy')?.readyAt > 0,
         undefined, { timeout: 240_000 });
