@@ -5,9 +5,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 
 ## The rules
 
-- **Commit early and often** with small commits; push with `scripts/push-main.sh` (below). Before you push, HEAD
-  must pass the CI gates on a clean export of the tree (`tsc --noEmit`, `oxlint`, `node scripts/check-css.mjs`,
-  `vite build`), not just the files you touched. The pre-push gate does this for you (below).
+- **Commit early and often** with small commits. The scheduled push loop carries committed changes through the
+  local gate below (G568); CI runs the full gate on the pushed revision.
 - **The gpu-gate parity jobs run nightly and at milestones, not on every push** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`); the node checks still run per push.
 - **Coverage runs nightly and at milestones, not on every push** (Jake, G287, 2026-10-09): push CI runs the 8 vitest
   shards without `--coverage`; `.github/workflows/coverage.yml` instruments them, merges and runs the coverage ratchet
@@ -58,28 +57,29 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     Native pathspec commits use Git's own PID-named `next-index` and ref CAS: unrelated shared stages do not become
     the commit, and a parent moving during the hooks refuses the ref update. The ancestor heuristic applies to
     caller-owned indexes, not Git's validated temporary pathspec index; every other hook still checks that index.
-- **Push with `scripts/push-main.sh`** when your work is green (`PUSH_WAIT=1` queues behind a push in flight). Commits
-  do not push themselves: the SF74 W14 auto-pusher (2026-10-09) ran a full push gate and a production deploy after
-  every commit and is off (Jake, 2026-10-15; `.githooks/post-commit` no longer starts `scripts/auto-push.sh`). Pending
-  binary counts toward the storage policy's 10 MB per-push budget, so push binary work promptly.
-- **A red gate can identify and release a green prefix** (SF74 W25). The pusher bisects failed test files, typechecks,
-  lint, CSS, generated shard/plugin contracts and Node bakers on clean committed exports using their exact gate
-  commands; mixed failures must all pass. Unsupported build/browser steps refuse selection. A candidate still needs
-  current regeneration, witness and baked-map/native-physics fences and the complete green push gate. Those bake
-  checks also refuse an older red that the newest gate no longer reports. Stale historical outputs are refused;
-  the pusher never inserts a regeneration commit underneath shared main or rewrites the lanes' history.
-  Before searching historical prefixes, supported gate reds may retry latest main once when a committed descendant
-  modifies source, a producer/catalogue script, package inputs or a named failing file. This includes mixed failures:
-  repairing a producer or its input list must not require editing the test that correctly refused it. Lint diagnostics
-  still require the exact plain file/line/column error format; unknown steps/output, working edits, docs-only commits
-  and removed failing files refuse retry. The reader checks again after prefix probes, before a historical gate, because a repair may land
-  during the search. Both points share the one-retry budget and compare against the original failed tip. It regenerates and runs the complete gate again; an edit never supplies a passing proof.
-  If the fresh gate fails, the usual red/prefix path resumes. The existing six-round push limit remains.
-- **Push with `scripts/push-main.sh`, never `git push`** (enforced by `.claude/hooks/guard-bash-safety.sh`). It takes
-  `.git/push.lock`. If another push holds the lock, your commits stay local and it exits 0: that push re-checks
-  `origin/main..main` before it lets go, so it carries yours. Rare escape: `SKIP_PUSHLOCK=1`. `push-main.sh` and
-  `vercel-tree-gate.sh` run from a private snapshot copy, so editing them mid-push can't break the live push; still
-  copy gate edits in only when `pgrep -f vercel-tree-gate` is empty.
+- **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
+  60 seconds. Lanes commit their green source; `scripts/push-main.sh` requests one scheduled tick when needed.
+  Never run `git push` or start the retired carrier/full local push gate.
+- **The local push gate has a 45-second ceiling and checks committed source only.** It checks changed roots' types,
+  oxlint on changed files, then related tests within the remaining budget. Foreign working or staged edits never
+  enter the candidate. No full generation, build, products or mirror job runs in this gate; only the small source
+  tables needed for checks are prepared. A matching, verified generation cache supplies type inputs. On a cache miss,
+  types and type-dependent lint defer to CI; ordinary and architecture lint stay local. Each result says
+  `types: checked` or `types: ci-cache-miss`. **CI is the full gate**, including full types, generation, build and tests;
+  CI reds are fixed forward through the owning lane. The CI watcher runs every five minutes.
+- **A red commit is ejected back to its lane; the checked green prefix can still push.** The loop attributes the
+  refusal, checks the prefix within the same budget, pushes that prefix and sends the owner a Herdr message beginning
+  `[push-loop]`, naming the phase, offending SHA and `tmp/push-loop/current.log`. The offending commit and its suffix
+  stay on local `main`; no commit, ref or history is rewritten. Fix forward and commit; the next tick retries.
+  Inspect the last result in `tmp/push-loop/current.log` or `.git/push.log`: `bad` names the attributed commit and
+  `tip` names the checked/pushed revision. `git log origin/main..main` shows what remains local. Repeated unknown
+  refusals produce a Herdr notice after three matching failures. CI notices begin `[ci-watch]` with the SHA and job.
+  Pending binary still counts toward the storage policy's 10 MB per-push budget.
+
+G568 replaces the former carrier, push lock, prefix retry and full local push execution described by the older tooling
+notes below. Their generation, witness, storage, approval and deploy requirements remain in force; the wider Phase 2.5
+rewrite still needs Jake's approval.
+
 - **Builders commit source only (E435 SF6b).** Leave `lint/layer-edges.json`, ratchet debt counts and
   `scripts/README.md` to the serialized pusher. `lint/api-surface.json`, `docs/api/*.md` and the export index
   `docs/api/EXPORTS.md` (once ENGINE.md's appendix) are build outputs that `pnpm gen` writes, gitignored (SF74 W13, G281).
@@ -141,7 +141,7 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **WHAT'S NEW is at most 24 h stale** (E482): pre-push runs `scripts/whats-new-fresh.mjs <sha>` on every push to
   main and refuses when `src/game/whatsNew.json`'s `updated` is missing, unparseable, over 1 h ahead or over 24 h old;
   rewrite its 3–5 lines with what changed in the playable build, set `date` / `updated` to now, commit and push again.
-- **The local gate aims at 120 seconds** (G359, G363; no hard deadline). `scripts/local-gate.py`
+- **Full-gate reference (G359/G363; local execution superseded by G568 above).** The former `scripts/local-gate.py`
   builds the exact pushed commit in the build mirror's `gate` slot (Vercel's tree) and runs, in order:
   `pnpm gen`; `check-graph --source-only`; the changed roots' types in the scripts / api / admin /
   drafts projects (the root project's full `tsc --noEmit` runs inside the build); oxlint on the
@@ -156,18 +156,19 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   selects only a CI-green and smoke-green commit.
 - **Source checks use the tree being checked.** The checkout supplies mirror transport; pre-commit runs the staged
   tree's checker and imported policies under the `commit` lock, retaining the original private index for comparisons.
-  The push gate runs the carrier's runner, related-test selector and product registry under the `gate` lock.
-  A missing checker or registry refuses; it never borrows the checkout's newer source checks.
-- **Disk-reading tests declare their products** in `scripts/gate-test-products.json`.
-  The related-test walk retains their author-source edges; before Vitest, the
-  gate verifies/rebuilds only the selected products with `--reuse --shard=…`.
-  Cold runtime fixtures read those complete outputs rather than hand-listing
-  boot dependencies. Unregistered disk scenarios refuse the gate. Mirror sync
+  The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
+  shared working tree and index. Missing generated type inputs follow the explicit cache-miss rule above; a missing
+  checker or registry refuses.
+- **Disk-reading tests declare their products** in `scripts/test-products.json`.
+  The related-test walk retains their author-source edges; CI and batch checks
+  verify/rebuild selected products with `--reuse --shard=…`. The scheduled local
+  gate defers these product-reading tests to CI. Cold runtime fixtures read the
+  complete outputs rather than hand-listing boot dependencies; unregistered disk scenarios refuse. Mirror sync
   retains admitted producer groups, invalidates incomplete groups for the next
   generation pass, and removes retired outputs, including ignored metadata.
 - **Pushes never regenerate outputs** (G367, replacing hourly batching).
   Generated outputs belong to the commit that changes their inputs. The
-  regeneration bot no longer runs in `push-main.sh`; green-prefix remains on.
+  regeneration bot no longer runs in `push-main.sh`; the scheduled loop can release a checked green prefix.
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief warns when it's off).
   The pre-commit hook also runs the architecture guards and `scripts/asks.mjs check`; commit-msg runs the lock check and
   the legacy-shard check (no plan-State check since 2026-10-09, [ASKS.md](ASKS.md)). Its storage check (`scripts/repo-size.mjs

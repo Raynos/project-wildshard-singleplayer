@@ -91,8 +91,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   author; kill only your own processes, by PID.
 - **Commit with a pathspec** (`git commit -m "…" -- <paths>`; `git add` only new files). A file with someone else's
   uncommitted hunk: wait, or commit your hunks through a private index.
-- **Push with `scripts/push-main.sh`** when your work is green; never `git push`. Commits do not push themselves
-  (auto-push is off, Jake 2026-10-15). The pre-push gate builds what Vercel builds; a red gate is yours to fix.
+- **The scheduled push loop pushes commits (G568)**; `scripts/push-main.sh` requests a tick. Its ≤ 45 s committed-only
+  gate ejects reds to the owning lane; CI is the full gate. See GIT.md for ejection notices. Never `git push`.
 - **Strict means strict**: no `any`, no `!`, no `@ts-ignore`, no `as unknown as`, no blanket `oxlint-disable`. Fix the
   type, never the gate.
 - Never open a shared file for writing before you've read it. No tree-wide destructive git.
