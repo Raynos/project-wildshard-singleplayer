@@ -1019,7 +1019,11 @@ export function checkShares(recorded, lines) {
   return failures;
 }
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  const {spawnSync}=await import('node:child_process');
-  const result=spawnSync(process.execPath,[resolve(import.meta.dirname,'shard-platform-cli.mjs'),...process.argv.slice(2)],{stdio:'inherit'});
-  process.exitCode=result.status??1;
+  // Do not top-level-await this import: the CLI reads this module's exports.
+  // The detached async launcher lets evaluation settle before the CLI runs.
+  const launch=async()=>{
+    try {const cli=await import('./shard-platform-cli.mjs');await cli.runShardPlatformCli();}
+    catch(error){console.error(error);process.exitCode=1;}
+  };
+  void launch();
 }

@@ -9,7 +9,9 @@ import {componentStates,componentWave,SHARD_WAVES} from './shard-components.mjs'
 import {closedComponentFailures} from './check-closed-components.mjs';
 
 const ROOT=resolve(import.meta.dirname,'..'),LIST='lint/shard-platform.json';
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+/** Run after the importable census has finished evaluating, without loading a
+ * second copy of the complete module graph in another Node process. */
+export async function runShardPlatformCli() {
   process.env.WS_SHARD_PARSE_CACHE ??= resolve(ROOT,'.cache/shard-parse');
   const build = !process.argv.includes('--no-build');
   const sourceProgress = process.argv.includes('--source-progress');
@@ -88,3 +90,4 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     if (failures.length>0) process.exitCode=1;
   }
 }
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) await runShardPlatformCli();
