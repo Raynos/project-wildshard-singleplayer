@@ -341,3 +341,19 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
     prepare.mockRestore(); ranged.mockRestore(); quest.mockRestore(); spawns.mockRestore(); f.ctx.scope.dispose();
   }
 });
+
+test.each(['entered', 'resident'] as const)('retiring %s owners refuse phase effects before disposal completes', async owner => {
+  const f = context(), parent = new Scope('retiring-phase'), child = parent.child('still-open-child');
+  parent.onDispose(() => undefined);
+  const retirement = parent.disposeSteps(); retirement.next();
+  expect(child.disposed).toBe(false); expect(child.disposing).toBe(true);
+  const plan = admitClientPlan({ version: 1, features: [{ kind: 'strings.register' }] }, f.ctx.product);
+  try {
+    await expect(installClientPhase(owner === 'entered' ? { ...f.ctx, scope: child } : f.ctx,
+      plan, 'world', owner === 'resident' ? child : f.ctx.scope)).rejects.toThrow('owner is disposed');
+    expect(f.strings).not.toHaveBeenCalled();
+  } finally {
+    for (const _step of retirement) { /* Finish the actual ancestor retirement. */ }
+    f.ctx.scope.dispose();
+  }
+});
