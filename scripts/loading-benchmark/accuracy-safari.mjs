@@ -97,6 +97,9 @@ try {
         const initialURL = new URL('/', base).href;
         execFileSync('xcrun', ['simctl', 'openurl', udid, initialURL]);
         await connect(initialURL);
+        // Let the real worker claim this cold title before reloading its app shell.
+        // Delayed activation otherwise produces an uncontrolled measurement.
+        await wait('navigator.serviceWorker.controller !== null', 60000);
         const previousOrigin = await inspector.evaluate('performance.timeOrigin');
         // A controlled navigation would cache a fixture document as the app shell.
         // Inspect the real title too: navigating to JSON would replace the cached shell.
