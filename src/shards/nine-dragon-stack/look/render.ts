@@ -188,13 +188,9 @@ export function shardRender(): LookStrategy {
       if (post === null) throw new Error('Nine post rows have not loaded');
       // AO at the city's scale, faded with the admitted fog distances.
       if (c.fx.ao !== null) {
-        const row = post.ao, tier = c.tier === 'phone' ? 0 : 1;
-        Object.assign(c.fx.ao.configuration, {
-          aoRadius: row.radius, distanceFalloff: row.falloff, intensity: row.intensity,
-          aoSamples: row.samples[tier], denoiseSamples: row.denoiseSamples[tier], denoiseIterations: row.denoiseIterations[tier],
-          denoiseRadius: row.denoiseRadius, color: new Color(...row.color), halfRes: row.halfRes,
-        });
-        if (row.fog !== null && c.scene.fog instanceof Fog) { c.scene.fog.near = row.fog[0]; c.scene.fog.far = row.fog[1]; }
+        const row = post.ao;
+        Object.assign(c.fx.ao.configuration, row[c.tier === 'phone' ? 'phone' : 'desktop'], { color: new Color(...row.color) });
+        if (c.scene.fog instanceof Fog) [c.scene.fog.near, c.scene.fog.far] = row.fog;
       }
       const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade, c.renderer);
       const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];

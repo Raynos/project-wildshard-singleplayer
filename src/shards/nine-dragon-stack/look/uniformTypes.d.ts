@@ -55,16 +55,15 @@ export interface SharedUniformRows {
   readonly uDry: number;
 }
 
+/** One tier's ambient-occlusion configuration, in the engine AO pass's own field names. */
+interface AoTier {
+  readonly aoRadius: number; readonly distanceFalloff: number; readonly intensity: number; readonly aoSamples: number;
+  readonly denoiseSamples: number; readonly denoiseIterations: number; readonly denoiseRadius: number; readonly halfRes: boolean;
+}
 /** The admitted ambient-occlusion and fog tuning row. */
 export interface AoTuning {
-  readonly radius: number;
-  readonly falloff: number;
-  readonly intensity: number;
-  readonly samples: readonly [number, number];
-  readonly denoiseSamples: readonly [number, number];
-  readonly denoiseIterations: readonly [number, number];
-  readonly denoiseRadius: number;
+  readonly phone: AoTier;
+  readonly desktop: AoTier;
   readonly color: readonly [number, number, number];
-  readonly halfRes: boolean;
-  readonly fog: readonly [number, number] | null;
+  readonly fog: readonly [number, number];
 }

@@ -1,26 +1,29 @@
 {
-  "radius": 2.2,
-  "falloff": 1,
-  "intensity": 5,
-  "samples": [
-    6,
-    16
-  ],
-  "denoiseSamples": [
-    4,
-    8
-  ],
-  "denoiseIterations": [
-    1,
-    2
-  ],
-  "denoiseRadius": 8,
+  "phone": {
+    "aoRadius": 2.2,
+    "distanceFalloff": 1,
+    "intensity": 5,
+    "aoSamples": 6,
+    "denoiseSamples": 4,
+    "denoiseIterations": 1,
+    "denoiseRadius": 8,
+    "halfRes": true
+  },
+  "desktop": {
+    "aoRadius": 2.2,
+    "distanceFalloff": 1,
+    "intensity": 5,
+    "aoSamples": 16,
+    "denoiseSamples": 8,
+    "denoiseIterations": 2,
+    "denoiseRadius": 8,
+    "halfRes": true
+  },
   "color": [
     0.07,
     0.08,
     0.13
   ],
-  "halfRes": true,
   "fog": [
     25,
     80
