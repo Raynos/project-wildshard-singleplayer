@@ -613,13 +613,24 @@ export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.Web
 export async function warmPostJobs(renderer: Pick<Renderer, 'getRenderTarget' | 'getActiveCubeFace' | 'getActiveMipmapLevel' | 'setRenderTarget' | 'render'>,
   jobs: readonly CompileJob[], pause: () => Promise<void>, current: () => boolean,
   onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
+  // Some passes bind their sample arrays only inside render (desktop AO).
+  // Linking is safe before that binding; a stand-in draw is not. Leave those
+  // materials to their real pass rather than inventing values or advancing it.
+  const drawable = jobs.filter(job => {
+    const materials: THREE.Material[] = [];
+    job.root.traverse(object => { materials.push(...materialsOf(object)); });
+    return materials.every(material => !(material instanceof THREE.ShaderMaterial) || Object.values(material.uniforms).every(uniform => {
+      const value: unknown = uniform.value;
+      return value !== undefined && !(Array.isArray(value) && value.length === 0) && !(ArrayBuffer.isView(value) && value.byteLength === 0);
+    }));
+  });
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  for (const [index, job] of jobs.entries()) {
+  for (const [index, job] of drawable.entries()) {
     if (!current()) throw new Error('Shader warm-up owner left');
     const target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
     try { renderer.setRenderTarget(job.rt); renderer.render(job.root, camera); }
     finally { renderer.setRenderTarget(target, face, mip); }
-    onProgress?.(index + 1, jobs.length, `${index + 1} / ${jobs.length} post pipelines drawn`);
+    onProgress?.(index + 1, drawable.length, `${index + 1} / ${drawable.length} post pipelines drawn`);
     await pause();
   }
   if (!current()) throw new Error('Shader warm-up owner left');

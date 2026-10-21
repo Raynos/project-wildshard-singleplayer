@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
+import { N8AOPostPass } from 'n8ao';
 import { BloomEffect, EffectPass, Pass, ToneMappingEffect, ToneMappingMode } from 'postprocessing';
-import { Mesh, OrthographicCamera, PerspectiveCamera, ShaderMaterial, WebGLRenderTarget, type Camera, type Object3D } from 'three';
+import { Mesh, OrthographicCamera, PerspectiveCamera, Scene, ShaderMaterial, WebGLRenderTarget, type Camera, type Object3D } from 'three';
 import { postJobs, warmPostJobs, type CompileJob } from '../src/engine/render/precompile';
 
 function preparedMaterials(jobs: readonly CompileJob[]): ShaderMaterial[] {
@@ -101,4 +102,22 @@ test('post warm-up restores the target on draw failure and never starts stale wo
     await expect(warmPostJobs(broken, f.jobs, () => Promise.resolve(), () => true)).rejects.toThrow('driver refused');
     expect(f.renderer.getRenderTarget()).toBe(f.original); expect(f.renderer.getActiveCubeFace()).toBe(3); expect(f.renderer.getActiveMipmapLevel()).toBe(2);
   } finally { f.dispose(); }
+});
+
+
+test('desktop AO sample arrays stay with the real pass until it binds them', async () => {
+  const pass = new N8AOPostPass(new Scene(), new PerspectiveCamera(), 8, 8), target = new WebGLRenderTarget(8, 8);
+  const jobs = postJobs({ passes: [pass] }, target, 1), f = warmFixture();
+  const unbound = jobs.filter(job => preparedMaterials([job]).some(material =>
+    Object.values(material.uniforms).some(uniform => Array.isArray(uniform.value) && uniform.value.length === 0)));
+  expect(unbound.length).toBeGreaterThanOrEqual(2);
+  const drawn: Object3D[] = [], progress: number[] = [];
+  try {
+    await warmPostJobs({ ...f.renderer, render: (root: Object3D): void => { drawn.push(root); } }, jobs,
+      () => Promise.resolve(), () => true, done => { progress.push(done); });
+    for (const job of unbound) expect(drawn).not.toContain(job.root);
+    expect(drawn.length).toBe(jobs.length - unbound.length); expect(progress.at(-1)).toBe(drawn.length);
+    expect(unbound.every(job => preparedMaterials([job]).some(material =>
+      Object.values(material.uniforms).some(uniform => Array.isArray(uniform.value) && uniform.value.length === 0)))).toBe(true);
+  } finally { for (const job of jobs) job.dispose?.(); pass.dispose(); target.dispose(); f.dispose(); }
 });
