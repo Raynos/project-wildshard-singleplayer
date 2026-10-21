@@ -35,7 +35,8 @@ function inside(root, path) {
 function value(root, entry, memo) {
   const kind = entry.slice(0,1), file = entry.slice(2), at = resolve(root,file);
   try {
-    const stat = raw.stat(at);
+    const stat = raw.stat(at,{throwIfNoEntry:false});
+    if (stat === undefined) return 'absent';
     if (stat.isSymbolicLink()) throw new Error(`Linked product input: ${file}`);
     if (!raw.real(at).startsWith(root+sep)) throw new Error(`Escaped product input: ${file}`);
     if (stat.isDirectory()) return kind === 'D' ? `directory:${digest(raw.list(at).sort().join('\0'))}` : 'directory';

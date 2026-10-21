@@ -94,3 +94,14 @@ it('invalidates when a new native directory entry can take precedence', async ()
   writeFileSync(resolve(root,'module/index.mts'),'export const value=2;');
   expect(productInputKey(root,receipt,[],memo)).not.toBe(before);
 });
+
+it('rechecks absent descendants after a file parent becomes a directory', async () => {
+  const root=fixture(), receipt=resolve(root,'receipt.json'), memo=new InputHashMemo(root);
+  await captureProductInputs(root,receipt,()=>{
+    existsSync(resolve(root,'asset.txt/child.ts'));recordBundle({output:[]});return Promise.resolve();
+  });
+  const before=productInputKey(root,receipt,[],memo);expect(before).toMatch(/^[a-f0-9]{64}$/u);
+  rmSync(resolve(root,'asset.txt'));mkdirSync(resolve(root,'asset.txt'));
+  writeFileSync(resolve(root,'asset.txt/child.ts'),'new input');
+  expect(productInputKey(root,receipt,[],memo)).toBeUndefined();
+});
