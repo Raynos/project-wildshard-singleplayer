@@ -351,9 +351,9 @@ The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-sha
 Keep every coordinate in `layout.ts` and import it. The manifest must import in bare node
 (`test/manifests-node-safe.test.ts`): no three.js objects, no DOM, only node-safe engine modules (`world/terrainField`, `core/config`, `core/noise` …; `lint/manifest-closure-budget.json` caps the files a manifest pulls).
 
-For a skyline of your own, set `horizon` in the manifest; [ENGINE §6](ENGINE.md#6-the-shard-manifest-game)
-lists every ring and compass-band field. `horizon: { rings: [], cloudSea: false }` removes the default ridges
-and cloud floor. `boundary: { visible: false }` removes only the drawn edge dressing; player containment remains active.
+The engine draws nothing past your chunk by default (G552). For a skyline, set `horizon` in the manifest (its rings,
+and `cloudSea: true` for the cloud floor below the slab) or `horizonStrips` for a painted strip;
+[ENGINE §6](ENGINE.md#6-the-shard-manifest-game) lists every ring and compass-band field. `boundary: { visible: false }` removes only the drawn edge dressing; player containment remains active.
 
 Creature navigation normally excludes submerged terrain. For an authored exclusion beyond swimming water (for example a herd avoids a whole river corridor), declare `navmesh.excludeGroundAt(x, z, y)` in the node-safe manifest. It excludes only the terrain soup; registered decks still carry creatures over it. Re-bake with `pnpm gen && node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs <slug>` and commit both navmesh files.
 

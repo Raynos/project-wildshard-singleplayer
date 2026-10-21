@@ -7,7 +7,7 @@ import { HORIZON_RADIUS as CONTENT_HORIZON_RADIUS } from '@wildshard/format/cont
  *
  *   const matte = new HorizonMatte(sky).build();   // null-safe: builds nothing unless the sky backdrop has a palette
  *   scene.add(matte.mesh);
- *   matte.load(horizon.group);                     // lazy, after boot; hides the islets it replaces once shown
+ *   matte.load();                                  // lazy, after boot
  *   game.onUpdate((dt) => matte.update(dt, camera, dayNight?.night ?? 0));
  *
  * - **mesh**: one open cylinder (128 × 8 quads) of radius `RADIUS` that follows the camera on XZ and stays at sea level,
@@ -133,8 +133,8 @@ export class HorizonMatte {
 
   /**
    * fetch + decode both paintings off the critical path (call once boot is done); resolves when the band is shown.
-   * `replaces`: geometry the painting stands in for (Horizon.ts' faceted islet rings), hidden as the band fades in —
-   * it stays the fallback when the paintings fail to load.
+   * `replaces`: geometry the painting stands in for, hidden as the band fades in; it stays the fallback when the
+   * paintings fail to load.
    */
   async load(replaces?: THREE.Object3D): Promise<void> {
     const strips = this.strips;

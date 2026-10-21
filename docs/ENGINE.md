@@ -589,11 +589,12 @@ are the row types; `EngineRows` is the verb set.
 
 **Distant scenery and the drawn boundary**
 
-Omitting `horizon` keeps the engine default: three ridge rings and a cloud sea on dry worlds,
-sea stacks without the cloud sea on open-water worlds, or `horizonStrips` imagery when present on a dry world. On an open-water world, `horizonStrips` is the painted band above the sea (`HorizonMatte`).
-An authored `horizon` replaces that default (including the dry-world strips):
-`horizon: { rings: [], cloudSea: false }` draws neither rings nor a cloud sea. `cloudSea: true` adds the
-engine's animated cloud floor below the slab. Supply any number of rings, ordered near → far, to reshape the skyline.
+The engine draws no default distant scenery (G552): a level that declares neither `horizon` nor `horizonStrips` has
+nothing past its chunk. `horizonStrips` imagery is the painted strip at infinity on a dry world; on an open-water world
+it is the painted band above the sea (`HorizonMatte`), and the sea runs to the horizon below it.
+An authored `horizon` takes precedence over the dry-world strips: its rings, and `cloudSea: true` for the engine's
+animated cloud floor below the slab (`horizon: { rings: [], cloudSea: false }` is the same as declaring none).
+Supply any number of rings, ordered near → far, to shape the skyline.
 They are visual scenery, move with the camera on XZ, and create no colliders.
 
 | Horizon field | Meaning |

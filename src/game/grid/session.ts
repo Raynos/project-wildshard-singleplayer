@@ -97,8 +97,8 @@ declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
 /**
  * In grid mode the level's own chunk-edge walls and veil yield to the platform, and so does its own horizon (G99: every
  * shard is a 500 m cube; a level's horizon rings and cloud sea stand past it, over the road and the neighbours, whose
- * far views are the grid's horizon now). A level without its own horizon keeps the engine's (the painted strips at
- * infinity, the default ridges past the grid's outer road). The standalone path is unchanged.
+ * far views are the grid's horizon now). The engine has no default horizon (G552); a level's painted strips at
+ * infinity stay. The standalone path is unchanged.
  */
 export function gridLevel(spec: LevelSpec): LevelSpec {
   if (pageMode() !== 'grid') return spec;

@@ -22,12 +22,11 @@ export const horizonLight = {
 };
 
 /**
- * What lies beyond the chunk: a sea of clouds far below the slab (the Wildshard grid hangs in
- * the sky) and three rings of mountain ridges on the horizon, drawn as fogged silhouettes.
- * All of it moves with the camera on XZ so it never parallaxes wrong up close.
- * Over an open-water shard (`ShardManifest.ocean`) the ridges become a scatter of distant rocky islets
- * and sea stacks (most of each ring is gated below the sea) and there is no cloud sea — the
- * Ocean surface runs to the horizon instead.
+ * What a level declares beyond its chunk, moving with the camera on XZ so it never parallaxes wrong up close: its own
+ * compass-banded ridge rings and, when it asks, a sea of clouds far below the slab (`LevelSpec.horizon`), or a painted
+ * strip at infinity (`horizonStrips`, a dry world). A level that declares neither draws nothing out there (G552, Jake
+ * 2026-10-21: the engine's default ridge rings at 1.5 / 2.6 / 4.2 km and its cloud sea stood inside the 5x5 grid and
+ * crossed its outer cells); an open-water world's sea runs to the horizon (its painted band is `HorizonMatte`).
  */
 export class Horizon {
   private readonly scope = resourceScope().child('Horizon');
@@ -51,8 +50,8 @@ export class Horizon {
       return this;
     }
     const ocean = (level.ground.water ?? []).some((body) => body.id === 'sea'); // an open-water level (its registered sea)
-    // Pine Hollow (PH-L5): the photoreal painting at infinity replaces the 17 Sep ridge rings and the cloud sea (from the
-    // lookout its flat white sheet read as paper); the slab's edge thickens into the painting's haze (Atmosphere fogEdge).
+    // Pine Hollow (PH-L5): the photoreal painting at infinity (from the lookout a flat white cloud sheet read as paper);
+    // the slab's edge thickens into the painting's haze (Atmosphere fogEdge). On open water the strips are HorizonMatte's.
     const strips = ocean ? null : levelHorizonStrips(level);
     if (strips) {
       const painted = new PaintedHorizon(strips).build();
@@ -60,10 +59,7 @@ export class Horizon {
       this.painted = painted;
       fogUniforms.fogEdge.value.x = 0.4; // aerial perspective on the slab's last metres and cliffs, not a white-out
       this.scope.listen(document, 'ws:ready', () => { this.scope.timeout(250, () => { void painted.load(); }); }, { once: true });
-      return this;
     }
-    this.buildRidges(ocean);
-    if (!ocean) this.buildCloudSea();
     return this;
   }
 
@@ -72,7 +68,7 @@ export class Horizon {
    * across the south, the plateau rolling on as low green hills at slab height, the valley opening flat to the west,
    * a gorge in the east — instead of one noise profile the same all the way round. A ring is a three-row strip
    * (hidden foot · a shoulder at 55 % · the ridge line) with a colour ramp foot → `color` → `top`, snow above
-   * `snowLine` of the ring's tallest point, and the same aerial-perspective haze as the default ridges.
+   * `snowLine` of the ring's tallest point, and an aerial-perspective haze into the sky's horizon colour.
    * One draw call per ring, one shared program.
    */
   private buildBands(H: HorizonSpec, P: LevelSpec['sky']['painted']) {
@@ -169,86 +165,10 @@ export class Horizon {
             vec3 cloudCol = mix(vec3(0.82, 0.83, 0.88), fogSunColor, 0.2 + 0.3 * sunAmt) * mix(1.0, 0.8, smoothstep(-190.0, -260.0, vFogWorldPos.y));
             gl_FragColor.rgb = mix(gl_FragColor.rgb, cloudCol, wrap * 0.92);
           }`);
-    }, { mode: 'replace', key: 'ridge-painted' }); // not 'ridge': the default rings' shader differs (fixed haze colour)
+    }, { mode: 'replace', key: 'ridge-painted' });
     mat.name = `ridge${ri}`;
     this.sky.setupMaterial(mat);
     return mat;
-  }
-
-  private buildRidges(ocean: boolean) {
-    const noise = new Noise2D(777);
-    const rings = ocean
-      ? [
-        // islets: low, sparse, greenish-grey rock; the gate keeps ~80 % of each ring under the sea
-        { r: 1300, h: 90, base: -60, seg: 720, col: new THREE.Color(0.16, 0.19, 0.17), snow: 2, haze: 0.18, gate: 0.66 },
-        { r: 2300, h: 140, base: -80, seg: 720, col: new THREE.Color(0.18, 0.22, 0.22), snow: 2, haze: 0.34, gate: 0.63 },
-        { r: 3600, h: 200, base: -110, seg: 540, col: new THREE.Color(0.2, 0.25, 0.27), snow: 2, haze: 0.5, gate: 0.68 },
-      ]
-      : [
-        { r: 1500, h: 150, base: -120, seg: 720, col: new THREE.Color(0.075, 0.09, 0.12), snow: 0.72, haze: 0.12, gate: -1 },
-        { r: 2600, h: 330, base: -170, seg: 720, col: new THREE.Color(0.1, 0.12, 0.17), snow: 0.66, haze: 0.3, gate: -1 },
-        { r: 4200, h: 560, base: -230, seg: 540, col: new THREE.Color(0.13, 0.16, 0.22), snow: 0.6, haze: 0.48, gate: -1 },
-      ];
-    rings.forEach((ring, ri) => {
-      // a ring-shaped strip: bottom edge below the horizon, top edge = ridge line
-      const geo = new THREE.BufferGeometry();
-      const pos: number[] = [], col: number[] = [], idx: number[] = [], nrm: number[] = [];
-      const profile: number[] = [];
-      for (let i = 0; i <= ring.seg; i++) {
-        const a = (i / ring.seg) * Math.PI * 2;
-        const cx = Math.cos(a), sz = Math.sin(a);
-        // ridged multifractal along the circle for sharp peaks + a slow massif envelope
-        let h = 0, amp = 1, f = 3 + ri * 1.5, norm = 0;
-        for (let o = 0; o < 6; o++) { const nv = 1 - Math.abs(noise.get(cx * f + ri * 9.1, sz * f + ri * 3.7)); h += nv * nv * amp; norm += amp; amp *= 0.5; f *= 2.1; }
-        h /= norm;
-        const massif = noise.get(cx * 1.3 + ri * 4, sz * 1.3) * 0.5 + 0.5;
-        // islets: a slow gate noise decides where an island breaks the surface at all
-        const gate = ring.gate < 0 ? 1 : THREE.MathUtils.smoothstep(noise.get(cx * 5.0 + ri * 11.3, sz * 5.0 + 5.1) * 0.5 + 0.5, ring.gate, ring.gate + 0.2);
-        profile.push(h * (0.45 + massif * 0.9) * gate);
-      }
-      const maxH = Math.max(...profile);
-      for (let i = 0; i <= ring.seg; i++) {
-        const a = (i / ring.seg) * Math.PI * 2;
-        const x = Math.cos(a) * ring.r, z = Math.sin(a) * ring.r;
-        const h = profile[i] ?? 0;
-        const peak = ring.gate < 0 ? ring.base + ring.h * (0.25 + h) : h > 0.001 ? 4 + ring.h * h : ring.base;
-        pos.push(x, ring.base - 600, z, x, peak, z);
-        // slope-facing normal from the neighbouring peaks so the sun side reads lighter
-        const hl = profile[(i + ring.seg - 1) % ring.seg] ?? 0, hr = profile[(i + 1) % ring.seg] ?? 0;
-        const tilt = (hl - hr) * ring.seg * 0.03;
-        const nx = -Math.cos(a) + Math.sin(a) * tilt, nz = -Math.sin(a) - Math.cos(a) * tilt;
-        nrm.push(nx, 0.2, nz, nx, 0.5, nz);
-        const snow = THREE.MathUtils.smoothstep(h / maxH, ring.snow, ring.snow + 0.18) * 0.8;
-        const c = ring.col;
-        col.push(c.r * 1.6, c.g * 1.6, c.b * 1.7, c.r + snow * 0.5, c.g + snow * 0.48, c.b + snow * 0.42);
-      }
-      for (let i = 0; i < ring.seg; i++) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-      geo.setIndex(idx);
-      const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-      patchShader(mat, 'engine.horizon-ridge', PATCH_ORDER.material, (shader) => {
-        attachFogUniforms(shader);
-        shader.uniforms['uHaze'] = { value: ring.haze }; // per ring as a uniform, so the three rings share one program
-        if (!ocean) shader.uniforms['uHazeCol'] = horizonLight.uHazeCol; // the open-water shard's source stays byte-for-byte (its constant haze)
-        // aerial perspective: far ranges dissolve into a cool blue haze, warmer toward the sun
-        shader.fragmentShader = shader.fragmentShader
-          .replace('#include <common>', ocean ? '#include <common>\nuniform float uHaze;' : '#include <common>\nuniform float uHaze; uniform vec3 uHazeCol;')
-          .replace('#include <fog_fragment>', `
-          {
-            vec3 ray = normalize(vFogWorldPos - cameraPosition);
-            float sunAmt = max(dot(ray, fogSunDir), 0.0);
-            vec3 hazeCol = mix(${ocean ? 'vec3(0.5, 0.58, 0.74)' : 'uHazeCol'}, fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, uHaze);
-          }`);
-      }, { mode: 'replace', key: 'ridge' });
-      mat.name = `ridge${ri}`;
-      this.sky.setupMaterial(mat);
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.frustumCulled = false;
-      this.group.add(mesh);
-    });
   }
 
   private buildCloudSea() {
