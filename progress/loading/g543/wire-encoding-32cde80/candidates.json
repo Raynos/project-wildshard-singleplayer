@@ -1,0 +1,42 @@
+{
+  "pin": "32cde805434270f8ab04091082bfc6b6fcc3c733",
+  "inspectionOnly": true,
+  "rows": [
+    {
+      "name": "models/foliage/hibiscus-desktop.glb",
+      "hash": "091b61386321ab218c349a5049315833cb995c04c6d1ae838849f86ad9aefe7d",
+      "rawBytes": 14605476,
+      "meshoptBytes": 7850156,
+      "rawGzip9": 4132056,
+      "meshoptGzip9": 5809881,
+      "rawBr6": 3785124,
+      "meshoptBr6": 5578661,
+      "rawBr11": 3545373,
+      "meshoptBr11": 5109253
+    },
+    {
+      "name": "models/foliage/palms-desktop.glb",
+      "hash": "f7d9381d232a2ee78c50f6a8499c3fcecd0236feaaa2f3099c1831703b5f327b",
+      "rawBytes": 7769332,
+      "meshoptBytes": 3470180,
+      "rawGzip9": 1226392,
+      "meshoptGzip9": 2007047,
+      "rawBr6": 1118958,
+      "meshoptBr6": 1749645,
+      "rawBr11": 996339,
+      "meshoptBr11": 1528041
+    },
+    {
+      "name": "models/rocks/shore.glb",
+      "hash": "fb13ed58b935d34a6cfc244d0320fe7ca9d7bf0206b1a647c6d8fbceff6b29cb",
+      "rawBytes": 6468052,
+      "meshoptBytes": 4873536,
+      "rawGzip9": 2929538,
+      "meshoptGzip9": 4749691,
+      "rawBr6": 2818967,
+      "meshoptBr6": 4745537,
+      "rawBr11": 2669258,
+      "meshoptBr11": 4596497
+    }
+  ]
+}

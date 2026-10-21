@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-21T07:23:46Z",
+  "build": "cdff44f21-mvh9nuwl",
+  "url": "https://wildshard-singleplayer.vercel.app/shardfiles/driftwood-isle/blobs/glb/091b61386321ab218c349a5049315833cb995c04c6d1ae838849f86ad9aefe7d.glb",
+  "name": "models/foliage/hibiscus-desktop.glb",
+  "requestAcceptEncoding": "br",
+  "status": 200,
+  "contentEncoding": "br",
+  "decodedBytes": 14605476,
+  "encodedBodyBytes": 3956654,
+  "transferSeconds": 0.552770,
+  "method": "curl GET without --compressed; size_download counts received compressed body bytes; response discarded",
+  "note": "Live production observation, separate from exact32c local accuracy receipts. Raw-size selection would not represent this HTTP encoding."
+}
