@@ -18,7 +18,29 @@ import { recordSceneProfile } from './sceneProfile';
  * tier comparisons. Reserve a fourth complete choice for a cancelled decoder.
  * Each choice includes its intake CPU storage and a copied draw geometry.
  * World geometry, transport, external readers and dependencies stay charged. */
-export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, quality?: { readonly tier: 'phone' | 'desktop'; readonly overrides?: Readonly<Partial<Record<`${string}.${string}`, number | boolean>>> }): Shardfile {
+interface SpecimenQuality { readonly tier: 'phone' | 'desktop'; readonly overrides?: Readonly<Partial<Record<`${string}.${string}`, number | boolean>>> }
+export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, quality?: SpecimenQuality): Shardfile {
+  const costs = specimenCosts(source, assets, quality);
+  let result = costs.next();
+  while (!result.done) result = costs.next();
+  return result.value;
+}
+
+/** Same complete cost projection, allowing live admission to paint between catalogue choices. */
+export async function scopedSpecimenLibrarySourcePaced(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, quality: SpecimenQuality | undefined, pause: (() => Promise<void>) | undefined): Promise<Shardfile> {
+  if (pause === undefined) return scopedSpecimenLibrarySource(source, assets, quality);
+  await pause();
+  const costs = specimenCosts(source, assets, quality);
+  let started = performance.now();
+  let result = costs.next();
+  while (!result.done) {
+    if (performance.now() - started >= 8) { await pause(); started = performance.now(); }
+    result = costs.next();
+  }
+  return result.value;
+}
+
+function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, quality?: SpecimenQuality): Generator<void, Shardfile> {
   const descriptor = outputDescriptor(source), input = descriptor?.sections.get('world/scenes');
   if (descriptor === undefined || input === undefined) return source;
   const scenes = parseWorldScenes(input);
@@ -31,6 +53,7 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
     return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   };
   const catalogue = parseWorldSceneModels(read(scenes.catalogue));
+  yield;
   const libraries = new Map(scenes.libraries.filter(row => row.kind === 'owned').map(row => [row.id, row]));
   const files = new Map(source.files.map(file => [file.hash, file]));
   const refs = (library: string, model: string): string[] => {
@@ -47,7 +70,7 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
       const graphs = worldSceneModelGraphs(choice).map(leaf => 'file' in leaf ? parseWorldSceneWeld(read(leaf.file)) : leaf);
       const resources = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [choice] }] }, graphs);
       const hashes = new Set(resources.geometry.flatMap(ref => refs(ref.library, ref.model)));
-      if (model.assembly !== 'scene') { for (const hash of hashes) retained.add(hash); continue; }
+      if (model.assembly !== 'scene') { for (const hash of hashes) retained.add(hash); yield; continue; }
       for (const hash of hashes) eligible.add(hash);
       // A view resolves exactly one topology leaf. Admission still checks all
       // leaves; a union of mutually exclusive leaves is not one resident copy.
@@ -60,6 +83,7 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
         const selected = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [{ ...choice, scene: graph }] }] });
         const selectedHashes = new Set(selected.geometry.flatMap(ref => refs(ref.library, ref.model)));
         largest = Math.max(largest, [...selectedHashes].reduce((sum, hash) => { const file = files.get(hash); if (file === undefined) throw new Error('Missing specimen file cost'); return sum + file.decoded + file.gpu * 2; }, 0));
+        yield;
       }
     }
   }
@@ -73,20 +97,22 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
   };
   const { files: _files, library: _library, critical: _critical, ...fields } = source;
   visit(fields);
+  yield;
   for (const [name, row] of descriptor.sections) {
-    if (name !== 'world/scenes') { visit(row); continue; }
+    if (name !== 'world/scenes') { visit(row); yield; continue; }
     const { libraries: _libraries, catalogue: _catalogue, ...world } = scenes;
     visit(world);
+    yield;
   }
   const selectedFiles: string[] = [];
   for (const weld of scenes.welds) {
     if (quality !== undefined) {
       const file = typeof weld.file === 'object' && 'knob' in weld.file ? weld.file[plumbingKnob(source.plumbing, quality.tier, weld.file.knob, 'boolean', quality.overrides) ? 'true' : 'false'] : weld.file;
       const selected = typeof file === 'string' ? file : file[quality.tier];
-      selectedFiles.push(selected); visit(parseWorldSceneWeld(read(selected))); continue;
+      selectedFiles.push(selected); visit(parseWorldSceneWeld(read(selected))); yield; continue;
     }
     const variants = typeof weld.file === 'object' && 'knob' in weld.file ? [weld.file.false, weld.file.true] : [weld.file];
-    for (const variant of variants) for (const name of typeof variant === 'string' ? [variant] : Object.values(variant)) visit(parseWorldSceneWeld(read(name)));
+    for (const variant of variants) for (const name of typeof variant === 'string' ? [variant] : Object.values(variant)) { visit(parseWorldSceneWeld(read(name))); yield; }
   }
   if (quality !== undefined) recordSceneProfile(source, selectedFiles);
   for (const file of source.files) for (const dependency of file.dependencies) retained.add(dependency);

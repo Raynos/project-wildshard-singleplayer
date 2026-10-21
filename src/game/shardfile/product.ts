@@ -17,7 +17,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { neighbourProductFiles, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource } from './productCost';
+import { neighbourProductFiles, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySourcePaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
@@ -215,12 +215,14 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   const cached = options.offline ? visited : null;
   if (cached !== null && cached !== undefined && !isOutputIndex(cached.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
   const raw = await resolveDescriptor(cached?.source ?? input, options);
+  await options.pause?.();
   if (!isBuildValidatedOutput(raw)) preflightShardfile(raw);
   if (version(raw) !== SHARDFILE_VERSION) throw new Error('Shardfile needs the current format');
   const source = options.firstParty && isBuildValidatedOutput(raw) ? raw : parseShardfile(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   carryOutputDescriptor(raw, source);
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
+  await options.pause?.();
   const revisionKey = validationRevision();
   const sourceHash = revisionKey === null ? '' : await options.hash(validationSourceBytes(source));
   const built = outputDescriptor(source)?.receipt;
@@ -244,7 +246,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     }
     if (previous !== undefined) assertStateCompatibility(parseStateLineage(previous), source);
   }
+  await options.pause?.();
   options.reserve?.(source);
+  await options.pause?.();
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   // Reserve the complete product first, then overlap at most four immutable transports. Validation and
   // publication retain authored order; all started reads settle before a failure returns or writes cache.
@@ -311,8 +315,17 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   if (receipt === null) validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
   }, options.memory, options.textures, scriptAdmissionRows(outputDescriptor(source)?.sections));
-  if (receipt !== null && options.textures !== undefined) acceptValidatedCost(source,
-    deviceLibraryCost(scopedSpecimenLibrarySource(urlImageLibrarySource(options.tier === undefined ? source : tierLibrarySource(source, options.tier, assets), assets), assets, options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }), assets, options.textures), options.memory);
+  if (receipt !== null && options.textures !== undefined) {
+    const tierSource = options.tier === undefined ? source : tierLibrarySource(source, options.tier, assets);
+    await options.pause?.();
+    const imageSource = urlImageLibrarySource(tierSource, assets);
+    await options.pause?.();
+    const scopedSource = await scopedSpecimenLibrarySourcePaced(imageSource, assets,
+      options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }, options.pause);
+    await options.pause?.();
+    acceptValidatedCost(source, deviceLibraryCost(scopedSource, assets, options.textures), options.memory);
+    await options.pause?.();
+  }
   if (!options.offline && options.cache !== undefined) {
     progress('cache', 'Saving verified offline assets');
     const cache = options.cache, descriptor = outputDescriptor(source);
@@ -340,6 +353,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     } finally { release?.(); }
   }
   progress('complete', 'Product admitted');
+  await options.pause?.();
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 const browserContentStores = new WeakMap<Pick<CacheStorage, 'open'>, ContentCache | ContentCacheWorker>();

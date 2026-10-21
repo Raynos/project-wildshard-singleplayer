@@ -9,7 +9,7 @@ import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputInd
 import { loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource } from '../src/game/shardfile/productCost';
+import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { MemoryAdmission } from '../src/format/product';
 import { acceptValidatedCost } from '../src/format/assetAdmission';
@@ -387,6 +387,12 @@ test('selected world profiles keep their own geometry and charge a fresh expensi
   expect(scopedSpecimenLibrarySource(source, assets, { tier: 'phone' }).budgets.library.resident).toBe(before - 1300);
   expect(scopedSpecimenLibrarySource(source, assets, { tier: 'phone', overrides: { 'fixture.rich': true } }).budgets.library.resident).toBe(before - 400);
   expect(scopedSpecimenLibrarySource(source, assets, { tier: 'desktop' }).budgets.library.resident).toBe(before - 400);
+  for (const quality of [{ tier: 'phone' as const }, { tier: 'phone' as const, overrides: { 'fixture.rich': true } }, { tier: 'desktop' as const }]) {
+    expect(await scopedSpecimenLibrarySourcePaced(source, assets, quality, () => Promise.resolve())).toEqual(scopedSpecimenLibrarySource(source, assets, quality));
+  }
+  await expect(scopedSpecimenLibrarySourcePaced(source, assets, undefined, () => Promise.reject(new Error('Owner disposed')))).rejects.toThrow('Owner disposed');
+  assets.clear();
+  await expect(scopedSpecimenLibrarySourcePaced(source, assets, undefined, () => Promise.resolve())).rejects.toThrow('Missing specimen cost bytes');
 });
 
 test('a lower exact estimate clears a previous warning without changing the cap', () => {
