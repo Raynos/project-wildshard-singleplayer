@@ -34,4 +34,3 @@
 .ws-grid-budget-gauge-gpu { flex: none; background: #5aa9ff; }
 .ws-grid-budget-gauge-ram { flex: none; background: #ffc35a; }
 .ws-grid-budget-gauge-remainder { flex: none; background: repeating-linear-gradient(135deg, #8a7d80 0 3px, #3b3033 3px 6px); }
-.ws-grid-budget-gauge-cap { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #ff5a4a; }

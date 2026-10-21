@@ -1,19 +1,20 @@
 /**
  * The points budget (SHARD-PLATFORM SF38, G30): one cost score per tile, per shard and for the crossroads, read from the
  * one residency allocator (`allocator.ts`, SF18b / G144) on the SF22a cost model (§3.2). Points are the percentage of a
- * budget: green below {@link AMBER_AT}, amber up to {@link RED_AT}, red above it. Only the crossroads' worst-location
- * totals (1.0 GB playing, 1.8 GB loading) are hard caps (G110); every other score warns, and a shard may trade one category
- * against another, so a shard scores its whole accounted sum against the sum of its categories' budgets.
+ * budget: green below {@link AMBER_AT}, amber up to {@link RED_AT}, red above it. G556 (Jake, 2026-10-21): the playing
+ * and loading limits (1.2 / 1.8 GB) are per shard, so each shard alone is scored against them ({@link ShardLimit}); the
+ * page total is information only, with no cap. A shard's category budget warns, and a shard may trade one category
+ * against another, so it scores its whole accounted sum against the sum of its categories' budgets.
  *
  * Budgets, all from `CONTENT_CAPS` (§3.2 caps v1): a tile against its level's resident cap (L0 4 MB, L1 2 MB, far proxy
  * 1.6 MB); a shard against one of four shards at a crossroads (library 25 MB + sim 25 MB + its far proxy + a quarter of
- * the L0 disc and the L1 ring); the crossroads against the playing and loading envelopes. The road (`platform` render
+ * the L0 disc and the L1 ring); each shard alone against the playing and loading limits. The road (`platform` render
  * claims) is its own category with no byte budget (it warns on triangles and draws instead, G101).
  *
  * Node-safe and pure: no DOM, no timers; the overlay (`budgetOverlay.ts`) and its tests read the same numbers.
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import type { ContentCostInput } from '@wildshard/format/contentCost';
+import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
 import type { ResidencyAllocator, ResidencyEntry } from './allocator';
 
 /** At or above this many points a score turns amber. */
@@ -33,22 +34,30 @@ export interface BudgetTile {
   readonly id: string; readonly owner: string; readonly level: 'l0' | 'l1' | 'far';
   readonly bytes: number; readonly budget: number; readonly points: number; readonly tone: PointsTone;
 }
+/** G556: one shard alone on the cost model (the engine base, the page's shared renderer components, its own accounted
+ * bytes at the resident factor and the decode overlap) against its own playing and loading limits. */
+export interface ShardLimit {
+  readonly playing: number; readonly playingCap: number; readonly playingPoints: number;
+  readonly loading: number; readonly loadingCap: number; readonly loadingPoints: number;
+  readonly tone: PointsTone;
+}
 /** One owner's (a cell instance's, or the platform's) bytes and score. */
 export interface BudgetShard {
   readonly owner: string; readonly name: string;
   readonly bytes: BudgetBytes; readonly total: number;
   /** null for a page-wide owner (the platform): the road has no byte budget */
   readonly budget: number | null; readonly points: number | null; readonly tone: PointsTone | null;
+  /** null for a page-wide owner */
+  readonly limit: ShardLimit | null;
   readonly tiles: { readonly count: number; readonly green: number; readonly amber: number; readonly red: number; readonly worst: number };
   /** the shard's reviewed standalone measurement (WebContent + GL, MB), when it has one */
   readonly measuredMB: number | null;
 }
-/** The whole assembled neighbourhood against the hard caps. */
+/** The whole assembled neighbourhood: information only, no cap (G556). */
 export interface BudgetCrossroads {
   readonly bytes: BudgetBytes; readonly accounted: number;
   readonly engineBase: number; readonly overlap: number; readonly residentFactor: number;
-  readonly playing: number; readonly playingCap: number; readonly points: number; readonly tone: PointsTone;
-  readonly loading: number; readonly loadingCap: number; readonly loadingPoints: number; readonly loadingTone: PointsTone;
+  readonly playing: number; readonly loading: number;
 }
 export interface BudgetPoints {
   readonly crossroads: BudgetCrossroads;
@@ -75,6 +84,14 @@ const TILE_CAP = { l0: CONTENT_CAPS.l0.resident, l1: CONTENT_CAPS.l1.resident, f
 /** One of four shards at a crossroads: its library, its sim, its far proxy and a quarter of the L0 disc and L1 ring. */
 export const SHARD_BUDGET = CONTENT_CAPS.library.resident + CONTENT_CAPS.sim.resident + CONTENT_CAPS.far.resident
   + (CONTENT_CAPS.l0Count / CONTENT_CAPS.simCount) * CONTENT_CAPS.l0.resident + (CONTENT_CAPS.l1Count / CONTENT_CAPS.simCount) * CONTENT_CAPS.l1.resident;
+
+/** One shard alone against its own limits, on the page's engine base, shared renderer components and overlap. */
+export function shardLimit(accounted: number, page: ContentCostInput): ShardLimit {
+  const { playing, loading } = contentCost({ l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, products: accounted, overlap: page.overlap,
+    page: page.page ?? 0, ...(page.engineBase === undefined ? {} : { engineBase: page.engineBase }) });
+  const playingPoints = points(playing, CONTENT_CAPS.playing), loadingPoints = points(loading, CONTENT_CAPS.loading);
+  return { playing, playingCap: CONTENT_CAPS.playing, playingPoints, loading, loadingCap: CONTENT_CAPS.loading, loadingPoints, tone: tone(Math.max(playingPoints, loadingPoints)) };
+}
 
 const zero = (): Record<BudgetCategory, number> => ({ library: 0, l0: 0, l1: 0, sim: 0, road: 0, far: 0, commons: 0, product: 0 });
 function categoryOf(entry: ResidencyEntry): BudgetCategory {
@@ -105,15 +122,14 @@ export function budgetPoints(input: BudgetPointsInput): BudgetPoints {
       red: own.filter((t) => t.tone === 'red').length, worst: own.reduce((worst, t) => Math.max(worst, t.points), 0) };
     const platform = !isShard(owner), score = platform ? null : points(total, SHARD_BUDGET);
     return { owner, name: input.name?.(owner) ?? owner, bytes: Object.freeze(bytes), total,
-      budget: platform ? null : SHARD_BUDGET, points: score, tone: score === null ? null : tone(score), tiles: tileScores,
+      budget: platform ? null : SHARD_BUDGET, points: score, tone: score === null ? null : tone(score),
+      limit: platform ? null : shardLimit(total, input.cost.input), tiles: tileScores,
       measuredMB: input.measuredMB?.(owner) ?? null };
   }).sort((a, b) => Number(a.budget === null) - Number(b.budget === null) || b.total - a.total || a.owner.localeCompare(b.owner));
   const { playing, loading, accounted } = input.cost;
-  const score = points(playing, CONTENT_CAPS.playing), loadingScore = points(loading, CONTENT_CAPS.loading);
   return {
     crossroads: { bytes: Object.freeze(crossroads), accounted, engineBase: input.cost.input.engineBase ?? CONTENT_CAPS.engineBase, overlap: input.cost.input.overlap,
-      residentFactor: CONTENT_CAPS.residentFactor, playing, playingCap: CONTENT_CAPS.playing, points: score, tone: tone(score),
-      loading, loadingCap: CONTENT_CAPS.loading, loadingPoints: loadingScore, loadingTone: tone(loadingScore) },
+      residentFactor: CONTENT_CAPS.residentFactor, playing, loading },
     shards, tiles,
   };
 }

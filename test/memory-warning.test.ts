@@ -22,13 +22,13 @@ test('a retained worst-location report names its shard and stage on another shar
   memory.dispose(); expect(memoryWarningChip(memory.reports())).toBeNull();
 });
 
-test('the chip uses the owner and stage of the largest loading or playing excess', () => {
+test('the chip names the largest shard excess; a page total never warns (G556)', () => {
   const memory = new MemoryAdmission(() => true);
   for (const [owner, stage, playingBytes, loadingBytes] of [
     ['first', 'actual', 1_340_000_000, 1_500_000_000],
     ['second', 'resident', 1_250_000_000, 2_000_000_000],
   ] as const) memory.accept({ stage, owner, id: owner, claimedBytes: 1, accountedBytes: 1,
     playingBytes, loadingBytes, playingCap: 1_200_000_000, loadingCap: 1_800_000_000 });
-  expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · second PAGE TOTAL · +200.0 MB');
+  expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · first ESTIMATE · +140.0 MB');
   memory.dispose();
 });

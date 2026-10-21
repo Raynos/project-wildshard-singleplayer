@@ -1,7 +1,8 @@
 /**
  * The points budget overlay (SHARD-PLATFORM SF38, G30): Developer mode only, grid pages only. One line under the top bar,
- * in plain words ("MEMORY · ALL LOADED 2331 / 1000 MB (233%) · PINE HOLLOW 749% OF BUDGET · 3 SHARDS OK · SHARED 113 MB"), scores the crossroads against the 1.0 GB playing cap and each shard (and the road) against its §3.2 budget, green /
- * amber / red; a tap expands the raw bytes per category (library, L0 / L1 tiles, sim, road, far, commons, product and the
+ * in plain words ("MEMORY · ALL LOADED 2331 MB · PINE HOLLOW 749% OF BUDGET · 1370 / 1200 MB · 3 SHARDS OK · SHARED 113 MB").
+ * G556: each shard is scored against its own 1.2 GB playing / 1.8 GB loading limit (red over it) and its §3.2 category
+ * budget (amber over it); the page total is information only, with no cap and no tone. A tap expands the raw bytes per category (library, L0 / L1 tiles, sim, road, far, commons, product and the
  * overlap allowance), each shard's tiles and the heaviest tiles. The numbers are `budgetPoints.ts` over the one live
  * residency allocator (SF18b / G144), read once a second, never per frame.
  *
@@ -9,12 +10,11 @@
  * timer and hides the strip. Text is authored with `textContent` only. Players never see it (no URL switch, E162).
  */
 import type { Scope } from '@wildshard/engine/app/scope';
-import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { isDev, onDev } from '@wildshard/engine/core/devMode';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { memoryAttribution, type MemorySnapshot } from '@wildshard/engine/core/memoryAttribution';
 import type { ResidencyAllocator } from './allocator';
-import { BUDGET_CATEGORIES, megabytes, PLATFORM_OWNER, readBudgetPoints, type BudgetCategory, type BudgetPoints, type BudgetShard, type PointsTone } from './budgetPoints';
+import { BUDGET_CATEGORIES, megabytes, PLATFORM_OWNER, readBudgetPoints, tone as scoreTone, type BudgetCategory, type BudgetPoints, type BudgetShard, type PointsTone } from './budgetPoints';
 import { memoryRows, type MemoryGrouping, type MemorySort } from './memoryRows';
 import './budgetOverlay.css';
 
@@ -23,6 +23,7 @@ const TEXT = {
   title: 'MEMORY', ok: 'SHARDS OK', platform: 'SHARED', crossroads: 'ALL LOADED', budget: 'OF BUDGET', loading: 'LOAD', road: 'ROAD', tiles: 'TILES', worst: 'WORST', measured: 'MEASURED',
   category: { library: 'LIBRARY', l0: 'L0 TILES', l1: 'L1 TILES', sim: 'SIM', road: 'ROAD', far: 'FAR', commons: 'COMMONS', product: 'PRODUCT' } satisfies Record<BudgetCategory, string>,
   overlap: 'OVERLAP', base: 'ENGINE BASE', factor: 'RESIDENT ×', accounted: 'ACCOUNTED', playing: 'PLAYING',
+  info: 'PAGE TOTAL · INFORMATION ONLY: THE LIMITS ARE PER SHARD',
 } as const;
 /** How often the strip re-reads the allocator while it shows. */
 export const BUDGET_REFRESH_MS = 1000;
@@ -57,6 +58,12 @@ function el(tag: string, className: string, text?: string): HTMLElement {
   if (text !== undefined) node.textContent = text;
   return node;
 }
+/** G556: red only over the shard's own limit; its category budget warns amber at most. */
+export function shardTone(shard: BudgetShard): PointsTone | null {
+  if (shard.limit === null || shard.tone === null) return shard.tone;
+  if (shard.limit.tone === 'red') return 'red';
+  return shard.limit.tone === 'amber' || shard.tone !== 'green' ? 'amber' : 'green';
+}
 /** A `data-*` attribute: the tone for the stylesheet, raw bytes for tests and captures. */
 function data(node: HTMLElement, name: string, value: string | number): void { node.setAttribute(`data-${name}`, String(value)); }
 function scored(className: string, text: string, tone: PointsTone | null): HTMLElement {
@@ -86,18 +93,17 @@ export function memoryFootprint(snapshot: MemorySnapshot, calibrated: number): M
   const remainder = Math.max(0, bytes - shown);
   return { bytes, source: measured === null ? 'calibrated' : 'native', gpu: Math.round(gpu * scale), ram: Math.round(ram * scale), remainder, share: bytes > 0 ? remainder / bytes : 0 };
 }
-/** The 1.0 GB cap gauge: owned GPU, owned RAM and the unattributed remainder as one stacked bar with the cap line on it. */
-function footprintGauge(foot: MemoryFootprint, cap: number): HTMLElement {
-  const span = Math.max(cap, foot.bytes) * 1.08, pct = (bytes: number): string => `${(bytes / span * 100).toFixed(2)}%`;
+/** The page footprint gauge: owned GPU, owned RAM and the unattributed remainder as one stacked bar (no cap, G556). */
+function footprintGauge(foot: MemoryFootprint): HTMLElement {
+  const span = Math.max(1, foot.bytes), pct = (bytes: number): string => `${(bytes / span * 100).toFixed(2)}%`;
   const box = el('div', 'ws-grid-budget-gauge'); data(box, 'source', foot.source); data(box, 'footprint-bytes', foot.bytes);
   const tone: PointsTone = foot.share < UNATTRIBUTED_TARGET ? 'green' : foot.share < 2 * UNATTRIBUTED_TARGET ? 'amber' : 'red';
-  box.append(row(foot.source === 'native' ? 'FOOTPRINT · NATIVE WC + GL' : 'FOOTPRINT · SIMULATOR-CALIBRATED', MB(foot.bytes), foot.bytes > cap ? 'red' : null));
+  box.append(row(foot.source === 'native' ? 'FOOTPRINT · NATIVE WC + GL' : 'FOOTPRINT · SIMULATOR-CALIBRATED', MB(foot.bytes)));
   const bar = el('div', 'ws-grid-budget-gauge-bar');
   for (const [name, bytes] of [['gpu', foot.gpu], ['ram', foot.ram], ['remainder', foot.remainder]] as const) {
     const part = el('span', `ws-grid-budget-gauge-${name}`); part.style.width = pct(bytes); data(part, 'bytes', bytes); bar.append(part);
   }
-  const line = el('span', 'ws-grid-budget-gauge-cap'); line.style.left = pct(cap); bar.append(line);
-  box.append(bar, el('p', 'ws-grid-budget-memory-note', `▮ GPU OWNED ${MB(foot.gpu)} · ▮ RAM OWNED ${MB(foot.ram)} · ▯ NO OWNER ${MB(foot.remainder)} · │ CAP ${megabytes(cap)} MB`));
+  box.append(bar, el('p', 'ws-grid-budget-memory-note', `▮ GPU OWNED ${MB(foot.gpu)} · ▮ RAM OWNED ${MB(foot.ram)} · ▯ NO OWNER ${MB(foot.remainder)}`));
   const share = row('NO OWNER (OF FOOTPRINT)', `${(foot.share * 100).toFixed(1)}% · TARGET < ${UNATTRIBUTED_TARGET * 100}%`, tone);
   data(share, 'unattributed-share', foot.share.toFixed(4)); box.append(share);
   return box;
@@ -112,7 +118,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   let allocationScope: Scope | null = null;
   const label = (owner: string): string => (owner === PLATFORM_OWNER ? TEXT.road : host.name(owner));
 
-  const memorySection = (snapshot: MemorySnapshot, calibrated: number, cap: number): HTMLElement => {
+  const memorySection = (snapshot: MemorySnapshot, calibrated: number): HTMLElement => {
     allocationScope?.dispose();
     const entered = scope.child('ui.budget-memory'); allocationScope = entered;
     const sec = el('section', 'ws-grid-budget-sec'); data(sec, 'memory', 'observed');
@@ -120,10 +126,9 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
       row('GPU', MB(snapshot.totals.gpu)), row('RAM STORAGE / CAPACITY', MB(snapshot.totals.ram)),
       row('UNATTRIBUTED GPU', MB(snapshot.unattributed.gpu)), row('UNATTRIBUTED RAM STORAGE', MB(snapshot.unattributed.ram)));
     const measured = snapshot.measured;
-    sec.append(row('NATIVE WC + LABELLED GL', measured === null ? 'NOT SAMPLED' : MB(measured.webContentBytes + measured.labelledGpuBytes),
-      measured !== null && measured.webContentBytes + measured.labelledGpuBytes > CONTENT_CAPS.playing ? 'red' : null));
+    sec.append(row('NATIVE WC + LABELLED GL', measured === null ? 'NOT SAMPLED' : MB(measured.webContentBytes + measured.labelledGpuBytes)));
     if (measured !== null) sec.append(el('p', 'ws-grid-budget-memory-note', `${new Date(measured.sampledAt).toISOString()} · ${measured.source}`));
-    sec.append(footprintGauge(memoryFootprint(snapshot, calibrated), cap));
+    sec.append(footprintGauge(memoryFootprint(snapshot, calibrated)));
     sec.append(el('p', 'ws-grid-budget-memory-note', 'GPU is allocated storage. RAM is live storage / capacity, not physical footprint. Neither is added to WebContent. Native unobserved RAM remains unknown.'));
     const controls = el('div', 'ws-grid-budget-tools');
     const pick = (name: string, choices: readonly (readonly [string, string])[], value: string, changed: (value: string) => void): void => {
@@ -156,16 +161,19 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   const paint = (points: BudgetPoints, memory: MemorySnapshot | null): void => {
     if (bar === null || detail === null) return;
     const { crossroads } = points;
-    // plain words (playtest round 2): "ALL LOADED 2331 / 1000 MB (233%)", each shard over its line as "% OF BUDGET"
-    const head = scored('ws-grid-budget-x', `${TEXT.crossroads} ${Math.round(crossroads.playing / 1e6)} / ${Math.round(crossroads.playingCap / 1e6)} MB (${crossroads.points}%)`, crossroads.tone);
+    // plain words (playtest round 2): "ALL LOADED 2331 MB" (G556: information only), each shard as "% OF BUDGET" and its own limit
+    const head = scored('ws-grid-budget-x', `${TEXT.crossroads} ${Math.round(crossroads.playing / 1e6)} MB`, null);
     data(head, 'playing', crossroads.playing); data(head, 'accounted', crossroads.accounted);
-    // collapsed, the line names only the shards over their warning line; green shards and page-wide owners are counted
+    // collapsed, the line names only the shards over a warning line; green shards and page-wide owners are counted
     const chip = (shard: BudgetShard, shown: boolean): HTMLElement => {
-      const node = scored('ws-grid-budget-chip', shard.points === null ? `${label(shard.owner).toUpperCase()} ${megabytes(shard.total)} MB` : `${label(shard.owner).toUpperCase()} ${shard.points}% ${TEXT.budget}`, shard.tone);
-      data(node, 'owner', shard.owner); data(node, 'bytes', shard.total); node.hidden = !shown; return node;
+      const { limit } = shard, name = label(shard.owner).toUpperCase();
+      const node = scored('ws-grid-budget-chip', shard.points === null || limit === null ? `${name} ${megabytes(shard.total)} MB`
+        : `${name} ${shard.points}% ${TEXT.budget} · ${Math.round(limit.playing / 1e6)} / ${Math.round(limit.playingCap / 1e6)} MB`, shardTone(shard));
+      data(node, 'owner', shard.owner); data(node, 'bytes', shard.total); if (limit !== null) data(node, 'limit-playing', limit.playing);
+      node.hidden = !shown; return node;
     };
-    const warned = (shard: BudgetShard): boolean => shard.tone === 'amber' || shard.tone === 'red';
-    const green = points.shards.filter((shard) => shard.tone === 'green').length;
+    const warned = (shard: BudgetShard): boolean => { const t = shardTone(shard); return t === 'amber' || t === 'red'; };
+    const green = points.shards.filter((shard) => shardTone(shard) === 'green').length;
     const page = points.shards.filter((shard) => shard.budget === null).reduce((sum, shard) => sum + shard.total, 0);
     bar.replaceChildren(el('b', 'ws-grid-budget-title', TEXT.title), head, ...points.shards.map((shard) => chip(shard, expanded || warned(shard))),
       ...(expanded ? [] : [scored('ws-grid-budget-chip', `${green} ${TEXT.ok}`, 'green'), scored('ws-grid-budget-chip', `${TEXT.platform} ${megabytes(page)} MB`, null)]));
@@ -174,23 +182,25 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
     cross.append(el('h4', 'ws-grid-budget-h', TEXT.crossroads),
       ...BUDGET_CATEGORIES.map((category) => { const line = row(TEXT.category[category], MB(crossroads.bytes[category])); data(line, 'category', category); data(line, 'bytes', crossroads.bytes[category]); return line; }),
       row(TEXT.accounted, MB(crossroads.accounted)), row(TEXT.factor, String(crossroads.residentFactor)), row(TEXT.base, MB(crossroads.engineBase)), row(TEXT.overlap, MB(crossroads.overlap)),
-      row(TEXT.playing, `${MB(crossroads.playing)} / ${megabytes(crossroads.playingCap)} · ${crossroads.points}`, crossroads.tone),
-      row(TEXT.loading, `${MB(crossroads.loading)} / ${megabytes(crossroads.loadingCap)} · ${crossroads.loadingPoints}`, crossroads.loadingTone));
+      row(TEXT.playing, MB(crossroads.playing)), row(TEXT.loading, MB(crossroads.loading)), el('p', 'ws-grid-budget-memory-note', TEXT.info));
     const shards = points.shards.map((shard) => {
       const sec = el('section', 'ws-grid-budget-sec'); data(sec, 'owner', shard.owner);
       const heading = shard.budget === null ? `${label(shard.owner)} · ${MB(shard.total)}` : `${label(shard.owner)} · ${shard.points ?? 0} · ${megabytes(shard.total)}/${megabytes(shard.budget)} MB`;
-      const h = el('h4', 'ws-grid-budget-h', heading); data(h, 'tone', shard.tone ?? 'none');
+      const h = el('h4', 'ws-grid-budget-h', heading); data(h, 'tone', shardTone(shard) ?? 'none');
       sec.append(h, ...BUDGET_CATEGORIES.filter((category) => shard.bytes[category] > 0).map((category) => {
         const line = row(TEXT.category[category], MB(shard.bytes[category])); data(line, 'category', category); data(line, 'bytes', shard.bytes[category]); return line;
       }));
       if (shard.tiles.count > 0) sec.append(row(TEXT.tiles, `${shard.tiles.count} · ${shard.tiles.green}/${shard.tiles.amber}/${shard.tiles.red} · ${TEXT.worst.toLowerCase()} ${shard.tiles.worst}`));
+      const { limit } = shard;
+      if (limit !== null) sec.append(row(TEXT.playing, `${MB(limit.playing)} / ${megabytes(limit.playingCap)} · ${limit.playingPoints}`, scoreTone(limit.playingPoints)),
+        row(TEXT.loading, `${MB(limit.loading)} / ${megabytes(limit.loadingCap)} · ${limit.loadingPoints}`, scoreTone(limit.loadingPoints)));
       if (shard.measuredMB !== null) sec.append(row(TEXT.measured, `${shard.measuredMB.toFixed(1)} MB`));
       return sec;
     });
     const worst = el('section', 'ws-grid-budget-sec');
     worst.append(el('h4', 'ws-grid-budget-h', `${TEXT.worst} ${TEXT.tiles}`),
       ...points.tiles.slice(0, WORST_TILES).map((tile) => row(tile.id, `${megabytes(tile.bytes)}/${megabytes(tile.budget)} · ${tile.points}`, tile.tone)));
-    detail.replaceChildren(cross, ...(memory === null ? [] : [memorySection(memory, crossroads.playing, crossroads.playingCap)]), ...shards, ...(points.tiles.length > 0 ? [worst] : []));
+    detail.replaceChildren(cross, ...(memory === null ? [] : [memorySection(memory, crossroads.playing)]), ...shards, ...(points.tiles.length > 0 ? [worst] : []));
   };
 
   function refresh(): void {
