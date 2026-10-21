@@ -60,6 +60,7 @@ Claude 50 % and Codex 54 % of the week used at day 1.9 and 1.3; `scripts/` 33 �
 | D5 | Polling is forbidden for both agent kinds. | decided (10-21); Phase 1.4 |
 | D6 | **The push gate and the ruler keep normal priority:** Phase 1.2's `taskpolicy -c utility` wraps lane jobs only; `heavy-lane.py gate` (the push gate and everything under its lease) and the ruler's measurement build (`scripts/admin-data/ruler.mjs`) run at default QoS, as G548 B5 set (Jake, 10-21 ~10:35 Cancun, on the plan agent's review of Wave 1: *"exempt the push gate and the ruler approved"*; SHARD-PLATFORM G562). | decided (10-21); amends 1.2 |
 | D7 | **One Simulator device, no new ones:** `scripts/sim-lane.sh` stops creating a device for every new name; it uses one named Wildshard device (`wildshard-iphone`, an iPhone 17 Pro on the newest runtime) by default, accepts only existing device names, and refuses to create others. The 44 one-off lane devices (~103 GB) were deleted by the plan agent on Jake's word (10-21: 73 → 29 devices, 184 → 81 GB); the three in use, Apple's stock devices and other projects' (rockhop, trials) were kept (Jake, 10-21 ~10:50 Cancun: *"Delete + fix the tool"*; SHARD-PLATFORM G563). | decided (10-21) |
+| D8 | **Push now, eject what's red** (Jake, 10-21 ~14:30 Cancun, on the plan agent's 3-hour lane audit: 15 gate runs, 11 red, main stuck since 11:45 with 94 commits queued): Phases 2.3 A and 2.4 A are approved now, ahead of the rest of Wave 2; on a red pre-push the loop finds the offending commit(s) (bisect the range, or the commits touching the failing test's files), leaves them local, pushes everything before them and pings their lane; the rest of the range never waits on one red (SHARD-PLATFORM G568). | decided (10-21) |
 
 ## Wave 1: stop the bleeding (nothing deleted, every step reversible in minutes)
 
@@ -208,7 +209,7 @@ red batch held every lane. A single pusher process needs no lock and never block
 - **Risk:** medium. **Effort:** 0.5 day.
 - **Verify:** commit-to-origin median under 2 min for a day; `origin/main == main` within 2 min at every check.
   **Rollback:** revert; the old scripts come back from git.
-- **Jake:** ☐ A ☐ B ☐ C ☐ veto
+- **Jake:** ☑ A (10-21 ~14:30, D8: plus eject the red commits and push the rest)
 
 ### Phase 2.4 Shrink the local gate to 45 seconds (D1, ruled 10-21)
 
@@ -230,7 +231,7 @@ pre-commit.
 - **Risk:** medium: a red main past the 45 s checks is visible for about 25 min at a time. **Effort:** 0.5 day.
 - **Verify:** pre-push p90 under 45 s; red-main minutes per day from CI under 2 h; the hourly deploy keeps shipping.
   **Rollback:** one `git revert` restores the files and hook lines.
-- **Jake:** ☐ A ☐ B ☐ veto (asked with Wave 2)
+- **Jake:** ☑ A (10-21 ~14:30, D8)
 
 ### Phase 2.5 Retire the pusher lane; write it down
 
