@@ -27,7 +27,7 @@ Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real secon
 | # | Type | Target | Taken |
 |---|---|---|---|
 | Z1 | Opus | Nalati C2 looks (370) + C1 world (516) graphical spans | sp-o3 (after Ink) |
-| Z2 | Opus | Nine C2 looks (807): composite GLSL stays listed view (graph form costs +64 KB sections, +40-115 MB; closed by sp-o4); other look spans open | |
+| Z2 | Opus | Nine C2 looks (807): composite GLSL stays listed view (graph form costs +64 KB sections, +40-115 MB; closed by sp-o4); other look spans open | sp-o4 |
 | Z3 | Opus | Nine C1 world (566): drawn-in kit rows, Fei Zhua mounts, sets | sp-o2 |
 | Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | sp-o1 (after open-plots 7f6a9df314) |
 | Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | |
