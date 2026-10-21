@@ -8,8 +8,9 @@
     "strictLint": "passed",
     "tests": 726,
     "testFiles": 136,
-    "firstFrame": "blocked by foreign waterMaterial binding; reverted in fbe9c2a82; owner proof pending",
-    "log": ".git/command-logs/batch-check-4264mx5t.log"
+    "firstFrame": "PASS: foreign water binding reverted in fbe9c2a82; sp-o4 exact repair batch 843.6 s includes real Driftwood first frame and desktop grid road entry (1890 frames, 59.9 fps, one frame >50ms).",
+    "log": ".git/command-logs/batch-check-4264mx5t.log",
+    "repairProof": "tmp/o15/gridproof/fbe9c2a82-95680-1792588169694.json"
   },
   "proof": ".git/proofs/20261021T080422-loading-arrival-warm-offline-entries-65361.json",
   "native": "PASS: S5, sp-o5, 1b9d56deff; cold and warm offline release controls. Warm ends at709ms, zero wire, no errors.",
