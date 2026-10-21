@@ -1,0 +1,11 @@
+{
+  "id": "20261021T063115-loading-native-controlled-acceptance-78823",
+  "label": "loading-native-controlled-acceptance",
+  "state": "passed",
+  "rc": 0,
+  "startedAt": 1792582275,
+  "endedAt": 1792585190,
+  "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T063115-loading-native-controlled-acceptance-78823.log",
+  "pane": "wT:p3",
+  "command": "python3 tmp/loading-lane/prove-native-controlled-f8.py"
+}
