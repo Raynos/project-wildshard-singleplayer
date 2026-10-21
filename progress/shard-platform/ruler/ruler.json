@@ -1,9 +1,9 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "21af61480b436b0a2f355f1e3db7d8780635cc95",
- "committedAt": "2026-10-21T16:02:11.000Z",
- "measuredAt": "2026-10-21T16:04:59.899Z",
+ "revision": "8511d758893ee374e55ab4ba24ecb28aaa2f8a1c",
+ "committedAt": "2026-10-21T16:12:02.000Z",
+ "measuredAt": "2026-10-21T16:12:58.545Z",
  "basis": "source",
  "plan": {
   "lower": 0.84,
@@ -277,15 +277,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:ead736a490c6a8a92fca9fd9d867253189838c1905065270643ebdc8f66cb66e, validation sha256:0b319b7562302cbd8a84f85bc448dc13f1d1c62ef09d94aa793b40d755668790: 12 L0 / 12 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:3d7def9b790742078e303ecac595d94adfe39ad25020b4c277000885252617a0, validation sha256:debd41c5746e8fd7472d9912a4650be6911a60766de209ef869c8fa0fb0bfd78: 12 L0 / 12 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:ead736a490c6a8a92fca9fd9d867253189838c1905065270643ebdc8f66cb66e, validation sha256:0b319b7562302cbd8a84f85bc448dc13f1d1c62ef09d94aa793b40d755668790: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
+      "evidence": "index sha256:3d7def9b790742078e303ecac595d94adfe39ad25020b4c277000885252617a0, validation sha256:debd41c5746e8fd7472d9912a4650be6911a60766de209ef869c8fa0fb0bfd78: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:ead736a490c6a8a92fca9fd9d867253189838c1905065270643ebdc8f66cb66e, validation sha256:0b319b7562302cbd8a84f85bc448dc13f1d1c62ef09d94aa793b40d755668790: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:3d7def9b790742078e303ecac595d94adfe39ad25020b4c277000885252617a0, validation sha256:debd41c5746e8fd7472d9912a4650be6911a60766de209ef869c8fa0fb0bfd78: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "unknown",
@@ -293,7 +293,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:ead736a490c6a8a92fca9fd9d867253189838c1905065270643ebdc8f66cb66e, validation sha256:0b319b7562302cbd8a84f85bc448dc13f1d1c62ef09d94aa793b40d755668790: Declared palette accent: moss"
+      "evidence": "index sha256:3d7def9b790742078e303ecac595d94adfe39ad25020b4c277000885252617a0, validation sha256:debd41c5746e8fd7472d9912a4650be6911a60766de209ef869c8fa0fb0bfd78: Declared palette accent: moss"
      },
      "oneFrameLooks": {
       "verdict": "unknown",
@@ -749,8 +749,8 @@
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
    "customCut": 4999,
-   "platformGrowth": 62566,
-   "netCut": -57567,
+   "platformGrowth": 62596,
+   "netCut": -57597,
    "layers": {
     "engine": {
      "before": 67206,
@@ -759,8 +759,8 @@
     },
     "game": {
      "before": 33346,
-     "after": 75491,
-     "growth": 42145
+     "after": 75521,
+     "growth": 42175
     },
     "format": {
      "before": 7102,
@@ -778,8 +778,8 @@
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
    "customCut": 38281,
-   "platformGrowth": 59002,
-   "netCut": -20721,
+   "platformGrowth": 59032,
+   "netCut": -20751,
    "layers": {
     "engine": {
      "before": 67897,
@@ -788,8 +788,8 @@
     },
     "game": {
      "before": 35276,
-     "after": 75491,
-     "growth": 40215
+     "after": 75521,
+     "growth": 40245
     },
     "format": {
      "before": 7749,
@@ -2361,6 +2361,19 @@
   {
    "revision": "21af61480b436b0a2f355f1e3db7d8780635cc95",
    "at": "2026-10-21T16:02:11.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 6.594696080732223,
+    "driftwood-isle": 7.7182967321022895,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 16.249559393725765,
+    "nine-dragon-stack": 8.824783288333096
+   }
+  },
+  {
+   "revision": "8511d758893ee374e55ab4ba24ecb28aaa2f8a1c",
+   "at": "2026-10-21T16:12:02.000Z",
    "basis": "source",
    "shards": {
     "pine-hollow": 6.594696080732223,
