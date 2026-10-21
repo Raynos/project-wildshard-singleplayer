@@ -11,6 +11,7 @@ import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { RayTargets } from '@wildshard/engine/combat/targets';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -131,7 +132,7 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
   const weaponTargets = foragers.flatMap(({ row, population }) => row.combat === undefined ? []
     : [new CrowdWeaponTarget(new CrowdRoster([], [new ForagerTargets(population, row.combat, row.scale)]), row.combat.target)]);
   if (weaponTargets.length > 0) installEnteredRuntimeService(ctx, scope => {
-    app.events.answer('combat.targets.ray', request => {
+    app.events.answer('combat.targets.ray', (request: RayTargets): RayTargets => {
       for (const target of weaponTargets) request.hit = target.raycast(request.origin, request.dir, request.maxDist, request.hit);
       return request;
     }, scope);
