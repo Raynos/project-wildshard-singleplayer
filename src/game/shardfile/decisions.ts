@@ -500,6 +500,9 @@ export class ShardDecisions {
     const previousIds = v.parse(channels, previousChannels).map(row => row.id), currentIds = v.parse(channels, currentChannels).map(row => row.id);
     return JSON.stringify(previousIds) === JSON.stringify(currentIds) && JSON.stringify(previous) === JSON.stringify(current);
   }
+  /** A logical restore resumes the simulation's clock at its saved tick but carries no decision state (it is not
+   *  portable progress): the fresh guests continue from that tick, so the next fixed step is consecutive. */
+  continueAt(tick: number): void { this.host.restore({ ...this.host.snapshot(), tick }); }
   /** Validate the whole logical record before mutation; loading invokes no Wasm or gameplay edge. */
   restore(input: SimValue): void {
     if (typeof input !== 'string') throw new Error('Invalid decision continuation');

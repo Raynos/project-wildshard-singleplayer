@@ -101,7 +101,7 @@ function apply(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, sta
   sim.quest.restore(state.dialogue); restoreBuiltins(sim, state, true);
   // Restore the host last: transient lift modules require a fresh isolate, so earlier failures can roll back before admission.
   if (state.lane !== null) sim.lane?.restore(state.lane);
-  sim.movers?.resetPublishedPoses(); sim.host.state.tick = state.tick;
+  sim.movers?.resetPublishedPoses(); sim.host.state.tick = state.tick; sim.decisions?.continueAt(state.tick);
 }
 function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
   // All historical version-1 client checkpoints predate authored state-version migrations and used state version 1.
@@ -127,6 +127,7 @@ function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runti
     if (saved === null || (saved !== undefined && row.nodes.some((node) => node.id === saved))) dialogue[row.id] = saved;
   }
   sim.quest.restore(dialogue); restoreBuiltins(sim, state, state.revision === source.identity.revision); sim.host.state.tick = state.tick;
+  sim.decisions?.continueAt(state.tick); // fresh sim decisions follow the restored clock (not portable progress)
 }
 /** Refuse incompatible/corrupt progress atomically. Silent quest restore never repeats profile rewards or scene events. */
 export function restoreClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {

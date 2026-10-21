@@ -18,6 +18,8 @@ import { ShardDecisions, type DecisionRuntime } from '../src/game/shardfile/deci
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import * as v from 'valibot';
 import { ClientChannels } from '../src/sdk/clientChannels';
+import { SaveStore } from '../src/engine/saves/store';
+import { GridRegionDurability } from '../src/game/grid/durability';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
 const io = scriptV1Layout(1, 0), state = 16384 + io.state * 8, out = 16384 + io.outbox * 8;
@@ -493,4 +495,37 @@ test('a yielded spawn-group build publishes its step only after every declared b
     const saved = first.snapshot(); first.restore(saved); expect(first.snapshot()).toBe(saved);
     owner.dispose(); expect(fixed.size).toBe(0);
   } finally { sim.dispose(); }
+});
+
+// A grid region left on one revision and re-entered on the next restores its portable progress logically: the fresh
+// simulation resumes at the saved tick while its sim decisions are fresh. They must continue from that tick, or every
+// fixed step after the crossing threw 'nonconsecutive step' and the grid's live post-step system switched itself off
+// (the iOS Simulator, entering the template with a save from an older build).
+test('a region re-entered after a revision keeps its decision clock in step', async () => {
+  // No shared field: a lane-less region's portable progress is its flags and quests, so logical restore admits it.
+  const f = fixture(), R = await rapier, local = new Map<string, string>(), row = f.scripts[0];
+  if (row === undefined) throw new Error('Missing script fixture');
+  f.source.state.shared = []; row.fields = {}; row.commands = row.commands.filter(name => name !== 'field');
+  const storage = { get length() { return local.size; }, key: (i: number) => [...local.keys()][i] ?? null, getItem: (k: string) => local.get(k) ?? null,
+    setItem: (k: string, value: string) => { local.set(k, value); }, removeItem: (k: string) => { local.delete(k); }, clear: () => { local.clear(); } };
+  const identity = { id: 'decision-sim-1', shard: f.source.identity.slug };
+  const before = new GridRegionDurability(new SaveStore({ local: storage, session: null }), identity, f.source, []);
+  const first = createShardfileSim(f.source, f.assets, { ...f.options, rapier: R, quest: before.quest });
+  let fresh: ShardfileSimulation | undefined;
+  try {
+    before.setPhysicsBasis(first.host.physics.snapshot()); before.bind(first.host, first.colliders);
+    for (let i = 0; i < 9; i++) first.host.step();
+    expect(first.decisions?.host.snapshot().tick).toBe(9);
+    expect(before.checkpoint(snapshotSimHost(first.host))).toBe(true);
+    const revised = { ...f.source, identity: { ...f.source.identity, revision: f.source.identity.revision + 1 } };
+    const after = new GridRegionDurability(new SaveStore({ local: storage, session: null }), identity, revised, []);
+    fresh = createShardfileSim(revised, f.assets, { ...f.options, rapier: R, quest: after.quest });
+    after.setPhysicsBasis(fresh.host.physics.snapshot());
+    expect(after.read(true)).toBeUndefined(); // an older revision: logical progress only
+    after.bind(fresh.host, fresh.colliders);
+    expect(after.restoreLogical(fresh)).toBe(true);
+    expect(fresh.host.state.tick).toBe(9);
+    for (let i = 0; i < 12; i++) fresh.host.step();
+    expect(fresh.decisions?.host.snapshot().tick).toBe(21);
+  } finally { fresh?.dispose(); first.dispose(); }
 });
