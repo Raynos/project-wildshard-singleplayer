@@ -46,6 +46,8 @@ export interface LiveGridPorts {
   home: LiveGridHome | LiveGridOwnedHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
   highway: { bytes: number; create: () => LiveGridRegion | LiveGridHighway };
   admit: (cell: GridCell) => Promise<LiveGridAdmission>;
+  /** Actual world construction outranks product-only prefetch until its queued preparation drains. */
+  prioritize?: (cell: GridCell) => () => void;
   /** Browser presentation boundary between admission batches; absent leaves the standalone Node scheduler unchanged. */
   pause?: () => Promise<void>;
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
@@ -266,7 +268,8 @@ export class LiveGridHost {
     const bundle = this.ports.readiness.bundle(cell), estimate = readinessModel(bundle, this.ports.readiness.link);
     const ticket = this.readiness.request(instance, 0, estimate, bundle.hybridWireBytes > 0);
     if (ticket === null) return Promise.reject(new Error('Stale live grid readiness request'));
-    const request = this.admitRegion(cell, bundle, ticket, this.sequence);
+    const releasePriority = this.ports.prioritize?.(cell);
+    const request = this.admitRegion(cell, bundle, ticket, this.sequence).finally(() => { releasePriority?.(); });
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }

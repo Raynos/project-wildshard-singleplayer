@@ -25,7 +25,7 @@ for (const kind of scenarios) {
   const created = new Promise((resolve) => { signalCreate = () => { resolve(undefined); }; });
   const admitGate = new Promise((resolve) => { releaseAdmit = () => { resolve(undefined); }; });
   const createGate = new Promise((resolve) => { releaseCreate = () => { resolve(undefined); }; });
-  let cancellations = 0, creations = 0, disposals = 0;
+  let cancellations = 0, creations = 0, disposals = 0, priorityHolds = 0;
   const id = `product:${kind}`;
   const registry = new LiveGridHost(assembly, {
     continuations: 'durable', maxResidents: kind === 'resident-limit' ? 1 : 2,
@@ -37,7 +37,9 @@ for (const kind of scenarios) {
     } },
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 0 }) },
+    prioritize: () => { priorityHolds++; return () => { priorityHolds--; }; },
     admit: async () => {
+      assert.equal(priorityHolds, 1);
       const product = allocator.reserve({ id, category: 'library', owner: target.instance, bytes: 100, distance: 0, needed: true });
       assert.ok(product); signalAdmit();
       if (kind === 'disposed-admit') await admitGate;
@@ -45,6 +47,7 @@ for (const kind of scenarios) {
         cancel: () => { cancellations++; product.release(); if (kind === 'cancel-throws') throw new Error('cancel cleanup failed'); },
         prepareRuntime: async () => { if (kind === 'runtime') throw new Error('runtime failed'); },
         create: async () => {
+          assert.equal(priorityHolds, 1);
           creations++; signalCreate();
           if (kind === 'create' || kind === 'cancel-throws') throw new Error('create failed');
           const host = createSimHost(level, { rapier, playerBody: kind === 'invalid-region', ground: false });
@@ -74,7 +77,7 @@ for (const kind of scenarios) {
       assert.equal(disposals, ['disposed-create', 'invalid-region'].includes(kind) ? 1 : 0);
       totalCancelled += cancellations;
     }
-  } finally { registry.dispose(); player.motor.dispose(); page.dispose(); }
+  } finally { assert.equal(priorityHolds, 0); registry.dispose(); player.motor.dispose(); page.dispose(); }
   assert.deepEqual(allocator.entries(), []);
 }
 console.info(JSON.stringify({ scenarios: scenarios.length, cancelled: totalCancelled, successfulRegionOwnsRelease: true, leakedClaims: 0 }));

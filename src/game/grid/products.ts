@@ -18,6 +18,7 @@ import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
+import { GridAdmissionPriority } from './admissionPriority';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
 const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
@@ -58,6 +59,22 @@ export interface GridProduct { readonly admitted: AdmittedProduct; readonly opti
 /** One page allocator owns its product cache; consumers release only after their source/transport references are gone. */
 export interface GridProductOwner { allocator: ResidencyAllocator; scope: { readonly disposed: boolean; onDispose: (dispose: () => void) => void } }
 
+const priorities = new WeakMap<ResidencyAllocator, GridAdmissionPriority>();
+function admissionPriority(owner: GridProductOwner): GridAdmissionPriority {
+  let priority = priorities.get(owner.allocator);
+  if (priority === undefined) {
+    priority = new GridAdmissionPriority(); priorities.set(owner.allocator, priority);
+    const held = priority;
+    owner.scope.onDispose(() => { held.dispose(); priorities.delete(owner.allocator); });
+  }
+  return priority;
+}
+/** Actual region preparation retains read priority over speculative products on the same page. */
+export function prioritizeGridProduct(slug: string, owner: GridProductOwner): () => void {
+  if (owner.scope.disposed) throw new Error('Grid product page disposed');
+  return admissionPriority(owner).hold(slug);
+}
+
 const products = new WeakMap<ResidencyAllocator, ProductLeases<Omit<GridProduct, 'release'>>>();
 const postCosts = new WeakMap<ResidencyAllocator, GridPostCosts>();
 
@@ -90,7 +107,17 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
     owner.scope.onDispose(() => { owned.dispose(); products.delete(owner.allocator); });
   }
   return cache.acquire(slug, async (reserve, releaseBytes) => {
-    const url = new URL(descriptor, location.href), options = { ...browserShardfileOptions(new URL('.', url).href, true), memory: owner.allocator.memory };
+    const url = new URL(descriptor, location.href), original = browserShardfileOptions(new URL('.', url).href, true);
+    const priority = admissionPriority(owner), content = original.cache, present = content?.verifiedPresent, verified = content?.verifiedAsset;
+    const options: ProductOptions = { ...original, memory: owner.allocator.memory,
+      fetch: address => priority.read(slug, () => original.fetch(address)),
+      ...(content === undefined ? {} : { cache: { ...content,
+        product: base => priority.read(slug, () => content.product(base)),
+        asset: (base, hash) => priority.read(slug, () => content.asset(base, hash)),
+        ...(verified === undefined ? {} : { verifiedAsset: (hash: string) => priority.read(slug, () => verified(hash)) }),
+        ...(present === undefined ? {} : { verifiedPresent: (hash: string, bytes: number) => priority.read(slug, () => present(hash, bytes)) }),
+      } }),
+    };
     const input = await readIndexBytes(await boundedResponse(await options.fetch(url.href), limits.sourceBytes), options);
     const admitted = await admitProduct(input, { ...options, reserve });
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair

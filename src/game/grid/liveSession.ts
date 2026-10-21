@@ -55,7 +55,7 @@ import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
-import { gridPostCosts, gridShardfileProduct } from './products';
+import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct } from './products';
 import { gridPostPairRefusal } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
@@ -284,6 +284,7 @@ export class LiveGridSession {
         } catch (error) { host.dispose(); throw error; }
       } },
       admit: (cell) => this.admit(cell),
+      prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
       pause: () => yieldGridAdmission(scope),
       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
