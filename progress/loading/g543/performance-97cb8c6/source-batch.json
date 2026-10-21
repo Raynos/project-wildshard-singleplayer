@@ -1,0 +1,18 @@
+{
+  "pin": "97cb8c6723b5b6ebcc7b7b58115a2638bf177be9",
+  "owner": "sp-o2",
+  "batchSeconds": 432.4,
+  "verdict": "batch-check: PASS; exit 0",
+  "sourceProof": {
+    "id": "20261021T053637-loading-shared-o14-batch-watch-20441",
+    "label": "loading-shared-o14-batch-watch",
+    "state": "passed",
+    "rc": 0,
+    "startedAt": 1792578997,
+    "endedAt": 1792579868,
+    "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T053637-loading-shared-o14-batch-watch-20441.log",
+    "pane": "wT:p3",
+    "command": "python3 tmp/loading-lane/wait-shared-o14-batch.py"
+  },
+  "rawLogSHA256": "cbcdc0dec98b31a007ec52fe9646cfc0b31c7825844fd4ef094d162a5f96474c"
+}

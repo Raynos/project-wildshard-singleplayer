@@ -1,0 +1,197 @@
+{
+  "pin": "97cb8c6723b5b6ebcc7b7b58115a2638bf177be9",
+  "surface": "desktop",
+  "path": "grid",
+  "visit": "cold",
+  "device": "Desktop Chromium",
+  "cpu": 1,
+  "errors": [],
+  "stageSeconds": 10.357900000035762,
+  "clockSeconds": 10.3,
+  "unaccountedSeconds": -0.05790000003576168,
+  "displayedNetworkBytes": 143789075,
+  "networkBytes": 143826189,
+  "byteError": 0.00025804757991606105,
+  "visibleByteError": 0,
+  "maxDetailGapMs": 218.0999999642372,
+  "failures": [],
+  "rawSHA256": "6b97d5f9489ef598423f91cc39247ed72eab395998de49f34b3cae00ea4e83cc",
+  "final": {
+    "at": 10369.399999976158,
+    "clock": "00:10.3",
+    "detail": "step 14 / 16 · Final activation",
+    "download": "143.8 MB downloaded · 111.9 MB from cache · 0.00 MB still expected · 1685 / 1685 files",
+    "footer": "Now working on: First frame",
+    "diagnostics": "Attempt 1 · JS heap 48 MiB · scene textures ~42 MiB\nLargest observed frame-update gap 0.2s at World assembly: Terrain seams · 9 batches\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "grid",
+    "step": "finish",
+    "setup": "100",
+    "networkBytes": "143789075",
+    "cachedBytes": "111859239",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "▸ gap before setup",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.09999996423721313"
+      },
+      {
+        "label": "▸ 1 · Application modules",
+        "detail": "Preparing application services · 0 / 0 files · 0.00 MB read",
+        "duration": "2.3 s",
+        "state": "ok",
+        "key": "modules",
+        "ms": "2281.100000023842"
+      },
+      {
+        "label": "▸ 2 · Product admission",
+        "detail": "Product schemas 8 / 8 · custom/trailside",
+        "duration": "527 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "527.3999999761581"
+      },
+      {
+        "label": "▸ 3 · Texture and audio preparation",
+        "detail": "",
+        "duration": "4 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "4.300000011920929"
+      },
+      {
+        "label": "▸ 4 · Renderer",
+        "detail": "",
+        "duration": "17 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "17.399999976158142"
+      },
+      {
+        "label": "▸ 5 · Weapons · HUD",
+        "detail": "",
+        "duration": "3 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "3"
+      },
+      {
+        "label": "▸ 6 · World assembly",
+        "detail": "25 cells · 96 seams · road ready",
+        "duration": "1.6 s",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "1599.1000000238419"
+      },
+      {
+        "label": "▸ 7 · Title art · explore",
+        "detail": "34 / 34 pictures · UI",
+        "duration": "2 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "2.199999988079071"
+      },
+      {
+        "label": "▸ 8 · Shaders",
+        "detail": "19 / 19 post pipelines drawn · 173 programs",
+        "duration": "2.1 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "2052.7000000476837"
+      },
+      {
+        "label": "▸ 9 · First frame",
+        "detail": "Pass 6 / 6 · ready · 173 programs",
+        "duration": "167 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "167.0999999642372"
+      },
+      {
+        "label": "▸ 10 · Audio · music + sound effects",
+        "detail": "Prepared audio clips 0 / 0",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "0.40000003576278687"
+      },
+      {
+        "label": "▸ 11 · Region world",
+        "detail": "",
+        "duration": "91 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "91"
+      },
+      {
+        "label": "▸ 12 · Equipment and HUD",
+        "detail": "",
+        "duration": "71 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "71.10000002384186"
+      },
+      {
+        "label": "▸ 13 · Gameplay and saved state",
+        "detail": "",
+        "duration": "26 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "26"
+      },
+      {
+        "label": "▸ 14 · Final activation",
+        "detail": "",
+        "duration": "82 ms",
+        "state": "on",
+        "key": "finish",
+        "ms": "82.3999999165535"
+      },
+      {
+        "label": "▸ 15 · Home region",
+        "detail": "Home region 1 / 1 · driftwood-isle · Physics 2255 colliders · Trees 0 forest records",
+        "duration": "3.4 s",
+        "state": "ok",
+        "key": "home",
+        "ms": "3432.6000000834465"
+      }
+    ]
+  },
+  "firstAt": 2220.199999988079,
+  "readyAt": 10369.399999976158,
+  "updates": 130,
+  "nodeBuilds": null,
+  "transport": {
+    "requests": 947,
+    "bodyBytes": 143580083,
+    "headerBytes": 246106
+  },
+  "ao": {
+    "present": true,
+    "enabled": true,
+    "passes": [
+      {
+        "name": "RenderPass",
+        "enabled": true
+      },
+      {
+        "name": "Pass",
+        "enabled": true
+      },
+      {
+        "name": "EffectPass",
+        "enabled": true
+      },
+      {
+        "name": "EffectPass",
+        "enabled": true
+      }
+    ]
+  }
+}

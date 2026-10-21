@@ -1,0 +1,635 @@
+{
+  "pin": "97cb8c6723b5b6ebcc7b7b58115a2638bf177be9",
+  "surface": "phone",
+  "path": "shardfile",
+  "visit": "cold",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "errors": [],
+  "stageSeconds": 22.370699999988076,
+  "clockSeconds": 22.3,
+  "unaccountedSeconds": -0.07069999998807575,
+  "displayedNetworkBytes": 141698117,
+  "networkBytes": 141725144,
+  "byteError": 0.00019070010611525645,
+  "visibleByteError": 0,
+  "maxDetailGapMs": 395.5,
+  "failures": [],
+  "rawSHA256": "a6bb7ff0796984378cbe3911d087b97829c75f72919416be54d87c8717c31a87",
+  "final": {
+    "at": 22431,
+    "clock": "00:22.3",
+    "detail": "step 24 / 24 · Final activation",
+    "download": "141.7 MB downloaded · 95.3 MB from cache · 0.00 MB still expected · 1553 / 1553 files",
+    "footer": "Now working on: Audio · music + sound effects",
+    "diagnostics": "Attempt 1 · JS heap 51 MiB · scene textures ~2 MiB\nLargest observed frame-update gap 0.3s at Shaders: 116 materials · 9 / 160 batches · parallel · 24 programs\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "shardfile",
+    "step": "finish",
+    "setup": "100",
+    "networkBytes": "141698117",
+    "cachedBytes": "95285506",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "▸ gap before setup",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.6000000238418579"
+      },
+      {
+        "label": "▸ 1 · Application modules",
+        "detail": "Preparing application services · 0 / 0 files · 0.00 MB read",
+        "duration": "1.1 s",
+        "state": "ok",
+        "key": "modules",
+        "ms": "1112.0999999642372"
+      },
+      {
+        "label": "▸ 2 · Product admission",
+        "detail": "Product schemas 8 / 8 · custom/trailside",
+        "duration": "744 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "744.1999999880791"
+      },
+      {
+        "label": "▸ 3 · Texture and audio preparation",
+        "detail": "",
+        "duration": "48 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "47.5"
+      },
+      {
+        "label": "▸ gap after Texture and audio preparation",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.6000000238418579"
+      },
+      {
+        "label": "▸ 4 · Renderer",
+        "detail": "",
+        "duration": "84 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "84.20000004768372"
+      },
+      {
+        "label": "▸ 5 · Sky · lighting",
+        "detail": "",
+        "duration": "1.0 s",
+        "state": "ok",
+        "key": "sky",
+        "ms": "1029.6999999284744"
+      },
+      {
+        "label": "▸ 6 · Terrain · heightfield",
+        "detail": "256² heightfield",
+        "duration": "114 ms",
+        "state": "ok",
+        "key": "terrain",
+        "ms": "114.10000002384186"
+      },
+      {
+        "label": "▸ 7 · Tree cards",
+        "detail": "",
+        "duration": "2 ms",
+        "state": "ok",
+        "key": "cards",
+        "ms": "2"
+      },
+      {
+        "label": "▸ 8 · Trees",
+        "detail": "0 trees",
+        "duration": "13 ms",
+        "state": "ok",
+        "key": "forest",
+        "ms": "12.699999988079071"
+      },
+      {
+        "label": "▸ 9 · Physics · Rapier · navmesh",
+        "detail": "5 colliders",
+        "duration": "22 ms",
+        "state": "ok",
+        "key": "physics",
+        "ms": "21.899999976158142"
+      },
+      {
+        "label": "▸ 10 · Chunk edge · water · horizon",
+        "detail": "",
+        "duration": "42 ms",
+        "state": "ok",
+        "key": "edge",
+        "ms": "42.19999998807907"
+      },
+      {
+        "label": "▸ 11 · Grass · ground cover",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "grass",
+        "ms": "0.800000011920929"
+      },
+      {
+        "label": "▸ 12 · Buildings",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "cabins",
+        "ms": "0"
+      },
+      {
+        "label": "▸ 13 · Props",
+        "detail": "Baked island",
+        "duration": "5.7 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "5717.5"
+      },
+      {
+        "label": "▸ 14 · Animals",
+        "detail": "13 animals",
+        "duration": "166 ms",
+        "state": "ok",
+        "key": "animals",
+        "ms": "166.4000000357628"
+      },
+      {
+        "label": "▸ 15 · Weapons · HUD",
+        "detail": "",
+        "duration": "7 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "7"
+      },
+      {
+        "label": "▸ 16 · World assembly",
+        "detail": "",
+        "duration": "9 ms",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "8.899999976158142"
+      },
+      {
+        "label": "▸ 17 · Title art · explore",
+        "detail": "40 / 40 pictures · UI",
+        "duration": "19 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "18.900000035762787"
+      },
+      {
+        "label": "▸ 18 · Shaders",
+        "detail": "8 / 8 post pipelines drawn · 119 programs",
+        "duration": "10.8 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "10796.299999952316"
+      },
+      {
+        "label": "▸ 19 · First frame",
+        "detail": "Pass 6 / 6 · ready · 119 programs",
+        "duration": "473 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "473.30000001192093"
+      },
+      {
+        "label": "▸ 20 · Audio · music + sound effects",
+        "detail": "Prepared audio clips 89 / 91",
+        "duration": "301 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "300.89999997615814"
+      },
+      {
+        "label": "▸ 21 · Region world",
+        "detail": "",
+        "duration": "130 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "129.60000002384186"
+      },
+      {
+        "label": "▸ 22 · Equipment and HUD",
+        "detail": "",
+        "duration": "732 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "732.2999999523163"
+      },
+      {
+        "label": "▸ 23 · Gameplay and saved state",
+        "detail": "",
+        "duration": "749 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "749.1000000238419"
+      },
+      {
+        "label": "▸ 24 · Final activation",
+        "detail": "",
+        "duration": "58 ms",
+        "state": "on",
+        "key": "finish",
+        "ms": "57.90000003576279"
+      }
+    ]
+  },
+  "firstAt": 694.6000000238419,
+  "readyAt": 22431,
+  "updates": 241,
+  "nodeBuilds": {
+    "builds": 75,
+    "buildMs": 7254.200000464916,
+    "log": [
+      {
+        "at": 2622.800000011921,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 11282.800000011921,
+        "material": "graph:shadow-depth",
+        "object": "Mesh"
+      },
+      {
+        "at": 11305.100000023842,
+        "material": "graph:shadow-depth",
+        "object": "Mesh"
+      },
+      {
+        "at": 11320.699999988079,
+        "material": "graph:shadow-depth",
+        "object": "driftwood-gulls"
+      },
+      {
+        "at": 11348.900000035763,
+        "material": "graph:shadow-depth",
+        "object": "driftwood-isle/palm-shadow-pieces-27"
+      },
+      {
+        "at": 11405.5,
+        "material": "graph:shadow-depth",
+        "object": "interact-lit"
+      },
+      {
+        "at": 11443.5,
+        "material": "graph:shadow-depth",
+        "object": "Mesh"
+      },
+      {
+        "at": 11499.800000011921,
+        "material": "graph:material",
+        "object": "sword_wood"
+      },
+      {
+        "at": 11782,
+        "material": "graph:material",
+        "object": "sword_iron"
+      },
+      {
+        "at": 11968.5,
+        "material": "graph:material",
+        "object": "arms"
+      },
+      {
+        "at": 12391.100000023842,
+        "material": "graph:material",
+        "object": "sword_wood"
+      },
+      {
+        "at": 12559,
+        "material": "graph:material",
+        "object": "arms"
+      },
+      {
+        "at": 12718.400000035763,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 12726.900000035763,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 12749.5,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 12872.900000035763,
+        "material": "graph:material",
+        "object": "mesh-shadow-pieces-0"
+      },
+      {
+        "at": 12923.699999988079,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 12973,
+        "material": "graph:material",
+        "object": "island-terrainlo_0_0"
+      },
+      {
+        "at": 13083.199999988079,
+        "material": "graph:material",
+        "object": "driftwood-isle/cove-bpalm:bpalm0:0"
+      },
+      {
+        "at": 13225.699999988079,
+        "material": "graph:material",
+        "object": "driftwood-isle/cove-white:white1:0"
+      },
+      {
+        "at": 13409.199999988079,
+        "material": "graph:material",
+        "object": "driftwood-isle/cove-fern:fern1:0"
+      },
+      {
+        "at": 13829,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 13995.800000011921,
+        "material": "graph:material",
+        "object": "mesh-shadow-pieces-2"
+      },
+      {
+        "at": 14095.600000023842,
+        "material": "graph:material",
+        "object": "driftwood-ocean"
+      },
+      {
+        "at": 14305.699999988079,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 14397.199999988079,
+        "material": "graph:material",
+        "object": "driftwood-isle/entry-deck"
+      },
+      {
+        "at": 14554.5,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 14731.199999988079,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 14824.600000023842,
+        "material": "graph:material",
+        "object": "driftwood-isle/shore-boulder"
+      },
+      {
+        "at": 14991.699999988079,
+        "material": "graph:material",
+        "object": "driftwood-isle/shore-boulder-shadow-pieces-0"
+      },
+      {
+        "at": 15093.600000023842,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 15250.300000011921,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 15444,
+        "material": "graph:material",
+        "object": "shrine-fireflies"
+      },
+      {
+        "at": 15477.900000035763,
+        "material": "graph:material",
+        "object": "driftwood-gulls"
+      },
+      {
+        "at": 15571,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 15739.900000035763,
+        "material": "graph:material",
+        "object": "seabed"
+      },
+      {
+        "at": 15906,
+        "material": "graph:material",
+        "object": "seabed-fish"
+      },
+      {
+        "at": 15987.699999988079,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 16147.300000011921,
+        "material": "graph:material",
+        "object": "waterfall-sheet"
+      },
+      {
+        "at": 16163.800000011921,
+        "material": "graph:material",
+        "object": "waterfall-sheet"
+      },
+      {
+        "at": 16205,
+        "material": "graph:material",
+        "object": "waterfall-rings"
+      },
+      {
+        "at": 16223.699999988079,
+        "material": "graph:material",
+        "object": "waterfall-rings"
+      },
+      {
+        "at": 16260.699999988079,
+        "material": "graph:material",
+        "object": "waterfall-puffs"
+      },
+      {
+        "at": 16295.100000023842,
+        "material": "graph:material",
+        "object": "driftwood-isle/palm"
+      },
+      {
+        "at": 16468.100000023842,
+        "material": "graph:material",
+        "object": "driftwood-isle/palm-shadow-pieces-1"
+      },
+      {
+        "at": 16565,
+        "material": "graph:material",
+        "object": "ground-cover-tuft-far"
+      },
+      {
+        "at": 16727.30000001192,
+        "material": "graph:material",
+        "object": "ground-cover-tuft"
+      },
+      {
+        "at": 16905.19999998808,
+        "material": "graph:material",
+        "object": "ground-cover-fern-far"
+      },
+      {
+        "at": 17070.80000001192,
+        "material": "graph:material",
+        "object": "ground-cover-fern"
+      },
+      {
+        "at": 17257.5,
+        "material": "graph:material",
+        "object": "ground-cover-hibiscus-far"
+      },
+      {
+        "at": 17414,
+        "material": "graph:material",
+        "object": "ground-cover-hibiscus"
+      },
+      {
+        "at": 17608.69999998808,
+        "material": "graph:material",
+        "object": "ground-cover-daisy-far"
+      },
+      {
+        "at": 17774.5,
+        "material": "graph:material",
+        "object": "ground-cover-daisy"
+      },
+      {
+        "at": 17926.5,
+        "material": "graph:material",
+        "object": "ground-cover-pebble"
+      },
+      {
+        "at": 18065.19999998808,
+        "material": "graph:material",
+        "object": "ground-cover-shells"
+      },
+      {
+        "at": 18231.900000035763,
+        "material": "graph:material",
+        "object": "ground-cover-starfish"
+      },
+      {
+        "at": 18365.5,
+        "material": "graph:material",
+        "object": "ground-cover-bush-far"
+      },
+      {
+        "at": 18515.5,
+        "material": "graph:material",
+        "object": "ground-cover-bush"
+      },
+      {
+        "at": 18673.100000023842,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 18801.69999998808,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 18912.30000001192,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19031.80000001192,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19140,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19276.19999998808,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19401,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19536.600000023842,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19657.600000023842,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19811.19999998808,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 19939.600000023842,
+        "material": "graph:material",
+        "object": "SkinnedMesh"
+      },
+      {
+        "at": 20095.5,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 20290.400000035763,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 20430.900000035763,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 20700.5,
+        "material": "graph:material",
+        "object": "interact-lit"
+      },
+      {
+        "at": 20869.900000035763,
+        "material": "graph:material",
+        "object": "Mesh"
+      },
+      {
+        "at": 20970.100000023842,
+        "material": "graph:material",
+        "object": "castaway-smoke"
+      }
+    ]
+  },
+  "transport": {
+    "requests": 997,
+    "bodyBytes": 141474487,
+    "headerBytes": 250657
+  }
+}
