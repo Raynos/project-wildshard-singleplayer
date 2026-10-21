@@ -6748,8 +6748,20 @@ prompt; the entry resolves its feet and counter height through its own
 placement and floor policy. Inventory, panel creation, opening, camera,
 walk-away closure and save ownership stay with the existing trader host.
 
+`game/quest/nativeComposition.installNativeQuestComposition(host, ports)`
+runs Pine and Driftwood through one native frame, command graph and saved
+adapter. Admitted facets select their existing chapter, services, acquisition,
+reward and physical-prop owners. Ports lend the product, table, captured
+placements and prepared mechanics; author rows supply no callbacks or shard
+mode. Each facet retains its original phase and existing save owner.
+
+Saved rows declare snapshot and restore order plus optional role aliases.
+Encoding preserves each original wire name and ordering. Decoding refuses
+noncanonical alias keys and duplicate decoded roles before restore; original
+quest envelopes, cable endpoints and quiet restoration remain unchanged.
+
 The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
-the admitted table and pack for both native quest compositions. It borrows
+the admitted table and pack for that native composition. It borrows
 the worker's existing command and ledger adapter; `install(owners)` binds the
 same declared graph once at the composition's original phase. The owners are
 trusted platform mechanics, not an author callback API. Table bounds and
