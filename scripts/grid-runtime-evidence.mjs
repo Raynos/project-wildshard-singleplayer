@@ -43,7 +43,7 @@ export function runtimeReceiptPaths(root) {
  * @param {readonly string[]} paths @param {{explorerMB:number,loadingMB:number}} caps
  * @returns {Partial<Record<'memory'|'oneFrameLooks'|'frameFloor',import('./shard-milestones.mjs').Criterion>>} */
 export function runtimeGridEvidence(root,slug,revision,paths,caps) {
-  if(revision===null||!v.is(sha,revision))return {};
+  if(revision===null||!v.is(sha,revision))return latchedGridEvidence(root,slug);
   const basis=`source ${revision}; exact source SHA`;
   /** @type {Record<'memory'|'oneFrameLooks'|'frameFloor',Array<{at:number,path:string,criterion:import('./shard-milestones.mjs').Criterion}>>} */
   const candidates={memory:[],oneFrameLooks:[],frameFloor:[]};

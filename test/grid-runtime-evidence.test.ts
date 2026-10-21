@@ -127,6 +127,7 @@ it('retains a measured pass across source/product changes and later failing samp
  const path=resolve(root,GRID_READY_LATCHES),write=(entries:unknown[])=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,JSON.stringify({schema:'grid-ready-latches/1',entries}));};
  try {
   write([latch]);
+  expect(runtimeGridEvidence(root,'_template',null,[],caps).oneFrameLooks?.verdict).toBe('pass');
   // No old receipt, checksum, product or runtime source is required after the pass latches.
   const read=()=>runtimeGridEvidence(root,'_template',revision,['new.json'],caps);
   expect(read().oneFrameLooks?.verdict).toBe('pass');expect(read().oneFrameLooks?.evidence).toContain(`${latch.receiptCommit}:${latch.receipt}`);
