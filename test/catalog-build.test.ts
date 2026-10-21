@@ -52,6 +52,9 @@ function builder(calls: string[][], fail?: string): (args: string[]) => Promise<
     writeOutputProduct(merged.shard, merged.assets, destination, { namedFiles: merged.namedFiles, ...(runtime === undefined ? {} : { runtime }) });
   };
 }
+function productCalls(calls: string[][]): string[][] {
+  return calls.filter(call => call[0] === 'build').sort((a,b) => (a[1] ?? '').localeCompare(b[1] ?? ''));
+}
 it('builds both copied runtimes before one complete output-only catalog and publishes it with the app', async () => {
   const root = await fixture(), calls: string[][] = [];
   expect(await buildShardfiles(root, { strict: true, catalog: true, build: builder(calls) })).toBe(2);
@@ -101,7 +104,7 @@ it('marks an escaping runtime as source without copied-runtime credit', async ()
   const root = await fixture(), calls: string[][] = [];
   put(root, 'src/shards/beta/runtime/index.ts', "import '../data/native';\n");
   await buildShardfiles(root, { strict: true, catalog: true, build: builder(calls) });
-  expect(calls.filter(call => call[0] === 'build').map(call => call.includes('--copy-runtime'))).toEqual([true, false]);
+  expect(productCalls(calls).map(call => call.includes('--copy-runtime'))).toEqual([true, false]);
   const output = resolve(root, 'out'), catalog = parseShardCatalog(JSON.parse(readFileSync(resolve(output, 'catalog.json'), 'utf8')));
   expect(catalog.shards.find(row => row.slug === 'beta')?.runtime).toBe('source');
   expect(existsSync(resolve(output, 'beta/runtime/index.ts'))).toBe(false);
@@ -113,7 +116,7 @@ it('copies only closed runtimes without publishing or depending on catalog metad
   put(root, 'src/shards/beta/runtime/index.ts', "import '../data/native';\n");
   await buildShardfiles(root, { strict: true, copyRuntime: 'closed', build: builder(calls) });
   expect(calls.map(call => call[0])).toEqual(['build', 'build']);
-  expect(calls.map(call => call.includes('--copy-runtime'))).toEqual([true, false]);
+  expect(productCalls(calls).map(call => call.includes('--copy-runtime'))).toEqual([true, false]);
   expect(existsSync(resolve(root, 'out/alpha/runtime/index.ts'))).toBe(true);
   expect(existsSync(resolve(root, 'out/beta/runtime/index.ts'))).toBe(false);
   expect(existsSync(resolve(root, 'out/catalog.json'))).toBe(false);
@@ -125,7 +128,7 @@ it('uses the same product flags for ordinary builds, ruler builds and the catalo
   for (const options of [{ strict: false }, { strict: false, copyRuntime: 'closed' as const }, { strict: true, catalog: true }]) {
     const calls: string[][] = [];
     await buildShardfiles(root, { ...options, build: builder(calls) });
-    flags.push(calls.filter(call => call[0] === 'build').map(call => call.slice(3)));
+    flags.push(productCalls(calls).map(call => call.slice(3)));
   }
   expect(flags[0]).toEqual(flags[1]); expect(flags[1]).toEqual(flags[2]);
   expect(flags[0]?.map(row => row.includes('--copy-runtime'))).toEqual([true, false]);

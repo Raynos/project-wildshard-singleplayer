@@ -14,6 +14,7 @@ import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './m
 import { readBuildKey, publishProduct, reuseOrBuild, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 import { prepareDataMaps } from './bake-data-maps.mjs';
 import { quietCli } from './quiet-cli.mjs';
+import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
@@ -50,9 +51,10 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   if(onFailure===undefined)for (const slug of only ?? built) checkHeadlessAssembly(root, slug);
   if ((reuse || only !== undefined) && strict) console.warn('wildshard build: --reuse / --shard ignored in CI; building every shard');
   const files = strict ? undefined : treeHashes(root);
-  for (const entry of readdirSync(projects, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+  await runShardBuildPool(readdirSync(projects, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)), async (entry, signal) => {
+    const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
     const project = resolve(projects, entry.name);
-    if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) continue;
+    if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) return;
     try {
     if(onFailure!==undefined){await prepareDataMaps(root,[entry.name]);checkHeadlessAssembly(root,entry.name);}
     const started = performance.now();
@@ -77,18 +79,18 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       // CI / Vercel overwrite the product in place: drop any fast-path stamp so it can never vouch for these bytes.
       mkdirSync(resolve(root,'out'),{recursive:true});
       const temporary=mkdtempSync(resolve(root,'out',`.build-${entry.name}-`));
-      try {await build(['build',project,temporary,'--product-only','--no-placeholders','--format=2',...flags]);publishProduct(temporary,destination);}finally{rmSync(temporary,{recursive:true,force:true});}
+      try {await buildOne(['build',project,temporary,'--product-only','--no-placeholders','--format=2',...flags]);publishProduct(temporary,destination);}finally{rmSync(temporary,{recursive:true,force:true});}
       count++;
-      continue;
+      return;
     }
     const key = shardfileKey(files, entry.name, built, flags.map(flag => flag.replace(root, '<root>')));
     if (only !== undefined && !only.includes(entry.name)) {
       const here = readBuildKey(destination);
       if (here !== key && existsSync(destination)) { rmSync(destination, { recursive: true, force: true }); console.info(`wildshard build: ${entry.name} skipped (--shard), stale product removed`); }
       else console.info(`wildshard build: ${entry.name} skipped (--shard)${here === key ? ', product current' : ''}`);
-      continue;
+      return;
     }
-    const how = await reuseOrBuild({ slug: entry.name, key, destination, fresh: !reuse && only === undefined, build: out => build(['build', project, out, '--product-only', '--no-placeholders', '--format=2', ...flags]) });
+    const how = await reuseOrBuild({ slug: entry.name, key, destination, fresh: !reuse && only === undefined, build: out => buildOne(['build', project, out, '--product-only', '--no-placeholders', '--format=2', ...flags]) });
     console.info(`wildshard build: ${entry.name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     } catch(error) {
@@ -97,7 +99,8 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       rmSync(resolve(outputRoot,entry.name),{recursive:true,force:true});
       onFailure(entry.name,error);
     }
-  }
+  });
+  runtimeReport.sort((a,b)=>a.slug.localeCompare(b.slug));
   if (copyRuntime === 'closed') for (const report of runtimeReport) console.info(`runtime copy: ${JSON.stringify(report)}`);
   console.info(`wildshard build: ${count} shardfile project(s)`);
   if (stale.length > 0) {
