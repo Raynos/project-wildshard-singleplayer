@@ -6,7 +6,7 @@ type AssetPort = Parameters<App['assets']['bindResidency']>[0];
 /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */
 export type AssetAllocationReader = (resource: Disposable3) => readonly { identity: object; bytes: number; kind: 'cpu' | 'gpu' }[];
 interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; retired: boolean }
-interface Allocation { lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; refs: number; covering: string | undefined }
+interface Allocation { readonly identity: object; lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; refs: number; covering: string | undefined }
 const bridges = new WeakMap<ResidencyAllocator, AssetResidencyBridge>();
 
 /** One page's retained allocation bridge: CPU backing stores, GPU attributes and texture source/sampler pairs are
@@ -77,7 +77,7 @@ export class AssetResidencyBridge implements AssetPort {
         let entry = this.allocations.get(row.identity);
         if (entry === undefined) {
           const actualCoverage = this.coverage(row.bytes, covering), lease = this.reserve(row.bytes, row.kind, actualCoverage);
-          entry = { lease, bytes: row.bytes, kind: row.kind, refs: 0, covering: actualCoverage }; this.allocations.set(row.identity, entry);
+          entry = { identity: row.identity, lease, bytes: row.bytes, kind: row.kind, refs: 0, covering: actualCoverage }; this.allocations.set(row.identity, entry);
         }
         entry.refs++; held.push(entry);
       }
@@ -111,10 +111,8 @@ export class AssetResidencyBridge implements AssetPort {
     return { observe, unused: () => { if (live) this.evictUnused(consumer); }, release: () => { if (live) { live = false; this.consumers.delete(consumer); this.release(held); } } };
   }
   private release(held: readonly Allocation[]): void {
-    for (const entry of held) if (--entry.refs === 0) {
-      entry.lease.release();
-      for (const [identity, candidate] of this.allocations) if (candidate === entry) { this.allocations.delete(identity); break; }
-    }
+    // O20: each entry keeps its identity, so a region's retirement deletes in O(1) instead of scanning every allocation
+    for (const entry of held) if (--entry.refs === 0) { entry.lease.release(); this.allocations.delete(entry.identity); }
   }
   /** Detach only with the actual renderer owner; unloading a level alone must not uncharge still-live cached GPU data. */
   dispose(): void {
