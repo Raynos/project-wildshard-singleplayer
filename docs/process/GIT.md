@@ -64,7 +64,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   oxlint on changed files, then related tests within the remaining budget. Foreign working or staged edits never
   enter the candidate. No full generation, build, products or mirror job runs in this gate; only the small source
   tables needed for checks are prepared. A matching, verified generation cache supplies type inputs. On a cache miss,
-  types and type-dependent lint defer to CI; ordinary and architecture lint stay local. Each result says
+  types, type-dependent lint and related tests defer to CI (the test setup also reads generated rows);
+  ordinary and architecture lint stay local. Each result says
   `types: checked` or `types: ci-cache-miss`. **CI is the full gate**, including full types, generation, build and tests;
   CI reds are fixed forward through the owning lane. The CI watcher runs every five minutes.
 - **A red commit is ejected back to its lane; the checked green prefix can still push.** The loop attributes the

@@ -74,7 +74,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
     result['types'] = 'checked' if types_available else 'ci-cache-miss'
     if not types_available:
-        result['output'] = 'No matching verified generation cache: TypeScript and type-aware lint defer to the full CI gate; ordinary oxlint remains local.'
+        result['output'] = 'No matching verified generation cache: TypeScript, type-aware lint and related tests defer to the full CI gate; ordinary oxlint remains local.'
     before = snapshot(root, files)
     (root / 'tmp').mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='live-prepush-', dir=root / 'tmp') as temporary:
@@ -92,9 +92,12 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
             if rc:
                 result.update(phase=phase, output=output, files=failure_paths(output))
                 return result
+        # Vitest setup imports generated boot/species rows, even for pure tests.
+        # A cache miss cannot run that setup or attribute its missing files to a
+        # source commit. The full CI gate prepares and checks those inputs.
         # Selection also consumes the same budget; it never prepares products.
         left = deadline - time.monotonic()
-        if left > 2:
+        if types_available and left > 2:
             rc, output = runner(['node', str(tools / 'gate-related-tests.mjs'), str(listing),
                                  '--live', '--budget=' + str(max(0, left - 2))], root, deadline, env)
             if rc not in (0, 124):

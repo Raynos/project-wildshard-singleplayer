@@ -281,7 +281,7 @@ class PushLoop(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'source differs'):
             CACHE['publish'](self.root, tip, generated)
 
-    def test_cache_miss_defers_types_but_runs_lint_and_related_tests(self):
+    def test_cache_miss_defers_generated_checks_but_keeps_lint(self):
         tip = self.commit('src/good.ts')
         commands = []
         def runner(command, *_):
@@ -296,6 +296,19 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(Path(commands[0][1]).name, 'push-lint-config.mjs')
         self.assertEqual(commands[1][:3], ['pnpm', 'exec', 'oxlint'])
         self.assertTrue(all('types' not in command and '--type-aware' not in command for command in commands))
+        self.assertEqual(len(commands), 2)
+        self.assertTrue(all('vitest' not in command and '--live' not in command for command in commands))
+        self.assertIn('related tests defer', result['output'])
+
+    def test_cache_miss_keeps_ordinary_source_refusals_attributable(self):
+        tip = self.commit('src/bad.ts')
+        def runner(command, *_):
+            return (1, 'src/bad.ts:1:1 no-eval') if 'oxlint' in command else (0, '')
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
+                               runner, types_available=False)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'lint')
+        self.assertEqual(result['files'], ['src/bad.ts'])
 
     def test_real_cache_miss_config_defers_typed_rules_only(self):
         self.put('.oxlintrc.json', json.dumps({'plugins': ['typescript'], 'options': {'typeAware': True},
