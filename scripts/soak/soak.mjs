@@ -25,7 +25,7 @@ import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDia
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDriveBounds, soakPhaseByTime } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, soakCellPeaks, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, soakCellPeaks, soakPortalPlan, releaseSoakPreviews, soakRouteScope, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
 import { gridFloorDocumentIdentity, driveFloorGrid, stageFloorGrid, runFloorGridRoute } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -189,6 +189,13 @@ async function worker() {
     };
     if (diagnosticCircuits !== null) await boundary(0);
     if (diagnosticReentry !== null) result.passiveBoundaries.push({ cycle: 0, state: await driver.evaluate(boundaryExpression), categories: await memoryCategories(driver) });
+    // O12: each cell's declared entryways (world/edge), read once from the served preview for its portal legs
+    const entryways = new Map();
+    for (const slug of new Set(result.metadata.state.cells.map(cell => cell.slug))) {
+      const at = new URL(`shardfiles/${encodeURIComponent(slug)}/`, base), index = await (await fetch(new URL('shard.json', at))).json();
+      const section = index.format === undefined ? undefined : index.sections?.find(row => row.name === 'world/edge');
+      entryways.set(slug, index.format === undefined ? index.entryways : section === undefined ? undefined : (await (await fetch(new URL(section.path, at))).json()).entryways);
+    }
     const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString(); result.circuits = 0; driveOpen = true;
     phase('drive');
     let complete = false;
@@ -201,7 +208,7 @@ async function worker() {
         result.stage = plan.name;
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
         console.log(JSON.stringify({ layout, cycle, route: plan.name, seconds: (Date.now() - driveStart) / 1000 }));
-        const legStart = Date.now() / 1000, witness = await runFloorGridRoute(page, plan, result.documentOrigin);
+        const legStart = Date.now() / 1000, witness = await runFloorGridRoute(page, soakPortalPlan(plan, result.metadata.state.cells, entryways), result.documentOrigin);
         const failures = soakWitnessFailures(witness);
         result.routes.push({ cycle, ...witness, wall: { start: legStart, end: Date.now() / 1000 }, failures });
         if (plan.crossroads) result.crossroads.push(plan.crossroads);

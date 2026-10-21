@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { ownedSoakPlans, soakRoadTour, soakCellPeaks, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
+import { ownedSoakPlans, soakRoadTour, soakCellPeaks, soakPortalPlan, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 import { circuitPlans } from './boundary.mjs';
 
@@ -314,4 +314,23 @@ void test('O12 per-place peaks fold every leg leaving or entering a place, with 
   assert.deepEqual(Object.keys(cells).sort(), ['a', 'b', 'road']);
   assert.equal(cells.a.peakBytes, 1100); assert.equal(cells.b.peakBytes, 3100); assert.equal(cells.road.peakBytes, 3100);
   assert.equal(cells.b.worstFrameMs, 250); assert.equal(cells.road.legs, 2); assert.equal(cells.b.overCapBytes, 0);
+});
+
+void test('O12 a leg into or out of a portal cell follows its declared portal', () => {
+  const cells = [{ instance: 'a', slug: 'flat', cell: [0, 0] }, { instance: 'p', slug: 'stack', cell: [0, 1] }];
+  const node = (id, at) => ({ id, at });
+  const row = { edge: 'south', kind: 'portalLink', portal: { road: node('road', [0, 0, -260]), destination: node('square', [0, 140, 0]),
+    exit: node('exit', [0, 140, -20]), route: [[0, 140, -10], [0, 140, -20]],
+    links: [{ from: 'road', to: 'square' }, { from: 'exit', to: 'road' }] } };
+  const entryways = new Map([['stack', [row]], ['flat', []]]);
+  const into = soakPortalPlan({ name: 'a-to-p', from: 'a', to: 'p', movement: 'road-hover', hoverMaxSpeed: 30,
+    waypoints: [{ x: 0, z: 277.5 }, { x: 0, z: 325 }], requiredResidents: ['p'] }, cells, entryways);
+  assert.deepEqual([into.from, into.to, into.start, into.observePreparation], ['a', 'p', undefined, undefined]);
+  assert.deepEqual(into.waypoints.map(point => [point.x, point.z]), [[0, 277.5], [0, 295], [0, 555]]);
+  assert.equal(into.portal.destination.id, 'square');
+  const out = soakPortalPlan({ name: 'p-to-a', from: 'p', to: 'a', movement: 'road-hover', hoverMaxSpeed: 30,
+    waypoints: [{ x: 0, z: 277.5 }, { x: 0, z: 230 }], requiredResidents: ['a'] }, cells, entryways);
+  assert.deepEqual([out.from, out.to], ['p', 'a']);
+  assert.deepEqual(out.waypoints.slice(0, 4).map(point => [point.x, point.z]), [[0, 545], [0, 535], [0, 535], [0, 295]]);
+  assert.equal(out.portal.reverse, true);
 });

@@ -1,5 +1,5 @@
 import { publicGridIntentCode } from '../public-grid.mjs';
-import { gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
+import { gridFloorWitnessFailures, floorGridPortalPlan } from '../frame-floor-grid.mjs';
 import memoryGates from '../../src/format/memoryGates.json' with { type: 'json' };
 import catalogue from '../../src/game/grid/singleplayer.json' with { type: 'json' };
 import openPlots from '../../src/shards/open-plots/outputs.json' with { type: 'json' };
@@ -340,6 +340,24 @@ export function soakLapMemory(samples, circuits) {
   return laps;
 }
 
+
+/** O12 (SF88f): a cell-to-cell leg through each end's declared portal (Nine's stack is entered and left only by its
+ * portalLink, a flat inset waypoint never reaches its square), the floor's own floorGridPortalPlan on each end.
+ * @param {SoakPlan} plan @param {readonly {instance:string,slug:string,cell:readonly number[]}[]} cells
+ * @param {ReadonlyMap<string, unknown>} entryways each slug's declared world/edge entryways */
+export function soakPortalPlan(plan, cells, entryways) {
+  if (plan.from === plan.to) return plan;
+  const source = cells.find(cell => cell.instance === plan.from), target = cells.find(cell => cell.instance === plan.to);
+  let routed = plan;
+  if (source !== undefined) routed = { ...floorGridPortalPlan({ ...routed, to: null }, source, entryways.get(source.slug)), to: plan.to };
+  if (target !== undefined) {
+    const entered = floorGridPortalPlan({ ...routed, from: null, start: routed.waypoints[0], observePreparation: true }, target, entryways.get(target.slug));
+    if (routed.portal !== undefined && entered.portal !== routed.portal) throw new Error(`${plan.name}: a leg leaves and enters by portals`);
+    const { start: _start, observePreparation: _observe, ...rest } = entered;
+    routed = { ...rest, from: plan.from, ...(plan.observePreparation === undefined ? {} : { observePreparation: plan.observePreparation }) };
+  }
+  return routed;
+}
 
 /** O12 (SF88f): per place, the peak native + GL bytes and the worst frame over every leg that leaves or enters it (`road`
  * for the tour's legs), against the Explorer cap. A place's dwell is the start of the leg that leaves it.
