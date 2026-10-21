@@ -28,6 +28,7 @@ const savedStorage = saveStorage('session');
  * the tracks, the step log, the tier line and "Loading chunk · <slug>" are developer mode's (`<html data-dev>`, set by
  * index.html before the first paint — src/engine/core/devMode.ts; loading.css does the hiding).
  */
+type TimelineSnapshot = ReturnType<LoadingTimeline['snapshot']>;
 type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line' | 'diagnostics';
 
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
@@ -211,8 +212,10 @@ export class Loading {
   /** Text + bars from the latest view; only what changed is written (a write forces the next layout). */
   private paintNow(): void {
     if (!this.dirty) return;
+    const timeline = this.timeline.snapshot();
+    this.paintWaiting(timeline);
     const v = this.view;
-    if (!v) { this.paintAdmissionNow(); return; }
+    if (!v) { this.paintAdmissionNow(timeline); return; }
     this.dirty = false;
     // the tier line once a frame, not on every published view (it reads the viewport, which may rotate)
     const hardware: { hardwareConcurrency?: number | undefined } = navigator;
@@ -229,10 +232,10 @@ export class Loading {
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
     set(this.els.line, this.finished ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
     this.paintDownloads(v.done);
-    this.paintRows();
+    this.paintRows(timeline);
   }
 
-  private paintAdmissionNow(): void {
+  private paintAdmissionNow(timeline: TimelineSnapshot): void {
     const p = this.admission;
     if (p === null) return;
     this.dirty = false;
@@ -244,7 +247,7 @@ export class Loading {
     this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
     this.els.bar.style.width = `${setup * 100}%`;
     set(this.els.suFact, p.detail); set(this.els.line, p.detail);
-    this.paintRows();
+    this.paintRows(timeline);
   }
 
   private downloadProgress(done: boolean) {
@@ -273,13 +276,12 @@ export class Loading {
     return transfer.fraction;
   }
 
-  private paintRows(): void {
-    const timeline = this.timeline.snapshot();
+  private paintRows(timeline: TimelineSnapshot): void {
     const current = timeline.rows.find(row => row.key === timeline.current);
     const currentGap = timeline.gaps.find(row => row.state === 'on');
     setData(this.root, 'step', current?.key ?? 'gap');
     if (current !== undefined) set(this.els.suFact, engineString('s_af18899b96b3', [current.number, timeline.rows.length, current.label, current.detail ? engineString('s_614cafefe4f0', [current.detail]) : '']));
-    else if (currentGap !== undefined) set(this.els.suFact, currentGap.label);
+    else set(this.els.suFact, currentGap?.label ?? 'Final activation');
     const shown: (LoadingRow | LoadingGap)[] = [];
     for (const gap of timeline.gaps) if (gap.after === null) shown.push(gap);
     for (const row of timeline.rows) {
@@ -327,7 +329,6 @@ export class Loading {
     const step = this.view?.step ?? this.admission?.phase ?? '';
     if (step === this.lastPaintStep && now - this.lastPaintAt < PAINT_MS) return;
     this.lastPaintAt = now; this.lastPaintStep = step;
-    this.paintWaiting();
     const s = (now - this.t0) / 1000;
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // Easing continues through a quiet wait without needing another producer event.
@@ -336,11 +337,11 @@ export class Loading {
     this.paintNow();
   }
 
-  private paintWaiting(): void {
+  private paintWaiting(timeline: TimelineSnapshot): void {
     if (this.view?.error || this.failedReason !== null) return;
     const pending = this.scoped ? [] : bootWaits(), files = pending.filter(wait => wait.kind === 'file');
     const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
-    const timeline = this.timeline.snapshot(), transfer = this.downloads.snapshot();
+    const transfer = this.downloads.snapshot();
     const current = timeline.rows.find(row => row.key === timeline.current);
     const signature = `${timeline.current}:${timeline.rows.map(row => `${row.state}:${row.detail}`).join('|')}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
     const quietMs = this.stall.quietMs(signature, performance.now());
@@ -375,6 +376,8 @@ export class Loading {
     const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
     savePathTimings(this.timingKey, measured, this.baseline);
     if (this.view !== null) this.paint(this.view);
+    else this.dirty = true;
+    this.paintNow();
     return new Promise((resolve) => {
       this.root.classList.add('hide');
       this.scope.timeout(250, () => { this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });
