@@ -200,6 +200,12 @@ and `wildshard-v`.
   no generate job running.
 - **Fix:** put lane scratch under a lane folder that is deleted when the lane closes, and give lane caches a size cap,
   or point them at the shared cache. The killed-job `finally` gap in section 6 is still open.
+- **04:47 follow-up: `tmp/sp-x6-cache` 3.6 → 17.8 GB.** It now holds one `sdk-case-<rev>/` folder per revision
+  tested against `src/sdk/sourceReader.ts`: 7 so far (10-20 23:57 to 10-21 03:17), each 1.8–3.2 GB, with its own
+  generation and product caches. No tracked script makes them (`grep sdk-case scripts` is empty), so this is the lane's
+  own tooling. Nothing deletes an old revision's folder, so the lane's `./tmp` grows by about 2.5 GB per revision.
+  Overall, `./tmp` went 61 → 80 GB and 407k → 534k files, and the repo is now 102 GB. Disk still has 1.7 TB free.
+  **Fix:** keep only the newest `sdk-case` per lane, or share one cache across revisions; the store is content-addressed.
 
 ## Decisions (Jake, 2026-10-15)
 
