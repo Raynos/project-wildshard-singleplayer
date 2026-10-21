@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { TreeSetSchema } from '@wildshard/format/treeSetRows';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import treeRest from '../data/treeRest.generated.json' with { type: 'json' };
-import { FOREST_LOOKS } from '../data/forestLook';
+import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 
 /**
  * Pine Hollow's Blender-built photoreal tree set (PH-B4, Jake's PH-U17; moved from the engine, E405; the page reads them as TREE_SET's rows): its species and how
@@ -51,7 +51,7 @@ const LABEL: Readonly<Record<string, string>> = {
  * The forest tree (E315 M2; PINE-HOLLOW-REMASTER PH-B4, Jake's PH-U17): the Blender-built photoreal species set
  * (scripts/blender/pine-hollow/trees/ → its trees.glb, branch-card and impostor atlases) as tree set rows — one family of
  * 14 variants, each a trunk (bark array), near branch cards with twigs, far cards with the trunk's lo bark and a 2-quad
- * impostor, in the forest's four look.materials graphs (../data/forestLook.ts). The page draws them as one model.
+ * impostor, in the forest's four look.materials graphs (../data/forestLook.json). The page draws them as one model.
  */
 export const TREE_SET = v.parse(TreeSetSchema, {
   product: 'pine-hollow', set: PINE_TREE_ASSETS.set,

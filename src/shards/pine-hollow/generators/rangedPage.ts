@@ -12,7 +12,9 @@ import layout from '../data/layout.generated.json' with { type: 'json' };
 import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import rainBake from '../data/rain.json' with { type: 'json' };
-import { PINE_CAVE_HOOD, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
+import weather from '../data/weatherLook.json' with { type: 'json' };
+
+const { PINE_CAVE_HOOD, PINE_RAIN, PINE_RAIN_PROGRAMS } = weather;
 
 const painted = PINE_OUTPUT.custom['custom/paintedTextures'], pack = PINE_OUTPUT.custom['custom/trophyMounts'];
 export const RANGED_PAGE = v.parse(RangedPageSchema, {

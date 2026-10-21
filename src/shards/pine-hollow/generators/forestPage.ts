@@ -6,7 +6,7 @@ import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { cabinAmbienceRows } from './ambience';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
-import { FOREST_LOOKS } from '../data/forestLook';
+import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 import water from '../data/waterLook.json' with { type: 'json' };
 import looks from '../data/lookMaterials.generated.json' with { type: 'json' };
 

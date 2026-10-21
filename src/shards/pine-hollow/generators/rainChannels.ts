@@ -4,7 +4,9 @@
 // reading the rain fills (`rain`: on, rain, dry, cover, lookY, room, radius, slots, windX, windZ). The CPU splashes, the
 // cover map and the draw range stay in sdk/looks/rainPresentation.ts.
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import { PINE_RAIN_PROGRAMS } from '../data/weatherLook';
+import weather from '../data/weatherLook.json' with { type: 'json' };
+
+const { PINE_RAIN_PROGRAMS } = weather;
 
 type Expr = NumericChannelOutput['expr'];
 const { rain: CURTAIN, splash: SPLASH, lens: LENS, channels: GROUP } = PINE_RAIN_PROGRAMS;
