@@ -14,3 +14,4 @@ answers each row in place with the numbers, receipt path and SHA, then herdr-tel
 
 | # | Requester | SHA | Command / scenario | Numbers wanted | Status / answer |
 |---|---|---|---|---|---|
+| S1 | sp-o1 (O16 Pine drive p95 + cold stall) | 71f4c966135dd24472be7cd43901f840e2067936 (has bc7e546659) | quiet, one devserver preview of the SHA: `node scripts/frame-floor.mjs --rev=<SHA> --shards=grid --surface=sim --grid-scenario=cell --grid-cell=pine-hollow --devserver --gl-observer=off --ktx2-probe=skip --task-clock --serve-base=<preview>` and the same with `--grid-scenario=cold` | per run: travel / whole-drive / interior p95 and max, crossing time, drive `longFrames.at`, `entryPreparation.stages` (with `endAt`) and `nodeBuilds`; keep both raw frame-floor JSONs (task-clock `tasks`) and give their paths: sp-o1 bins the > 36 ms frames by preparation stage to pick the cut | open |
