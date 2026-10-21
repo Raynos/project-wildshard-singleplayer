@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "original": "tmp/shared-arena-candidates/current-four-1553-conch-qa2/report.json",
+      "originalSha256": "4c337f4554f265bd1ee20a1141a05ccb9802269c2650589a74938bc39a98258a",
+      "delivery": "test/proof/shared-arena/current-four-1553/conch-attempt2-report.json",
+      "deliverySha256": "250a3b5ce9ca5c09e2ad350c459f4d9a2b9cfd509132ae04b106502311dc93e9",
+      "bytes": 564114,
+      "conversion": "Exact absolute repository prefix redacted; raw original unchanged."
+    },
+    {
+      "original": "tmp/shared-arena-candidates/current-four-1553-conch-qa2/trace.json",
+      "originalSha256": "a64d315d1049715ebada5d64d18d7741d46ffe2a1f640ca008dc14ac8665d79d",
+      "delivery": "test/proof/shared-arena/current-four-1553/conch-attempt2-trace.json",
+      "deliverySha256": "a64d315d1049715ebada5d64d18d7741d46ffe2a1f640ca008dc14ac8665d79d",
+      "bytes": 3021717,
+      "conversion": "Exact absolute repository prefix redacted; raw original unchanged."
+    }
+  ]
+}

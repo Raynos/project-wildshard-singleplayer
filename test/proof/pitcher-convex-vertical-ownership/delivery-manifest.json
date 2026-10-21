@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "original": "focused-tests-final.txt",
+      "originalSha256": "25edacb8d0752fae76729562f8f58627cae4e9ca2652c61190cade412ca3509c",
+      "delivery": "focused-tests-final.public.txt",
+      "deliverySha256": "8c669ef5bca9379c74826e03c9878ddc3c1a16af4bb162fdee272e1ca9c550d5",
+      "conversion": "Replace exact absolute repository prefix; trim trailing whitespace. Raw original retained unchanged."
+    },
+    {
+      "original": "lint-types-final.txt",
+      "originalSha256": "c919624fe48ed9dca81d7987d8d8334a9da872cc08afd8883ee240dd6076ce33",
+      "delivery": "lint-types-final.public.txt",
+      "deliverySha256": "c919624fe48ed9dca81d7987d8d8334a9da872cc08afd8883ee240dd6076ce33",
+      "conversion": "Replace exact absolute repository prefix; trim trailing whitespace. Raw original retained unchanged."
+    },
+    {
+      "original": "orientation-assumption-failure.txt",
+      "originalSha256": "3f1ed532207a23561527fbce9ebfe10000dee812a409a3792f19593bf33f07cb",
+      "delivery": "orientation-assumption-failure.public.txt",
+      "deliverySha256": "6cad1993a094d74a6d869f5710fbb99205401c29605d1860b2bd00c656fcbdc6",
+      "conversion": "Replace exact absolute repository prefix; trim trailing whitespace. Raw original retained unchanged."
+    }
+  ]
+}

@@ -12,19 +12,20 @@ import { shardfileValidationRevision } from './shardfile-validation-revision.mjs
 import { starterArmClipsTableSource } from './gen-starter-arm-clips.mjs';
 import { starterEffectsTableSource } from './gen-starter-effects.mjs';
 import { rapierAlias, rapierPreviewPlugin } from '../vite/rapier.ts';
-import { ROOT, OUTPUT, CANONICAL, PIN, hash, inventory, verifyPin } from './rooted-pitcher-proof-pin.mjs';
+import { ROOT, OUTPUT, CANONICAL, PIN, hash, inventory, verifyPin, isolatedProofBuildOptions } from './rooted-pitcher-proof-pin.mjs';
 import { rootedPitcherProofComposition, assertRootedPitcherProofComposition } from './rooted-pitcher-proof-composition.ts';
 
 assertHeavyLease('build');
 const pin = verifyPin(), destination = resolve(ROOT, OUTPUT), product = join(destination, 'product'), dist = join(destination, 'dist');
 if (existsSync(destination)) throw new Error('Preserve prior proof: output root must not exist');
 mkdirSync(destination, { recursive: true });
-const sourceFiles = {};
+const sourceFiles = {}, isolatedOptions = isolatedProofBuildOptions();
 const watchInputs = () => ({ name: 'native-owner-proof-source-receipt',
   load(id) {
     const path = id.split('?')[0];
     if (path?.startsWith(`${ROOT}/`) && !path.includes('/node_modules/') && existsSync(path)) {
       const key = path.slice(ROOT.length + 1), digest = hash(readFileSync(path));
+      if ((pin.sourceFiles[key] ?? pin.files[key]) !== digest) throw new Error(`Unpinned build source: ${key}`);
       if (sourceFiles[key] !== undefined && sourceFiles[key] !== digest) throw new Error(`Build source changed during read: ${key}`);
       sourceFiles[key] = digest;
     }
@@ -32,8 +33,8 @@ const watchInputs = () => ({ name: 'native-owner-proof-source-receipt',
   },
 });
 const authorRequire = createRequire(resolve(ROOT, 'src/sdk/package.json'));
-const authorResult = await build({ configFile: false, publicDir: false, logLevel: 'silent', resolve: { alias: rapierAlias },
-  define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision(ROOT)), 'import.meta.dirname': JSON.stringify(resolve(ROOT, 'src/sdk')) },
+const authorResult = await build({ ...isolatedOptions, configFile: false, publicDir: false, logLevel: 'silent', resolve: { alias: rapierAlias },
+  define: { ...isolatedOptions.define, __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision(ROOT)), 'import.meta.dirname': JSON.stringify(resolve(ROOT, 'src/sdk')) },
   plugins: [watchInputs(), { name: 'native-owner-proof-author', enforce: 'pre', resolveId(id) {
     if (id === 'vite') return { id: import.meta.resolve('vite'), external: true };
     if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
@@ -69,8 +70,8 @@ const tables = new Map([
   [resolve(ROOT, 'src/game/boot/bytes.generated'), `export const PUBLIC_BYTES = ${JSON.stringify(bytes)};`],
   [resolve(ROOT, 'src/game/boot/versions.generated'), `export const ASSET_VERSIONS = ${JSON.stringify(versions)};`],
 ]);
-await build({ configFile: false, publicDir: false, base: './', resolve: { alias: rapierAlias },
-  define: { __DEVSERVER__: true, __BUILD_ID__: JSON.stringify(`WIP-ROOTED-PITCHER-${hash(readFileSync(resolve(ROOT, PIN))).slice(0, 12)}`),
+await build({ ...isolatedOptions, configFile: false, publicDir: false, base: './', resolve: { alias: rapierAlias },
+  define: { ...isolatedOptions.define, __DEVSERVER__: true, __BUILD_ID__: JSON.stringify(`WIP-ROOTED-PITCHER-${hash(readFileSync(resolve(ROOT, PIN))).slice(0, 12)}`),
     __SAVE_NAMESPACES__: '[]', __SHARDFILE_VALIDATOR__: JSON.stringify(validation.revision), __SHARDFILE_VERDICTS__: JSON.stringify([validation]) },
   build: { outDir: dist, target: 'es2022', sourcemap: false, cssCodeSplit: false, rolldownOptions: { input: resolve(ROOT, 'rooted-pitcher-proof.html') } },
   plugins: [watchInputs(), rapierPreviewPlugin(), rootedPitcherProofComposition(ROOT, tables)],
@@ -86,6 +87,6 @@ assertRootedPitcherProofComposition(sourceFiles, { 'src/rootedPitcherProof.ts': 
 const receipt = { schema: 'wildshard.rooted-pitcher.isolated-host.v1', synthetic: false, modelAdmission: false, publicAdmission: false,
   pin, pinSha256: hash(readFileSync(resolve(ROOT, PIN))), sourceHash: index.build.sourceHash,
   productFiles: inventory(product), sourceFiles, hostFiles: inventory(dist),
-  limits: 'WIP ROOTED PITCHER; HELD DEATH/NO FOLD; NOT YET ADMITTED. Exact retained seven-bone source and real two-strike combat.' };
+  limits: 'WIP ROOTED PITCHER; SOURCE-BODY LIVING COLLISION; HELD DEATH/NO FOLD; NOT ADMITTED. Exact retained seven-bone source and real two-strike combat.' };
 writeFileSync(join(dist, 'rooted-pitcher-proof.json'), `${JSON.stringify(receipt, null, 2)}\n`, { flag: 'wx' });
 console.info(JSON.stringify({ destination: OUTPUT, sourceHash: index.build.sourceHash, receiptSha256: hash(readFileSync(join(dist, 'rooted-pitcher-proof.json'))), synthetic: false, modelAdmission: false, publicAdmission: false }));

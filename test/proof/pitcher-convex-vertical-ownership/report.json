@@ -1,0 +1,205 @@
+{
+  "schema": "wildshard.pitcher-convex-vertical-ownership.v1",
+  "status": "BOUNDED XYZ CONTRACT PASSES; FULL CREATURE / APP NOT ADMITTED",
+  "frozenPlanarCandidate": "8705f9ea68d85fac5a030f5831ac2ae966a836e4",
+  "bodyPoints": 68,
+  "scales": [
+    0.85,
+    1,
+    1.25
+  ],
+  "contract": {
+    "authority": "readonly AnimalMotor.rootAuthority: collision",
+    "kccResolutionsPerConvexStep": 1,
+    "extraPhysicsSteps": 0,
+    "terrainFiltering": false,
+    "actorColliderAcceptedTranslation": "exact native float32 XYZ copied from collider",
+    "explicitPlacementYawHullPrecision": "Rapier float32-equivalent, not arbitrary-double exactness",
+    "deadRootOwner": "existing NativeCorpseOwner branch; no new dead-body flag or policy"
+  },
+  "arena": {
+    "halfExtents": [
+      50,
+      2,
+      50
+    ],
+    "translation": [
+      0,
+      898,
+      0
+    ],
+    "material": "metal",
+    "group": "WORLD",
+    "initialRoot": [
+      0,
+      900,
+      0
+    ],
+    "initialYaw": 0,
+    "initialRequestedMove": [
+      0.1,
+      0,
+      0
+    ],
+    "subsequentMovementTicks": 60
+  },
+  "measurements": [
+    {
+      "kind": "step",
+      "correction": {
+        "x": 0.7998850345611572,
+        "y": 0.20544353127479553,
+        "z": 3.0614668844464177e-07
+      },
+      "accepted": {
+        "x": 0.7998850345611572,
+        "y": 0.20544353127479553,
+        "z": 3.0614668844464177e-07
+      }
+    },
+    {
+      "kind": "slope",
+      "correction": {
+        "x": 0.7787092328071594,
+        "y": 0.22107160091400146,
+        "z": 1.2711058161585242e-06
+      },
+      "accepted": {
+        "x": 0.7787092328071594,
+        "y": 0.22107160091400146,
+        "z": 1.2711058161585242e-06
+      }
+    },
+    {
+      "kind": "Arena",
+      "scale": 0.85,
+      "correction": {
+        "x": 0.10000000149011612,
+        "y": 0.00010301880683982745,
+        "z": -2.515672781200351e-09
+      },
+      "accepted": {
+        "x": 0.10000000149011612,
+        "y": 900.0001220703125,
+        "z": -2.515672781200351e-09
+      }
+    },
+    {
+      "kind": "Arena",
+      "scale": 1,
+      "correction": {
+        "x": 0.09999997168779373,
+        "y": 0.00011967930913669989,
+        "z": -9.411845525164608e-09
+      },
+      "accepted": {
+        "x": 0.09999997168779373,
+        "y": 900.0001220703125,
+        "z": -9.411845525164608e-09
+      }
+    },
+    {
+      "kind": "Arena",
+      "scale": 1.25,
+      "correction": {
+        "x": 0.10000000149011612,
+        "y": 0.00010136832133866847,
+        "z": -8.89408369175726e-09
+      },
+      "accepted": {
+        "x": 0.10000000149011612,
+        "y": 900.0001220703125,
+        "z": -8.89408369175726e-09
+      }
+    }
+  ],
+  "coverage": {
+    "realPlayerKccLunges": 12,
+    "directionsRadians": [
+      0,
+      1.5707963267948966,
+      3.141592653589793,
+      -1.5707963267948966
+    ],
+    "nonpenetrationToleranceMeters": 1e-06,
+    "nonzeroYLifecyclesPerScale": [
+      "native view publication",
+      "explicit reset at accepted pose",
+      "motor transfer",
+      "same-host recreation",
+      "held lethal root"
+    ],
+    "heldTicksAfterDeath": 120,
+    "interpolationSamples": [
+      0,
+      0.5,
+      1
+    ],
+    "additional": [
+      "idle",
+      "stationary and obstructed turns",
+      "stagger",
+      "impulse",
+      "allocation/activation cleanup",
+      "both directions of restored shape mismatch",
+      "embedded snapshot refusal",
+      "default capsule ground/driven/dead path",
+      "existing flight pose-clock tests"
+    ]
+  },
+  "checks": {
+    "focusedFiles": 4,
+    "focusedTestsPassed": 59,
+    "focusedTestsFailed": 0,
+    "selectedTypeAwareLintExit": 0,
+    "focusedStrictTypesExit": 0,
+    "heavyLane": "tmp/heavy-lanes",
+    "rawTests": "focused-tests-final.txt",
+    "rawLintTypes": "lint-types-final.txt",
+    "configNote": "focused-tsconfig.json is retained bytes from tmp/convex-vertical/tsconfig.json; relative paths resolve from that original location"
+  },
+  "historicalEvidence": {
+    "unchanged": true,
+    "sha256Manifest": "historical-sha256.txt",
+    "firstContinuationAssumptionFailure": "orientation-assumption-failure.txt",
+    "explanation": "The initial test assumed yaw pi/2 necessarily produced positive native Y at scale1; it rounded to Y900. The fixture was changed to historical yaw0/X travel, without physics or tolerance changes."
+  },
+  "unchanged": [
+    "exact source points",
+    "KCC offset/skin",
+    "step/slope/snap options",
+    "collision groups",
+    "corpse overlap guards and tolerances",
+    "HP",
+    "native held-death policy",
+    "default rooted selection",
+    "Bellback",
+    "legacy negative studies"
+  ],
+  "notProved": [
+    "six moving head/lid hull lethal clearance",
+    "swept rotation",
+    "moving deck support",
+    "general terrain traversal",
+    "complete app interactions",
+    "physical-phone performance",
+    "animation quality"
+  ],
+  "notRun": [
+    "browser",
+    "full build",
+    "full suite",
+    "installs",
+    "Git writes",
+    "deployment",
+    "STATE edits"
+  ],
+  "inputs": {
+    "src/engine/entities/AnimalSim.ts": "694cafb75e6d5d7628724b33b4f7d74750bc18f78396d605a0fb902c622bd866",
+    "src/engine/physics/CharacterMotor.ts": "7d590a7cd0a76996565fc1432075c53381f5057b960445ebedbbb6612c9e8ed4",
+    "test/convex-character-motor.test.ts": "a30b8e8a08553f349f9ddb43e3fad8db7931937fa935e5f5be54621f708595cf",
+    "test/brine-pitcher-rooted-native-owner.test.ts": "73de498f275b4bd69c455a018e7ce225d343f41fdd3390f44b82e31d9348f64a",
+    "test/practice-native-actor.test.ts": "043ee4c40d7f9db17711fe7cb7709db334d91b44289c87e677106954fbaf2818",
+    "test/animal-pose-flight-clock.test.ts": "57cd44d2100cca0bed67a90b89e8626defb7994cca16904f6a92593d87a7440e"
+  }
+}

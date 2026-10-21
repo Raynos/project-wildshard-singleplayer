@@ -126,3 +126,48 @@ test('proof paths preserve legacy defaults and require explicit safe paired retr
   for (const output of ['/tmp/escape', 'tmp/../escape', 'tmp/rooted-pitcher-app1/nested']) expect(() => inspect(pin, output)).toThrow();
   expect(() => inspect('docs/reviews/rooted-pitcher-app/../escape.json', 'tmp/rooted-pitcher-regression')).toThrow();
 });
+
+test('isolated living collision selects the source body without browser author imports', () => {
+  const boot = readFileSync('src/rootedPitcherProofBoot.ts', 'utf8');
+  expect(boot).toContain("corpse: 'anchored-held', livingBodyBone: 'body'");
+  expect(boot).not.toMatch(/(?:from\s*|import\s*\()['"](?:node:|[^'"]*generators\/)/u);
+  const html = readFileSync('rooted-pitcher-proof.html', 'utf8');
+  for (const label of ['SOURCE-BODY LIVING COLLISION', 'HELD DEATH/NO FOLD', 'NOT ADMITTED']) expect(html).toContain(label);
+  expect(html).toContain('http-equiv="Content-Security-Policy" content="connect-src \'self\'"');
+  for (const id of ['practice-start', 'practice-retry', 'practice-back']) expect(html).toContain(`id="${id}"`);
+});
+
+test('both isolated build stages disable implicit environment and PostCSS discovery', () => {
+  const result: unknown = JSON.parse(execFileSync(process.execPath,
+    ['--input-type=module', '-e', `
+      import { resolveConfig } from 'vite';
+      import { isolatedProofBuildOptions } from './scripts/rooted-pitcher-proof-pin.mjs';
+      const options = isolatedProofBuildOptions();
+      const config = await resolveConfig({ ...options, configFile: false, publicDir: false }, 'build');
+      console.log(JSON.stringify({ options, env: config.env }));
+    `], { encoding: 'utf8', env: { NODE_ENV: 'production', VITE_PROOF_SENTINEL: 'fabricated-not-a-secret', VITE_SENTRY_DSN: 'fabricated-not-an-endpoint' } }));
+  expect(result).toEqual({
+    options: { envDir: false, envPrefix: [], mode: 'production', css: { postcss: { plugins: [] } },
+      define: { 'import.meta.env.VITE_SENTRY_DSN': '""' } },
+    env: { BASE_URL: '/', MODE: 'production', DEV: false, PROD: true },
+  });
+  const buildSource = readFileSync('scripts/build-rooted-pitcher-proof.mjs', 'utf8');
+  expect(buildSource.match(/await build\(\{ \.\.\.isolatedOptions,/gu)).toHaveLength(2);
+  expect(buildSource.match(/define: \{ \.\.\.isolatedOptions\.define,/gu)).toHaveLength(2);
+  expect(buildSource).toContain('Unpinned build source:');
+});
+
+test('pre-build closure inventories runtime budgets rather than discovering them after load', () => {
+  const result: unknown = JSON.parse(execFileSync(process.execPath,
+    ['--input-type=module', '-e', `
+      import { SOURCE_ROOTS, sourceInventory } from './scripts/rooted-pitcher-proof-pin.mjs';
+      const budgets = Object.fromEntries(Object.entries(sourceInventory()).filter(([path]) => path.startsWith('budgets/')));
+      console.log(JSON.stringify({ roots: SOURCE_ROOTS, budgets }));
+    `], { encoding: 'utf8', env: { NODE_ENV: 'production' } }));
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (!isRecord(result) || !isRecord(result['budgets'])) throw new Error('Malformed source inventory result');
+  expect(result['roots']).toEqual(['src', 'scripts', 'vite', 'budgets']);
+  expect(Object.keys(result['budgets']).length).toBeGreaterThan(0);
+  for (const [path, digest] of Object.entries(result['budgets'])) expect(digest).toBe(hash(readFileSync(path)));
+});

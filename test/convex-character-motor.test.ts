@@ -17,6 +17,7 @@ import { practiceConvexBody } from '../src/game/practice/practiceConvexBody';
 import { brinePitcherNativeOwnerClips } from '../src/shards/driftwood-isle/generators/brinePitcherNativeOwnerClips';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
+const xyz = (p: Vector3) => ({ x: p.x, y: p.y, z: p.z });
 const folder = 'test/proof/brine-pitcher-native-owner/source';
 const source = v.parse(v.object({ bones: v.array(v.object({ name: v.string(), parent: v.nullable(v.string()), pos: v.tuple([v.number(),v.number(),v.number()]) })) }), JSON.parse(readFileSync(`${folder}/v3/native-source.json`, 'utf8')));
 const metadata = v.parse(v.object({ bodies: v.array(v.object({ dims: v.object({ rigidCorpse: rigidCorpseSchema }) })) }), JSON.parse(readFileSync(`${folder}/core-runtime-study/metadata.json`, 'utf8')));
@@ -66,9 +67,13 @@ test.each([.85, 1, 1.25])('exact 68-point source body remains equivalent through
     }
   } finally { f.motor.dispose(); f.physics.dispose(); }
 });
-test.each([0, Math.PI / 2, Math.PI, -Math.PI / 2])('real player KCC lunge stops outside source hull from %s', yaw => {
-  const f = fixture();
-  const p = new Vector3(Math.sin(yaw) * 5, 0, Math.cos(yaw) * 5);
+test.each([.85, 1, 1.25].flatMap(scale => [0, Math.PI / 2, Math.PI, -Math.PI / 2].map(yaw => [scale, yaw] as const)))('real player KCC lunge on the Arena stops outside scale %s source hull from %s', (scale, yaw) => {
+  const f = fixture(scale);
+  f.actor.place(0, 0, 0, 900); f.actor.groundHeight = () => 900; f.motor.resetAt(f.actor.position);
+  const floor = f.physics.world.createCollider(R.ColliderDesc.cuboid(50, 2, 50).setTranslation(0, 898, 0).setCollisionGroups(groups('WORLD')));
+  tagCollider(floor, 'metal', null); f.physics.step();
+  f.actor.strafe = 6; f.actor.setStrafe(6); f.actor.step(1 / 60);
+  const p = new Vector3(f.actor.position.x + Math.sin(yaw) * 5, 900, f.actor.position.z + Math.cos(yaw) * 5);
   const player = new CharacterMotor(f.physics, { radius: .35, height: 1.8, step: .3, snap: .2, maxClimbDeg: 45, ...PLAYER_BODY });
   try {
     player.resetAt(p); f.physics.step();
@@ -176,48 +181,98 @@ test('convex snapshot reconnects only the exact canonical source hull, rejecting
   } finally { f.motor.dispose(); f.physics.dispose(); }
 });
 
-test('flat convex motion refuses vertical KCC correction before publishing feet or collider displacement', () => {
+test('collision-owned XYZ refuses terrain filtering, disabled movement and flight sync', () => {
   const f = fixture();
   try {
-    const controller = [...f.physics.world.characterControllers][0]; if (controller === undefined) throw new Error('Missing KCC');
-    vi.spyOn(controller, 'computedMovement').mockReturnValue({ x: .1, y: .05, z: 0 });
-    const before = f.actor.position.clone(), collider = f.motor.collider.translation();
-    expect(() => f.motor.move(f.actor.position, { x: .1, y: 0, z: 0 }, true)).toThrow('planar displacement');
-    expect(f.actor.position).toEqual(before); expect(f.motor.collider.translation()).toEqual(collider);
+    expect(f.motor.rootAuthority).toBe('collision');
+    const before = f.actor.position.clone();
+    expect(() => f.motor.move(f.actor.position, { x: .1, y: 0, z: 0 }, true)).toThrow('collision-owned XYZ');
+    expect(() => f.motor.syncFlightPose(f.actor.position)).toThrow('living flight');
+    f.motor.setEnabled(false);
+    expect(() => f.motor.move(f.actor.position, { x: .1, y: 0, z: 0 })).toThrow('collision-owned XYZ');
+    expect(f.actor.position).toEqual(before);
   } finally { f.motor.dispose(); f.physics.dispose(); }
 });
 
-test('real convex KCC meets a low WORLD step without diverging from the flat actor root', () => {
+test.each(['step', 'slope'])('real convex KCC accepts the WORLD %s correction with one XYZ publication', kind => {
   const f = fixture();
   try {
-    f.physics.world.createCollider(R.ColliderDesc.cuboid(.25, .1, 2).setTranslation(2, .1, 0).setCollisionGroups(groups('WORLD')));
-    f.physics.step();
+    const desc = kind === 'step' ? R.ColliderDesc.cuboid(.25, .1, 2).setTranslation(2, .1, 0)
+      : R.ColliderDesc.cuboid(2, .1, 2).setTranslation(4, .3, 0).setRotation(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), .1));
+    f.physics.world.createCollider(desc.setCollisionGroups(groups('WORLD'))); f.physics.step();
     const controller = [...f.physics.world.characterControllers][0]; if (controller === undefined) throw new Error('Missing KCC');
-    const movement = vi.spyOn(controller, 'computedMovement');
-    try { f.motor.move(f.actor.position, { x: .8, y: 0, z: 0 }, true); }
-    catch (error) { expect(error).toBeInstanceOf(Error); if (!(error instanceof Error)) throw error; expect(error.message).toBe('Convex motor requires planar displacement'); }
-    expect(movement.mock.results.some(row => row.type === 'return' && row.value.y !== 0)).toBe(true);
-    expect(f.actor.position.y).toBe(0); expect(f.motor.collider.translation().y).toBe(0);
-    expect(f.motor.collider.translation().x).toBeCloseTo(f.actor.position.x, 6);
+    const compute = vi.spyOn(controller, 'computeColliderMovement');
+    f.motor.move(f.actor.position, { x: .8, y: 0, z: 0 });
+    expect(compute).toHaveBeenCalledTimes(1);
+    console.info('CONVEX_ROOT_EVIDENCE', JSON.stringify({ kind, correction: controller.computedMovement(), accepted: f.motor.collider.translation() }));
+    expect(f.actor.position.y).toBeGreaterThan(0); expect(f.actor.position.x).toBeGreaterThan(0);
+    expect(f.motor.collider.translation()).toEqual(xyz(f.actor.position));
   } finally { f.motor.dispose(); f.physics.dispose(); }
 });
 
-test('records the unsupported Arena floor: genuine vertical correction refuses planar travel', () => {
-  const f = fixture();
+test.each([.85, 1, 1.25])('exact metal WORLD Arena travels with one float32 root at scale %s', scale => {
+  const f = fixture(scale);
   try {
-    f.actor.place(0, 0, 0, 900); f.motor.resetAt(f.actor.position, 0);
-    // Exact current TrainingArena slab: 100 x 4 x 100, top at 900, metal WORLD.
+    f.actor.place(0, 0, 0, 900); f.actor.groundHeight = () => 900; f.motor.resetAt(f.actor.position, f.actor.yaw);
     const floor = f.physics.world.createCollider(R.ColliderDesc.cuboid(50, 2, 50).setTranslation(0, 898, 0).setCollisionGroups(groups('WORLD')));
     tagCollider(floor, 'metal', null); f.physics.step();
     const controller = [...f.physics.world.characterControllers][0]; if (controller === undefined) throw new Error('Missing KCC');
-    const movement = vi.spyOn(controller, 'computedMovement');
-    let refused = false;
-    try { f.motor.move(f.actor.position, { x: .1, y: 0, z: 0 }, true); }
-    catch (error) { expect(error).toBeInstanceOf(Error); if (!(error instanceof Error)) throw error; expect(error.message).toBe('Convex motor requires planar displacement'); refused = true; }
-    expect(f.actor.position.y).toBe(900); expect(f.motor.collider.translation().y).toBe(900);
-    expect(f.motor.collider.translation().x).toBeCloseTo(f.actor.position.x, 6);
-    // Retained admission failure: this green regression proves safe refusal, NOT usable floor travel.
-    expect(refused).toBe(true);
-    expect(movement.mock.results.some(row => row.type === 'return' && row.value.y !== 0)).toBe(true);
+    const compute = vi.spyOn(controller, 'computeColliderMovement');
+    const step = vi.spyOn(f.physics, 'step');
+    f.actor.strafe = 6; f.actor.setStrafe(6); f.actor.step(1 / 60);
+    expect(compute).toHaveBeenCalledTimes(1); expect(step).not.toHaveBeenCalled();
+    console.info('CONVEX_ROOT_EVIDENCE', JSON.stringify({ kind: 'Arena', scale, correction: controller.computedMovement(), accepted: f.motor.collider.translation() }));
+    expect(f.actor.position.x).toBeGreaterThan(.09); expect(f.actor.position.y).toBeGreaterThan(900);
+    expect(f.motor.collider.translation()).toEqual(xyz(f.actor.position));
+    expect(f.actor.snapshot().motion.groundY).toBe(f.actor.position.y);
+    for (let i = 0; i < 60; i++) {
+      f.physics.step(); f.actor.step(1 / 60); f.pose.publish();
+      expect(f.motor.collider.translation()).toEqual(xyz(f.actor.position));
+      expect(f.actor.snapshot().motion.groundY).toBe(f.actor.position.y);
+    }
+    expect(f.actor.position.x).toBeGreaterThan(5);
+    f.actor.strafe = 0; f.actor.setStrafe(0);
+    f.physics.step(); compute.mockClear(); f.actor.step(1 / 60);
+    expect(compute).toHaveBeenCalledTimes(1); expect(f.motor.collider.translation()).toEqual(xyz(f.actor.position));
+    f.actor.setMotion(Math.PI / 2 + .1, 0); f.actor.step(1 / 60);
+    expect(f.motor.collider.translation()).toEqual(xyz(f.actor.position));
+    f.actor.stagger(new Vector3(-1, 0, 0), .5); f.actor.step(1 / 60);
+    expect(f.motor.collider.translation()).toEqual(xyz(f.actor.position));
+    f.actor.impulse(new Vector3(-3, 0, 0)); f.actor.step(1 / 60);
+    expect(f.motor.collider.translation()).toEqual(xyz(f.actor.position));
+  } finally { f.motor.dispose(); f.physics.dispose(); }
+});
+
+test('grounded convex actor rejects driven, tilted and offset modes before movement', () => {
+  const f = fixture();
+  try {
+    const before = f.actor.position.clone(); f.actor.driven = true;
+    expect(() => f.actor.step(1 / 60)).toThrow('grounded yaw-only'); f.actor.driven = false;
+    f.actor.levelGround = false; expect(() => f.actor.step(1 / 60)).toThrow('grounded yaw-only'); f.actor.levelGround = true;
+    f.actor.yOffset = .1; expect(() => f.actor.step(1 / 60)).toThrow('grounded yaw-only');
+    expect(f.actor.position).toEqual(before);
+  } finally { f.motor.dispose(); f.physics.dispose(); }
+});
+
+
+test('ordinary capsule retains analytic ground-follow, terrain filtering and driven behavior', () => {
+  const f = fixture();
+  try {
+    f.motor.dispose();
+    const { convexBody: _convexBody, ...opts } = f.opts;
+    const capsule = new CharacterMotor(f.physics, opts); f.actor.motor = capsule;
+    try {
+      expect(capsule.rootAuthority).toBeUndefined();
+      f.actor.groundHeight = () => 1;
+      const move = vi.spyOn(capsule, 'move');
+      f.actor.speed = 3; f.actor.setMotion(0, 3); f.actor.step(1 / 60);
+      expect(move).toHaveBeenCalledTimes(1); expect(move.mock.calls[0]?.[2]).toBe(true);
+      expect(f.actor.position.y).toBe(.2);
+      f.actor.driven = true; f.actor.position.y = 4; f.actor.step(1 / 60);
+      expect(f.actor.position.y).toBe(4); expect(f.actor.snapshot().motion.groundY).toBe(4);
+      expect(move).toHaveBeenCalledTimes(1);
+      f.actor.driven = false; f.actor.alive = false; f.actor.step(1 / 60);
+      expect(f.actor.position.y).toBe(4 - 10 / 3600);
+    } finally { capsule.dispose(); }
   } finally { f.motor.dispose(); f.physics.dispose(); }
 });

@@ -17,6 +17,7 @@ import { prepareDecisionMemories } from '../src/engine/script/decisionModule';
 import { packedCreatureBodies } from '../src/game/plugin/geometry';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { ragdollsFor } from '../src/engine/physics/ragdoll';
+import { tagCollider } from '../src/engine/physics/surface';
 import { groups } from '../src/engine/physics/groups';
 import { PracticeLoot } from '../src/game/practice/PracticeLoot';
 import { app } from '../src/engine/app/runtime';
@@ -36,6 +37,7 @@ import { readCreatureStrikes } from '../src/format/creatures';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
+const xyz = (p: Vector3) => ({ x: p.x, y: p.y, z: p.z });
 const folder = 'test/proof/brine-pitcher-native-owner/source';
 const metadata: unknown = JSON.parse(readFileSync(`${folder}/core-runtime-study/metadata.json`, 'utf8'));
 const source = v.parse(v.object({ bones: v.array(v.object({ name: v.string(), parent: v.nullable(v.string()), pos: v.tuple([v.number(),v.number(),v.number()]) })), parts: v.array(v.object({ name: v.string(), positions: v.array(v.number()) })) }), JSON.parse(readFileSync(`${folder}/v3/native-source.json`, 'utf8')));
@@ -54,7 +56,7 @@ beforeAll(async () => {
     new Map(BRINE_PITCHER_DECISIONS.map(row => [row.source, readFileSync(`src/shards/driftwood-isle/${row.source}`, 'utf8')])), { asLineCeiling: 100 });
 });
 const joint = (): AnimalRigJoint => ({ position: new Vector3(), rotation: new Euler(), scale: new Vector3(1, 1, 1) });
-async function fixture(declaration = motion, livingBodyBone?: string, withCorpse = true) {
+async function fixture(declaration = motion, livingBodyBone?: string, withCorpse = true, scale = 1) {
   const scope = new Scope('pitcher-native-owner1'), events = new Events(), combat = new CombatPipeline(events, scope);
   const outside = createSimHost({ ...SIM_LEVEL, entities: [], quests: [], ground: { size: 100, height: 900 }, player: { at: { x: 0, y: 900, z: 2 }, yaw: 0, speed: 0 } },
     { scope, rapier: await loadRapier(decode(rapierUrl)) });
@@ -72,7 +74,7 @@ async function fixture(declaration = motion, livingBodyBone?: string, withCorpse
     ['actors/strikes', BRINE_PITCHER_STRIKES]]);
   const damage: number[] = []; const initialBodies=outside.physics.world.bodies.len(), initialColliders=outside.physics.world.colliders.len();
   const native = new PracticeNativeActor({ scope, ports: { physics: outside.physics, player: outside.player, events, combat },
-    spawn: { id: 'practice.brine-pitcher-matriarch', seed: 1, scale: 1, at: { x: 0, y: 900, z: 0 }, yaw: 0,
+    spawn: { id: 'practice.brine-pitcher-matriarch', seed: 1, scale, at: { x: 0, y: 900, z: 0 }, yaw: 0,
       spec: { kind: 'brine-pitcher-matriarch', label: 'Pitcher', variant: 'brine-pitcher-matriarch', rarity: 'rare', hp: 150, aggressive: true,
         dims: packed.dims, mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 14, relentless: false } } },
     species, recipe, pose: declaration, ...(livingBodyBone === undefined ? {} : { livingBodyBone }), ...(withCorpse ? { corpse: BRINE_PITCHER_ROOTED_NATIVE_SELECTION.corpse } : {}),
@@ -315,5 +317,44 @@ test('convex install activation fault preserves the exact old motor and retires 
     expect(f.outside.physics.colliderTag(old.collider)?.owner).toBe(actor);
     expect([f.outside.physics.world.colliders.len(), f.outside.physics.world.characterControllers.size]).toEqual(counts);
     expect(f.native.host.creatureMotorOptions(actor).convexBody).toBeUndefined();
+  } finally { f.scope.dispose(); }
+});
+
+
+test.each([.85, 1, 1.25])('nonzero collision-owned Y survives native view, recreation and held death at scale %s', async scale => {
+  const f = await fixture(motion, 'body', true, scale);
+  try {
+    const physics = f.outside.physics, actor = f.native.actor;
+    const floor = physics.world.createCollider(physics.R.ColliderDesc.cuboid(50, 2, 50).setTranslation(0, 898, 0).setCollisionGroups(groups('WORLD')));
+    tagCollider(floor, 'metal', null);
+    f.outside.player.position.set(0, 900, 15); f.outside.player.motor.resetAt(f.outside.player.position);
+    actor.impulse(new Vector3(6, 0, 0)); f.tick();
+    const motor = actor.motor; if (!(motor instanceof CharacterMotor)) throw new Error('Missing convex motor');
+    expect(actor.position.y).toBeGreaterThan(900);
+    expect(motor.collider.translation()).toEqual(xyz(actor.position));
+    expect(f.render().root.position).toEqual(actor.position);
+    expect(actor.snapshot().motion.groundY).toBe(actor.position.y);
+    const accepted = actor.position.clone();
+    f.native.place(accepted, actor.yaw);
+    expect(actor.position).toEqual(accepted); expect(f.render().root.position).toEqual(accepted);
+    expect(actor.snapshot().motion.groundY).toBe(accepted.y);
+    const target = f.outside.physics;
+    const transferred = motor.transferTo(target, accepted);
+    expect(transferred.rootAuthority).toBe('collision'); expect(transferred.collider.translation()).toEqual(xyz(accepted));
+    transferred.dispose();
+    motor.dispose(); actor.motor = null; f.tick();
+    const recreated = f.native.host.entities.get(actor.entityId)?.motor; if (!(recreated instanceof CharacterMotor)) throw new Error('Missing recreated motor');
+    expect(recreated.rootAuthority).toBe('collision');
+    expect(recreated.collider.translation()).toEqual(xyz(actor.position));
+    expect(f.render().root.position).toEqual(actor.position);
+    expect(actor.position.y).toBeGreaterThan(900);
+    const lethal = actor.position.clone(), before = locals(f.render());
+    expect(f.hit(1000)?.killed).toBe(true); expect(actor.motor).toBeNull();
+    for (let i = 0; i < 120; i++) {
+      f.tick(); expect(actor.position).toEqual(lethal);
+      for (const alpha of [0, .5, 1]) { expect(f.render(alpha).root.position).toEqual(lethal); expect(locals(f.render(alpha))).toEqual(before); }
+    }
+    expect(f.native.corpse?.diagnostic().resource).toBe('frozen');
+    expect(actor.snapshot().motion.groundY).toBe(lethal.y);
   } finally { f.scope.dispose(); }
 });

@@ -1,0 +1,60 @@
+{
+  "scope": "Independent bounded functional review; not admission or quality completion",
+  "files": [
+    {
+      "path": "tmp/shared-arena-candidates/current-four-1553-conch-qa2/report.json",
+      "bytes": 564364,
+      "sha256": "4c337f4554f265bd1ee20a1141a05ccb9802269c2650589a74938bc39a98258a"
+    },
+    {
+      "path": "tmp/shared-arena-candidates/current-four-1553-conch-qa2/completed-report.json",
+      "bytes": 564364,
+      "sha256": "4c337f4554f265bd1ee20a1141a05ccb9802269c2650589a74938bc39a98258a"
+    },
+    {
+      "path": "tmp/shared-arena-candidates/current-four-1553-conch-qa2/trace.json",
+      "bytes": 3021717,
+      "sha256": "a64d315d1049715ebada5d64d18d7741d46ffe2a1f640ca008dc14ac8665d79d"
+    },
+    {
+      "path": "tmp/shared-arena-candidates/current-four-1553-conch-qa2/post-death.jpg",
+      "bytes": 44526,
+      "sha256": "83b6e254c54a0962f301b531ffeec29a8226732687fd59f7bf4ffa3b8a963151"
+    },
+    {
+      "path": "tmp/shared-arena-candidates/current-four-1553-conch-qa2/video/page@c6c5c9ba8fdadb483678a6124caad78c.webm",
+      "bytes": 6341442,
+      "sha256": "c5529744d066eef5f873e7c6006a2181777f407dee2b5a12a53d851d22464a10"
+    },
+    {
+      "path": "scripts/shared-arena/qa-conch-candidate2.mjs",
+      "bytes": 26885,
+      "sha256": "b5d807947c9a05661720fac43e716e3e3012b2372f254f3d7f1ee2d79214d154"
+    }
+  ],
+  "video": {
+    "decodedFrames": 1518,
+    "seconds": 60.72,
+    "width": 402,
+    "height": 874,
+    "recorderFps": 25,
+    "visuallyInspectedFrameIndices": [
+      150,
+      300,
+      350,
+      1050,
+      1200,
+      1400
+    ]
+  },
+  "trace": {
+    "rafSamples": 243,
+    "damageEvents": 14,
+    "trustedTouchInputs": 9,
+    "diagnosticPlayerPlacements": 11,
+    "postDeathSamples": 39,
+    "postDeathWallSeconds": 9.728,
+    "postDeathClockSeconds": 3.6727
+  },
+  "owner": "Legacy PracticeCreature and AnimalView, not PracticeNativeActor"
+}

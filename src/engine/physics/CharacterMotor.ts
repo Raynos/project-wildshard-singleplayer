@@ -22,7 +22,7 @@ import { tagCollider, tagOf } from './surface';
 import { FIXED_STEP } from '../core/fixedStep';
 
 export interface MotorOptions {
-  /** Optional exact actor-root-local body. Only flat, yaw-only motion is supported; no capsule offsets. */
+  /** Optional exact actor-root-local body. Yaw-only root orientation with collision-owned XYZ displacement; no capsule offsets. */
   convexBody?: ConvexBodyRecipe;
   radius: number;
   /** feet to crown, metres (an upright capsule; a lying one is 2 × radius tall) */
@@ -81,6 +81,8 @@ interface MotorState {
 
 export class CharacterMotor {
   readonly collider: Collider;
+  /** Convex roots publish Rapier's accepted float32 XYZ; capsule callers retain their existing height law. */
+  get rootAuthority(): 'collision' | undefined { return this.opts.convexBody === undefined ? undefined : 'collision'; }
   private readonly kcc: KinematicCharacterController;
   private readonly lift: number;
   private filter: number;
@@ -382,6 +384,9 @@ export class CharacterMotor {
    */
   move(feet: Vec3, want: Vec3, ignoreGround = false): MoveResult {
     const r = this.result;
+    if (this.opts.convexBody !== undefined && (ignoreGround || !this.enabled
+      || ![feet.x, feet.y, feet.z, want.x, want.y, want.z].every(Number.isFinite)))
+      throw new Error('Convex motor requires enabled collision-owned XYZ movement');
     if (!this.enabled) { feet.x += want.x; feet.y += want.y; feet.z += want.z; r.grounded = false; r.groundNormalY = 1; r.horizontalFreedom = 1; r.groundCollider = null; this.anchorBody = null; return r; }
     const { R } = this.physics;
     if (this.opts.convexBody !== undefined) this.nearDeck(feet);
@@ -397,15 +402,16 @@ export class CharacterMotor {
     // E285: now and then Rapier stops the whole move on the floor the capsule already rests on (one contact, normal
     // straight up, time of impact 0), and a dash ended on that "wall" (~1 dodge in 5). Such a stall is retried flat;
     // the snap still keeps the feet on the ground, and anything that really blocks the way blocks the retry too.
-    if (wantH > 1e-6 && want.y <= 0 && Math.hypot(m.x, m.z) < wantH * 0.3 && this.stalledOnFloor()) {
+    if (this.opts.convexBody === undefined && wantH > 1e-6 && want.y <= 0 && Math.hypot(m.x, m.z) < wantH * 0.3 && this.stalledOnFloor()) {
       this.flat.x = want.x; this.flat.y = 0; this.flat.z = want.z;
       this.kcc.computeColliderMovement(this.collider, this.flat, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
       m = this.kcc.computedMovement();
     }
-    // Flat-root callers own height. Never publish a KCC autostep/snap height they will overwrite.
-    if (this.opts.convexBody !== undefined && m.y !== 0) throw new Error('Convex motor requires planar displacement');
-    feet.x += m.x; feet.y += m.y + lifted; feet.z += m.z;
+    const from = this.opts.convexBody === undefined ? feet : this.collider.translation();
+    feet.x = from.x + m.x; feet.y = from.y + m.y + lifted; feet.z = from.z + m.z;
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
+    // Native collider translation is float32. Publish those same coordinates, not the double-precision sum.
+    if (this.opts.convexBody !== undefined) Object.assign(feet, this.collider.translation());
     r.grounded = this.kcc.computedGrounded();
     r.horizontalFreedom = wantH > 1e-6 ? Math.min(1, Math.hypot(m.x, m.z) / wantH) : 1;
     // the ground under the feet: a short ray down from just above them. (The controller's own contacts are empty while
@@ -450,7 +456,7 @@ export class CharacterMotor {
    * ground snap, controller movement, terrain query, reset clearance or physics step occurs.
    * A disabled capsule belongs to another owner and must not be repositioned here. */
   syncFlightPose(feet: Vec3): void {
-    if (!this.enabled || ![feet.x, feet.y, feet.z].every(Number.isFinite))
+    if (this.opts.convexBody !== undefined || !this.enabled || ![feet.x, feet.y, feet.z].every(Number.isFinite))
       throw new RangeError('Invalid living flight pose');
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
     this.anchorBody = null;

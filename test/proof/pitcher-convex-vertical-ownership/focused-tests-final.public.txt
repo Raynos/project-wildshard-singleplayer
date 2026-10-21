@@ -1,0 +1,91 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > held rooted death at tick 0 preserves every source vertex, one fixed obstacle and its occupied slot 2095ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > held rooted death at tick 145 preserves every source vertex, one fixed obstacle and its occupied slot 1049ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > held rooted death at tick 280 preserves every source vertex, one fixed obstacle and its occupied slot 1637ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > held rooted death at tick 420 preserves every source vertex, one fixed obstacle and its occupied slot 777ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > current-pose foreign WORLD obstruction refuses atomically without a physics step 442ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > current-pose foreign PLAYER obstruction refuses atomically without a physics step 1133ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > current-pose foreign CREATURE obstruction refuses atomically without a physics step 428ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > current-pose foreign ITEM obstruction refuses atomically without a physics step 407ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > current real player motor overlap refuses, then its current clear pose allows lethal handoff 380ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > preflight ignores sensors, disabled colliders and non-interacting groups but only excludes its own live motor 362ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > real player motor is blocked by held source hulls, can walk around, and crosses after disposal 1131ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > actual death event pays one authored practice receipt; disposal and a fresh bout reset loot and health 864ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > a world wall exactly touching the actual source extremum is not treated as penetration 321ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > a real corpse allocation error propagates through combat and remains retryable after rollback 326ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > nonfinite native contact data is a genuine fault rather than a recoverable overlap 885ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > bounded living source body survives actual pose/flinch/yaw/reset and host motor recreation 459ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > convex install activation fault preserves the exact old motor and retires the failed allocation 321ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > nonzero collision-owned Y survives native view, recreation and held death at scale 0.85 477ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > nonzero collision-owned Y survives native view, recreation and held death at scale 1 381ms
+ ✓ test/brine-pitcher-rooted-native-owner.test.ts > nonzero collision-owned Y survives native view, recreation and held death at scale 1.25 1320ms
+ ✓ test/practice-native-actor.test.ts > one real native actor owns the exact page capsule; the bound view owns only query hitboxes 183ms
+ ✓ test/practice-native-actor.test.ts > same-time real hits latch each prior publication and lethal state is published synchronously 35ms
+ ✓ test/practice-native-actor.test.ts > zero, one and one hundred reads do not alter actual actor/control/events/RNG/pose continuation 49ms
+ ✓ test/practice-native-actor.test.ts > real decision and strike owner progresses once per fixed tick independently of render cadence 901ms
+ ✓ test/practice-native-actor.test.ts > actual stagger displacement is measured and explicit placement resets history without a hidden clock 24ms
+ ✓ test/practice-native-actor.test.ts > scoped disposal detaches the decision and motor, and retry/reload creates fresh exact owners 51ms
+ ✓ test/practice-native-actor.test.ts > practice declaration rejects callbacks, unknown joints, mutable recurrence and missing native ownership 1ms
+ ✓ test/practice-native-actor.test.ts > versioned native transition pose round-trips quietly at every hit/death boundary and refuses invalid state atomically 37ms
+ ✓ test/convex-character-motor.test.ts > exact 68-point source body remains equivalent through yaw, move and reset at scale 0.85 36ms
+ ✓ test/convex-character-motor.test.ts > exact 68-point source body remains equivalent through yaw, move and reset at scale 1 22ms
+ ✓ test/convex-character-motor.test.ts > exact 68-point source body remains equivalent through yaw, move and reset at scale 1.25 19ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 0.85 source hull from 0 551ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 0.85 source hull from 1.5707963267948966 25ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 0.85 source hull from 3.141592653589793 18ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 0.85 source hull from -1.5707963267948966 17ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1 source hull from 0 19ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1 source hull from 1.5707963267948966 13ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1 source hull from 3.141592653589793 13ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1 source hull from -1.5707963267948966 17ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1.25 source hull from 0 13ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1.25 source hull from 1.5707963267948966 12ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1.25 source hull from 3.141592653589793 12ms
+ ✓ test/convex-character-motor.test.ts > real player KCC lunge on the Arena stops outside scale 1.25 source hull from -1.5707963267948966 19ms
+ ✓ test/convex-character-motor.test.ts > stationary actor refuses an obstructed yaw using current direct transforms and no relocation 24ms
+ ✓ test/convex-character-motor.test.ts > convex transfer/reset preserves root pivot and yaw; default capsule retains its offset 15ms
+stdout | test/convex-character-motor.test.ts > real convex KCC accepts the WORLD step correction with one XYZ publication
+CONVEX_ROOT_EVIDENCE {"kind":"step","correction":{"x":0.7998850345611572,"y":0.20544353127479553,"z":3.0614668844464177e-7},"accepted":{"x":0.7998850345611572,"y":0.20544353127479553,"z":3.0614668844464177e-7}}
+
+stdout | test/convex-character-motor.test.ts > real convex KCC accepts the WORLD slope correction with one XYZ publication
+CONVEX_ROOT_EVIDENCE {"kind":"slope","correction":{"x":0.7787092328071594,"y":0.22107160091400146,"z":0.0000012711058161585242},"accepted":{"x":0.7787092328071594,"y":0.22107160091400146,"z":0.0000012711058161585242}}
+
+ ✓ test/convex-character-motor.test.ts > allocation and activation failures clean newly allocated resources 14ms
+ ✓ test/convex-character-motor.test.ts > moving ancestry, root tilt and invalid hulls refuse before allocation 14ms
+ ✓ test/convex-character-motor.test.ts > exact convex touch distance sees non-capsule contacts and kinematic decks explicitly refuse 14ms
+ ✓ test/convex-character-motor.test.ts > convex snapshot reconnects only the exact canonical source hull, rejecting capsule and wrong convex handles 30ms
+ ✓ test/convex-character-motor.test.ts > collision-owned XYZ refuses terrain filtering, disabled movement and flight sync 13ms
+ ✓ test/convex-character-motor.test.ts > real convex KCC accepts the WORLD step correction with one XYZ publication 13ms
+ ✓ test/convex-character-motor.test.ts > real convex KCC accepts the WORLD slope correction with one XYZ publication 11ms
+stdout | test/convex-character-motor.test.ts > exact metal WORLD Arena travels with one float32 root at scale 0.85
+CONVEX_ROOT_EVIDENCE {"kind":"Arena","scale":0.85,"correction":{"x":0.10000000149011612,"y":0.00010301880683982745,"z":-2.515672781200351e-9},"accepted":{"x":0.10000000149011612,"y":900.0001220703125,"z":-2.515672781200351e-9}}
+
+stdout | test/convex-character-motor.test.ts > exact metal WORLD Arena travels with one float32 root at scale 1
+CONVEX_ROOT_EVIDENCE {"kind":"Arena","scale":1,"correction":{"x":0.09999997168779373,"y":0.00011967930913669989,"z":-9.411845525164608e-9},"accepted":{"x":0.09999997168779373,"y":900.0001220703125,"z":-9.411845525164608e-9}}
+
+stdout | test/convex-character-motor.test.ts > exact metal WORLD Arena travels with one float32 root at scale 1.25
+CONVEX_ROOT_EVIDENCE {"kind":"Arena","scale":1.25,"correction":{"x":0.10000000149011612,"y":0.00010136832133866847,"z":-8.89408369175726e-9},"accepted":{"x":0.10000000149011612,"y":900.0001220703125,"z":-8.89408369175726e-9}}
+
+ ✓ test/convex-character-motor.test.ts > exact metal WORLD Arena travels with one float32 root at scale 0.85 34ms
+ ✓ test/convex-character-motor.test.ts > exact metal WORLD Arena travels with one float32 root at scale 1 28ms
+ ✓ test/convex-character-motor.test.ts > exact metal WORLD Arena travels with one float32 root at scale 1.25 26ms
+ ✓ test/convex-character-motor.test.ts > grounded convex actor rejects driven, tilted and offset modes before movement 13ms
+ ✓ test/convex-character-motor.test.ts > ordinary capsule retains analytic ground-follow, terrain filtering and driven behavior 11ms
+ ✓ test/animal-pose-flight-clock.test.ts > grounded stride retains its original frequency and real sky-goat stride clip 9ms
+ ✓ test/animal-pose-flight-clock.test.ts > declared flight keeps finite zero-leg continuation and existing flyer time-driven animation 25ms
+
+ Test Files  4 passed (4)
+      Tests  59 passed (59)
+   Start at  12:44:39
+   Duration  57.33s (tests 39%, transform 38%, setup 18%, import 5%)
+
+  Transform  transforming modules took 21.09s · 38% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

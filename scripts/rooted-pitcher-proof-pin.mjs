@@ -39,8 +39,13 @@ export const INPUTS = [
   `${CANONICAL}/core-runtime-study/metadata.json`, `${CANONICAL}/v3/payload.bin`,
   `${CANONICAL}/v3/native-source.json`, `${CANONICAL}/origins.json`,
 ];
-const SOURCE_ROOTS = ['src', 'scripts', 'vite'];
-const ENV_FILES = ['.env', '.env.local', '.env.production', '.env.production.local'];
+export const SOURCE_ROOTS = ['src', 'scripts', 'vite', 'budgets'];
+/** Shared by author and browser builds: no implicit dotenv, public environment or PostCSS inputs.
+ * Only the public telemetry endpoint is overridden; never inspect or serialize process.env. */
+export function isolatedProofBuildOptions() {
+  return { envDir: false, envPrefix: [], mode: 'production', css: { postcss: { plugins: [] } },
+    define: { 'import.meta.env.VITE_SENTRY_DSN': JSON.stringify('') } };
+}
 const git = args => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).trim();
 const read = path => {
   if (path.startsWith('/') || path.includes('\\') || path.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error('Unsafe native proof pin path');
@@ -66,8 +71,7 @@ export function sourceInventory() {
   return Object.fromEntries(SOURCE_ROOTS.flatMap(root => Object.entries(inventory(resolve(ROOT, root), true)).map(([path, digest]) => [`${root}/${path}`, digest])));
 }
 function assertBuildEnvironment() {
-  // Vite would otherwise load these implicitly. Never read or publish environment/credential contents.
-  if (ENV_FILES.some(path => existsSync(resolve(ROOT, path)))) throw new Error('Isolated proof refuses implicit Vite environment files');
+  // dotenv discovery is disabled in both stages; never inspect environment/credential files.
   if (process.env.NODE_ENV !== undefined && process.env.NODE_ENV !== 'production') throw new Error('Isolated proof requires unset or production NODE_ENV');
 }
 function assertCommittedSources(commit) {

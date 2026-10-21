@@ -1,0 +1,8 @@
+6cb8186e32e875cef02bdf091dcbf980ae812a4f4edb79430beffe96af9754b8  test/proof/pitcher-convex-body-motor/delivery-manifest.json
+6fc387f1f06589cb99cbe386e6598fb18db7575a20ddc3e4b22dbe837230c85a  test/proof/pitcher-convex-body-motor/flat-floor-admission-failure.public.txt
+fabb45a9451109c3c95181a560fe1c80e4138a504d6a44acb858297d1c2962a3  test/proof/pitcher-convex-body-motor/flat-floor-admission-failure.txt
+ddf31fb9d3349f60e3bcf5c04e8b027f5d9b589600123d9625488c690d2ae7a8  test/proof/pitcher-convex-body-motor/focused-tests-before-floor.public.txt
+8d93a24237d6b3ee5588c5103481bc77701d2a6da3b171d7e96753036a90f259  test/proof/pitcher-convex-body-motor/focused-tests-before-floor.txt
+fbc41226e46d1e4cdcd4cf12864afe17ff0cb7bc9036484aaa2d53a28b6e69e2  test/proof/pitcher-convex-body-motor/focused-tests-final.public.txt
+ef6a917b2cad4349ad7f77953ae452905ec8f50d6348343ffd2076eb9c6c81ac  test/proof/pitcher-convex-body-motor/focused-tests-final.txt
+54a9061598281078907f535b411f7ede535aac949d9a796fbd8019ad710739cd  test/proof/pitcher-convex-body-motor/report.json

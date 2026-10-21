@@ -2605,8 +2605,20 @@ convex endpoint overlap refuses yaw without relocating feet; ordinary capsules
 retain the existing freely steered actor behavior. This is endpoint admission,
 not a swept-rotation guarantee. Direct current-transform contact queries avoid
 stale broadphase data; the existing caller still owns the sole physics step.
-Convex motion explicitly refuses vertical KCC corrections before publishing displacement,
-rather than let the flat actor-height owner overwrite a different collider height.
+The readonly `AnimalMotor.rootAuthority: 'collision'` contract is exposed only by
+convex motors. `AnimalSim` combines intended locomotion, stagger/impulse and desired
+ground-follow displacement into one XYZ request, including idle/turn-only ticks.
+That request respects terrain and resolves through the existing KCC exactly once;
+it does not use the capsule-only stalled-floor retry. The collider's accepted
+float32 XYZ is copied back to the actor and `groundY`, and the native pose publishes
+that same root. No later analytic-height overwrite, extra physics step or corrective
+teleport runs. The KCC's ordinary step/slope/separation correction is physical motion,
+not an authored lift. Capsule, flight and driven paths retain their prior behavior.
+Convex driven/flying/tilted/offset roots, terrain filtering, disabled free movement
+and flight-pose synchronization refuse. External explicit placements remain
+float32-equivalent at the Rapier boundary; accepted move endpoints are the exact
+native translation, not the double-precision sum of root and computed movement.
+Yaw rotations and hull coordinates likewise retain native float32 precision.
 Convex touch queries use exact shape distance. Kinematic deck proximity explicitly
 refuses instead of silently probing a capsule or adding a lift.
 
@@ -2620,13 +2632,18 @@ snapshot reconnection validates exact canonical hull vertices before reconnectin
 Practice's opt-in `livingBodyBone` selects an existing source hull only when the
 numeric compiler proves no writers on its complete ancestry and the flat,
 yaw-only root uses authored flinch with no death splay. Unsupported ancestry,
-root tilt and kinematic decks refuse. This is a bounded living-body candidate,
+root tilt and kinematic decks refuse. The existing native corpse owner retains the
+lethal accepted root after clearing the motor; its host scheduling skips analytic
+body motion, so held corpses never regain ground-follow authority. This is a bounded living-body candidate,
 not an admission of the full animated creature or any corpse hull; lethal
-compound overlap checks remain independent and unchanged. The first source-body candidate
-is **not admitted**: the current Arena metal slab produces a nonzero vertical KCC
-correction even for ordinary horizontal travel, which this bounded flat-root mode
-correctly refuses. See `test/proof/pitcher-convex-body-motor/report.json`; do not
-interpret fail-closed regression tests as usable floor-travel acceptance.
+compound overlap checks remain independent and unchanged. The first planar source-body
+candidate remains historical negative evidence in
+`test/proof/pitcher-convex-body-motor/report.json`: the Arena slab produced a genuine
+vertical correction that its previous contract correctly refused. That report and
+its original failure outputs are unchanged. The separate collision-owned XYZ
+continuation is reviewed in `docs/reviews/rooted-pitcher-app/CONVEX-VERTICAL-OWNERSHIP-REVIEW.md`.
+Neither continuation nor floor-travel tests admit the six moving head/lid hulls,
+swept rotation, phone performance or the complete creature.
 
 Practice native corpse selection supports explicit `anchored-held` alongside the
 unchanged default `rigid` mode. Anchored-held is a distinct stationary death design:

@@ -16,6 +16,8 @@ export interface AnimalSimSpec {
 }
 /** Collision-only displacement port; the creature retains its own feet position. */
 export interface AnimalMotor {
+  /** Opt-in single collision-owned XYZ root; the caller must not overwrite accepted height. */
+  readonly rootAuthority?: 'collision' | undefined;
   move: (feet: Vector3, want: { x: number; y: number; z: number }, ignoreGround: boolean) => void;
   /** Optional collision-owned turn admission; false preserves the previous yaw without moving feet. */
   acceptTurn?: (feet: Vector3, yaw: number) => boolean;
@@ -99,7 +101,7 @@ export class AnimalSim {
   seed: number; scale: number;
   strafe = 0; desiredStrafe = 0; yOffset = 0;
   driven = false; levelGround = false;
-  /** Collision recipes restricted to a flat, untilted, nonflying actor root can refuse unsupported motion. */
+  /** Untilting grounded root contract, not a fixed height: collision-owned vertical corrections remain valid. */
   get flatGroundRoot(): boolean { return this.levelGround && !this.driven && this.flight === null && this.yOffset === 0 && this.tiltRollT === 0; }
   groundHeight?: (x: number, z: number, fromY: number) => number;
   mem: Record<string, number> = {};
@@ -320,6 +322,8 @@ export class AnimalSim {
     if (this.attackT >= 0) this.attackT += dt;
   }
   protected stepMotion(dt: number): void {
+    const collisionRoot = this.motor?.rootAuthority === 'collision';
+    if (collisionRoot && !this.flatGroundRoot) throw new Error('Collision-owned root requires grounded yaw-only motion');
     this.elapsed += dt;
     const x0 = this.position.x, z0 = this.position.z;
     if (this.motionConstraint !== null) Object.assign(this.motionFrom, this.position);
@@ -364,9 +368,19 @@ export class AnimalSim {
 
     this.motionConstraint?.(this.motionFrom, this.position);
 
+    if (collisionRoot && this.alive) {
+      // The whole intended displacement, including ground follow and knockback, has one collision owner.
+      const want = this.moveWant; want.x = this.position.x - x0; want.z = this.position.z - z0;
+      this.groundY = this.position.y;
+      want.y = this.followGround(dt) - this.position.y;
+      this.position.x = x0; this.position.z = z0;
+      this.motor?.move(this.position, want, false);
+      this.groundY = this.position.y;
+    }
+
     // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
     // animals stop it — the walk, the charge and a knock-back alike
-    if (this.motor !== null && this.alive && !this.driven && this.flight === null) {
+    if (!collisionRoot && this.motor !== null && this.alive && !this.driven && this.flight === null) {
       const dx = this.position.x - x0, dz = this.position.z - z0;
       if (dx !== 0 || dz !== 0) {
         this.position.x = x0; this.position.z = z0;
@@ -380,18 +394,8 @@ export class AnimalSim {
     if (this.flight !== null) {
       this.flight.step(dt, this.position, this.alive, (x, z, fromY, maxDrop) => this.simPorts.floorBelow === undefined ? this.simPorts.heightAt(x, z) : this.simPorts.floorBelow(x, z, fromY, maxDrop));
       this.groundY = this.position.y;
-    } else if (!this.driven) {
-      const gy = this.groundHeight?.(this.position.x, this.position.z, this.groundY + 1) ?? this.simPorts.heightAt(this.position.x, this.position.z);
-      // A WORLD deck ending is a fall, not a heightfield bump. Legacy analytic bodies keep their exact smoothing.
-      if (this.groundHeight !== undefined && (this.falling || this.groundY - gy > 1)) {
-        this.falling = true;
-        this.fallVelocity += this.impulseVelocity.y; this.impulseVelocity.y = 0;
-        const next = this.groundY + this.fallVelocity * dt - 10 * dt * dt;
-        this.fallVelocity -= 20 * dt;
-        if (this.fallVelocity <= 0 && next <= gy) {
-          this.groundY = gy; this.falling = false; this.fallVelocity = 0;
-        } else this.groundY = next;
-      } else this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
+    } else if (!this.driven && !collisionRoot) {
+      this.groundY = this.followGround(dt);
       this.position.y = this.groundY + this.yOffset;
     }
 
@@ -402,4 +406,21 @@ export class AnimalSim {
     } else if (!this.alive) this.impulseVelocity.set(0, 0, 0);
 
   }
+  /** Desired ground height only. A collision-owned root routes it through its motor before publication. */
+  private followGround(dt: number): number {
+    const gy = this.groundHeight?.(this.position.x, this.position.z, this.groundY + 1) ?? this.simPorts.heightAt(this.position.x, this.position.z);
+    // A WORLD deck ending is a fall, not a heightfield bump. Legacy analytic bodies keep their exact smoothing.
+    if (this.groundHeight !== undefined && (this.falling || this.groundY - gy > 1)) {
+      this.falling = true;
+      this.fallVelocity += this.impulseVelocity.y; this.impulseVelocity.y = 0;
+      const next = this.groundY + this.fallVelocity * dt - 10 * dt * dt;
+      this.fallVelocity -= 20 * dt;
+      if (this.fallVelocity <= 0 && next <= gy) {
+        this.falling = false; this.fallVelocity = 0; return gy;
+      }
+      return next;
+    }
+    return this.groundY + (gy - this.groundY) * Math.min(1, dt * 12);
+  }
+
 }
