@@ -1,43 +1,42 @@
-import { installSoakDrive } from '../soak/drive.mjs';
-
 /** Real held input leaves the home through its south road and enters it again. */
-function installCrossingProbe(drive) {
+function installCrossingProbe() {
   const api = window.__wildshard, grid = api.shard.grid.state();
   const home = grid.cells.find(cell => cell.instance === grid.home);
   if (!home || grid.live?.live.current !== home.instance) throw new Error('Crossing proof needs its entered home');
   const x = home.cell[0] * 555, z = home.cell[1] * 555;
   const state = { startedAt: performance.now(), done: false, errors: [], samples: [], timings: [], rows: [] };
   window.__loadingCrossing = state;
-  drive({ steps: [{ kind: 'crossroads', id: 'loading-south-road', x, z: z - 277.5 },
-    { kind: 'enter', instance: home.instance, slug: home.slug, x, z: z - 210 }] }, 120);
-  // The production drive already owns the single harness.walk system.
-  // Read completed crossing diagnostics on paint without installing another.
-  let previous = '', frame = 0;
-  const sample = () => {
-    frame = requestAnimationFrame(sample);
+  // Reverse after the real transfer, rather than requiring a fast hover body
+  // to land within 1.5 m of one exact road coordinate on a throttled frame.
+  const game = api.world.game, player = api.world.player;
+  let previous = '', left = false, stop = () => undefined;
+  stop = game.watchFrames(() => {
     const current = api.shard.grid.state(), live = current.live;
+    if (live?.live.current === null) left = true;
     const key = JSON.stringify([live?.crossing, current.inside, live?.live.gameplayReady]);
     if (key !== previous) {
       state.samples.push({ at: performance.now(), crossing: live?.crossing, inside: current.inside,
-        gameplayReady: live?.live.gameplayReady }); previous = key;
+        gameplayReady: live?.live.gameplayReady, feet: live?.live.worldFeet }); previous = key;
     }
-    const entry = window.__sf57.events.find(event => event.type === 'entry' && event.admitted === true);
-    const failure = window.__sf57.events.find(event => event.type === 'failure');
-    if (!entry && !failure && !window.__sf57.done) return;
-    if (!entry) state.errors.push(failure?.error ?? 'Crossing route did not re-enter home');
+    const entered = left && live?.live.current === home.instance && current.inside === home.instance;
+    if (!entered && performance.now() - state.startedAt < 120000 && live) {
+      const feet = live.live.worldFeet, dx = x - feet.x, dz = z - (left ? 210 : 277.5) - feet.z;
+      player.setHover(!left); player.yaw = Math.atan2(-dx, -dz); game.app.input.setHeld('move.forward', true);
+      return;
+    }
+    if (!entered) state.errors.push(`Crossing route did not re-enter home: ${JSON.stringify({ left, feet: live?.live.worldFeet, issues: live?.live.issues })}`);
     state.errors.push(...(window.__loadingAccuracy?.errors ?? []));
     const timings = live?.crossingTiming ?? [], rows = live?.crossingLoading ?? [];
     for (let i = 0; i < timings.length; i++) if (timings[i].requestedAt >= state.startedAt) {
       state.timings.push(timings[i]); state.rows.push(rows[i] ?? []);
     }
     state.endedAt = performance.now(); state.done = true;
-    window.__sf57.stop(); cancelAnimationFrame(frame);
-  };
-  frame = requestAnimationFrame(sample);
+    game.app.input.clear(); player.setHover(false); stop(); stop = () => undefined;
+  });
   return true;
 }
 
-export const crossingProbeCode = () => `(${installCrossingProbe.toString()})(${installSoakDrive.toString()})`;
+export const crossingProbeCode = () => `(${installCrossingProbe.toString()})()`;
 
 /** Crossings retain their unobstructed play view: grade the actual phase table. */
 export function crossingReport(state) {
