@@ -11,6 +11,7 @@ import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { FarLookRuntime } from './farProxy';
+import { installFarImpostor, type FarImpostorData } from './farImpostorView';
 
 /**
  * SF23 / G90: how far (m) the foot of a proxy's border skirt steps in from the cell edge. The skirt keeps its top on the
@@ -75,14 +76,16 @@ export interface FarProxyView {
   readonly mesh: Mesh; mask: (excluded: ReadonlySet<number>) => void; shadow: (enabled: boolean) => void; dispose: () => void;
   /** the colour its haze fades toward (linear RGB; SF19a's one frame sets the frame owner's air, G158) */
   hazeColour: (linear: Color) => void;
+  /** G539: the far tier's band share (0 proxy, 1 impostor, between a dithered cross-fade); absent without an impostor */
+  band?: (share: number) => void;
 }
 
 /** The family material with the region mask and haze patched in; `uniforms.farMask` holds 16 flags. */
-export function farProxyMaterial(look: FarLookRuntime, positionalMask = false, grain = false): { material: MeshLambertMaterial | MeshStandardMaterial; setMask: (excluded: ReadonlySet<number>) => void; frame: { haze: Color } } {
+export function farProxyMaterial(look: FarLookRuntime, positionalMask = false, grain = false): { material: MeshLambertMaterial | MeshStandardMaterial; setMask: (excluded: ReadonlySet<number>) => void; setBand: (share: number) => void; frame: { haze: Color } } {
   const material = look.family === 'pbr' ? new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }) : new MeshLambertMaterial({ vertexColors: true, flatShading: look.family === 'toon' });
   material.fog = false; // its own haze below; a home shard's near fog would hide its neighbours
   const mask = new Float32Array(16), hazeColour = new Color(...look.haze.colour).convertLinearToSRGB(); // the haze mixes after the output colour-space conversion
-  const uniforms = { farMask: { value: mask }, farHazeColour: { value: hazeColour }, farHaze: { value: new Vector3(look.haze.near, look.haze.far, look.haze.max) },
+  const uniforms = { farMask: { value: mask }, farHazeColour: { value: hazeColour }, farHaze: { value: new Vector3(look.haze.near, look.haze.far, look.haze.max) }, farBand: { value: 0 },
     ...(grain ? { farGrain: { value: nearGrainTexture() }, farGrainFade: { value: new Vector2(...NEAR_GRAIN.fade) } } : {}) };
   const f = (n: number): string => n.toFixed(2);
   const [flatA, flatB] = NEAR_GRAIN.flat, [steepAlong, steepUp, steepFine] = NEAR_GRAIN.steep;
@@ -108,8 +111,9 @@ export function farProxyMaterial(look: FarLookRuntime, positionalMask = false, g
         + (grain ? '\nvFarGrainP = position;\nvFarGrainN = normal;' : ''))
       .replace('#include <project_vertex>', `#include <project_vertex>\nvFarDepth = -mvPosition.z;${positionalMask ? '' : '\nif (farMask[int(uv.x + 0.5)] > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);'}`);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform vec3 farHazeColour;\nuniform vec3 farHaze;\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;\nfloat farHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }${positionalMask ? '\nuniform float farMask[16];' : ''}${grain ? '\nuniform sampler2D farGrain;\nuniform vec2 farGrainFade;\nvarying vec3 vFarGrainP;\nvarying vec3 vFarGrainN;' : ''}`)
-      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>${positionalMask
+      .replace('#include <common>', `#include <common>\nuniform vec3 farHazeColour;\nuniform vec3 farHaze;\nuniform float farBand;\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;\nfloat farHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }${positionalMask ? '\nuniform float farMask[16];' : ''}${grain ? '\nuniform sampler2D farGrain;\nuniform vec2 farGrainFade;\nvarying vec3 vFarGrainP;\nvarying vec3 vFarGrainN;' : ''}`)
+      // G539: the share of the band its impostor draws (the complementary screen-door dither, farImpostorView.ts)
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\nif (fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) < farBand) discard;${positionalMask
         ? `\nvec2 farCell = clamp(floor((vFarStrata + ${f(CHUNK_HALF)}) / ${f(CHUNK_HALF / 2)}), vec2(0.0), vec2(3.0));\nif (farMask[int(farCell.x + 4.0 * farCell.y)] > 0.5) discard;` : ''}`)
       // G222: rock beds over the cliff palette, waved along the face, each bed broken into blocks, a lit top and a shadowed
       // underside per bed; mean ≈ 1 so the declared palette keeps its value
@@ -123,7 +127,7 @@ if (vFarCliff > 0.5) {
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\nif (vFarCliff > 0.5) totalEmissiveRadiance += diffuseColor.rgb * ${f(FAR_CLIFF_FLOOR)};`)
       .replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(farHaze.x, farHaze.y, vFarDepth) * farHaze.z);\ngl_FragColor.a = 1.0;');
   }, { key: `sf23-far-${look.family}${positionalMask ? '-position' : ''}${grain ? '-grain' : ''}` });
-  return { material, setMask: (excluded) => { for (let r = 0; r < 16; r++) mask[r] = excluded.has(r) ? 1 : 0; }, frame: { haze: hazeColour } };
+  return { material, setMask: (excluded) => { for (let r = 0; r < 16; r++) mask[r] = excluded.has(r) ? 1 : 0; }, setBand: (share) => { uniforms.farBand.value = share; }, frame: { haze: hazeColour } };
 }
 
 /**
@@ -131,25 +135,32 @@ if (vFarCliff > 0.5) {
  * `decorate` patches its material before anything compiles it (G321 part 4: the horizon fade); `grain` adds the near
  * placeholder's ground detail (`NEAR_GRAIN`).
  */
-export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime, positionalMask = false, decorate?: (material: Material) => void, grain = false): FarProxyView {
-  const { material, setMask, frame } = farProxyMaterial(look, positionalMask, grain), mesh = new Mesh(geometry, material);
+export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime, positionalMask = false, decorate?: (material: Material) => void, grain = false, impostorData: FarImpostorData | null = null): FarProxyView {
+  const { material, setMask, setBand, frame } = farProxyMaterial(look, positionalMask, grain), mesh = new Mesh(geometry, material);
   decorate?.(material);
   mesh.name = 'far-proxy'; mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
   const bounds = geometryBoundsSteps(geometry, 'sphere');
   while (!bounds.next().done) { /* proxy installation remains synchronous */ }
   root.add(mesh);
+  // G539: the impostor shares the proxy's haze colour object, so the frame's air reaches both
+  const impostor = impostorData === null ? null : installFarImpostor(root, impostorData, look, frame.haze, decorate);
   let disposed = false;
   return {
     mesh,
     mask: (excluded) => { setMask(excluded); mesh.visible = excluded.size < 16; },
     shadow: () => undefined,
     hazeColour: (linear) => { frame.haze.copy(linear).convertLinearToSRGB(); },
-    dispose: () => { if (disposed) return; disposed = true; mesh.removeFromParent(); geometry.dispose(); material.dispose(); },
+    ...(impostor === null ? {} : { band: (share: number) => {
+      // the proxy keeps the dither under the share and stops drawing once the impostor has it all; the impostor shows only
+      // where the proxy would (a near view or an entered region covers both)
+      setBand(share); material.visible = share < 1; impostor.band(share, mesh.visible);
+    } }),
+    dispose: () => { if (disposed) return; disposed = true; impostor?.dispose(); mesh.removeFromParent(); geometry.dispose(); material.dispose(); },
   };
 }
 
 /** A fetched, parsed proxy waiting for its budgeted upload. */
-export interface FarPrepared { readonly geometry: BufferGeometry; readonly look: FarLookRuntime; readonly positionalMask?: boolean }
+export interface FarPrepared { readonly geometry: BufferGeometry; readonly look: FarLookRuntime; readonly positionalMask?: boolean; readonly impostor?: FarImpostorData | null }
 /**
  * The rings' ports for level `far` (compose with the tile ports through SF18b's `levelPorts`): `load` fetches and parses
  * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look. Optional `prepare` borrows
@@ -170,7 +181,7 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
           if (options.prepare !== undefined) {
             let view: FarProxyView | undefined;
             try {
-              view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate);
+              view = installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate, false, data.impostor ?? null);
               view.mesh.visible = false;
               await options.prepare(view, data);
               staged.set(data, view);
@@ -187,7 +198,7 @@ export function farRingPorts(options: { root: (instance: string) => Object3D; lo
     },
     upload: (tile, data) => {
       const view = staged.get(data);
-      if (view === undefined) return installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate);
+      if (view === undefined) return installFarProxy(options.root(tile.instance), data.geometry, data.look, data.positionalMask, options.decorate, false, data.impostor ?? null);
       staged.delete(data); view.mesh.visible = true;
       return view;
     },

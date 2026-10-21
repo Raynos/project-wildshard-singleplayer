@@ -20,7 +20,7 @@
  * - **legacy bounds yield** (SF17a): the session asks the level to leave out its chunk-edge walls and hide the edge
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
-import { BufferGeometry, Group, Mesh, type Material, type Object3D } from 'three';
+import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } from 'three';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
 import { CHUNK_HALF, CONTENT_CAPS, ENTRY_WIDTH } from '@wildshard/engine/core/config';
@@ -47,6 +47,8 @@ import type { PageResidency } from './pageResidency';
 import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
+import { decodeFarImpostor, farBandShare } from './farImpostorView';
+import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';
 import { bindCellCover, cellCoverPort } from './cellCover';
 import { FAR_RING, type FarLookRuntime } from './farProxy';
 import { NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
@@ -191,17 +193,23 @@ async function loadFar(slug: string, owner: Parameters<typeof gridShardfileProdu
   const response = await fetch(versionedUrl(`/assets/baked/${slug}/far.json`));
   if (!response.ok) throw new Error(`far.json ${slug}: ${String(response.status)}`);
   const row: unknown = await response.json();
-  const look = farLook(row), bytes = farBytes(row);
+  const look = farLook(row), bytes = farBytes(row), impostorRow = farImpostorRow(row);
+  // G539: its camera-facing impostor beside it (a far row baked before G539 has none: the proxy draws at every distance)
+  const impostor = impostorRow === undefined ? null : await (async () => {
+    const image = await fetch(versionedUrl(`/assets/baked/${slug}/far-impostor.png`));
+    if (!image.ok) throw new Error(`far-impostor.png ${slug}: ${String(image.status)}`);
+    return decodeFarImpostor(impostorRow, new Uint8Array(await image.arrayBuffer()));
+  })();
   const gltf = await createRigLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/far.glb`));
   const meshes: BufferGeometry[] = [];
   gltf.scene.traverse((node) => { if (!(node instanceof Mesh)) return; const found: unknown = node.geometry; if (found instanceof BufferGeometry) meshes.push(found as BufferGeometry); });
   const geometry = meshes[0];
   if (geometry === undefined) throw new Error(`far.glb ${slug}: no mesh`);
-  return { prepared: { geometry, look }, bytes };
+  return { prepared: { geometry, look, impostor }, bytes };
 }
 const num = v.pipe(v.number(), v.finite());
 /** The part of `far.json` the client reads: the resident cost and the look (the bake writes more). */
-const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
+const FarRow = v.object({ far: v.object({ gpu: num, decoded: num, impostor: v.optional(FarImpostorSchema) }),
   look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]), near: num, far: num, max: num }),
     grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num, tint: v.optional(v.tuple([num, num, num])) })),
     band: v.optional(v.object({ colour: v.tuple([num, num, num]), height: num, opacity: num, own: num })) }) });
@@ -237,6 +245,7 @@ async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProd
   return { prepared: { geometry, look: row.look }, bytes: Math.round(row.near.gpu + row.near.decoded), owns: (row.near.content ?? 0) > 0 && row.near.tiles !== true };
 }
 function farLook(row: unknown): FarLookRuntime { return v.parse(FarRow, row).look; }
+function farImpostorRow(row: unknown): FarImpostor | undefined { return v.parse(FarRow, row).far.impostor; }
 function farBytes(row: unknown): number { const { far } = v.parse(FarRow, row); return Math.round(far.gpu + far.decoded); }
 
 /** A neighbour's four soft walls on the 6 m re-frame line, in the frame whose origin is given (`ReadinessWalls` edges). */
@@ -517,7 +526,17 @@ export class GridSession {
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
     this.panels = new NeighbourPanels({ scope: host.scope, simulation: (id) => this.live?.simulation(id) });
-    host.frame?.onLate((dt) => { this.life.late(dt); this.panels.late(); frame?.frame(); });
+    // G539: each drawn far view's band (proxy, impostor or the dithered fade between) by the camera's distance to its cell
+    const eye = new Vector3();
+    const bands = (): void => {
+      const camera = host.frame?.camera; if (camera === undefined) return;
+      camera.getWorldPosition(eye);
+      for (const [id, { view }] of drawnFar) {
+        const root = roots.get(id); if (root === undefined || view.band === undefined) continue;
+        view.band(farBandShare(Math.hypot(Math.max(0, Math.abs(eye.x - root.position.x) - CHUNK_HALF), Math.max(0, Math.abs(eye.z - root.position.z) - CHUNK_HALF))));
+      }
+    };
+    host.frame?.onLate((dt) => { this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
     const tiles = neighbourTiles(host.scope, async (tile) => {
       // Patch the final shader identity before preparation; no live parent or visibility changes while it yields.
       horizon.patch(tile.group, 'outside');

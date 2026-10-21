@@ -1,9 +1,10 @@
 import { Mesh, type BufferGeometry, type Object3D } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { createRigLoader } from '@wildshard/engine/anim/rig';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { nearPlaceholderCost } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FarPrepared } from './farView';
+import { decodeFarImpostor } from './farImpostorView';
 
 function isMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 /** three's merge returns null for parts whose attributes differ (its typing omits it). */
@@ -13,7 +14,7 @@ const merge: (parts: BufferGeometry[]) => BufferGeometry | null = mergeGeometrie
 export async function loadShardfileFar(source: Shardfile, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number }> {
   const far = source.far, ref = source.props?.far;
   if (far === null || ref === null || ref === undefined || !far.files.includes(ref)) throw new Error('Authored world has no declared far GLB');
-  const gltf = await new GLTFLoader().parseAsync((await read(ref)).slice().buffer, '');
+  const gltf = await createRigLoader().parseAsync((await read(ref)).slice().buffer, '');
   gltf.scene.updateMatrixWorld(true);
   const meshes: Mesh[] = [];
   gltf.scene.traverse(node => {
@@ -28,7 +29,9 @@ export async function loadShardfileFar(source: Shardfile, read: (ref: string) =>
   }
   const geometry = mesh.geometry;
   geometry.applyMatrix4(mesh.matrixWorld);
-  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(source) }, bytes: far.decoded + far.gpu };
+  // G539: its baked impostor, when the build gave it one
+  const impostor = far.impostor === undefined ? null : await decodeFarImpostor(far.impostor, await read(far.impostor.file));
+  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(source), impostor }, bytes: far.decoded + far.gpu };
 }
 
 /** A shardfile's own placeholder look: pbr in the haze of its first fog key (what `wildshard build` bakes it in). */
@@ -48,7 +51,7 @@ function shardfileHaze(source: Shardfile): FarPrepared['look'] {
 export async function loadShardfileNear(source: Shardfile, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
   const near = source.near;
   if (near === undefined || near.content.length === 0) throw new Error('Shardfile declares no near content');
-  const cost = nearPlaceholderCost(near, source), loader = new GLTFLoader(), parts: BufferGeometry[] = [];
+  const cost = nearPlaceholderCost(near, source), loader = createRigLoader(), parts: BufferGeometry[] = [];
   try {
     for (const ref of near.content) {
       const gltf = await loader.parseAsync((await read(ref)).slice().buffer, '');
