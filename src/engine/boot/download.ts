@@ -7,6 +7,7 @@ interface File { bytes: number; complete: boolean }
 export interface DownloadTiming {
   name: string; startTime: number; transferSize: number; encodedBodySize: number;
   workerStart: number; serverTiming: readonly { name: string; duration: number }[];
+  responseEnd?: number;
 }
 /** One loading attempt owns its declarations and receipts; no body tees or retained payloads. */
 export class DownloadAccounting {
@@ -54,7 +55,7 @@ export class DownloadAccounting {
   }
   /** Resource Timing covers modules, images, fonts and undeclared fetches, including early buffered entries. */
   resource(entry: DownloadTiming): void {
-    if (entry.startTime < this.since || !/^https?:/u.test(entry.name)) return;
+    if ((entry.responseEnd ?? entry.startTime) < this.since || !/^https?:/u.test(entry.name)) return;
     const id = `${entry.name}:${entry.startTime}`; if (this.seen.has(id)) return;
     this.seen.add(id); this.completed++;
     this.received.add(this.url(entry.name));
@@ -77,9 +78,31 @@ export class DownloadAccounting {
   }
 }
 let active: DownloadAccounting | undefined;
+let installed = false;
+const earlyBackground: DownloadTiming[] = [];
+/** Worker-owned background receipts use the page clock, and never overlap page fetch receipts. */
+export function receiveBackgroundDownload(value: unknown, pageOrigin: number): void {
+  if (typeof value !== 'object' || value === null || !('type' in value) || value.type !== 'WS_BACKGROUND_DOWNLOAD'
+    || !('origin' in value) || typeof value.origin !== 'number' || !('timing' in value)) return;
+  const timing = value.timing;
+  if (typeof timing !== 'object' || timing === null || !('name' in timing) || typeof timing.name !== 'string'
+    || !('startTime' in timing) || typeof timing.startTime !== 'number'
+    || !('responseEnd' in timing) || typeof timing.responseEnd !== 'number'
+    || !('transferSize' in timing) || typeof timing.transferSize !== 'number'
+    || !('encodedBodySize' in timing) || typeof timing.encodedBodySize !== 'number') return;
+  const offset = value.origin - pageOrigin;
+  if (offset + timing.responseEnd < 0) return;
+  const receipt: DownloadTiming = { name: timing.name, startTime: offset + timing.startTime,
+    responseEnd: offset + timing.responseEnd, transferSize: timing.transferSize,
+    encodedBodySize: timing.encodedBodySize, workerStart: 0, serverTiming: [] };
+  if (active === undefined) { if (!installed) earlyBackground.push(receipt); }
+  else active.resource(receipt);
+}
 /** Explicitly install the active attempt, and restore only while this instance still owns the slot. */
 export function installDownloadAccounting(accounting: DownloadAccounting): () => void {
-  active = accounting;
+  active = accounting; installed = true;
+  for (const receipt of earlyBackground) accounting.resource(receipt);
+  earlyBackground.length = 0;
   return () => { if (active === accounting) active = undefined; };
 }
 export function currentDownloadAccounting(): DownloadAccounting | undefined { return active; }

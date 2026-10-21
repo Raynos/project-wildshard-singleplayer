@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { DownloadAccounting, type DownloadTiming } from '../src/engine/boot/download';
+import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveBackgroundDownload } from '../src/engine/boot/download';
 
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
@@ -40,4 +40,23 @@ it('keeps unclassified worker bytes explicit and excludes previous attempts', ()
   accounting.resource(timing('/old.js'));
   accounting.resource(timing('/unknown.bin', { startTime: 3, workerStart: 2, transferSize: 0 }));
   expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 0, unclassifiedBytes: 1000, filesDone: 1 });
+});
+
+
+it('includes worker install transport once without charging HTTP-cache hits as network', () => {
+  const accounting = new DownloadAccounting(base, 100);
+  const dispose = installDownloadAccounting(accounting);
+  const background = (startTime: number, responseEnd: number, transferSize: number) => ({
+    type: 'WS_BACKGROUND_DOWNLOAD', origin: 1000,
+    timing: { name: new URL('/precache.js', base).href, startTime, responseEnd, transferSize, encodedBodySize: 1000 },
+  });
+  try {
+    // A request begun before this attempt still finishes during its download.
+    receiveBackgroundDownload(background(90, 110, 1300), 1000);
+    receiveBackgroundDownload(background(90, 110, 1300), 1000);
+    receiveBackgroundDownload(background(120, 130, 0), 1000);
+    receiveBackgroundDownload(background(10, 20, 1300), 1000);
+    receiveBackgroundDownload({ type: 'WS_BACKGROUND_DOWNLOAD', timing: {} }, 1000);
+    expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, cachedBytes: 1000, filesDone: 2 });
+  } finally { dispose(); }
 });
