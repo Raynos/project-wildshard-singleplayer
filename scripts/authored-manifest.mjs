@@ -103,6 +103,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   if (declared.includes('ground')) native.push(`ground: ${built('ground')}`);
   else if (b.ground) native.push(`ground: ${value(b.ground)}`);
   if (b.render?.platform === 'painted') native.push("render: async (product) => (await import('@wildshard/game/looks/paintedLook')).productPaintedLook(product)");
+  if (b.render?.platform === 'keyed') native.push(`render: async (product) => (await import('@wildshard/game/looks/keyedSky')).keyedSkyRender(product, { channels: ${JSON.stringify(b.render.channels)}, looks: ${value(b.render.looks)}, trim: ${value(b.render.trim)}[${JSON.stringify(b.render.trimRow)}] })`);
   for (const key of ['render', 'roster']) if (b[key] && b[key].platform === undefined) {
     if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u.test(b[key].export)) throw new Error(`${file}: invalid lazy binding export`);
     // a called look or roster factory gets the shard's product (toLevelSpec binds it; product-in-look-o272)

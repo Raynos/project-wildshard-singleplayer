@@ -761,8 +761,17 @@
       }
     },
     "render": {
-      "module": "./look/render",
-      "export": "shardRender"
+      "platform": "keyed",
+      "channels": "pine.sky",
+      "looks": {
+        "module": "./data/skyLook.json",
+        "export": "default"
+      },
+      "trim": {
+        "module": "./data/pagePolicy.json",
+        "export": "default"
+      },
+      "trimRow": "memoryTrim"
     },
     "roster": {
       "module": "./roster",

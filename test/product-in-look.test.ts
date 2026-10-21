@@ -88,7 +88,8 @@ describe('Driftwood and Pine looks read the product, not shard.config', () => {
         ? "render: async (product) => (await import('@wildshard/game/looks/paintedLook')).productPaintedLook(product)"
         : slug === 'driftwood-isle'
           ? "render: async (product) => (await import('@wildshard/game/looks/toonLook')).toonLook(product)"
-          : 'render: async (product) => callWithProduct(');
+          // G571: Pine's look is the keyed-sky render host's, from its declared rows
+          : "render: async (product) => (await import('@wildshard/game/looks/keyedSky')).keyedSkyRender(product, ");
       if (slug === 'driftwood-isle') expect(source).not.toContain('import("./runtime/look/render")');
       if (slug === 'driftwood-isle' || slug === 'pine-hollow') {
         expect(source).toContain('const callWithProduct = ');

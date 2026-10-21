@@ -13,7 +13,7 @@ export const PINE_GRAPHS: Readonly<Record<string, unknown>> = { ...authored.runt
 /**
  * The build's look.materials graphs (`src/sdk/bake/json.mjs` writes them to data/lookMaterials.generated.json): the
  * runtime's (above), then the authored views' (data/lookGraphs.json `views`: the keyed sky's dome and environment pass,
- * compiled by look/render.ts; the forest's, by the manifest's tree set (game models/treeSet.ts); the small wildlife's, by models/wildlife.ts).
+ * compiled by the keyed-sky render host (game looks/keyedSky.ts); the forest's, by the manifest's tree set (game models/treeSet.ts); the small wildlife's, by models/wildlife.ts).
  */
 export function pineLookMaterials(): { readonly runtime: readonly string[]; readonly graphs: Readonly<Record<string, unknown>> } {
   return { runtime: Object.keys(PINE_GRAPHS), graphs: { ...PINE_GRAPHS, ...authored.views } };

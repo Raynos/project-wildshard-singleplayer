@@ -10,5 +10,5 @@ const PINE = keyedSkyDay(PINE_SKY);
 /** named phases for `?tod=`, Settings ▸ Time of day, the quest and the King's night */
 export const PINE_PHASES = PINE_SKY.phases;
 export const PINE_DAY = PINE.spec;
-/** the clock with its row, for the backdrop (look/render.ts) */
+/** the clock with its row, for the backdrop (the keyed-sky render host, game looks/keyedSky.ts) */
 export const PINE_KEYED_DAY = PINE;

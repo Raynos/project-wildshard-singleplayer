@@ -1,7 +1,8 @@
 import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { loadBakedSky, skyHorizonColor } from '@wildshard/engine/boot/bakedApi';
-import type { SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
+import type { LookStrategy, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import type { ShardProduct } from '../shardfile/shardProduct';
+import { pageModeValue } from '../shard/pagePolicy';
 import { DayCycle, compassDir, type DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { Game } from '@wildshard/engine/core/Game';
 import { fogUniforms, panoramaTint } from '@wildshard/engine/world/Atmosphere';
@@ -361,6 +362,15 @@ export function skyFaceOf(sky: SkyRig): SkyFace | null {
  * first two keys decoded, the look loop's layer applied. The declared options select packed keys and, on the phone, a
  * half-size environment.
  */
+/** A keyed-sky look from declared rows (G571, the manifest's `render: { platform: 'keyed' }`): the engine's chain under the
+ *  shard's keyed day / night sky (its look/keyed-sky section), its channels, its dome / env looks; the page-mode trim (`trim`, its policy
+ *  row) packs the keys and halves the environment, read when the level asks for its look. */
+export function keyedSkyRender(product: ShardProduct, rows: { readonly channels: string;
+  readonly looks: { readonly dome: string; readonly env: string }; readonly trim: { readonly shard: boolean; readonly grid: boolean } }): LookStrategy {
+  const trim = pageModeValue(rows.trim);
+  return { compose: () => ({}), backdrop: keyedSkyBackdrop(product.section('look/keyed-sky'), { packKeys: trim, smallEnv: trim, channels: rows.channels }, { product, ...rows.looks }) };
+}
+
 export function keyedSkyBackdrop(input: unknown, options: { readonly packKeys: boolean; readonly smallEnv: boolean; readonly channels: string }, looks: { readonly product: ShardProduct; readonly dome: string; readonly env: string }): SkyBackdropFactory {
   const day = keyedSkyDay(input), dome = day.style.dome;
   if (options.packKeys) for (const id of Object.keys(day.style.keys)) {

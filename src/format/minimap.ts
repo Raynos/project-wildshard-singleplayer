@@ -206,7 +206,10 @@ const bindings = v.strictObject({
   pondClip: v.exactOptional(v.union([binding, declared])), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
   entry: v.exactOptional(v.strictObject({ legacy: bindingModule, retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']) })),
-  ground: v.exactOptional(v.union([binding, declared])), render: v.exactOptional(v.union([binding, v.strictObject({ platform: v.picklist(['painted', 'toon']) })])), load: v.exactOptional(moduleBinding),
+  ground: v.exactOptional(v.union([binding, declared])), render: v.exactOptional(v.union([binding, v.strictObject({ platform: v.picklist(['painted', 'toon']) }),
+    // G571: a keyed day / night sky look from rows (game looks/keyedSky `keyedSkyRender`): its channel set, dome / env
+    // looks and the page-mode trim row (packed keys and the small environment) of a page policy file
+    v.strictObject({ platform: v.literal('keyed'), channels: text, looks: binding, trim: binding, trimRow: bindingName })])), load: v.exactOptional(moduleBinding),
   ktx2: v.exactOptional(v.union([moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
 });
 const tier = v.objectWithRest({aa: v.exactOptional(v.picklist(['fxaa', 'smaa', 'off'])),
