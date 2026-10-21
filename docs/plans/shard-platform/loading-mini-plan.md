@@ -81,5 +81,8 @@ repairs its generator input. The replacement batch passed on `90efdf502c`
 (1101.8 s). Its queued browser build was superseded before execution by the
 named-cache fix `0912242443`: a fully offline descriptor had falsely kept
 18,105 fixture bytes pending. The regression failed first, then all 20
-descriptor/download/residency tests and strict lint passed. The final batch
-and served proof include this fix; Phase 1 remains open.
+descriptor/download/residency tests and strict lint passed. Final source
+batch `0912242443` passed in 940.4 s. Its first preview built successfully
+but lost port 4400 during startup (coordinator-routed X15); no browser cases
+ran. The replacement fast-path preview uses explicit port 4443 on the same
+SHA. Phase 1 remains open for six entries and three real crossing receipts.
