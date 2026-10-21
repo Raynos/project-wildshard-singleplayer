@@ -4732,6 +4732,17 @@ all started reads settle before the earliest authored refusal returns.
 Asset-map and cache publication happen only after every read succeeds.
 This transport window never changes the page-wide one-slot GLTF decoder.
 
+Browser first-party metadata may reuse a URL-cache hint only after bounded
+reading and independent hashing. An index hash must belong to the running
+client's bundled index set; section bytes must match their index hash and
+size. Stale, oversized or unavailable URL hints fall through to normal
+transport. `ProductOptions.cachedResponse(url, hash, maximum)` supplies
+optional section hints; consumers retain size/hash verification.
+`OutputDescriptorReader.cached(hash, path, maximum)` receives the declared
+path and bound so the same checks cover split custom schemas and sections.
+Verified cache bytes are reported separately from network transport; this
+does not change update freshness, identity checks or complete admission.
+
 First-party `AdmittedProduct.releaseTransport(refs)` owns its admission
 Map; it releases `runtimeBoundWorldFiles` after a decoder handoff, or
 `runtimeOnlyProductFiles` before neighbour readers copy it, and only when
