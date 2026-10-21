@@ -10,9 +10,8 @@ import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/boo
 import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
-import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey } from '../boot/weights';
+import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
 import { loadPathTimings, savePathTimings } from '../boot/pathTiming';
-import { LOADING_CALIBRATION } from '../boot/calibration';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -145,11 +144,11 @@ export class Loading {
   }
 
   /** The composition root supplies the actual path's vocabulary before its product or world starts. */
-  setPath(path: LoadingPath): void {
+  setPath(path: LoadingPath, calibrations: readonly LoadingCalibration[] = []): void {
     this.timeline.configure(path); setData(this.root, 'path', path.id);
     this.timingKey = { tier: TIER, path: path.id, identity: this.identity };
-    const calibration = LOADING_CALIBRATION.find(row => row.tier === TIER && row.path === path.id && row.identity === this.identity)
-      ?? LOADING_CALIBRATION.find(row => row.tier === TIER && row.path === path.id && row.identity === '*');
+    const calibration = calibrations.find(row => row.tier === TIER && row.path === path.id && row.identity === this.identity)
+      ?? calibrations.find(row => row.tier === TIER && row.path === path.id && row.identity === '*');
     this.baseline = calibration?.ms ?? {};
     this.expected = loadingExpectations(path.steps, this.baseline, loadPathTimings(this.timingKey));
     this.configured = true;

@@ -131,9 +131,10 @@ async function startSelected(): Promise<void> {
     page = preparePageResidency(game.shard, source?.identity.slug);
     const { loadingPath } = await retried(() => import('./game/boot/loadingPaths'));
     const { shardEntry } = await retried(() => import('./game/shard/entryMode'));
+    const { default: calibration } = await retried(() => import('./loadingCalibration.json'));
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Hybrid shardfile entries retain real TypeScript stages until their page is data-only.
-    loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined));
+    loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined), calibration);
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
     const bindings: Parameters<typeof installShardfileProduct>[2] = {
       instance: page.instance ?? (source === null ? 'template-solo' : `standalone-${source.identity.slug}`), catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,

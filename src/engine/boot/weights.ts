@@ -2,8 +2,8 @@
 export interface WeightedLoadingRow { key: string; state: 'todo' | 'on' | 'ok'; ms: number }
 export interface LoadingTimingKey { tier: 'phone' | 'desktop'; path: string; identity: string }
 export type LoadingTimings = Readonly<Record<string, number>>;
-export interface LoadingCalibration extends LoadingTimingKey {
-  source: string; samples: number; ms: LoadingTimings;
+export interface LoadingCalibration {
+  tier: string; path: string; identity: string; source: string; samples: number; ms: LoadingTimings;
 }
 /** Missing measurements remain explicit fallbacks; a different path or identity cannot supply device history. */
 export function loadingExpectations(steps: readonly { key: string; weight: number }[], baseline: LoadingTimings = {}, own: LoadingTimings = {}): Record<string, number> {
