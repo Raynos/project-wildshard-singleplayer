@@ -18,7 +18,10 @@
         "src/format",
         "src/sdk",
         "src/shards/nine-dragon-stack/behaviour",
-        "src/shards/nine-dragon-stack/generators/practiceDecision.mjs"
+        "src/shards/nine-dragon-stack/generators/practiceDecision.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/behaviour/practice.generated.json"
@@ -353,7 +356,10 @@
         "src/format",
         "src/sdk",
         "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/generators/bake-admission.mjs"
+        "src/shards/nalati-grasslands/generators/bake-admission.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/admission.generated.json"
@@ -391,7 +397,10 @@
         "pnpm-lock.yaml",
         "src/shards/nalati-grasslands/behaviour",
         "src/shards/nalati-grasslands/data/speciesLooks.json",
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
@@ -993,7 +1002,8 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "src/sdk"
+        "src/sdk",
+        "src/sdk/decisionScriptBindings.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/contractsProgram.generated.json"
@@ -1290,7 +1300,10 @@
         "pnpm-workspace.yaml",
         "src/shards/nalati-grasslands/behaviour/titanCombined.as",
         "src/shards/nalati-grasslands/behaviour/pasture.as",
-        "src/shards/nalati-grasslands/behaviour/pastureWind.as"
+        "src/shards/nalati-grasslands/behaviour/pastureWind.as",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
@@ -9157,7 +9170,10 @@
         "src/shards/pine-hollow/data/populationWaves.json",
         "src/shards/pine-hollow/data/populationNight.json",
         "src/shards/pine-hollow/generators/nightSpawn.ts",
-        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs"
+        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/behaviour/night.generated.json",
@@ -11531,7 +11547,10 @@
         "src/shards/pastel-plain/behaviour/door.as",
         "src/shards/pastel-plain/behaviour/idle.as",
         "src/shards/pastel-plain/behaviour/items.as",
-        "src/shards/pastel-plain/generators/bake-pastel-behaviour.mjs"
+        "src/shards/pastel-plain/generators/bake-pastel-behaviour.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/pastel-plain/behaviour/door.json",
@@ -12157,7 +12176,10 @@
         "src/shards/_template/behaviour/door.as",
         "src/shards/_template/behaviour/idle.as",
         "src/shards/_template/behaviour/items.as",
-        "src/shards/_template/generators/bake-template-behaviour.mjs"
+        "src/shards/_template/generators/bake-template-behaviour.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/_template/behaviour/door.json",
@@ -12191,7 +12213,10 @@
         "src/shards/driftwood-isle/behaviour/captain.as",
         "src/shards/driftwood-isle/behaviour/director.as",
         "src/shards/driftwood-isle/behaviour/returns.as",
-        "src/shards/driftwood-isle/generators/bake-returns.mjs"
+        "src/shards/driftwood-isle/generators/bake-returns.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/behaviour/returns.generated.json"
@@ -12229,7 +12254,10 @@
         "src/sdk/sourceReader.ts",
         "src/shards/driftwood-isle/behaviour/director.as",
         "src/shards/driftwood-isle/data/director.json",
-        "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs"
+        "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/driftwood-isle/assets/25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b",
@@ -12269,7 +12297,10 @@
         "src/sdk/sourceReader.ts",
         "src/shards/pine-hollow/behaviour/director.as",
         "src/shards/pine-hollow/data/director.json",
-        "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs"
+        "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
@@ -12300,7 +12331,10 @@
         "src/sdk/package.json",
         "src/shards/nalati-grasslands/behaviour/qara.as",
         "src/shards/nalati-grasslands/generators/bake-qara.mjs",
-        "src/shards/nalati-grasslands/generators/qara.ts"
+        "src/shards/nalati-grasslands/generators/qara.ts",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/qara.generated.json"
@@ -12331,7 +12365,10 @@
         "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs",
         "src/shards/pine-hollow/generators/eliteHomes.ts",
         "src/shards/pine-hollow/data/layout.generated.json",
-        "src/shards/pine-hollow/data/identity.json"
+        "src/shards/pine-hollow/data/identity.json",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/behaviour/elites.generated.json",
@@ -18254,7 +18291,10 @@
         "src/shards/_template/data/rows.ts",
         "src/shards/_template/behaviour",
         "src/shards/_template/generators/buildOptions.ts",
-        "src/shards/_template/generators/bake-boss.mjs"
+        "src/shards/_template/generators/bake-boss.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/_template/behaviour/boss.json",
@@ -20418,7 +20458,10 @@
         "src/shards/pine-hollow/behaviour/stag.as",
         "src/shards/pine-hollow/data/questLead.json",
         "src/shards/pine-hollow/behaviour/night.as",
-        "src/shards/pine-hollow/generators/bake-life.mjs"
+        "src/shards/pine-hollow/generators/bake-life.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/behaviour/life.generated.json"
@@ -20514,7 +20557,10 @@
         "src/shards/nalati-grasslands/data/layout.generated.json",
         "src/shards/nalati-grasslands/generators/bake-kokpar.mjs",
         "src/shards/nalati-grasslands/generators/horseCourse.ts",
-        "src/shards/nalati-grasslands/data/questContent.json"
+        "src/shards/nalati-grasslands/data/questContent.json",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/kokpar.generated.json"
@@ -20666,7 +20712,10 @@
         "src/shards/nalati-grasslands/generators/nightGeometry.ts",
         "src/shards/nalati-grasslands/generators/layout.ts",
         "src/shards/nalati-grasslands/generators/weatherDecision.mjs",
-        "src/shards/nalati-grasslands/behaviour/weather.as"
+        "src/shards/nalati-grasslands/behaviour/weather.as",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "catalogueDependencies": [
         "nalati-layout"
@@ -21795,7 +21844,10 @@
         "pnpm-workspace.yaml",
         "src/shards/nalati-grasslands/data/species.generated.json",
         "src/shards/nalati-grasslands/behaviour/heldWeapons.as",
-        "src/shards/nalati-grasslands/data/stealth.json"
+        "src/shards/nalati-grasslands/data/stealth.json",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/heldWeapons.generated.json",
@@ -21833,7 +21885,10 @@
         "src/shards/nalati-grasslands/behaviour/mounts.as",
         "src/shards/nalati-grasslands/data/ecology.generated.json",
         "src/shards/nalati-grasslands/creatures/marmotForager.json",
-        "src/shards/nalati-grasslands/boot/geography.generated.json"
+        "src/shards/nalati-grasslands/boot/geography.generated.json",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/riding.generated.json"
