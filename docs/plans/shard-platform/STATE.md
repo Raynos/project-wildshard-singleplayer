@@ -4,7 +4,7 @@
 
 **Live:** c67d1eb3a; pushed 8842d08d30 (QA+QB, X5, ruler fix). Sim: 30.3 fps avg, hitches Pine 489 / Nine 237 ms.
 
-**Tooling:** BUILD-SPEED. G568: push loop (sp-x1, landing), one batch per row. G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
+**Tooling:** BUILD-SPEED; G568: push loop (sp-x1, landing), one batch per row. G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
 
 **Rules:** lanes/common.md; G569: watchdog nudges idle lanes itself (48894c561c), no permission-asking turn ends.
 
