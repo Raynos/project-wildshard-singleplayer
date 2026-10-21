@@ -5,6 +5,7 @@ import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissio
 /** Read a file within its declared wire bound, detecting growth without an unbounded readFile allocation.
  * The requested cap is validated before opening the file.
  * The initial size check runs before allocating the payload buffer.
+ * The descriptor is closed even when a bound or growth check rejects it.
  * A short read returns only the bytes actually read from the open descriptor. */
 export function readBoundedFile(path: string, maximum: number): Uint8Array {
   if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > limits.wireBytes) throw new Error('Invalid file admission bound');
