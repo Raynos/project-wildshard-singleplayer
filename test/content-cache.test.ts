@@ -99,3 +99,15 @@ test('recent reads and reopening preserve durable least-recent eviction order', 
   expect(await reopened.get(first)).toBeNull();
   expect(await reopened.stats()).toEqual({ bytes: 4, entries: 2 });
 });
+
+test('G554: a prefetch keep write never evicts and holds reads only the index', async () => {
+  const ports = fixture({ maxBytes: 4, maxEntries: 2 }), store = ports.open();
+  const one = Uint8Array.of(1, 2), two = Uint8Array.of(3, 4), three = Uint8Array.of(5, 6);
+  const first = hashImmutableBytes(one), second = hashImmutableBytes(two), third = hashImmutableBytes(three);
+  expect(await store.put(first, one)).toBe(true); expect(await store.put(second, two, true)).toBe(true);
+  expect(await store.put(third, three, true)).toBe(false);
+  expect(await store.holds(first, 2)).toBe(true); expect(await store.holds(second, 2)).toBe(true);
+  expect(await store.holds(third, 2)).toBe(false); expect(await store.holds(first, 3)).toBe(false);
+  expect(await store.put(third, three)).toBe(true); // an ordinary admission write still evicts the oldest
+  expect(await store.holds(first, 2)).toBe(false);
+});

@@ -14,7 +14,8 @@ async function perform(command: CacheCommand): Promise<CacheValue> {
   switch (command.op) {
     case 'get': return cache.get(command.hash);
     case 'has': { const bytes = await cache.get(command.hash); return bytes !== null && bytes.length === command.bytes; }
-    case 'put': return cache.put(command.hash, command.bytes);
+    case 'holds': return cache.holds(command.hash, command.bytes);
+    case 'put': return cache.put(command.hash, command.bytes, command.keep === true);
     case 'stats': return cache.stats();
     case 'flush': await cache.flush(); return null;
     case 'pin':

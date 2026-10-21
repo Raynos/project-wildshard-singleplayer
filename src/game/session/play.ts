@@ -78,6 +78,7 @@ import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
 import { firstPartyInstance } from '../grid/instances';
 import { installSavesSettings } from '../savesSettings';
 import { GridSession } from '../grid/session';
+import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
@@ -121,6 +122,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       } }; },
       onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p) : null);
   if (grid === null) installShardHoverSpeed(player, game.levelScope, manifest.hoverSpeedClass);
+  // G554: the grid's whole known set into the disk cache, this cell and its neighbours first (it runs on in the background)
+  else startGridPrefetch(gridPrefetchOrder(grid.assembly, player.position));
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
     // other boot loads them when the room opens, in every mode (G187: −33.6 MB of GL on Pine; SF47 made it the only path).

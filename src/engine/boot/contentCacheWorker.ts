@@ -8,7 +8,7 @@ export interface CacheWorkerPort extends EventTarget {
   postMessage: (message: unknown) => void;
   terminate: () => void;
 }
-type Store = Pick<ContentCache, 'get' | 'put' | 'pin' | 'flush' | 'stats'>;
+type Store = Pick<ContentCache, 'get' | 'holds' | 'put' | 'pin' | 'flush' | 'stats'>;
 type Timer = ReturnType<Scope['timeout']>;
 interface Queued { command: CacheCommand; resolve: (value: CacheValue) => void; reject: (error: Error) => void }
 interface Pending extends Queued { timer: Timer }
@@ -54,7 +54,8 @@ export class ContentCacheWorker {
     switch (operation.op) {
       case 'get': return this.fallback.get(operation.hash);
       case 'has': { const bytes = await this.fallback.get(operation.hash); return bytes !== null && bytes.length === operation.bytes; }
-      case 'put': return this.fallback.put(operation.hash, operation.bytes);
+      case 'holds': return this.fallback.holds(operation.hash, operation.bytes);
+      case 'put': return this.fallback.put(operation.hash, operation.bytes, operation.keep === true);
       case 'stats': return this.fallback.stats();
       case 'flush': await this.fallback.flush(); return null;
       case 'pin': {
@@ -108,7 +109,9 @@ export class ContentCacheWorker {
       this.idle = this.scope.timeout(this.idleMs, () => { void this.close(); });
     }
   }
-  private request(operation: CacheOperation): Promise<CacheValue> {
+  /** `background` work (a prefetch, G554) is not a boot wait: the loading screen's "now waiting for" never names it. */
+  private request(operation: CacheOperation, background = false): Promise<CacheValue> {
+    if (background) return this.requestWork(operation);
     return waitFor(`Content cache ${operation.op}${'hash' in operation ? ` ${operation.hash.slice(0, 12)}` : ''}`, this.requestWork(operation), 'worker');
   }
   private requestWork(operation: CacheOperation): Promise<CacheValue> {
@@ -148,10 +151,17 @@ export class ContentCacheWorker {
     if (typeof value === 'boolean') return value;
     throw new Error('Invalid cache presence result');
   }
-  async put(hash: string, input: Uint8Array): Promise<boolean> {
+  /** Index-only presence (a prefetch's skip check), off the boot waits. */
+  async holds(hash: string, bytes: number): Promise<boolean> {
+    const value = await this.request({ op: 'holds', hash, bytes }, true);
+    if (typeof value === 'boolean') return value;
+    throw new Error('Invalid cache presence result');
+  }
+  /** `keep`: a background prefetch write that never evicts (G554). */
+  async put(hash: string, input: Uint8Array, keep = false): Promise<boolean> {
     // Snapshot before any await, and never transfer/detach caller-owned data.
     if (input.length > CONTENT_CACHE_WIRE_CAP) throw new Error('Invalid immutable content bytes');
-    const bytes = Uint8Array.from(input), value = await this.request({ op: 'put', hash, bytes });
+    const bytes = Uint8Array.from(input), value = await this.request({ op: 'put', hash, bytes, ...(keep ? { keep } : {}) }, keep);
     if (typeof value === 'boolean') return value;
     throw new Error('Invalid cache write result');
   }

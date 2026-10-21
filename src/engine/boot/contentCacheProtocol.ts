@@ -8,7 +8,8 @@ const id = { id: integer };
 export const CacheCommandSchema = v.variant('op', [
   v.strictObject({ ...id, op: v.literal('get'), hash }),
   v.strictObject({ ...id, op: v.literal('has'), hash, bytes: v.pipe(integer, v.maxValue(CONTENT_CACHE_WIRE_CAP)) }),
-  v.strictObject({ ...id, op: v.literal('put'), hash, bytes: v.pipe(v.instance(Uint8Array), v.check(bytes => bytes.length <= CONTENT_CACHE_WIRE_CAP)) }),
+  v.strictObject({ ...id, op: v.literal('holds'), hash, bytes: v.pipe(integer, v.maxValue(CONTENT_CACHE_WIRE_CAP)) }),
+  v.strictObject({ ...id, op: v.literal('put'), hash, bytes: v.pipe(v.instance(Uint8Array), v.check(bytes => bytes.length <= CONTENT_CACHE_WIRE_CAP)), keep: v.optional(v.boolean()) }),
   v.strictObject({ ...id, op: v.literal('pin'), lease: integer, hashes: v.pipe(v.array(hash), v.maxLength(10_000)) }),
   v.strictObject({ ...id, op: v.literal('release'), lease: integer }),
   v.strictObject({ ...id, op: v.literal('flush') }),
@@ -27,7 +28,7 @@ export const CacheReplySchema = v.variant('ok', [
 /** Check operation-specific results before callers receive bytes or success. */
 export function validCacheValue(op: CacheCommand['op'], value: CacheValue): boolean {
   if (op === 'get') return value === null || value instanceof Uint8Array;
-  if (op === 'put' || op === 'has') return typeof value === 'boolean';
+  if (op === 'put' || op === 'has' || op === 'holds') return typeof value === 'boolean';
   if (op === 'stats') return typeof value === 'object' && value !== null && !(value instanceof Uint8Array);
   return value === null;
 }

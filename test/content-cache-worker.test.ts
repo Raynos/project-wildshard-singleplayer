@@ -6,7 +6,7 @@ import { CacheCommandSchema, type CacheCommand, type CacheValue } from '../src/e
 function replyValue(command: CacheCommand): CacheValue {
   switch (command.op) {
     case 'get': return null;
-    case 'has': case 'put': return true;
+    case 'has': case 'holds': case 'put': return true;
     case 'stats': return { bytes: 0, entries: 0 };
     case 'flush': case 'pin': case 'release': return null;
     default: throw new Error('Unknown cache fixture operation');
@@ -43,6 +43,7 @@ function createFixture() {
   const unpin = vi.fn(() => undefined);
   const fallback = {
     get: vi.fn((_hash: string): Promise<Uint8Array | null> => Promise.resolve(null)),
+    holds: vi.fn((_hash: string, _bytes: number) => Promise.resolve(false)),
     put: vi.fn((_hash: string, _bytes: Uint8Array) => Promise.resolve(true)),
     pin: vi.fn((_hashes: Iterable<string>) => unpin),
     flush: vi.fn(() => Promise.resolve()),

@@ -386,6 +386,7 @@
     "./physics/edgeEntries": "./physics/edgeEntries.ts",
     "./physics/rapier": "./physics/rapier.ts",
     "./boot/contentCache": "./boot/contentCache.ts",
+    "./boot/prefetchQuota": "./boot/prefetchQuota.ts",
     "./sim/readiness": "./sim/readiness.ts",
     "./sim/shore": "./sim/shore.ts",
     "./physics/readinessWalls": "./physics/readinessWalls.ts",

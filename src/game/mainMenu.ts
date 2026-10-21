@@ -15,13 +15,18 @@
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { setDev } from '@wildshard/engine/core/devMode';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
-import { gridEntryShown, menuMode } from './grid/menu';
+import { DEVSERVER, gridEntryShown, gridMode, menuMode } from './grid/menu';
+import { GridAssembly } from './grid/assembly';
+import { gridPrefetchOrder, startGridPrefetch } from './grid/prefetch';
+import { pageScope } from '@wildshard/engine/app/resources';
 import { dropGridIntent, enterGrid, gridRecoveryLoop } from './plugin/ui';
 
 import { GAME_STRINGS } from './strings';
 import { WHATS_NEW, type WhatsNew } from './whatsNew';
 import { buildWhatsNewBanner, type HiddenStore } from './whatsNewBanner';
 import './mainMenu.css';
+/** G554: the menu's background prefetch waits for the title's first frames and taps. */
+const MENU_PREFETCH_DELAY_MS = 4000;
 
 /** the hero (G341 layouts, G344 interim pick): real in-engine aerials over the central roundabout at a phone-1x lens
  * (art/main-menu-hero/round-3-square): LS-c full-bleed on landscape screens, the square SQ-c as the centre band on
@@ -142,6 +147,9 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   deck.onTap(selectCard, () => { show('select'); deck.start(); });
   const gridCard = main.querySelector('.ws-main-grid');
   if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) onGrid(); });
+  // G554: from the menu, Infinite Wildshard's whole known set downloads to disk in the background (crossroads outward),
+  // after the title's first frames and taps; the grid's own loading later moves its home cell to the front
+  if (grid) pageScope.timeout(MENU_PREFETCH_DELAY_MS, () => { startGridPrefetch(gridPrefetchOrder(new GridAssembly(gridMode(DEVSERVER)), { x: 0, z: 0 })); });
   deck.onTap(required(main, '.ws-main-settings', HTMLButtonElement), () => { opts.onSettings(); });
   // E483 (Jake: "a better dev toggle … without having to go to the settings page"; E140's ask): the same live switch as
   // Settings ▸ Developer. Both title paths rebuild on the change (StartTitle / HUD `onDev`) on this screen, so the menu, the

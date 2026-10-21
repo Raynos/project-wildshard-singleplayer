@@ -60,7 +60,8 @@ export class ContentCache {
   private readonly inflight = new Map<string, Promise<Uint8Array>>();
   constructor(ports: ContentCachePorts) {
     this.ports = ports; this.root = new URL('/__ws_content__/v0/', ports.origin).href;
-    this.maximum = ports.maxBytes ?? 256 * 1024 * 1024; this.entries = ports.maxEntries ?? 2048; this.reserve = ports.reserveBytes ?? 32 * 1024 * 1024;
+    // G554: room for the grid's whole known set (~650 MB, ~6k files), still capped at a quarter of the origin's quota
+    this.maximum = ports.maxBytes ?? 1536 * 1024 * 1024; this.entries = ports.maxEntries ?? 10_000; this.reserve = ports.reserveBytes ?? 32 * 1024 * 1024;
     if (![this.maximum, this.entries, this.reserve].every((n) => Number.isSafeInteger(n) && n >= 0) || this.entries > 10000) throw new Error('Invalid content cache limits');
   }
   private key(hash: string): string { if (!address.test(hash)) throw new Error('Invalid content hash'); return new URL(hash, this.root).href; }
@@ -173,8 +174,9 @@ export class ContentCache {
       this.remember(hash, { bytes: bytes.length, used: this.used() }); this.metadataChanged(); return bytes;
     });
   }
-  /** Refuses mismatched bytes. Unavailable disk capacity returns false while an online load can still continue. */
-  async put(hash: string, input: Uint8Array): Promise<boolean> {
+  /** Refuses mismatched bytes. Unavailable disk capacity returns false while an online load can still continue.
+   * `keep` (a prefetch, G554) never evicts anything to make room: it stores what fits and returns false otherwise. */
+  async put(hash: string, input: Uint8Array, keep = false): Promise<boolean> {
     const key = this.key(hash), bytes = Uint8Array.from(input);
     if (bytes.length > MAX_FILE || await this.ports.hash(bytes) !== hash) throw new Error('Invalid immutable content bytes');
     return this.serial(async () => {
@@ -183,16 +185,21 @@ export class ContentCache {
       if (bytes.length > budget || this.entries === 0) return false;
       const before = this.index[hash], used = this.used();
       while (this.statsNow().bytes - (before?.bytes ?? 0) + bytes.length > budget || this.statsNow().entries + Number(before === undefined) > this.entries) {
-        if (!await this.evict(cache, hash)) return false;
+        if (keep || !await this.evict(cache, hash)) return false;
       }
       for (;;) {
         try { await cache.put(key, new Response(bytes, { headers: { 'x-ws-bytes': String(bytes.length), 'x-ws-used': String(used) } })); break; }
         catch (error) {
-          if (typeof error !== 'object' || error === null || !('name' in error) || error.name !== 'QuotaExceededError' || !await this.evict(cache, hash)) return false;
+          if (keep || typeof error !== 'object' || error === null || !('name' in error) || error.name !== 'QuotaExceededError' || !await this.evict(cache, hash)) return false;
         }
       }
       this.remember(hash, { bytes: bytes.length, used }); this.metadataChanged(); return true;
     });
+  }
+  /** The index alone says the address is stored with this size: no read, no re-hash (a prefetch's skip check). */
+  holds(hash: string, bytes: number): Promise<boolean> {
+    this.key(hash);
+    return this.serial(async () => { await this.open().catch(() => undefined); return this.index[hash]?.bytes === bytes; });
   }
   /** One network read per concurrent immutable address; offline misses never try the network. */
   async load(hash: string, download: () => Promise<Uint8Array>, offline = false): Promise<Uint8Array> {

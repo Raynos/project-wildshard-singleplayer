@@ -34,6 +34,10 @@ export interface ProductCache {
   /** Checked durable presence without transferring a discarded asset to the page. */
   verifiedPresent?: (hash: string, bytes: number) => Promise<boolean>;
   putAsset: (base: string, hash: string, bytes: Uint8Array) => Promise<boolean> | Promise<void>;
+  /** G554 prefetch: the content cache's index says this address is stored at this size (no read, no re-hash). */
+  holds?: (hash: string, bytes: number) => Promise<boolean>;
+  /** G554 prefetch: store verified bytes without evicting anything; false when they do not fit. */
+  keepAsset?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
   putProduct: (key: string, product: CachedProduct) => Promise<void>;
   pin?: (hashes: Iterable<string>) => () => void;
 }
@@ -395,6 +399,7 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
     verifiedAsset: async hash => { const bytes = await ownedContent.get(hash); if (bytes !== null) recordCachedDownload(hash, bytes.length); return bytes; },
     ...(ownedContent instanceof ContentCacheWorker ? { verifiedPresent: (hash: string, bytes: number) => ownedContent.has(hash, bytes) } : {}),
     putAsset: (_base, hash, bytes) => ownedContent.put(hash, bytes), pin: (hashes) => ownedContent.pin(hashes),
+    holds: (hash, bytes) => ownedContent.holds(hash, bytes), keepAsset: (hash, bytes) => ownedContent.put(hash, bytes, true),
     putProduct: async (base, product) => { await (await open()).put(productUrl(base), Response.json(product)); },
   };
 }
