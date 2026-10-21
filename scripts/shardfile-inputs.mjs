@@ -7,14 +7,16 @@ import { createHash } from 'node:crypto';
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as v from 'valibot';
 
 const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync, write:fs.writeFileSync, mkdir:fs.mkdirSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
 const schema = 'shardfile-inputs/1', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs')]);
+const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FD] /u))),v.minLength(1)),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
 /** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean}>} */
 const scopes = new AsyncLocalStorage();
 let installed = false;
-/** @param {unknown} value */
+/** @param {unknown} target */
 function localPath(target) {
   if (typeof target === 'string') return resolve(target);
   if (target instanceof URL && target.protocol === 'file:') return fileURLToPath(target);
@@ -116,9 +118,9 @@ export async function captureProductInputs(root,receipt,run) {
  * @param {string} root @param {string} receipt @param {string[]} args @param {import('./bake-input-hashes.mjs').InputHashMemo} memo */
 export function productInputKey(root,receipt,args,memo) {
   try {
-    const saved = JSON.parse(raw.read(receipt,'utf8'));
-    if (saved?.schema !== schema || saved.node !== process.version || !Array.isArray(saved.inputs) || saved.inputs.length === 0
-      || saved.inputs.some(entry=>typeof entry !== 'string' || !/^[FD] /u.test(entry) || inside(root,resolve(root,entry.slice(2))) !== entry.slice(2))
+    const saved = v.parse(Receipt,JSON.parse(raw.read(receipt,'utf8')));
+    if (saved.node !== process.version
+      || saved.inputs.some(entry=> inside(root,resolve(root,entry.slice(2))) !== entry.slice(2))
       || saved.seal !== digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs}))) return undefined;
     return digest(JSON.stringify({schema,node:process.version,args,inputs:saved.inputs.map(entry=>[entry,value(root,entry,memo)])}));
   } catch { return undefined; }
