@@ -27,9 +27,9 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ShardContext } from "../plugin/context";
 import type { ShardPlayHost } from '../shard/runtime';
 import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
-import { declaredProductCompendium, declaredDay, declaredLootPresentation, declaredWeather } from '../shard/declaredRows';
+import { declaredProductCompendium, declaredDay, declaredWeather } from '../shard/declaredRows';
 import { installCompendium } from '../compendium/install';
-import { installLoot } from '../loot/runtime';
+import { installLoot,enteredLootPresentation } from '../loot/runtime';
 import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
 import { createQuestScriptPorts } from '../quest/declared';
@@ -365,7 +365,7 @@ export class ShardfileClient {
       baseFov = base;
     } });
     const lootRow = source.rows.loot[0], loot = lootRow === undefined || !('gear' in lootRow) ? null : installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
-      player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: declaredLootPresentation(lootRow, (id) => { if (!id.startsWith('cue.')) throw new Error('Unknown registered loot cue'); play.cues.cue(`cue.${id.slice(4)}`); }),
+      player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: enteredLootPresentation(ctx,lootRow.id),
     });
     if (source.rows.compendiums.length > 0) {
       const journal = installCompendium({ chunkId: ctx.manifest.slug, game: world.game, camera: world.game.camera, hud: play.hud, menu: play.menu,

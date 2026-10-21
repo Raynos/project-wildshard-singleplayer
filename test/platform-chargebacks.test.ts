@@ -233,3 +233,18 @@ test('placed actor groups charge their real Driftwood caller while wildlife grou
     expect(charges.get(owner)).toEqual([row]);expect(charges.get(placed?'nalati-grasslands':'driftwood-isle')).toEqual([]);
   }
 });
+
+
+test('coin-enabled users do not lend Driftwood a second rich Bag user',()=>{
+ const shared=new Set(['driftwood-isle','ink-cel-valley']),path='src/game/loot/runtime.ts',bindings=new Map([[`${path}\0enteredLootPresentation`,shared],[`${path}\0LootBagProjection`,shared]]);
+ chargePlatformUsers(new Map([[path,shared]]),bindings);
+ expect(bindings.get(`${path}\0enteredLootPresentation`)).toEqual(shared);
+ expect([...bindings.get(`${path}\0LootBagProjection`)??[]]).toEqual(['driftwood-isle']);
+ const charges=new Map<string,{path:string;name:string;lines:number}[]>([['driftwood-isle',[]]]),reports:string[]=[],selected:string[]=[];
+ for(const file of [path,'src/format/lootEconomy.ts']){const source=readFileSync(file,'utf8'),lines=source.split('\n');
+  for(const span of inlinePlatformSpans(file,source,line=>{reports.push(line);})){expect(platformChargeback(file,span.name)).toBe('C6');expect(recordPrivateCharge(charges,'fixture',{path:file,name:span.name,lines:span.lines.length})).toBe(true);selected.push(...span.lines.map(index=>lines[index]??''));}
+ }
+ expect(reports).toEqual([]);expect(charges.get('driftwood-isle')).toHaveLength(2);
+ expect(selected.join('\n')).toContain('health.attributes.maxHealth');expect(selected.join('\n')).toContain('cosmetics.map');
+ expect(selected.join('\n')).not.toContain('const basic=');expect(selected.join('\n')).not.toContain('export function enteredLootPresentation');
+});

@@ -7,7 +7,7 @@ import { Owned } from '../src/game/loot/Owned';
 import { Purse } from '../src/game/loot/Purse';
 import { Flags } from '../src/engine/world/interact/flags';
 import { Scope } from '../src/engine/app/scope';
-import { driftwoodLootPresentation } from '../src/shards/driftwood-isle/loot/presentation';
+import { fixtureLootPresentation } from './fixtures/loot-page';
 import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
 import CONTENT from '../src/shards/driftwood-isle/data/keepsakes.json' with { type: 'json' };
 
@@ -48,7 +48,7 @@ test('the existing curve is exactly the original glow at every sampled night val
 test('gear reads only the declared beach flags and observes live progress without a new counter owner', async () => {
   const flags = new Flags('driftwood-isle', false), scope = new Scope('loot-progression'), owned = new Owned('driftwood-isle');
   try {
-    const view = await driftwoodLootPresentation({ economy, adventure: { flags }, owned,
+    const view = await fixtureLootPresentation({ scope,economy, adventure: { flags }, owned,
       health: { attributes: { maxHealth: 100 } }, audio: { voices: { play: () => undefined } } });
     const purse = new Purse('driftwood-isle');
     for (let found = 0; found <= 15; found++) {

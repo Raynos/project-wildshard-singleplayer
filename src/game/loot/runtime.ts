@@ -11,7 +11,11 @@ import { Purse, publishPurse } from './Purse';
 import { installQuestShop } from '../quest/trader';
 import { Bounty } from './Bounty';
 import { coinsFor, coinsOn, type LootGate } from './coins';
-import { isCosmetic, isOwnedId, type Owned, type OwnedId } from './Owned';
+import { OWNED,isCosmetic, isOwnedId, type Owned, type OwnedId } from './Owned';
+import { declaredLootEconomy,declaredLootPresentation } from '../shard/declaredRows';
+import { createFindsCatalogue } from '../bag/findsCatalogue';
+import { boundQuestState } from '../quest/boundState';
+import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './deaths';
 import type { ShardContext } from "../plugin/context";
 import { DynamicBodySlots } from '@wildshard/engine/physics/bodies';
@@ -90,6 +94,27 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   };
   ctx.scope.onDispose(dispose);
   return { purse, dispose };
+}
+
+/** Existing coin-enabled pages share this admitted row/identity entry point.
+ * The rich native Bag projection stays charged to its actual sole user. */
+export function enteredLootPresentation(ctx:ShardContext,id:string):LootPresentation{
+  const row=ctx.product.section('economy/loot').rows.loot.find(entry=>entry.id===id),play=ctx.game.runtime?.play;
+  if(ctx.scope.disposed||row===undefined||!('gear'in row)||play===null||play===undefined)throw new Error('Loot projection requires its entered owner');
+  const basic=declaredLootPresentation(row,token=>{if(!token.startsWith('cue.'))throw new Error('Unknown registered loot cue');play.cues.cue(`cue.${token.slice(4)}`);});
+  if(row.economy?.presentation===undefined)return basic;
+  const economy=declaredLootEconomy([row]),view=economy.presentation,health=ctx.app.player;
+  if(view===undefined||health===null)throw new Error('Loot Bag needs its admitted view and native health');
+  const flags=boundQuestState(ctx.scope,view.quest).flags,owned=play.owned,finds=createFindsCatalogue(economy.finds);
+  const sfx=new InteractSfx(play.audio);
+  const cosmetics=view.cosmetics.map(entry=>{const cosmeticId=entry.id;if(!isOwnedId(cosmeticId)||!isCosmetic(cosmeticId))throw new Error('Loot cosmetic must name its native ownership');return {id:cosmeticId,icon:entry.icon,how:entry.how};});
+  return {debugName:row.id,lateKinds:view.lateKinds,
+    charted:()=>owned.has(view.chart),marks:()=>economy.marks.filter(mark=>!flags.has(mark.flag)).map(({x,z,color})=>({x,z,color})),
+    chime:()=>{sfx.interact(view.chime.sound,undefined,{gain:view.chime.gain});},finds:()=>finds({flags,owned}),
+    gear:purse=>({sharpen:owned.sharpen,health:{max:health.attributes.maxHealth,hearts:owned.hearts},
+      charms:{owned:owned.charms,next:economy.progression.states[economy.progression.flags.filter(flag=>flags.has(flag)).length]?.next??null},
+      cosmetics:cosmetics.map(entry=>({id:entry.id,icon:entry.icon,how:entry.how,name:OWNED[entry.id].label,owned:owned.has(entry.id),worn:owned.worn(entry.id)})),coins:purse.coins}),
+  };
 }
 
 /** Install ordinary loot against the admitted world services without exposing a raw scene to runtime content. */

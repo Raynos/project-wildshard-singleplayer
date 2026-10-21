@@ -11,7 +11,7 @@ import { EffectService } from '../src/engine/combat/effects/EffectService';
 import { Owned } from '../src/game/loot/Owned';
 import { Purse } from '../src/game/loot/Purse';
 import { bindFixtureEffects } from './fixtures/item-effects';
-import { driftwoodLootPresentation } from '../src/shards/driftwood-isle/loot/presentation';
+import { fixtureLootPresentation } from './fixtures/loot-page';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
 
 const economy = declaredLootEconomy(parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [LOOT] }).loot);
@@ -23,7 +23,7 @@ test('GEAR borrows live player max health through upgrades, revokes and other he
   const purse = new Purse('driftwood-isle', { read: () => 0, write: () => true });
   try {
     bindFixtureEffects({ effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [], hitCap: 20 });
-    const view = await driftwoodLootPresentation({ economy, adventure: { flags: new Flags('driftwood-isle', false) },
+    const view = await fixtureLootPresentation({ scope,economy, adventure: { flags: new Flags('driftwood-isle', false) },
       owned, health, audio: { voices: { play: () => undefined } } });
     const check = (max: number, hearts: number): void => {
       expect(health.attributes.maxHealth).toBe(max);

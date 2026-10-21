@@ -1,5 +1,7 @@
 import KEEPSAKES from '../data/keepsakes.json' with { type: 'json' };
 import PICKUPS from '../data/keepsakePickups.json' with { type: 'json' };
+import lootView from '../data/lootPresentation.json' with {type:'json'};
+import stall from '../data/traderStall.json' with {type:'json'};
 import { DRIFTWOOD_EFFECTS, DRIFTWOOD_COIN_VALUES, DRIFTWOOD_EXCHANGE, GOODS, DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from './economy';
 import { DRIFTWOOD_FINDS } from './finds';
 import { DRIFTWOOD_INTERACT } from './interactables';
@@ -11,7 +13,7 @@ const charms = ['charm-1', 'charm-2', 'charm-3'] as const;
 /** Build the original flag ranges and world-space chart once; the page only filters current saved flags. */
 export const DRIFTWOOD_LOOT = {
   id: 'driftwood.loot', gear: 'purse.coins', finds: null, marks: null, charted: false, chime: 'cue.loot.chime',
-  economy: { exchange: DRIFTWOOD_EXCHANGE, pickups: Object.fromEntries(Object.entries(PICKUPS).map(([id, row]) => {
+  economy: { presentation:{...lootView,cosmetics:lootView.cosmetics.map(row=>({id:row.id,icon:row.icon,how:row.how.replace('{trader}',stall.name)}))},exchange: DRIFTWOOD_EXCHANGE, pickups: Object.fromEntries(Object.entries(PICKUPS).map(([id, row]) => {
     const match = KEEPSAKES.trophies[id as keyof typeof KEEPSAKES.trophies];
     return [id, { ...row, death: { kind: match.kind, ...(match.variant === null ? {} : { variant: match.variant }),
       floor: id === 'captain-hat' ? 'ground' : 'source', ...(id === 'captain-hat' ? { towardPlayer: { distance: 1.5, epsilon: .001 } } : {}) } }];

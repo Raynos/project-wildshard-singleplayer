@@ -10,6 +10,8 @@ const modules = new Map([
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
+  ['src/game/loot/runtime.ts',new Map([['LootBagProjection','C6']])],
+  ['src/format/lootEconomy.ts',new Map([['LootBagProjection','C6']])],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
   ['src/game/practice/course.ts', new Map(['MountedCourseController', 'HookCourseController', 'hookCoursePad', 'yawToward', 'HookCourseCourse', 'HookCourseRow', 'HookCoursePad'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','SlotViewActor','SlotSiteChange','Awake','PatrolEncounterView','PatrolViewActor','PatrolHit','Rider','PatrolActor','PatrolActorRoster'].map(name=>[name,'C4']))],
@@ -49,6 +51,13 @@ const declarations = new Map([
 // code lines, never fixed credits; packet/instance-matrix handling stays shared.
 /** @type {Map<string,Map<string,[string,number][]>>} */
 const inline = new Map([
+  ['src/game/loot/runtime.ts',new Map([['LootBagProjection',[
+    ["import { declaredLootEconomy,declaredLootPresentation }",1],["import { createFindsCatalogue }",1],["import { boundQuestState }",1],["import { InteractSfx }",1],
+    ['if(row.economy?.presentation===undefined)',1],['const economy=declaredLootEconomy([row])',12],
+  ]]])],
+  ['src/format/lootEconomy.ts',new Map([['LootBagProjection',[
+    ['export const LootPresentationSchema=',5],['presentation:v.exactOptional(LootPresentationSchema)',1],
+  ]]])],
   ['src/game/shardfile/worldScenes.ts', new Map([
     ['WorldSceneTierPools', [
       ['geometryPools: row.files.map(file =>', 1],
@@ -106,7 +115,7 @@ function reviewedOwner(path, name) {
   if (['src/format/populationEnvironment.ts',
     'src/engine/models/geometrySources.ts', 'src/game/looks/posedInstances.ts',
     'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
-  if (['src/engine/models/ownedGeometry.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',
+  if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts','src/engine/models/ownedGeometry.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',
     'src/game/quest/pageComposition.ts', 'src/format/questPageComposition.ts'].includes(path)) return 'driftwood-isle';
   return 'nalati-grasslands';
 }

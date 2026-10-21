@@ -52,8 +52,15 @@ export function parseLootTables(input: unknown): v.InferOutput<typeof LootTables
   if (lootTableRules(rows).length > 0) throw new TypeError('Invalid loot table references or ranges');
   return rows;
 }
+/** Native Bag projection metadata; current health, flags and ownership remain live. */
+export const LootPresentationSchema=v.strictObject({
+  quest:key,chart:key,lateKinds:flags,
+  chime:v.strictObject({sound:v.picklist(['chest','locked','lever','plate','door','grate','chime','glyph','ignite']),gain:v.pipe(finite,v.minValue(0),v.maxValue(8))}),
+  cosmetics:v.pipe(v.array(v.strictObject({id:key,icon:v.picklist(['hat','cape']),how:text})),v.maxLength(64)),
+});
 /** Inert economy content; ownership, transactions, attributes and menu lifetimes stay with their existing services. */
 export const LootEconomySchema = v.strictObject({
+  presentation:v.exactOptional(LootPresentationSchema),
   exchange: v.exactOptional(ExchangeSchema),
   pickups: v.exactOptional(v.pipe(v.record(key, ClaimedPickupSchema), v.maxEntries(128))),
   tables: v.exactOptional(LootTablesSchema),

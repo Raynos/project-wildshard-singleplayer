@@ -5,7 +5,7 @@ import { parseLootEconomy } from '../src/format/lootEconomy';
 import { parseRows } from '../src/format/rows';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 import { Exchange } from '../src/game/loot/exchange';
-import { driftwoodLootPresentation } from '../src/shards/driftwood-isle/loot/presentation';
+import { fixtureLootPresentation } from './fixtures/loot-page';
 import { Flags } from '../src/engine/world/interact/flags';
 import { Scope } from '../src/engine/app/scope';
 import { Owned, type OwnedId } from '../src/game/loot/Owned';
@@ -51,7 +51,7 @@ test('chart rows preserve all shipping world positions, order and saved-flag vis
   const saved = new Set(old.filter((_, index) => index % 2 === 0).map(row => row.flag));
   const flags = new Flags('driftwood-isle', false), scope = new Scope('loot-chart'); flags.restore([...saved]);
   try {
-    const view = await driftwoodLootPresentation({ economy, adventure: { flags }, owned: new Owned('driftwood-isle'),
+    const view = await fixtureLootPresentation({ scope,economy, adventure: { flags }, owned: new Owned('driftwood-isle'),
       health: { attributes: { maxHealth: 100 } }, audio: { voices: { play: () => undefined } } });
     expect(view.marks?.()).toEqual(old.filter(row => !saved.has(row.flag)).map(({ x, z, color }) => ({ x, z, color })));
   } finally { scope.dispose(); }

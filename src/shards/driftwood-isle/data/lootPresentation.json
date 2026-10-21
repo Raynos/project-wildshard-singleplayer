@@ -1,0 +1,24 @@
+{
+  "quest": "sealed-ring",
+  "chart": "sea-chart",
+  "lateKinds": [
+    "sailor",
+    "captain"
+  ],
+  "chime": {
+    "sound": "chime",
+    "gain": 0.55
+  },
+  "cosmetics": [
+    {
+      "id": "captain-hat",
+      "icon": "hat",
+      "how": "The Drowned Captain"
+    },
+    {
+      "id": "cape",
+      "icon": "cape",
+      "how": "{trader}'s counter"
+    }
+  ]
+}

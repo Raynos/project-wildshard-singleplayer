@@ -10803,6 +10803,13 @@ and uses the existing entered scope for kick, trauma and impact debris.
 finds. `declaredLootEconomy(rows, 'barter')` admits aligned shop cards and
 Exchange transactions without coin-only state. Both resolve exactly one
 payload from `economy/loot`; barter rows carry no purse presentation.
+`enteredLootPresentation(context, id)` borrows an admitted row and the
+entered play owner. Coin-only pages retain their registered cue and purse
+projection. Optional economy `presentation` metadata names the bound quest,
+chart, late kinds, interaction chime and cosmetic labels; the native Bag
+reads current flags, health attributes and owned/worn state on every view.
+It creates no inventory, save or quest owner. The rich projection is still
+charged to its sole Driftwood caller; coin-only callers grant it no credit.
 Pine's real shop consumes its admitted cards and transactions. Its finish
 pickups register/read the same scoped loot-table service as Driftwood.
 Existing Exchange ordering, modal continuation and pickup ownership stay
