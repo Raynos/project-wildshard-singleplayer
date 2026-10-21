@@ -76,83 +76,88 @@ async function gesture(expression) {
   const result = await inspector.send('Runtime.evaluate', { expression, returnByValue: true, emulateUserGesture: true });
   if (result.wasThrown) throw new Error(result.result?.description ?? 'Gesture failed');
 }
+const visits = arg('visits') ?? 'cold';
+if (!['cold', 'cold,warm'].includes(visits)) throw new Error('Visits must be cold or cold,warm');
 let failed = false;
 try {
-  // sim-lane boot completion can precede the first Safari launch. Surface a
-  // launch failure before navigation rather than measuring a boot-logo page.
-  execFileSync('xcrun', ['simctl', 'launch', udid, 'com.apple.mobilesafari'], { stdio: 'ignore', timeout: 60000 });
   for (const path of (arg('paths') ?? 'shardfile,grid').split(',')) {
     if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
     transport = await observeTransport(upstream, { recorder: accuracyRecorder, start: start(path) });
     base = transport.base;
-    const events = [], errors = [];
-    let collected, networkBytes = null, report;
-    try {
-      const initialURL = new URL('/version.json', base).href;
-      execFileSync('xcrun', ['simctl', 'openurl', udid, initialURL]);
-      await connect(initialURL);
-      const previousOrigin = await inspector.evaluate('performance.timeOrigin');
-      await inspector.evaluate(`setTimeout(() => location.replace('/sf67-start.html'), 100); true`);
-      await sleep(500); await connect();
-      await wait(`performance.timeOrigin !== ${previousOrigin} && window.__loadingAccuracy !== undefined && document.querySelector('.ws-main-select') !== null`, 60000);
-      if (path === 'grid') await gesture(`document.querySelector('.ws-main-grid').click()`);
-      else {
-        await gesture(`document.querySelector('.ws-main-select').click()`);
-        await wait(`document.querySelectorAll('.ws-menu-card').length > 0`, 30000);
-        const titles = JSON.parse(await inspector.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(el => el.textContent))`));
-        const index = loadingCardIndex(titles, 'driftwood-isle');
-        await gesture(`document.querySelector('.ws-menu-dots i[data-i="${index}"]').click()`);
-        await gesture(`(() => { const explicit = document.querySelector('.ws-menu-shardfile'); (${path !== 'legacy'} && explicit && explicit.getClientRects().length ? explicit : document.querySelector('.ws-menu-play')).click(); })()`);
+    // Reuse this origin for warm disk caches, but launch Safari before every navigation.
+    for (const visit of visits.split(',')) {
+      const directory = visits === 'cold' ? out : resolvePath(out, path, visit);
+      mkdirSync(directory, { recursive: true });
+      execFileSync('xcrun', ['simctl', 'launch', udid, 'com.apple.mobilesafari'], { stdio: 'ignore', timeout: 60000 });
+      const events = [], errors = [];
+      let collected, networkBytes = null, report;
+      try {
+        const initialURL = new URL('/version.json', base).href;
+        execFileSync('xcrun', ['simctl', 'openurl', udid, initialURL]);
+        await connect(initialURL);
+        const previousOrigin = await inspector.evaluate('performance.timeOrigin');
+        await inspector.evaluate(`setTimeout(() => location.replace('/sf67-start.html'), 100); true`);
+        await sleep(500); await connect();
+        await wait(`performance.timeOrigin !== ${previousOrigin} && window.__loadingAccuracy !== undefined && document.querySelector('.ws-main-select') !== null`, 60000);
+        if (path === 'grid') await gesture(`document.querySelector('.ws-main-grid').click()`);
+        else {
+          await gesture(`document.querySelector('.ws-main-select').click()`);
+          await wait(`document.querySelectorAll('.ws-menu-card').length > 0`, 30000);
+          const titles = JSON.parse(await inspector.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(el => el.textContent))`));
+          const index = loadingCardIndex(titles, 'driftwood-isle');
+          await gesture(`document.querySelector('.ws-menu-dots i[data-i="${index}"]').click()`);
+          await gesture(`(() => { const explicit = document.querySelector('.ws-menu-shardfile'); (${path !== 'legacy'} && explicit && explicit.getClientRects().length ? explicit : document.querySelector('.ws-menu-play')).click(); })()`);
+        }
+        await sleep(500); await connect();
+        await inspector.send('Network.enable');
+        const off = inspector.on('Network.loadingFinished', event => { events.push(event); });
+        try { await wait(`window.__loadingAccuracy?.readyAt > 0`); } finally { off(); }
+      } catch (error) { errors.push(String(error)); }
+      try {
+        collected = JSON.parse(await inspector.evaluate(`JSON.stringify({ accuracy: window.__loadingAccuracy, origin: performance.timeOrigin, href: location.href, resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()), controller: navigator.serviceWorker.controller?.scriptURL ?? null, fatal: document.querySelector('#wserr .msg')?.textContent ?? '' })`));
+        const origin = collected.origin, end = origin + (collected.accuracy?.readyAt ?? 0);
+        const received = transport.receipts.filter(receipt => receipt.endedAt >= origin && receipt.endedAt <= end);
+        networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
+        report = accuracyReport(collected.accuracy, networkBytes, path);
+        errors.push(...(collected.accuracy?.errors ?? []));
+        if (collected.fatal) errors.push(collected.fatal);
+        if (collected.controller === null) errors.push('Service worker did not control the served entry');
+      } catch (error) { errors.push(String(error)); }
+      const result = { pin, path, visit, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
+        ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };
+      try {
+        if (errors.length === 0) {
+          await wait(`document.querySelector('.ws-load') === null && window.__wildshard?.world?.game.renderer !== undefined`, 10000);
+          const frame = await inspector.evaluate('window.__wildshard.world.game.renderer.info.render.frame');
+          await wait(`window.__wildshard.world.game.renderer.info.render.frame > ${frame}`, 10000);
+        }
+        const caption = `${pin.slice(0, 7)} · ${collected?.accuracy?.final?.path ?? `${path} request`} · iPhone 16 Pro · Simulator`;
+        await inspector.evaluate(`(${accuracyCaption.toString()})(${JSON.stringify(caption)})`);
+      } catch (error) { errors.push(`Capture caption: ${String(error)}`); }
+      writeFileSync(resolvePath(directory, `${path}.json`), JSON.stringify(result, null, 2));
+      execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', resolvePath(directory, `${path}.png`)], { stdio: 'ignore' });
+      execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolvePath(directory, `${path}.png`), '--out', resolvePath(directory, `${path}.jpg`)], { stdio: 'ignore' });
+      unlinkSync(resolvePath(directory, `${path}.png`));
+      console.info(JSON.stringify({ path, visit, errors, ...report }));
+      if (path === 'grid' && errors.length === 0 && (arg('crossing') ?? '1') === '1') {
+        await inspector.evaluate(crossingProbeCode());
+        await wait('window.__loadingCrossing?.done', 130000);
+        const crossing = JSON.parse(await inspector.evaluate('JSON.stringify(window.__loadingCrossing)'));
+        const crossingResult = crossingReport(crossing);
+        const receipts = transport.receipts.filter(row => row.endedAt >= collected.origin + crossing.startedAt
+          && row.endedAt <= collected.origin + crossing.endedAt);
+        writeFileSync(resolvePath(directory, 'crossing.json'), JSON.stringify({ pin, device: result.device, cpu: 'native',
+          ...crossing, ...crossingResult, transportReceipts: receipts,
+          networkBytes: receipts.reduce((sum, row) => sum + row.bodyBytes + row.headerBytes, 0) }, null, 2));
+        console.info(JSON.stringify({ path: 'crossing', ...crossingResult }));
+        if (crossingResult.failures.length > 0) failed = true;
       }
-      await sleep(500); await connect();
-      await inspector.send('Network.enable');
-      const off = inspector.on('Network.loadingFinished', event => { events.push(event); });
-      try { await wait(`window.__loadingAccuracy?.readyAt > 0`); } finally { off(); }
-    } catch (error) { errors.push(String(error)); }
-    try {
-      collected = JSON.parse(await inspector.evaluate(`JSON.stringify({ accuracy: window.__loadingAccuracy, origin: performance.timeOrigin, href: location.href, resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()), controller: navigator.serviceWorker.controller?.scriptURL ?? null, fatal: document.querySelector('#wserr .msg')?.textContent ?? '' })`));
-      const origin = collected.origin, end = origin + (collected.accuracy?.readyAt ?? 0);
-      const received = transport.receipts.filter(receipt => receipt.endedAt >= origin && receipt.endedAt <= end);
-      networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
-      report = accuracyReport(collected.accuracy, networkBytes, path);
-      errors.push(...(collected.accuracy?.errors ?? []));
-      if (collected.fatal) errors.push(collected.fatal);
-      if (collected.controller === null) errors.push('Service worker did not control the served entry');
-    } catch (error) { errors.push(String(error)); }
-    const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
-      ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };
-    try {
-      if (errors.length === 0) {
-        await wait(`document.querySelector('.ws-load') === null && window.__wildshard?.world?.game.renderer !== undefined`, 10000);
-        const frame = await inspector.evaluate('window.__wildshard.world.game.renderer.info.render.frame');
-        await wait(`window.__wildshard.world.game.renderer.info.render.frame > ${frame}`, 10000);
-      }
-      const caption = `${pin.slice(0, 7)} · ${collected?.accuracy?.final?.path ?? `${path} request`} · iPhone 16 Pro · Simulator`;
-      await inspector.evaluate(`(${accuracyCaption.toString()})(${JSON.stringify(caption)})`);
-    } catch (error) { errors.push(`Capture caption: ${String(error)}`); }
-    writeFileSync(resolvePath(out, `${path}.json`), JSON.stringify(result, null, 2));
-    execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', resolvePath(out, `${path}.png`)], { stdio: 'ignore' });
-    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolvePath(out, `${path}.png`), '--out', resolvePath(out, `${path}.jpg`)], { stdio: 'ignore' });
-    unlinkSync(resolvePath(out, `${path}.png`));
-    console.info(JSON.stringify({ path, errors, ...report }));
-    if (path === 'grid' && errors.length === 0 && (arg('crossing') ?? '1') === '1') {
-      await inspector.evaluate(crossingProbeCode());
-      await wait('window.__loadingCrossing?.done', 130000);
-      const crossing = JSON.parse(await inspector.evaluate('JSON.stringify(window.__loadingCrossing)'));
-      const crossingResult = crossingReport(crossing);
-      const receipts = transport.receipts.filter(row => row.endedAt >= collected.origin + crossing.startedAt
-        && row.endedAt <= collected.origin + crossing.endedAt);
-      writeFileSync(resolvePath(out, 'crossing.json'), JSON.stringify({ pin, device: result.device, cpu: 'native',
-        ...crossing, ...crossingResult, transportReceipts: receipts,
-        networkBytes: receipts.reduce((sum, row) => sum + row.bodyBytes + row.headerBytes, 0) }, null, 2));
-      console.info(JSON.stringify({ path: 'crossing', ...crossingResult }));
-      if (crossingResult.failures.length > 0) failed = true;
+      try { await inspector?.evaluate(`location.replace('about:blank')`); } catch { /* The target already left. */ }
+      inspector?.close(); inspector = undefined;
+      try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
+      if (errors.length > 0 || (arg('accept') === '1' && (report?.failures.length ?? 0) > 0)) failed = true;
     }
-    try { await inspector?.evaluate(`location.replace('about:blank')`); } catch { /* The target already left. */ }
-    inspector?.close(); inspector = undefined;
-    try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
     await transport.close(); transport = undefined;
-    if (errors.length > 0 || (arg('accept') === '1' && (report?.failures.length ?? 0) > 0)) failed = true;
   }
 } finally {
   try { await inspector?.evaluate(`location.replace('about:blank')`); } catch { /* Unloaded target. */ }
