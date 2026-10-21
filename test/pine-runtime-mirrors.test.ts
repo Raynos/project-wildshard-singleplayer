@@ -11,7 +11,6 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
 import { NativeViewSchema, CaveRowsSchema, PoolGroundSchema } from '../src/shards/pine-hollow/generators/sections';
-import { admitPineView, pineView } from '../src/shards/pine-hollow/runtime/world/context';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
@@ -34,8 +33,7 @@ test('world view rows come from the admitted section', () => {
   const product = createShardProduct({ slug:'pine-hollow', revision:1,
     shardfile:emptyShardfile({ slug:'pine-hollow', name:'Pine', author:'Wildshard', revision:1, seed:1 }),
     sections:new Map([['custom/nativeView', JSON.parse(new TextDecoder().decode(bytes))]]), files:new Map(), read:() => Promise.reject(new Error('Native view must use its section')) });
-  admitPineView(product);
-  expect(pineView()).toEqual(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit }));
+  expect(product.section('custom/nativeView')).toEqual(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit }));
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, KING_ARENA_FOG:'31' })).toThrow();
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, BOSS_ENCOUNTER: { ...NATIVE_VIEW.BOSS_ENCOUNTER, profile: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile, fight: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight, strike: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight.strike, action: 'unknown' } } } } })).toThrow();
 });

@@ -15,7 +15,7 @@ import { speciesBrains } from '../src/sdk/speciesBrains';
 import { BOAR } from '../src/game/systems/species/boar';
 import { readProjectAssets } from '../src/sdk/project';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { admitPineView } from '../src/shards/pine-hollow/runtime/world/context';
+import type { NativeView } from '../src/shards/pine-hollow/runtime/productSections.generated.d.ts';
 
 test('both populations admit the same gameplay fields without visual or callback metadata', () => {
   const pine = readSpeciesPrograms(structuredClone(PINE_SPECIES_PROGRAMS));
@@ -39,11 +39,11 @@ test('both emitted populations keep the original resolved visual variants', asyn
   const section = loaded.output.custom?.sections.find(row => row.name === 'custom/nativeView');
   const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);
   if (section === undefined || bytes === undefined) throw new Error('Missing admitted Pine native view');
-  admitPineView(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile: loaded.shard,
+  const product = createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile: loaded.shard,
     sections: new Map([['custom/nativeView', JSON.parse(new TextDecoder().decode(bytes))]]), files: new Map(),
-    read: () => Promise.reject(new Error('Native view must use its section')) }));
+    read: () => Promise.reject(new Error('Native view must use its section')) });
   const pineBook = new HullLookBook(SPECIES_LOOKS);
-  registerKing(pineBook);
+  registerKing(pineBook, product.section<NativeView>('custom/nativeView').QUADRUPED);
   const authored = [...PINE_SPECIES, pineDeer(), pineElk(), ISLAND_BOAR, ISLAND_BEAR];
   const programs = [...PINE_SPECIES_PROGRAMS.page, ...DRIFTWOOD_SPECIES_PROGRAMS.page];
   const looks = [...pineBook.looks, DRIFTWOOD_BOOK.look('boar'), DRIFTWOOD_BOOK.look('bear')];

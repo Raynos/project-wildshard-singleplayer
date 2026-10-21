@@ -9,7 +9,7 @@ import { creature, type CreatureParams } from '@wildshard/engine/models/creature
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import authoredLook from '../../data/antlerKingLook.json' with { type: 'json' };
 import { limbAnimation } from '@wildshard/game/animation/limbView';
-import { pineView } from '../world/context';
+import type { NativeView } from '../productSections.generated.d.ts';
 
 const { KING_COAT, KING_OWN_RIG } = authoredLook;
 
@@ -33,10 +33,10 @@ const KING_CARD = new SocketRigCard('pine-hollow', 'combat/roaming.json');
 
 /** his body: the skeleton (the hull's own joints replace its rest positions) and the hit volumes
  *  (../data/antlerKingLook.json `KING_OWN_RIG`), and no parts (the hull is the mesh) */
-function buildOwnRig(): AnimalSpecies {
+function buildOwnRig(rows: NativeView['QUADRUPED']): AnimalSpecies {
   const R = KING_OWN_RIG;
   return {
-    bones: pineView().QUADRUPED.bones.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })), furParts: [], hardParts: [], eyeParts: [],
+    bones: rows.bones.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })), furParts: [], hardParts: [], eyeParts: [],
     dims: { ...R.dims, feet: R.dims.feet.map((f): [number, number] => [f[0], f[1]]) },
   };
 }
@@ -46,9 +46,9 @@ function buildOwnRig(): AnimalSpecies {
  * AI hook and damage rule) as a custom rig — KING_BONES and the limb host's poses instead of the elk's bones and gaits. The
  * hull (`antler-king-rig[.phone].rigged.glb`) is his mesh through species/hulls.ts like every Pine Hollow hull.
  */
-function kingOwnSpecies(base: SpeciesDef): SpeciesDef {
+function kingOwnSpecies(base: SpeciesDef, rows: NativeView['QUADRUPED']): SpeciesDef {
   // (the elk's postPose / gait knobs are the quadruped path's: a custom rig never runs them)
-  return { ...base, rigContract: { skeleton: 'antler-king.v1', clips: [], sockets: ['body', 'head'] }, rig: 'custom', animate: limbAnimation(pineView().QUADRUPED.spec, pineView().QUADRUPED.blend, pineView().QUADRUPED.clips), build: () => buildOwnRig() };
+  return { ...base, rigContract: { skeleton: 'antler-king.v1', clips: [], sockets: ['body', 'head'] }, rig: 'custom', animate: limbAnimation(rows.spec, rows.blend, rows.clips), build: () => buildOwnRig(rows) };
 }
 
 // ─────────────── the model (E306 / E315 M5) ───────────────
@@ -75,7 +75,7 @@ export const antlerKing: ModelDef<CreatureParams> = defineModel<CreatureParams>(
 
 /** Counted native rig/hull catalogue binding, beside its custom model view. */
 export async function preparePineModelViews(ctx: ShardContext): Promise<void> {
-  const book = productHullBook(ctx.product); registerKing(book); ctx.rows.species(ctx.product.section('actors/species-programs').page);
+  const book = productHullBook(ctx.product); registerKing(book, ctx.product.section<NativeView>('custom/nativeView').QUADRUPED); ctx.rows.species(ctx.product.section('actors/species-programs').page);
   ctx.rows.speciesLook(book.looks);
   ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
   const held = await HeldEquipment.prepare(ctx.product); await KING_CARD.preload(); held.install(ctx);
@@ -83,7 +83,7 @@ export async function preparePineModelViews(ctx: ShardContext): Promise<void> {
 
 /** the King's species: the elk's fields re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark) —
  *  on his own upright rig (E322 F-M1, kingOwnSpecies) */
-export function registerKing(book: HullLookBook): void {
+export function registerKing(book: HullLookBook, rows: NativeView['QUADRUPED']): void {
   if (hasSpecies(KING_KIND)) return;
   const elk: SpeciesDef = book.definition('elk');
   const def: SpeciesDef = {
@@ -94,5 +94,5 @@ export function registerKing(book: HullLookBook): void {
     think: () => { /* the fight's update drives him (AntlerKingFight) */ },
     damageMul: (a, p) => roamingBossDamage(a, p),
   };
-  registerSpecies(kingOwnSpecies(def));
+  registerSpecies(kingOwnSpecies(def, rows));
 }
