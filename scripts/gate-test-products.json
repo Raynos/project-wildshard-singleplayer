@@ -73,9 +73,6 @@
   "test/nalati-kurgan-fabric.test.ts": [
     "nalati-grasslands"
   ],
-  "test/nalati-static-landmarks.test.ts": [
-    "nalati-grasslands"
-  ],
   "test/nalati-headless-assembly.test.ts": [
     "nalati-grasslands"
   ],
@@ -191,9 +188,6 @@
     "sunscar-dunes",
     "far-reach"
   ],
-  "test/pine-king-kit-reentry.test.ts": [
-    "pine-hollow"
-  ],
   "test/sweep-guard.test.ts": [],
   "test/nalati-kokpar.test.ts": [],
   "test/nalati-people-loader.test.ts": [
@@ -217,7 +211,6 @@
     "nalati-grasslands"
   ],
   "test/nine-light-spill.test.ts": [],
-  "test/nine-explorer-catalogue.test.ts": [],
   "test/nine-look-graphs.test.ts": [],
   "test/nine-architecture-graphs.test.ts": [],
   "test/practice-course-scene.test.ts": [],

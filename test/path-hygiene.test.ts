@@ -48,6 +48,27 @@ test('partial legacy declarations still report undeclared layout debt', () => {
     .toEqual(['example/unlisted.ts: outside the canonical shard layout']);
 });
 
+test('declared output catalogues admit only their own generated discovery files', () => {
+  const config = { requiredFiles: [], allowedFiles: ['manifest.json'], folders: [], legacy: {} };
+  const files = ['manifest.json', 'outputs.json', 'discovery.plot-one.generated.ts'];
+  const outputs = { plots: ['plot-one'] };
+  expect(checkShardLayout({ plots: files }, config, undefined, {}, undefined, outputs)).toEqual([]);
+  expect(checkShardLayout({ plots: [...files, 'discovery.rogue.generated.ts'] }, config, undefined, {}, undefined, outputs))
+    .toEqual(['plots/discovery.rogue.generated.ts: outside the canonical shard layout']);
+  expect(checkShardLayout({ plots: files }, config)).toHaveLength(2);
+});
+
+test('TypeScript and JSON budget homes each satisfy the contract but cannot coexist', () => {
+  const config = { requiredFiles: ['budgets.ts'], allowedFiles: [], folders: ['data'], legacy: {},
+    dataHomes: { 'budgets.ts': ['data/budgets.ts', 'data/budgets.json'] } };
+  for (const home of config.dataHomes['budgets.ts']) {
+    expect(checkShardLayout({ example: ['data/', home] }, config)).toEqual([]);
+  }
+  expect(checkShardLayout({ example: ['data/'] }, config)).toEqual(['example: missing required budgets.ts']);
+  expect(checkShardLayout({ example: ['data/', ...config.dataHomes['budgets.ts']] }, config))
+    .toEqual(['example: data/budgets.ts and data/budgets.json hold the same thing']);
+});
+
 test('source layout admits complete generated products but refuses unlisted files and symlinks', () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp', 'generated-layout-'));

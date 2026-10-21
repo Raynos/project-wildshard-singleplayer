@@ -5,39 +5,46 @@ import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
 import { shardfileDescriptor } from './gen-shards.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
+import { shardOutputs } from './shard-outputs.mjs';
 
 const EMPTY_FROZEN = { shards: {} };
 
-/** entries: slug -> top-level names (directories carry a trailing slash), plus any `dataHomes` path the shard holds. */
-export function checkShardLayout(entries, config, readManifest, runtimeBaseline = {}, frozen = EMPTY_FROZEN) {
+/** entries: slug -> top-level names (directories carry a trailing slash), plus any `dataHomes` path the shard holds.
+ * outputs contains only product slugs admitted by shardOutputs, never wildcard discovery names. */
+export function checkShardLayout(entries, config, readManifest, runtimeBaseline = {}, frozen = EMPTY_FROZEN, outputs = {}) {
   const failures = [];
   const files = new Set(config.requiredFiles.concat(config.allowedFiles));
   const folders = new Set(config.folders.map((name) => `${name}/`));
-  const dataHomes = new Set(Object.values(config.dataHomes ?? {}));
+  const homes = new Map(Object.entries(config.dataHomes ?? {}).map(([name, home]) => [name, Array.isArray(home) ? home : [home]]));
+  const dataHomes = new Set([...homes.values()].flat());
   for (const [slug, names] of Object.entries(entries)) {
     const primary = frozen.shards[slug]?.primary ?? slug;
+    const productFiles = new Set((outputs[slug] ?? []).map(output => `discovery.${output}.generated.ts`));
+    if (productFiles.size > 0) productFiles.add('outputs.json');
     if (names.includes('runtime/') && !Object.hasOwn(runtimeBaseline, primary)) failures.push(`${slug}/runtime/: custom runtime is reserved for transition shards in lint/shard-platform.json`);
     const sourceLayout = config.sourceLayout;
     if (sourceLayout && names.includes('shard.config.ts') && (slug === '_template' || !names.some(name => ['manifest.ts', 'manifest.json'].includes(name)))) {
       const allowed = new Set([...sourceLayout.requiredFiles, ...sourceLayout.allowedFiles, ...sourceLayout.folders.map(name => `${name}/`), ...(sourceLayout.bridges[slug] ?? [])]);
       // dataHomes are synthetic nested entries, not extra source-root files.
       // Discovery is generated only while the explicit manifest bridge exists.
-      for (const name of names) if (!allowed.has(name) && !dataHomes.has(name) && !(name === 'discovery.generated.ts' && allowed.has('manifest.json'))) failures.push(`${slug}/${name}: outside the standalone source layout`);
+      for (const name of names) if (!allowed.has(name) && !dataHomes.has(name) && !productFiles.has(name) && !(name === 'discovery.generated.ts' && allowed.has('manifest.json'))) failures.push(`${slug}/${name}: outside the standalone source layout`);
       for (const name of sourceLayout.requiredFiles) if (!names.includes(name)) failures.push(`${slug}: missing required ${name}`);
       continue;
     }
     if (slug.startsWith('_')) continue;
     if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
     const legacy = { entries: [], missing: [], ...config.legacy[primary] };
-    for (const name of names) if (!Object.keys(frozen.shards[slug]?.files ?? {}).some(file => file === name || file.startsWith(name)) && !files.has(name) && !folders.has(name) && !dataHomes.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
+    for (const name of names) if (!Object.keys(frozen.shards[slug]?.files ?? {}).some(file => file === name || file.startsWith(name)) && !files.has(name) && !folders.has(name) && !dataHomes.has(name) && !productFiles.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
     const manifest = names.includes('manifest.ts') && readManifest ? readManifest(`src/shards/${slug}/manifest.ts`) : null;
     const descriptor = manifest === null ? null : shardfileDescriptor(manifest);
     const dataManifest = descriptor?.path === `/shardfiles/${slug}/shard.json` && !descriptor.load;
     const required = names.includes('shard.config.ts') && (!names.includes('manifest.ts') || dataManifest) ? (config.shardfileRequiredFiles ?? ['shard.config.ts', 'README.md']) : config.requiredFiles;
     // dataHomes: a root file a shard may keep as data instead (`budgets.ts` → `data/budgets.ts`); either satisfies it.
-    const homes = config.dataHomes ?? {};
-    for (const name of required) if (!names.includes(name) && !(Object.hasOwn(homes, name) && names.includes(homes[name])) && !legacy.missing.includes(name)) failures.push(`${slug}: missing required ${name}`);
-    for (const [name, home] of Object.entries(homes)) if (names.includes(name) && names.includes(home)) failures.push(`${slug}: ${name} and ${home} hold the same thing`);
+    for (const name of required) if (!names.includes(name) && !(homes.get(name) ?? []).some(home => names.includes(home)) && !legacy.missing.includes(name)) failures.push(`${slug}: missing required ${name}`);
+    for (const [name, alternatives] of homes) {
+      const present = [name, ...alternatives].filter(home => names.includes(home));
+      if (present.length > 1) failures.push(`${slug}: ${present.join(' and ')} hold the same thing`);
+    }
     for (const folder of config.folders) if (names.includes(`${folder}.ts`) && names.includes(`${folder}/`)) failures.push(`${slug}: ${folder}.ts and ${folder}/ name the same concept`);
     if (manifest !== null) {
       const file = `src/shards/${slug}/manifest.ts`;
@@ -135,15 +142,18 @@ function generatedProduct(root, slug) {
 export function checkShards(root, selected) {
   const config = JSON.parse(readFileSync(resolve(root, 'lint/shard-layout.json'), 'utf8'));
   const entries = {};
+  const outputs = {};
   for (const dir of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
     if (!dir.isDirectory() || (selected && !selected.has(dir.name))) continue;
+    const products = shardOutputs(root, dir.name);
+    if (products !== null) outputs[dir.name] = products.map(product => product.slug);
     entries[dir.name] = readdirSync(resolve(root, 'src/shards', dir.name), { withFileTypes: true })
       .filter(entry => !entry.isDirectory() || hasFiles(resolve(root, 'src/shards', dir.name, entry.name)))
       .filter(entry => entry.name !== '.wildshard' || !entry.isDirectory() || !generatedProduct(root, dir.name))
       .map(entry => entry.name + (entry.isDirectory() ? '/' : ''));
-    for (const home of Object.values(config.dataHomes ?? {})) if (existsSync(resolve(root, 'src/shards', dir.name, home))) entries[dir.name].push(home);
+    for (const home of Object.values(config.dataHomes ?? {}).flat()) if (existsSync(resolve(root, 'src/shards', dir.name, home))) entries[dir.name].push(home);
   }
-  return checkShardLayout(entries, config, (file) => readFileSync(resolve(root, file), 'utf8'), JSON.parse(readFileSync(resolve(root, 'lint/shard-platform.json'), 'utf8')).baseline, legacyInventory(root));
+  return checkShardLayout(entries, config, (file) => readFileSync(resolve(root, file), 'utf8'), JSON.parse(readFileSync(resolve(root, 'lint/shard-platform.json'), 'utf8')).baseline, legacyInventory(root), outputs);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const root = resolve(import.meta.dirname, '..');

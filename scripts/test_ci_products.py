@@ -20,11 +20,16 @@ class PreparedProducts(unittest.TestCase):
         self.addCleanup(self.scratch.cleanup)
         self.root = Path(self.scratch.name)
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
-        (self.root / '.gitignore').write_text('src/*.generated.ts\npublic/generated.bin\nout/\nnode_modules/\nlint/*.generated.json\n')
+        source = Path('src')
+        self.table = (source / 'table.generated.ts').as_posix()
+        self.shard = source / 'shards' / 'fictional'
+        self.asset = (self.shard / 'assets' / 'hash').as_posix()
+        self.policy = (self.shard / '.wildshard' / 'build-policy.json').as_posix()
+        (self.root / '.gitignore').write_text(f'{source}/*.generated.ts\npublic/generated.bin\nout/\nnode_modules/\nlint/*.generated.json\n')
         (self.root / 'scripts').mkdir()
-        self.catalogue = {'jobs': [{'outputs': ['src/shards/fictional/assets/hash'],
+        self.catalogue = {'jobs': [{'outputs': [self.asset],
                                    'buildOutputs': {'public/generated.bin': 'hash'},
-                                   'buildTimeOutputs': ['src/table.generated.ts']}]}
+                                   'buildTimeOutputs': [self.table]}]}
         (self.root / 'scripts/generation-jobs.json').write_text(json.dumps(self.catalogue))
         subprocess.run(['git', '-C', str(self.root), 'add', '.gitignore'], check=True)
         subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'fixture'], check=True)
@@ -32,10 +37,10 @@ class PreparedProducts(unittest.TestCase):
         self.env = patch.dict(os.environ, {'GITHUB_SHA': self.sha, 'GITHUB_RUN_ID': '123'})
         self.env.start()
         self.addCleanup(self.env.stop)
-        for name, content in {'src/table.generated.ts': b'export const value=7;', 'public/generated.bin': b'\0\x01', 'out/fictional/shard.json': b'{"format":2}',
-                              'src/shards/fictional/assets/hash': b'retained bytes',
+        for name, content in {self.table: b'export const value=7;', 'public/generated.bin': b'\0\x01', 'out/fictional/shard.json': b'{"format":2}',
+                              self.asset: b'retained bytes',
                               'lint/shard-words.generated.json': b'{"slugs":["fictional"]}',
-                              'src/shards/fictional/.wildshard/build-policy.json': b'{"version":1,"decisionLegacyLines":100}'}.items():
+                              self.policy: b'{"version":1,"decisionLegacyLines":100}'}.items():
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
@@ -43,7 +48,7 @@ class PreparedProducts(unittest.TestCase):
 
     def test_round_trip_restores_inputs_and_products(self):
         declared, required = products.catalogue_outputs(self.root)
-        policy = 'src/shards/fictional/.wildshard/build-policy.json'
+        policy = self.policy
         words = 'lint/shard-words.generated.json'
         for name in declared | required | {policy, words, 'out/fictional/shard.json'}:
             (self.root / name).unlink()
@@ -60,13 +65,13 @@ class PreparedProducts(unittest.TestCase):
           if (ceiling !== 10) throw new Error('Restored policy did not reach decision admission');
         """
         subprocess.run(['node', '--import', str(repo / 'scripts/bake-loader.mjs'), '--input-type=module',
-                        '-e', probe, str(self.root / 'src/shards/fictional')], check=True)
+                        '-e', probe, str(self.root / self.shard)], check=True)
         self.assertEqual((self.root / 'public/generated.bin').read_bytes(), b'\0\x01')
-        self.assertEqual((self.root / 'src/table.generated.ts').read_text(), 'export const value=7;')
+        self.assertEqual((self.root / self.table).read_text(), 'export const value=7;')
         self.assertEqual((self.root / 'out/fictional/shard.json').read_text(), '{"format":2}')
 
     def test_unchanged_retained_catalogue_output_is_transferred(self):
-        name = 'src/shards/fictional/assets/hash'
+        name = self.asset
         subprocess.run(['git', '-C', str(self.root), 'add', name], check=True)
         subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com',
                         'commit', '-qm', 'retained asset'], check=True)

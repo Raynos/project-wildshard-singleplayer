@@ -96,6 +96,11 @@ describe('model contract after client relocation', () => {
     ['src/game/practice/course.ts', 'registry.add({ object });', 1],
     ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
     ['src/shards/nine-dragon-stack/world/casts.ts', 'new InstancedMesh();', 1],
+    ['src/shards/driftwood-isle-legacy/creatures/Enemies.ts', 'new InstancedMesh();', 1],
+    ['src/shards/nalati-grasslands-legacy/playground/HorsePlayground.ts', 'registry.add({ object });', 1],
+    ['src/shards/nalati-grasslands-legacy/world/Bowl.ts', 'new InstancedMesh();', 2],
+    ['src/shards/nalati-grasslands-legacy/combat/stormTitan.ts', 'new InstancedMesh();', 3],
+    ['src/shards/nine-dragon-stack-legacy/world/portals.ts', 'new InstancedMesh();', 2],
   ] as const)('retains the relocated draw ceiling at %s', (file, draw, ceiling) => {
     expect(checkModels({ [file]: draw.repeat(ceiling) }).violations).toEqual([]);
     expect(checkModels({ [file]: draw.repeat(ceiling + 1) }).violations)

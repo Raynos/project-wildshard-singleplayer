@@ -33,14 +33,12 @@ const roles = [
 ];
 // W2 reviewed ownership: native animal keepers are creature managers, not quest NPCs.
 const creatureOwners=new Set([
-  'src/shards/driftwood-isle/sim/keeper.ts',
-  'src/shards/pine-hollow/runtime/antlerKing.ts',
-  'src/shards/pine-hollow/combat/kingFight.ts',
+  'src/shards/pine-hollow/runtime/models/antlerKing.ts',
 ]);
 const questOwners=new Set([
   'src/sdk/runtime/prompts.ts',
-  'src/shards/driftwood-isle/runtime/npc/Castaway.ts',
-  'src/shards/driftwood-isle/runtime/npc/Trader.ts',
+  'src/shards/driftwood-isle/runtime/models/people.ts',
+  'src/shards/driftwood-isle/runtime/models/trader.ts',
   'src/game/systems/npc/npcRig.ts',
   'src/game/complete/ShardComplete.ts',
 ]);
@@ -85,24 +83,19 @@ const reviewedW2Owners = new Map([
   // Static scene geometry, placements, building assembly and their bake contracts.
   ['src/engine/sim/shore.ts#SHORE_REVETMENT_INNER_FACE', 'C1'],
   ['src/game/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],
-  ['src/sdk/kit/mergedPrimitives.ts', 'C1'],
   ['src/engine/physics/box.ts#FloorRect', 'C1'],
   ['src/shards/driftwood-isle/runtime/props/mooringLines.ts', 'C1'],
   ['src/game/shardfile/caveInterior.ts', 'C1'],
   // Material/rig look decoding and authored appearance rows.
   ['src/sdk/bake/rig.ts', 'C2'],
   // Weather and visual fight effects.
-  ['src/shards/pine-hollow/runtime/combat/fxKit.ts', 'C3'],
   // C3 review: private ambient orchestration and weather remain counted custom.
-  ['src/shards/pine-hollow/world/weather.ts', 'C3'],
+  ['src/sdk/looks/forestWeather.ts', 'C3'],
   ...['src/game/weather/continuation.ts', 'src/game/weather/reactions.ts', 'src/game/shardfile/weatherFields.ts'].map(path => [path, 'C3']),
-  ...['items','item'].map(name => [`src/shards/pine-hollow/runtime/combat/fxKit.ts#${name}`, 'C3']),
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],
   ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],
   ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose', 'swingValues', 'swingWindow', 'swingEase'].map(name => [`src/game/plugin/animation.ts#${name}`, 'C4']),
-  ['src/shards/pine-hollow/combat/ctx.ts', 'C4'],
-  ['src/shards/pine-hollow/combat/spawns.ts', 'C4'],
   // Journal, onboarding, discovery and quest presentation.
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
@@ -143,8 +136,6 @@ const reviewedW2Owners = new Map([
   ['src/game/systems/viewmodel/rigArms.ts#swordArmsOf', 'C6'],
   ['src/sdk/runtime/effects.ts', 'C6'],
   ['src/shards/driftwood-isle/loot/presentation.ts', 'C6'],
-  ['src/shards/pine-hollow/combat/chargeTells.ts', 'C6'],
-  ['src/shards/pine-hollow/combat/install.ts', 'C4'],
   // Loading, continuation parsing, lifecycle plumbing, instrumentation and localization.
   ['src/engine/core/assets.ts#gltfLoader', 'C9'],
   ['src/engine/core/assets.ts#loadGLTF', 'C9'],
@@ -159,9 +150,7 @@ const reviewedW2Owners = new Map([
   ['src/game/shard/retainedHooks.ts#installEnteredRuntimeObserver', 'C9'],
   ['src/game/shard/retainedHooks.ts#installEnteredRuntimeUpdate', 'C9'],
   ['src/game/shard/runtimeVariant.ts#gridPage', 'C9'],
-  ['src/shards/driftwood-isle/sim/baked.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/debug/options.ts', 'C9'],
-  ['src/shards/pine-hollow/runtime/dev/perfLap.ts', 'C9'],
   ['src/shards/pine-hollow/runtime/baked.ts', 'C9'],
 ]);
 function namedRole(name,path='') {
@@ -193,7 +182,7 @@ const w3SharedOwners = new Map([
   ['src/engine/core/ktx2.ts', 'C2'],
   ...['src/game/plugin/quests.ts', 'src/game/shardfile/directorClient.ts',
     'src/sdk/panels.ts'].map(path => [path, 'C5']),
-  ...['src/game/proof/entryways.ts', 'src/game/shardfile/portalLinkProof.ts'].map(path => [path, 'C7']),
+  ['src/game/shardfile/portalLinkProof.ts', 'C7'],
   ...['src/game/shard/runtimeVariant.ts', 'src/sdk/assets.ts',
     'src/sdk/buildBehaviour.ts', 'src/engine/app/systems.ts'].map(path => [path, 'C9']),
 ]);
@@ -256,8 +245,7 @@ function runtimeTags(source, path, fallback) {
       // Shared cable construction is quest binding or static rest geometry, not a private mover law.
       const cable = ['ZiplineDriver', 'CableLayout', 'ZiplineSpec', 'ZiplineRideState'].includes(spec.local.name)
         && node.source.value === '@wildshard/sdk/movers';
-      const bindingOwner = ['src/shards/pine-hollow/runtime/quest.ts',
-        'src/shards/driftwood-isle/runtime/quest.ts'].includes(path) ? 'C5' : null;
+      const bindingOwner = /\/quest\//u.test(path) ? 'C5' : null;
       const admittedBoot = path === 'src/shards/driftwood-isle/shard.config.ts' && node.source.value === './data/movers';
       const owner = admittedBoot ? 'C9' : cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name,path) ?? from;
       imports.set(spec.local.name, owner);

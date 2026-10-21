@@ -793,5 +793,15 @@
     "path": "out/*/runtime/index.ts",
     "file": "src/outputRuntimeRegistry.ts",
     "why": "Optional emitted runtime copies: unclosed projects produce no standalone runtime yet. compileCatalogRegistry requires every declared runtime inventory to have its matching loader; this glob never reads authoring code."
+  },
+  {
+    "path": "src/engine/models/glbNodes.ts",
+    "file": "scripts/platform-chargebacks.mjs",
+    "why": "G520 retired-module identity: an exact comparison prevents an obsolete pending-user ledger row from earning credit. This selector deliberately names the deleted host; no file is loaded."
+  },
+  {
+    "path": "src/game/shardfile/buildingAssembly.ts",
+    "file": "scripts/platform-chargebacks.mjs",
+    "why": "G520 retired-module identity: an exact comparison prevents an obsolete pending-user ledger row from earning credit. This selector deliberately names the deleted host; no file is loaded."
   }
 ]

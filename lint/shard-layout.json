@@ -102,7 +102,7 @@
     "plugin.ts": "the `ShardPlugin` subclass, default-exported",
     "README.md": "what the shard declares, its custom code and why, budgets, look, open work (its plan rows)",
     "roster.ts": "the Model Explorer roster (`live(model)` entries)",
-    "budgets.ts": "the budget inputs (\u00a79); or `data/budgets.ts` as pure data (`dataHomes`)",
+    "budgets.ts": "the budget inputs (\u00a79); or exactly one of `data/budgets.ts` and `data/budgets.json` (`dataHomes`)",
     "ktx2.generated.ts": "your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit",
     "budgetCeilings.ts": "recorded F2 ceilings (the four existing shards only); `data/budgetCeilings.ts` beside `data/budgets.ts`",
     "strings.ts": "every player-facing string (\u00a711)",
@@ -137,7 +137,7 @@
     "blender/": "the shard's retained Blender build sources and offline rig checks (build-time only; optional)"
   },
   "dataHomes": {
-    "budgets.ts": "data/budgets.ts",
+    "budgets.ts": ["data/budgets.ts", "data/budgets.json"],
     "budgetCeilings.ts": "data/budgetCeilings.ts"
   },
   "sourceLayout": {

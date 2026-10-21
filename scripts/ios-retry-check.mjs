@@ -82,7 +82,7 @@ export function retryChunks(modules) {
   return [...new Set([
     find('three', (id) => /node_modules\/three\/build\/three[^/]*\.js$/.test(id)),
     find('engine', (id) => id === 'src/engine/core/Game.ts'),
-    find('shard-pine-hollow', (id) => id === 'src/shards/pine-hollow/runtime/index.ts'),
+    find('shard-pine-hollow', (id) => id === 'src/shards/pine-hollow/runtime/hybrid.ts'),
   ])];
 }
 

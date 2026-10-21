@@ -275,7 +275,7 @@ Template temporarily retains only root `manifest.json` for discovery; P3 catalog
 | `plugin.ts` | the `ShardPlugin` subclass, default-exported |
 | `README.md` | what the shard declares, its custom code and why, budgets, look, open work (its plan rows) |
 | `roster.ts` | the Model Explorer roster (`live(model)` entries) |
-| `budgets.ts` | the budget inputs (§9); or `data/budgets.ts` as pure data (`dataHomes`) |
+| `budgets.ts` | the budget inputs (§9); or exactly one of `data/budgets.ts` / `data/budgets.json` as pure data (`dataHomes`) |
 
 **Allowed files**
 
@@ -289,6 +289,7 @@ Template temporarily retains only root `manifest.json` for discovery; P3 catalog
 | `shard.config.ts` | build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/ |
 | `manifest.json` | temporary authored discovery metadata for transition shards; catalog activation replaces it with emitted ui/level |
 | `discovery.generated.ts` | temporary generated discovery bridge; never hand-edit or commit it |
+| `outputs.json` | optional validated product catalogue; only its declared slugs may have `discovery.<slug>.generated.ts` bridges |
 
 **Folders**
 

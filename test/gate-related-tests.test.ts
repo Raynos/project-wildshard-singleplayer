@@ -48,6 +48,6 @@ it('preserves author-source edges for tests consuming complete disk products', (
 });
 
 it('keeps all grid re-entry quick checks on an unrelated push with no budget', () => {
-  expect(QUICK_TESTS).toEqual(['test/grid-reentry.test.ts', 'test/pine-king-kit-reentry.test.ts']);
+  expect(QUICK_TESTS).toEqual(['test/grid-reentry.test.ts']);
   expect(capRelated([], ['docs/ENGINE.md'], new Map(), 0, 1, QUICK_TESTS).run).toEqual([...QUICK_TESTS].sort());
 });

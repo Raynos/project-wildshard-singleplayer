@@ -62,9 +62,9 @@ function sources(dir = join(ROOT, 'src')) {
  *    (M3, Nalati: every place; the camps and the roads joined in the second pass, with NalatiPOIs itself; E315).
  */
 export const ON_CONTRACT = [
-  'src/shards/nalati-grasslands/world/painted.ts',
-  'src/shards/nalati-grasslands/world/places.ts',
-  'src/shards/nalati-grasslands/world/Bowl.ts',
+  'src/shards/nalati-grasslands-legacy/world/painted.ts',
+  'src/shards/nalati-grasslands-legacy/world/places.ts',
+  'src/shards/nalati-grasslands-legacy/world/Bowl.ts',
   'src/shards/nalati-grasslands/world/view.ts', 'src/shards/nalati-grasslands-legacy/world/dressing/index.ts',
   // e6b43b9aa retires the primary; its frozen copy keeps this contract.
   'src/shards/nalati-grasslands-legacy/cragRock.ts',
@@ -79,7 +79,7 @@ export const DONE = {
   'driftwood-isle': {
     'src/shards/driftwood-isle-legacy/world/rockKit.ts': { why: 'Frozen rock kit retains the original stone-part weld (rockKit.ts:373); primary uses baked rock scene models (8e830e0be)', counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/weapons/swordView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
-    'src/shards/driftwood-isle/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
+    'src/shards/driftwood-isle-legacy/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle-legacy/world/Boat.ts': { why: "the mooring lines: world geometry between the placed sailboat and the pier's bollards", counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (the models placed drawnInto it)', counts: { mergeGeometries: 1 } },
     'src/shards/driftwood-isle-legacy/world/Trailside.ts': { why: "the trail's weld: its ropes, rails and trestle stairs are world (piece `trailside`, their treads); its posts, signposts and steps are models drawnInto it", counts: { 'registry add with object': 1, mergeGeometries: 1 } },
@@ -98,18 +98,18 @@ export const DONE = {
     'src/shards/nalati-grasslands-legacy/species/sheep.ts': { why: "the sheep rig's fleece merged onto it (a creature, M5)", counts: { mergeGeometries: 1 } },
     'src/sdk/looks/forestWeather.ts': { why: 'Weather particles and puddles are effects; the retained instance draw follows the prepared weather rows.', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/world/WeatherFX.ts': { why: 'Frozen rain and snow retain the original effect instance draw.', counts: { InstancedMesh: 1 } },
-    'src/shards/nalati-grasslands/playground/HorsePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
+    'src/shards/nalati-grasslands-legacy/playground/HorsePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     'src/shards/nalati-grasslands-legacy/weapons/meleeGeo.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands-legacy/world/paint.ts': { why: "The frozen PaintKit retains its original POI merge; primary paint now runs offline.", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands-legacy/world/Balbals.ts': { why: 'the frozen balbals keep their instanced draw and an empty mesh for a carved variant no crown wears; the primary places them through game/boss/encounterView EncounterSites', counts: { InstancedMesh: 1 } },
-    'src/shards/nalati-grasslands/world/Bowl.ts': { why: "the kokpar riders' gallop and the herds' drift: copies their place draws and moves every frame (models placed `moving`)", counts: { InstancedMesh: 2 } },
+    'src/shards/nalati-grasslands-legacy/world/Bowl.ts': { why: "the kokpar riders' gallop and the herds' drift: copies their place draws and moves every frame (models placed `moving`)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/index.ts': { why: 'The existing scatter draw uses CellWindow; two ambient creature draws borrow prepared shapes and platform flock rows (world, §1; M5).', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/layer.ts': { why: 'Frozen scatter retains its original instance draw; the primary uses authored CellWindow rows.', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/world/dressing/life.ts': { why: 'Frozen ambient life retains its original two instance draws; the primary borrows platform flock rows.', counts: { InstancedMesh: 2 } },
     // e6b43b9aa retires the primary; its frozen copy keeps this contract.
     'src/shards/nalati-grasslands-legacy/cragRock.ts': { why: "the four quadrant meshes the crag rock model's copies are merged into (placed drawnInto)", counts: { mergeGeometries: 1 } },
     'src/shards/nalati-grasslands-legacy/campPeople.ts': { why: 'Frozen camp retains its original registry piece and fallback batch; primary uses row-owned prepared figures', counts: { 'registry add with object': 1, BatchedMesh: 1 } },
-    'src/shards/nalati-grasslands/combat/stormTitan.ts': { why: 'Jel Ata the Storm Titan is a creature (M5)', counts: { InstancedMesh: 3 } },
+    'src/shards/nalati-grasslands-legacy/combat/stormTitan.ts': { why: 'Jel Ata the Storm Titan is a creature (M5)', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands-legacy/combat/stormTitanLook.ts': { why: "the Storm Titan's look (M5)", counts: { InstancedMesh: 2 } },
     'src/shards/nalati-grasslands-legacy/runtime/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
   },
@@ -120,7 +120,7 @@ export const DONE = {
     'src/shards/nine-dragon-stack-legacy/world/install.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision; its collider-only pieces are fabric too (the tower fronts, the crossings\' decks and rails, the Well\'s grapple guard). The balustrade over the Well and every gate\'s posts collide as their models (E346)', counts: { 'registry add with object': 1 } },
     'src/shards/nine-dragon-stack-legacy/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
     'src/shards/nine-dragon-stack/world/casts.ts': { why: 'The existing facade window draw restores prepared instance channels from the offline bake; original batch draw ceiling retained', counts: { InstancedMesh: 1 } },
-    'src/shards/nine-dragon-stack/world/portals.ts': { why: 'G224: the portals are an effect, not a thing: five shader rings and swirl discs (instanced, animated on the GPU) with no collision, the ride is world/portalRide.ts', counts: { InstancedMesh: 2 } },
+    'src/shards/nine-dragon-stack-legacy/world/portals.ts': { why: 'G224: the portals are an effect, not a thing: five shader rings and swirl discs (instanced, animated on the GPU) with no collision, the ride is world/portalRide.ts', counts: { InstancedMesh: 2 } },
     // c1d8eb622 retires the primary; its frozen copy keeps this contract.
     'src/shards/nine-dragon-stack-legacy/world/hero/kitx.ts': { why: 'the kits\' curved-piece builder merges a region\'s geometry (world)', counts: { mergeGeometries: 1 } },
     // 87178e614 retires the primary; its frozen copy keeps this contract.

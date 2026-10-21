@@ -44,7 +44,7 @@
     "public/assets/models/driftwood-blender/lm-ao.webp", "public/assets/models/driftwood-blender/lm-ao.phone.webp",
     "public/assets/models/driftwood-blender/lm-bounce.webp", "public/assets/models/driftwood-blender/lm-bounce.phone.webp"
    ],
-   "feeds": ["src/shards/driftwood-isle/world/BlenderIsland.ts"]
+   "feeds": ["src/shards/driftwood-isle/generators/bakedCove.ts", "src/game/shardfile/bakedTiles.ts"]
   },
   "pine-hollow/area-export": {
    "about": "Pine Hollow's half of the island export (PH-0.3): area.bin, splat.bin, scene.json in the cache. Its Blender build is PINE-HOLLOW-REMASTER wave 2 (PH-U17), so it writes nothing to the repo",
