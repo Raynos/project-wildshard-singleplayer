@@ -14,11 +14,11 @@ import sys
 import time
 import uuid
 
-# G547: two app builds, including the gate. A queued gate gets the next free build slot.
+# G568: two app-build slots; pre-push never acquires a build lease.
 # Keep the original build lock as slot one so running old wrappers remain accounted for.
 BUILD_SLOTS = ('build', 'build-2')
-RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build'), 'gate': ('push-gate', 'build')}
-LANES = ('full-test', *BUILD_SLOTS, 'push-gate')
+RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build')}
+LANES = ('full-test', *BUILD_SLOTS)
 
 
 # SF74 W1 (Jake, G280 / process audit 2026-10-09): no local full suite (since 2026-10-15 not even the push gate's). Lanes still ran 56 full
@@ -60,8 +60,6 @@ def inherited(root, resources):
     if not token:
         return False
     family = ancestors()
-    if owns(root, 'push-gate', token, family):
-        return True
     return all(any(owns(root, slot, token, family) for slot in BUILD_SLOTS) if resource == 'build'
                else owns(root, resource, token, family) for resource in resources)
 
@@ -137,9 +135,6 @@ def acquire(root, entry):
         held, leases = [], []
         for resource in sorted(entry['resources']):
             slots = BUILD_SLOTS if resource == 'build' else (resource,)
-            # An old running gate owns only push-gate.lock: reserve slot two for it during migration.
-            if resource == 'build' and legacy_gate(root):
-                slots = BUILD_SLOTS[:1]
             selected = None
             for slot in slots:
                 lock = (root / (slot + '.lock')).open('a+')
@@ -160,19 +155,6 @@ def acquire(root, entry):
         for resource in leases:
             write_active(root, resource, entry)
         return held
-
-
-def legacy_gate(root):
-    """Account for a live gate started before G547, without taking or replacing its lock."""
-    with (root / 'push-gate.lock').open('a+') as lock:
-        try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            return False
-        except BlockingIOError:
-            try:
-                return 'build' not in json.loads((root / 'push-gate.active.json').read_text())['resources']
-            except (OSError, ValueError, KeyError):
-                return True
 
 
 def load_average():
@@ -273,9 +255,9 @@ def mirror_first(command, wrapper):
 
 
 def launch_command(kind, command, env):
-    """G562: gate leases and marked ruler builds keep normal QoS; other lanes yield to playtests."""
+    """G562: marked ruler builds keep normal QoS; other lanes yield to playtests."""
     launch = command if 'build' in RESOURCES[kind] else ['nice', '-n', '10', *command]
-    normal = kind == 'gate' or (kind == 'build' and env.get('WS_HEAVY_RULER') == '1')
+    normal = kind == 'build' and env.get('WS_HEAVY_RULER') == '1'
     if not normal and shutil.which('taskpolicy'):
         launch = ['taskpolicy', '-c', 'utility', *launch]
     return launch
@@ -317,8 +299,6 @@ def main():
         return code if code >= 0 else 128 - code
     if owns_lane:
         env = dict(os.environ)
-        if args.kind == 'gate':
-            env['WS_HEAVY_GATE'] = '1'
         if args.kind == 'build':
             # This is the actual app build inside an existing gate/build lease, not another lease.
             started, load, code = time.time(), load_average(), 127
@@ -335,7 +315,7 @@ def main():
         parser.error('cannot upgrade an inherited lane; release it before requesting different resources')
     token = uuid.uuid4().hex
     entry = {'token': token, 'pid': os.getpid(), 'runnerPid': os.getpid(), 'childPid': None,
-             'resources': resources, 'priority': 0 if args.kind == 'gate' else 1,
+             'resources': resources, 'priority': 1,
              'cwd': os.getcwd(), 'command': command, 'queuedAt': time.time()}
     held, child, started, load, code = None, None, None, None, 130
     def interrupted(_signal, _frame):
@@ -358,10 +338,7 @@ def main():
         compat = write_compat(root, entry)
         env = {**os.environ, 'WS_HEAVY_TOKEN': token, 'WS_HEAVY_ROOT': str(compat),
                'WS_HEAVY_SCHEDULER_ROOT': str(root)}
-        if args.kind == 'gate':
-            env['WS_HEAVY_GATE'] = '1'
-        # Nested wrappers inherit their owner's QoS. Gate descendants are therefore
-        # normal too; CI's Linux runners have no taskpolicy.
+        # Nested wrappers inherit their owner's QoS; CI has no taskpolicy.
         launch = launch_command(args.kind, command, env)
         child = subprocess.Popen(launch, env=env, start_new_session=True,
                                  pass_fds=tuple(fd.fileno() for fd in held))

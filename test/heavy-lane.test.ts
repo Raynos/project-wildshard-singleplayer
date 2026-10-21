@@ -7,7 +7,7 @@ test('two checks waiting on a mirror leave build capacity for its preview', () =
   expect(result.status, result.stderr).toBe(0);
 }, 30000);
 
-test('two builds share capacity with a priority gate, inherit leases and report one day', () => {
+test('two build slots queue FIFO, inherit leases and report one day', () => {
   const result = execFileSync('python3', ['-c', `
 import json, os, pathlib, subprocess, sys, tempfile, time
 repo = pathlib.Path.cwd()
@@ -39,19 +39,19 @@ with tempfile.TemporaryDirectory(prefix='capacity-test-', dir=repo / 'tmp') as t
   copied = dict(env, WS_HEAVY_TOKEN=json.loads((root/'build-2.active.json').read_text())['token'])
   assert subprocess.run(['node','--input-type=module','-e',guard], env=copied, capture_output=True).returncode != 0
   c = launch('build', 'c'); wait_for(lambda: queue_size(1))
-  gate = launch('gate', 'gate'); wait_for(lambda: queue_size(2))
-  assert not (root/'c.started').exists() and not (root/'gate.started').exists()
-  (root/'a.release').touch(); wait_for(lambda: (root/'gate.started').exists())
-  assert not (root/'c.started').exists()
+  gate = launch('build', 'd'); wait_for(lambda: queue_size(2))
+  assert not (root/'c.started').exists() and not (root/'d.started').exists()
+  (root/'a.release').touch(); wait_for(lambda: (root/'c.started').exists())
+  assert not (root/'d.started').exists()
   state = json.loads(subprocess.check_output([sys.executable,wrapper,'status'], env=env))
   assert len([entry for entry in state['active'] if entry['resource'] in ('build','build-2')]) == 2
-  (root/'gate.release').touch(); wait_for(lambda: (root/'c.started').exists())
-  (root/'b.release').touch(); (root/'c.release').touch()
+  (root/'c.release').touch(); wait_for(lambda: (root/'d.started').exists())
+  (root/'b.release').touch(); (root/'d.release').touch()
   for process in processes:
    out, err = process.communicate(timeout=6)
    assert process.returncode == 0, (out, err)
   records = [json.loads(line) for line in (root/'build-day.log').read_text().splitlines()]
-  assert records[0]['schema'] == 'build-day/1' and len(records) == 4
+  assert records[0]['schema'] == 'build-day/1' and len(records) == 5
   assert all(row['buildSeconds'] > 0 and row['queueSeconds'] >= 0 and len(row['loadStart']) == 3 for row in records[1:])
   assert max(row['queueSeconds'] for row in records[1:]) > 0
   nested = subprocess.run([sys.executable,wrapper,'build','--',sys.executable,wrapper,'build','--','node','--input-type=module','-e',guard],env=env,capture_output=True,text=True)
@@ -77,40 +77,7 @@ print(json.dumps(True))
   expect(JSON.parse(result)).toBe(true);
 }, 25000);
 
-test('a running legacy gate reserves one build slot until its lock releases', () => {
-  const result = execFileSync('python3', ['-c', `
-import fcntl, json, os, pathlib, runpy, tempfile
-module = runpy.run_path('scripts/heavy-lane.py')
-with tempfile.TemporaryDirectory(prefix='legacy-capacity-', dir='tmp') as temporary:
- root = pathlib.Path(temporary)
- gate = (root/'push-gate.lock').open('a+')
- build = (root/'build.lock').open('a+')
- fcntl.flock(gate,fcntl.LOCK_EX); fcntl.flock(build,fcntl.LOCK_EX)
- (root/'push-gate.active.json').write_text(json.dumps({'resources':['push-gate']}))
- entry = {'token':'one','priority':1,'ticket':0,'resources':['build'],'pid':os.getpid()}
- (root/'queue.json').write_text(json.dumps({'next':1,'queue':[entry]}))
- assert module['acquire'](root,entry) is None
- build.close()
- first = module['acquire'](root,entry)
- assert first and entry['leases'] == ['build']
- second_entry = {**entry,'token':'two','ticket':1}
- (root/'queue.json').write_text(json.dumps({'next':2,'queue':[second_entry]}))
- try:
-  assert module['acquire'](root,second_entry) is None
-  gate.close()
-  second = module['acquire'](root,second_entry)
-  assert second and second_entry['leases'] == ['build-2']
-  for lock in second: lock.close()
- finally:
-  gate.close()
-  for lock in first: lock.close()
-print(json.dumps(True))
-`], { encoding: 'utf8' });
-  expect(JSON.parse(result)).toBe(true);
-});
-
-
-test('build and gate children retain the normal caller priority', () => {
+test('build children retain the normal caller priority', () => {
   const result = execFileSync('python3', ['-c', `
 import json, os, pathlib, subprocess, sys, tempfile
 repo = pathlib.Path.cwd()
@@ -118,7 +85,7 @@ with tempfile.TemporaryDirectory(prefix='priority-test-', dir=repo / 'tmp') as t
  env = {k:v for k,v in os.environ.items() if not k.startswith('WS_HEAVY_')}
  env['WS_HEAVY_ROOT'] = temporary
  parent = os.getpriority(os.PRIO_PROCESS, 0)
- for kind in ('build','gate'):
+ for kind in ('build',):
   child = subprocess.run([sys.executable,str(repo/'scripts/heavy-lane.py'),kind,'--',sys.executable,'-c','import os; print(os.getpriority(os.PRIO_PROCESS, 0))'],env=env,capture_output=True,text=True,check=True)
   assert int(child.stdout) == parent, (kind, parent, child.stdout, child.stderr)
 print(json.dumps(True))
@@ -126,7 +93,7 @@ print(json.dumps(True))
   expect(JSON.parse(result)).toBe(true);
 });
 
-test('gate and ruler launches keep normal QoS while lane builds use utility', () => {
+test('ruler launches keep normal QoS while lane builds use utility', () => {
   const result = execFileSync('python3', ['-c', `
 import json, runpy
 from unittest.mock import patch
@@ -134,7 +101,6 @@ module = runpy.run_path('scripts/heavy-lane.py')
 launch = module['launch_command']
 command = ['node', 'fixture.mjs']
 with patch.object(module['shutil'], 'which', return_value='/usr/bin/taskpolicy'):
- assert launch('gate', command, {}) == command
  assert launch('build', command, {'WS_HEAVY_RULER':'1'}) == command
  assert launch('build', command, {}) == ['taskpolicy', '-c', 'utility', *command]
  assert launch('build', command, {'WS_HEAVY_RULER':'0'}) == ['taskpolicy', '-c', 'utility', *command]
