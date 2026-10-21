@@ -183,6 +183,7 @@ export class ForagerPopulation {
   readonly due = new Uint8Array(MAX);
   readonly shown = new Uint8Array(MAX);
   readonly brain: AmbientForager;
+  private readonly retired = new Set<number>();
   private readonly active = new Uint8Array(MAX);
   private readonly retry = new Float32Array(MAX);
   private readonly bands = new BodyBandClocks();
@@ -197,6 +198,12 @@ export class ForagerPopulation {
     if (this.rows.length >= this.row.count) throw new RangeError('Forager population bound exceeded');
     this.rows.push(s); this.motion.push({ y: 0, hind: 0, fore: 0, pitch: 0 });
   }
+  /** Retire an authoritative member; its fixed identity and saved population order remain intact. */
+  kill(index: number): void {
+    if (!Number.isInteger(index) || this.rows[index] === undefined) throw new RangeError('Unknown forager member');
+    this.retired.add(index); this.shown[index] = 0; this.due[index] = 0; this.active[index] = 0;
+  }
+  isAlive(index: number): boolean { return Number.isInteger(index) && this.rows[index] !== undefined && !this.retired.has(index); }
   /** colonies: `size` foragers round each burrow site, each with its own home by the hole */
   colonies(sites: readonly { x: number; z: number }[]): this {
     const p = this.row.place, rng = this.rng;
@@ -237,6 +244,7 @@ export class ForagerPopulation {
       const s = this.rows[i], motion = this.motion[i], id = this.ids[i];
       if (s === undefined || motion === undefined || id === undefined) break;
       this.due[i] = 0; this.active[i] = 0;
+      if (this.retired.has(i)) { this.shown[i] = 0; continue; }
       let d = Math.hypot(s.x - viewer.x, s.z - viewer.z);
       if (roam !== null && !(d <= roam.range && (d <= roam.visibleRange || ForagerPopulation.seen(s.x, s.z, viewer, roam.view[0])))) {
         this.shown[i] = 0; this.bands.forget(id);
@@ -257,15 +265,21 @@ export class ForagerPopulation {
   }
   snapshot(): ForagerSnapshot {
     const rows = this.rows.map((m) => ({ x: m.x, z: m.z, bx: m.bx, bz: m.bz, yaw: m.yaw, stand: m.sit, sink: m.sink, state: STATE[m.mode], t: m.timer, tx: m.tx, tz: m.tz }));
-    return v.parse(ForagerContinuation, { rows, acc: 0, rng: this.rng.snapshot(), bands: this.bands.snapshot() });
+    return v.parse(ForagerContinuation, { rows, acc: 0, rng: this.rng.snapshot(), bands: this.bands.snapshot(),
+      ...(this.retired.size === 0 ? {} : { retired: [...this.retired].sort((a, b) => a - b) }) });
   }
   restore(input: unknown): void {
     const saved = v.parse(ForagerContinuation, input);
     if (saved.rng.initial !== this.rng.snapshot().initial) throw new RangeError('Forager seed mismatch');
     if ((this.rows.length > 0 && saved.rows.length !== this.rows.length) || saved.rows.length > this.row.count) throw new RangeError('Forager population identity mismatch');
-    if (saved.bands.frame > 0 && saved.bands.rows.length !== saved.rows.length) throw new RangeError('Missing forager clocks');
+    const retired = new Set<number>(saved.retired);
+    if (retired.size !== (saved.retired?.length ?? 0) || [...retired].some(index => index >= saved.rows.length)) throw new RangeError('Unknown retired forager member');
+    const clocks = new Set(saved.bands.rows.map(row => row.id));
+    const unclockedRetired = [...retired].filter(index => !clocks.has(this.ids[index] ?? '')).length;
+    if (saved.bands.frame > 0 && saved.bands.rows.length + unclockedRetired !== saved.rows.length) throw new RangeError('Missing forager clocks');
     this.bands.restore(saved.bands, new Set(this.ids.slice(0, saved.rows.length))); this.rng.restore(saved.rng);
     this.rows.length = 0; this.motion.length = 0; this.due.fill(0); this.active.fill(0);
+    this.retired.clear(); this.shown.fill(0); for (const index of retired) this.retired.add(index);
     for (const r of saved.rows) this.add({ ...foragerState(r.x, r.z, r.yaw, r.bx, r.bz), mode: MODES[r.state], sit: r.stand, sink: r.sink, timer: r.t, tx: r.tx, tz: r.tz });
   }
 }

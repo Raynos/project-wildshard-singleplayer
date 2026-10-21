@@ -35,6 +35,7 @@ const uint=v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),f
 const clock=v.strictObject({elapsed:nonneg,credit:nonneg,frame,dt:nonneg,last:finite,due:v.boolean(),tickFrame:frame});
 /** A population's saved state: rows (state 0 graze, 1 sentry / alert, 2 flee, 3 hide), its Rng and band clocks. */
 export const ForagerContinuation=v.strictObject({
+  retired:v.exactOptional(v.pipe(v.array(v.pipe(uint,v.maxValue(255))),v.maxLength(256))),
   rows:v.pipe(v.array(v.strictObject({x:finite,z:finite,bx:finite,bz:finite,yaw:finite,stand:finite,sink:finite,state:v.picklist([0,1,2,3]),t:finite,tx:finite,tz:finite})),v.maxLength(256)),acc:nonneg,
   rng:v.strictObject({version:v.literal(1),state:uint,initial:uint,scrambledFork:v.boolean()}),
   bands:v.strictObject({rates:uint,time:nonneg,frame:v.pipe(v.number(),v.integer(),v.minValue(0)),frameDt:nonneg,

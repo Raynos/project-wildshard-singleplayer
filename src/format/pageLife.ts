@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { AmbientFlockSchema, AmbientPerchesSchema, ForagerPopulationSchema } from './ambientLife';
+import { CrowdWeaponTargetSchema } from './crowds';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const number = v.pipe(v.number(), v.finite());
@@ -15,7 +16,10 @@ export const PageLifeSchema = v.strictObject({
   flocks: v.pipe(v.array(v.strictObject({ id, row: AmbientFlockSchema, perches: AmbientPerchesSchema,
     packed: v.boolean(), borrowed: v.boolean(), audio: v.picklist(['bank', 'cue']) })), v.maxLength(16)),
   foragers: v.pipe(v.array(v.strictObject({ row: ForagerPopulationSchema, model: number, scale: number,
-    alertRate: number, alertGain: number, sitPitch: number })), v.maxLength(16)),
+    alertRate: number, alertGain: number, sitPitch: number,
+    combat: v.exactOptional(v.strictObject({ target: CrowdWeaponTargetSchema, preyY: number,
+      hits: v.pipe(v.array(v.tuple([number, number, v.pipe(number, v.minValue(0.001), v.maxValue(20))])), v.minLength(1), v.maxLength(16)) })),
+  })), v.maxLength(16)),
   program: v.exactOptional(v.strictObject({ script: v.unknown(), bytes: v.string() })),
   carcasses: v.exactOptional(v.strictObject({ group: id, arrival: range, visitors: v.record(id, count),
     bodyWidths: v.record(id, nonnegative), defaultWidth: nonnegative, defaultVisitors: count,

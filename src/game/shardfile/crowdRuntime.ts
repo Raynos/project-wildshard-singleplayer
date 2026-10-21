@@ -6,6 +6,8 @@ import { FlockBrain, type FlockPorts, type FlockThreat, type FlockPose } from '@
 import type { SimHost } from '@wildshard/engine/sim';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { Vector3 } from 'three';
+import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { CrowdWeaponTargetSchema, parseFlock, type ShardFlock } from '@wildshard/format/crowds';
 
 /** Trusted perception sampled in the owning clock; threat identities remain native references. */
@@ -119,7 +121,7 @@ export function installDeclaredCrowdFrames(context: Pick<LevelContext, 'system'>
 /** Stable prey identity reads and damages the authoritative crowd member. */
 export class CrowdPrey {
   private readonly point = new Vector3();
-  constructor(readonly flock: CrowdTargets, readonly index: number) {}
+  constructor(readonly flock: CrowdMembers, readonly index: number) {}
   get position(): Vector3 { return this.flock.positions(this.index, this.point); }
   get yaw(): number { return this.flock.headingOf(this.index); }
   get alive(): boolean { return this.flock.isAlive(this.index); }
@@ -128,28 +130,21 @@ export class CrowdPrey {
 
 /** Spatial and damage projection of an existing crowd owner. Rows specify local
  * hit spheres and the prey anchor; this host never advances flock decisions. */
-export class CrowdTargets {
+class CrowdMembers {
   readonly n: number;
   private readonly targetPose: FlockPose = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, graze: 0, dead: false, deathTime: 0, scale: 1, wool: 0 };
-  constructor(protected readonly controller: Pick<FlockBrain, 'n' | 'alive' | 'cx' | 'cz' | 'panicking' | 'readPose' | 'kill' | 'scare' | 'straggler' | 'nearest'>,
+  constructor(protected readonly controller: Pick<FlockBrain, 'n' | 'readPose' | 'kill'>,
     private readonly targets: { readonly preyY: number; readonly hits: readonly (readonly number[])[] }) {
     if (!Number.isFinite(targets.preyY) || targets.hits.length === 0 || targets.hits.length > 16
       || targets.hits.some(row => row.length !== 3 || row.some(value => !Number.isFinite(value)) || (row[2] ?? 0) <= 0)) throw new Error('Invalid crowd target rows');
     this.n = controller.n;
   }
-  get alive(): number { return this.controller.alive; }
-  get cx(): number { return this.controller.cx; }
-  get cz(): number { return this.controller.cz; }
-  get panicking(): boolean { return this.controller.panicking; }
   positions(index: number, out: Vector3): Vector3 { const p = this.controller.readPose(index, this.targetPose); return out.set(p.x, p.y + this.targets.preyY, p.z); }
   headingOf(index: number): number { return this.controller.readPose(index, this.targetPose).yaw; }
   isAlive(index: number): boolean { return index >= 0 && index < this.n && !this.controller.readPose(index, this.targetPose).dead; }
   owns(prey: CrowdPrey): boolean { return prey.flock === this; }
   prey(index: number): CrowdPrey { if (!Number.isInteger(index) || index < 0 || index >= this.n) throw new RangeError('Unknown crowd member'); return new CrowdPrey(this, index); }
-  nearest(x: number, z: number): number { return this.controller.nearest(x, z); }
   kill(index: number): void { this.controller.kill(index); }
-  scare(x: number, z: number, seconds: number): void { this.controller.scare(x, z, seconds); }
-  straggler(minimum = 12): number { return this.controller.straggler(minimum); }
   raycast(origin: Vector3, direction: Vector3, maximum: number): number {
     let best = maximum, member = -1;
     for (let index = 0; index < this.n; index++) {
@@ -169,9 +164,35 @@ export class CrowdTargets {
   }
 }
 
+/** Native flock projection retains its existing predator/prey observations and commands. */
+export class CrowdTargets extends CrowdMembers {
+  constructor(private readonly flockController: Pick<FlockBrain, 'n' | 'alive' | 'cx' | 'cz' | 'panicking' | 'readPose' | 'kill' | 'scare' | 'straggler' | 'nearest'>,
+    targets: { readonly preyY: number; readonly hits: readonly (readonly number[])[] }) { super(flockController, targets); }
+  get alive(): number { return this.flockController.alive; }
+  get cx(): number { return this.flockController.cx; }
+  get cz(): number { return this.flockController.cz; }
+  get panicking(): boolean { return this.flockController.panicking; }
+  nearest(x: number, z: number): number { return this.flockController.nearest(x, z); }
+  scare(x: number, z: number, seconds: number): void { this.flockController.scare(x, z, seconds); }
+  straggler(minimum = 12): number { return this.flockController.straggler(minimum); }
+}
+
+/** Actual native foragers use the same hit-sphere and weapon projection as flock members. */
+export class ForagerTargets extends CrowdMembers {
+  constructor(population: ForagerPopulation, targets: { readonly preyY: number; readonly hits: readonly (readonly number[])[] }, scale: number) {
+    if (!(population instanceof ForagerPopulation) || Object.getPrototypeOf(population) !== ForagerPopulation.prototype || !(scale > 0) || !Number.isFinite(scale)) throw new Error('Missing native forager owner or scale');
+    super({ n: population.rows.length, kill: index => { population.kill(index); }, readPose: (index, out) => {
+      const row = population.rows[index], motion = population.motion[index];
+      if (row === undefined || motion === undefined) throw new RangeError('Unknown forager member');
+      out.x = row.x; out.y = terrainHeight(row.x, row.z) + motion.y; out.z = row.z; out.yaw = row.yaw; out.scale = scale;
+      out.dead = !population.isAlive(index) || population.shown[index] !== 1; return out;
+    } }, targets);
+  }
+}
+
 /** Client-only body/crowd identity joins and nearest ray selection over a live roster.
  * Crowds may be appended by their owner without replacing existing prey objects. */
-export class CrowdRoster<T extends CrowdTargets> {
+export class CrowdRoster<T extends CrowdMembers> {
   private readonly preyBindings = new Map<string, PackPrey>();
   private readonly point = new Vector3();
   private hit: { flock: T; index: number; distance: number } | null = null;
@@ -207,7 +228,7 @@ export class CrowdRoster<T extends CrowdTargets> {
 
 /** Client-only weapon projection of the actual nearest crowd member. The
  * native roster owns selection and retirement; declarations supply metadata. */
-export class CrowdWeaponTarget<T extends CrowdTargets> {
+export class CrowdWeaponTarget<T extends CrowdMembers> {
   private pending: {flock:T;index:number}|null=null;
   private readonly animal: TargetAnimal;
   private readonly result: TargetHit;

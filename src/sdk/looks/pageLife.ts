@@ -21,6 +21,7 @@ import type { CompendiumState } from '@wildshard/game/compendium/state';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { AmbientGroup, type AmbientVisitorPlayer } from '@wildshard/game/ambient/flock';
 import { parsePageLife, type PageLifeRows } from '@wildshard/format/pageLife';
+import { CrowdRoster, CrowdWeaponTarget, ForagerTargets } from '@wildshard/game/shardfile/crowdRuntime';
 import { type AmbientFlockDraw, createAmbientFlock, installAmbientFlock } from './ambientFlock';
 import { PosedDraw } from './posedInstances';
 
@@ -127,6 +128,14 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
   const reader:AmbientVisitorPlayer={get x(){return player.position.x;},get y(){return player.position.y;},get z(){return player.position.z;},
     get fast(){return player.sprinting;},get light(){return night;},get fx(){return fwd.x;},get fz(){return fwd.z;},get toward(){return guide?.target()??null;}};
   const foragers=data.foragers.map(row=>({row,population:new ForagerPopulation(row.row,data.seed,world.forest.trees).roam(reader),pose:newPose(row.model)}));
+  const weaponTargets = foragers.flatMap(({ row, population }) => row.combat === undefined ? []
+    : [new CrowdWeaponTarget(new CrowdRoster([], [new ForagerTargets(population, row.combat, row.scale)]), row.combat.target)]);
+  if (weaponTargets.length > 0) installEnteredRuntimeService(ctx, scope => {
+    app.events.answer('combat.targets.ray', request => {
+      for (const target of weaponTargets) request.hit = target.raycast(request.origin, request.dir, request.maxDist, request.hit);
+      return request;
+    }, scope);
+  });
   const pose=newPose(0),lane=(bird:AmbientGroup['birds'][number],value:AmbientGroup['row']['channels'][0][number]):number=>typeof value==='number'?value:bird[value];
   const drawFlock=(flock:AmbientGroup):void=>{
     if(wild===null)return;const [a,b]=flock.row.channels;

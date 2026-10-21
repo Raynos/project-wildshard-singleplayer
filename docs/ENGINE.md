@@ -10486,3 +10486,18 @@ Pine's real shop consumes its admitted cards and transactions. Its finish
 pickups register/read the same scoped loot-table service as Driftwood.
 Existing Exchange ordering, modal continuation and pickup ownership stay
 with their native owners. No row accepts executable affordability hooks.
+
+### Native forager crowd targets (G516)
+
+`ForagerPopulation.kill(index)` retires a fixed member identity; `isAlive`
+reads it. Retirement suppresses drawing and decisions, survives snapshots,
+and accepts old continuations without a retirement list. Invalid duplicate
+or out-of-range retirement indices are refused before restoration.
+
+`ForagerTargets(population, hitRows, scale)` and `CrowdTargets` project
+native forager/flock members through the same sphere and nearest-member
+rules. `CrowdWeaponTarget` consumes either roster. Page-life foragers may
+declare `combat: { target: { kind, damage }, preyY, hits }`; their entered
+scope answers weapon rays, and leaving removes the answer. Pine's hares
+and Nalati's sheep are the two real weapon-projection users. No authored
+callback supplies selection, damage, retirement or lifetime.
