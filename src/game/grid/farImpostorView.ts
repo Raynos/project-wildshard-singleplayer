@@ -4,13 +4,14 @@
  * (`@wildshard/sdk/bake/farImpostor`) nearest the camera's azimuth and blends them, then hazes exactly as the proxy does
  * (the proxy's own haze toward the frame's air, after tone mapping and the output conversion). The band between proxy
  * and impostor is a screen-door cross-fade: the proxy keeps the fragments under the band's dither and the impostor the
- * rest, so a cell never pops between them. The texels pack to RGBA 5551 (2 bytes, the bake's own quantisation) and leave
- * the JS heap once uploaded. Generic: nothing here knows a shard.
+ * rest, so a cell never pops between them. The texels pack to RGBA 5551 (2 bytes, the bake's own quantisation) in a
+ * worker, off the main thread, and leave the JS heap once uploaded. Generic: nothing here knows a shard.
  */
 import { DataTexture, LinearFilter, Mesh, PlaneGeometry, RGBAFormat, ShaderMaterial, Sphere, UnsignedShort5551Type, Vector3, type Color, type Material, type Object3D } from 'three';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { FarImpostor } from '@wildshard/format/shardSections';
 import type { FarHaze } from './farProxy';
+import type { FarImpostorDecodeReply, FarImpostorDecodeRequest } from './farImpostorPack';
 
 /** A decoded impostor: its row and its packed texels. */
 export interface FarImpostorData { readonly row: FarImpostor; readonly texels: Uint16Array; readonly width: number; readonly height: number }
@@ -23,27 +24,33 @@ export function farBandShare(distance: number): number {
   return Math.min(1, Math.max(0, t));
 }
 
+/** The one decode worker, started on first use (null where workers are missing: the cell keeps its proxy). */
+let decoder: { worker: Worker; next: number; pending: Map<number, (reply: FarImpostorDecodeReply) => void> } | null | undefined;
+function decodeWorker(): typeof decoder {
+  if (decoder !== undefined) return decoder;
+  if (typeof Worker !== 'function') { decoder = null; return decoder; }
+  const worker = new Worker(new URL('farImpostorDecodeWorker.ts', import.meta.url), { type: 'module', name: 'g539-impostor-decode' });
+  const pending = new Map<number, (reply: FarImpostorDecodeReply) => void>();
+  worker.onmessage = (event: MessageEvent<FarImpostorDecodeReply>): void => { const done = pending.get(event.data.id); pending.delete(event.data.id); done?.(event.data); };
+  decoder = { worker, next: 0, pending };
+  return decoder;
+}
+
 /**
- * Decode a baked impostor image (PNG bytes) to packed RGBA 5551 texels. Browser-only (an image decoder and a 2D canvas);
- * null where neither exists (Node tests, a worker without OffscreenCanvas): the cell keeps its proxy at every distance.
+ * Decode a baked impostor image (PNG bytes) to packed RGBA 5551 texels in the decode worker (the main thread only
+ * uploads). Null where it cannot (no Worker, a worker without OffscreenCanvas, a Node test): the cell keeps its proxy
+ * at every distance.
  */
 export async function decodeFarImpostor(row: FarImpostor, bytes: Uint8Array): Promise<FarImpostorData | null> {
-  if (typeof createImageBitmap !== 'function' || typeof OffscreenCanvas !== 'function') return null;
-  const bitmap = await createImageBitmap(new Blob([bytes.slice().buffer], { type: 'image/png' }), { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
-  const rows = Math.ceil(row.views / row.cols), width = row.cols * row.tile[0], height = rows * row.tile[1];
-  try {
-    if (bitmap.width !== width || bitmap.height !== height) throw new Error(`Far impostor is ${String(bitmap.width)} × ${String(bitmap.height)}, its row says ${String(width)} × ${String(height)}`);
-    const context = new OffscreenCanvas(width, height).getContext('2d', { willReadFrequently: true });
-    if (context === null) return null;
-    context.drawImage(bitmap, 0, 0);
-    const rgba = context.getImageData(0, 0, width, height).data, texels = new Uint16Array(width * height);
-    // the image's top row is the texture's last (texture v runs up): rows flip as they pack
-    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-      const i = ((height - 1 - y) * width + x) * 4, five = (k: number): number => Math.round((rgba[i + k] ?? 0) * 31 / 255);
-      texels[y * width + x] = (five(0) << 11) | (five(1) << 6) | (five(2) << 1) | ((rgba[i + 3] ?? 0) >= 128 ? 1 : 0);
-    }
-    return { row, texels, width, height };
-  } finally { bitmap.close(); }
+  const pool = decodeWorker(); if (pool === null || pool === undefined) return null;
+  const rows = Math.ceil(row.views / row.cols), width = row.cols * row.tile[0], height = rows * row.tile[1], id = pool.next++;
+  const buffer = bytes.slice().buffer;
+  const reply = await new Promise<FarImpostorDecodeReply>((resolve) => {
+    pool.pending.set(id, resolve);
+    pool.worker.postMessage({ id, bytes: buffer, width, height } satisfies FarImpostorDecodeRequest, [buffer]);
+  });
+  if ('error' in reply) { console.warn(`[grid] far impostor decode: ${reply.error}`); return null; }
+  return { row, texels: reply.texels, width, height };
 }
 
 const vertex = /* glsl */ `
