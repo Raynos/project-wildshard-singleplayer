@@ -18,6 +18,7 @@ import {
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { installAoTransparency } from '../render/aoTransparency';
+import { installedGraphBackend } from '../render/graphBackend';
 import { retried } from '../boot/retry';
 import { RegionCinematic } from '../render/regionCinematic';
 import { prepareWorldLook, CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
@@ -781,6 +782,12 @@ export class Game {
   private _entryPreparation: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number }[] } | null = null;
   /** Last entered-frame preparation's scalar timings. Painted waits are included; no content resources are retained. */
   get entryPreparation(): Readonly<NonNullable<Game['_entryPreparation']>> | null { return this._entryPreparation; }
+  /** The node (graph material) programs built so far and the recent build log (`EngineNodesHandler.buildLog`); null
+   *  before any graph material loaded the back-end. A diagnostic: the frame floor counts builds after an entry's warm-up. */
+  get nodeBuilds(): { readonly builds: number; readonly buildMs: number; readonly log: readonly { at: number; material: string; object: string }[] } | null {
+    const handler = installedGraphBackend(this.renderer);
+    return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs, log: handler.buildLog };
+  }
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
@@ -834,7 +841,6 @@ export class Game {
     const sliceMs = this.frameCount > 0 && setting('buildPacing') !== 'off' ? LIVE_PRECOMPILE_SLICE_MS : undefined;
     const shaderStart = diagnosticNow();
     // OP2: the node (TSL) builds this warm-up ran: on Safari each is one long frame of the entry
-    const { installedGraphBackend } = await import('../render/graphBackend');
     const nodeStats = (): { builds: number; buildMs: number } | null => {
       const handler = installedGraphBackend(this.renderer);
       return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs };

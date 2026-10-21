@@ -338,12 +338,18 @@ interface StockKeyMemo {
   readonly keys: Map<string, [string | undefined, string | undefined]>;
 }
 
+/** builds kept in `EngineNodesHandler.buildLog` */
+const BUILD_LOG_CAP = 1024;
+
 /** three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` */
 export class EngineNodesHandler extends WebGLNodesHandler {
   /** the engine epilogue, in order, after the output transform (fog first; then whatever the engine appends) */
   readonly epilogue: EpilogueStage[] = [];
   /** node-material programs this handler built (the validator's and the bench's count) */
   builds = 0;
+  /** The last BUILD_LOG_CAP builds, oldest first: when (diagnostic clock) and for which material and object (names
+   *  only). The frame floor attributes them to runtime hooks: a build after an entry's warm-up is a missed warm program. */
+  readonly buildLog: { at: number; material: string; object: string }[] = [];
   private readonly textureUpdates: TextureUpdates;
   private readonly frame: NodeFrame;
   /** The material's active program view, including its validated block list. */
@@ -704,6 +710,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
     this.buildMs += diagnosticNow() - t0;
     this.builds++;
+    if (this.buildLog.length >= BUILD_LOG_CAP) this.buildLog.shift();
+    this.buildLog.push({ at: t0, material: material.name || material.type, object: object.name || object.type });
     // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
     // program under that key: the program lands at the map's current size
     const builder: unknown = Reflect.get(material, '_latestBuilder');

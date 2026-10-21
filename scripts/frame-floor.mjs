@@ -483,7 +483,7 @@ async function measureShard(driver, shard, deadline) {
           try { stopTimeline = await driver.timeline.start(); }
           catch (error) { timelineFailure = { valid: false, invalid: [errorText(error)], frames: [] }; }
         }
-        await driver.evaluate('(window.__frameFloorDriveDone = false, true)');
+        await driver.evaluate('(window.__frameFloorDriveDone = false, window.__frameFloorBuildsFrom = performance.now(), true)');
         if (taskClock) await driver.evaluate('(window.__frameFloorTaskTake?.(), true)');
         // the whole drive, and every runtime hook still building once it has arrived (the 120-frame travel row ends early)
         const wholeDrive = (async () => {
@@ -518,7 +518,8 @@ async function measureShard(driver, shard, deadline) {
         rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface), ...(travelTimeline === undefined ? {} : { webkitTimeline: travelTimeline }) });
         const hookTimes = await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []');
         const { glFrames, ...wholeValue } = whole.value;
-        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes),
+        const builds = nodeBuildsByHook(await driver.evaluate('(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= window.__frameFloorBuildsFrom)'), hookTimes);
+        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
           ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }),
           ...(glTime && frameTimeline && glFrames !== undefined ? { glFrames } : {}),
           ...(timeline === undefined ? (timelineFailure === undefined ? {} : { webkitTimeline: timelineFailure }) : { webkitTimeline: timelineLongFrames(timeline, whole.value.longFrames.at) }),
@@ -533,7 +534,7 @@ async function measureShard(driver, shard, deadline) {
           current: state.live.live.current, ringsRefused: state.rings.refused, issues: state.live.live.issues }; })()`);
         rows.push({ pose: { name: `grid-${plan.name}` }, ...standing, ...assess(standing, surface) });
         if (gpuBisectOn) rows.at(-1).gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
-        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
+        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; node builds ${builds.total} (${builds.afterPlay} from afterPlay on); residents=${witness.after.live.live.residents.join(',')}`);
       }
       if (gridCellPose !== null) {
         // the entered cell's own pose (its local frame), held standing once its runtime is ready again
@@ -566,6 +567,19 @@ async function measureShard(driver, shard, deadline) {
 /** Each long frame (>50 ms, [startMs, ms] on the page clock) attributed to the runtime hook it overlapped
  *  (`instance:hook`, from the grid's runtimeTiming), else `between hooks`: where a whole drive's long frames came from,
  *  on either surface, with no profiler running. */
+/** O14: the node (graph) program builds of a drive, per runtime hook ('between hooks': a live frame). `afterPlay` counts
+ *  the builds from the entered cell's first afterPlay on: programs its warm-up should have built and did not. */
+function nodeBuildsByHook(log, completed) {
+  const byHook = {};
+  for (const { at } of log) {
+    const hit = completed.find((t) => at >= t.start && at < t.end);
+    const key = hit === undefined ? 'between hooks' : `${hit.instance}:${hit.hook}`;
+    byHook[key] = (byHook[key] ?? 0) + 1;
+  }
+  const play = completed.findLast((t) => t.hook === 'afterPlay');
+  return { total: log.length, afterPlay: play === undefined ? 0 : log.filter((row) => row.at >= play.start).length, byHook,
+    lateMaterials: play === undefined ? [] : log.filter((row) => row.at >= play.start).map((row) => `${row.material}@${row.object}`) };
+}
 function longFrameHooks(at, completed) {
   const out = new Map();
   for (const [start, ms, gl, glStart] of at ?? []) {
