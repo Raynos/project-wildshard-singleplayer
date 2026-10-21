@@ -22,7 +22,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
   from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
-  files (GIT.md); `deploy.yml`'s `behaviour` shards run the whole suite on every code push, so a transitive
+  files (GIT.md). The `products` job generates inputs and builds all products once. Behaviour shards restore its
+  generated source/public files and `out/` from the same run's artifact, verifying the full SHA, run ID and archive
+  checksum. `WS_TEST_PRODUCTS_SHA` keeps test hooks on those exact products; missing or mismatched artifacts fail
+  instead of rebuilding. The `behaviour` shards run the whole suite on every code push, so a transitive
   break shows up there first; fix it forward like any red run.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
