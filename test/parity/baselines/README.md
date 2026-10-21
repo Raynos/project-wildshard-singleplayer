@@ -1,5 +1,15 @@
 # GPU parity baselines
 
+## 2026-10-21 one-pass re-record (X22, G415/G416)
+
+The nightly gate was red on every shard x tier against the 10-13 references. M5 phone + desktop re-recorded at
+`9ec299a8fd` (three runs a pair) after two harness fixes: `249abdd12a` counts retained render targets' attachments as
+retained in the leak census (the 12 phone / 20 desktop `leak.textures` on every shard were page-level targets, not a
+per-visit leak) and `9ec299a8fd` makes exact counts information (gpu bytes, render memory/programs, scene totals and
+names, boot steps, system lists, HUD, pose calls/tris; baseline sounds must still play). Glitch gates are unchanged.
+The frozen `-legacy` copies left the parity registry. `blender-template`, `ink-cel-valley`, `pastel-plain` and
+`open-plots` have their first references. Nalati is recorded separately, after its desktop gpuMB ratchet re-record.
+
 ## 2026-10-08 evening re-record (parity triage, E435)
 
 Six shards re-recorded after every red field since `bfb9dc325` was traced to its commit
