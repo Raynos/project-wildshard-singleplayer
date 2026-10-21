@@ -4,7 +4,7 @@
 
 **Live:** 990aed1a4 (16:55Z; R1 arrival fix live since bb04f4a37 14:59Z); deploy starvation fixed (a5a3c8fbca: newest both-green ships). No push holds (G438).
 
-**Tooling:** BUILD-SPEED owns it (G562 fe2f3f6cb7). G567: goal 0 %, M3 = cut / 98,854 original, plan = 60 % M3 + 40 % M2 (78.5 % at dc788d5d6); ruler change X25 (sp-x1).
+**Tooling:** BUILD-SPEED owns it (G562 fe2f3f6cb7). G567: goal 0 %, M3 = cut / 98,854 original, plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10; ruler 8f716736ef).
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
