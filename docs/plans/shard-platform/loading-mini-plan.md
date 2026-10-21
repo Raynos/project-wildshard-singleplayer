@@ -29,10 +29,10 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code | Effort (est.) |
 |---|---|---|---|
 | **O1 — done `02fb4e4288`, `8f220455e8`, `94bf308bc1`** | Grid edges read from each neighbour's product index only, not the whole product (today 3,237 requests, 137.5 MB, 75.7 s) | `grid/edgeSources.ts:73-86`, `grid/products.ts:42-60`, `grid/session.ts:305-322` | 0.5 day |
-| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`; warm revalidation `bf332be4cc`; served proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
+| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`, `bf332be4cc`; batch green `bd459dadaf`; native warm/cadence proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3** | Home region reads files in parallel / prefetched from the product's file list (today one request in flight for 25 s) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
-| **O5** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
+| **O5 — pulled forward: post warm-up `b2e4c86d92`, test types `2d603918ea`, API `072e36da10`; served proof pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes) | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
@@ -218,3 +218,27 @@ unchanged 304/no body and a changed 200/full new body; strict lint passes.
 The served cold/warm proof closes that added L2/L8 follow-up before O2
 sign-off. Revisit harnesses `7886446dc2` / `bb9374ade6` preserve each real
 origin/context and record HTTP response status without changing the app.
+
+The O2 replacement source batch at `bd459dadaf` passed (368.4 s inner).
+Its eight outcomes and a separate native GL diagnostic are retained in
+[`diagnostic-bd459da`](../../../progress/loading/g543/diagnostic-bd459da/README.md)
+(`49c39e9232`). All four phone cold/warm cases pass, including actual
+unchanged-worker 304 responses and warm byte errors 3.99% / 0.97%.
+Native cold grid passes; native cold SHARD SELECT has a 1,149 ms link
+completion gap and a 1,916 ms post-chain first draw, with 120 programs
+before and after. The separate fresh-origin GL diagnostic did not reproduce
+that stall (400 ms maximum gap); it does not establish a particular slow pass.
+Both native warm captures are invalid: controlled fixture/JSON navigation
+replaced the cached app shell, returning the entry to title. Harness fixes
+`7fc9a635db` / `df0f9ede29` inspect and reload the real title, applying save
+fixtures through Inspector while retaining the same origin and real caches.
+
+Coordinator-assigned O5 is pulled forward to unblock that proof. Initial
+loading now issues post links before world/shadow jobs and draws one linked
+post material per painted task under Shaders (`b2e4c86d92`). Internal pass
+targets are borrowed, full-sized and restored; simulation/effect clocks do
+not advance. Live entered-world preparation is unchanged. Twenty-two focused
+shader/post tests and strict lint pass; the immediate test-only type repair
+`2d603918ea` also passes root tsc. API notes are `072e36da10`. One new source
+batch and served cold/warm proof cover the pending cuts. O2 and the added
+warm L2/L8 follow-up remain open; the earlier cold acceptance stays retained.
