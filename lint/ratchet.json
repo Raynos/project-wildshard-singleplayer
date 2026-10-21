@@ -54,7 +54,6 @@
       "driftwood-isle/custom/oceanSurface": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit"
     },
     "shardfile/sim-in-runtime": {
-      "src/shards/nine-dragon-stack/runtime/jian.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm.",
       "src/shards/pine-hollow/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
     }
   },
@@ -115,7 +114,7 @@
     "sim-in-runtime/far-reach": 0,
     "sim-in-runtime/ink-cel-valley": 0,
     "sim-in-runtime/nalati-grasslands": 0,
-    "sim-in-runtime/nine-dragon-stack": 1,
+    "sim-in-runtime/nine-dragon-stack": 0,
     "sim-in-runtime/open-plots": 0,
     "sim-in-runtime/pastel-plain": 0,
     "sim-in-runtime/pine-hollow": 1,

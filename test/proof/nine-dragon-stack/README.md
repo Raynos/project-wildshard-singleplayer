@@ -45,7 +45,7 @@ byte; this refactor adds no entry coverage.
   the fragment at +125 m, the four landing decks open to the road (the standalone end caps removed), the square's slab,
   the Well's crossings and safety cap, every placed model's colliders;
 - the player capsule walking them from the declared spawn, by tick commands;
-- the Jian as its declared row on the shipping swept melee clock (`runtime/jian.ts`, `SweptMeleeCore` over `JIAN_ROW`):
+- the Jian as declared swept rows on `game/plugin/nativeItems` and the shared `SweptMeleeCore` clock (also used by Driftwood):
   combo, one-deep queue, combo gap, cooldown and active windows, with exact continuation (the ride replay restores mid-swing);
 - the portal-link entry proof (`provePortalLinks`): 23 capsule lanes per deck and the format's checked transfer to the
   square and back (92 lanes, 8 transfers);

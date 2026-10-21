@@ -10,10 +10,6 @@
     "@wildshard/format/portalLinkAssets": [
       "portalLinkEntries"
     ],
-    "src/shards/nine-dragon-stack/runtime/jian": [
-      "installNineJian",
-      "JIAN_ID"
-    ],
     "@wildshard/game/grapple/headless": [
       "installGrapple"
     ],
@@ -22,10 +18,53 @@
     ],
     "@wildshard/game/shardfile/portalRideBinding": [
       "installHostPortalRide"
+    ],
+    "@wildshard/game/plugin/nativeItems": [
+      "installNativeItems"
     ]
   },
   "constants": {
-    "portalStep": "nine-dragon-stack.portals"
+    "portalStep": "nine-dragon-stack.portals",
+    "jianStep": "item.weapon.jian",
+    "jianPolicy": {
+      "kind": "swept",
+      "step": "item.weapon.jian",
+      "eye": 1.68,
+      "initial": 0,
+      "source": "owner",
+      "slots": [
+        {
+          "item": "weapon.jian",
+          "weapon": "weapon.jian",
+          "tags": [],
+          "combo": [
+            "weapon.jian.slash",
+            "weapon.jian.backhand",
+            "weapon.jian.finisher"
+          ],
+          "heavy": "weapon.jian.heavy"
+        }
+      ],
+      "contact": {
+        "slack": 0,
+        "direction": [
+          0,
+          0,
+          0
+        ],
+        "push": [
+          0,
+          0
+        ],
+        "running": 0
+      },
+      "lunge": {
+        "maxHeight": 0,
+        "minDistance": 0.01,
+        "minRadius": 0,
+        "lengthScale": 0
+      }
+    }
   },
   "prepare": [
     {
@@ -44,102 +83,6 @@
             ]
           },
           "sim/headless-constants.json"
-        ]
-      }
-    },
-    {
-      "name": "jian",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "assembly",
-              "need"
-            ]
-          },
-          {
-            "$call": [
-              {
-                "$fn": {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "args",
-                        0,
-                        "find"
-                      ]
-                    },
-                    {
-                      "$fn": {
-                        "$eq": [
-                          {
-                            "$ref": [
-                              "args",
-                              0,
-                              "id"
-                            ]
-                          },
-                          {
-                            "$ref": [
-                              "src/shards/nine-dragon-stack/runtime/jian",
-                              "JIAN_ID"
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "$ref": [
-                  "shard",
-                  "items",
-                  "rows"
-                ]
-              }
-            ]
-          },
-          "Nine Dragon declares its Jian row"
-        ]
-      }
-    },
-    {
-      "name": "weapon",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "assembly",
-              "need"
-            ]
-          },
-          {
-            "$if": [
-              {
-                "$eq": [
-                  {
-                    "$ref": [
-                      "jian",
-                      "kind"
-                    ]
-                  },
-                  "weapon"
-                ]
-              },
-              {
-                "$ref": [
-                  "jian"
-                ]
-              },
-              {
-                "$ref": [
-                  "absent"
-                ]
-              }
-            ]
-          },
-          "Nine Dragon declares its Jian row"
         ]
       }
     },
@@ -403,8 +346,8 @@
         "$call": [
           {
             "$ref": [
-              "src/shards/nine-dragon-stack/runtime/jian",
-              "installNineJian"
+              "@wildshard/game/plugin/nativeItems",
+              "installNativeItems"
             ]
           },
           {
@@ -414,138 +357,23 @@
           },
           {
             "$ref": [
-              "weapon"
+              "context",
+              "combat"
             ]
           },
           {
-            "$fn": {
-              "$call": [
-                {
-                  "$fn": {
-                    "$call": [
-                      {
-                        "$ref": [
-                          "args",
-                          0,
-                          "some"
-                        ]
-                      },
-                      {
-                        "$fn": {
-                          "$if": [
-                            {
-                              "$eq": [
-                                {
-                                  "$ref": [
-                                    "args",
-                                    0,
-                                    "kind"
-                                  ]
-                                },
-                                "player"
-                              ]
-                            },
-                            {
-                              "$not": {
-                                "$eq": [
-                                  {
-                                    "$ref": [
-                                      "args",
-                                      0,
-                                      "attack"
-                                    ]
-                                  },
-                                  {
-                                    "$ref": [
-                                      "absent"
-                                    ]
-                                  }
-                                ]
-                              }
-                            },
-                            false
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "context",
-                        "commands"
-                      ]
-                    }
-                  ]
-                }
+            "kind": "swept",
+            "items": {
+              "$ref": [
+                "shard",
+                "items",
+                "rows"
               ]
-            }
-          },
-          {
-            "$fn": {
-              "$call": [
-                {
-                  "$fn": {
-                    "$call": [
-                      {
-                        "$ref": [
-                          "args",
-                          0,
-                          "some"
-                        ]
-                      },
-                      {
-                        "$fn": {
-                          "$if": [
-                            {
-                              "$eq": [
-                                {
-                                  "$ref": [
-                                    "args",
-                                    0,
-                                    "kind"
-                                  ]
-                                },
-                                "player"
-                              ]
-                            },
-                            {
-                              "$not": {
-                                "$eq": [
-                                  {
-                                    "$ref": [
-                                      "args",
-                                      0,
-                                      "heavy"
-                                    ]
-                                  },
-                                  {
-                                    "$ref": [
-                                      "absent"
-                                    ]
-                                  }
-                                ]
-                              }
-                            },
-                            false
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "context",
-                        "commands"
-                      ]
-                    }
-                  ]
-                }
+            },
+            "policy": {
+              "$ref": [
+                "constants",
+                "jianPolicy"
               ]
             }
           }

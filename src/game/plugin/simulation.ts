@@ -818,7 +818,7 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
   type Profile = typeof profiles[number]; type Move = Profile['moves']['heavy'];
   const slots = profiles.map((_profile, index) => index);
   const loadout = createNativeLoadout(row.selection ?? { slots, initial: row.initial, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
-  const state = { queued: false, struck: false, target: null as string | null, swings: 0, hits: 0 };
+  const state = { queued: false, struck: false, opened: false, windows: 0, target: null as string | null, swings: 0, hits: 0 };
   const yAxis = new Vector3(0, 1, 0);
   const lunge = (profile: Profile, move: Move): void => {
     const actor = state.target === null ? undefined : host.entities.get(state.target), player = host.player.position;
@@ -832,7 +832,7 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
   };
   const clocks = profiles.map(profile => new SweptMeleeCore<Move>(profile.moves, profile,
     { queue: () => { state.queued = true; }, consume: () => { const queued = state.queued; state.queued = false; return queued; } },
-    { start: (move, dash) => { state.struck = false; state.swings++; if (dash) lunge(profile, move); ports.alarm(); }, charge: () => { /* presentation owns the charge tell */ } }));
+    { start: (move, dash) => { state.struck = false; state.opened = false; state.swings++; if (dash) lunge(profile, move); ports.alarm(); }, charge: () => { /* presentation owns the charge tell */ } }));
   const eye = new Vector3(), centre = new Vector3(), point = new Vector3(), forward = new Vector3(), left = new Vector3(), direction = new Vector3(), push = new Vector3();
   const request: Parameters<SimHost['combat']['hit']>[0] = { source: row.source === 'env' ? 'env' : host.player.health,
     sourceTags: [], target: host.player.health, amount: 0, point, dir: direction, from: eye, weaponId: '', moveId: '' };
@@ -862,6 +862,7 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
       state.target = target; clock.tryFire(); if (idle && state.swings === swings) state.target = previous;
     }
     const dt = 1 / 60, { move, active } = clock.step(dt, host.state.tick * dt, profile.swingScale, command.heavy);
+    if (move !== null && active && !state.opened) { state.opened = true; state.windows++; }
     if (move === null || !active || state.struck || state.target === null) return;
     const actor = host.entities.get(state.target); if (actor === undefined || !actor.alive) return;
     eye.copy(host.player.position); eye.y += row.eye;
@@ -873,9 +874,16 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
     const finite = v.pipe(v.number(), v.finite()), count = v.pipe(finite, v.integer(), v.minValue(0));
     const clock = v.strictObject({ move: v.nullable(count), swingT: finite, comboIdx: count, lastSwingEnd: finite, cooldown: finite, charging: v.boolean(), chargeT: finite,
       releaseQueued: v.boolean(), chargePending: v.boolean(), heldPrev: v.boolean(), time: finite });
-    const saved = v.parse(v.strictObject({ held: v.pipe(count, v.maxValue(profiles.length - 1)), queued: v.boolean(), struck: v.boolean(), target: v.nullable(v.string()),
-      swings: count, hits: count, clocks: v.pipe(v.array(clock), v.length(clocks.length)) }), JSON.parse(value));
-    loadout.restore({ held: saved.held, swap: null }); Object.assign(state, { queued: saved.queued, struck: saved.struck, target: saved.target, swings: saved.swings, hits: saved.hits });
+    const parsed = v.parse(v.union([
+      v.strictObject({ held: v.pipe(count, v.maxValue(profiles.length - 1)), queued: v.boolean(), struck: v.boolean(), target: v.nullable(v.string()),
+        opened: v.optional(v.boolean(), false), windows: v.optional(count, 0), swings: count, hits: count, clocks: v.pipe(v.array(clock), v.length(clocks.length)) }),
+      v.strictObject({ queued: v.boolean(), struck: v.boolean(), swings: count, hits: count, clock }),
+    ]), JSON.parse(value));
+    if ('clock' in parsed && clocks.length !== 1) throw new Error('Single-clock continuation requires one swept slot');
+    const saved = 'clock' in parsed ? { held: 0, target: null, opened: parsed.struck, windows: parsed.hits,
+      queued: parsed.queued, struck: false, swings: parsed.swings, hits: 0, clocks: [parsed.clock] } : parsed;
+    loadout.restore({ held: saved.held, swap: null }); Object.assign(state, { queued: saved.queued, struck: saved.struck, opened: saved.opened,
+      windows: saved.windows, target: saved.target, swings: saved.swings, hits: saved.hits });
     for (const [index, savedClock] of saved.clocks.entries()) { const restoredClock = clocks[index]; if (restoredClock === undefined) throw new Error('Missing saved swept clock'); restoredClock.restore(savedClock); }
   } }, 'afterBodies');
   return { held: loadout.held,

@@ -7,17 +7,20 @@ import { generateHeadlessModuleMap } from '../../../scripts/check-headless-assem
 // oxlint-disable-next-line import/no-nodejs-modules -- Native proof maps are generated beside the local product.
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as v from 'valibot';
-import source from '../../../src/shards/nine-dragon-stack/shard.config';
+import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify native blobs against the admitted output inventory.
+import { createHash } from 'node:crypto';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import { createTrustedHeadlessAdapter } from '../../../src/sdk/headlessRuntime';
+import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
 import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
-import { JIAN_STEP } from '../../../src/shards/nine-dragon-stack/runtime/jian';
+
 import headlessAssembly from '../../../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 import grappleProfile from '../../../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
 import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.generated.json' with { type: 'json' };
@@ -62,7 +65,14 @@ export const SCOPE = {
 } as const;
 
 const ROOT = new URL('../../../', import.meta.url);
-const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/nine-dragon-stack/assets/${file.hash}`, ROOT)))]));
+const product=await loadHeadlessProduct(fileURLToPath(new URL('out/nine-dragon-stack',ROOT)));
+const source=product.shardfile,descriptor=outputDescriptor(source);
+if(descriptor===undefined)throw new Error('Missing verified Nine output');
+const assets = new Map(descriptor.index.files.map(file => {
+  const bytes=readFileSync(new URL(`out/nine-dragon-stack/${file.path}`,ROOT));
+  if(bytes.length!==file.compressed||createHash('sha256').update(bytes).digest('hex')!==file.hash)throw new Error('Native blob differs from output inventory');
+  return [file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(bytes)] as const;
+}));
 const MODULE = pathToFileURL(generateHeadlessModuleMap(fileURLToPath(ROOT), 'nine-dragon-stack')).href;
 /** The walk's speed per tick (the host's 5 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
 const STEP = 5 / 60, NORTH = portalPlan.decks[0];
@@ -126,7 +136,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
 
 export function nineRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 function adapter(rapier: Rapier, snapshot?: string): Promise<TickWorkerAdapter> {
-  return createTrustedHeadlessAdapter({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
+  return createTrustedHeadlessAdapter({ shard: source, assets, rapier, product }, { module: MODULE }, snapshot);
 }
 /** The tape: the walk, three Jian taps 12 ticks apart every 1.5 s (a chained combo, then the gap lapses). */
 function tape(tick: number): HeadlessCommand[] {
@@ -166,10 +176,11 @@ const digest = (snapshot: string): string => canonicalSimDigest(snapshot);
 /** The committed fact effects' names, in order. */
 const facts = (effects: readonly HeadlessEffect[]): string[] => effects.flatMap(effect => effect.kind === 'fact' ? [effect.name] : []);
 function jian(snapshot: string): { swings: number; hits: number; move: number | null } {
-  const state = decodeSimSnapshot(snapshot).adapters.find(row => row.id === JIAN_STEP)?.state;
+  const state = decodeSimSnapshot(snapshot).adapters.find(row => row.id === headlessAssembly.constants.jianStep)?.state;
   if (typeof state !== 'string') throw new Error('Missing Jian continuation');
-  const value = JSON.parse(state) as { swings: number; hits: number; clock: { move: number | null } };
-  return { swings: value.swings, hits: value.hits, move: value.clock.move };
+  const value = JSON.parse(state) as { swings: number; windows: number; clocks: { move: number | null }[] };
+  const clock = value.clocks[0]; if (clock === undefined) throw new Error('Missing held melee clock');
+  return { swings: value.swings, hits: value.windows, move: clock.move };
 }
 const reason = (error: unknown): string => (error instanceof Error ? error.message : String(error)).replaceAll(ROOT.href, 'repo:/');
 /** Run ticks [from, to) through one adapter; every tick commits, and may emit only declared ledger facts (into `effects`).
