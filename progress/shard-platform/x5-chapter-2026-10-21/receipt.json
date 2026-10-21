@@ -1,0 +1,309 @@
+{
+  "sha": "54671806d7efe5f68143f557c24e0a85430d9196",
+  "surface": "Chromium iPhone 16 Pro, muted",
+  "quiet": false,
+  "results": [
+    {
+      "ammoAfter": 8,
+      "ammoBefore": 0,
+      "build": "5467180-mvi1ctid",
+      "button": "Need 1 boar hide",
+      "counts": {
+        "amber-resin": 4,
+        "lodge-ribbon": 6
+      },
+      "errors": [],
+      "lodge": {
+        "actionsReloaded": {
+          "best": 2,
+          "claimed": 10,
+          "counts": {
+            "lodge-ribbon": 2
+          },
+          "next": 19,
+          "slots": [
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 17,
+              "target": "bear"
+            },
+            {
+              "have": 0,
+              "kind": "elite",
+              "serial": 18,
+              "target": "blackpaw"
+            },
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 15,
+              "target": "boar"
+            }
+          ],
+          "streak": 0
+        },
+        "before": {
+          "best": 2,
+          "claimed": 9,
+          "next": 17,
+          "slots": [
+            {
+              "have": 0,
+              "kind": "rarity",
+              "serial": 16,
+              "target": "uncommon"
+            },
+            {
+              "have": 0,
+              "kind": "elite",
+              "serial": 14,
+              "target": "imperial-bull"
+            },
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 15,
+              "target": "boar"
+            }
+          ],
+          "streak": 0
+        },
+        "claimBefore": {
+          "best": 2,
+          "claimed": 9,
+          "counts": {},
+          "next": 17,
+          "reward": {
+            "bolts": 0,
+            "items": [
+              {
+                "id": "lodge-ribbon",
+                "n": 2
+              }
+            ]
+          },
+          "streak": 0
+        },
+        "claimed": {
+          "best": 2,
+          "claimed": 10,
+          "counts": {
+            "lodge-ribbon": 2
+          },
+          "next": 18,
+          "slots": [
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 17,
+              "target": "bear"
+            },
+            {
+              "have": 0,
+              "kind": "elite",
+              "serial": 14,
+              "target": "imperial-bull"
+            },
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 15,
+              "target": "boar"
+            }
+          ],
+          "streak": 1
+        },
+        "filled": {
+          "best": 2,
+          "claimed": 9,
+          "next": 17,
+          "slots": [
+            {
+              "have": 2,
+              "kind": "rarity",
+              "serial": 16,
+              "target": "uncommon"
+            },
+            {
+              "have": 0,
+              "kind": "elite",
+              "serial": 14,
+              "target": "imperial-bull"
+            },
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 15,
+              "target": "boar"
+            }
+          ],
+          "streak": 0
+        },
+        "reloaded": {
+          "best": 2,
+          "claimed": 9,
+          "next": 17,
+          "slots": [
+            {
+              "have": 2,
+              "kind": "rarity",
+              "serial": 16,
+              "target": "uncommon"
+            },
+            {
+              "have": 0,
+              "kind": "elite",
+              "serial": 14,
+              "target": "imperial-bull"
+            },
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 15,
+              "target": "boar"
+            }
+          ],
+          "streak": 0
+        },
+        "rewardFixture": {
+          "after": {
+            "ammo": 13,
+            "best": 3,
+            "claimed": 3,
+            "counts": {
+              "lodge-ribbon": 3
+            },
+            "next": 20,
+            "skins": {
+              "owned": [
+                "hollow-ash"
+              ],
+              "worn": {
+                "crossbow": "hollow-ash"
+              }
+            },
+            "streak": 3
+          },
+          "before": {
+            "ammo": 3,
+            "claimed": 2,
+            "counts": {
+              "lodge-ribbon": 2
+            },
+            "fixture": "Developer counters 2/2/2; launcher 3 iron bolts",
+            "next": 19,
+            "reward": {
+              "bolts": 10,
+              "items": [
+                {
+                  "id": "lodge-ribbon",
+                  "n": 1
+                }
+              ]
+            }
+          }
+        },
+        "torn": {
+          "best": 2,
+          "claimed": 10,
+          "counts": {
+            "lodge-ribbon": 2
+          },
+          "next": 19,
+          "slots": [
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 17,
+              "target": "bear"
+            },
+            {
+              "have": 0,
+              "kind": "elite",
+              "serial": 18,
+              "target": "blackpaw"
+            },
+            {
+              "have": 0,
+              "kind": "species",
+              "serial": 15,
+              "target": "boar"
+            }
+          ],
+          "streak": 0
+        }
+      },
+      "rides": {
+        "canoe": {
+          "name": "canoe-ride",
+          "vertices": 1494,
+          "visible": false
+        },
+        "sameParent": true,
+        "trolley": {
+          "name": "zip-trolley",
+          "roughness": 0.86,
+          "vertices": 372
+        }
+      },
+      "shard": "pine-hollow",
+      "talks": {
+        "before": {
+          "lodge-ribbon": 3
+        },
+        "flag": true,
+        "paid": {
+          "amber-resin": 4,
+          "lodge-ribbon": 6
+        },
+        "repeated": {
+          "amber-resin": 4,
+          "lodge-ribbon": 6
+        }
+      },
+      "viewport": {
+        "dpr": 3,
+        "height": 874,
+        "width": 402
+      },
+      "chapter": {
+        "afterDawn": {
+          "amber-resin": 8,
+          "lodge-ribbon": 6
+        },
+        "beforeDawn": {
+          "amber-resin": 4,
+          "lodge-ribbon": 6
+        },
+        "beforePhase": 0.13573666666667503,
+        "errors": [],
+        "fixture": "existing Developer night/dawn commands",
+        "nightPhase": 0.9193665109280336,
+        "phase": 0.0217831944444527,
+        "repeated": {
+          "amber-resin": 8,
+          "lodge-ribbon": 6
+        },
+        "seen": true
+      }
+    },
+    {
+      "build": "5467180-mvi1ctid",
+      "button": "Whetstone I \u00b7 Owned",
+      "coins": 0,
+      "errors": [],
+      "owned": [
+        "whetstone-1"
+      ],
+      "shard": "driftwood-isle",
+      "viewport": {
+        "dpr": 3,
+        "height": 874,
+        "width": 402
+      }
+    }
+  ],
+  "batchProof": "20261021T062138-sp-x8-x5-closed-chapter-batch-39580",
+  "browserProof": "20261021T062155-sp-x8-x5-chapter-witness-linked-40646"
+}
