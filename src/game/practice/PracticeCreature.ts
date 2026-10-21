@@ -30,6 +30,7 @@ import { numericCreaturePose } from '../plugin/channelPrograms';
 import { practicePoseTransition } from '../plugin/practicePoseContract';
 import { FIXED_STEP } from '@wildshard/engine/core/fixedStep';
 import { PracticeNativeMeshHit } from './PracticeNativeMeshHit';
+import { PracticePrototypeAnimal, validatePracticePrototype, type PracticePrototypeSelection } from './PracticePrototypeAnimal';
 
 /** Grounded admitted melee bodies and single-actor decision guests; unsupported movement remains explicit. */
 export function practiceCreatureSupport(species: BrainedSpecies, variant: string): { supported: boolean; reason?: string } {
@@ -51,6 +52,8 @@ export function practiceCreatureSupport(species: BrainedSpecies, variant: string
 export interface PracticeCreatureOptions {
   /** Explicit composition-only experiment. Absent retains the legacy practice path byte-for-byte. */
   readonly nativePose?: PracticeNativeSelection;
+  /** Opt-in WIP living combat with immediate despawn instead of physical corpse admission. */
+  readonly prototype?: PracticePrototypeSelection;
   readonly species: BrainedSpecies;
   readonly strikes: readonly StrikeData[];
   readonly variant: string;
@@ -110,6 +113,7 @@ export class PracticeCreature {
 
   /** Await only before installing the provider; enter/update/raycast remain synchronous. */
   static async create(options: PracticeCreatureOptions): Promise<PracticeCreature> {
+    validatePracticePrototype(options.prototype, options.nativePose !== undefined);
     const support = practiceCreatureSupport(options.species, options.variant);
     if (!support.supported) throw new Error(support.reason ?? 'Unsupported practice creature');
     const owner = options.owner.child('practice-creature');
@@ -182,14 +186,22 @@ export class PracticeCreature {
     const model = { ...this.model, species: { ...this.model.species, ...callbacks } };
       const variant = this.model.variantDef, scale = this.rng.range(variant.scale[0], variant.scale[1]);
       const rig = scope.run(() => instantiatePracticeRig(this.factory, this.model, this.rng));
-      const animal = new Animal(rig, model, 7001, scale, `practice.${this.model.kind}`, {
+      const AnimalOwner = this.options.prototype === undefined ? Animal : PracticePrototypeAnimal;
+      const animal = new AnimalOwner(rig, model, 7001, scale, `practice.${this.model.kind}`, {
         heightAt: () => at.y, floorBelow: () => at.y, random: () => this.rng.next(), now: () => this.elapsed * 1000,
         hit: request => combat.hit(request),
       });
       animal.levelGround = true; animal.groundHeight = () => at.y; animal.herd = -1;
       animal.attackTurnCap = ATTACK_TURN;
       animal.place(at.x, at.z, Math.atan2(this.options.player.position.x - at.x, this.options.player.position.z - at.z), at.y);
-      animal.onDamaged = (_body, amount, point, _dir, died) => { animal.hitFlash(); this.options.onDamage?.(amount, point, died); if (died) { this.loot?.drop({ kind: animal.kind, variant: animal.variant, position: animal.position }); this.options.onDeath?.(); } };
+      animal.onDamaged = (_body, amount, point, _dir, died) => {
+        if (died && this.options.prototype !== undefined) this.bodies?.remove(animal);
+        animal.hitFlash(); this.options.onDamage?.(amount, point, died);
+        if (died) {
+          this.loot?.drop({ kind: animal.kind, variant: animal.variant, position: animal.position });
+          this.options.onDeath?.();
+        }
+      };
       this.options.scene.add(animal.mesh); ownSceneTree(animal.mesh, scope, app.assets);
       scope.onDispose(() => { animal.hidden = true; animal.alive = false; this.bodies?.remove(animal); animal.retireBody(); animal.mesh.removeFromParent(); });
       this.targets.push(animal);
@@ -197,7 +209,7 @@ export class PracticeCreature {
       // Global weapon implementations submit directly; preserve their normal stagger and hit feedback.
       app.combat.routeTarget(scope, actor, request => combat.hit(request));
       const target: CombatTarget = combat.targetPort(actor, animal, velocity => animal.impulse(velocity), () => this.bout === scope && !practicePlayer.defeated);
-      app.combat.registerTargets(scope, () => [target], () => this.bout === scope);
+      app.combat.registerTargets(scope, () => this.options.prototype !== undefined && animal.hidden ? [] : [target], () => this.bout === scope);
       this.bodies = new CreatureBodies(this.options.physics);
       this.context = this.makeContext(animal, practicePlayer);
       callbacks.act(animal, this.context);
@@ -333,8 +345,11 @@ export class PracticeCreature {
       }
       context.dt = dt; callbacks.act(animal, context);
     } else if (animal.stunned) { animal.setMotion(animal.yaw, 0, 1); animal.setStrafe(0); }
-    animal.update(dt, this.elapsed, true); animal.mesh.updateMatrixWorld(true);
-    this.bodies?.sync(this.targets, animal.position); this.events?.flush('update');
+    if (this.options.prototype === undefined || !animal.hidden) {
+      animal.update(dt, this.elapsed, true); animal.mesh.updateMatrixWorld(true);
+      this.bodies?.sync(this.targets, animal.position);
+    }
+    this.events?.flush('update');
     this.practicePlayer?.update(dt); this.loot?.update(dt);
     if (this.practicePlayer?.defeated === true) { this.options.player.carried = true; this.options.weapons.setEnabled(false); }
   }

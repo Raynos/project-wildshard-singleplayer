@@ -29,6 +29,7 @@ import { PracticeCreature } from '../../src/game/practice/PracticeCreature';
 import { EncounterSession } from '../../src/game/practice/EncounterSession';
 import type { ArenaProduct } from './types';
 import { validateNativeSelectionKeys } from './nativeSelection';
+import { validatePrototypeSelectionKeys } from './prototypeSelection';
 import { configurePracticeOcclusion } from '../../src/practiceLighting';
 
 /** Explicit demo composition; its supplied product contains no world entry or persistent save authority. */
@@ -102,10 +103,12 @@ export async function startSharedArena(options: PracticeDemoOptions): Promise<Pr
       if (program === undefined) throw new Error('Arena product has no species program');
       const ids = program.species.flatMap(species => species.variants.map(variant => `${species.kind}:${variant.id}`));
       validateNativeSelectionKeys(ids, entry.nativePractice);
+      validatePrototypeSelectionKeys(ids, entry.prototypePractice, entry.nativePractice !== undefined);
       return program.species.flatMap(species => species.variants.map(variant => ({
         id: `${species.kind}:${variant.id}`, label: entry.label, species, variant: variant.id,
         product: entry.product, strikes: program.strikes, presentation: entry.presentation,
         nativePose: entry.nativePractice?.[`${species.kind}:${variant.id}`],
+        prototype: entry.prototypePractice?.[`${species.kind}:${variant.id}`],
       })));
     });
     const encounter = new EncounterSession<string, PracticeCreature>({
@@ -114,6 +117,7 @@ export async function startSharedArena(options: PracticeDemoOptions): Promise<Pr
         if (choice === undefined) throw new Error('Unknown demo opponent');
         return PracticeCreature.create({ species: choice.species, variant: choice.variant, strikes: choice.strikes,
           ...(choice.nativePose === undefined ? {} : { nativePose: choice.nativePose }),
+          ...(choice.prototype === undefined ? {} : { prototype: choice.prototype }),
           product: choice.product, scene: game.rootScene, sky: game.sky, physics, player, weapons, owner,
           style: options.level.creatureStyle ?? 'toon', render: options.level.creatures, flash: () => hud.damageFlash(),
           onPlayerDeath: () => options.status('Defeated. Retry starts a fresh local bout.'),

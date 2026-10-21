@@ -4,7 +4,7 @@ const aliases: Readonly<Record<string, string>> = {
   colossus: 'tideRootColossus', tideRootColossus: 'tideRootColossus', 'tide-root-colossus': 'tideRootColossus',
   puffer: 'brine-puffer', 'brine-puffer': 'brine-puffer',
   bellback: 'bellback',
-  matriarch: 'brine-pitcher-matriarch', 'brine-pitcher-matriarch': 'brine-pitcher-matriarch',
+  pitcher: 'brine-pitcher-matriarch', matriarch: 'brine-pitcher-matriarch', 'brine-pitcher-matriarch': 'brine-pitcher-matriarch',
   medusa: 'pearlglass-medusa', 'pearlglass-medusa': 'pearlglass-medusa',
   keelmaw: 'keelmaw',
   iguana: 'bloomthroat-iguana', 'bloomthroat-iguana': 'bloomthroat-iguana',

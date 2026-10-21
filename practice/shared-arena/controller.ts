@@ -5,7 +5,7 @@ import type { PracticeDemo } from './runtime';
 export type ArenaControllerDemo = Pick<PracticeDemo, 'choices' | 'select' | 'retry' | 'back' | 'dispose'>;
 
 /** Serialized UI lifecycle; the real boot function is supplied by the page entry. */
-export function installArenaPage(boot: (canvas: HTMLCanvasElement, status: (message: string) => void) => Promise<ArenaControllerDemo>): void {
+export function installArenaPage(boot: (canvas: HTMLCanvasElement, status: (message: string) => void) => Promise<ArenaControllerDemo>, options: { prototype?: boolean } = {}): void {
   const status = document.getElementById('arena-status');
   const start = document.getElementById('arena-start');
   const select = document.getElementById('arena-opponent');
@@ -66,7 +66,7 @@ export function installArenaPage(boot: (canvas: HTMLCanvasElement, status: (mess
     if (busy) return;
     demo?.back(); active = false; update();
     if (typeof document.exitPointerLock === 'function' && document.pointerLockElement !== null) document.exitPointerLock();
-    report('Choose an enemy, then Start. Bellback is awaiting admission.');
+    report(options.prototype === true ? 'Choose an enemy, then Start. All entries are WIP prototypes.' : 'Choose an enemy, then Start. Bellback is awaiting admission.');
   });
   window.addEventListener('pagehide', () => { disposed = true; demo?.dispose(); demo = null; });
   window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });

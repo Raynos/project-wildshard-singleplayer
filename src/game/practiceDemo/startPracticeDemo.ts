@@ -26,6 +26,7 @@ import { HUD } from '@wildshard/engine/ui/HUD';
 import { INPUT_CONTEXTS } from '../inputContexts';
 import { Sword, type SwordOptions } from '../weapons/Sword';
 import { PracticeCreature } from '../practice/PracticeCreature';
+import type { PracticePrototypeSelection } from '../practice/PracticePrototypeAnimal';
 import type { PracticeNativeSelection } from '../practice/PracticeNativeActor';
 import { EncounterSession } from '../practice/EncounterSession';
 import type { ShardProduct } from '../shardfile/shardProduct';
@@ -34,6 +35,8 @@ import type { ShardProduct } from '../shardfile/shardProduct';
 export interface PracticeDemoOptions {
   /** Exact kind:variant selections only; absent keeps every public demo on its existing owner. */
   readonly nativePractice?: Readonly<Record<string, PracticeNativeSelection>>;
+  /** Explicit WIP selections; these use despawn, not native physical corpses. */
+  readonly prototypePractice?: Readonly<Record<string, PracticePrototypeSelection>>;
   readonly canvas: HTMLCanvasElement;
   readonly level: LevelSpec;
   readonly product: ShardProduct;
@@ -104,6 +107,8 @@ export async function startPracticeDemo(options: PracticeDemoOptions): Promise<P
     if (options.nativePractice !== undefined && (Object.keys(options.nativePractice).length !== 1
       || Object.keys(options.nativePractice).some(id => !choices.some(choice => choice.id === id))))
       throw new Error('Native practice selects exactly one admitted opponent');
+    if (Object.keys(options.prototypePractice ?? {}).some(id => !choices.some(choice => choice.id === id)))
+      throw new Error('Prototype practice selection is not in this product');
     const encounter = new EncounterSession<string, PracticeCreature>({
       load: id => {
         const choice = choices.find(row => row.id === id);
@@ -111,6 +116,7 @@ export async function startPracticeDemo(options: PracticeDemoOptions): Promise<P
         return PracticeCreature.create({ species: choice.species, variant: choice.variant, strikes: program.strikes,
           product: options.product, scene: game.rootScene, sky: game.sky, physics, player, weapons, owner,
           ...(options.nativePractice?.[choice.id] === undefined ? {} : { nativePose: options.nativePractice[choice.id] }),
+          ...(options.prototypePractice?.[choice.id] === undefined ? {} : { prototype: options.prototypePractice[choice.id] }),
           style: options.level.creatureStyle ?? 'toon', render: options.level.creatures, flash: () => hud.damageFlash(),
           onPlayerDeath: () => options.status('Defeated. Retry starts a fresh local bout.'),
           onDeath: () => options.status('Opponent defeated. Collect the practice coins.'),
