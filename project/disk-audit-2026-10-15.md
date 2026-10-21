@@ -181,6 +181,26 @@ The boot purge is fine at 171k files. `./tmp` went 240k → 313k files and the r
      delete builds whose port has no listener.
   3. Have the mirror sync clean ignored scratch (`tmp/`) inside each slot tree before reuse.
 
+## 8. 2026-10-21 00:47 check: `./tmp` 37 → 61 GB in 8 h, from 12 lanes at once (OPEN)
+
+The boot purge is fine at 93k files. Since 10-20 16:47, `./tmp` went 233k → 407k files and the repo went 65 → 82 GB.
+Load average was 193 at the time of the check. Twelve agents were live: `sp-x1`, `x6`–`x9`, `sp-o1`–`o5`, `wildshard-new`
+and `wildshard-v`.
+
+- **Fixes 1 and 2 from section 7 look landed.** No serve builds are nested inside slot trees, and `serve-build` evicts
+  per session. Concurrency still adds up: 6 previews were in flight at once (4 serving, 2 building), about 1.9 GB each,
+  so `tmp/serve` was 7.7 GB and would reach about 11.5 GB.
+- **Mirror slots: 7 (G547), 33 GB in total.** `check4` and `check5` were created at 19:38 and 19:55 on 10-20, and each is
+  already 3 GB. The heaviest are `gate` at 7.1 GB and `check3` at 6.8 GB.
+- **New: private cache copies per lane.** `tmp/sp-x6-cache/sdk-case-5d228d/` (3.6 GB, 24k files, created 10-20 20:04)
+  holds its own `generation-cache/` (1.9 GB) and `product-cache/` (1.2 GB) for a single `src/sdk/sourceReader.ts` case.
+  It duplicates `~/.cache/wildshard/generate` and nothing evicts it. `tmp/o12/dev` (2.0 GB, created 22:55) is a
+  similar per-lane dev output, written by `tmp/o12/pine-gl.sh` and `serve-build --name o12-pine` on slot `check5`.
+- **`$TMPDIR` is still leaking generation copies:** 99 `wildshard-generation-*` directories (up from 78 on 10-20), with
+  no generate job running.
+- **Fix:** put lane scratch under a lane folder that is deleted when the lane closes, and give lane caches a size cap,
+  or point them at the shared cache. The killed-job `finally` gap in section 6 is still open.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
