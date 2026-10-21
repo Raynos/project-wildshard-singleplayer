@@ -93,6 +93,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   readonly story: ReturnType<typeof parseQuestStory>; readonly flags: Flags;
   readonly services: Awaited<ReturnType<typeof readQuestServiceActions>>;
   interact: (interactions: Parameters<typeof installQuestInteractables>[2], system: unknown) => Promise<Awaited<ReturnType<typeof installQuestInteractables>>>;
+  chapter: (input?: unknown) => QuestChapter;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -112,6 +113,10 @@ export async function prepareQuestEntry(ctx: ShardContext, storyInput: unknown, 
   const services = await readQuestServiceActions(ctx, story.quest.id, rows.services);
   let installed = false;
   return { story, flags, services, ...placement,
+    chapter: (chapterInput: unknown = {}): QuestChapter => {
+      if (ctx.scope.disposed) throw new Error('Quest entry left before chapter installation');
+      return buildQuestChapter(ctx, story, chapterInput, placement.anchors, ctx);
+    },
     interact: async (interactions: Parameters<typeof installQuestInteractables>[2], system: unknown): Promise<Awaited<ReturnType<typeof installQuestInteractables>>> => {
       const order = v.parse(entrySystem, system);
       if (installed || ctx.scope.disposed) throw new Error('Quest entry interactables already installed or disposed');

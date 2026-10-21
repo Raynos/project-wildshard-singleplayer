@@ -20,7 +20,7 @@ import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { bindQuestDeathEffects } from '../plugin/quests';
-import { installQuestChapter, prepareQuestEntry, ownQuestTree, type QuestChapter } from './chapter';
+import { prepareQuestEntry, ownQuestTree, type QuestChapter } from './chapter';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from './story';
 import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
@@ -74,7 +74,7 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { w.hud.toast(text); },
     item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
     calls: new Map(rows.services.map(id => [id, () => { services.run(id); }])) });
-  return { rows, shell, world, h, scope, declaration, d, w, onDeath, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx };
+  return { entry, rows, shell, world, h, scope, declaration, d, w, onDeath, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx };
 }
 const preparations = new WeakMap<Scope, Map<string, Awaited<ReturnType<typeof preparePage>>>>();
 /** Prepare the real placement/interaction owners before borrowed figures enter.
@@ -89,14 +89,14 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const id = v.parse(QuestPageCompositionSchema, input).id, page = preparations.get(ctx.scope)?.get(id);
   if (page === undefined || ctx.scope.disposed) throw new Error('Quest page is not prepared');
   preparations.get(ctx.scope)?.delete(id);
-  const { rows, h, scope, declaration, d, w, onDeath, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
+  const { entry, rows, h, scope, declaration, d, w, onDeath, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
   const adventure: QuestPageComposition = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = await bindStoryAchievements(ctx, story, w.progress, w.chunk.slug);
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
   const placements = Object.fromEntries(Object.values(story.quest.markers).map(at => {
     const p = place(at); return [JSON.stringify(at), { x: p.x, y: p.y, z: p.z }];
   }));
-  const chapter = installQuestChapter(ctx, story, { placements, completion: true, remainingLabel: rows.remaining }, anchors);
+  const chapter = entry.chapter({ placements, completion: true, remainingLabel: rows.remaining });
   const figures: QuestNpcTalkPorts<FigureRows>['figures'] = new Map(rows.figures.map(row => {
     const figure = FigureRows.entered(scope, row.id);
     return [row.id, { kind: 'borrowed' as const, create: () => figure,

@@ -1,7 +1,7 @@
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
 import { commitQuestEffects } from '@wildshard/game/quest/effects';
-import { installChapterStory, prepareQuestEntry } from '@wildshard/game/quest/chapter';
+import { prepareQuestEntry } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
@@ -245,7 +245,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     return hollow;
   });
 
-  const presentation = installChapterStory(ctx, story, { program: native.lead.program });
+  const presentation = entry.chapter({ program: native.lead.program });
   const questChip = presentation.chip, objective = presentation.objective;
   const clock = await readChapterDirector(ctx, rows.files.director);
   ui.retainRoot(objective.root, () => { objective.hide(false); });

@@ -6616,6 +6616,9 @@ world frames/floor policy. The returned entry shares saved flags and placement;
 `interact(interactions, system)` installs its table once in the declared update
 order, after the existing progression binding. No new quest cursor, inventory,
 ledger or save is created. Entry rows admit no functions or reflected methods.
+`chapter(rows)` installs presentation against that same story and live anchor
+map after the existing progression and borrowed figures enter. It retains the
+original chapter, flags, marker and notice owners and refuses a disposed entry.
 
 Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing
