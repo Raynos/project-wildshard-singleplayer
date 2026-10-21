@@ -14,7 +14,7 @@ Driftwood 911.** Already below G519's 5 % line: Pine 3.7 % (5 % = 1,065), Driftw
 | **B** needs a second user (G518) | 365 | 352 | Pine boot file policy 82, `installChapterLead` 69, King 54, posedInstances 61, shelter 25; Driftwood `quest/install.ts` 91, `blobAssets.ts` 56, NPC head focus 55, pageGroups 43, people/trader 54, gulls 20, islandCover 18 |
 | **C** per-frame view, listed until WASM-HOST | 174 | 166 | Pine `quest/views.ts` 63, `poolSurface.ts` 62, `beaverPool.ts` 33; Driftwood rope bridge 128, creatureLooks 21 |
 | **D** frozen legacy | 30 | 0 | `TRAMPLE_GLSL`, imported by the frozen pine-hollow-legacy runtime: **left alone, deleted with the legacy (G572); not a blocker** |
-| **E** Jake's call | 12 | 0 | grid-vs-standalone memory trim (dies only if standalone Pine retires) |
+| **E** memory trim | 12 | 0 | grid-vs-standalone memory trim: becomes a data row (G573), standalone Pine stays |
 
 **Floor under today's rules** (every A and A? lands, nothing else moves): Pine ~580, Driftwood ~520; with the usual
 partial cuts expect 600–650 each. **G532's own target (≤150 listed per shard) is not reachable with today's rows:**
@@ -37,3 +37,5 @@ that listed view code doesn't count as custom.
 **How (G571, Jake):** every line becomes data (rows, build-time generators) or AssemblyScript/WASM (decisions now; per-frame view through WASM-HOST's view lane, ZF). New hosts are fine where the right abstraction needs one. No shortcuts: no relabelling, no moving code to dodge the counter, no 'no honest cut' closes; a lane that can't find the correct design asks the coordinator for the host design instead of looping.
 
 **Done (G572, Jake):** no custom TypeScript left in `src/shards/pine-hollow/` and `src/shards/driftwood-isle/`, and the ruler reports nothing else against them. Legacy-only code waits for the legacy deletion.
+
+**Picks (G573):** the -legacy copies stay for debugging; G561 stays; WASM-HOST H0 runs on the Mac, Chromium and the Simulator now (Jake's phone run is optional input); build-time generators and generated stubs are the correct way, not custom runtime TypeScript.
