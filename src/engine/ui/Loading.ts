@@ -7,7 +7,7 @@ import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
-import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
+import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting } from '../boot/download';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
 import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
@@ -103,7 +103,7 @@ export class Loading {
     this.phase = this.scoped ? undefined : this.timeline.begin('modules');
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
-    if (!this.scoped) this.scope.onDispose(installDownloadAccounting(this.downloads));
+    this.scope.onDispose(this.scoped ? observeDownloadAccounting(this.downloads) : installDownloadAccounting(this.downloads));
     this.downloadObserver = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
       this.dirty = true;
@@ -264,7 +264,7 @@ export class Loading {
     setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
     const received = transfer.networkBytes + transfer.cachedBytes;
     const total = received + transfer.pendingBytes + transfer.unclassifiedBytes;
-    set(this.els.dlFact, `${formatMB(transfer.networkBytes)} network · ${formatMB(transfer.cachedBytes)} offline cache · ${formatMB(received)} of ${formatMB(total)} known total · ${transfer.filesDone} / ${transfer.filesTotal} files${transfer.unclassifiedBytes > 0 ? ` · ${formatMB(transfer.unclassifiedBytes)} source unknown` : ''}`);
+    set(this.els.dlFact, `${this.scoped ? 'Page activity during this load: ' : ''}${formatMB(transfer.networkBytes)} network · ${formatMB(transfer.cachedBytes)} offline cache · ${formatMB(received)} of ${formatMB(total)} known total · ${transfer.filesDone} / ${transfer.filesTotal} files${transfer.unclassifiedBytes > 0 ? ` · ${formatMB(transfer.unclassifiedBytes)} source unknown` : ''}`);
     return transfer.fraction;
   }
 
@@ -333,7 +333,7 @@ export class Loading {
 
   private paintWaiting(): void {
     if (this.view?.error || this.failedReason !== null) return;
-    const pending = bootWaits(), files = pending.filter(wait => wait.kind === 'file');
+    const pending = this.scoped ? [] : bootWaits(), files = pending.filter(wait => wait.kind === 'file');
     const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
     const timeline = this.timeline.snapshot(), transfer = this.downloads.snapshot();
     const current = timeline.rows.find(row => row.key === timeline.current);
@@ -343,7 +343,7 @@ export class Loading {
     setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');
     setData(this.root, 'filesInFlight', String(files.length));
-    const label = wait?.label ?? current?.label ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
+    const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
     const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label} · ${(wait.ageMs / 1000).toFixed(1)} s · ${files.length} files in flight${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
     set(this.els.foot, stalled ? `No reported progress for ${Math.floor(quietMs / 1000)} s · ${detail}` : detail);
   }

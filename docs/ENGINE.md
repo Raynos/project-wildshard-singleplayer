@@ -861,6 +861,13 @@ response bodies. Expected files remain pending
 until a network or cache receipt arrives; completion credits from legacy steps
 are not downloaded bytes.
 
+`observeDownloadAccounting(accounting)` adds a disposable page-activity observer
+without replacing the active boot attempt. Declarations, verified cache reads and
+worker receipts reach both; each observer keeps its own start time and receipt
+identity. Scoped `Loading` panels use this port, label their byte line as page
+activity during that load (including background downloads), and report their
+own running step instead of unrelated page-global `bootWaits()`.
+
 `waitFor(label, promise, kind?)` in `@wildshard/engine/boot/waits` observes an
 already-started promise and unregisters it on either outcome. `bootWaits()`
 returns live labels, kinds and monotonic ages. Product admission and file reads,

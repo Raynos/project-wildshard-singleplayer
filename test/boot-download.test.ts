@@ -1,10 +1,30 @@
 import { expect, it } from 'vitest';
-import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads } from '../src/engine/boot/download';
+import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads, observeDownloadAccounting, currentDownloadAccounting, declareDownloadFile, recordCachedDownload } from '../src/engine/boot/download';
 
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
   name: new URL(name, base).href, startTime: 1, transferSize: 1300, encodedBodySize: 1000,
   workerStart: 0, serverTiming: [], ...extra,
+});
+
+it('mid-play observation receives cache and worker activity without taking over the boot', () => {
+  const boot = new DownloadAccounting(base), cell = new DownloadAccounting(base, 10);
+  const stopBoot = installDownloadAccounting(boot), stopCell = observeDownloadAccounting(cell);
+  const worker = (startTime: number) => receiveWorkerDownloads({ type: 'WS_WORKER_DOWNLOAD', origin: 1000,
+    timings: [{ name: new URL('/cell.bin', base).href, startTime, responseEnd: startTime + 1, transferSize: 1300, encodedBodySize: 1000 }] }, 1000);
+  try {
+    expect(currentDownloadAccounting()).toBe(boot);
+    worker(1); worker(11);
+    declareDownloadFile('/cached.bin', 500); recordCachedDownload('cell-cache', 500, '/cached.bin');
+    expect(boot.snapshot()).toMatchObject({ networkBytes: 2600, cachedBytes: 500, pendingBytes: 0 });
+    expect(cell.snapshot()).toMatchObject({ networkBytes: 1300, cachedBytes: 500, pendingBytes: 0 });
+    stopBoot();
+    expect(currentDownloadAccounting()).toBeUndefined();
+    worker(20); recordCachedDownload('later-cache', 250);
+    expect(cell.snapshot()).toMatchObject({ networkBytes: 2600, cachedBytes: 750 });
+    stopCell(); worker(30); recordCachedDownload('closed-cache', 100);
+    expect(cell.snapshot()).toMatchObject({ networkBytes: 2600, cachedBytes: 750 });
+  } finally { stopCell(); stopBoot(); }
 });
 
 it('counts undeclared network requests and early modules once, separately from cache hits', () => {

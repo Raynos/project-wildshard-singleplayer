@@ -85,8 +85,13 @@ export class DownloadAccounting {
   }
 }
 let active: DownloadAccounting | undefined;
+const observers = new Set<DownloadAccounting>();
 let installed = false;
 const earlyWorker: DownloadTiming[] = [];
+function accountingTargets(visit: (accounting: DownloadAccounting) => void): void {
+  if (active !== undefined) visit(active);
+  for (const accounting of observers) if (accounting !== active) visit(accounting);
+}
 /** Validate worker transport batches before converting their monotonic clock to this page. */
 export function receiveWorkerDownloads(value: unknown, pageOrigin: number): void {
   if (typeof value !== 'object' || value === null || !('type' in value) || value.type !== 'WS_WORKER_DOWNLOAD'
@@ -103,8 +108,8 @@ function receiveWorkerTiming(timing: unknown, offset: number): void {
   const receipt: DownloadTiming = { name: timing.name, startTime: offset + timing.startTime,
     responseEnd: offset + timing.responseEnd, transferSize: timing.transferSize,
     encodedBodySize: timing.encodedBodySize, workerStart: 0, serverTiming: [], source: 'worker' };
-  if (active === undefined) { if (!installed) earlyWorker.push(receipt); }
-  else active.resource(receipt);
+  if (active === undefined && observers.size === 0) { if (!installed) earlyWorker.push(receipt); }
+  else accountingTargets(accounting => { accounting.resource(receipt); });
 }
 /** Explicitly install the active attempt, and restore only while this instance still owns the slot. */
 export function installDownloadAccounting(accounting: DownloadAccounting): () => void {
@@ -115,10 +120,17 @@ export function installDownloadAccounting(accounting: DownloadAccounting): () =>
 }
 export function currentDownloadAccounting(): DownloadAccounting | undefined { return active; }
 
+/** Observe page activity for a disposable mid-play panel without replacing the boot's accounting.
+ * The observer's own start time excludes previous completed Resource Timing receipts. */
+export function observeDownloadAccounting(accounting: DownloadAccounting): () => void {
+  observers.add(accounting);
+  return () => { observers.delete(accounting); };
+}
+
 /** Expected wire size for a file this path will read; product indexes supply exact sizes. */
-export function declareDownloadFile(url: string, bytes: number): void { currentDownloadAccounting()?.declare(url, bytes); }
+export function declareDownloadFile(url: string, bytes: number): void { accountingTargets(accounting => { accounting.declare(url, bytes); }); }
 /** Verified immutable cache reads stay separate from downloaded bytes. */
-export function recordCachedDownload(key: string, bytes: number, url?: string): void { currentDownloadAccounting()?.cached(key, bytes, url); }
+export function recordCachedDownload(key: string, bytes: number, url?: string): void { accountingTargets(accounting => { accounting.cached(key, bytes, url); }); }
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
-export function noteDownloadRead(bytes: number): void { currentDownloadAccounting()?.noteRead(bytes); }
+export function noteDownloadRead(bytes: number): void { accountingTargets(accounting => { accounting.noteRead(bytes); }); }
 
