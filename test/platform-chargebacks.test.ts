@@ -111,7 +111,7 @@ test('packed and product posed loaders charge Pine without charging shared draws
   const selected = spans.flatMap(span => span.lines.map(line => lines[line] ?? '')).join('\n');
   expect(reports).toEqual([]);
   expect(selected).toContain('static library(product:');
-  expect(selected).toContain('return { name: row.name, preload, draw, models };');
+  expect(selected).toContain('return { name: row.name, preload, draw, models, look: () => ({ name: row.name, geometry: ready().geometry, material: lentLook(row.name)');
   expect(selected).not.toMatch(/class PosedInstances|constructor\(|begin\(\):|commit\(\):/u);
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []]]);
   for (const span of spans) expect(recordPrivateCharge(charges, 'fixture', {path: posed, name: span.name, lines: span.lines.length})).toBe(true);
