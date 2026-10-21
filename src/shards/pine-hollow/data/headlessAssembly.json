@@ -10,7 +10,6 @@
     "@wildshard/game/plugin/simulation": ["bindNativeLoadout", "weaponRow"],
     "@wildshard/game/plugin/director": ["readDirectorProduct"],
     "@wildshard/game/quest/nativeStory": ["installNativeStory"],
-    "@wildshard/format/contracts": ["parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
     "@wildshard/format/lootEconomy": ["parseBarterEconomy"],
     "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
@@ -198,33 +197,7 @@
         "$ref": ["barter", "exchange"]
       }
     },
-    {
-      "name": "contractsJson",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["assembly", "json"]
-          },
-          {
-            "$ref": ["product"]
-          },
-          "quests/contracts.json"
-        ]
-      }
-    },
-    {
-      "name": "contracts",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["@wildshard/format/contracts", "parseContractCatalogue"]
-          },
-          {
-            "$ref": ["contractsJson"]
-          }
-        ]
-      }
-    },
+    {"name":"contracts","value":{"$call":[{"$ref":["product","json"]},"quests/contracts.json"]}},
     {"name":"content","value":{"$call":[{"$ref":["product","section"]},"custom/questRuntime"]}},
     {
       "name": "director",

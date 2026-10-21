@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest';
 import { output as pine } from '../src/shards/pine-hollow/generators/output';
 import { output as driftwood } from '../src/shards/driftwood-isle/generators/output';
+import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
@@ -18,3 +20,18 @@ for (const [name, output] of [['pine', pine], ['driftwood', driftwood]] as const
     }
   });
 }
+
+test('Pine admits board placement, store and panel declarations in their existing documents', () => {
+  const documents = [
+    { name: 'quests/forest-story.json', bad: { ...FOREST_STORY, board: { ...FOREST_STORY.board, radius: 0 } } },
+    { name: 'quests/forest-story.json', bad: { ...FOREST_STORY, store: { ...FOREST_STORY.store, slot: '' } } },
+    { name: 'quests/panels.json', bad: { ...PINE_PANELS, board: { ...PINE_PANELS.board, lifetime: 'forever' } } },
+  ];
+  for (const { name, bad } of documents) {
+    const file = pine.namedFiles.find(row => row.name === name);
+    const bytes = file === undefined ? undefined : pine.assets.get(file.hash);
+    if (file === undefined || bytes === undefined || file.jsonSchema === undefined) throw new Error(`Missing board document admission: ${name}`);
+    expect(validateNamedJsonSchema(file.jsonSchema, bytes)).toEqual(JSON.parse(new TextDecoder().decode(bytes)));
+    expect(() => validateNamedJsonSchema(file.jsonSchema, encode(bad))).toThrow('refuses its schema');
+  }
+});

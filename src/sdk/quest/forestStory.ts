@@ -2,7 +2,7 @@ import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
 import { prepareQuestEntry } from '@wildshard/game/quest/chapter';
 import { installQuestShop } from '@wildshard/game/quest/trader';
-import { parseContractCatalogue } from '@wildshard/format/contracts';
+import type { ContractCatalogue } from '@wildshard/format/contracts';
 import { MoverRuntime } from '@wildshard/game/plugin/mover';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { perfLap } from '@wildshard/engine/core/perfLap';
@@ -37,7 +37,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const native = ctx.product.section<ForestStoryContent>(rows.content);
 
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
-  const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.contracts))));
+  const contracts = await ctx.product.json<ContractCatalogue>(rows.files.contracts);
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.signals))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.door))));
   const { game, sky, player } = enteredWorld, { hud, inventory } = play;

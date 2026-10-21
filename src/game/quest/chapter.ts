@@ -19,6 +19,7 @@ import { parseQuestStory, parseChapterStoryPresentation } from '@wildshard/forma
 import { FigureRows } from '../systems/npc/figureRows';
 import { NpcDialogueRowSchema, bindQuestDeathEffects } from '../plugin/quests';
 import { installContractBoardPage, type ContractBoardPage } from './contractBoardPage';
+import type { ContractBoardPageRows } from '@wildshard/format/contracts';
 import { ReturnProgram } from '../population/returnProgram';
 import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from './chapterBindings';
 import { commitQuestEffects, readQuestServiceActions } from './effects';
@@ -140,7 +141,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   deaths: (input: unknown) => void;
   cable: (input: unknown) => Promise<QuestCableView>;
   trader: (input: unknown) => QuestTrader;
-  board: (input: unknown) => ContractBoardPage;
+  board: (input: ContractBoardPageRows) => ContractBoardPage;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller

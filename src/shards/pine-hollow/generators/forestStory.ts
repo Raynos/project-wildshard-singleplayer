@@ -14,6 +14,9 @@ import sky from '../data/sky.json' with { type: 'json' };
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
 import { BEATS, beatFlags, type Beat } from './questBeats';
 import { QuestPageTalksSchema } from '@wildshard/format/npcs';
+import { ContractBoardPageSchema, parseContractBoardPage } from '@wildshard/format/contracts';
+import { PINE_PANELS } from './panels';
+import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 
 const triple = (input: unknown): [number, number, number] => v.parse(v.tuple([v.number(), v.number(), v.number()]), input);
 const landmarks = timbers.landmarks, board = landmarks.contractBoardSite;
@@ -38,9 +41,11 @@ const finishToasts = Object.fromEntries([...new Set([...contracts.rows.flatMap(r
   const row = finishes[id]; if (row === undefined) throw new Error('Missing board finish');
   return [id, `${row.name} ${row.weapon} finish — ${row.blurb}`];
 }));
+const boardRows = { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } };
+parseContractBoardPage({ contracts, panel: PINE_PANELS.board, store: policy.store, ...boardRows });
 export const FOREST_STORY: ForestStoryRows = {
   ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime',
-  board: { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } },
+  board: boardRows,
   door: { id: `cabin-${mill.index + 1}-door`, flag: policy.door.flag },
   signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2, lantern: { id: `waystone.${id}`, when: [`lit:${id}`, wardens.QUEST_DONE] } })),
   cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: [zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]],
@@ -49,4 +54,6 @@ export const FOREST_STORY: ForestStoryRows = {
   secret: { ...scenes.sites.hollow, mid: triple(scenes.sites.hollow.mid), mouths: scenes.sites.hollow.mouths.map(triple), scene: 'quests.hollow-log', flag: 'secret:log', text: 'Inside the fallen giant. It smells of rain and old resin' },
   map: { pois: layout.PINE_HOLLOW_POIS, zones: layout.PINE_HOLLOW_ZONES.filter(zone => !placeNames.has(zone.label)) }, jumps,
 };
-export const FOREST_STORY_BLOB = nameBlob('quests/forest-story.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_STORY)));
+export const FOREST_STORY_BLOB = nameBlob('quests/forest-story.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_STORY)), { jsonSchema: namedJsonSchema(v.object({
+  board: v.omit(ContractBoardPageSchema, ['contracts', 'panel', 'store']), store: ContractBoardPageSchema.entries.store,
+})) });

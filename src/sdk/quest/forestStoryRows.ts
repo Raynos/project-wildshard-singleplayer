@@ -3,6 +3,7 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
 import type { MoverRuntime, MoverInstallation } from '@wildshard/game/plugin/mover';
 import type { QuestPageTalksRows } from '@wildshard/format/npcs';
+import type { ContractBoardPageRows } from '@wildshard/format/contracts';
 
 interface Point { x: number; z: number }
 type Triple = [number, number, number];
@@ -25,9 +26,7 @@ export interface ForestStoryRows {
   readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
   readonly wheel: { readonly flag: string; readonly speed: number };
   readonly door: { readonly id: string; readonly flag: string };
-  readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string; readonly finishes: Readonly<Record<string, string>>;
-    readonly height: number; readonly radius: number; readonly ammunition: { readonly loadout: string; readonly kind: string };
-    readonly notices: { readonly claimed: string; readonly filled: string; readonly progress: string } };
+  readonly board: Omit<ContractBoardPageRows, 'contracts' | 'panel' | 'store'>;
   readonly cable: { readonly id: string; readonly scene: string; readonly trolley: string; readonly prompt: Triple; readonly radius: number; readonly label: string;
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string; readonly audio: string; readonly shot: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */
