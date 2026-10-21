@@ -15,7 +15,7 @@ import { parseQuestStory } from '../src/format/questStory';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { Progress } from '../src/game/Progress';
 import { progressSave } from '../src/game/saves';
-import { bindStoryAchievements, readQuestStory } from '../src/game/quest/story';
+import { bindStoryAchievements } from '../src/game/quest/story';
 import { questBenchPose } from '../src/game/quest/storyLaw';
 import { PAGE_STORY as driftStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
@@ -39,7 +39,7 @@ test('DW imports old Progress counts, reloads ledger counts and pays each identi
   let view: Parameters<Progress['bindLedger']>[0] | undefined;
   const progress = { rows: [{ def: { id: 'crab10' }, count: 4 }], refreshLedger: () => { refreshed.push('refresh'); }, bindLedger: (value: NonNullable<typeof view>) => { view = value; } };
   try {
-    const story = await readQuestStory({ product: p });
+    const story = parseQuestStory(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await p.file('quests/story.json'))));
     const bound = await bindStoryAchievements({ app, scope, product: p }, story, progress, instance);
     expect(view?.count('crab10')).toBe(4); expect(refreshed).toHaveLength(4);
     bound.kill('crab'); expect(view?.count('crab10')).toBe(5);
@@ -78,7 +78,8 @@ test('story flag effects keep sync-before-notice order, filtering and entry disp
   const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
   const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(drift.identity.slug) }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, p);
   Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry() }, play: { hud: { toast: (text: string) => { events.push(text); } } } } });
-  const entry = await prepareQuestEntry(ctx, story, { services: 'quests/services.json', placement: {} }), flags = entry.flags;
+  const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} }), flags = entry.flags;
+  expect(entry.story).toEqual(story);
   flags.reset();
   expect(() => entry.observe()).toThrow('entered achievements');
   const request = entry.achievements(); expect(entry.achievements()).toBe(request);
@@ -104,7 +105,7 @@ test('page and native seats retain the original two floor laws, yaw, pitch and v
     Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), player, game: { scene: new Scene() }, sky: { setupMaterial: () => undefined, csm: { lightDirection: new Vector3() } } }, interactables: [],
       play: { hud: { toast: (text: string) => { toasts.push(text); } }, audio: { voices: { play: () => undefined } } } } });
     try {
-      const entry = await prepareQuestEntry(ctx, story, { services: 'quests/services.json', placement: { platforms: true } });
+      const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: { platforms: true } });
       expect(() => entry.bench()).toThrow('entered interaction table');
       const kit = await entry.interact({ table: { rows: [], external: [] }, platforms: true }, { id: 'seat.kit', before: [] });
       entry.bench(); kit.onSit?.(at, yaw);
@@ -118,4 +119,18 @@ test('page and native seats retain the original two floor laws, yaw, pitch and v
     } finally { scope.dispose(); }
   }
   expect(() => questBenchPose(driftStory.bench, at, yaw)).toThrow('floor');
+});
+
+test('an entry that leaves during named story admission never installs saved flags or services', async () => {
+  const scope = new Scope('story-admission'), host = new App(), p = product(drift, driftStory, DRIFTWOOD_FEAT_COUNTERS);
+  const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(drift.identity.slug) }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, p);
+  Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry() } } });
+  const read = p.file.bind(p);
+  let release = (): void => { throw new Error('Story admission did not wait'); };
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  vi.spyOn(p, 'file').mockImplementation(async name => { await gate; return read(name); });
+  const pending = prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
+  const refused = expect(pending).rejects.toThrow('left during story admission');
+  scope.dispose(); release(); await refused;
 });

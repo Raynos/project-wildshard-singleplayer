@@ -1,7 +1,7 @@
 import { findBoundQuestState, publishQuestFacts } from './boundState';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
-import { parseQuestStory, parseChapterStoryPresentation, type ChapterStoryPresentation, type QuestStory } from '@wildshard/format/questStory';
+import { parseChapterStoryPresentation, type ChapterStoryPresentation, type QuestStory } from '@wildshard/format/questStory';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -127,10 +127,6 @@ export function presentChapterStory(line: QuestLine, input: ChapterStoryPresenta
 const countsSchema = v.record(v.string(), v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0)));
 type StoryContext = Pick<ShardContext, 'app' | 'scope' | 'product'>;
 type JournalProgress = Partial<Pick<Progress, 'bindLedger' | 'refreshLedger'>> & { readonly rows?: readonly { readonly def: { readonly id: string }; readonly count: number }[] };
-/** Read immutable story rows before borrowing any quest or saved owner. */
-export async function readQuestStory(ctx: Pick<ShardContext, 'product'>): Promise<QuestStory> {
-  return parseQuestStory(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('quests/story.json'))));
-}
 /** The existing journal and ledger keep their saves; rows select the original migration and refresh boundaries. */
 export async function bindStoryAchievements(ctx: StoryContext, story: QuestStory, progress: JournalProgress | undefined,
   instance = ctx.product.shardfile.identity.slug): Promise<{ facts: RuntimeFacts; count: (id: string, total: number) => void; kill: (kind: string, variant?: string) => void; event: (name: string, total?: number) => void; syncFlags: (flags: Parameters<ReturnType<typeof createAchievementCounters>['syncFlags']>[0]) => void }> {

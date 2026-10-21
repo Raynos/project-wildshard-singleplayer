@@ -21,7 +21,7 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { bindQuestDeathEffects } from '../plugin/quests';
 import { prepareQuestEntry, ownQuestTree, type QuestChapter } from './chapter';
-import { readQuestStory, installStoryTalks } from './story';
+import { installStoryTalks } from './story';
 import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
@@ -58,12 +58,11 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   const onDeath = (run: (animal: Animal) => void, order: number): void => { ctx.on('actor.died', ({ actor }) => {
     const animal = h.animals.animals.find(a => a.combatActor() === actor); if (animal !== undefined) run(animal);
   }, { order }); };
-  const story = await readQuestStory(ctx);
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.discovery))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
-  const entry = await prepareQuestEntry(ctx, story, { services: rows.files.services,
+  const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services,
     placement: { world: rows.world, frames: rows.frames, platforms: true } });
-  const { flags, services, floorAt, place, setAnchor, anchors } = entry;
+  const { story, flags, services, floorAt, place, setAnchor, anchors } = entry;
 
   const assembly = await ctx.product.json<{ constants: { interact: InteractTable; interactSpots: unknown } }>(rows.files.assembly);
   const kit = await entry.interact({ table: assembly.constants.interact, placements: assembly.constants.interactSpots, platforms: true },

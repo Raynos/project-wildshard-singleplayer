@@ -102,11 +102,13 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
  * binds progression. Both stages take data and preserve the original owners. */
-export async function prepareQuestEntry(ctx: ShardContext, storyInput: unknown, input: unknown): Promise<QuestEntry> {
+export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Promise<QuestEntry> {
   if (!isJsonData(input)) throw new Error('Quest entry requires plain JSON rows');
-  const rows = v.parse(v.strictObject({ services: entryId, placement: entryPlacement }), input), story = parseQuestStory(storyInput);
+  const rows = v.parse(v.strictObject({ story: entryId, services: entryId, placement: entryPlacement }), input);
   const world = ctx.game.runtime?.world;
-  if (world === undefined || world === null || ctx.scope.disposed) throw new Error('Quest entry requires its entered world');
+  if (world === undefined || world === null) throw new Error('Quest entry requires its entered world');
+  const story = parseQuestStory(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.story))));
+  if (ctx.scope.disposed) throw new Error('Quest entry left during story admission');
   const policy = rows.placement;
   const placement = createQuestPlacements({ terrain: terrainHeight, registry: world.registry,
     ...(policy.world === undefined ? {} : { pois: questPageWorld(ctx.scope, policy.world).pois }),

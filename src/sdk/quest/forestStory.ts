@@ -33,7 +33,7 @@ import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
-import { readQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
+import { installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
@@ -57,7 +57,6 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const panels = await readDataPanels(h.ctx.product);
   const boardPanel = panels[rows.panels.board], countPanel = panels[rows.panels.count];
   if (boardPanel === undefined || countPanel === undefined) throw new Error('Story requires its named quest panels');
-  const story = await readQuestStory(h.ctx);
   const native = h.ctx.product.section<ForestStoryContent>(rows.content);
 
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.stall)));
@@ -72,8 +71,8 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   if (ctx.scope.disposed) throw new Error('Story left during model admission');
   const { game, sky, player, animals, hud, inventory } = h;
   const figureScenes = new SceneHandles(sky);
-  const entry = await prepareQuestEntry(ctx, story, { services: rows.files.services, placement: { registryReach: 20 } });
-  const { flags, services: serviceActions, floorAt } = entry;
+  const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services, placement: { registryReach: 20 } });
+  const { story, flags, services: serviceActions, floorAt } = entry;
   const featFacts = await entry.achievements(), facts = featFacts.facts;
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
