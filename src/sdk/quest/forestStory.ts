@@ -7,7 +7,7 @@ import { MoverRuntime } from '@wildshard/game/plugin/mover';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import { test } from '@wildshard/engine/world/interact/flags';
+import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -15,7 +15,7 @@ import type { ItemId } from '@wildshard/game/Inventory';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeQuest } from '@wildshard/game/shardfile/hybridRows';
 import * as THREE from 'three';
-import type { ForestStoryRows, ForestStoryContent, ForestStory } from './forestStoryRows';
+import type { ForestStoryRows, ForestStoryContent } from './forestStoryRows';
 import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
@@ -26,7 +26,7 @@ import { QuestViews, bindQuestPageInteractions } from '@wildshard/game/plugin/ui
 const _v = new THREE.Vector3();
 /** Client-only story composition over native page owners. Rows supply every
  * content identity; custom world drawing consumes the returned observations. */
-export async function installForestStory(ctx: ShardContext, rows: ForestStoryRows): Promise<ForestStory> {
+export async function installForestStory(ctx: ShardContext, rows: ForestStoryRows): Promise<Flags> {
   if (!isJsonData(rows)) throw new Error('Forest story requires JSON rows');
   const source = ctx.product.shardfile, floor = forestPage(ctx.scope, rows.page), equipment = rangedPage(ctx.scope, rows.ranged);
   const runtime = ctx.game.runtime, enteredWorld = runtime?.world, play = runtime?.play;
@@ -105,23 +105,14 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   boardPage.observe();
 
   const cableId = rows.cable.id;
-  let zip: { trolley: THREE.Mesh; prompt: ReturnType<typeof cables.bindView> };
-  let updateCable: (dt: number) => void;
-  let canoe: { group: THREE.Mesh };
-  let motion: MoverRuntime;
-  {
-    const cable = await entry.cable({ mode: cableId, carriage: rows.cable.trolley, scene: { kind: 'object', id: rows.cable.scene },
-      prompt: { x: rows.cable.prompt[0], y: rows.cable.prompt[1], z: rows.cable.prompt[2] }, radius: rows.cable.radius, label: rows.cable.label, camera: true,
-      feedback: { weapons: 'enabled', start: { sound: 'lever', at: { x: rows.cable.launch[0], y: rows.cable.launch[1], z: rows.cable.launch[2] } },
-        end: { sound: 'plate', at: { x: rows.cable.landing[0], y: rows.cable.landing[1], z: rows.cable.landing[2] } }, arrival: rows.cable.arrival,
-        shot: { audio: rows.cable.audio, family: rows.cable.shot, at: { x: rows.cable.top[0], y: rows.cable.top[1], z: rows.cable.top[2] } } } });
-    updateCable = cable.update;
-    zip = { trolley: cable.trolley, prompt: cable.prompt };
-    const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
-    canoe = { group: floor.resources.mesh(rows.mover.mesh) };
-    motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.mover.binding, { canoe }, { flags, prompts: runtime.interactables });
-  }
-
+  const zip = await entry.cable({ mode: cableId, carriage: rows.cable.trolley, scene: { kind: 'object', id: rows.cable.scene },
+    prompt: { x: rows.cable.prompt[0], y: rows.cable.prompt[1], z: rows.cable.prompt[2] }, radius: rows.cable.radius, label: rows.cable.label, camera: true,
+    feedback: { weapons: 'enabled', start: { sound: 'lever', at: { x: rows.cable.launch[0], y: rows.cable.launch[1], z: rows.cable.launch[2] } },
+      end: { sound: 'plate', at: { x: rows.cable.landing[0], y: rows.cable.landing[1], z: rows.cable.landing[2] } }, arrival: rows.cable.arrival,
+      shot: { audio: rows.cable.audio, family: rows.cable.shot, at: { x: rows.cable.top[0], y: rows.cable.top[1], z: rows.cable.top[2] } } } });
+  const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
+  const canoe = { group: floor.resources.mesh(rows.mover.mesh) };
+  const motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.mover.binding, { canoe }, { flags, prompts: runtime.interactables });
   let hollow: { floorY: number; mid: THREE.Vector3; mouths: THREE.Vector3[] } | null = null;
   void floor.cabins.resources.place(rows.secret.scene).then(() => {
     const site = rows.secret;
@@ -162,7 +153,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
     talks.update(dt, t, pp);
-    updateCable(dt);
+    zip.update(dt);
     for (const event of motion.takeRideTransitions(rows.mover.id)) {
       play.weapons.visible = !event.riding; play.weapons.setEnabled(!event.riding);
       const rest = floor.cabins.resources.object(rows.mover.rest);
@@ -226,5 +217,5 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     objective.root.remove(); clock.caption.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); trade().root.remove(); chip().root.remove(); });
   });
-  return { flags, stag, thralls, motion };
+  return flags;
 }

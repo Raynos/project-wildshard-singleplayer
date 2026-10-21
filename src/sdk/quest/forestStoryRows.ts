@@ -1,7 +1,5 @@
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
-import type { Flags } from '@wildshard/engine/world/interact/flags';
-import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
-import type { MoverRuntime, MoverInstallation } from '@wildshard/game/plugin/mover';
+import type { MoverInstallation } from '@wildshard/game/plugin/mover';
 import type { QuestPageTalksRows } from '@wildshard/format/npcs';
 import type { ContractBoardPageRows } from '@wildshard/format/contracts';
 
@@ -36,10 +34,4 @@ export interface ForestStoryRows {
     readonly zones: readonly { label: string; x: number; z: number; size?: number; rot?: number }[] };
   readonly jumps: Readonly<Record<string, Point & { readonly flags: string[]; readonly look: Point; readonly height?: Point & { up: number }; readonly phase?: number }>>;
   readonly debug: { readonly id: string; readonly browser: string };
-}
-/** Custom rendering reads observations; platform scheduling invokes no shard view. */
-export interface ForestStory {
-  readonly flags: Flags; readonly stag: ReturnType<typeof installChapterLead>;
-  readonly thralls: Awaited<ReturnType<typeof installQuestSpawnDirector>>;
-  readonly motion: MoverRuntime | null;
 }
