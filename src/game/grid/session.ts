@@ -20,10 +20,11 @@
  * - **legacy bounds yield** (SF17a): the session asks the level to leave out its chunk-edge walls and hide the edge
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
+import { platformInputs } from './platformInputs';
 import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } from 'three';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
-import { CHUNK_HALF, CONTENT_CAPS, ENTRY_WIDTH } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -87,6 +88,8 @@ import { installPlotCells, openPlotColliders, type PlotCellState } from './openP
 import type { MemoryAdmissionWarning } from '@wildshard/format/product';
 import { TIER } from '@wildshard/engine/core/tier';
 import { horizonFade } from './horizonFade';
+
+declare const __GRID_SEAM_PLANS__: readonly (readonly [string, readonly number[][]])[];
 
 declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
 
@@ -335,9 +338,10 @@ export class GridSession {
     const construction = workSlice(30, host.scope);
     let batches = 0;
     progress?.set(1, 3, 'Terrain seams · 0 batches');
+    const seamPlans = new Map(__GRID_SEAM_PLANS__);
     const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
       progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
-    }));
+    }, 12, seamPlans));
     batches = 0; progress?.set(2, 3, `Road geometry · 0 batches · ${strips.length} seams`);
     const instance = pageGridInstance();
     if (instance === null) throw new Error('A grid session needs a grid page');
@@ -746,18 +750,6 @@ export class GridSession {
   }
 }
 
-/** The platform's cells: the shards' real edge rows and observations (loaded once by `create`, before this one generation),
- *  each cell at road level as the fallback, and G198's open plots (road-level ground with an open entry on all four sides,
- *  its showroom facing each one). */
-function platformInputs(assembly: GridAssembly, edges: readonly PlatformCell[] | undefined): { readonly cells: readonly PlatformCell[]; readonly flat: readonly PlatformCell[]; readonly empty: StripProfile } {
-  const empty = assembly.emptyNeighbour.edge;
-  const flat = assembly.cells.map((cell): PlatformCell => ({ instance: cell.instance, cell: cell.cell, origin: { x: cell.origin.x, z: cell.origin.z },
-    edges: { north: empty, east: empty, south: empty, west: empty } }));
-  const entry = { entryWidth: ENTRY_WIDTH, geometry: 'ground' } as const;
-  const plots = assembly.plots.map((plot): PlatformCell => ({ instance: plot.instance, cell: plot.cell, origin: { x: plot.origin.x, z: plot.origin.z },
-    edges: { north: empty, east: empty, south: empty, west: empty }, observations: { north: entry, east: entry, south: entry, west: entry } }));
-  return { cells: [...(edges ?? flat), ...plots], flat: [...flat, ...plots], empty };
-}
 /** Generate the platform; a platform the generator refuses (an edge past the cliff envelope, an entry off road height)
  *  falls back to road-level edges. A disposed page stops between slices and builds nothing more. */
 async function platformStrips(assembly: GridAssembly, edges: readonly PlatformCell[] | undefined,

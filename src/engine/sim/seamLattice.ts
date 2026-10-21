@@ -48,10 +48,20 @@ function fits(field: Field, start: number, end: number, firstColumn: number, las
 }
 
 
+/** Build-produced retained rows, keyed by the complete seam inputs; never shared between generations. */
+export interface SeamLatticePlans { readonly key: string; readonly rows: Map<string, readonly number[][]> }
+
 /** The same ordered certification, yielding between bounded subdivision and vertex-removal checks. */
-export function* seamLatticeSteps(field: Field): Generator<void, readonly number[][]> {
+export function* seamLatticeSteps(field: Field, plans?: SeamLatticePlans): Generator<void, readonly number[][]> {
   const rows = field.along.length;
   if (rows < 2 || field.columns < 4 || field.positions.length !== rows * field.columns * 3 || field.colours.length !== field.positions.length) throw new RangeError('Invalid seam floor lattice');
+  const baked = plans?.rows.get(plans.key);
+  if (baked !== undefined) {
+    if (baked.length !== field.columns || baked.some((column, c) => column[0] !== 0 || column.at(-1) !== rows - 1
+      || column.some((row, i) => !Number.isInteger(row) || row < 0 || row >= rows || (i > 0 && row <= (column[i - 1] ?? -1)))
+      || ((c === 0 || c === field.columns - 1) && column.length !== rows))) throw new RangeError('Invalid baked seam lattice');
+    return baked;
+  }
   const dense = [0];
   for (const at of field.along) dense.push((dense.at(-1) ?? 0) + (Math.abs(at) <= 2 ? 1 : 0));
   function* plan(firstColumn: number, lastColumn: number): Generator<void, number[]> {
@@ -112,5 +122,6 @@ export function* seamLatticeSteps(field: Field): Generator<void, readonly number
       if (status.good) { kept = output[column] ?? kept; } else { output[column] = kept; i++; }
     }
   }
+  plans?.rows.set(plans.key, output);
   return output;
 }

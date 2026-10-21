@@ -37,8 +37,8 @@ export function generateCrossroads(input: { id: string; origin: { x: number; z: 
 }
 
 /** Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter. */
-export function generatePlatform(cells: readonly PlatformCell[], empty: StripProfile): readonly GeneratedStrip[] {
-  const steps = platformSteps(cells, empty);
+export function generatePlatform(cells: readonly PlatformCell[], empty: StripProfile, plans?: Map<string, readonly number[][]>): readonly GeneratedStrip[] {
+  const steps = platformSteps(cells, empty, plans);
   for (;;) { const next = steps.next(); if (next.done === true) return next.value; }
 }
 
@@ -47,8 +47,8 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
  * slice of strip generation has run `budgetMs`, so a page building its platform during a load keeps painting instead of
  * freezing for the whole generation. Native seam certification yields within a strip; output is published only when complete.
  */
-export async function generatePlatformSliced(cells: readonly PlatformCell[], empty: StripProfile, pause: () => Promise<void>, budgetMs = 12): Promise<readonly GeneratedStrip[]> {
-  const steps = platformSteps(cells, empty);
+export async function generatePlatformSliced(cells: readonly PlatformCell[], empty: StripProfile, pause: () => Promise<void>, budgetMs = 12, plans?: Map<string, readonly number[][]>): Promise<readonly GeneratedStrip[]> {
+  const steps = platformSteps(cells, empty, plans);
   let since = diagnosticNow();
   for (;;) {
     const next = steps.next(); if (next.done === true) return next.value;
@@ -57,7 +57,7 @@ export async function generatePlatformSliced(cells: readonly PlatformCell[], emp
 }
 
 /** Shared ordered construction: partial seam certification remains private until each strip is complete. */
-function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Generator<void, readonly GeneratedStrip[]> {
+function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, plans?: Map<string, readonly number[][]>): Generator<void, readonly GeneratedStrip[]> {
   validateEdgeProfile(empty);
   if (cells.length === 0 || cells.length > GRID_CELL_COUNT || new Set(cells.map((c) => c.instance)).size !== cells.length
     || new Set(cells.map((c) => c.cell.join(','))).size !== cells.length
@@ -70,7 +70,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Ge
   const result: GeneratedStrip[] = [];
   // Equal immutable content has equal local mesh bytes. Reuse the certification
   // within this generation, while each segment keeps its own placement and
-  // regional duplicates. Never keep a cache across calls or input revisions.
+  // regional duplicates. Optional build plans name every input byte; unlisted shapes are certified here.
   // Preserve signed zero: a JSON numeric key alone would conflate distinct bytes.
   const exactKey = (value: unknown): string => JSON.stringify(value, (_key: string, item: unknown) => typeof item === 'number' && Object.is(item, -0) ? '-0' : item);
   const profiles = new WeakMap<StripProfile, string>(), shapes = new Map<string, GeneratedStrip>();
@@ -86,7 +86,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Ge
       input.profiles.forEach(validateEdgeProfile);
       const edges = input.profiles.map((profile, i): SeamEdge => ({ profile, ...(input.observations?.[i] ?? { entryWidth: 0 }) }));
       const low = edges[0], high = edges[1]; if (low === undefined || high === undefined) throw new Error('Missing platform edge');
-      const generated = yield* seamGeometrySteps({ ...input, edges: [low, high] });
+      const generated = yield* seamGeometrySteps({ ...input, edges: [low, high] }, plans === undefined ? undefined : { key, rows: plans });
       shape = place(input.id, generated.mesh, input.adjacent, generated.features, generated.turnIn); shapes.set(key, shape);
     }
     return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features, shape.turnIn);
@@ -95,7 +95,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Ge
     const key = exactKey(['cross', input.corners]);
     let shape = shapes.get(key);
     if (shape === undefined) {
-      const generated = yield* cornerSeamGeometrySteps(input);
+      const generated = yield* cornerSeamGeometrySteps(input, plans === undefined ? undefined : { key, rows: plans });
       shape = place(input.id, generated.mesh, input.adjacent, generated.features); shapes.set(key, shape);
     }
     return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features);

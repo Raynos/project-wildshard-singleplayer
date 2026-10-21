@@ -1,5 +1,5 @@
 import { edgeSample, edgeSampleLocations } from './edgeProfiles';
-import { seamLatticeSteps } from './seamLattice';
+import { seamLatticeSteps, type SeamLatticePlans } from './seamLattice';
 import { SHORE_DEPTH, SHORE_REVETMENT_INNER_FACE } from './shore';
 import type { StripCorner, StripMesh, StripProfile } from './strips';
 
@@ -100,7 +100,7 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
 }
 
 /** Ordered seam construction with paint opportunities inside its native lattice certification. */
-export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 'x' | 'z'; readonly origin: { readonly x: number; readonly z: number }; readonly edges: readonly [SeamEdge, SeamEdge] }): Generator<void, SeamGeometry> {
+export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 'x' | 'z'; readonly origin: { readonly x: number; readonly z: number }; readonly edges: readonly [SeamEdge, SeamEdge] }, plans?: SeamLatticePlans): Generator<void, SeamGeometry> {
   input.edges.forEach(validateEdge);
   const native = edgeSampleLocations(input.edges.map((edge) => edge.profile));
   const along = [...new Set([...native, 0, ...input.edges.flatMap((edge) => [-edge.entryWidth / 2, edge.entryWidth / 2]), ...input.edges.flatMap((edge) => edge.outflows?.flatMap((row) => [row.from, row.to]) ?? [])])].sort((a, b) => a - b);
@@ -110,7 +110,7 @@ export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 
     const edge = input.edges[u < 0 ? 0 : 1], sample = edgeSample(edge.profile, v), weight = blend(u);
     writer.vertex(u, weight === 0 ? 0 : edgeFloor(edge, sample.height) * weight, v, neutral.map((c, channel) => c + ((sample.colour[channel] ?? c) - c) * weight));
   }
-  const retained = yield* seamLatticeSteps({ positions: writer.positions, colours: writer.colours, columns: count, along });
+  const retained = yield* seamLatticeSteps({ positions: writer.positions, colours: writer.colours, columns: count, along }, plans);
   const columns = Array.from({ length: count }, (_, col) => col);
   for (let band = 1; band < columns.length; band++) {
     const col = columns[band], previous = columns[band - 1];
@@ -286,7 +286,7 @@ export function cornerSeamGeometry(input: { readonly id: string; readonly origin
 }
 
 /** Ordered seam construction with paint opportunities inside its native lattice certification. */
-export function* cornerSeamGeometrySteps(input: { readonly id: string; readonly origin: { readonly x: number; readonly z: number }; readonly corners: readonly [StripCorner, StripCorner, StripCorner, StripCorner] }): Generator<void, { readonly mesh: StripMesh; readonly features: readonly SeamFeature[] }> {
+export function* cornerSeamGeometrySteps(input: { readonly id: string; readonly origin: { readonly x: number; readonly z: number }; readonly corners: readonly [StripCorner, StripCorner, StripCorner, StripCorner] }, plans?: SeamLatticePlans): Generator<void, { readonly mesh: StripMesh; readonly features: readonly SeamFeature[] }> {
   if (input.corners.some((c) => !Number.isFinite(c.height) || Math.abs(c.height) > 250 || c.colour.some((n) => !Number.isFinite(n) || n < 0 || n > 1))) throw new RangeError('Invalid seam corner');
   const writer = new MeshWriter('x'), count = SEAM_OFFSETS.length;
   for (const z of SEAM_OFFSETS) for (const x of SEAM_OFFSETS) {
@@ -295,7 +295,7 @@ export function* cornerSeamGeometrySteps(input: { readonly id: string; readonly 
     const weight = blend(x) * blend(z);
     writer.vertex(x, weight === 0 ? 0 : cornerFloor(corner) * weight, z, neutral.map((c, i) => c + ((corner.colour[i] ?? c) - c) * weight));
   }
-  const retained = yield* seamLatticeSteps({ positions: writer.positions, colours: writer.colours, columns: count, along: SEAM_OFFSETS, corner: true });
+  const retained = yield* seamLatticeSteps({ positions: writer.positions, colours: writer.colours, columns: count, along: SEAM_OFFSETS, corner: true }, plans);
   for (let col = 1; col < count; col++) {
     const left = retained[col - 1], right = retained[col];
     if (left === undefined || right === undefined) throw new Error('Missing corner column');
