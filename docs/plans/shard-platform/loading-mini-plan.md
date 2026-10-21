@@ -29,10 +29,10 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code | Effort (est.) |
 |---|---|---|---|
 | **O1 — done `02fb4e4288`, `8f220455e8`, `94bf308bc1`** | Grid edges read from each neighbour's product index only, not the whole product (today 3,237 requests, 137.5 MB, 75.7 s) | `grid/edgeSources.ts:73-86`, `grid/products.ts:42-60`, `grid/session.ts:305-322` | 0.5 day |
-| **O2 — accepted `de6833b8b7`; receipts `9fd203d409`; Chromium cache-pressure residual documented; carrier pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
+| **O2 — accepted `de6833b8b7`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3 — done; accepted `32cde80543`, receipts `fd69ae2b29`, pushed** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
-| **O4 — accepted `de6833b8b7`; source `0f63b7b167`; receipts `9fd203d409`; Chromium cache-pressure residual documented; carrier pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
-| **O5 — pulled forward: `b2e4c86d92`; desktop AO repair `32cde80543` first frames green; native warm/full acceptance pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
+| **O4 — accepted `de6833b8b7`; source `0f63b7b167`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
+| **O5 — `b2e4c86d92`, AO repair `32cde80543`; current shader CPU mapped `30213acf49`; final target open** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6 — source `48d648401a`, `be7b843f6e`; final served proof pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
@@ -451,3 +451,25 @@ the recorded first frame without extending any measurement window.
 The next O5/O6 proof is pinned to `97cb8c6723`, carrying panel row reuse
 `52860bd662` and sp-o2's `d2c53597a4` / `bd71395512`. sp-o2 owns its one
 combined Nine/Pine/Driftwood source batch; this lane reuses that verdict.
+
+The shared `97cb8c6723` Nine/Pine/Driftwood source batch passed in 432.4 s;
+its served phone cold entries pass accuracy at 22.3 / 23.6 s, with 395.5 /
+464.9 ms maximum detail gaps. Source-mapped CPU and node counts are retained
+in [`shader-profile-97cb8c6`](../../../progress/loading/g543/shader-profile-97cb8c6/README.md)
+(`30213acf49`). SHARD SELECT has 75 node builds / 7.254 s JavaScript build
+CPU; grid has 82 / 4.061 s. Generic material labels do not prove duplication.
+Grid road construction samples 2.754 s inclusive. The approximate 20 s target
+remains open. The failed Simulator about:blank readiness probe captured no
+valid native result; owner repair `e79e168d6b` and the actual successful
+10:58:10Z priming marker precede a native-only repeat. Completed phone and
+desktop runs are retained; the failed 10:49:32Z prime is excluded.
+
+Road allocation cuts `66b001ff18` / `f8f5ee9a9d` skip clipping polygons for
+triangles already within one bin and memoize LOD representatives during exact
+byte preflight. Strict lint and original/candidate boundary, UV, cull-sphere,
+LOD-run and admission-count parity pass. The separate 60,000-triangle micro
+probe has identical full output hashes and faster candidate samples; it
+establishes no whole-entry savings. Evidence is in
+[`road-allocation-66b001f`](../../../progress/loading/g543/road-allocation-66b001f/README.md).
+One combined source batch and served comparison on `f8f5ee9a9d` follow the
+corrected native baseline. Geometry, colliders, layout and caps are unchanged.
