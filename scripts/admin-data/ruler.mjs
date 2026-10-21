@@ -26,6 +26,7 @@ export const RULER_SCHEMA = 'shard-platform-ruler/1';
 // Keep signed cuts: platform growth can exceed the custom shard reduction.
 const criterionSchema=v.object({verdict:v.picklist(['pass','fail','unknown']),evidence:v.string()});
 const floorSummarySchema=v.object({ready:v.number(),fail:v.number(),unknown:v.number(),total:v.number()});
+const readinessSchema=v.object({verdict:v.picklist(['pass','fail','unknown']),criteria:v.record(v.string(),criterionSchema)});
 
 const netLinesSchema = v.array(v.object({
   wave: v.string(), revision: v.string(), customCut: v.nullable(v.number()),
@@ -64,7 +65,7 @@ export const WAVES = [
 /** @typedef {{revision:string;at:string;basis:string;shards:Record<string,number>}} RulerPoint */
 /** @typedef {{id:string;startedAt:string;start:Record<string,number>;endedAt:string|null}} RulerWaveState */
 /** @typedef {{schema:string;command:string;revision:string;committedAt:string;measuredAt:string;basis:string;
- *   plan:{lower:number;upper:number};m3:{cut:number|null;mustGo:number|null;fraction:number|null};m2:{ready:number;fail:number;unknown:number;total:number;shards?:string[];plots?:number};
+ *   plan:{lower:number;upper:number};m3:{cut:number|null;mustGo:number|null;fraction:number|null};m2:{ready:number;fail:number;unknown:number;total:number;shards?:string[];plots?:number;plotReadiness?:{ready:number;fail:number;unknown:number;total:number};readiness?:Record<string,{verdict:'pass'|'fail'|'unknown';criteria:Record<string,import('../shard-milestones.mjs').Criterion>}>};
  *   measurementError?:string;productFailures?:Record<string,string>;
  *   frameFloor?:{ready:number;fail:number;unknown:number;total:number};netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number|null;shards:string[];goal:number};
  *   components?:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>;
@@ -168,7 +169,9 @@ export function nextRuler(raw, prev, at) {
     productFailures:v.parse(v.record(v.string(),v.string()),summary.productFailures??{}),
     m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total,
       ...(progress.m2.shards===undefined?{}:{shards:v.parse(v.array(v.string()),progress.m2.shards)}),
-      ...(progress.m2.plots===undefined?{}:{plots:num(progress.m2.plots,'m2.plots')}) },
+      ...(progress.m2.plots===undefined?{}:{plots:num(progress.m2.plots,'m2.plots')}),
+      ...(progress.m2.plotReadiness===undefined?{}:{plotReadiness:v.parse(floorSummarySchema,progress.m2.plotReadiness)}),
+      ...(progress.m2.readiness===undefined?{}:{readiness:v.parse(v.record(v.string(),readinessSchema),progress.m2.readiness)}) },
     frameFloor: v.parse(floorSummarySchema,progress.frameFloor??{ready:shards.filter(row=>row.frameFloor.verdict==='pass').length,fail:shards.filter(row=>row.frameFloor.verdict==='fail').length,
       unknown:shards.filter(row=>row.frameFloor.verdict==='unknown').length,total:shards.length}),
     netLines: v.parse(netLinesSchema, summary.netLines),
@@ -208,6 +211,8 @@ export function readRuler(value) {
   num(m2.total,'m2.total');if(wave.pct===null)str(value.measurementError,'measurementError');else num(wave.pct,'wave.pct');
   if(m2.shards!==undefined&&v.parse(v.array(v.string()),m2.shards).length!==m2.total)throw new Error('Ruler: M2 coverage differs from total');
   if(m2.plots!==undefined)num(m2.plots,'m2.plots');
+  if(m2.plotReadiness!==undefined)v.parse(floorSummarySchema,m2.plotReadiness);
+  if(m2.readiness!==undefined)v.parse(v.record(v.string(),readinessSchema),m2.readiness);
   if(value.productFailures!==undefined)v.parse(v.record(v.string(),v.string()),value.productFailures);
   // Existing snapshots predate G496; newly measured snapshots always carry it.
   if(value.frameFloor!==undefined)v.parse(floorSummarySchema,value.frameFloor);

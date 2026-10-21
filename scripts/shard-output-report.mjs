@@ -8,7 +8,7 @@ import {outputContent} from './shard-output-content.mjs';
 import {customSectionFailures} from './shard-platform-sections.mjs';
 import {createOutputReader} from './shard-platform-output.mjs';
 import {writeGeneratorInventory} from './generator-inventory.mjs';
-import {gridReady,m3Progress,planProgress,unknownGridReady} from './shard-milestones.mjs';
+import {gridReady,m3Progress,planProgress,unknownGridReady,M2_GRID_PLOT_CELLS} from './shard-milestones.mjs';
 import {decisionLegacyLines} from './decision-legacy-lines.mjs';
 import {runtimeReceiptPaths} from './grid-runtime-evidence.mjs';
 import {netLineReport,platformLineTotals,sourceLineDelta} from './shard-net-lines.mjs';
@@ -80,7 +80,8 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
   const current=Object.fromEntries(Object.entries(rows).flatMap(([slug,row])=>row.m3===null?[]:[[slug,{customLines:row.m3.customLines,basis:row.m3.basis}]]));
   const baselines=v.parse(baseline,JSON.parse(readFileSync(resolve(import.meta.dirname,'wave-line-baselines.json'),'utf8')));
   const platform=platformLineTotals(root,(text,path)=>path.endsWith('.glsl')?shaderCodeLines(text):codeLines(text,path));
-  return {rows,measures,inventory,dailyLines,netLines:netLineReport(current,baselines,platform),progress:planProgress(rows),sectionFailures:customSectionFailures(root,sections),productFailures,measurementError};
+  const plots=Object.fromEntries([...new Set(M2_GRID_PLOT_CELLS.map(cell=>cell.slug))].map(slug=>[slug,gridReady(root,slug,products,{revision,receipts})]));
+  return {rows,measures,inventory,dailyLines,netLines:netLineReport(current,baselines,platform),progress:planProgress(rows,plots),sectionFailures:customSectionFailures(root,sections),productFailures,measurementError};
 }
 
 /** Cycle-free post-output publication. gen calls neither the builder nor ruler.

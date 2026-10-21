@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {M2_GRID_SHARDS,M2_GRID_PLOTS,MILESTONE_SHARDS,m3Progress,planProgress} from '../scripts/shard-milestones.mjs';
+import {M2_GRID_SHARDS,M2_GRID_PLOTS,M2_GRID_PLOT_CELLS,MILESTONE_SHARDS,m3Progress,planProgress} from '../scripts/shard-milestones.mjs';
 import {nextRuler,readRuler} from '../scripts/admin-data/ruler.mjs';
 
 function rows():Parameters<typeof planProgress>[0] {
@@ -43,8 +43,23 @@ it('preserves complete M2 and frame-floor coverage in the admin ruler JSON',()=>
  input['pastel-plain']={...native,gridReady:{...native.gridReady,frameFloor:{verdict:'fail',evidence:'Measured slow frame'}}};
  const raw={...input,_summary:{progress:planProgress(input),netLines:[]}};
  const ruler=readRuler(nextRuler(raw,null,{revision:'b'.repeat(40),committedAt:'2026-10-21T12:00:00Z',now:'2026-10-21T12:01:00Z'}));
- expect(ruler.m2).toEqual({ready:10,fail:0,unknown:0,total:10,shards:M2_GRID_SHARDS,plots:15});
+ expect(ruler.m2).toMatchObject({ready:10,fail:0,unknown:0,total:10,shards:M2_GRID_SHARDS,plots:15,
+  plotReadiness:{ready:0,fail:0,unknown:15,total:15}});
  expect(ruler.frameFloor).toEqual({ready:9,fail:1,unknown:0,total:10});
  expect(ruler.shards).toHaveLength(6);
  expect(()=>readRuler({...ruler,m2:{...ruler.m2,total:25}})).toThrow('M2 coverage');
+});
+
+it('reports each plot placement separately and retains per-product criterion evidence',()=>{
+ const input=rows();
+ const plots:Record<string,NonNullable<Parameters<typeof planProgress>[1]>[string]>={};
+ for(const cell of M2_GRID_PLOT_CELLS)plots[cell.slug]={verdict:'pass',criteria:{memory:{verdict:'pass',evidence:'Latched measured source'}}};
+ const night=plots['open-plot-night-market'];if(night===undefined)throw new Error('Missing repeated plot');
+ night.verdict='fail';
+ const progress=planProgress(input,plots);
+ expect(progress.m2.plotReadiness).toEqual({ready:13,fail:2,unknown:0,total:15});
+ expect(progress.m2.ready).toBe(10);
+ const ruler=nextRuler({...input,_summary:{progress,netLines:[]}},null,{revision:'d'.repeat(40),committedAt:'2026-10-21T12:00:00Z',now:'2026-10-21T12:01:00Z'});
+ expect(ruler.m2).toMatchObject({plotReadiness:{ready:13,fail:2,unknown:0,total:15},
+  readiness:{'open-plot-night-market':{verdict:'fail',criteria:{memory:{evidence:'Latched measured source'}}}}});
 });

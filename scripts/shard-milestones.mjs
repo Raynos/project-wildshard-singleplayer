@@ -11,12 +11,13 @@ import plotOutputs from '../src/shards/open-plots/outputs.json' with {type:'json
 export const MILESTONE_SHARDS=['far-reach','sunscar-dunes','pine-hollow','driftwood-isle','nalati-grasslands','nine-dragon-stack'];
 // M2 covers the complete authored grid, including Developer placements. M3
 // retains its six frozen denominators. Plot products occupy cells separately.
-/** @type {Map<string,{slug:string}>} */
+/** @type {Map<string,{slug:string,instance:string}>} */
 const gridCells=new Map();
 for(const cell of [...catalogue.grid.cells,...catalogue.grid.developer,...catalogue.grid.devserver])gridCells.set(cell.cell.join(','),cell);
 const plotSlugs=new Set(plotOutputs.outputs.map(row=>row.slug));
 export const M2_GRID_SHARDS=[...new Set([...gridCells.values()].filter(cell=>!plotSlugs.has(cell.slug)).map(cell=>cell.slug))].sort();
-export const M2_GRID_PLOTS=[...gridCells.values()].filter(cell=>plotSlugs.has(cell.slug)).length;
+export const M2_GRID_PLOT_CELLS=[...gridCells.values()].filter(cell=>plotSlugs.has(cell.slug));
+export const M2_GRID_PLOTS=M2_GRID_PLOT_CELLS.length;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 /** @param {Record<string,{verdict:'pass'|'fail'|'unknown',evidence:string}>} criteria */
 export function readinessVerdict(criteria) {
@@ -79,15 +80,20 @@ export function m3Progress(slug,input) {
   const mustGo=input.legacyLines*(1-target),cut=Math.max(0,input.legacyLines-input.customLines);
   return {...input,target,mustGo,cut,fraction:cut/mustGo};
 }
-/** @param {Record<string,{m3:ReturnType<typeof m3Progress>,gridReady:{verdict:'pass'|'fail'|'unknown',frameFloor?:import('./shard-milestones.mjs').Criterion}}|undefined>} rows */
-export function planProgress(rows) {
+/** @param {Record<string,{m3:ReturnType<typeof m3Progress>,gridReady:import('./shard-milestones.mjs').GridReady}|undefined>} rows
+ * @param {Record<string,import('./shard-milestones.mjs').GridReady>} [plots] */
+export function planProgress(rows,plots={}) {
   const ports=MILESTONE_SHARDS.map(slug=>rows[slug]),measured=ports.flatMap(row=>row?.m3??[]);
   const mustGo=measured.reduce((sum,row)=>sum+row.mustGo,0),cut=measured.reduce((sum,row)=>sum+row.cut,0);
   const m3=measured.length===6&&mustGo>0?cut/mustGo:null;
   const grid=M2_GRID_SHARDS.map(slug=>rows[slug]),total=grid.length;
   const ready=grid.filter(row=>row?.gridReady.verdict==='pass').length;
   const unknown=grid.filter(row=>row===undefined||row.gridReady.verdict==='unknown').length;
-  const m2={lower:ready/total,upper:(ready+unknown)/total,ready,unknown,total,shards:[...M2_GRID_SHARDS],plots:M2_GRID_PLOTS};
+  const plotReady=M2_GRID_PLOT_CELLS.filter(cell=>plots[cell.slug]?.verdict==='pass').length;
+  const plotFail=M2_GRID_PLOT_CELLS.filter(cell=>plots[cell.slug]?.verdict==='fail').length;
+  const readiness=Object.fromEntries([...M2_GRID_SHARDS.flatMap(slug=>rows[slug]===undefined?[]:[[slug,rows[slug].gridReady]]),...Object.entries(plots)]);
+  const m2={lower:ready/total,upper:(ready+unknown)/total,ready,unknown,total,shards:[...M2_GRID_SHARDS],plots:M2_GRID_PLOTS,
+    plotReadiness:{ready:plotReady,fail:plotFail,unknown:M2_GRID_PLOTS-plotReady-plotFail,total:M2_GRID_PLOTS},readiness};
   const floorReady=grid.filter(row=>row?.gridReady.frameFloor?.verdict==='pass').length;
   const floorFail=grid.filter(row=>row?.gridReady.frameFloor?.verdict==='fail').length;
   const frameFloor={ready:floorReady,fail:floorFail,unknown:total-floorReady-floorFail,total};
