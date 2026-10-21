@@ -3369,6 +3369,11 @@ limits. `installDeclaredQuestHost` selects that admitted composition before
 borrowing native ports. Bound presentation projections retain no quest host;
 omission leaves the previous serialized bytes unchanged.
 
+Pine and Driftwood both select this admitted native composition. Pine keeps
+external modal/ride delivery and its existing graph continuation, with no new
+command step. Its root flag vocabulary appends table declarations after the
+original saved flag prefix; story installation supplies no duplicate graph.
+
 Root `questNpcs` also accepts `kind: "posed-talk"`: unchanged dialogue,
 named figure, reading policy, optional authored placement and named conditional
 completion. `installDeclaredNpcTalks(source, ports)` preflights every figure and

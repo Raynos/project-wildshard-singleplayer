@@ -982,18 +982,6 @@
                   "table"
                 ]
               },
-              "graph": {
-                "$ref": [
-                  "content",
-                  "graph"
-                ]
-              },
-              "interactions": {
-                "$ref": [
-                  "content",
-                  "interactions"
-                ]
-              },
               "steps": {
                 "$ref": [
                   "content",

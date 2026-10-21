@@ -1,7 +1,5 @@
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { NpcDialogueRow } from '@wildshard/format/npcs';
-import type { QuestGraphRow } from '@wildshard/format/questGraph';
-import type { InteractionRowsData } from '@wildshard/format/questInteractions';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import type { QuestStory } from '@wildshard/format/questStory';
@@ -25,7 +23,7 @@ type Publication = { event: string } & (
  * G474 quests are approved platform functionality; there are no shard hooks. */
 export interface NativeStoryRows {
   readonly content: {
-    readonly table: InteractTable; readonly graph: QuestGraphRow; readonly interactions: InteractionRowsData;
+    readonly table: InteractTable;
     readonly steps: unknown; readonly deaths: unknown; readonly readings: QuestReadingRows<NpcDialogueRow>;
     readonly policy: { readonly touchCount: number; readonly readingDelay: number };
     readonly lead: { readonly program: unknown; readonly path: readonly (readonly [number, number])[] };

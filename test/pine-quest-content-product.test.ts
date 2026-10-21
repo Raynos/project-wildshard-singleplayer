@@ -25,7 +25,10 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   const loaded = await readProjectAssets('src/shards/pine-hollow');
   const quests = parseQuestData(pinePeople.quests);
   const { achievements: _achievements, ...gameplay } = loaded.shard.quests;
-  expect(hash(gameplay)).toBe(originals.quests);
+  // Root host admission appends table flags; the shipped quest definitions and
+  // existing flag indices retain their frozen values.
+  expect(gameplay.flags.slice(0, quests.flags.length)).toEqual(quests.flags);
+  expect(hash({ ...gameplay, flags: quests.flags })).toBe(originals.quests);
   expect(hash(quests)).toBe(originals.quests);
   const section = loaded.output.custom?.sections.find(row => row.name === 'custom/questRuntime');
   const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);

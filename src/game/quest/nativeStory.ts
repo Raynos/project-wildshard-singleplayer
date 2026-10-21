@@ -15,7 +15,8 @@ import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
-import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
+import { bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
+import { installDeclaredQuestHost } from '../plugin/simulation';
 import { ReturnProgram } from '../population/returnProgram';
 import { AchievementCounterBook } from '../achievements';
 import { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
@@ -45,7 +46,7 @@ export async function prepareNativeStory(product: ShardProduct): Promise<void> {
 }
 /** Existing native owners returned for equipment/modal observations. */
 export interface NativeStory {
-  readonly quests: ReturnType<typeof installQuestGraph>['quests'];
+  readonly quests: ReturnType<typeof installDeclaredQuestHost>['quests'];
   readonly lead: v.InferOutput<typeof LeadSaved>;
   readonly pack: NativeInventory<string>; readonly cables: ReturnType<typeof cableModes>;
   readonly riding: () => boolean; readonly talking: () => boolean;
@@ -53,7 +54,7 @@ export interface NativeStory {
   readonly ownsFinish: (skin: string) => boolean; readonly ownsBoardFinish: () => boolean;
   readonly takePickup: () => boolean;
 }
-/** Install immutable story rows using the prepared module and real host services. */
+/** Install story services around the admitted quest host shared by all entries. */
 export function installNativeStory(host: SimHost, product: ShardProduct, rows: NativeStoryRows): NativeStory {
   if (!isJsonData(rows)) throw new Error('Native story requires JSON rows');
   const policy = rows.policy, content = rows.content, spots = rows.spots, flags = host.flags;
@@ -61,7 +62,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
   const director = prepared.get(product);
   if (director === undefined) throw new Error('Native story has no prepared director');
-  const ports = { ...rows, inventory: new ItemCatalogue(product.shardfile.items).inventory, quests: product.shardfile.quests,
+  const ports = { ...rows, inventory: new ItemCatalogue(product.shardfile.items).inventory,
     commands: input.scripts, fact: input.ledger.fact, coins: input.ledger.coins, director, ammunition,
     addBolts: (n: number) => { launcher.item.addBolts(n); }, canSelectAmmo: () => launcher.frame.live.has(policy.launcher),
     day: () => host.dayClock ?? null, night: () => host.dayClock?.night ?? 0,
@@ -83,8 +84,8 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     const action = policy.actions.find(row => row.value === value && row.kind === 'row');
     return action?.kind === 'row' ? required(action.target) : null;
   };
-  const graph = installQuestGraph(host, { quests: ports.quests, interactions: content.interactions, npcs: [], graph: content.graph },
-    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
+  const graph = installDeclaredQuestHost(host, product.shardfile,
+    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins });
   const quests = graph.quests;
   const chapter = quests.quests[0];
   if (chapter === undefined) throw new Error('Story requires its chapter');
