@@ -14,7 +14,7 @@ import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
 import { SPRAY_LOOK } from './streamLook';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
-import { QUEST_RIDE_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP } from './questRideScenes';
+import { QUEST_RIDE_BLOBS, QUEST_RIDE_MODEL_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP } from './questRideScenes';
 
 const { surfaces: WATER_SURFACES } = waterRows;
 
@@ -41,7 +41,7 @@ export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG
 export const SCENE_MODEL_BLOBS = [
   { name: 'models/stream-water.glb', kind: 'glb', source: 'assets/stream-scenes/water.glb' },
   { name: 'models/stream-quad.glb', kind: 'glb', source: 'assets/stream-scenes/quad.glb' },
-  ...MODEL_BLOBS,
+  ...MODEL_BLOBS, ...QUEST_RIDE_MODEL_BLOBS,
 ];
 /** Ordered stream assembly plus named raw-model placement sets, over shared material slots. */
 export const WORLD_SCENES: WorldScenesSection = {

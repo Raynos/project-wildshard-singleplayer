@@ -13,7 +13,7 @@ import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { createWorldScene } from '../src/game/plugin/ui';
 import { parseWorldScene } from '../src/format/clientChannels';
-import { QUEST_RIDE_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP } from '../src/shards/pine-hollow/generators/questRideScenes';
+import { QUEST_RIDE_BLOBS, QUEST_RIDE_MODEL_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP } from '../src/shards/pine-hollow/generators/questRideScenes';
 import packed from '../src/shards/pine-hollow/data/codeParts.json';
 import { FIGURE_CATALOGUE } from '../src/shards/pine-hollow/generators/figureCatalogue';
 
@@ -40,10 +40,10 @@ test('scene-owned trolley and canoe keep every original vertex, index and draw s
     for (const row of QUEST_RIDE_LIBRARY.models) {
       const file = row.file;
       if (typeof file !== 'string') throw new Error('Quest ride shape must be identical on both tiers');
-      const blob = QUEST_RIDE_BLOBS.find(candidate => candidate.file.name === file);
+      const blob = QUEST_RIDE_MODEL_BLOBS.find(candidate => candidate.name === file);
       if (blob === undefined) throw new Error('Missing emitted quest ride');
       const loaded = createOwnedGeometry(file);
-      await loaded.load(blob.bytes);
+      await loaded.load(Uint8Array.from(readFileSync(new FileURL(`../src/shards/pine-hollow/${blob.source}`, import.meta.url))));
       const actual = loaded.take(), expected = pack.geometry(row.id === 'trolley' ? packed.parts['zip-trolley'] : packed.parts.canoe);
       geometries.set(row.id, actual);
       try { sameGeometry(actual, expected); } finally { expected.dispose(); }

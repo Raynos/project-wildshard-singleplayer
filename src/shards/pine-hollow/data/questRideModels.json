@@ -1,0 +1,16 @@
+[
+  {
+    "id": "trolley",
+    "part": "zip-trolley",
+    "index": "zip-trolley",
+    "file": "models/quest/trolley.glb",
+    "source": "assets/quest-rides/trolley.glb"
+  },
+  {
+    "id": "canoe",
+    "part": "canoe-ride",
+    "index": "canoe",
+    "file": "models/quest/canoe.glb",
+    "source": "assets/quest-rides/canoe.glb"
+  }
+]

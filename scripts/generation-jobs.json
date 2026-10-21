@@ -6849,7 +6849,8 @@
         "src/shards/pine-hollow/data/hollowLog.json",
         "src/shards/pine-hollow/data/cabins.json",
         "src/shards/pine-hollow/data/layout.generated.json",
-        "public/assets/baked/pine-hollow/terrain.bin"
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "src/shards/pine-hollow/data/questRideModels.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/timber-scenes/creek-footbridge-draw-0.glb",
@@ -6883,7 +6884,9 @@
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-turntable-draw-1.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-turntable-draw-2.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-turntable-proxy-0.glb",
-        "src/shards/pine-hollow/data/timberScenes.generated.json"
+        "src/shards/pine-hollow/data/timberScenes.generated.json",
+        "src/shards/pine-hollow/assets/quest-rides/trolley.glb",
+        "src/shards/pine-hollow/assets/quest-rides/canoe.glb"
       ],
       "buildTimeOutputs": [
         "src/shards/pine-hollow/assets/timber-scenes/creek-footbridge-draw-0.glb",
@@ -6917,7 +6920,9 @@
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-turntable-draw-1.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-turntable-draw-2.glb",
         "src/shards/pine-hollow/assets/timber-scenes/zipline-landing-turntable-proxy-0.glb",
-        "src/shards/pine-hollow/data/timberScenes.generated.json"
+        "src/shards/pine-hollow/data/timberScenes.generated.json",
+        "src/shards/pine-hollow/assets/quest-rides/trolley.glb",
+        "src/shards/pine-hollow/assets/quest-rides/canoe.glb"
       ],
       "catalogueDependencies": [
         "pine-timber-world"

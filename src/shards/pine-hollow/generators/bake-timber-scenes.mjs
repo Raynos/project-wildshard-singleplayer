@@ -50,6 +50,21 @@ export async function bakeTimberSceneSources(){
  for(const id of ['zip-cable','token-shelf','hollow-log-outer','hollow-log-inner','hollow-log-rim-0','hollow-log-rim-1','hollow-log-bed'])geometry.set(id,pack.geometry(parts.parts[id]));
  return {copies,geometry};
 }
+function writeQuestRideScenes(writer){
+ const parts=JSON.parse(readFileSync(new URL('data/codeParts.json',project),'utf8'));
+ const bytes=Uint8Array.from(inflateSync(readFileSync(new URL(`public${parts.url}`,root))));
+ if(createHash('sha256').update(bytes).digest('hex')!==parts.sha256)throw new Error('Quest ride code-part hash differs');
+ const pack=new GeometryPack(bytes,packedRows(parts.rows),'quest rides');
+ const material=new MeshStandardMaterial({vertexColors:true});
+ const models=JSON.parse(readFileSync(new URL('data/questRideModels.json',project),'utf8'));
+ try{
+  for(const row of models){
+   const geometry=pack.geometry(parts.parts[row.index]);
+   try{writer.put(fileURLToPath(new URL(row.source,project)),staticGlb([{geometry,material,compactIndex:true,nativeAttributes:true}],row.id));}
+   finally{geometry.dispose();}
+  }
+ }finally{material.dispose();}
+}
 export async function writeTimberScenes(){
  const {copies,geometry}=await bakeTimberSceneSources(),blobs=[],models=[],geometryHashes={};
  const writer=byteWriter(process.argv.includes('--check'),'pine-timber-scenes'),material=new MeshStandardMaterial();
@@ -62,6 +77,7 @@ export async function writeTimberScenes(){
    blobs.push({name,kind:'glb',source});models.push({id,file:name,attributes:shape.hasAttribute('moss')?{moss:'aMoss'}:{}});
   }
   writer.put(fileURLToPath(new URL('data/timberScenes.generated.json',project)),jsonBytes({blobs,geometry:models,copies,geometryHashes,sites:questSites(readNativeTerrain(readFileSync(new URL('public/assets/baked/pine-hollow/terrain.bin',root))).heightAt)}));
+  writeQuestRideScenes(writer);
   writer.finish();
  }finally{material.dispose();for(const shape of geometry.values())shape.dispose();}
 }
