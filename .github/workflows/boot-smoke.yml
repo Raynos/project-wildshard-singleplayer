@@ -146,15 +146,16 @@ jobs:
           key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install chromium webkit
       - uses: actions/download-artifact@v4
+        continue-on-error: true # The restore step retries one missing/truncated transfer.
         with:
           name: boot-dist
       - name: Unpack and verify the tested dist
         env:
+          GH_TOKEN: ${{ github.token }}
           TESTED_SHA: ${{ needs.build.outputs.sha }}
         run: |
           test "$(git rev-parse HEAD)" = "$TESTED_SHA"
-          mkdir -p dist
-          tar -xf boot-dist.tar -C dist
+          bash scripts/restore-boot-dist.sh
           # Historical preview plugins compress the public copy at startup.
           mkdir -p public/assets/physics
           cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
