@@ -968,6 +968,38 @@
       "platform": "portable"
     },
     {
+      "id": "pine-contract-program",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-contracts.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-contracts.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-contracts.mjs",
+        "src/shards/pine-hollow/generators/contractProgram.ts",
+        "src/shards/pine-hollow/behaviour/contracts.as",
+        "src/shards/pine-hollow/behaviour/contractsRandom.as",
+        "src/shards/pine-hollow/behaviour/contractsRules.as",
+        "src/format/decisionScripts.ts",
+        "src/format/decisionBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/scriptContract.ts",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/contractsProgram.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/contractsProgram.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "pine-spots",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/spots.ts",
@@ -22064,7 +22096,8 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "pine-map-assembly"
+        "pine-map-assembly",
+        "pine-contract-program"
       ]
     },
     {
