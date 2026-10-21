@@ -49,7 +49,15 @@ Each one is up to about 2,670 files and 71 MB.
   - file it upstream: the top-level `_tmpDir` is never removed.
 - rockhop is on Vitest **3.2.7**, so check it separately before copying this fix there.
 
-## 2. Node compile cache: now the biggest live writer (OPEN; found 11:48)
+## 2. Node compile cache: now the biggest live writer (FIXED in a53e2ac231; found 11:48)
+
+> **2026-10-21 12:47 update.** The stop-gap symlink is gone. At 11:03 something removed
+> `$TMPDIR/node-compile-cache` and a real directory replaced it. At 12:47 it held 2.4k files (458 MB), which is fine,
+> because `generate.mjs` (a53e2ac231) and the SDK copy tests set `NODE_DISABLE_COMPILE_CACHE=1`, and `vitest-tmp.ts`
+> points the cache into its own run dir. Even so, the parked copy at `~/Library/Caches/node-compile-cache-from-tmpdir`
+> had grown from 312k files at the move to **473k files (30 GB)** by today: writers other than generation kept filling
+> it. Nothing writes there any more, so it can be deleted (Jake's job). The 4-hourly check now tracks the new
+> `$TMPDIR/node-compile-cache` directly.
 
 At 11:05 `$TMPDIR/node-compile-cache` held 9,399 files. **At 11:48 it held 284,105**, and 33,244 of them were written in
 the last 5 minutes. That is about **400k files an hour**, and it put the boot purge at 369,676 files in total.
