@@ -9612,6 +9612,17 @@ HOST-BAR test 6; their data-only service binding remains for the N4 audit.
 The step evaluator itself scores 6/6. No callback-shaped native-quest
 relocation was admitted in slice two.
 
+`@wildshard/game/quest/flagGates.QuestFlagGates(owner, rows, restoring?)`
+borrows an installed native simulation or entered page quest. Rows name gate
+identities, `opensWhen` flag conditions and either the exact existing baked box
+or a registered moving piece identity. Native `sync()` stays in the original
+post-transition phase; `physicsRestored()` rebinds without allocating or replaying.
+Page bars borrow the source piece's exact colliders and follows pivot and leave
+with the entered scope. No independent save, listener or clock is introduced.
+`@wildshard/engine/physics/query.staticBoxCollider(physics, box)` rebinds the
+original parentless baked box at the native continuation's existing tolerance
+and first-match order, without changing its enabled state.
+
 ### Build-emitted numeric creature poses
 
 `game/plugin/channelPrograms.numericCreaturePose(input)` lends existing

@@ -271,7 +271,8 @@
     "./looks/staticCapture": "./looks/staticCapture.ts",
     "./looks/grassPresentation": "./looks/grassPresentation.ts",
     "./riding/reins": "./riding/reins.ts",
-    "./looks/posedInstances": "./looks/posedInstances.ts"
+    "./looks/posedInstances": "./looks/posedInstances.ts",
+    "./quest/flagGates": "./quest/flagGates.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",
