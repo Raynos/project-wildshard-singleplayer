@@ -1,0 +1,317 @@
+{
+  "rows": [
+    {
+      "pin": "32cde805434270f8ab04091082bfc6b6fcc3c733",
+      "surface": "phone",
+      "path": "shardfile",
+      "rawSHA256": "6a83d83c5f2d59de0e26c78d3962e8386001c158906b8a158dd4bc2f066c84b8",
+      "stageSeconds": 26.934099999964236,
+      "clockSeconds": 26.9,
+      "unaccountedSeconds": -0.03409999996423707,
+      "displayedNetworkBytes": 173137682,
+      "networkBytes": 173672409,
+      "byteError": 0.003078940420524713,
+      "visibleByteError": 0.0030080137830068333,
+      "maxDetailGapMs": 371.69999998807907,
+      "failures": [],
+      "worldStage": {
+        "label": "▸ 13 · Props",
+        "detail": "Baked island",
+        "duration": "9.5 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "9544.899999976158"
+      },
+      "productGLBs": 238,
+      "peakOverlappingResourceReads": 4,
+      "spanMs": 3877.5,
+      "sumResourceDurationMs": 2791.69999986887,
+      "longestReads": [
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/f7d9381d232a2ee78c50f6a8499c3fcecd0236feaaa2f3099c1831703b5f327b.glb",
+          "startTime": 7593.399999976158,
+          "responseEnd": 7725.300000011921,
+          "duration": 131.9000000357628
+        },
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/091b61386321ab218c349a5049315833cb995c04c6d1ae838849f86ad9aefe7d.glb",
+          "startTime": 4504.199999988079,
+          "responseEnd": 4621.5,
+          "duration": 117.30000001192093
+        },
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/534cec830ae56911d56553fa3f99d7db08847146964011afc310395b9c21f582.glb",
+          "startTime": 5835.800000011921,
+          "responseEnd": 5903.599999964237,
+          "duration": 67.79999995231628
+        },
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/a4a04d9a24c24fc990ae7e49765ed4907b55c74b761bcb98d2937f2bb2f25d01.glb",
+          "startTime": 6672.199999988079,
+          "responseEnd": 6729.199999988079,
+          "duration": 57
+        },
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/0011ca788361da31965e5d3ae7b05d5b2a80c7b27e3e7154ba04d95c0123af6d.glb",
+          "startTime": 4383.5,
+          "responseEnd": 4439.599999964237,
+          "duration": 56.09999996423721
+        },
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/1fed506e88951eac2d348c9dc1e757e7e1f5b5c218bcff31efe5ca8073cb36a1.glb",
+          "startTime": 4966.300000011921,
+          "responseEnd": 5021.599999964237,
+          "duration": 55.299999952316284
+        },
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/d206d254e1cdbb9198ee9f43c2f08aada35899a78e7066f65a6fce1146f6eda2.glb",
+          "startTime": 7134.800000011921,
+          "responseEnd": 7189.899999976158,
+          "duration": 55.09999996423721
+        },
+        {
+          "name": "http://127.0.0.1:55114/shardfiles/driftwood-isle/blobs/glb/d7737c770136ac1d0fc446ed1309a805e1f1dff2f57113aa23efb14e0282de52.glb",
+          "startTime": 7265.099999964237,
+          "responseEnd": 7317.300000011921,
+          "duration": 52.200000047683716
+        }
+      ]
+    },
+    {
+      "pin": "32cde805434270f8ab04091082bfc6b6fcc3c733",
+      "surface": "phone",
+      "path": "grid",
+      "rawSHA256": "72abc0d67d31138b72a08d1019ebcf9d1697542591da0df71f14fcbdfb45acf1",
+      "stageSeconds": 29.996699999988078,
+      "clockSeconds": 30,
+      "unaccountedSeconds": 0.0033000000119223216,
+      "displayedNetworkBytes": 173502058,
+      "networkBytes": 173950536,
+      "byteError": 0.002578192688063922,
+      "visibleByteError": 0.0023025856039903207,
+      "maxDetailGapMs": 689.9000000357628,
+      "failures": [],
+      "worldStage": {
+        "label": "▸ 15 · Home region",
+        "detail": "Home region 1 / 1 · driftwood-isle · Physics 2102 colliders · Trees 0 forest records",
+        "duration": "12.4 s",
+        "state": "ok",
+        "key": "home",
+        "ms": "12419.100000023842"
+      },
+      "productGLBs": 238,
+      "peakOverlappingResourceReads": 4,
+      "spanMs": 3868.399999976158,
+      "sumResourceDurationMs": 2841.1999995708466,
+      "longestReads": [
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/fb13ed58b935d34a6cfc244d0320fe7ca9d7bf0206b1a647c6d8fbceff6b29cb.glb",
+          "startTime": 13994.399999976158,
+          "responseEnd": 14126.300000011921,
+          "duration": 131.9000000357628
+        },
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/f7d9381d232a2ee78c50f6a8499c3fcecd0236feaaa2f3099c1831703b5f327b.glb",
+          "startTime": 13782.300000011921,
+          "responseEnd": 13890.199999988079,
+          "duration": 107.89999997615814
+        },
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/091b61386321ab218c349a5049315833cb995c04c6d1ae838849f86ad9aefe7d.glb",
+          "startTime": 10502,
+          "responseEnd": 10608.5,
+          "duration": 106.5
+        },
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/0011ca788361da31965e5d3ae7b05d5b2a80c7b27e3e7154ba04d95c0123af6d.glb",
+          "startTime": 10340.800000011921,
+          "responseEnd": 10416,
+          "duration": 75.19999998807907
+        },
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/1fed506e88951eac2d348c9dc1e757e7e1f5b5c218bcff31efe5ca8073cb36a1.glb",
+          "startTime": 10971.800000011921,
+          "responseEnd": 11028.199999988079,
+          "duration": 56.39999997615814
+        },
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/a4a04d9a24c24fc990ae7e49765ed4907b55c74b761bcb98d2937f2bb2f25d01.glb",
+          "startTime": 12753.699999988079,
+          "responseEnd": 12808.699999988079,
+          "duration": 55
+        },
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/d206d254e1cdbb9198ee9f43c2f08aada35899a78e7066f65a6fce1146f6eda2.glb",
+          "startTime": 13258.800000011921,
+          "responseEnd": 13313.699999988079,
+          "duration": 54.89999997615814
+        },
+        {
+          "name": "http://127.0.0.1:56934/shardfiles/driftwood-isle/blobs/glb/570a683f9adfcfa13f36f00c4777bb7567088fc28d0fc7e61fe4eab78b46e454.glb",
+          "startTime": 11960.300000011921,
+          "responseEnd": 12006.199999988079,
+          "duration": 45.89999997615814
+        }
+      ]
+    },
+    {
+      "pin": "32cde805434270f8ab04091082bfc6b6fcc3c733",
+      "surface": "simulator",
+      "path": "shardfile",
+      "rawSHA256": "1b2b8ffb225735a0ad212fc6543e86a5d564e113bf59368eac7e3bc2a989dca3",
+      "stageSeconds": 14.126999999999999,
+      "clockSeconds": 14.1,
+      "unaccountedSeconds": -0.026999999999999247,
+      "displayedNetworkBytes": 174839085,
+      "networkBytes": 174837050,
+      "byteError": 0.000011639409381478354,
+      "visibleByteError": 0,
+      "maxDetailGapMs": 282,
+      "failures": [],
+      "worldStage": {
+        "label": "▸ 13 · Props",
+        "detail": "Baked island",
+        "duration": "5.2 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "5201"
+      },
+      "productGLBs": 238,
+      "peakOverlappingResourceReads": 4,
+      "spanMs": 2320,
+      "sumResourceDurationMs": 4448,
+      "longestReads": [
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/091b61386321ab218c349a5049315833cb995c04c6d1ae838849f86ad9aefe7d.glb",
+          "startTime": 2546,
+          "responseEnd": 2606,
+          "duration": 60
+        },
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/1fed506e88951eac2d348c9dc1e757e7e1f5b5c218bcff31efe5ca8073cb36a1.glb",
+          "startTime": 2774,
+          "responseEnd": 2823,
+          "duration": 49
+        },
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/f7d9381d232a2ee78c50f6a8499c3fcecd0236feaaa2f3099c1831703b5f327b.glb",
+          "startTime": 4529,
+          "responseEnd": 4569,
+          "duration": 40
+        },
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/fb13ed58b935d34a6cfc244d0320fe7ca9d7bf0206b1a647c6d8fbceff6b29cb.glb",
+          "startTime": 4595,
+          "responseEnd": 4635,
+          "duration": 40
+        },
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/0011ca788361da31965e5d3ae7b05d5b2a80c7b27e3e7154ba04d95c0123af6d.glb",
+          "startTime": 2459,
+          "responseEnd": 2495,
+          "duration": 36
+        },
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/d7737c770136ac1d0fc446ed1309a805e1f1dff2f57113aa23efb14e0282de52.glb",
+          "startTime": 4290,
+          "responseEnd": 4325,
+          "duration": 35
+        },
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/673b569f1fbcca21ed537931568b38e31616f31d9b17fc7bea1160f05a64b4e4.glb",
+          "startTime": 3424,
+          "responseEnd": 3456,
+          "duration": 32
+        },
+        {
+          "name": "http://127.0.0.1:62467/shardfiles/driftwood-isle/blobs/glb/657b3a07edc01c35b2ecc4c690cb66e450afc8b28072f158821dfa1268390efe.glb",
+          "startTime": 3424,
+          "responseEnd": 3456,
+          "duration": 32
+        }
+      ]
+    },
+    {
+      "pin": "32cde805434270f8ab04091082bfc6b6fcc3c733",
+      "surface": "simulator",
+      "path": "grid",
+      "rawSHA256": "3206b93118a087ec78ec2a14ae168335da8d017818a95f954b626aa6967b7d92",
+      "stageSeconds": 15.200999999999999,
+      "clockSeconds": 15.2,
+      "unaccountedSeconds": -0.0009999999999994458,
+      "displayedNetworkBytes": 172735387,
+      "networkBytes": 172732865,
+      "byteError": 0.000014600579918592794,
+      "visibleByteError": 0,
+      "maxDetailGapMs": 374,
+      "failures": [],
+      "worldStage": {
+        "label": "▸ 15 · Home region",
+        "detail": "Home region 1 / 1 · driftwood-isle · Physics 2102 colliders · Trees 0 forest records",
+        "duration": "8.3 s",
+        "state": "ok",
+        "key": "home",
+        "ms": "8274"
+      },
+      "productGLBs": 238,
+      "peakOverlappingResourceReads": 4,
+      "spanMs": 2360,
+      "sumResourceDurationMs": 4798,
+      "longestReads": [
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/0011ca788361da31965e5d3ae7b05d5b2a80c7b27e3e7154ba04d95c0123af6d.glb",
+          "startTime": 4155,
+          "responseEnd": 4209,
+          "duration": 54
+        },
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/f7d9381d232a2ee78c50f6a8499c3fcecd0236feaaa2f3099c1831703b5f327b.glb",
+          "startTime": 6365,
+          "responseEnd": 6419,
+          "duration": 54
+        },
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/1fed506e88951eac2d348c9dc1e757e7e1f5b5c218bcff31efe5ca8073cb36a1.glb",
+          "startTime": 4511,
+          "responseEnd": 4562,
+          "duration": 51
+        },
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/216ca8228b5674af11b6f6159c5978fe22d5a6c81cc38ecbe2f39e4d706441a2.glb",
+          "startTime": 4512,
+          "responseEnd": 4563,
+          "duration": 51
+        },
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/a4a04d9a24c24fc990ae7e49765ed4907b55c74b761bcb98d2937f2bb2f25d01.glb",
+          "startTime": 5667,
+          "responseEnd": 5712,
+          "duration": 45
+        },
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/091b61386321ab218c349a5049315833cb995c04c6d1ae838849f86ad9aefe7d.glb",
+          "startTime": 4249,
+          "responseEnd": 4293,
+          "duration": 44
+        },
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/fb13ed58b935d34a6cfc244d0320fe7ca9d7bf0206b1a647c6d8fbceff6b29cb.glb",
+          "startTime": 6449,
+          "responseEnd": 6491,
+          "duration": 42
+        },
+        {
+          "name": "http://127.0.0.1:64215/shardfiles/driftwood-isle/blobs/glb/00268188baf07b6a96e449add801904354513cc04ac0b8b45e3572d21c6b9157.glb",
+          "startTime": 4155,
+          "responseEnd": 4196,
+          "duration": 41
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Complete PerformanceObserver recorder entries, not the truncated resource timing buffer.",
+    "Observed transport overlap does not change or bypass the one page-wide GLTF parser.",
+    "Native encodedBodySize may be zero; main independent HTTP byte observation remains authoritative."
+  ]
+}
