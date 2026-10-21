@@ -18,17 +18,6 @@ import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { admitDriftwoodRows, driftwoodRows } from './boot/rows';
 
 const residents = new WeakMap<ShardContext['product'], HybridResidentWorld<DriftwoodWorld>>();
-function residentWorld(context: ShardContext): HybridResidentWorld<DriftwoodWorld> {
-  let resident = residents.get(context.product);
-  if (resident === undefined) {
-    resident = new HybridResidentWorld<DriftwoodWorld>({ motion: { source: { ...context.product.shardfile, ...context.product.section('world/movers') }, systemId: 'shard.driftwood.movers', rows: [
-      { id: 'driftwood.boat', target: 'boat', group: 'group', afterPose: 'refreshPose' },
-      { id: 'driftwood.bridge', target: 'bridgeDeck', chain: true },
-    ] } });
-    residents.set(context.product, resident);
-  }
-  return resident;
-}
 
 /** Driftwood owns its world, creatures, loadout, adventure and audio through scoped hooks. */
 export class DriftwoodPlugin extends ShardPlugin {
@@ -47,7 +36,15 @@ export class DriftwoodPlugin extends ShardPlugin {
       built = await buildDriftwoodWorld(world, viewer, progress, scenes, await residentBakedTiles(ctx, ctx.scope));
     } else {
       admitDriftwoodRows(ctx.product);
-      built = await residentWorld(ctx).load(ctx, async owner => {
+      let construction = residents.get(ctx.product);
+      if (construction === undefined) {
+        construction = new HybridResidentWorld<DriftwoodWorld>({ motion: { source: { ...ctx.product.shardfile, ...ctx.product.section('world/movers') }, systemId: 'shard.driftwood.movers', rows: [
+          { id: 'driftwood.boat', target: 'boat', group: 'group', afterPose: 'refreshPose' },
+          { id: 'driftwood.bridge', target: 'bridgeDeck', chain: true },
+        ] } });
+        residents.set(ctx.product, construction);
+      }
+      built = await construction.load(ctx, async owner => {
         lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, ctx.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS), MOOR_LOOK]));
         const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), baked = await residentBakedTiles(ctx, owner);
         return buildDriftwoodWorld(world, viewer, progress, scenes, baked);
