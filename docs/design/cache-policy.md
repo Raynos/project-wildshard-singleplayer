@@ -122,6 +122,17 @@ growing the 250-entry buffer. All actual response headers remain in the
 independent network measurement and its 5% gate; no body-only metric or
 guessed header credit replaces it.
 
+The e8c4dba loading matrix closes the missed background-document receipt,
+but keeps two warm-grid residuals open. Native Resource Timing's standard
+300-byte header charge exceeds the actual 183-byte GLB 304 headers; the
+verified URL-cache hint now covers admission blobs and released-library
+rereads to avoid those requests. Size and SHA-256 checks remain mandatory.
+Chromium also performs a browser-owned worker-script check that can send
+no validators and transfer the full unchanged script; neither page nor
+worker Resource Timing exposes that response. The independent wire
+observer retains it. Its measured 20,743-byte net shortfall is reported
+for a coordinator decision, not replaced with a guessed script credit.
+
 ## iOS eviction (gauntlet `PWA_OFFLINE.md` §4.1)
 
 Quota is not the risk; eviction is. Safari drops all script-writable storage for an origin after

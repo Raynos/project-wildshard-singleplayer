@@ -33,7 +33,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **O3 — accepted `32cde80543`; receipts `fd69ae2b29`; carrier pending** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4 — source `0f63b7b167`, API `4c025e81bd`; batch green `68aa1e372c`; served proof pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
 | **O5 — pulled forward: `b2e4c86d92`; desktop AO repair `32cde80543` first frames green; native warm/full acceptance pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
-| **O6** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes) | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
+| **O6 — source `48d648401a`; served byte reduction pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 32,463,904 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
 
@@ -346,3 +346,44 @@ awaits; no counter advances on a timer and wait ages do not count as work.
 Strict lint passes. One combined source batch and exact-build cold/warm
 matrix cover these cuts; warm L2/L8 and O2/O4 remain open until that proof.
 Production `no-cache` plus ETag is checked again after the carrying release.
+
+The exact `e8c4dba97e` matrix is retained in
+[`diagnostic-e8c4dba`](../../../progress/loading/g543/diagnostic-e8c4dba/README.md).
+Eight entries pass, all five real road exits/home returns pass, and every
+entry passes stage accounting and detail cadence. Native cold shardfile/grid
+are 14.3/10.6 s; warm 8.8/10.7 s. CPU-4x phone cold shardfile/grid are
+24.1/29.2 s; warm 24.4/23.6 s. The ~20 s phone grid target remains open.
+The original source batch passed types, strict lint and 762 tests; a foreign
+preview shell syntax error stopped only its browser stage. After its owner
+withdrew the edit, both official Driftwood/Pine first frames passed on this
+same SHA (`loading-worker-handoff-resumed-boot-78213`); green source checks
+were reused rather than repeated.
+
+Two warm-grid byte residuals remain explicit. Native displays 28,992 against
+26,728 actual wire bytes (+8.47%): seventeen GLB 304s contribute 1,989 bytes
+of excess because Resource Timing reports 300 header bytes against 183 on
+the wire. HTML/manifest/telemetry/version differences contribute the other
+275 bytes. `de51698358` extends the existing bounded, hash-verified URL-cache
+fallback to admission blobs and released-library rereads, removing avoidable
+revalidations while preserving exact size/hash checks. Its new regression
+failed before the change; strict lint and all 31 loader/residency tests pass.
+Phone warm grid displays 57,302 against 78,045 actual: an automatic browser
+worker-script check sends no validators, receives 20,539 gzip bytes plus
+292 response-header bytes, then the explicit update returns 304. That
+browser-owned download is absent from page/worker Resource Timing. The
+Origin split is gone. Its exact residual is with the coordinator; there is
+no body-only denominator, guessed header credit or excluded request.
+
+O6's same-build frozen comparison is retained in
+[`legacy-comparison-3c696e1`](../../../progress/loading/g543/legacy-comparison-3c696e1/README.md).
+Cold phone legacy/shardfile/grid are 10.8/22.3/21.9 s with 21.80/175.50/170.88
+MB actual wire. These sequential shared-machine measurements are not an
+isolated A/B speedup claim. Legacy gaps remain outside the gate. Source
+`48d648401a` stops publishing four retired palm/hibiscus binaries and their
+eight URL/draw aliases: 32,463,904 raw product bytes duplicate the finished
+foliage GLBs. GLBs, bake inputs and collider producers stay unchanged; the
+new alias/model-path check and strict lint pass. The existing exact collider
+parity fixture had a shared-tree baseline red before this cut (clean e8
+source checks passed). One combined clean batch on a head carrying both
+`48d648401a` and `de51698358` regenerates it and proves the source before
+served phone/native measurements; no fixture expectation is weakened.
