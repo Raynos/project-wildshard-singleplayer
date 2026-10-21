@@ -279,6 +279,7 @@ export class GridSession {
   /** G107 / SF66: each shard's baked map, downscaled once and shared by all its copies. */
   private readonly mapImages: CellMinimaps;
   private readonly strips: readonly CollisionStrip[];
+  private readonly plotColliders: readonly CollisionMesh[];
   private readonly host: GridSessionHost;
   private last: { x: number; z: number } | null = null;
   private velocity = { x: 0, z: 0 };
@@ -361,8 +362,10 @@ export class GridSession {
       }
       progress?.detail(`Plot ground · ${assembly.plots.length} / ${assembly.plots.length}`);
       await construction.yield();
+      const session = new GridSession(host, edges, allocator, strips, { road, plans, plotColliders });
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams · road ready`);
-      return new GridSession(host, edges, allocator, strips, { road, plans, plotColliders });
+      await construction.yield();
+      return session;
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
@@ -448,7 +451,9 @@ export class GridSession {
     const nativeMesh = (mesh: CollisionMesh): CollisionMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
     for (const { mesh } of this.strips) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
-    for (const mesh of preparedRoad?.plotColliders ?? plotCellColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
+    this.plotColliders = (preparedRoad?.plotColliders ?? plotCellColliders(this.assembly.plots))
+      .map(({ origin, positions, indices }) => ({ origin, positions, indices }));
+    for (const mesh of this.plotColliders) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     try {
       this.plots = installPlotCells({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
         feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } });
@@ -672,7 +677,7 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      platform: plotCellColliders(this.assembly.plots),
+      platform: this.plotColliders,
       residency: this.host.residency.home(),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
