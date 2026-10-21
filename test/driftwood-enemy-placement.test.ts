@@ -2,14 +2,11 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
 import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/sections';
-import { placeEnemies as legacyPlacement } from '../src/shards/driftwood-isle-legacy/runtime/placement';
-import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import physics from '../src/shards/driftwood-isle/data/physics.generated.json' with { type: 'json' };
-import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
-import { nativeBakeGround } from '../src/game/population/nativeBake';
-import { terrainTileHeight } from '../src/format/terrainTileBytes';
 import { Rng } from '../src/engine/core/rng';
+// The original placeEnemies output for the same seed, crab sites, palms and floors (phone / desktop page tiers, native bake).
+import frozen from './fixtures/legacy-oracles/driftwood-enemy-placement.json' with { type: 'json' };
 
 test('native bake generation refuses divergent recipes and floor metadata', () => {
   const first = physics.actors[0];
@@ -23,22 +20,12 @@ test('native bake generation refuses divergent recipes and floor metadata', () =
 
 test('offline placements retain the frozen page/native populations, herds, yaw and coconut stream', () => {
   const actual = v.parse(EnemyPlacementsSchema, structuredClone(enemyPlacements()));
-  const { physics: admitted } = driftwoodNativeRows(physics);
-  const ground = nativeBakeGround(admitted.ground, 256, 500, 'Driftwood');
-  const floorAt = (x: number, z: number): number => terrainTileHeight({ resolution: 256, x: -250, z: -250, size: 500, heights: ground.heights }, x, z, { layout: 'column-major', boundary: 'clamp' });
-  const extra = physics.habitat.perchBases.slice(foliage.tiers.phone.palms.specs.length);
-  const entries = [
-    { rows: actual.page.phone, palms: [...foliage.tiers.phone.palms.specs, ...extra], heightAt: driftwoodGroundSampler() },
-    { rows: actual.page.desktop, palms: [...foliage.tiers.desktop.palms.specs, ...extra], heightAt: driftwoodGroundSampler() },
-    { rows: actual.native, palms: physics.habitat.perchBases, heightAt: floorAt },
-  ];
-  for (const { rows, palms, heightAt } of entries) {
-    const expected = legacyPlacement({ seed: foliage.seed, waterLevel: 0, crabSites: physics.habitat.crabSites, palms, heightAt });
+  for (const [rows, expected] of [[actual.page.phone, frozen.phone], [actual.page.desktop, frozen.desktop], [actual.native, frozen.native]] as const) {
     expect(rows.enemies).toEqual(expected.enemies);
     expect(rows.herds).toBe(expected.herds); expect(rows.centres).toEqual(expected.centres);
-    expect(rows.stream).toEqual(expected.stream.snapshot());
+    expect(rows.stream).toEqual(expected.stream);
     const restored = new Rng(0); restored.restore(rows.stream);
-    expect(Array.from({ length: 40 }, () => restored.next())).toEqual(Array.from({ length: 40 }, () => expected.stream.next()));
+    expect(Array.from({ length: 40 }, () => restored.next())).toEqual(expected.next40);
     expect(rows.kinds.length).toBe(rows.centres.length);
   }
 });

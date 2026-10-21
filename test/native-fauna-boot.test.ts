@@ -7,19 +7,21 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
 import type { HuntBody } from '../src/engine/ai/hunt';
-import { faunaPlacement } from '../src/shards/driftwood-isle-legacy/runtime/fauna';
 import { DRIFTWOOD_NATIVE_FAUNA } from '../src/shards/driftwood-isle/generators/nativeFauna';
 import physics from '../src/shards/driftwood-isle/data/physicsRows.json';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+// The original faunaPlacement output (herd centres, spawns and their stream draws) for the shipping seed and rows.
+import old from './fixtures/legacy-oracles/driftwood-fauna-placement.json';
 
 test('authored fauna preserves the shipping reader spawn, yaw, herd centres and memory stream', () => {
   const boot = DRIFTWOOD_NATIVE_FAUNA, fauna = physics.actors.filter(row => row.kind === 'boar' || row.kind === 'bear');
-  const old = faunaPlacement(boot.seed, fauna), stream = new Rng(boot.seed + 31), replay = new Rng(boot.seed + 31);
+  const spawns = new Map(old.spawns.map(row => [row.id, row])), stream = new Rng(boot.seed + 31), replay = new Rng(boot.seed + 31);
+  expect(boot.seed).toBe(old.seed);
   expect(boot.centres).toEqual(old.centres);
   expect(boot.rows.map(row => [row.id, row.herd, row.seed])).toEqual(fauna.map(row => [row.id, row.herd, row.seed]));
   let drawn = 0;
   for (const row of boot.rows) {
-    const placed = old.spawns.get(row.id); if (placed === undefined) throw new Error('Missing shipping fauna');
+    const placed = spawns.get(row.id); if (placed === undefined) throw new Error('Missing shipping fauna');
     expect([row.x, row.z, row.yaw]).toEqual([placed.x, placed.z, placed.yaw]);
     while (drawn <= placed.at) { stream.next(); drawn++; }
     expect(row.stream).toEqual(stream.snapshot());
@@ -29,7 +31,6 @@ test('authored fauna preserves the shipping reader spawn, yaw, herd centres and 
   while (drawn < old.draws) { stream.next(); drawn++; }
   expect(boot.stream).toEqual(stream.snapshot());
   replay.restore(boot.stream); expect(replay.next()).toBe(stream.next());
-  expect(() => faunaPlacement(boot.seed + 1, fauna)).toThrow();
 });
 
 test('native adoption preflights identities and complete owned streams before any effect', async () => {
