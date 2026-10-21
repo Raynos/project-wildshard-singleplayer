@@ -1,0 +1,29 @@
+{
+  "schema": "compiler-normalization-proof/1",
+  "revision": "32cde805434270f8ab04091082bfc6b6fcc3c733",
+  "sourceReceiptRevision": "072e36da1034906784b71281f9bcdbc44678d555",
+  "scope": "Pure transform memo only; both passes read and hash every current input. Source macro/annotation modules retain raw identities. No product or admission verdict is reused by this probe.",
+  "passes": [
+    {
+      "pass": "cold",
+      "files": 522,
+      "normalizationReads": 522,
+      "wallSeconds": 3.7168650829999996,
+      "userSeconds": 5.040514,
+      "systemSeconds": 0.333216,
+      "rawInputDigest": "5d56a1c9099f25eeab3912842f66a3a51d511c224d9a6867781e4739f05a57be",
+      "normalizedDigest": "8317e9739e1dc43122290e69e01c5b4f2e7c15d5eb3ab8dbbf7c9931c4e31f5b"
+    },
+    {
+      "pass": "warm",
+      "files": 522,
+      "normalizationReads": 3,
+      "wallSeconds": 0.021610250000000178,
+      "userSeconds": 0.008674,
+      "systemSeconds": 0.012565,
+      "rawInputDigest": "5d56a1c9099f25eeab3912842f66a3a51d511c224d9a6867781e4739f05a57be",
+      "normalizedDigest": "8317e9739e1dc43122290e69e01c5b4f2e7c15d5eb3ab8dbbf7c9931c4e31f5b"
+    }
+  ],
+  "pass": true
+}
