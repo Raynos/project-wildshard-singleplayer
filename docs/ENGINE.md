@@ -7605,12 +7605,11 @@ both shards retain their AS bytes and unchanged version-3 snapshots.
 blob. Both native recipes use that product directly: Pine passes its prepared
 director into story installation, and Driftwood binds its named stage lane.
 No story-specific preparation cache owns the factory.
-`DirectorScriptStageLane.bind(stages, lane, bindings, owners, scope,
-restoring?)` reads bounded declared observations, applies ordered native
-method calls or field writes, and subscribes to declared flag edges. It
-borrows only supplied objects through the existing safe owner paths. Pine
-watch and Driftwood finale both use this data binding on page and headless
-hosts. Restore remains quiet, and disposal releases edge subscriptions.
+The reflected `DirectorScriptStageLane.bind` adapter is retired: no live
+source or product calls it. Both chapters enter closed observations/effects
+through their page/native chapter owners. The unchanged legacy adapter lives
+only in `test/fixtures/legacy-director-bindings.ts`, preserving independent
+old-clock and continuation comparisons without shipping reflection dispatch.
 
 `src/game/plugin/director.ts#DirectorScriptStageLane` also accepts
 `DirectorScriptStagePorts` with `emits: {source, actions}` instead of
@@ -7622,7 +7621,7 @@ Callbacks receive the admitted event payload (zero for bootstrap). Native
 callbacks retain spawn, clock, reward and flag authority; quiet restore and
 legacy publication are unchanged.
 
-Driftwood's finale uses these bindings. The G441 W3 adopters are Nalati
+Typed event publication also supports the G441 W3 adopters, Nalati
 `runtime/raidDirector.ts` and `runtime/ghostVolleyDirector.ts`, whose matching
 event checks and named native clock/shoot callbacks move onto this policy.
 

@@ -1,3 +1,4 @@
+import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -13,7 +14,7 @@ function createDriftwoodFinale(scope: Scope, lane: ConstructorParameters<typeof 
   captain: ReadonlyMap<string, (value: number) => void>;
 }, restoring = false): DirectorScriptStageLane {
   const { flags, player, rewardAt, reward } = ports;
-  return DirectorScriptStageLane.bind(stages, lane, bindings, new Map<string, unknown>([
+  return bindLegacyDirector(stages, lane, bindings, new Map<string, unknown>([
     ['flags', flags], ['player', player], ['rewardAt', rewardAt], ['reward', reward],
     ['captain', Object.fromEntries([...ports.captain].map(([key, run]) => [key.slice('captain.'.length), run]))],
   ]), scope, restoring);

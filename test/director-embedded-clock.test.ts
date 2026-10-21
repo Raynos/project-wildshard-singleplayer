@@ -1,3 +1,4 @@
+import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 import { expect, test, vi } from 'vitest';
 import { DirectorScriptStageLane, embeddedDirectorBytes, prepareEmbeddedDirector } from '../src/game/plugin/director';
 import { Scope } from '../src/engine/app/scope';
@@ -15,7 +16,7 @@ test.each([true, false])('Pine direct bindings preserve every AS/stage snapshot 
   const old = pineDirectorClock(create(), { seen: () => seen, night: () => night, hasClock: () => hasClock,
     publish: (key, value) => { oldEvents.push([key, value]); } }, () => !scope.disposed);
   const flags = new Flags('bound-watch', false);
-  const lane = DirectorScriptStageLane.bind(rows, create(), bindings, new Map<string, unknown>([
+  const lane = bindLegacyDirector(rows, create(), bindings, new Map<string, unknown>([
     ['flags', flags], ['clock', { day: () => hasClock ? {} : null, night: () => night }],
     ['publication', { publish: (key: string, value: number) => { events.push([key, value]); } }],
   ]), scope);
@@ -54,7 +55,7 @@ test('product-sorted input records restore legacy clock bytes without accepting 
   const old = pineDirectorClock(create(), { seen: () => false, night: () => 0, hasClock: () => true,
     publish: (key, value) => { oldEvents.push([key, value]); } }, () => !scope.disposed);
   const sorted = { ...rows, inputs: Object.fromEntries(Object.entries(rows.inputs).sort(([a], [b]) => a.localeCompare(b))) };
-  const lane = DirectorScriptStageLane.bind(sorted, create(), bindings, new Map<string, unknown>([
+  const lane = bindLegacyDirector(sorted, create(), bindings, new Map<string, unknown>([
     ['flags', new Flags('legacy-watch', false)], ['clock', { day: () => ({}), night: () => 0 }],
     ['publication', { publish: (key: string, value: number) => { events.push([key, value]); } }],
   ]), scope);

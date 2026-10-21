@@ -1,7 +1,5 @@
 import type { SimHost } from '@wildshard/engine/sim';
-import { DirectorBindingsSchema } from '@wildshard/format/namedJsonContracts';
 import { flagValue } from '@wildshard/engine/world/interact/flags';
-import { bindBorrowedMethod, readBorrowedOwner } from './borrowed';
 import * as v from "valibot";
 import { BossBrain, type BossContinuation, type BossDefinition, type BossPorts, type BossPresentation, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { ScriptHost, type ScriptQuery } from "@wildshard/engine/script/host";
@@ -316,45 +314,6 @@ export class DirectorScriptStageLane {
   private readonly script: DirectorLane;
   private readonly ports: DirectorScriptStagePorts;
   private readonly emits: DirectorScriptStagePorts['emits'];
-  /** Bind bounded data paths to actual native owners; resolution invokes no actions or requests. */
-  static bind(data: unknown, script: DirectorLane, input: unknown, owners: ReadonlyMap<string, unknown>,
-    scope: { readonly disposed: boolean; readonly onDispose: (cleanup: () => void) => void }, restoring = false, host?: SimHost, id?: string): DirectorScriptStageLane {
-    const rows = v.parse(DirectorBindingsSchema, input);
-    const observations = Object.entries(rows.observations).map(([key, row]) => {
-      if (typeof row === 'number') return [key, () => row] as const;
-      const call = row.args === undefined ? null : bindBorrowedMethod(owners, row);
-      if (call === null) readBorrowedOwner(owners, row);
-      return [key, () => {
-        const value = call === null ? readBorrowedOwner(owners, row)?.value : call(...(row.args ?? []));
-        if (row.present === true) return Number(value !== null && value !== undefined);
-        const number = typeof value === 'boolean' ? Number(value) : value ?? row.fallback;
-        if (typeof number !== 'number' || !Number.isFinite(number)) throw new Error('Invalid director bound observation');
-        return number;
-      }] as const;
-    });
-    const actions = new Map(Object.entries(rows.actions).map(([key, commands]) => {
-      const calls = commands.map(command => {
-        if (command.kind === 'call') { const call = bindBorrowedMethod(owners, command); return () => { call(...command.args); }; }
-        const field = readBorrowedOwner(owners, command);
-        if (field === null || typeof field.value !== typeof command.value) throw new Error('Invalid director bound field');
-        return () => { field.receiver[field.key] = command.value; };
-      });
-      return [key, () => { for (const call of calls) call(); }] as const;
-    }));
-    const changes = rows.changes.map(row => ({ subscribe: bindBorrowedMethod(owners, row), keys: row.keys }));
-    const clock = new DirectorScriptStageLane(data, script, { scope, observe: () => Object.fromEntries(observations.map(([key, read]) => [key, read()])),
-      emits: { source: rows.source, value: 'literal', actions } }, restoring, rows.initialDt);
-    for (const row of changes) {
-      const off = row.subscribe((key: unknown, on: unknown) => { if (on === true && typeof key === 'string' && row.keys.includes(key)) clock.changed(); });
-      const cleanup = v.parse(v.custom<() => void>(value => typeof value === 'function', 'Director edge cleanup'), off);
-      scope.onDispose(cleanup);
-    }
-    if (host !== undefined) {
-      if (id === undefined) throw new Error('Native stage lane requires its declared id');
-      clock.registerNative(host, id);
-    }
-    return clock;
-  }
   /** Publish this existing continuation under a native service identity. */
   registerNative(host: SimHost, id: string): void {
     if (host.scope.disposed || id.length === 0) throw new Error('Native stage lane requires a live declared id');

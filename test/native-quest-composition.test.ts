@@ -1,3 +1,4 @@
+import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compose the native owners over real Rapier.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -9,7 +10,7 @@ import { installMixedPopulation } from '../src/game/population/mixedRoster';
 import { installNativeQuestComposition, readNativeQuestSpots } from '../src/game/quest/nativeComposition';
 import { installNativeQuestChannels, registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import { installNativeItems, createNativeCombatFrame } from '../src/game/plugin/nativeItems';
-import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/plugin/director';
+import { prepareEmbeddedDirector } from '../src/game/plugin/director';
 import { parseQuestHost } from '../src/format/questHost';
 import { parseAchievementCounterData } from '../src/format/achievementCounters';
 import { orchardPopulation } from './fixtures/mixed-population';
@@ -47,7 +48,7 @@ test('an orchard quest resolves native services by ids and restores carried rewa
     let commands = [{ actorId: rows.actor, value: 1 }];
     registerNativeQuestInputs(host, { scripts: () => commands, walk: () => ({ x: 0, z: 0 }), ledger: { fact: () => undefined, coins: () => undefined } });
     const reward = installNativeQuestChannels(host, rows.reward.channels, { started: false, completed: false });
-    DirectorScriptStageLane.bind(stages, create(), { observations: { altar: 0, dead: 0, seen: 0, 'player-x': 30, 'player-z': 30, 'reward-x': 0, 'reward-z': 0 },
+    bindLegacyDirector(stages, create(), { observations: { altar: 0, dead: 0, seen: 0, 'player-x': 30, 'player-z': 30, 'reward-x': 0, 'reward-z': 0 },
       actions: { 'captain.restore': [], 'captain.wake': [], 'captain.dead': [], 'reward.start': bindings.actions['reward.start'], 'reward.finish': bindings.actions['reward.finish'] },
       changes: [], source: 'optional', initialDt: 0 }, new Map<string, unknown>([['reward', reward], ['flags', host.flags]]), host.scope, saved !== undefined, host, rows.director);
     installNativeQuestComposition(host, { source, rows, spots, props, counters, feats: [], table: { external: [], rows: [] }, restoring: saved !== undefined }); population.settle();
