@@ -16,6 +16,11 @@ import fixture from './fixtures/client-plan.json' with { type: 'json' };
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct, ProductError } from '../src/game/shardfile/shardProduct';
+import * as questPreparation from '../src/game/shardfile/clientQuestComposition';
+import * as rangedPreparation from '../src/game/loadout/rangedPage';
+import * as spawnPreparation from '../src/game/quest/chapterDirector';
+import type { QuestSpawnResult } from '../src/game/quest/chapterDirector';
+import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
@@ -33,12 +38,13 @@ function context() {
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 7 });
   const sections = new Map<string, unknown>([['client/plan', fixture], ['ui/strings', { 'death.verb.crab': 'Pinched by' }],
     ['world/scenes', { version: 1, libraries: [], materials: [], steps: [] }]]);
-  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections, files: new Map(), read: () => Promise.reject(new Error('No fixture blob')) });
+  const files = new Map<string, { hash: string; url: string }>(), bytes = new Map<string, Uint8Array>();
+  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections, files, read: hash => { const value = bytes.get(hash); return value === undefined ? Promise.reject(new Error('No fixture blob')) : Promise.resolve(value); } });
   const scope = new Scope('client-plan-fixture'), strings = vi.fn<ShardContext['strings']>(), expose = vi.fn<ShardContext['debug']['expose']>(), runtime = {} as NonNullable<ShardContext['game']['runtime']>;
   const base: Pick<ShardContext, 'product' | 'scope' | 'strings' | 'debug'> = { product, scope, strings, debug: { expose } };
   const ctx = base as ShardContext;
   Object.defineProperty(ctx, 'game', { enumerable: true, value: { runtime } });
-  return { ctx, source, sections, strings, expose, runtime };
+  return { ctx, source, sections, strings, expose, runtime, files, bytes };
 }
 
 test('entered world looks precede plan effects and release with their owner', async () => {
@@ -288,4 +294,50 @@ test('catalogues require only the optional sections their rows select', () => {
     expect(() => admitClientPlan(plan({ ...row, economy: true }), f.ctx.product)).toThrow('economy/loot');
     expect(f.strings).not.toHaveBeenCalled(); expect(f.expose).not.toHaveBeenCalled();
   } finally { f.ctx.scope.dispose(); }
+});
+
+test.each(['native', 'regional', 'data'] as const)('finite preparation precedes the %s play consumer', async surface => {
+  const f = context(), order: string[] = [];
+  f.sections.set('client/plan', { version: 1, features: [
+    { kind: 'quest.spawns', id: 'orchard.spawns', source: 'custom/questRuntime', quest: 'orchard.quest', animals: 'orchard.animals', sounds: 'orchard.sounds' },
+    { kind: 'quest.composition', id: 'orchard.quest', file: 'quest.json', ranged: 'orchard.ranged', animals: 'orchard.animals', sounds: 'orchard.sounds' },
+    { kind: 'held.ranged-page', file: 'ranged.json' },
+  ] });
+  f.sections.set('held/finishes', {}); f.sections.set('custom/questRuntime', {});
+  for (const name of ['ranged.json', 'quest.json']) { f.files.set(name, { hash: name, url: `https://example.invalid/${name}` }); f.bytes.set(name, new TextEncoder().encode('{}')); }
+  const prepare = vi.spyOn(rangedPreparation, 'prepareRangedPage').mockResolvedValue(undefined);
+  const ranged = vi.spyOn(questPreparation, 'installEntryRangedPage').mockImplementation(() => { order.push('ranged'); return Promise.resolve(); });
+  const quest = vi.spyOn(questPreparation, 'installEntryQuestComposition').mockImplementation(() => { order.push('quest'); return Promise.resolve(); });
+  const result: QuestSpawnResult = { puffs: { color: [1, 1, 1], count: 2, height: 1, burst: [1, 2, 3, 4] }, count: 0,
+    force: () => undefined, update: () => undefined, takePuffs: () => [] };
+  const spawns = vi.spyOn(spawnPreparation, 'installDeclaredQuestSpawns').mockImplementation(() => { order.push('spawns'); return Promise.resolve(result); });
+  class Runtime extends ShardPlugin {
+    override play(ctx: ShardContext): void {
+      expect(entryOwner(ctx.scope, 'quest-spawns', 'orchard.spawns')).toBe(result); order.push('view');
+    }
+  }
+  try {
+    if (surface === 'native') {
+      const Entry = declaredRuntimeEntry(Runtime, Runtime, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'runtime' }).default;
+      const plugin = new Entry(undefined, undefined, () => false);
+      await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
+    } else if (surface === 'regional') {
+      const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
+      const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: { entry: 'runtime/index.ts', binds: [] },
+        firstParty: true, scope: f.ctx.scope, runtime, context: (scope, localRuntime) => ({ context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime: localRuntime } }, openKit: () => undefined, closeKit: () => undefined }) };
+      const session = new HybridRuntimeSession(new Map([['orchard', resident]]), [{ slug: resident.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) }], f.ctx.scope);
+      await session.prepare('orchard');
+      await session.enter({ instance: 'orchard', slug: f.source.identity.slug });
+      session.leave();
+    } else {
+      const assets = new ClientAssets(f.source, new Map(), browserShardfileOptions('https://example.invalid/'));
+      const client = new ShardfileClient(f.source, assets, { instance: 'orchard', trustedRuntime: true, runtimeStagesOnly: true,
+        recipes: new Map(), items: new Map(), catalogue: [], voices: () => new Map(), icon: () => { throw new Error('No fixture item'); } });
+      await client.world(f.ctx); await client.kit(f.ctx); await client.play(f.ctx);
+      expect(entryOwner(f.ctx.scope, 'quest-spawns', 'orchard.spawns')).toBe(result);
+    }
+    expect(order).toEqual(surface === 'data' ? ['ranged', 'quest', 'spawns'] : ['ranged', 'quest', 'spawns', 'view']);
+  } finally {
+    prepare.mockRestore(); ranged.mockRestore(); quest.mockRestore(); spawns.mockRestore(); f.ctx.scope.dispose();
+  }
 });

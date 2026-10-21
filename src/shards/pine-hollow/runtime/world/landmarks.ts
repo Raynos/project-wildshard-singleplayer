@@ -15,10 +15,10 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { CaveInterior } from '@wildshard/game/shardfile/caveInterior';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
-import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
+import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
-import { pineMemoryTrim, pineSetCap } from '../boot/files';
+import { pineSetCap } from '../boot/files';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 export class PineLandmarks {
@@ -43,7 +43,7 @@ export class PineLandmarks {
   async installChapter(ctx: ShardContext, input: RangedPageRows): Promise<void> {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Missing landmark play services');
-    const page = await installRangedPage(ctx, { ...input, shadowBatch: !pineMemoryTrim() });
+    const page = rangedPage(ctx.scope, input.id);
     this.chapter = await PineQuestViews.install(ctx, this);
     const ambience = page.ambience;
     const spots = this.crags?.cave.spots() ?? [];

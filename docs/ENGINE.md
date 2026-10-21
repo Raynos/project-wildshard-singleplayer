@@ -11027,7 +11027,9 @@ changes or dynamic rendering quality.
 entry capabilities. `EntryOwnerTypes` lists concrete platform values:
 `scenes` (SceneHandles), `forest` (ForestPage), `cave` (CaveInterior),
 `quest` (QuestPageComposition), `object` (Object3D), `chain` (RopeChain),
-`ambient` (AmbientGroup) and `collection` (CollectionCatalogue).
+`ambient` (AmbientGroup), `collection` (CollectionCatalogue),
+`animals` (AnimalManager), `sounds` (DeclaredSoundBank) and
+`quest-spawns` (QuestSpawnResult).
 These are existing host instances, never
 shard callback objects or property paths. Shard data selects a kind and id;
 only compiled platform installers publish or lend its actual value.
@@ -11088,3 +11090,26 @@ The existing roster, weather, step and live herd own actors and movement;
 the guest decides wet/dry conditions, hold expiry and goals. The original
 v1 shelter envelope and owner ids remain unchanged. No durable guest
 continuation or additional simulation clock is introduced.
+
+### Declared quest preparation prefix (G571)
+
+The compiled `prepare-play` phase runs after play services and declared audio
+are ready, before the trusted shard's play consumer. Its ranks belong to the
+platform, never author rows: entered ranged installation first, then
+`{ kind: 'quest.composition', id, file, ranged, animals, sounds }`, then
+`{ kind: 'quest.spawns', id, source, quest, animals, sounds }`. Ordinary
+world/kit/play features retain their original order and lifetime.
+
+The ranged feature can declare `shadowBatch: { shard, grid }`; the page-mode
+host selects that authored value. The composition reads its admitted named
+rows, requires their exact id, installs the existing quest once, and publishes
+the concrete quest, animal-manager and sound-bank loans. The spawn feature
+requires matching declared composition loans and one admitted custom section;
+its compiled reader takes only that section's fixed `spawns` field. It checks
+the bound quest and sound identities before constructing the existing AS runner
+and refuses expired or changed loans across admission.
+
+Views borrow `quest-spawns` through the owner registry and keep their existing
+update and puff-consumption phase. Completion effects still precede cues;
+commands retain the native next-tick commit. No new clock, continuation,
+callback row, export lookup or property selector is introduced.

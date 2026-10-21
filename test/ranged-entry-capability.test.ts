@@ -5,6 +5,10 @@ import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import * as geometry from '../src/engine/models/geometrySources';
 import { HeldFinishes } from '../src/game/loadout/finishes';
+import * as rangedHost from '../src/game/loadout/rangedPage';
+import { installEntryRangedPage } from '../src/game/shardfile/clientQuestComposition';
+import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
+import authoredPlan from '../src/shards/pine-hollow/data/clientPlan.json' with { type: 'json' };
 import { prepareRangedPage } from '../src/game/loadout/rangedPage';
 import { shardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
@@ -71,4 +75,15 @@ test('the finite capability requires its admitted file and runs only in the ente
     await expect(installClientPhase(f.ctx, plan, 'world', f.ctx.scope, 'entered')).rejects.toThrow('finish admission boundary');
     expect(prepare).toHaveBeenCalledOnce();
   } finally { prepare.mockRestore(); missing.ctx.scope.dispose(); f.ctx.scope.dispose(); }
+});
+
+test.each(['shard', 'grid'] as const)('declared ranged install preserves the original %s shadow policy', async mode => {
+  const f = fixture(), before = currentPageMode(), boundary = vi.spyOn(rangedHost, 'installRangedPage').mockRejectedValue(new Error('entered ranged boundary'));
+  try {
+    setPageMode(mode);
+    const row = parseClientPlan(authoredPlan).features.find(feature => feature.kind === 'held.ranged-page');
+    if (row === undefined) throw new Error('Missing ranged entry rows');
+    await expect(installEntryRangedPage(f.ctx, row)).rejects.toThrow('entered ranged boundary');
+    expect(boundary.mock.calls[0]?.[1]).toMatchObject({ ...RANGED_PAGE, shadowBatch: mode === 'shard' });
+  } finally { boundary.mockRestore(); setPageMode(before); f.ctx.scope.dispose(); }
 });

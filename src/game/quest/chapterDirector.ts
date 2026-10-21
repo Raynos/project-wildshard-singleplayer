@@ -17,7 +17,7 @@ import * as v from 'valibot';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
 import { boundQuestState } from './boundState';
 import { TIER } from '@wildshard/engine/core/tier';
-import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
+import { entryOwner } from '../shardfile/entryOwners';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ChapterClock } from './chapterClock';
 import { prepareScriptMemoryLease } from '@wildshard/engine/script/host';
@@ -123,28 +123,39 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
   } };
 }
 
-/** Client-only quest projection over the existing AS spawn director (G565: the script reads its declared quest flags
- * and decides its own spawn conditions, like the native runner). It owns
- * no decision clock or body policy, and accepts no shard callbacks. Puff cues
- * remain plain points consumed by the existing view owner. */
-export async function installQuestSpawnDirector(ctx: ShardContext, input: unknown): Promise<{
-  readonly puffs: QuestSpawnPageRows['puffs'];
-  readonly count: number; force: () => void; useSfx: (bank: DeclaredSoundBank) => void;
-  update: (dt: number, player: Vector3) => void; takePuffs: () => readonly { readonly x: number; readonly y: number; readonly z: number }[];
-}> {
-  const rows = parseQuestSpawnPage(v.parse(v.object({ spawns: QuestSpawnPageSchema }), input).spawns), source = await readSpawnScript(ctx.product, rows.script);
-  if (ctx.scope.disposed) throw new Error('Quest left during spawn director admission');
+/** Finite declared entry capability; ids name concrete owners in this entry. */
+export interface QuestSpawnCapability {
+  readonly id: string; readonly source: `custom/${string}`;
+  readonly quest: string; readonly animals: string; readonly sounds: string;
+}
+/** Client-only publications over the original AS spawn owner. Views borrow
+ * these values at their existing update phase; no new save or clock is added. */
+export interface QuestSpawnResult {
+  readonly puffs: QuestSpawnPageRows['puffs']; readonly count: number;
+  force: () => void; update: (dt: number, player: Vector3) => void;
+  takePuffs: () => readonly { readonly x: number; readonly y: number; readonly z: number }[];
+}
+
+/** Construct only after the entry has published its quest, animal and sound
+ * loans. The fixed source section contributes .spawns; there is no selector. */
+export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: QuestSpawnCapability): Promise<QuestSpawnResult> {
+  const quest = entryOwner(ctx.scope, 'quest', capability.quest), animals = entryOwner(ctx.scope, 'animals', capability.animals);
+  const bank = entryOwner(ctx.scope, 'sounds', capability.sounds);
+  const rows = parseQuestSpawnPage(v.parse(v.object({ spawns: QuestSpawnPageSchema }), ctx.product.section<unknown>(capability.source)).spawns);
+  if (boundQuestState(ctx.scope, rows.quest).flags !== quest.flags) throw new Error('Quest spawn loan differs from its bound quest');
+  const source = await readSpawnScript(ctx.product, rows.script);
+  if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Quest left during spawn director admission');
+  if (entryOwner(ctx.scope, 'quest', capability.quest) !== quest || entryOwner(ctx.scope, 'animals', capability.animals) !== animals
+    || entryOwner(ctx.scope, 'sounds', capability.sounds) !== bank) throw new Error('Quest spawn loan changed during admission');
   if (rows.channel > source.channels.length || rows.cues.some(cue => cue.id > source.cues.length)
     || rows.complete.some(row => !source.flags.includes(row.flag))) throw new Error('Unknown quest spawn publication');
-  const flags = boundQuestState(ctx.scope, rows.quest).flags, world = ctx.game.runtime?.world, animals = ctx.game.runtime?.play?.animals;
-  if (world === undefined || world === null || animals === undefined) throw new Error('Quest spawn director requires its entered world');
+  if (rows.cues.some(cue => cue.kind === 'sound' && !bank.acceptsShot(cue.name))) throw new Error('Unknown quest spawn sound');
+  const flags = quest.flags, world = ctx.game.runtime?.world;
+  if (world === undefined || world === null) throw new Error('Quest spawn director requires its entered world');
   const brain = SpawnScript.page(animals, source);
-  let bank: DeclaredSoundBank | null = null, puffs: { readonly x: number; readonly y: number; readonly z: number }[] = [];
-  ctx.scope.onDispose(() => { puffs.length = 0; bank = null; });
-  return { puffs: rows.puffs, get count() { return brain.channel(rows.channel); }, force: () => { brain.force(); }, useSfx: value => {
-    if (rows.cues.some(cue => cue.kind === 'sound' && !value.acceptsShot(cue.name))) throw new Error('Unknown quest spawn sound');
-    bank = value;
-  },
+  let puffs: { readonly x: number; readonly y: number; readonly z: number }[] = [];
+  ctx.scope.onDispose(() => { puffs.length = 0; });
+  return { puffs: rows.puffs, get count() { return brain.channel(rows.channel); }, force: () => { if (!ctx.scope.disposed) brain.force(); },
     takePuffs: () => { const out = puffs; puffs = []; return out; }, update: (dt, player) => {
       if (ctx.scope.disposed) return;
       brain.advance(dt, player, world.sky.dayNight?.night ?? 0, rows.limit[TIER], source.flags.filter(flag => flags.has(flag)));
@@ -152,7 +163,7 @@ export async function installQuestSpawnDirector(ctx: ShardContext, input: unknow
       for (const event of brain.drainEffects()) {
         if (event.kind !== 'cue') continue;
         const cue = rows.cues.find(row => row.id === event.id);
-        if (cue?.kind === 'sound') bank?.shot(cue.name, { at: event.at });
+        if (cue?.kind === 'sound') bank.shot(cue.name, { at: event.at });
         else if (cue?.kind === 'puff') { if (puffs.length >= 64) throw new Error('Quest puff cue allowance'); puffs.push(event.at); }
       }
     } };

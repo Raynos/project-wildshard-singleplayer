@@ -1,6 +1,8 @@
 {
   "page": "pine.forest",
   "ranged": "pine.ranged",
+  "quest": "pine.quest-page",
+  "spawns": "pine.quest-spawns",
   "content": "custom/questRuntime",
   "panels": {
     "board": "board",

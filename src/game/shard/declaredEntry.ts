@@ -17,7 +17,7 @@ export function declaredRuntimeEntry(Runtime: new () => ShardPlugin, Native: new
     }
     override async world(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'world'); await super.world?.(ctx); }
     override async kit(ctx: ShardContext): Promise<void> { await super.kit?.(ctx); await this.phase(ctx, 'kit'); }
-    override async play(ctx: ShardContext): Promise<void> { await super.play?.(ctx); await this.phase(ctx, 'play'); }
+    override async play(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'prepare-play'); await super.play?.(ctx); await this.phase(ctx, 'play'); }
   }
   const Entry = standaloneHybridEntry(policy.nativePlan === false ? Native : NativeEntry, ctx => {
     if (!ctx.product.has('client/plan')) throw new Error('Declared runtime entry requires client/plan');

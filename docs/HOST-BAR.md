@@ -94,6 +94,8 @@ file; shared physical lines stay charged if an unapproved binding occupies
 them. Ordinary prose, other decisions and unnamed one-user hosts grant no
 G571 credit. Imports and dependencies retain their own attribution.
 
+- G571 quest entry prefix: `game/shardfile/clientQuestComposition` prepares the entered ranged and named quest owners from finite client-plan rows; `game/quest/chapterDirector#QuestSpawnCapability`, `game/quest/chapterDirector#QuestSpawnResult` and `game/quest/chapterDirector#installDeclaredQuestSpawns` bind the existing AS spawns to exact quest, animal and sound loans. Client-only; no callback row, selector, extra clock or save. Test 1 waived; tests 2–6 covered by `test/quest-spawn-capability.test.ts`, `test/client-plan-platform.test.ts`, `test/ranged-entry-capability.test.ts` and the original quest product/save suites. Unrelated chapter director and guide declarations remain charged.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they

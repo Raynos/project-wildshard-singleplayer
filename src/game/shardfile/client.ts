@@ -331,6 +331,7 @@ export class ShardfileClient {
       await macrotask();
       if (ctx.scope.disposed) throw new Error('Shardfile left during play installation');
     }
+    await this.phase(ctx, 'prepare-play');
     await this.phase(ctx, 'play');
   }
 

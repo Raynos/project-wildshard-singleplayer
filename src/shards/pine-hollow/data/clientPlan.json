@@ -6,7 +6,11 @@
     },
     {
       "kind": "held.ranged-page",
-      "file": "client/ranged-page.json"
+      "file": "client/ranged-page.json",
+      "shadowBatch": {
+        "shard": true,
+        "grid": false
+      }
     },
     {
       "kind": "held.ranged-feel"
@@ -41,6 +45,22 @@
           "showHeadBar": false
         }
       ]
+    },
+    {
+      "kind": "quest.composition",
+      "id": "pine.quest-page",
+      "file": "quests/page-composition.json",
+      "ranged": "pine.ranged",
+      "animals": "pine.animals",
+      "sounds": "pine.quest-sounds"
+    },
+    {
+      "kind": "quest.spawns",
+      "id": "pine.quest-spawns",
+      "source": "custom/questRuntime",
+      "quest": "pine.quest-page",
+      "animals": "pine.animals",
+      "sounds": "pine.quest-sounds"
     }
   ]
 }

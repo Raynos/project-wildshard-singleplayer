@@ -272,7 +272,7 @@ export class HybridShardPlugin extends ShardPlugin {
   private async runtimePlay(): Promise<void> {
     const custom = this.custom; if (custom === undefined || !custom.active) throw new Error('Hybrid runtime kit is not installed');
     if (custom.retained !== undefined && custom.ready) { this.binding?.readiness?.(true); return; }
-    await enterDeclaredAudioPhase(custom.installation.context, 'play'); await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
+    await enterDeclaredAudioPhase(custom.installation.context, 'play'); await this.enteredPlan(custom.installation.context, 'prepare-play'); await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
     await this.enteredPlan(custom.installation.context, 'play');
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during play installation');
     custom.ready = true; this.binding?.readiness?.(true);
@@ -484,7 +484,7 @@ export class HybridRuntimeSession {
       if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterKit', () => ownerTask(scope, () => installation.afterKit?.(context))); if (!live()) return false;
       await this.stage(scope, cell.instance, 'play', () => ownerTask(scope, async () => {
-        await enterDeclaredAudioPhase(context, 'play'); await plugin.play?.(context); await runtimeClientPhase(context, 'play', resident.scope);
+        await enterDeclaredAudioPhase(context, 'play'); await runtimeClientPhase(context, 'prepare-play', resident.scope); await plugin.play?.(context); await runtimeClientPhase(context, 'play', resident.scope);
       })); if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterPlay', () => ownerTask(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
       // Keep a cold entered world parked through its actual shader/texture warm.

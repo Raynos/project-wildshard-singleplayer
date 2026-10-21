@@ -47,7 +47,7 @@ import { installWorldScenes } from './worldScenes';
 import { clientSceneHandles, publishClientSceneHandles } from './clientSceneHandles';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 
-export type ClientPhase = 'world' | 'kit' | 'play';
+export type ClientPhase = 'world' | 'kit' | 'prepare-play' | 'play';
 interface ClientFeature {
   readonly phase: ClientPhase;
   readonly rank: number;
@@ -55,6 +55,7 @@ interface ClientFeature {
   readonly sections: readonly PlatformSectionName[];
   readonly install: (ctx: ShardContext, row: ClientFeatureRow, resident: Scope) => Promise<void> | void;
   readonly play?: { readonly rank: number; readonly install: ClientFeature['install'] };
+  readonly preparePlay?: { readonly rank: number; readonly install: ClientFeature['install'] };
 }
 /** Compiled-in client-only registry. Adding a kind requires its strict format schema and a reviewed platform host. */
 export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>> = {
@@ -68,7 +69,24 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (row.kind !== 'held.ranged-page') throw new Error('Invalid ranged page feature');
       const { prepareRangedPage } = await import('../loadout/rangedPage');
       await prepareRangedPage(ctx, await ctx.product.json(row.file));
-    } },
+    }, preparePlay: { rank: 10, install: async (ctx, row) => {
+      if (row.kind !== 'held.ranged-page') throw new Error('Invalid ranged page feature');
+      const { installEntryRangedPage } = await import('./clientQuestComposition');
+      await installEntryRangedPage(ctx, row);
+    } } },
+  'quest.composition': { phase: 'prepare-play', rank: 20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'quest.composition') throw new Error('Invalid quest composition feature');
+    const { installEntryQuestComposition } = await import('./clientQuestComposition');
+    await installEntryQuestComposition(ctx, row);
+  } },
+  'quest.spawns': { phase: 'prepare-play', rank: 30, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'quest.spawns') throw new Error('Invalid quest spawns feature');
+    const { installDeclaredQuestSpawns } = await import('../quest/chapterDirector');
+    const { publishEntryOwner } = await import('./entryOwners');
+    const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');
+    if (!custom(row.source)) throw new Error('Invalid quest spawn source');
+    publishEntryOwner(ctx.scope, 'quest-spawns', row.id, await installDeclaredQuestSpawns(ctx, { ...row, source: row.source }));
+  } },
   'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
@@ -176,6 +194,14 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
     for(const row of plan.features)if(row.kind==='bag.finds'&&(!product.hasFile(row.file)||!product.shardfile.quests.quests.some(quest=>quest.id===row.quest)))throw new Error('Finds require their admitted file and quest');
     for (const row of plan.features) {
+      if ((row.kind === 'quest.composition' || row.kind === 'held.ranged-page') && !product.hasFile(row.file)) throw new Error('Entry preparation requires its admitted data file');
+      if (row.kind === 'quest.spawns') {
+        const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');
+        if (!custom(row.source)) throw new Error('Invalid quest spawn source');
+        if (!product.has(row.source)) throw new Error('Quest spawns require their admitted source section');
+        product.section(row.source);
+        if (!plan.features.some(owner => owner.kind === 'quest.composition' && owner.id === row.quest && owner.animals === row.animals && owner.sounds === row.sounds)) throw new Error('Quest spawns require their declared composition owners');
+      }
       const required = row.kind === 'content.catalogue' ? [
         ...(row.finishes || row.effects.includes('finishes') ? CLIENT_FEATURES[row.kind].sections : []),
         ...(row.economy === true ? ['economy/loot'] as const : []),
@@ -194,7 +220,8 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
     const feature = CLIENT_FEATURES[row.kind];
     if (lifetime !== undefined && feature.lifetime !== lifetime) return [];
     return [...(feature.phase === phase ? [{ row, rank: feature.rank, install: feature.install }] : []),
-      ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : [])];
+      ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : []),
+      ...(phase === 'prepare-play' && feature.preparePlay !== undefined ? [{ row, ...feature.preparePlay }] : [])];
   }).sort((a, b) => a.rank - b.rank || (a.row.kind === 'debug.expose' ? a.row.name : a.row.kind).localeCompare(b.row.kind === 'debug.expose' ? b.row.name : b.row.kind));
   // The platform's look phase precedes every entered world step, including
   // trusted runtimes whose data client intentionally skips presentation.

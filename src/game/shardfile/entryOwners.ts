@@ -1,6 +1,9 @@
 /** Client-only concrete loans between compiled entry capabilities. No shard
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D } from 'three';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
+import type { QuestSpawnResult } from '../quest/chapterDirector';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import type { AmbientGroup } from '../ambient/flock';
@@ -20,6 +23,9 @@ export interface EntryOwnerTypes {
   chain: RopeChain;
   ambient: AmbientGroup;
   collection: CollectionCatalogue;
+  animals: AnimalManager;
+  sounds: DeclaredSoundBank;
+  'quest-spawns': QuestSpawnResult;
 }
 export type EntryOwnerKind = keyof EntryOwnerTypes;
 interface Loan<T> { readonly owner: Scope; readonly value: T }
@@ -34,7 +40,8 @@ function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
     value = { scenes: new Map(), forest: new Map(), cave: new Map(), quest: new Map(),
-      object: new Map(), chain: new Map(), ambient: new Map(), collection: new Map() };
+      object: new Map(), chain: new Map(), ambient: new Map(), collection: new Map(),
+      animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
     books.set(scope, value);
   }
   return value;
