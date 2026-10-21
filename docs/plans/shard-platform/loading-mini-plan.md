@@ -510,3 +510,12 @@ are retained in
 source batch and exact served phone, desktop-AO and native matrix are
 queued after the ordinary native timing window. Whole-entry savings are
 not yet established; O5 remains open.
+
+Released-worker policy is verified on live build `64d85dac0-mvi1u8vt`:
+95-byte `/sw.js`, `no-cache`, strong ETag, identical Origin-present/absent
+responses, no `Vary: Origin`, and unchanged conditional 304 with no body.
+The hashed core is immutable, and the build id stays fixed across the
+requests. Receipt `b2fc56ef7f` is retained in
+[`production-worker-20261021`](../../../progress/loading/g543/production-worker-20261021/README.md).
+This closes the earlier post-release header follow-up; changed-core
+freshness remains covered by the existing same-length native regression.
