@@ -33,7 +33,7 @@ Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real secon
 | Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | sp-o5 (after Z9) |
 | Z6 | Codex | Nalati non-graphical own code (combat/quest/state) | sp-x9 |
 | Z7 | Codex | Nine C6 items (265) + C9 glue (199) | sp-x8 |
-| Z8 | Codex | Pine C9 glue (229): no honest cut found (boot lists filePolicy/files/gpuTable 91 hang on grid-only ASTC 6x6; hybrid 36 wires Pine-only forest/ranged pages; shelter 25 and manifest forest/clip 13 have no second user, Nalati forest is a mask; explorer 18 a listed chargeback) | sp-o3 triaged |
+| Z8 | Codex | Pine C9 glue (229): no honest cut found (boot lists filePolicy/files/gpuTable 91 hang on grid-only ASTC 6x6; hybrid 36 wires Pine-only forest/ranged pages; shelter 25 and manifest forest/clip 13 have no second user, Nalati forest is a mask; explorer 18 a listed chargeback) | triaged, no honest cut (sp-o3 547b24916d: boot lists need page-mode rows, hybrid wires Pine-only pages, shelter/forest readers one user) |
 | Z9 | Codex | Driftwood C9 glue (271) | sp-o5 (attributing) |
 | Z10 | Codex | Ink Cel Valley residue + open-plots (148) | sp-o3 / sp-o1 |
 | Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path |sp-x9 |
