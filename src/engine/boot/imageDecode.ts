@@ -5,6 +5,12 @@ interface Pending { scope: Scope; resolve: (bitmap: ImageBitmap) => void; reject
 let worker: Worker | null = null, scope: Scope | null = null, idle: Scope | null = null;
 let failed = false, sequence = 0;
 const pending = new Map<number, Pending>();
+let fallbackTail: Promise<void> = Promise.resolve();
+function fallbackDecode(blob: Blob, options: ImageBitmapOptions): Promise<ImageBitmap> {
+  const image = fallbackTail.then(() => createImageBitmap(blob, options));
+  fallbackTail = image.then(() => undefined, () => undefined);
+  return image;
+}
 
 function stop(reason: Error, permanent: boolean): void {
   const active = worker, owner = scope;
@@ -50,9 +56,10 @@ function start(): Worker {
 /** Decode counted bytes with unchanged bitmap options in one page-owned worker.
  * WebKit may finish a main-page createImageBitmap on its main thread. Transfer the
  * worker's identical bitmap instead; unsupported/failed workers use the original
- * page API. No texture, canvas, sampler, colour conversion or resampling is added. */
+ * page API through one fallback slot; failed images release that slot too.
+ * No texture, canvas, sampler, colour conversion or resampling is added. */
 export async function decodeImageBitmap(blob: Blob, options: ImageBitmapOptions): Promise<ImageBitmap> {
-  if (failed || typeof Worker !== 'function') return createImageBitmap(blob, options);
+  if (failed || typeof Worker !== 'function') return fallbackDecode(blob, options);
   try {
     const decoder = start(), owner = scope;
     if (owner === null) throw new Error('Image decoder missing');
@@ -64,5 +71,5 @@ export async function decodeImageBitmap(blob: Blob, options: ImageBitmapOptions)
       try { decoder.postMessage({ id, blob, options }, { transfer: [] }); }
       catch (error) { stop(error instanceof Error ? error : new Error(String(error)), true); }
     });
-  } catch { return createImageBitmap(blob, options); }
+  } catch { return fallbackDecode(blob, options); }
 }

@@ -77,3 +77,23 @@ test('transfers bitmap ownership, preserves options and releases pending request
   expect(await decodeImageBitmap(blob, options)).toBe(fallbackImage);
   expect(DecoderWorker.instances).toHaveLength(1); expect(worker.terminate).toHaveBeenCalledOnce();
 });
+
+
+test('bounds page fallback decodes and releases the slot after a failure', async () => {
+  vi.stubGlobal('Worker', undefined);
+  const jobs: { resolve: (bitmap: DecodedBitmap) => void; reject: (error: Error) => void }[] = [];
+  const fallback = vi.fn((_blob: Blob, _options: ImageBitmapOptions) => new Promise<DecodedBitmap>((resolve, reject) => { jobs.push({ resolve, reject }); }));
+  vi.stubGlobal('createImageBitmap', fallback);
+  const { decodeImageBitmap } = await import('../src/engine/boot/imageDecode');
+  const blob = new Blob(['pixels']), options: ImageBitmapOptions = { imageOrientation: 'flipY', resizeWidth: 2, resizeHeight: 3 };
+  const first = decodeImageBitmap(blob, options), failed = expect(first).rejects.toThrow('decode refused');
+  const second = decodeImageBitmap(blob, options);
+  try {
+    await expect.poll(() => fallback.mock.calls.length).toBe(1);
+    jobs[0]?.reject(new Error('decode refused')); await failed;
+    await expect.poll(() => fallback.mock.calls.length).toBe(2);
+    const bitmap = new DecodedBitmap(); jobs[1]?.resolve(bitmap);
+    expect(await second).toBe(bitmap);
+    expect(fallback.mock.calls).toEqual([[blob, options], [blob, options]]);
+  } finally { for (const job of jobs) job.resolve(new DecodedBitmap()); await Promise.allSettled([first, second]); }
+});

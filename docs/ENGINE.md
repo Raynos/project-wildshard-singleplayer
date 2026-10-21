@@ -8151,6 +8151,8 @@ serializes native decodes, ends after 30 idle seconds and rejects all pending
 requests on failure/disposal. Unsupported workers and failed jobs use the original
 page `createImageBitmap` API, then the existing image-element fallback. KTX2
 transcoding and its format probe are independent of this image decode path.
+Page bitmap fallbacks also share one decode slot, released on success or failure;
+counted network reads remain parallel.
 
 Calls consume at most 16 queued events and emit 32 commands, four spawns
 and eight timer writes. A decision tick caps 64 calls and 128 commands.
