@@ -1,0 +1,17 @@
+{
+  "source": "2a1f3c89d3247f38e63eb76019564082421537dc",
+  "focusedTests": 6,
+  "sourceBatch": {
+    "rootTypes": "passed",
+    "layerTypes": "passed",
+    "peripheralTypes": "passed",
+    "strictLint": "passed",
+    "tests": 726,
+    "testFiles": 136,
+    "firstFrame": "blocked by foreign waterMaterial binding; reverted in fbe9c2a82; owner proof pending",
+    "log": ".git/command-logs/batch-check-4264mx5t.log"
+  },
+  "proof": ".git/proofs/20261021T080422-loading-arrival-warm-offline-entries-65361.json",
+  "native": "S5 in sim-queue; sp-o5 owns it",
+  "limits": "No cap, renderer scale, layout or pose changes. Actual warm wire is zero because upstream sockets are closed. Ring readiness remains a separate investigation; these entries deliberately exercise Skip."
+}

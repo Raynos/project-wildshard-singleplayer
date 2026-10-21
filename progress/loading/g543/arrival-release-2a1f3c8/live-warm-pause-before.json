@@ -1,0 +1,710 @@
+{
+  "base": "https://wildshard-singleplayer.vercel.app/",
+  "visit": "warm",
+  "failure": "TimeoutError: page.waitForFunction: Timeout 40000ms exceeded.",
+  "logs": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.TSL: Vertex attribute \"normal\" not found on geometry. Stack trace not available. Enable \"THREE.Node.captureStackTrace\" to capture stack traces.",
+    "[grid] cell screen preparation failed: EntryWarmupStallError: Entered-frame warm-up stalled in streamed-scene-roots: no drawn frame for 5016 ms\n    at d (https://wildshard-singleplayer.vercel.app/assets/precompile-BT2nxekE.js:2:4750)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6089\n    at _ (https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:1:825)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6078",
+    "[grid] cell screen preparation failed: EntryWarmupStallError: Entered-frame warm-up stalled in streamed-scene-roots: no drawn frame for 5016 ms\n    at d (https://wildshard-singleplayer.vercel.app/assets/precompile-BT2nxekE.js:2:4750)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6089\n    at _ (https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:1:825)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6078",
+    "[grid] cell screen preparation failed: EntryWarmupStallError: Entered-frame warm-up stalled in streamed-scene-roots: no drawn frame for 5016 ms\n    at d (https://wildshard-singleplayer.vercel.app/assets/precompile-BT2nxekE.js:2:4750)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6089\n    at _ (https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:1:825)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6078",
+    "[grid] near view preparation failed: EntryWarmupStallError: Entered-frame warm-up stalled in streamed-scene-roots: no drawn frame for 5033 ms\n    at d (https://wildshard-singleplayer.vercel.app/assets/precompile-BT2nxekE.js:2:4750)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6089\n    at _ (https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:1:825)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6078",
+    "[grid] near view preparation failed: EntryWarmupStallError: Entered-frame warm-up stalled in streamed-scene-roots: no drawn frame for 5017 ms\n    at d (https://wildshard-singleplayer.vercel.app/assets/precompile-BT2nxekE.js:2:4750)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6089\n    at _ (https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:1:825)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6078",
+    "[grid] near view preparation failed: EntryWarmupStallError: Entered-frame warm-up stalled in streamed-scene-roots: no drawn frame for 5016 ms\n    at d (https://wildshard-singleplayer.vercel.app/assets/precompile-BT2nxekE.js:2:4750)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6089\n    at _ (https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:1:825)\n    at https://wildshard-singleplayer.vercel.app/assets/scope-CZFFo_34.js:3:6078"
+  ],
+  "state": {
+    "url": "https://wildshard-singleplayer.vercel.app/",
+    "reveal": {
+      "startedAt": 1.100000023841858,
+      "pathEndMs": null,
+      "ringsReadyMs": null,
+      "homeSimMs": null,
+      "endedMs": null,
+      "skipped": false,
+      "ceiling": false
+    },
+    "hud": "touch ws-grid-revealing",
+    "grid": {
+      "home": "driftwood-isle",
+      "inside": "driftwood-isle",
+      "feet": {
+        "x": 0,
+        "z": -194
+      },
+      "cells": [
+        {
+          "instance": "pine-hollow",
+          "slug": "pine-hollow",
+          "cell": [
+            0,
+            1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "template-2",
+          "slug": "_template",
+          "cell": [
+            1,
+            1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "sunscar-dunes",
+          "slug": "sunscar-dunes",
+          "cell": [
+            -1,
+            0
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "driftwood-isle",
+          "slug": "driftwood-isle",
+          "cell": [
+            0,
+            0
+          ],
+          "shows": "playing",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "nalati-grasslands",
+          "slug": "nalati-grasslands",
+          "cell": [
+            1,
+            0
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "far-reach",
+          "slug": "far-reach",
+          "cell": [
+            0,
+            -1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-nw",
+          "slug": "open-plot-night-market",
+          "cell": [
+            -1,
+            1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "blender-template-1",
+          "slug": "blender-template",
+          "cell": [
+            -1,
+            -1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "nine-dragon-stack",
+          "slug": "nine-dragon-stack",
+          "cell": [
+            1,
+            -1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-0-0",
+          "slug": "open-plot-coral-drift",
+          "cell": [
+            -2,
+            -2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-1-0",
+          "slug": "open-plot-night-market",
+          "cell": [
+            -1,
+            -2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-2-0",
+          "slug": "open-plot-sky-race",
+          "cell": [
+            0,
+            -2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-3-0",
+          "slug": "open-plot-desert-ruin",
+          "cell": [
+            1,
+            -2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-4-0",
+          "slug": "open-plot-alien-plain",
+          "cell": [
+            2,
+            -2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-0-1",
+          "slug": "open-plot-lantern-bayou",
+          "cell": [
+            -2,
+            -1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-4-1",
+          "slug": "open-plot-ember-forge",
+          "cell": [
+            2,
+            -1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "pastel-plain-1",
+          "slug": "pastel-plain",
+          "cell": [
+            -2,
+            0
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "ink-cel-valley-1",
+          "slug": "ink-cel-valley",
+          "cell": [
+            2,
+            0
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-0-3",
+          "slug": "open-plot-mosslight-ruins",
+          "cell": [
+            -2,
+            1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-4-3",
+          "slug": "open-plot-clockwork-canyon",
+          "cell": [
+            2,
+            1
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-0-4",
+          "slug": "open-plot-frostline-peaks",
+          "cell": [
+            -2,
+            2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-1-4",
+          "slug": "open-plot-thin-ice",
+          "cell": [
+            -1,
+            2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-2-4",
+          "slug": "open-plot-showcase-template",
+          "cell": [
+            0,
+            2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-3-4",
+          "slug": "open-plot-starfall-observatory",
+          "cell": [
+            1,
+            2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        },
+        {
+          "instance": "open-plot-4-4",
+          "slug": "open-plot-sky-harbor",
+          "cell": [
+            2,
+            2
+          ],
+          "shows": "loading",
+          "drawn": {
+            "far": false,
+            "near": false,
+            "l1": 0,
+            "l0": 0
+          }
+        }
+      ],
+      "strips": 96,
+      "road": {
+        "segments": 60,
+        "junctions": 36,
+        "roundabouts": 16,
+        "signs": 332,
+        "lights": 1016,
+        "draws": 3
+      },
+      "seams": {
+        "triangles": 173092,
+        "draws": 5,
+        "buckets": {
+          "ground": 153614,
+          "stone": 8394,
+          "rock": 6428,
+          "rail": 2328,
+          "curtain": 2328
+        }
+      },
+      "softWalls": {
+        "closed": 96
+      },
+      "shimmer": {
+        "borders": 100,
+        "status": null
+      },
+      "screens": {
+        "shown": [
+          {
+            "instance": "far-reach",
+            "status": "loading"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "status": "loading"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "status": "loading"
+          }
+        ],
+        "draws": 3
+      },
+      "ringsReady": false,
+      "residentMB": 676.04,
+      "playingMB": 1112.77,
+      "accountedBytes": 676036504,
+      "rings": {
+        "frame": 3,
+        "far": 0,
+        "l1": 0,
+        "l0": 0,
+        "refused": 0,
+        "inFlight": 8,
+        "queued": 0
+      },
+      "frame": {
+        "installed": true,
+        "faded": 3,
+        "owner": "driftwood-isle",
+        "highway": 0,
+        "weights": {
+          "driftwood-isle": 1
+        },
+        "air": [
+          0.36,
+          0.7,
+          1
+        ],
+        "grade": [
+          0,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "roadSky": 0,
+        "skies": {
+          "driftwood-isle": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 1720320,
+            "reserved": 2752512
+          }
+        },
+        "lens": {
+          "fov": 86.799,
+          "road": 72,
+          "regions": {
+            "driftwood-isle": 86.799
+          }
+        },
+        "horizon": 0,
+        "chain": {
+          "owner": "driftwood-isle",
+          "weight": 1,
+          "lut": true,
+          "values": [
+            0.3,
+            0,
+            0.2,
+            0,
+            0
+          ],
+          "post": [
+            0.4,
+            1,
+            0.08,
+            0.35,
+            0,
+            -1
+          ],
+          "fx": {
+            "carrier": null,
+            "weight": 0,
+            "vol": [
+              0,
+              0.55
+            ],
+            "chroma": 0,
+            "grain": 0,
+            "target": [
+              1,
+              1
+            ],
+            "depth": "scene",
+            "sceneDepth": false,
+            "rays": [
+              null,
+              0
+            ]
+          },
+          "bypass": 0
+        }
+      },
+      "live": {
+        "bootPrograms": null,
+        "live": {
+          "current": "driftwood-isle",
+          "worldFeet": {
+            "x": -1.0555362450759276e-07,
+            "y": 1.2003999972250312,
+            "z": -194.0000004876002
+          },
+          "crossings": 1,
+          "transitions": [
+            {
+              "from": null,
+              "to": "driftwood-isle"
+            }
+          ],
+          "residents": [
+            "driftwood-isle"
+          ],
+          "pending": [],
+          "issues": {},
+          "gameplayReady": true,
+          "retirements": [],
+          "retiring": [],
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "crossing": {
+          "current": "driftwood-isle",
+          "target": "driftwood-isle",
+          "phase": "settled",
+          "issue": null
+        },
+        "stowed": false,
+        "renderOrigin": {
+          "x": 0,
+          "z": 0
+        },
+        "runtimeTiming": {
+          "current": null,
+          "completed": [
+            {
+              "instance": "driftwood-isle",
+              "hook": "beforeWorld",
+              "start": 12238.599999964237,
+              "end": 12238.699999988079,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "constructor",
+              "start": 12245.199999988079,
+              "end": 12246.399999976158,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "world",
+              "start": 12260.699999988079,
+              "end": 15976.099999964237,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "afterWorld",
+              "start": 15977.5,
+              "end": 15977.800000011921,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "kit",
+              "start": 15984.899999976158,
+              "end": 16248.800000011921,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "afterKit",
+              "start": 16250.599999964237,
+              "end": 16558.099999964237,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "play",
+              "start": 16560,
+              "end": 17120.19999998808,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "afterPlay",
+              "start": 17122.19999998808,
+              "end": 17131.69999998808,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "activate",
+              "start": 17155.099999964237,
+              "end": 17167.80000001192,
+              "outcome": "done"
+            }
+          ]
+        },
+        "crossingTiming": [],
+        "leaveTiming": [],
+        "crossingLoading": [],
+        "hoverCap": 14,
+        "homeActive": null
+      },
+      "life": [],
+      "near": {
+        "eye": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "far-reach",
+            "shows": "none"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "shows": "none"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "shows": "none"
+          }
+        ],
+        "bytes": 0
+      }
+    },
+    "world": {
+      "entered": true,
+      "paused": true,
+      "frames": 3,
+      "state": "paused",
+      "clock": {
+        "version": 1,
+        "elapsed": 0.20110000002384187,
+        "wall": 0.20110000002384187,
+        "frames": 3,
+        "captureFps": null,
+        "paused": true,
+        "scale": 1
+      },
+      "dead": false,
+      "hold": false,
+      "gate": false
+    },
+    "text": "QUESTS 0 DONE\nEMPTY\nNEW GAME\nBLENDER TEMPLATE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nPASTEL PLAIN\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nINK & CEL VALLEY\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 SHOWCASE TEMPLATE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 THIN ICE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 FROSTLINE PEAKS\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 EMBER FORGE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 LANTERN BAYOU\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 SKY HARBOR\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 CORAL DRIFT\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 CLOCKWORK CANYON\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 STARFALL OBSERVATORY\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 MOSSLIGHT RUINS\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 PASTEL ALIEN PLAIN\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 DESERT RUIN\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 NEON NIGHT MARKET\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 FLOATING ISLAND RACE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nSIGNAL DUNES\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nSKY REACH\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nTEMPLATE SHARD\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 NEON NIGHT MARKET\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 FROSTLINE PEAKS\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 LANTERN BAYOU\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 CORAL DRIFT\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 NEON NIGHT MARKET\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 FLOATING ISLAND RACE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 DESERT RUIN\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 PASTEL ALIEN PLAIN\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 LANTERN BAYOU\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 EMBER FORGE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 EMBER FORGE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 MOSSLIGHT RUINS\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 MOSSLIGHT RUINS\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 CLOCKWORK CANYON\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 FROSTLINE PEAKS\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 THIN ICE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 SHOWCASE TEMPLATE\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 STARFALL OBSERVATORY\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nOPEN PLOT \u00b7 SKY HARBOR\nQUESTS 0 DONE\nEMPTY\nNEW GAME\nGAMEPLAY\nAIM ASSIST\nVIBRATION\nCONTROLS\nLOOK SPEED\n1.00\u00d7\nSWING TURN SPEED\n0.70\u00d7\nAUDIO\nMASTER VOLUME\nMUSIC\nMUSIC STYLE\nPiano\nOrchestral\nFolk\nSynth\nMusic: MiniMax-Music3\nSound effects: MOSS-SoundEffect v2 \u00b7 Stable Audio 3 Medium \u2014 Powered by Stability AI\nLOCK-ON\nLOCK-ON CAMERA\nFollow\nGentle\nOff\nAUTO RE-LOCK\nLOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.\nREVIEW\nUNLOCK\nPlaytesters: the password turns on in-game notes (F8 / \u270e) with a screenshot.\nDEVELOPER\nDEVELOPER MODE\nShows the frame meter, the build id, the loading details and the Debug settings.\nDEVELOPER TOOLS\nDIAGNOSTICS AND UNFINISHED WORK\nDEBUG\nFOR PLAYTESTS \u2014 GOES AWAY WHEN THE GAME SHIPS\nSAVE\nExport your progress as a file, or import a saved file.\nEXPORT\nIMPORT\nRELOAD TO APPLY\nTAP OUTSIDE OR ESC TO RESUME"
+  },
+  "pin": "64d85dac0458fecf5ee5c0775ceabc2cad864b26",
+  "repro": "Warm cache, normal pause action during arrival; no further gameplay frames. No pose, layout or cap changes.",
+  "rawSHA256": "83ee90ae919763f3e41dd93d6d3d2860f9814b9a55552faa57cc201f8461228f"
+}
