@@ -17,8 +17,10 @@ import content from '../src/shards/nalati-grasslands/data/questContent.json' wit
 import policy from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
 import nalati from '../src/shards/nalati-grasslands/shard.config';
 import drift from '../src/shards/driftwood-isle/shard.config';
+import pine from '../src/shards/pine-hollow/shard.config';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';
 import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
+import { PAGE_STORY as PINE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
 
 import { installChapterStory } from '../src/game/quest/chapter';
 import { bindAdventurePersistence } from '../src/game/quest/persistence';
@@ -106,17 +108,18 @@ test('chapter presentation preserves messages, reward timing, discoveries and ho
   } finally { line.dispose(); scope.dispose(); }
 });
 
-test('Driftwood chapter adoption matches its previous presenter through completion and leftovers', () => {
-  const scope = new Scope('drift-chapter-parity'), oldFlags = new Flags('drift-old', false), flags = new Flags('drift-new', false);
-  const oldLine = new QuestLine(parseQuestData(drift.quests).quests, oldFlags), line = new QuestLine(parseQuestData(drift.quests).quests, flags);
-  const quest = line.chapters[0], oldQuest = oldLine.chapters[0], rows = PAGE_STORY.chapters;
-  if (quest === undefined || oldQuest === undefined || rows === undefined) throw new Error('Missing Driftwood chapter');
+for (const [source, story] of [[drift, PAGE_STORY], [pine, PINE_STORY]] as const)
+test(`${source.identity.slug}: shared chapter retains its previous notices, card and objective through completion`, () => {
+  const scope = new Scope(`${source.identity.slug}-chapter-parity`), oldFlags = new Flags('chapter-old', false), flags = new Flags('chapter-new', false);
+  const oldLine = new QuestLine(parseQuestData(source.quests).quests, oldFlags), line = new QuestLine(parseQuestData(source.quests).quests, flags);
+  const quest = line.chapters[0], oldQuest = oldLine.chapters[0], rows = story.chapters;
+  if (quest === undefined || oldQuest === undefined || rows === undefined) throw new Error('Missing admitted chapter');
   const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, carried: false };
   const oldNotices: string[] = [], notices: string[] = [];
   let oldCard: (() => MapQuest | null) | undefined, card: (() => MapQuest | null) | undefined;
   const place = (at: { x: number; z: number }): { x: number; y: number; z: number } => ({ x: at.x, y: 0, z: at.z });
   try {
-    const previous = presentQuestStory(PAGE_STORY, { scope, player, toast: text => { oldNotices.push(text); }, sting: () => { oldNotices.push('sting'); },
+    const previous = presentQuestStory(story, { scope, player, toast: text => { oldNotices.push(text); }, sting: () => { oldNotices.push('sting'); },
       fullMap: { setQuest: read => { oldCard = read; } } }, oldQuest, { place });
     const current = presentChapterStory(line, rows, { scope, flags, npcs: {}, figures: {}, places: [], prompts: [], open: () => undefined,
       toast: text => { notices.push(text); }, sting: () => { notices.push('sting'); }, fullMap: { setQuest: read => { card = read; } },
