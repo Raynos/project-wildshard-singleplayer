@@ -6582,7 +6582,11 @@ No helper creates a second simulation or random stream.
 ### Quest placement floors and anchors
 
 `engine/world/interact/types.createQuestPlacements` borrows terrain,
-platforms, registry floors and authored POI frames. `registryReach` is a
+platforms, registry floors and authored POI frames. Frame names are bounded
+authored strings (`PoiId`); `world` selects untransformed coordinates. Frame
+records admit up to 4096 entries and refuse unsafe or inherited identities.
+The page, story and trader schemas share this open frame vocabulary.
+`registryReach` is a
 strict maximum rise above the already selected floor; omission preserves
 unbounded higher-floor selection. The returned `place` respects explicit
 height and local yaw. `setAnchor` lends a bounded world anchor that takes

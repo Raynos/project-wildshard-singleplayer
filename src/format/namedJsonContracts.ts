@@ -42,7 +42,7 @@ export const AdventurePersistenceSchema = v.strictObject({
       event: v.exactOptional(key), kind: v.exactOptional(key), variant: v.exactOptional(key), fact: v.nullable(key) })), v.maxLength(256)) })),
 });
 
-const placement = v.strictObject({ feet: v.strictObject({ poi: v.picklist(['world', 'hut', 'lookout', 'wreck', 'shrine', 'cave', 'pier']), x: finite, z: finite, yaw: finite }),
+const placement = v.strictObject({ feet: v.strictObject({ poi: text, x: finite, z: finite, yaw: finite }),
   npc: text, counter: text, counterAhead: finite, tradeAhead: finite, tradeHeight: finite, system: text });
 export const QuestTraderSchema = v.strictObject({ name: text, reopen: v.boolean(), placement: v.exactOptional(placement),
   view: v.exactOptional(v.strictObject({ pitch: finite, closeDistance: v.pipe(finite, v.minValue(0)) })) });

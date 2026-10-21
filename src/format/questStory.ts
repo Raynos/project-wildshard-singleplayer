@@ -6,7 +6,7 @@ import { isJsonData } from './json';
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(finite, v.minValue(0));
-const at = v.strictObject({ poi: v.picklist(['world', 'hut', 'lookout', 'wreck', 'shrine', 'cave', 'pier']), x: finite, z: finite, anchor: v.exactOptional(text) });
+const at = v.strictObject({ poi: v.pipe(v.string(), v.minLength(1), v.maxLength(256)), x: finite, z: finite, anchor: v.exactOptional(text) });
 /** Original discovery catalogue; anchors resolve against the live placed world. */
 export const AdventureContentSchema = v.strictObject({
   places: v.pipe(v.array(v.strictObject({ id: text, label: text, completeLabel: text, at, r: positive })), v.maxLength(64)),

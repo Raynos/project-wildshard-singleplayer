@@ -23,12 +23,13 @@ import type { ModelDef } from '../../models/model';
  * against before the server loads it as config.
  *
  * Placement: `at` is a point in a POI's local frame (`poi` + local x / z, `yaw` in the same frame; world = POI origin +
- * R_y(POI rotation) · local — the convention of Hut / Lookout / Wreck / Shrine / Cove), or `poi: 'world'` for world
+ * R_y(POI rotation) · local), or `poi: 'world'` for world
  * coordinates. `anchor` names a model-supplied point (`wreck.holdDoor`) that wins over x / z when the model exports it.
  * y comes from the walkable floor there (platforms, else the terrain) unless `y` pins it (absolute) or `dy` lifts it.
  */
 
-export type PoiId = 'world' | 'hut' | 'lookout' | 'wreck' | 'shrine' | 'cave' | 'pier';
+/** Authored frame identity; `world` selects untransformed coordinates. */
+export type PoiId = string;
 
 export interface Place {
   poi: PoiId;
@@ -53,8 +54,8 @@ export interface QuestPlacementPorts {
   readonly registry?: { readonly floorAt: (x: number, z: number) => number | undefined };
   /** Strict height difference above the current floor; omitted accepts any higher registered floor. */
   readonly registryReach?: number;
-  readonly frames?: Readonly<Partial<Record<Exclude<PoiId, 'world'>, { readonly x: number; readonly z: number; readonly rot: number }>>>;
-  readonly pois?: Readonly<Partial<Record<Exclude<PoiId, 'world'>, object | null>>>;
+  readonly frames?: Readonly<Record<string, { readonly x: number; readonly z: number; readonly rot: number }>>;
+  readonly pois?: Readonly<Record<string, object | null>>;
 }
 const questNumber = (value: number): number => {
   if (!Number.isFinite(value) || Math.abs(value) > 1000000) throw new RangeError('Invalid quest placement coordinate');
@@ -83,7 +84,8 @@ export function createQuestPlacements(ports: QuestPlacementPorts): {
 } {
   if (ports.registryReach !== undefined && (!Number.isFinite(ports.registryReach) || ports.registryReach <= 0)) throw new RangeError('Invalid quest registry reach');
   if ((ports.platforms?.length ?? 0) > 4096) throw new RangeError('Too many quest floors');
-  for (const frame of Object.values(ports.frames ?? {})) { questNumber(frame.x); questNumber(frame.z); questNumber(frame.rot); }
+  if (Object.keys(ports.frames ?? {}).length > 4096) throw new RangeError('Too many quest frames');
+  for (const [id, frame] of Object.entries(ports.frames ?? {})) { questKey(id); questNumber(frame.x); questNumber(frame.z); questNumber(frame.rot); }
   const own = new Map<string, QuestPlaceAnchor>();
   const floorAt = (x: number, z: number): number => {
     questNumber(x); questNumber(z);
@@ -101,7 +103,7 @@ export function createQuestPlacements(ports: QuestPlacementPorts): {
       own.set(name, questAnchor(anchor));
     },
     place: p => {
-      questNumber(p.x); questNumber(p.z);
+      questKey(p.poi); questNumber(p.x); questNumber(p.z);
       const dy = p.dy === undefined ? 0 : questNumber(p.dy);
       if (p.anchor !== undefined) {
         questKey(p.anchor);
@@ -116,7 +118,7 @@ export function createQuestPlacements(ports: QuestPlacementPorts): {
       }
       let x = p.x, z = p.z, yaw = p.yaw === undefined ? 0 : questNumber(p.yaw);
       if (p.poi !== 'world') {
-        const frame = ports.frames?.[p.poi];
+        const frame = Object.hasOwn(ports.frames ?? {}, p.poi) ? ports.frames?.[p.poi] : undefined;
         if (frame === undefined) throw new Error(`Missing quest frame ${p.poi}`);
         const c = Math.cos(frame.rot), sin = Math.sin(frame.rot);
         x = frame.x + p.x * c + p.z * sin; z = frame.z - p.x * sin + p.z * c; yaw += frame.rot;

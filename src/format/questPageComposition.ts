@@ -2,14 +2,14 @@ import * as v from 'valibot';
 import { isJsonData } from './json';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
-const frame = v.exactOptional(v.strictObject({ x: n, z: n, rot: n }));
-const place = v.strictObject({ poi: v.picklist(['world', 'hut', 'lookout', 'wreck', 'shrine', 'cave', 'pier']), x: n, z: n,
+const frame = v.strictObject({ x: n, z: n, rot: n });
+const place = v.strictObject({ poi: id, x: n, z: n,
   y: v.exactOptional(n), dy: v.exactOptional(n), yaw: v.exactOptional(n), anchor: v.exactOptional(id) });
 /** Entered quest composition names resources and ordered effects, never functions. */
 export const QuestPageCompositionSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page composition requires JSON rows'), v.strictObject({
   id, world: id, debug: id,
   presentation: v.exactOptional(v.strictObject({ mapPois: v.boolean(), flags: v.boolean(), hints: v.exactOptional(id) })),
-  frames: v.strictObject({ hut: frame, lookout: frame, wreck: frame, shrine: frame, cave: frame, pier: frame }),
+  frames: v.pipe(v.record(id, frame), v.maxEntries(4096)),
   files: v.strictObject({ discovery: id, services: id, assembly: id, stall: id, encounter: id, returns: id }),
   events: v.unknown(), deaths: v.unknown(), services: v.array(id), deathMoves: v.array(v.strictObject({ effect: id, target: id })),
   figures: v.array(v.strictObject({ id, approach: id })), held: id, remaining: id, quietPlaces: v.array(id),

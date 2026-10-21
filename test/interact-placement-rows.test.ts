@@ -59,3 +59,16 @@ test('quest placements borrow live floors and anchors without changing authored 
   expect(() => island.place({ ...world, dy: Number.NaN })).toThrow();
   expect(() => createQuestPlacements({ terrain: () => 0, registryReach: 0 })).toThrow();
 });
+
+
+test('quest frames use authored names and refuse inherited or unsafe frame identities', () => {
+  const resolver = createQuestPlacements({ terrain: () => 3,
+    frames: { orchard: { x: 10, z: 20, rot: Math.PI / 2 } },
+    pois: { orchard: { anchors: { gate: { x: 12, y: 8, z: 24, yaw: .3 } } } } });
+  expect(resolver.place({ poi: 'orchard', x: 2, z: 3, yaw: .1 })).toEqual({ x: 13, y: 3, z: 18, yaw: Math.PI / 2 + .1 });
+  expect(resolver.place({ poi: 'orchard', x: 0, z: 0, anchor: 'orchard.gate' })).toEqual({ x: 12, y: 8, z: 24, yaw: .3 });
+  expect(() => resolver.place({ poi: 'missing', x: 0, z: 0 })).toThrow('Missing quest frame');
+  expect(() => resolver.place({ poi: 'constructor', x: 0, z: 0 })).toThrow('Invalid quest anchor path');
+  expect(() => createQuestPlacements({ terrain: () => 0, frames: { constructor: { x: 0, z: 0, rot: 0 } } })).toThrow();
+  expect(() => createQuestPlacements({ terrain: () => 0, frames: Object.fromEntries(Array.from({ length: 4097 }, (_, i) => [`frame-${i}`, { x: 0, z: 0, rot: 0 }])) })).toThrow('Too many quest frames');
+});
