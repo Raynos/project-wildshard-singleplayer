@@ -112,6 +112,10 @@ const abs = (p) => new URL(p, self.registration.scope).href;
 // distinguish an HTTP-cache hit. Include install and revalidation downloads too.
 const workerTransport = typeof PerformanceObserver === 'function' && PerformanceObserver.supportedEntryTypes.includes('resource');
 if (workerTransport) {
+  // Keep recent responses replayable across documents at the browser's existing
+  // capacity. A full buffer otherwise retains old entries and drops the new
+  // document's background revalidation before its message listener is ready.
+  workerScope.listen(performance, 'resourcetimingbufferfull', () => { performance.clearResourceTimings(); });
   const observer = new PerformanceObserver((list) => {
     const timings = list.getEntries().filter((entry) => /^https?:/u.test(entry.name)).map((entry) => entry.toJSON());
     if (timings.length === 0) return;
