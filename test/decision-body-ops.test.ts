@@ -10,7 +10,7 @@ import { SCRIPT_V1_READS, type ScriptV1ReadName, type ScriptV1Command } from '..
 
 const row = { id: 'test.bodies', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`,
   source: 'behaviour/bodies.as', binding: { shard: true }, onFail: 'hold', on: ['start'],
-  reads: ['bodyX', 'bodyY', 'bodyZ', 'bodyAlive', 'bodyYaw', 'bodyVisible', 'playerIntent'],
+  reads: ['bodyX', 'bodyY', 'bodyZ', 'bodyAlive', 'bodyYaw', 'bodyVisible', 'playerIntent', 'x', 'z'],
   commands: ['body.spawn', 'body.teleport', 'body.place', 'body.visible', 'body.retire', 'collider.enabled'],
   bodies: { guide: 'actor.guide', crate: 'prop.crate', old: 'actor.old' }, colliders: { door: 'gate.door' },
   stateVersion: 1, state: [], params: {} };
@@ -24,7 +24,7 @@ async function fixture(body: string, deniedReads: readonly ScriptV1ReadName[] = 
   let prepared = 0;
   const declaration: DecisionScript = { ...script, ids: map.ids, reads: script.reads.filter((read): read is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, read)).filter(read => !deniedReads.includes(read)), lists: [] };
   const host = new DecisionHost({ scripts: [declaration], bindings: [{ id: 1, script: row.id, self: 0, actors: [], instance: 0 }],
-    seed: [1, 2], modules: new Map([[script.module, blob.bytes]]), world: {
+    seed: [1, 2], modules: new Map([[script.module, blob.bytes]]), world: { player: 101,
       read: () => 0, list: () => 0, failed: () => undefined,
       prepare: commands => { prepared++; const copy = structuredClone(commands); return { commit: () => { committed.push(...copy); } }; },
     } });
@@ -86,4 +86,13 @@ test('requested player intent requires an explicit read capability', async () =>
   const f = await fixture('Do.bodySpawn(Body.guide);Read.playerIntent(0);', ['playerIntent']);
   f.step(1, 7); expect(f.host.metrics()[0]?.refusals).toBe(1);
   expect(f.prepared()).toBe(0); expect(f.committed).toEqual([]);
+});
+
+
+test.each([true, false])('requested motion grants observation of only the lent player: %s', async granted => {
+  const f = await fixture('Do.bodySpawn(Body.guide);Read.x(101);Read.z(101);', granted ? [] : ['playerIntent']);
+  f.step(1, 7); expect(f.host.metrics()[0]?.refusals).toBe(granted ? 0 : 1);
+  expect(f.prepared()).toBe(granted ? 1 : 0);
+  const foreign = await fixture('Read.x(102);'); foreign.step(1, 7);
+  expect(foreign.host.metrics()[0]?.refusals).toBe(1); expect(foreign.prepared()).toBe(0);
 });

@@ -21,6 +21,8 @@ export interface DecisionContext { tick: number; binding: DecisionBinding; scrip
 export interface DecisionCommit { commit: () => void }
 /** Engine adapters only. Shard-authored callbacks never cross this boundary. */
 export interface DecisionWorld {
+  /** Trusted observed player for bindings granted requested movement; never an owned actor. */
+  readonly player?: number;
   read: (op: number, a: number, b: number, context: DecisionContext) => number;
   list: (op: number, a: number, b: number, output: Float64Array, context: DecisionContext) => number;
   prepare: (commands: readonly ScriptV1Command[], context: DecisionContext) => DecisionCommit;
@@ -132,6 +134,7 @@ export class DecisionHost {
     this.tickFuel = options.limits?.fuelPerTick ?? 2_000_000;
     check(integer(this.callFuel, 1, 2_000_000) && integer(this.tickFuel, 1, 8_000_000), 'fuel ceilings');
     check(width(options.seed, 2) && options.seed.every(value => integer(value, 0, 0xffffffff)), 'seed');
+    if (options.world.player !== undefined) check(integer(options.world.player, 1), 'world player handle');
     const scripts = new Map<string, DecisionScript>();
     const scopedOwners = new Set<string>();
     for (const input of options.scripts) {
@@ -275,6 +278,8 @@ export class DecisionHost {
     row.nextTimers.set(row.timers); row.nextRng = row.rng; row.nextLastCall = this.tick;
     row.observed.clear(); row.players.clear(); row.owners.clear();
     for (const actor of row.binding.actors) { row.observed.add(actor); row.owners.add(actor); }
+    const player = this.options.world.player;
+    if (row.script.reads.includes('playerIntent') && player !== undefined) this.observe(row, player, true);
     const count = Math.min(16, row.queue.size); row.io[4] = count;
     const before = this.options.trace ? this.named(row, row.values) : null;
     row.commands.length = 0;
