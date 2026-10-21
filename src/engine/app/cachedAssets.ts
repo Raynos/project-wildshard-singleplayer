@@ -1,6 +1,7 @@
 import { BufferAttribute, Object3D, type BufferGeometry } from 'three';
 import { app } from './runtime';
 import { containerResources, sceneResources } from './sceneOwnership';
+import { dispatchRebind, isRebinding } from './scope';
 
 /** A module cache keeps source meshes alive across loads; consumers acquire their shared GPU resources. */
 export function retainCachedResources<T>(value: T): T {
@@ -12,9 +13,6 @@ export function retainCachedResources<T>(value: T): T {
   return value;
 }
 
-/** Geometries whose `dispose` event is being sent only to drop their GPU bindings, not to retire them. */
-const rebinding = new WeakSet();
-
 /**
  * Refresh a live geometry's binding states after a node build adds attributes (three does this through `dispose()`).
  * CPU-backed buffers may upload again; buffers whose CPU arrays were released stay live. Memos that hold the geometry
@@ -25,13 +23,9 @@ export function rebindGeometry(geometry: BufferGeometry): void {
   // binding refresh must retain those GPU buffers until real retirement.
   const retained = Object.entries(geometry.attributes).filter(([, attribute]) =>
     attribute instanceof BufferAttribute && attribute.count > 0 && attribute.array.byteLength === 0);
-  rebinding.add(geometry);
   for (const [name] of retained) geometry.deleteAttribute(name);
-  try { geometry.dispose(); }
-  finally {
-    for (const [name, attribute] of retained) geometry.setAttribute(name, attribute);
-    rebinding.delete(geometry);
-  }
+  try { dispatchRebind(geometry); }
+  finally { for (const [name, attribute] of retained) geometry.setAttribute(name, attribute); }
 }
 
 /** A memo may outlive a scene: forget its value when any owned resource retires instead of returning freed GPU data.
@@ -47,7 +41,7 @@ export function cacheUntilDisposed<T>(value: T, invalidate: () => void): T {
   let active = true;
   const retired = (event: unknown): void => {
     const target: unknown = typeof event === 'object' && event !== null ? Reflect.get(event, 'target') : undefined;
-    if (!active || (typeof target === 'object' && target !== null && rebinding.has(target))) return;
+    if (!active || (typeof target === 'object' && target !== null && isRebinding(target))) return;
     active = false;
     for (const remove of detach) remove();
     invalidate();

@@ -50,6 +50,15 @@ export function registrationTimerIds(): { timeouts: number[]; intervals: number[
   for (const r of registrations) if (r.timer !== undefined && (r.kind === 'timeouts' || r.kind === 'intervals')) ids[r.kind].push(Number(r.timer));
   return ids;
 }
+/** Resources whose `dispose` event is being sent only to drop their GPU bindings (`rebindGeometry`), not to retire them. */
+const rebinding = new WeakSet();
+/** Send `resource` a binding-only `dispose`: its owners keep it, memos keep their value (cachedAssets.ts). */
+export function dispatchRebind(resource: Disposable3): void {
+  rebinding.add(resource);
+  try { resource.dispose(); } finally { rebinding.delete(resource); }
+}
+/** True while `dispatchRebind` sends `resource` its binding-only `dispose`. */
+export function isRebinding(resource: object): boolean { return rebinding.has(resource); }
 /** Preserve nested disposal failures across browser/JSON error boundaries. */
 export function disposalErrorMessages(error: unknown): string[] {
   if (error instanceof AggregateError && error.errors.length > 0) return error.errors.flatMap((inner: unknown) => disposalErrorMessages(inner));
@@ -139,15 +148,30 @@ export class Scope {
   /** Bridge for legacy registrations; forget when a one-shot ends or a handle is removed early. */
   capture(kind: Kind, cleanup: () => void): () => void { return this.track(kind, cleanup); }
 
-  private ownHandle<T extends object>(resource: T, kind: Kind, dispose: () => void): T {
-    if (!this.owned.has(resource)) {
-      this.owned.add(resource);
-      this.track(kind, dispose);
-    }
+  private ownHandle(resource: object, kind: Kind, dispose: () => void): (() => void) | undefined {
+    if (this.owned.has(resource)) return undefined;
+    this.owned.add(resource);
+    return this.track(kind, dispose);
+  }
+  /** True while this scope still owns `resource` (a resource disposed by anyone else is forgotten, see `own`). */
+  owns(resource: object): boolean { return this.owned.has(resource); }
+  own<T extends Disposable3>(resource: T): T {
+    const forget = this.ownHandle(resource, resourceKind(resource), () => resource.dispose());
+    if (forget !== undefined) this.forgetOnDispose(resource, forget);
     return resource;
   }
-  own<T extends Disposable3>(resource: T): T {
-    return this.ownHandle(resource, resourceKind(resource), () => resource.dispose());
+  /** O18: a resource disposed by anyone (its own view, three, a cache) leaves this scope at once. A long-lived owner (the
+   *  page level) kept every adopted resource it ever saw, disposed or not, with its CPU arrays and uniforms: ~100 MB of
+   *  geometry and ~600 materials after six grid cells. A binding-only rebind (`dispatchRebind`) is not a retirement. */
+  private forgetOnDispose(resource: Disposable3, forget: () => void): void {
+    const add: unknown = Reflect.get(resource, 'addEventListener'), remove: unknown = Reflect.get(resource, 'removeEventListener');
+    if (typeof add !== 'function' || typeof remove !== 'function') return;
+    const released = (): void => {
+      if (rebinding.has(resource)) return;
+      Reflect.apply(remove, resource, ['dispose', released]);
+      this.owned.delete(resource); forget();
+    };
+    Reflect.apply(add, resource, ['dispose', released]);
   }
   /** Own a code-built tree's buffers/materials and detach it on disposal. Instanced meshes are optional; textures and delegated scene ownership stay separate. */
   ownPrimitives(root: Object3D, options: { readonly instances?: boolean } = {}): void {
@@ -157,12 +181,14 @@ export class Scope {
     this.onDispose(() => { root.removeFromParent(); });
   }
   ownBody<T extends PhysicsHandle>(body: T): T {
-    return this.ownHandle(body, 'bodies', () => body.remove());
+    this.ownHandle(body, 'bodies', () => body.remove());
+    return body;
   }
   ownSound<T extends SoundHandle>(sound: T): T {
-    return this.ownHandle(sound, 'sounds', () => {
+    this.ownHandle(sound, 'sounds', () => {
       try { sound.stop(); } finally { sound.disconnect?.(); }
     });
+    return sound;
   }
 
   ownNode<T extends Element>(node: T): T {

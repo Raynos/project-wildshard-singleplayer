@@ -73,7 +73,11 @@ export function ownSceneResource(resource: Disposable3, scope: Scope, assets?: P
   // A final tree capture runs after this scope's resource cleanups. Its existing ownership still prevents a second
   // native disposal; only newly discovered resources need immediate capture on the already-closing scope.
   if (!(resource instanceof Texture)) {
-    if (owner !== undefined && (!owner.disposed || owner === scope || scope.sharesTeardown(owner))) return;
+    if (owner !== undefined && (!owner.disposed || owner === scope || scope.sharesTeardown(owner))) {
+      // O18: a live owner forgot the resource when it was disposed; a later use uploads it again, so it owns it again
+      if (!owner.disposed && !owner.owns(resource)) owner.own(resource);
+      return;
+    }
     markResourceOwner(resource, scope); scope.own(resource); return;
   }
   if (owner === scope || (owner !== undefined && scope.sharesTeardown(owner))) return;
