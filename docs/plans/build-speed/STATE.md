@@ -22,7 +22,9 @@ Waves 2–5 are planned in full, not asked, not started. Jake (10-21): keep the 
 - 1.3 A1 Spotlight: **done** 10:50 (Jake added all of `~/projects/games` in Spotlight's Search Privacy; `mdfind` finds
   0 files under `tmp/` and under the whole games tree, was 61). mds was still at 26 % a minute later, dropping the old
   entries; fseventsd (87 %) is the lanes' own file churn and stays.
-- Verify at 24 h (10-22 10:30, this pane runs `python3 scripts/agent-time.py --hours 24` and records): idle during
+- Verify at 24 h (10-22 ~10:30; the `wildshard` pane exited 10-21 11:00, so whoever Jake asks runs
+  `python3 scripts/agent-time.py --hours 24` and records here; also `mdfind -onlyin …/tmp -name package.json | wc -l`,
+  the MCP process count, one `top` idle sample, the two receipt counts, `git rev-list --count origin/main..main`): idle during
   lane tests > 20 % median (10:35 sample: 28 % idle, load 42; this morning 0 %, load 86); Codex poll share < 10 %;
   MCP processes ≤ one set per session that uses them; receipts flat (`.git/proofs` 13,813 → 14,195 and `progress/`
   11,810 → 11,847 since 08:20: the rule reaches lanes at boundaries). A missed target becomes a row, not a hold.
