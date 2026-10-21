@@ -20,7 +20,7 @@ import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { terrainHeight, terrainNormal, terrainWaterLevel } from '@wildshard/engine/world/terrainHeight';
-import { Vector3 } from 'three';
+import type { Vector3 } from 'three';
 import { ReturnGate } from './respawn';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { EncounterRegistry, SpawnContext, SpawnEntry, SpawnPoint, Spawner } from '@wildshard/engine/ai/encounters';
@@ -50,14 +50,14 @@ interface Counts { readonly bodies: Map<string, number>; readonly groups: Map<st
 
 /** Grouped page lifetimes over the existing manager. Bodies keep their own AI,
  * native identities and creature-stream order. The owner retires only what it
- * actually spawned. Authored rows select the training slot and leaning sites. */
+ * actually spawned. Authored rows select the training slot. */
 export class PageActorGroups {
   private readonly owner: ReturnType<typeof createCreatureSpawner<Animal>>;
   readonly counts: Counts = { bodies: new Map(), groups: new Map() };
   private training: Animal | null = null;
   private trainingRow: Placement | null = null;
   private readonly clock = { dead: 0, fade: -1 };
-  constructor(private readonly animals: AnimalManager) { this.owner = createCreatureSpawner(animals); }
+  constructor(animals: AnimalManager) { this.owner = createCreatureSpawner(animals); }
   get practice(): Animal | null { return this.training; }
   count(kind: string, groups = false): number { return (groups ? this.counts.groups : this.counts.bodies).get(kind) ?? 0; }
   private countBody(kind: string): void { this.counts.bodies.set(kind, this.count(kind) + 1); }
@@ -88,18 +88,6 @@ export class PageActorGroups {
     this.training = next; this.clock.dead = 0; this.clock.fade = -1; this.countBody(placed.kind);
   }
 
-  /** Crown and base coordinates of leaning vertical sites, in source order.
-   * Placement reads the installed page terrain, never a content callback. */
-  perches(rows: readonly { readonly x: number; readonly z: number; readonly h: number; readonly lean: number; readonly leanDir: number }[],
-    offsets: { readonly foot: number; readonly crown: number; readonly base: number }): void {
-    if (rows.length === 0) return;
-    const habitat = this.animals.habitat; habitat.perches = []; habitat.perchBases = [];
-    for (const row of rows) {
-      const base = terrainHeight(row.x, row.z) - offsets.foot;
-      habitat.perches.push(new Vector3(row.x + Math.cos(row.leanDir) * row.lean * row.h, base + row.h + offsets.crown, row.z + Math.sin(row.leanDir) * row.lean * row.h));
-      habitat.perchBases.push(new Vector3(row.x, base + offsets.base, row.z));
-    }
-  }
   dispose(): void { this.owner.dispose(); this.training = null; }
 }
 
@@ -167,10 +155,9 @@ export class PageWildEnvironment {
   wind = { x: 0,z: -1,strength: 0 };
   playerFwdX = 0; playerFwdZ = -1; playerCrouched = false; playerMounted = false; playerHealth01 = 1;
   lastShotT = -1e9; light = 1; storm = false;
-  private author: ReturnProgram | null = null;
   private wet: ((x: number,z: number) => number) | null = null;
   private readonly states = new WeakMap<object,PropertyDescriptorMap>();
-  enter(scope: Scope, input: unknown, author: ReturnProgram): void {
+  enter(scope: Scope, input: unknown): void {
     const rows = v.parse(PageGroupRowsSchema,input), world = rows.world, previous = Object.getOwnPropertyDescriptors(this);
     if (input === null || typeof input !== 'object') throw new Error('Missing entered population rows');
     const state = this.states.get(input);
@@ -180,7 +167,7 @@ export class PageWildEnvironment {
     const heights = new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);
     if (heights.some(value => !Number.isFinite(value))) throw new Error('Invalid population wet sample');
     this.wet = bakedSamplers({ res: world.res,size: world.size,seed: 0,landscapeHash: 0,heights,splat: new Uint8Array(0),undergrowth: null }).heightAt;
-    this.wind = { ...rows.wind }; this.author = author;
+    this.wind = { ...rows.wind };
     scope.onDispose(() => { this.states.set(input,Object.getOwnPropertyDescriptors(this)); Object.defineProperties(this,previous); });
   }
   grassHeightAt(x: number,z: number): number { return grassHeightAt(x,z); }
@@ -189,19 +176,22 @@ export class PageWildEnvironment {
   wetAt(x: number,z: number): boolean { return (this.wet?.(x,z) ?? 0) > .5; }
   onEvent(name: string,x: number,z: number): void { app.events.emit('creature.signal',{ name,x,z }); }
   onKnockdown(x: number,z: number,strength: number): void { app.events.emit('creature.knockdown',{ x,z,strength }); }
-  visibility(x: number, z: number, player: Vector3, speed: number, now: number): number {
-    const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz) || 1;
-    const samples = [1.5,3,5].filter(step => step <= distance).map(step => ({ height: this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step) }));
-    return v.parse(v.number(), this.author?.project('visibility', { height: this.grassStandingAt(player.x,player.z), crouched: Number(this.playerCrouched), speed, elapsed: now-this.lastShotT, light: this.light, count: samples.length }, undefined, samples)['fraction']);
+  visibility(x: number,z: number,player: Vector3,speed: number,now: number): number {
+    const cover = (height: number): number => Math.min(1,Math.max(0,(height-.15)/((this.playerCrouched ? 1.05 : 1.75)-.15)));
+    const dx = x-player.x,dz = z-player.z,distance = Math.hypot(dx,dz) || 1;
+    let screen = 0;
+    for (const step of [1.5,3,5]) { if (step > distance) break; screen += cover(this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step))/3; }
+    const motion = now-this.lastShotT < 1 ? 1.5 : speed < .4 ? .3 : speed <= 2.6 ? .7 : speed < 5.2 ? 1 : 1.5;
+    return (1-.9*Math.max(cover(this.grassStandingAt(player.x,player.z)),.7*screen))*motion*this.light;
   }
-  downwind(x: number, z: number, player: Vector3): boolean {
-    const dx = x-player.x, dz = z-player.z;
-    return this.author?.project('downwind', { distance: Math.hypot(dx,dz), strength: this.wind.strength, dot: dx*this.wind.x+dz*this.wind.z })['accept'] === 1;
+  downwind(x: number,z: number,player: Vector3): boolean {
+    const dx = x-player.x,dz = z-player.z,distance = Math.hypot(dx,dz),wind = this.wind;
+    return distance >= 1e-3 && wind.strength >= .05 && (dx*wind.x+dz*wind.z)/distance > .82;
   }
-  hearing(radii: readonly [number,number,number,number], player: Vector3, speed: number): number {
-    return v.parse(v.number(), this.author?.project('hearing', { speed, height: this.grassStandingAt(player.x,player.z), storm: Number(this.storm) }, undefined, radii.map(radius => ({ radius })))['radius']);
+  hearing(radii: readonly [number,number,number,number],player: Vector3,speed: number): number {
+    return (speed < .4 ? radii[0] : speed <= 2.6 ? radii[1] : speed < 5.2 ? radii[2] : radii[3])
+      *(speed > .4 && this.grassStandingAt(player.x,player.z) >= .7 ? 1.25 : 1)*(this.storm ? .5 : 1);
   }
-
 }
 /** The entered page's observation surface; construction installs no service. */
 export const wildEnv = new PageWildEnvironment();
@@ -215,7 +205,7 @@ export function bindPageGroups(ctx: ShardContext,input: unknown): void {
   const program=ReturnProgram.page(rows.damage,ctx.scope),lastNotice=new Map<string,number>(),knocked={x:0,z:0};
   installEnteredRuntimeService(ctx,scope=>{
     const previous=renderedDamage;renderedDamage={program,variant:herd.stallionVariant};
-    scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input,program);
+    scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input);
     const effects=rows.effects;if(effects===undefined)return;
     const toast=(key:string,text:string,every:number):void=>{
       const now=ctx.app.clock.now;if(now-(lastNotice.get(key)??-1e9)<every)return;

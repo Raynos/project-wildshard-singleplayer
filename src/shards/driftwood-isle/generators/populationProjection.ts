@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { enemyPlacements } from './enemyPlacement';
+import { driftwoodGroundSampler } from './groundSampling';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import items from '../data/items.generated.json' with { type: 'json' };
 import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
@@ -11,12 +12,18 @@ import physics from '../data/physics.generated.json' with { type: 'json' };
 export function populationProjectionRows(): v.InferOutput<typeof PopulationProjectionSchema> {
   const placement = enemyPlacements(), strike = DRIFTWOOD_SPECIES_PROGRAMS.program.strikes.find(row => row.id === 'strike.monkey.coconut');
   if (strike === undefined) throw new Error('Missing population contact');
+  const heightAt = driftwoodGroundSampler();
+  const perches = (palms: readonly { readonly x: number; readonly z: number; readonly h: number; readonly lean: number; readonly leanDir: number }[]) => palms.map(row => {
+    const base = heightAt(row.x, row.z) - .2;
+    return { crown: [row.x + Math.cos(row.leanDir) * row.lean * row.h, base + row.h + .5, row.z + Math.sin(row.leanDir) * row.lean * row.h],
+      base: [row.x, base + .2, row.z] };
+  });
   return v.parse(PopulationProjectionSchema, {
     id: 'coconut', seed: placement.seed, random: placement.seed ^ 0xe11e,
-    page: { phone: { ...placement.page.phone, palms: [...foliage.tiers.phone.palms.specs, ...island.extraPalms] }, desktop: { ...placement.page.desktop, palms: [...foliage.tiers.desktop.palms.specs, ...island.extraPalms] } },
+    page: { phone: { ...placement.page.phone, perches: perches([...foliage.tiers.phone.palms.specs, ...island.extraPalms]) }, desktop: { ...placement.page.desktop, perches: perches([...foliage.tiers.desktop.palms.specs, ...island.extraPalms]) } },
     counts: { crabs: { kind: 'crab', groups: false, practice: false }, monkeys: { kind: 'monkey', groups: false, practice: false }, sailors: { kind: 'sailor', groups: false, practice: false },
       troops: { kind: 'monkey', groups: true, practice: false }, crabGroups: { kind: 'crab', groups: true, practice: true } },
-    practice: { delay: 45, away: 30 }, perches: { foot: .2, crown: .5, base: .2 }, hold: { kind: 'sailor', ...physics.habitat.hold },
+    practice: { delay: 45, away: 30 }, hold: { kind: 'sailor', ...physics.habitat.hold },
     volley: placement.volley, launch: items.launches.coconut, strike: { id: strike.id, damage: strike.damage, tags: ['creature.monkey', 'feel.blow', 'cover.checked'] },
     contact: { sound: 'coconut_hit', landSound: 'coconut_land', landAge: 3, splash: .3 }, husk: { colour: '#5a3d22', detail: 0 },
     splash: { capacity: 240, gravity: 9.81, colour: [.75, .95, 1], size: .05, opacity: .9, count: 60, radius: .5, height: [.2, 1.4], speed: [.6, 2.2], up: [1.2, 2.5], life: [.5, .6] },

@@ -55,7 +55,10 @@ export class PopulationProjection {
   async build(): Promise<this> {
     const row = this.rows, placement = row.page[TIER], habitat = this.animals.habitat;
     const before = { throwCoconut: habitat.throwCoconut, splash: habitat.splash, hold: habitat.hold, perches: habitat.perches, perchBases: habitat.perchBases };
-    this.creatures.perches(placement.palms, row.perches);
+    if (placement.perches.length > 0) {
+      habitat.perches = placement.perches.map(site => new THREE.Vector3(...site.crown));
+      habitat.perchBases = placement.perches.map(site => new THREE.Vector3(...site.base));
+    }
     const launch = (from: THREE.Vector3, to: THREE.Vector3, actor: Animal | null): void => { this.volley.bind(app.bodies); this.volley.throw(row.launch, from, to, actor, this.rng); };
     const splash = (at: THREE.Vector3, strength = 1): void => { this.splash(at, strength); };
     habitat.throwCoconut = launch; habitat.splash = splash;

@@ -11,6 +11,11 @@ import { PopulationProjection } from '../src/game/population/projection';
 import { populationProjectionRows } from '../src/shards/driftwood-isle/generators/populationProjection';
 import { manager } from './fake/manager';
 import { mockCanvas } from './fake/weaponParity';
+import { readNativeTerrain } from '../src/sdk/bake/terrain';
+import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
+import { WORLD_DROP } from '../src/shards/driftwood-isle/generators/landscapeRows';
+import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json';
+import island from '../src/shards/driftwood-isle/data/islandFacts.generated.json';
 
 test('a marsh population projects memory effects, loose lights and practice returns, then restores habitat ownership', async () => {
   mockCanvas();
@@ -20,7 +25,9 @@ test('a marsh population projects memory effects, loose lights and practice retu
   if (variant === undefined) throw new Error('Missing fixture variant');
   const row = { kind: 'boar', variant, x: 3, z: 4, yaw: 0, herd: 0, practice: true } as const;
   const page = { stream: new Rng(91).snapshot(), centres: [{ x: 3, z: 4 }], kinds: ['boar'], herds: 1,
-    enemies: [row, { kind: 'boar', variant, x: 7, z: 4, yaw: 0, herd: -1 }], palms: [{ x: 1, z: 2, h: 3, lean: .5, leanDir: 0 }] };
+    enemies: [row, { kind: 'boar', variant, x: 7, z: 4, yaw: 0, herd: -1 }], perches: [{ crown: [2.5, 3.3, 2], base: [1, 0, 2] }] };
+  const previousPerches = [new Vector3(8, 9, 10)], previousBases = [new Vector3(8, 0, 10)];
+  f.manager.habitat.perches = previousPerches; f.manager.habitat.perchBases = previousBases;
   const previous = f.manager.habitat.throwCoconut, sound = vi.fn<(name: string, at: Vector3) => void>(); f.manager.onSound = sound;
   const projection = new PopulationProjection(f.manager, f.game.scene, f.sky, scope, { ...source, id: 'marsh.volley', seed: SEED, random: 91,
     page: { phone: page, desktop: page }, counts: { hogs: { kind: 'boar', groups: false, practice: false } },
@@ -29,7 +36,8 @@ test('a marsh population projects memory effects, loose lights and practice retu
       periodic: { state: 7, interval: .2, chance: 1, x: 'goal-x', z: 'goal-z', radius: .1, splash: .5 } }] });
   try {
     await projection.build(); expect(projection.placed['hogs']).toBe(2);
-    expect(f.manager.habitat.perches?.[0]?.toArray()).toEqual([2.5, 3.3, 2]);
+    expect(f.manager.habitat.perches[0]?.toArray()).toEqual([2.5, 3.3, 2]);
+    expect(f.manager.habitat.perchBases[0]?.toArray()).toEqual([1, 0, 2]);
     const actor = projection.practice; if (actor === null) throw new Error('Missing practice actor');
     actor.mem['display'] = 3; projection.update(.01, 1, new Vector3()); expect(sound).toHaveBeenCalledWith('marsh.call', actor.position);
     const points = projection.group.children.find((object): object is Points => object instanceof Points);
@@ -39,6 +47,21 @@ test('a marsh population projects memory effects, loose lights and practice retu
     actor.alive = false; actor.hidden = true; projection.update(.2, 2, new Vector3(30, 0, 30)); projection.update(.01, 2.01, new Vector3(30, 0, 30));
     expect(projection.practice).not.toBe(actor); expect(projection.placed['hogs']).toBe(3);
     scope.dispose(); expect(projection.group.parent).toBeNull(); expect(f.manager.habitat.throwCoconut).toBe(previous); expect(f.manager.animals).toHaveLength(0);
+    expect(f.manager.habitat.perches).toBe(previousPerches); expect(f.manager.habitat.perchBases).toBe(previousBases);
     projection.dispose();
   } finally { scope.dispose(); material.dispose(); terrain(); }
+});
+
+
+test('both tiers bake every leaning crown and base with the installed native terrain law', () => {
+  const projection = populationProjectionRows(), heightAt = readNativeTerrain(driftwoodGroundBytes()).heightAt;
+  for (const tier of ['phone', 'desktop'] as const) {
+    const palms = [...foliage.tiers[tier].palms.specs, ...island.extraPalms], sites = projection.page[tier].perches;
+    expect(sites).toHaveLength(palms.length);
+    palms.forEach((palm, index) => {
+      const base = heightAt(palm.x, palm.z) - WORLD_DROP - .2;
+      expect(sites[index]).toEqual({ crown: [palm.x + Math.cos(palm.leanDir) * palm.lean * palm.h, base + palm.h + .5,
+        palm.z + Math.sin(palm.leanDir) * palm.lean * palm.h], base: [palm.x, base + .2, palm.z] });
+    });
+  }
 });
