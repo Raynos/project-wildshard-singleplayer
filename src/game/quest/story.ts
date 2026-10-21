@@ -1,6 +1,4 @@
 import { findBoundQuestState, publishQuestFacts } from './boundState';
-import { bindBorrowedMethod } from '../plugin/borrowed';
-import { questBenchPose } from './storyLaw';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
 import { parseQuestStory, parseChapterStoryPresentation, type ChapterStoryPresentation, type QuestStory } from '@wildshard/format/questStory';
@@ -158,18 +156,6 @@ export async function bindStoryAchievements(ctx: StoryContext, story: QuestStory
   publishQuestFacts(ctx.scope, story.quest.id, facts);
   return { facts, count: counters.count, kill: (kind: string, variant?: string): void => { counters.kill(kind, variant); refresh(); }, event,
     syncFlags: (flags: Parameters<typeof counters.syncFlags>[0]): void => { counters.syncFlags(flags, policy.syncEvents ? event : undefined); } };
-}
-/** Bind the existing kit seat and player, without adding a prompt, flag or saved state. */
-export function bindStoryBench(story: QuestStory, kit: { onSit?: (at: Vector3, yaw: number) => void },
-  player: { position: Vector3; velocity: Vector3; yaw: number; pitch: number }, owners: ReadonlyMap<string, unknown>): void {
-  const toast = bindBorrowedMethod(owners, story.bindings.toast);
-  const floor = story.bindings.floor === undefined ? undefined : bindBorrowedMethod(owners, story.bindings.floor);
-  const floorAt = floor === undefined ? undefined : (x: number, z: number): number => { const y = floor(x, z); if (typeof y !== 'number' || !Number.isFinite(y)) throw new Error('Quest seat floor must be finite'); return y; };
-  kit.onSit = (at, yaw) => {
-    const pose = questBenchPose(story.bench, at, yaw, floorAt);
-    player.position.set(pose.x, pose.y, pose.z); player.velocity.set(0, 0, 0); player.yaw = pose.yaw; player.pitch = pose.pitch;
-    toast(story.bench.text);
-  };
 }
 /** Data-backed presentation over the original quest; the caller retains its existing update phase. */
 export function presentQuestStory(story: QuestStory, host: QuestPresentationHost, quest: QuestState, options: QuestPresentationOptions = {}): QuestPresentation {

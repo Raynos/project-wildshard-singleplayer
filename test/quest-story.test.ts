@@ -1,19 +1,21 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Vector3 } from 'three';
+import { Scene, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { WorldRegistry } from '../src/engine/world/registry';
+import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { shardContext } from '../src/game/plugin/context';
+import { parseShardSlug } from '../src/game/shard/slug';
 import { prepareQuestEntry } from '../src/game/quest/chapter';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { parseQuestStory } from '../src/format/questStory';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { Progress } from '../src/game/Progress';
 import { progressSave } from '../src/game/saves';
-import { bindStoryAchievements, readQuestStory, bindStoryBench } from '../src/game/quest/story';
+import { bindStoryAchievements, readQuestStory } from '../src/game/quest/story';
 import { questBenchPose } from '../src/game/quest/storyLaw';
 import { PAGE_STORY as driftStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
@@ -74,7 +76,7 @@ test('story flag effects keep sync-before-notice order, filtering and entry disp
   const story = parseQuestStory({ ...driftStory, notices: [{ prefix: 'glass:', total: 2, text: 'Every piece' }] });
   const p = product(drift, story, DRIFTWOOD_FEAT_COUNTERS);
   const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
-  const ctx = shardContext(level.context, { ...TEMPLATE, slug: drift.identity.slug }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, p);
+  const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(drift.identity.slug) }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, p);
   Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry() }, play: { hud: { toast: (text: string) => { events.push(text); } } } } });
   const entry = await prepareQuestEntry(ctx, story, { services: 'quests/services.json', placement: {} }), flags = entry.flags;
   flags.reset();
@@ -88,20 +90,32 @@ test('story flag effects keep sync-before-notice order, filtering and entry disp
   scope.dispose(); flags.set('after:dispose'); expect(events).toHaveLength(4);
   expect(() => parseQuestStory({ ...story, journal: { ...story.journal, refresh: 'later' } })).toThrow();
   expect(() => parseQuestStory({ ...story, bench: { ...story.bench, forward: Infinity } })).toThrow();
-  expect(() => parseQuestStory({ ...story, bindings: { ...story.bindings, sync: { owner: 'foreign', path: ['run'] } } })).toThrow();
+  expect(() => parseQuestStory({ ...story, bindings: { sync: { owner: 'foreign', path: ['run'] } } })).toThrow();
 });
 
-test('page and native seats retain the original two floor laws, yaw, pitch and velocity reset', () => {
+test('page and native seats retain the original two floor laws, yaw, pitch and velocity reset', async () => {
   const at = new Vector3(4, 6, 8), yaw = .7;
-  const player = { position: new Vector3(), velocity: new Vector3(3, 4, 5), yaw: 0, pitch: 0 };
-  const kit: { onSit?: (point: Vector3, angle: number) => void } = {}, toasts: string[] = [];
-  bindStoryBench(driftStory, kit, player, new Map<string, unknown>([['hud', { toast: (text: string) => { toasts.push(text); } }], ['placement', { floorAt: (x: number, z: number) => x + z }]]));
-  kit.onSit?.(at, yaw);
-  expect(player.position.toArray()).toEqual([at.x + Math.sin(yaw) * .2, (at.x + Math.sin(yaw) * .2) + (at.z + Math.cos(yaw) * .2), at.z + Math.cos(yaw) * .2]);
-  expect(player.velocity.length()).toBe(0); expect(player.yaw).toBe(yaw + Math.PI); expect(player.pitch).toBe(.04);
-  expect(toasts).toEqual(['You sit a while. The sea goes on and on.']);
-  const native = questBenchPose(pineStory.bench, at, yaw);
-  bindStoryBench(pineStory, kit, player, new Map([['hud', { toast: () => undefined }]])); kit.onSit?.(at, yaw);
-  expect(player.position.toArray()).toEqual([native.x, 6.02, native.z]); expect(player.pitch).toBe(.05);
+  setTerrainHeight(() => 0);
+  for (const [source, story, counters] of [[drift, driftStory, DRIFTWOOD_FEAT_COUNTERS], [pine, pineStory, PINE_FEAT_COUNTERS]] as const) {
+    const scope = new Scope('story-seat'), host = new App(), toasts: string[] = [];
+    const player = { position: new Vector3(), velocity: new Vector3(3, 4, 5), yaw: 0, pitch: 0, platforms: [(x: number, z: number) => x + z] };
+    const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
+    const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(source.identity.slug) }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product(source, story, counters));
+    Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), player, game: { scene: new Scene() }, sky: { setupMaterial: () => undefined, csm: { lightDirection: new Vector3() } } }, interactables: [],
+      play: { hud: { toast: (text: string) => { toasts.push(text); } }, audio: { voices: { play: () => undefined } } } } });
+    try {
+      const entry = await prepareQuestEntry(ctx, story, { services: 'quests/services.json', placement: { platforms: true } });
+      expect(() => entry.bench()).toThrow('entered interaction table');
+      const kit = await entry.interact({ table: { rows: [], external: [] }, platforms: true }, { id: 'seat.kit', before: [] });
+      entry.bench(); kit.onSit?.(at, yaw);
+      const native = questBenchPose(story.bench, at, yaw, (x, z) => x + z);
+      expect(player.position.toArray()).toEqual([native.x, native.y, native.z]);
+      const x = at.x + Math.sin(yaw) * .2, z = at.z + Math.cos(yaw) * .2;
+      expect(player.position.toArray()).toEqual([x, story.bench.terrain ? x + z : 6.02, z]);
+      expect(player.velocity.length()).toBe(0); expect(player.yaw).toBe(yaw + Math.PI); expect(player.pitch).toBe(story.bench.pitch);
+      expect(toasts).toEqual([story.bench.text]);
+      scope.dispose(); expect(() => entry.bench()).toThrow('entered interaction table');
+    } finally { scope.dispose(); }
+  }
   expect(() => questBenchPose(driftStory.bench, at, yaw)).toThrow('floor');
 });

@@ -6625,6 +6625,8 @@ original chapter, flags, marker and notice owners and refuses a disposed entry.
 `achievements()` admits the original ledger/counter binding once; `observe()`
 then synchronizes those counters before notices at the caller's original phase.
 No author-supplied counter method or reflected synchronization path is accepted.
+`bench()` binds the entered table's seat to that same player, HUD and floor
+policy. Story rows supply the seat pose and words, without borrowed method paths.
 
 Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing

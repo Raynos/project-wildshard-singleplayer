@@ -21,7 +21,7 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { bindQuestDeathEffects } from '../plugin/quests';
 import { prepareQuestEntry, ownQuestTree, type QuestChapter } from './chapter';
-import { readQuestStory, bindStoryBench, installStoryTalks } from './story';
+import { readQuestStory, installStoryTalks } from './story';
 import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
@@ -123,9 +123,8 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const feet = place(placement.feet), ax = feet.x + Math.sin(feet.yaw) * placement.tradeAhead, az = feet.z + Math.cos(feet.yaw) * placement.tradeAhead;
   adventure.trader = installQuestTrader(ctx, traderStall, { figure: rows.trader.figure, counter: rows.trader.counter, offer: rows.trader.offer,
     at: { x: ax, y: floorAt(ax, az) + placement.tradeHeight, z: az }, prompt: { label: rows.trader.label, radius: rows.trader.radius }, before: rows.systems.before });
-  const storyOwners = new Map<string, unknown>([['hud', w.hud], ['placement', { floorAt }]]);
   entry.observe();
-  bindStoryBench(story, kit, w.player, storyOwners);
+  entry.bench();
   w.ironDrop?.bindGuardFlags(flags.all);
   {
     const placed = await scenes.place(rows.cable.scene), cables = cableModes(ctx.scope), mode = rows.cable.mode;

@@ -7,7 +7,6 @@ import { parseQuestStory } from '@wildshard/format/questStory';
 /** The shipped strings, flag filters, migration and seat pose; no live state. */
 const base = parseQuestStory({
   quest: { id: 'sealed-ring', markers: DRIFTWOOD_MARKERS },
-  bindings: { toast: { owner: 'hud', path: ['toast'] }, floor: { owner: 'placement', path: ['floorAt'] } },
   presentation: QUEST_PRESENTATION, journal, bench, ignoredFlagPrefixes: ['plate:', 'lever:'],
   notices: [{ prefix: 'glass:', total: 15, text: 'Every piece of sea glass on the island · 15 / 15' }],
 });

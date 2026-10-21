@@ -33,7 +33,7 @@ import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
-import { readQuestStory, bindStoryBench, installStoryTalks } from '@wildshard/game/quest/story';
+import { readQuestStory, installStoryTalks } from '@wildshard/game/quest/story';
 import { Exchange } from '@wildshard/game/loot/exchange';
 import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { DataPanel, readDataPanels } from '../dataPanels';
@@ -102,7 +102,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   ]));
   calls.set(rows.pickupEvent, () => { h.music.sting('pickup'); });
   kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls });
-  bindStoryBench(story, kit, player, new Map<string, unknown>([['hud', hud]]));
+  entry.bench();
 
   const points = Object.fromEntries(rows.signals.map(row => [row.id, new THREE.Vector3(row.x, floorAt(row.x, row.z) + row.height, row.z)]));
   const lanternPage = bindQuestPageInteractions(lanternRows, { flags, interactions: lanternRules, timer: ui,

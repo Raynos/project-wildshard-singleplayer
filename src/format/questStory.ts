@@ -20,7 +20,6 @@ export type AdventureContent = v.InferOutput<typeof AdventureContentSchema>;
 export function parseAdventureContent(input: unknown): AdventureContent { return v.parse(AdventureContentSchema, input); }
 
 const markerAt = v.strictObject({ ...at.entries, y: v.exactOptional(finite), dy: v.exactOptional(finite), yaw: v.exactOptional(finite) });
-const borrowed = v.strictObject({ owner: text, path: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)) });
 const chapterText = v.pipe(v.string(), v.maxLength(512));
 const ChapterPresentation = v.pipe(v.strictObject({
   chapters: v.pipe(v.array(v.pipe(chapterText, v.minLength(1))), v.maxLength(64)),
@@ -47,7 +46,6 @@ export function parseChapterStoryPresentation(input: unknown): ChapterStoryPrese
 
 export const QuestStorySchema = v.strictObject({
   chapters: v.exactOptional(ChapterPresentation),
-  bindings: v.strictObject({ toast: borrowed, floor: v.exactOptional(borrowed) }),
   quest: v.strictObject({ id: text, markers: v.record(text, markerAt) }),
   presentation: v.strictObject({ introTitle: text, worldPins: v.boolean(), mapMarkers: v.boolean(), minimapMarks: v.boolean(),
     messages: v.strictObject({ firstStep: text, started: text, objective: text, completed: text }) }),

@@ -29,6 +29,7 @@ import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from 
 import { bindRuntimeQuest } from '../plugin/headless';
 import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory } from './story';
 import { questPageWorld } from './pageResources';
+import { questBenchPose } from './storyLaw';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -96,6 +97,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   chapter: (input?: unknown) => QuestChapter;
   achievements: () => ReturnType<typeof bindStoryAchievements>;
   observe: () => void;
+  bench: () => void;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -115,8 +117,18 @@ export async function prepareQuestEntry(ctx: ShardContext, storyInput: unknown, 
   const services = await readQuestServiceActions(ctx, story.quest.id, rows.services);
   let achievements: Awaited<ReturnType<typeof bindStoryAchievements>> | null = null;
   let achievementRequest: ReturnType<typeof bindStoryAchievements> | null = null;
+  let interaction: Awaited<ReturnType<typeof installQuestInteractables>> | null = null;
   let installed = false;
   return { story, flags, services, ...placement,
+    bench: (): void => {
+      const kit = interaction, play = ctx.game.runtime?.play;
+      if (kit === null || play === undefined || play === null || ctx.scope.disposed) throw new Error('Quest seat requires its entered interaction table');
+      kit.onSit = (at, yaw) => {
+        const pose = questBenchPose(story.bench, at, yaw, placement.floorAt), player = world.player;
+        player.position.set(pose.x, pose.y, pose.z); player.velocity.set(0, 0, 0); player.yaw = pose.yaw; player.pitch = pose.pitch;
+        play.hud.toast(story.bench.text);
+      };
+    },
     achievements: (): ReturnType<typeof bindStoryAchievements> => {
       achievementRequest ??= bindStoryAchievements(ctx, story, ctx.game.runtime?.play?.progress, ctx.manifest.slug)
         .then(service => { achievements = service; return service; });
@@ -141,6 +153,7 @@ export async function prepareQuestEntry(ctx: ShardContext, storyInput: unknown, 
       if (installed || ctx.scope.disposed) throw new Error('Quest entry interactables already installed or disposed');
       installed = true;
       const kit = await installQuestInteractables(ctx, story.quest.id, interactions);
+      interaction = kit;
       ctx.system({ id: order.id, phase: 'update', before: order.before, after: order.after, run: (dt, time) => { kit.update(dt, time); } });
       return kit;
     } };
