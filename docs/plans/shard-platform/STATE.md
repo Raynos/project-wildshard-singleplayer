@@ -6,6 +6,6 @@
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
-**For wildshard-v:** G517 bug-fix exception granted to sp-o3: stateless AS return programs share one WebAssembly.Memory per page size (iOS full GC per new Memory, 40-80 ms each); please log it in WASM-HOST. G550 hero retake: art/grid/round-35-hero-retake/ (d91a7034c8, SQ-NE-b shipped tiers + board vs round 6); outer band draws blank pale tiles, sp-o2 fixing (O24), retake follows.
+**For wildshard-v:** G550 hero: art/grid/round-35-hero-retake/sq-ne-b-o24-{iphone,desktop,board}.jpg (5a410d548f); outer band now draws its ground (O24 haze fix 734f24a81a); holograms/beams still fade past 850 m by design, so G550's 'holograms in the distance' needs a pick: keep the fade (recommended, draw cost) or extend it.
 
 **Idle lanes:** ready-queue self-pull; G549: sp-o5 sole Simulator owner (lanes/sim-queue.md). **Lanes (14:00):** Opus sp-o1 G4; sp-o2 O24; sp-o3 G7; sp-o4 G3; sp-o5 G8. Codex sp-x1 GR3; sp-x6 G2a; sp-x8 G1a/G2b; sp-x9 G9 then G1b; sp-x7 push.
