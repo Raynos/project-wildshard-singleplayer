@@ -150,6 +150,7 @@
     "./scriptAbi": "./scriptAbi.ts",
     "./scriptAdmission": "./scriptAdmission.ts",
     "./scriptAdmissionV2": "./scriptAdmissionV2.ts",
+    "./scriptMemoryV2": "./scriptMemoryV2.ts",
     "./scriptFuelV2": "./scriptFuelV2.ts",
     "./scriptModuleV2": "./scriptModuleV2.ts",
     "./scriptLimits": "./scriptLimits.ts",

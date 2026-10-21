@@ -18,6 +18,7 @@
     "./ai/moves": "./ai/moves.ts",
     "./script/decision": "./script/decision.ts",
     "./script/decisionModule": "./script/decisionModule.ts",
+    "./script/moduleV2": "./script/moduleV2.ts",
     "./render/programRetention": "./render/programRetention.ts",
     "./models/placementBatch": "./models/placementBatch.ts",
     "./models/ownedGeometry": "./models/ownedGeometry.ts",
