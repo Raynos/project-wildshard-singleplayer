@@ -5,8 +5,18 @@ import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {outputFormat,gridReadinessFormat} from './shard-platform-format.mjs';
 import {runtimeGridEvidence} from './grid-runtime-evidence.mjs';
+import catalogue from '../src/game/grid/singleplayer.json' with {type:'json'};
+import plotOutputs from '../src/shards/open-plots/outputs.json' with {type:'json'};
 
 export const MILESTONE_SHARDS=['far-reach','sunscar-dunes','pine-hollow','driftwood-isle','nalati-grasslands','nine-dragon-stack'];
+// M2 covers the complete authored grid, including Developer placements. M3
+// retains its six frozen denominators. Plot products occupy cells separately.
+/** @type {Map<string,{slug:string}>} */
+const gridCells=new Map();
+for(const cell of [...catalogue.grid.cells,...catalogue.grid.developer,...catalogue.grid.devserver])gridCells.set(cell.cell.join(','),cell);
+const plotSlugs=new Set(plotOutputs.outputs.map(row=>row.slug));
+export const M2_GRID_SHARDS=[...new Set([...gridCells.values()].filter(cell=>!plotSlugs.has(cell.slug)).map(cell=>cell.slug))].sort();
+export const M2_GRID_PLOTS=[...gridCells.values()].filter(cell=>plotSlugs.has(cell.slug)).length;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 /** @param {Record<string,{verdict:'pass'|'fail'|'unknown',evidence:string}>} criteria */
 export function readinessVerdict(criteria) {
@@ -74,12 +84,13 @@ export function planProgress(rows) {
   const ports=MILESTONE_SHARDS.map(slug=>rows[slug]),measured=ports.flatMap(row=>row?.m3??[]);
   const mustGo=measured.reduce((sum,row)=>sum+row.mustGo,0),cut=measured.reduce((sum,row)=>sum+row.cut,0);
   const m3=measured.length===6&&mustGo>0?cut/mustGo:null;
-  const ready=ports.filter(row=>row?.gridReady.verdict==='pass').length;
-  const unknown=ports.filter(row=>row===undefined||row.gridReady.verdict==='unknown').length;
-  const m2={lower:ready/6,upper:(ready+unknown)/6,ready,unknown,total:6};
-  const floorReady=ports.filter(row=>row?.gridReady.frameFloor?.verdict==='pass').length;
-  const floorFail=ports.filter(row=>row?.gridReady.frameFloor?.verdict==='fail').length;
-  const frameFloor={ready:floorReady,fail:floorFail,unknown:6-floorReady-floorFail,total:6};
+  const grid=M2_GRID_SHARDS.map(slug=>rows[slug]),total=grid.length;
+  const ready=grid.filter(row=>row?.gridReady.verdict==='pass').length;
+  const unknown=grid.filter(row=>row===undefined||row.gridReady.verdict==='unknown').length;
+  const m2={lower:ready/total,upper:(ready+unknown)/total,ready,unknown,total,shards:[...M2_GRID_SHARDS],plots:M2_GRID_PLOTS};
+  const floorReady=grid.filter(row=>row?.gridReady.frameFloor?.verdict==='pass').length;
+  const floorFail=grid.filter(row=>row?.gridReady.frameFloor?.verdict==='fail').length;
+  const frameFloor={ready:floorReady,fail:floorFail,unknown:total-floorReady-floorFail,total};
   // M3 reports past 100 % honestly, but it can't carry the plan past its 60 % share.
   const m3Share=m3===null?null:Math.min(1,m3);
   return {m3:{fraction:m3,cut,mustGo,shards:measured.length},m2,frameFloor,

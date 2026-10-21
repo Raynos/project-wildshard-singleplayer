@@ -70,8 +70,8 @@ export async function runShardPlatformCli() {
       }
       const percent=value=>`${(100*value).toFixed(1)} %`;
       console.log(`M3 six-shard total: ${progress.m3.fraction===null?'unknown':percent(progress.m3.fraction)}; ${progress.m3.cut}/${progress.m3.mustGo} must-go lines cut`);
-      console.log(`M2 grid-ready: ${progress.m2.ready}/6 pass, ${progress.m2.unknown}/6 unknown`);
-      console.log(`Frame floor (separate): ${progress.frameFloor.ready}/6 pass, ${progress.frameFloor.fail}/6 fail, ${progress.frameFloor.unknown}/6 unknown`);
+      console.log(`M2 grid-ready: ${progress.m2.ready}/${progress.m2.total} pass, ${progress.m2.unknown}/${progress.m2.total} unknown; ${progress.m2.plots} plot cells counted separately`);
+      console.log(`Frame floor (separate): ${progress.frameFloor.ready}/${progress.frameFloor.total} pass, ${progress.frameFloor.fail}/${progress.frameFloor.total} fail, ${progress.frameFloor.unknown}/${progress.frameFloor.total} unknown`);
       console.log(`Plan (60% M3 + 40% M2): ${progress.plan===null?'unknown':progress.plan.lower===progress.plan.upper?percent(progress.plan.lower):`${percent(progress.plan.lower)}–${percent(progress.plan.upper)} (M2 evidence incomplete)`}`);
       for(const wave of netLines) {
         console.log(`${wave.wave} net lines (report-only, historical source M0 ${wave.revision}): custom cut ${wave.customCut??'unknown'} - platform growth ${wave.platformGrowth} = ${wave.netCut??'unknown'}`);

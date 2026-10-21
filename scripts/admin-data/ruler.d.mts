@@ -20,7 +20,7 @@ export interface Ruler {
   plan:{lower:number;upper:number};
   m3:{cut:number|null;mustGo:number|null;fraction:number|null};
   measurementError?:string;productFailures?:Record<string,string>;
-  m2:{ready:number;fail:number;unknown:number;total:number};
+  m2:{ready:number;fail:number;unknown:number;total:number;shards?:string[];plots?:number};
   frameFloor?:{ready:number;fail:number;unknown:number;total:number};
   netLines?:RulerNetLines[];
   components?:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>;

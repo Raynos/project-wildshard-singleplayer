@@ -25,7 +25,7 @@ it('weights actual must-go lines and keeps unknown M2 evidence out of a point cl
  for(const slug of MILESTONE_SHARDS)rows[slug]={m3:m3Progress(slug,input),gridReady:{verdict:'unknown',criteria:{}}};
  const result=planProgress(rows);
  expect(result.m3).toMatchObject({cut:480,mustGo:500,fraction:.96});
- expect(result.m2).toMatchObject({lower:0,upper:1,unknown:6});
+ expect(result.m2).toMatchObject({lower:0,upper:1,unknown:10,total:10,plots:15});
  expect(result.plan?.lower).toBeCloseTo(.576);
  expect(result.plan?.upper).toBeCloseTo(.976);
  expect(readinessVerdict({})).toBe('unknown');
@@ -120,8 +120,8 @@ it('reports frame floor alongside M2 without changing visual readiness or plan w
  const rows:Parameters<typeof planProgress>[0]={};
  for(const slug of MILESTONE_SHARDS)rows[slug]={m3:m3Progress(slug,input),gridReady:{verdict:'pass',criteria:{},frameFloor:{verdict:'fail',evidence:'p95 50 ms'}}};
  const result=planProgress(rows);
- expect(result.m2).toMatchObject({ready:6,unknown:0});
- expect(result.frameFloor).toEqual({ready:0,fail:6,unknown:0,total:6});
- expect(result.plan?.lower).toBeCloseTo(.976);
+ expect(result.m2).toMatchObject({ready:6,unknown:4,total:10});
+ expect(result.frameFloor).toEqual({ready:0,fail:6,unknown:4,total:10});
+ expect(result.plan?.lower).toBeCloseTo(.816);
  expect(result.plan?.upper).toBeCloseTo(.976);
 });

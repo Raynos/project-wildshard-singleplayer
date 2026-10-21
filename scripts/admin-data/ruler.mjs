@@ -64,7 +64,7 @@ export const WAVES = [
 /** @typedef {{revision:string;at:string;basis:string;shards:Record<string,number>}} RulerPoint */
 /** @typedef {{id:string;startedAt:string;start:Record<string,number>;endedAt:string|null}} RulerWaveState */
 /** @typedef {{schema:string;command:string;revision:string;committedAt:string;measuredAt:string;basis:string;
- *   plan:{lower:number;upper:number};m3:{cut:number|null;mustGo:number|null;fraction:number|null};m2:{ready:number;fail:number;unknown:number;total:number};
+ *   plan:{lower:number;upper:number};m3:{cut:number|null;mustGo:number|null;fraction:number|null};m2:{ready:number;fail:number;unknown:number;total:number;shards?:string[];plots?:number};
  *   measurementError?:string;productFailures?:Record<string,string>;
  *   frameFloor?:{ready:number;fail:number;unknown:number;total:number};netLines?:import('./ruler.mjs').RulerNetLines[];customSectionFailures?:string[];shards:RulerShard[];native:string[];wave:{id:string;label:string;until:string|null;pct:number|null;shards:string[];goal:number};
  *   components?:Record<string,{closed:boolean;state?:'closed'|'closing'|'open';lines:Record<string,number|null>}>;
@@ -166,9 +166,11 @@ export function nextRuler(raw, prev, at) {
       {cut:num(progress.m3.cut,'m3.cut'),mustGo:num(progress.m3.mustGo,'m3.mustGo'),fraction:num(progress.m3.fraction,'m3.fraction')},
     ...(measurementError===null?{}:{measurementError}),
     productFailures:v.parse(v.record(v.string(),v.string()),summary.productFailures??{}),
-    m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total },
-    frameFloor: {ready:shards.filter(row=>row.frameFloor.verdict==='pass').length,fail:shards.filter(row=>row.frameFloor.verdict==='fail').length,
-      unknown:shards.filter(row=>row.frameFloor.verdict==='unknown').length,total:shards.length},
+    m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total,
+      ...(progress.m2.shards===undefined?{}:{shards:v.parse(v.array(v.string()),progress.m2.shards)}),
+      ...(progress.m2.plots===undefined?{}:{plots:num(progress.m2.plots,'m2.plots')}) },
+    frameFloor: v.parse(floorSummarySchema,progress.frameFloor??{ready:shards.filter(row=>row.frameFloor.verdict==='pass').length,fail:shards.filter(row=>row.frameFloor.verdict==='fail').length,
+      unknown:shards.filter(row=>row.frameFloor.verdict==='unknown').length,total:shards.length}),
     netLines: v.parse(netLinesSchema, summary.netLines),
     ...(summary.components === undefined ? {} : { components: v.parse(componentStatesSchema, summary.components) }),
     ...(summary.waves === undefined ? {} : { componentWaves: v.parse(componentWavesSchema, summary.waves) }),
@@ -204,6 +206,8 @@ export function readRuler(value) {
   if(m3.fraction===null){str(value.measurementError,'measurementError');if(m3.cut!==null||m3.mustGo!==null)throw new Error('Ruler: unknown M3 must not claim line counts');}
   else num(m3.fraction,'m3.fraction');
   num(m2.total,'m2.total');if(wave.pct===null)str(value.measurementError,'measurementError');else num(wave.pct,'wave.pct');
+  if(m2.shards!==undefined&&v.parse(v.array(v.string()),m2.shards).length!==m2.total)throw new Error('Ruler: M2 coverage differs from total');
+  if(m2.plots!==undefined)num(m2.plots,'m2.plots');
   if(value.productFailures!==undefined)v.parse(v.record(v.string(),v.string()),value.productFailures);
   // Existing snapshots predate G496; newly measured snapshots always carry it.
   if(value.frameFloor!==undefined)v.parse(floorSummarySchema,value.frameFloor);
