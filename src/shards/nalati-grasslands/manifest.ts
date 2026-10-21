@@ -16,7 +16,11 @@ export const NALATI_GRASSLANDS: ShardManifest = {
     probe, eye: [probe.x, (NALATI_GRASSLANDS.ground.terrain?.heightAt(probe.x, probe.z) ?? 0) + 1.68, probe.z] as const,
     yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI, mockup: '', frame: probe.name,
   }]))) },
-  load: () => import('./plugin'),
+  load: async () => {
+    const { default: Runtime } = await import('./runtime/index');
+    return (await import('@wildshard/game/shard/declaredEntry')).declaredRuntimeEntry(Runtime, Runtime,
+      { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: false });
+  },
   trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
   ktx2: () => import('./ktx2.generated'),
   render: async () => (await import('./look/render')).shardRender(),
