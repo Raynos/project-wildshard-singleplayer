@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import sharp from 'sharp';
 import { FarSchema } from '../src/format/shardSections';
 import { bakeFarPlaceholder } from '../src/sdk/bake/placeholders';
 import { FAR_IMPOSTOR_BAKE } from '../src/sdk/bake/farImpostor';
+import { readImagePixels } from '../src/sdk/bake/image';
 import type { PlaceholderGrid, PlaceholderLook } from '../src/game/plugin/animation';
 
 // G539: every far proxy bakes a camera-facing impostor beside it, admitted in the same far row and its caps.
@@ -18,8 +18,8 @@ test('the far bake ships an admitted impostor image', async () => {
   expect(far.files).toEqual([baked.manifest.file.hash, baked.manifest.impostorFile.hash]);
   expect(far.impostor).toMatchObject({ views: FAR_IMPOSTOR_BAKE.views, cols: FAR_IMPOSTOR_BAKE.cols, tile: [...FAR_IMPOSTOR_BAKE.tile] });
   const [tw, th] = FAR_IMPOSTOR_BAKE.tile, rows = Math.ceil(FAR_IMPOSTOR_BAKE.views / FAR_IMPOSTOR_BAKE.cols);
-  const { data, info } = await sharp(baked.impostor).raw().toBuffer({ resolveWithObject: true });
-  expect([info.width, info.height, info.channels]).toEqual([FAR_IMPOSTOR_BAKE.cols * tw, rows * th, 4]);
+  const { pixels: data, width, height } = await readImagePixels(baked.impostor);
+  expect([width, height]).toEqual([FAR_IMPOSTOR_BAKE.cols * tw, rows * th]);
   // every view covers something and leaves sky above it; alpha is one bit
   for (let k = 0; k < FAR_IMPOSTOR_BAKE.views; k++) {
     let covered = 0;

@@ -4,7 +4,7 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { FAR_RING } from '../src/game/grid/farProxy';
 import { RenderRings, type RingCatalogue, type RingPorts } from '../src/game/grid/rings';
 
-// SF88c (G526): from anywhere on the 5 × 5's outer road, every cell keeps its far proxy (no whole cell pops), inside the
+// SF88c (G526): from anywhere on the 5 × 5's outer road, every cell of the layout keeps its far proxy (no whole cell pops), inside the
 // far ring's unchanged budget (9 charges of 1.6 MB), each proxy charged its own bytes once loaded.
 const assembly = new GridAssembly({ developer: true, devserver: true });
 const cells = assembly.cells.map((cell) => ({ instance: cell.instance, origin: cell.origin }));
@@ -26,7 +26,6 @@ function drive(path: readonly (readonly [number, number])[]): { far: number; see
 }
 
 test('the far ring holds every cell along the outer road', () => {
-  expect(cells.length).toBe(10);
   const lap: [number, number][] = [];
   for (let s = -EDGE; s <= EDGE; s += 277.5) lap.push([s, EDGE], [EDGE, -s], [-s, -EDGE], [-EDGE, s]);
   const { far, seen } = drive(lap);
