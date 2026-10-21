@@ -19,10 +19,12 @@ if(!version.build?.startsWith(pin.slice(0,7)))throw new Error('Served SHA differ
 mkdirSync(out,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});
 const {defaultBrowserType:_engine,...phone}=devices['iPhone 16 Pro'];
-const receipt={schema:1,source:pin,protocol:{profiler:false,glObserver:'off',
+const receipt={schema:1,source:pin,protocol:{profiler:false,glObserver:'off',...(arg('quiet','0')==='1'?{quiet:true}:{}),
   memory:'Residency sampled every 250 ms; CDP detailed private-footprint dumps outside timed windows, no forced GC. Page process totals informational.',
   timing:'Live clock, drawn-frame cadence, real held-input road entry and leave; one declared road seed per independent case. No layout or cap changes.'},runs:[]};
 let failed=false;
+const interruption={on:false};
+process.once('SIGTERM',()=>{interruption.on=true;void browser.close();});
 try {
  const session=await browser.newBrowserCDPSession(),context=await browser.newContext(phone),page=await context.newPage();
  let errors=[];
@@ -44,6 +46,7 @@ try {
    targets.push(...plots.map(row=>({slug:row.slug,instance:row.instance})));
   }
  for(const target of targets) {
+  if(interruption.on)break;
   const {slug,instance}=target;
   const caseName=`${slug}--${instance}`;
   errors=[];
@@ -119,7 +122,8 @@ try {
   finally {
    writeFileSync(resolvePath(out,`${caseName}.json`),JSON.stringify(run,null,2));
    writeFileSync(resolvePath(out,'receipt.json'),JSON.stringify(receipt,null,2));
-   console.info(JSON.stringify({slug,instance,complete:run.complete,errors,memory:run.memory,rows:scene.rows}));
+   const memorySummary=run.memory===undefined?undefined:Object.fromEntries(Object.entries(run.memory).filter(([key])=>!['observations','peakClaims'].includes(key)));
+   console.info(JSON.stringify({slug,instance,complete:run.complete,errors,memory:memorySummary,rows:scene.rows}));
   }
  }
 }finally{await browser.close();}
