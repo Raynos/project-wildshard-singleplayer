@@ -11,9 +11,11 @@ Jake, 2026-10-13: *"Rather than refocusing one sprint at a time, we refocus perm
 
 | Wave | Shards | Done when (G404, G406) | Starts |
 |---|---|---|---|
-| **W1** | Sky Reach, Signal Dunes | each ≤ 10 % custom (90/10) **and** grid-ready | now |
-| **W2** | Pine Hollow, Driftwood Isle (G413) | each at 80/20 and grid-ready | when W1 is done |
-| **W3** | Nalati Grasslands, Nine Dragon Stack (G413) | each at 80/20 and grid-ready; M2 and M3 close here | when W2 is done |
+| **W1** | Sky Reach, Signal Dunes | **0 % custom** and grid-ready (done: both 0, latched) | done |
+| **W2** | Pine Hollow, Driftwood Isle (G413) | **0 % custom** (G567, was 80/20), then grid-ready (G561) | now (G551) |
+| **W3** | Nalati Grasslands, Nine Dragon Stack (G413) | **0 % custom** (G567, was 80/20), then grid-ready; M2 and M3 close here | after W2 |
+
+**Progress is measured toward zero (G567, Jake 2026-10-21):** M3 = lines cut ÷ every shard's original custom lines (no 10 % / 20 % goal, no cap above 100 %); plan % = 60 % × M3 + 40 % × M2. At dc788d5d6: 89,880 of 98,854 cut, M3 90.9 %, M2 6/10, plan 78.5 % (the old 20 %-goal ruler read 84 %).
 
 - **The unit of work is a component across the wave's shards**, closed at 100/0 for that wave (old path deleted in one
   commit set). Shards stay valid at every step. Discovered work goes to its component's row or its wave, never built now.
@@ -481,7 +483,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G566+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G567+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
