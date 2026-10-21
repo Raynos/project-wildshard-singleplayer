@@ -32,7 +32,6 @@
     "./quest/nativeComposition": "./quest/nativeComposition.ts",
     "./boss/roamingProjection": "./boss/roamingProjection.ts",
     "./boss/socketRig": "./boss/socketRig.ts",
-    "./population/creatureFrame": "./population/creatureFrame.ts",
     "./ambient/crowdDraw": "./ambient/crowdDraw.ts",
     "./population/relations": "./population/relations.ts",
     "./population/wildlife": "./population/wildlife.ts",

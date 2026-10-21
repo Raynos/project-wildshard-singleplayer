@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import speciesFrameRows from '../data/speciesRows.json' with {type:'json'};
 import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import type { ClipChannel, ClipFactor, ClipTerm, ClipWhen } from '@wildshard/game/plugin/animation';
 
@@ -155,8 +157,9 @@ function compile(b: ClientChannels, read: Parameters<NumericChannelOutput['expr'
   const at = (() => {
     if (ir.op === 'n') return b.constant(ir.value);
     if (ir.op === 'read') {
+      if(ir.key==='ground'||ir.key==='alive')return read('surface',[ir.key]);
       if (ir.key === 'lookYaw' || ir.key === 'lookPitch') return read('look',[ir.key === 'lookYaw' ? 'yaw' : 'pitch']);
-      return read('frame',ir.key === 'bodyY' ? ['dims','bodyY'] : ['attack','phase','t','seed','speed','flinch','deathT'].includes(ir.key) ? [ir.key] : ['mem',ir.key.replaceAll('.', '')]);
+      return read('frame',ir.key === 'bodyY' ? ['dims','bodyY'] : ['attack','phase','t','seed','speed','flinch','deathT','dt'].includes(ir.key) ? [ir.key] : ['mem',ir.key.replaceAll('.', '')]);
     }
     if (ir.op === 'select') return b.select(compile(b, read, ir.test, cache), compile(b, read, ir.yes, cache), compile(b, read, ir.no, cache));
     const a = compile(b, read, ir.a, cache);
@@ -206,5 +209,20 @@ const observationOutputs:NumericChannelOutput[]=Object.entries(inputs).map(([key
 }}));
 const observationPrograms=numericChannelPrograms('king.observe','king.observe',observationOutputs);
 
-export const GOLDEN_KING_POSE = { group: 'creature.pose', programs: [...programs,...observationPrograms] };
+// Retain the shipped per-frame smoothing and floor arithmetic as visual data.
+const frameNumber=v.pipe(v.number(),v.finite()),frameKey=v.pipe(v.string(),v.minLength(1),v.maxLength(96),v.check(value=>!['__proto__','prototype','constructor'].includes(value)));
+const surfaceRows=v.parse(v.object({smooth:v.pipe(v.array(v.object({input:frameKey,output:frameKey,rate:frameNumber,initial:v.nullable(frameNumber)})),v.maxLength(16)),
+  floor:v.object({field:frameKey,lift:frameKey,death:frameKey,delay:frameNumber,rate:frameNumber}),look:v.tuple([frameNumber,frameNumber,frameNumber]),group:frameKey}),speciesFrameRows.kingFrame);
+v.parse(v.record(frameKey,frameNumber),speciesFrameRows.kingPoseDefaults);
+v.parse(v.pipe(v.array(v.unknown()),v.maxLength(32)),observationPrograms);
+const surfaceValues=new Map(surfaceRows.smooth.map(row=>[row.output,addIR(readIR(row.output),mulIR(subIR(readIR(row.input),readIR(row.output)),binary('min',lit(1),mulIR(readIR('dt'),lit(row.rate)))))]));
+const floor=surfaceRows.floor,deathNext=selectIR(readIR('alive'),readIR(floor.death),addIR(readIR(floor.death),readIR('dt')));
+const yOffset=subIR(addIR(subIR(surfaceValues.get(floor.field)??readIR(floor.field),readIR('ground')),readIR(floor.lift)),mulIR(binary('max',lit(0),subIR(deathNext,lit(floor.delay))),lit(floor.rate)));
+const surfaceCache=new WeakMap<ClientChannels,Map<string,number>>();
+const surfaceOutputs:NumericChannelOutput[]=[...surfaceValues.entries(),[floor.death,deathNext]as const].map(([key,ir])=>({target:'mem',path:[key],expr:(b,read)=>{
+  let cache=surfaceCache.get(b);if(cache===undefined){cache=new Map();surfaceCache.set(b,cache);}return compile(b,read,ir,cache);
+}}));
+surfaceOutputs.push({target:'visual',path:['yOffset'],expr:(b,read)=>{let cache=surfaceCache.get(b);if(cache===undefined){cache=new Map();surfaceCache.set(b,cache);}return compile(b,read,yOffset,cache);}});
+const surfacePrograms=numericChannelPrograms('king.surface','king.surface',surfaceOutputs);
+export const GOLDEN_KING_POSE = { group: 'creature.pose', programs: [...programs,...observationPrograms,...surfacePrograms] };
 

@@ -18,7 +18,6 @@
     "./roamingCombat": "./roamingCombat.ts",
     "./roamingBossProjection": "./roamingBossProjection.ts",
     "./bossSocketRig": "./bossSocketRig.ts",
-    "./creatureFrame": "./creatureFrame.ts",
     "./crowdPresentation": "./crowdPresentation.ts",
     "./wildlifePopulation": "./wildlifePopulation.ts",
     "./bowVariant": "./bowVariant.ts",

@@ -190,6 +190,7 @@
         "src/shards/nalati-grasslands/generators/kurganLayout.ts",
         "src/shards/nalati-grasslands/generators/goldenKingArena.ts",
         "src/shards/nalati-grasslands/generators/goldenKingPose.ts",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/sdk/clientChannels.ts",
         "src/shards/nalati-grasslands/generators/goldenKingFight.ts",
         "src/shards/nalati-grasslands/generators/strikeProfiles.ts",

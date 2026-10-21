@@ -37,6 +37,7 @@ test('King pose rows retain every joint through the full fight and its reset', (
       transforms(actual).forEach((value, i) => expect(value, `${pose}/${act}/${strike}/${attack}/${deathT} scalar ${i}`).toBeCloseTo(wanted[i] ?? Number.NaN, 12));
       expect(actual.animal.yOffset).toBe(expected.animal.yOffset);
       for (const key of ['floorS', 'kneelS', 'raiseS', 'deadT']) expect(actual.mem[key]).toBe(expected.mem[key]);
+      expect(Object.keys(actual.mem).filter(key=>key.startsWith('king'))).toEqual([]);
     }
 });
 

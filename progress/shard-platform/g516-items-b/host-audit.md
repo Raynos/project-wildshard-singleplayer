@@ -275,3 +275,23 @@ This corrects attribution, not a source-line saving; the next census
 measures its actual spans. Do not edit the in-flight speciesBook source.
 Script types, typed lint, eleven focused attribution regressions and
 hooks pass. No collider, visual, codec, resource or budget changes.
+
+
+X4 King frame: delete the complete CreatureFrame runtime wrapper and its
+runtime schema. Existing numeric visual rows retain the exact smoothing,
+death offset and observation arithmetic; admission moves to Nalati's
+existing goldenKingPose build. Native Nalati view code lends detached
+facts and synchronizes only the original visual memory fields. No actor
+owner is exposed as a writable channel target and no scratch key leaks.
+The native King binding remains listed Nalati view code, HOST-BAR 4/6
+(fails real second user and deletion test), with no shared credit.
+Existing numericCreaturePose has real Nalati King and Driftwood Captain
+and crab users, 6/6. The lower channel installer is unchanged; its owner
+binding API fails test 6 (5/6), so this cut grants it no new host credit.
+Runtime TS: **Nalati +21 / platform -50**, net **-29**. Build TS **+18**;
+authored AS **0**, physical TS **-11** overall. Private JSON remains
+**46 sections / 12,497,444 bytes**, exact retained pushed-base parity.
+Root/layer types, typed lint, five suites / 26 tests, Nalati product and
+existing exact 2160-case joint/floor/memory parity all pass. The two real
+Titan victories remain green. Retire only the deleted wrapper fixture.
+No collider, material, style, codec, resource bounds or budget changes.
