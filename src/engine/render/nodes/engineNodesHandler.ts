@@ -73,6 +73,7 @@ import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } fro
 import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAttributeDefaults } from './graphAttributes';
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 import { TextureUpdates } from './textureUpdates';
+import { withNodeChildSnapshots } from './nodeChildren';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
@@ -696,6 +697,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** build one node material's program (timed: `builds`, `buildMs`); the build waits to be paired with its program */
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
+    withNodeChildSnapshots(() => { this.buildProgram(material, object, parameters); });
+  }
+
+  private buildProgram(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
     if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
     else super.build(material, object, parameters);
