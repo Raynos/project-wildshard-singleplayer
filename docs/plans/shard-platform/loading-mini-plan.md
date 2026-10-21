@@ -16,7 +16,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code (from the audit) | Effort (est.) |
 |---|---|---|---|
 | **L1 — accepted `8264f6dca2`; source `0e5a42feb3`; pushed** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
-| **L2 — cold accepted and pushed `8264f6dca2`; warm revalidation `bf332be4cc` proof pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
+| **L2 — cold accepted and pushed `8264f6dca2`; warm bootstrap `63dc1e12b4` proof pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
 | **L3 — accepted `8264f6dca2`; source `583123db2a`; pushed** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
 | **L4 — accepted `8264f6dca2`; source `c54a3c5c54`; pushed** | A step table per load path (shardfile, grid entry, grid crossing; legacy comparison retained) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
 | **L5 — accepted `8264f6dca2`; source `91a491c8a8 / 390a57867c`; pushed** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
@@ -29,11 +29,11 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code | Effort (est.) |
 |---|---|---|---|
 | **O1 — done `02fb4e4288`, `8f220455e8`, `94bf308bc1`** | Grid edges read from each neighbour's product index only, not the whole product (today 3,237 requests, 137.5 MB, 75.7 s) | `grid/edgeSources.ts:73-86`, `grid/products.ts:42-60`, `grid/session.ts:305-322` | 0.5 day |
-| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`, `bf332be4cc`, `4a2bed9f6f`; native warm bytes pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
+| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `4a2bed9f6f`, `de51698358`, `63dc1e12b4`; full warm proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3 — accepted `32cde80543`; receipts `fd69ae2b29`; carrier pending** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4 — source `0f63b7b167`, API `4c025e81bd`; batch green `68aa1e372c`; served proof pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
 | **O5 — pulled forward: `b2e4c86d92`; desktop AO repair `32cde80543` first frames green; native warm/full acceptance pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
-| **O6 — source `48d648401a`; served byte reduction pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 32,463,904 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
+| **O6 — source `48d648401a`, `be7b843f6e`; final served proof pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
 
@@ -387,3 +387,32 @@ parity fixture had a shared-tree baseline red before this cut (clean e8
 source checks passed). One combined clean batch on a head carrying both
 `48d648401a` and `de51698358` regenerates it and proves the source before
 served phone/native measurements; no fixture expectation is weakened.
+
+The combined clean `ff62a72304` batch passed in 326.8 s. Its full matrix
+passes eight entries and all five real return routes. Native warm grid now
+has no seventeen-GLB revalidation burst: 23,892 displayed / 23,617 actual
+bytes (1.16% error), with a 776 ms detail gap. Cold phone shardfile/grid
+wire totals are 143.85/143.37 MB; wall times are 30.1/26.7 s under shared
+machine load. The ~20 s CPU-4x grid target remains open. Phone warm grid
+still misses the full browser-owned worker-script check. Native warm
+shardfile records three HTML responses but only two worker timing entries;
+its separate no-Inspector-events diagnostic passes at 1.16% byte error.
+A late Inspector command/control experiment did not confirm causality.
+`7ce5ce17c9` retains safe request destination/Accept fields and a separate
+late worker-buffer replay on byte failure; recorded counters and gates
+remain unchanged, with the normal Inspector behavior still the default.
+
+The coordinator chose a tiny revalidated worker bootstrap with an immutable
+content-hashed import. `63dc1e12b4` emits a 95-byte `/sw.js`, importing
+`/sw-core/<SHA-256>.js`; only that exact core path gets the one-year immutable
+HTTP policy. Registration retains `updateViaCache: all`. The maintained
+native regression `8c1c7c4fcc` proves unchanged imports stay cached across
+restart and a same-length changed core reaches the controlled client.
+Preview header/ETag tests and strict lint pass. Evidence is retained in
+[`worker-bootstrap-63dc1e1`](../../../progress/loading/g543/worker-bootstrap-63dc1e1/README.md)
+(`de6833b8b7`); full game accuracy remains a separate proof. `be7b843f6e`
+also retires the unused 1,980,400-byte reef world binary, whose native
+channels are already in the finished GLB; only custom aliases referenced
+the old product transport. The original bake input stays. One combined
+batch and served matrix cover these pending cuts without repeating the
+already-green `ff62a72304` check.
