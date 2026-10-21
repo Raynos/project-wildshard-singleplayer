@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import subprocess
 
-INFRA = ['src/format', 'scripts/generate.mjs', 'scripts/generation-cache.mjs',
+INFRA = [ 'scripts/generate.mjs', 'scripts/generation-cache.mjs',
          'scripts/generation-inputs.mjs', 'scripts/generation-recorder.mjs',
          'scripts/shardfile-inputs.mjs', 'scripts/compiler-code.mjs', 'scripts/function-source.mjs',
          'scripts/generation-snapshot.mjs', 'scripts/generation-capture.mjs',
@@ -32,6 +32,11 @@ def identities(jobs, records):
             seen.add(current)
             roots.update(by_id[current]['inputRoots'])
             pending.extend(edges[current] - seen)
+        # Literal JSON recipes declare their complete source closure; format
+        # admission does not execute in that driver. Other producers retain
+        # the conservative shared-format dependency.
+        if any('src/sdk/bake/json.mjs' not in by_id[owner].get('command', []) for owner in seen):
+            roots.add('src/format')
         prefixes = tuple(source + '/' for source in roots)
         selected = [record for record, name in named if name in roots or name.startswith(prefixes)]
         descriptors = [row for row in jobs if row['id'] in seen]

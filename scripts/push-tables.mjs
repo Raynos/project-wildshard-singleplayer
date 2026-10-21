@@ -1,6 +1,6 @@
 // D8 exception: small source declarations only, never asset/product generation.
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { authoredManifestSource, productManifestPath } from '../scripts/authored-manifest.mjs';
@@ -52,8 +52,11 @@ export async function sectionTables(root, slug) {
 /** @param {string} root */
 export async function pushTables(root) {
   genStarterArmClips(root); genStarterWeapons(root); genStarterBag(root); genStarterEffects(root);
-  for (const folder of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
-    if (folder.isDirectory()) await sectionTables(root, folder.name);
+  /** @type {{ jobs: {shard:string|null;outputs:string[]}[] }} */
+  const registry = JSON.parse(readFileSync(resolve(root, 'scripts/generation-jobs.json'), 'utf8'));
+  const owners = new Set(registry.jobs.filter(job => job.outputs.some(file => file.endsWith('/runtime/productSections.generated.d.ts'))).map(job => job.shard));
+  for (const owner of owners) {
+    if (owner !== null) await sectionTables(root, owner);
   }
   for (const product of shardProducts(root, manifestFolders(root))) {
     if (!existsSync(resolve(root, 'src/shards', product.folder, 'manifest.json'))) continue;
