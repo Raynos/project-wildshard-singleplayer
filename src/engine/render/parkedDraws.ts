@@ -224,7 +224,9 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     /** Parked camera weapons hide their direct roots as well as their staging group. Descendant visibility stays authored. */
     revealChildren?: boolean;
     /** A parked world's lights must be present for camera equipment to acquire its entry-frame programs. */
-    lightingRoot?: THREE.Object3D } = {}): Promise<number> {
+    lightingRoot?: THREE.Object3D;
+    /** Completed drawables and their fixed total, without changing draw/pause cadence. */
+    onProgress?: (done: number, total: number) => void } = {}): Promise<number> {
   const reveal = new Set(options.revealChildren === true ? root.children : []);
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
   const slices = parkedDrawSlices(parkedDrawables(root, camera, reveal), options.budget ?? DEFAULT_BUDGET);
@@ -234,12 +236,15 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   if (!(view instanceof THREE.Camera)) throw new Error('Parked view must retain its camera type');
   const standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
   let drawn = 0;
+  const total = slices.reduce((count, slice) => count + slice.length, 0);
   try {
+    options.onProgress?.(0, total);
     for (const slice of slices) {
       if (!current()) throw new Error('Parked draw owner left');
       try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal); }
       catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
       drawn += slice.length;
+      options.onProgress?.(drawn, total);
       await pause();
     }
   } finally { standIns.dispose(); }
@@ -359,7 +364,7 @@ export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.
  * Optional excluded roots defer their registered passes without changing scene state.
  */
 export async function warmOffscreenPasses(renderer: OffscreenWarmRenderer, root: THREE.Object3D, current: () => boolean,
-  pause: () => Promise<void>, excludedRoots?: ReadonlySet<THREE.Object3D>): Promise<number> {
+  pause: () => Promise<void>, excludedRoots?: ReadonlySet<THREE.Object3D>, onProgress?: (done: number, total: number) => void): Promise<number> {
   const passes: { scene: THREE.Scene; pass: OffscreenPreparation }[] = [];
   const isScene = (object: THREE.Object3D): object is THREE.Scene => object instanceof THREE.Scene;
   const collect = (object: THREE.Object3D): void => { if (isScene(object)) for (const pass of offscreenPreparations(object)) passes.push({ scene: object, pass }); };
@@ -368,11 +373,13 @@ export async function warmOffscreenPasses(renderer: OffscreenWarmRenderer, root:
     collect(object); for (const child of object.children) walk(child);
   };
   if (excludedRoots === undefined) root.traverse(collect); else walk(root);
-  let drawn = 0;
+  let drawn = 0, completed = 0;
+  onProgress?.(0, passes.length);
   for (const { scene, pass } of passes) {
     if (!current()) throw new Error('Offscreen warm owner left');
     try { drawn += warmOffscreenPass(renderer, scene, pass); }
     catch (error) { console.error(`[parked draws] the ${pass.label} pass warm stopped; its first update draws the rest`, error); return drawn; }
+    completed++; onProgress?.(completed, passes.length);
     await pause();
   }
   return drawn;

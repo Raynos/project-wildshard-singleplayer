@@ -70,8 +70,11 @@ test('parked camera equipment draws in paced slices without revealing hidden det
   try {
     expect(f.models.staged(f.scope)).toBe(f.stage);
     let pauses = 0;
+    const progress: number[][] = [];
     const drawn = await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
-      () => { pauses++; f.restored(); return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 } });
+      () => { pauses++; f.restored(); return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 },
+        onProgress: (done, total) => { f.restored(); progress.push([done, total]); } });
+    expect(progress).toEqual([[0, 2], [1, 2], [2, 2]]);
     expect(drawn).toBe(2); expect(pauses).toBe(2); expect(f.draws).toEqual(f.parts.map(part => [part]));
     f.restored();
     f.scope.dispose(); expect(f.models.staged(f.scope)).toBeUndefined();

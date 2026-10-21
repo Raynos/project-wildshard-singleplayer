@@ -790,9 +790,11 @@ export class Game {
     return work;
   }
 
-  private _entryPreparation: { root: string; completed: boolean; stages: { phase: string; elapsedMs: number; units: number; endAt: number }[] } | null = null;
-  /** Last entered-frame preparation's scalar timings (each stage's end on the diagnostic clock). Painted waits are
-   *  included; no content resources are retained. */
+  private _entryPreparation: { root: string; owner: string; completed: boolean; phase: string;
+    progress: { done: number; total: number; detail: string } | null;
+    stages: { phase: string; elapsedMs: number; units: number; endAt: number }[] } | null = null;
+  /** Last entered-frame preparation's running phase, measured work counts and scalar timings. Painted waits are
+   * included; no content resources are retained. The root identifies the exact destination. */
   get entryPreparation(): Readonly<NonNullable<Game['_entryPreparation']>> | null { return this._entryPreparation; }
   /** The node (graph material) programs built so far and the recent build log (`EngineNodesHandler.buildLog`); null
    *  before any graph material loaded the back-end. A diagnostic: the frame floor counts builds after an entry's warm-up. */
@@ -810,17 +812,18 @@ export class Game {
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D, before?: () => Promise<void> | void): Promise<void> {
     const composer = this._composer;
     if (composer === null) { await before?.(); return; }
-    const trace = { root: (futureRoot ?? this.scene).uuid, completed: false, stages: [] as { phase: string; elapsedMs: number; units: number; endAt: number }[] };
+    const trace: NonNullable<Game['_entryPreparation']> = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
+      completed: false, phase: before === undefined ? 'post-preparation' : 'before-warm', progress: null, stages: [] };
     this._entryPreparation = trace;
     // OP: every wait below is bounded in presented time; a stall rejects naming its stage (an admission issue), never a
     // silent hang. `current` turns false with the bound, so the abandoned stages stop at their next check.
-    let phase = before === undefined ? 'post-preparation' : 'before-warm';
-    const stage = (): string => { const last = trace.stages.at(-1); return last === undefined ? phase : `${phase} (after ${last.phase})`; };
+    const enter = (phase: string): void => { trace.phase = phase; trace.progress = null; };
+    const stage = (): string => { const last = trace.stages.at(-1); return last === undefined ? trace.phase : `${trace.phase} (after ${last.phase})`; };
     await boundEntryWarmup(owner, () => this.frameCount, stage, async current => {
       if (before !== undefined) {
         await before();
         if (!current()) throw new Error('Shader warm-up owner left');
-        phase = 'post-preparation';
+        enter('post-preparation');
       }
       for (;;) {
         const pending = this.postPreparation;
@@ -828,8 +831,8 @@ export class Game {
         if (!current()) throw new Error('Shader warm-up owner left');
         if (this.postPreparation === pending) break;
       }
-      phase = 'shaders-and-composer';
-      await this.warmEnteredStages(owner, composer, trace, current, futureRoot, next => { phase = next; });
+      enter('shaders-and-composer');
+      await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter);
     });
   }
 
@@ -839,7 +842,12 @@ export class Game {
     if (linkDraws) cullPlaced(this.camera);
     const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
     const futureEnvironment = futureScene.environment;
-    const onStage = (phase: string, elapsedMs: number, units: number): void => { trace.stages.push({ phase, elapsedMs, units, endAt: diagnosticNow() }); };
+    const progress = (done: number, total: number, detail: string): void => { trace.progress = { done, total, detail }; };
+    const onStage = (phase: string, elapsedMs: number, units: number): void => {
+      trace.stages.push({ phase, elapsedMs, units, endAt: diagnosticNow() });
+      if (phase === 'compile') enter('shader-links');
+      else if (phase === 'link') enter('texture-uploads');
+    };
     const isolateImageUploads = setting('buildPacing') === 'links'
       || navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
@@ -860,7 +868,7 @@ export class Game {
     const nodesBefore = nodeStats();
     // O14: the entering owner's camera models (a cell's weapons) go with it, so the road's exterior frame never draws them
     const leaving = this.viewmodel.staged(owner);
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, progress, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
       ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
@@ -876,7 +884,7 @@ export class Game {
       enter('parked-viewmodels');
       const start = diagnosticNow();
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, stagedModels, current,
-        drawnPause, { ...drawBudget, environment: futureEnvironment, revealChildren: true, ...(futureRoot === undefined ? {} : { lightingRoot: futureRoot }) });
+        drawnPause, { ...drawBudget, onProgress: (done, total) => { progress(done, total, `${done} / ${total} held models warmed`); }, environment: futureEnvironment, revealChildren: true, ...(futureRoot === undefined ? {} : { lightingRoot: futureRoot }) });
       onStage('parked-viewmodels', diagnosticNow() - start, drawn);
     }
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
@@ -888,7 +896,7 @@ export class Game {
       // before yielding; the final painted barrier still precedes readiness. Desktop retains its prior cadence.
       const paced = isolateImageUploads && this.frameCount > 0 && setting('buildPacing') !== 'off';
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current,
-        paced && !linkDraws ? () => buildYield(owner) : drawnPause, { ...drawBudget, environment: futureEnvironment });
+        paced && !linkDraws ? () => buildYield(owner) : drawnPause, { ...drawBudget, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); }, environment: futureEnvironment });
       if (paced) await drawnPause();
       onStage('parked-draws', diagnosticNow() - start, drawn);
     }
@@ -896,7 +904,8 @@ export class Game {
     // update, after entry; draw each once into a 1×1 stand-in of its target first.
     enter('offscreen-draws');
     const offscreenStart = diagnosticNow();
-    const passes = await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause, entryFrameExclusions(this.rootScene, futureRoot));
+    const passes = await warmOffscreenPasses(this.renderer, this.rootScene, current, drawnPause, entryFrameExclusions(this.rootScene, futureRoot),
+      (done, total) => { progress(done, total, `${done} / ${total} render passes warmed`); });
     onStage('offscreen-draws', diagnosticNow() - offscreenStart, passes);
     trace.completed = true;
   }
