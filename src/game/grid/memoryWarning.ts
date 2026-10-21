@@ -5,20 +5,16 @@ import type { MemoryAdmission, MemoryAdmissionWarning } from '@wildshard/format/
 import './memoryWarning.css';
 
 const mb = (bytes: number): string => `${(bytes / 1_000_000).toFixed(3)} MB`;
-/** G556: the limits are per shard; a page-total (`resident`) report is information only and never warns. */
-export function shardReports(reports: readonly MemoryAdmissionWarning[]): readonly MemoryAdmissionWarning[] {
-  return reports.filter(report => report.stage !== 'resident');
-}
-/** Name the shard report behind the maximum. */
+/** Name the shard report behind the maximum (G556: every report is one shard's own cost, never the page total). */
 export function memoryWarningChip(reports: readonly MemoryAdmissionWarning[]): string | null {
   let largest: MemoryAdmissionWarning | undefined;
   let over = -1;
-  for (const report of shardReports(reports)) {
+  for (const report of reports) {
     const bytes = Math.max(report.playingOverBytes, report.loadingOverBytes);
     if (bytes > over) { largest = report; over = bytes; }
   }
   return largest === undefined ? null
-    : `MEMORY LIMIT · ${largest.owner} ESTIMATE · +${(over / 1_000_000).toFixed(1)} MB`;
+    : `MEMORY LIMIT · ${largest.owner} ${largest.stage === 'resident' ? 'RESIDENT' : 'ESTIMATE'} · +${(over / 1_000_000).toFixed(1)} MB`;
 }
 /** G216: visible only for a Developer override, showing full claims and original caps rather than an altered allowance. */
 export function memoryWarningLines(row: MemoryAdmissionWarning): readonly string[] {
@@ -54,7 +50,7 @@ export function installMemoryWarning(memory: MemoryAdmission, scope: Scope, hudR
   };
   const refresh = (): void => {
     if (scope.disposed) return;
-    const reports = shardReports(memory.reports());
+    const reports = memory.reports();
     if (!isDev() || reports.length === 0) { if (surface !== undefined) surface.root.hidden = true; return; }
     surface ??= createSurface();
     surface.root.hidden = false;

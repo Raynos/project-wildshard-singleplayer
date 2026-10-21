@@ -15,6 +15,7 @@
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
 import { MemoryAdmission } from '@wildshard/format/product';
+import { shardCost } from '../../../src/game/grid/allocator';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
 /** `near`: G342's near-placeholder views, on their own residency line. */
@@ -87,9 +88,7 @@ export class ReferenceResidencyAllocator {
     if (existing === undefined) return this.reserveClaim(claim, claim.baseCredit);
     if (this.evicting || existing.category !== 'page' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid page component replacement');
     this.validateCoverage(id, 'page', bytes, coveredBy);
-    const input = this.input(claim, new Set([id])), cost = contentCost(input);
-    if (cost.playing > this.playing && !this.memory.accept({ stage: 'resident', owner: 'platform', id, claimedBytes: bytes,
-      accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading, playingCap: this.playing, categories: input })) return null;
+    this.input(claim, new Set([id]));
     existing.bytes = bytes; existing.baseCredit = claim.baseCredit; existing.coveredBy = coveredBy; existing.refs++;
     return this.lease(existing);
   }
@@ -110,7 +109,7 @@ export class ReferenceResidencyAllocator {
       this.evicting = true;
       try {
         if (!this.evictFor(extra)) {
-          const input = this.input(extra), cost = contentCost(input);
+          const input = this.input(extra), cost = shardCost(this.ownerBytes(claim.owner) + (extra.category === 'page' ? 0 : this.effectiveBytes(extra)), input);
           if (!this.memory.accept({ stage: 'resident', owner: claim.owner, id: claim.id, claimedBytes: claim.bytes,
             accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
             playingCap: this.playing, categories: input })) return null;
@@ -161,6 +160,10 @@ export class ReferenceResidencyAllocator {
     const others = [...this.entries_.values()].filter(e => e.id !== id && e.coveredBy === covering).reduce((sum, e) => sum + e.bytes, 0);
     if (others + bytes > parent.bytes) throw new Error('Runtime cache coverage exceeds its measured bytes');
   }
+  /** G556: one owner's accounted bytes, shared page components excluded. */
+  private ownerBytes(owner: string): number {
+    return [...this.entries_.values()].filter(e => e.owner === owner && e.category !== 'page').reduce((sum, e) => sum + this.effectiveBytes(e), 0);
+  }
   private input(extra?: ResidencyClaim & { baseCredit: number }, omitted: ReadonlySet<string> = new Set()): ContentCostInput {
     const input: ContentCostInput = { l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, products: 0, overlap: CONTENT_CAPS.overlap };
     let credit = 0, page = 0;
@@ -201,7 +204,7 @@ export class ReferenceResidencyAllocator {
     // rather than re-walking every remaining cache allocation after each individual release.
     // Parent/page retirement can expose calibrated page coverage and must still validate that input immediately.
     if (this.memory.hasResidentWarnings || entry.category === 'sim' || entry.category === 'page')
-      this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
+      this.memory.syncResidents(new Set(this.entries_.keys()), owner => { const input = this.input(); return { ...shardCost(this.ownerBytes(owner), input), input }; });
   }
   private lease(entry: Entry): ResidencyLease {
     let released = false;

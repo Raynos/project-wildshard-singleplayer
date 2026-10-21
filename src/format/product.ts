@@ -664,12 +664,12 @@ export class MemoryAdmission {
     for (const row of this.warnings.values()) if (row.stage === 'resident') return true;
     return false;
   }
-  /** Released claims stop warning; retained claims report the current full page total even while it remains over cap. */
-  syncResidents(ids: ReadonlySet<string>, cost: { accounted: number; playing: number; loading: number; input: ContentCostInput }): void {
+  /** Released claims stop warning; retained claims report their owner's current cost (G556: per shard, never the page). */
+  syncResidents(ids: ReadonlySet<string>, costOf: (owner: string) => { accounted: number; playing: number; loading: number; input: ContentCostInput }): void {
     let changed = false;
     for (const [key, row] of this.warnings) {
       if (row.stage !== 'resident') continue;
-      const playingOverBytes = Math.max(0, cost.playing - row.playingCap), loadingOverBytes = Math.max(0, cost.loading - row.loadingCap);
+      const cost = costOf(row.owner), playingOverBytes = Math.max(0, cost.playing - row.playingCap), loadingOverBytes = Math.max(0, cost.loading - row.loadingCap);
       if (!ids.has(row.id) || playingOverBytes + loadingOverBytes === 0) { this.warnings.delete(key); changed = true; continue; }
       if (row.accountedBytes === cost.accounted) continue;
       this.warnings.set(key, Object.freeze({ ...row, accountedBytes: cost.accounted, playingBytes: cost.playing,

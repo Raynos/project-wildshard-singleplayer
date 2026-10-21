@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { contentCost, type ContentCostInput } from '../src/format/contentCost';
-import type { ResidencyEntry } from '../src/game/grid/allocator';
+import { ResidencyAllocator, type ResidencyEntry } from '../src/game/grid/allocator';
+import { MemoryAdmission } from '../src/format/product';
 import { budgetPoints, shardLimit } from '../src/game/grid/budgetPoints';
 import { shardTone } from '../src/game/grid/budgetOverlay';
 
@@ -23,4 +24,14 @@ test('G556: each shard is scored against its own limit; the page total has no ca
   expect(light === undefined ? null : shardTone(light)).toBe('amber');
   expect(heavy?.limit?.playing).toBeGreaterThan(CONTENT_CAPS.playing);
   expect(heavy === undefined ? null : shardTone(heavy)).toBe('red');
+});
+
+test('G556: enforce mode refuses a claim only when its owner alone is over the limit, never on the page total', () => {
+  const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000, memory: new MemoryAdmission(() => false) });
+  const claim = (id: string, owner: string) => ({ id, owner, category: 'sim' as const, bytes: 600, distance: 0, needed: true });
+  expect(allocator.reserve(claim('a1', 'a'))).not.toBeNull();
+  expect(allocator.reserve(claim('b1', 'b'))).not.toBeNull();
+  expect(allocator.cost().playing).toBeGreaterThan(CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000);
+  expect(allocator.reserve(claim('a2', 'a'))).toBeNull();
+  expect(allocator.memory.reports()).toEqual([]);
 });

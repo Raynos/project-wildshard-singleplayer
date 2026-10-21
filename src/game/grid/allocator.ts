@@ -7,8 +7,9 @@
  * Admission is synchronous. A claim that does not fit evicts unneeded, unheld claims farthest-first (ties by id, so the
  * same drive evicts the same things) in two phases: each candidate's owner prepares its eviction (the fallible part, such
  * as a sim's durable checkpoint) until the prepared bytes cover the shortfall; then every prepared eviction commits (which
- * cannot fail). If they never cover it, every prepared eviction aborts, nothing is evicted and the claim is refused (the
- * caller keeps what it has: a coarse tile, a soft wall). `needed` claims are never even prepared. An id already held is
+ * cannot fail). If they never cover it, every prepared eviction aborts and nothing is evicted. G556: the envelope is only
+ * the eviction target; the limits are per shard, so the claim is then judged by its owner alone ({@link shardCost}) and
+ * refused only when that owner is over them (the caller keeps what it has: a coarse tile, a soft wall). `needed` claims are never even prepared. An id already held is
  * shared (refcount), so a dependency used by several shards is charged once. Node-safe: no rendering, no timers.
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
@@ -58,6 +59,13 @@ interface Coverage { bytes: number; commons: number; page: number; credit: numbe
 
 const field = { l0: 'l0', l1: 'l1', far: 'far', near: 'near', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products', page: 'page' } as const;
 
+/** G556: one owner alone on the cost model (the page's engine base, shared renderer components and overlap, plus its own
+ * accounted bytes at the resident factor). The playing / loading limits apply to this, never to the page total. */
+export function shardCost(accounted: number, page: ContentCostInput): { playing: number; loading: number; accounted: number } {
+  return contentCost({ l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, products: accounted, overlap: page.overlap,
+    page: page.page ?? 0, ...(page.engineBase === undefined ? {} : { engineBase: page.engineBase }) });
+}
+
 /** One allocator per grid session. `playing` defaults to the §3.2 envelope (1.0 GB, G65). */
 export class ResidencyAllocator {
   /** G216: the page's trusted Developer policy; omitted callers retain strict admission. */
@@ -97,9 +105,7 @@ export class ResidencyAllocator {
     if (existing === undefined) return this.reserveClaim(claim, claim.baseCredit);
     if (this.evicting || existing.category !== 'page' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid page component replacement');
     this.validateCoverage(id, 'page', bytes, coveredBy);
-    const input = this.input(claim, new Set([id])), cost = contentCost(input);
-    if (cost.playing > this.playing && !this.memory.accept({ stage: 'resident', owner: 'platform', id, claimedBytes: bytes,
-      accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading, playingCap: this.playing, categories: input })) return null;
+    this.input(claim, new Set([id])); // validates the calibration; a shared page component is never refused on the page total (G556)
     this.track(existing, -1);
     existing.bytes = bytes; existing.baseCredit = claim.baseCredit; existing.coveredBy = coveredBy; existing.refs++;
     this.track(existing, 1);
@@ -123,7 +129,7 @@ export class ResidencyAllocator {
       this.evicting = true;
       try {
         if (!this.evictFor(extra)) {
-          const input = this.input(extra), cost = contentCost(input);
+          const input = this.input(extra), cost = shardCost((this.ownerBytes().get(claim.owner) ?? 0) + (extra.category === 'page' ? 0 : this.effectiveBytes(extra)), input);
           if (!this.memory.accept({ stage: 'resident', owner: claim.owner, id: claim.id, claimedBytes: claim.bytes,
             accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
             playingCap: this.playing, categories: input })) return null;
@@ -137,6 +143,20 @@ export class ResidencyAllocator {
     if (children !== undefined) this.adjustCoverage(children, -1);
     this.entries_.set(entry.id, entry); this.orderedEntries = null; this.track(entry, 1); this.refreshEviction(entry);
     return this.lease(entry);
+  }
+
+  /** Each owner's accounted bytes, shared page components excluded (they are in every owner's {@link shardCost}). */
+  private ownerBytes(): Map<string, number> {
+    const bytes = new Map<string, number>();
+    for (const entry of this.entries_.values()) if (entry.category !== 'page') bytes.set(entry.owner, (bytes.get(entry.owner) ?? 0) + this.effectiveBytes(entry));
+    return bytes;
+  }
+  /** Re-judge the retained resident warnings, each by its owner alone (G556). */
+  private syncResidents(): void {
+    const input = this.input(); // validates the page calibration even with no warning to re-judge
+    if (!this.memory.hasResidentWarnings) return;
+    const owners = this.ownerBytes();
+    this.memory.syncResidents(new Set(this.entries_.keys()), owner => ({ ...shardCost(owners.get(owner) ?? 0, input), input }));
   }
 
   /** The cost model over everything held now, decode / refinement overlap counted once. */
@@ -280,8 +300,7 @@ export class ResidencyAllocator {
     // The table is already authoritative. Derive warning totals only when a resident report can consume them,
     // rather than re-walking every remaining cache allocation after each individual release.
     // Parent/page retirement can expose calibrated page coverage and must still validate that input immediately.
-    if (this.memory.hasResidentWarnings || entry.category === 'sim' || entry.category === 'page')
-      this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
+    if (this.memory.hasResidentWarnings || entry.category === 'sim' || entry.category === 'page') this.syncResidents();
   }
   private lease(entry: Entry): ResidencyLease {
     let released = false;
@@ -293,7 +312,7 @@ export class ResidencyAllocator {
         if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > entry.bytes || entry.coveredBy !== undefined || this.coverage.has(entry.id) || entry.baseCredit !== 0)
           throw new RangeError('Invalid residency shrink');
         this.track(entry, -1); entry.bytes = bytes; this.track(entry, 1);
-        if (this.memory.hasResidentWarnings) this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
+        if (this.memory.hasResidentWarnings) this.syncResidents();
       },
       update: (patch: { distance?: number; needed?: boolean; coveredBy?: string | null }): void => {
         if (!live()) return;

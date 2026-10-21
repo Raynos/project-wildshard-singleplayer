@@ -14,21 +14,21 @@ test('a retained worst-location report names its shard and stage on another shar
     playingCap: 1_200_000_000, loadingCap: 1_800_000_000 });
   expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · pine-hollow ESTIMATE · +140.1 MB');
   // Updating resident totals must not relabel or erase the independent estimate.
-  memory.syncResidents(new Set(['runtime:driftwood-isle']), {
+  memory.syncResidents(new Set(['runtime:driftwood-isle']), () => ({
     accounted: 500_000_000, playing: 916_000_000, loading: 1_100_000_000,
     input: { l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, products: 0, overlap: 0 },
-  });
+  }));
   expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · pine-hollow ESTIMATE · +140.1 MB');
   memory.dispose(); expect(memoryWarningChip(memory.reports())).toBeNull();
 });
 
-test('the chip names the largest shard excess; a page total never warns (G556)', () => {
+test('the chip uses the owner and stage of the largest loading or playing excess', () => {
   const memory = new MemoryAdmission(() => true);
   for (const [owner, stage, playingBytes, loadingBytes] of [
     ['first', 'actual', 1_340_000_000, 1_500_000_000],
     ['second', 'resident', 1_250_000_000, 2_000_000_000],
   ] as const) memory.accept({ stage, owner, id: owner, claimedBytes: 1, accountedBytes: 1,
     playingBytes, loadingBytes, playingCap: 1_200_000_000, loadingCap: 1_800_000_000 });
-  expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · first ESTIMATE · +140.0 MB');
+  expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · second RESIDENT · +200.0 MB');
   memory.dispose();
 });

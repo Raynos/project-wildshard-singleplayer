@@ -14,8 +14,8 @@
  * Node-safe and pure: no DOM, no timers; the overlay (`budgetOverlay.ts`) and its tests read the same numbers.
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
-import type { ResidencyAllocator, ResidencyEntry } from './allocator';
+import type { ContentCostInput } from '@wildshard/format/contentCost';
+import { shardCost, type ResidencyAllocator, type ResidencyEntry } from './allocator';
 
 /** At or above this many points a score turns amber. */
 export const AMBER_AT = 80;
@@ -87,8 +87,7 @@ export const SHARD_BUDGET = CONTENT_CAPS.library.resident + CONTENT_CAPS.sim.res
 
 /** One shard alone against its own limits, on the page's engine base, shared renderer components and overlap. */
 export function shardLimit(accounted: number, page: ContentCostInput): ShardLimit {
-  const { playing, loading } = contentCost({ l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, products: accounted, overlap: page.overlap,
-    page: page.page ?? 0, ...(page.engineBase === undefined ? {} : { engineBase: page.engineBase }) });
+  const { playing, loading } = shardCost(accounted, page);
   const playingPoints = points(playing, CONTENT_CAPS.playing), loadingPoints = points(loading, CONTENT_CAPS.loading);
   return { playing, playingCap: CONTENT_CAPS.playing, playingPoints, loading, loadingCap: CONTENT_CAPS.loading, loadingPoints, tone: tone(Math.max(playingPoints, loadingPoints)) };
 }
