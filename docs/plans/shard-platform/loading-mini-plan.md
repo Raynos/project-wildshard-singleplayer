@@ -24,6 +24,17 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **L7 — accepted `8264f6dca2`; source `8dd0eeaa0e / 09bdb72199`; pushed** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
 | **L8 — cold matrix accepted and pushed `8264f6dca2`; Safari warm accepted; Chromium residual retained `9fd203d409`** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
 
+## G554 follow-up: reopened accuracy
+
+The earlier L1/L2/L8 receipts remain historical acceptances. G554 reopened
+those rows for the current loading and mid-play cell paths.
+
+| Row | State | Remaining proof |
+|---|---|---|
+| Counts and actual step (sp-x1) | Source landed: `64465aec04`, `a2c2cd7474`, `52cdb2c0e4`, `71e2129ece`, `5c3c41091a`. Scoped panels observe page activity without replacing boot accounting and show their actual running step. Wire traffic, cache reads, pending declarations and discovered disk-prefetch progress have separate labels. Missing wire measurements stay explicit and refuse byte acceptance. Download cannot claim 100% while discovered prefetch work remains. Focused checks pass. | Combined source checks and exact-build phone/desktop cold, offline-warm and scoped-cell captures are in flight. Native loading request S7 is queued with sp-o5; it gates no M2 work. No new accuracy acceptance yet. |
+| Whole known set (sp-o5) | Source `38163f5006`; neighbours first, disk-only verified cache writes, origin persistence/quota guard and quiet quota stop. The loading snapshot port is `52cdb2c0e4`; its known set is labelled “known so far”. | sp-o5 owns the prefetch and quota verdict. |
+| Arrival release (sp-x1) | Fixed `2a1f3c89d3`: skip, wall-time release ceiling and background/menu cleanup release HUD and controls. Phone/desktop offline-warm and native S5 pass. | sp-o5 owns the separate `ringsReady` readiness defect; the ceiling remains a safety net. |
+
 ## Phase 2: fast (after Phase 1 is accepted)
 
 | Row | What | Code | Effort (est.) |
