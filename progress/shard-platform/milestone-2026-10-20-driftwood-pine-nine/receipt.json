@@ -1,0 +1,198 @@
+{
+  "schema": 1,
+  "source": "914015a32f45b68eb4ae732d5a1c396e4cf5c067",
+  "build": "devserver",
+  "harnessRevision": "f9a2d2dfc177befd84d7ce6037218e28ef79701d",
+  "protocol": {
+    "profiler": false,
+    "glObserver": "off",
+    "developer": "on",
+    "quiet": true,
+    "frames": 120,
+    "device": "frame-floor-iphone-17-pro"
+  },
+  "runs": [
+    {
+      "surface": "sim",
+      "pass": 1,
+      "cohort": "grid",
+      "sha": "914015a32f45b68eb4ae732d5a1c396e4cf5c067",
+      "when": "2026-10-21T02:59:51.918Z",
+      "elapsedSeconds": 182.151,
+      "complete": true,
+      "passFloor": false,
+      "underTenMinutes": true,
+      "glObserver": "off",
+      "gridRoutes": [
+        "driftwood-isle-road-entry",
+        "pine-hollow-road-entry",
+        "nine-dragon-stack-road-entry"
+      ],
+      "cases": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "errors": [],
+          "routes": [
+            {
+              "name": "nine-dragon-stack-road-entry",
+              "to": "nine-dragon-stack",
+              "after": {
+                "current": "nine-dragon-stack",
+                "feet": {
+                  "x": 555.96,
+                  "z": -547.56
+                }
+              }
+            },
+            {
+              "name": "pine-hollow-road-entry",
+              "to": "pine-hollow",
+              "after": {
+                "current": "pine-hollow",
+                "feet": {
+                  "x": 0,
+                  "z": 343.7
+                }
+              }
+            },
+            {
+              "name": "driftwood-isle-road-entry",
+              "to": "driftwood-isle",
+              "after": {
+                "current": "driftwood-isle",
+                "feet": {
+                  "x": 0,
+                  "z": 211.35
+                }
+              }
+            }
+          ],
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 124,
+              "maxMs": 247,
+              "stallPass": false
+            },
+            {
+              "name": "grid-deck-north",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 38,
+              "maxMs": 201,
+              "stallPass": false
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 38,
+              "stallPass": true
+            },
+            {
+              "name": "grid-nine-dragon-stack-road-entry-travel",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 46,
+              "maxMs": 82,
+              "stallPass": true
+            },
+            {
+              "name": "grid-nine-dragon-stack-road-entry-drive",
+              "frames": 930,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 53,
+              "maxMs": 156,
+              "stallPass": true
+            },
+            {
+              "name": "grid-nine-dragon-stack-road-entry",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 38,
+              "maxMs": 43,
+              "stallPass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-travel",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 43,
+              "maxMs": 143,
+              "stallPass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry-drive",
+              "frames": 1260,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 40,
+              "maxMs": 143,
+              "stallPass": true
+            },
+            {
+              "name": "grid-pine-hollow-road-entry",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 39,
+              "stallPass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-travel",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "stallPass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry-drive",
+              "frames": 750,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 43,
+              "maxMs": 143,
+              "stallPass": true
+            },
+            {
+              "name": "grid-driftwood-isle-road-entry",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 35,
+              "stallPass": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
