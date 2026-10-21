@@ -351,11 +351,16 @@ export class DirectorScriptStageLane {
     }
     if (host !== undefined) {
       if (id === undefined) throw new Error('Native stage lane requires its declared id');
-      const book = nativeStageLanes.get(host) ?? new Map<string, DirectorScriptStageLane>();
-      if (book.has(id)) throw new Error('Duplicate native stage lane');
-      book.set(id, clock); nativeStageLanes.set(host, book); host.scope.onDispose(() => { book.delete(id); });
+      clock.registerNative(host, id);
     }
     return clock;
+  }
+  /** Publish this existing continuation under a native service identity. */
+  registerNative(host: SimHost, id: string): void {
+    if (host.scope.disposed || id.length === 0) throw new Error('Native stage lane requires a live declared id');
+    const book = nativeStageLanes.get(host) ?? new Map<string, DirectorScriptStageLane>();
+    if (book.has(id)) throw new Error('Duplicate native stage lane');
+    book.set(id, this); nativeStageLanes.set(host, book); host.scope.onDispose(() => { book.delete(id); });
   }
   constructor(data: unknown, script: DirectorLane, ports: DirectorScriptStagePorts, restoring = false, initialDt = 0) {
     if (!Number.isFinite(initialDt) || initialDt < 0 || initialDt > 1) throw new Error('Invalid director initial delta');

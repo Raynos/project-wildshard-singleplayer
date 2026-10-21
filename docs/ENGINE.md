@@ -10591,6 +10591,16 @@ and phase durations from the closed chapter actions. The original reflected
 binding bytes live only in the compatibility fixture; they are no longer
 an authoring or runtime input. That fixture still drives the unchanged
 legacy director/state comparison, alongside the actual native replay.
+`installNativeChapterDirector(host, director, rows, restoring)` enters the
+same closed contract for both native chapters. Its JSON input names a native
+stage id, chapter rows and optional reward-channel/wake-population identities.
+Wake cues select restore/wake/quiet-effects operations against the existing
+roster and encounter; they accept no callbacks or reflected owner paths.
+Native projection preserves its existing quiet presentation events. The
+caller retains the update phase and saved stage/fast-forward envelopes.
+`DirectorScriptStageLane.registerNative(host, id)` publishes that existing
+continuation for the native composition; it adds no clock or save owner.
+Both emitted director documents keep their legacy `bindings` key as null.
 
 The renderer-free `game/quest/storyLaw.questPhaseSpan` and `questPhaseAt`
 share the forward clock arc between Pine's native/page watch and Driftwood's

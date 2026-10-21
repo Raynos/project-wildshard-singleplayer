@@ -1,9 +1,8 @@
 {
   "version": 1,
   "modules": {
-    "@wildshard/game/quest/nativeInputs": ["installNativeQuestChannels"],
     "@wildshard/game/population/mixedRoster": ["installMixedPopulation"],
-    "@wildshard/game/boss/nativeWake": ["installWakeBoss"],
+    "@wildshard/game/quest/nativeStory": ["installNativeChapterDirector"],
     "@wildshard/game/quest/killSteps": ["installQuestKillSteps"],
     "@wildshard/game/quest/nativeComposition": ["readNativeQuestSpots", "installNativeQuestComposition"],
     "src/shards/driftwood-isle/world/sea": ["DRIFTWOOD_SEA", "LOWERED_SEA"],
@@ -11,7 +10,7 @@
     "@wildshard/format/toonLook": ["TOON_DAY_PRESET"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
     "@wildshard/engine/physics/navmesh": ["readNavmesh"],
-    "@wildshard/game/plugin/director": ["DirectorScriptStageLane", "readDirectorProduct"],
+    "@wildshard/game/plugin/director": ["readDirectorProduct"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
     "@wildshard/engine/world/waves": ["waveHeight"],
     "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands"],
@@ -544,272 +543,103 @@
       }
     },
     {
-      "name": "captain",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "@wildshard/game/boss/nativeWake",
-              "installWakeBoss"
-            ]
-          },
-          {
-            "$ref": [
-              "host"
-            ]
-          },
-          {
-            "$ref": [
-              "bossView",
-              "nativeView",
-              "BOSS_ENCOUNTER"
-            ]
-          },
-          {
-            "$ref": [
-              "bake",
-              "captain"
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "name": "reward",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "@wildshard/game/quest/nativeInputs",
-              "installNativeQuestChannels"
-            ]
-          },
-          {
-            "$ref": [
-              "host"
-            ]
-          },
-          "driftwood.reward",
-          {
-            "started": false,
-            "completed": false
-          }
-        ]
-      }
-    },
-    {
       "name": "finale",
       "value": {
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/plugin/director",
-              "DirectorScriptStageLane",
-              "bind"
+              "@wildshard/game/quest/nativeStory",
+              "installNativeChapterDirector"
             ]
           },
           {
             "$ref": [
-              "director",
-              "stages"
-            ]
-          },
-          {
-            "$call": [
-              {
-                "$ref": [
-                  "director",
-                  "create"
-                ]
-              }
+              "host"
             ]
           },
           {
             "$ref": [
-              "director",
-              "bindings"
+              "director"
             ]
           },
           {
-            "$new": [
-              {
+            "id": {
+              "$ref": [
+                "constants",
+                "nativeQuest",
+                "director"
+              ]
+            },
+            "rows": {
+              "$ref": [
+                "constants",
+                "chapterDirector"
+              ]
+            },
+            "reward": {
+              "$ref": [
+                "constants",
+                "nativeQuest",
+                "reward",
+                "channels"
+              ]
+            },
+            "wake": {
+              "population": {
                 "$ref": [
-                  "assembly",
-                  "Map"
+                  "constants",
+                  "nativeQuest",
+                  "population"
                 ]
               },
-              [
-                [
-                  "flags",
-                  {
-                    "$ref": [
-                      "host",
-                      "flags"
-                    ]
-                  }
-                ],
-                [
-                  "player",
-                  {
-                    "$ref": [
-                      "host",
-                      "player",
-                      "position"
-                    ]
-                  }
-                ],
-                [
-                  "rewardAt",
-                  {
-                    "$ref": [
-                      "spots",
-                      "reward"
-                    ]
-                  }
-                ],
-                [
-                  "reward",
-                  {
-                    "$ref": [
-                      "reward"
-                    ]
-                  }
-                ],
-                [
-                  "captain",
-                  {
-                    "restore": {
-                      "$fn": {
-                        "$sequence": [
-                          {
-                            "$if": [
-                              {
-                                "$eq": [
-                                  {
-                                    "$call": [
-                                      {
-                                        "$ref": [
-                                          "island",
-                                          "captain"
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  null
-                                ]
-                              },
-                              {
-                                "$call": [
-                                  {
-                                    "$ref": [
-                                      "island",
-                                      "spawnCaptain"
-                                    ]
-                                  }
-                                ]
-                              },
-                              {
-                                "$ref": [
-                                  "absent"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "$call": [
-                              {
-                                "$ref": [
-                                  "captain",
-                                  "publish"
-                                ]
-                              },
-                              "captain.restore"
-                            ]
-                          }
-                        ]
-                      }
-                    },
-                    "wake": {
-                      "$fn": {
-                        "$sequence": [
-                          {
-                            "$if": [
-                              {
-                                "$eq": [
-                                  {
-                                    "$call": [
-                                      {
-                                        "$ref": [
-                                          "island",
-                                          "captain"
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  null
-                                ]
-                              },
-                              {
-                                "$call": [
-                                  {
-                                    "$ref": [
-                                      "island",
-                                      "spawnCaptain"
-                                    ]
-                                  }
-                                ]
-                              },
-                              {
-                                "$ref": [
-                                  "absent"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "$call": [
-                              {
-                                "$ref": [
-                                  "captain",
-                                  "publish"
-                                ]
-                              },
-                              "captain.wake"
-                            ]
-                          }
-                        ]
-                      }
-                    },
-                    "dead": {
-                      "$fn": {
-                        "$ref": [
-                          "absent"
-                        ]
-                      }
-                    }
-                  }
+              "encounter": {
+                "$ref": [
+                  "bossView",
+                  "nativeView",
+                  "BOSS_ENCOUNTER"
                 ]
-              ]
-            ]
-          },
-          {
-            "$ref": [
-              "host",
-              "scope"
-            ]
+              },
+              "placement": {
+                "pool": {
+                  "x": {
+                    "$ref": [
+                      "bake",
+                      "captain",
+                      "pool",
+                      "x"
+                    ]
+                  },
+                  "z": {
+                    "$ref": [
+                      "bake",
+                      "captain",
+                      "pool",
+                      "z"
+                    ]
+                  }
+                },
+                "arena": {
+                  "$ref": [
+                    "bake",
+                    "captain",
+                    "arena"
+                  ]
+                }
+              },
+              "cues": {
+                "$ref": [
+                  "constants",
+                  "nativeChapterCues"
+                ]
+              }
+            }
           },
           {
             "$ref": [
               "context",
               "restoring"
             ]
-          },
-          {
-            "$ref": [
-              "host"
-            ]
-          },
-          "driftwood.finale"
+          }
         ]
       }
     },

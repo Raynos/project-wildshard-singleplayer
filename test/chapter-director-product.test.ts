@@ -46,6 +46,17 @@ test('Pine native product uses the shared request rows and retires executable bi
   expect(v.parse(v.object({ bindings: v.null() }), director).bindings).toBeNull();
 });
 
+test('Driftwood native product shares its page chapter and retires reflected bindings', async () => {
+  const product = products.get('driftwood-isle'); if (product === undefined) throw new Error('Missing real Driftwood product');
+  const native: unknown = JSON.parse(new TextDecoder().decode(await product.file('sim/headless-assembly.json')));
+  const policy = v.parse(v.object({ constants: v.object({ chapterDirector: ChapterDirectorSchema,
+    nativeChapterCues: v.array(v.strictObject({ id: v.string(), operation: v.picklist(['restore', 'wake', 'effects']) })) }) }), native).constants;
+  expect(policy.chapterDirector).toEqual(driftRows);
+  expect(policy.nativeChapterCues).toEqual([{ id: 'captain.restore', operation: 'restore' }, { id: 'captain.wake', operation: 'wake' }, { id: 'captain.dead', operation: 'effects' }]);
+  const director: unknown = JSON.parse(new TextDecoder().decode(await product.file('directors/main.json')));
+  expect(v.parse(v.object({ bindings: v.null() }), director).bindings).toBeNull();
+});
+
 async function fixture(slug: string, saved: readonly string[]) {
   const product = products.get(slug); if (product === undefined) throw new Error('Missing real product');
   const scope = new Scope('chapter-director-test'), flags = new Flags('chapter-director-test', false), events: string[] = [];
