@@ -18,5 +18,11 @@ its own gate next to M2: each row's `pass`.
 | nalati-grasslands-road-entry | nalati-grasslands | FAIL (drive 207 ms, Nalati activate) | 78 / 127 ms | 43 / 207 ms | 35 ms | FAIL |
 | template-interior | template-2 | FAIL (drive 418 ms, between hooks) | 43 / 77 ms | 37 / 418 ms | 34 ms | FAIL |
 
-Open: Nalati's activate frame (207 ms, 7 over) and template-interior's long frame right after Nalati's last hook, which
-has no GL work and little game frame work (an async continuation between frames; being attributed).
+Open: Nalati's activate frame (207 ms, 7 over).
+
+Template-interior's long frame (closed as host-side variance, wildshard-new 2026-10-21): it lands ~80-100 ms after
+Nalati's last hook with the traveller on the road, and swings run to run (quiet 356 / 418 ms; busy 258-712 ms; one
+later run 161 ms, a pass). Diagnostic builds of this source (never landed; their drive console read through a private
+frame-floor copy) found nothing inside it: no game JS (update + render 6-14 ms), no GL calls, no new programs, textures,
+geometries or draw calls (e.g. a 421 ms frame with programs 199 -> 199), and the harness's per-frame `grid.state()`
+never over 40 ms. `buildPacing=links` (warm the entered world before showing it) made it worse (886 vs 633 ms).
