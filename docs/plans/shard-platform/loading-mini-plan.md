@@ -473,3 +473,14 @@ establishes no whole-entry savings. Evidence is in
 [`road-allocation-66b001f`](../../../progress/loading/g543/road-allocation-66b001f/README.md).
 One combined source batch and served comparison on `f8f5ee9a9d` follow the
 corrected native baseline. Geometry, colliders, layout and caps are unchanged.
+
+The corrected `97cb8c6723` matrix is green: all six cold entries and all
+three actual returns pass, retained with four viewed portrait frames in
+[`performance-97cb8c6`](../../../progress/loading/g543/performance-97cb8c6/README.md)
+(`a078394b03`). Native SHARD SELECT/grid take 10.9 / 14.9 s; desktop takes
+8.8 / 10.3 s with AO enabled. Worst wire error is 2.44%, and every stage
+sum and cadence check passes. The measured device is `wildshard-loading`
+(9FAD), which was not erased; the successful priming note belongs to the
+separate frame-floor device (AC96). Both are recorded, without a reset-device
+warm-cache claim. The approximate 20 s target remains open at 23.6 s on
+phone CPU 4x; the next exact-build proof measures the road allocation cuts.
