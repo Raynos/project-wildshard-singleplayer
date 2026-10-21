@@ -30,7 +30,7 @@
    "gridScenario": "cell",
    "gridCell": "ink-cel-valley",
    "quiet": true,
-   "note": "quiet (.git/quiet held for the sample only); frame evidence",
+   "note": "quiet (.git/quiet held for the sample only); frame evidence. First quiet run: one 269 ms frame as the first interval of the drive window (0.0 s), before the region is created.",
    "cases": [
     {
      "shard": "grid",
@@ -132,6 +132,129 @@
        "p95Ms": 34,
        "p99Ms": 34,
        "maxMs": 34,
+       "maxFramePass": true,
+       "miss": null,
+       "name": "grid-ink-cel-valley-road-entry",
+       "stallPass": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "surface": "sim",
+   "cohort": "grid",
+   "sha": "8c7861b92613fcdb04faaf7234ed868183984982",
+   "when": "2026-10-21T05:29:41.072Z",
+   "elapsedSeconds": 76.918,
+   "complete": true,
+   "passFloor": false,
+   "glObserver": "off",
+   "gridScenario": "cell",
+   "gridCell": "ink-cel-valley",
+   "quiet": true,
+   "note": "quiet (.git/quiet held for the sample only); frame evidence. Second quiet run on the same served build, ~1 h later: no frame over 50 ms in the drive.",
+   "cases": [
+    {
+     "shard": "grid",
+     "complete": true,
+     "pass": false,
+     "errors": [],
+     "routes": [
+      {
+       "name": "ink-cel-valley-road-entry",
+       "to": "ink-cel-valley",
+       "after": {
+        "current": "ink-cel-valley",
+        "instance": "ink-cel-valley-1",
+        "feet": {
+         "x": 898.6292502019006,
+         "y": 0.02013701189953393,
+         "z": 8.157423727903258e-05
+        }
+       }
+      }
+     ],
+     "rows": [
+      {
+       "frames": 120,
+       "pass": false,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 125,
+       "p99Ms": 179,
+       "maxMs": 245,
+       "maxFramePass": false,
+       "miss": "long frame: max 245 ms > 200 ms",
+       "name": "spawn",
+       "stallPass": false
+      },
+      {
+       "frames": 120,
+       "pass": false,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 35,
+       "p99Ms": 90,
+       "maxMs": 278,
+       "maxFramePass": false,
+       "miss": "long frame: max 278 ms > 200 ms",
+       "name": "grid-deck-north",
+       "stallPass": false
+      },
+      {
+       "frames": 120,
+       "pass": true,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 34,
+       "p99Ms": 34,
+       "maxMs": 37,
+       "maxFramePass": true,
+       "miss": null,
+       "name": "grid-deck-east",
+       "stallPass": true
+      },
+      {
+       "frames": 120,
+       "pass": true,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 34,
+       "p99Ms": 34,
+       "maxMs": 50,
+       "maxFramePass": true,
+       "miss": null,
+       "name": "grid-ink-cel-valley-road-entry-travel",
+       "stallPass": true
+      },
+      {
+       "frames": 420,
+       "pass": true,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 34,
+       "p99Ms": 39,
+       "maxMs": 50,
+       "maxFramePass": true,
+       "miss": null,
+       "name": "grid-ink-cel-valley-road-entry-drive",
+       "stallPass": true
+      },
+      {
+       "frames": 120,
+       "pass": true,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 34,
+       "p99Ms": 34,
+       "maxMs": 35,
        "maxFramePass": true,
        "miss": null,
        "name": "grid-ink-cel-valley-road-entry",
