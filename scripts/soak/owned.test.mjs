@@ -339,4 +339,6 @@ void test('O12 the soak grades memory against the one memory switch, not a numbe
   const gates = JSON.parse(readFileSync('src/format/memoryGates.json', 'utf8'));
   assert.deepEqual(SOAK_CAPS, { playingBytes: gates.explorerMB * 1_000_000, loadingBytes: gates.loadingMB * 1_000_000 });
   assert.equal(readFileSync('scripts/soak/route.ts', 'utf8').includes('1_000_000_000'), false);
+  // G556: the caps bound each shard; the soak's page total is reported against them (pageOverShardCaps), never gated
+  assert.equal(/memoryPass = [^;]*SOAK_CAPS/u.test(readFileSync('scripts/soak/route.ts', 'utf8')), false);
 });
