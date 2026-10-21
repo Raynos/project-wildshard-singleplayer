@@ -1,7 +1,7 @@
-import { NINE_COMPOSITE_ROW, prepareNinePost, useNineGraphComposite } from './look/render';
+import { prepareNinePost } from './look/render';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
-import { firstPartyStandaloneEntry, runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
+import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
@@ -131,7 +131,6 @@ export class NdPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     const scope = ctx.scope;
     ctx.strings(bootMetadata.strings);
-    useNineGraphComposite(runtimeVariantEnabled(ctx, NINE_COMPOSITE_ROW));
     this.shell = ctx.game.runtime;
     // the player stands on the road-height decks at the cell's edges as well as on the fragment: the whole cell is in
     // bounds; the fall net stays the fragment's own (its authored floor, Y0 − 100) under the fragment and drops to just

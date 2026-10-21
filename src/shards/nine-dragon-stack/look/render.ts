@@ -3,9 +3,9 @@
 // the shard adds the bleed pyramid before the colour chain and replaces the chain with its own composite (ink
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
-import { Color, DataTexture, Fog, type Object3D, type PerspectiveCamera, type Texture, type Vector2, Vector4, type WebGLRenderTarget } from 'three';
+import { Color, Fog, type Object3D, type PerspectiveCamera, type Texture, type Vector2, Vector4 } from 'three';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
-import { BlendFunction, Pass, TextureEffect } from 'postprocessing';
+import { Pass } from 'postprocessing';
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -26,20 +26,11 @@ import { syncLooks } from './facadeMaterial';
 
 const setStreakOn = (value: number): void => { setLentParam('nine-streaks', 'cardOn', value); };
 
-let post: Readonly<Record<'bleed' | 'reflect' | 'haze' | 'composite', ScaledPostRow>> & { readonly ao: AoTuning } | null = null;
-/** Debug ▸ Look ▸ "Nine composite" (reload): the Jiehua frame as the scaled post host's graph programs (`on`) or the
- *  GLSL effect (`off`, the default until a phone reading backs the graph; generators/compositeGraph.ts) */
-let graphComposite = false;
-/** The plugin's world stage reads the Debug row before the composer is built. */
-export function useNineGraphComposite(on: boolean): void { graphComposite = on; }
-/** The Debug row: one A/B for Jake's pick; the losing path goes with it (G565 phase D, G415 similar look). */
-export const NINE_COMPOSITE_ROW = { id: 'nineGraphComposite', group: 'look', label: 'Nine composite', initial: 'off', reload: true,
-  choices: [{ value: 'off', text: 'GLSL' }, { value: 'on', text: 'Graph' }], ask: 'E435', reviewBy: '2026-12-30',
-  note: "G565: the Jiehua frame as the scaled post host's graph programs (Graph) or its GLSL effect (GLSL)" } as const;
+let post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>> & { readonly ao: AoTuning } | null = null;
 /** Load the admitted post rows while the world stage may await. */
 export async function prepareNinePost(renderer: Renderer): Promise<void> {
   await prepareScaledPost(renderer);
-  const rows = await (await loadFirstPartyProduct('nine-dragon-stack')).json<{ readonly look: { readonly post: Readonly<Record<'bleed' | 'reflect' | 'haze' | 'composite', ScaledPostRow>>; readonly ao: AoTuning } }>('weapons/jian-row.json');
+  const rows = await (await loadFirstPartyProduct('nine-dragon-stack')).json<{ readonly look: { readonly post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>>; readonly ao: AoTuning } }>('weapons/jian-row.json');
   post = { ...rows.look.post, ao: rows.look.ao };
 }
 
@@ -86,36 +77,8 @@ function jiehuaEffect(view: PerspectiveCamera, shared: Shared, glow: ReturnType<
 }
 type JiehuaEffect = ReturnType<typeof jiehuaEffect>;
 
-/** The Jiehua composite and the side passes it reads (the wet floor, the haze march, the bleed pyramid; none on the phone);
- *  with the graph composite, `display` shows what its passes (`graph`) drew and `jiehua` only holds the live uniforms. */
-interface Composite { reflect: RowRenderPass | null; haze: RowRenderPass | null; bleed: RowRenderPass | null; jiehua: JiehuaEffect; pose: (() => void) | null;
-  display: JiehuaEffect | TextureEffect; graph: Pass[] }
-
-/** a side target no pass drew this frame reads as black */
-const black = new DataTexture(new Uint8Array(4), 1, 1);
-black.needsUpdate = true;
-/** the silk fog's params, read by the graph as `fogBase` … from the shared `uFogBase` … */
-const FOG_UNIFORMS = new Set(['uFogBase', 'uFogStart', 'uFogBaseCol', 'uShaft', 'uShaftK', 'uShaftLit', 'uFogDeep', 'uDeepAir', 'uDeepAir2', 'uPuff']);
-/** (draw-free) the GLSL effect's per-frame uniform writes, then black for the side targets no pass drew */
-class JiehuaUniforms extends Pass {
-  constructor(private readonly jiehua: JiehuaEffect) { super('NdJiehuaUniforms'); this.needsSwap = false; }
-  override render(renderer: Renderer, input: WebGLRenderTarget): void {
-    const u = this.jiehua.u;
-    this.jiehua.update(renderer, input, 0);
-    for (const key of ['tTight', 'tWide', 'tHaze', 'tRefl'] as const) u[key].value ??= black;
-  }
-}
-/** The graph composite (generators/compositeGraph.ts): its uniforms pass, its three draws, the chain's view of the frame. */
-function graphFrame(jiehua: JiehuaEffect, shared: Shared, view: PerspectiveCamera, renderer: Renderer): { display: TextureEffect; graph: Pass[] } {
-  if (post === null) throw new Error('Nine post rows have not loaded');
-  const s = shared.u, fogLinks = Object.fromEntries(Object.entries(s).filter(([key]) => FOG_UNIFORMS.has(key)).map(([key, value]) => [`${key.charAt(1).toLowerCase()}${key.slice(2)}`, value]));
-  const links = { ...jiehua.u, ...fogLinks, datum: { value: Y0 }, get bandDepth() { return { value: (s.uBands.value[0]?.z ?? 0) / shared.baseBandDepth }; } };
-  const frame = new RowRenderPass(post.composite, { renderer, camera: view, links });
-  const display = new TextureEffect({ texture: black, blendFunction: BlendFunction.SRC });
-  const show = display.update.bind(display);
-  display.update = (r, input, dt): void => { display.texture = frame.output('composite') ?? black; show(r, input, dt); };
-  return { display, graph: [new JiehuaUniforms(jiehua), frame] };
-}
+/** The Jiehua composite and the side passes it reads (the wet floor, the haze march, the bleed pyramid; none on the phone). */
+interface Composite { reflect: RowRenderPass | null; haze: RowRenderPass | null; bleed: RowRenderPass | null; jiehua: JiehuaEffect; pose: (() => void) | null }
 
 /**
  * (SF63) the page camera seen from the world's root: inside a grid cell the root stands at the cell's render offset and the
@@ -166,8 +129,7 @@ function buildComposite(camera: PerspectiveCamera, tier: Tier, glow: ReturnType<
   jiehua.haze = haze;
   jiehua.refl = reflect;
   jiehua.pose = framed?.pose ?? null;
-  const shown = graphComposite ? graphFrame(jiehua, world.shared, view, renderer) : { display: jiehua, graph: [] };
-  return { reflect, haze, bleed, jiehua, pose: framed?.pose ?? null, ...shown };
+  return { reflect, haze, bleed, jiehua, pose: framed?.pose ?? null };
 }
 
 /** the drawing buffer the screen-space pieces measure: what `frame` reads of a renderer */
@@ -214,12 +176,11 @@ export function shardRender(): LookStrategy {
       build: (c) => {
         cellBuffer = c.renderer;
         c.scope.onDispose(() => { cellBuffer = null; });
-        const { reflect, haze, bleed, pose, display, graph } = buildComposite(c.camera, c.tier, glow, grade, c.renderer, ndRuntime().world.root);
+        const { reflect, haze, bleed, jiehua, pose } = buildComposite(c.camera, c.tier, glow, grade, c.renderer, ndRuntime().world.root);
         // its scene-side part, as compose sets it: the streak cards' gain (the whole wet-floor reflection where no
         // reflection pass runs)
         setStreakOn(reflect === null ? 1 : CARD_ON);
-        const sides = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
-        return { display, passes: [...(pose === null || sides.length + graph.length === 0 ? [] : [new PoseView(pose)]), ...sides, ...graph] };
+        return { display: jiehua, passes: reflect === null || haze === null || bleed === null ? [] : [...(pose === null ? [] : [new PoseView(pose)]), reflect, haze, bleed] };
       },
     },
     compose(c: LookComposeContext): LookComposition {
@@ -231,12 +192,12 @@ export function shardRender(): LookStrategy {
         Object.assign(c.fx.ao.configuration, row[c.tier === 'phone' ? 'phone' : 'desktop'], { color: new Color(...row.color) });
         if (c.scene.fog instanceof Fog) [c.scene.fog.near, c.scene.fog.far] = row.fog;
       }
-      const { reflect, haze, bleed, jiehua, display, graph } = buildComposite(c.camera, c.tier, glow, grade, c.renderer);
-      const beforeChain: NonNullable<LookComposition['beforeChain']> = [...(reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed]), ...graph];
+      const { reflect, haze, bleed, jiehua } = buildComposite(c.camera, c.tier, glow, grade, c.renderer);
+      const beforeChain: NonNullable<LookComposition['beforeChain']> = reflect === null || haze === null || bleed === null ? [] : [reflect, haze, bleed];
       setStreakOn(reflect === null ? 1 : CARD_ON);
       handle = { jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared };
       installRenderEvents(c, handle);
-      return { beforeChain, chain: [display] };
+      return { beforeChain, chain: [jiehua] };
     },
     frame(): void {
       const rt = ndRuntime();

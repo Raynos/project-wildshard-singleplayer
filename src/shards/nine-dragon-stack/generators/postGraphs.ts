@@ -1,11 +1,54 @@
-import type { GraphIr, GraphRef } from '@wildshard/format/materialGraph';
+import type { GraphIr, GraphRef, GraphNode } from '@wildshard/format/materialGraph';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
-import { Screen } from './screenGraph';
-import { compositeRow } from './compositeGraph';
+import { LookGraph } from './lookGraph';
 
 const FLAG = { rh: .62, l0: .64, lr: .28, bond: 1.1 };
 
 type Ref = GraphRef;
+class Screen extends LookGraph {
+  static serial = 0;
+  private readonly prefix = `p${Screen.serial++}_`;
+  private readonly cache = new Map<string, string>();
+  override op(op: string, inputs?: readonly Ref[], extra: Omit<GraphNode, 'op' | 'in'> = {}): string {
+    const row = { op, ...(inputs === undefined ? {} : { in: inputs }), ...extra }, key = JSON.stringify(row), old = this.cache.get(key);
+    if (old !== undefined) return old;
+    const id = `${this.prefix}${Object.keys(this.nodes).length}`; this.nodes[id] = row; this.cache.set(key, id); return id;
+  }
+  readonly uv = this.op('screenUV');
+  scalar(name: string, value = 0): string { return this.p(name, 'float', value); }
+  v2(name: string, value: readonly number[] = [0, 0]): string { return this.p(name, 'vec2', value); }
+  v3(name: string, value: readonly number[] = [0, 0, 0]): string { return this.p(name, 'vec3', value); }
+  v4(name: string, value: readonly number[] = [0, 0, 0, 0]): string { return this.p(name, 'vec4', value); }
+  tex(name: string, at: Ref, volume = false): string { this.params[name] = { type: 'texture', role: 'lent', value: name }; return this.op(volume ? 'texture3D' : 'texture', [at], { param: name }); }
+  choose(c: Ref, a: Ref, b: Ref): string { return this.op('select', [c, a, b]); }
+  gt(a: Ref, b: Ref): string { return this.op('gt', [a, b]); }
+  lt(a: Ref, b: Ref): string { return this.op('lt', [a, b]); }
+  and(a: Ref, b: Ref): string { return this.op('and', [a, b]); }
+  neg(a: Ref): string { return this.mul(a, -1); }
+  fract(a: Ref): string { return this.op('fract', [a]); }
+  floor(a: Ref): string { return this.op('floor', [a]); }
+  abs(a: Ref): string { return this.op('abs', [a]); }
+  pow(a: Ref, b: Ref): string { return this.op('pow', [a, b]); }
+  norm(a: Ref): string { return this.op('normalize', [a]); }
+  dot(a: Ref, b: Ref): string { return this.op('dot', [a, b]); }
+  length(a: Ref): string { return this.op('length', [a]); }
+  sum(...xs: Ref[]): Ref { return xs.reduce((a, b) => this.add(a, b), 0); }
+  h11(p: Ref): string { let v = this.fract(this.mul(p, .1031)); v = this.mul(v, this.add(v, 33.33)); return this.fract(this.mul(v, this.add(v, v))); }
+  matrix(name: string, vector: Ref): string {
+    this.arrays[name] = { type: 'vec4', value: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]] };
+    return this.sum(...['x', 'y', 'z', 'w'].map((mask, i) => this.mul(this.op('arrayElement', [i], { param: name }), this.sw(vector, mask)))) as string;
+  }
+  view(at: Ref, depth: Ref): string { const v = this.matrix('invProj', this.vec(this.sub(this.mul(at, 2), 1), this.sub(this.mul(depth, 2), 1), 1)); return this.div(this.sw(v, 'xyz'), this.sw(v, 'w')); }
+  z(depth: Ref): string { const nf = this.v2('uNF', [.1, 1000]), n = this.sw(nf, 'x'), f = this.sw(nf, 'y'); return this.neg(this.div(this.mul(n, f), this.sub(this.mul(this.sub(f, n), depth), f))); }
+  depth(at: Ref): string { return this.sw(this.tex('tDepth', at), 'x'); }
+  inv(at: Ref): string { const d = this.depth(at); return this.choose(this.lt(d, 1), this.choose(this.lt(d, .3), 2, this.div(1, this.max(this.z(d), this.sw(this.v2('uNF', [.1, 1000]), 'x')))), 0); }
+  loop(count: number, initial: Ref, body: (g: Screen, acc: Ref, index: Ref) => Ref): string {
+    const g = new Screen(), value = body(g, g.op('acc'), g.op('index'));
+    Object.assign(this.params, g.params); Object.assign(this.arrays, g.arrays);
+    return this.op('loop', [initial], { count, body: { nodes: g.nodes, out: value } });
+  }
+  finishScreen(colour: Ref, alpha: Ref = 1): GraphIr { return this.finish({ post: { colour, alpha } }, undefined, 'post'); }
+}
 function bleedPre(): GraphIr {
   const g = new Screen(), tx = g.v2('uTexel'), pre = g.v2('uPre', [1, .08]), glow = g.v4('uGlow'), glow2 = g.v4('uGlow2');
   let total: Ref = [0, 0, 0], weight: Ref = 0, alpha: Ref = 0;
@@ -96,7 +139,7 @@ function haze(): GraphIr {
 }
 
 /** The original target/draw schedule, with bounded graph programs in place of GLSL. */
-export function postRows(): Readonly<Record<'bleed' | 'reflect' | 'haze' | 'composite', ScaledPostRow>> {
+export function postRows(): Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>> {
   Screen.serial = 0;
   const g = new Screen(), add = g.finishScreen(g.sw(g.tex('tSrc', g.uv), 'xyz'), 0);
   return {
@@ -105,6 +148,5 @@ export function postRows(): Readonly<Record<'bleed' | 'reflect' | 'haze' | 'comp
       draws: [{ program: 'bleedPre', to: 'mip0', textures: { tSrc: 'input' }, texel: { uniform: 'uTexel', of: 'input' } }, { program: 'bleedDown', to: 'mip1', textures: { tSrc: 'mip0' }, texel: { uniform: 'uTexel', of: 'mip0' } }, { program: 'bleedDown', to: 'mip2', textures: { tSrc: 'mip1' }, texel: { uniform: 'uTexel', of: 'mip1' } }, { program: 'bleedUp', to: 'up1', textures: { tSrc: 'mip2', tAdd: 'mip1' }, texel: { uniform: 'uTexel', of: 'mip2' } }, { program: 'bleedUp', to: 'up0', textures: { tSrc: 'up1', tAdd: 'mip0' }, texel: { uniform: 'uTexel', of: 'up1' } }], settings: {}, outputs: { tight: 'mip0', wide: 'up0' } },
     reflect: { name: 'NdReflectPass', programs: { reflectTrace: { graph: reflectTrace(), links: ['uRect', 'uRect2', 'uK', 'uFlagJoint'], depth: 'tDepth', camera: { proj: 'projection', invProj: 'projectionInverse', view: 'view', world: 'world', uNF: 'nearFar' }, pack: { uK: [{ param: 'ground' }, 'gain', 'wobble', 'rings'], uMarch: ['maxDist', .25], uTime: [{ param: 'time' }] } }, reflectStreak: { graph: reflectStreak(), pack: { uStep: [0, { setting: 'streak', div: 6, per: { target: 'trace', axis: 'height' } }] } } }, targets: { trace: { name: 'NdReflect.trace', of: 'input', scale: .5, filter: 'nearest' }, b: { name: 'NdReflect.b', of: 'input', scale: .5, filter: 'linear' } }, draws: [{ program: 'reflectTrace', to: 'trace', textures: { tColor: 'input' }, texel: { uniform: 'uTexel', of: 'input' } }, { program: 'reflectStreak', to: 'b', textures: { tSrc: 'trace' } }], settings: { gain: 2, maxDist: 90, wobble: .045, rings: .12, streak: 20 }, when: 'gain', outputs: { reflection: 'b' }, drawnOnly: true },
     haze: { name: 'NdHazePass', programs: { hazeMarch: { graph: haze(), links: ['uGroundY', 'uLpMax', 'uLpVolA', 'uLpMinA', 'uLpInvA', 'uLpVolB', 'uLpMinB', 'uLpInvB', 'uLpCut'], depth: 'tDepth', camera: { invProj: 'projectionInverse', world: 'world', uNF: 'nearFar' }, pack: { uHz: ['density', 'maxDist', 'height', 'drift'], uHz2: ['forward', { param: 'time' }, 'cap', 'thr'] } }, hazeAdd: { graph: add, blend: 'addKeepAlpha' } }, targets: { haze: { name: 'NdHaze', of: 'input', scale: .5, filter: 'linear' } }, draws: [{ program: 'hazeMarch', to: 'haze' }, { program: 'hazeAdd', to: 'input', textures: { tSrc: 'haze' } }], settings: { density: 0, maxDist: 70, height: 18, drift: .5, forward: .35, cap: 1.4, thr: 1 }, when: 'density', outputs: { haze: 'haze' } },
-    composite: compositeRow(),
   };
 }
