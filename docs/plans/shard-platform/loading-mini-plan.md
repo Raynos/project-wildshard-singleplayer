@@ -33,7 +33,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **O3 — done; accepted `32cde80543`, receipts `fd69ae2b29`, pushed** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4 — accepted `de6833b8b7`; source `0f63b7b167`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
 | **O5 — warm-up `b2e4c86d92`, AO repair `32cde80543`; traversal cut `61e45099ae`; served proof pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
-| **O6 — source `48d648401a`, `be7b843f6e`; final served proof pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
+| **O6 — accepted `f8f5ee9a9d`; ordinary native receipt `28302b9183`; 20.7 s approximate target accepted; carrier pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
 
@@ -519,3 +519,19 @@ requests. Receipt `b2fc56ef7f` is retained in
 [`production-worker-20261021`](../../../progress/loading/g543/production-worker-20261021/README.md).
 This closes the earlier post-release header follow-up; changed-core
 freshness remains covered by the existing same-length native regression.
+
+O6 is accepted by the coordinator's stated condition: ordinary native
+SHARD SELECT proof `78823` on exact `f8f5ee9a9d` passes at 9.9 s wall /
+9.933 s stage sum, with 250 ms maximum detail gap and 0.0115% wire error.
+The real worker controls the entry and no GL instrumentation is installed.
+The compact receipt and viewed labelled native portrait are retained in
+[`acceptance-f8f5ee9`](../../../progress/loading/g543/acceptance-f8f5ee9/README.md)
+(`28302b9183`). The earlier same-build five valid entries, all three real
+road returns and source batch remain retained in `diagnostic-f8f5ee9`.
+CPU-4x phone grid's 20.7 s meets the coordinator-accepted approximate 20 s
+target. The original 1,943 ms native post-chain pause is retained openly;
+this ordinary pass and the separate GL non-reproduction claim no rendering
+repair or cause. Duplicate foliage transport retirement remains 34,444,304
+raw bytes with finished GLBs, collider data and legacy internals unchanged.
+O5 continues with its already-landed traversal cut and one running combined
+Driftwood/Nine/Pine source batch, followed by the exact served matrix.
