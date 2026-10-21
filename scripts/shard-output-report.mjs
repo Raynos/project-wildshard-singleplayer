@@ -55,7 +55,7 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
   const rows=Object.fromEntries(Object.entries(closure).map(([slug,state])=>{
     const failure=Object.hasOwn(productFailures,slug)?productFailures[slug]:undefined;
     if(measurementError!==null) {
-      const ready=failure===undefined?gridReady(root,slug,products,{revision,receipts}):unknownGridReady(failure);
+      const ready=failure===undefined?gridReady(root,slug,products,{revision,receipts,reader}):unknownGridReady(failure);
       if(failure!==undefined){ready.verdict='fail';ready.criteria.productBuild={verdict:'fail',evidence:failure};ready.frameFloor={verdict:'unknown',evidence:failure};}
       return [slug,{...state,customPercent:null,port:null,m3:null,measurementError,
         legacyLines:decisionLegacyLines(root,slug)??null,linesRemovedSince12Z:dailyLines.shards[slug]??null,
@@ -63,7 +63,7 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
         ...(sections[slug]===undefined?{}:{customSections:sections[slug].customSections,customSectionBytes:sections[slug].customSectionBytes}),
         ...(contents[slug]===undefined?{}:{content:contents[slug]}),...(failure===undefined?{}:{productFailure:failure})}];
     }
-    const ready=gridReady(root,slug,products,{revision,receipts});
+    const ready=gridReady(root,slug,products,{revision,receipts,reader});
     const scriptMetrics=productScriptMetrics(root,slug,products,scriptReceipts);
     if(state.status==='unclosed') {
       const progress=source[slug];

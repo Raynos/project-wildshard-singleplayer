@@ -14,6 +14,7 @@ import {MILESTONE_SHARDS,m3Progress,planProgress,gridReady,readinessVerdict} fro
 import {sourceProgressLines} from '../scripts/shard-platform.mjs';
 import {outputReport} from '../scripts/shard-output-report.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
+import {createOutputReader} from '../scripts/shard-platform-output.mjs';
 
 it('weights actual must-go lines and keeps unknown M2 evidence out of a point claim',()=>{
  const input={basis:'source' as const,customLines:20,legacyLines:100};
@@ -42,7 +43,10 @@ it('requires bound validation evidence while keeping unclosed output percentages
   const bytes=readFileSync(join(products,'pine-hollow/shard.json'));
   const receipt={indexHash:createHash('sha256').update(bytes).digest('hex'),revision:'fixture',sourceHash:'0'.repeat(64),worst:{playing:100,loading:200},gridReady:structuralGridEvidence(source)};
   const path=join(products,'pine-hollow/validation.json');writeFileSync(path,JSON.stringify(receipt));
+  const reader=createOutputReader(root),sourceInReport=reader.source('pine-hollow');
   const ready=gridReady(root,'pine-hollow',products);
+  expect(gridReady(root,'pine-hollow',products,{reader})).toEqual(ready);
+  expect(reader.source('pine-hollow')).toBe(sourceInReport);
   expect(ready.criteria['fourEntryways']?.verdict).toBe('pass');
   expect(ready.criteria['hudAccent']?.verdict).toBe('pass');
   expect(ready.criteria['memory']?.verdict).toBe('unknown');
@@ -58,6 +62,7 @@ it('requires bound validation evidence while keeping unclosed output percentages
   expect(gridReady(root,'pine-hollow',products).criteria['memory']?.verdict).toBe('unknown');
   writeFileSync(path,JSON.stringify({...receipt,gridReady:{...receipt.gridReady,criteria:{...receipt.gridReady.criteria,bakedTiles:{verdict:'pass',evidence:'forged'}}}}));
   expect(gridReady(root,'pine-hollow',products).criteria['validation']?.verdict).toBe('fail');
+  expect(gridReady(root,'pine-hollow',products,{reader}).criteria['validation']?.verdict).toBe('fail');
   writeFileSync(path,JSON.stringify({...receipt,indexHash:'f'.repeat(64)}));
   expect(gridReady(root,'pine-hollow',products).verdict).toBe('unknown');
  }finally{rmSync(root,{recursive:true,force:true});}

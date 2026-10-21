@@ -1,4 +1,5 @@
 import type {OutputIndex} from '@wildshard/format/outputIndex';
+import type {Shardfile} from '@wildshard/format/shardSchema';
 
 /** P3 inventory verified against its actual output bytes and the verbatim source copy. */
 export function outputRuntime(root:string,slug:string,products?:string):{index:OutputIndex;runtime:string[];customSectionBytes:number;customSections:{name:string;bytes:number}[];sections:{name:string;value:unknown}[];indexPath:string};
@@ -10,5 +11,6 @@ export function outputSections(root:string,slug:string,products?:string):{index:
 export interface OutputReader {
   sections:(slug:string)=>ReturnType<typeof outputSections>;
   runtime:(slug:string)=>ReturnType<typeof outputRuntime>;
+  source:(slug:string)=>Shardfile;
 }
 export function createOutputReader(root:string,products?:string):OutputReader;

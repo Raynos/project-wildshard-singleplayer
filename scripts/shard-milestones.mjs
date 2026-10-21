@@ -22,8 +22,8 @@ export function unknownGridReady(evidence='No bound output validation evidence')
  * evidence. Missing or stale artifacts stay unknown; source declarations and
  * a successful standalone boot never stand in for grid readiness.
  * @param {string} root @param {string} slug @param {string} products
- * @param {{revision?:string|null,receipts?:readonly string[]}} options */
-export function gridReady(root,slug,products,{revision=null,receipts=[]}={}) {
+ * @param {{revision?:string|null,receipts?:readonly string[],reader?:import('./shard-platform-output.mjs').OutputReader}} options */
+export function gridReady(root,slug,products,{revision=null,receipts=[],reader}={}) {
   const {criteria,frameFloor:unmeasuredFloor}=unknownGridReady();
   let frameFloor=unmeasuredFloor;
   /** @type {import('./shard-milestones.mjs').GridReady['binding']} */
@@ -44,7 +44,7 @@ export function gridReady(root,slug,products,{revision=null,receipts=[]}={}) {
     if(receipt.gridReady===undefined)return result();
     // The writer emits this only after actual asset admission, including the full
     // 8x15m terrain/mesh/prop/collider/water checks, not just the metadata schema.
-    const source=outputFormat.assembleOutputShardfile(index,sections);
+    const source=reader===undefined?outputFormat.assembleOutputShardfile(index,sections):reader.source(slug);
     const structural=gridReadinessFormat.parseGridStructuralEvidence(receipt.gridReady);
     if(JSON.stringify(structural)!==JSON.stringify(gridReadinessFormat.structuralGridEvidence(source)))throw new Error('Grid evidence differs from emitted sections');
     for(const [name,criterion] of Object.entries(structural.criteria))criteria[name]={...criterion,

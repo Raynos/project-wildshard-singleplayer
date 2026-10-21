@@ -7,7 +7,9 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createOutputReader,outputRuntime} from '../scripts/shard-platform-output.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
-import {parseOutputIndex} from '../src/format/outputIndex';
+import {parseOutputIndex,outputSectionPayloads} from '../src/format/outputIndex';
+import {emptyShardfile} from '../src/sdk/author';
+import {outputContent} from '../scripts/shard-output-content.mjs';
 import {nameBlob} from '../src/sdk/blobs';
 
 it('verifies every emitted TS copy and reports custom sections independently',()=>{
@@ -83,5 +85,22 @@ it('scopes verified bytes to one report and still verifies runtime after section
   writeFileSync(join(root,'out/_template/sections/custom/rows.json'),'{}');
   expect(()=>createOutputReader(root).sections('_template')).toThrow('section hash/size mismatch');
   expect(()=>createOutputReader(root).runtime('_template')).toThrow('section hash/size mismatch');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+
+it('shares an assembled source within a report and revalidates the next report',()=>{
+ const root=mkdtempSync(join('tmp/','platform-output-source-'));
+ try{
+  const declared=emptyShardfile({slug:'template',name:'Fixture',author:'Test',revision:1,seed:1});
+  platformOutput(root,'_template',{},Object.fromEntries([...outputSectionPayloads(declared)].map(([name,value])=>[name,JSON.stringify(value)])));
+  const report=createOutputReader(root),source=report.source('_template');
+  outputContent(root,'_template',join(root,'out'),report);
+  expect(report.source('_template')).toBe(source);
+  expect(createOutputReader(root).source('_template')).not.toBe(source);
+  const section=report.sections('_template').index.sections[0];
+  if(section===undefined)throw new Error('Missing fixture section');
+  writeFileSync(join(root,'out/_template',section.path),'{}');
+  expect(()=>createOutputReader(root).source('_template')).toThrow('section hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}
 });

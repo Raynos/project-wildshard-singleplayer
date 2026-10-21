@@ -51,7 +51,7 @@ function readOutputRuntime(root,slug,products,readSections) {
 /** One immutable report shares verified bytes, never a process-wide verdict.
  * @param {string} root @param {string} [products] */
 export function createOutputReader(root,products=resolve(root,'out')) {
-  const sections=new Map(),runtimes=new Map();
+  const sections=new Map(),runtimes=new Map(),sources=new Map();
   const readSections=slug=>{
     if(!sections.has(slug))sections.set(slug,outputSections(root,slug,products));
     return sections.get(slug);
@@ -60,7 +60,14 @@ export function createOutputReader(root,products=resolve(root,'out')) {
     if(!runtimes.has(slug))runtimes.set(slug,readOutputRuntime(root,slug,products,()=>readSections(slug)));
     return runtimes.get(slug);
   };
-  return {sections:readSections,runtime:readRuntime};
+  const readSource=slug=>{
+    if(!sources.has(slug)){
+      const output=readSections(slug);
+      sources.set(slug,outputFormat.assembleOutputShardfile(output.index,new Map(output.sections.map(row=>[row.name,row.value]))));
+    }
+    return sources.get(slug);
+  };
+  return {sections:readSections,runtime:readRuntime,source:readSource};
 }
 
 
