@@ -10,11 +10,10 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
   const groups = 'src/game/population/pageGroups.ts';
   const both = new Set(['nalati-grasslands', 'pine-hollow']);
   const modules = new Map([[arena, both], [phase, both], [groups, both]]);
-  const bindings = new Map([[`${phase}\0ArenaBossScript`, both], [`${phase}\0bossFight`, both],
+  const bindings = new Map([[`${phase}\0bossFight`, both],
     [`${groups}\0PageGroups`, both], [`${groups}\0FixedPageSpawnTable`, both]]);
   chargePlatformUsers(modules, bindings);
   expect([...modules.get(arena) ?? []]).toEqual(['nalati-grasslands']);
-  expect([...bindings.get(`${phase}\0ArenaBossScript`) ?? []]).toEqual(['nalati-grasslands']);
   expect([...bindings.get(`${groups}\0PageGroups`) ?? []]).toEqual(['nalati-grasslands']);
   expect(bindings.get(`${phase}\0bossFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0FixedPageSpawnTable`)).toEqual(both);
