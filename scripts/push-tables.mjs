@@ -15,7 +15,7 @@ import * as v from 'valibot';
 
 const binding = v.looseObject({ module: v.string() });
 const manifestBindings = v.looseObject({ bindings: v.looseObject({
-  poses: v.optional(binding), boot: v.optional(v.record(v.string(), binding)),
+  poses: v.optional(binding), budgets: v.optional(binding), mapPalette: v.optional(binding), audioCues: v.optional(binding), boot: v.optional(v.record(v.string(), binding)),
 }) });
 
 /** Standard manifest JSON bindings are checked against their defining admitted
@@ -24,12 +24,17 @@ const manifestBindings = v.looseObject({ bindings: v.looseObject({
 export function manifestTypeTables(root, folder, manifest, outputs) {
   const rows = v.parse(manifestBindings, manifest).bindings;
   const fields = [
+    ...(['budgets', 'mapPalette'].flatMap(key => {
+      const ref = key === 'budgets' ? rows.budgets : rows.mapPalette;
+      return ref === undefined ? [] : [{ ref, type: `NonNullable<import('@wildshard/game/shard/manifest').AuthoredShardBindings[${JSON.stringify(key)}]>` }];
+    })),
+    ...(rows.audioCues === undefined ? [] : [{ ref: rows.audioCues, type: "NonNullable<import('@wildshard/game/shard/manifest').AuthoredShardBindings['audioBindings']>['cues']" }]),
     ...(rows.poses === undefined ? [] : [{ ref: rows.poses, type: "ReturnType<typeof import('@wildshard/format/minimap').parseCapturePoses>" }]),
     ...Object.entries(rows.boot ?? {}).map(([key, ref]) => ({ ref,
       type: `NonNullable<import('@wildshard/game/shard/manifest').AuthoredShardBindings['bootBindings']>[${JSON.stringify(key)}]` })),
   ];
   for (const { ref, type } of fields) {
-    if (!/^\.\/(?:data|boot)\/[a-zA-Z0-9_.-]+\.json$/u.test(ref.module)) continue;
+    if (!/^\.\/(?:data|boot|assets)\/[a-zA-Z0-9_.-]+\.json$/u.test(ref.module)) continue;
     if (!outputs.has(`src/shards/${folder}/${ref.module.slice(2)}`)) continue;
     const path = resolve(root, 'src/shards', folder, ref.module.replace(/\.json$/u, '.d.json.ts'));
     if (existsSync(path) || existsSync(resolve(root, 'src/shards', folder, ref.module))) continue;
@@ -67,7 +72,7 @@ export async function sectionTables(root, slug) {
   writeFileSync(output, `${header}export interface CustomSections {\n${rows.join('\n')}\n}\n${declarations.join('\n')}\n`);
   if ('FILE_SCHEMAS' in namespace && namespace.FILE_SCHEMAS !== null && typeof namespace.FILE_SCHEMAS === 'object') {
     for (const [name, value] of Object.entries(namespace.FILE_SCHEMAS)) {
-      if (!/^(?:data|boot)\/[a-zA-Z0-9_-]+(?:\.generated)?\.json$/u.test(name) || !schema(value)) throw new Error('Invalid typed JSON schema');
+      if (!/^(?:data|boot|assets)\/[a-zA-Z0-9_-]+(?:\.generated)?\.json$/u.test(name) || !schema(value)) throw new Error('Invalid typed JSON schema');
       const path = resolve(root, 'src/shards', slug, name.replace(/\.json$/u, '.d.json.ts'));
       mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, `${header}declare const value: ${sectionType(formatJsonSchema(value, 'draft-07'))};\n// oxlint-disable-next-line import/no-default-export -- JSON imports require the default value declaration.\nexport default value;\n`);

@@ -19,8 +19,10 @@ test('standard ignored bindings borrow the defining admitted contracts', () => {
   try {
     manifestTypeTables(root, 'example', { bindings: {
       poses: { module: './data/poses.generated.json' },
+      budgets: { module: './assets/budgets.generated.json' },
       boot: { sources: { module: './data/sources.generated.json' } },
-    } }, new Set(['src/shards/example/data/poses.generated.json', 'src/shards/example/data/sources.generated.json']));
+    } }, new Set(['src/shards/example/data/poses.generated.json', 'src/shards/example/data/sources.generated.json', 'src/shards/example/assets/budgets.generated.json']));
+    expect(readFileSync(join(root, 'src/shards/example/assets/budgets.generated.d.json.ts'), 'utf8')).toContain('AuthoredShardBindings["budgets"]');
     expect(readFileSync(join(root, 'src/shards/example/data/poses.generated.d.json.ts'), 'utf8')).toContain('parseCapturePoses>');
     expect(readFileSync(join(root, 'src/shards/example/data/sources.generated.d.json.ts'), 'utf8')).toContain("AuthoredShardBindings['bootBindings']>[\"sources\"]");
   } finally { rmSync(root, { recursive: true, force: true }); }

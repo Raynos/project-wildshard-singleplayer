@@ -65,7 +65,8 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   // never imports data/. Remove this bridge with catalog activation (P3).
   const budgetPath = modulePath(b.budgets?.module);
   if (budgetPath.endsWith('.json') && b.budgets.export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
-  const budget = budgetPath.endsWith('.json')
+  const budget = metadataOnly && budgetPath.endsWith('.json') && !existsSync(resolve(root, `src/shards/${folder}`, budgetPath)) ? value(b.budgets)
+    : budgetPath.endsWith('.json')
     ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, budgetPath), 'utf8')))
     : budgetPath.startsWith('./data/')
     ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-budget.mjs'), resolve(root, `src/shards/${folder}`, budgetPath.endsWith('.ts') ? budgetPath : `${budgetPath}.ts`), b.budgets.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
@@ -79,7 +80,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     if (declared.includes(key)) { rows.push(`${key}: ${built(key)}`); continue; }
     // Fixed palette JSON becomes a contextually checked literal, preserving tuple
     // arity without importing an executable coordinate recipe into discovery.
-    const palette = key === 'mapPalette' && modulePath(b[key].module).endsWith('.json');
+    const palette = key === 'mapPalette' && modulePath(b[key].module).endsWith('.json') && (!metadataOnly || existsSync(resolve(root, `src/shards/${folder}`, b[key].module)));
     if (palette && b[key].export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
     rows.push(`${key}: ${palette ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, b[key].module), 'utf8'))) : value(b[key])}`);
   }
