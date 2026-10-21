@@ -18,7 +18,6 @@ import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/pla
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import manifest from '../discovery.generated';
-import { MooringLines } from '../runtime/props/mooringLines';
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
@@ -77,10 +76,12 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
   // SF46 (G164): lowered with everything else, it stays moored by the pier
-  const boatPlaced = await scenes.place('harbour.boat'), moorings = new MooringLines(scenes.mesh('moorings.mesh'), [fixed.boat.cleats[0], fixed.boat.cleats[1]]);
-  const boat = { placed: boatPlaced, group: boatPlaced.object, ropes: moorings.mesh, floorHeightAt: (x: number, z: number) => scenes.floorAt('harbour.boat', x, z),
-    refreshPose: () => { moorings.lift(boatPlaced.object.position.y - fixed.boat.spec.waterY, Math.sin(boatPlaced.object.rotation.x)); } };
-  game.scene.add(moorings.mesh);
+  // its mooring lines: one static mesh whose cleat ends rise with the hull's heave less each cleat's z times sin(pitch) (its look)
+  const boatPlaced = await scenes.place('harbour.boat'), ropes = scenes.mesh('moorings.mesh'), [bowZ, sternZ] = fixed.boat.cleats, lift: [number, number] = [0, 0];
+  const boat = { placed: boatPlaced, group: boatPlaced.object, ropes, floorHeightAt: (x: number, z: number) => scenes.floorAt('harbour.boat', x, z),
+    refreshPose: () => { const heave = boatPlaced.object.position.y - fixed.boat.spec.waterY, pitch = Math.sin(boatPlaced.object.rotation.x);
+      lift[0] = heave - bowZ * pitch; lift[1] = heave - sternZ * pitch; setLentParam('driftwood-kit-moor', 'moor', lift); } };
+  game.scene.add(ropes);
   await complete('Pier and boat');
   // faceted shore boulders along the beach
   // Keep the model's authored copy facts over the finished world draw.

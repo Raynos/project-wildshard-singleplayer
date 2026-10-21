@@ -17588,6 +17588,66 @@
     }
    }
   },
+  "driftwood-kit-moor": {
+   "version": 1,
+   "kind": "material",
+   "model": "toon",
+   "doubleSided": true,
+   "flatShading": true,
+   "params": {
+    "moor": {
+     "type": "vec2",
+     "value": [
+      0,
+      0
+     ]
+    }
+   },
+   "nodes": {
+    "paint": {
+     "op": "vertexColour"
+    },
+    "weights": {
+     "op": "attribute",
+     "name": "aMoor",
+     "type": "vec2",
+     "default": [
+      0,
+      0
+     ]
+    },
+    "lift": {
+     "op": "param",
+     "param": "moor"
+    },
+    "rise": {
+     "op": "dot",
+     "in": [
+      "weights",
+      "lift"
+     ]
+    },
+    "offset": {
+     "op": "combine",
+     "in": [
+      0,
+      "rise",
+      0
+     ]
+    }
+   },
+   "stages": {
+    "vertex.offset": {
+     "offset": "offset",
+     "shadow": true
+    },
+    "surface": {
+     "colour": "paint",
+     "roughness": 0.88,
+     "metalness": 0
+    }
+   }
+  },
   "driftwood-kit-rock": {
    "version": 1,
    "kind": "material",
