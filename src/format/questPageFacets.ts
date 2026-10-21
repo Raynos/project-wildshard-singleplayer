@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { QuestFlagGatesSchema } from './questInteractions';
 
 /** the play music's stings (engine audio/Music StingName) */
 const STINGS = ['pickup', 'death', 'chunk', 'dawn'] as const;
@@ -35,6 +36,12 @@ export const QuestPageMapSchema = v.strictObject({
   /** the entered forest's trees and this forest page's roofs on the map's ground layer */
   features: v.exactOptional(v.strictObject({ forest: id })),
 });
+/**
+ * A quest page's barred living-building door (game quest/pageDoors.ts `installPageDoor`): the forest page's door `door`,
+ * whose prompt and use the door page borrows, barred by page flag `gates` (a gate's target piece: the door's registered id).
+ */
+export const QuestPageDoorSchema = v.strictObject({ forest: id, door: id, gates: QuestFlagGatesSchema });
 export type QuestPageMoverRows = v.InferOutput<typeof QuestPageMoverSchema>;
 export type QuestPageCollectionsRows = v.InferOutput<typeof QuestPageCollectionsSchema>;
 export type QuestPageMapRows = v.InferOutput<typeof QuestPageMapSchema>;
+export type QuestPageDoorRows = v.InferOutput<typeof QuestPageDoorSchema>;

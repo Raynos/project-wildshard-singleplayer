@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
-import { QuestPageCollectionsSchema, QuestPageMapSchema, QuestPageMoverSchema } from '../src/format/questPageFacets';
+import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from '../src/format/questPageFacets';
 import { pageCollectionCalls } from '../src/game/quest/pageFacets';
 import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
 
@@ -18,6 +18,13 @@ it("admits Pine's mover, collections and map as page facet rows", () => {
   expect(v.parse(QuestPageCollectionsSchema, facets.collections).rows).toHaveLength(pine.collections.length);
   expect(v.parse(QuestPageMapSchema, facets.map).zones).toEqual(pine.map.zones);
   expect(() => v.parse(QuestPageCollectionsSchema, { ...facets.collections, pickup: { event: 'x', sting: 'fanfare' } })).toThrow();
+});
+
+it("admits Pine's barred mill door on the page flag gates", () => {
+  const gate = { id: 'mill-door-bar', name: 'Mill door bar', opensWhen: { all: [pine.door.flag] }, target: { kind: 'piece', piece: pine.door.id } };
+  const door = v.parse(QuestPageDoorSchema, { forest: pine.page, door: pine.door.id, gates: { quest: 'pine-hollow', gates: [gate] } });
+  expect(door.gates.gates[0]?.target).toEqual({ kind: 'piece', piece: pine.door.id });
+  expect(() => v.parse(QuestPageDoorSchema, { forest: pine.page, door: pine.door.id, gates: { gates: [gate, gate] } })).toThrow();
 });
 
 it('calls the count chip, the page action and the pickup sting from collection events', () => {
