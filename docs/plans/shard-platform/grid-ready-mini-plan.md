@@ -30,5 +30,5 @@ At ruler ed51b1446 every shard passes four of the six M2 criteria (baked tiles, 
 | **R5** | **Repeat as a batch:** one Chromium run per build measures several shards in a row (Pine, Driftwood, Nine, Nalati, as each is ready); every pass latches | any lane, through `browser-lane.sh` | one run per batch |
 | **R6** | The `frameFloor` criterion stays a separate, reported line; it does not block M2 (coordinator ruling X0, 10-20) | | |
 
-**Done when** the six zero-custom shards and the plots read 6/6 and stay latched. Then R5 takes Pine, Driftwood, Nine and Nalati.
+**Done when** the six zero-custom shards and the plots read 6/6 and stay latched. Then R5 takes Pine, Driftwood, Nine and Nalati, each only after it reaches zero custom (G561).
 No Simulator in this plan either (G559): the Simulator only reproduces what Chromium can't. Jake's iPhone is not in this plan: the phone check is SHARD-PLATFORM's final row at 99 % (G558).
