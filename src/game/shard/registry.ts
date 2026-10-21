@@ -18,7 +18,15 @@ export function shardSlugFromUrl(search?: string): string {
   return named ?? defaultShard();
 }
 
-export function findShard(slug: string): ShardManifest | undefined { return new Map<string, ShardManifest>(shards().map((manifest) => [manifest.slug, manifest])).get(slug); }
+/** O15: each installed list's slug table, built once (a Map of every manifest per call was ~500 Simulator samples of
+ *  Driftwood's road-entry drive: the grid's per-frame readers look shards up by slug) */
+const bySlug = new WeakMap<readonly ShardManifest[], ReadonlyMap<string, ShardManifest>>();
+export function findShard(slug: string): ShardManifest | undefined {
+  const list = shards();
+  let table = bySlug.get(list);
+  if (table === undefined) { table = new Map(list.map((manifest) => [manifest.slug, manifest])); bySlug.set(list, table); }
+  return table.get(slug);
+}
 
 function initialShard(): ShardManifest {
   const manifest = findShard(shardSlugFromUrl()) ?? findShard(defaultShard());
