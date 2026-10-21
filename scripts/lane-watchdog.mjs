@@ -29,7 +29,7 @@ const agentsSchema = v.object({ result: v.object({ agents: v.array(v.object({
 })) }) });
 const commitSchema = v.object({ sha: v.pipe(v.string(), v.regex(/^[a-f0-9]{40}$/u)), pane: v.string() });
 /** @typedef {{ since: number, alerted: boolean, seen: ReadonlySet<string> }} TurnObservation */
-/** @typedef {{ identity: string, status: string, since: number, commit: string, changed: number, alerted: boolean, turn: TurnObservation }} Observation */
+/** @typedef {{ identity: string, status: string, since: number, commit: string, changed: number, alerted: boolean, turn: TurnObservation, nudged?: number, nudges?: number }} Observation */
 /** @type {Map<string, Observation>} */
 const observations = new Map();
 const stop = new AbortController();
@@ -192,15 +192,27 @@ async function poll() {
       observed.turn.alerted = true;
       console.info(`${new Date().toISOString()} ${message}`);
     }
-    // An idle pane whose footer still lists background shells is waiting on its own script (G510), not idle.
-    if (status === 'idle/done' && /\b\d+ shells? still running|· \d+ shells? ·|\b\d+ background terminals? running/u.test((text ?? '').slice(-2000))) continue;
     const age = now - (status === 'working' ? observed.changed : observed.since);
-    const overdue = status === 'idle/done' ? age > 5 * 60_000 : status === 'working' && age > 45 * 60_000;
-    if (!overdue || observed.alerted) continue;
+    // G569: an idle lane is nudged itself after 3 min, background shells or not, then every 10 min
+    // while it stays idle; the coordinator hears only after two nudges went unanswered.
+    if (status === 'idle/done') {
+      if (age < 3 * 60_000 || now - (observed.nudged ?? 0) < 10 * 60_000) continue;
+      const nudge = '[watchdog] idle: take your next open ready-queue row now (docs/plans/shard-platform/lanes/ready-queue.md); don\'t wait for a reply. If your own check is still running, start the next row meanwhile.';
+      try { await command('bash', ['scripts/herdr-prompt.sh', name, nudge]); }
+      catch { continue; } // herdr-prompt.sh refuses while the lane has a question open.
+      observed.nudged = now;
+      observed.nudges = (observed.nudges ?? 0) + 1;
+      console.info(`${new Date().toISOString()} nudged ${name} (idle ${Math.floor(age / 60_000)} min)`);
+      if (observed.nudges >= 3 && !observed.alerted) {
+        const message = `[watchdog] ${name} still idle after ${observed.nudges - 1} nudges (${Math.floor(age / 60_000)} min, pane ${agent.pane_id}): it may have no open row.`;
+        await command('bash', ['scripts/herdr-prompt.sh', 'wildshard-new', message]);
+        observed.alerted = true;
+      }
+      continue;
+    }
+    if (status !== 'working' || age <= 45 * 60_000 || observed.alerted) continue;
     const minutes = Math.floor(age / 60_000);
-    const message = status === 'idle/done'
-      ? `[watchdog] ${name} idle/done for ${minutes} min (observed status, pane ${agent.pane_id}).`
-      : `[watchdog] ${name} working for ${minutes} min without an attributed commit (own/coordinator LANDED/PUSHED report verified in git log, exact pane ledger or lane trailer; last ${observed.commit.slice(0, 9) || 'none observed'}). Split or redirect its task.`;
+    const message = `[watchdog] ${name} working for ${minutes} min without an attributed commit (own/coordinator LANDED/PUSHED report verified in git log, exact pane ledger or lane trailer; last ${observed.commit.slice(0, 9) || 'none observed'}). Split or redirect its task.`;
     await command('bash', ['scripts/herdr-prompt.sh', 'wildshard-new', message]);
     observed.alerted = true;
     console.info(`${new Date().toISOString()} ${message}`);
@@ -212,7 +224,7 @@ async function main() {
   if (process.env.HERDR_ENV !== '1') throw new Error('lane-watchdog requires a Herdr-managed terminal');
   process.once('SIGINT', () => { stop.abort(); });
   process.once('SIGTERM', () => { stop.abort(); });
-  console.info('lane-watchdog: 60s poll; 5min idle / 45min no-commit / 60min turn; alerts only wildshard-new');
+  console.info('lane-watchdog: 60s poll; idle lanes nudged at 3 min then every 10 min (G569); 45min no-commit / 60min turn alert wildshard-new');
   while (!stop.signal.aborted) {
     const started = Date.now();
     try { await poll(); }
