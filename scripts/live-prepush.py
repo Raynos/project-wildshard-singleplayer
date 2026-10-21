@@ -65,7 +65,7 @@ def lint_sources(root, files):
 def failure_paths(output):
     plain = ANSI.sub('', output)
     # TS, oxlint and Vitest diagnostics. Unknown errors never guess a prefix.
-    return sorted(set(re.findall(r'(?<![\w/])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:[cm]?[jt]sx?|json|py|sh))', plain)))
+    return sorted(set(re.findall(r'(?<![\w/])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh))\b', plain)))
 
 
 def check(root, base, tip, deadline, runner=run, files=None, tools=None):

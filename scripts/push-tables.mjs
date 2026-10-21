@@ -3,7 +3,8 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { genShards } from '../scripts/gen-shards.mjs';
+import { authoredManifestSource, productManifestPath } from '../scripts/authored-manifest.mjs';
+import { manifestFolders, outputManifest, shardProducts } from '../scripts/shard-outputs.mjs';
 import { genStarterArmClips } from '../scripts/gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from '../scripts/gen-starter-weapons.mjs';
 import { genStarterBag } from '../scripts/gen-starter-bag.mjs';
@@ -51,7 +52,13 @@ export async function sectionTables(root, slug) {
 /** @param {string} root */
 export async function pushTables(root) {
   genStarterArmClips(root); genStarterWeapons(root); genStarterBag(root); genStarterEffects(root);
-  genShards(root);
+  for (const product of shardProducts(root, manifestFolders(root))) {
+    if (!existsSync(resolve(root, 'src/shards', product.folder, 'manifest.json'))) continue;
+    const composed = product.output === null ? null : outputManifest(root, product.folder, product.output);
+    writeFileSync(resolve(root, productManifestPath(root, product)), authoredManifestSource(root, product.slug, {
+      folder: product.folder, composed, generation: true,
+    }));
+  }
   for (const folder of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
     if (folder.isDirectory()) await sectionTables(root, folder.name);
   }
