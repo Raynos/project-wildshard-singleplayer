@@ -15,6 +15,8 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | O4 | G536 menu hero: three real in-engine captures of the whole 5x5 at the menu hero framing, phone tier, into art/grid/round-28-hero/, SHA to wildshard-new (only once the outer band is filled) | G536 | |
 | O5 | Nalati remaining view code (world/view.ts and look tails) toward 5 % custom | G533 step 6 | |
 | O6 | Pine King atmosphere hook + cave/pool presentation onto boss-host / water rows (listed view code if per-frame) | G532 research P3/P4 | |
+| O7 | Driftwood ocean admitted through world.water (floor, dry, lent, foam) as a declared client-plan world feature (after X11) | G532 phase C, sp-o5 19:55 | |
+| O8 | A living-buildings client feature for Driftwood's shrine life (real second user required, G518) (after X11) | G532 phase C | |
 
 ## Codex (non-graphical)
 
@@ -29,3 +31,5 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | X5 | G532 phase B: one shared quest host (page + headless) with Pine and Driftwood as each other's second user, one trader, one chapter director, shared props; old saves load | G532 (1), research P1/P2/D4 | |
 | X6 | Production /api/telemetry returns HTTP 500 on every load; fix the route; also the 404 for nine near.json in the grid | live audit 10-20 | |
 | X7 | Hooks run the gated tree's own scripts (pre-commit + push gate ran working-tree scripts against older trees twice on 10-20) | 10-20 incidents | |
+| X10 | Garment catalogue rows (captain hat, cape, trader, people) via a NATIVE specimen job (the portable catalogue job lacks src/engine), touching quest/install.ts only after phase B | G532 phase C | |
+| X11 | G532 phase C Codex half: Driftwood runtime/index.ts + hybrid.ts plugin removal via the declared runtime entry (G483), engine/boot/plan.ts BuildStages retired | G532 (4)/(5), research D3 | |
