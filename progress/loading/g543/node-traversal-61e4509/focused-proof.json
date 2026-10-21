@@ -1,0 +1,11 @@
+{
+  "id": "20261021T064232-loading-node-child-integrated-focus-21869",
+  "label": "loading-node-child-integrated-focus",
+  "state": "passed",
+  "rc": 0,
+  "startedAt": 1792582952,
+  "endedAt": 1792582965,
+  "log": "/Users/raynos/projects/games/wildshard-singleplayer/.git/proofs/20261021T064232-loading-node-child-integrated-focus-21869.log",
+  "pane": "wT:p3",
+  "command": "python3 tmp/loading-lane/check-node-shader-parity.py"
+}
