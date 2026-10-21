@@ -275,7 +275,8 @@
     "./looks/posedInstances": "./looks/posedInstances.ts",
     "./quest/flagGates": "./quest/flagGates.ts",
     "./quest/bodyOps": "./quest/bodyOps.ts",
-    "./shardfile/entryOwners": "./shardfile/entryOwners.ts"
+    "./shardfile/entryOwners": "./shardfile/entryOwners.ts",
+    "./quest/continuation": "./quest/continuation.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

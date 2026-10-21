@@ -1,0 +1,41 @@
+/** Client-only entered continuation. Native inventory, flags, geometry and
+ * saves keep their original owners; no content factory crosses this host. */
+import * as v from 'valibot';
+import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
+import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
+import type { ShardContext } from '../plugin/context';
+import { entryOwner } from '../shardfile/entryOwners';
+import { declaredLootEconomy } from '../shard/declaredRows';
+import { installDeclaredCollectionKeepsakes } from '../compendium/keepsakes';
+import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
+import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import { Sword } from '../weapons/Sword';
+import { installItemEffects } from '../loadout/effects';
+import { enteredLootPresentation, installRuntimeLoot } from '../loot/runtime';
+
+const ended = (ctx: ShardContext): boolean => ctx.scope.disposed;
+
+/** Complete an entered quest's data-declared keepsakes, effects and loot after
+ * its figures and chapter are ready. Its scope owns all resulting bindings. */
+export async function installQuestContinuation(ctx: ShardContext, input: unknown): Promise<void> {
+  const row = v.parse(QuestContinuationSchema, input), adventure = entryOwner(ctx.scope, 'quest', row.quest);
+  const catalogue = entryOwner(ctx.scope, 'collection', row.collection), shell = ctx.game.runtime, world = shell?.world, play = shell?.play;
+  if (world === undefined || world === null || play === undefined || play === null) throw new Error('Quest continuation needs its entered world');
+  const swords = play.weapons.list.map(({ id }) => play.weapons.get(id)).filter((weapon): weapon is Sword => weapon instanceof Sword);
+  const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
+  installItemEffects(ctx);
+  const cosmeticRows = await ctx.product.json(row.cosmetics.file);
+  if (ended(ctx)) return;
+  const cosmetics = defineWorldSceneCatalogue(cosmeticRows), sources = sharedModelContext(world.sky);
+  const bind = (model: ModelDef<Record<string, unknown>>): ModelDef<Record<string, unknown>> => ({ ...model,
+    build: (_context, params, rng) => model.build({ ...sources, specimenScope: ctx.scope }, params, rng) });
+  const collections = v.parse(CollectionDisplaysSchema, ctx.product.section<unknown>(`custom/${row.collections}`));
+  await installDeclaredCollectionKeepsakes(ctx, collections.keepsakes, economy,
+    new Map([['collection', { adventure, world, play, swords, catalogue,
+      models: new Map(Object.entries(row.cosmetics.models).map(([id, key]) => [id, bind(cosmetics.model(key))])) }]]));
+  if (ended(ctx)) return;
+  const shop = await ctx.product.json(row.loot.shop);
+  if (ended(ctx)) return;
+  const presentation = enteredLootPresentation(ctx, row.loot.id);
+  installRuntimeLoot(ctx, presentation, { shop, minimap: row.loot.minimap, before: row.loot.before });
+}
