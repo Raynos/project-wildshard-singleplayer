@@ -1,5 +1,5 @@
 export function accuracyRecorder() {
-      const state = { samples: [], final: null, readyAt: 0, firstAt: -1, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [], workerReceipts: [] };
+      const state = { version: 2, samples: [], final: null, readyAt: 0, firstAt: -1, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [], workerReceipts: [] };
       Reflect.set(window, '__loadingAccuracy', state);
       navigator.serviceWorker.addEventListener('message', event => {
         if (!state.readyAt && ['WS_BACKGROUND_DOWNLOAD', 'WS_WORKER_DOWNLOAD'].includes(event.data?.type)) state.workerReceipts.push(event.data);
@@ -25,7 +25,10 @@ export function accuracyRecorder() {
           path: root.dataset.path, step: root.dataset.step, setup: root.dataset.setup,
           networkBytes: root.dataset.networkBytes, cachedBytes: root.dataset.cachedBytes,
           pendingBytes: root.dataset.pendingBytes, rows };
-        const detailed = `${sample.detail}|${sample.footer}|${rows.map(row => row.detail).join('|')}`;
+        // Wait ages are clocks, not completed work. Real transport/cache byte
+        // changes still count during a long read before its file completes.
+        const footer = sample.footer.replaceAll(/ · \d+(?:\.\d+)? s(?= ·|$)/gu, '');
+        const detailed = `${sample.detail}|${footer}|${sample.networkBytes}|${sample.cachedBytes}|${sample.pendingBytes}|${rows.map(row => row.detail).join('|')}`;
         const changed = detailed !== state.last;
         if (changed) { state.updates.push(now); state.last = detailed; }
         if (changed || now - state.lastSampleAt >= 250) { state.samples.push(sample); state.lastSampleAt = now; }

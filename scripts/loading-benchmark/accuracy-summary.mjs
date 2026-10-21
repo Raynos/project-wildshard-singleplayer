@@ -19,7 +19,7 @@ const receipts = inputs.map(file => {
   const receipt = { surface, pin: raw.pin, path: raw.path, device: raw.device, cpu: raw.cpu,
     rawSHA256: createHash('sha256').update(bytes).digest('hex'), errors };
   return Object.assign(receipt, report, {
-    firstAt: accuracy.firstAt, readyAt: accuracy.readyAt, updates: accuracy.updates,
+    recorderVersion: accuracy.version ?? 1, firstAt: accuracy.firstAt, readyAt: accuracy.readyAt, updates: accuracy.updates,
     final: accuracy.final, workerReceiptBatches: accuracy.workerReceipts?.length ?? 0,
     detailSamples: accuracy.samples.map(sample => ({ at: sample.at, step: sample.step,
       detail: sample.detail, footer: sample.footer, stalled: sample.stalled,
