@@ -4,7 +4,7 @@
  * on a canvas at every launch, and encodes each one (WebP; its alpha plane stays lossless).
  * No game, no level, no shard runtime is loaded.
  */
-import { paintCanvas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
+import { paintSteps, type CanvasAtlasRow } from '@wildshard/game/plugin/geometry';
 import type { PaintedBake } from './paintedPage';
 import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from './undergrowthPaint';
 
@@ -13,7 +13,11 @@ const ROWS: Readonly<Record<string, CanvasAtlasRow>> = { ferns: FERN_PAINT, shru
 /** Paint every ground-cover kind's texture from the level's `seed`, keyed by kind. */
 function bakePineUndergrowth(seed: number): Record<string, PaintedBake> {
   return Object.fromEntries(Object.entries(ROWS).map(([kind, row]) => {
-    const canvas = paintCanvas(row, { SEED: seed });
+    const canvas = document.createElement('canvas');
+    canvas.width = row.w; canvas.height = row.h;
+    const context = canvas.getContext('2d');
+    if (context === null) throw new Error('2d canvas unavailable');
+    paintSteps(context, row.steps, { SEED: seed });
     return [kind, { dataUrl: canvas.toDataURL('image/webp', 0.92), width: canvas.width, height: canvas.height }];
   }));
 }

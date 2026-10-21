@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { paintSteps, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
+import { paintSteps, type CanvasAtlasRow } from '@wildshard/game/plugin/geometry';
 import decals from '../src/shards/nine-dragon-stack/data/decals.json' with { type: 'json' };
 
 // Captured from the executable rows at fe0386a05 before their JSON migration.

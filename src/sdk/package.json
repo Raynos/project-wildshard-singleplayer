@@ -88,11 +88,9 @@
     "./questGraph": "./questGraph.ts",
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
     "./kit/geometryPack": "./kit/geometryPack.ts",
-    "./looks/canvasAtlas": "./looks/canvasAtlas.ts",
     "./looks/tileField": "./looks/tileField.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
-    "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
     "./species/clips": "./species/clips.ts",
     "./compileScript": "./bake/compileScript.ts",
     "./runtime/prompts": "./runtime/prompts.ts",
@@ -472,10 +470,6 @@
         "types": "./dist/types/sdk/kit/geometryPack.d.ts",
         "default": "./dist/kit/geometryPack.js"
       },
-      "./looks/canvasAtlas": {
-        "types": "./dist/types/sdk/looks/canvasAtlas.d.ts",
-        "default": "./dist/looks/canvasAtlas.js"
-      },
       "./looks/tileField": {
         "types": "./dist/types/sdk/looks/tileField.d.ts",
         "default": "./dist/looks/tileField.js"
@@ -487,10 +481,6 @@
       "./kit/bakedGeometry": {
         "types": "./dist/types/sdk/kit/bakedGeometry.d.ts",
         "default": "./dist/kit/bakedGeometry.js"
-      },
-      "./kit/mergedPrimitives": {
-        "types": "./dist/types/sdk/kit/mergedPrimitives.d.ts",
-        "default": "./dist/kit/mergedPrimitives.js"
       },
       "./species/clips": {
         "types": "./dist/types/sdk/species/clips.d.ts",

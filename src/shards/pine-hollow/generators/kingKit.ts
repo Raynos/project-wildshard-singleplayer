@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { readRigRest } from '@wildshard/sdk/bake/rig';
-import { buildPrimitive, mergePrimitives } from '@wildshard/sdk/kit/mergedPrimitives';
+import { buildPrimitive, mergePrimitives } from '@wildshard/game/plugin/geometry';
 
 /**
  * The Antler King's kit, baked (SHARD-PLATFORM, sp-o208): the antler lantern (its iron frame and amber glass), the amber

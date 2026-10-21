@@ -1,10 +1,10 @@
 /**
- * The forest floor's painted textures as canvas rows (@wildshard/sdk/looks/canvasAtlas, SHARD-PLATFORM M3): the steps the
+ * The forest floor's painted textures as canvas rows (@wildshard/game/plugin/geometry, SHARD-PLATFORM M3): the steps the
  * old painters in world/undergrowth.ts made, call for call and draw for draw from the level's seed (`SEED`). Build-time
  * only: ./undergrowthPaintPage.ts paints each row in headless Chromium for ./bake-pine-painted.mjs, and the runtime's ground
  * cover reads their platform texture entries in `look/cover-appearance.json`.
  */
-import type { CanvasAtlasRow, CanvasStep } from '@wildshard/sdk/looks/canvasAtlas';
+import type { CanvasAtlasRow, CanvasStep } from '@wildshard/game/plugin/geometry';
 
 /** One fern pinna from (bx, by) at angle `ang` (already times its side): a lobed blade filled with a tinted gradient,
  *  outline up its left edge and back down its right, then its midrib. */

@@ -1145,17 +1145,6 @@ export function paintSteps(g: CanvasRenderingContext2D, steps: readonly CanvasSt
   run(g, steps, root);
 }
 
-/** paint a row on a new canvas of its size (no scale call: a step scales when the painter did) and return the canvas */
-export function paintCanvas(row: CanvasAtlasRow, vars: Readonly<Record<string, number>> = {}): HTMLCanvasElement {
-  const cv = document.createElement('canvas');
-  cv.width = row.w;
-  cv.height = row.h;
-  const g = cv.getContext('2d');
-  if (g === null) throw new Error('2d canvas unavailable');
-  paintSteps(g, row.steps, vars);
-  return cv;
-}
-
 /** paint an atlas row on a new canvas at `scale` (undefined: no scale call) and return it as a mipmapped sRGB texture */
 export function paintCanvasAtlas(row: CanvasAtlasRow, scale?: number): CanvasTexture {
   const cv = document.createElement('canvas');
