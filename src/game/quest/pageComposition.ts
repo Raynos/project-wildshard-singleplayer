@@ -45,12 +45,8 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Quest page requires its entered play host');
   if (ctx.scope.disposed) throw new Error('Quest page left during admission');
   const scope = ctx.scope, d = questPageWorld(scope, rows.world);
-  // Delegate the getters: spreading Game loses its live regional scene/camera.
-  const w = { ...world, ...h, chunk: ctx.manifest, prompts: shell.interactables,
-    game: { get scene() { return world.game.scene; }, get camera() { return world.game.camera; },
-      onUpdate: (run: (dt: number, time: number) => void, id: string): void => { ctx.system({ id, phase: 'update', before: rows.systems.before, run }); } },
-    pois: d.pois,
-    ironDrop: HeldClaims.current(ctx.manifest.slug).claim(rows.held) };
+  const update = (run: (dt: number, time: number) => void, id: string): void => { ctx.system({ id, phase: 'update', before: rows.systems.before, run }); };
+  const ironDrop = HeldClaims.current(ctx.manifest.slug).claim(rows.held);
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.discovery))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services,
@@ -63,10 +59,10 @@ async function preparePage(ctx: ShardContext, input: unknown) {
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
   const sfx = kit.sfx;
-  kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { w.hud.toast(text); },
-    item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
+  kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { h.hud.toast(text); },
+    item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { h.inventory.add(id, n); } } : null,
     calls: new Map(rows.services.map(id => [id, () => { services.run(id); }])) });
-  return { entry, rows, shell, world, h, scope, d, w, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit };
+  return { entry, rows, shell, world, h, scope, d, update, ironDrop, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit };
 }
 const preparations = new WeakMap<Scope, Map<string, Awaited<ReturnType<typeof preparePage>>>>();
 /** Prepare the real placement/interaction owners before borrowed figures enter.
@@ -81,7 +77,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const id = v.parse(QuestPageCompositionSchema, input).id, page = preparations.get(ctx.scope)?.get(id);
   if (page === undefined || ctx.scope.disposed) throw new Error('Quest page is not prepared');
   preparations.get(ctx.scope)?.delete(id);
-  const { entry, rows, h, scope, d, w, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit } = page;
+  const { entry, rows, world, h, scope, d, update, ironDrop, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit } = page;
   const adventure: QuestPageComposition = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   await entry.achievements();
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
@@ -93,22 +89,22 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   if (talks.people.length === 0) throw new Error('Quest requires its declared speaker');
   adventure.spine = { ...chapter, get places() { return chapter.places; }, get dialogue() { return talks.dialogue(); } };
   entry.deaths({ effects: rows.deaths, moves: rows.deathMoves, order: 10 });
-  w.game.onUpdate((dt, t) => {
-    talks.update(dt, t, w.player.position);
-    if (!practiceRoom.open) chapter.chip.update(t, w.player);
+  update((dt, t) => {
+    talks.update(dt, t, world.player.position);
+    if (!practiceRoom.open) chapter.chip.update(t, world.player);
   }, rows.systems.talks);
   entry.deaths({ effects: [{ effects: [{ kind: 'kill' }] }], order: 35 });
   adventure.trader = entry.trader({ rows: traderStall, resources: { ...rows.trader, before: rows.systems.before } });
   entry.observe();
   entry.bench();
-  w.ironDrop?.bindGuardFlags(flags.all);
+  ironDrop?.bindGuardFlags(flags.all);
   {
     const cable = await entry.cable({ mode: rows.cable.mode, carriage: rows.cable.carriage, scene: { kind: 'placement', id: rows.cable.scene },
       prompt: rows.cable.prompt, radius: rows.cable.radius, label: rows.cable.label,
       feedback: { weapons: 'visible', start: { sound: 'lever', at: rows.cable.a }, end: { sound: 'plate', at: rows.cable.b } } });
     if (cable.placed === null) throw new Error('Quest cable requires its declared placement');
     const zip = { ...cable, placed: cable.placed, a: scenes.vector(rows.cable.a), b: scenes.vector(rows.cable.b) };
-    w.game.onUpdate(cable.update, rows.systems.cable);
+    update(cable.update, rows.systems.cable);
     adventure.zipline = zip;
     adventure.setAnchor(rows.cable.publish, { x: scenes.vector(rows.cable.anchor).x, z: scenes.vector(rows.cable.anchor).z });
   }
@@ -119,22 +115,22 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   let guide: PlaceGuide<Places['points'][number]> | null = null;
   if (d.flock !== null) {
     const flock = d.flock; guide = new PlaceGuide<Places['points'][number]>({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...content.guide } },
-      { points: () => places.points, discovered: places.discovered, position: () => w.player.position,
-        fly: (target: { readonly x: number; readonly z: number }) => flock.guide(w.player.position, target.x, target.z) });
+      { points: () => places.points, discovered: places.discovered, position: () => world.player.position,
+        fly: (target: { readonly x: number; readonly z: number }) => flock.guide(world.player.position, target.x, target.z) });
     const liveGuide = guide;
-    w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered && !w.hud.paused && w.player.position.y <= rows.guideHeight)
-      liveGuide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, rows.systems.guide);
+    update(dt => { if (dt > 0 && h.hud.entered && !h.hud.paused && world.player.position.y <= rows.guideHeight)
+      liveGuide.update(dt, Math.hypot(world.player.velocity.x, world.player.velocity.z)); }, rows.systems.guide);
   }
-  adventure.complete = installCompletion(ctx, flags, w.progress, adventure.spine.objective.root, anchors);   // before the finale: its reward hands over to the card
+  adventure.complete = installCompletion(ctx, flags, h.progress, adventure.spine.objective.root, anchors);   // before the finale: its reward hands over to the card
   const pool = place(rows.boss.pool);
   const finale = await installChapterWakeEncounter(ctx, await ctx.product.json(rows.files.encounter), pool);
-  scope.onDispose(flags.onChange((flag, on) => { w.ironDrop?.bindGuardFlags(flags.all); if (on && !flag.startsWith('plate:')) guide?.progressed(); }));
+  scope.onDispose(flags.onChange((flag, on) => { ironDrop?.bindGuardFlags(flags.all); if (on && !flag.startsWith('plate:')) guide?.progressed(); }));
   setAnchor(rows.boss.reward, finale.rewardAt);
   adventure.finale = { get actor() { return finale.actor; }, rewardAt: finale.rewardAt, rewardPose: finale.rewardPose };
   adventure.ecology = installPageReturns(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.returns))));
 
   let placeT = 0;
-  w.game.onUpdate((_dt, t) => { if (t - placeT > rows.placeInterval) { placeT = t; places.update(w.player.position.x, w.player.position.z); } }, rows.systems.places);
+  update((_dt, t) => { if (t - placeT > rows.placeInterval) { placeT = t; places.update(world.player.position.x, world.player.position.z); } }, rows.systems.places);
   ctx.debug.expose(rows.debug, { content, flags, kit, spine: adventure.spine, places, finale: adventure.finale,
     ecology: adventure.ecology, complete: adventure.complete, trader: adventure.trader });
   if (rows.presentation?.mapPois === true) chapter.publishMap({ tally: true });
