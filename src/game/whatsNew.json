@@ -1,10 +1,10 @@
 {
   "date": "21 OCT 2026",
-  "updated": "2026-10-21T04:27:00Z",
+  "updated": "2026-10-21T15:01:00Z",
   "entries": [
-    "Infinite Wildshard: open plots now show turning holograms",
-    "Infinite Wildshard: distant cells drawn as far impostors",
-    "Nalati Grasslands: much lower memory while playing",
-    "Loading screen: honest byte counts and steady progress"
+    "Infinite Wildshard: no more getting stuck on the arrival screen",
+    "Infinite Wildshard: distant cells show their ground, not blank fog",
+    "Entering a cell now shows the full loading screen",
+    "Infinite Wildshard: the whole grid downloads ahead of time"
   ]
 }
