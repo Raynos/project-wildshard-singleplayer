@@ -14,7 +14,7 @@ import { NativeViewSchema, CaveRowsSchema, PoolGroundSchema } from '../src/shard
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import { resolveBootSources, type BootFileRecipes } from '../src/engine/boot/filePolicy';
+import { resolveBootSources } from '../src/engine/boot/filePolicy';
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from '../src/shards/pine-hollow/generators/bootFiles';
 import metadata from '../src/shards/pine-hollow/data/bootMetadata.generated.json' with { type: 'json' };
 import explorer from '../src/shards/pine-hollow/data/explorerMetadata.generated.json' with { type: 'json' };
@@ -23,7 +23,8 @@ import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' 
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import { ASTC6_PHONE } from '../src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated';
-import { bootSources, usePineGpuFiles } from '../src/shards/pine-hollow/runtime/boot/files';
+import { bootSources, bootFiles, pineMemoryTrim, pineSetCap } from '../src/shards/pine-hollow/runtime/boot/files';
+import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
 
 test('world view rows come from the admitted section', () => {
   const section = output.custom.sections.find(row => row.name === 'custom/nativeView');
@@ -40,18 +41,23 @@ test('world view rows come from the admitted section', () => {
 
 test('pre-admission metadata preserves Explorer identities and ordered boot recipes', () => {
   expect(explorer.cards).toEqual(FINISH_CARDS);
-  expect(metadata).toEqual({ recipes:PINE_BOOT_FILES, sources:PINE_BOOT_SOURCES });
   const inputs = { pages:{ coats:coatPages.tiers }, aliases:{ props:authored.propMaterials } };
+  const before = currentPageMode();
   try {
-    for (const table of [GPU_FILES, { phone:{ ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop:GPU_FILES.desktop }]) {
-      usePineGpuFiles(table);
+    for (const mode of ['shard', 'grid'] as const) {
+      setPageMode(mode);
+      expect(pineMemoryTrim()).toBe(mode === 'grid');
+      expect([256, 512, 1024, 2048].map(pineSetCap)).toEqual(mode === 'grid' ? [256, 512, 512, 2048] : [256, 512, 1024, 2048]);
+      const table = mode === 'grid' ? { phone:{ ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop:GPU_FILES.desktop } : GPU_FILES;
+      const baked = mode === 'grid' ? metadata.grid : metadata.standalone;
       for (const tier of ['phone','desktop'] as const) for (const tex of ['img','ktx2'] as const) {
         const expected = resolveBootSources(PINE_BOOT_FILES, PINE_BOOT_SOURCES, tier, tex, table, inputs);
-        expect(resolveBootSources(metadata.recipes as BootFileRecipes, metadata.sources, tier, tex, table, inputs)).toEqual(expected);
+        expect(baked.modes[tier][tex]).toEqual(expected);
         expect(bootSources(tier, tex)).toEqual(expected);
+        if (tex === 'img') expect(bootFiles(tier)).toEqual(Object.values(expected).flat());
       }
     }
-  } finally { usePineGpuFiles(GPU_FILES); }
+  } finally { setPageMode(before); }
 });
 
 test('generated diagnostic eyes retain the authored probes and native terrain height', () => {

@@ -18,7 +18,7 @@ import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { installRangedPage } from '@wildshard/game/loadout/rangedPage';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
-import { pineMemoryTrim, pineSetCap } from '../debug/options';
+import { pineMemoryTrim, pineSetCap } from '../boot/files';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 export class PineLandmarks {

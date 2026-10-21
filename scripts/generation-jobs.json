@@ -18472,7 +18472,7 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./src/sdk/bake/source-loader.mjs",
+        "./scripts/bake-loader.mjs",
         "src/shards/pine-hollow/generators/bake-boot-metadata.mjs"
       ],
       "inputRoots": [
@@ -18492,7 +18492,30 @@
         "src/shards/pine-hollow/manifest.json",
         "src/shards/pine-hollow/data/terrainBindings.json",
         "public/assets/baked/pine-hollow/terrain.bin",
-        "src/format"
+        "src/format",
+        "src/shards/pine-hollow/generators/bootInventory.ts",
+        "src/shards/pine-hollow/ktx2.generated.ts",
+        "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts",
+        "src/shards/pine-hollow/data/coatPages.generated.json",
+        "src/shards/pine-hollow/data/timberWorld.generated.json",
+        "src/engine/boot/filePolicy.ts",
+        "src/engine/boot/tables.ts",
+        "src/engine/boot/ktx2.generated.ts",
+        "src/engine/app/identity.ts",
+        "src/engine/package.json",
+        "src/game/shard/list.ts",
+        "src/game/identity.ts",
+        "scripts/bake-loader.mjs",
+        "scripts/generation-jobs.json",
+        "public/assets/hdri",
+        "public/assets/baked/pine-hollow",
+        "public/assets/tex",
+        "public/assets/models",
+        "public/assets/pine-hollow",
+        "public/assets/gpu",
+        "public/assets/horizon",
+        "public/assets/lut",
+        "src/shards/pine-hollow/data/pagePolicy.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/bootMetadata.generated.json",

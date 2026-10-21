@@ -1,7 +1,6 @@
 import { GPU_FILES } from '../../ktx2.generated';
-import { pineMemoryTrim } from '../debug/options';
+import { pineMemoryTrim } from './files';
 import { ASTC6_PHONE } from './astc6/ktx2.generated';
-import { usePineGpuFiles } from './files';
 
 /**
  * Pine Hollow's KTX2 table (the manifest's `ktx2`, read at the boot's ktx2 stage). G180 B2 (Jake, E450): with the Pine
@@ -13,6 +12,5 @@ import { usePineGpuFiles } from './files';
  */
 export function pineKtx2(): { GPU_FILES: typeof GPU_FILES } {
   const table = pineMemoryTrim() ? { phone: { ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop: GPU_FILES.desktop } : GPU_FILES;
-  usePineGpuFiles(table);
   return { GPU_FILES: table };
 }
