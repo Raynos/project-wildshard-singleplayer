@@ -1,5 +1,5 @@
 export interface GridReadout { home: string; cells: readonly { instance: string; slug: string; cell: readonly [number, number] }[] }
-export interface GridSeamRoute { home: string; peer: string; speed: 15 | 30; start: { x: number; z: number }; waypoints: { x: number; z: number }[]; timeout: number }
+export interface GridSeamRoute { home: string; peer: string; speed: 15 | 30; start: { x: number; z: number }; waypoints: { x: number; z: number }[]; timeout: number; turnaround: number }
 export interface GridDriveResult extends GridSeamRoute {
   trace: { time: number; x: number; y: number; z: number; current: string | null; enabled: boolean; gameplayReady: boolean }[];
   stuck: { waypoint: number; x: number; y: number; z: number; current: string | null }[];

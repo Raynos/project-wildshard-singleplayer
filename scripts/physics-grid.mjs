@@ -7,11 +7,18 @@ export function gridSeamRoute(state, speed) {
     .sort((a, b) => (a.cell[0] === home.cell[0] - 1 && a.cell[1] === home.cell[1] - 1 ? -1 : 0) - (b.cell[0] === home.cell[0] - 1 && b.cell[1] === home.cell[1] - 1 ? -1 : 0) || a.instance.localeCompare(b.instance))[0];
   if (peer === undefined) throw new Error('Grid drive requires a neighbouring template cell');
   const dx = peer.cell[0] - home.cell[0], dz = peer.cell[1] - home.cell[1];
-  const hx = home.cell[0] * 555, hz = home.cell[1] * 555;
-  return { home: home.instance, peer: peer.instance, speed,
-    start: { x: hx + dx * 230, z: hz + dz * 230 },
-    waypoints: [{ x: hx + dx * 277.5, z: hz + dz * 277.5 }, { x: hx + dx * 325, z: hz + dz * 325 },
-      { x: hx + dx * 277.5, z: hz + dz * 277.5 }, { x: hx + dx * 230, z: hz + dz * 230 }], timeout: 60 };
+  const hx = home.cell[0] * 555, hz = home.cell[1] * 555, px = peer.cell[0] * 555, pz = peer.cell[1] * 555;
+  const start = dz !== 0 ? { x: hx, z: hz + dz * 230 } : { x: hx + dx * 230, z: hz };
+  const road = dz !== 0 ? { x: hx, z: hz + dz * 277.5 } : { x: hx + dx * 277.5, z: hz };
+  const socket = dz !== 0 ? { x: px, z: pz - dz * 277.5 } : { x: px - dx * 277.5, z: pz };
+  const entry = dz !== 0 ? { x: px, z: pz - dz * 230 } : { x: px - dx * 230, z: pz };
+  // Even diagonal neighbours are entered through their declared midpoint socket.
+  const outbound = [start, road, ...(road.x === socket.x && road.z === socket.z ? [] : [socket]), entry];
+  const waypoints = [...outbound.slice(1), ...outbound.slice(0, -1).reverse()];
+  let distance = 0, previous = start;
+  for (const point of waypoints) { distance += Math.hypot(point.x - previous.x, point.z - previous.z); previous = point; }
+  return { home: home.instance, peer: peer.instance, speed, start, waypoints, turnaround: outbound.length - 2,
+    timeout: Math.ceil(distance / speed) + 30 };
 }
 
 /** This function is serialized into the browser. Only the initial home pose is positioned; a stuck leg never teleports. */
@@ -41,16 +48,15 @@ export async function driveGridSeam(route) {
           const state = read(), feet = state.worldFeet;
           trace.push({ time: elapsed, x: feet.x, y: feet.y, z: feet.z, current: state.current, enabled: player.motor.collider.isEnabled(), gameplayReady: state.gameplayReady });
           if (wi >= route.waypoints.length) { finish(); return; }
-          const incoming = wi === 1 ? route.peer : wi === 3 ? route.home : null;
+          const incoming = wi <= route.turnaround ? route.peer : route.home;
           if (state.current === null && incoming !== null && !state.residents.includes(incoming)) {
-            input.clear(); waitingSeconds += dt;
+            waitingSeconds += dt;
             if (waitingSince === 0) waitingSince = performance.now();
             const issues = routeIssues(state);
             if (Object.keys(issues).length > 0) throw new Error(`Grid admission failed: ${JSON.stringify(issues)}`);
             if (performance.now() - waitingSince > 120_000) throw new Error('Grid neighbour admission timed out on the road');
-            lastProgress = { time: elapsed, x: feet.x, z: feet.z }; return;
-          }
-          waitingSince = 0;
+            lastProgress = { time: elapsed, x: feet.x, z: feet.z };
+          } else waitingSince = 0;
           if (elapsed - waitingSeconds > route.timeout) { timedOut = true; finish(); return; }
           const wp = route.waypoints[wi], dx = wp.x - feet.x, dz = wp.z - feet.z, distance = Math.hypot(dx, dz);
           if (distance < 1) { wi++; input.clear(); lastProgress = { time: elapsed, x: feet.x, z: feet.z }; return; }
