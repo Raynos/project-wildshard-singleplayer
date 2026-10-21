@@ -499,17 +499,6 @@ export class ShardDecisions {
   /** View-only channel programs may change without invalidating a retained body's logical save.
    * Registry identities and every mechanical declaration remain exact. Guests with channel/signal
    * capabilities, and owners with actual mover authority, retain the complete original contract. */
-  /** How many script rows were appended since `saved` (0: the same contract), or null when it is incompatible. G566:
-   * a strict prefix of today's rows with every other field equal restores, and only the appended bindings start fresh. */
-  private appendedRows(saved: string): number | null {
-    if (this.matchesContract(saved)) return 0;
-    const record = v.record(v.string(), v.unknown()), rows = v.array(v.unknown());
-    const { rows: previousRows, ...previous } = v.parse(record, JSON.parse(saved)), { rows: currentRows, ...current } = v.parse(record, JSON.parse(this.contract));
-    const before = v.parse(rows, previousRows), now = v.parse(rows, currentRows);
-    if (before.length >= now.length || JSON.stringify(previous) !== JSON.stringify(current)
-      || before.some((row, i) => JSON.stringify(row) !== JSON.stringify(now[i]))) return null;
-    return now.length - before.length;
-  }
   private matchesContract(saved: string): boolean {
     if (saved === this.contract) return true;
     if (this.sim.borrowedActors === undefined || this.movers !== undefined || this.rows.some(row =>
@@ -528,13 +517,7 @@ export class ShardDecisions {
   /** Validate the whole logical record before mutation; loading invokes no Wasm or gameplay edge. */
   restore(input: SimValue): void {
     if (typeof input !== 'string') throw new Error('Invalid decision continuation');
-    const parsed = v.parse(continuation, JSON.parse(input)), appended = this.appendedRows(parsed.contract);
-    if (appended === null) throw new Error('Incompatible decision continuation');
-    // appended bindings take this fresh host's own initial continuation and lifetime; the saved ones restore exactly
-    const fresh = this.host.snapshot(), first = this.rows.length - appended;
-    const added = fresh.bindings.filter(row => row.id > first);
-    const saved = appended === 0 ? parsed : { ...parsed, enabled: [...parsed.enabled, ...added.map(row => [row.id, row.enabled === true] as [number, boolean])],
-      decision: { ...parsed.decision, bindings: [...parsed.decision.bindings, ...added] } };
+    const saved = v.parse(continuation, JSON.parse(input)); if (!this.matchesContract(saved.contract)) throw new Error('Incompatible decision continuation');
     const fields = new Map<number, Map<number, number>>();
     for (const [actor, field, value] of saved.fields) { this.position(actor); if (!this.fieldActors.has(actor)) throw new Error('Invalid public field owner'); this.validateField(field, value); const values = fields.get(actor) ?? new Map<number, number>(); if (values.has(field)) throw new Error('Duplicate decision field'); values.set(field, value); fields.set(actor, values); }
     const expectedFields = this.source.state.shared.filter(row => row.privacy === 'public' && row.type !== 'string').length;

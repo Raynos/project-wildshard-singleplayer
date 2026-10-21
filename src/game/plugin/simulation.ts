@@ -1,7 +1,6 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { parseNativeLoadoutRow, type NativeLoadoutRowSchema } from '@wildshard/format/nativeItems';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
-import { DeclaredBodyOps } from '../quest/bodyOps';
 import { ShardDecisions } from '../shardfile/decisions';
 import { WorldTargetHost } from '../shardfile/worldTargets';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
@@ -566,12 +565,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const decisionActors = new Set(decisionRows.flatMap(row => Object.values(row.actors)));
     const decisionEncounters = new Set(shard.encounters.filter(row => decisionActors.has(row.entity)).map(row => row.id));
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud, decisionEncounters);
-    // G566: declared prop bodies (sim/bodies) are one native body host, lent to the shard's decision scripts; body post,
-    // then the existing decision commit, then body pre, each fixed step
-    const bodySection = ports.sections?.get('sim/bodies'), bodyOps = bodySection === undefined ? undefined : DeclaredBodyOps.native(host, bodySection);
-    if (bodyOps !== undefined) host.onStep('bodies.post', dt => { bodyOps.post(dt); });
-    const decisions = decisionRows.length === 0 ? undefined : new ShardDecisions(host, shard, assets, ports.sections ?? new Map(), encounters, quest, movers, ports.quest?.fact, ports.restoring ?? false, ports.navigation, ports.scriptDisabled, bodyOps);
-    if (bodyOps !== undefined) host.onStep('bodies.pre', dt => { bodyOps.pre(dt); });
+    const decisions = decisionRows.length === 0 ? undefined : new ShardDecisions(host, shard, assets, ports.sections ?? new Map(), encounters, quest, movers, ports.quest?.fact, ports.restoring ?? false, ports.navigation, ports.scriptDisabled);
     // All individual/custom aliases and encounter recipes have admitted successfully before setup draws or group work.
     const groups = preparedGroups.install(ports.restoring ?? false);
     if (!host.embedded && !ports.restoring) host.physics.step();
