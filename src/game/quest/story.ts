@@ -48,7 +48,7 @@ export interface ChapterStoryPorts {
   readonly sting: () => void;
   readonly open: () => void;
   readonly feat?: (event: string, count: number) => void;
-  readonly place?: QuestPresentationOptions['place'];
+  readonly placements?: QuestPresentationOptions['placements'];
   readonly chip?: QuestPresentationOptions['chip'];
   readonly markers?: QuestPresentationOptions['markers'];
   readonly fullMap?: { setQuest?: (source: () => MapQuest | null) => void; setPois?: (source: () => MapPoi[], options?: { declutter?: boolean }) => void };
@@ -65,7 +65,8 @@ export function presentChapterStory(line: QuestLine, input: ChapterStoryPresenta
   for (const row of rows.talks) if (ports.figures[row.id] === undefined || ports.npcs[row.id] === undefined) throw new Error(`Missing chapter speaker ${row.id}`);
   ports.ctx?.answer('feat.toast', value => ({ ...value, allowed: value.allowed && (value.event === undefined || !captioned.has(value.event)) }));
   const markers = (): LiveMarker[] => (line.active?.markers() ?? (rows.messages === undefined ? [] : line.chapters[0]?.markers()) ?? []).map(m => {
-    const at = ports.place?.(m.at) ?? m.at;
+    const at = ports.placements === undefined ? m.at : ports.placements[JSON.stringify(m.at)];
+    if (at === undefined) throw new Error('Chapter marker lacks an admitted frame placement');
     return { id: m.id, label: m.label, short: m.short ?? m.label, x: at.x, z: at.z };
   });
   const chip = new QuestChip({ markers: ports.markers ?? markers, chip: ports.chip ?? (() => {

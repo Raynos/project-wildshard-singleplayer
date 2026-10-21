@@ -9,7 +9,7 @@ import { modelContext, type ModelContext, type ModelDef } from '@wildshard/engin
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { place } from '@wildshard/engine/models/place';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { Place } from '@wildshard/engine/world/interact/types';
+import type { QuestPlace } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
@@ -35,7 +35,7 @@ export interface CollectionKeepsakeHost<A extends { kind: string; variant?: stri
   onDeath?: (run: (animal: A) => void, order: number) => void;
   owned: Owned;
   flags: Flags;
-  place: (row: Place) => { x: number; y: number; z: number; yaw: number };
+  place: (row: QuestPlace) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
   rewardAt: () => THREE.Vector3 | undefined;
   sky: SkyRig;

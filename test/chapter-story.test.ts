@@ -120,7 +120,7 @@ test('Driftwood chapter adoption matches its previous presenter through completi
       fullMap: { setQuest: read => { oldCard = read; } } }, oldQuest, { place });
     const current = presentChapterStory(line, rows, { scope, flags, npcs: {}, figures: {}, places: [], prompts: [], open: () => undefined,
       toast: text => { notices.push(text); }, sting: () => { notices.push('sting'); }, fullMap: { setQuest: read => { card = read; } },
-      place, chip: () => quest.chip() });
+      placements: Object.fromEntries([...quest.def.intro?.markers ?? [], ...quest.def.steps.flatMap(step => step.markers ?? [])].map(marker => [JSON.stringify(marker.at), place(marker.at)])), chip: () => quest.chip() });
     let time = 0;
     for (const condition of [quest.def.startWhen, ...quest.def.steps.map(step => step.done)]) {
       for (const flag of condition?.none ?? []) { flags.clear(flag); oldFlags.clear(flag); }

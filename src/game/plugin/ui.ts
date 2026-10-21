@@ -28,7 +28,7 @@ import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import { Flags, flagValue, test as testFlags } from '@wildshard/engine/world/interact/flags';
 import { boxInFrame, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
-import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
+import type { Place, QuestPlace, Interactable } from '@wildshard/engine/world/interact/types';
 import { questMessageHandlers, type QuestMessageRows, QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
@@ -404,6 +404,8 @@ export interface QuestPresentationOptions {
   flags?: Flags;
   /** Resolve existing POI-local markers; simple target positions need no resolver. */
   place?: (at: Place) => { x: number; y: number; z: number };
+  /** Admitted world coordinates keyed by the authored marker placement. */
+  placements?: Readonly<Record<string, { readonly x: number; readonly y: number; readonly z: number }>>;
   introTitle?: string;
   npc?: QuestPresentationNpc;
   npcs?: QuestPresentationNpc[];
@@ -466,15 +468,30 @@ export interface QuestPresentationContext {
   } };
 }
 
+/** Frozen callbacks keep their closed Place vocabulary until NEXT N5. */
+function legacyQuestPlace(at: QuestPlace): Place {
+  const poi = at.poi;
+  if (poi === 'world' || poi === 'hut' || poi === 'lookout' || poi === 'wreck' || poi === 'shrine' || poi === 'cave' || poi === 'pier') return { ...at, poi };
+  throw new Error('Authored quest frame requires a live frame resolver');
+}
+
 /** Shared wiring for older adventures that own their frame order. New shards use installQuestPresentation. */
 export function presentQuest(host: QuestPresentationHost, quest: QuestState, options: QuestPresentationOptions = {}): QuestPresentation {
   const messages=options.messages===undefined?null:questMessageHandlers(quest,options.messages,{toast:host.toast,sting:host.sting,
     ...(options.afterStep===undefined?{}:{afterStep:options.afterStep})});
   const scope = host.scope.child(`quest.${quest.def.id}`);
-  const resolve = options.place ?? ((at: Place) => {
+  if (options.place !== undefined && options.placements !== undefined) throw new Error('Quest presentation requires one frame resolver');
+  const legacy = options.place, placements = options.placements;
+  const resolve = (at: QuestPlace): { x: number; y: number; z: number } => {
+    if (placements !== undefined) {
+      const point = placements[JSON.stringify(at)];
+      if (point === undefined) throw new Error('Quest marker lacks an admitted frame placement');
+      return point;
+    }
+    if (legacy !== undefined) return legacy(legacyQuestPlace(at));
     if (at.poi !== 'world' || at.anchor !== undefined) throw new Error('Quest POI markers require a place resolver');
     return { x: at.x, y: (at.y ?? 0) + (at.dy ?? 0), z: at.z };
-  });
+  };
   const markers = (): LiveMarker[] => quest.markers().map((m) => {
     const p = resolve(m.at);
     return { id: m.id, label: m.label, short: m.short ?? m.label, x: p.x, z: p.z };

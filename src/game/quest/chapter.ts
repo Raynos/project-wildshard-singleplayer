@@ -317,13 +317,9 @@ function buildQuestChapter(ctx: QuestChapterContext, storyInput: unknown, input:
   const toast = (text: string): void => { play.hud.toast(text); }, sting = (): void => { play.music.sting('chunk'); };
   const fullMap = completeStory === null && entered?.game.runtime?.play !== undefined && entered.game.runtime.play !== null
     ? entered.game.runtime.play.fullMap : { setQuest: play.fullMap.setQuest.bind(play.fullMap) };
-  const options: Pick<QuestPresentationOptions, 'markers' | 'chip' | 'place'> = { markers: () => left() ?? markers(), chip: () => { const remaining = left(); return remaining === null ? quest.chip()
+  const options: Pick<QuestPresentationOptions, 'markers' | 'chip' | 'placements'> = { markers: () => left() ?? markers(), chip: () => { const remaining = left(); return remaining === null ? quest.chip()
       : { label: remaining.length > 0 ? rows.remainingLabel ?? '' : '', count: '' }; },
-    ...(rows.placements === undefined ? {} : { place: at => {
-      const resolved = rows.placements?.[JSON.stringify(at)];
-      if (resolved === undefined) throw new Error('Quest chapter lacks an admitted marker placement');
-      return resolved;
-    } }),
+    ...(rows.placements === undefined ? {} : { placements: rows.placements }),
   };
   const presentation = line === null || story.chapters === undefined
     ? presentQuestStory(parseQuestStory(story), { scope: ctx.scope, player: world.player, fullMap, toast, sting }, quest, options)

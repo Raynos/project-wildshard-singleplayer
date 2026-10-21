@@ -2,14 +2,14 @@ import { engineString } from '../strings';
 import { test, type Flags } from '../world/interact/flags';
 import type { Scope } from '../app/scope';
 import type { Events } from '../events/events';
-import type { Cond, Place } from '../world/interact/types';
+import type { Cond, QuestPlace } from '../world/interact/types';
 
 export interface QuestMarker {
   id: string;
   label: string;
   /** the HUD chip's short name for it ("SEA CAVE" for "SEA CAVE KEY"); the map keeps `label` */
   short?: string;
-  at: Place;
+  at: QuestPlace;
   /** hidden once this holds (the level at this spot was taken) */
   hideWhen?: Cond;
 }

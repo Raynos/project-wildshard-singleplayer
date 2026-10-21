@@ -6658,6 +6658,14 @@ Frame records admit up to 4096 entries and refuse unsafe or inherited identities
 The page and trader schemas use this open frame vocabulary. Historical `Place`,
 `PoiId` and story marker grammar retain the frozen compatibility vocabulary
 until SHARD-PLATFORM-NEXT N5; live frame records do not depend on that union.
+Live `QuestMarker.at`, story markers, discovery and keepsake placement use
+`QuestPlace` with authored frame ids. Client quest presentation accepts a
+`placements` coordinate table keyed by the authored marker placement; the
+entry supplies its already admitted coordinates. The older `place` callback
+keeps its narrow `Place` signature and receives a checked compatibility value.
+Giving both resolvers refuses;
+unknown authored names cannot reach a frozen callback. No quest save wire or
+marker coordinates change for existing content.
 `registryReach` is a
 strict maximum rise above the already selected floor; omission preserves
 unbounded higher-floor selection. The returned `place` respects explicit
