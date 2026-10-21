@@ -133,6 +133,9 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - The main agent builds by default. **At most 3 live subagents, no forks**, one job each, capped at **400k context,
   90 min, ~200 turns**; reports ≤ 40 lines. Never recycle a finished one. Long waits belong to the main agent.
 - Every brief says: don't run `set-label.sh`, mute browsers, capture as the phone, follow GIT.md.
+- **No polling, no receipts** (E491, [docs/plans/BUILD-SPEED.md](docs/plans/BUILD-SPEED.md)): Codex lanes give exec a
+  10 min yield and use `scripts/proof-run.sh` beyond it, never `sleep`/`wait` loops (Claude's `guard-polling.sh` already
+  refuses them); nothing new under `.git/proofs` or `progress/` as proof of work, the numbers go in the commit message.
 - **Heavy proofs run per milestone, not per slice** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): the soak, frame floor, boot smoke and Simulator runs at each
   milestone and before a deploy that changes the grid; the physics walk only after collider changes; slices land on quick
   checks of what they touched. The gpu-gate parity CI runs nightly and at milestones, not on every push.

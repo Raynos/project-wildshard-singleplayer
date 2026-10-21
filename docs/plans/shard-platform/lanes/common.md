@@ -12,8 +12,10 @@ AGENTS.md and docs/process/ hold the rest.
   each touched shard) + the push gate. Touched looks, scenes, client plan or boot: also a real browser first frame
   of each touched shard (headless boots skip the client). One check per batch; never re-check a landed commit. Similar,
   not identical (G415); delete a fragile test that blocks a cut (G416).
-- **No polling (G510):** waits run in a script that wakes you only on a new actionable failure. Logs go to a file;
-  read the failure first; never rerun an identical job (G511).
+- **No polling (G510, E491):** waits run in a script that wakes you only on a new actionable failure. Logs go to a file;
+  read the failure first; never rerun an identical job (G511). Codex: a 10 min exec yield so a build or test returns
+  in one call; longer runs go through `scripts/proof-run.sh` (it pings you); never `sleep`/`wait` in a loop. No new
+  receipts under `.git/proofs` or `progress/` (G506): the numbers go in the commit message.
 - **Messages:** only `scripts/herdr-prompt.sh wildshard-new "<blocker>"`; never wildshard-v or the question tool.
 - **Commits (GIT.md):** pathspec or a private index built on the current HEAD; never stash, reset or restore others'
   files; Conventional subject ≤ 50 chars, body wrapped at 72 with `net -N shard lines (<shard> -N)` and
