@@ -9646,6 +9646,12 @@ restoreHandles({id:oldNativeHandleOrNull}) after physics restoration through
 their existing save owner. Handles never enter AS. Original collision
 owner/material and unique handles are verified before rebinding.
 
+`DeclaredBodyOps.native(simHost, rows)` installs prop-only mechanics
+synchronously for `bindShardfileSim` and `restoreSimHost` callbacks.
+It validates the declaration and refuses actor rows before allocation.
+`await installDeclaredBodyOps(ctx, rows)` retains page species-model
+prewarming before entering the same body host.
+
 `ops.setPlayerIntent({x, z})` copies requested world walk velocity in
 metres per second before collision, at the caller's existing phase.
 `Read.playerIntent(axis)` (scalar opcode 26) reads that sample: axis 0
