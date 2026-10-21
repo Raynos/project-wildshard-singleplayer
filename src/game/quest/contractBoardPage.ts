@@ -2,9 +2,7 @@
  * this binding keeps the existing page panel, prompt, save and payout owners. */
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { isJsonData } from '@wildshard/format/json';
-import { parseContractCatalogue } from '@wildshard/format/contracts';
-import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
+import type { ContractBoardPageRows } from '@wildshard/format/contracts';
 import { jsonSchema, jsonSlot } from '@wildshard/engine/saves/slots';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -20,16 +18,6 @@ import { saveBoard, contractKill, isFilled, type Board } from './contracts';
 import { commitQuestEffects } from './effects';
 import type { bindStoryAchievements } from './story';
 
-const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256)), finite = v.pipe(v.number(), v.finite());
-const text = v.pipe(v.string(), v.maxLength(2048));
-const schema = v.strictObject({ contracts: v.unknown(), panel: v.unknown(),
-  store: v.strictObject({ slot: id, state: id }),
-  at: v.strictObject({ x: finite, z: finite, yaw: finite }),
-  label: text, filled: text, height: finite, radius: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
-  ammunition: v.exactOptional(v.strictObject({ loadout: id, kind: id })),
-  finishes: v.record(id, text),
-  notices: v.strictObject({ claimed: text, filled: text, progress: text }),
-});
 /** Existing page resources returned to the entry's original modal/debug phases. */
 export interface ContractBoardPage {
   readonly state: Board;
@@ -45,19 +33,15 @@ function notice(template: string, values: Readonly<Record<string, string | numbe
 }
 /** Framework-only binding: author input enters through QuestEntry.board as JSON;
  * the entry lends its already-installed sound and achievement services. */
-export function installContractBoardPage(ctx: ShardContext, quest: string, input: unknown,
+export function installContractBoardPage(ctx: ShardContext, quest: string, rows: ContractBoardPageRows,
   sfx: InteractSfx, feats: Awaited<ReturnType<typeof bindStoryAchievements>>): ContractBoardPage {
-  if (ctx.scope.disposed || !isJsonData(input)) throw new Error('Quest board requires live JSON rows');
-  const rows = v.parse(schema, input), contracts = parseContractCatalogue(rows.contracts), panelRows = parsePanelDefinition(rows.panel);
-  for (const [key, allowed] of [['claimed', ['claimed', 'streak']], ['filled', ['goal']], ['progress', ['goal', 'have', 'need']]] as const)
-    for (const token of rows.notices[key].matchAll(/\{([^{}]+)\}/gu)) if (!allowed.some(name => name === token[1])) throw new Error('Unknown board notice field');
+  if (ctx.scope.disposed) throw new Error('Quest board requires a live owner');
+  const contracts = rows.contracts, panelRows = rows.panel;
   const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Quest board requires entered play owners');
   const loadout = rows.ammunition === undefined ? null : enteredHeldLoadout(ctx.scope, rows.ammunition.loadout);
   if (loadout === null && contracts.rows.some(row => row.reward.bolts > 0)) throw new Error('Quest board requires its declared ammunition owner');
   const finishes = new Map(Object.entries(rows.finishes).map(([key, caption]) => [key, { finish: HeldFinishes.current(ctx.manifest.slug).get(key), text: caption }]));
-  for (const key of [...contracts.rows.flatMap(row => row.reward.skin === undefined ? [] : [row.reward.skin]), ...contracts.milestones.map(row => row.skin)])
-    if (!finishes.has(key)) throw new Error('Quest board lacks finish feedback');
   const legacy = jsonSlot(rows.store.slot, 'shard');
   const saved = bindRuntimeState(ctx, ctx.product.shardfile, rows.store.state, () => JSON.stringify(legacy.read(ctx.manifest.slug)), ctx.manifest.slug);
   const owner = new ContractBoard({ contracts, saved: String(saved.read()), radius: rows.radius,
