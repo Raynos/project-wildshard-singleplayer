@@ -12,8 +12,8 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | O1 | Nalati C7 drawing remainder to zero: mountedFigure (66) + pastureView (27), charged by G520; onto approved riding/view hosts with a real second shard, or into Nalati AS + data rows; then C7 locks closed | G530, G520, G518 | sp-o5 19:03 |
 | O2 | Nine look/render.ts (222) onto look-graph / post-chain rows; an AO/uniform-link host only with a real second shard | G513, G533 step 6 | done bee045e89f (sp-o4; render.ts listed view code) |
 | O3 | Driftwood looks: runtime/looks/creatureLooks.ts, captain looks and coat as look graphs, toon/day-sky exports as rows | G532 research D5/D6 | folded into phase C (O7/O8, after X11): clientSpeciesLooks gains a per-animal graph material + glow/texture row with Driftwood as user |
-| O4 | G536 menu hero: three real in-engine captures of the whole 5x5 at the menu hero framing, phone tier, into art/grid/round-28-hero/, SHA to wildshard-new (only once the outer band is filled) | G536 | |
-| O5 | Nalati remaining view code (world/view.ts and look tails) toward 5 % custom | G533 step 6 | |
+| O4 | G536 menu hero: three real in-engine captures of the whole 5x5 at the menu hero framing, phone tier, into art/grid/round-28-hero/, SHA to wildshard-new (only once the outer band is filled) | G536 | done e471dbd7ae (sp-o4) |
+| O5 | Nalati remaining view code (world/view.ts and look tails) toward 5 % custom | G533 step 6 | sp-o4 21:45 |
 | O6 | Pine King atmosphere hook + cave/pool presentation onto boss-host / water rows (listed view code if per-frame) | G532 research P3/P4 | |
 | O7 | Driftwood ocean admitted through world.water (floor, dry, lent, foam) as a declared client-plan world feature (after X11) | G532 phase C, sp-o5 19:55 | |
 | O8 | A living-buildings client feature for Driftwood's shrine life (real second user required, G518) (after X11) | G532 phase C | |
