@@ -24,7 +24,7 @@ export interface ScopeCensus {
   nodes: number;
 }
 type Kind = keyof ScopeCensus;
-interface Cleanup { kind: Kind; run: () => void; readonly child?: Scope }
+interface Cleanup { kind: Kind; run: () => void; readonly child?: Scope; readonly parts?: () => Generator<undefined, void> }
 /** One cleanup `Scope.disposeSteps` has just run: its scope and kind (a caller times its steps and yields between them). */
 export interface DisposeStep { readonly scope: string; readonly kind: Kind }
 export interface NativeCensus {
@@ -274,6 +274,13 @@ export class Scope {
     return id;
   }
   onDispose(fn: () => void): void { this.track('disposers', fn); }
+  /** O20: a cleanup in parts (a cache's evictions, one per part): `dispose()` runs it whole, `disposeSteps()` yields after
+   *  each part, so one big cleanup never holds a sliced retirement's frame. */
+  onDisposeSteps(parts: () => Generator<undefined, void>): void {
+    const whole = (): void => { const run = parts(); while (run.next().done !== true) { /* each part runs here */ } };
+    if (this.closed) { whole(); return; }
+    this.cleanups.add({ kind: 'disposers', run: whole, parts });
+  }
   /** Run `fn` now with this scope as the construction owner (`withOwner`): what it registers ends with this scope. For code
    *  after an `await`, where the owner has fallen back to the page's ambient one (SF57). */
   run<T>(fn: () => T): T { return withOwner(this, fn); }
@@ -317,6 +324,15 @@ export class Scope {
       for (const cleanup of cleanups) {
         if (cleanup.child !== undefined) {
           try { yield* cleanup.child.disposeSteps(); } catch (error) { errors.push(error); }
+          continue;
+        }
+        if (cleanup.parts !== undefined) {
+          const run = cleanup.parts();
+          for (let done = false; !done;) {
+            this.tearing = true;
+            try { done = run.next().done === true; } catch (error) { errors.push(error); done = true; } finally { this.tearing = false; }
+            yield { scope: this.name, kind: cleanup.kind };
+          }
           continue;
         }
         this.tearing = true;

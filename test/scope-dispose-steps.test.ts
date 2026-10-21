@@ -45,3 +45,19 @@ test('O20 disposeSteps still runs every cleanup when one throws, then throws the
   expect(() => { for (const step of root.disposeSteps()) void step; }).toThrow(/root disposal failed: boom/u);
   expect(log).toEqual(['after']);
 });
+
+test('O20 a cleanup in parts runs whole in dispose() and part by part in disposeSteps()', () => {
+  const parts = (log: string[]) => function* abc(): Generator<undefined, void> { for (const part of ['a', 'b', 'c']) { log.push(part); yield; } };
+  const whole: string[] = [], root = new Scope('root');
+  root.onDisposeSteps(parts(whole));
+  root.dispose();
+  expect(whole).toEqual(['a', 'b', 'c']);
+  const stepped: string[] = [], other = new Scope('other');
+  other.onDisposeSteps(parts(stepped));
+  const steps = other.disposeSteps();
+  steps.next();
+  expect(stepped).toEqual(['a']);
+  expect(other.disposing).toBe(true);
+  for (let step = steps.next(); step.done !== true; step = steps.next()) { /* drained */ }
+  expect(stepped).toEqual(['a', 'b', 'c']);
+});

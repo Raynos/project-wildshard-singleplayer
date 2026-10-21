@@ -31,16 +31,20 @@ export class AssetResidencyBridge implements AssetPort {
     if (old !== undefined && old !== claim.id) throw new Error('Runtime cache coverage changed identity');
     if (old !== undefined) return;
     this.owners.set(scope, claim.id);
-    scope.onDispose(() => {
-      this.owners.delete(scope);
-      const errors: unknown[] = [];
-      for (const consumer of this.consumers) if (consumer.users.delete(scope) || consumer.users.size === 0) {
-        // Async source templates may never be drawn; with no consumer/acquisition they are safe to evict too.
-        consumer.retired = true;
-        try { this.evictUnused(consumer); } catch (error) { errors.push(error); }
-      }
-      if (errors.length > 0) throw new AggregateError(errors, 'Runtime cache retirement failed');
-    });
+    scope.onDisposeSteps(() => this.retireCoverage(scope));
+  }
+  /** A covered runtime's retirement: each consumer it leaves unused is evicted, one per part (O20: Nine's evictions in one
+   *  cleanup held a sliced retirement's frame 7.7 s on the Simulator). */
+  private *retireCoverage(scope: Scope): Generator<undefined, void> {
+    this.owners.delete(scope);
+    const errors: unknown[] = [];
+    for (const consumer of this.consumers) if (consumer.users.delete(scope) || consumer.users.size === 0) {
+      // Async source templates may never be drawn; with no consumer/acquisition they are safe to evict too.
+      consumer.retired = true;
+      try { this.evictUnused(consumer); } catch (error) { errors.push(error); }
+      yield;
+    }
+    if (errors.length > 0) throw new AggregateError(errors, 'Runtime cache retirement failed');
   }
   private runtimeOwner(scope: Scope | null): Scope | undefined {
     if (scope === null || scope.disposed) return undefined;
