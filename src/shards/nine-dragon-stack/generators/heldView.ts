@@ -1,6 +1,6 @@
 import { heldGraphFiles } from './heldGraphFiles';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
-import { parseGraphArms } from '@wildshard/format/heldArms';
+import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 import profile from '../data/heldProfile.generated.json' with { type: 'json' };
 import pendants from '../data/heldPendants.json' with { type: 'json' };
 import decals from '../data/decals.json' with { type: 'json' };
@@ -9,7 +9,7 @@ import arms from '../data/arms.json' with { type: 'json' };
 const { ARMS, ARMS_BASE, ARMS_MAPS } = arms;
 const TRAIL = 'nine-vm-trail', EDGE = 'nine-vm-edge';
 
-/** The held arms as one GraphArms row (game/systems/viewmodel/graphArms.ts); runtime code never imports authoring JSON. */
+/** The held arms as one GraphArms row (runtime/viewmodel/graphArms.ts); runtime code never imports authoring JSON. */
 export function heldView(): Readonly<Record<string, unknown>> {
   const scene = parsePrivateScene(pendants);
   const materials = pendants.materials.map(row => row.source);

@@ -1098,17 +1098,6 @@
       }
     },
     {
-      "module": "src/game/systems/viewmodel/graphArms.ts",
-      "documentation": "docs/ENGINE.md",
-      "approvedFeature": {
-        "name": "held-arms",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G475"
-        }
-      }
-    },
-    {
       "module": "src/game/eliteSystem.ts",
       "export": "EliteCoreContinuationSchema",
       "shard": "nalati-grasslands",

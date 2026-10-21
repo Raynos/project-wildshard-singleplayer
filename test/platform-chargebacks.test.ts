@@ -18,11 +18,6 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
   expect(bindings.get(`${phase}\0bossFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0FixedPageSpawnTable`)).toEqual(both);
   expect(platformChargeback('src/game/looks/staticCapture.ts', 'StaticCapture')).toBeNull();
-  const arms = 'src/game/systems/viewmodel/graphArms.ts';
-  const armsUsers = new Map([[arms, both]]);
-  chargePlatformUsers(armsUsers, new Map());
-  expect([...armsUsers.get(arms) ?? []]).toEqual(['nine-dragon-stack']);
-  expect(platformChargeback(arms)).toBe('C6');
   expect(platformChargeback('src/game/systems/viewmodel/rigArms.ts', 'RigArms')).toBeNull();
 });
 

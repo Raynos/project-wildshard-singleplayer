@@ -5,7 +5,6 @@ const modules = new Map([
   ...['game/boss/arenaScript', 'game/boss/arenaField'].map(path => [`src/${path}.ts`, 'C4']),
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
   ['src/game/models/mountedSpecimen.ts', 'C1'],
-  ['src/game/systems/viewmodel/graphArms.ts', 'C6'],
   // G516/G518: only one live shard drives these item hosts; fixtures grant no credit.
   ...['game/weapons/bowVariant', 'game/loadout/mounted'].map(path => [`src/${path}.ts`, 'C6']),
 ]);
@@ -115,7 +114,7 @@ const inline = new Map([
 function reviewedOwner(path, name) {
   if(path === 'src/game/population/pageGroups.ts' && ['Placement','Counts','PageActorGroups'].includes(name ?? '')) return 'driftwood-isle';
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
-  if (path.endsWith('/worldScenes.ts') || path === 'src/game/systems/viewmodel/graphArms.ts') return 'nine-dragon-stack';
+  if (path.endsWith('/worldScenes.ts')) return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts', 'src/format/water.ts', 'src/game/systems/looks/waterSurface.ts',
     'src/engine/models/geometrySources.ts', 'src/game/looks/posedInstances.ts',
     'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';

@@ -192,6 +192,7 @@
     "./worldPhysics": "./worldPhysics.ts",
     "./platformDataSections": "./platformDataSections.ts",
     "./heldArms": "./heldArms.ts",
+    "./graphArmsRows": "./graphArmsRows.ts",
     "./herdShelter": "./herdShelter.ts",
     "./populationRespawn": "./populationRespawn.ts",
     "./nativeActors": "./nativeActors.ts",

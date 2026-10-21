@@ -25,6 +25,7 @@ import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
+import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
@@ -114,6 +115,7 @@ const input = plumbing.entries.input.pipe[0].item;
 const debug = plumbing.entries.debug.pipe[0].item;
 // These identities are the defining schemas, not message-based permissions for arbitrary author code.
 const customSchemas = new Map<object, JsonSchema>([
+  [GraphArmsSchema.entries.decal.entries.atlas, {}],
   [InputActionSchema.options[1], { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9-]*(?:\\.[a-zA-Z0-9-]+)+$' }],
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
@@ -372,6 +374,7 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     target, errorMode: 'throw', typeMode: 'output',
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
+      if (valibotAction === GraphArmsSchema.entries.rig.entries.sockets.pipe[3]) return { ...jsonSchema, uniqueItems: true };
       if (valibotAction === EdgeProfileSchema.pipe[1]) {
         // Both arrays must have the same native sample count; bound each branch exactly.
         return { ...jsonSchema, anyOf: [256, 257].map(count => ({ properties: {

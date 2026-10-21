@@ -7,7 +7,7 @@ import { specimens } from '../boot/metadata.generated.json' with { type: 'json' 
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { graphArmsSpecimen } from '@wildshard/game/systems/viewmodel/graphArms';
+import { graphArmsSpecimen } from '../runtime/viewmodel/graphArms';
 
 const rows = specimens.gear;
 

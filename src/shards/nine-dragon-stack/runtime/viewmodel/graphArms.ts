@@ -1,9 +1,4 @@
-/** Client-only graph-look held arms (G475 held-arms): a skinned rig on the shared arm player, dressed from a product's
- * GraphArms row. Rows name the rig, the blade, the meshes' looks and maps, the pendants and the per-frame look writes;
- * the swing trail samples the rig's blade row through each swing's clip window. No shard code, no callbacks.
- *
- *   sword: async () => (await import('@wildshard/game/systems/viewmodel/graphArms')).graphSword(slug, 'weapons/held.json')
- */
+/** Nine's listed native held view. The product admits its rows before the rig, looks and textures are borrowed. */
 import * as v from 'valibot';
 import { BackSide, type BufferGeometry, BufferGeometryLoader, type CanvasTexture, DataTexture, DoubleSide, LinearMipmapLinearFilter, Mesh, NoColorSpace,
   type Object3D, RedFormat, RepeatWrapping, Texture, UnsignedByteType, Vector2, Vector3 } from 'three';
@@ -16,20 +11,19 @@ import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { SlashTrail } from '@wildshard/engine/combat/view/slashTrail';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { isJsonData } from '@wildshard/format/json';
-import { parseGraphArms, type GraphArmsRow } from '@wildshard/format/heldArms';
+import type { GraphArmsRow } from '@wildshard/format/graphArmsRows';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { loadFirstPartyProduct, runtimeLookMaterials } from '../../shardfile/runtimeProduct';
-import { plumbingKnob } from '../../shard/declaredPlumbing';
-import { paintCanvasAtlas, type CanvasStep } from '../../plugin/geometry';
-import { createClientScene } from '../../plugin/ui';
-import { BLEND_ADD_KEEP_ALPHA } from '../../plugin/shaderFamily';
-import type { ShardSword } from '../../shard/manifest';
-import { ARM_CLIPS, armClipNames } from './armClips';
-import { RigArms, swordArmsOf, type RigState } from './rigArms';
+import { loadFirstPartyProduct, runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
+import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
+import { paintCanvasAtlas, type CanvasStep } from '@wildshard/game/plugin/geometry';
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
+import type { ShardSword } from '@wildshard/game/shard/manifest';
+import { ARM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
+import { RigArms, swordArmsOf, type RigState } from '@wildshard/game/systems/viewmodel/rigArms';
 
 type Looks = Awaited<ReturnType<typeof runtimeLookMaterials>>;
 const AtlasSchema = v.object({ w: v.number(), h: v.number(), steps: v.array(v.custom<CanvasStep>(isJsonData)) });
-const ViewSchema = v.object({ view: v.unknown() });
 /** decoded maps by path and painted decals by product / tier, while some rig still holds them */
 const images = new Map<string, Promise<Texture>>(), resolved = new Map<string, Texture>(), atlases = new Map<string, CanvasTexture>();
 
@@ -87,7 +81,7 @@ export class GraphArms {
     const render = app.render;
     if (render === null) throw new Error('Held graphs require the render service');
     const owner = resourceScope(), product = await loadFirstPartyProduct(slug), tier = render.tier;
-    const row = parseGraphArms(v.parse(ViewSchema, await product.json<unknown>(file)).view);
+    const row = (await product.json<{ readonly view: GraphArmsRow }>(file)).view;
     const ids = [...new Set([...row.meshes.map(mesh => mesh.look), ...row.pendants.materials, row.trail.look])];
     const looks = await runtimeLookMaterials({ scope: owner, renderer: render.renderer }, product.shardfile, true, ids);
     const R = row.rig;

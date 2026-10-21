@@ -406,3 +406,39 @@ Private JSON **46 / 12,496,787 bytes**, **-657 bytes** versus
 3c696e1134's retained receipt; no cap or budget changes.
 Root/layer types, typed lint, focused suites and product build pass.
 No collider, rendering, style, actor identity or cadence changes.
+
+
+X4 Nine graph arms: delete the one-user Game module whole into the listed
+Nine native view (4/6, fully counted). Keep the same painted atlas, mapped
+textures, weave, graph looks, rig, trail, pendants and construction stage.
+Only the GraphArms defining schema moves to build admission; the named
+file rejects invalid counts, socket duplicates, field kinds and scenes.
+Shared RigArms remains 6/6 with live Driftwood and Nine users; existing
+named-file admission remains real multi-shard 6/6. Relocation earns zero
+credit. Runtime canonical TS: Nine **+181**, platform **-204**, net **-23**.
+Build canonical TS **+33**; total canonical TS **+10**, authored AS **0**.
+The policy comparer proves all twenty newly visible native runtime sites
+consume exact syntax from the deleted Game module once. Existing frozen
+allowances stay unchanged; explicit lint passes all ten frozen Nine files.
+Private JSON remains **20 / 4,972,560 bytes**, and the held-row hash stays
+401d41d8bd3ebe34aed408edd432a9e5e4ae2967908013a36662e3bedb5388ed.
+
+Actual iPhone portrait WebKit compositor captures cover both tiers and
+the real Model Explorer arms close-up. Arms close-ups differ by zero
+pixels. Parent self-noise is 80 phone / 29 desktop pixels; the original
+candidate pair differs by 81 / 31 (second-parent comparison 74 / 10).
+Phone max channel delta is **16 versus parent 8**; desktop is 7 versus 7.
+The strict numeric noise predicate fails. The coordinator explicitly
+rules PASS under G415: matching arms, data and resource/draw observations,
+with world differences at the parent's noise scale and location; one
+parent pair cannot define a hard max-delta ceiling. Preserve both receipts:
+tmp/sp-x9-arms-pair/{noise-verdict,coordinator-acceptance}.json.
+GPU allocation totals are identical at each corresponding pose/tier.
+Desktop road-entry drive is no slower: travel p95 16.8 -> 16.7 ms,
+whole-drive p95 16.8 -> 16.8 ms, max 66.7 -> 66.7 ms; interior p95
+33.3 -> 16.7 ms. Node builds remain 73 total and 61 during warm-up;
+entry preparation 2042 -> 2007 ms, parked-viewmodel draws 23 -> 23.
+The baseline misses its interior p95 floor; the candidate passes all
+desktop floor rows. No visual tuning, collider, codec, cap or budget edit.
+Root/layer types, typed lint, three focused suites and real hooks pass;
+one coherent Nine/Driftwood batch follows the source landing.
