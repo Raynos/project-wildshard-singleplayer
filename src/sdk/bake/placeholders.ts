@@ -373,8 +373,16 @@ type Rgb = readonly [number, number, number];
 const mixRgb = (a: Rgb, b: Rgb, t: number): Rgb => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 /**
+ * O24: the haze of a placeholder seen across the grid (metres of view depth, 0..1): the range the authored far looks use
+ * (Driftwood 450-2600 m at 0.55, Nalati and Far Reach 500-2800 at 0.5, Pine 400-2400 at 0.6). A shard's own fog key is
+ * its air up close: 160-700 m at full strength turned every cell without a far look into a blank tile past 700 m.
+ */
+export const PLACEHOLDER_HAZE = { near: 450, far: 2600, max: 0.55 } as const;
+
+/**
  * The far look of a shard that declares none (any shardfile, an uploaded unknown one included): its ground in its own
- * ambient ground colour easing to a neutral rock on steep slopes, its cliff in that rock, its haze its own first fog key.
+ * ambient ground colour easing to a neutral rock on steep slopes, its cliff in that rock, its haze its own first fog key's
+ * colour over the grid's distances (PLACEHOLDER_HAZE).
  */
 export function shardfileLook(shard: Shardfile): PlaceholderLook {
   const key = shard.look.keys[0], ground: Rgb = key?.ambient.ground ?? [0.32, 0.36, 0.24], rock: Rgb = [0.33, 0.31, 0.29];
@@ -383,7 +391,7 @@ export function shardfileLook(shard: Shardfile): PlaceholderLook {
     family: 'pbr',
     colourAt: (_x, _z, _h, slope) => mixRgb(ground, rock, Math.min(1, Math.max(0, (slope - 0.2) * 3))),
     cliff: { lip: rock, foot: mixRgb(rock, [0, 0, 0], 0.4) },
-    haze: { colour: fog?.colour ?? [1, 1, 1], near: fog?.near ?? 160, far: fog?.far ?? 700, max: 1 },
+    haze: { colour: fog?.colour ?? [1, 1, 1], ...PLACEHOLDER_HAZE },
   };
 }
 
