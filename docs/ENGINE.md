@@ -9409,7 +9409,7 @@ non-mutating evaluation, delivery order, idempotence and wait restore.
 
 G482 returned the single-user `StagWalk` to Pine `quest/stagWalk.ts` and
 removed its public platform export. It remains charged to Pine.
-`game/quest/chapter.installQuestChapter(ctx, story, rows, anchors?)` is a
+The prepared `entry.chapter(rows)` in `game/quest/chapter` is the
 client-only presenter used by Pine and Driftwood. `installQuestFlags(ctx,
 id, level)` lends the original saved flag book once per entered scope;
 `bindStoryAchievements` publishes its exact ledger and refresh service.
@@ -9427,8 +9427,9 @@ update systems or save adapters in the chapter intake. Callers keep their
 original chip update phase. Both shipped quests preserve their flags,
 notice/sting ordering, map card and completion marker policy.
 
-`installChapterStory(ctx, story, rows)` extends that same client-only host
-with a Script ABI v1 return program. Pine supplies its stag program; Nalati
+`installChapterStory(ctx, story, rows)` enters that same client-only host
+without preparing an interaction table. Pine supplies its stag program through
+the prepared entry; Nalati
 supplies its chapter/carving program and content rows. `chapter.project`
 reads typed saved-record, flag and quest-step observations, then applies
 ordered action rows through the existing effect dispatcher. It installs no

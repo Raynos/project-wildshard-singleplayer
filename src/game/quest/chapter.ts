@@ -159,16 +159,6 @@ export async function prepareQuestEntry(ctx: ShardContext, storyInput: unknown, 
     } };
 }
 
-/** Client-only chapter presentation. Intake is story/placement rows and an existing quest id;
- * play, map, music, flags and completion progress resolve from the entered context.
- * Anchors are the placement owner's coordinate table, never callbacks or reflected services.
- * The caller retains the original UI update phase; this installs no clock or save owner.
- */
-export function installQuestChapter(ctx: QuestChapterContext, storyInput: unknown,
-  input: unknown = {}, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): QuestChapter {
-  return buildQuestChapter(ctx, storyInput, input, anchors);
-}
-
 /** Entered chapter stories resolve saved services and named figure resources;
  * story/content rows are the entire author API. Existing callers retain their
  * update, polling and feat installation phases. */
