@@ -18,7 +18,6 @@ import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import { bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
 import type { installDeclaredQuestHost } from '../plugin/simulation';
 import { ReturnProgram } from '../population/returnProgram';
-import { AchievementCounterBook } from '../achievements';
 import { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
 import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
 import { ContractBoard, CONTRACT_ACTION } from './contractBoard';
@@ -149,11 +148,8 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   cables.state(cableId);
   const state = { pickup: false };
 
-  const counterBook = new AchievementCounterBook(ports.counters), feats = counterBook.counters;
-  const flushFacts = (): void => {
-    const facts = counterBook.takeFacts();
-    for (let i = 0; i < 1048576; i++) { const row = facts[i]; if (row === undefined) break; ports.fact(row.fact, row.entity); }
-  };
+  const counterBook = entry.achievements(ports.counters), feats = counterBook.counters;
+  const flushFacts = counterBook.flush;
   const board = new ContractBoard({ contracts: ports.contracts, prompt: boardPrompt, radius: boardPrompt.radius });
   const useBoard = (value: number): void => {
     const claim = board.use(value, eye);
@@ -185,13 +181,8 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     else { const row = rowOf(value); if (row !== null && near(row.prompt, row.promptRadius())) interact(row); }
   };
 
-  const syncFeats = (): void => { feats.syncFlags(flags); flushFacts(); };
-  const offFlags = flags.onChange((f, on) => {
-    if (!on) return;
-    if (f === policy.clock.wait) clock.request(policy.clock.nightRequest);
-    if (!f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats();
-  });
-  host.scope.onDispose(offFlags);
+  host.scope.onDispose(flags.onChange((flag, on) => { if (on && flag === policy.clock.wait) clock.request(policy.clock.nightRequest); }));
+  counterBook.observe();
   const killed = bindQuestDeathEffects(content.deaths, { kill: feats.kill, event: feats.event,
     calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
       board.killed(contractKill(ports.contracts, body));
@@ -200,7 +191,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
     if (body !== undefined) { killed(body); flushFacts(); }
   }, host.scope);
-  syncFeats();
+  counterBook.sync();
 
   const lead: v.InferOutput<typeof LeadSaved> = { i: 0, mode: 'none', t: 0 }, leadProgram = ReturnProgram.native(host, content.lead.program);
   const modes = ['none', 'stare', 'trot', 'gone'] as const;

@@ -15,6 +15,8 @@ import people from '../src/shards/pine-hollow/data/questNpcs.generated.json' wit
 import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from '../src/shards/pine-hollow/generators/questRuntime';
 import { parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
+import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 
 test('both quest entries use an admitted host without changing Pine decision flag handles', () => {
   for (const source of [pine, driftwood]) {
@@ -84,6 +86,29 @@ test('both native entries retain their declared pack policy and reject table adm
       const saved = entry.pack.snapshot(); expect(v.parse(nativeInventorySchema(entry.inventory), saved)).toEqual(saved);
       entry.pack.take(item); entry.pack.restore(saved); expect(entry.pack.count(item)).toBe(2);
       host.dispose(); expect(() => entry.install()).toThrow('disposed');
+    } finally { host.dispose(); }
+  }
+});
+
+
+test('native entry counters preserve stable facts, quiet restore and scoped flag cadence for both stories', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  for (const row of [
+    { source: pine, counters: PINE_FEAT_COUNTERS, flag: 'dead:king', fact: 'pine.feat.king', feat: 'king' },
+    { source: driftwood, counters: DRIFTWOOD_FEAT_COUNTERS, flag: 'used:vista-bench', fact: 'driftwood.vista', feat: 'vista' },
+  ]) {
+    const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), facts: string[] = [];
+    try {
+      registerNativeQuestInputs(host, { scripts: () => [], walk: () => ({ x: 0, z: 0 }), ledger: {
+        fact: (fact, entity) => { facts.push(`${fact}/${entity}`); }, coins: () => undefined } });
+      const entry = prepareNativeQuestEntry(host, row.source, { rows: [], external: [] }, []), counters = entry.achievements(row.counters);
+      counters.observe(); expect(facts).toEqual([]);
+      host.flags.set(row.flag); expect(facts).toEqual([`${row.fact}/${row.feat}:1`]);
+      const saved = counters.snapshot(); counters.restore({}); counters.flush(); expect(facts).toHaveLength(1);
+      host.flags.set('plate:move'); host.flags.set('lever:move'); expect(facts).toHaveLength(1);
+      host.flags.set('settled'); expect(facts).toEqual([`${row.fact}/${row.feat}:1`, `${row.fact}/${row.feat}:1`]);
+      counters.restore(saved); counters.flush(); expect(counters.snapshot()).toEqual(saved); expect(facts).toHaveLength(2);
+      host.dispose(); counters.restore({}); host.flags.set('after-disposal'); expect(facts).toHaveLength(2);
     } finally { host.dispose(); }
   }
 });

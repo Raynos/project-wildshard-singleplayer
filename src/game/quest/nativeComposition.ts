@@ -13,7 +13,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredQuests } from './declared';
 import { QuestRewardController, installNativeQuestProps } from '../plugin/quests';
 import type { installDeclaredQuestHost } from '../plugin/simulation';
-import { AchievementCounterBook, type AchievementCounterRows } from '../achievements';
+import type { AchievementCounterRows } from '../achievements';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { NativeInventory } from '../inventoryLaw';
 import { nativeMeleeItem } from '../plugin/nativeItems';
@@ -86,7 +86,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const feats=ports.feats.filter(f=>f.kind===undefined);
   if(feats.length>policy.limits.rows||feats.some(f=>f.count>policy.limits.rows))throw new RangeError('Native quest feats exceed their finite bound');
   const flagRows=feats.map(feat=>ports.counters.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
-  const counterBook=new AchievementCounterBook({...ports.counters,feats,flags:flagRows,write:'each'},Object.fromEntries(feats.map(feat=>[feat.id,0])));
+  const counterBook=entry.achievements({...ports.counters,feats,flags:flagRows,write:'each'},Object.fromEntries(feats.map(feat=>[feat.id,0])));
 
   const promptOf = (r: (typeof rules)[number]): { x: number; y: number; z: number } | undefined => {
     const key = props.dropAt(policy.keyDrop.id);
@@ -120,13 +120,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     ]) });
   commit = graph.run;
 
-  const offFlags = flags.onChange((f, on) => {
-    if (!on || f.startsWith('plate:') || f.startsWith('lever:')) return;
-    counterBook.counters.syncFlags(flags);
-    const facts = counterBook.takeFacts();
-    for (let i = 0; i < 1048576; i++) { const row = facts[i]; if (row === undefined) break; input.ledger.fact(row.fact, row.entity); }
-  });
-  host.scope.onDispose(offFlags);
+  counterBook.observe();
 
   host.onStep(policy.step, dt => {
     const asked = input.walk(host.level.player.speed);

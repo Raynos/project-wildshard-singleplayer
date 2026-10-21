@@ -6635,6 +6635,10 @@ same declared graph once at the composition's original phase. The owners are
 trusted platform mechanics, not an author callback API. Table bounds and
 ordering retain each declaration's existing policy; saved pack schemas, graph
 adapters and command order are unchanged. A disposed or reused entry refuses.
+`achievements(rows, initial?)` binds its original saved counter book to that
+same ledger. `sync()` and `flush()` keep their explicit call phases; `observe()`
+filters transient plate/lever flags and releases the subscription with the
+entry. Restore remains quiet and introduces no new saved adapter.
 
 Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing
