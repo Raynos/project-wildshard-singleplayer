@@ -144,6 +144,7 @@ function installReadinessProbe(instance,slug,sumOwned) {
  const api=window.__wildshard,game=api.world.game,context=game.renderer.getContext(),samples=[],intervals=[],longFrames=[];
  let loadingPeak=null,playingPeak=null;
  let phase='loading',count=game.frameCount,last=0,raf=0,skipped=0,active=false,contextLost=false;
+ let previousWork=null;
  const memory=()=>{
   const state=api.shard.grid.state(),claims=api.shard.grid.residency().claims;
   const own=claims.filter(row=>row.owner===instance||row.id===`product:grid:${slug}`);
@@ -157,10 +158,12 @@ function installReadinessProbe(instance,slug,sumOwned) {
  const tick=timestamp=>{
   if(!active)return;
   if(game.frameCount!==count){
+   const i=(game.frameI+game.workMs.length-1)%game.workMs.length;
+   const work={workMs:game.workMs[i],updateMs:game.updateMs[i],renderMs:game.renderMs[i]};
    if(timestamp-last>100&&longFrames.length<300){const state=api.shard.grid.state();longFrames.push({startMs:last,endMs:timestamp,ms:timestamp-last,
     current:state.live.live.current,crossing:state.live.crossing.phase,runtimeTiming:state.live.runtimeTiming,
-    workMs:game.workMs[(game.frameI+game.workMs.length-1)%game.workMs.length]});}
-   intervals.push(timestamp-last);skipped+=Math.max(0,game.frameCount-count-1);last=timestamp;count=game.frameCount;}
+    previousWork,currentWork:work});}
+   previousWork=work;intervals.push(timestamp-last);skipped+=Math.max(0,game.frameCount-count-1);last=timestamp;count=game.frameCount;}
   contextLost||=context.isContextLost();raf=requestAnimationFrame(tick);
  };
  window.__gridReadyProbe={
