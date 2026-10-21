@@ -5,6 +5,7 @@ const names = v.pipe(v.array(name), v.maxLength(64));
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
 const propFinite = v.pipe(v.number(), v.finite());
 const propPoint = v.strictObject({ x: propFinite, y: propFinite, z: propFinite });
+const gateBox = v.strictObject({ x: propFinite, z: propFinite, hw: propFinite, hd: propFinite, yTop: propFinite, yBottom: propFinite });
 const propCount = v.pipe(propFinite, v.integer(), v.minValue(1), v.maxValue(64));
 /** Native physical quest props use the existing barrel and gate mechanics.
  * Layered floor rasters preserve captured platform sampling without callbacks. */
@@ -16,8 +17,19 @@ export const NativeQuestPropsSchema = v.strictObject({ water: propFinite,
     owner: v.strictObject({ kind: name, id: name }) })), v.maxLength(64)),
   plates: v.pipe(v.array(v.strictObject({ at: propPoint, size: v.pipe(propFinite, v.minValue(0)), when: v.exactOptional(condition) })), v.maxLength(64)),
   gates: v.pipe(v.array(v.strictObject({ flag: name,
-    box: v.strictObject({ x: propFinite, z: propFinite, hw: propFinite, hd: propFinite, yTop: propFinite, yBottom: propFinite }) })), v.maxLength(64)),
+    box: gateBox })), v.maxLength(64)),
 });
+/** A gate borrows either its exact baked box or an already registered moving piece. */
+export const QuestFlagGatesSchema = v.strictObject({ quest: v.exactOptional(name),
+  gates: v.pipe(v.array(v.strictObject({ id: name, name: v.exactOptional(name), opensWhen: condition,
+    target: v.variant('kind', [
+      v.strictObject({ kind: v.literal('box'), box: gateBox }),
+      v.strictObject({ kind: v.literal('piece'), piece: name }),
+    ]),
+  })), v.maxLength(64), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'unique gate ids')),
+});
+/** Admitted gate identities, flag conditions and exact existing collision targets. */
+export type QuestFlagGatesRows = v.InferOutput<typeof QuestFlagGatesSchema>;
 const need = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names), else: v.exactOptional(name) });
 const row = v.strictObject({
   id: name, act: v.pipe(v.number(), v.safeInteger(), v.minValue(0)), at: name, crack: v.exactOptional(v.picklist(['light', 'heavy'])),

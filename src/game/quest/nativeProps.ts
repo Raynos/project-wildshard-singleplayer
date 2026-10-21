@@ -3,12 +3,12 @@ import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import type { SimHost } from '@wildshard/engine/sim';
 import { Bodies, Body } from '@wildshard/engine/physics/bodies';
 import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
+import { QuestFlagGates } from './flagGates';
 import { test } from '@wildshard/engine/world/interact/flags';
 
 const finite = v.pipe(v.number(), v.finite()), point = v.strictObject({ x: finite, y: finite, z: finite });
 const savedBody = v.nullable(v.strictObject({ handle: v.pipe(finite, v.minValue(0)),
   watch: v.strictObject({ lost: finite, wedge: finite, from: point }) }));
-type Collider = ReturnType<SimHost['physics']['world']['getCollider']>;
 
 /** Renderer-free physical props. Authored rows are the entire content API;
  * body services, native handles, flags and ground resolve from the real host. */
@@ -16,7 +16,7 @@ export class NativeQuestProps {
   private readonly rows;
   private service: Bodies;
   private readonly barrels;
-  private gates: (Collider | null)[];
+  private readonly gates: QuestFlagGates;
   private readonly walk = { x: 0, y: 0, z: 0 };
   private readonly lifted = { x: 0, y: 0, z: 0 };
   private readonly env: BarrelEnv;
@@ -33,7 +33,7 @@ export class NativeQuestProps {
       water: () => this.rows.water, onPlate: at => this.rows.plates.some(row => test(host.flags, row.when) && barrelAtPlate(at, row.at, row.size)) };
     this.barrels = this.rows.barrels.map(row => ({ row, body: null as Body | null, adopt: null as number | null,
       watch: new BarrelWatch(row.home, row.leash), upright: { x: 0, y: Math.sin(row.yaw / 2), z: 0, w: Math.cos(row.yaw / 2) } }));
-    this.gates = this.rows.gates.map(() => null);
+    this.gates = new QuestFlagGates(host, { gates: this.rows.gates.map(row => ({ id: row.flag, opensWhen: { all: [row.flag] }, target: { kind: 'box', box: row.box } })) }, restoring);
     for (const row of this.rows.drops) this.dropped.set(row.id, null);
     if (this.rows.drops.length > 0) host.events.on('actor.died', ({ actor }) => {
       const body = [...host.entities.values()].find(native => native.combatActor() === actor);
@@ -44,7 +44,6 @@ export class NativeQuestProps {
     }, host.scope);
     if (!restoring) {
       for (const slot of this.barrels) slot.body = this.service.spawn({ ...BARREL_BODY, owner: slot.row.owner }, this.lift(slot.row.home), undefined, slot.upright);
-      this.findGates();
     }
     host.scope.onDispose(() => { this.service.dispose(); });
   }
@@ -71,18 +70,6 @@ export class NativeQuestProps {
     }
     return y;
   }
-  private findGates(): void {
-    const near = (a: number, b: number): boolean => Math.abs(a - b) < 1e-3;
-    this.gates = this.rows.gates.map(({ box }) => {
-      const found: Collider[] = [], cy = (box.yTop + box.yBottom) / 2, hy = (box.yTop - box.yBottom) / 2;
-      this.host.physics.world.forEachCollider(collider => {
-        const at = collider.translation(), half = collider.halfExtents();
-        if (half !== null && collider.parent() === null && near(at.x, box.x) && near(at.y, cy) && near(at.z, box.z)
-          && near(half.x, box.hw) && near(half.y, hy) && near(half.z, box.hd)) found.push(collider);
-      });
-      const collider = found[0]; if (collider === undefined) throw new Error('Native quest gate has no baked collider'); return collider;
-    });
-  }
   /** The caller retains the original post-world/pre-interaction phase. */
   step(dt: number, walk: { readonly x: number; readonly z: number }): void {
     if (this.barrels.length === 0) return;
@@ -94,7 +81,7 @@ export class NativeQuestProps {
   }
   /** Run after flag transitions, so an opened latch releases in the same tick. */
   syncGates(): void {
-    this.rows.gates.forEach((row, i) => { const collider = this.gates[i]; if (this.host.flags.has(row.flag) && collider?.isEnabled() === true) collider.setEnabled(false); });
+    this.gates.sync();
   }
   snapshot(id: string): v.InferOutput<typeof savedBody> {
     const slot = this.barrels.find(entry => entry.row.id === id);
@@ -107,7 +94,7 @@ export class NativeQuestProps {
   }
   /** Rebind restored handles without spawning, drawing or replaying flag edges. */
   physicsRestored(): void {
-    this.service = new Bodies(this.host.physics, this.host.player.position); this.findGates();
+    this.service = new Bodies(this.host.physics, this.host.player.position); this.gates.physicsRestored();
     for (const slot of this.barrels) {
       if (slot.adopt === null) continue;
       const world = this.host.physics.world;

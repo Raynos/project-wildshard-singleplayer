@@ -133,3 +133,17 @@ export function canStandAt(physics: Physics, feet: Vec3, dimensions: { radius: n
   });
   return admitted.clear && admitted.floor;
 }
+
+
+/** Rebind the original parentless baked box without allocating or changing its state.
+ * The tolerance and first-match order retain the native continuation's lookup. */
+export function staticBoxCollider(physics: Physics, box: { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly yTop: number; readonly yBottom: number }): Collider | null {
+  const near = (a: number, b: number): boolean => Math.abs(a - b) < 1e-3;
+  const found: Collider[] = [], cy = (box.yTop + box.yBottom) / 2, hy = (box.yTop - box.yBottom) / 2;
+  physics.world.forEachCollider(collider => {
+    const at = collider.translation(), half = collider.halfExtents();
+    if (half !== null && collider.parent() === null && near(at.x, box.x) && near(at.y, cy) && near(at.z, box.z)
+      && near(half.x, box.hw) && near(half.y, hy) && near(half.z, box.hd)) found.push(collider);
+  });
+  return found[0] ?? null;
+}
