@@ -26,7 +26,9 @@ export function installCrossingProbe() {
       player.setHover(true); player.yaw = Math.atan2(-dx, -dz); game.app.input.setHeld('move.forward', true);
       return;
     }
-    if (!entered) state.errors.push(`Crossing route did not re-enter home: ${JSON.stringify({ left, feet: live?.live.worldFeet, issues: live?.live.issues })}`);
+    state.finalState = { crossing: live?.crossing, live: live?.live, runtimeTiming: live?.runtimeTiming };
+    if (!entered) state.errors.push(`Crossing route did not re-enter home: ${JSON.stringify({ left, feet: live?.live.worldFeet,
+      issues: live?.live.issues, pending: live?.live.pending, residents: live?.live.residents, runtimeTiming: live?.runtimeTiming })}`);
     state.errors.push(...(window.__loadingAccuracy?.errors ?? []));
     const timings = live?.crossingTiming ?? [], rows = live?.crossingLoading ?? [];
     for (let i = 0; i < timings.length; i++) if (timings[i].requestedAt >= state.startedAt) {
