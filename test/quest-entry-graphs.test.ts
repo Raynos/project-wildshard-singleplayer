@@ -39,7 +39,9 @@ function pineCommandOwners(calls: string[] = []): { owners: Omit<QuestHostPorts,
     }]];
   }));
   return { modal, owners: { spots: { interact: spots, crack: [] }, actions,
-    observations: new Map(Object.keys(modal).map(id => [id, () => modal[id] === true])) } };
+    mechanics: { cables: { state: () => ({ riding: modal['riding'] === true, atEnd: false }),
+      start: () => { modal['riding'] = true; calls.push('cable:start'); } } },
+    observations: new Map(row.observations.flatMap(value => value.kind === 'owner' ? [[value.owner, () => modal[value.owner] === true] as const] : [])) } };
 }
 
 test('both quest entries use an admitted host without changing Pine decision flag handles', () => {
@@ -168,6 +170,8 @@ test('Pine admitted routes preserve same-tick modal priority, actor values, canc
     graph.dispatch(Array.from({ length: 1025 }, () => ({ actorId: 'pine.ammo', value: 0 })));
     expect(calls).toHaveLength(1024);
     expect(calls.every(call => call === 'quest.ammo.cycle/0')).toBe(true);
+    calls.length = 0; graph.dispatch([{ actorId: 'pine.interact', value: 8 }, { actorId: 'pine.trade', value: 10 }]);
+    expect(calls).toEqual(['cable:start']); expect(modal['riding']).toBe(true);
   } finally { host.dispose(); }
 });
 
@@ -190,6 +194,7 @@ test('native entries share direct and graph pickup transitions over their origin
       const ids = [...new Set([...declared.commands.routes.flatMap(route => route.spot === null ? [] : [route.spot]),
         ...declared.interactions.rows.map(value => value.at), ...declared.npcs.map(value => value.spot)])];
       entry.install({ spots: { interact: ids.map(id => ({ id, x: 0, y: 0, z: 0, radius: 3 })), crack: [] },
+        mechanics: { cables: { state: () => ({ riding: false, atEnd: false }), start: () => undefined } },
         observations: new Map(declared.observations.flatMap(value => value.kind === 'owner' ? [[value.owner, () => true] as const] : [])),
         actions: new Map(declared.commands.routes.flatMap(route => route.action.kind === 'owner' ? [[route.action.id, () => undefined] as const] : [])) });
       host.player.position.set(sample.radius, 0, 0); transitions.step(); expect(host.flags.has(sample.flag)).toBe(false);

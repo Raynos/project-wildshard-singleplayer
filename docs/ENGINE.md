@@ -10610,6 +10610,10 @@ existing `kind: "cable"` command with its admitted mode identity. Their quest
 entries lend the already installed cable mechanic before graph admission;
 neither composition supplies a separate cable-start callback. Prompt order,
 acceptance conditions, movement laws and continuation owners stay unchanged.
+Both native entries also read cable riding through the admitted
+`kind: "cable"` observation. The cable mechanic supplies the state directly;
+there is no composition-owned riding callback. A start changes the observation
+before the next command in the same batch, retaining modal command priority.
 The native clock's quiet flag/phase projection is generated directly from
 the same chapter actions and declared AS output keys. There is no second
 author clock/publication list. The complete original native clock JSON hash

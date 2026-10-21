@@ -179,7 +179,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     ...Object.entries(spots.signals).map(([id, prompt]) => ({ id: `signal.${id}`, x: prompt.x, y: prompt.y, z: prompt.z, radius: prompt.radius })),
     { id: 'quest.cable', ...spots.cable.prompt }, { id: 'quest.pickup', ...spots.pickup },
   ] }, observations: new Map([
-    ['riding', () => cables.state(cableId).riding], ['trading', () => trader.active], ['boarding', () => board.active], ['reading', () => dialogue.active],
+    ['trading', () => trader.active], ['boarding', () => board.active], ['reading', () => dialogue.active],
     ['selectable', () => launcher.frame.live.has(policy.launcher)], ['pickup', () => !flags.has(PICKUP_FLAG)],
   ]), actions: new Map<string, (value: number) => void>([
     ['quest.cancel', () => { dialogue.dismiss(); board.use(CONTRACT_ACTION.close, eye); trader.use(TRADE_CLOSE); }],

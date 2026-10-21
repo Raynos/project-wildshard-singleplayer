@@ -42,7 +42,6 @@
   "heldId": "iron-sword",
   "cableId": "zipline",
   "heldObservation": "sword-free",
-  "cableObservation": "zipline-idle",
   "guardKind": "sailor",
   "guardRadius": 1.4,
   "promptHeight": 1,

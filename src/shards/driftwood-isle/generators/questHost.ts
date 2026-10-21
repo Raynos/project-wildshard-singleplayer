@@ -7,10 +7,10 @@ export const QUEST_HOST = {
   actors: { ids: [], error: 'Missing Driftwood quest body' },
   observations: [
     { binding: 'event:quest.sword-free', kind: 'owner', owner: 'sword-free' },
-    { binding: 'event:quest.zipline-idle', kind: 'owner', owner: 'zipline-idle' },
+    { binding: 'event:quest.zipline-riding', kind: 'cable', cable: policy.cable, state: 'riding' },
   ],
   stages: [], summons: [], commands: { step: 'driftwood.quest.commands',
-    inputs: { sword: 'event:quest.sword-free', idle: 'event:quest.zipline-idle' }, routes: [
+    inputs: { sword: 'event:quest.sword-free', riding: 'event:quest.zipline-riding' }, routes: [
       {"value": 1, "spot": "iron-sword", "when": "sword", "action": {"kind": "owner", "id": "iron-sword"}},
       {"value": 100, "spot": "castaway-chest", "when": "true", "action": {"kind": "owner", "id": "castaway-chest"}},
       {"value": 101, "spot": "beacon", "when": "true", "action": {"kind": "owner", "id": "beacon"}},
@@ -25,7 +25,7 @@ export const QUEST_HOST = {
       {"value": 113, "spot": "reef-treasure", "when": "true", "action": {"kind": "owner", "id": "reef-treasure"}},
       {"value": 114, "spot": "vista-bench", "when": "true", "action": {"kind": "owner", "id": "vista-bench"}},
       {"value": 0, "spot": "castaway.talk", "when": "true", "action": {"kind": "row", "id": "castaway.talk"}},
-      {"value": 2, "spot": "zipline", "when": "idle", "action": {"kind": "cable", "cable": policy.cable, "command": "start"}},
+      {"value": 2, "spot": "zipline", "when": "!riding", "action": {"kind": "cable", "cable": policy.cable, "command": "start"}},
     ] },
 };
 

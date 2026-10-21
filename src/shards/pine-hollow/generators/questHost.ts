@@ -41,7 +41,8 @@ const routes = [
 export const PINE_QUEST_HOST = parseQuestHost({
   version: 1, graph: PINE_GRAPH, interactions, flags, npcs: [], drive: 'external',
   actors: { ids: [], error: 'Missing quest actor' },
-  observations: ['riding', 'trading', 'boarding', 'reading', 'selectable', 'pickup'].map(id => ({ binding: `event:quest.${id}`, kind: 'owner', owner: id })),
+  observations: [{ binding: 'event:quest.riding', kind: 'cable', cable: policy.cable, state: 'riding' },
+    ...['trading', 'boarding', 'reading', 'selectable', 'pickup'].map(id => ({ binding: `event:quest.${id}`, kind: 'owner', owner: id }))],
   stages: [], summons: [],
   commands: { step: null, inputs: Object.fromEntries(['riding', 'trading', 'boarding', 'reading', 'selectable', 'pickup'].map(id => [id, `event:quest.${id}`])), routes },
 });

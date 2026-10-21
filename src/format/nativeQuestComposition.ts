@@ -5,7 +5,7 @@ const n = v.pipe(v.number(), v.finite()), key = v.pipe(v.string(), v.minLength(1
 export const NativeQuestCompositionSchema = v.strictObject({
   actor: key, step: key, rewardFlag: key, population: key, equipment: key, director: key, cable: key,
   reward: v.strictObject({ channels: key, field: key, complete: key }),
-  talkId: key, heldId: key, cableId: key, heldObservation: key, cableObservation: key,
+  talkId: key, heldId: key, cableId: key, heldObservation: key,
   guardKind: key, guardRadius: n, promptHeight: n, heldSlot: v.pipe(n, v.integer(), v.minValue(0), v.maxValue(31)),
   actions: v.strictObject({ talk: n, sword: n, zipline: n, row: n }),
   touch: v.strictObject({ radius: n, height: n }), plate: v.strictObject({ inset: n, depth: n }),

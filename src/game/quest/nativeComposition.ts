@@ -107,7 +107,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     return { act: policy.actions.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
   });
   const graph = entry.install({ prompts, mechanics: { cables }, directorActions: new Map(),
-    observations: new Map([[policy.heldObservation, () => !state.iron && !guarded()], [policy.cableObservation, () => !cables.state(cableId).riding]]),
+    observations: new Map([[policy.heldObservation, () => !state.iron && !guarded()]]),
     actions: new Map<string, () => void>([
       [policy.heldId, () => { state.iron = true; equipment.equip(policy.heldSlot); }],
       ...rules.map(row => [row.d.id, () => { transitions.interact(row); }] as const),
