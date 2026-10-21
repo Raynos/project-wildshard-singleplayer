@@ -1,0 +1,149 @@
+{
+  "pin": "3c696e1134cea78a1d0142bb6969b02c149acd5b",
+  "surface": "phone",
+  "path": "grid",
+  "visit": "cold",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "stageSeconds": 21.89380000001192,
+  "clockSeconds": 21.9,
+  "unaccountedSeconds": 0.006199999988076854,
+  "displayedNetworkBytes": 170239030,
+  "networkBytes": 170877876,
+  "byteError": 0.003738611545007734,
+  "visibleByteError": 0.0036744136496640444,
+  "maxDetailGapMs": 496.19999998807907,
+  "failures": [],
+  "stageRows": [
+    {
+      "label": "▸ 1 · Application modules",
+      "detail": "Preparing application services · 0 / 0 files · 0.00 MB read",
+      "duration": "852 ms",
+      "state": "ok",
+      "key": "modules",
+      "ms": "852.3999999761581"
+    },
+    {
+      "label": "▸ 2 · Product admission",
+      "detail": "Product schemas 8 / 8 · custom/trailside",
+      "duration": "804 ms",
+      "state": "ok",
+      "key": "admission",
+      "ms": "804.4000000357628"
+    },
+    {
+      "label": "▸ 3 · Texture and audio preparation",
+      "detail": "",
+      "duration": "21 ms",
+      "state": "ok",
+      "key": "data",
+      "ms": "20.5"
+    },
+    {
+      "label": "▸ gap after Texture and audio preparation",
+      "detail": "",
+      "duration": "1 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "0.8999999761581421"
+    },
+    {
+      "label": "▸ 4 · Renderer",
+      "detail": "",
+      "duration": "90 ms",
+      "state": "ok",
+      "key": "renderer",
+      "ms": "90"
+    },
+    {
+      "label": "▸ 5 · Weapons · HUD",
+      "detail": "",
+      "duration": "11 ms",
+      "state": "ok",
+      "key": "weapon",
+      "ms": "10.800000011920929"
+    },
+    {
+      "label": "▸ 6 · World assembly",
+      "detail": "25 cells · 96 seams · road ready",
+      "duration": "5.0 s",
+      "state": "ok",
+      "key": "assembly",
+      "ms": "4987.199999988079"
+    },
+    {
+      "label": "▸ 7 · Title art · explore",
+      "detail": "28 / 28 pictures · UI",
+      "duration": "13 ms",
+      "state": "ok",
+      "key": "menu",
+      "ms": "12.5"
+    },
+    {
+      "label": "▸ 8 · Shaders",
+      "detail": "13 / 13 post pipelines drawn · 167 programs",
+      "duration": "5.1 s",
+      "state": "ok",
+      "key": "shaders",
+      "ms": "5054.900000035763"
+    },
+    {
+      "label": "▸ 9 · First frame",
+      "detail": "Pass 6 / 6 · ready · 167 programs",
+      "duration": "394 ms",
+      "state": "ok",
+      "key": "firstFrame",
+      "ms": "393.69999998807907"
+    },
+    {
+      "label": "▸ 10 · Audio · music + sound effects",
+      "detail": "Prepared audio clips 0 / 0",
+      "duration": "10 ms",
+      "state": "ok",
+      "key": "audio",
+      "ms": "9.800000011920929"
+    },
+    {
+      "label": "▸ 11 · Region world",
+      "detail": "",
+      "duration": "329 ms",
+      "state": "ok",
+      "key": "world",
+      "ms": "328.69999998807907"
+    },
+    {
+      "label": "▸ 12 · Equipment and HUD",
+      "detail": "",
+      "duration": "173 ms",
+      "state": "ok",
+      "key": "loadout",
+      "ms": "173.30000007152557"
+    },
+    {
+      "label": "▸ 13 · Gameplay and saved state",
+      "detail": "",
+      "duration": "123 ms",
+      "state": "ok",
+      "key": "gameplay",
+      "ms": "123.10000002384186"
+    },
+    {
+      "label": "▸ 14 · Final activation",
+      "detail": "",
+      "duration": "209 ms",
+      "state": "on",
+      "key": "finish",
+      "ms": "208.89999997615814"
+    },
+    {
+      "label": "▸ 15 · Home region",
+      "detail": "Home region 1 / 1 · driftwood-isle · Physics 2102 colliders · Trees 0 forest records",
+      "duration": "8.8 s",
+      "state": "ok",
+      "key": "home",
+      "ms": "8822.699999928474"
+    }
+  ],
+  "cachedBytes": "101419720",
+  "rawSHA256": "53c84a4bcf44b779f9ffada40c46e8fce6d630f0fb292672ecdd22c3b1418426"
+}

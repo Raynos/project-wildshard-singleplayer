@@ -1,0 +1,176 @@
+{
+  "pin": "3c696e1134cea78a1d0142bb6969b02c149acd5b",
+  "surface": "simulator",
+  "path": "grid",
+  "visit": "warm",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "stageSeconds": 8.546,
+  "clockSeconds": 8.5,
+  "unaccountedSeconds": -0.045999999999999375,
+  "displayedNetworkBytes": 23892,
+  "networkBytes": 44362,
+  "byteError": 0.46143095442044996,
+  "visibleByteError": 0.4364546233262702,
+  "maxDetailGapMs": 653,
+  "failures": [
+    "Network bytes are unavailable or differ by more than 5%",
+    "Visible MB count differs by more than 5%"
+  ],
+  "stageRows": [
+    {
+      "label": "▸ 1 · Application modules",
+      "detail": "Preparing application services · 0 / 0 files · 0.00 MB read",
+      "duration": "399 ms",
+      "state": "ok",
+      "key": "modules",
+      "ms": "399"
+    },
+    {
+      "label": "▸ 2 · Product admission",
+      "detail": "Product schemas 8 / 8 · custom/trailside",
+      "duration": "549 ms",
+      "state": "ok",
+      "key": "admission",
+      "ms": "549"
+    },
+    {
+      "label": "▸ 3 · Texture and audio preparation",
+      "detail": "",
+      "duration": "5 ms",
+      "state": "ok",
+      "key": "data",
+      "ms": "5"
+    },
+    {
+      "label": "▸ gap after Texture and audio preparation",
+      "detail": "",
+      "duration": "1 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "1"
+    },
+    {
+      "label": "▸ 4 · Renderer",
+      "detail": "",
+      "duration": "79 ms",
+      "state": "ok",
+      "key": "renderer",
+      "ms": "79"
+    },
+    {
+      "label": "▸ 5 · Weapons · HUD",
+      "detail": "",
+      "duration": "57 ms",
+      "state": "ok",
+      "key": "weapon",
+      "ms": "57"
+    },
+    {
+      "label": "▸ 6 · World assembly",
+      "detail": "25 cells · 96 seams · road ready",
+      "duration": "2.2 s",
+      "state": "ok",
+      "key": "assembly",
+      "ms": "2166"
+    },
+    {
+      "label": "▸ 7 · Title art · explore",
+      "detail": "28 / 28 pictures · UI",
+      "duration": "6 ms",
+      "state": "ok",
+      "key": "menu",
+      "ms": "6"
+    },
+    {
+      "label": "▸ 8 · Shaders",
+      "detail": "13 / 13 post pipelines drawn · 167 programs",
+      "duration": "2.0 s",
+      "state": "ok",
+      "key": "shaders",
+      "ms": "1993"
+    },
+    {
+      "label": "▸ 9 · First frame",
+      "detail": "Pass 6 / 6 · ready · 167 programs",
+      "duration": "135 ms",
+      "state": "ok",
+      "key": "firstFrame",
+      "ms": "135"
+    },
+    {
+      "label": "▸ gap after First frame",
+      "detail": "",
+      "duration": "2 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "2"
+    },
+    {
+      "label": "▸ 10 · Audio · music + sound effects",
+      "detail": "Prepared audio clips 0 / 0",
+      "duration": "1 ms",
+      "state": "ok",
+      "key": "audio",
+      "ms": "1"
+    },
+    {
+      "label": "▸ gap after Audio · music + sound effects",
+      "detail": "",
+      "duration": "4 ms",
+      "state": "on",
+      "key": "gap",
+      "ms": "4"
+    },
+    {
+      "label": "▸ 11 · Region world",
+      "detail": "",
+      "duration": "54 ms",
+      "state": "ok",
+      "key": "world",
+      "ms": "54"
+    },
+    {
+      "label": "▸ 12 · Equipment and HUD",
+      "detail": "",
+      "duration": "51 ms",
+      "state": "ok",
+      "key": "loadout",
+      "ms": "51"
+    },
+    {
+      "label": "▸ 13 · Gameplay and saved state",
+      "detail": "",
+      "duration": "34 ms",
+      "state": "ok",
+      "key": "gameplay",
+      "ms": "34"
+    },
+    {
+      "label": "▸ 14 · Final activation",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "finish",
+      "ms": "0"
+    },
+    {
+      "label": "▸ 15 · Home region",
+      "detail": "Home region 1 / 1 · driftwood-isle · Physics 2102 colliders · Trees 0 forest records",
+      "duration": "2.9 s",
+      "state": "ok",
+      "key": "home",
+      "ms": "2942"
+    },
+    {
+      "label": "▸ gap after Home region",
+      "detail": "",
+      "duration": "68 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "68"
+    }
+  ],
+  "cachedBytes": "179411562",
+  "rawSHA256": "9aba42a177bb89a8c3cdb51c5647ab4fe983d86f5913820225c7c20272978dbf"
+}
