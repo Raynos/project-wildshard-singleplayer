@@ -11,7 +11,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 |---|---|---|---|
 | R1 | RED-LIVE: INFINITE WILDSHARD into Driftwood from the offline cache finishes loading, then sits on 'ARRIVING AT DRIFTWOOD ISLE' over the pier with no HUD and no controls; repro on phone Safari with a warm cache, fix forward, release at once | art/grid/round-33-loading-live/ | sp-x1 |
 | R2 | G554: the download line shows network and cache separately against the full total (it read '0.00 MB downloaded · 134.2 MB from …' at 99%); the step line names the step actually running (it read 'step 2 / 16' after steps 3-15 had times; 8-10 missing); prefetch the grid's whole known set (every cell's products, far tiers, impostors, seams, neighbours' entries) into the content cache during loading and in the background from the menu, disk not memory; reopens L1/L2/L8 | G554 | sp-x1 after R1 |
-| R3 | G555: delete every low-detail loading overlay and its code, incl. the grid cell-entry hex card ('SKY REACH · step 3 / 4 · colliders · 75 %'); every load incl. cell entry and re-entry shows the full step-by-step screen; no Debug row | G555 | |
+| R3 | G555: delete every low-detail loading overlay and its code, incl. the grid cell-entry hex card ('SKY REACH · step 3 / 4 · colliders · 75 %'); every load incl. cell entry and re-entry shows the full step-by-step screen; no Debug row | G555 | sp-o5 14:20 |
 | R4 | G556: the 1.2 / 1.8 GB limits are per shard; grid/budgetOverlay.ts and memoryWarning.ts score each shard against its own limit and show the page total as information only (no red, no % of 1.2 GB); the ruler's M2 memory criterion is per shard; keep per-shard findings visible (Sky Reach 200% of its budget, Nine +377.9 MB estimate) | G556 | |
 
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
@@ -36,8 +36,8 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | G5 | Driftwood C9 glue (340): runtime/index.ts + hybrid.ts (X11 remainder) once quest and world own their parts | 340 | |
 | G6 | Pine C9 glue (167): runtime entry glue onto the declared runtime entry | 167 | |
 | G7 | Driftwood C4 creatures (202): creature looks/bodies onto shared species rows (Pine species as second user) | 202 | sp-o3 (after O18 stops) |
-| G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows. Trample (30) folded into G4's forest-page move (Nalati's GrassPresentation is a baked steppe field, not a general host: a port is days of look risk for -30); 1-8 line exports only with a real second user, the rest stay with their owners' rows (G3/G4/G7/G1a) | 198 (realistic ~20) | sp-o5 after G9 Pine tail |
-| G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 | Driftwood loot: sp-x9 (e52acff6ae, finishing); Pine creatures 62 + Pine items 7: sp-o5 14:10 |
+| G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows. Trample (30) folded into G4's forest-page move (Nalati's GrassPresentation is a baked steppe field, not a general host: a port is days of look risk for -30); 1-8 line exports only with a real second user, the rest stay with their owners' rows (G3/G4/G7/G1a) | 198 (realistic ~20) | parked: remaining spans are moves or one-user hosts (sp-o5 14:20) |
+| G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 | Driftwood loot: sp-x9 (e52acff6ae, finishing); Pine tail dropped (sp-o5 14:20: King's limbAnimation rig has no second user, host bar test 1 fails; captain look row offered to G7) |
 | G10 | Grid containment (G550, Jake): in grid mode nothing draws outside its cell's bounds except the platform's declared layers (road, outer floor, sky); the shardfile validator refuses out-of-cell bounds in any section, and the grid loader clips or refuses any cell-owned object whose world bounds leave the cell, with a test that walks every drawn object on the 5x5 and fails on a stray one | platform | |
 
 ### G1/G2 file boundaries (G551, sp-x8)
