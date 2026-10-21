@@ -40,7 +40,7 @@ const Spots = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
 const CableSaved = v.nullable(v.strictObject({ s: finite, v: finite }));
 const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject(xyz) });
-const BarrelSaved = v.nullable(v.strictObject({ handle: v.pipe(finite, v.minValue(0)), watch: Watch }));
+const BarrelSaved = v.nullable(v.strictObject({ handle: v.pipe(finite, v.minValue(0)), watch: Watch, decision: v.exactOptional(v.string()) }));
 const countsSaved = v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0)));
 
 type Point = Readonly<{ x: number; y: number; z: number }>;

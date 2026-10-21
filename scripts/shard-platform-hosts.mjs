@@ -56,6 +56,7 @@ const hosts = {
   'world/scenes': ['game/shardfile/worldScenes#installWorldScenes'],
   'world/targets': ['game/shardfile/worldTargets#WorldTargetHost'],
   'sim/scripts': ['engine/script/decision#DecisionHost', 'format/decisionScripts#parseDecisionScripts'],
+  'sim/bodies': ['game/quest/bodyOps#DeclaredBodyOps', 'format/bodySlots#DeclaredBodyOpsSchema'],
   'sim/sim': ['game/shardfile/scripts#createShardfileScriptLane'],
   'sim/hooks': ['game/shardfile/scripts#createShardfileScriptLane'],
   'sim/client-scripts': ['game/shardfile/clientScripts#createShardfileClientScripts'],

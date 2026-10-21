@@ -4,18 +4,17 @@ const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 const names = v.pipe(v.array(name), v.maxLength(64));
 const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
 const propFinite = v.pipe(v.number(), v.finite());
-const propPoint = v.strictObject({ x: propFinite, y: propFinite, z: propFinite });
 const gateBox = v.strictObject({ x: propFinite, z: propFinite, hw: propFinite, hd: propFinite, yTop: propFinite, yBottom: propFinite });
 const propCount = v.pipe(propFinite, v.integer(), v.minValue(1), v.maxValue(64));
 /** Native physical quest props use the existing barrel and gate mechanics.
  * Layered floor rasters preserve captured platform sampling without callbacks. */
-export const NativeQuestPropsSchema = v.strictObject({ water: propFinite,
+export const NativeQuestPropsSchema = v.strictObject({
   drops: v.optional(v.pipe(v.array(v.strictObject({ id: name, kind: name })), v.maxLength(64)), []),
   floors: v.pipe(v.array(v.strictObject({ x: propFinite, z: propFinite, step: v.pipe(propFinite, v.minValue(0.001)),
     width: propCount, height: propCount, values: v.pipe(v.array(v.nullable(propFinite)), v.maxLength(4096)) })), v.maxLength(64)),
-  barrels: v.pipe(v.array(v.strictObject({ id: name, home: propPoint, yaw: propFinite, leash: v.pipe(propFinite, v.minValue(0)),
-    owner: v.strictObject({ kind: name, id: name }) })), v.maxLength(64)),
-  plates: v.pipe(v.array(v.strictObject({ at: propPoint, size: v.pipe(propFinite, v.minValue(0)), when: v.exactOptional(condition) })), v.maxLength(64)),
+  /** G566: a saved quest-envelope key to the declared body (sim/bodies) whose native handle it carries; the body's decisions are
+   *  the shard's own script */
+  bodies: v.optional(v.pipe(v.array(v.strictObject({ owner: name, body: name })), v.maxLength(64)), []),
   gates: v.pipe(v.array(v.strictObject({ flag: name,
     box: gateBox })), v.maxLength(64)),
 });

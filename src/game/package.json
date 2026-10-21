@@ -29,6 +29,7 @@
     "./looks/forestGround": "./looks/forestGround.ts",
     "./quest/nativeInputs": "./quest/nativeInputs.ts",
     "./quest/nativeComposition": "./quest/nativeComposition.ts",
+    "./quest/nativeBodyScripts": "./quest/nativeBodyScripts.ts",
     "./boss/roamingProjection": "./boss/roamingProjection.ts",
     "./boss/socketRig": "./boss/socketRig.ts",
     "./ambient/crowdDraw": "./ambient/crowdDraw.ts",

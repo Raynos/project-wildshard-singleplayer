@@ -46,8 +46,8 @@ export default parseShardfile({
   sim: { ...base.sim, scripts: [] },
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files, coat], critical: [...navigation.critical, ...fixed.critical],
   tiles: fixed.tiles, terrain: fixed.terrain, library: [...fixed.library, coat.hash],
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 4*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
-  budgets: { ...base.budgets, library: { resident: fixed.libraryCost.resident + coat.decoded + coat.gpu, compressed: fixed.libraryCost.compressed + coat.compressed }, sim: { resident: 4*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 6*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
+  budgets: { ...base.budgets, library: { resident: fixed.libraryCost.resident + coat.decoded + coat.gpu, compressed: fixed.libraryCost.compressed + coat.compressed }, sim: { resident: 6*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools, the gulls, the creatures, the baked cove's terrain and props;

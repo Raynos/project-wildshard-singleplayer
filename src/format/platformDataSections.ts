@@ -1,3 +1,4 @@
+import { DeclaredBodyOpsSchema, type DeclaredBodyOpsRows } from './bodySlots';
 import {StealthRowsSchema,type StealthRows} from './stealth';
 import { PaintedLookSchema, type PaintedLookRow } from './paintedLook';
 import { ColourFunctionBookSchema, type ColourFunctionBook } from './colourFunction';
@@ -47,6 +48,7 @@ export interface PlatformDataSections {
   'actors/return-scripts': DecisionScripts;
   'actors/strikes': CreatureStrikes;
   'sim/scripts': DecisionScripts;
+  'sim/bodies': DeclaredBodyOpsRows;
   'ui/strings': UiStrings;
   'world/physics': WorldPhysics;
   'world/targets': WorldTargets;
@@ -76,6 +78,7 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
   'actors/return-scripts': { schema: DecisionScriptsSchema },
   'actors/strikes': { schema: CreatureStrikesSchema },
   'sim/scripts': { schema: DecisionScriptsSchema },
+  'sim/bodies': { schema: DeclaredBodyOpsSchema },
   'ui/strings': { schema: UiStringsSchema },
   'world/physics': { schema: WorldPhysicsSchema },
   'world/targets': { schema: WorldTargetsSchema },
@@ -104,6 +107,7 @@ export function parsePlatformDataSection(name: 'actors/moves', value: unknown): 
 export function parsePlatformDataSection(name: 'actors/strikes', value: unknown): CreatureStrikes;
 export function parsePlatformDataSection(name: 'actors/spawn-scripts', value: unknown): SpawnScriptRows[];
 export function parsePlatformDataSection(name: 'actors/return-scripts' | 'sim/scripts', value: unknown): DecisionScripts;
+export function parsePlatformDataSection(name: 'sim/bodies', value: unknown): DeclaredBodyOpsRows;
 export function parsePlatformDataSection(name: 'ui/completion', value: unknown): CompletionRows;
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;
 export function parsePlatformDataSection(name: 'world/physics', value: unknown): WorldPhysics;

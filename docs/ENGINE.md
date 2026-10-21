@@ -6760,6 +6760,17 @@ Encoding preserves each original wire name and ordering. Decoding refuses
 noncanonical alias keys and duplicate decoded roles before restore; original
 quest envelopes, cable endpoints and quiet restoration remain unchanged.
 
+`game/quest/nativeBodyScripts.installNativeBodyScripts(host, shard, assets,
+restoring)` installs admitted shard-bound body decisions before the native
+quest composition. Its fixed-step phase runs body post, decision commit,
+then body pre; observation callbacks follow physics. It adds no independent
+save adapter. The quest props lend requested walk intent and carry the native
+body handle plus optional decision continuation in their existing envelope.
+Old saves without that continuation adopt their handle and resume the script
+at the restored tick; migrated saves restore its clocks and staged commands.
+The authored G566 barrel watch runs at 10 Hz. Its transient watch clocks start
+fresh when migrating an old envelope; the body's identity is preserved.
+
 The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
 the admitted table and pack for that native composition. It borrows
 the worker's existing command and ledger adapter; `install(owners)` binds the

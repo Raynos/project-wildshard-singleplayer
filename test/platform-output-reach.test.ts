@@ -43,6 +43,15 @@ it('rejects unknown section hosts and absent outputs instead of measuring source
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
+it('attributes body sections to defining hosts without a native barrel adapter',()=>{
+ const roots=sectionHostImports([{name:'sim/bodies'},{name:'sim/bodies'}]);
+ expect(roots.split('\n')).toEqual([
+  "import { DeclaredBodyOpsSchema as host0 } from '../../src/format/bodySlots'; void host0;",
+  "import { DeclaredBodyOps as host1 } from '../../src/game/quest/bodyOps'; void host1;",
+ ]);
+ expect(roots).not.toContain('nativeBodyScripts');
+});
+
 it('attributes declared moves and decisions to their defining sim hosts',()=>{
  const roots=sectionHostImports([{name:'actors/moves'},{name:'sim/scripts'}]);
  expect(roots).toContain('engine/ai/moves');

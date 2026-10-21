@@ -61,6 +61,7 @@ import directorStages from '../data/finaleStages.json' with { type: 'json' };
 import monkeyClips from '../data/monkeyClips.generated.json' with { type: 'json' };
 import { TRADER_STALL as traderStall } from './questShop';
 import { PAGE_STORY } from './pageStory';
+import { BARREL_DECISION, BARREL_BODIES } from './barrelDecision';
 import { CAPTAIN_DECISION, CAPTAIN_MOVES, CAPTAIN_STRIKES, CAPTAIN_TARGETS } from './captainDecision';
 import { completionRows, placeSetRows } from './completion';
 import { TRADER_PAGE } from './traderPage';
@@ -138,7 +139,7 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
-export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ['world/scenes', { ...WORLD_SCENES, entry: driftwoodWorldEntry() }], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', CAPTAIN_DECISION], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ['world/scenes', { ...WORLD_SCENES, entry: driftwoodWorldEntry() }], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };

@@ -16,6 +16,7 @@ import type { HeldEquipmentRows } from './heldEquipment';
 import type { CompletionRows } from './completion';
 import type { SpeciesPrograms } from './speciesPrograms';
 import type { Shardfile } from './shardSchema';
+import type { DeclaredBodyOpsRows } from './bodySlots';
 import type { CreatureStrikes } from './creatures';
 import type { ActorMoves } from './actorMoves';
 import type { DecisionScriptRow } from './decisionScripts';
@@ -103,6 +104,8 @@ export interface PlatformSections {
   'state/modes': Pick<Shardfile, 'modes'>;
   /** new (KA1): admitted v1 decisions, independent of the retained v0 hash/binding envelope */
   'sim/scripts': readonly DecisionScriptRow[];
+  /** G566: declared bodies the shard's decision scripts own */
+  'sim/bodies': DeclaredBodyOpsRows;
   'sim/sim': Pick<Shardfile, 'sim'>;
   'sim/hooks': Pick<Shardfile, 'hooks'>;
   'sim/client-scripts': Pick<Shardfile, 'clientScripts'>;

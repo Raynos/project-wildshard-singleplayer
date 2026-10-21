@@ -43,8 +43,7 @@ test('an orchard quest resolves native services by ids and restores carried rewa
     reward: { x: 6, y: 0, z: 5, yaw: 1, pitch: 0, phase: .5 }, promptRegistrations: [{ id: rows.heldId, position: { x: 0, y: 1.68, z: 1 }, radius: 3, sight: { slack: 0 } }],
     zipline: { top: mode.top, bottom: mode.bottom, sag: mode.sag, prompt: { x: 0, y: 5, z: 0, radius: 3 } } });
   const counters = parseAchievementCounterData({ feats: [], flags: [], prefix: 'orchard', floorTotals: false, validateTotals: false, write: 'each' });
-  const props = { water: -10, floors: [], drops: [{ id: rows.keyDrop.id, kind: rows.keyDrop.kind }], plates: [], gates: [],
-    barrels: [{ id: rows.barrelOwner.id, home: { x: 10, y: 0, z: 2 }, yaw: 0, leash: 6, owner: rows.barrelOwner }] };
+  const props = { floors: [], drops: [{ id: rows.keyDrop.id, kind: rows.keyDrop.kind }], gates: [] };
   const install = (host: ReturnType<typeof createSimHost>, saved?: ReturnType<typeof snapshotSimHost>) => {
     const population = installMixedPopulation(host, orchardPopulation(), saved); installCableModes(host.scope, [mode], host.flags).bindNative(host);
     const frame = createNativeCombatFrame(); const equipment = installNativeItems(host, frame, { kind: 'swept', items: source.items.rows, policy: { ...swords, step: rows.equipment } });

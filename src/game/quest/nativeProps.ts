@@ -1,38 +1,41 @@
 import * as v from 'valibot';
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import type { SimHost } from '@wildshard/engine/sim';
-import { Bodies, Body } from '@wildshard/engine/physics/bodies';
-import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
+import type { DeclaredBodyOps } from './bodyOps';
+import type { ShardDecisions } from '../shardfile/decisions';
 import { QuestFlagGates } from './flagGates';
-import { test } from '@wildshard/engine/world/interact/flags';
 
 const finite = v.pipe(v.number(), v.finite()), point = v.strictObject({ x: finite, y: finite, z: finite });
 const savedBody = v.nullable(v.strictObject({ handle: v.pipe(finite, v.minValue(0)),
-  watch: v.strictObject({ lost: finite, wedge: finite, from: point }) }));
+  watch: v.strictObject({ lost: finite, wedge: finite, from: point }), decision: v.exactOptional(v.string()) }));
+/** The envelope keeps its shape; the watch clocks live in the body script's own continuation (G566), so they are written at rest. */
+const RESTING = { lost: 0, wedge: 0, from: { x: 0, y: 0, z: 0 } };
+/** A native world's body scripts (nativeBodyScripts.ts): the declared bodies and the decisions that steer them. */
+export interface QuestBodyScripts { readonly bodies: DeclaredBodyOps; readonly decisions: Pick<ShardDecisions, 'snapshot' | 'restore' | 'continueAt'> }
+const lent = new WeakMap<SimHost, QuestBodyScripts>();
+/** G566: the native body scripts lend themselves to the host's quest props, which carry their bodies' handles and continuation. */
+export function lendQuestBodyScripts(host: SimHost, scripts: QuestBodyScripts): void { lent.set(host, scripts); host.scope.onDispose(() => { lent.delete(host); }); }
 
 /** Renderer-free physical props. Authored rows are the entire content API;
- * body services, native handles, flags and ground resolve from the real host. */
+ * body services, native handles, flags and ground resolve from the real host. A declared body's decisions (Driftwood's
+ * tide barrel watch) are the shard's script; this keeps the walk it reads and its saved handle and continuation. */
 export class NativeQuestProps {
   private readonly rows;
-  private service: Bodies;
-  private readonly barrels;
   private readonly gates: QuestFlagGates;
-  private readonly walk = { x: 0, y: 0, z: 0 };
-  private readonly lifted = { x: 0, y: 0, z: 0 };
-  private readonly env: BarrelEnv;
   private readonly host: SimHost;
+  private readonly scripts: QuestBodyScripts | null;
+  private readonly adopt = new Map<string, number | null>();
+  private continuation: string | null = null;
   private readonly dropped = new Map<string, v.InferOutput<typeof point> | null>();
   constructor(host: SimHost, input: unknown, restoring: boolean) {
     this.host = host;
     this.rows = v.parse(NativeQuestPropsSchema, input);
     if (new Set(this.rows.drops.map(row => row.id)).size !== this.rows.drops.length
-      || new Set(this.rows.barrels.map(row => row.id)).size !== this.rows.barrels.length
+      || new Set(this.rows.bodies.map(row => row.owner)).size !== this.rows.bodies.length
       || this.rows.floors.some(row => row.values.length !== row.width * row.height)) throw new Error('Invalid native quest prop rows');
-    this.service = new Bodies(host.physics, host.player.position);
-    this.env = { player: { position: host.player.position, velocity: this.walk }, floorAt: (x, z) => this.floorAt(x, z),
-      water: () => this.rows.water, onPlate: at => this.rows.plates.some(row => test(host.flags, row.when) && barrelAtPlate(at, row.at, row.size)) };
-    this.barrels = this.rows.barrels.map(row => ({ row, body: null as Body | null, adopt: null as number | null,
-      watch: new BarrelWatch(row.home, row.leash), upright: { x: 0, y: Math.sin(row.yaw / 2), z: 0, w: Math.cos(row.yaw / 2) } }));
+    const scripts = lent.get(host) ?? null;
+    if (this.rows.bodies.length > 0 && scripts === null) throw new Error('Native quest bodies require their declared body authority');
+    this.scripts = this.rows.bodies.length === 0 ? null : scripts;
     this.gates = new QuestFlagGates(host, { gates: this.rows.gates.map(row => ({ id: row.flag, opensWhen: { all: [row.flag] }, target: { kind: 'box', box: row.box } })) }, restoring);
     for (const row of this.rows.drops) this.dropped.set(row.id, null);
     if (this.rows.drops.length > 0) host.events.on('actor.died', ({ actor }) => {
@@ -42,13 +45,6 @@ export class NativeQuestProps {
         const { x, z } = body.position; this.dropped.set(row.id, { x, y: this.floorAt(x, z), z });
       }
     }, host.scope);
-    if (!restoring) {
-      for (const slot of this.barrels) slot.body = this.service.spawn({ ...BARREL_BODY, owner: slot.row.owner }, this.lift(slot.row.home), undefined, slot.upright);
-    }
-    host.scope.onDispose(() => { this.service.dispose(); });
-  }
-  private lift(at: { readonly x: number; readonly y: number; readonly z: number }) {
-    this.lifted.x = at.x; this.lifted.y = at.y + BARREL_HALF + 0.01; this.lifted.z = at.z; return this.lifted;
   }
   /** A defeated native body drops its declared prop on the same captured floor. */
   dropAt(id: string): Readonly<v.InferOutput<typeof point>> | null {
@@ -70,37 +66,29 @@ export class NativeQuestProps {
     }
     return y;
   }
-  /** The caller retains the original post-world/pre-interaction phase. */
-  step(dt: number, walk: { readonly x: number; readonly z: number }): void {
-    if (this.barrels.length === 0) return;
-    this.walk.x = walk.x; this.walk.z = walk.z; this.service.post(dt);
-    for (const slot of this.barrels) if (slot.body !== null && slot.watch.check(slot.body.curr, dt, this.env)) {
-      slot.body.teleport(this.lift(slot.row.home), slot.upright); slot.watch.clear();
-    }
-    this.service.pre(dt);
-  }
+  /** The caller retains the original post-world/pre-interaction phase: the body scripts read this requested walk. */
+  step(_dt: number, walk: { readonly x: number; readonly z: number }): void { this.scripts?.bodies.setPlayerIntent(walk); }
   /** Run after flag transitions, so an opened latch releases in the same tick. */
   syncGates(): void {
     this.gates.sync();
   }
   snapshot(id: string): v.InferOutput<typeof savedBody> {
-    const slot = this.barrels.find(entry => entry.row.id === id);
-    return slot?.body === null || slot === undefined ? null : { handle: slot.body.rb.handle, watch: slot.watch.state() };
+    const row = this.rows.bodies.find(entry => entry.owner === id), body = row === undefined ? null : this.scripts?.bodies.body(row.body) ?? null;
+    return this.scripts === null || body === null || !body.alive ? null : { handle: body.rb.handle, watch: RESTING, decision: this.scripts.decisions.snapshot() };
   }
   restore(id: string, input: unknown): void {
-    const state = v.parse(savedBody, input), slot = this.barrels.find(entry => entry.row.id === id);
-    if ((state === null) !== (slot === undefined)) throw new Error('Incompatible native quest prop continuation');
-    if (state !== null && slot !== undefined) { slot.watch.restore(state.watch); slot.adopt = state.handle; }
+    const state = v.parse(savedBody, input), row = this.rows.bodies.find(entry => entry.owner === id);
+    if (row === undefined) { if (state !== null) throw new Error('Incompatible native quest prop continuation'); return; }
+    this.adopt.set(row.body, state?.handle ?? null);
+    // an old save (before G566) carries no script continuation: the scripts start fresh at the restored tick
+    if (state?.decision !== undefined) this.continuation = state.decision;
   }
   /** Rebind restored handles without spawning, drawing or replaying flag edges. */
   physicsRestored(): void {
-    this.service = new Bodies(this.host.physics, this.host.player.position); this.gates.physicsRestored();
-    for (const slot of this.barrels) {
-      if (slot.adopt === null) continue;
-      const world = this.host.physics.world;
-      if (!world.bodies.contains(slot.adopt)) throw new Error('Saved native quest prop has no body');
-      const rb = world.getRigidBody(slot.adopt), body = new Body(rb, rb.collider(0), { ...BARREL_BODY, owner: slot.row.owner }, 0);
-      this.service.list.push(body); slot.body = body; slot.adopt = null;
-    }
+    this.gates.physicsRestored();
+    const scripts = this.scripts; if (scripts === null) return;
+    scripts.bodies.restoreHandles(Object.fromEntries(this.rows.bodies.map(row => [row.body, this.adopt.get(row.body) ?? null])));
+    if (this.continuation === null) scripts.decisions.continueAt(this.host.state.tick); else scripts.decisions.restore(this.continuation);
+    this.adopt.clear(); this.continuation = null;
   }
 }
