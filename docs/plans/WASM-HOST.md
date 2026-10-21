@@ -155,3 +155,4 @@ listed here with its lines instead of being forced into a one-user host.
 - 2026-10-20, sp-o3 (granted by the SHARD-PLATFORM coordinator): stateless AssemblyScript return programs share one
   `WebAssembly.Memory` per page size instead of creating one each, because iOS runs a full GC for every new Memory
   (40–80 ms each). H-rows that redesign memory ownership start from this.
+- 2026-10-21, Jake (SHARD-PLATFORM G566): AssemblyScript **body operations** (spawn a declared body, teleport, enable/disable its collider) land now for Driftwood's quest barrels, ahead of this plan's design. The H-rows that design the AS physics surface start from this API.
