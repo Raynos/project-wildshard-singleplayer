@@ -1,0 +1,45 @@
+{
+  "triangles": 60000,
+  "rows": [
+    {
+      "before": {
+        "ms": 34.68445900000006,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      },
+      "after": {
+        "ms": 21.02283399999942,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      }
+    },
+    {
+      "after": {
+        "ms": 14.732583999999406,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      },
+      "before": {
+        "ms": 32.84370900000067,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      }
+    },
+    {
+      "before": {
+        "ms": 34.99633300000096,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      },
+      "after": {
+        "ms": 10.681832999998733,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      }
+    },
+    {
+      "after": {
+        "ms": 5.845916000000216,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      },
+      "before": {
+        "ms": 31.744708000000173,
+        "hash": "dd41ea6536d7276899bde9e08f41bf59e5ada6d1411f27c97ccf1d4b532facea"
+      }
+    }
+  ]
+}
