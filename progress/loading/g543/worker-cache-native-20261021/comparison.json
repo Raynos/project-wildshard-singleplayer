@@ -1,0 +1,152 @@
+{
+  "surface": "iPhone 16 Pro iOS Simulator Safari, through scripts/sim-lane.sh",
+  "standaloneHTTPProbe": true,
+  "responseCacheControl": "no-cache",
+  "originalProbeSHA256": "5d6ee2f5b3d94e15e37f9f306459d1a2e507b98c115d2fa79e9b82beb4f1ece8",
+  "rows": [
+    {
+      "mode": "imports",
+      "phase": "register",
+      "requests": [
+        {
+          "path": "/imports/sw.js",
+          "version": "first",
+          "status": 200,
+          "bodyBytes": 148,
+          "etag": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+          "requestHeaders": {
+            "cache-control": "max-age=0",
+            "if-none-match": null,
+            "service-worker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "imports",
+      "phase": "unchanged-same-process",
+      "requests": [
+        {
+          "path": "/imports/sw.js",
+          "version": "first",
+          "status": 200,
+          "bodyBytes": 148,
+          "etag": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+          "requestHeaders": {
+            "cache-control": "max-age=0",
+            "if-none-match": null,
+            "service-worker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "imports",
+      "phase": "unchanged-after-restart",
+      "requests": [
+        {
+          "path": "/imports/sw.js",
+          "version": "first",
+          "status": 200,
+          "bodyBytes": 148,
+          "etag": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+          "requestHeaders": {
+            "cache-control": "max-age=0",
+            "if-none-match": null,
+            "service-worker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "imports",
+      "phase": "changed-body",
+      "requests": [
+        {
+          "path": "/imports/sw.js",
+          "version": "second changed worker body",
+          "status": 200,
+          "bodyBytes": 169,
+          "etag": "\"a66869267ea801b8b4a9b9375db660bbee95d44306652c2eb9e47d3a28215725\"",
+          "requestHeaders": {
+            "cache-control": "max-age=0",
+            "if-none-match": null,
+            "service-worker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "register",
+      "requests": [
+        {
+          "path": "/all/sw.js",
+          "version": "first",
+          "status": 200,
+          "bodyBytes": 148,
+          "etag": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+          "requestHeaders": {
+            "cache-control": null,
+            "if-none-match": null,
+            "service-worker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "unchanged-same-process",
+      "requests": [
+        {
+          "path": "/all/sw.js",
+          "version": "first",
+          "status": 304,
+          "bodyBytes": 0,
+          "etag": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+          "requestHeaders": {
+            "cache-control": null,
+            "if-none-match": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+            "service-worker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "unchanged-after-restart",
+      "requests": [
+        {
+          "path": "/all/sw.js",
+          "version": "first",
+          "status": 304,
+          "bodyBytes": 0,
+          "etag": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+          "requestHeaders": {
+            "cache-control": null,
+            "if-none-match": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+            "service-worker": "script"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "all",
+      "phase": "changed-body",
+      "requests": [
+        {
+          "path": "/all/sw.js",
+          "version": "second changed worker body",
+          "status": 200,
+          "bodyBytes": 169,
+          "etag": "\"a66869267ea801b8b4a9b9375db660bbee95d44306652c2eb9e47d3a28215725\"",
+          "requestHeaders": {
+            "cache-control": null,
+            "if-none-match": "\"cf3cd518d050b3b018b42893091c982a590ea81a8b46b4306deff3d9fd978dfe\"",
+            "service-worker": "script"
+          }
+        }
+      ]
+    }
+  ]
+}
