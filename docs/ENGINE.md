@@ -9147,6 +9147,12 @@ Rows may select a variant/alive gate, enumerate state indices, borrow the
 existing bounded look-angle helper, and finish with the existing flinch
 squash. The returned callback caches per rig, owns no actor memory or clock,
 and works on the same renderer-free joints as the native pose owner.
+Numeric callbacks retain a detached parsed definition. Native continuations bind its
+canonical SHA-256 `numeric-creature-pose:v1` identity, including all programs,
+bindings and observation mappings. Envelope versions still describe state layout;
+older numeric continuations without this binding, including unversioned legacy
+adoption, refuse rather than migrate across unverified motion. Callbacks without
+numeric definitions retain their previous identity.
 Driftwood's crab and Pine's living thralls consume build-emitted JSON rows.
 The existing numeric DAG's `pow` operation preserves native `Math.pow`
 semantics, including the crab's squared smoothstep and thrall's sharp jerk.

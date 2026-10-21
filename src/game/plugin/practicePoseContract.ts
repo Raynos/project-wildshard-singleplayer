@@ -21,3 +21,13 @@ export function registerPracticePoseTransition(animate: Animation, row: Practice
 export function practicePoseTransition(animate: Animation | undefined): PracticePoseTransition | undefined {
   return animate === undefined ? undefined : admitted.get(animate);
 }
+
+const numericDefinitions = new WeakMap<Animation, string>();
+/** Compiler-owned digest of the complete detached parsed definition, never an authored identity tag. */
+export function registerNumericPoseDefinition(animate: Animation, definition: string): void {
+  numericDefinitions.set(animate, definition);
+}
+/** No numeric declaration means no new identity field: existing native callbacks remain byte-compatible. */
+export function numericPoseDefinition(animate: Animation | undefined): string | undefined {
+  return animate === undefined ? undefined : numericDefinitions.get(animate);
+}

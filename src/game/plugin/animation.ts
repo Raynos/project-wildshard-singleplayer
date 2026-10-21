@@ -11,7 +11,7 @@ import type { NumericCorpseJoint } from '@wildshard/engine/physics/rigidCorpse';
 import { FIXED_STEP } from '@wildshard/engine/core/fixedStep';
 import { AnimalPoseLaw, type AnimalPoseRecipe } from '@wildshard/engine/entities/animalPose';
 import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRigJoint, type AnimalPoseTransition } from '@wildshard/engine/entities/animalRig';
-import { practicePoseTransition } from './practicePoseContract';
+import { practicePoseTransition, numericPoseDefinition } from './practicePoseContract';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { buildFarProxy, edgeLeanDrop, type FarEdgeLean, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
 
@@ -702,6 +702,7 @@ export class NativeCreaturePose {
     return state;
   }
   private readonly identity: string;
+  private readonly numericDefinition: string | undefined;
   private readonly quadClock;
   private readonly actor: AnimalSim;
   private readonly recipe: NativeCreaturePoseRecipe;
@@ -746,7 +747,10 @@ export class NativeCreaturePose {
       || transition !== undefined && (!recipe.custom || transition.joints.length !== recipe.joints.length
         || transition.joints.some((name, index) => recipe.joints[index]?.name !== name)))
       throw new Error('Incompatible native practice pose declaration');
-    this.identity = JSON.stringify({ id: actor.entityId, kind: actor.kind, variant: actor.variant, dims: actor.dims, recipe, ...(this.contactRecipe === undefined ? {} : { contact: this.contactRecipe }) });
+    // Envelope versions describe saved state layout. Numeric v1 binds its actual compiled definition;
+    // pre-binding numeric continuations fail closed, while nonnumeric identity bytes are unchanged.
+    const numericDefinition = numericPoseDefinition(animate); this.numericDefinition = numericDefinition;
+    this.identity = JSON.stringify({ ...(numericDefinition === undefined ? {} : { numericDefinition }), id: actor.entityId, kind: actor.kind, variant: actor.variant, dims: actor.dims, recipe, ...(this.contactRecipe === undefined ? {} : { contact: this.contactRecipe }) });
     this.entityId = actor.entityId;
     this.fk = new CollisionPose(recipe.joints);
     this.joints = recipe.joints.map(row => {
@@ -1021,6 +1025,7 @@ export class NativeCreaturePose {
    * complete transforms retain frozen far-LOD joints exactly, while scalar-only callers republish from the actor. */
   adopt(input: unknown): void {
     if (this.history !== undefined) throw new Error('Practice transition requires native continuation');
+    if (this.numericDefinition !== undefined) throw new Error('Numeric pose requires definition-bound native continuation');
     const state = poseSchema.parse(NativeCreaturePose.Legacy, typeof input === 'string' ? { pose: input } : input);
     if (state.bones !== undefined && (state.bones.length !== this.joints.length
       || state.bones.some(([name], index) => name !== this.recipe.joints[index]?.name))

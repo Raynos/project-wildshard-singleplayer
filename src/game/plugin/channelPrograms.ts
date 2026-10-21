@@ -6,7 +6,8 @@ import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs'
 import { borrowedDecisionControl } from '../shardfile/borrowedDecisions';
 import {createClientChannels,bindClientChannelInputs} from './channels';
 import { PracticeFootContactSchema } from './practiceFootContact';
-import { PracticePoseTransitionSchema, registerPracticePoseTransition } from './practicePoseContract';
+import { sha256 } from './brain';
+import { PracticePoseTransitionSchema, registerPracticePoseTransition, registerNumericPoseDefinition } from './practicePoseContract';
 
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
 export interface ChannelProgramObservation {readonly time:number;readonly delta:number;readonly values:readonly number[]|Readonly<Record<string,number>>}
@@ -66,10 +67,30 @@ const numericPoseSchema = poseSchema.strictObject({
     fallback: poseSchema.exactOptional(poseSchema.pipe(poseSchema.number(), poseSchema.finite())),
   })), poseSchema.maxLength(64)), []),
 });
+/** Keep lazy compilation and admission on one immutable, compiler-owned definition. */
+function freezeNumericDefinition(value: unknown): void {
+  if (value === null || typeof value !== 'object') return;
+  for (const item of Object.values(value)) freezeNumericDefinition(item);
+  Object.freeze(value);
+}
+/** Canonical parsed data, not function text or caller tags. Preserve signed zero (atan2/pow observe it),
+ * array order and every schema field; object key order and omitted optional values are immaterial. */
+function numericDefinitionBytes(value: unknown): string {
+  if (value === null) return 'null';
+  if (typeof value === 'number') return Object.is(value, -0) ? '-0' : JSON.stringify(value);
+  if (typeof value === 'string' || typeof value === 'boolean') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(numericDefinitionBytes).join(',')}]`;
+  if (typeof value === 'object') return `{${Object.entries(value).filter(([, item]) => item !== undefined)
+    .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+    .map(([key, item]) => `${JSON.stringify(key)}:${numericDefinitionBytes(item)}`).join(',')}}`;
+  throw new Error('Invalid numeric definition value');
+}
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
 export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => void {
-  const row = poseSchema.parse(numericPoseSchema, input);
+  // Own the same detached definition for both lazy evaluation and continuation admission.
+  const row = structuredClone(poseSchema.parse(numericPoseSchema, input));
+  freezeNumericDefinition(row);
   if (new Set(row.scalars.map(scalar => scalar.name)).size !== row.scalars.length
     || row.scalars.some(scalar => [scalar.name, ...scalar.path].some(key => ['constructor', 'prototype', '__proto__'].includes(key)))) throw new Error('Invalid creature pose scalar');
   if (row.programs.length === 0 || row.programs.some(program => {
@@ -237,6 +258,8 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
   };
+  // v1 identifies the complete parsed numeric semantics, independently of envelope layout versions.
+  registerNumericPoseDefinition(animate, `numeric-creature-pose:v1:sha256:${sha256(new TextEncoder().encode(numericDefinitionBytes(row)))}`);
   if (row.practiceTransition !== undefined) registerPracticePoseTransition(animate, { ...row.practiceTransition, ...(row.footContact === undefined ? {} : { contact: row.footContact }) });
   // Fixed corpse collision admits rigid transforms only; legacy squash and scale animation remain unchanged.
   return row.squash === undefined && row.programs.every(program => program.numeric?.outputs.every(output => output.path[0] !== 'scale') === true)
