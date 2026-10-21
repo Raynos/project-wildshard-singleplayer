@@ -191,3 +191,25 @@ test('the single slot roster stays charged despite an optional dispatcher',()=>{
   expect([...bindings.get(`${path}\0PatrolEncounterView`)??[]]).toEqual(['nalati-grasslands']);
   expect(bindings.get(`${path}\0CloudBody`)).toEqual(both);expect(platformChargeback(path,'SlotEncounterView')).toBe('C4');
 });
+
+
+test('shared hull imports grant no second user to the packed species adapter',()=>{
+  const path='src/game/looks/speciesBook.ts',format='src/format/speciesLooks.ts',both=new Set(['nalati-grasslands','pine-hollow']);
+  const modules=new Map([[path,both],[format,both]]),bindings=new Map([
+    [`${path}\0HullLookBook`,both],[`${path}\0SpeciesLookBook`,both],[`${path}\0packedRows`,both],
+    [`${format}\0HullLookBookSchema`,both],[`${format}\0SpeciesLookBookSchema`,both],
+  ]);
+  chargePlatformUsers(modules,bindings);
+  for(const [file,name]of [[path,'SpeciesLookBook'],[path,'packedRows'],[format,'SpeciesLookBookSchema']]as const){
+    expect([...bindings.get(`${file}\0${name}`)??[]]).toEqual(['nalati-grasslands']);
+    expect(platformChargeback(file,name)).toBe('C1');
+  }
+  expect(bindings.get(`${path}\0HullLookBook`)).toEqual(both);
+  expect(bindings.get(`${format}\0HullLookBookSchema`)).toEqual(both);
+  expect(platformChargeback(path,'HullLookBook')).toBeNull();
+  expect(platformChargeback(format,'HullLookBookSchema')).toBeNull();
+  expect(modules.get(path)).toEqual(both);expect(modules.get(format)).toEqual(both);
+  const charges=new Map<string,{path:string;name:string;lines:number}[]>([['nalati-grasslands',[]]]);
+  expect(recordPrivateCharge(charges,'fixture',{path,name:'SpeciesLookBook',lines:7})).toBe(true);
+  expect(charges.get('nalati-grasslands')?.map(row=>row.name)).toEqual(['SpeciesLookBook']);
+});

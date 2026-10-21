@@ -261,3 +261,17 @@ fight with sub-step RNG, paused RNG, exactly seven delayed strikes and
 reset cancelling pending strikes, then retain both full victory traces.
 Root/layer types, typed lint and five focused suites pass.
 No collider descriptors, visuals, codec, resources or budgets change.
+
+
+G518 species look attribution: HullLookBook has real shared hull users,
+but SpeciesLookBook and its packedRows decoder are live only in Nalati's
+species/presentation.ts. SpeciesLookBookSchema likewise serves that
+adapter; the orchard test is a fixture. These declarations score 4/6
+(fail real second shard and deletion test) and charge to Nalati C1.
+Preserve shared HullLookBook/HullLookBookSchema and all native geometry,
+packing and draw owners. Broad module reach grants no second-user credit.
+Physical runtime source: **shards 0 / platform 0**, build/AS/data **0**.
+This corrects attribution, not a source-line saving; the next census
+measures its actual spans. Do not edit the in-flight speciesBook source.
+Script types, typed lint, eleven focused attribution regressions and
+hooks pass. No collider, visual, codec, resource or budget changes.
