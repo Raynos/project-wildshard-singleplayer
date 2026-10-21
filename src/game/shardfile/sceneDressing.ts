@@ -15,6 +15,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { scatterLayer, instanceBoxes, type ScatterLayer } from '@wildshard/engine/render/scatterInstances';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
+import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
 import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
@@ -175,6 +176,10 @@ export class SceneDressing {
     if(rows.motes!==undefined){const row=rows.motes,rng=new Rng(row.seed),seeds=Float32Array.from({length:row.count*4},()=>rng.next()),shape=new THREE.BufferGeometry();
       shape.setAttribute('position',new THREE.BufferAttribute(new Float32Array(row.count*3),3));shape.setAttribute('aSeed',new THREE.BufferAttribute(seeds,4));ctx.scope.own(shape);
       const points=new THREE.Points(shape,lentLook(row.look));points.name=row.name;points.frustumCulled=false;points.renderOrder=2;this.group.add(points);}
+    // Later Explorer builds may clone model templates. All other owned shapes
+    // have finished their CPU readers; picking retains their positions/index.
+    const templates=new Set(rows.staticModels.map(row=>row.geometry));
+    for(const [key,shape]of geometry)if(!templates.has(key)&&Object.keys(shape.morphAttributes).length===0)gpuOnlyAttributes(shape,'scene.dressing');
     ctx.root.add(this.group);
   }
   update(dt:number):void{

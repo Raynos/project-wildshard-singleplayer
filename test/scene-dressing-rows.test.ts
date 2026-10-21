@@ -78,6 +78,30 @@ test('the orchard fixture constructs and retires the shared client projection',a
 });
 
 
+test('uploaded dressing channels retire while picking and cloneable templates retain their arrays',async()=>{
+  const source=new THREE.BoxGeometry(1,2,1);source.clearGroups();
+  const blocks:Uint8Array[]=[],layout=writeGeometry(source,blocks,'dressing-upload');source.dispose();
+  let encoded='';for(const byte of zlibSync(join(blocks)))encoded+=String.fromCodePoint(byte);
+  for(const template of [false,true]){
+    const scope=new Scope('dressing-upload'),root=new THREE.Group(),ctx={} as ShardContext;
+    Object.assign(ctx,{scope,root,system:vi.fn(),app:{registry:new WorldRegistry()},product:{},game:{runtime:{world:{sky:null}}}});
+    const rows={name:'upload',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(encoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
+      staticModels:template?[{model:{id:'fixture/upload',name:'Upload',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}]:[],
+      statics:[{name:'draw',tris:12,members:[],geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]}}]};
+    const owner=await SceneDressing.install(ctx,rows),mesh=owner.group.children[0];
+    if(!(mesh instanceof THREE.Mesh))throw new Error('Missing dressing draw');
+    const drawn:unknown=mesh.geometry;if(!(drawn instanceof THREE.BufferGeometry))throw new Error('Missing dressing geometry');
+    const normal:unknown=drawn.getAttribute('normal');if(!(normal instanceof THREE.BufferAttribute))throw new Error('Missing dressing normals');
+    const count=normal.count,box=drawn.boundingBox?.clone()??null;normal.onUploadCallback();
+    expect(normal.count).toBe(count);expect(normal.array.byteLength>0).toBe(template);
+    const position:unknown=drawn.getAttribute('position');if(!(position instanceof THREE.BufferAttribute))throw new Error('Missing picking positions');
+    expect(position.array.byteLength).toBeGreaterThan(0);expect(drawn.index?.array.byteLength).toBeGreaterThan(0);
+    expect(drawn.boundingBox).toEqual(box);expect(drawn.boundingSphere?.radius).toBeGreaterThan(0);
+    if(template){const copy=drawn.clone(),copied:unknown=copy.getAttribute('normal');if(!(copied instanceof THREE.BufferAttribute))throw new Error('Missing template normals');expect(copied.count).toBe(count);expect(copied.array.byteLength).toBeGreaterThan(0);copy.dispose();}
+    scope.dispose();
+  }
+});
+
 test('geometry source addresses remain binary while the JSON address word stays bounded',()=>{
   const bytes=new Uint8Array(8),view=new DataView(bytes.buffer);view.setUint32(0,17000000,true);view.setUint32(4,10000000,true);
   expect(readSceneGeometryAddress(bytes,0)).toBe(17000000);expect(readSceneGeometryAddress(bytes,1)).toBe(10000000);
