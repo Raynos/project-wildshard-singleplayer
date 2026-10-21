@@ -10,6 +10,7 @@ import { accuracyReport } from './accuracy-report.mjs';
 import { accuracyRecorder, accuracyCaption } from './accuracy-data.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
 import { crossingProbeCode, crossingReport } from './crossing.mjs';
+import { arrivalState } from './arrival.mjs';
 
 const arg = (key, fallback) => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
 const base = arg('base', ''), pin = arg('pin', ''), out = arg('out', '');
@@ -103,6 +104,21 @@ try {
         // Read existing bounded diagnostics after the recorded first frame;
         // this does not extend the byte/cadence measurement window.
         receipt.nodeBuilds = await page.evaluate(() => window.__wildshard?.world?.game.nodeBuilds ?? null);
+        if (path === 'grid' && arg('arrival', '0') === '1') {
+          await page.waitForFunction(() => window.__wsReveal?.startedAt >= 0, undefined, { timeout: 10_000 });
+          await page.locator('.ws-grid-reveal').click();
+          await page.waitForFunction(() => window.__wsReveal?.endedMs !== null
+            && !document.querySelector('#hud')?.classList.contains('ws-grid-revealing'), undefined, { timeout: 1500 });
+          receipt.arrival = await page.evaluate(arrivalState);
+          if (receipt.arrival.overlay || receipt.arrival.hiddenHud || !receipt.arrival.gameplayReady
+            || (!desktop && !receipt.arrival.touch)) throw new Error('Arrival did not release usable controls');
+          await page.keyboard.down('KeyW');
+          await page.waitForTimeout(750);
+          await page.keyboard.up('KeyW');
+          receipt.afterInput = await page.evaluate(arrivalState);
+          const before = receipt.arrival.feet, after = receipt.afterInput.feet;
+          if (Math.hypot(after[0] - before[0], after[2] - before[2]) < .1) throw new Error('Normal movement input stayed blocked after arrival');
+        }
         writeFileSync(resolve(directory, `${path}.json`), JSON.stringify(receipt, null, 2));
       }
       if (!desktop) {

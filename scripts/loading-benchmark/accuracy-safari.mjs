@@ -11,6 +11,7 @@ import { accuracyRecorder, accuracyCaption } from './accuracy-data.mjs';
 import { accuracyReport } from './accuracy-report.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
 import { crossingProbeCode, crossingReport } from './crossing.mjs';
+import { arrivalState } from './arrival.mjs';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const networkEvents = arg('network-events') ?? '1';
@@ -152,6 +153,13 @@ try {
           await wait(`window.__wildshard.world.game.renderer.info.render.frame > ${frame}`, 10000);
           // Diagnostic only, after the frozen first-frame measurement window.
           result.nodeBuilds = JSON.parse(await inspector.evaluate('JSON.stringify(window.__wildshard?.world?.game.nodeBuilds ?? null)'));
+          if (path === 'grid' && arg('arrival') === '1') {
+            await wait('window.__wsReveal?.startedAt >= 0', 10000);
+            await gesture(`document.querySelector('.ws-grid-reveal').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }))`);
+            await wait(`window.__wsReveal?.endedMs !== null && !document.querySelector('#hud')?.classList.contains('ws-grid-revealing')`, 1500);
+            result.arrival = JSON.parse(await inspector.evaluate(`JSON.stringify((${arrivalState.toString()})())`));
+            if (result.arrival.overlay || result.arrival.hiddenHud || !result.arrival.gameplayReady || !result.arrival.touch) throw new Error('Arrival did not release usable touch controls');
+          }
         }
         const caption = `${pin.slice(0, 7)} · ${collected?.accuracy?.final?.path ?? `${path} request`} · iPhone 16 Pro · Simulator`;
         await inspector.evaluate(`(${accuracyCaption.toString()})(${JSON.stringify(caption)})`);
