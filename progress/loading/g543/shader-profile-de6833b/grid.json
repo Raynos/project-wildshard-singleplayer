@@ -1,0 +1,3293 @@
+{
+  "input": "tmp/loading-lane/bootstrap-phone/grid/cold/grid.cpuprofile",
+  "dist": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/serve/20261021-044323-4443/dist",
+  "sourceMappedChunks": 217,
+  "unmappedChunks": [
+    "/",
+    "/assets/preload-helper-BZ1Pz5am.js",
+    "/assets/rolldown-runtime-B0Z9INg1.js",
+    "/assets/physics/rapier.wasm"
+  ],
+  "totalSampleMs": 30194.43999999982,
+  "self": [
+    {
+      "id": 2,
+      "selfMs": 5013.8,
+      "inclusiveMs": 5013.8,
+      "functionName": "(program)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 6,
+      "selfMs": 1924.6,
+      "inclusiveMs": 1924.6,
+      "functionName": "(idle)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 1487,
+      "selfMs": 668.4,
+      "inclusiveMs": 736.6,
+      "functionName": "c",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 854,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 854,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 47,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 295,
+      "selfMs": 633,
+      "inclusiveMs": 816.1,
+      "functionName": "paintNow",
+      "scriptId": "325",
+      "url": "http://127.0.0.1:54903/assets/Loading-97-QuGmw.js",
+      "lineNumber": 23,
+      "columnNumber": 5628,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 5620,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 184,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 658,
+      "selfMs": 504.7,
+      "inclusiveMs": 504.7,
+      "functionName": "",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 138,
+      "selfMs": 492.3,
+      "inclusiveMs": 492.3,
+      "functionName": "(garbage collector)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 1421,
+      "selfMs": 322.4,
+      "inclusiveMs": 578.8,
+      "functionName": "i",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 4615,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 4613,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 213,
+        "originalColumn": 12
+      }
+    },
+    {
+      "id": 2851,
+      "selfMs": 282.3,
+      "inclusiveMs": 282.3,
+      "functionName": "tf",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 119418,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 119416,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 197,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 1515,
+      "selfMs": 258.2,
+      "inclusiveMs": 300.9,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 3511,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 3510,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 161,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 1379,
+      "selfMs": 224.1,
+      "inclusiveMs": 246.6,
+      "functionName": "JE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 17617,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 17615,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadLook.ts",
+        "originalLine": 391,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 1506,
+      "selfMs": 217.2,
+      "inclusiveMs": 574.8,
+      "functionName": "tE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 2395,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 2393,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 116,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 3715,
+      "selfMs": 206.6,
+      "inclusiveMs": 206.6,
+      "functionName": "tf",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 119418,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 119416,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 197,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 1370,
+      "selfMs": 189.6,
+      "inclusiveMs": 198.1,
+      "functionName": "OE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 10644,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 10642,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadLook.ts",
+        "originalLine": 140,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 1404,
+      "selfMs": 177.1,
+      "inclusiveMs": 212.7,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 4261,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 4261,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 206,
+        "originalColumn": 18
+      }
+    },
+    {
+      "id": 1422,
+      "selfMs": 174.3,
+      "inclusiveMs": 254.7,
+      "functionName": "r",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 4501,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 4501,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 212,
+        "originalColumn": 19
+      }
+    },
+    {
+      "id": 1483,
+      "selfMs": 162.5,
+      "inclusiveMs": 1104.4,
+      "functionName": "$T",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 668,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 666,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 42,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 4325,
+      "selfMs": 160,
+      "inclusiveMs": 183.2,
+      "functionName": "C",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4161,
+      "columnNumber": 291,
+      "original": {
+        "generatedLine": 4161,
+        "generatedColumn": 290,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 7021,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 190,
+      "selfMs": 155,
+      "inclusiveMs": 283.7,
+      "functionName": "ei",
+      "scriptId": "190",
+      "url": "http://127.0.0.1:54903/assets/shardList-kd_LrXId.js",
+      "lineNumber": 1,
+      "columnNumber": 1539014,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 1539012,
+        "originalSource": "../../../../build-mirror/check/tree/src/shards/nalati-grasslands/world/geography.ts",
+        "originalLine": 10,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 1402,
+      "selfMs": 152.6,
+      "inclusiveMs": 411.4,
+      "functionName": "eE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 1505,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 1503,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 72,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 1238,
+      "selfMs": 148.9,
+      "inclusiveMs": 362,
+      "functionName": "wD",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 658,
+      "columnNumber": 3664,
+      "original": {
+        "generatedLine": 658,
+        "generatedColumn": 3662,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/seamLook.ts",
+        "originalLine": 55,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 1002,
+      "selfMs": 137,
+      "inclusiveMs": 139.4,
+      "functionName": "Zd",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 117540,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 117538,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 132,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 1149,
+      "selfMs": 133.1,
+      "inclusiveMs": 373.3,
+      "functionName": "xv",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1,
+      "columnNumber": 116543,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 116541,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/sim/seamGeometry.ts",
+        "originalLine": 102,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 1484,
+      "selfMs": 127.8,
+      "inclusiveMs": 940.6,
+      "functionName": "eE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 1505,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 1503,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 72,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 2850,
+      "selfMs": 126.7,
+      "inclusiveMs": 126.7,
+      "functionName": "fetch",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 5600,
+      "selfMs": 105,
+      "inclusiveMs": 321.5,
+      "functionName": "add",
+      "scriptId": "94",
+      "url": "http://127.0.0.1:54903/assets/geometry-DQ_SwH1F.js",
+      "lineNumber": 49,
+      "columnNumber": 65069,
+      "original": {
+        "generatedLine": 49,
+        "generatedColumn": 65066,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/geometry.ts",
+        "originalLine": 1700,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 3497,
+      "selfMs": 98.1,
+      "inclusiveMs": 114.9,
+      "functionName": "wasm-function[283]",
+      "scriptId": "484",
+      "url": "http://127.0.0.1:54903/assets/physics/rapier.wasm?v=2935a533",
+      "lineNumber": 0,
+      "columnNumber": 1365558
+    },
+    {
+      "id": 1349,
+      "selfMs": 95.7,
+      "inclusiveMs": 95.7,
+      "functionName": "OE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 10644,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 10642,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadLook.ts",
+        "originalLine": 140,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 10001,
+      "selfMs": 80.8,
+      "inclusiveMs": 80.8,
+      "functionName": "dg",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4117,
+      "columnNumber": 9749,
+      "original": {
+        "generatedLine": 4117,
+        "generatedColumn": 9747,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 6157,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 3723,
+      "selfMs": 79.5,
+      "inclusiveMs": 130.7,
+      "functionName": "parse",
+      "scriptId": "46",
+      "url": "http://127.0.0.1:54903/assets/GLTFLoader-BM0P2zwW.js",
+      "lineNumber": 0,
+      "columnNumber": 8958,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 8953,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+        "originalLine": 429,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 5604,
+      "selfMs": 76,
+      "inclusiveMs": 159.4,
+      "functionName": "~run",
+      "scriptId": "9",
+      "url": "http://127.0.0.1:54903/assets/dist-BldHy6UX.js",
+      "lineNumber": 0,
+      "columnNumber": 5428,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 5422,
+        "originalSource": "../../../../../node_modules/.pnpm/valibot@1.5.0_typescript@7.0.2/node_modules/valibot/dist/index.mjs",
+        "originalLine": 4439,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1237,
+      "selfMs": 76,
+      "inclusiveMs": 537.7,
+      "functionName": "RD",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 673,
+      "columnNumber": 114,
+      "original": {
+        "generatedLine": 673,
+        "generatedColumn": 112,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/seamLook.ts",
+        "originalLine": 217,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 192,
+      "selfMs": 72.7,
+      "inclusiveMs": 103.5,
+      "functionName": "O",
+      "scriptId": "109",
+      "url": "http://127.0.0.1:54903/assets/browser-CkBbyCHl.js",
+      "lineNumber": 0,
+      "columnNumber": 1979,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 1971,
+        "originalSource": "../../../../../node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/esm/browser.js",
+        "originalLine": 215,
+        "originalColumn": 12
+      }
+    },
+    {
+      "id": 1240,
+      "selfMs": 69.1,
+      "inclusiveMs": 70.1,
+      "functionName": "DD",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 658,
+      "columnNumber": 5871,
+      "original": {
+        "generatedLine": 658,
+        "generatedColumn": 5869,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/seamLook.ts",
+        "originalLine": 125,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 1401,
+      "selfMs": 69,
+      "inclusiveMs": 1062,
+      "functionName": "aE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 4137,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 4135,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 203,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 1488,
+      "selfMs": 68.1,
+      "inclusiveMs": 68.1,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 905,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 897,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 49,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 1966,
+      "selfMs": 65.9,
+      "inclusiveMs": 115.4,
+      "functionName": "a",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 99172,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 99172,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/outputDescriptor.ts",
+        "originalLine": 93,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 9868,
+      "selfMs": 65.3,
+      "inclusiveMs": 153.4,
+      "functionName": "y",
+      "scriptId": "405",
+      "url": "http://127.0.0.1:54903/assets/shadowChunks-CiBVkcMZ.js",
+      "lineNumber": 0,
+      "columnNumber": 1254,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 1253,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/world/shadowChunks.ts",
+        "originalLine": 98,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 5347,
+      "selfMs": 63.6,
+      "inclusiveMs": 240.6,
+      "functionName": "Se",
+      "scriptId": "152",
+      "url": "http://127.0.0.1:54903/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 121509,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 121507,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/customSchema.ts",
+        "originalLine": 18,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 26341,
+      "selfMs": 63.4,
+      "inclusiveMs": 63.4,
+      "functionName": "isError",
+      "scriptId": "177",
+      "url": "",
+      "lineNumber": 56,
+      "columnNumber": 16
+    },
+    {
+      "id": 1003,
+      "selfMs": 59.9,
+      "inclusiveMs": 62.6,
+      "functionName": "qd",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 116245,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 116243,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 75,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 7163,
+      "selfMs": 58.7,
+      "inclusiveMs": 63.5,
+      "functionName": "r",
+      "scriptId": "55",
+      "url": "http://127.0.0.1:54903/assets/json-HUsVkccs.js",
+      "lineNumber": 0,
+      "columnNumber": 915,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 914,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/json.ts",
+        "originalLine": 49,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 1614,
+      "selfMs": 58,
+      "inclusiveMs": 74,
+      "functionName": "wasm-function[80]",
+      "scriptId": "484",
+      "url": "http://127.0.0.1:54903/assets/physics/rapier.wasm?v=2935a533",
+      "lineNumber": 0,
+      "columnNumber": 648665
+    },
+    {
+      "id": 4507,
+      "selfMs": 54.3,
+      "inclusiveMs": 54.3,
+      "functionName": "",
+      "scriptId": "46",
+      "url": "http://127.0.0.1:54903/assets/GLTFLoader-BM0P2zwW.js",
+      "lineNumber": 0,
+      "columnNumber": 34388,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 34380,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+        "originalLine": 3107,
+        "originalColumn": 68
+      }
+    },
+    {
+      "id": 3144,
+      "selfMs": 53.7,
+      "inclusiveMs": 53.7,
+      "functionName": "pump",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 91010,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 91006,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/contentCacheWorker.ts",
+        "originalLine": 125,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 5605,
+      "selfMs": 52.2,
+      "inclusiveMs": 82.2,
+      "functionName": "~run",
+      "scriptId": "9",
+      "url": "http://127.0.0.1:54903/assets/dist-BldHy6UX.js",
+      "lineNumber": 0,
+      "columnNumber": 17988,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 17982,
+        "originalSource": "../../../../../node_modules/.pnpm/valibot@1.5.0_typescript@7.0.2/node_modules/valibot/dist/index.mjs",
+        "originalLine": 7412,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 25888,
+      "selfMs": 51.5,
+      "inclusiveMs": 51.5,
+      "functionName": "Ee",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 13895,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 13893,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 10658,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 4498,
+      "selfMs": 49.5,
+      "inclusiveMs": 49.5,
+      "functionName": "",
+      "scriptId": "42",
+      "url": "http://127.0.0.1:54903/assets/rig-BtChZN0L.js",
+      "lineNumber": 0,
+      "columnNumber": 480,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 468,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/anim/rig.ts",
+        "originalLine": 42,
+        "originalColumn": 51
+      }
+    },
+    {
+      "id": 1423,
+      "selfMs": 49,
+      "inclusiveMs": 61.8,
+      "functionName": "rE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 3705,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 3703,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 171,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 5010,
+      "selfMs": 47.3,
+      "inclusiveMs": 47.3,
+      "functionName": "get",
+      "scriptId": "104",
+      "url": "http://127.0.0.1:54903/assets/noise-ACFSq4JD.js",
+      "lineNumber": 0,
+      "columnNumber": 401,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 398,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/core/noise.ts",
+        "originalLine": 18,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1145,
+      "selfMs": 47.2,
+      "inclusiveMs": 470.2,
+      "functionName": "_",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1,
+      "columnNumber": 126373,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 126372,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/sim/strips.ts",
+        "originalLine": 81,
+        "originalColumn": 12
+      }
+    },
+    {
+      "id": 2840,
+      "selfMs": 47.1,
+      "inclusiveMs": 47.1,
+      "functionName": "yp",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 162,
+      "columnNumber": 7807,
+      "original": {
+        "generatedLine": 162,
+        "generatedColumn": 7805,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/cachedTransport.ts",
+        "originalLine": 3,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 2838,
+      "selfMs": 46,
+      "inclusiveMs": 592.1,
+      "functionName": "C",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 121603,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 121603,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 266,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 1154,
+      "selfMs": 44.2,
+      "inclusiveMs": 44.2,
+      "functionName": "vertex",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1,
+      "columnNumber": 114879,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 114873,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/sim/seamGeometry.ts",
+        "originalLine": 57,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1218,
+      "selfMs": 41.8,
+      "inclusiveMs": 43.3,
+      "functionName": "",
+      "scriptId": "5",
+      "url": "",
+      "lineNumber": 18,
+      "columnNumber": 78
+    },
+    {
+      "id": 2598,
+      "selfMs": 40.9,
+      "inclusiveMs": 132.8,
+      "functionName": "Wr",
+      "scriptId": "135",
+      "url": "http://127.0.0.1:54903/assets/shardSchema-TTmTBr_l.js",
+      "lineNumber": 0,
+      "columnNumber": 83613,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 83611,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/product.ts",
+        "originalLine": 411,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 1277,
+      "selfMs": 40.5,
+      "inclusiveMs": 40.5,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 604,
+      "columnNumber": 42985,
+      "original": {
+        "generatedLine": 604,
+        "generatedColumn": 42977,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadSolid.ts",
+        "originalLine": 79,
+        "originalColumn": 13
+      }
+    },
+    {
+      "id": 1469,
+      "selfMs": 40,
+      "inclusiveMs": 59.3,
+      "functionName": "FT",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 604,
+      "columnNumber": 41595,
+      "original": {
+        "generatedLine": 604,
+        "generatedColumn": 41593,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadSolid.ts",
+        "originalLine": 41,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 3140,
+      "selfMs": 39,
+      "inclusiveMs": 95.4,
+      "functionName": "put",
+      "scriptId": "124",
+      "url": "http://127.0.0.1:54903/assets/runtimeProduct-Bh6QGMdD.js",
+      "lineNumber": 0,
+      "columnNumber": 91679,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 91676,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/contentCacheWorker.ts",
+        "originalLine": 150,
+        "originalColumn": 8
+      }
+    },
+    {
+      "id": 4499,
+      "selfMs": 39,
+      "inclusiveMs": 39,
+      "functionName": "Ze",
+      "scriptId": "46",
+      "url": "http://127.0.0.1:54903/assets/GLTFLoader-BM0P2zwW.js",
+      "lineNumber": 0,
+      "columnNumber": 23586,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 23575,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+        "originalLine": 1872,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 288,
+      "selfMs": 37.1,
+      "inclusiveMs": 126.4,
+      "functionName": "read",
+      "scriptId": "5",
+      "url": "",
+      "lineNumber": 12,
+      "columnNumber": 19
+    },
+    {
+      "id": 7460,
+      "selfMs": 35.5,
+      "inclusiveMs": 45.5,
+      "functionName": "O",
+      "scriptId": "109",
+      "url": "http://127.0.0.1:54903/assets/browser-CkBbyCHl.js",
+      "lineNumber": 0,
+      "columnNumber": 1979,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 1971,
+        "originalSource": "../../../../../node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/esm/browser.js",
+        "originalLine": 215,
+        "originalColumn": 12
+      }
+    },
+    {
+      "id": 1405,
+      "selfMs": 34.2,
+      "inclusiveMs": 34.2,
+      "functionName": "position",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 313,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 313,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadSolid.ts",
+        "originalLine": 187,
+        "originalColumn": 59
+      }
+    },
+    {
+      "id": 1490,
+      "selfMs": 34,
+      "inclusiveMs": 43.9,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 1639,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 1631,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 79,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 14080,
+      "selfMs": 32.8,
+      "inclusiveMs": 32.8,
+      "functionName": "Dg",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4127,
+      "columnNumber": 343,
+      "original": {
+        "generatedLine": 4127,
+        "generatedColumn": 341,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 6372,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 44,
+      "selfMs": 32.6,
+      "inclusiveMs": 32.6,
+      "functionName": "appendChild",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 3752,
+      "selfMs": 31.6,
+      "inclusiveMs": 31.6,
+      "functionName": "wasm-function[2]",
+      "scriptId": "186",
+      "url": "wasm://wasm/e5dcf6aa",
+      "lineNumber": 0,
+      "columnNumber": 436
+    },
+    {
+      "id": 5374,
+      "selfMs": 31.2,
+      "inclusiveMs": 69.1,
+      "functionName": "I",
+      "scriptId": "152",
+      "url": "http://127.0.0.1:54903/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 37811,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 37810,
+        "originalSource": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "originalLine": 85,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 27049,
+      "selfMs": 30.5,
+      "inclusiveMs": 30.5,
+      "functionName": "_",
+      "scriptId": "173",
+      "url": "http://127.0.0.1:54903/assets/context-BZD41N_Z.js",
+      "lineNumber": 1,
+      "columnNumber": 3499,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 3498,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/stillImage.ts",
+        "originalLine": 3,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 5012,
+      "selfMs": 30.4,
+      "inclusiveMs": 30.4,
+      "functionName": "get",
+      "scriptId": "104",
+      "url": "http://127.0.0.1:54903/assets/noise-ACFSq4JD.js",
+      "lineNumber": 0,
+      "columnNumber": 401,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 398,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/core/noise.ts",
+        "originalLine": 18,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 9867,
+      "selfMs": 29.7,
+      "inclusiveMs": 183,
+      "functionName": "m",
+      "scriptId": "405",
+      "url": "http://127.0.0.1:54903/assets/shadowChunks-CiBVkcMZ.js",
+      "lineNumber": 0,
+      "columnNumber": 221,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 220,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/world/shadowChunks.ts",
+        "originalLine": 43,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 512,
+      "selfMs": 29.6,
+      "inclusiveMs": 88,
+      "functionName": "",
+      "scriptId": "325",
+      "url": "http://127.0.0.1:54903/assets/Loading-97-QuGmw.js",
+      "lineNumber": 23,
+      "columnNumber": 8615,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 8607,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 260,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 1465,
+      "selfMs": 29.3,
+      "inclusiveMs": 45.2,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 604,
+      "columnNumber": 43433,
+      "original": {
+        "generatedLine": 604,
+        "generatedColumn": 43425,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadSolid.ts",
+        "originalLine": 91,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 1164,
+      "selfMs": 29.2,
+      "inclusiveMs": 29.2,
+      "functionName": "p",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1,
+      "columnNumber": 126205,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 126205,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/sim/strips.ts",
+        "originalLine": 74,
+        "originalColumn": 20
+      }
+    },
+    {
+      "id": 5603,
+      "selfMs": 29.1,
+      "inclusiveMs": 188.5,
+      "functionName": "~run",
+      "scriptId": "9",
+      "url": "http://127.0.0.1:54903/assets/dist-BldHy6UX.js",
+      "lineNumber": 0,
+      "columnNumber": 16231,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 16225,
+        "originalSource": "../../../../../node_modules/.pnpm/valibot@1.5.0_typescript@7.0.2/node_modules/valibot/dist/index.mjs",
+        "originalLine": 7008,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1516,
+      "selfMs": 28.4,
+      "inclusiveMs": 34.5,
+      "functionName": "rE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 3705,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 3703,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 171,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 2017,
+      "selfMs": 28.4,
+      "inclusiveMs": 659.3,
+      "functionName": "Se",
+      "scriptId": "152",
+      "url": "http://127.0.0.1:54903/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 121509,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 121507,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/customSchema.ts",
+        "originalLine": 18,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 2849,
+      "selfMs": 28.3,
+      "inclusiveMs": 156.9,
+      "functionName": "",
+      "scriptId": "151",
+      "url": "http://127.0.0.1:54903/assets/bytes-DHBtKixE.js",
+      "lineNumber": 0,
+      "columnNumber": 3038,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 3032,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/bytes.ts",
+        "originalLine": 87,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1431,
+      "selfMs": 28.3,
+      "inclusiveMs": 28.3,
+      "functionName": "querySelector",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 1156,
+      "selfMs": 28,
+      "inclusiveMs": 55.4,
+      "functionName": "G_",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1,
+      "columnNumber": 107747,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 107745,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/sim/edgeProfiles.ts",
+        "originalLine": 70,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 5935,
+      "selfMs": 27.9,
+      "inclusiveMs": 35.7,
+      "functionName": "finishSteps",
+      "scriptId": "94",
+      "url": "http://127.0.0.1:54903/assets/geometry-DQ_SwH1F.js",
+      "lineNumber": 49,
+      "columnNumber": 67173,
+      "original": {
+        "generatedLine": 49,
+        "generatedColumn": 67162,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/geometry.ts",
+        "originalLine": 1751,
+        "originalColumn": 3
+      }
+    },
+    {
+      "id": 514,
+      "selfMs": 27.8,
+      "inclusiveMs": 149.1,
+      "functionName": "L",
+      "scriptId": "127",
+      "url": "http://127.0.0.1:54903/assets/plan-C5ltjsZ4.js",
+      "lineNumber": 0,
+      "columnNumber": 3165,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 3164,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/plan.ts",
+        "originalLine": 222,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 2211,
+      "selfMs": 27.4,
+      "inclusiveMs": 95.9,
+      "functionName": "I",
+      "scriptId": "152",
+      "url": "http://127.0.0.1:54903/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 37811,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 37810,
+        "originalSource": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "originalLine": 85,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 1157,
+      "selfMs": 27.4,
+      "inclusiveMs": 27.4,
+      "functionName": "l",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1,
+      "columnNumber": 108093,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 108093,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/sim/edgeProfiles.ts",
+        "originalLine": 75,
+        "originalColumn": 19
+      }
+    },
+    {
+      "id": 5277,
+      "selfMs": 27.2,
+      "inclusiveMs": 27.2,
+      "functionName": "copy",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 92723,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 92719,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 17115,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 376,
+      "selfMs": 26.5,
+      "inclusiveMs": 50.3,
+      "functionName": "",
+      "scriptId": "20",
+      "url": "http://127.0.0.1:54903/assets/preload-helper-BZ1Pz5am.js",
+      "lineNumber": 0,
+      "columnNumber": 473
+    },
+    {
+      "id": 1097,
+      "selfMs": 26.2,
+      "inclusiveMs": 26.2,
+      "functionName": "a",
+      "scriptId": "55",
+      "url": "http://127.0.0.1:54903/assets/json-HUsVkccs.js",
+      "lineNumber": 0,
+      "columnNumber": 94,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 92,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/json.ts",
+        "originalLine": 18,
+        "originalColumn": 8
+      }
+    },
+    {
+      "id": 6940,
+      "selfMs": 26.2,
+      "inclusiveMs": 26.2,
+      "functionName": "i",
+      "scriptId": "77",
+      "url": "http://127.0.0.1:54903/assets/box-BA7an9OJ.js",
+      "lineNumber": 0,
+      "columnNumber": 433,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 432,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/physics/box.ts",
+        "originalLine": 30,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 1073,
+      "selfMs": 26.1,
+      "inclusiveMs": 33.1,
+      "functionName": "~run",
+      "scriptId": "9",
+      "url": "http://127.0.0.1:54903/assets/dist-BldHy6UX.js",
+      "lineNumber": 0,
+      "columnNumber": 14460,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 14454,
+        "originalSource": "../../../../../node_modules/.pnpm/valibot@1.5.0_typescript@7.0.2/node_modules/valibot/dist/index.mjs",
+        "originalLine": 6660,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1076,
+      "selfMs": 25.6,
+      "inclusiveMs": 28.4,
+      "functionName": "sO",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 712,
+      "columnNumber": 3577,
+      "original": {
+        "generatedLine": 712,
+        "generatedColumn": 3575,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/edgeSources.ts",
+        "originalLine": 74,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 16439,
+      "selfMs": 25.5,
+      "inclusiveMs": 31.3,
+      "functionName": "updateShaderParameters",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 323,
+      "columnNumber": 17565,
+      "original": {
+        "generatedLine": 323,
+        "generatedColumn": 17543,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/tsl/WebGLNodesHandler.js",
+        "originalLine": 520,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1263,
+      "selfMs": 25.4,
+      "inclusiveMs": 25.4,
+      "functionName": "ED",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 658,
+      "columnNumber": 5568,
+      "original": {
+        "generatedLine": 658,
+        "generatedColumn": 5566,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/seamLook.ts",
+        "originalLine": 110,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 731,
+      "selfMs": 24.9,
+      "inclusiveMs": 24.9,
+      "functionName": "E",
+      "scriptId": "325",
+      "url": "http://127.0.0.1:54903/assets/Loading-97-QuGmw.js",
+      "lineNumber": 23,
+      "columnNumber": 1271,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 1269,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 35,
+        "originalColumn": 6
+      }
+    },
+    {
+      "id": 10026,
+      "selfMs": 24.6,
+      "inclusiveMs": 484,
+      "functionName": "b",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 2198,
+      "selfMs": 24.6,
+      "inclusiveMs": 241.3,
+      "functionName": "I",
+      "scriptId": "152",
+      "url": "http://127.0.0.1:54903/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 37811,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 37810,
+        "originalSource": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "originalLine": 85,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 1403,
+      "selfMs": 24.4,
+      "inclusiveMs": 248.5,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 1980,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 1980,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 93,
+        "originalColumn": 36
+      }
+    },
+    {
+      "id": 26654,
+      "selfMs": 24.1,
+      "inclusiveMs": 24.1,
+      "functionName": "c",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 741,
+      "columnNumber": 7865,
+      "original": {
+        "generatedLine": 741,
+        "generatedColumn": 7863,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/cellScreen.ts",
+        "originalLine": 187,
+        "originalColumn": 8
+      }
+    },
+    {
+      "id": 1211,
+      "selfMs": 24.1,
+      "inclusiveMs": 24.1,
+      "functionName": "T",
+      "scriptId": "325",
+      "url": "http://127.0.0.1:54903/assets/Loading-97-QuGmw.js",
+      "lineNumber": 23,
+      "columnNumber": 1223,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 1221,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 32,
+        "originalColumn": 6
+      }
+    },
+    {
+      "id": 1273,
+      "selfMs": 24,
+      "inclusiveMs": 88.2,
+      "functionName": "IT",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 604,
+      "columnNumber": 42382,
+      "original": {
+        "generatedLine": 604,
+        "generatedColumn": 42380,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadSolid.ts",
+        "originalLine": 63,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 6802,
+      "selfMs": 23.8,
+      "inclusiveMs": 23.8,
+      "functionName": "l",
+      "scriptId": "95",
+      "url": "http://127.0.0.1:54903/assets/materialGraph-dJN0SlbU.js",
+      "lineNumber": 0,
+      "columnNumber": 272,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 272,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/materialGraph.ts",
+        "originalLine": 257,
+        "originalColumn": 23
+      }
+    },
+    {
+      "id": 304,
+      "selfMs": 23.8,
+      "inclusiveMs": 23.8,
+      "functionName": "requestAnimationFrame",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    }
+  ],
+  "inclusive": [
+    {
+      "id": 1,
+      "selfMs": 0,
+      "inclusiveMs": 30194.4,
+      "functionName": "(root)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 4000,
+      "selfMs": 11.3,
+      "inclusiveMs": 5644.7,
+      "functionName": "et",
+      "scriptId": "402",
+      "url": "http://127.0.0.1:54903/assets/precompile-C2P5QzPO.js",
+      "lineNumber": 1,
+      "columnNumber": 18805,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 18803,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/precompile.ts",
+        "originalLine": 837,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 4012,
+      "selfMs": 6.1,
+      "inclusiveMs": 5249.8,
+      "functionName": "",
+      "scriptId": "47",
+      "url": "http://127.0.0.1:54903/assets/gpuLabels-BLbUm27U.js",
+      "lineNumber": 0,
+      "columnNumber": 9886,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 9878,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/gpuLabels.ts",
+        "originalLine": 380,
+        "originalColumn": 34
+      }
+    },
+    {
+      "id": 4013,
+      "selfMs": 0,
+      "inclusiveMs": 5195.1,
+      "functionName": "e.compile",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 744,
+      "columnNumber": 5178,
+      "original": {
+        "generatedLine": 744,
+        "generatedColumn": 5170,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/uploadOwnership.ts",
+        "originalLine": 223,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 4016,
+      "selfMs": 12.7,
+      "inclusiveMs": 5169.2,
+      "functionName": "M_.compile",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 31121,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 31113,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17432,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 2,
+      "selfMs": 5013.8,
+      "inclusiveMs": 5013.8,
+      "functionName": "(program)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 4020,
+      "selfMs": 0,
+      "inclusiveMs": 4311.7,
+      "functionName": "traverse",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 62919,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 62911,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 12971,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4030,
+      "selfMs": 0,
+      "inclusiveMs": 4296.3,
+      "functionName": "traverse",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 62919,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 62911,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 12971,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4031,
+      "selfMs": 0,
+      "inclusiveMs": 4294.4,
+      "functionName": "",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 31712,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 31704,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17496,
+        "originalColumn": 19
+      }
+    },
+    {
+      "id": 4032,
+      "selfMs": 5.3,
+      "inclusiveMs": 4294.4,
+      "functionName": "at",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 30868,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 30866,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17394,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 4034,
+      "selfMs": 7.8,
+      "inclusiveMs": 4286.8,
+      "functionName": "yt",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 38301,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 38299,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 18223,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 4063,
+      "selfMs": 3.8,
+      "inclusiveMs": 3987.5,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 329,
+      "columnNumber": 12585,
+      "original": {
+        "generatedLine": 329,
+        "generatedColumn": 12580,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/nodes/engineNodesHandler.ts",
+        "originalLine": 697,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 4064,
+      "selfMs": 2.6,
+      "inclusiveMs": 3917.5,
+      "functionName": "jD",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 324,
+      "columnNumber": 6790,
+      "original": {
+        "generatedLine": 324,
+        "generatedColumn": 6788,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/nodes/nodeInstancing.ts",
+        "originalLine": 54,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 4065,
+      "selfMs": 3.2,
+      "inclusiveMs": 3914.9,
+      "functionName": "",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 329,
+      "columnNumber": 12628,
+      "original": {
+        "generatedLine": 329,
+        "generatedColumn": 12626,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/nodes/engineNodesHandler.ts",
+        "originalLine": 699,
+        "originalColumn": 70
+      }
+    },
+    {
+      "id": 4066,
+      "selfMs": 5.6,
+      "inclusiveMs": 3910.7,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 323,
+      "columnNumber": 16873,
+      "original": {
+        "generatedLine": 323,
+        "generatedColumn": 16868,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/tsl/WebGLNodesHandler.js",
+        "originalLine": 450,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4067,
+      "selfMs": 13.3,
+      "inclusiveMs": 3841.8,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 27,
+      "columnNumber": 1554,
+      "original": {
+        "generatedLine": 27,
+        "generatedColumn": 1549,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 55868,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1334,
+      "selfMs": 5.6,
+      "inclusiveMs": 3646.4,
+      "functionName": "UD",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 673,
+      "columnNumber": 1353,
+      "original": {
+        "generatedLine": 673,
+        "generatedColumn": 1351,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadLookPlatform.ts",
+        "originalLine": 60,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 1335,
+      "selfMs": 1.9,
+      "inclusiveMs": 3590.7,
+      "functionName": "WD",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 673,
+      "columnNumber": 1701,
+      "original": {
+        "generatedLine": 673,
+        "generatedColumn": 1699,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadLookPlatform.ts",
+        "originalLine": 77,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 4152,
+      "selfMs": 5.7,
+      "inclusiveMs": 2503.8,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4153,
+      "selfMs": 1.5,
+      "inclusiveMs": 2340.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4154,
+      "selfMs": 1.8,
+      "inclusiveMs": 2338.7,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 6,
+      "selfMs": 1924.6,
+      "inclusiveMs": 1924.6,
+      "functionName": "(idle)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 1460,
+      "selfMs": 3.3,
+      "inclusiveMs": 1849,
+      "functionName": "jv",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1,
+      "columnNumber": 129923,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 129921,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/renderResidency.ts",
+        "originalLine": 63,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 1463,
+      "selfMs": 10.2,
+      "inclusiveMs": 1827.3,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 673,
+      "columnNumber": 2171,
+      "original": {
+        "generatedLine": 673,
+        "generatedColumn": 2162,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadLookPlatform.ts",
+        "originalLine": 90,
+        "originalColumn": 55
+      }
+    },
+    {
+      "id": 1482,
+      "selfMs": 21.3,
+      "inclusiveMs": 1703.5,
+      "functionName": "iE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 4015,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 4013,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 185,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 4155,
+      "selfMs": 0.9,
+      "inclusiveMs": 1252.5,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4172,
+      "selfMs": 0,
+      "inclusiveMs": 1193.7,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4173,
+      "selfMs": 0,
+      "inclusiveMs": 1193.7,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4175,
+      "selfMs": 3.4,
+      "inclusiveMs": 1186.8,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4176,
+      "selfMs": 0,
+      "inclusiveMs": 1178.7,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4177,
+      "selfMs": 0,
+      "inclusiveMs": 1178.7,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 289,
+      "selfMs": 2.4,
+      "inclusiveMs": 1178.7,
+      "functionName": "",
+      "scriptId": "10",
+      "url": "http://127.0.0.1:54903/assets/scope-CpDyPmZY.js",
+      "lineNumber": 2,
+      "columnNumber": 6030,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 6030,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/app/scope.ts",
+        "originalLine": 270,
+        "originalColumn": 29
+      }
+    },
+    {
+      "id": 290,
+      "selfMs": 2.8,
+      "inclusiveMs": 1173.3,
+      "functionName": "_",
+      "scriptId": "10",
+      "url": "http://127.0.0.1:54903/assets/scope-CpDyPmZY.js",
+      "lineNumber": 0,
+      "columnNumber": 621,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 620,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/app/ownership.ts",
+        "originalLine": 44,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 10523,
+      "selfMs": 0.2,
+      "inclusiveMs": 1158.4,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10524,
+      "selfMs": 0,
+      "inclusiveMs": 1158.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10525,
+      "selfMs": 0,
+      "inclusiveMs": 1158.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10526,
+      "selfMs": 0,
+      "inclusiveMs": 1158.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10527,
+      "selfMs": 0,
+      "inclusiveMs": 1158.2,
+      "functionName": "setup",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 22,
+      "columnNumber": 3601,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 3596,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 20464,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10528,
+      "selfMs": 0,
+      "inclusiveMs": 1156.8,
+      "functionName": "setup",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 599,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 594,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 8942,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10529,
+      "selfMs": 0.4,
+      "inclusiveMs": 1156.8,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 291,
+      "selfMs": 3.1,
+      "inclusiveMs": 1144.8,
+      "functionName": "",
+      "scriptId": "10",
+      "url": "http://127.0.0.1:54903/assets/scope-CpDyPmZY.js",
+      "lineNumber": 2,
+      "columnNumber": 6084,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 6079,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/app/scope.ts",
+        "originalLine": 270,
+        "originalColumn": 106
+      }
+    },
+    {
+      "id": 1483,
+      "selfMs": 162.5,
+      "inclusiveMs": 1104.4,
+      "functionName": "$T",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 668,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 666,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 42,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 1400,
+      "selfMs": 8.4,
+      "inclusiveMs": 1073.3,
+      "functionName": "oE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 4824,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 4822,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 228,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 4181,
+      "selfMs": 2.4,
+      "inclusiveMs": 1068.3,
+      "functionName": "analyze",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4182,
+      "selfMs": 0,
+      "inclusiveMs": 1065.8,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1401,
+      "selfMs": 69,
+      "inclusiveMs": 1062,
+      "functionName": "aE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 4137,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 4135,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 203,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 11482,
+      "selfMs": 0,
+      "inclusiveMs": 1048.1,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11483,
+      "selfMs": 0,
+      "inclusiveMs": 1048.1,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11484,
+      "selfMs": 0,
+      "inclusiveMs": 1048.1,
+      "functionName": "analyze",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11485,
+      "selfMs": 0,
+      "inclusiveMs": 1048.1,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11486,
+      "selfMs": 0,
+      "inclusiveMs": 1046,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11487,
+      "selfMs": 0,
+      "inclusiveMs": 1046,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11488,
+      "selfMs": 0,
+      "inclusiveMs": 1046,
+      "functionName": "analyze",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10626,
+      "selfMs": 4.1,
+      "inclusiveMs": 1036.5,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10627,
+      "selfMs": 5.1,
+      "inclusiveMs": 1029.4,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4200,
+      "selfMs": 0,
+      "inclusiveMs": 1028.4,
+      "functionName": "flowNode",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 24,
+      "columnNumber": 221,
+      "original": {
+        "generatedLine": 24,
+        "generatedColumn": 213,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 55180,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4208,
+      "selfMs": 2.2,
+      "inclusiveMs": 1027.4,
+      "functionName": "flowChildNode",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 24,
+      "columnNumber": 1583,
+      "original": {
+        "generatedLine": 24,
+        "generatedColumn": 1570,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 55404,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11489,
+      "selfMs": 0,
+      "inclusiveMs": 1026.4,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11490,
+      "selfMs": 0,
+      "inclusiveMs": 1026.4,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11491,
+      "selfMs": 0,
+      "inclusiveMs": 1026.4,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11492,
+      "selfMs": 1.9,
+      "inclusiveMs": 1026.4,
+      "functionName": "analyze",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4209,
+      "selfMs": 0,
+      "inclusiveMs": 1025.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11493,
+      "selfMs": 0,
+      "inclusiveMs": 1024.5,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11494,
+      "selfMs": 0,
+      "inclusiveMs": 1024.5,
+      "functionName": "analyze",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 488,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 481,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 8926,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11495,
+      "selfMs": 0,
+      "inclusiveMs": 1022.9,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11496,
+      "selfMs": 3.1,
+      "inclusiveMs": 1022.9,
+      "functionName": "analyze",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 23,
+      "columnNumber": 11654,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 11647,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 46118,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11497,
+      "selfMs": 0,
+      "inclusiveMs": 1010.9,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 292,
+      "selfMs": 5.6,
+      "inclusiveMs": 971.3,
+      "functionName": "v",
+      "scriptId": "325",
+      "url": "http://127.0.0.1:54903/assets/Loading-97-QuGmw.js",
+      "lineNumber": 23,
+      "columnNumber": 3957,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 3955,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 124,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 1115,
+      "selfMs": 4.2,
+      "inclusiveMs": 967.5,
+      "functionName": "create",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 743,
+      "columnNumber": 4245,
+      "original": {
+        "generatedLine": 743,
+        "generatedColumn": 4239,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/session.ts",
+        "originalLine": 304,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 293,
+      "selfMs": 23.4,
+      "inclusiveMs": 958.5,
+      "functionName": "tickClock",
+      "scriptId": "325",
+      "url": "http://127.0.0.1:54903/assets/Loading-97-QuGmw.js",
+      "lineNumber": 23,
+      "columnNumber": 9039,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 9030,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 273,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 4210,
+      "selfMs": 0,
+      "inclusiveMs": 950,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4211,
+      "selfMs": 0,
+      "inclusiveMs": 950,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1484,
+      "selfMs": 127.8,
+      "inclusiveMs": 940.6,
+      "functionName": "eE",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 1505,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 1503,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 72,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 4212,
+      "selfMs": 0,
+      "inclusiveMs": 908.3,
+      "functionName": "generate",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 30885,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 30877,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 6329,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4213,
+      "selfMs": 0.5,
+      "inclusiveMs": 899.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11852,
+      "selfMs": 0,
+      "inclusiveMs": 817.1,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11853,
+      "selfMs": 0,
+      "inclusiveMs": 817.1,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 295,
+      "selfMs": 633,
+      "inclusiveMs": 816.1,
+      "functionName": "paintNow",
+      "scriptId": "325",
+      "url": "http://127.0.0.1:54903/assets/Loading-97-QuGmw.js",
+      "lineNumber": 23,
+      "columnNumber": 5628,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 5620,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 184,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 8724,
+      "selfMs": 10.8,
+      "inclusiveMs": 800,
+      "functionName": "BV",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1920,
+      "columnNumber": 12248,
+      "original": {
+        "generatedLine": 1920,
+        "generatedColumn": 12246,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/session/finish.ts",
+        "originalLine": 20,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 11854,
+      "selfMs": 0.9,
+      "inclusiveMs": 790.3,
+      "functionName": "generate",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 38513,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 38505,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 7554,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11883,
+      "selfMs": 0,
+      "inclusiveMs": 785.6,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11884,
+      "selfMs": 0,
+      "inclusiveMs": 785.6,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11885,
+      "selfMs": 0,
+      "inclusiveMs": 785.6,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11886,
+      "selfMs": 0,
+      "inclusiveMs": 785.6,
+      "functionName": "generate",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 12088,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 12080,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3209,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 4019,
+      "selfMs": 1.2,
+      "inclusiveMs": 781.9,
+      "functionName": "Hj.i.render",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 1847,
+      "columnNumber": 1860,
+      "original": {
+        "generatedLine": 1847,
+        "generatedColumn": 1853,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/core/Game.ts",
+        "originalLine": 413,
+        "originalColumn": 14
+      }
+    },
+    {
+      "id": 10020,
+      "selfMs": 0,
+      "inclusiveMs": 779.4,
+      "functionName": "Ct.e.shadowMap.render",
+      "scriptId": "96",
+      "url": "http://127.0.0.1:54903/assets/ktx2-bF_xHDXU.js",
+      "lineNumber": 1,
+      "columnNumber": 16100,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 16093,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/shadowMaterialOwnership.ts",
+        "originalLine": 22,
+        "originalColumn": 21
+      }
+    },
+    {
+      "id": 10021,
+      "selfMs": 9.3,
+      "inclusiveMs": 779.4,
+      "functionName": "render",
+      "scriptId": "37",
+      "url": "http://127.0.0.1:54903/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 729,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 721,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9142,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 11887,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11888,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11889,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11890,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "generate",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 33943,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 33935,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 6794,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11891,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11892,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "generate",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 688,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 680,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 8954,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11893,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11894,
+      "selfMs": 0,
+      "inclusiveMs": 778.2,
+      "functionName": "generate",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7391,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7383,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2441,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11895,
+      "selfMs": 1.2,
+      "inclusiveMs": 778.2,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11896,
+      "selfMs": 6.1,
+      "inclusiveMs": 777,
+      "functionName": "generate",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 12,
+      "columnNumber": 14614,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 14606,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 11712,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11897,
+      "selfMs": 1.5,
+      "inclusiveMs": 770.9,
+      "functionName": "build",
+      "scriptId": "922",
+      "url": "http://127.0.0.1:54903/assets/engineNodesHandler-CRfa7LIp.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1485,
+      "selfMs": 18.2,
+      "inclusiveMs": 766.8,
+      "functionName": "",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 1980,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 1980,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 93,
+        "originalColumn": 36
+      }
+    },
+    {
+      "id": 1487,
+      "selfMs": 668.4,
+      "inclusiveMs": 736.6,
+      "functionName": "c",
+      "scriptId": "387",
+      "url": "http://127.0.0.1:54903/assets/session-_XLopApR.js",
+      "lineNumber": 620,
+      "columnNumber": 854,
+      "original": {
+        "generatedLine": 620,
+        "generatedColumn": 854,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/grid/roadCull.ts",
+        "originalLine": 47,
+        "originalColumn": 16
+      }
+    }
+  ],
+  "pin": "de6833b8b7b2e11a5ddb80cbec7e684f6263227a",
+  "rawSHA256": "64f2a0c8d66e509394ea45c3d88542c04c601cc37804cf7367bb2cbe36db0a36",
+  "surface": "muted iPhone 16 Pro / Chromium / CPU 4x"
+}
