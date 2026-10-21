@@ -124,7 +124,7 @@ export const OPTION_VALUES = {
   fixedShadowSamples: ['off', 'on'],                   // G437: fixed depth-texture flip uniforms; reload, default off.
   groundTiles: ['off', 'on'],                          // G518: a painted ground draws its baked L0 tiles instead of its one mesh; reload, default off.
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
-  buildPacing: ['on', 'off', 'uploads', 'entry', 'links'], // entry / links: experimental preparation; default off.
+  buildPacing: ['on', 'off', 'uploads', 'entry', 'links', 'headroom'], // entry / links / headroom: experimental; default off.
   graphUniforms: ['plain', 'blocks'],                  // node materials' uniforms: plain program uniforms, or the std140 blocks (render/nodes/nodePlainUniforms.ts) — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;

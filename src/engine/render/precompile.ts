@@ -25,7 +25,7 @@ import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { setting } from '../ui/Settings';
 import { workSlice } from '../core/workSlice';
-import { presenting } from '../core/framePacing';
+import { frameBudgetSpent, headroomPacing, presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
 
 /**
@@ -927,7 +927,9 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // queues compile/link to its GPU process, so the JS slice is cheap but the frame that presents it waits for all of
     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= LIVE_PROGRAMS_PER_FRAME;
-    if (performance.now() - tFrame > sliceMs || capped || i === jobs.length - 1) {
+    // O14 `buildPacing: headroom`: the slice ends when the next job would run past the next vsync, not after sliceMs
+    const sliced = headroomPacing() ? frameBudgetSpent(sliceMs) : performance.now() - tFrame > sliceMs;
+    if (sliced || capped || i === jobs.length - 1) {
       // Linking can finish quickly yet first uniform discovery still builds the native pipeline. Keep that work
       // off the issuing frame: combining two individually bounded steps caused a 50 ms live preparation frame.
       if (isolateImageUploads && setting('buildPacing') === 'links' && queued.length > settled) { await pause(); checkCurrent(); }
@@ -985,7 +987,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
     const linkedProgress = parallel ? (isolateImageUploads ? 2 * (i + 1) : n + i + 1) : i + 1;
     onProgress?.(jobs.length + linkedProgress, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
-    if (performance.now() - tSlice > sliceMs || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
+    if ((headroomPacing() ? frameBudgetSpent(sliceMs) : performance.now() - tSlice > sliceMs) || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   if (onStage !== undefined) { onStage('link', performance.now() - stageStart, pending.length); stageStart = performance.now(); }
@@ -1018,7 +1020,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (imageUpload) { imageBytes += bytes; slowestUpload = Math.max(slowestUpload, performance.now() - tUpload); }
     if (compressed) { checkCurrent(); tSlice = performance.now(); batch?.reset(); }
     else if (batch !== undefined) { if (imageUpload) batch.add(bytes, performance.now() - tUpload); }
-    else if (isolateImageUploads ? imageUpload : performance.now() - tSlice > sliceMs) { await pause(); checkCurrent(); tSlice = performance.now(); }
+    else if (isolateImageUploads ? imageUpload : headroomPacing() ? frameBudgetSpent(sliceMs) : performance.now() - tSlice > sliceMs) { await pause(); checkCurrent(); tSlice = performance.now(); }
   }
   // The batch's last uploads keep their own drawn frame before whatever follows warm-up, as isolation did.
   if (batch?.pending() === true) await pause();

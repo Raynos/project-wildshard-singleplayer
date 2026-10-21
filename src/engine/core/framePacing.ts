@@ -30,6 +30,11 @@ let lastDrawn = Number.NEGATIVE_INFINITY;
 let lastFrameAt = Number.NEGATIVE_INFINITY;
 let lastVsyncAt = Number.NEGATIVE_INFINITY;
 let enabled = false;
+/** O14 `buildPacing: headroom`: builds use the frame's measured headroom up to the next vsync, never a fixed share */
+let fit = false;
+/** the last build check (diagnostic clock) and the expected cost of a build's next piece (ms) */
+let checkedAt = Number.NEGATIVE_INFINITY;
+let pieceMs = 0;
 /** Declared capped cadence, or the fastest observed uncapped cadence; legacy completion-only calls smooth it. */
 let interval = 1000 / 60;
 
@@ -48,8 +53,10 @@ export function noteFrameDrawn(at: number = diagnosticNow(), frameAt?: number, c
   lastFrameAt = start; lastDrawn = at;
 }
 
-/** Turn the pacing on or off (the `buildPacing` Developer tool; `Game` wires it). Off, `presenting()` is always false. */
-export function setFramePacing(on: boolean): void { enabled = on; }
+/** Turn the pacing on or off (the `buildPacing` Developer tool; `Game` wires it). Off, `presenting()` is always false.
+ *  `headroom` (O14): a presenting page's builds run until the next vsync less the expected cost of their next piece,
+ *  instead of a fixed share of the frame after it is drawn (`frameBudgetSpent`). */
+export function setFramePacing(on: boolean, headroom = false): void { enabled = on; fit = on && headroom; }
 
 /** Whether pacing is on and the engine loop is drawing frames: a build now runs between drawn frames, in play. */
 export function presenting(now: number = diagnosticNow()): boolean { return enabled && now - lastDrawn < PRESENTING_MS; }
@@ -65,7 +72,24 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
+  if (fit) {
+    // the work since this frame's previous check (or its draw) is the piece that just ran: the next is expected to cost as much
+    // (or half the larger one before it), and starts only if it ends before the next vsync. Each drawn frame still
+    // lets one piece through (the caller's wait resolves on it), so a frame with no headroom never starves a build.
+    if (presenting(now)) pieceMs = Math.max(now - Math.max(checkedAt, lastDrawn), pieceMs / 2);
+    checkedAt = now;
+    return headroomSpent(now);
+  }
   return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || frameDue(now));
+}
+
+/** Whether builds pace to the frame's headroom (`buildPacing: headroom`) while presenting: a sliced loop with its own
+ *  clock asks `frameBudgetSpent` instead (O14). */
+export function headroomPacing(now: number = diagnosticNow()): boolean { return fit && presenting(now); }
+
+/** `headroom`: whether the next piece, at its expected cost, would run past the next vsync (no observation). */
+function headroomSpent(now: number): boolean {
+  return presenting(now) && now + pieceMs >= lastFrameAt + interval - DUE_SLACK_MS;
 }
 
 
@@ -95,5 +119,6 @@ export function nextDrawnFrame(owner?: Scope): Promise<void> {
  */
 export function paceYield(plain: () => Promise<void>, owner?: Scope, budgetMs?: number): Promise<void> {
   const now = diagnosticNow();
+  if (fit) return headroomSpent(now) ? nextDrawnFrame(owner) : plain();
   return frameDue(now) || (budgetMs !== undefined && frameBudgetSpent(budgetMs, now)) ? nextDrawnFrame(owner) : plain();
 }

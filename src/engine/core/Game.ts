@@ -1068,9 +1068,9 @@ export class Game {
     this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
     // op-hitch26: sliced builds in play pace themselves to these frames only with the default-off Developer tool on
-    setFramePacing(setting('buildPacing') !== 'off');
+    setFramePacing(setting('buildPacing') !== 'off', setting('buildPacing') === 'headroom');
     this.engineScope.onDispose(onSettingChange('buildPacing', (v) => {
-      setFramePacing(v !== 'off');
+      setFramePacing(v !== 'off', v === 'headroom');
     }));
     setLoopState('running');
     loop();
