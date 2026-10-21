@@ -1,0 +1,349 @@
+{
+ "schema": 1,
+ "source": "8c7861b92613fcdb04faaf7234ed868183984982",
+ "build": "devserver",
+ "harnessRevision": "801a9a68505d09b4f84b840660397d3ebcc5b39d",
+ "protocol": {
+  "profiler": false,
+  "glObserver": "off",
+  "developer": "on",
+  "quiet": false,
+  "frames": 120,
+  "device": "frame-floor-iphone-17-pro",
+  "renderScale": 2,
+  "muted": true,
+  "settings": {
+   "tier": "phone",
+   "fps": "auto"
+  },
+  "note": "not quiet; native memory only, no frame-time credit"
+ },
+ "runs": [
+  {
+   "surface": "sim",
+   "cohort": "grid",
+   "sha": "8c7861b92613fcdb04faaf7234ed868183984982",
+   "when": "2026-10-21T03:53:19.545Z",
+   "elapsedSeconds": 98.363,
+   "complete": true,
+   "passFloor": false,
+   "glObserver": "off",
+   "gridScenario": "cell",
+   "gridCell": "pastel-plain",
+   "quiet": false,
+   "note": "not quiet; native memory only, no frame-time credit",
+   "memory": {
+    "measurement": "native-footprint+gpu",
+    "quiet": false,
+    "timingCredit": false,
+    "samples": 701,
+    "gamePid": 76466,
+    "playingPeakBytes": 701103397,
+    "loadingPeakBytes": 1628032637,
+    "nativePeakBytes": {
+     "playing": 494391856,
+     "loading": 1421321096
+    },
+    "phaseSamples": {
+     "playing": 113,
+     "loading": 588
+    },
+    "gpuPeakBytes": 206711541,
+    "gpuUnattributedBytes": 14794468,
+    "gpuSamples": 104,
+    "policy": "Not quiet; memory only. Conservative phase native interval maximum plus global GPU ledger maximum; GPU process footprint excluded. Playing includes all travel/preparation after first ready witness, even during Inspector gaps. Simulator regression evidence, not physical-phone clearance.",
+    "gpuPeakAllocations": [
+     {
+      "id": "gpu:1395",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 21146276,
+      "precision": "exact",
+      "owner": "scene:grid-signs",
+      "asset": "generated/Group/grid-signs/map/Texture"
+     },
+     {
+      "id": "gpu:2012",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 9184896,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "LuminancePass.Target/color/Texture"
+     },
+     {
+      "id": "gpu:2024",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 9184896,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/color/Texture"
+     },
+     {
+      "id": "gpu:573",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 9184896,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/color/Texture"
+     },
+     {
+      "id": "gpu:1798",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 6542220,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/index"
+     },
+     {
+      "id": "gpu:1445",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 6445360,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/grainUv"
+     },
+     {
+      "id": "gpu:1394",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 5592404,
+      "precision": "exact",
+      "owner": "scene:grid-junctions",
+      "asset": "generated/Group/grid-junctions/map/Texture"
+     },
+     {
+      "id": "gpu:1806",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 5592404,
+      "precision": "exact",
+      "owner": "grid.view:driftwood-isle",
+      "asset": "http://127.0.0.1:4401/assets/models/driftwood-blender/lm-ao.phone.webp/Texture"
+     },
+     {
+      "id": "gpu:1442",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 4834020,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/position"
+     },
+     {
+      "id": "gpu:1443",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 4834020,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/normal"
+     },
+     {
+      "id": "gpu:1444",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 4834020,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/color"
+     },
+     {
+      "id": "gpu:2025",
+      "domain": "gpu",
+      "kind": "renderbuffer",
+      "bytes": 4592448,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/Depthbuffer"
+     },
+     {
+      "id": "gpu:574",
+      "domain": "gpu",
+      "kind": "renderbuffer",
+      "bytes": 4592448,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/Depthbuffer"
+     },
+     {
+      "id": "gpu:1775",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 4194304,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "generated/render-target/1024x1024/color/Texture"
+     },
+     {
+      "id": "gpu:1776",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 4194304,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "generated/render-target/1024x1024/depth/Texture"
+     },
+     {
+      "id": "gpu:2197",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 3495244,
+      "precision": "exact",
+      "owner": "scene:grid-cell-screen",
+      "asset": "generated/Group/grid-cell-screen/map/Texture"
+     },
+     {
+      "id": "gpu:2198",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 3495244,
+      "precision": "exact",
+      "owner": "scene:grid-cell-screen",
+      "asset": "generated/Group/grid-cell-screen/map/Texture"
+     },
+     {
+      "id": "gpu:2199",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 3495244,
+      "precision": "exact",
+      "owner": "scene:grid-cell-screen",
+      "asset": "generated/Group/grid-cell-screen/map/Texture"
+     },
+     {
+      "id": "gpu:1393",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 2796204,
+      "precision": "exact",
+      "owner": "scene:grid-asphalt",
+      "asset": "generated/Group/grid-asphalt/map/Texture"
+     },
+     {
+      "id": "gpu:2017",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 2296224,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "Downsampling.Mipmap0/color/Texture"
+     }
+    ]
+   },
+   "cases": [
+    {
+     "shard": "grid",
+     "complete": true,
+     "pass": false,
+     "errors": [],
+     "routes": [
+      {
+       "name": "pastel-plain-road-entry",
+       "to": "pastel-plain",
+       "after": {
+        "current": "pastel-plain",
+        "instance": "pastel-plain-1",
+        "feet": {
+         "x": -898.6227871058036,
+         "y": 0.02009990547896584,
+         "z": -0.001162708562089436
+        }
+       }
+      }
+     ],
+     "rows": [
+      {
+       "frames": 120,
+       "pass": false,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 51,
+       "p99Ms": 189,
+       "maxMs": 218,
+       "maxFramePass": false,
+       "miss": "long frame: max 218 ms > 200 ms",
+       "name": "spawn",
+       "stallPass": false
+      },
+      {
+       "frames": 120,
+       "pass": false,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 164,
+       "p99Ms": 601,
+       "maxMs": 920,
+       "maxFramePass": false,
+       "miss": "long frame: max 920 ms > 200 ms",
+       "name": "grid-deck-north",
+       "stallPass": false
+      },
+      {
+       "frames": 120,
+       "pass": true,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 35,
+       "p99Ms": 43,
+       "maxMs": 185,
+       "maxFramePass": true,
+       "miss": null,
+       "name": "grid-crossroads",
+       "stallPass": true
+      },
+      {
+       "frames": 120,
+       "pass": false,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 48,
+       "p99Ms": 80,
+       "maxMs": 291,
+       "maxFramePass": false,
+       "miss": "long frame: max 291 ms > 200 ms",
+       "name": "grid-pastel-plain-road-entry-travel",
+       "stallPass": false
+      },
+      {
+       "frames": 660,
+       "pass": false,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 45,
+       "p99Ms": 80,
+       "maxMs": 291,
+       "maxFramePass": false,
+       "miss": "long frame: max 291 ms > 200 ms",
+       "name": "grid-pastel-plain-road-entry-drive",
+       "stallPass": false
+      },
+      {
+       "frames": 120,
+       "pass": true,
+       "contextLost": false,
+       "skipped": 0,
+       "medianFps": 30.303,
+       "p95Ms": 34,
+       "p99Ms": 34,
+       "maxMs": 34,
+       "maxFramePass": true,
+       "miss": null,
+       "name": "grid-pastel-plain-road-entry",
+       "stallPass": true
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
