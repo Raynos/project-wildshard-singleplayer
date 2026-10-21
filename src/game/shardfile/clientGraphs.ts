@@ -241,7 +241,7 @@ export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'stat
       readout.fallback++; readout.reasons.push('graph materials row off');
       return ir.primitive === 'points' ? pointFallback() : options.fallback(graphFallbackEntry(ir));
     }
-    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures, fog: fogFor });
+    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures, fog: fogFor, validated: checked });
     if (compiled.fog !== null) { fogPatches.set(compiled.material, compiled.fog); fogCarriers.set(entry, compiled.material); }
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) { compiled.setParam(name, elapsed); clocks.push(() => { compiled.setParam(name, elapsed); }); }
     setters.set(compiled.material, compiled.setParam);

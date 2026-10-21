@@ -69,7 +69,7 @@ export async function clientPostStack(shard: Pick<Shardfile, 'identity' | 'look'
   const feeds = graphParamFeeds(shard);
   const posts = graphs.map((checked) => {
     const compiled = compiler.compileGraph(checked.graph, {
-      dayKeys: [...day.keys()], stateFields: state,
+      dayKeys: [...day.keys()], stateFields: state, validated: checked,
       scene: placeholder,
       ...(checked.inputs.depth ? { depth: { texture: placeholder, near: 0.1, far: 1000 } } : {}),
       ...(normal === null ? {} : { normal: normal.texture }),

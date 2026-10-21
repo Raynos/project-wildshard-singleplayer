@@ -59,7 +59,7 @@ import { fogPatches, materialNodeFogOf, ownMaterialNodeFog, type NodeFogPatch } 
 import { fogUniforms } from '../../world/Atmosphere';
 import {
   GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphArrayParam, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
-  type GraphRef, type GraphValidationOptions, type GraphValueType,
+  type GraphRef, type GraphValidation, type GraphValidationOptions, type GraphValueType,
 } from '@wildshard/format/materialGraph';
 
 /** each compiled fog graph's program-key id: one compile, one key (a re-entered shard's fresh params never share a program) */
@@ -94,6 +94,11 @@ export interface CompileGraphOptions extends GraphValidationOptions {
    * then replaces the engine fog in this material's epilogue (and its outline's); required when the graph selects one
    */
   readonly fog?: (id: string) => NodeFogPatch;
+  /**
+   * the caller's own passing `validateGraph` of this very graph (its `graph` is the compiled input) under these same
+   * validation options: compile uses it instead of validating again (O14: Nine's entry validated each graph twice)
+   */
+  readonly validated?: Extract<GraphValidation, { ok: true }>;
 }
 
 /** a compiled graph */
@@ -466,7 +471,8 @@ function stagedTexture(sample: TextureNode): Node<'vec4'> { return new GraphText
  * `loadGraphCompiler(renderer)` resolved, which installs the engine's node handler first.
  */
 export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): CompiledGraph {
-  const checked = validateGraph(input, opts);
+  if (opts.validated !== undefined && opts.validated.graph !== input) throw new Error('material graph: a validation of another graph');
+  const checked = opts.validated ?? validateGraph(input, opts);
   if (!checked.ok) throw new Error(`material graph refused:\n  ${checked.errors.join('\n  ')}`);
   const ir: GraphIr = checked.graph;
   const selects = { light: 0, branch: 0 };
