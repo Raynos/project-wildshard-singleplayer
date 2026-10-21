@@ -69,7 +69,7 @@ export class NativeCorpseOwner {
   private lethalRoot: CorpseRootEndpoint | undefined;
   constructor(actor: AnimalSim, pose: NativeCorpsePosePort, lease: NativeCorpseReservation, scope: Scope, clock: GameClock, mode: NativeCorpseMode = 'rigid') {
     if (pose.entityId !== actor.entityId || !scope.belongsTo(lease.owner) || lease.state !== 'reserved') throw new Error('Invalid native corpse owner');
-    if (!['rigid', 'anchored-held'].includes(mode)) throw new Error('Invalid native corpse mode');
+    if (!['rigid', 'anchored-held', 'rigid-held'].includes(mode)) throw new Error('Invalid native corpse mode');
     this.mode = mode;
     this.actor = actor; this.pose = pose; this.lease = lease; this.scope = lease.owner; this.clock = clock;
     this.scope.onDispose(() => { this.dispose(); });
@@ -106,7 +106,7 @@ export class NativeCorpseOwner {
     this.preTick = tick; this.prepared = false;
     try { this.retireMotor(); } catch (error) { this.fail(error); }
     const resource = this.resource;
-    if (resource === undefined || resource.state === 'frozen' || this.mode === 'anchored-held') return;
+    if (resource === undefined || resource.state === 'frozen' || this.mode !== 'rigid') return;
     try {
       const next = this.pose.prepareCorpseStep(FIXED_STEP, time);
       resource.updateLocal(next.joints, next.complete); this.prepared = true;

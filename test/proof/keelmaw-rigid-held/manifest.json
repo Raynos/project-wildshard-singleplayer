@@ -1,0 +1,37 @@
+{
+  "status": "rejected physical WIP; no admission",
+  "files": {
+    "src/engine/physics/nativeRigidCorpse.ts": {
+      "sha256": "179c5bf2b5b03cb1e8324dfed1c5708af0b0dd49bae597aeaea185816f8633e5",
+      "bytes": 15696
+    },
+    "src/engine/entities/nativeCorpseOwner.ts": {
+      "sha256": "581f8f6ae839db5be331fe367e357900ebf8161e8e5d2f7828e49b6890b16ab0",
+      "bytes": 9080
+    },
+    "test/keelmaw-rigid-held.test.ts": {
+      "sha256": "0b1910d4f50a829b6f52b70ab82a5f6264ae42c38cc7d4ff2b3e77b6b6a1c7ed",
+      "bytes": 17661
+    },
+    "test/proof/keelmaw-rigid-held-contact.json": {
+      "sha256": "325246d108949a43f4efb951c6594a51ad9db720a27b8bb31ff0b20404445572",
+      "bytes": 1376834
+    },
+    "test/proof/keelmaw-rigid-held/complete-contact-run.log": {
+      "sha256": "f20fba128629765809c6b2e7d21f537f969db95aada85fe774a89ecfcadc1bbd",
+      "bytes": 3006
+    },
+    "test/proof/keelmaw-rigid-held/representation-run.log": {
+      "sha256": "63a9908f548ebded3266f8b6eb09f5c2ba0a413fde00fd5832cd7759e2cbb204",
+      "bytes": 2427
+    },
+    "test/proof/keelmaw-rigid-held/initial-regression-run.log": {
+      "sha256": "eeea378eebb7213d355588b2c868cf9fa87a2a6c900587fecccd946483891545",
+      "bytes": 6649
+    },
+    "test/proof/keelmaw-rigid-held/README.md": {
+      "sha256": "cf3376409bfc1983c9aad85c772db9fe072df41932ff5b8065619f08fa22ea5f",
+      "bytes": 3727
+    }
+  }
+}

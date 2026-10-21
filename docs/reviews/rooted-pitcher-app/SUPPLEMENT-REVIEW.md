@@ -1,0 +1,7 @@
+# Retained app3 supplemental test review
+
+2026-10-21. Root reviewed the standalone Node test at test/proof/rooted-pitcher-app/supplement-app3.mjs. It consumes only the exact retained app3 host, receipt and PIN3 with historical Git source/tree identity, not a mutable future checkout. No rebuilding or rewriting of prior evidence is implied.
+
+Scope: real touch navigation and sword kill/loot, Retry, Back/start and reload in an empty isolated Chromium context. Explicitly inspect local/session storage, SaveStore, IndexedDB databases, CacheStorage keys and service-worker registrations at eight boundaries. Unavailable APIs fail visibly. Measure the real fixed corpse's seven native collider world vertices/contact distances against the independently identified actual arena floor, plus existing rendered/skinned mesh world minima. No pose, enemy HP, clock or world-state injection. Preserve screenshots, logs and original video; no public/model admission from this supplement alone.
+
+Only this Node executable was added to the existing Node-tooling lint classification. No broader pattern or new disabled rule was introduced. Syntax, immutable-host verify-only and selected type-aware lint pass. Root approves one bounded muted portrait run after source checkpoint, with installed Chrome/Playwright tools and ordinary browser lane. A blocked real approach remains a failure, not a hidden placement fallback.

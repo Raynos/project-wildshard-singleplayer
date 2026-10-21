@@ -9,9 +9,9 @@ import type { NativeCorpseReservation } from './ragdoll';
 import { CORPSE_SETTLE, numericCorpseTransforms, prepareNumericRigidCorpse, rigidCorpseBodyDescriptor,
   rigidCorpseCollider, validateRigidCorpse, type NumericCorpseJoint, type NumericCorpseTransform, type RigidCorpseBodyInput } from './rigidCorpse';
 
-export type NativeCorpseMode = 'rigid' | 'anchored-held';
+export type NativeCorpseMode = 'rigid' | 'anchored-held' | 'rigid-held';
 export interface NativeRigidCorpseInput extends RigidCorpseBodyInput {
-  /** Explicit fixed obstacle holding the lethal pose; never an animated rigid-body shortcut. */
+  /** Explicit pose ownership: rigid animates, anchored-held is fixed, rigid-held is dynamic WORLD-only WIP debris. */
   readonly mode?: NativeCorpseMode;
   readonly retiringCollider?: Collider;
   readonly recipe: unknown;
@@ -34,6 +34,7 @@ export class NativeRigidCorpse {
   private quiet = 0;
   private complete = false;
   private readonly anchored: boolean;
+  private readonly held: boolean;
   private readonly topology;
   private readonly scale: number;
   private readonly reservation: NativeCorpseReservation;
@@ -42,6 +43,7 @@ export class NativeRigidCorpse {
   private readonly allocation: Scope;
   private constructor(reservation: NativeCorpseReservation, body: RigidBody, parts: readonly PhysicalPart[], allocation: Scope, input: NativeRigidCorpseInput) {
     this.anchored = input.mode === 'anchored-held';
+    this.held = input.mode === 'rigid-held';
     this.reservation = reservation; this.body = body; this.parts = parts; this.allocation = allocation;
     this.current = copyRoot({ position: body.translation(), rotation: body.rotation() }); this.previous = copyRoot(this.current); this.scale = input.scale;
     this.topology = input.joints.map(joint => ({ name: joint.name, parent: joint.parent }));
@@ -64,13 +66,13 @@ export class NativeRigidCorpse {
       || input.damage < 0 || input.scale <= 0 || Math.abs(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w - 1) > 1e-6
       || !Number.isFinite(input.dims.bodyY)
       || [input.dims.halfWidth, input.dims.bodyHalfLen, input.dims.bodyRadius].some(n => !Number.isFinite(n) || n <= 0)) throw new Error('Unsafe native corpse body');
-    if (input.mode !== undefined && !['rigid', 'anchored-held'].includes(input.mode)) throw new Error('Invalid native corpse mode');
+    if (input.mode !== undefined && !['rigid', 'anchored-held', 'rigid-held'].includes(input.mode)) throw new Error('Invalid native corpse mode');
     const prepared = prepareNumericRigidCorpse(physics.R, input.recipe, input.joints, input.scale);
     const anchored = input.mode === 'anchored-held';
-    if (anchored) {
-      if (input.retiringCollider === undefined || !input.retiringCollider.isValid() || physics.world.getCollider(input.retiringCollider.handle) !== input.retiringCollider) throw new Error('Anchored corpse requires its retiring live collider');
+    if (anchored || input.mode === 'rigid-held') {
+      if (input.retiringCollider === undefined || !input.retiringCollider.isValid() || physics.world.getCollider(input.retiringCollider.handle) !== input.retiringCollider) throw new Error(`${anchored ? 'Anchored' : 'Rigid-held'} corpse requires its retiring live collider`);
       const rootRotation = new Quaternion(input.rotation.x,input.rotation.y,input.rotation.z,input.rotation.w);
-      const query = queryGroups(['WORLD','PLAYER','CREATURE','ITEM'],'WORLD');
+      const query = anchored ? queryGroups(['WORLD','PLAYER','CREATURE','ITEM'],'WORLD') : groups('DEBRIS');
       const candidates: Collider[] = [];
       // Like canStandAt, inspect current collider transforms, not the broadphase from
       // the previous step. A lethal hit can follow player/creature movement in fixed.post.
@@ -89,9 +91,9 @@ export class NativeRigidCorpse {
         for (const collider of candidates) {
           const contact = collider.contactShape(part.desc.shape,at,rotation,0);
           // Match existing numeric-rig transform precision; zero-distance touching is allowed.
-          if (contact !== null && !Number.isFinite(contact.distance)) throw new Error(`Unsafe anchored corpse contact: ${part.bone}`);
+          if (contact !== null && !Number.isFinite(contact.distance)) throw new Error(`Unsafe ${anchored ? 'anchored' : 'rigid-held'} corpse contact: ${part.bone}`);
           if (contact !== null && contact.distance < -1e-6)
-            throw new DamageRefusalError(`Anchored corpse has obstructed lethal hull: ${part.bone}`);
+            throw new DamageRefusalError(`${anchored ? 'Anchored' : 'Rigid-held'} corpse has obstructed lethal hull: ${part.bone}`);
         }
       }
     }
@@ -161,7 +163,7 @@ export class NativeRigidCorpse {
   }
   /** Existing pre-physics boundary supplies the one numeric owner's locals. Validate the whole set first. */
   updateLocal(joints: readonly NumericCorpseJoint[], complete: boolean): void {
-    if (this.anchored) throw new Error('Anchored corpse holds its lethal pose');
+    if (this.anchored || this.held) throw new Error(`${this.anchored ? 'Anchored' : 'Rigid-held'} corpse holds its lethal pose`);
     if (this.status !== 'live' || this.reservation.physics.disposed) throw new Error('Native corpse is not live');
     if (joints.length !== this.topology.length || joints.some((joint, i) => { const expected = this.topology[i]; return expected === undefined || joint.name !== expected.name || joint.parent !== expected.parent; }))
       throw new Error('Native corpse hierarchy changed');
@@ -200,6 +202,9 @@ export class NativeRigidCorpse {
     this.previous = this.current; this.current = copyRoot({ position: p, rotation: q });
     // Fixed obstacles remain real and keep their existing slot until bout disposal.
     if (this.anchored) { this.status = 'frozen'; return; }
+    // WIP held debris remains a real, wakeable dynamic owner until explicit disposal.
+    // Sleeping never releases its reservation or stops physical root publication.
+    if (this.held) return;
     this.age += dt;
     const fastest = Math.max(Math.hypot(v.x, v.y, v.z), Math.hypot(w.x, w.y, w.z) * CORPSE_SETTLE.spinLever);
     this.quiet = this.complete && fastest < CORPSE_SETTLE.speed ? this.quiet + dt : 0;

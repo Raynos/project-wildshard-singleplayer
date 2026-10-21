@@ -1,0 +1,43 @@
+heavy-lane: queued build ticket 231
+heavy-lane: acquired build after 0.00s queue
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+stdout | test/keelmaw-rigid-held.test.ts > one bounded actual Rapier four-phase proof: strict 5mm gate includes activation and first impact
+Keelmaw rigid-held strict contact [{"lethalTick":0,"phase":"idle","initial":{"linear":{"x":1.2206002473831177,"y":3.25,"z":-0.8718572854995728},"angular":{"x":-3.6327388286590576,"y":0,"z":-5.08583402633667},"mass":0,"inertia":{"x":0,"y":0,"z":0}},"worst":899.9584109835848,"passesStrict5mm":false},{"lethalTick":145,"phase":"windup","initial":{"linear":{"x":1.2206002473831177,"y":3.25,"z":-0.8718572854995728},"angular":{"x":-3.6327388286590576,"y":0,"z":-5.08583402633667},"mass":0,"inertia":{"x":0,"y":0,"z":0}},"worst":899.9932407062059,"passesStrict5mm":false},{"lethalTick":165,"phase":"active","initial":{"linear":{"x":1.2206002473831177,"y":3.25,"z":-0.8718572854995728},"angular":{"x":-3.6327388286590576,"y":0,"z":-5.08583402633667},"mass":0,"inertia":{"x":0,"y":0,"z":0}},"worst":899.9687001110846,"passesStrict5mm":false},{"lethalTick":185,"phase":"recover","initial":{"linear":{"x":1.2206002473831177,"y":3.25,"z":-0.8718572854995728},"angular":{"x":-3.6327388286590576,"y":0,"z":-5.08583402633667},"mass":0,"inertia":{"x":0,"y":0,"z":0}},"worst":899.9491039827508,"passesStrict5mm":false}]
+
+ ❯ test/keelmaw-rigid-held.test.ts (8 tests | 1 failed) 35707ms
+   × one bounded actual Rapier four-phase proof: strict 5mm gate includes activation and first impact 26007ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/keelmaw-rigid-held.test.ts > one bounded actual Rapier four-phase proof: strict 5mm gate includes activation and first impact
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/keelmaw-rigid-held.test.ts:197:53
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  11:08:29
+   Duration  66.43s (tests 54%, transform 36%, setup 8%, import 2%)
+
+  Transform  transforming modules took 23.80s · 36% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+heavy-lane: finished build in 68.60s

@@ -1,0 +1,83 @@
+heavy-lane: queued build ticket 230
+heavy-lane: acquired build after 0.01s queue
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:2:29). Add the file extension
+  - import "./scripts/vitest-lane" without a file extension (vitest.config.ts:3:52). Add the file extension
+  - import "./scripts/vitest-tmp" without a file extension (vitest.config.ts:4:31). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 <repository>
+
+ ❯ test/keelmaw-rigid-held.test.ts (8 tests | 1 failed) 13209ms
+   × one bounded actual Rapier four-phase proof: strict 5mm gate includes activation and first impact 5869ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/keelmaw-rigid-held.test.ts > one bounded actual Rapier four-phase proof: strict 5mm gate includes activation and first impact
+AssertionError: expected [ +0, 1, +0, +0, +0, +0, 1, 1, …(163) ] to deeply equal [ +0, 1, +0, +0, +0, +0, 1, 1, …(163) ]
+
+- Expected
++ Received
+
+@@ -9,39 +9,39 @@
+    1,
+    1,
+    0,
+    0.030000000000000027,
+    0.86,
+-   0.007958290075106952,
++   0.007958290075106955,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0.020000000000000018,
+    0.62,
+-   -0.054580909995111185,
++   -0.054580909995111206,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    -0.21000000000000008,
+    -0.19999999999999996,
+-   0.059542810903757654,
++   0.05954281090375766,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    -0.07999999999999996,
+    -1,
+    0,
+-   0.016851214468125406,
++   0.01685121446812541,
+    0,
+    1,
+    1,
+    1,
+    -0.42,
+
+ ❯ test/keelmaw-rigid-held.test.ts:185:90
+
+ ❯ test/keelmaw-rigid-held.test.ts:185:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  11:07:22
+   Duration  44.82s (transform 54%, tests 30%, setup 12%, import 4%)
+
+  Transform  transforming modules took 23.58s · 54% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+heavy-lane: finished build in 46.00s

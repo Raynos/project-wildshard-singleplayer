@@ -1,0 +1,26 @@
+{
+  "status": "failed physical candidate, no admission",
+  "files": [
+    {
+      "original": "test/proof/keelmaw-rigid-held/complete-contact-run.log",
+      "originalSha256": "f20fba128629765809c6b2e7d21f537f969db95aada85fe774a89ecfcadc1bbd",
+      "delivery": "test/proof/keelmaw-rigid-held/complete-contact-run.public.log",
+      "deliverySha256": "936562b5f2f2ba678d20fd40b0c4454ff730c190c750e1b6955e2e59349919db",
+      "conversion": "One repository-local absolute working-directory prefix replaced by <repository>; all test results unchanged. Raw original retained locally, not removed."
+    },
+    {
+      "original": "test/proof/keelmaw-rigid-held/representation-run.log",
+      "originalSha256": "63a9908f548ebded3266f8b6eb09f5c2ba0a413fde00fd5832cd7759e2cbb204",
+      "delivery": "test/proof/keelmaw-rigid-held/representation-run.public.log",
+      "deliverySha256": "73169c7da7351306a2496f10dcc0a398be044f3e6cdd13f830ea939536253cbc",
+      "conversion": "One repository-local absolute working-directory prefix replaced by <repository>; all test results unchanged. Raw original retained locally, not removed."
+    },
+    {
+      "original": "test/proof/keelmaw-rigid-held/initial-regression-run.log",
+      "originalSha256": "eeea378eebb7213d355588b2c868cf9fa87a2a6c900587fecccd946483891545",
+      "delivery": "test/proof/keelmaw-rigid-held/initial-regression-run.public.log",
+      "deliverySha256": "c365d780210c28c4888cebe63fdc0b65cbae4e5ba5311d68161a85c600baf641",
+      "conversion": "One repository-local absolute working-directory prefix replaced by <repository>; all test results unchanged. Raw original retained locally, not removed."
+    }
+  ]
+}
