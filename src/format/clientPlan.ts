@@ -44,7 +44,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('population.wildlife'), file: label,
     crowd: v.strictObject({ json: label, binary: label }), navSteer: v.boolean(),
     frame: v.strictObject({ id, after: v.pipe(v.array(id), v.maxLength(16)), before: v.pipe(v.array(id), v.maxLength(16)) }) }),
-  v.strictObject({kind:v.literal('world.sets'),rows:v.pipe(v.array(v.strictObject({place:label,id:label,name:label,file:label,pois:v.optional(v.pipe(v.array(label),v.maxLength(128),v.check(names=>new Set(names).size===names.length)),[]),x:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(128),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
+  v.strictObject({kind:v.literal('world.sets'),rows:v.pipe(v.array(v.strictObject({place:label,id:label,name:label,file:label,pois:v.optional(v.pipe(v.array(label),v.maxLength(128),v.check(names=>new Set(names).size===names.length)),[]),x:finite,z:finite,r:v.pipe(finite,v.minValue(0)),mode:v.exactOptional(v.picklist(['centre','bounds']))})),v.maxLength(128),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
   v.strictObject({ kind: v.literal('riding.session'), file: label }),
   v.strictObject({ kind: v.literal('practice.course'), course: v.picklist(['horse', 'grapple']),
     title: label, blurb: label, icon: v.pipe(v.string(), v.minLength(1), v.maxLength(4096)), art: label, file: label }),

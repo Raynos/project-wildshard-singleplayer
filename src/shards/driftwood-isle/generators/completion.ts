@@ -3,6 +3,8 @@ import { parseCompletion, type CompletionRows } from '@wildshard/format/completi
 import { createQuestPlacements } from '@wildshard/engine/world/interact/types';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import { DRIFTWOOD_PLACES } from './discovery';
+import placeSets from '../data/placeSets.json' with { type: 'json' };
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { SHARD_FLAGS, SEA_GLASS_COUNT, SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from './interactables';
 
 export const COMPLETE_CONTENT = {
@@ -44,5 +46,17 @@ export function completionRows(): CompletionRows {
     stats: [{ label: content.stats.time, value: { kind: 'time' } }, { label: content.stats.achievements, value: { kind: 'achievements' } },
       { label: content.stats.shards, value: { kind: 'flags', flags: SHARD_FLAGS } }, { label: content.stats.glass, value: { kind: 'group', group: 'glass', total: SEA_GLASS_COUNT } },
       { label: content.stats.places, value: { kind: 'group', group: 'places', total: places.length } }, { label: content.stats.title, value: { kind: 'title', fallback: content.titleFallback } }],
+  });
+}
+
+/** The named places' Sets (data/placeSets.json) as the client plan's `world.sets` rows: each place's circle resolved
+ *  offline in the live quest placement's frame law, its copies taken by their bounds; Wreck Cove's set is its whole
+ *  `wreck` group (the wreck and the cove) and nothing spatial. */
+export function placeSetRows(): Extract<ClientFeatureRow, { kind: 'world.sets' }>['rows'] {
+  const { place } = createQuestPlacements({ terrain: () => 0, frames });
+  return placeSets.map(row => {
+    const def = DRIFTWOOD_PLACES.find(entry => `driftwood-isle/${entry.id}` === row.place); if (def === undefined) throw new Error(`places: no named place ${row.place}`);
+    const p = place(def.at), wreck = 'explicit' in row;
+    return { id: row.id, name: row.name, place: row.place, file: 'src/shards/driftwood-isle/data/placeSets.json', pois: wreck ? ['wreck'] : [], x: p.x, z: p.z, r: wreck ? 0 : def.r, mode: 'bounds' };
   });
 }

@@ -3,8 +3,7 @@ import { installRuntimeLoot, enteredLootPresentation } from '@wildshard/game/loo
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
-import { registerPlaceSets } from '@wildshard/engine/models/sets';
-import type { PlaceSets } from '../runtime/productSections.generated.d.ts';
+import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import { prepareQuestPageComposition, installQuestPageComposition, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
 import { registerQuestPageWorld } from '@wildshard/game/quest/pageResources';
 import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
@@ -55,15 +54,10 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
   const adventure = await installQuestPageComposition(ctx, rows);
   installBridgeSway(ctx, { ...rows.sway, system: rows.systems.sway, before: rows.systems.before });
-  if (adventure.places === null) throw new Error('Driftwood adventure requires its discovery catalogue');
   const placed = [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
     ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed];
-  const wreck = [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])];
-  registerPlaceSets(await ctx.product.json<PlaceSets>('world/place-sets.json'), { file: 'src/shards/driftwood-isle/data/placeSets.json', members: row => {
-    const def = adventure.content.places.find(place => `driftwood-isle/${place.id}` === row.place);
-    if (def === undefined) throw new Error(`places: no named place ${row.place}`);
-    return row.explicit === undefined ? { near: { placed, ...adventure.place(def.at), r: def.r, mode: 'bounds' } } : { whole: row.explicit === 'wreck' ? wreck : [] };
-  } });
+  // the named places' Sets: the client plan's `world.sets` rows (Wreck Cove's is the whole wreck and cove)
+  await bindClientPlaceSets(ctx, new Map([['wreck', [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])]]]), placed.filter(p => p !== undefined));
   const swords = h.weapons.list.map(({ id }) => h.weapons.get(id)).filter((w): w is Sword => w instanceof Sword);
   const effects = ctx.app.effects, health = ctx.app.player;
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');

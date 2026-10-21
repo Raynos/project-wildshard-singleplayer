@@ -165,4 +165,3 @@ export const FILE_SCHEMAS = { 'data/bridgeRows.json': v.strictObject({ world: br
 /** Named world blobs share their build validator and generated runtime type. */
 export const CoverCompositionSchema = v.strictObject({ name: text, placement: text, mesh: text, userData: v.record(text, v.boolean()) });
 
-export const PlaceSetsSchema = v.pipe(v.array(v.strictObject({ id: text, name: text, place: text, explicit: v.exactOptional(text) })), v.length(9));

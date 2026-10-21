@@ -17,12 +17,13 @@ export function installClientPlaceSets(ctx:ShardContext,row:ClientFeatureRow):vo
   const book:PlaceSets={rows:row.rows,owned:[],bound:false};products.set(ctx.product,book);const installed=products;
   ctx.scope.onDispose(()=>{installed.delete(ctx.product);for(const set of book.owned){const index=ctx.app.registry.sets.indexOf(set);if(index!==-1)ctx.app.registry.sets.splice(index,1);}});
 }
-/** Bind actual model placements; admitted rows select whole groups and spatial copy views without adding collision. */
+/** Bind actual model placements; admitted rows select whole groups and spatial copy views (by copy centre, or by copy
+ * bounds for a `bounds` row) without adding collision. Users: Nalati, Driftwood. */
 export async function bindClientPlaceSets(ctx:ShardContext,groups:ReadonlyMap<string,readonly Placed[]>,nearby:readonly Placed[]):Promise<void>{
   const book=owners.get(ctx.scope)?.get(ctx.product);if(book===undefined||book.bound||ctx.scope.disposed)throw new Error('Named-place binding requires an unbound entered feature');book.bound=true;
   const claimed=new Set(book.rows.flatMap(row=>row.pois)),grouped=new Set([...groups.values()].flat()),loose=[...groups].filter(([name])=>!claimed.has(name)).flatMap(([,placed])=>placed),spatial=[...loose,...nearby.filter(placed=>!grouped.has(placed))];
   for(const row of book.rows){
-    const members=[...row.pois.flatMap(name=>groups.get(name)??[]),...spatial.flatMap(placed=>{const view=placedWithin(placed,row.x,row.z,row.r,'centre');return view===null?[]:[view];})];
+    const members=[...row.pois.flatMap(name=>groups.get(name)??[]),...spatial.flatMap(placed=>{const view=placedWithin(placed,row.x,row.z,row.r,row.mode??'centre');return view===null?[]:[view];})];
     if(members.length>0)book.owned.push(placeSet({...row,members,registry:ctx.app.registry}));
     await buildYield(ctx.scope);
   }
