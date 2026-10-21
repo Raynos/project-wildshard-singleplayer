@@ -10,7 +10,7 @@ import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
 import { NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import { MEASURE_SLOT, parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/format/materialFamilies';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
+import { PLACEHOLDER_HAZE, placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
 import { parseGlb } from '../assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { staticGlb } from './glb';
@@ -371,13 +371,6 @@ export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<
 
 type Rgb = readonly [number, number, number];
 const mixRgb = (a: Rgb, b: Rgb, t: number): Rgb => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-
-/**
- * O24: the haze of a placeholder seen across the grid (metres of view depth, 0..1): the range the authored far looks use
- * (Driftwood 450-2600 m at 0.55, Nalati and Far Reach 500-2800 at 0.5, Pine 400-2400 at 0.6). A shard's own fog key is
- * its air up close: 160-700 m at full strength turned every cell without a far look into a blank tile past 700 m.
- */
-export const PLACEHOLDER_HAZE = { near: 450, far: 2600, max: 0.55 } as const;
 
 /**
  * The far look of a shard that declares none (any shardfile, an uploaded unknown one included): its ground in its own

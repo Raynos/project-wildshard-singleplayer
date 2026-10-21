@@ -23,6 +23,14 @@ export type FarFamily = 'toon' | 'painterly' | 'pbr';
 /** Distance haze on the proxy alone (independent of a shard's near fog, which would hide its neighbours). */
 export interface FarHaze { readonly colour: FarRgb; readonly near: number; readonly far: number; readonly max: number }
 /**
+ * O24: the haze of a shard drawn across the grid without a far look of its own (any shardfile's far proxy and near view;
+ * the build's placeholders): metres of view depth and strength, the range the authored far looks use (Driftwood 450-2600 m
+ * at 0.55, Nalati and Far Reach 500-2800 at 0.5, Pine 400-2400 at 0.6). A shard's own fog key is its air up close: at
+ * 160-700 m and full strength every such cell (the open plots, pastel plain, ink-cel valley) drew as a blank tile past
+ * 700 m, the outer band of the G550 hero.
+ */
+export const GRID_FAR_HAZE = { near: 450, far: 2600, max: 0.55 } as const;
+/**
  * A shard's far look, authored in its folder and read only at bake time. `colourAt` gets cell-local metres, the height,
  * the slope (1 − n.y) and the normalised splat weights (the shard's own four channels).
  */
