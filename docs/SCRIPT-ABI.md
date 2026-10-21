@@ -440,3 +440,299 @@ source order and the existing 400,000 coarse fuel cap per guest call.
 Native and page factories share an admitted module inside the same owner scope.
 An inconsistent declaration for the same module refuses; disposal releases the
 scope's instance. No extra scheduler, actor controller or instance is installed.
+
+## ABI v2 wire contract (WASM-HOST H0b)
+
+This section specifies the target contract before implementation. The v0/v1
+sections above remain the shipped contract. G570 starts the Pine/Driftwood view
+wave; H1–H6 add an explicitly versioned Developer path. Selecting that path must
+not change any existing v0/v1 compilation, admission, module hash or save.
+H13 owns the later cutover. See [WASM-HOST](plans/WASM-HOST.md).
+
+### Encoding, authority and memory
+
+All multibyte values are little-endian. `u16` occupies two bytes,
+`u32`/`i32` occupy four bytes, `f32` four,
+and `f64` eight; bool columns are f64 0 or 1. Durable numeric columns are f64,
+including integers, so every valid v1 i32/f64 slot round-trips without narrowing
+or normalizing negative zero. Values must be
+finite; integer and declared range checks precede commit. Handles are positive
+local i32 values, zero means absent. The host maps them to stable declared
+identities; a wire handle is never the identity stored in a save. This preserves
+v1 identities that exceed 32 bits and permits remapping on restore.
+
+There is one fixed, unshared memory per admitted module **per lane**, imported
+as `env.memory`, with equal initial/maximum page counts. Sim/projection and view
+never share memory. A page is 65,536 bytes; admission permits the existing 1–4
+page range, preferring one page. The compiler reserves the entire IO range
+outside its static data and heap. The host computes its size before instantiation:
+`end = align16(io + 128 + 22*24)` followed by each aligned region's
+`stride*capacity`. Static data, IO, stack and declared scratch must fit. Refuse a
+layout that does not fit; never grow memory or silently drop rows. Scratch may
+use the remaining admitted memory but cannot become durable sim state.
+
+Region bases are aligned to 16 bytes; records and f64 columns to eight; f32
+samples to four. The host calculates offsets, strides, capacities, ownership,
+column types and capabilities from admitted metadata, retaining a copy outside
+Wasm. Guest-written header/descriptors cannot grant access, change a length or
+choose a renderer target. Validate against that copy before reading outputs.
+Check multiplication and addition without coercing to i32 first; reject overflow,
+misalignment, overlaps, negative addresses and ends beyond the fixed memory.
+Every address is a byte offset, never a JS pointer or f64 slot index.
+
+All unused header fields, descriptor flags and record padding are zero. An
+unknown major/minor, region kind, flag, enum or command refuses admission/call;
+there is no best-effort version fallback. A compatible additive layout requires
+an explicit minor-version change and its own admission rules.
+
+### Exports and entry order
+
+Only memory is imported: **no function imports**, table, indirect call, start
+section, shared memory, memory growth, SIMD or relaxed SIMD. Getter bodies must
+be admitted constants. Executable exports have the following exact signatures:
+
+| Export | Signature and result |
+|---|---|
+| `ws_abi` | `() -> i32`, constant 2 |
+| `ws_io` | `() -> i32`, constant aligned IO base matching admitted metadata |
+| `ws_init` | `(seedLo:i32, seedHi:i32, fuel:i32) -> i32`, remaining fuel |
+| `ws_step` | `(tick:i32, fuel:i32) -> i32`, remaining fuel |
+| `ws_project` | `(fuel:i32) -> i32`, remaining fuel |
+| `ws_view` | `(dt:f64, alpha:f64, fuel:i32) -> i32`, remaining fuel |
+
+The three work entries are step, project and view. A lane admits only its work
+entry, plus the getters and init; unsupported work entries are absent. The view
+signature includes fuel explicitly; the plan's `ws_view(dt, alpha)` names the
+presentation arguments. Header values must match entry arguments. No work entry
+may be called by guest code, even from an acyclic helper. Init cannot call a
+work entry or itself. H2 verifies this before instantiation.
+
+The host admits bytes, supplies fixed memory and validated layout, then invokes
+init once with a bounded positive i32 budget. Compiler startup is internal to
+that metered init, never an unmetered exported `__start`. Init emits no gameplay
+commands or requests. After validating initialization, capture the complete
+memory image and every mutable global except the private fuel global. Every other mutable global must have an
+admitted snapshot export. Before
+each sim/project entry and retry, restore that whole image and globals, then
+write the input frame. View keeps its initialized memory between frames.
+
+Each executable entry sets a non-exported fuel global from its argument exactly
+once, decrements it by verified basic-block charges, traps on exhaustion and
+returns its remaining value. The host accepts only `0 <= remainder <= budget`.
+Only the entry prologue writes the initial budget; other writes must be exact
+admitted charges. Read access is allowed. Direct calls must form an acyclic graph
+with maximum depth 64. Float stores and reinterpret inputs receive inline finite
+checks, and every published float is checked again by the host. NaN/infinity and
+local abort trap without crossing into JS. H0 measures charge overhead; the
+chosen charge granularity belongs to the versioned compiler/admission pair.
+
+### Header and region directory
+
+Offsets below are relative to `ws_io()`. The header is exactly 128 bytes.
+
+| Offset | Type | Field |
+|---|---|---|
+| 0 | u32 | magic `0x32565357` (`WSV2`) |
+| 4, 6 | u16, u16 | major 2, minor 0 |
+| 8, 12 | u32, u32 | header bytes 128, complete IO byte length |
+| 16, 20 | u32, u32 | module handle, lane (1 sim, 2 projection, 3 view) |
+| 24, 28 | u32, i32 | call sequence, relative 60 Hz tick |
+| 32, 36 | u32, u32 | due-binding count, player count |
+| 40, 44 | u32, u32 | event count, input-edge count |
+| 48, 52 | u32, u32 | query-reply count, projection-request count |
+| 56, 60 | u32, u32 | candidate command count, query-request count |
+| 64, 68 | u32, u32 | running binding hint, query-reply scalar count |
+| 72, 76 | u32, u32 | changed view-transform count, changed view-channel count |
+| 80, 88 | f64, f64 | view dt seconds, fractional fixed-step alpha |
+| 96, 100 | u32, u32 | directory count 22, directory byte offset 128 |
+| 104 | f64 | absolute tick origin |
+| 112, 116 | u32, u32 | view frame sequence, reserved zero |
+| 120 | 8 bytes | reserved zero |
+
+Directory entries are 24 bytes: `kind:u32, offset:u32, stride:u32,
+capacity:u32, count:u32, flags:u32`. Offsets are IO-relative. Entries appear in
+ascending kind order. Inactive regions have capacity/count zero and still have
+the defined stride. Counts of host input regions are host-written. Counts of
+output regions are proposals bounded by admitted capacities. The host clears
+output counts before every call. An output count is never used to allocate.
+
+The following are complete region/record layouts; fields follow the written
+order, without implicit padding. `pad` is zero. Indices into another region are
+record indices, validated together with their counts against host metadata.
+
+| Kind | Region | Stride and fields |
+|---|---|---|
+| 1 | Bindings | 64: `handle,self,player,flags,stateBase,stateCount,paramBase,paramCount,observationIndex,fieldBase,fieldCount,divisor:u32`; `previousTick,currentTick:i32`; `fuelSlice,pad:u32` |
+| 2 | Committed state | 8: `value:f64`, ordered by binding, then declared column |
+| 3 | Candidate state | 8: `value:f64`, same shape as kind 2 |
+| 4 | Parameters | 8: `value:f64`, binding-local names in lexical order |
+| 5 | Standard observations | 96: `binding,self,target,validBits:u32`; `sampleTick:i32,pad:u32`; `x,y,z,yaw,hpShare,groundY,walkX,walkZ,lineOfSight:f64` |
+| 6 | Declared numeric observations | 16: `field,present:u32`; `value:f64`, binding-local declared fields in lexical order |
+| 7 | Players | 80: `handle,validBits:u32`; `sampleTick:i32,pad:u32`; `x,y,z,yaw,hpShare,forwardX,forwardZ,walkIntent:f64` |
+| 8 | Input edges | 32: `player,action:u32`; `atTick:i32`; `phase:u32`; `x,y:f64` |
+| 9 | Events | 56: `kind,binding,subject,player:u32`; `atTick:i32`; `sequence:u32`; `a,b,c,d:f64` |
+| 10 | Commands | 64: `binding,op,target,request:u32`; `a,b,c,d,e,f:f64` |
+| 11 | Query requests | 80: `binding,id,op,flags:u32`; `atTick:i32`; `target:u32`; `a,b,c,d,e,f,g:f64` |
+| 12 | Query replies | 64: `binding,id,status,count:u32`; `atTick:i32`; `dataBase:u32`; `a,b,c,d,e:f64` |
+| 13 | Query-reply data | 8: `value:f64`; each reply's slice is checked independently |
+| 14 | Height grid | Byte region: 64-byte header followed by f32 heights, as specified below |
+| 15 | View sample directory | 32: `binding,validBits:u32`; `previousTick,currentTick:i32`; `previousBase,currentBase,columnCount,pad:u32` |
+| 16 | Public view sample columns | 8: `value:f64`, previous/current slices lent by kind 15 |
+| 17 | Candidate view transforms | 80: `binding,output,element,changed:u32`; 16 column-major `matrix:f32` values |
+| 18 | Candidate view channels | 8: `value:f64`, targets and dirty positions fixed by metadata |
+| 19 | Projection requests | 48: `id,binding,signal,flags,fieldBase,fieldCount,candidateBase,candidateCount,candidateWidth,resultBase,resultCapacity,pad:u32` |
+| 20 | Projection channels | 16: `request,channel:u32`; `value:f64` |
+| 21 | Committed RNG | 64: `binding,stream,algorithm,draws:u32`; six `state:f64` values |
+| 22 | Candidate RNG | 64: same shape as kind 21 |
+
+Kind 14 has stride 1 and a byte capacity. Its header is
+`originX,originZ,cellX,cellZ:f64; cols,rows,samplesOffset,pad:u32;
+waterY:f64; validBits,pad:u32`. Cell dimensions must be positive and rows/cols
+at least two. Samples are row-major f32 at the IO-relative samplesOffset, finite
+and inside the same region. Compute `rows*cols*4` with checked arithmetic. Bit 0
+means grid present; all other bits are reserved. Outside-grid reads refuse; they
+never consult page terrain implicitly. A sim/projection grid comes only from its
+native world owner. H5 uses asynchronous requests for unavailable queries.
+
+Standard-observation valid bits 0–4 respectively mean pose, health, ground,
+walkable and line of sight present. Player valid bits 0–3 mean pose, health,
+forward and intent present. Absent values are zero; the SDK must test the bit
+before reading a group. View-sample bit 0 means previous/current columns present;
+bit 1 permits interpolation. Binding flags are enabled=1 and due=2; all other
+bits are reserved. Input phases are press=1, release=2, analogue=3. Query status
+is ok=1, unavailable=2, refused=3; non-ok replies have no data payload. Other
+numeric enums use their v1 operation/event ids where an operation exists; new
+operations require an explicit defining table before admission can accept them.
+A numeric field has present=0 or 1; absent values are zero and a guest read of
+an absent field traps locally. A projection's candidateCount is at most eight;
+candidateWidth equals its admitted field-row width. Each candidate occupies that
+many kind-6 records beginning at candidateBase. Ordinary request fields begin at
+fieldBase; both ranges are independently checked. Field ids and presence cannot
+grant an undeclared read. View cannot emit sim commands or queries. Projection flags and query flags are
+zero in 2.0. A changed transform has `changed=1`, otherwise zero. Kind 17's count equals its
+admitted record count and header offset 72 equals the sum of changed flags;
+identity fields must match the target assigned to that position. Kind 18 publishes
+the complete declared channel bank or none: its count and header offset 76 are
+both its capacity or both zero. Frozen targets are excluded by the host's trusted
+binding table even when the guest writes those positions.
+
+### Tick, ordering and overflow rules
+
+The authoritative simulation remains 60 Hz. Wire ticks and sample/event stamps
+are signed i32 **relative** to the header's exact integer f64 origin. The host
+chooses `origin = floor(absoluteTick / 2^30)*2^30`; absolute tick is an integer
+within JS's safe-integer range. Adjacent older samples may have negative relative
+ticks. Refuse a stamp outside i32 instead of wrapping. Saved ticks/deadlines are
+absolute exact integers; origin is marshalling state and is recomputed on load.
+No timer duration, handle, sequence or count silently wraps. A sequence exhausting
+u32 starts a new host-owned epoch only at a quiescent boundary; pending work is
+first saved/drained or admission pauses with an explicit refusal.
+
+Bindings execute in stable declared identity order, independently of transient
+handle assignment. Player rows sort by their stable player identity; edges sort
+by `(atTick, sequence)`, events by `(atTick, sequence, binding identity)`.
+Input-edge sequence is its host-owned position in that sorted batch; duplicate
+positions are refused. Each row's player/subject is resolved against that entry's
+observed handles and capabilities. A player observation never grants ownership
+of that body. Input stamps come from the authority; a future server bounds receipt
+lag to six ticks. View dt, alpha, camera, tier and wall time are absent from sim
+and sim-projection frames (their header dt/alpha/frame sequence are zero).
+
+Sim divisors are six for 10 Hz or two for an explicitly approved 30 Hz binding.
+All bindings in a sim module share its admitted divisor; a module runs only when
+`absoluteTick % divisor == stableModuleOrdinal % divisor`. This ordinal is a
+saved declared registry identity, not a load-order index. Finer binding staggering
+requires an explicit admitted binding count/policy, never a device-dependent
+choice. Each binding receives its actual last/current successful sample stamps.
+A missed call advances neither state nor RNG. Input/event stamps retain 60 Hz
+precision even when the next script call is at 10 Hz.
+
+### Outputs, queries and saved continuation
+
+The host snapshots its input identity/length metadata outside memory, then enters
+once per due module. Generated glue sets the running-binding hint before a
+binding and checks its fuel slice at each boundary. The hint is advisory: on a
+trap, accept it only if it names a due binding. Discard all module candidates;
+restore image/globals and the original frame; re-step once with that binding
+excluded. A second trap skips the module. Do not rerun successfully committed
+world effects. Failures accumulate per module and the third disables it. A
+healthy call does not erase failure history. No guest can refill fuel by calling
+another export or invent a binding by rewriting its directory.
+
+Validate every candidate column, command, capability, ownership reference,
+integer, count and RNG continuation before staging anything. Preserve the v1
+quotas: 32 commands per call, 128 per tick, four spawns and eight timers, enforced
+by the host over all bindings/calls in its authority. A full output/request ring
+refuses that call atomically; no partial prefix, truncation or overwrite of
+pending work. Requests and replies use unique nonzero request ids scoped to the
+stable binding. Their capacities are declared by host metadata and must fit the
+fixed memory; no guest chooses an allocation size.
+
+Sim commits the validated transaction at the next fixed step, retaining v1's
+ordering. Queries are answered in that tick's `afterBodies` phase and delivered
+to the next eligible sim entry, not synchronously. Pending queries, input/events,
+staged commands, timers, columns, RNG and failure state belong to the saved host
+continuation, keyed by stable identities. Restore validates and re-prepares it
+without running init/start or replaying rewards. Contact goes through existing
+60 Hz strike/held-melee owners, never through the query ring.
+
+RNG algorithm 1 is the current `engine/core/rng.ts` Mulberry32 continuation:
+state columns 0–2 are `state,initial,scrambledFork` (0/1); remaining columns zero.
+Algorithm 2 is `engine/script/decision.ts`'s current seed/binding/instance/counter
+mix: columns are `seedLo,seedHi,counter,logicalBindingId,instance,0`. Seeds and
+Mulberry states are exact u32 values; logical ids/counters remain exact safe
+integers in f64. Input draws is zero; a candidate reports its u32 draw count.
+The host checks its next state/counter against that count and the pinned
+algorithm, preserving initial/identity fields. Projections borrow the caller's
+stream and commit its advance only with all channels; refusal rewinds the loan.
+No random stream is reseeded because a transient handle changed.
+
+Projection requests are synchronous, stateless and channel-only. Independent
+requests may share one call; dependent requests require staged continuations,
+never a reentrant guest callback. A failed batch publishes no channel or RNG
+advance. Families are explicitly tagged sim or view: sim observations and ground
+are renderer-free; view families cannot write simulation or durable columns.
+
+### View persistence, interpolation and rate control
+
+Each view binding receives its own previous/current sample ticks and declared
+public columns. For divisor `d`, compute the delayed render tick
+`relativeTick + alpha - d`, then clamp
+`(renderTick - previousTick)/(currentTick - previousTick)` to [0,1]. Equal/missing
+stamps hold the latest valid pose; there is no extrapolation. This handles
+staggered modules without treating their samples as if they arrived every frame.
+The fixed-step alpha is finite in [0,1]; view dt is finite and nonnegative.
+It accumulates the existing paused/clamped presentation-clock deltas since the
+last scheduled view call, including skipped display frames, rather than slowing
+animation by dividing elapsed time with the call rate.
+Neither value is ever passed to sim. There is no local-player prediction; the
+native held-melee host applies the declared cancel/combo table at 60 Hz.
+
+View memory persists, but output authority does not. Before upload, validate
+complete changed transforms/channels against the host's declared targets and
+translation/scale/shear bounds, then clamp admitted presentation ranges in place.
+Set `needsUpdate` only after the whole frame validates. The host does not
+re-enter that view module before the renderer consumes that frame's uploads. A trap/refusal uploads
+nothing and freezes the identified binding at its last good GPU data; an invalid
+hint freezes the module. Frozen output targets are excluded from future uploads.
+After context loss, hide frozen bindings instead of uploading possibly damaged
+CPU memory. Re-enter/reinitialize or an explicit Developer reset recovers them;
+view memory and rate counters never enter a gameplay save.
+
+Rate policy is host-owned and client-only. Start at display rate; halve after
+three successive scheduled calls whose **total** view cost (marshalling, guest,
+validation and renderer adapter) exceeds the admitted view-time target. Never
+schedule below 15 Hz while the display can supply 15 Hz; when it cannot, run on
+every displayed frame. Recompute the halving limit when display rate changes.
+At a reduced rate, recover one halving level after 120 successful scheduled calls
+each below half the time target, then start a fresh window. A trap is a failure,
+not a cheap recovery sample. Reset overrun/recovery windows on a rate change.
+H0 establishes the time target; these thresholds specify the policy rather than
+claiming a phone measurement. H14's ≤1 ms/20-binding acceptance remains separate.
+
+H1–H6 rejection coverage must include forged lengths/offsets, arithmetic overflow,
+NaN/reinterpret stores, unmetered paths, direct entry-to-entry fuel refill,
+recursive/deep calls, hidden memory/global state, stale player handles, per-binding
+sample stamps, ring overflow and mixed valid/invalid transaction output. No v1
+fallback is permitted for a refused v2 binary, and no shipped v1 bytes change
+merely because this additional contract is present.
