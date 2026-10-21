@@ -41,6 +41,10 @@ it('permits pure builtin imports and immutable data-URL fetches',()=>{
   const {child,read}=fixture("import{isMainThread}from'node:worker_threads';import'node:http';await fetch('data:text/plain,pinned');if(!isMainThread)throw new Error('wrong thread');");
   expect(child.status,child.stderr).toBe(0);expect(read().opaque).toEqual([]);
 });
+it('traces freshly produced local cache files without mistaking console streams for network I/O',()=>{
+  const {child,read}=fixture("import fs from'node:fs';console.log('producer progress');fs.existsSync('.wildshard/cache/scene.json');fs.mkdirSync('.wildshard/cache',{recursive:true});fs.writeFileSync('.wildshard/cache/scene.json','{}');fs.readFileSync('.wildshard/cache/scene.json');");
+  expect(child.status,child.stderr).toBe(0);const trace=read();expect(trace.opaque).toEqual([]);expect(trace.files).toContain('.wildshard/cache/scene.json');
+});
 it('does not publish a successful trace when a producer fails',()=>{
   const {child,receipt}=fixture("throw new Error('producer failed');");
   expect(child.status).not.toBe(0);expect(existsSync(receipt)).toBe(false);

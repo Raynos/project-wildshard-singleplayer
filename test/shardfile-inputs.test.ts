@@ -9,7 +9,7 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture subprocess runtime.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, inputRecorderPlugin, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
+import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, recordModuleInput, inputRecorderPlugin, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import {build as buildCompiler} from 'vite';
@@ -147,4 +147,17 @@ it.each([true,false])('keeps native compiler execution %s separate from raw runt
   writeFileSync(compiler,before.replace('compiler docs','changed compiler docs'));
   if(execution)expect(key()).toBe(initial);else expect(key()).toBeUndefined();
   writeFileSync(compiler,before.replace('()=>1','()=>2'));expect(key()).toBeUndefined();
+});
+it.each([false,true])('guards function text after the native bundle execution boundary: %s',async executed=>{
+  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
+  const source='/** first docs */ export const compile=()=>1;';writeFileSync(compiler,source);
+  await captureProductInputs(root,receipt,()=>{
+    recordModuleInput(compiler,{execution:true});
+    if(executed)recordBundle({output:[{type:'chunk',moduleIds:[compiler]}]},{execution:true});
+    const callback=()=>1;callback.toString();
+    recordBundle({output:[]});return Promise.resolve();
+  });
+  const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),initial=key();expect(initial).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(compiler,source.replace('first docs','changed docs'));
+  if(executed)expect(key()).toBeUndefined();else expect(key()).toBe(initial);
 });

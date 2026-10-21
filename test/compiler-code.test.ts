@@ -22,3 +22,8 @@ it('retains literal whitespace, regex tokens, template contents and automatic se
 it('refuses a different read than the digest the caller just verified',()=>{
   expect(()=>compilerCodeHash('changed.ts','0'.repeat(64),()=>new TextEncoder().encode('export const x=1;'))).toThrow('Compiler input changed');
 });
+it('retains source bytes consumed by loader macros and bundler annotations',()=>{
+  for(const marker of ['import.meta.glob','import.meta.env','@__PURE__','#__PURE__','@vite-ignore']) {
+    expect(identity(`/** ${marker} first docs */ export const value=1;`)).not.toBe(identity(`/** ${marker} changed docs */ export const value=1;`));
+  }
+});

@@ -67,7 +67,8 @@ function value(root, entry, memo) {
 function note(kind, target) {
   const scope = inputScope(), path = localPath(target);
   if (scope === undefined || scope.observing || path === undefined) return;
-  const file = inside(scope.root,path);
+  const bounded=relative(scope.root,path).split(sep).join('/');
+  const file = scope.traceOnly&&bounded!==''&&!bounded.startsWith('../')&&!isAbsolute(bounded)?bounded:inside(scope.root,path);
   if(file===undefined) {
     if(kind!=='W'&&scope.traceOnly&&path!==scope.root&&!path.split(sep).includes('node_modules'))scope.opaque?.add(`external-read:${path}`);
     return;
@@ -142,9 +143,16 @@ export function installInputRecorder() {
   const observeCalls=(table,names,reason)=>{
     for(const name of names) {
       const original=table[name];if(typeof original!=='function')continue;
+      /** Console streams use net.Socket with an existing standard descriptor,
+       * without opening a network connection. @param {unknown[]} args */
+      const mark=args=>{
+        const options=args[0];
+        if(name==='Socket'&&options!==null&&typeof options==='object'&&'fd'in options&&[0,1,2].includes(Number(options.fd)))return;
+        generationScope?.opaque?.add(reason);
+      };
       table[name]=new Proxy(original,{
-        apply(target,thisArg,args){generationScope?.opaque?.add(reason);return Reflect.apply(target,thisArg,args);},
-        construct(target,args,newTarget){generationScope?.opaque?.add(reason);return Reflect.construct(target,args,newTarget);},
+        apply(target,thisArg,args){mark(args);return Reflect.apply(target,thisArg,args);},
+        construct(target,args,newTarget){mark(args);return Reflect.construct(target,args,newTarget);},
       });
     }
   };
@@ -183,7 +191,6 @@ export function recordResolution(id, importer, options={}) {
 export function recordModuleInput(id,options={}) {
   if(!isAbsolute(id))return;
   const file=id.split('?')[0];
-  if(options.execution===true)modules.add(file);
   note(options.execution===true&&code.test(file)?'M':'F',file);
 }
 /** @param {unknown} result @param {{execution?:boolean}} [options] */
@@ -191,7 +198,12 @@ export function recordBundle(result,options={}) {
   const scope = inputScope(); if (scope === undefined) return;
   scope.bundles++;
   for (const build of Array.isArray(result) ? result : [result]) if (build !== null && typeof build === 'object' && 'output' in build && Array.isArray(build.output)) {
-    for (const chunk of build.output) if (chunk.type === 'chunk') for (const id of chunk.moduleIds ?? Object.keys(chunk.modules ?? {})) if (typeof id === 'string')recordModuleInput(id,options);
+    for (const chunk of build.output) if (chunk.type === 'chunk') for (const id of chunk.moduleIds ?? Object.keys(chunk.modules ?? {})) if (typeof id === 'string') {
+      recordModuleInput(id,options);
+      // Native load callbacks run before the compiler bundle executes. Only
+      // its completed execution boundary joins the toString source guard.
+      if(options.execution===true&&isAbsolute(id))modules.add(id.split('?')[0]);
+    }
   }
 }
 /** A successful, complete compiler writes its receipt after checking read stability.

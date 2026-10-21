@@ -23,7 +23,7 @@ const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function compilerCodeHash(file,rawHash,read) {
   const version=v.parse(v.object({version:v.string()}),require('@typescript/typescript6/package.json')).version;
   const directory=resolve(process.env.WILDSHARD_COMPILER_CODE_CACHE??resolve(homedir(),'.cache/wildshard/compiler-code/1'));
-  const key=digest(JSON.stringify({schema:'compiler-code/1',typescript:version,file,rawHash})),memoryKey=`${directory}\0${key}`,cached=normalized.get(memoryKey);
+  const key=digest(JSON.stringify({schema:'compiler-code/2',typescript:version,file,rawHash})),memoryKey=`${directory}\0${key}`,cached=normalized.get(memoryKey);
   if(cached!==undefined)return cached;
   const at=resolve(directory,`${key}.json`);
   try {
@@ -34,8 +34,12 @@ export function compilerCodeHash(file,rawHash,read) {
   } catch { /* Missing/corrupt pure transform memo: parse the verified bytes. */ }
   const bytes=read();
   if(digest(bytes)!==rawHash)throw new Error(`Compiler input changed while normalizing: ${file}`);
+  const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  // Loader macros and bundler annotations consume source text before normal
+  // execution. Those modules stay byte-exact, including comment directives.
+  if(['import.meta.glob','import.meta.env','@__PURE__','#__PURE__','@vite-ignore'].some(marker=>text.includes(marker)))return digest(`source-transform\0${rawHash}`);
   const ts=compiler ??= require('@typescript/typescript6');
-  const emitted=ts.transpileModule(new TextDecoder('utf-8',{fatal:true}).decode(bytes),{
+  const emitted=ts.transpileModule(text,{
     fileName:file,reportDiagnostics:true,compilerOptions:{target:ts.ScriptTarget.ES2022,
       module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX,allowJs:true,removeComments:true,
       sourceMap:false,inlineSourceMap:false},
