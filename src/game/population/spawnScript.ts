@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { actorDecisionRows } from '@wildshard/format/decisionScripts';
+import { actorDecisionRows, decisionScriptContract } from '@wildshard/format/decisionScripts';
 import { ScriptStrikes, type ScriptStrikeHit } from './scriptStrikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -80,8 +80,7 @@ export class SpawnScript {
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
     const bytes = Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
     admitScriptContract(bytes, { abi: 1, pages: rows.script.pages });
-    const { sourceHash: _sourceHash, ...executable } = rows.script;
-    this.contract = JSON.stringify({ ...rows, script: executable, bytes: undefined });
+    this.contract = JSON.stringify({ ...rows, script: decisionScriptContract(rows.script), bytes: undefined });
     const scripts: DecisionScript[] = [];
     for (const row of actorDecisionRows(rows.script)) {
       const state: DecisionScript['state'][number][] = [];
