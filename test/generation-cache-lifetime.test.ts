@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own cache/source fixtures only.
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own fixture paths only.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Release an owned eviction lock asynchronously.
@@ -34,6 +34,11 @@ it('refuses incomplete publication and regenerates an incomplete warm entry',asy
   const repaired=await runGenerationJob(root,job,{cacheDir,generate:directory=>{builds++;return generate(directory);}});
   expect(repaired.hit).toBe(false);expect(builds).toBe(1);
   expect(readFileSync(resolve(repaired.directory,'b.bin'),'utf8')).toBe('b');repaired.release();
+  // Same-size edits cannot reuse an old digest by restoring mtime alone.
+  const path=resolve(repaired.directory,'a.bin'),before=statSync(path);
+  writeFileSync(path,'x');utimesSync(path,before.atime,before.mtime);
+  const edited=await runGenerationJob(root,job,{cacheDir,generate});
+  expect(edited.hit).toBe(false);expect(readFileSync(resolve(edited.directory,'a.bin'),'utf8')).toBe('a');edited.release();
 });
 
 it('keeps coalesced upstream readers pinned through downstream copies and prunes after release',async()=>{

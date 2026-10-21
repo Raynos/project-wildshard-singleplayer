@@ -2,10 +2,10 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, isAbsolute, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import * as v from 'valibot';
-import { bakeInputHashes } from './bake-input-hashes.mjs';
+import { bakeInputHashes, InputHashMemo } from './bake-input-hashes.mjs';
 
 /** @param {string | Uint8Array} bytes */
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -13,7 +13,7 @@ const digest = v.pipe(v.string(), v.regex(/^[0-9a-f]{64}$/u));
 const name = v.pipe(v.string(), v.regex(/^[a-z0-9]+(?:[.-][a-z0-9]+)*$/u));
 const file = v.pipe(v.string(), v.check(value => value.length > 0 && !isAbsolute(value)
   && !value.includes('\\') && value.split('/').every(part => part !== '' && part !== '.' && part !== '..')
-  && value !== '.generation-receipt.json', 'Expected a bounded repository-relative file'));
+  && !['.generation-receipt.json','.output-hashes.json'].includes(value), 'Expected a bounded repository-relative file'));
 const Job = v.strictObject({ id: name, inputs: v.record(file, digest), command: v.array(v.string()), outputs: v.array(file),
   platform: v.picklist(['portable', 'native', 'darwin']), tools: v.optional(v.record(v.string(), v.string())) });
 const Receipt = v.strictObject({ schema: v.literal('generation-cache/1'), key: digest, files: v.record(file, digest) });
@@ -47,16 +47,17 @@ export function generationKey(root, descriptor, host = {}) {
     host: job.platform === 'portable' ? 'portable' : { platform, arch } }));
 }
 
-/** Complete declared output hashes; symlinks cannot escape a staging directory.
+/** Complete declared hashes, using the same stat-validated memo as source
+ * inputs. Every hit still checks file identity, size, nanosecond mtime/ctime
+ * and root containment; missing or edited outputs never inherit an old hash.
  * @param {string} directory @param {string[]} outputs */
 export function generationOutputHashes(directory, outputs) {
   const root = realpathSync(directory);
-  return Object.fromEntries([...outputs].sort().map(path => {
-    v.parse(file, path);
-    const at = resolve(root, path);
-    if (!lstatSync(at).isFile() || !realpathSync(at).startsWith(root + sep)) throw new Error(`Invalid generated file ${path}`);
-    return [path, hash(readFileSync(at))];
-  }));
+  for(const path of outputs)v.parse(file,path);
+  const memo=new InputHashMemo(root,resolve(root,'.output-hashes.json'));
+  const hashes=bakeInputHashes(root,outputs,memo);
+  if(memo.reads>0)memo.flush();
+  return hashes;
 }
 
 /** @param {string} directory @param {string} key @param {string[]} outputs */
