@@ -20,7 +20,7 @@ void test('four-circuit mode refuses every mixed/qualifying mode and preserves t
   }
   assert.throws(() => circuitDiagnostic(3, context), /Four-circuit/);
   const route = { plans: ['cell'], coveragePlans: ['crossroads'] };
-  assert.deepEqual(circuitPlans(route, 0, null), ['cell', 'crossroads']);
+  assert.deepEqual(circuitPlans(route, 0, null), ['crossroads', 'cell']);
   assert.deepEqual(circuitPlans(route, 1, null), ['cell']);
   assert.deepEqual(circuitPlans(route, 0, 4), ['cell']);
 });

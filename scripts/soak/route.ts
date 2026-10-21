@@ -54,7 +54,7 @@ export function soakPhaseByTime<T extends { readonly phase: string; readonly ela
     return readAt > drive.end ? { ...row, phase: 'unloaded' } : row;
   });
 }
-interface Witness { readonly drive: SoakDrive | null; readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly expectedCrossroads: number; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road'; readonly contentCut?: SoakContentCut | null }
+interface Witness { readonly drive: SoakDrive | null; readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly expectedCrossroads: number; readonly tourSeconds?: number; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road'; readonly contentCut?: SoakContentCut | null }
 interface Loop { cycle: number; complete: boolean; peakBytes: number; troughBytes: number }
 interface Grade { contentCut: SoakContentCut | null; requiredSeconds: number; memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; missingGlSamples: number; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
 /** The drive uses the admitted catalogue, never a second hand-maintained shard list. */
@@ -109,7 +109,7 @@ export function validateSoakCatalogue(actual: readonly Cell[], expected: readonl
 
 const median = (values: readonly number[]): number => { const sorted = [...values].sort((a, b) => a - b); const result = sorted.at(Math.floor(sorted.length / 2)); if (result === undefined) throw new Error('No native readings'); return result; };
 /** Grade native readings at the same road pose, after natural production eviction circuits. No reload is allowed. */
-export function gradeSoak({ drive: driveBounds, samples: tagged, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads, expectedCrossroads, engineBase = 300_000_000, rehearsal = false, leg = 'cells', contentCut }: Witness): Grade {
+export function gradeSoak({ drive: driveBounds, samples: tagged, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads, expectedCrossroads, tourSeconds = 0, engineBase = 300_000_000, rehearsal = false, leg = 'cells', contentCut }: Witness): Grade {
   const cut = contentCut === undefined || contentCut === null ? null : parseSoakContentCut(contentCut);
   const requiredSeconds = soakDuration(cut);
   const samples = soakPhaseByTime(tagged, driveBounds);
@@ -162,7 +162,7 @@ export function gradeSoak({ drive: driveBounds, samples: tagged, windows, second
       answerers: (leak.after.events?.answerers ?? 0) - (leak.before?.events?.answerers ?? 0),
     } });
   // G186 amends the ordinary drift rule only after a picked content cut. Invisible savings keep it gated.
-  const memoryPass = (cut !== null || recovery) && seconds >= requiredSeconds && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && calibration && leakZero && errors.length === 0;
+  const memoryPass = (cut !== null || recovery) && seconds - tourSeconds >= requiredSeconds && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && calibration && leakZero && errors.length === 0;
   return { contentCut: cut, requiredSeconds, memoryPass, gatePass: !rehearsal && memoryPass && refused.length === 0 && visited && expectedCrossroads > 0 && new Set(crossroads).size === expectedCrossroads,
     peakBytes, loadingPeakBytes, phoneEstimateBytes: peakBytes * 1.4, baselines, baselineDeltaBytes, loops, recovery, calibration, ratios, missingGlSamples, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size, rehearsal,
     limitation: refused.length === 0 ? null : 'Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48.' };

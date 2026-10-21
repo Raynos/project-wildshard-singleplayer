@@ -196,6 +196,7 @@ async function worker() {
       const section = index.format === undefined ? undefined : index.sections?.find(row => row.name === 'world/edge');
       entryways.set(slug, index.format === undefined ? index.entryways : section === undefined ? undefined : (await (await fetch(new URL(section.path, at))).json()).entryways);
     }
+    result.protocol = 'O12 5x5 (coordinator ruling 2026-10-21): the 36-crossroads road tour once, first; then timed cell circuits, entering and leaving every playable cell (open plots are passed on the tour), for the policy duration counted from the end of the tour; >= 2 circuits';
     const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString(); result.circuits = 0; driveOpen = true;
     phase('drive');
     let complete = false;
@@ -224,7 +225,8 @@ async function worker() {
           complete = true; break;
         }
         // Finish the fenced leg; a completed last leg still receives its lap count and settled baseline below.
-        if (diagnosticCircuits === null && result.seconds >= duration && plan !== plans.at(-1)) { complete = true; break; }
+        if (cycle === 0 && plan === result.route.coveragePlans?.at(-1)) result.tourSeconds = result.seconds;
+        if (diagnosticCircuits === null && result.seconds - (result.tourSeconds ?? 0) >= duration && plan !== plans.at(-1)) { complete = true; break; }
       }
       if (!complete) {
         result.circuits++;
@@ -235,7 +237,7 @@ async function worker() {
         if (diagnosticCircuits !== null) await boundary(result.circuits);
         if (diagnosticReentry !== null) result.passiveBoundaries.push({ cycle: result.circuits, state: await driver.evaluate(boundaryExpression), categories: await memoryCategories(driver) });
         if ((diagnosticReentry !== null && result.circuits >= 3)
-          || (diagnosticCircuits === null ? result.seconds >= duration : result.circuits >= diagnosticCircuits)) complete = true;
+          || (diagnosticCircuits === null ? result.seconds - (result.tourSeconds ?? 0) >= duration : result.circuits >= diagnosticCircuits)) complete = true;
         else phase('drive');
       }
     }
@@ -286,13 +288,13 @@ async function worker() {
     missing: samples.filter(row => row.gl === undefined).length,
     policy: 'Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds.' };
   const drive = soakDriveBounds(result);
-  result.grade = gradeSoak({ drive, samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
+  result.grade = gradeSoak({ drive, samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0, tourSeconds: result.tourSeconds ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, expectedCrossroads: result.expectedCrossroads ?? 0, engineBase: result.engineBase, rehearsal, leg, contentCut });
   result.perLap = soakLapMemory(soakPhaseByTime(samples, drive), result.circuits ?? 0);
   result.perCell = soakCellPeaks(result.routes, soakPhaseByTime(samples, drive));
   const routeComplete = diagnosticReentry !== null ? result.circuits === 3
-    : diagnosticCircuits === null ? (result.seconds ?? 0) >= duration : result.circuits === diagnosticCircuits;
+    : diagnosticCircuits === null ? (result.seconds ?? 0) - (result.tourSeconds ?? 0) >= duration : result.circuits === diagnosticCircuits;
   result.functionalPass = result.failure === undefined && result.errors.length === 0 && routeComplete
     && result.routes.length > 0 && result.routes.every(route => route.failures.length === 0) && (diagnosticCircuits !== null || result.grade.sampling) && result.grade.leakZero;
   if (diagnosticCircuits !== null) {

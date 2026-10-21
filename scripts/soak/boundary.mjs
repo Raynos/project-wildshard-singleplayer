@@ -18,8 +18,9 @@ export function circuitDiagnostic(value, context) {
 
 /** Existing route plans stay authoritative; only this explicitly labelled probe omits the crossroads tour. */
 export function circuitPlans(route, cycle, diagnostic) {
-  // A lead-in (the public road leg leaving its borrowed home) runs once, before the first lap's plans.
-  return [...(cycle === 0 ? route.leadIn ?? [] : []), ...route.plans, ...(cycle === 0 && diagnostic === null ? route.coveragePlans ?? [] : [])];
+  // A lead-in (the public road leg leaving its borrowed home) runs once, before the first lap's plans. O12 (coordinator
+  // ruling 10-21): the 5 x 5 road tour also runs once, first; the timed cell circuits follow it.
+  return [...(cycle === 0 ? route.leadIn ?? [] : []), ...(cycle === 0 && diagnostic === null ? route.coveragePlans ?? [] : []), ...route.plans];
 }
 
 /** Scalar diagnostics only: do not read retired attribute arrays or issue GL queries. */
