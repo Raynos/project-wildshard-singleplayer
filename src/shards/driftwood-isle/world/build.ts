@@ -44,7 +44,7 @@ type BuiltWorld = Awaited<ReturnType<typeof build>>;
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
-  return { ocean: null, pier: null, jetties: [], boat: null, rocks: null, hut: null, lookout: null, wreck: null, shrine: null,
+  return { pier: null, jetties: [], boat: null, rocks: null, hut: null, lookout: null, wreck: null, shrine: null,
     bushes: null, gulls: null, trailside: null, bridge: null, seabed: null, palmSpecs: [], cove: null, palms: null, cover: null,
     bridgeDeck: null };
 }
@@ -194,7 +194,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   gpuOnlyTrees([pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, seabed.fish, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  return { ocean: null, pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
+  return { pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }
 
 const built = new WeakMap<object, DriftwoodWorld>();

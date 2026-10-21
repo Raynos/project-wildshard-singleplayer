@@ -7,21 +7,20 @@ const BEFORE = ['main.world'];
 interface Ticks { update: (dt: number) => void }
 /** what the systems tick: the world build's parts (./build.ts DriftwoodWorld), or none of one */
 export interface IslandParts<Deck extends { readonly awake: boolean }> {
-  ocean: Ticks | null; boat: { readonly group: Object3D } | null; palms: Ticks | null; seabed: { tick: (dt: number) => void } | null; cove: Ticks | null; shrine: Ticks | null;
+  boat: { readonly group: Object3D } | null; palms: Ticks | null; seabed: { tick: (dt: number) => void } | null; cove: Ticks | null; shrine: Ticks | null;
   bridge: { setPoses: (deck: Deck, alpha: number) => void } | null; bridgeDeck: Deck | null;
 }
 /** what they read off the bootstrapped world each frame: the player's position, the fixed step's interpolation */
 export interface IslandView { readonly player: { readonly position: Vector3 }; readonly game: { readonly alpha: number } }
 
 /**
- * The island's per-frame work (E357 S4.1, 08 §4), in the order main.ts's world updater ran it before the hands: the sea
- * (its swell clock), the moored boat, the palms (the shared sway wind), the rope bridge's planks on its
+ * The island's per-frame work (E357 S4.1, 08 §4), in the order main.ts's world updater ran it before the hands (the sea
+ * is the client plan's world.water row now): the moored boat, the palms (the shared sway wind), the rope bridge's planks on its
  * jointed deck, the seabed, the cove and the shrine. Each is a level system, registered after the world build's own
  * (cover, Blender island), so the frame's order is unchanged.
  */
 export function islandSystems<Deck extends { readonly awake: boolean }>(ctx: ShardContext, view: IslandView, parts: IslandParts<Deck>): void {
-  const { ocean, palms, bridge, bridgeDeck, seabed, cove, shrine } = parts;
-  if (ocean) ctx.system({ id: 'shard.driftwood.ocean', phase: 'update', before: BEFORE, run: (dt) => { ocean.update(dt); } });
+  const { palms, bridge, bridgeDeck, seabed, cove, shrine } = parts;
   if (palms) ctx.system({ id: 'shard.driftwood.palms', phase: 'update', before: BEFORE, run: (dt) => { palms.update(dt); } });
   if (bridge && bridgeDeck) ctx.system({ id: 'shard.driftwood.bridge.pose', phase: 'update', before: BEFORE, run: () => { if (bridgeDeck.awake) bridge.setPoses(bridgeDeck, view.game.alpha); } });
   if (seabed) ctx.system({ id: 'shard.driftwood.seabed', phase: 'update', before: BEFORE, run: (dt) => { seabed.tick(dt); } });

@@ -33,7 +33,7 @@ function residentWorld(context: ShardContext): HybridResidentWorld<DriftwoodWorl
   return resident;
 }
 
-const PROBE_KEYS = ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
+const PROBE_KEYS = ['pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
 
 /** Driftwood owns its world, creatures, loadout, adventure and audio through scoped hooks. */
 export class DriftwoodPlugin extends ShardPlugin {
@@ -60,8 +60,8 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     keepDriftwoodWorld(shell, built);
     shell.hooks.meleeSilent = true;
-    const { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
-    Object.assign(shell.objects, { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
+    const { pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
+    Object.assign(shell.objects, { pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
     shell.hooks.spawnFloor = (x, z) => pier?.floorHeightAt(x, z);
     if (gulls !== null) shell.overhead.push(gulls.group);
     if (built.cover !== null) shell.overhead.push(built.cover.group);
