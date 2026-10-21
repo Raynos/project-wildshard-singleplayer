@@ -28,15 +28,18 @@ export async function readFloorGridEntryways(path) {
 
 /** Follow the declared portal landing or socket-lift approach instead of guessing a flat entry waypoint. */
 export function floorGridPortalPlan(plan, cell, entryways) {
-  if (plan.from !== null || plan.start === undefined || !Array.isArray(entryways)) return plan;
+  const leaving = plan.from !== null && plan.to === null;
+  if ((!leaving && (plan.from !== null || plan.start === undefined)) || !Array.isArray(entryways)) return plan;
   const origin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
-  const entry = plan.waypoints.at(-1) ?? plan.start;
+  const entry = leaving ? plan.waypoints[0] : plan.waypoints.at(-1) ?? plan.start;
+  if (entry === undefined) throw new Error('Missing floor edge waypoint');
   const dx = entry.x - origin.x, dz = entry.z - origin.z;
   const edge = Math.abs(dz) >= Math.abs(dx) ? (dz >= 0 ? 'north' : 'south') : (dx >= 0 ? 'east' : 'west');
   const row = entryways.find(value => value?.edge === edge && (value.kind === 'portalLink' || value.kind === 'socketLift'));
   if (row === undefined) return plan;
   const prefix = plan.observePreparation === true ? plan.waypoints.slice(0, -1) : [];
   if (row.kind === 'socketLift') {
+    if (leaving) return plan;
     const approach = row.lift?.approach?.route;
     if (!Array.isArray(approach) || approach.length < 2 || !approach.every(point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite))) throw new Error('Invalid declared floor lift approach');
     return { ...plan, waypoints: [...prefix, ...approach.map(point => ({ x: origin.x + point[0], z: origin.z + point[2] }))], finishOnArrival: true };
@@ -47,6 +50,13 @@ export function floorGridPortalPlan(plan, cell, entryways) {
     return { id: value.id, x: origin.x + value.at[0], y: value.at[1], z: origin.z + value.at[2] };
   };
   const road = node(row.portal?.road), destination = node(row.portal?.destination);
+  if (leaving) {
+    const exit = node(row.portal?.exit), route = row.portal?.route;
+    if (!Array.isArray(row.portal?.links) || !row.portal.links.some(link => link.from === exit.id && link.to === road.id)) throw new Error('Missing declared floor portal exit link');
+    if (!Array.isArray(route) || route.length < 2 || !route.every(point => Array.isArray(point) && point.length === 3 && point.every(Number.isFinite))) throw new Error('Invalid declared floor portal exit route');
+    return { ...plan, waypoints: [...route.map(point => ({ x: origin.x + point[0], z: origin.z + point[2] })), exit, road, ...plan.waypoints],
+      portal: { road, destination: exit, reverse: true } };
+  }
   if (!Array.isArray(row.portal?.links) || !row.portal.links.some(link => link.from === road.id && link.to === destination.id)) throw new Error('Missing declared floor portal link');
   return { ...plan, waypoints: [...prefix, road, destination], portal: { road, destination } };
 }
@@ -55,8 +65,9 @@ export function floorGridPortalPlan(plan, cell, entryways) {
  *  follows its declared portal or socket lift. A flat waypoint stops at Sky Reach's landing rail and on Nine Dragon's
  *  square after its portal, then times out (sp-o11: look48's two "timeouts" were this). */
 export async function gridFloorDeclaredPlan(page, state, plan) {
-  if (plan.from !== null || plan.start === undefined || plan.to === null) return plan;
-  const cell = state.cells.find(row => row.instance === plan.to);
+  const leaving = plan.from !== null && plan.to === null;
+  if (!leaving && (plan.from !== null || plan.start === undefined || plan.to === null)) return plan;
+  const cell = state.cells.find(row => row.instance === (leaving ? plan.from : plan.to));
   if (!cell) throw new Error('Floor entry cell missing');
   const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
   const entries = await page.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(path)})`);
@@ -341,7 +352,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
   const before = read(), trace = [], started = performance.now();
   const destination = before.cells.find(cell => cell.instance === plan.to);
   const arrival = plan.observePreparation !== true ? undefined : { blockedFrames: 0, blockedMs: 0, visibleBeforeReadyFrames: 0 };
-  let previousFrameAt = started;
+  let previousFrameAt = started, exitSeen = false;
   try {
     await new Promise((resolve, reject) => {
       let stop = () => undefined, waypoint = 0, lastSample = -1;
@@ -355,8 +366,15 @@ export async function driveFloorGrid(plan, documentOrigin) {
           const state = read(), active = state.live.live, feet = active.worldFeet, now = performance.now(), seconds = (now - started) / 1000;
           if (portal !== null) {
             const near = node => Math.hypot(feet.x - node.x, feet.z - node.z) < 1.5 && Math.abs(feet.y - node.y) < 0.5;
-            if (near(plan.portal.road)) portal.roadSeen = true;
-            if (portal.roadSeen && near(plan.portal.destination) && player.onGround && active.current === plan.to && active.gameplayReady) portal.landed = true;
+            if (plan.portal.reverse === true) {
+              if (near(plan.portal.destination)) exitSeen = true;
+              if (exitSeen && near(plan.portal.road) && player.onGround && active.current === plan.from && active.gameplayReady) {
+                portal.roadSeen = true; portal.landed = true;
+              }
+            } else {
+              if (near(plan.portal.road)) portal.roadSeen = true;
+              if (portal.roadSeen && near(plan.portal.destination) && player.onGround && active.current === plan.to && active.gameplayReady) portal.landed = true;
+            }
           }
           if (arrival !== undefined && destination !== undefined) {
             const ready = active.residents.includes(plan.to) && !(active.pending ?? []).includes(plan.to);

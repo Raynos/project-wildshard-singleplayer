@@ -10,7 +10,7 @@ export interface FloorGridState { home: string; inside: string | null;
 export interface FloorGridPlan { name: string; from: string | null; to: string | null; movement?: 'road-hover'; hoverMaxSpeed?: number; borrowedHome?: string; start?: { x: number; z: number };
   waypoints: { x: number; z: number }[]; requiredResidents: string[]; retiredResidents?: string[];
   /** Declared nodes; only normal walking and the game's own portal perform the transfer. */
-  portal?: { road: { id: string; x: number; y: number; z: number }; destination: { id: string; x: number; y: number; z: number } };
+  portal?: { reverse?: boolean; road: { id: string; x: number; y: number; z: number }; destination: { id: string; x: number; y: number; z: number } };
   /** the leg ends as soon as `to` is entered and ready, whatever waypoints remain (an entry that carries the player on) */
   finishOnArrival?: boolean;
   /** Record destination readiness and visibility while following the normal road approach. */
