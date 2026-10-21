@@ -12,7 +12,7 @@ import tarfile
 ARCHIVE = 'test-products.tar'
 PROOF = 'test-products-proof.json'
 GENERATED_ROOTS = ['src', 'public', 'out', 'docs/api', 'lint/api-surface.json']
-EXCLUDED = {'.git', 'node_modules', '.cache', '.wildshard', '__pycache__'}
+EXCLUDED = {'.git', 'node_modules', '.cache', '__pycache__'}
 
 
 def git(root, *args):
@@ -43,11 +43,31 @@ def digest(file):
     return result.hexdigest()
 
 
+def catalogue_outputs(root):
+    jobs = json.loads((root / 'scripts/generation-jobs.json').read_text())['jobs']
+    declared, required = set(), set()
+    for job in jobs:
+        build = set(job.get('buildOutputs', {})) | set(job.get('buildTimeOutputs', []))
+        declared.update(job['outputs'])
+        declared.update(build)
+        required.update(build)
+    return declared, required
+
+
 def pack(root):
     sha, run = identity(root)
+    declared, required = catalogue_outputs(root)
+    missing = sorted(name for name in required if not (root / admitted_path(name)).is_file())
+    if missing:
+        raise ValueError('Missing prepared catalogue outputs: ' + ', '.join(missing))
     ignored = git(root, 'ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', *GENERATED_ROOTS)
+    untracked = git(root, 'ls-files', '--others', '--exclude-standard', '-z', '--', *GENERATED_ROOTS)
     modified = git(root, 'diff', '--name-only', '-z', '--diff-filter=AM')
-    files = sorted(set(os.fsdecode(name) for name in (ignored + modified).split(b'\0') if name))
+    # Catalogue rows include retained and freshly emitted hashes regardless of
+    # their gitignore status. The Git walk adds gen's tables, product outputs,
+    # and build policy (.wildshard/build-policy.json) outside that catalogue.
+    files = sorted({name for name in declared if (root / admitted_path(name)).is_file()}
+                   | {os.fsdecode(name) for name in (ignored + untracked + modified).split(b'\0') if name})
     files = [name for name in files if not any(part in EXCLUDED for part in PurePosixPath(name).parts)]
     if not any(name.startswith('out/') and name.endswith('/shard.json') for name in files):
         raise ValueError('No prepared products to publish')
@@ -74,6 +94,9 @@ def unpack(root):
         names = [member.name for member in members]
         if len(names) != proof['files'] or len(set(names)) != len(names):
             raise ValueError('Prepared output inventory mismatch')
+        _, required = catalogue_outputs(root)
+        if not required.issubset(names):
+            raise ValueError('Prepared catalogue outputs are missing from the archive')
         if not any(name.startswith('out/') and name.endswith('/shard.json') for name in names):
             raise ValueError('Prepared products are missing')
         # Validate the entire inventory before writing any file. Never follow a
