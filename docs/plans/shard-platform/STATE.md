@@ -6,6 +6,6 @@
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
-**For wildshard-v:** G517 bug-fix exception granted to sp-o3: stateless AS return programs share one WebAssembly.Memory per page size (iOS full GC per new Memory, 40-80 ms each); please log it in WASM-HOST. G536 hero: art/grid/round-28-hero/{A,B,C} (e471dbd7ae); rec. B; fog pales far cells, a thinner capture fog is Jake's call.
+**For wildshard-v:** G517 bug-fix exception granted to sp-o3: stateless AS return programs share one WebAssembly.Memory per page size (iOS full GC per new Memory, 40-80 ms each); please log it in WASM-HOST. G552 boards: art/grid/round-34-no-default-horizon/ (4bd254e0e0); pale far cells = distance fog, not cloud sea. G550 hero retake next (sp-o2 O23).
 
 **Idle lanes:** ready-queue self-pull; G549: sp-o5 sole Simulator owner (lanes/sim-queue.md). **Lanes (21:55):** Opus sp-o1 far impostors; sp-o2 open plots; sp-o3 between-hooks stall; sp-o4 O6 Pine King; sp-o5 next row. Codex sp-x1 loading proof; sp-x6 X13; sp-x8 Nalati memory; sp-x9 X3 then X4; sp-x7 push.
