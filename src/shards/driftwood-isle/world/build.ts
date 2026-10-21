@@ -13,7 +13,7 @@ import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } 
  */
 import * as THREE from 'three';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { sites } from '../models/catalogue';
+import { sites, fencePost, signpost, plankStep, entryDeck } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -41,8 +41,8 @@ import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/l
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { LOWERED_SEA } from './sea';
-import { sharedModelContext } from '@wildshard/engine/models/model';
-import type { ModelSite, Placed } from '@wildshard/engine/models/place';
+import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
+import { place, type ModelSite, type Placed } from '@wildshard/engine/models/place';
 
 interface Pier { placed: Placed; group: THREE.Object3D; floorHeightAt: (x: number, z: number) => number | undefined }
 interface Boat { placed: Placed; group: THREE.Object3D; ropes: THREE.Mesh; refreshPose: () => void; floorHeightAt: (x: number, z: number) => number | undefined }
@@ -114,7 +114,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/build.ts', surface: 'stone',
     colliders: landings.map(({ box }) => ({ ...box })), solidFloor: true,
     floor: (x, z) => (landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
-  await entry.run('decks');
+  place(entryDeck, deckRows.map(({ placement: { x, y, z, yaw } }) => ({ x, y, z, yaw, params: { deck: 'world' } })), { ctx: modelContext(sky), draw: 'merged', registry,
+    piece: { id: 'entry-decks', floor: (x, z) => floorAtRects(fixed.entryFloors, x, z, 'first'), solidFloor: true } });
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
@@ -160,8 +161,11 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = await stages.build('Gulls', () => createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
-  await entry.run('trail');
-  const trailside = { mesh: scenes.mesh('trail.mesh'), placed: entry.placedIn('trail') };
+  const trail = driftwoodRows('custom/trailside'), trailMesh = scenes.mesh('trail.mesh'), trailContext = modelContext(sky), trailPlaced: Placed[] = [];
+  if (trail.posts.pls.length > 0) trailPlaced.push(place(fencePost, trail.posts.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.posts.boxes) }, piece: { id: 'trail-fence-posts' } }));
+  if (trail.signs.pls.length > 0) trailPlaced.push(place(signpost, trail.signs.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.signs.boxes) }, piece: { id: 'trail-signposts' } }));
+  if (trail.planks.pls.length > 0) trailPlaced.push(place(plankStep, trail.planks.pls, { ctx: trailContext, draw: 'merged', drawnInto: { object: trailMesh, boxes: Float32Array.from(trail.planks.boxes) }, piece: { id: 'trail-steps' } }));
+  const trailside = { mesh: trailMesh, placed: trailPlaced };
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
   await stages.next('Trailside');
