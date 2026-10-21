@@ -89,15 +89,15 @@ const { default: shapeRows } = await import('../src/shards/nalati-grasslands/boo
 shapeBook(shapeRows).use(unshuffleBodyLanes(new Uint8Array(inflateSync(readFileSync('public/assets/nalati/baked/places.bin')))));
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('../src/shards/pine-hollow/generators/speciesRows');
-const { pineLook, preparePineGrazers } = await import('../src/shards/pine-hollow/species/looks');
+const { HullLookBook } = await import('../src/game/looks/speciesBook');
 const { SPECIES_LOOKS } = await import('../src/shards/pine-hollow/generators/nativeView');
-await preparePineGrazers({ section: () => ({ SPECIES_LOOKS }) });
+const pineBook = new HullLookBook(SPECIES_LOOKS);
 const { THRALL_CLIPS } = await import('../src/shards/pine-hollow/generators/thrallClips');
 const { numericCreaturePose } = await import('../src/game/plugin/channelPrograms');
-registerSpecies(speciesWithLook(PINE_BOAR, { ...pineLook('boar'), postPose: numericCreaturePose(THRALL_CLIPS) }));
+registerSpecies(speciesWithLook(PINE_BOAR, { ...pineBook.look('boar'), postPose: numericCreaturePose(THRALL_CLIPS) }));
 // and its elk thrall (E405: Pine's, derived from the kit's elk)
 const { pineElk } = await import('../src/shards/pine-hollow/generators/speciesRows');
-registerSpecies(speciesWithLook(pineElk(), pineLook('elk')));
+registerSpecies(speciesWithLook(pineElk(), pineBook.look('elk')));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');
 const { STARTER_BAG_ITEMS } = await import('../src/game/bag/starter.generated');

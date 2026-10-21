@@ -65,6 +65,15 @@ export class HullLookBook {
   get looks(): readonly SpeciesLook[] { return this.book.rows.map(row => this.look(row.kind)); }
 }
 
+const productBooks = new Map<string, HullLookBook>();
+/** A product's declared hull look book (`look/hull-book`), admitted once per book slug: every entry, installer
+ * and cold specimen of that product shares one book and one packed body owner. */
+export function productHullBook(product: { readonly section: (name: 'look/hull-book') => { readonly slug: string } }): HullLookBook {
+  const row = product.section('look/hull-book'), cached = productBooks.get(row.slug);
+  if (cached !== undefined) return cached;
+  const book = new HullLookBook(row); productBooks.set(row.slug, book); return book;
+}
+
 /** Expand compact byte addressing only; the native packed owner admits every
  * geometry block, skeleton and dimension before it copies a body. */
 function packedRows(data:CompactSpeciesBodiesRows):unknown{

@@ -1,5 +1,5 @@
 import type { ShardContext } from '@wildshard/game/plugin/context';
-import { pineLooks, preparePineGrazers, pineGrazer } from '../../species/looks';
+import { productHullBook, type HullLookBook } from '@wildshard/game/looks/speciesBook';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import { HeldEquipment } from '@wildshard/game/plugin/heldEquipment';
 import { registerSpecies, hasSpecies, type AnimalSpecies, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
@@ -10,7 +10,6 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import authoredLook from '../../data/antlerKingLook.json' with { type: 'json' };
 import { limbAnimation } from '@wildshard/game/animation/limbView';
 import { pineView } from '../world/context';
-import type { CustomSections } from '../productSections.generated.d.ts';
 
 const { KING_COAT, KING_OWN_RIG } = authoredLook;
 
@@ -76,17 +75,17 @@ export const antlerKing: ModelDef<CreatureParams> = defineModel<CreatureParams>(
 
 /** Counted native rig/hull catalogue binding, beside its custom model view. */
 export async function preparePineModelViews(ctx: ShardContext): Promise<void> {
-  await preparePineGrazers(ctx.product); registerKing(); ctx.rows.species(ctx.product.section('actors/species-programs').page);
-  ctx.rows.speciesLook(pineLooks(ctx.product.section<CustomSections['custom/thrallLook']>('custom/thrallLook')));
+  const book = productHullBook(ctx.product); registerKing(book); ctx.rows.species(ctx.product.section('actors/species-programs').page);
+  ctx.rows.speciesLook(book.looks);
   ctx.rows.spawnTable(declaredSpawnTables(ctx.product.section('actors/species-programs').spawns));
   const held = await HeldEquipment.prepare(ctx.product); await KING_CARD.preload(); held.install(ctx);
 }
 
 /** the King's species: the elk's fields re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark) —
  *  on his own upright rig (E322 F-M1, kingOwnSpecies) */
-export function registerKing(): void {
+export function registerKing(book: HullLookBook): void {
   if (hasSpecies(KING_KIND)) return;
-  const elk: SpeciesDef = pineGrazer('elk');
+  const elk: SpeciesDef = book.definition('elk');
   const def: SpeciesDef = {
     ...elk, kind: KING_KIND, label: 'The Antler King', variants: [KING_VARIANT], aggressive: true, blood: false,
     walkSpeed: 2.2, chargeSpeed: 13,

@@ -20,7 +20,7 @@ import { COLLECTIONS } from '../runtime/boot/blobAssets';
 import { captainHat, sailclothCape, tradeCounter, trader as traderCard } from '../models/catalogue';
 import { driftwoodRows } from '../runtime/boot/rows';
 import { installItemEffects } from '@wildshard/game/loadout/effects';
-import { preloadCreatureBodies } from '../species/bodies';
+import { productHullBook } from '@wildshard/game/looks/speciesBook';
 
 /** Prewarm the real hulls before the entered chapter can restore a saved altar. */
 export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adventure> {
@@ -28,7 +28,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Driftwood adventure requires the play host');
   // Saved used:altar restores the boss synchronously in Finale; resolve the hull before any quest restore/spawn.
-  await preloadCreatureBodies();
+  await productHullBook(ctx.product).packed.preload();
   if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
   const { player } = world;
   const d = driftwoodWorld(shell);

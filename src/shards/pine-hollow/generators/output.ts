@@ -80,7 +80,7 @@ import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import floorRows from '../data/floorLayout.generated.json' with { type: 'json' };
 import { PINE_OUTPUT } from './outputInputs';
 import grazers from '../data/grazers.generated.json' with { type: 'json' };
-import { NATIVE_VIEW } from './nativeView';
+import { NATIVE_VIEW, SPECIES_LOOKS } from './nativeView';
 
 /** Preserve logical names and tier selection while packing named geometry losslessly. */
 function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(row: T) {
@@ -135,7 +135,7 @@ const heldEquipment = { ...heldTuning,
 };
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/rigged-hulls', PINE_HULL_BOOK], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['actors/spawn-scripts', [{ ...nightModule, bytes: '' }, ...elitePrograms]], ['actors/return-scripts', [PAGE_LIFE.program?.script]], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
+export const output = { ...PINE_OUTPUT, platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['actors/spawn-scripts', [{ ...nightModule, bytes: '' }, ...elitePrograms]], ['actors/return-scripts', [PAGE_LIFE.program?.script]], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]])), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };

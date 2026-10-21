@@ -3,6 +3,7 @@ import {StealthRowsSchema,type StealthRows} from './stealth';
 import { PaintedLookSchema, type PaintedLookRow } from './paintedLook';
 import { ColourFunctionBookSchema, type ColourFunctionBook } from './colourFunction';
 import { RiggedHullBookSchema, type RiggedHullBook } from './riggedHulls';
+import { HullLookBookSchema, type HullLookBookRows } from './speciesLooks';
 import { ExplorerCatalogueSchema, type ExplorerCatalogue } from './explorerCatalogue';
 import { ToonLookSchema, type ToonLookRow } from './toonLook';
 import { KEYED_SKY, type KeyedSkyStyle } from './keyedSky';
@@ -30,6 +31,7 @@ export interface PlatformDataSections {
   'player/stealth':StealthRows;
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
+  'look/hull-book': HullLookBookRows;
   'look/toon': ToonLookRow;
   'look/painted': PaintedLookRow;
   'look/colour-functions': ColourFunctionBook;
@@ -60,6 +62,7 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
   'player/stealth':{schema:StealthRowsSchema},
   'explore/catalogue': { schema: ExplorerCatalogueSchema },
   'look/rigged-hulls': { schema: RiggedHullBookSchema },
+  'look/hull-book': { schema: HullLookBookSchema },
   'look/toon': { schema: ToonLookSchema },
   'look/painted': { schema: PaintedLookSchema },
   'look/colour-functions': { schema: ColourFunctionBookSchema },
@@ -92,6 +95,7 @@ export type PlatformDataSectionName = keyof PlatformDataSections;
 export function parsePlatformDataSection(name:'player/stealth',value:unknown):StealthRows;
 export function parsePlatformDataSection(name: 'explore/catalogue', value: unknown): ExplorerCatalogue;
 export function parsePlatformDataSection(name: 'look/rigged-hulls', value: unknown): RiggedHullBook;
+export function parsePlatformDataSection(name: 'look/hull-book', value: unknown): HullLookBookRows;
 export function parsePlatformDataSection(name: 'look/toon', value: unknown): ToonLookRow;
 export function parsePlatformDataSection(name: 'look/painted', value: unknown): PaintedLookRow;
 export function parsePlatformDataSection(name: 'look/colour-functions', value: unknown): ColourFunctionBook;

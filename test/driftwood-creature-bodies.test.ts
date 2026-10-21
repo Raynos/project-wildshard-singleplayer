@@ -12,8 +12,12 @@ import { BEAR_LOOK } from '../src/game/systems/species/view/bear';
 import { BOAR_LOOK } from '../src/game/systems/species/view/boar';
 import { ISLAND_BEAR, ISLAND_BOAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
 import { asIsland, buildCreatureParts, faceHeadOf, type FaceHead } from '../src/shards/driftwood-isle/generators/creatureBodies';
-import { creatureBody, preloadCreatureBodies } from '../src/shards/driftwood-isle/species/bodies';
+import { HullLookBook } from '../src/game/looks/speciesBook';
 import bake from '../src/shards/driftwood-isle/data/creatureBodies.generated.json' with { type: 'json' };
+
+// The island's packed body owner, as its `look/hull-book` section declares it (a fresh one: nothing preloaded yet).
+const { fauna, ...packed } = bake;
+const { copy: creatureBody, preload: preloadCreatureBodies } = new HullLookBook({ ...fauna, body: packed }).packed;
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 let head: FaceHead | null = null;

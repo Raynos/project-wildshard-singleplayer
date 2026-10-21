@@ -3,6 +3,7 @@ import type { ColourFunctionBook } from './colourFunction';
 import type { PaintedLookRow } from './paintedLook';
 import type { ExplorerCatalogue } from './explorerCatalogue';
 import type { RiggedHullBook } from './riggedHulls';
+import type { HullLookBookRows } from './speciesLooks';
 import type { ToonLookRow } from './toonLook';
 import type { KeyedSkyStyle } from './keyedSky';
 import type { SpawnScriptRows } from './spawnScripts';
@@ -43,6 +44,7 @@ export interface PlatformSections {
   /** Client-only ordered model references, ignored by simulation. */
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
+  'look/hull-book': HullLookBookRows;
   'look/toon': ToonLookRow;
   'look/painted': PaintedLookRow;
   'look/colour-functions': ColourFunctionBook;

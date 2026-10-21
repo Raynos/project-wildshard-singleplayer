@@ -25,6 +25,8 @@ export const HullLookBookSchema = v.pipe(v.unknown(), v.check(isJsonData), v.str
     id: text, species: text, kind: text, base: v.picklist(['boar', 'bear', 'definition', 'registered']),
     required: v.boolean(), variants: v.exactOptional(v.record(text, variantLook)), postPose: v.exactOptional(NumericPoseSchema),
   })), v.maxLength(256)) }));
+/** An admitted hull look book (the `look/hull-book` section). */
+export type HullLookBookRows = v.InferOutput<typeof HullLookBookSchema>;
 /** Client-only rest looks over an admitted packed body and numeric joint poses. */
 export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   poses: v.record(text, NumericPoseSchema),

@@ -1,7 +1,3 @@
-import { parse } from 'valibot';
-import { ThrallLookSchema } from '../src/shards/pine-hollow/generators/sections';
-import { THRALL_CLIPS } from '../src/shards/pine-hollow/generators/thrallClips';
-import thrallLook from '../src/shards/pine-hollow/data/thrallLook.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { bakeSpecies } from '../src/sdk/bake/species';
 import { species } from '../src/sdk/species';
@@ -10,8 +6,9 @@ import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/spec
 import { DRIFTWOOD_SPECIES_PROGRAMS } from '../src/shards/driftwood-isle/generators/speciesPrograms';
 import { speciesWithLook } from '../src/engine/entities/species/look';
 import { registerKing } from '../src/shards/pine-hollow/runtime/models/antlerKing';
-import { pineLooks } from '../src/shards/pine-hollow/species/looks';
-import { ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK } from '../src/shards/driftwood-isle/species/fauna';
+import { HullLookBook } from '../src/game/looks/speciesBook';
+import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
+import { DRIFTWOOD_BOOK } from './fake/driftwoodLooks';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
 import { PINE_BOAR, PINE_SPECIES, pineDeer, pineElk } from '../src/shards/pine-hollow/generators/speciesRows';
 import { speciesBrains } from '../src/sdk/speciesBrains';
@@ -45,10 +42,11 @@ test('both emitted populations keep the original resolved visual variants', asyn
   admitPineView(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile: loaded.shard,
     sections: new Map([['custom/nativeView', JSON.parse(new TextDecoder().decode(bytes))]]), files: new Map(),
     read: () => Promise.reject(new Error('Native view must use its section')) }));
-  registerKing();
+  const pineBook = new HullLookBook(SPECIES_LOOKS);
+  registerKing(pineBook);
   const authored = [...PINE_SPECIES, pineDeer(), pineElk(), ISLAND_BOAR, ISLAND_BEAR];
   const programs = [...PINE_SPECIES_PROGRAMS.page, ...DRIFTWOOD_SPECIES_PROGRAMS.page];
-  const looks = [...pineLooks(parse(ThrallLookSchema, { pose: THRALL_CLIPS, ...thrallLook })), ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK];
+  const looks = [...pineBook.looks, DRIFTWOOD_BOOK.look('boar'), DRIFTWOOD_BOOK.look('bear')];
   for (const [i, row] of programs.entries()) {
     const before = authored[i], look = looks.find(value => value.species === row.id);
     if (before === undefined || look === undefined) throw new Error(`Missing comparison: ${row.id}`);

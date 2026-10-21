@@ -1,4 +1,4 @@
-import { HullLookBookSchema, HullSpeciesSchema } from '@wildshard/format/speciesLooks';
+import { HullSpeciesSchema } from '@wildshard/format/speciesLooks';
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { QuestStepRowsSchema, QuestSpawnPageSchema, QuestLeadPageSchema } from '@wildshard/format/questSteps';
@@ -36,7 +36,6 @@ const KingProfileSchema = v.intersect([RoamingBossProfileSchema, v.object({ figh
 
 /** World-only rows are checked at emission and read from verified named JSON. */
 export const NativeViewSchema = v.strictObject({
-  SPECIES_LOOKS: HullLookBookSchema,
   ...LogKitSchema.entries,
   QUADRUPED: v.strictObject({ spec: LimbRigSchema, blend: LimbBlendSchema, clips: BakedClipTable, collision: LimbCollisionBake,
     bones: v.array(v.strictObject({ name:text, parent:v.nullable(text), pos:triple })) }),

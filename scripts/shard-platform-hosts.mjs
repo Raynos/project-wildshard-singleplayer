@@ -4,6 +4,7 @@
 const hosts = {
   'explore/catalogue': ['game/models/explorerCatalogue#explorerRoster'],
   'look/rigged-hulls': ['sdk/looks/riggedHulls#productRiggedHulls'],
+  'look/hull-book': ['game/looks/speciesBook#productHullBook'],
   'look/painted': ['game/looks/paintedLook#productPaintedLook'],
   'look/colour-functions': ['engine/render/graph/colourFunction#materialColourGraph'],
   'look/toon': ['game/looks/toonLook#toonLook'],
