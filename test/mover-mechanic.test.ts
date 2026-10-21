@@ -19,8 +19,10 @@ function motion(row: typeof rows[number]): ConstructorParameters<typeof MoverMec
   if (row.driver === undefined || row.trigger === undefined) throw new Error('Missing motion');
   return { driver: row.driver, trigger: row.trigger, at: row.at, euler: row.euler, ...(row.track === undefined ? {} : { track: row.track }), ...(row.carry === undefined ? {} : { carry: row.carry }) };
 }
+/** the original guest modules the native mechanics replaced, by content hash (copied from the frozen Far Reach and
+ *  Driftwood legacy assets into fixtures/legacy-oracles/movers) */
 function asset(row: typeof rows[number]): Uint8Array {
-  return Uint8Array.from(readFileSync(`src/shards/${row.id.startsWith('far.') || row.id.startsWith('bridge') ? 'far-reach-legacy' : 'driftwood-isle-legacy'}/assets/${row.module}`));
+  return Uint8Array.from(readFileSync(`test/fixtures/legacy-oracles/movers/${row.module}`));
 }
 test('all Sky and island native motion policies keep the existing guest fields and positions', async () => {
   expect(rows).toHaveLength(14);

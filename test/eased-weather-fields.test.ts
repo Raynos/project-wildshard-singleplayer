@@ -13,7 +13,11 @@ import { graphParamFeeds } from '../src/game/shardfile/clientGraphs';
 import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { DUSK, setDusk, stepDusk } from '../src/shards/sunscar-dunes-legacy/look/dusk';
+
+/** The sealed dusk law (sunscar-dunes-legacy look/dusk.ts, E399): the target set per quest step, eased at 0.02 a second. */
+const DUSK = { value: 0 }, dusk = { target: 0 }, RATE = 0.02;
+function setDusk(target: number, snap = false): void { dusk.target = Math.min(1, Math.max(0, target)); if (snap) DUSK.value = dusk.target; }
+function stepDusk(dt: number): void { const d = dusk.target - DUSK.value; DUSK.value += Math.sign(d) * Math.min(Math.abs(d), RATE * dt); }
 
 test('every Signal save step snaps, while play follows the sealed dusk law exactly', () => {
   const rows = SIGNAL_WEATHER_FIELDS, current = new EasedFields(rows);
