@@ -1,6 +1,6 @@
 # Shard Platform: waiting for Jake
 
-**Status:** `unread` 2026-10-04 — every board or decision SHARD-PLATFORM is holding for Jake (council 2 finding C2-R1-C18; refreshed by council 3, C3-R1-B10, C14; the commons form is settled, G138). Each entry: the path, the question, one recommendation, the row it unblocks. Updated in the commit that makes each board; each pick goes to him with the question tool when he is back (ASKS.md).
+**Status:** `superseded` (Jake, 2026-10-21 ~09:40 Cancun: *"Everything else is shard platform, SF19A, inside the template shard files, shard files explained, shard platform open pics, shard platform waiting for Jake mockups, marketing website, wild shard admin, shard file architecture order, shard file design system, shard file as build. Like that's all red superseded."*). Was: `unread` 2026-10-04 — every board or decision SHARD-PLATFORM is holding for Jake (council 2 finding C2-R1-C18; refreshed by council 3, C3-R1-B10, C14; the commons form is settled, G138). Each entry: the path, the question, one recommendation, the row it unblocks. Updated in the commit that makes each board; each pick goes to him with the question tool when he is back (ASKS.md).
 **Link:** this file (the mockup boards he already picked are on https://claude.ai/artifact/ULYWRuxwbqYWKVUXZFKAwH)
 **Plan:** SHARD-PLATFORM
 **Made by:** E441, the plan-status agent (herdr pane `wildshard-v`)

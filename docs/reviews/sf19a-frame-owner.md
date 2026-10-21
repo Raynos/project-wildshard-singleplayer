@@ -1,6 +1,6 @@
 # SF19a: The Shard You Stand In Owns the Frame
 
-**Status:** `unread` 2026-10-04: real-capture boards of G158 (the "Grid one frame" Debug row OFF vs ON): inside
+**Status:** `superseded` (Jake, 2026-10-21 ~09:40 Cancun: *"Everything else is shard platform, SF19A, inside the template shard files, shard files explained, shard platform open pics, shard platform waiting for Jake mockups, marketing website, wild shard admin, shard file architecture order, shard file design system, shard file as build. Like that's all red superseded."*). Was: `unread` 2026-10-04: real-capture boards of G158 (the "Grid one frame" Debug row OFF vs ON): inside
 Driftwood, inside Signal Dunes, on the road, from the road at Nalati, inside Nalati, and a three-step walk over Signal
 Dunes' edge. Decides G122 (turn the row on in the grid and delete it?). Supersedes the SF19b boards.
 **Link:** this page; the boards are in [art/grid/sf19a-frame-owner/](../../art/grid/sf19a-frame-owner/)

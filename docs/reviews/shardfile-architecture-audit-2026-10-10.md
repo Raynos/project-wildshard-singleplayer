@@ -1,6 +1,6 @@
 # Shardfile architecture audit, 2026-10-10: what we actually built vs the goal
 
-**Status:** `unread` 2026-10-10. This is the evidence for G299's architecture review: 5 open calls, and 4 of Jake's G290–G302 rules that are decided but not yet followed.
+**Status:** `superseded` (Jake, 2026-10-21 ~09:40 Cancun: *"Everything else is shard platform, SF19A, inside the template shard files, shard files explained, shard platform open pics, shard platform waiting for Jake mockups, marketing website, wild shard admin, shard file architecture order, shard file design system, shard file as build. Like that's all red superseded."*). Was: `unread` 2026-10-10. This is the evidence for G299's architecture review: 5 open calls, and 4 of Jake's G290–G302 rules that are decided but not yet followed.
 **Link:** this file. Diagram: `art/architecture/round-1-shardfile-audit/diagram.jpg`
 **Plan:** SHARD-PLATFORM (M3, SF54, SF26, SF59, SF72, SF73, G285, G290–G302)
 **Made by:** arch-audit (Opus). A read-only audit of ~1,000 commits between 2026-10-09 04:00 and 2026-10-10 10:00 UTC, against base `3d68396a2`.

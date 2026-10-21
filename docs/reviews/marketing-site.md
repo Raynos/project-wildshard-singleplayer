@@ -1,6 +1,6 @@
 # Project Wildshard — the marketing site
 
-**Status:** `unread` 2026-10-09 — the finished site, phone and desktop: read every section's words and look; rewrite any words yourself in `site/COPY.md`
+**Status:** `superseded` (Jake, 2026-10-21 ~09:40 Cancun: *"Everything else is shard platform, SF19A, inside the template shard files, shard files explained, shard platform open pics, shard platform waiting for Jake mockups, marketing website, wild shard admin, shard file architecture order, shard file design system, shard file as build. Like that's all red superseded."*). Was: `unread` 2026-10-09 — the finished site, phone and desktop: read every section's words and look; rewrite any words yourself in `site/COPY.md`
 **Link:** https://wildshard.io
 **Plan:** MARKETING-SITE (MS1)
 **Made by:** E465, the marketing agent (wildshard-y)
