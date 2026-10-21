@@ -504,7 +504,8 @@ export class GridSession {
     // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
-    this.panels = new NeighbourPanels({ scope: host.scope, simulation: (id) => this.live?.simulation(id) });
+    const prepareView = host.prepareView;
+    this.panels = new NeighbourPanels({ scope: host.scope, simulation: (id) => this.live?.simulation(id), ...(prepareView === undefined ? {} : { prepare: prepareView }) });
     // G539: each drawn far view's band (proxy, impostor or the dithered fade between) by the camera's distance to its cell
     const eye = new Vector3();
     const bands = (): void => {

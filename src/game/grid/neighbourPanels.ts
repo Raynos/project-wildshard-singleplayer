@@ -17,7 +17,11 @@ import type { GridCell } from './assembly';
 /** What the panels read from the session: a cell's admitted region (absent until the live host admits it). */
 /** The page scope the panels live and die with (the views' own scope type). */
 type PageScope = Parameters<ClientTileViews['panels']>[3];
-export interface NeighbourPanelPorts { readonly scope: PageScope; readonly simulation: (instance: string) => ShardfileSimulation | undefined }
+export interface NeighbourPanelPorts {
+  readonly scope: PageScope; readonly simulation: (instance: string) => ShardfileSimulation | undefined;
+  /** the page's warm-up for a newly drawn root (the session's `prepareView`): compiled before the panel first draws */
+  readonly prepare?: (root: Object3D, current: () => boolean) => Promise<void>;
+}
 type TargetRow = Shardfile['targets']['panels'][number];
 interface Binding { readonly row: TargetRow; readonly panel: Object3D; readonly fallback: number }
 interface CellPanels { readonly instance: string; readonly source: Shardfile; readonly bindings: readonly Binding[] }
@@ -53,6 +57,12 @@ export class NeighbourPanels {
     if (props === null || props.panels.length === 0 || source.targets.panels.length === 0 || this.cells.has(cell.instance)) return;
     const panels = await views.panels(props, assets, root, this.ports.scope);
     if (this.ports.scope.disposed) return;
+    // a panel's programs compile in the page's warm-up, off the drive's frames: hidden until then, then shown by sync
+    const prepare = this.ports.prepare;
+    if (prepare !== undefined) {
+      for (const panel of panels.values()) panel.visible = false;
+      for (const panel of panels.values()) await prepare(panel, () => !this.ports.scope.disposed && panel.parent !== null);
+    }
     const bindings = source.targets.panels.map((row): Binding => {
       const panel = panels.get(row.panel); if (panel === undefined) throw new Error('Missing admitted target panel');
       const field = source.state[row.scope].find((f) => f.id === row.fieldId);
