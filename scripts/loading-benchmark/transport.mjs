@@ -40,7 +40,8 @@ export async function observeTransport(upstream, fixture = {}) {
         receipts.push({ url: target.href, status: incoming.statusCode ?? 502, endedAt: Date.now(), bodyBytes: body,
           requestCache: { cacheControl: request.headers['cache-control'], ifNoneMatch: request.headers['if-none-match'],
             ifModifiedSince: request.headers['if-modified-since'], acceptEncoding: request.headers['accept-encoding'],
-            serviceWorker: request.headers['service-worker'], origin: request.headers.origin },
+            serviceWorker: request.headers['service-worker'], origin: request.headers.origin,
+            destination: request.headers['sec-fetch-dest'], mode: request.headers['sec-fetch-mode'], accept: request.headers.accept },
           responseCache: { etag: incoming.headers.etag, cacheControl: incoming.headers['cache-control'],
             vary: incoming.headers.vary, contentEncoding: incoming.headers['content-encoding'] },
           // Resource Timing's transferSize charges a fixed 300-byte header estimate.

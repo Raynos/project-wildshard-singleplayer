@@ -13,6 +13,8 @@ import { loadingCardIndex } from './catalogue.mjs';
 import { crossingProbeCode, crossingReport } from './crossing.mjs';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+const networkEvents = arg('network-events') ?? '1';
+if (!['0', '1', 'late'].includes(networkEvents)) throw new Error('Network events must be 0, 1 or late');
 const udid = process.env.SIM_UDID, upstream = arg('base'), pin = arg('pin'), dist = arg('dist'), out = arg('out');
 if (!udid || !upstream || !dist || !out || !/^[a-f0-9]{40}$/u.test(pin ?? '')) throw new Error('Requires sim-lane and base/pin/dist/out');
 const setup = path => `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};setTimeout(() => location.replace('/'), 100); true`;
@@ -112,7 +114,10 @@ try {
           await gesture(`(() => { const explicit = document.querySelector('.ws-menu-shardfile'); (${path !== 'legacy'} && explicit && explicit.getClientRects().length ? explicit : document.querySelector('.ws-menu-play')).click(); })()`);
         }
         await sleep(500); await connect();
-        await inspector.send('Network.enable');
+        if (networkEvents === '1') {
+          events.push({ proofCommand: 'Network.enable', at: Date.now() });
+          await inspector.send('Network.enable');
+        }
         const off = inspector.on('Network.loadingFinished', event => { events.push(event); });
         try { await wait(`window.__loadingAccuracy?.readyAt > 0`); } finally { off(); }
       } catch (error) { errors.push(String(error)); }
@@ -128,6 +133,15 @@ try {
       } catch (error) { errors.push(String(error)); }
       const result = { pin, path, visit, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
         ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };
+      if ((report?.byteError ?? 0) > .05) {
+        // Diagnose a missed live message without changing the recorded final
+        // counter or gate: inspect the worker's same bounded timing buffer.
+        try {
+          await inspector.evaluate(`window.__lateDownloads={done:false,value:null};(() => {const channel=new MessageChannel();channel.port1.onmessage=event=>{window.__lateDownloads={done:true,value:event.data};channel.port1.close()};navigator.serviceWorker.controller.postMessage({type:'DOWNLOAD_RECEIPTS'},[channel.port2]);})();true`);
+          await wait('window.__lateDownloads?.done', 3000);
+          result.lateWorkerReplay = JSON.parse(await inspector.evaluate('JSON.stringify(window.__lateDownloads.value)'));
+        } catch (error) { result.lateWorkerReplayError = String(error); }
+      }
       try {
         if (errors.length === 0) {
           await wait(`document.querySelector('.ws-load') === null && window.__wildshard?.world?.game.renderer !== undefined`, 10000);
@@ -142,6 +156,21 @@ try {
       execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolvePath(directory, `${path}.png`), '--out', resolvePath(directory, `${path}.jpg`)], { stdio: 'ignore' });
       unlinkSync(resolvePath(directory, `${path}.png`));
       console.info(JSON.stringify({ path, visit, errors, ...report }));
+      if (networkEvents === 'late') {
+        const controlFrom = transport.receipts.length, controlAt = Date.now();
+        await sleep(1500);
+        const controlRequests = transport.receipts.slice(controlFrom), commandEvents = [];
+        const off = inspector.on('Network.requestWillBeSent', event => {
+          commandEvents.push({ url: event.request?.url, type: event.type, initiator: event.initiator });
+        });
+        const from = transport.receipts.length, commandAt = Date.now();
+        await inspector.send('Network.enable');
+        await sleep(1500);
+        off();
+        writeFileSync(resolvePath(directory, 'inspector-network-enable.json'), JSON.stringify({
+          pin, controlAt, controlRequests, commandAt, commandEvents, requests: transport.receipts.slice(from),
+        }, null, 2));
+      }
       if (path === 'grid' && errors.length === 0 && (arg('crossing') ?? '1') === '1') {
         await inspector.evaluate(crossingProbeCode());
         await wait('window.__loadingCrossing?.done', 130000);
