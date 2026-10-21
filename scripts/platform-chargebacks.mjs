@@ -34,14 +34,12 @@ const declarations = new Map([
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/populationEnvironment.ts', new Map(['Stream', 'streamProjection', 'streamProfile', 'streamSurface', 'LiveStreamLevels'].map(name => [name, 'C1']))],
-  ['src/format/water.ts', new Map(['finite', 'transition', 'WaterTransition'].map(name => [name, 'C2']))],
-  ['src/game/systems/looks/waterSurface.ts', new Map([['WaterTransition', 'C2']])],
   ['src/engine/models/ownedGeometry.ts', new Map([['DeclaredGeometryBatch', 'C1']])],
   ['src/engine/models/geometrySources.ts', new Map(['registerPackedGeometrySource', 'PackedGeometryImports'].map(name => [name, 'C1']))],
   ['src/game/looks/posedInstances.ts', new Map(['PosedLibrary', 'ProductPosedLibrary'].map(name => [name, 'C1']))],
   ['src/game/shardfile/clientCatalogue.ts', new Map([['CatalogueEconomy', 'C6']])],
   ['src/game/shardfile/clientPlan.ts', new Map([['CatalogueEconomy', 'C6']])],
-  ['src/game/models/explorerCatalogue.ts', new Map(['Presentation', 'ProductExplorerDispatch'].map(name => [name, 'C9']))],
+  ['src/game/models/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
   ['src/format/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
   ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', 'C5']])],
   ['src/format/questPageComposition.ts', new Map([['QuestPresentation', 'C5']])],
@@ -70,16 +68,6 @@ const inline = new Map([
     ]],
   ])],
   ['src/format/populationEnvironment.ts', new Map([['LiveStreamLevels', [['const value = v.strictObject({ profile, add: finite, level:', 1]]]])],
-  ['src/format/water.ts', new Map([['WaterTransition', [
-    ['transition: v.exactOptional(transition)', 1],
-    ['const row = v.parse(WaterSurfaceSchema, input), band = row.transition?.reveal;', 2],
-  ]]])],
-  ['src/game/systems/looks/waterSurface.ts', new Map([['WaterTransition', [
-    ["import { smoothstep }", 1], ['readonly ground?:', 1], ['private ground =', 3], ['get reveal():', 1],
-    ['if (row.transition !== undefined &&', 3], ['=    this.applyLevel();', 1],
-    ['  setLowered(', 5], ['  private applyLevel():', 19],
-    ['const transition = this.row.transition, goal =', 5],
-  ]]])],
   ['src/engine/models/ownedGeometry.ts', new Map([['DeclaredGeometryBatch', [
     ['  declare: (rows:', 1], ['  handle: (slot:', 1], ['  readonly ready:', 1],
     ['  let declaration:', 2], ['    get ready()', 1], ['    declare: rows =>', 8],
@@ -115,7 +103,7 @@ function reviewedOwner(path, name) {
   if(path === 'src/game/population/pageGroups.ts' && ['Placement','Counts','PageActorGroups'].includes(name ?? '')) return 'driftwood-isle';
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts')) return 'nine-dragon-stack';
-  if (['src/format/populationEnvironment.ts', 'src/format/water.ts', 'src/game/systems/looks/waterSurface.ts',
+  if (['src/format/populationEnvironment.ts',
     'src/engine/models/geometrySources.ts', 'src/game/looks/posedInstances.ts',
     'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
   if (['src/engine/models/ownedGeometry.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',

@@ -1,7 +1,7 @@
-/** The admitted pool and trickle use the shared water-surface projection. */
+/** Pine owns its per-frame pool lowering and wet-bed presentation. */
 import * as THREE from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { WaterSurface } from '@wildshard/game/systems/looks/waterSurface';
+import type { PineWaterSurface } from './poolSurface';
 import { drawPineWater, pineWaterSurface, setWaterFade } from './water';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { loadSiteTimbers } from '../runtime/world/timberSites';
@@ -10,7 +10,7 @@ import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
 export class BeaverPool {
   readonly group = new THREE.Group();
-  private surface: WaterSurface | undefined;
+  private surface: PineWaterSurface | undefined;
   private flow: THREE.Mesh | undefined;
   constructor(private readonly sky: Sky) {}
   async build(): Promise<this> {
@@ -27,7 +27,7 @@ export class BeaverPool {
   get level(): number { return this.ready().level; }
   setOpen(open: boolean, instant = false): void { this.ready().setLowered(open, instant); if (instant) this.publish(); }
   update(dt: number): void { this.ready().update(dt); this.publish(); }
-  private ready(): WaterSurface { if (this.surface === undefined) throw new Error('Pool is not built'); return this.surface; }
+  private ready(): PineWaterSurface { if (this.surface === undefined) throw new Error('Pool is not built'); return this.surface; }
   private publish(): void {
     const surface = this.ready(); LAYOUT.beaverPoolLevel.y = surface.level;
     setWaterFade('trickle', surface.reveal); this.trickle.visible = surface.reveal > 0.001;

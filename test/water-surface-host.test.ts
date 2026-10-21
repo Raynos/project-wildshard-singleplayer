@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, DataTexture, DataUtils, MeshStandardMaterial, PlaneGeometry, type Texture } from 'three';
 import { WaterSurface } from '../src/game/systems/looks/waterSurface';
+import { PineWaterSurface } from '../src/shards/pine-hollow/world/poolSurface';
 import type { GraphLiteral } from '../src/format/materialGraph';
 import { OCEAN_SURFACE } from '../src/shards/driftwood-isle/generators/oceanLook';
 import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { type: 'json' };
@@ -8,15 +9,13 @@ import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { typ
 const { surfaces: WATER_SURFACES } = waterRows;
 
 test('Driftwood ocean binds its floor, foam and dry sockets; Pine draws its plain surface rows', () => {
-  for (const row of [OCEAN_SURFACE, ...Object.values(WATER_SURFACES)]) {
+  for (const row of [OCEAN_SURFACE, WATER_SURFACES.creek, WATER_SURFACES.trickle, WATER_SURFACES.puddle]) {
     const params = new Map<string, GraphLiteral>(), textures = new Map<string, Texture>();
     const geometry = new PlaneGeometry(2, 2), material = new MeshStandardMaterial();
     const surface = new WaterSurface(row, { material, param: (name, value) => { params.set(name, value); },
       texture: (name, value) => { textures.set(name, value); } });
     if (surface.row.floor === undefined) {
-      const transition = surface.row.transition;
-      if (transition !== undefined) geometry.setAttribute(transition.depth, new BufferAttribute(new Float32Array(geometry.getAttribute('position').count), 1));
-      surface.draw(geometry, transition === undefined ? {} : { ground: Array.from({ length: geometry.getAttribute('position').count }, () => transition.full - 1) });
+      surface.draw(geometry);
       expect(textures.size).toBe(0);
       expect(() => surface.foamAround([])).toThrow('no floor');
     } else {
@@ -49,7 +48,7 @@ test('a lowered basin keeps its wet bed, reversible travel and instant saved sta
   geometry.setAttribute('depth', new BufferAttribute(new Float32Array(4), 1));
   const row = { look: 'quarry-water', name: 'quarry-basin', renderOrder: 3,
     transition: { full: 2, lowered: 0, seconds: 4, exponent: 2, depth: 'depth', film: -.3, lift: .1, bank: -.5, reveal: [.25, .75] } };
-  const surface = new WaterSurface(row, { material });
+  const surface = new PineWaterSurface(row, { material });
   try {
     expect(() => surface.draw(geometry)).toThrow('matching bed');
     expect(() => surface.draw(geometry, { ground: [0] })).toThrow('matching bed');

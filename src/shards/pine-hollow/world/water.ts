@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
 import type { WaterView } from '@wildshard/engine/world/water/view';
-import { WaterSurface } from '@wildshard/game/systems/looks/waterSurface';
+import { PineWaterSurface } from './poolSurface';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import { lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 
@@ -22,9 +22,9 @@ export function pineWaterSurface(kind: keyof typeof WATER_SURFACES, geometry: TH
   return drawPineWater(kind, geometry).mesh;
 }
 /** Bind a mutable surface to its admitted per-vertex bed. */
-export function drawPineWater(kind: keyof typeof WATER_SURFACES, geometry: THREE.BufferGeometry, ground?: readonly number[]): WaterSurface {
+export function drawPineWater(kind: keyof typeof WATER_SURFACES, geometry: THREE.BufferGeometry, ground?: readonly number[]): PineWaterSurface {
   const row = WATER_SURFACES[kind];
-  return new WaterSurface(row, { material: lentLook(row.look) }).draw(geometry, ground === undefined ? {} : { ground });
+  return new PineWaterSurface(row, { material: lentLook(row.look) }).draw(geometry, ground === undefined ? {} : { ground });
 }
 /** scale a water look's alpha */
 export function setWaterFade(look: keyof typeof WATER_LOOKS, fade: number): void { setLentParam(WATER_LOOKS[look], 'fade', fade); }

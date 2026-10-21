@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify retired receipts without touching the shared WIP ledger.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { chargePlatformUsers, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
-import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
+import { codeLines, pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
 import { componentInventory } from '../scripts/shard-components.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
@@ -63,7 +63,18 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
     }
   }
   expect(reports).toEqual([]);
-  expect(charges.get('pine-hollow')?.map(row => row.name)).toContain('WaterTransition');
+  expect(platformChargeback('src/game/systems/looks/waterSurface.ts', 'WaterTransition')).toBeNull();
+  expect(platformChargeback('src/format/water.ts', 'WaterTransition')).toBeNull();
+  const path = 'src/shards/pine-hollow/world/poolSurface.ts', lines = codeLines(readFileSync(path, 'utf8'), path);
+  const pool = componentInventory('.', 'pine-hollow', [{ path, kind: 'runtime-ts', lines }], lines);
+  expect(pool.counts.C2).toBeGreaterThan(0);
+  expect(Object.values(pool.counts).reduce((sum, count) => sum + count, 0)).toBe(lines);
+  expect(pool.unknown).toEqual([]);
+  const explorer = 'src/game/models/explorerCatalogue.ts', users = new Set(['pine-hollow', 'driftwood-isle']);
+  const metadataBindings = new Map([[`${explorer}\0Presentation`, users]]);
+  chargePlatformUsers(new Map(), metadataBindings);
+  expect(metadataBindings.get(`${explorer}\0Presentation`)).toEqual(users);
+  expect(platformChargeback(explorer, 'Presentation')).toBeNull();
   expect(charges.get('driftwood-isle')?.map(row => row.name)).toContain('DeclaredGeometryBatch');
   const figure = 'src/game/models/figureCatalogue.ts', hull = 'src/game/looks/speciesBook.ts';
   const both = new Set(['pine-hollow', 'driftwood-isle']);

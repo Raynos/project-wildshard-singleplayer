@@ -75,6 +75,11 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - `engine/world/waterSurface.ts` (Pine's water body) stays in the engine until `pine-hollow-legacy` is deleted
   (SHARD-PLATFORM-NEXT N5) and moves to Pine in that commit (G500); the sealed legacy copy cannot import primary Pine.
 
+- G520 X20: Pine's reversible beaver-pool wet-bed projection is listed
+  client-only view code in `src/shards/pine-hollow/world/poolSurface.ts`.
+  Its transition schema and per-frame geometry updates have no second shard;
+  they are removed from the shared water surface and count to Pine C2.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they
