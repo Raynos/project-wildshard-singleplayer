@@ -23,7 +23,7 @@ import { quietCli } from './quiet-cli.mjs';
 // else it is removed, so a one-shard preview never serves a stale product of a changed shard.
 /** Pack every first-party map through the existing charged SDK row; missing maps keep the old no-map build path.
  * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], catalog?:boolean, copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
-export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = false,onFailure } = {}) {
+export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = 'closed',onFailure } = {}) {
   if(onFailure!==undefined&&(strict||catalog))throw new Error('Product failure collection is report-only; strict/catalog builds must fail');
   if (catalog && only !== undefined) throw new Error('wildshard build: --catalog requires every project; --shard cannot publish a catalog');
   if(onFailure===undefined)await prepareDataMaps(root, strict ? undefined : only);
@@ -130,6 +130,6 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   quietCli('build-shardfiles');
   const only = process.argv.find(arg => arg.startsWith('--shard='))?.slice('--shard='.length).split(',').filter(Boolean);
-  try { await buildShardfiles(resolve(import.meta.dirname, '..'), { catalog: process.argv.includes('--catalog'), copyRuntime: process.argv.includes('--copy-runtime'), reuse: process.argv.includes('--reuse'), ...(only === undefined ? {} : { only }) }); }
+  try { await buildShardfiles(resolve(import.meta.dirname, '..'), { catalog: process.argv.includes('--catalog'), copyRuntime: process.argv.includes('--copy-runtime') ? true : 'closed', reuse: process.argv.includes('--reuse'), ...(only === undefined ? {} : { only }) }); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

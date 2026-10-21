@@ -119,6 +119,18 @@ it('copies only closed runtimes without publishing or depending on catalog metad
   expect(existsSync(resolve(root, 'out/catalog.json'))).toBe(false);
 });
 
+it('uses the same product flags for ordinary builds, ruler builds and the catalog gate', async () => {
+  const root = await fixture(), flags: string[][][] = [];
+  put(root, 'src/shards/beta/runtime/index.ts', "import '../data/native';\n");
+  for (const options of [{ strict: false }, { strict: false, copyRuntime: 'closed' as const }, { strict: true, catalog: true }]) {
+    const calls: string[][] = [];
+    await buildShardfiles(root, { ...options, build: builder(calls) });
+    flags.push(calls.filter(call => call[0] === 'build').map(call => call.slice(3)));
+  }
+  expect(flags[0]).toEqual(flags[1]); expect(flags[1]).toEqual(flags[2]);
+  expect(flags[0]?.map(row => row.includes('--copy-runtime'))).toEqual([true, false]);
+});
+
 
 it('reports exact changed map inputs while still refusing publication', async () => {
   const root = await fixture(), calls: string[][] = [], error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
