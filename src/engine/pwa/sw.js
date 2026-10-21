@@ -108,39 +108,25 @@ const MATCH_OPTS = { ignoreVary: true };
 
 const abs = (p) => new URL(p, self.registration.scope).href;
 
-// Install and revalidation fetches have no page Resource Timing entry. Forward
-// their own worker timing receipts; HTTP-cache hits retain transferSize === 0.
-const backgroundPending = new Map();
-if (typeof PerformanceObserver === 'function') {
+// Worker fetches own their transport: a page's synthetic response length cannot
+// distinguish an HTTP-cache hit. Include install and revalidation downloads too.
+const workerTransport = typeof PerformanceObserver === 'function' && PerformanceObserver.supportedEntryTypes.includes('resource');
+if (workerTransport) {
   const observer = new PerformanceObserver((list) => {
-    for (const entry of list.getEntries()) {
-      const starts = backgroundPending.get(entry.name);
-      const index = starts?.findIndex((start) => entry.startTime >= start);
-      if (index === undefined || index < 0) continue;
-      starts.splice(index, 1);
-      if (starts.length === 0) backgroundPending.delete(entry.name);
-      const receipt = { type: 'WS_BACKGROUND_DOWNLOAD', origin: performance.timeOrigin, timing: entry.toJSON() };
-      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-        // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Client.postMessage has no targetOrigin argument
-        for (const client of clients) client.postMessage(receipt);
-        return undefined;
-      }).catch(() => undefined);
-    }
+    const timings = list.getEntries().filter((entry) => /^https?:/u.test(entry.name)).map((entry) => entry.toJSON());
+    if (timings.length === 0) return;
+    const receipt = { type: 'WS_WORKER_DOWNLOAD', origin: performance.timeOrigin, timings };
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Client.postMessage has no targetOrigin argument
+      for (const client of clients) client.postMessage(receipt);
+      return undefined;
+    }).catch(() => undefined);
   });
   observer.observe({ type: 'resource' });
 }
 
-function backgroundFetch(input, init) {
-  if (typeof PerformanceObserver !== 'function') return fetch(input, init);
-  const url = typeof input === 'string' ? abs(input) : input.url;
-  let starts = backgroundPending.get(url);
-  if (starts === undefined) { starts = []; backgroundPending.set(url, starts); }
-  starts.push(performance.now());
-  return fetch(input, init);
-}
-
 async function backgroundCache(cache, url) {
-  const response = await backgroundFetch(abs(url));
+  const response = await fetch(abs(url));
   if (!response.ok) throw new Error(`precache: ${url} ${response.status}`);
   await cache.put(abs(url), response);
 }
@@ -200,7 +186,7 @@ workerScope.listen(self, 'install', (event) => {
       // The pill adopted it, the reload ran the index chunk, and then `import(main)` 404'd: a loader frozen at
       // 00:00.0 and nothing else. A mismatch fails the install instead: the old worker keeps serving, and the next
       // update() fetches the live sw.js and tries again.
-      const doc = await backgroundFetch(abs('/index.html'), { cache: 'no-store' });
+      const doc = await fetch(abs('/index.html'), { cache: 'no-store' });
       if (!doc.ok) throw new Error(`install: /index.html ${doc.status}`);
       const foreign = await foreignRefs(doc.clone());
       if (foreign.length > 0) throw new Error(`install: /index.html is another build's (${foreign.join(', ')})`);
@@ -252,7 +238,7 @@ workerScope.listen(self, 'activate', (event) => {
 /** path → hash8 of every file this build ships under public/assets, or null (offline at activate: verify nothing, drop nothing) */
 async function assetManifest() {
   try {
-    const r = await backgroundFetch(abs('/asset-manifest.json'), { cache: 'no-store' });
+    const r = await fetch(abs('/asset-manifest.json'), { cache: 'no-store' });
     if (r.ok) return await r.json();
   } catch { /* offline */ }
   return null;
@@ -375,7 +361,7 @@ async function prefetchOne(u) {
   const cache = await caches.open(cacheFor(url.pathname));
   if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
   try {
-    const res = await backgroundFetch(url.href, { priority: 'low' });
+    const res = await fetch(url.href, { priority: 'low' });
     if (!res.ok || !res.body) return out('failed');
     let bytes = 0;
     const [keep, count] = res.body.tee();
@@ -472,7 +458,7 @@ async function documentResponse(event, req, url) {
   if (hit) {
     if (offline()) return transportReceipt(hit, true); // no revalidate that can only fail
     event.waitUntil(
-      backgroundFetch(req)
+      fetch(req)
         .then((res) => putDocument(cache, key, res))
         .catch(() => undefined),
     );
@@ -492,7 +478,7 @@ function transportReceipt(response, cached = false) {
   const headers = new Headers(response.headers);
   const previous = headers.get('server-timing');
   const bytes = Number(headers.get('content-length')) || 0;
-  headers.set('server-timing', `${previous ? `${previous},` : ''}${cached ? 'ws-cache' : 'ws-network'};dur=${bytes}`);
+  headers.set('server-timing', `${previous ? `${previous},` : ''}${cached ? 'ws-cache' : 'ws-network'};dur=${bytes}${!cached && workerTransport ? ',ws-receipt' : ''}`);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 

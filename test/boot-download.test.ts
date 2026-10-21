@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveBackgroundDownload } from '../src/engine/boot/download';
+import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads } from '../src/engine/boot/download';
 
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
@@ -49,16 +49,32 @@ it('includes worker install transport once without charging HTTP-cache hits as n
   const accounting = new DownloadAccounting(base, 100);
   const dispose = installDownloadAccounting(accounting);
   const background = (startTime: number, responseEnd: number, transferSize: number) => ({
-    type: 'WS_BACKGROUND_DOWNLOAD', origin: 1000,
-    timing: { name: new URL('/precache.js', base).href, startTime, responseEnd, transferSize, encodedBodySize: 1000 },
+    type: 'WS_WORKER_DOWNLOAD', origin: 1000,
+    timings: [{ name: new URL('/precache.js', base).href, startTime, responseEnd, transferSize, encodedBodySize: 1000 }],
   });
   try {
     // A request begun before this attempt still finishes during its download.
-    receiveBackgroundDownload(background(90, 110, 1300), 1000);
-    receiveBackgroundDownload(background(90, 110, 1300), 1000);
-    receiveBackgroundDownload(background(120, 130, 0), 1000);
-    receiveBackgroundDownload(background(10, 20, 1300), 1000);
-    receiveBackgroundDownload({ type: 'WS_BACKGROUND_DOWNLOAD', timing: {} }, 1000);
+    receiveWorkerDownloads(background(90, 110, 1300), 1000);
+    receiveWorkerDownloads(background(90, 110, 1300), 1000);
+    receiveWorkerDownloads(background(120, 130, 0), 1000);
+    receiveWorkerDownloads(background(10, 20, 1300), 1000);
+    receiveWorkerDownloads({ type: 'WS_WORKER_DOWNLOAD', timings: [{}] }, 1000);
     expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, cachedBytes: 1000, filesDone: 2 });
+  } finally { dispose(); }
+});
+
+
+it('uses actual worker transfers instead of charging synthetic response lengths twice', () => {
+  const accounting = new DownloadAccounting(base), dispose = installDownloadAccounting(accounting);
+  const file = timing('/worker-owned.js', { workerStart: 1, transferSize: 1300,
+    serverTiming: [{ name: 'ws-network', duration: 1000 }, { name: 'ws-receipt', duration: 0 }] });
+  const receipt = { type: 'WS_WORKER_DOWNLOAD', origin: 1000,
+    timings: [{ name: file.name, startTime: 1, responseEnd: 2, transferSize: 0, encodedBodySize: 1000 }] };
+  try {
+    accounting.resource(file);
+    receiveWorkerDownloads(receipt, 1000); receiveWorkerDownloads(receipt, 1000);
+    expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 1000 });
+    receiveWorkerDownloads({ ...receipt, timings: [{ ...receipt.timings[0], startTime: 3, transferSize: 1300 }] }, 1000);
+    expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, cachedBytes: 1000 });
   } finally { dispose(); }
 });

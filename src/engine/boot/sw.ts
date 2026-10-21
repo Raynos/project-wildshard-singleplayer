@@ -1,5 +1,5 @@
 import { pageScope } from '../app/resources';
-import { receiveBackgroundDownload } from './download';
+import { receiveWorkerDownloads } from './download';
 /**
  * Service-worker boot (project/archive/2026-09-22-load-perf.md §1b / §P3). Ported from trials-gauntlet-demo's `swBoot`,
  * with the update story changed for this game — see CONTRACT below.
@@ -67,7 +67,7 @@ export interface WsSw {
 // the page's service-worker handle is declared in ./swGlobal.d.ts (an ambient file every layer's project sees)
 
 const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
-if (sw !== null) pageScope.listen(sw, 'message', event => { receiveBackgroundDownload(event.data, performance.timeOrigin); });
+if (sw !== null) pageScope.listen(sw, 'message', event => { receiveWorkerDownloads(event.data, performance.timeOrigin); });
 
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
 const api: WsSw = { ready: boot(), waiting: null, adopt, version };

@@ -845,7 +845,9 @@ in `@wildshard/engine/boot/download` report expected product-index sizes and ver
 cache reads to the active loading attempt. Resource Timing supplies page-wide
 network receipts, including modules and undeclared fetches. Worker-owned install,
 prefetch and document revalidation requests forward their own Resource Timing
-receipts to the page, preserving HTTP-cache hits and worker clock offsets. The loading screen
+receipts to the page, preserving HTTP-cache hits and worker clock offsets.
+Foreground worker fetches use the same receipts; a synthetic page response
+never double-charges a worker-owned transfer or calls its HTTP-cache hit network. The loading screen
 shows downloaded bytes and cache bytes separately; unclassified worker receipts
 stay explicit. Service-worker responses carry transport provenance through
 Server-Timing without extra response-body reads. Expected files remain pending

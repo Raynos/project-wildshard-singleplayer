@@ -2,7 +2,7 @@ export function accuracyRecorder() {
       const state = { samples: [], final: null, readyAt: 0, firstAt: -1, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [], workerReceipts: [] };
       Reflect.set(window, '__loadingAccuracy', state);
       navigator.serviceWorker.addEventListener('message', event => {
-        if (!state.readyAt && event.data?.type === 'WS_BACKGROUND_DOWNLOAD') state.workerReceipts.push(event.data);
+        if (!state.readyAt && ['WS_BACKGROUND_DOWNLOAD', 'WS_WORKER_DOWNLOAD'].includes(event.data?.type)) state.workerReceipts.push(event.data);
       });
       new PerformanceObserver(list => {
         if (!state.readyAt) for (const entry of list.getEntries()) state.resources.push(entry.toJSON());
