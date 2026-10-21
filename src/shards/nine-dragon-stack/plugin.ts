@@ -1,7 +1,7 @@
 import { prepareNinePost } from './look/render';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
-import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
+import { declaredRuntimeEntry } from '@wildshard/game/shard/declaredEntry';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
@@ -151,11 +151,10 @@ export class NdPlugin extends ShardPlugin {
   }
 }
 
-// oxlint-disable-next-line import/no-default-export -- Manifest plugin loaders share a default constructor contract.
-export default firstPartyStandaloneEntry(NdPlugin, 'Nine Dragon', () => import('./runtime/index'));
+const entry = declaredRuntimeEntry(NdPlugin, NdPlugin, {
+  entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: false,
+});
+export const resolveTrustedRuntime = entry.resolveTrustedRuntime;
 
-/** Resolve only the declared first-party entry; standalone keeps the same native constructor. */
-export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
-  if (entry !== 'runtime/index.ts') throw new Error('Unknown trusted runtime entry');
-  return NdPlugin;
-}
+// oxlint-disable-next-line import/no-default-export -- Manifest plugin loaders share a default constructor contract.
+export default entry.default;

@@ -1,6 +1,6 @@
 import type { prepareHybridShard as PrepareHybrid } from '../shardfile/hybrid';
 import { isDev } from '@wildshard/engine/core/devMode';
-import { type ShardContext, type ShardPlugin, type TrustedRuntimeEntry, standaloneHybridEntry } from '../plugin/context';
+import type { ShardContext, ShardPlugin, TrustedRuntimeEntry } from '../plugin/context';
 import { currentPageMode } from '../grid/pageMode';
 import { shardEntry } from './entryMode';
 
@@ -24,21 +24,6 @@ export function developerToolsEnabled(): boolean { return isDev(); }
 /** SF65 (G237–G241): whether this boot enters the shard as SHARDFILE (its current port state) rather than LEGACY (the
  *  original TypeScript): SHARD SELECT's choice with Developer on, else the shard's public entry (`ShardManifest.entries`). */
 export function shardfileEntry(context: Pick<ShardContext, 'manifest'>): boolean { return shardEntry(context.manifest) === 'shardfile'; }
-
-/**
- * A first-party transitional shard's standalone entry (SF73; Signal Dunes and Sky Reach): SHARDFILE admits its shardfile
- * from `ctx.product` and its trusted runtime at `runtime/index.ts` (`index`) through `prepareHybridShard`, with a retained home
- * and no declared item icons (`stagesOwner` 'runtime' when that runtime installs every stage itself); LEGACY keeps the
- * supplied native constructor.
- */
-export function firstPartyStandaloneEntry(Native: new () => ShardPlugin, name: string,
-  index: TrustedRuntimeEntry['load'], stagesOwner?: 'runtime'): ReturnType<typeof standaloneHybridEntry> {
-  const admit = (ctx: ShardContext): Promise<ShardPlugin> => prepareStandaloneHybrid(ctx, {
-    name, runtime: { entry: 'runtime/index.ts', load: index }, retainHomeRuntime: true,
-    ...(stagesOwner === undefined ? {} : { stagesOwner }),
-  });
-  return standaloneHybridEntry(Native, admit, shardfileEntry, name);
-}
 
 /** Explicit first-party bundled entry, with the original home/stage
  * ownership policy. The caller supplies loaders, never a shard-name lookup. */

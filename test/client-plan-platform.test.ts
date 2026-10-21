@@ -128,6 +128,49 @@ test('compiled first-party runtime entry resolves only its declared constructor 
   const Entry = entry.default; new Entry(); expect(world).not.toHaveBeenCalled();
 });
 
+test.each([true, false])('standalone native plan policy preserves hooks and their scope: %s', async nativePlan => {
+  const f = context(), order: string[] = [], release = vi.fn();
+  f.strings.mockImplementation(() => { order.push('strings'); }); f.expose.mockImplementation(() => { order.push('debug'); });
+  class Native extends ShardPlugin {
+    constructor() { super(); order.push('construct'); }
+    override world(ctx: ShardContext): void { order.push('world'); ctx.scope.onDispose(() => { release(); }); }
+    override kit(): void { order.push('kit'); }
+    override play(): void { order.push('play'); }
+  }
+  const Entry = declaredRuntimeEntry(Native, Native, {
+    entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', ...(nativePlan ? {} : { nativePlan }),
+  }).default;
+  const plugin = new Entry(undefined, undefined, () => false);
+  try {
+    expect(order).toEqual([]); await expect(plugin.kit(f.ctx)).rejects.toThrow('not admitted');
+    await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
+    expect(order).toEqual(nativePlan ? ['construct', 'strings', 'world', 'kit', 'play', 'debug'] : ['construct', 'world', 'kit', 'play']);
+    expect(release).not.toHaveBeenCalled();
+  } finally { f.ctx.scope.dispose(); }
+  expect(release).toHaveBeenCalledOnce();
+});
+
+test.each([false, true])('standalone entry preserves constructor and admission injection: %s', async shardfile => {
+  const f = context(), order: string[] = [];
+  class Native extends ShardPlugin { constructor() { super(); throw new Error('Unexpected default constructor'); } }
+  class Injected extends ShardPlugin {
+    override world(): void { order.push('world'); }
+    override kit(): void { order.push('kit'); }
+    override play(): void { order.push('play'); }
+  }
+  const admit = vi.fn((ctx: ShardContext) => { expect(ctx).toBe(f.ctx); order.push('admit'); return Promise.resolve(new Injected()); });
+  const select = vi.fn(() => shardfile);
+  const Entry = declaredRuntimeEntry(Native, Native, {
+    entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: false,
+  }).default;
+  const plugin = new Entry(Injected, admit, select);
+  try {
+    await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
+    expect(order).toEqual(shardfile ? ['admit', 'world', 'kit', 'play'] : ['world', 'kit', 'play']);
+    expect(select).toHaveBeenCalledOnce(); expect(admit).toHaveBeenCalledTimes(shardfile ? 1 : 0);
+  } finally { f.ctx.scope.dispose(); }
+});
+
 test('retained client strings unpublish on leave and replay on re-entry', async () => {
   const f = context(), owners = new Set<Scope>();
   const strings = vi.fn((table: Parameters<ShardContext['strings']>[0], scope: Scope) => {

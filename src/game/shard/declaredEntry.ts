@@ -3,10 +3,11 @@ import { prepareStandaloneHybrid, shardfileEntry } from './runtimeVariant';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from '../shardfile/clientPlan';
 
 /** Client-only build-generated first-party links, never shardfile data or a dynamic module lookup.
+ * `nativePlan: false` keeps native-owned LEGACY phases; the admitted path still runs its plan.
  * This is transitional runtime scaffolding; client features themselves take only JSON rows. */
 export function declaredRuntimeEntry(Runtime: new () => ShardPlugin, Native: new () => ShardPlugin,
-  policy: { readonly entry: string; readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime' }): {
-    default: new () => ShardPlugin; resolveTrustedRuntime: (entry: string) => new () => ShardPlugin;
+  policy: { readonly entry: string; readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime'; readonly nativePlan?: boolean }): {
+    default: ReturnType<typeof standaloneHybridEntry>; resolveTrustedRuntime: (entry: string) => new () => ShardPlugin;
   } {
   class NativeEntry extends Native {
     private plan: AdmittedClientPlan | undefined;
@@ -18,7 +19,7 @@ export function declaredRuntimeEntry(Runtime: new () => ShardPlugin, Native: new
     override async kit(ctx: ShardContext): Promise<void> { await super.kit?.(ctx); await this.phase(ctx, 'kit'); }
     override async play(ctx: ShardContext): Promise<void> { await super.play?.(ctx); await this.phase(ctx, 'play'); }
   }
-  const Entry = standaloneHybridEntry(NativeEntry, ctx => {
+  const Entry = standaloneHybridEntry(policy.nativePlan === false ? Native : NativeEntry, ctx => {
     if (!ctx.product.has('client/plan')) throw new Error('Declared runtime entry requires client/plan');
     return prepareStandaloneHybrid(ctx, { name: 'declared runtime', ...policy,
       runtime: { entry: policy.entry, load: () => Promise.resolve({ default: Runtime }) } });

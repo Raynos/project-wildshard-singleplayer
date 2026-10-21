@@ -8217,8 +8217,7 @@ runtime inventories or policy allowances.
 ### Runtime and native product boundaries (P2a step 4)
 
 `game/shard/runtimeVariant.prepareStandaloneHybrid` uses `ctx.product`;
-its rows and `firstPartyStandaloneEntry` no longer accept a source
-loader. `prepareHybridShard` takes that loaded product and never fetches
+its rows never accept a source loader. `prepareHybridShard` takes that loaded product and never fetches
 its descriptor again. Frozen callers may provide structural identity;
 the loader ignores their data and loads their format-2 output instead.
 Bundled runtime selection remains separate from data admission.
@@ -10476,7 +10475,10 @@ First-party `bindings.entry` declares `legacy`, `retainHomeRuntime` and
 `stagesOwner`. The discovery generator verifies `runtimeEntry` and emits
 literal lazy imports for those exact constructors. `declaredRuntimeEntry`
 composes the existing standalone/hybrid entry, running the plan on the native
-path too. These constructor links remain trusted migration scaffolding,
+path by default. `nativePlan: false` preserves native-owned legacy phases; the
+admitted path still runs the plan with the declared home/stage policy. The
+constructor keeps the standalone owner's native/admission/selection injection.
+These constructor links remain trusted migration scaffolding,
 separate from the data-only feature API. Runtime saves keep their owners.
 Deleting outer `plugin.ts` glue does not close remaining runtime dependency
 escapes or remove the runtime block. Sky and Signal retire in a later lockstep
