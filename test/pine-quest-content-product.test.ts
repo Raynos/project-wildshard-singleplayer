@@ -11,6 +11,7 @@ import { parseQuestData } from '../src/sdk/quests';
 import pinePeople from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
 import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';
+import { NATIVE_CHAPTER_DIRECTOR } from '../src/shards/pine-hollow/generators/chapterDirector';
 
 // Frozen canonical hashes of the original play-read authored declarations.
 const originals = {
@@ -19,6 +20,7 @@ const originals = {
   ranger: '45e97c6c019fc49d440839a424761c60f21319deb6e59fbccc9dfdd8a23c79b5',
   miller: '388993120452db2e132dce701a42e73f1e506dcb5dff28efa44e60bfa02c098a',
   trader: 'b5c91381cf3d73e86b104a689c5c3a52e37abc6fa1d4aa5ac5f43117bd68a62f',
+  nativeClock: '93a0bd74f14f26c44d1c85c03d287ee978323779d4768c3b2326eed1dab0e7ed',
 };
 const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 
@@ -46,8 +48,9 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   expect(tokens?.prefix).toBe(rows.policy.tokenFlag);
   expect(tokens?.names).toEqual(rows.policy.tokenNames);
   expect(nativeStory.boss).toBe(boss.steps.fight);
-  expect(nativeStory.clock.night).toBe(sky.phases.night);
-  expect(nativeStory.clock.sunrise).toBe(sky.phases.sunrise + 0.012);
+  expect(hash(NATIVE_CHAPTER_DIRECTOR)).toBe(originals.nativeClock);
+  expect(NATIVE_CHAPTER_DIRECTOR.actions['night.start']?.find(row => row.kind === 'phase')?.to).toBe(sky.phases.night);
+  expect(NATIVE_CHAPTER_DIRECTOR.actions['dawn.sunrise']?.find(row => row.kind === 'phase')?.to).toBe(sky.phases.sunrise + 0.012);
   expect(nativeStory.actions.filter(row => row.kind === 'lantern').map(row => row.row)).toEqual(Object.values(rows.policy.lanternIds));
   expect(rows.table.rows.filter(row => row.id.startsWith('resin-'))).toHaveLength(30);
   expect(rows.table.rows.filter(row => row.id.startsWith('token-'))).toHaveLength(8);

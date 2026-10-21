@@ -41,50 +41,6 @@
     "target": "stag",
     "nightAbove": 0.5
   },
-  "clock": {
-    "night": 0.92,
-    "sunrise": 0.02,
-    "flags": [
-      "lit:pond",
-      "lit:ridge",
-      "lit:den"
-    ],
-    "wait": "wait:night",
-    "nightRequest": "night.request",
-    "step": "dawn",
-    "dawnRequest": "dawn.request",
-    "publications": [
-      {
-        "event": "night.consume",
-        "kind": "clear",
-        "flag": "wait:night"
-      },
-      {
-        "event": "night.start",
-        "kind": "phase",
-        "to": 0.92
-      },
-      {
-        "event": "dawn.sunrise",
-        "kind": "phase",
-        "to": 0.02
-      },
-      {
-        "event": "dawn.lanterns",
-        "kind": "flags",
-        "flags": [
-          "lit:pond",
-          "lit:ridge",
-          "lit:den"
-        ]
-      },
-      {
-        "event": "dawn.finish",
-        "kind": "flag",
-        "flag": "seen:dawn"
-      }
-    ]
-  },
   "savedNames": {
     "lead": "stag",
     "clock": "dawn",

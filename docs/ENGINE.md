@@ -10609,6 +10609,10 @@ caller retains the update phase and saved stage/fast-forward envelopes.
 `DirectorScriptStageLane.registerNative(host, id)` publishes that existing
 continuation for the native composition; it adds no clock or save owner.
 Both emitted director documents keep their legacy `bindings` key as null.
+The native clock's quiet flag/phase projection is generated directly from
+the same chapter actions and declared AS output keys. There is no second
+author clock/publication list. The complete original native clock JSON hash
+is retained as a compatibility law, alongside existing checkpoint/replay laws.
 The original Driftwood binding JSON is retained unchanged only in
 `test/fixtures/driftwood-director-bindings.json`. Its independent original
 clock, encounter and native-composition comparisons still run; no live
