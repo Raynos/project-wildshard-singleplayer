@@ -76,7 +76,7 @@ class PushLoop(unittest.TestCase):
         refused = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
                                 lambda *_: (1, 'src/good.ts(1,1): error TS1109'))
         self.assertEqual(refused['phase'], 'types')
-        self.assertIsNone(PUSH['offender'](self.root, self.base, tip, refused['files'], time.monotonic() + 5))
+        self.assertEqual(PUSH['offender'](self.root, self.base, tip, refused['files'], time.monotonic() + 5), tip)
         self.put('src/good.ts', 'export const value = 1;\n')
 
         def racing(command, *_):
@@ -91,6 +91,23 @@ class PushLoop(unittest.TestCase):
         rc, _ = LIVE['run']([sys.executable, '-c', 'import signal; signal.pause()'], self.root, start + .15)
         self.assertEqual(rc, 124)
         self.assertLess(time.monotonic() - start, 2)
+
+    def test_committed_source_ignores_working_and_index_edits(self):
+        for name in [*PUSH['SOURCE']['TOOLS'], 'link-node-modules.mjs']:
+            self.put('scripts/' + name, '// committed tool\n')
+        self.put('src/data.json', '{"state":"committed"}')
+        self.put('src/other.ts', 'export const original = true;')
+        tip = self.commit('src/entry.ts')
+        self.put('src/other.ts', 'half written foreign WIP')
+        self.put('src/data.json', '{"state":"staged WIP"}')
+        self.git('add', '--', 'src/data.json')
+        index = (self.root / '.git/index').read_bytes()
+        with PUSH['SOURCE']['committed_source'](self.root, tip, tip, time.monotonic() + 10) as (tree, tools):
+            self.assertEqual((tree / 'src/other.ts').read_text(), 'export const original = true;')
+            self.assertEqual((tree / 'src/data.json').read_text(), '{"state":"committed"}')
+            self.assertEqual((tools / 'push-inputs.mjs').read_text(), '// committed tool\n')
+        self.assertEqual((self.root / 'src/other.ts').read_text(), 'half written foreign WIP')
+        self.assertEqual((self.root / '.git/index').read_bytes(), index)
 
     def test_timed_out_tests_defer_but_observed_failures_stay_red(self):
         tip = self.commit('src/good.ts')

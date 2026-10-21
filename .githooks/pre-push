@@ -7,5 +7,5 @@ while read -r _local_ref local_sha remote_ref remote_sha; do
   [ "$remote_ref" = refs/heads/main ] || continue
   [ "$local_sha" = 0000000000000000000000000000000000000000 ] && continue
   if [ "${WS_LIVE_GATE_TIP:-}" = "$local_sha" ] && [ "${WS_LIVE_GATE_BASE:-}" = "$remote_sha" ]; then continue; fi
-  python3 "$root/scripts/live-prepush.py" "$local_sha" || exit 1
+  python3 "$root/scripts/push-loop.py" --check "$local_sha" || exit 1
 done

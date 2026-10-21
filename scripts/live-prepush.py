@@ -68,8 +68,9 @@ def failure_paths(output):
     return sorted(set(re.findall(r'(?<![\w/])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:[cm]?[jt]sx?|json|py|sh))', plain)))
 
 
-def check(root, base, tip, deadline, runner=run):
-    files = changed(root, base, tip)
+def check(root, base, tip, deadline, runner=run, files=None, tools=None):
+    files = changed(root, base, tip) if files is None else files
+    tools = root / 'scripts' if tools is None else tools
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
     before = snapshot(root, files)
     (root / 'tmp').mkdir(exist_ok=True)
@@ -77,7 +78,7 @@ def check(root, base, tip, deadline, runner=run):
         listing = Path(temporary) / 'changed.json'
         listing.write_text(json.dumps(files))
         lintable = lint_sources(root, files)
-        commands = [('types', ['node', 'scripts/local-gate-checks.mjs', 'types', str(listing)])]
+        commands = [('types', ['node', str(tools / 'local-gate-checks.mjs'), 'types', str(listing)])]
         if lintable:
             commands.append(('lint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *lintable]))
         env = dict(os.environ, WS_VITEST_MAX_WORKERS='4', WS_LIVE_PREPUSH='1', NO_COLOR='1')
@@ -89,7 +90,7 @@ def check(root, base, tip, deadline, runner=run):
         # Selection also consumes the same budget; it never prepares products.
         left = deadline - time.monotonic()
         if left > 2:
-            rc, output = runner(['node', 'scripts/gate-related-tests.mjs', str(listing),
+            rc, output = runner(['node', str(tools / 'gate-related-tests.mjs'), str(listing),
                                  '--live', '--budget=' + str(max(0, left - 2))], root, deadline, env)
             if rc not in (0, 124):
                 result.update(phase='selection', output=output, files=failure_paths(output))

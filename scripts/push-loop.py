@@ -11,7 +11,20 @@ import sys
 import time
 
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
+SOURCE = runpy.run_path(str(Path(__file__).with_name('push-source.py')))
 git = LIVE['git']
+
+
+def check_committed(root, base, tip, deadline):
+    try:
+        with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), deadline) as (tree, tools):
+            result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip), tools=tools)
+            if not result['ok'] and result['files']:
+                rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
+                result['inputs'] = json.loads(output) if rc == 0 else []
+            return result
+    except (TimeoutError, subprocess.TimeoutExpired):
+        return {'ok': False, 'phase': 'preparation', 'files': [], 'output': 'Committed check exceeded 45 seconds'}
 
 
 def load(path, fallback):
@@ -54,16 +67,9 @@ def offender(root, base, tip, files, deadline):
     left = deadline - time.monotonic()
     if not files or left <= 0:
         return None
-    # Expand failed tests through actual imports before naming an owner.
-    try:
-        queried = subprocess.run(['node', 'scripts/push-inputs.mjs', *files], cwd=root,
-                                 capture_output=True, text=True, timeout=min(5, left))
-    except subprocess.TimeoutExpired:
-        return None
-    if queried.returncode:
-        return None
-    inputs = json.loads(queried.stdout)
-    if not inputs or not LIVE['matches'](root, tip, inputs):
+    # The checker expanded dependencies in the committed source snapshot.
+    inputs = files
+    if not inputs:
         return None
     commits = git(root, 'rev-list', '--reverse', '--first-parent', base + '..' + tip).splitlines()
     for sha in commits:
@@ -73,7 +79,7 @@ def offender(root, base, tip, files, deadline):
     return None
 
 
-def tick(root, checker=LIVE['check'], uploader=None, notify=ping):
+def tick(root, checker=check_committed, uploader=None, notify=ping):
     started = time.monotonic()
     deadline = started + LIVE['LIMIT']
     pending_notice = None
@@ -98,12 +104,10 @@ def tick(root, checker=LIVE['check'], uploader=None, notify=ping):
     candidate = tip
     bad = None
     if not result['ok']:
-        bad = offender(root, base, tip, result['files'], deadline) if result['phase'] != 'working-tree' else None
+        bad = offender(root, base, tip, result.get('inputs', result['files']), deadline)
         candidate = git(root, 'rev-parse', bad + '^') if bad else base
         # The prefix must pass too, in the remaining original 45s budget.
-        prefix_files = LIVE['changed'](root, base, candidate) if candidate != base else []
-        if candidate != base and (not LIVE['matches'](root, candidate, prefix_files)
-                                  or not checker(root, base, candidate, deadline)['ok']):
+        if candidate != base and not checker(root, base, candidate, deadline)['ok']:
             candidate = base
         state_file = common / 'push-red.json'
         signature = re.sub(r'\d+(?:\.\d+)?(?:ms|s)\b', '<time>', LIVE['ANSI'].sub('', result['output']))
@@ -133,6 +137,11 @@ def tick(root, checker=LIVE['check'], uploader=None, notify=ping):
 
 def main():
     root = Path(git(Path.cwd(), 'rev-parse', '--show-toplevel'))
+    if len(sys.argv) == 3 and sys.argv[1] == '--check':
+        tip = git(root, 'rev-parse', sys.argv[2])
+        result = check_committed(root, git(root, 'merge-base', 'origin/main', tip), tip, time.monotonic() + LIVE['LIMIT'])
+        print(json.dumps(result))
+        return 0 if result['ok'] else 1
     folder = root / 'tmp/push-loop'
     folder.mkdir(parents=True, exist_ok=True)
     result = tick(root)
