@@ -126,6 +126,7 @@
     "./blobs": "./blobs.ts",
     "./outputProduct": "./outputProduct.ts",
     "./as/ws": "./as/ws.ts",
+    "./as/wsV2": "./as/wsV2.ts",
     "./decisionScriptBindings": "./decisionScriptBindings.ts",
     "./decisionSource": "./decisionSource.ts",
     "./buildDecisionScripts": "./buildDecisionScripts.ts",
@@ -616,6 +617,10 @@
       "./as/ws": {
         "types": "./dist/types/sdk/as/ws.d.ts",
         "default": "./dist/as/ws.js"
+      },
+      "./as/wsV2": {
+        "types": "./dist/types/sdk/as/wsV2.d.ts",
+        "default": "./dist/as/wsV2.js"
       },
       "./decisionScriptBindings": {
         "types": "./dist/types/sdk/decisionScriptBindings.d.ts",

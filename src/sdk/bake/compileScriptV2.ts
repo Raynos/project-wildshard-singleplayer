@@ -13,6 +13,7 @@ function compiler(value: unknown): value is Compiler { return typeof value === '
 function localStartAndAbort(bytes: Uint8Array): Uint8Array {
   const image = binaryen.readBinary(bytes);
   try {
+    image.setFeatures(binaryen.Features.MutableGlobals | binaryen.Features.SignExt | binaryen.Features.NontrappingFPToInt);
     const imports = Array.from({ length: image.getNumFunctions() },(_,i) => binaryen.getFunctionInfo(image.getFunctionByIndex(i))).filter(fn => fn.body === 0);
     for (const fn of imports) {
       if (fn.module !== 'env' || fn.base !== 'abort' || fn.results !== binaryen.none || binaryen.expandType(fn.params).length !== 4 || binaryen.expandType(fn.params).some(type => type !== binaryen.i32)) throw new Error('ABI v2 forbids guest function imports');

@@ -50,14 +50,17 @@ function same(a: Form | undefined, b: Form): boolean { return a !== undefined &&
 function guard(node: Form): Guard | undefined {
   if (!form(node) || node[0] !== 'block') return undefined;
   const label = typeof node[1] === 'string' ? node[1] : undefined, at = label === undefined ? 1 : 2;
-  if (node.length !== at+4) return undefined;
-  const result = node[at], set = node[at+1], get = node[at+3];
+  // Binaryen can flatten the checked expression's preceding statements into
+  // this block. The final set/check/get must still be exact; branches to the
+  // result label remain forbidden, including from that preceding sequence.
+  if (node.length < at+4) return undefined;
+  const result = node[at], set = node.at(-3), get = node.at(-1);
   if (!form(result) || result.length !== 2 || result[0] !== 'result' || !floating(result[1])
     || !form(set) || set.length !== 3 || set[0] !== 'local.set' || typeof set[1] !== 'string'
     || set[2] === undefined || !same(get, ['local.get', set[1]])) return undefined;
   // Binaryen canonicalizes decimal float constants on emission. Compare the
   // value at its declared width, while requiring every other guard instruction.
-  const expected = check(result[1], set[1]), actual = node[at+2];
+  const expected = check(result[1], set[1]), actual = node.at(-2);
   if (!form(actual)) return undefined;
   const copy = parse(`(module ${text(actual)})`)[1];
   if (!form(copy)) return undefined;
@@ -123,7 +126,7 @@ export function inspectV2Finite(bytes: Uint8Array): { stores: number; globals: n
         const result = node.find(child => form(child) && child[0] === 'result');
         let body = 2;
         while (form(node[body]) && ['param', 'result', 'local', 'type'].includes(String(node[body]?.[0]))) body++;
-        if (form(result) && floating(result[1]) && node.length-body === 3) found = guard(['block', result, ...node.slice(body)]);
+        if (form(result) && floating(result[1]) && node.length-body >= 3) found = guard(['block', result, ...node.slice(body)]);
       }
       if (found !== undefined) { guards.set(node, found); guardedResults.add(found.value); }
     });
