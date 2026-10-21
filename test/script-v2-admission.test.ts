@@ -9,8 +9,7 @@ const source = (step = 'store<f64>(1024,dtick);return 0;'): string => `
 export function ws_abi():i32{return 2;} export function ws_io():i32{return 1024;}
 export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return 0;}
 export function ws_step(dtick:i32,fuel:i32):i32{${step}}
-export function ws_project(fuel:i32):i32{return 0;}
-export function ws_view(dt:f64,alpha:f64,fuel:i32):i32{return 0;}`;
+`;
 async function guest(bytes: Uint8Array): Promise<{ memory: WebAssembly.Memory; call: (name: string,...args: number[]) => unknown }> {
   const memory = new WebAssembly.Memory({ initial: 1,maximum: 1 }), instance = (await WebAssembly.instantiate(new Uint8Array(bytes),{ env: { memory } })).instance;
   const callable = (value: unknown): value is (...args: number[]) => unknown => typeof value === 'function';
@@ -21,12 +20,11 @@ const raw = (body: string,extra = ''): Uint8Array => binary(`(module (import "en
 (func (export "ws_abi") (result i32) (i32.const 2)) (func (export "ws_io") (result i32) (i32.const 1024))
 (func (export "ws_init") (param i32 i32 i32) (result i32) (i32.const 0))
 (func (export "ws_step") (param i32 i32) (result i32) (local $tmp f64) ${body} (i32.const 0))
-(func (export "ws_project") (param i32) (result i32) (i32.const 0))
-(func (export "ws_view") (param f64 f64 i32) (result i32) (i32.const 0)))`);
+)`);
 
 test('the explicit v2 compiler admits real AS and executes only local finite/fuel guards', async () => {
   const bytes = await compileScriptV2(source()), admission = admitScriptV2(bytes), instance = await guest(bytes);
-  expect(admission.initialPages).toBe(1); expect(admission.io).toBe(1024); expect(admission.entries.size).toBe(4);
+  expect(admission.initialPages).toBe(1); expect(admission.io).toBe(1024); expect(admission.entries.size).toBe(2); expect(admission.lane).toBe('sim');
   const remainder = instance.call('ws_step',27,1000); expect(typeof remainder === 'number' && remainder < 1000 && remainder >= 0).toBe(true);
   expect(new DataView(instance.memory.buffer).getFloat64(1024,true)).toBe(27);
 });
@@ -67,4 +65,21 @@ test('v2 reserves the full trusted IO area outside AS data and refuses hostile a
   const later = instrumentV2Fuel(raw('(nop)','(data (i32.const 2048) "a")'));
   expect(() => admitScriptV2(later)).not.toThrow(); expect(() => admitScriptV2(later,{ ioBytes: 4096 })).toThrow('static data overlaps');
   await expect(compileScriptV2(source(),{ ioBytes: 65536 })).rejects.toThrow('IO does not fit');
+});
+
+
+test('v2 selects exactly one work lane and rejects mismatched or extra runtime entries', async () => {
+  const both = `${source()}export function ws_view(dt:f64,alpha:f64,fuel:i32):i32{return 0;}`;
+  await expect(compileScriptV2(both)).rejects.toThrow('explicit v2 lane');
+  const bytes = await compileScriptV2(both,{ lane: 'view',ioBytes: 4096 });
+  expect(admitScriptV2(bytes,{ lane: 'view',ioBytes: 4096 }).lane).toBe('view');
+  expect(() => admitScriptV2(bytes,{ lane: 'sim' })).toThrow('lane');
+  const names = WebAssembly.Module.exports(await WebAssembly.compile(new Uint8Array(bytes))).map(value => value.name);
+  expect(names).toContain('ws_view');expect(names).not.toContain('ws_step');expect(names).not.toContain('ws_project');
+  const image = binaryen.readBinary(bytes);
+  try {
+    const entry = Array.from({ length: image.getNumExports() },(_,i) => binaryen.getExportInfo(image.getExportByIndex(i))).find(value => value.name === 'ws_view');
+    if (entry === undefined) throw new Error('Missing actual metered view entry');
+    image.addFunctionExport(entry.value,'ws_step'); expect(() => admitScriptV2(image.emitBinary())).toThrow('lane');
+  } finally { image.dispose(); }
 });

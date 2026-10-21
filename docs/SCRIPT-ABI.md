@@ -449,6 +449,21 @@ wave; H1–H6 add an explicitly versioned Developer path. Selecting that path mu
 not change any existing v0/v1 compilation, admission, module hash or save.
 H13 owns the later cutover. See [WASM-HOST](plans/WASM-HOST.md).
 
+The implemented build entry is
+[`compileScriptV2(source, { lane, maximumPages, ioBytes, sources })`](../src/sdk/bake/compileScriptV2.ts).
+Select `sim`, `project` or `view`; inference is allowed only when one authored
+work export exists. The compiler keeps that work export, init and the getters.
+[`admitScriptV2(bytes, { lane, ioBytes })`](../src/format/scriptAdmissionV2.ts)
+verifies actual bytes before execution; the structural reader or fuel inspector
+alone does not grant execution. The host supplies the full trusted IO byte
+length (default 656 for header/directory only), also used to reserve compiler
+static data and stack outside the wire area. The
+[`ScriptModuleV2`](../src/engine/script/moduleV2.ts) primitive admits one sim or
+projection lane per instance and rewinds the complete image/globals before
+every call. Output domain/authority validation and the remaining lane
+integration below still belong to their defining hosts. Shipped v0/v1 loaders
+continue to select their original paths.
+
 ### Encoding, authority and memory
 
 All multibyte values are little-endian. `u16` occupies two bytes,

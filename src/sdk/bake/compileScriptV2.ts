@@ -4,6 +4,7 @@ import binaryen from 'binaryen';
 import { loadAssemblyScriptCompiler } from '../assemblyscriptCompiler.mjs';
 import { instrumentV2Finite } from './v2Finite';
 import { instrumentV2Fuel } from './v2Fuel';
+import type { V2Lane } from '@wildshard/format/scriptFuelV2';
 import { readV2Module } from '@wildshard/format/scriptModuleV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 
@@ -31,7 +32,7 @@ function localStartAndAbort(bytes: Uint8Array): Uint8Array {
 /** Source exports the H0b signatures, including the final i32 fuel parameter
  * and i32 result for each work entry. Generated wrappers return the real fuel
  * remainder rather than trusting the authored result. */
-export async function compileScriptV2(source: string,options: { maximumPages?: number; ioBytes?: number; sources?: Readonly<Record<string,string>> } = {}): Promise<Uint8Array> {
+export async function compileScriptV2(source: string,options: { maximumPages?: number; ioBytes?: number; lane?: V2Lane; sources?: Readonly<Record<string,string>> } = {}): Promise<Uint8Array> {
   const pages = options.maximumPages ?? 1;
   if (!Number.isInteger(pages) || pages < 1 || pages > 4) throw new Error('V2 fixed memory must be 1..4 pages');
   const sources = new Map(Object.entries(options.sources ?? {}));
@@ -53,6 +54,6 @@ export async function compileScriptV2(source: string,options: { maximumPages?: n
   if (entry?.kind !== 0 || code?.length !== 2 || code[0]?.op !== 0x41 || code[1]?.op !== 0x0b || typeof io !== 'number' || io < 0 || io%8 !== 0
     || !Number.isSafeInteger(ioBytes) || ioBytes < 656 || ioBytes > pages*65536-io) throw new Error('V2 IO does not fit fixed memory');
   const reserved = await compile(Math.ceil((io+ioBytes)/16)*16);
-  const output = instrumentV2Fuel(instrumentV2Finite(reserved)), admitted = admitScriptV2(output,{ ioBytes });
+  const output = instrumentV2Fuel(instrumentV2Finite(reserved),options), admitted = admitScriptV2(output,{ ioBytes,...(options.lane === undefined ? {} : { lane: options.lane }) });
   if (admitted.io !== io) throw new Error('V2 IO getter depends on compiler allocation'); return output;
 }

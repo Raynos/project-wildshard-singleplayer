@@ -1,7 +1,7 @@
 /** ABI v2 executable intake: validate actual bytes before any guest code runs.
  * Kept separate from scriptAdmission so shipped v0/v1 contracts stay unchanged. */
 import { readV2Module,type V2Body,type V2Instruction,type V2Signature } from './scriptModuleV2';
-import { inspectV2Fuel } from './scriptFuelV2';
+import { inspectV2Fuel,type V2Lane } from './scriptFuelV2';
 
 interface Control { start: number; end: number; type: number; op: number }
 interface Guard { control: Control; type: number; set: number }
@@ -49,12 +49,12 @@ function finiteGuards(body: V2Body,type: V2Signature,code: readonly V2Instructio
 }
 export interface ScriptAdmissionV2 {
   initialPages: number; maximumPages: number; globals: readonly string[];
-  fuel: number; io: number; ioBytes: number; entries: ReadonlyMap<string,number>;
+  fuel: number; lane: V2Lane; io: number; ioBytes: number; entries: ReadonlyMap<string,number>;
 }
 /** No instantiation, getters or initialization occurs during admission. The
  * runtime must still validate host-owned output regions before publishing. */
-export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number } = {}): ScriptAdmissionV2 {
-  const image = readV2Module(bytes), fuel = inspectV2Fuel(bytes);
+export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number; readonly lane?: V2Lane } = {}): ScriptAdmissionV2 {
+  const image = readV2Module(bytes), fuel = inspectV2Fuel(bytes,options);
   const floats = new Map(image.globals.flatMap((global,index): [number,number][] => global.type === f32 || global.type === f64 ? [[index,global.type]] : []));
   for (let i = 0; i < image.bodies.length; i++) {
     const body = image.bodies[i], type = image.types[image.functions[i] ?? -1], code = fuel.unmetered[i];
@@ -65,5 +65,5 @@ export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: nu
   const ioBytes = options.ioBytes ?? 656;
   if (!Number.isSafeInteger(ioBytes) || ioBytes < 656 || ioBytes > image.pages*65536-io) throw new Error('V2 IO does not fit fixed memory');
   if (image.data.some(row => row.length > 0 && row.offset < io+ioBytes && row.offset+row.length > io)) throw new Error('V2 static data overlaps host IO');
-  return { initialPages: fuel.pages,maximumPages: fuel.pages,globals: fuel.globals,fuel: fuel.fuel,io,ioBytes,entries: fuel.entries };
+  return { initialPages: fuel.pages,maximumPages: fuel.pages,globals: fuel.globals,fuel: fuel.fuel,lane: fuel.lane,io,ioBytes,entries: fuel.entries };
 }

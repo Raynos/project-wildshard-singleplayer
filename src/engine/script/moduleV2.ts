@@ -17,6 +17,7 @@ export class ScriptModuleV2 {
   private readonly globals: readonly { global: WebAssembly.Global; value: number | bigint }[];
   private readonly columns: readonly FloatColumnV2[];
   private busy = false;
+  private readonly lane: 'sim' | 'project';
   constructor(bytes: Uint8Array,options: {
     readonly seed: readonly [number,number]; readonly initFuel: number;
     readonly output: readonly FloatColumnV2[]; readonly ioBytes?: number;
@@ -25,7 +26,8 @@ export class ScriptModuleV2 {
     budget(options.initFuel);
     if (options.seed.some(value => !Number.isInteger(value) || value < 0 || value > 0xffffffff)) throw new Error('Invalid v2 seed words');
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source,options.ioBytes === undefined ? {} : { ioBytes: options.ioBytes });
-    this.io = admitted.io; this.memory = new WebAssembly.Memory({ initial: admitted.initialPages,maximum: admitted.maximumPages });
+    if (admitted.lane === 'view') throw new Error('Stateless v2 host refuses the persistent view lane');
+    this.lane = admitted.lane; this.io = admitted.io; this.memory = new WebAssembly.Memory({ initial: admitted.initialPages,maximum: admitted.maximumPages });
     observeWasmMemory(this.memory,{ owner: 'engine/script',asset: 'v2/module' });
     this.instance = new WebAssembly.Instance(new WebAssembly.Module(source),{ env: { memory: this.memory } });
     this.columns = options.output.map(column => Object.freeze({ ...column }));
@@ -50,6 +52,7 @@ export class ScriptModuleV2 {
     if (typeof remaining !== 'number' || !Number.isInteger(remaining) || remaining < 0 || remaining > fuel) throw new Error('Invalid v2 fuel remainder'); return remaining;
   }
   private run<T>(name: string,args: number[],fuel: number,write: (view: DataView) => void,read: (view: DataView) => T): { value: T; remaining: number } {
+    if (name !== (this.lane === 'sim' ? 'ws_step' : 'ws_project')) throw new Error('V2 module does not admit this lane');
     budget(fuel); if (this.busy) throw new Error('V2 module re-entry'); this.busy = true;
     try {
       this.rewind(); const view = new DataView(this.memory.buffer); write(view);

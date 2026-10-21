@@ -1,21 +1,33 @@
 /** ABI v2 fuel verification. This is one prerequisite of complete admission,
- * not permission to instantiate a image by itself. */
+ * not permission to instantiate an image by itself. */
 import { SCRIPT_ABI } from './scriptAbi';
 import { readV2Module,type V2Instruction,type V2Module,type V2Signature } from './scriptModuleV2';
 
 export const V2_ENTRY_SIGNATURES: Readonly<Record<string,readonly number[]>> = Object.freeze({
   ws_init: [0x7f,0x7f,0x7f], ws_step: [0x7f,0x7f], ws_project: [0x7f], ws_view: [0x7c,0x7c,0x7f],
 });
+export const V2_WORK_ENTRIES = Object.freeze({ sim: 'ws_step',project: 'ws_project',view: 'ws_view' });
+export type V2Lane = keyof typeof V2_WORK_ENTRIES;
+/** Runtime modules have exactly one work entry; build input may select one of
+ * several authored exports before the others are removed. */
+export function v2Lane(image: V2Module,requested?: V2Lane,build = false): V2Lane {
+  const present = Object.entries(V2_WORK_ENTRIES).filter(([,name]) => image.exports.has(name));
+  if (requested !== undefined) {
+    if (!Object.hasOwn(V2_WORK_ENTRIES,requested) || !image.exports.has(V2_WORK_ENTRIES[requested]) || (!build && present.length !== 1)) throw new Error('V2 lane has missing or extra work entries'); return requested;
+  }
+  const lane = present.length === 1 ? present[0]?.[0] : undefined;
+  if (lane !== 'sim' && lane !== 'project' && lane !== 'view') throw new Error('Select one explicit v2 lane'); return lane;
+}
 /** H0 measured >15% overhead on tiny blocks. Coalesce each acyclic control
  * region, precharging its scalar instruction count once. Conditional paths
  * may consume fewer instructions than charged; nested loop bodies belong to
  * their own region and are charged again at every loop back-edge. Calls charge
  * their own bodies, while their call opcode belongs to this region. */
-export function v2BlockCosts(code: readonly V2Instruction[]): ReadonlyMap<number,number> {
+export function v2BlockCosts(code: readonly V2Instruction[],constantCalls: ReadonlyMap<number,number> = new Map()): ReadonlyMap<number,number> {
   const costs = new Map<number,number>([[0,0]]), regions = [0], controls: boolean[] = [];
   for (let i = 0; i < code.length; i++) {
     const op = code[i]?.op, region = regions.at(-1); if (region === undefined) throw new Error('Invalid v2 region');
-    costs.set(region,(costs.get(region) ?? 0)+1);
+    costs.set(region,(costs.get(region) ?? 0)+1+(op === 0x10 ? constantCalls.get(code[i]?.args[0] ?? -1) ?? 0 : 0));
     if (op === 0x02 || op === 0x03 || op === 0x04) {
       controls.push(op === 0x03);
       if (op === 0x03) { regions.push(i+1); costs.set(i+1,0); }
@@ -37,16 +49,17 @@ function chargeAt(code: readonly V2Instruction[],at: number,fuel: number): numbe
   return shape.every(([op,arg],i) => instruction(code,at+i,op,arg)) ? cost : undefined;
 }
 export interface V2FuelInspection {
-  fuel: number; globals: readonly string[]; pages: number;
+  fuel: number; lane: V2Lane; globals: readonly string[]; pages: number;
   entries: ReadonlyMap<string,number>; unmetered: readonly (readonly V2Instruction[])[];
 }
 /** Verify the actual bytes, including all charge writes and all possible direct
  * calls, without invoking getters, init, start or any other guest function. */
-export function inspectV2Fuel(bytes: Uint8Array): V2FuelInspection {
-  const image = readV2Module(bytes), fuel = image.globals.length-1, privateGlobal = image.globals[fuel];
+export function inspectV2Fuel(bytes: Uint8Array,options: { readonly lane?: V2Lane } = {}): V2FuelInspection {
+  const image = readV2Module(bytes), lane = v2Lane(image,options.lane), fuel = image.globals.length-1, privateGlobal = image.globals[fuel];
   if (privateGlobal?.type !== 0x7f || !privateGlobal.mutable || privateGlobal.value !== 0) throw new Error('Missing private v2 fuel global');
   const entries = new Map<string,number>(), getters = new Set<number>(), implementations = new Set<number>(), globals: string[] = [];
-  for (const [name,params] of Object.entries(V2_ENTRY_SIGNATURES)) {
+  for (const name of ['ws_init',V2_WORK_ENTRIES[lane]]) {
+    const params = V2_ENTRY_SIGNATURES[name]; if (params === undefined) throw new Error('Missing v2 entry contract');
     const entry = image.exports.get(name); if (entry?.kind !== 0) throw new Error('Missing v2 fueled entry');
     const type = signature(image,entry.index); if (type.result !== 0x7f || !same(type.params,params) || [...entries.values()].includes(entry.index)) throw new Error('Wrong v2 entry signature or alias');
     entries.set(name,entry.index);
@@ -63,7 +76,7 @@ export function inspectV2Fuel(bytes: Uint8Array): V2FuelInspection {
   }
   const allowedFunctions = new Set([...entries.values(),...getters]);
   for (const [name,exp] of image.exports) {
-    if (exp.kind === 0 && (!allowedFunctions.has(exp.index) || !(Object.hasOwn(V2_ENTRY_SIGNATURES,name) || name === 'ws_abi' || name === 'ws_io'))) throw new Error('Unexpected v2 function export');
+    if (exp.kind === 0 && (!allowedFunctions.has(exp.index) || !(entries.has(name) || name === 'ws_abi' || name === 'ws_io'))) throw new Error('Unexpected v2 function export');
     if (exp.kind === 3 && (exp.index === fuel || name !== `__state_${exp.index}` || !image.globals[exp.index]?.mutable)) throw new Error('V2 fuel exported or noncanonical global alias');
   }
   for (const index of entries.values()) {
@@ -92,7 +105,7 @@ export function inspectV2Fuel(bytes: Uint8Array): V2FuelInspection {
       }
       plain.push(value);
     }
-    const costs = v2BlockCosts(plain);
+    const costs = v2BlockCosts(plain,new Map([...getters].map(target => [target,2])));
     if (costs.size !== charges.size || [...costs].some(([at,cost]) => charges.get(at) !== cost)) throw new Error('Missing or underpriced v2 basic block region');
     unmetered.push(plain); calls.push(edges);
   }
@@ -105,5 +118,5 @@ export function inspectV2Fuel(bytes: Uint8Array): V2FuelInspection {
     active.delete(index); if (depth > SCRIPT_ABI.callDepth) throw new Error('V2 call graph depth exceeds 64'); depths.set(index,depth); return depth;
   };
   for (let i = 0; i < image.bodies.length; i++) visit(i);
-  return { fuel,globals,pages: image.pages,entries,unmetered };
+  return { fuel,lane,globals,pages: image.pages,entries,unmetered };
 }

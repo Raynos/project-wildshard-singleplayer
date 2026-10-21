@@ -20,11 +20,12 @@ const read = (view: DataView): number => view.getFloat64(1040,true);
 const options = { seed: [1,2] as const,initFuel: 10000,output: [{ offset: 1040,count: 1,width: 8 as const }] };
 
 test('v2 sim/project rewinds every raw byte and mutable global, even after a trap or re-step', async () => {
-  const module = new ScriptModuleV2(await compileScriptV2(source),options);
+  const module = new ScriptModuleV2(await compileScriptV2(source,{ lane: 'sim' }),options);
   expect(module.step(0,10000,write,read).value).toBe(31);
   new Uint8Array(module.memory.buffer).fill(0xa5);
   expect(module.step(0,10000,write,read).value).toBe(31);
-  expect(module.project(10000,write,read).value).toBe(31);
+  const projection = new ScriptModuleV2(await compileScriptV2(source,{ lane: 'project' }),options);
+  new Uint8Array(projection.memory.buffer).fill(0xa5); expect(projection.project(10000,write,read).value).toBe(31);
   expect(() => module.step(2,10000,write,read)).toThrow(WebAssembly.RuntimeError);
   expect(module.step(0,10000,write,read).value).toBe(31);
   expect(() => module.step(0,1,write,read)).toThrow(WebAssembly.RuntimeError);
@@ -32,15 +33,15 @@ test('v2 sim/project rewinds every raw byte and mutable global, even after a tra
   expect(new DataView(module.memory.buffer).getInt32(62000,true)).toBe(12);
 });
 test('v2 validates every numeric output before exposing any candidate, including integer-forged NaNs', async () => {
-  const module = new ScriptModuleV2(await compileScriptV2(source),options); let reads = 0;
+  const module = new ScriptModuleV2(await compileScriptV2(source,{ lane: 'sim' }),options); let reads = 0;
   expect(() => module.step(3,10000,write,view => { reads++;return read(view); })).toThrow('Non-finite v2 output column');
   expect(reads).toBe(0); expect(module.step(0,10000,write,read).value).toBe(31);
   expect(() => module.step(0,10000,write,() => { throw new Error('Domain refusal'); })).toThrow('Domain refusal');
   expect(module.step(0,10000,write,read).value).toBe(31);
 });
 test('v2 rejects re-entry and preserves the initial image when a host preparation refuses', async () => {
-  const module = new ScriptModuleV2(await compileScriptV2(source),options);
-  expect(() => module.project(10000,() => { module.step(0,10000,write,read); },read)).toThrow('re-entry');
+  const module = new ScriptModuleV2(await compileScriptV2(source,{ lane: 'project' }),options);
+  expect(() => module.project(10000,() => { module.project(10000,write,read); },read)).toThrow('re-entry');
   expect(() => module.project(10000,view => { view.setInt32(62000,100,true);throw new Error('Prepare refusal'); },read)).toThrow('Prepare refusal');
   expect(module.project(10000,write,read).value).toBe(31);
 });
@@ -56,6 +57,6 @@ test('host-owned v2 float column bounds use checked arithmetic and preserve both
 test('a v2 compile cannot change either existing compiler version in the same process', async () => {
   const v1 = 'export function ws_abi():i32{return 1;} export function ws_init(lo:i32,hi:i32):void{} export function ws_io():i32{return 16384;} export function ws_handle():i32{return 0;}';
   const before0 = await compileScript(scriptSource()), before1 = await compileScript(v1,{ abi: 1 });
-  await compileScriptV2(source);
+  await compileScriptV2(source,{ lane: 'sim' });
   expect(await compileScript(scriptSource())).toEqual(before0); expect(await compileScript(v1,{ abi: 1 })).toEqual(before1);
 });
