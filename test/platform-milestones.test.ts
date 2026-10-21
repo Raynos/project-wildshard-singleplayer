@@ -18,16 +18,16 @@ import {createOutputReader} from '../scripts/shard-platform-output.mjs';
 
 it('weights actual must-go lines and keeps unknown M2 evidence out of a point claim',()=>{
  const input={basis:'source' as const,customLines:20,legacyLines:100};
- expect(m3Progress('far-reach',{...input,customLines:10})?.fraction).toBe(1);
- expect(m3Progress('pine-hollow',input)?.fraction).toBe(1);
+ expect(m3Progress('far-reach',{...input,customLines:10})?.fraction).toBe(.9);
+ expect(m3Progress('pine-hollow',input)?.fraction).toBe(.8);
  expect(m3Progress('nalati-grasslands',{...input,customLines:120})?.fraction).toBe(0);
  const rows:Parameters<typeof planProgress>[0]={};
  for(const slug of MILESTONE_SHARDS)rows[slug]={m3:m3Progress(slug,input),gridReady:{verdict:'unknown',criteria:{}}};
  const result=planProgress(rows);
- expect(result.m3).toMatchObject({cut:480,mustGo:500,fraction:.96});
+ expect(result.m3).toMatchObject({cut:480,mustGo:600,fraction:.8});
  expect(result.m2).toMatchObject({lower:0,upper:1,unknown:10,total:10,plots:15});
- expect(result.plan?.lower).toBeCloseTo(.576);
- expect(result.plan?.upper).toBeCloseTo(.976);
+ expect(result.plan?.lower).toBeCloseTo(.48);
+ expect(result.plan?.upper).toBeCloseTo(.88);
  expect(readinessVerdict({})).toBe('unknown');
 });
 
@@ -122,6 +122,6 @@ it('reports frame floor alongside M2 without changing visual readiness or plan w
  const result=planProgress(rows);
  expect(result.m2).toMatchObject({ready:6,unknown:4,total:10});
  expect(result.frameFloor).toEqual({ready:0,fail:6,unknown:4,total:10});
- expect(result.plan?.lower).toBeCloseTo(.816);
- expect(result.plan?.upper).toBeCloseTo(.976);
+ expect(result.plan?.lower).toBeCloseTo(.72);
+ expect(result.plan?.upper).toBeCloseTo(.88);
 });

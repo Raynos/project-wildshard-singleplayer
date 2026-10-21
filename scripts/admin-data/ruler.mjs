@@ -10,7 +10,7 @@
 // refuses a ruler.json committed without its matching table.
 //
 // Whole plan = 60 % × M3 + 40 % × M2 (a range while M2 has unknown checks). Per shard: custom lines ÷ frozen legacy
-// lines (lower is better; goal 20 %, 10 % for Sky Reach and Signal Dunes). No effort, hours or projections.
+// lines (lower is better; every wave targets zero custom). No effort, hours or projections.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -43,22 +43,22 @@ const componentWavesSchema = v.array(v.object({ id: v.string(), components: comp
 
 /** The six legacy shards, in wave order. */
 export const SHARDS = /** @type {const} */ ([
-  { slug: 'pine-hollow', name: 'Pine Hollow', wave: 'W2', goal: 20 },
-  { slug: 'driftwood-isle', name: 'Driftwood', wave: 'W2', goal: 20 },
-  { slug: 'far-reach', name: 'Sky Reach', wave: 'W1', goal: 10 },
-  { slug: 'sunscar-dunes', name: 'Signal Dunes', wave: 'W1', goal: 10 },
-  { slug: 'nalati-grasslands', name: 'Nalati', wave: 'W3', goal: 20 },
-  { slug: 'nine-dragon-stack', name: 'Nine Dragon', wave: 'W3', goal: 20 },
+  { slug: 'pine-hollow', name: 'Pine Hollow', wave: 'W2', goal: 0 },
+  { slug: 'driftwood-isle', name: 'Driftwood', wave: 'W2', goal: 0 },
+  { slug: 'far-reach', name: 'Sky Reach', wave: 'W1', goal: 0 },
+  { slug: 'sunscar-dunes', name: 'Signal Dunes', wave: 'W1', goal: 0 },
+  { slug: 'nalati-grasslands', name: 'Nalati', wave: 'W3', goal: 0 },
+  { slug: 'nine-dragon-stack', name: 'Nine Dragon', wave: 'W3', goal: 0 },
 ]);
 
-/** The mini-plan order (G471): W1 below 10%, then W2 below 20%, then W3. Every wave closes on its shard goals.
+/** The mini-plan order (G567): every wave closes only at zero custom lines.
  * @type {readonly {id:string;label:string;shards:readonly string[];goal:number;until:string|null;start:Record<string,number>|null}[]} */
 export const WAVES = [
-  { id: 'W1', label: 'W1 · Sky + Signal under 10%', shards: ['far-reach', 'sunscar-dunes'], goal: 10, until: null, start: null },
-  { id: 'W2', label: 'W2 · Pine + Driftwood under 20%', shards: ['pine-hollow', 'driftwood-isle'], goal: 20,
+  { id: 'W1', label: 'W1 · Sky + Signal to zero', shards: ['far-reach', 'sunscar-dunes'], goal: 0, until: null, start: null },
+  { id: 'W2', label: 'W2 · Pine + Driftwood to zero', shards: ['pine-hollow', 'driftwood-isle'], goal: 0,
     until: null, start: { 'pine-hollow': 107.6, 'driftwood-isle': 104.2 } },
-  { id: 'W3', label: 'W3 · Nalati + Nine', shards: ['nalati-grasslands', 'nine-dragon-stack'], goal: 20, until: null, start: null },
-  { id: 'NEXT', label: 'NEXT', shards: [], goal: 20, until: null, start: null },
+  { id: 'W3', label: 'W3 · Nalati + Nine to zero', shards: ['nalati-grasslands', 'nine-dragon-stack'], goal: 0, until: null, start: null },
+  { id: 'NEXT', label: 'NEXT', shards: [], goal: 0, until: null, start: null },
 ];
 
 /** @typedef {{slug:string;name:string;wave:string;goal:number;custom:number|null;legacy:number;pct:number|null;grid:'pass'|'fail'|'unknown';criteria:Record<string,string>;frameFloor?:import('../shard-milestones.mjs').Criterion;measurementError?:string;productFailure?:string}} RulerShard */
@@ -126,6 +126,11 @@ export function nextRuler(raw, prev, at) {
   const basis = kinds.join('');
   const native = Object.keys(raw).filter((slug) => slug !== '_summary' && !SHARDS.some((s) => s.slug === slug)).sort();
   const m2total = num(progress.m2.total, 'm2.total'), ready = num(progress.m2.ready, 'm2.ready'), unknown = num(progress.m2.unknown, 'm2.unknown');
+  // A historical mirror may report retired 10/20% goals. Recompute from its
+  // measured shard counts so every hourly ruler uses the current zero goal.
+  const originalLines = shards.reduce((sum, shard) => sum + shard.legacy, 0);
+  const cutLines = shards.reduce((sum, shard) => sum + (shard.custom === null ? 0 : Math.max(0, shard.legacy - shard.custom)), 0);
+  const fraction = shards.some(shard => shard.custom === null) ? null : cutLines / originalLines;
   /** @type {Partial<Record<string,number>>} */
   const now = Object.fromEntries(shards.flatMap(s=>s.custom===null?[]:[[s.slug,(s.custom/s.legacy)*100]]));
   const events = [...(prev?.events ?? [])];
@@ -147,6 +152,10 @@ export function nextRuler(raw, prev, at) {
       else events.push({ at: at.now, label: `${wave.id} starts` });
       waves.push(state);
     }
+    if (state.endedAt !== null && wave.shards.some(slug => (now[slug] ?? Infinity) > wave.goal)) {
+      state.endedAt = null;
+      events.push({ at: at.now, label: `G567: ${wave.id} reopens toward zero custom` });
+    }
     if (state.endedAt === null) {
       const done = wave.shards.length > 0 && wave.shards.every((slug) => (now[slug] ?? Infinity) <= wave.goal);
       if (done && wave.id !== 'NEXT') {
@@ -161,10 +170,9 @@ export function nextRuler(raw, prev, at) {
   if (history.at(-1)?.revision !== at.revision) history.push({ revision: at.revision, at: at.committedAt, basis, shards: now });
   return {
     schema: RULER_SCHEMA, command: RULER_COMMAND, revision: at.revision, committedAt: at.committedAt, measuredAt: at.now, basis,
-    plan:isObject(progress.plan)?{lower:num(progress.plan.lower,'plan.lower'),upper:num(progress.plan.upper,'plan.upper')}:
-      {lower:.4*ready/m2total,upper:.6+.4*(ready+unknown)/m2total},
-    m3:progress.m3.fraction===null&&measurementError!==null?{cut:null,mustGo:null,fraction:null}:
-      {cut:num(progress.m3.cut,'m3.cut'),mustGo:num(progress.m3.mustGo,'m3.mustGo'),fraction:num(progress.m3.fraction,'m3.fraction')},
+    plan:fraction===null?{lower:.4*ready/m2total,upper:.6+.4*(ready+unknown)/m2total}:
+      {lower:.6*fraction+.4*ready/m2total,upper:.6*fraction+.4*(ready+unknown)/m2total},
+    m3:fraction===null?{cut:null,mustGo:null,fraction:null}:{cut:cutLines,mustGo:originalLines,fraction},
     ...(measurementError===null?{}:{measurementError}),
     productFailures:v.parse(v.record(v.string(),v.string()),summary.productFailures??{}),
     m2: { ready, fail: m2total - ready - unknown, unknown, total: m2total,

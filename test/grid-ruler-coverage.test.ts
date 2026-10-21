@@ -23,9 +23,9 @@ it('covers all ten authored playable grid shards and counts fifteen plot cells s
  input['open-plot-night-market']={...native,gridReady:{...native.gridReady,verdict:'fail'}};
  const progress=planProgress(input);
  expect(progress.m2).toMatchObject({ready:8,unknown:1,total:10,plots:15,lower:.8,upper:.9});
- expect(progress.m3).toMatchObject({cut:480,mustGo:500,fraction:.96,shards:6});
- expect(progress.plan?.lower).toBeCloseTo(.896);
- expect(progress.plan?.upper).toBeCloseTo(.936);
+ expect(progress.m3).toMatchObject({cut:480,mustGo:600,fraction:.8,shards:6});
+ expect(progress.plan?.lower).toBeCloseTo(.8);
+ expect(progress.plan?.upper).toBeCloseTo(.84);
 });
 
 it('keeps missing native evidence unknown and retains the six legacy M3 denominators',()=>{
@@ -62,4 +62,43 @@ it('reports each plot placement separately and retains per-product criterion evi
  const ruler=nextRuler({...input,_summary:{progress,netLines:[]}},null,{revision:'d'.repeat(40),committedAt:'2026-10-21T12:00:00Z',now:'2026-10-21T12:01:00Z'});
  expect(ruler.m2).toMatchObject({plotReadiness:{ready:13,fail:2,unknown:0,total:15},
   readiness:{'open-plot-night-market':{verdict:'fail',criteria:{memory:{evidence:'Latched measured source'}}}}});
+});
+
+it('G567 measures the recorded baseline toward zero with the original 98,854 lines',()=>{
+ const input=rows();
+ const baseline=[['pine-hollow',21305,1168],['driftwood-isle',17167,1333],['far-reach',6779,0],
+  ['sunscar-dunes',4122,0],['nalati-grasslands',28370,4610],['nine-dragon-stack',21111,1863]] as const;
+ for(const [slug,legacyLines,customLines]of baseline){
+  const original=input[slug];if(original===undefined)throw new Error('Missing legacy fixture');
+  input[slug]={...original,m3:m3Progress(slug,{basis:'source',legacyLines,customLines})};
+ }
+ for(const slug of ['_template','blender-template','far-reach','sunscar-dunes']){
+  const original=input[slug];if(original===undefined)throw new Error('Missing grid fixture');
+  input[slug]={...original,gridReady:{verdict:'fail',criteria:{}}};
+ }
+ const progress=planProgress(input),retired={...progress,m3:{...progress.m3,mustGo:80000,fraction:1.1},plan:{lower:.84,upper:.84}};
+ const ruler=nextRuler({...input,_summary:{progress:retired,netLines:[]}},null,
+  {revision:'e'.repeat(40),committedAt:'2026-10-21T12:00:00Z',now:'2026-10-21T12:01:00Z'});
+ expect(progress.m3).toMatchObject({cut:89880,mustGo:98854});
+ expect(Number(((progress.m3.fraction??0)*100).toFixed(1))).toBe(90.9);
+ expect(Number(((progress.plan?.lower??0)*100).toFixed(1))).toBe(78.6);
+ expect(ruler.m3).toMatchObject({cut:89880,mustGo:98854,fraction:progress.m3.fraction});
+ expect(ruler.plan).toEqual(progress.plan);
+ expect(ruler.shards.every(shard=>shard.goal===0)).toBe(true);expect(ruler.wave.goal).toBe(0);
+ // A wave that met the retired 20% target must reopen until its custom count is zero.
+ const previous=structuredClone(ruler);
+ for(const wave of previous.waves)wave.endedAt='2026-10-20T12:00:00Z';
+ const next=nextRuler({...input,_summary:{progress,netLines:[]}},previous,
+  {revision:'f'.repeat(40),committedAt:'2026-10-21T12:02:00Z',now:'2026-10-21T12:03:00Z'});
+ expect(next.wave.id).toBe('W2');expect(next.waves.find(wave=>wave.id==='W2')?.endedAt).toBeNull();
+});
+
+it('G567 does not cap the M3 contribution to the plan',()=>{
+ const input=rows();
+ for(const slug of MILESTONE_SHARDS){
+  const original=input[slug];if(original?.m3===null||original===undefined)throw new Error('Missing measured fixture');
+  input[slug]={...original,m3:{...original.m3,cut:120,mustGo:100,fraction:1.2}};
+ }
+ const progress=planProgress(input);
+ expect(progress.m3.fraction).toBe(1.2);expect(progress.plan?.lower).toBeCloseTo(1.12);
 });

@@ -73,11 +73,11 @@ export function gridReady(root,slug,products,{revision=null,receipts=[],reader}=
   return result();
 }
 
-/** @param {string} slug @param {{basis:'source'|'output',customLines:number,legacyLines:number|null}} input */
-export function m3Progress(slug,input) {
+/** @param {string} _slug @param {{basis:'source'|'output',customLines:number,legacyLines:number|null}} input */
+export function m3Progress(_slug,input) {
   if(input.legacyLines===null)return null;
-  const target=(slug==='far-reach'||slug==='sunscar-dunes')?0.1:0.2;
-  const mustGo=input.legacyLines*(1-target),cut=Math.max(0,input.legacyLines-input.customLines);
+  const target=0;
+  const mustGo=input.legacyLines,cut=Math.max(0,input.legacyLines-input.customLines);
   return {...input,target,mustGo,cut,fraction:cut/mustGo};
 }
 /** @param {Record<string,{m3:ReturnType<typeof m3Progress>,gridReady:import('./shard-milestones.mjs').GridReady}|undefined>} rows
@@ -97,8 +97,8 @@ export function planProgress(rows,plots={}) {
   const floorReady=grid.filter(row=>row?.gridReady.frameFloor?.verdict==='pass').length;
   const floorFail=grid.filter(row=>row?.gridReady.frameFloor?.verdict==='fail').length;
   const frameFloor={ready:floorReady,fail:floorFail,unknown:total-floorReady-floorFail,total};
-  // M3 reports past 100 % honestly, but it can't carry the plan past its 60 % share.
-  const m3Share=m3===null?null:Math.min(1,m3);
+  // G567: original custom lines are the denominator; report uncapped progress.
+  const m3Share=m3;
   return {m3:{fraction:m3,cut,mustGo,shards:measured.length},m2,frameFloor,
     plan:m3Share===null?null:{lower:.6*m3Share+.4*m2.lower,upper:.6*m3Share+.4*m2.upper}};
 }
