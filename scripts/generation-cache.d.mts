@@ -10,7 +10,7 @@ export interface GenerationOptions {
   generate: (directory: string) => Promise<void>;
 }
 /** A verified immutable directory with the digest of every declared generated file. */
-export interface GenerationResult { directory: string; key: string; hit: boolean; hashes: Record<string, string>; elapsedMs: number }
+export interface GenerationResult { directory: string; key: string; hit: boolean; hashes: Record<string, string>; elapsedMs: number; /** Hold the cache read lease through every consumer copy; release when done. Dead process leases are reaped. */release:()=>void }
 /** Persistent shared cache root; WILDSHARD_GENERATE_CACHE can select another directory. */
 export function generationCacheRoot(env?: NodeJS.ProcessEnv): string;
 /** Key exact input contents, command, tool versions and native host identity. */

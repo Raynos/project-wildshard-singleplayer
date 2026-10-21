@@ -1,5 +1,5 @@
 // G292: one verified, content-addressed cache for generated assets and native checkpoints.
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
@@ -86,29 +86,33 @@ function reclaim(lock) {
  * @param {string} root @param {import('./generation-cache.mjs').GenerationJob} descriptor
  * @param {import('./generation-cache.mjs').GenerationOptions} options
  * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
-export function runGenerationJob(root, descriptor, options) {
+export async function runGenerationJob(root, descriptor, options) {
   const job = v.parse(Job, descriptor), key = generationKey(root, job, options), platform = options.platform ?? process.platform;
-  if (job.platform === 'darwin' && platform !== 'darwin') return Promise.reject(new Error(`Darwin-only generator: ${job.id}`));
+  if (job.platform === 'darwin' && platform !== 'darwin') throw new Error(`Darwin-only generator: ${job.id}`);
   const directory = resolve(options.cacheDir ?? generationCacheRoot(), job.id, key);
+  // Pin before validation: an eviction already holding key.lock must finish
+  // before execute inspects the entry; a later eviction sees this reader.
+  const release = readLease(directory);
   // A force request must not turn into a warm hit by sharing an ordinary request.
   const token = `${directory}:${options.forceCompare === true ? 'compare' : 'ensure'}`;
   const prior = active.get(token);
-  if (prior !== undefined) return prior;
-  const task = execute(root, directory, key, job, options).then(result => {
+  const task = prior ?? execute(root, directory, key, job, options).then(result => {
     if (!result.hit) maybePruneGenerationCache(options.cacheDir ?? generationCacheRoot(), { protect: [directory] });
     return result;
   }).finally(() => { active.delete(token); });
-  active.set(token, task); return task;
+  active.set(token, task);
+  try {return {...await task,release};}
+  catch(error) {release();throw error;}
 }
 /** @param {string} root @param {string} directory @param {string} key
  * @param {import('./generation-cache.mjs').GenerationJob} job
  * @param {import('./generation-cache.mjs').GenerationOptions} options
- * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
+ * @returns {Promise<Omit<import('./generation-cache.mjs').GenerationResult,'release'>>} */
 async function execute(root, directory, key, job, options) {
   const started = performance.now(), lock = `${directory}.lock`, until = Date.now() + 600_000;
   mkdirSync(dirname(directory), { recursive: true });
   for (;;) {
-    if (options.forceCompare !== true && valid(directory, key, job.outputs)) return { directory: touch(directory), key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
+    if (!existsSync(lock) && options.forceCompare !== true && valid(directory, key, job.outputs)) return { directory: touch(directory), key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
     try { mkdirSync(lock); break; } catch (error) {
       if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') throw error;
       if (abandoned(lock)) { reclaim(lock); continue; }
@@ -156,6 +160,29 @@ function diskBytes(path) {
 function alive(pid) {
   try { process.kill(pid, 0); return true; } catch (error) { return !(error instanceof Error && 'code' in error && error.code === 'ESRCH'); }
 }
+/** A result stays readable until explicitly released, or its owner exits.
+ * Separate files give coalesced callers independent lifetimes.
+ * @param {string} directory */
+function readLease(directory) {
+  const readers=`${directory}.readers`;
+  mkdirSync(readers,{recursive:true});
+  const owner=resolve(readers,`${process.pid}-${randomBytes(12).toString('hex')}`);
+  writeFileSync(owner,'',{flag:'wx'});
+  return ()=>{rmSync(owner,{force:true});};
+}
+/** Reap only dead owners; an unfamiliar marker conservatively keeps the entry.
+ * @param {string} directory */
+function liveReaders(directory) {
+  const readers=`${directory}.readers`;
+  if(!existsSync(readers))return false;
+  let live=false;
+  for(const ownerName of readdirSync(readers)) {
+    const match=/^(\d+)-[a-f0-9]{24}$/u.exec(ownerName);
+    if(match===null || alive(Number(match[1])))live=true;
+    else rmSync(resolve(readers,ownerName),{force:true});
+  }
+  return live;
+}
 /** Delete one entry under its own lock, so a job never reads it half-deleted; a held lock leaves it in place.
  * @param {string} jobDir @param {string} key */
 function evict(jobDir, key) {
@@ -163,6 +190,9 @@ function evict(jobDir, key) {
   try { mkdirSync(lock); } catch { return false; }
   try {
     writeFileSync(resolve(lock, 'owner.json'), JSON.stringify({ pid: process.pid }));
+    // The scan is advisory. Recheck under the same lock a reader observes
+    // before validation, closing acquisition versus eviction races.
+    if(liveReaders(resolve(jobDir,key)))return false;
     renameSync(resolve(jobDir, key), doomed);
   } catch { return false; } finally { rmSync(lock, { recursive: true, force: true }); }
   rmSync(doomed, { recursive: true, force: true });
@@ -199,7 +229,7 @@ export function pruneGenerationCache(cacheDir, options = {}) {
       const path = resolve(jobDir, key);
       try {
         const stat = lstatSync(path);
-        return stat.isDirectory() ? [{ key, path, mtimeMs: stat.mtimeMs, locked: names.includes(`${key}.lock`) }] : [];
+        return stat.isDirectory() ? [{ key, path, mtimeMs: stat.mtimeMs, locked: names.includes(`${key}.lock`) ? true : liveReaders(path) }] : [];
       } catch { return []; }
     }).sort((a, b) => b.mtimeMs - a.mtimeMs);
     entries.forEach((entry, index) => {

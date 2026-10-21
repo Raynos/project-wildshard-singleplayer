@@ -295,7 +295,10 @@ export async function prepareGeneration(root,options={}) {
     completed.add(finished.index);
   }
   inputHashes.verifySnapshot();
-  } finally { inputHashes.flush(); }
+  } finally {
+    for(const result of preparation.upstream.values())result.release();
+    inputHashes.flush();
+  }
   return report;
 }
 
