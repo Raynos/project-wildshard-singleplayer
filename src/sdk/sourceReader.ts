@@ -20,7 +20,7 @@ export function readBoundedFile(path: string, maximum: number): Uint8Array {
   } finally { closeSync(descriptor); }
 }
 /** Parse only source bytes within the shared network/cache limit, rejecting malformed UTF-8.
- * JSON parsing follows bounded reading and fatal UTF-8 decoding. */
+ * JSON parsing starts after the bounded read and fatal UTF-8 decoding. */
 export function readShardfileSource(path: string): unknown {
   return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(path, limits.sourceBytes)));
 }
