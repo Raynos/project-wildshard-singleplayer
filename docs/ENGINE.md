@@ -7157,6 +7157,9 @@ feature carries G475's day-one approval directly.
 the same rig, mesh channels, mapped textures, painted atlas, pendants and swing
 trail. It remains Nine-only and counts as custom view code (4/6); moving it
 earns no shared-host credit. Driftwood and Nine still share `RigArms` (6/6).
+The admitted `decal` is `{ files: { phone, desktop }, param }`: each tier
+names an ordinary lossless image blob, preserving its authored dimensions.
+The texture clamps both axes, uses sRGB, trilinear mipmaps and anisotropy 8.
 
 ### First-person arm rigs
 
