@@ -125,3 +125,17 @@ it('accepts a qualified Chromium phone witness and separately observed CDP memor
   first.profile.cpu=1;expect(read()).toEqual({});
  } finally {rmSync(root,{recursive:true,force:true});}
 });
+
+it('matches a template product slug while retaining its distinct entered instance',()=>{
+ const root=mkdtempSync(resolve('tmp','grid-instance-witness-'));
+ const receipt={schema:1,source:sha,protocol:{profiler:false,glObserver:'off'},runs:[{
+  sha,when:'2026-10-21T01:00:00Z',surface:'chromium',cohort:'grid',complete:true,glObserver:'off',
+  profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},
+  cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'template-entry',after:{current:'template-2',slug:'_template'}}],
+   rows:[{name:'grid-template-entry-drive',frames:120,pass:true,contextLost:false,maxMs:100,p95Ms:33,medianFps:30}]}]}]};
+ try {
+  writeFileSync(resolve(root,'receipt.json'),JSON.stringify(receipt));
+  expect(runtimeGridEvidence(root,'_template',sha,['receipt.json'],caps).oneFrameLooks?.verdict).toBe('pass');
+  expect(runtimeGridEvidence(root,'blender-template',sha,['receipt.json'],caps)).toEqual({});
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

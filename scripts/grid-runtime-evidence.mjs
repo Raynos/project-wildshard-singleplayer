@@ -14,7 +14,7 @@ const chromiumMemory=v.looseObject({measurement:v.literal('chromium-residency+cd
 const phoneProfile=v.strictObject({device:v.literal('iPhone 16 Pro'),tier:v.literal('phone'),cpu:v.literal(4),muted:v.literal(true)});
 const run=v.looseObject({sha,when:v.string(),surface:v.picklist(['sim','desktop','chromium']),cohort:v.literal('grid'),complete:v.literal(true),glObserver:v.literal('off'),
   profile:v.optional(phoneProfile),memory:v.optional(v.union([memory,chromiumMemory])),cases:v.array(v.looseObject({shard:v.string(),complete:v.boolean(),errors:v.array(v.unknown()),
-    routes:v.array(v.looseObject({name:v.string(),after:v.looseObject({current:v.nullable(v.string())})})),
+    routes:v.array(v.looseObject({name:v.string(),after:v.looseObject({current:v.nullable(v.string()),slug:v.optional(v.string())})})),
     rows:v.array(v.looseObject({name:v.string(),frames:positive,pass:v.boolean(),contextLost:v.optional(v.boolean()),skipped:v.optional(v.pipe(v.number(),v.finite(),v.minValue(0))),
       maxMs:v.optional(positive),worstMs:v.optional(positive),p95Ms:v.optional(positive),medianFps:v.optional(positive),stallPass:v.optional(v.boolean())}))}))});
 const milestone=v.looseObject({schema:v.literal(1),source:sha,protocol:v.looseObject({profiler:v.literal(false),glObserver:v.literal('off'),quiet:v.optional(v.boolean())}),runs:v.array(v.unknown())});
@@ -80,7 +80,7 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps,keys={}) {
       const chromium=receipt.surface==='chromium'&&receipt.profile!==undefined;
       if(receipt.surface==='chromium'&&!chromium)continue;
       for(const scene of receipt.cases.filter(row=>row.shard==='grid'&&row.complete&&row.errors.length===0)) {
-        const names=scene.routes.filter(route=>route.after.current===slug).map(route=>`grid-${route.name}`);
+        const names=scene.routes.filter(route=>route.after.current!==null&&(route.after.slug??route.after.current)===slug).map(route=>`grid-${route.name}`);
         const rows=scene.rows.filter(row=>names.some(name=>row.name===name||row.name===`${name}-travel`||row.name===`${name}-drive`));
         if(rows.length===0||!names.every(name=>rows.some(row=>row.name===`${name}-drive`)))continue;
         if(recordedMilestone.output.protocol.quiet!==false) {
