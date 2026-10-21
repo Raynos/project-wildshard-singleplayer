@@ -1,7 +1,7 @@
 import { assembleOutputFields, assembleOutputShardfile, isOutputIndex, outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { builtValidationReceipt, validationSourceBytes, type ValidationReceipt } from '@wildshard/format/product';
 import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
-import { validateCustomSchema } from './customSchema';
+import { validateCustomSchema, validateCustomSchemaPaced } from './customSchema';
 import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -120,8 +120,10 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     const progress = loadingUnits('Product schemas', custom.length);
     progress(0);
     for (const [at, row] of custom.entries()) {
-      await waitFor(`Validate ${row.name}`, checkCustomSection(() => {
-        const value = validateCustomSchema(schemas.get(row.schema), sections.get(row.name));
+      await waitFor(`Validate ${row.name}`, checkCustomSection(async () => {
+        const value = reader.pause === undefined
+          ? validateCustomSchema(schemas.get(row.schema), sections.get(row.name))
+          : await validateCustomSchemaPaced(schemas.get(row.schema), sections.get(row.name), reader.pause);
         progress(at + 1, row.name);
         return value;
       }, reader.pause), 'admission');

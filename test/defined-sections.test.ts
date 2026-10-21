@@ -2,10 +2,26 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { defineSection, emitDefinedSections, validateDefinedSection } from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { validateCustomSchema } from '../src/game/shardfile/customSchema';
+import { validateCustomSchema, validateCustomSchemaPaced } from '../src/game/shardfile/customSchema';
 
 const schema = v.strictObject({ label: v.string(), enabled: v.optional(v.boolean(), false), rows: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))) });
 const bytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(value));
+
+test('paced schema admission keeps strict acceptance and stops on owner cancellation', async () => {
+  const section = defineSection('custom/paced', schema, { label: 'Camp', rows: [2] });
+  const good = { label: 'Camp', enabled: false, rows: [2] };
+  let paints = 0;
+  const pause = (): Promise<void> => { paints++; return Promise.resolve(); };
+  expect(await validateCustomSchemaPaced(section.jsonSchema, good, pause)).toBe(good);
+  expect(paints).toBeGreaterThan(1);
+  for (const bad of [{ ...good, rows: ['2'] }, { ...good, rows: [-1] }, { ...good, extra: true }, { rows: [] }]) {
+    expect(() => validateCustomSchema(section.jsonSchema, bad)).toThrow();
+    await expect(validateCustomSchemaPaced(section.jsonSchema, bad, pause)).rejects.toThrow();
+  }
+  await expect(validateCustomSchemaPaced(section.jsonSchema, good, () => Promise.reject(new Error('Owner disposed')))).rejects.toThrow('Owner disposed');
+  const asyncSchema = { $schema: 'http://json-schema.org/draft-07/schema#', $async: true, type: 'object' };
+  await expect(validateCustomSchemaPaced(asyncSchema, {}, pause)).rejects.toThrow('asynchronous');
+});
 
 test('runtime and authoring validators share strict draft-07 refusal semantics', () => {
   const section = defineSection('custom/probe', schema, { label: 'Camp', rows: [2] });
