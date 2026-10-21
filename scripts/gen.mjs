@@ -1,5 +1,5 @@
 // Node's TypeScript/asset hooks let the CLI and Vite share the same table writers.
-import { genShards } from './gen-shards.mjs';
+import { genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
 import { prepareGeneration } from './generate.mjs';
@@ -23,6 +23,8 @@ async function step(name, run) {
   finally { if (buildInputs) console.info(`gen-step ${name}: ${((performance.now() - started) / 1000).toFixed(3)}s`); }
 }
 
+// No step imports a discovery module older than its manifest (a mirror slot keeps ignored files).
+await step('discovery', () => refreshDiscovery());
 // Rig-generating producers read the shared aliases too, so emit their pure table before the cache walk.
 await step('arm-clips', () => genStarterArmClips());
 await step('starter-weapons', () => genStarterWeapons());

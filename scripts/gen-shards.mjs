@@ -177,12 +177,34 @@ export function manifestContract(root, closure, fields = false) {
   return failures;
 }
 
+/** A product's discovery module source (its manifest.json bindings, its composed output when it declares one). */
+function discoverySource(root, product) {
+  return authoredManifestSource(root, product.slug, { folder: product.folder, composed: product.output === null ? null : outputManifest(root, product.folder, product.output) });
+}
+
+/**
+ * pnpm gen's first step: no later step may import a discovery module older than its manifest (Node caches a failed
+ * import for the whole process, so the rewrite in genShards comes too late for it). A tree that keeps ignored files (a
+ * build-mirror slot) can hold one from before a binding moved. A source that can be built now is written when it differs;
+ * one whose binding modules are not generated yet is removed, and genShards writes it after the generation step.
+ */
+export function refreshDiscovery(root = resolve(import.meta.dirname, '..')) {
+  for (const product of shardProducts(root, shardFolders(root))) {
+    if (!existsSync(resolve(root, `src/shards/${product.folder}/manifest.json`))) continue;
+    const path = resolve(root, productManifestPath(root, product));
+    if (!existsSync(path)) continue;
+    let source;
+    try { source = discoverySource(root, product); } catch { rmSync(path); continue; }
+    if (readFileSync(path, 'utf8') !== source) writeFileSync(path, source);
+  }
+}
+
 export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
   genShardWords(root, check, shard);
   genDecisionPolicies(root, check, initializeMissing);
   for (const product of shardProducts(root, shardFolders(root))) {
     if (!existsSync(resolve(root, `src/shards/${product.folder}/manifest.json`))) continue;
-    const path = resolve(root, productManifestPath(root, product)), source = authoredManifestSource(root, product.slug, { folder: product.folder, composed: product.output === null ? null : outputManifest(root, product.folder, product.output) });
+    const path = resolve(root, productManifestPath(root, product)), source = discoverySource(root, product);
     if (check && existsSync(path) && readFileSync(path, 'utf8') !== source) throw new Error(`gen-shards: stale ${path}`);
     if (!check || !existsSync(path)) writeFileSync(path, source);
   }
