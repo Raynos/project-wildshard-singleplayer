@@ -82,3 +82,21 @@ it.each(['retained','committed'])('keeps %s binary outputs in broad consumers be
     expect(JSON.parse(readFileSync(resolve(root,output),'utf8'))).toEqual({binary:'changed-retained'});
   }
 });
+
+it('refreshes generated-table admission when a later report declares a retained producer',async()=>{
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-admission-'));owned.push(root);
+  const shard='src/shards/alpha',binary=`${shard}/data/retained.generated.bin`,output=`${shard}/data/inventory.json`,marker=`${shard}/data/marker.json`;
+  put(root,binary,'retained');mkdirSync(resolve(root,'scripts'));
+  put(root,'scripts/source-generation-outputs.json',JSON.stringify({producers:{}}));
+  const consumer={id:'fixture-reader',shard:'alpha',entry:`${shard}/generators/bake-reader.mjs`,command:[`${shard}/generators/bake-reader.mjs`],inputRoots:[shard],outputs:[output],buildTimeOutputs:[output],platform:'portable'};
+  put(root,consumer.entry,`import fs from 'node:fs';fs.writeFileSync('${output}','initial');`);
+  const catalog=(jobs:unknown[]):void=>put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs}));
+  catalog([consumer]);await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
+  const producer={id:'fixture-retained',shard:'alpha',entry:`${shard}/generators/bake-retained.mjs`,command:[`${shard}/generators/bake-retained.mjs`],inputRoots:[shard],outputs:[binary,marker],buildTimeOutputs:[marker],platform:'portable'};
+  put(root,producer.entry,`import fs from 'node:fs';fs.writeFileSync('${binary}','unrestored');fs.writeFileSync('${marker}','marker');`);
+  put(root,consumer.entry,`import fs from 'node:fs';fs.writeFileSync('${output}',fs.readFileSync('${binary}'));`);
+  catalog([consumer,producer]);await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
+  expect(readFileSync(resolve(root,output),'utf8')).toBe('retained');
+  put(root,binary,'edited');await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
+  expect(readFileSync(resolve(root,output),'utf8')).toBe('edited');
+});

@@ -94,6 +94,9 @@ export function generationInputs(root,roots,memo,include=()=>true) {
 /** Discover shard-owned bake entry points and validate declared jobs; gaps stay report-only. @param {string} root @param {string} [catalogPath] */
 export function discoverGeneration(root,catalogPath='scripts/generation-jobs.json') {
   v.parse(path,catalogPath);
+  // Each report discovers current declarations. Reusing an older admission set
+  // can hide a newly declared retained input as a post-generation table.
+  registeredOutputs.delete(`${root}\0${catalogPath}`);
   const catalog=v.parse(Catalog,JSON.parse(readFileSync(resolve(root,catalogPath),'utf8')));
   const ids=new Set(),outputs=new Set();
   for (const job of catalog.jobs) {
