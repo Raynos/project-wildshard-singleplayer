@@ -1,0 +1,262 @@
+{
+  "pin": "ff62a7230462fbd80657953c6253eaca90c24cc0",
+  "path": "shardfile",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "errors": [],
+  "stageSeconds": 12.216,
+  "clockSeconds": 12.2,
+  "unaccountedSeconds": -0.016000000000000014,
+  "displayedNetworkBytes": 146269048,
+  "networkBytes": 146684418,
+  "byteError": 0.002831725452938021,
+  "visibleByteError": 0.0022798467932701617,
+  "maxDetailGapMs": 267,
+  "failures": [],
+  "surface": "simulator",
+  "visit": "cold",
+  "rawSHA256": "a45a4fc9e810e11fef7c4ef5f4d261c50a366e2abc854a438cf88a352df80066",
+  "final": {
+    "at": 12595,
+    "clock": "00:12.2",
+    "detail": "gap after Audio \u00b7 music + sound effects",
+    "download": "146.3 MB downloaded \u00b7 89.6 MB from cache \u00b7 0.00 MB still expected \u00b7 1406 / 1406 files",
+    "footer": "Now waiting for: Decode selected audio clip \u00b7 0.0 s \u00b7 0 files in flight",
+    "diagnostics": "Attempt 1 \u00b7 JS heap unavailable on Safari \u00b7 scene textures ~2 MiB\nLargest observed frame-update gap <0.1s at Shaders: 116 materials \u00b7 17 / 160 batches \u00b7 parallel \u00b7 30 programs\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "Decode selected audio clip",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "shardfile",
+    "step": "gap",
+    "setup": "100",
+    "networkBytes": "146269048",
+    "cachedBytes": "89601115",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "635 ms",
+        "state": "ok",
+        "key": "modules",
+        "ms": "635"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "632 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "632"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "22 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "22"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "18 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "18"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Sky \u00b7 lighting",
+        "detail": "",
+        "duration": "707 ms",
+        "state": "ok",
+        "key": "sky",
+        "ms": "707"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 Terrain \u00b7 heightfield",
+        "detail": "256\u00b2 heightfield",
+        "duration": "62 ms",
+        "state": "ok",
+        "key": "terrain",
+        "ms": "62"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Tree cards",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "cards",
+        "ms": "1"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Trees",
+        "detail": "0 trees",
+        "duration": "4 ms",
+        "state": "ok",
+        "key": "forest",
+        "ms": "4"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 Physics \u00b7 Rapier \u00b7 navmesh",
+        "detail": "5 colliders",
+        "duration": "6 ms",
+        "state": "ok",
+        "key": "physics",
+        "ms": "6"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Chunk edge \u00b7 water \u00b7 horizon",
+        "detail": "",
+        "duration": "35 ms",
+        "state": "ok",
+        "key": "edge",
+        "ms": "35"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Grass \u00b7 ground cover",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "grass",
+        "ms": "0"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Buildings",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "cabins",
+        "ms": "1"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Props",
+        "detail": "Baked island",
+        "duration": "4.3 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "4346"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Animals",
+        "detail": "13 animals",
+        "duration": "44 ms",
+        "state": "ok",
+        "key": "animals",
+        "ms": "44"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "1"
+      },
+      {
+        "label": "\u25b8 16 \u00b7 World assembly",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "0"
+      },
+      {
+        "label": "\u25b8 17 \u00b7 Title art \u00b7 explore",
+        "detail": "40 / 40 pictures \u00b7 UI",
+        "duration": "10 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "10"
+      },
+      {
+        "label": "\u25b8 18 \u00b7 Shaders",
+        "detail": "8 / 8 post pipelines drawn \u00b7 119 programs",
+        "duration": "3.9 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "3889"
+      },
+      {
+        "label": "\u25b8 19 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 119 programs",
+        "duration": "122 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "122"
+      },
+      {
+        "label": "\u25b8 gap after First frame",
+        "detail": "",
+        "duration": "2 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "2"
+      },
+      {
+        "label": "\u25b8 20 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 89 / 91",
+        "duration": "672 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "672"
+      },
+      {
+        "label": "\u25b8 gap after Audio \u00b7 music + sound effects",
+        "detail": "",
+        "duration": "3 ms",
+        "state": "on",
+        "key": "gap",
+        "ms": "3"
+      },
+      {
+        "label": "\u25b8 21 \u00b7 Region world",
+        "detail": "",
+        "duration": "25 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "25"
+      },
+      {
+        "label": "\u25b8 22 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "729 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "729"
+      },
+      {
+        "label": "\u25b8 23 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "245 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "245"
+      },
+      {
+        "label": "\u25b8 24 \u00b7 Final activation",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "finish",
+        "ms": "0"
+      },
+      {
+        "label": "\u25b8 gap after Final activation",
+        "detail": "",
+        "duration": "5 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "5"
+      }
+    ]
+  },
+  "firstAt": 652,
+  "readyAt": 12595,
+  "updates": 197,
+  "transport": {
+    "requests": 772,
+    "bodyBytes": 146466813,
+    "headerBytes": 217605
+  }
+}

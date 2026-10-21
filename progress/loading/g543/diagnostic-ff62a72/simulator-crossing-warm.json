@@ -1,0 +1,78 @@
+{
+  "pin": "ff62a7230462fbd80657953c6253eaca90c24cc0",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "transitions": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "wallMs": 67,
+      "stageMs": 67,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 4
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 29
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 1
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 33
+        }
+      ]
+    },
+    {
+      "from": null,
+      "to": "driftwood-isle",
+      "wallMs": 17483,
+      "stageMs": 17483,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 17467
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 16
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 0
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 0
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "networkBytes": 7747668,
+  "surface": "simulator",
+  "visit": "warm",
+  "rawSHA256": "9f8e38fb8206bb153e596388af12b27aabef85f52851bc2aef8430854d7a21a6"
+}
