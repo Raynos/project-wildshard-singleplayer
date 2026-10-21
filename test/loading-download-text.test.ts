@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { loadingDownloadText, type LoadingPrefetchSnapshot } from '../src/engine/boot/loadingDownloadText';
 
-const traffic = { networkBytes: 1_300_000, cachedBytes: 2_000_000, pendingBytes: 500_000, filesDone: 4, filesTotal: 5, unclassifiedBytes: 100_000 };
+const traffic = { networkBytes: 1_300_000, cachedBytes: 2_000_000, pendingBytes: 500_000, filesDone: 4, filesTotal: 5, unclassifiedBytes: 100_000, unclassifiedFiles: 0 };
 const prefetch: LoadingPrefetchSnapshot = { phase: 'running', reason: null, products: 25, productsRead: 3,
   knownFiles: 10, knownBytes: 20_000_000, presentFiles: 2, presentBytes: 4_000_000, storedFiles: 3, storedBytes: 6_000_000 };
 
@@ -9,8 +9,15 @@ it('keeps actual wire bytes separate from cached and discovered disk-prefetch by
   const text = loadingDownloadText(traffic, true, prefetch);
   expect(text).toContain('Page activity during this load: 1.30 MB network · 2.00 MB offline cache');
   expect(text).toContain('0.50 MB declared pending');
-  expect(text).toContain('0.10 MB source unknown');
+  expect(text).not.toContain('wire size unavailable');
   expect(text).toContain('On disk: 10.0 MB of 20.0 MB known so far · 5 / 10 prefetch files · 3 / 25 products checked · prefetching');
+});
+
+it('shows missing wire measurements even when the browser exposes zero body bytes', () => {
+  expect(loadingDownloadText({ ...traffic, unclassifiedFiles: 2, unclassifiedBytes: 0 }, false, null))
+    .toContain('1.30 MB network measured · 2.00 MB offline cache');
+  expect(loadingDownloadText({ ...traffic, unclassifiedFiles: 2, unclassifiedBytes: 0 }, false, null))
+    .toContain('wire size unavailable for 2 files (0.00 MB known body)');
 });
 
 it('reports quota stops and partial finished runs without claiming the whole set is cached', () => {

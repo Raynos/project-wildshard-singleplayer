@@ -12,6 +12,13 @@ it('accepts balanced labelled stages with live text and matching transport bytes
   expect(receipt.failures).toEqual([]);
 });
 
+it('refuses missing wire measurements even if the measured portion happens to match', () => {
+  const receipt = accuracyReport({ readyAt: 1000, updates: [0, 900],
+    final: { clock: '00:01.0', networkBytes: '100', unclassifiedFiles: '2',
+      rows: [{ label: 'Admission', duration: '1 s' }] } }, 100);
+  expect(receipt.failures).toContain('Some wire sizes are unavailable from the browser');
+});
+
 it('rejects missing seconds even inside the three-second stage-sum allowance', () => {
   const receipt = accuracyReport({ readyAt: 3000, updates: [0, 900, 1800, 2700],
     final: { clock: '00:03.0', networkBytes: '100', rows: [{ label: 'Admission', duration: '0.5 s' }] } }, 100);

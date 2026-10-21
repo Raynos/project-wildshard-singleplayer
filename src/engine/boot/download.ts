@@ -1,7 +1,7 @@
 /** Actual page transport, independent of legacy step-completion credits. */
 export interface DownloadSnapshot {
   networkBytes: number; cachedBytes: number; pendingBytes: number;
-  filesDone: number; filesTotal: number; unclassifiedBytes: number;
+  filesDone: number; filesTotal: number; unclassifiedBytes: number; unclassifiedFiles: number;
 }
 interface File { bytes: number; complete: boolean }
 export interface DownloadTiming {
@@ -18,7 +18,8 @@ export class DownloadAccounting {
   private readonly addressed = new Map<string, Set<File>>();
   private network = 0;
   private browserCache = 0;
-  private unknown = 0;
+  private readonly unknown = new Map<string, { url: string; bytes: number }>();
+  private readonly bodyHints = new Map<string, number>();
   private completed = 0;
   private activity = 0;
   /** Body-read activity is a stall signal, never a network byte credit. */
@@ -58,6 +59,9 @@ export class DownloadAccounting {
     if ((entry.responseEnd ?? entry.startTime) < this.since || !/^https?:/u.test(entry.name)) return;
     // The synthetic page response is the same file: only its worker receipt
     // owns transport bytes and file completion, including an HTTP-cache hit.
+    const url = this.url(entry.name);
+    const body = Math.max(entry.encodedBodySize, entry.serverTiming.find(timing => timing.name === 'ws-network')?.duration ?? 0);
+    if (body > 0) this.bodyHints.set(url, Math.max(this.bodyHints.get(url) ?? 0, body));
     if (entry.serverTiming.some(timing => timing.name === 'ws-receipt')) return;
     const id = `${entry.source ?? 'page'}:${entry.name}:${entry.startTime}`; if (this.seen.has(id)) return;
     this.seen.add(id); this.completed++;
@@ -68,20 +72,21 @@ export class DownloadAccounting {
       const bytes = entry.serverTiming.find(timing => timing.name === 'ws-cache')?.duration ?? 0;
       this.browserCache += bytes > 0 ? bytes : entry.encodedBodySize;
     }
-    else if (entry.workerStart === 0 && entry.transferSize === 0) this.browserCache += entry.encodedBodySize;
+    else if (entry.workerStart === 0 && entry.transferSize === 0 && entry.encodedBodySize > 0) this.browserCache += entry.encodedBodySize;
     else if (entry.transferSize > 0) this.network += entry.transferSize;
-    else if (entry.serverTiming.some(timing => timing.name === 'ws-network')) {
-      const receipt = entry.serverTiming.find(timing => timing.name === 'ws-network');
-      this.network += receipt !== undefined && receipt.duration > 0 ? receipt.duration : entry.encodedBodySize;
-    }
-    else this.unknown += entry.encodedBodySize;
+    // A response length is not a wire receipt. WebKit can expose an all-zero
+    // worker timing: retain the unknown transfer, including late body/index hints.
+    else this.unknown.set(id, { url, bytes: body });
   }
   snapshot(): DownloadSnapshot {
     let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache;
     for (const file of this.files.values()) if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; }
     for (const bytes of this.cache.values()) cachedBytes += bytes;
+    let unclassifiedBytes = 0;
+    for (const receipt of this.unknown.values()) unclassifiedBytes += Math.max(receipt.bytes,
+      this.bodyHints.get(receipt.url) ?? 0, this.files.get(receipt.url)?.bytes ?? 0);
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
-      filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes: this.unknown };
+      filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size };
   }
 }
 let active: DownloadAccounting | undefined;

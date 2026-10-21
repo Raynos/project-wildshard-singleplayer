@@ -24,7 +24,7 @@ export function accuracyRecorder() {
           waiting: root.dataset.waiting, filesInFlight: root.dataset.filesInFlight, stalled: root.dataset.stalled,
           path: root.dataset.path, step: root.dataset.step, setup: root.dataset.setup,
           networkBytes: root.dataset.networkBytes, cachedBytes: root.dataset.cachedBytes,
-          pendingBytes: root.dataset.pendingBytes, rows };
+          pendingBytes: root.dataset.pendingBytes, unclassifiedFiles: root.dataset.unclassifiedFiles, rows };
         // Wait ages are clocks, not completed work. Real transport/cache byte
         // changes still count during a long read before its file completes.
         const footer = sample.footer.replaceAll(/ · \d+(?:\.\d+)? s(?= ·|$)/gu, '');

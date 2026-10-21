@@ -38,8 +38,19 @@ it('counts undeclared network requests and early modules once, separately from c
     serverTiming: [{ name: 'ws-cache', duration: 0 }], encodedBodySize: 400 }));
   accounting.resource(timing('/worker-safari-hit.js', { workerStart: 0, transferSize: 0,
     serverTiming: [{ name: 'ws-cache', duration: 1024 }], encodedBodySize: 0 }));
-  expect(accounting.snapshot()).toEqual({ networkBytes: 2000, cachedBytes: 1924,
-    pendingBytes: 0, filesDone: 5, filesTotal: 5, unclassifiedBytes: 0 });
+  expect(accounting.snapshot()).toEqual({ networkBytes: 1300, cachedBytes: 1924,
+    pendingBytes: 0, filesDone: 5, filesTotal: 5, unclassifiedBytes: 900, unclassifiedFiles: 1 });
+});
+
+it('does not turn all-zero worker timings into cache hits or invent wire bytes from body hints', () => {
+  const accounting = new DownloadAccounting(base);
+  accounting.resource(timing('/zero.bin', { source: 'worker', transferSize: 0, encodedBodySize: 0 }));
+  expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 0, unclassifiedFiles: 1, unclassifiedBytes: 0 });
+  accounting.resource(timing('/zero.bin', { workerStart: 1, transferSize: 0, encodedBodySize: 0,
+    serverTiming: [{ name: 'ws-receipt', duration: 0 }, { name: 'ws-network', duration: 700 }] }));
+  expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 0, filesDone: 1, unclassifiedBytes: 700 });
+  accounting.declare('/zero.bin', 800);
+  expect(accounting.snapshot()).toMatchObject({ pendingBytes: 0, unclassifiedBytes: 800, unclassifiedFiles: 1 });
 });
 
 it('retains exact pending index sizes and resolves cache reads and late declarations', () => {

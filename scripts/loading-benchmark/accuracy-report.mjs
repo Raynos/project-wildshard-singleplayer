@@ -24,6 +24,7 @@ export function accuracyReport(accuracy, networkBytes, expectedPath) {
   if (unaccountedSeconds > 2) failures.push('Unlabelled gap exceeds 2 s');
   if (maxDetailGapMs > 1000) failures.push('Detailed update gap exceeds 1 s');
   if (byteError === null || byteError > 0.05) failures.push('Network bytes are unavailable or differ by more than 5%');
+  if (Number(final?.unclassifiedFiles ?? 0) > 0) failures.push('Some wire sizes are unavailable from the browser');
   if (final?.download !== undefined && (visibleByteError === null || visibleByteError > 0.05)) failures.push('Visible MB count differs by more than 5%');
   for (const row of final?.rows ?? []) if (!row.label && seconds(row.duration) > 2) failures.push('Unlabelled gap exceeds 2 s');
   return { stageSeconds, clockSeconds, unaccountedSeconds, displayedNetworkBytes, networkBytes,

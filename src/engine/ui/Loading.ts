@@ -251,7 +251,7 @@ export class Loading {
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
     const transfer = this.downloads.snapshot();
     const received = transfer.networkBytes + transfer.cachedBytes;
-    const fraction = done && transfer.filesDone === transfer.filesTotal && transfer.unclassifiedBytes === 0 ? 1
+    const fraction = done && transfer.filesDone === transfer.filesTotal && transfer.unclassifiedFiles === 0 ? 1
       : Math.min(0.999, received / (received + transfer.pendingBytes + transfer.unclassifiedBytes + 1));
     return { ...transfer, fraction };
   }
@@ -267,6 +267,8 @@ export class Loading {
     setData(this.root, 'networkBytes', String(transfer.networkBytes));
     setData(this.root, 'cachedBytes', String(transfer.cachedBytes));
     setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
+    setData(this.root, 'unclassifiedFiles', String(transfer.unclassifiedFiles));
+    setData(this.root, 'unclassifiedBytes', String(transfer.unclassifiedBytes));
     const prefetch = this.prefetchSource?.() ?? null;
     setData(this.root, 'prefetch', prefetch === null ? '' : JSON.stringify(prefetch));
     set(this.els.dlFact, loadingDownloadText(transfer, this.scoped, prefetch));
