@@ -4,10 +4,12 @@
 
 **Live:** 579bb34b5 (15:54Z; R1 arrival fix live since bb04f4a37 14:59Z); deploy starvation fixed (a5a3c8fbca: newest both-green ships). No push holds (G438).
 
-**Tooling:** BUILD-SPEED (E491) owns it; no tooling rows here. G562/D6 landed fe2f3f6cb7 (gate + ruler builds at normal QoS; sp-x1). G560 latches carry their numbers in the entry (no receipt folders).
+**Tooling:** BUILD-SPEED owns it (G562 fe2f3f6cb7).
 
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
+**G564 phase B lanes (top priority):** sp-x8 shared chapter/pageComposition + DW G2b; sp-o3 G1c Pine forestStory rules; sp-x9 G1d Pine native story; sp-o5 G1e lead/spawn; sp-o4 G2e DW install/people/trader. Zero paperwork sent to all lanes.
+
 **For wildshard-v:** pick needed: G517 exception for AS body ops (spawn declared body, teleport, collider enable) so DW's barrel/gate quest props (~106) move to DW AS? Recommended: no for now (one user, ABI growth); without it DW C5 floors near ~160 (props 106, bridge 22, people/trader 31 charged), not 30.  G550 hero: art/grid/round-35-hero-retake/sq-ne-b-o24-{iphone,desktop,board}.jpg (5a410d548f); outer band now draws its ground (O24 haze fix 734f24a81a); holograms/beams still fade past 850 m by design, so G550's 'holograms in the distance' needs a pick: keep the fade (recommended, draw cost) or extend it.
 
-**Idle lanes:** ready-queue self-pull; G549: sp-o5 sole Simulator owner (lanes/sim-queue.md). **Lanes (14:00):** Opus sp-o1 G4; sp-o2 O24; sp-o3 G7; sp-o4 G3; sp-o5 G8. Codex sp-x1 GR3; sp-x6 G2a; sp-x8 G1a/G2b; sp-x9 G9 then G1b; sp-x7 push.
+**Lanes (14:00):** Opus sp-o1 G4; sp-o2 O24; sp-o3 G7; sp-o4 G3; sp-o5 G8. Codex sp-x1 GR3; sp-x6 G2a; sp-x8 G1a/G2b; sp-x9 G9 then G1b; sp-x7 push.
