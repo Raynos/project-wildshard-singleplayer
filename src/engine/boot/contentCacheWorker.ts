@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { Scope } from '../app/scope';
 import type { ContentCache } from './contentCache';
 import { waitFor } from './waits';
-import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheOperation, type CacheValue } from './contentCacheProtocol';
+import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheCommand, type CacheOperation, type CacheValue } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
   postMessage: (message: unknown) => void;
@@ -10,7 +10,8 @@ export interface CacheWorkerPort extends EventTarget {
 }
 type Store = Pick<ContentCache, 'get' | 'put' | 'pin' | 'flush' | 'stats'>;
 type Timer = ReturnType<Scope['timeout']>;
-interface Pending { operation: CacheOperation; resolve: (value: CacheValue) => void; reject: (error: Error) => void; timer: Timer }
+interface Queued { command: CacheCommand; resolve: (value: CacheValue) => void; reject: (error: Error) => void }
+interface Pending extends Queued { timer: Timer }
 interface Lease { hashes: string[]; release?: () => void }
 interface WorkerOptions { worker?: () => CacheWorkerPort; pagehide?: EventTarget; requestMs?: number; idleMs?: number; lifeMs?: number }
 /** One bounded worker owns disk IO while alive. Failure terminates it before
@@ -21,6 +22,8 @@ export class ContentCacheWorker {
   private failed = false;
   private sequence = 0;
   private readonly pending = new Map<number, Pending>();
+  private readonly deferred = new Map<number, Queued>();
+  private pumping = false;
   private readonly leases = new Map<number, Lease>();
   private idle: Timer | undefined;
   private closing: Promise<void> | undefined;
@@ -78,11 +81,12 @@ export class ContentCacheWorker {
     this.scope.dispose();
     // Install every still-live lease before any replay can evict disk bytes.
     for (const lease of this.leases.values()) lease.release = this.fallback.pin(lease.hashes);
-    const pending = [...this.pending.values()]; this.pending.clear();
+    const pending = [...this.pending.values(), ...this.deferred.values()];
+    this.pending.clear(); this.deferred.clear();
     for (const row of pending) void this.settleFallback(row);
   }
-  private async settleFallback(row: Pending): Promise<void> {
-    try { row.resolve(await this.queueFallback(row.operation)); }
+  private async settleFallback(row: Queued): Promise<void> {
+    try { row.resolve(await this.queueFallback(row.command)); }
     catch (error: unknown) { row.reject(error instanceof Error ? error : new Error(String(error))); }
   }
   private receive(event: Event): void {
@@ -91,14 +95,15 @@ export class ContentCacheWorker {
     if (!reply.success) { this.failover(); return; }
     const row = this.pending.get(reply.output.id);
     if (row === undefined) { this.failover(); return; }
-    if (reply.output.ok && !validCacheValue(row.operation.op, reply.output.value)) { this.failover(); return; }
+    if (reply.output.ok && !validCacheValue(row.command.op, reply.output.value)) { this.failover(); return; }
     this.scope.cancelTimer(row.timer); this.pending.delete(reply.output.id);
     if (reply.output.ok) {
-      if (row.operation.op === 'release') this.leases.delete(row.operation.lease);
+      if (row.command.op === 'release') this.leases.delete(row.command.lease);
       row.resolve(reply.output.value);
     }
     else row.reject(new Error(reply.output.error)); // A verified refusal is not an infrastructure failure.
-    if (this.pending.size === 0 && this.closing === undefined) {
+    this.pump();
+    if (this.pending.size === 0 && this.deferred.size === 0 && this.closing === undefined) {
       this.scope.cancelTimer(this.idle);
       this.idle = this.scope.timeout(this.idleMs, () => { void this.close(); });
     }
@@ -107,17 +112,31 @@ export class ContentCacheWorker {
     return waitFor(`Content cache ${operation.op}${'hash' in operation ? ` ${operation.hash.slice(0, 12)}` : ''}`, this.requestWork(operation), 'worker');
   }
   private requestWork(operation: CacheOperation): Promise<CacheValue> {
-    if (this.closing !== undefined) return this.closing.then(() => this.queueFallback(operation));
-    this.start();
-    if (this.failed) return this.queueFallback(operation);
-    if (this.pending.size >= 64) { this.failover(); return this.queueFallback(operation); }
-    this.scope.cancelTimer(this.idle);
     const id = ++this.sequence, command = v.parse(CacheCommandSchema, { id, ...operation });
+    if (this.closing !== undefined) return this.closing.then(() => this.queueFallback(command));
+    this.start();
+    if (this.failed) return this.queueFallback(command);
+    this.scope.cancelTimer(this.idle);
     return new Promise((resolve, reject) => {
-      const timer = this.scope.timeout(this.requestMs, () => { this.failover(); });
-      this.pending.set(id, { operation, resolve, reject, timer });
-      try { this.worker?.postMessage(command); } catch { this.failover(); }
+      this.deferred.set(id, { command, resolve, reject });
+      this.pump();
     });
+  }
+  private canPost(): boolean { return !this.failed && this.pending.size < 64; }
+  private pump(): void {
+    if (this.pumping || this.failed || this.worker === undefined) return;
+    const send = this.worker.postMessage.bind(this.worker);
+    this.pumping = true;
+    try {
+      for (const [id, row] of this.deferred) {
+        if (!this.canPost()) break;
+        this.deferred.delete(id);
+        // Queue time consumes no request deadline; only posted worker work does.
+        const timer = this.scope.timeout(this.requestMs, () => { this.failover(); });
+        this.pending.set(id, { ...row, timer });
+        try { send(row.command); } catch { this.failover(); }
+      }
+    } finally { this.pumping = false; }
   }
   async get(hash: string): Promise<Uint8Array | null> {
     const value = await this.request({ op: 'get', hash });
@@ -159,8 +178,12 @@ export class ContentCacheWorker {
   close(): Promise<void> {
     if (this.closing !== undefined) return this.closing;
     if (this.worker === undefined) { this.failover(); this.closing = this.queueFallback({ op: 'flush' }).then(() => undefined); return this.closing; }
+    // The FIFO flush may wait behind deferred work, but shutdown retains its
+    // existing request deadline even before that flush reaches a posted slot.
+    const deadline = this.scope.timeout(this.requestMs, () => { this.failover(); });
     const finish = this.request({ op: 'flush' });
-    this.closing = finish.then(() => { this.failover(); return undefined; }, () => { this.failover(); return undefined; });
+    const retire = (): void => { this.scope.cancelTimer(deadline); this.failover(); };
+    this.closing = finish.then(retire, retire);
     return this.closing;
   }
 }
