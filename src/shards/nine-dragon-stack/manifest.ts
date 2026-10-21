@@ -16,7 +16,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   ground: { ...declaredGround(ground), structures: true },
   forest: { ...DECLARATION.forest, density: () => 0 },
   sword: async () => (await import('./runtime/viewmodel/graphArms')).graphSword('nine-dragon-stack', 'weapons/jian-row.json'),
-  roster: async () => (await import('./roster')).ROSTER,
+  roster: async () => (await import('./models/gear')).GEAR,
   render: async () => (await import('./look/render')).shardRender(),
 };
 // oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
