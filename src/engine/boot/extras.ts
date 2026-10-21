@@ -125,13 +125,13 @@ export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<voi
   const images = art.map(async (u) => {
     if (artLoaded.has(u)) { c.tick(); return; }
     artLoaded.add(u);
-    await whenPrefetched(u);
+    await waitFor(`Await artwork ${u}`, whenPrefetched(u));
     if (TIER === 'phone' && cardArt.has(u) && !activeCardArt.has(u)) {
       c.tick();
       return;
     }
     try {
-      const blob = await (await fetch(u)).blob(); // the counted download, handed over by the queue (the service worker keeps a copy)
+      const blob = await waitFor(`Read artwork ${u}`, fetch(u).then(response => response.blob()), 'file'); // the counted download, handed over by the queue
       const card = cardArt.has(u);
       const src = card ? URL.createObjectURL(blob) : u; // Explore's own <img>s use the bundle URL: decoded once here, reused from memory
       if (card) blobs.set(u, src);
@@ -139,7 +139,7 @@ export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<voi
       img.decoding = 'async';
       img.src = src;
       keep.push(img);
-      await img.decode();
+      await waitFor(`Decode artwork ${u}`, img.decode());
     } catch { /* a missing picture: the card shows its colour, as before */ }
     c.tick();
   });
@@ -147,7 +147,8 @@ export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<voi
     async wait(p) {
       c.attach(p, 'pictures · UI');
       // the lazy UI chunks, fetched and evaluated now: a later import() is answered from the module map
-      const code = [import('../ui/Feedback'), ...(def.boot?.explore === undefined ? [] : [import('../explore/Explore')])].map(async (m) => { await m; c.tick(); });
+      const code = [waitFor('Prepare feedback controls', import('../ui/Feedback')),
+        ...(def.boot?.explore === undefined ? [] : [waitFor('Prepare Explore controls', import('../explore/Explore'))])].map(async (m) => { await m; c.tick(); });
       await Promise.all([...images, ...code]);
       swapCardArt(blobs);
     },
