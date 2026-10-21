@@ -3,7 +3,6 @@ import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
 import type { MoverRuntime, MoverInstallation } from '@wildshard/game/plugin/mover';
-import type { PackedGeometryJson } from '../kit/geometryPack';
 import type { QuestPageTalksRows } from '@wildshard/format/npcs';
 
 interface Point { x: number; z: number }
@@ -19,9 +18,7 @@ export interface ForestStoryRows {
   readonly ammo: Parameters<HeldLoadout['addAmmo']>[0];
   readonly panels: { readonly board: string; readonly count: string };
   readonly files: Readonly<Record<'stall' | 'exchange' | 'contracts' | 'signals' | 'door' | 'transactions' | 'services' | 'director', string>>;
-  readonly figures: { readonly catalogue: string };
   readonly talks: QuestPageTalksRows;
-  readonly parts: { readonly url: string; readonly rows: PackedGeometryJson; readonly label: string };
   readonly store: { readonly slot: string; readonly state: string };
   readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[];
     readonly label: string; readonly complete: string; readonly item?: string; readonly take?: string; readonly fallback?: string; readonly shelf?: string }[];
@@ -32,10 +29,10 @@ export interface ForestStoryRows {
   readonly door: { readonly building: string; readonly flag: string };
   readonly trades: { readonly finishes: readonly string[]; readonly figure: string };
   readonly board: { readonly at: Point & { readonly yaw: number }; readonly label: string; readonly filled: string };
-  readonly cable: { readonly id: string; readonly geometry: number; readonly prompt: Triple; readonly radius: number; readonly label: string;
+  readonly cable: { readonly id: string; readonly scene: string; readonly trolley: string; readonly prompt: Triple; readonly radius: number; readonly label: string;
     readonly top: Triple; readonly launch: Triple; readonly landing: Triple; readonly arrival: string };
   /** `rest`: the scene object standing in for the mover at rest, hidden while it is away */
-  readonly mover: { readonly id: string; readonly geometry: number; readonly binding: { readonly systemId: string; readonly bindings: NonNullable<MoverInstallation['borrowed']>['rows'] }; readonly rest: string };
+  readonly mover: { readonly id: string; readonly mesh: string; readonly binding: { readonly systemId: string; readonly bindings: NonNullable<MoverInstallation['borrowed']>['rows'] }; readonly rest: string };
   readonly secret: { readonly scene: string; readonly flag: string; readonly text: string; readonly floorY: number; readonly mid: Triple; readonly mouths: Triple[] };
   readonly map: { readonly pois: readonly (Point & { id: string; name: string; r: number })[];
     readonly zones: readonly { label: string; x: number; z: number; size?: number; rot?: number }[] };

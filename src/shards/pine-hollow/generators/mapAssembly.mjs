@@ -25,7 +25,8 @@ export async function pineMapAssembly() {
     return crags.cave.meta.holes.some(h => !(hi[0] < h.lx - h.hw || lo[0] > h.lx + h.hw || hi[2] < h.lz - h.hd || lo[2] > h.lz + h.hd || hi[1] < h.y0 || lo[1] > h.y1));
   };
   assembly.add('terrain', mapGround(native, 256, 500, palette, hole));
-  for (const step of WORLD_SCENES.steps) await world.recipe(step, new Matrix4(), ['spray']);
+  // Moving ride bodies have no static rest pose here; their parked canoe already has its hero placement.
+  for (const step of WORLD_SCENES.steps) await world.recipe(step, new Matrix4(), ['spray', 'trolley', 'canoe']);
   for (const row of SCENE_PLACEMENTS) {
     if (row.tier === 'phone' || row.id === 'heroes.closed-arch') continue;
     await world.placement(row);

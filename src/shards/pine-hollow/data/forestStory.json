@@ -17,9 +17,6 @@
     "services": "quests/services.json",
     "director": "quests/chapter-director.json"
   },
-  "figures": {
-    "catalogue": "people/catalogue.json"
-  },
   "store": {
     "slot": "lodge",
     "state": "pine.lodge"

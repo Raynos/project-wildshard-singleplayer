@@ -20,9 +20,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import * as THREE from 'three';
 import type { ForestStoryRows, ForestStoryContent, ForestStory } from './forestStoryRows';
-import { FigureCatalogue } from '../npc/figures';
-import { GeometryPack, fetchDeflated, packedRows } from '../kit/geometryPack';
-import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
@@ -55,11 +52,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.signals))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.door))));
   const transactionRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.transactions))));
-  const figuresBook = await FigureCatalogue.fromProduct(ctx.product, rows.figures.catalogue);
-  const parts = new GeometryPack(await fetchDeflated(rows.parts.url), packedRows(rows.parts.rows), rows.parts.label);
-  if (ctx.scope.disposed) throw new Error('Story left during model admission');
   const { game, sky, player, animals, hud, inventory } = h;
-  const figureScenes = new SceneHandles(sky);
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services, placement: { registryReach: 20 } });
   const { story, flags, floorAt } = entry;
   const featFacts = await entry.achievements(), facts = featFacts.facts;
@@ -187,13 +180,13 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   let canoe: { group: THREE.Mesh };
   let motion: MoverRuntime;
   {
-    const trolley = new THREE.Mesh(parts.geometry(rows.cable.geometry), figuresBook.material(figureScenes)); trolley.castShadow = true; trolley.name = 'zip-trolley';
+    game.scene.add(floor.resources.object(rows.cable.scene));
+    const trolley = floor.resources.mesh(rows.cable.trolley);
     zip = { trolley, prompt: cables.bindView(cableId, trolley, player,
       { position: new THREE.Vector3(...rows.cable.prompt), radius: rows.cable.radius, label: rows.cable.label }, game.camera) };
-    game.scene.add(zip.trolley); h.interactables.push(zip.prompt);
+    h.interactables.push(zip.prompt);
     const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Canoe requires its active world');
-    canoe = { group: new THREE.Mesh(parts.geometry(rows.mover.geometry), figuresBook.material(figureScenes)) }; canoe.group.castShadow = true; canoe.group.visible = false; canoe.group.name = 'canoe-ride';
-    game.scene.add(canoe.group);
+    canoe = { group: floor.resources.mesh(rows.mover.mesh) };
     motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.mover.binding, { canoe }, { flags, prompts: h.interactables });
   }
 

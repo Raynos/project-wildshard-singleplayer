@@ -14,6 +14,7 @@ import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
 import { SPRAY_LOOK } from './streamLook';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
+import { QUEST_RIDE_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP } from './questRideScenes';
 
 const { surfaces: WATER_SURFACES } = waterRows;
 
@@ -34,7 +35,7 @@ const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file
   frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
 export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
   nameBlob(SPRAY, 'bin', new Uint8Array(Float32Array.from([...matrices, ...spray.seed, ...spray.size]).buffer)),
-  ...CABIN_JSON_BLOBS, TREE_SET_BLOB,
+  ...CABIN_JSON_BLOBS, TREE_SET_BLOB, ...QUEST_RIDE_BLOBS,
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
   ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
 export const SCENE_MODEL_BLOBS = [
@@ -45,12 +46,12 @@ export const SCENE_MODEL_BLOBS = [
 /** Ordered stream assembly plus named raw-model placement sets, over shared material slots. */
 export const WORLD_SCENES: WorldScenesSection = {
   version: 1, catalogue: 'models/world-scenes.json', placements: MODEL_SCENES.placements, batches: MODEL_SCENES.batches, welds: MODEL_SCENES.welds,
-  libraries: [...MODEL_SCENES.libraries, { id: 'streams', kind: 'owned', models: [
+  libraries: [...MODEL_SCENES.libraries, QUEST_RIDE_LIBRARY, { id: 'streams', kind: 'owned', models: [
     { id: 'water', file: 'models/stream-water.glb', attributes: { _awater: 'aWater' } },
     { id: 'quad', file: 'models/stream-quad.glb', attributes: {} },
   ] }],
-  materials: [...MODEL_SCENES.materials, { id: 'water', kind: 'look', look: WATER_SURFACES.creek.look }, { id: 'spray', kind: 'look', look: SPRAY_LOOK }],
-  steps: [{ id: 'streams', scene: 'scenes/streams.json',
+  materials: [...MODEL_SCENES.materials, QUEST_RIDE_MATERIAL, { id: 'water', kind: 'look', look: WATER_SURFACES.creek.look }, { id: 'spray', kind: 'look', look: SPRAY_LOOK }],
+  steps: [QUEST_RIDE_STEP, { id: 'streams', scene: 'scenes/streams.json',
     geometry: { water: { library: 'streams', model: 'water' }, quad: { library: 'streams', model: 'quad' } },
     materials: { water: 'water', spray: 'spray' }, registry: [], bounds: [],
     instanceAttributes: [{ part: 'spray', target: 'instanceMatrix', width: 16, packet: sprayPacket(0) },
