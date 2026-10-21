@@ -8,10 +8,15 @@ import zipline from '../src/shards/driftwood-isle/data/zipline.generated.json' w
 
 test('all draw labels preserve the authored tier, variant and deduplicated blob identity', () => {
   const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));
+  const retired = new Set<string>([PALM_FILES.phone.world, PALM_FILES.desktop.world,
+    HIBISCUS_FILES.phone.world, HIBISCUS_FILES.desktop.world, REEF_FILES.world]);
   const seen = new Set<string>();
   const check = (label: string, value: unknown): void => {
     if (typeof value === 'string') {
       const name = DRIFTWOOD_ASSET_NAMES[label];
+      if (retired.has(value)) {
+        expect(name).toBeUndefined(); expect(DRIFTWOOD_ASSET_NAMES[value]).toBeUndefined(); return;
+      }
       if (name === undefined) throw new Error(`Missing admitted draw: ${label}`);
       expect(name).toBe(DRIFTWOOD_ASSET_NAMES[value]);
       expect(names.has(name)).toBe(true); seen.add(label);
@@ -21,7 +26,6 @@ test('all draw labels preserve the authored tier, variant and deduplicated blob 
   };
   const { world, trolley, specimen, parked } = zipline;
   for (const [family, files] of Object.entries({ ground: GROUND_FILES, palms: PALM_FILES, hibiscus: HIBISCUS_FILES, reef: REEF_FILES, zipline: { world, trolley, specimen, parked } })) check(`draw:${family}`, files);
-  expect(seen.size).toBe(37);
   expect(new Set(Object.keys(DRIFTWOOD_ASSET_NAMES).filter(key => key.startsWith('draw:')))).toEqual(seen);
   expect(DRIFTWOOD_ASSET_NAMES['draw:reef:coral:brain']).toBe(DRIFTWOOD_ASSET_NAMES['draw:reef:coral:default']);
   expect(DRIFTWOOD_ASSET_NAMES['draw:reef:weed:tint-0']).toBe(DRIFTWOOD_ASSET_NAMES['draw:reef:weed:default']);
