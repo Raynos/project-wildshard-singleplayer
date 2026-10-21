@@ -7,7 +7,7 @@ import { createServer } from 'node:net';
 import { observeTransport } from './transport.mjs';
 import { soakInspector } from '../soak/inspector.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
-import { accuracyRecorder } from './accuracy-data.mjs';
+import { accuracyRecorder, accuracyCaption } from './accuracy-data.mjs';
 import { accuracyReport } from './accuracy-report.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
 
@@ -113,6 +113,10 @@ try {
     } catch (error) { errors.push(String(error)); }
     const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
       ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };
+    try {
+      const caption = `${pin.slice(0, 7)} · ${collected?.accuracy?.final?.path ?? `${path} request`} · iPhone 16 Pro · Simulator`;
+      await inspector.evaluate(`(${accuracyCaption.toString()})(${JSON.stringify(caption)})`);
+    } catch (error) { errors.push(`Capture caption: ${String(error)}`); }
     writeFileSync(resolvePath(out, `${path}.json`), JSON.stringify(result, null, 2));
     execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', resolvePath(out, `${path}.png`)], { stdio: 'ignore' });
     execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '70', '-Z', '1000', resolvePath(out, `${path}.png`), '--out', resolvePath(out, `${path}.jpg`)], { stdio: 'ignore' });

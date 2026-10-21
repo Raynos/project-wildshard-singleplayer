@@ -39,3 +39,11 @@ export function accuracyRecorder() {
         });
       });
     }
+
+/** Proof-only caption: captured pixels identify the served SHA and actual path. */
+export function accuracyCaption(text) {
+  const label = document.createElement('div');
+  label.textContent = text;
+  label.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:3px 5px;background:#07121fed;color:white;font:10px/16px monospace;text-align:center;pointer-events:none';
+  document.body.append(label);
+}

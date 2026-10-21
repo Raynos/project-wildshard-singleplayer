@@ -7,7 +7,7 @@ import { chromium, devices } from 'playwright';
 import { saveFixture } from '../debug-settings.mjs';
 import { observeTransport } from './transport.mjs';
 import { accuracyReport } from './accuracy-report.mjs';
-import { accuracyRecorder } from './accuracy-data.mjs';
+import { accuracyRecorder, accuracyCaption } from './accuracy-data.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
 
 const arg = (key, fallback) => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
@@ -83,7 +83,10 @@ try {
     console.info(JSON.stringify({ path, status, networkBytes, displayedNetworkBytes: receipt.displayedNetworkBytes,
       stageSeconds: receipt.stageSeconds, clockSeconds: receipt.clockSeconds, unaccountedSeconds: receipt.unaccountedSeconds, maxDetailGapMs: receipt.maxDetailGapMs, errors }));
     if (status === 'passed') await page.locator('.ws-load').waitFor({ state: 'detached', timeout: 10_000 });
-    if (!desktop) await page.screenshot({ path: resolve(out, `${path}-${status === 'passed' ? 'first-frame' : 'stalled'}.jpg`), type: 'jpeg', quality: 75, scale: 'css' });
+    if (!desktop) {
+      await page.evaluate(accuracyCaption, `${pin.slice(0, 7)} · ${collected.accuracy.final?.path ?? `${path} request`} · iPhone 16 Pro · CPU ${cpu}x`);
+      await page.screenshot({ path: resolve(out, `${path}-${status === 'passed' ? 'first-frame' : 'stalled'}.jpg`), type: 'jpeg', quality: 75, scale: 'css' });
+    }
     await context.close(); await transport.close();
     if (status !== 'passed' || (arg('accept', '0') === '1' && report.failures.length > 0)) failed = true;
   }
