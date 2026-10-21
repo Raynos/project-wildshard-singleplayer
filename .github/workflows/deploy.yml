@@ -242,7 +242,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -261,7 +261,7 @@ jobs:
       - run: pnpm gen && node scripts/build-shardfiles.mjs
       # The preceding producer built these exact products; hooks must not rebuild
       # all ten concurrently inside every test file (CI always forces a rebuild).
-      - run: python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/8
+      - run: python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/10
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
           WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
