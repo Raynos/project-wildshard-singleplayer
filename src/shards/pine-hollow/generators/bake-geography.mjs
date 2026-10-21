@@ -5,6 +5,9 @@ import { PineSeedStream } from './seedStream.ts';
 import { forestDensity, oldGrowthMask, speciesMix } from './forestGeography.ts';
 import { creekSpan } from './geography.ts';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
+import { streamSurface } from '@wildshard/format/populationEnvironment';
+import { Noise2D } from './floorNoise.ts';
 
 const manifest = JSON.parse(readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'));
 const speciesIds = manifest.forest.speciesTraits.map(row => row.id);
@@ -45,8 +48,59 @@ export function pineGeography() {
   return { forest, stream, creek: { lines, dam, riffle: p.riffle, lead, crest, depth, halfWidth, run, bed } };
 }
 
+/** the beaver pool's live water level (world/beaverPool.ts publishes it) */
+export const POOL_LEVEL = 'pine-hollow.beaver-pool';
+
+/**
+ * G4: Pine's declared ground rows (game `declaredGround`): its baked terrain by key and seed, the four mandated roads and
+ * every spur (den and lookout under their own trails, in the authored order), the cabin pads, the pond and its level, and
+ * its water as rows: the pond basin traced where the terrain's pond mask is wet, and the creek as a stream sampled along its
+ * baked lines at its own surface law (the beaver pool at its level), every band and profile break included.
+ */
+export function pineGround(geography = pineGeography()) {
+  const spurs = { ...LAYOUT.SPURS }; spurs.den = LAYOUT.DEN_TRAIL; spurs.lookout = LAYOUT.LOOKOUT_TRAIL;
+  const trails = [LAYOUT.S_ROAD, LAYOUT.N_ROAD, LAYOUT.W_ROAD, LAYOUT.E_ROAD, ...Object.values(spurs)];
+  const pond = { x: LAYOUT.POND.x, z: LAYOUT.POND.z, r: LAYOUT.POND.r }, noise = new Noise2D(TERRAIN.seed);
+  // the basin's edge: the radius where the mask (smoothstep(r + 10, 0.3 r, d + 3 n)) first reaches 0, at 64 bearings
+  const wet = (x, z) => Math.hypot(x - pond.x, z - pond.z) + noise.get(x * 0.05, z * 0.05) * 3 < pond.r + 10;
+  const basin = Array.from({ length: 64 }, (_, i) => {
+    const a = i / 64 * Math.PI * 2, ux = Math.cos(a), uz = Math.sin(a);
+    let lo = 0, hi = pond.r + 14;
+    for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (wet(pond.x + ux * mid, pond.z + uz * mid)) lo = mid; else hi = mid; }
+    return [pond.x + ux * lo, pond.z + uz * lo];
+  });
+  const { stream, creek } = geography, pool = LAYOUT.beaverPoolLevel.y, end = creek.lines.at(-1);
+  if (end === undefined) throw new Error('Missing creek line');
+  // a declared stream's banks stay inside the cell: the creek is cut where its centre comes within half its width of the edge
+  const edge = 250 - creek.halfWidth, at = arc => { const line = creek.lines.find(row => arc <= row.arc + row.length) ?? end, t = line.length === 0 ? 0 : (arc - line.arc) / line.length; return { line, x: line.x + line.vx * t, z: line.z + line.vz * t }; };
+  let total = end.arc + end.length;
+  if (creek.lines.some(row => Math.max(Math.abs(row.x + row.vx), Math.abs(row.z + row.vz)) > edge)) {
+    let lo = 0, hi = total;
+    for (let k = 0; k < 60; k++) { const mid = (lo + hi) / 2, p = at(mid); if (Math.max(Math.abs(p.x), Math.abs(p.z)) <= edge) lo = mid; else hi = mid; }
+    total = lo;
+  }
+  const breaks = new Set([0, total]);
+  for (const line of creek.lines) breaks.add(line.arc);
+  // a band edge is a step: a point 2 cm on its own side of it keeps the step sharp
+  for (const band of stream.bands) { breaks.add(band.until); breaks.add(band.until + (band.inclusive ? 0.02 : -0.02)); }
+  for (const piece of creek.bed) { breaks.add(piece.until); breaks.add(piece.start); }
+  const step = total / 96;
+  for (let arc = 0; arc < total; arc += step) breaks.add(arc);
+  const arcs = [...breaks].filter(arc => arc >= 0 && arc <= total).sort((a, b) => a - b);
+  if (arcs.length > 128) throw new Error(`Creek stream needs ${arcs.length} points (at most 128)`);
+  // the beaver pool's stretch rests on its bed floor under the live pool level (BeaverPool publishes it as it drains)
+  const points = arcs.map(arc => {
+    const p = at(arc), full = streamSurface(stream, arc, { pool }), dry = streamSurface(stream, arc, { pool: -250 });
+    return full === dry ? { x: p.x, z: p.z, level: full } : { x: p.x, z: p.z, level: dry, under: POOL_LEVEL };
+  });
+  return { terrain: { key: TERRAIN.key, seed: TERRAIN.seed }, trails, cabinSites: LAYOUT.CABIN_SITES, pond, water: LAYOUT.POND.level,
+    bodies: [{ id: 'pond', kind: 'pool', level: LAYOUT.POND.level, shape: { kind: 'polygon', points: basin } },
+      { id: 'creek', kind: 'stream', width: creek.halfWidth * 2, points, levels: { [POOL_LEVEL]: pool } }] };
+}
+
 if (import.meta.main) {
-  const writer = byteWriter(process.argv.includes('--check'), 'pine-geography');
-  writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes(pineGeography(), 0));
+  const writer = byteWriter(process.argv.includes('--check'), 'pine-geography'), geography = pineGeography();
+  writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes(geography, 0));
+  writer.put(fileURLToPath(new URL('../data/ground.generated.json', import.meta.url)), jsonBytes(pineGround(geography), 0));
   writer.finish();
 }

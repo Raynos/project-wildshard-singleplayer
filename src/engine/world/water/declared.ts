@@ -21,8 +21,20 @@ export function dryEntryContains(edge: DryEntryEdge, x: number, z: number): bool
 export type WaterDeclaration = (
   | { id: string; kind: 'pool'; level: number; shape: { kind: 'circle'; x: number; z: number; radius: number } | { kind: 'polygon'; points: readonly (readonly [number, number])[] } }
   | { id: 'sea'; kind: 'sea'; level: number; waves: boolean }
-  | { id: string; kind: 'stream'; width: number; points: readonly { x: number; z: number; level: number }[] }
+  | { id: string; kind: 'stream'; width: number; points: readonly { x: number; z: number; level: number; under?: string | undefined }[];
+      levels?: Readonly<Record<string, number>> | undefined }
 ) & { dryEntries?: readonly DryEntryEdge[] | undefined };
+
+const LIVE = new Map<string, number>();
+/**
+ * Move a live water level (a stream's `levels` row, named by its points' `under`): a stream point under it rests at the higher
+ * of its own level and this one, so a draining pool lowers its stretch of the creek for wading and the dry-ground test.
+ * Names are machine-wide; a shard names its own (its slug first). Unset, a level rests at its declared value.
+ */
+export function setLiveWaterLevel(name: string, level: number): void {
+  if (!Number.isFinite(level)) throw new Error(`Invalid live water level ${name}`);
+  LIVE.set(name, level);
+}
 
 /** Compile validated data into the existing swim/wade port, with no renderer or import-time registration. A sea stops
  *  at the shore revetment's inner face when a grid cell confines the water (`waterExtent`; unbounded standalone). */
@@ -39,12 +51,14 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
       return insidePolygon(shape.points, x, z) ? data.level : null;
     }
     let distance = Infinity, height = level;
+    const rest = data.levels, at = (p: { level: number; under?: string | undefined }): number =>
+      p.under === undefined ? p.level : Math.max(p.level, LIVE.get(p.under) ?? rest?.[p.under] ?? p.level);
     for (let i = 1; i < data.points.length; i++) {
       const a = data.points[i - 1], b = data.points[i]; if (a === undefined || b === undefined) continue;
       const dx = b.x - a.x, dz = b.z - a.z, n = dx * dx + dz * dz;
       const t = n === 0 ? 0 : Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / n));
       const d = Math.hypot(x - a.x - dx * t, z - a.z - dz * t);
-      if (d < distance) { distance = d; height = a.level + (b.level - a.level) * t; }
+      if (d < distance) { distance = d; const from = at(a); height = from + (at(b) - from) * t; }
     }
     return distance < data.width / 2 ? height : null;
   };

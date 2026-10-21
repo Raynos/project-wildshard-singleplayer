@@ -2,8 +2,11 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import pine from '../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
-import { creekSurfaceAt, inBeaverPool, FOREST_QUERIES } from '../src/shards/pine-hollow/world/terrain';
-import { creekSurfaceAt as originalSurface, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
+import { inBeaverPool, FOREST_QUERIES } from '../src/shards/pine-hollow/world/terrain';
+import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
+import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };
+import { declaredGround } from '../src/game/shard/manifest';
+import { setLiveWaterLevel } from '../src/engine/world/water/declared';
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';
 import geography from '../src/shards/pine-hollow/data/geography.generated.json' with { type: 'json' };
 import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
@@ -19,15 +22,19 @@ it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {
   expect(pine.GRADED.paths[0]).toBe(pine.LOOKOUT_TRAIL);
 });
 
-it('keeps the beaver pool level live after fixed layout data leaves runtime', () => {
-  const initial = pine.beaverPoolLevel.y;
+const creek = declaredGround(groundRows).water?.find(body => body.id === 'creek');
+const POOL = 'pine-hollow.beaver-pool';
+
+it('keeps the declared creek under the live beaver pool level', () => {
+  if (creek === undefined) throw new Error('Missing declared creek');
+  const [x, z] = [-137.5, 65].map(Number);
+  if (x === undefined || z === undefined) throw new Error('Missing pool sample');
   try {
-    pine.beaverPoolLevel.y = pine.BEAVER_POOL.full;
-    expect(creekSurfaceAt(pine.BEAVER_POOL.centre)).toBe(pine.BEAVER_POOL.full);
-    pine.beaverPoolLevel.y = pine.BEAVER_POOL.drained;
-    expect(creekSurfaceAt(pine.BEAVER_POOL.centre)).toBeLessThan(pine.BEAVER_POOL.full);
-    expect(pine.BEAVER_POOL.full).toBe(initial);
-  } finally { pine.beaverPoolLevel.y = initial; }
+    setLiveWaterLevel(POOL, pine.BEAVER_POOL.full);
+    expect(creek.restAt(x, z)).toBeCloseTo(pine.BEAVER_POOL.full, 6);
+    setLiveWaterLevel(POOL, pine.BEAVER_POOL.drained);
+    expect(creek.restAt(x, z)).toBeLessThan(pine.BEAVER_POOL.full);
+  } finally { setLiveWaterLevel(POOL, pine.BEAVER_POOL.full); }
 });
 
 it('retains every exact forest candidate answer across clearings and species zones', () => {
@@ -43,9 +50,15 @@ it('retains every exact forest candidate answer across clearings and species zon
 it('retains the creek profile and pool clip at full, partial and drained levels', () => {
   const initial = pine.beaverPoolLevel.y;
   try {
+    if (creek === undefined) throw new Error('Missing declared creek');
+    // G4: the declared creek keeps the creek law within 8 cm (similar, not identical: G415), its banks inside the cell
     for (const level of [pine.BEAVER_POOL.full, (pine.BEAVER_POOL.full + pine.BEAVER_POOL.drained) / 2, pine.BEAVER_POOL.drained]) {
-      pine.beaverPoolLevel.y = level;
-      for (let s = -1; s < 550; s += 0.125) expect(creekSurfaceAt(s)).toBe(originalSurface(s));
+      pine.beaverPoolLevel.y = level; setLiveWaterLevel(POOL, level);
+      for (let x = -238.3; x <= 238; x += 2.5) for (let z = -238.3; z <= 238; z += 2.5) {
+        const expected = creekWaterAt(x, z), actual = creek.restAt(x, z);
+        expect(actual === null).toBe(expected === null);
+        if (expected !== null && actual !== null) expect(Math.abs(actual - expected)).toBeLessThan(0.08);
+      }
     }
     let clipped = 0;
     for (let x = -240; x < -90; x += 1.25) for (let z = -245; z < 120; z += 1.25) {
@@ -54,5 +67,5 @@ it('retains the creek profile and pool clip at full, partial and drained levels'
       if (actual) clipped++;
     }
     expect(clipped).toBeGreaterThan(0);
-  } finally { pine.beaverPoolLevel.y = initial; }
+  } finally { pine.beaverPoolLevel.y = initial; setLiveWaterLevel(POOL, initial); }
 });

@@ -21,14 +21,16 @@ function simplePolygon(points: readonly (readonly [number, number])[]): boolean 
   return Math.abs(area) > 1e-6;
 }
 const polygon = v.pipe(v.strictObject({ kind: v.literal('polygon'), points: v.pipe(v.array(point), v.minLength(3), v.maxLength(64)) }), v.check((s) => simplePolygon(s.points), 'simple nondegenerate pool polygon'));
-const streamPoint = v.strictObject({ x: coord, z: coord, level: coord });
+// `under` names a live level (the stream's `levels`, its rest value) that floods the point: its surface is the higher of the two
+const streamPoint = v.strictObject({ x: coord, z: coord, level: coord, under: v.optional(id) });
+const levels = v.optional(v.pipe(v.record(id, coord), v.check((rows) => Object.keys(rows).length <= 8, 'at most 8 live levels')));
 const dryEntries = v.optional(v.pipe(v.array(v.picklist(['north', 'east', 'south', 'west'])), v.maxLength(4), v.check((rows) => new Set(rows).size === rows.length, 'unique dry entryways')));
 const body = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('pool'), level: coord, shape: v.variant('kind', [circle, polygon]), dryEntries }),
   v.strictObject({ id: v.literal('sea'), kind: v.literal('sea'), level: coord, waves: v.boolean(), dryEntries }),
-  v.pipe(v.strictObject({ id, kind: v.literal('stream'), width: v.pipe(coord, v.minValue(0.01), v.maxValue(100)), points: v.pipe(v.array(streamPoint), v.minLength(2), v.maxLength(128)), dryEntries }), v.check((s) => s.points.every((p, i) => {
-    const prev = s.points[i - 1]; return Math.abs(p.x) + s.width / 2 <= 250 && Math.abs(p.z) + s.width / 2 <= 250 && (prev === undefined || p.x !== prev.x || p.z !== prev.z);
-  }), 'stream fits cell and has nonzero segments')),
+  v.pipe(v.strictObject({ id, kind: v.literal('stream'), width: v.pipe(coord, v.minValue(0.01), v.maxValue(100)), points: v.pipe(v.array(streamPoint), v.minLength(2), v.maxLength(128)), levels, dryEntries }), v.check((s) => s.points.every((p, i) => {
+    const prev = s.points[i - 1]; return (p.under === undefined || s.levels?.[p.under] !== undefined) && Math.abs(p.x) + s.width / 2 <= 250 && Math.abs(p.z) + s.width / 2 <= 250 && (prev === undefined || p.x !== prev.x || p.z !== prev.z);
+  }), 'stream fits cell, has nonzero segments and declares its live levels')),
 ]);
 /** Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. */
 export const WaterSchema = v.pipe(v.array(body), v.maxLength(64), v.check((rows) => new Set(rows.map((row) => row.id)).size === rows.length && rows.every((row, i) => row.kind === 'sea' ? i === rows.length - 1 : row.id !== 'sea'), 'unique water ids and sea last'));

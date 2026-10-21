@@ -739,8 +739,11 @@
       "export": "PINE_FAUNA"
     },
     "ground": {
-      "module": "./world/terrain",
-      "export": "GROUND"
+      "platform": "declared",
+      "rows": {
+        "module": "./data/ground.generated.json",
+        "export": "default"
+      }
     },
     "render": {
       "module": "./look/render",

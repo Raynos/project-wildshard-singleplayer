@@ -4,6 +4,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { PineWaterSurface } from './poolSurface';
 import { drawPineWater, pineWaterSurface, setWaterFade } from './water';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import { setLiveWaterLevel } from '@wildshard/engine/world/water/declared';
 import { loadSiteTimbers } from '../runtime/world/timberSites';
 import { pineModels } from '../runtime/world/context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
@@ -30,6 +31,7 @@ export class BeaverPool {
   private ready(): PineWaterSurface { if (this.surface === undefined) throw new Error('Pool is not built'); return this.surface; }
   private publish(): void {
     const surface = this.ready(); LAYOUT.beaverPoolLevel.y = surface.level;
+    setLiveWaterLevel('pine-hollow.beaver-pool', surface.level); // the declared creek's pool stretch (generators/bake-geography.mjs POOL_LEVEL)
     setWaterFade('trickle', surface.reveal); this.trickle.visible = surface.reveal > 0.001;
   }
 }

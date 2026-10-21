@@ -7,7 +7,9 @@ import { installPopulationEnvironment, populationEnvironment } from '../src/game
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { terrainTileHeight } from '../src/format/terrainTileBytes';
 import { POPULATION_ENVIRONMENT } from '../src/shards/pine-hollow/generators/populationEnvironment';
-import { TERRAIN } from '../src/shards/pine-hollow/world/terrain';
+import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };
+import { declaredGround } from '../src/game/shard/manifest';
+import { creekWaterAt } from '../src/shards/pine-hollow/generators/geography';
 import { TreeGrid } from '../src/engine/world/forest/placement';
 import type { HuntTree } from '../src/engine/ai/hunt';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -33,12 +35,14 @@ test('Pine habitat rows retain exact metadata, creek surfaces, normals and trunk
       const length = Math.hypot(line.vx,line.vz);
       points.push([line.x+line.vx*fraction-line.vz/length*side*stream.halfWidth,line.z+line.vz*fraction+line.vx/length*side*stream.halfWidth]);
     }
+    const terrain = declaredGround(groundRows).terrain;
+    if (terrain === undefined) throw new Error('Missing Pine terrain');
     for (const [x,z] of points) {
       expect(ground.heightAt(x,z)).toBe(samplers.heightAt(x,z));
       expect(ground.normalY(x,z)).toBe(samplers.normalAt(x,z)[1]);
-      expect(ground.trailDistance(x,z)).toBe(TERRAIN.trailDistance(x,z));
-      expect(ground.cabinMask(x,z)).toBe(TERRAIN.cabinMask(x,z));
-      expect(ground.streamAt(x,z)).toBe(TERRAIN.streamAt?.(x,z) ?? null);
+      expect(ground.trailDistance(x,z)).toBe(terrain.trailDistance(x,z));
+      expect(ground.cabinMask(x,z)).toBe(terrain.cabinMask(x,z));
+      expect(ground.streamAt(x,z)).toBe(creekWaterAt(x,z));
       expect(ground.trees(x,z,1)).toEqual(expectedTrees.nearby(x,z,1));
     }
   } finally { host.dispose(); }

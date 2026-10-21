@@ -1110,13 +1110,17 @@
         "src/shards/pine-hollow/manifest.json",
         "src/shards/pine-hollow/data/layout.generated.json",
         "scripts/bake-output.mjs",
-        "src/sdk/bake/source-loader.mjs"
+        "src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/data/terrainBindings.json",
+        "src/format/populationEnvironment.ts"
       ],
       "outputs": [
-        "src/shards/pine-hollow/data/geography.generated.json"
+        "src/shards/pine-hollow/data/geography.generated.json",
+        "src/shards/pine-hollow/data/ground.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/pine-hollow/data/geography.generated.json"
+        "src/shards/pine-hollow/data/geography.generated.json",
+        "src/shards/pine-hollow/data/ground.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": [
