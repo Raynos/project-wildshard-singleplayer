@@ -2723,6 +2723,15 @@ Pine and Nalati emit this section from their `generators/riggedHulls.ts`; Pine r
 bear flaps, fur colours and thrall extras, while Nalati retains its embedded atlases, vertex AO and double-sided eagle wings.
 `pressFlap(pos, nrm, index, flap)` collapses a generator flap in place.
 
+**Product hull look books.** `@wildshard/game/looks/speciesBook.productHullBook(product)`
+reads the admitted `look/hull-book` section and shares one `HullLookBook` per
+book slug across page installers, factories and cold specimens. Its `packed`
+accessor borrows the same packed-body owner; it refuses a book without packed
+bodies. `definition(kind)` returns the declared gameplay fields with a fresh
+rest-body copy, while `look(kind)` resolves the registered rig when requested.
+The ordered `looks` getter follows the authored rows. Pine and Driftwood use
+this product section without installing another body cache.
+
 **Weather reactions + keyed sky (G474/G477).** `look/keyed-sky` is an admitted
 platform section defined by `@wildshard/format/keyedSky`. The client-only
 `@wildshard/game/looks/keyedSky` consumes its image keys, preset frames,
