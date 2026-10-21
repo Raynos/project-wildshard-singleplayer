@@ -272,7 +272,8 @@
     "./looks/grassPresentation": "./looks/grassPresentation.ts",
     "./riding/reins": "./riding/reins.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
-    "./quest/flagGates": "./quest/flagGates.ts"
+    "./quest/flagGates": "./quest/flagGates.ts",
+    "./quest/bodyOps": "./quest/bodyOps.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

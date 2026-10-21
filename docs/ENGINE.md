@@ -9623,6 +9623,29 @@ with the entered scope. No independent save, listener or clock is introduced.
 original parentless baked box at the native continuation's existing tolerance
 and first-match order, without changing its enabled state.
 
+`await installDeclaredBodyOps(ctxOrSimHost, rows)` prepares declared body
+mechanics in the existing scope. `rows.bodies` declares immutable `actor`
+(species, variant, at:{x,y,z}, yaw) or `prop` (shape, material, owner:{kind,id},
+at, yaw, optional existing BodySpec coefficients/group) identities;
+`rows.colliders` names an existing prop body or an exact baked static box.
+Actor declarations are client-only, use the real AnimalManager species rigs
+and are removed immediately from manager combat/aim/minimap lists.
+`declaredBodyRegistries(rows)` resolves sorted ids for AS Body/Collider
+aliases. DecisionWorld lends `ops.read(op,id,reserved)` and
+`ops.prepare(commands)` internally; a complete call validates before its
+DecisionCommit mutates the world at the caller's original phase. No new
+clock, RNG stream, save envelope, collider approximation or cap is added.
+AS reads: bodyX/Y/Z, bodyYaw, bodyAlive, bodyVisible. Commands:
+Do.bodySpawn(Body.id), bodyTeleport(id,x,y,z), bodyPlace(id,x,z,yaw),
+bodyVisible(id,bool), bodyRetire(id), colliderEnabled(Collider.id,bool).
+The existing four-spawn allowance applies. Spawn + place in one transaction
+is atomic. `actor(id)` returns the real Animal for listed per-frame view;
+`body(id)`, `position(id)`, `visible(id)` expose retained observations.
+Native callers keep original body-service pre(dt)/post(dt) phases and
+restoreHandles({id:oldNativeHandleOrNull}) after physics restoration through
+their existing save owner. Handles never enter AS. Original collision
+owner/material and unique handles are verified before rebinding.
+
 ### Build-emitted numeric creature poses
 
 `game/plugin/channelPrograms.numericCreaturePose(input)` lends existing
