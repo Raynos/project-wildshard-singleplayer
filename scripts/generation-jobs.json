@@ -22235,7 +22235,9 @@
         "src/format/terrainTileBytes.ts",
         "src/format/contentBounds.ts",
         "package.json",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "src/shards/pine-hollow/data/mapAssembly.generated.json",
+        "src/shards/pine-hollow/data/mapAssembly.generated.bin"
       ],
       "outputs": [
         "public/assets/pine-hollow/map/top.webp",

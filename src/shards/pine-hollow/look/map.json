@@ -76,17 +76,8 @@
     }
   },
   "inputs": [
-    "generators",
-    "manifest.json",
-    "data",
-    "assets",
-    "../../../public/assets/baked/pine-hollow/terrain.bin",
-    "../../../public/assets/pine-hollow/baked",
-    "../../../scripts/map-assembly.mjs",
-    "../../../scripts/map-world.mjs",
-    "../../../scripts/map-scenes.mjs",
-    "../../../scripts/map-painter.mjs",
-    "../../../scripts/bake-data-maps.mjs"
+    "data/mapAssembly.generated.json",
+    "data/mapAssembly.generated.bin"
   ],
   "painter": {
     "version": 1,
