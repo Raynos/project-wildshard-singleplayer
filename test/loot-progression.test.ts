@@ -48,8 +48,8 @@ test('the existing curve is exactly the original glow at every sampled night val
 test('gear reads only the declared beach flags and observes live progress without a new counter owner', async () => {
   const flags = new Flags('driftwood-isle', false), scope = new Scope('loot-progression'), owned = new Owned('driftwood-isle');
   try {
-    const view = await driftwoodLootPresentation({ economy, adventure: { flags, trader: null }, owned,
-      health: { attributes: { maxHealth: 100 } }, audio: { voices: { play: () => undefined } }, scope, toast: () => undefined, hold: () => undefined });
+    const view = await driftwoodLootPresentation({ economy, adventure: { flags }, owned,
+      health: { attributes: { maxHealth: 100 } }, audio: { voices: { play: () => undefined } } });
     const purse = new Purse('driftwood-isle');
     for (let found = 0; found <= 15; found++) {
       flags.restore([...economy.progression.flags.slice(0, found), 'glass:999', 'pack:seaglass']);

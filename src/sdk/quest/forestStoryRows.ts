@@ -1,7 +1,6 @@
 import type { HeldLoadout } from '@wildshard/game/loadout/held';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import type { ShopGood } from '@wildshard/game/loot/ui/ShopPanel';
 import type { installChapterLead, installQuestSpawnDirector } from '@wildshard/game/quest/chapterDirector';
 import type { MoverRuntime, MoverInstallation } from '@wildshard/game/plugin/mover';
 import type { PackedGeometryJson } from '../kit/geometryPack';
@@ -13,8 +12,6 @@ export interface ForestStoryContent {
   readonly table: InteractTable; readonly steps: unknown;
   readonly lead: { program: unknown }; readonly events: unknown; readonly pageDeaths: unknown; readonly content: unknown;
 }
-/** Existing shop cards carry the authored transaction identity. */
-export type ForestStoryGood = ShopGood;
 /** Data-only page composition over forest, ranged equipment and quest hosts. */
 export interface ForestStoryRows {
   readonly page: string; readonly ranged: string; readonly content: `custom/${string}`;

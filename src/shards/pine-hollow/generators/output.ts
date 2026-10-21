@@ -38,7 +38,7 @@ import directorStages from '../data/watchStages.json' with { type: 'json' };
 import directorBindings from '../data/directorBindings.json' with { type: 'json' };
 import { cabinAmbienceRows } from './ambience';
 import { PINE_PANELS } from './panels';
-import traderStall from '../data/traderStall.json' with { type: 'json' };
+import { TRADER_STALL as traderStall } from './questShop';
 import { THRALL_CLIPS } from './thrallClips';
 import thrallLook from '../data/thrallLook.json' with { type: 'json' };
 import { PINE_QUEST_PAYLOAD } from './questRuntime';

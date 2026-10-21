@@ -3,7 +3,7 @@ import { readChapterDirector, installQuestSpawnDirector, installChapterLead } fr
 import { commitQuestEffects } from '@wildshard/game/quest/effects';
 import { prepareQuestEntry } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
-import { installQuestTrader } from '@wildshard/game/quest/trader';
+import { installQuestTrader, installQuestShop } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
 import { MoverRuntime } from '@wildshard/game/plugin/mover';
 import * as v from 'valibot';
@@ -19,12 +19,11 @@ import type { InteractEvent } from '@wildshard/engine/world/interact/Interactabl
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ItemId } from '@wildshard/game/Inventory';
-import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import * as THREE from 'three';
-import type { ForestStoryRows, ForestStoryContent, ForestStoryGood, ForestStory } from './forestStoryRows';
+import type { ForestStoryRows, ForestStoryContent, ForestStory } from './forestStoryRows';
 import { FigureCatalogue } from '../npc/figures';
 import { GeometryPack, fetchDeflated, packedRows } from '../kit/geometryPack';
 import type { FigureRows } from '@wildshard/game/systems/npc/figureRows';
@@ -34,8 +33,6 @@ import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { HeldFinishes } from '@wildshard/game/loadout/finishes';
 import { loadBoard, saveBoard, recordKill, claim, reroll, contractKill, isFilled, type Board } from '@wildshard/game/quest/contracts';
 import { installStoryTalks } from '@wildshard/game/quest/story';
-import { Exchange } from '@wildshard/game/loot/exchange';
-import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
 import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
 import { isItemId } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
@@ -60,8 +57,6 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const native = h.ctx.product.section<ForestStoryContent>(rows.content);
 
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.stall)));
-  const trades = declaredLootEconomy(h.ctx.product.section('economy/loot').rows.loot, 'barter');
-  const exchangeRows = trades.exchange;
   const contracts = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.contracts))));
   const lanternRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.signals))));
   const doorRows = parseQuestPageInteractions(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await h.ctx.product.file(rows.files.door))));
@@ -138,7 +133,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   } };
   const board: Board = loadBoard(contracts, store.getItem(contracts.store));
   const persistBoard = (): void => { try { store.setItem(contracts.store, saveBoard(board)); } catch { /* storage unavailable */ } };
-  const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
+  const traderVoice = new THREE.Vector3();
   const transactions = bindQuestPageInteractions(transactionRows, { flags, toast: text => { hud.toast(text); },
     owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
       ['ammo', { add: h.crossbow.addAmmo }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
@@ -171,22 +166,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   };
   h.interactables.push(boardPrompt);
 
-  const owns = (s: string): boolean => HeldFinishes.current(h.ctx.manifest.slug).has(s) && h.skins.has(s);
-  const room = h.crossbow.room;
-  const exchange = new Exchange(exchangeRows, new Map<string, unknown>([['pack', inventory], ['skins', { owns, own: h.skins.own.bind(h.skins) }],
-    ['ammo', { capacity: room, addBolts: h.crossbow.addBolts.bind(h.crossbow), grant: (kind: Parameters<typeof h.crossbow.addAmmo>[0], n: number) => h.crossbow.addAmmo(kind, n) }]]));
-  const trade = ui.view('trade', (scope) => {
-    const panel = new ShopPanel<ForestStoryGood>({
-      trader: rows.trades.name, place: rows.trades.place, goods: trades.goods, verb: 'Trade',
-      state: (g) => exchange.state(trades.goods.findIndex(row => row.id === g.id)), cost: (g) => exchange.cost(trades.goods.findIndex(row => row.id === g.id)),
-      scope,
-    });
-    panel.onBuy = ({ id }) => transactions.run(`trade.${id}`);
-    return panel;
-  });
-
   const tradeOwner = installQuestTrader(ctx, traderStall);
-  const openTrade = (): void => { tradeOwner.shop = trade(); tradeOwner.open(); };
   const steps = new QuestStepRunner(native.steps);
   const payMiller = (): void => {
     const paid = flags.has(rows.payment.flag);
@@ -194,9 +174,6 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
       inventory: Object.fromEntries(inventory.items.map(item => [item.id, item.count])) }));
     if (!paid && flags.has(rows.payment.flag)) serviceActions.run(rows.payment.action);
   };
-
-  ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
-    panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
 
   const figures: QuestNpcTalkPorts<FigureRows>['figures'] = new Map(rows.figures.ids.map(kind => [kind, {
     kind: 'posed', create: (at, yaw) => figuresBook.create(kind, figureScenes, [at.x, at.y, at.z], yaw, ctx.scope), bark: fig => { sfx.bark(kind, fig.talkPoint); },
@@ -207,6 +184,10 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const trader = people.find(person => person.kind === rows.trades.figure);
   if (trader === undefined) throw new Error('The declared trader is required');
   traderVoice.copy(trader.fig.talkPoint);
+  const trade = installQuestShop(ctx, traderStall);
+  function openTrade(): void { tradeOwner.shop = trade(); tradeOwner.open(); }
+  ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
+    panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
   const killed = bindQuestDeathEffects(native.pageDeaths, { flags, kill: featFacts.kill, event: featFacts.event,
     calls: new Map([['contracts', (a: AnimalManager['animals'][number]) => {
       const moved = recordKill(contracts, board, contractKill(contracts, a));

@@ -44,8 +44,20 @@ export const AdventurePersistenceSchema = v.strictObject({
 
 const placement = v.strictObject({ feet: v.strictObject({ poi: text, x: finite, z: finite, yaw: finite }),
   npc: text, counter: text, counterAhead: finite, tradeAhead: finite, tradeHeight: finite, system: text });
+const shopEffect = v.variant('kind', [
+  v.strictObject({ kind: v.literal('wear'), finish: text }),
+  v.strictObject({ kind: v.literal('bark'), audio: text, group: text, figure: text }),
+  v.strictObject({ kind: v.literal('chime'), at: v.picklist(['counter', 'none']), gain: v.pipe(natural, v.maxValue(8)) }),
+  v.strictObject({ kind: v.literal('offer') }), v.strictObject({ kind: v.literal('toast'), text }),
+]);
+/** Shop cards, payment owners and ordered purchase feedback are inert content. */
+export const QuestShopSchema = v.strictObject({ place: text, barter: v.boolean(),
+  ammunition: v.exactOptional(v.strictObject({ loadout: text, bolts: text })),
+  modal: v.exactOptional(v.strictObject({ restartOnClose: v.boolean(), stow: v.boolean(), resumeSwimming: v.boolean() })),
+  after: v.pipe(v.record(text, v.pipe(v.array(shopEffect), v.maxLength(16))), v.maxEntries(64)),
+});
 export const QuestTraderSchema = v.strictObject({ name: text, reopen: v.boolean(), placement: v.exactOptional(placement),
-  view: v.exactOptional(v.strictObject({ pitch: finite, closeDistance: v.pipe(finite, v.minValue(0)) })) });
+  view: v.exactOptional(v.strictObject({ pitch: finite, closeDistance: v.pipe(finite, v.minValue(0)) })), shop: v.exactOptional(QuestShopSchema) });
 export const PageReturnRowsSchema = v.strictObject({ step: v.string(), water: finite, fixed: v.array(v.string()), program: v.unknown(),
   outOfSight: v.pipe(finite, v.minValue(0)), rules: v.record(v.string(), v.strictObject({
     delay: v.strictObject({ min: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) }), night: v.exactOptional(v.boolean()) })) });

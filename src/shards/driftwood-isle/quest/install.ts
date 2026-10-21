@@ -5,7 +5,7 @@ import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
 import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import type { PlaceSets } from '../runtime/productSections.generated.d.ts';
-import { prepareQuestPageComposition, installQuestPageComposition, questPagePanelHold, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
+import { prepareQuestPageComposition, installQuestPageComposition, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
 import { registerQuestPageWorld } from '@wildshard/game/quest/pageResources';
 import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
@@ -73,8 +73,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   await installDeclaredCollectionKeepsakes(ctx, driftwoodRows('custom/collections').keepsakes, economy,
     new Map([['collection', { adventure, world, play: h, swords, catalogue: COLLECTIONS,
       models: new Map([['hat', captainHat], ['cape', sailclothCape]]) }]]));
-  const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio, scope: ctx.scope,
-    toast: (text) => { h.hud.toast(text); }, hold: questPagePanelHold(ctx, { restartOnClose: true, stow: true, resumeSwimming: true }) });
-  installRuntimeLoot(ctx, presentation, { minimap: true, before: rows.systems.before.filter(id => id !== 'game.loot') });
+  const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio });
+  installRuntimeLoot(ctx, presentation, { shop: await ctx.product.json(rows.files.stall), minimap: true, before: rows.systems.before.filter(id => id !== 'game.loot') });
   return adventure;
 }

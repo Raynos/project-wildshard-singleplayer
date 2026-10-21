@@ -62,7 +62,7 @@ import directorModule from '../behaviour/director.json' with { type: 'json' };
 import directorStages from '../data/finaleStages.json' with { type: 'json' };
 import directorBindings from '../data/directorBindings.json' with { type: 'json' };
 import monkeyClips from '../data/monkeyClips.generated.json' with { type: 'json' };
-import traderStall from '../data/traderStall.json' with { type: 'json' };
+import { TRADER_STALL as traderStall } from './questShop';
 import { PAGE_STORY } from './pageStory';
 import { CAPTAIN_DECISION, CAPTAIN_MOVES, CAPTAIN_STRIKES, CAPTAIN_TARGETS } from './captainDecision';
 import { completionRows } from './completion';

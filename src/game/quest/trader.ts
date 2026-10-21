@@ -5,6 +5,21 @@ import * as v from 'valibot';
 import { Vector3, type Object3D } from 'three';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
+import { isJsonData } from '@wildshard/format/json';
+import { declaredLootEconomy } from '../shard/declaredRows';
+import { enteredPurse } from '../loot/Purse';
+import { Exchange } from '../loot/exchange';
+import { ShopPanel, type ShopGood } from '../loot/ui/ShopPanel';
+import { enteredHeldLoadout } from '../loadout/held';
+import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
+import { HeldFinishes } from '../loadout/finishes';
+import { QuestViews } from '../plugin/ui';
+import type { Scope } from '@wildshard/engine/app/scope';
+
+const enteredTraders = new WeakMap<Scope, Map<string, QuestTrader>>();
+const installedShops = new WeakSet<QuestTrader>();
+type QuestShopGood = ShopGood & { readonly needs?: string };
 
 /** Immutable trader placement and view policy; stock and payments stay with the existing shop. */
 export type QuestTraderRows = v.InferOutput<typeof QuestTraderSchema>;
@@ -43,6 +58,8 @@ export function installQuestTrader(ctx: QuestTraderContext, input: unknown, reso
   if (world === undefined || world === null || play === undefined || play === null || ctx.scope.disposed) throw new Error('Trader requires its entered world');
   if ((row.placement === undefined) !== (resources === undefined) || (row.view !== undefined && resources === undefined)) throw new Error('Trader resources do not match its declaration');
   if (resources !== undefined && (!Number.isFinite(resources.prompt.radius) || resources.prompt.radius < 0 || resources.prompt.radius > 100)) throw new Error('Invalid trader prompt radius');
+  const traders = enteredTraders.get(ctx.scope) ?? new Map<string, QuestTrader>();
+  if (traders.has(row.name) || traders.size >= 64) throw new Error('Duplicate or full entered trader roster');
   const figure = resources === undefined ? null : FigureRows.entered(ctx.scope, resources.figure);
   if (resources !== undefined && world.registry.get(resources.counter) === undefined) throw new Error('Missing trader counter piece');
   const player = world.player, at = resources === undefined ? new Vector3() : new Vector3(resources.at.x, resources.at.y, resources.at.z);
@@ -73,5 +90,69 @@ export function installQuestTrader(ctx: QuestTraderContext, input: unknown, reso
       if (wasOpen && stall.shop?.isOpen !== true) { wasOpen = false; player.pitch = pitchBefore; }
     } });
   }
+  traders.set(row.name, stall); enteredTraders.set(ctx.scope, traders);
+  ctx.scope.onDispose(() => { traders.delete(row.name); });
   return stall;
+}
+
+/** Client-only coin and barter shop over the entered trader, real inventory,
+ * purse, loadout and finish owners. Author input contains no callbacks or paths. */
+export function installQuestShop(ctx: ShardContext, input: unknown): () => ShopPanel<QuestShopGood> {
+  if (!isJsonData(input)) throw new Error('Quest shop requires JSON rows');
+  const row = parseQuestTrader(input), policy = row.shop, stall = enteredTraders.get(ctx.scope)?.get(row.name);
+  const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
+  if (runtime === undefined || policy === undefined || stall === undefined || world === undefined || world === null || play === undefined || play === null || ctx.scope.disposed) throw new Error('Quest shop requires its entered trader and play owners');
+  if (installedShops.has(stall)) throw new Error('Quest shop already installed');
+  const economy = policy.barter ? declaredLootEconomy(ctx.product.section('economy/loot').rows.loot, 'barter') : declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
+  const goods: readonly QuestShopGood[] = economy.goods;
+  if (goods.length !== Object.keys(policy.after).length || goods.some(good => policy.after[good.id] === undefined)) throw new Error('Quest shop requires exact purchase feedback');
+  const loadout = policy.ammunition === undefined ? null : enteredHeldLoadout(ctx.scope, policy.ammunition.loadout);
+  const purse = (): ReturnType<typeof enteredPurse> => enteredPurse(ctx.scope);
+  const exchange = new Exchange(economy.exchange, new Map<string, unknown>([
+    ['owned', play.owned], ['purse', { count: () => purse().coins, spend: (n: number) => purse().spend(n) }], ['pack', play.inventory],
+    ['skins', { owns: (id: string) => HeldFinishes.current(ctx.manifest.slug).has(id) && play.skins.has(id), own: (id: string) => { play.skins.own(id); } }],
+    ['ammo', { capacity: (id: string, n: number) => loadout?.room(id, n) ?? false,
+      addBolts: (n: number) => { if (loadout === null || policy.ammunition === undefined) throw new Error('Missing shop ammunition'); loadout.addAmmo(policy.ammunition.bolts, n); },
+      grant: (id: string, n: number) => { if (loadout === null) throw new Error('Missing shop ammunition'); loadout.addAmmo(id, n); } }],
+  ]));
+  const sfx = new InteractSfx(play.audio), views = new QuestViews(ctx);
+  const feedback = new Map(goods.map(good => [good.id, (policy.after[good.id] ?? []).map(effect => {
+    if (effect.kind === 'wear') {
+      const finish = HeldFinishes.current(ctx.manifest.slug).get(effect.finish);
+      return () => { play.wearSkin(finish); };
+    }
+    if (effect.kind === 'bark') {
+      const at = FigureRows.entered(ctx.scope, effect.figure).talkPoint.clone();
+      const audio = runtime.objects[effect.audio];
+      if (!(audio instanceof DeclaredAmbience)) throw new Error('Missing shop audio owner');
+      const bank = audio.sfx; return () => { bank.bark(effect.group, at); };
+    }
+    if (effect.kind === 'chime') return () => { sfx.interact('chime', effect.at === 'counter' ? stall.at : undefined, { gain: effect.gain }); };
+    if (effect.kind === 'offer') return () => { stall.trader?.offer(); };
+    return () => { play.hud.toast(effect.text); };
+  })]));
+  installedShops.add(stall);
+  const shop = views.view('trade', scope => {
+    const index = (good: QuestShopGood): number => goods.findIndex(value => value.id === good.id);
+    const panel = new ShopPanel<QuestShopGood>({ trader: row.name, place: policy.place, goods,
+      state: good => exchange.state(index(good)), scope,
+      ...(policy.barter ? { verb: 'Trade', cost: (good: QuestShopGood) => exchange.cost(index(good)) }
+        : { coins: () => purse().coins, needs: (good: QuestShopGood) => good.needs === undefined ? '' : goods.find(value => value.id === good.needs)?.name ?? good.needs }) });
+    panel.onBuy = good => {
+      const selected = index(good);
+      if (!panel.isOpen || selected < 0) return false;
+      let bought: boolean;
+      exchange.open(); try { bought = exchange.use(selected); } finally { exchange.close(); }
+      if (!bought) return false;
+      for (const effect of feedback.get(good.id) ?? []) effect();
+      return true;
+    };
+    stall.shop = panel; panel.scope.onDispose(() => { if (stall.shop === panel) stall.shop = null; }); return panel;
+  });
+  if (policy.modal !== undefined) {
+    const modal = policy.modal;
+    views.panelHold({ hud: play.hud, weapons: play.weapons, menu: play.menu, nolock: play.nolock, touchUi: play.touchUi, panels: [shop], restartOnClose: modal.restartOnClose,
+      stow: on => { if (modal.stow) play.weapons.stowed = on; }, resume: () => { play.weapons.setEnabled(!modal.resumeSwimming || !world.player.swimming); } });
+  }
+  return shop;
 }

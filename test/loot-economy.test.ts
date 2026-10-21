@@ -51,8 +51,8 @@ test('chart rows preserve all shipping world positions, order and saved-flag vis
   const saved = new Set(old.filter((_, index) => index % 2 === 0).map(row => row.flag));
   const flags = new Flags('driftwood-isle', false), scope = new Scope('loot-chart'); flags.restore([...saved]);
   try {
-    const view = await driftwoodLootPresentation({ economy, adventure: { flags, trader: null }, owned: new Owned('driftwood-isle'),
-      health: { attributes: { maxHealth: 100 } }, audio: { voices: { play: () => undefined } }, scope, toast: () => undefined, hold: () => undefined });
+    const view = await driftwoodLootPresentation({ economy, adventure: { flags }, owned: new Owned('driftwood-isle'),
+      health: { attributes: { maxHealth: 100 } }, audio: { voices: { play: () => undefined } } });
     expect(view.marks?.()).toEqual(old.filter(row => !saved.has(row.flag)).map(({ x, z, color }) => ({ x, z, color })));
   } finally { scope.dispose(); }
 });

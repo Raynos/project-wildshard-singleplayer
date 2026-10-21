@@ -23,8 +23,8 @@ test('GEAR borrows live player max health through upgrades, revokes and other he
   const purse = new Purse('driftwood-isle', { read: () => 0, write: () => true });
   try {
     bindFixtureEffects({ effects, scope, owned, health, player: { dodgeCooldownScale: 1 }, swords: [], hitCap: 20 });
-    const view = await driftwoodLootPresentation({ economy, adventure: { flags: new Flags('driftwood-isle', false), trader: null },
-      owned, health, scope, audio: { voices: { play: () => undefined } }, toast: () => undefined, hold: () => undefined });
+    const view = await driftwoodLootPresentation({ economy, adventure: { flags: new Flags('driftwood-isle', false) },
+      owned, health, audio: { voices: { play: () => undefined } } });
     const check = (max: number, hearts: number): void => {
       expect(health.attributes.maxHealth).toBe(max);
       expect(view.gear(purse).health).toEqual({ max, hearts });

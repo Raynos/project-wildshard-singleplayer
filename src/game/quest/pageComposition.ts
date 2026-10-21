@@ -185,14 +185,3 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
     installQuestHints(ctx, await ctx.product.json(rows.presentation.hints), new Map([['quest', { hints: h.firstHints, animals: h.animals, player: page.world.player, ui: ctx.app.ui }]]));
   return adventure;
 }
-
-/** Modal policy over the entered HUD/equipment owner; no shard hooks cross it. */
-export function questPagePanelHold(ctx: ShardContext, input: unknown): (on: boolean) => void {
-  const row = v.parse(v.strictObject({ restartOnClose: v.boolean(), stow: v.boolean(), resumeSwimming: v.boolean() }), input);
-  const world = ctx.game.runtime?.world, play = ctx.game.runtime?.play;
-  if (world === undefined || world === null || play === undefined || play === null) throw new Error('Quest modal requires its entered owner');
-  return new QuestViews(ctx).panelHold({ hud: play.hud, weapons: play.weapons, menu: play.menu, nolock: play.nolock, touchUi: play.touchUi,
-    restartOnClose: row.restartOnClose,
-    stow: on => { if (row.stow) play.weapons.stowed = on; },
-    resume: () => { play.weapons.setEnabled(!row.resumeSwimming || !world.player.swimming); } });
-}

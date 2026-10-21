@@ -7,7 +7,8 @@ import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import type { GearLoot, FindsView } from '../bag/bag';
 import { CoinChip } from './ui/CoinChip';
 import { CoinBurst } from './CoinBurst';
-import { Purse } from './Purse';
+import { Purse, publishPurse } from './Purse';
+import { installQuestShop } from '../quest/trader';
 import { Bounty } from './Bounty';
 import { coinsFor, coinsOn, type LootGate } from './coins';
 import { isCosmetic, isOwnedId, type Owned, type OwnedId } from './Owned';
@@ -49,6 +50,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const { ctx, owned, presentation: view } = h;
   const lifetime = ctx.scope.child('loot');
   const purse = new Purse(h.manifest.slug), chip = new CoinChip(purse.coins), burst = new CoinBurst(h.scene);
+  const releasePurse = publishPurse(ctx.scope, purse);
   let live = true, charted = false;
   ctx.system({ id: 'game.loot', phase: 'update', before: h.before ?? [], run: (dt) => { if (live) burst.update(dt, h.player.position); } });
   const flush = (): void => { purse.flush(); };
@@ -81,7 +83,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   ctx.debug.expose(view.debugName ?? `${h.manifest.slug}.loot`, { purse, owned, bounty, fullClear, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); }, shop });
   const dispose = (): void => {
     if (!live) return;
-    live = false; flush(); offOwned(); offPurse();
+    live = false; flush(); offOwned(); offPurse(); releasePurse();
     lifetime.dispose();
     offBag(); if (charted) h.minimap?.setMarks(null);
     shop?.dispose(); chip.dispose(); burst.dispose();
@@ -91,12 +93,13 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
 }
 
 /** Install ordinary loot against the admitted world services without exposing a raw scene to runtime content. */
-export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresentation, options: { readonly minimap?: boolean; readonly before?: readonly string[] } = {}): ScopedLoot | null {
+export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresentation, options: { readonly minimap?: boolean; readonly before?: readonly string[]; readonly shop?: unknown } = {}): ScopedLoot | null {
   const runtime = ctx.game.runtime;
   if (runtime?.play === null || runtime?.play === undefined || runtime.world === null) return null;
   return installLoot({ ctx, manifest: ctx.manifest, owned: runtime.play.owned, scene: runtime.world.game.scene,
     player: runtime.world.player, camera: runtime.world.game.camera, animals: () => runtime.play?.animals.animals ?? [],
-    menu: runtime.play.menu, presentation, ...(options.minimap === true ? { minimap: runtime.play.minimap ?? null } : {}),
+    menu: runtime.play.menu, presentation: options.shop === undefined ? presentation : { ...presentation, shop: () => installQuestShop(ctx, options.shop)() },
+    ...(options.minimap === true ? { minimap: runtime.play.minimap ?? null } : {}),
     ...(options.before === undefined ? {} : { before: options.before }) });
 }
 

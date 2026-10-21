@@ -12,7 +12,18 @@
  *   purse.onChange((n, delta) => chip.set(n))   // returns an unsubscribe
  */
 import { purseSave, saveSlug } from '../saves';
+import type { Scope } from '@wildshard/engine/app/scope';
 
+const entered = new WeakMap<Scope, Purse>();
+/** Publish the loot mechanism's actual purse; a quest shop never creates another save owner. */
+export function publishPurse(scope: Scope, purse: Purse): () => void {
+  if (scope.disposed || entered.has(scope)) throw new Error('Purse already entered or disposed');
+  const release = (): void => { if (entered.get(scope) === purse) entered.delete(scope); };
+  entered.set(scope, purse); scope.onDispose(release); return release;
+}
+export function enteredPurse(scope: Scope): Purse {
+  const purse = entered.get(scope); if (scope.disposed || purse === undefined) throw new Error('Missing entered purse'); return purse;
+}
 
 export class Purse {
   private n: number;

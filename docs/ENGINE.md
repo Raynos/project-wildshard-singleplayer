@@ -9515,10 +9515,21 @@ imports therefore load no DOM or CSS presentation code.
 binds both Driftwood and Pine to one client-only trader owner. Placed shops
 name their already-entered figure, counter, offer signal, point and prompt;
 talk-opened shops omit these resources. The binding preserves facing, pitch
-restoration, distance closing and late shop readiness. Pine attaches its
-existing lazy panel when the talk gate opens; no panel is constructed during
-installation. Models, inventory, payments and saved state keep their original
+restoration, distance closing and late shop readiness. This binding constructs
+no panel. Models, inventory, payments and saved state keep their original
 owners. `parseQuestTrader` validates rows before resources are borrowed.
+
+`installQuestShop(ctx, stallRows)` returns the entered panel getter for both
+coin and barter counters. Optional `shop` rows select card presentation,
+the admitted ammunition owner, modal policy and ordered purchase feedback
+(finish wear, named audio bark, chime, offer and toast). The common `Exchange`
+retains payment-before-grant order; the actual panel must be open to buy.
+Rows contain no callbacks or reflected methods. All feedback is admitted
+before panel construction. Pine keeps its entered modal lifecycle; Driftwood
+keeps its facing, distance-close and purse behaviour. `installRuntimeLoot`
+accepts these same rows in `options.shop` after publishing its actual purse
+with `loot/Purse.publishPurse`; `enteredPurse(scope)` borrows that owner and
+refuses after retirement. No second purse, inventory or save is created.
 
 Numeric creature poses may declare up to 64 `scalars` observations. Each
 `{ name, path, fallback? }` copies one permitted frame field or a numeric
