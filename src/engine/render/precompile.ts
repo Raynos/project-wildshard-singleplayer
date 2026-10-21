@@ -697,6 +697,8 @@ export const LIVE_PROGRAMS_PER_FRAME = 1;
  * poll stretched the native shard select's first frame from ~300 ms to 1.5 s.
  */
 export const LIVE_LINK_POLL_MS = 250;
+/** The longest wait between two asks of one unfinished live link: its waits double from LIVE_LINK_POLL_MS (O14). */
+const LIVE_LINK_POLL_MAX_MS = 1000;
 /** the wait before asking an unfinished link again: LIVE_LINK_POLL_MS in play, none while loading */
 const linkPollMs = (): number => (presenting() ? LIVE_LINK_POLL_MS : 0);
 
@@ -992,10 +994,13 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   for (const [i, p] of pending.entries()) {
     checkCurrent();
     // A live slice settles one ready program. An incomplete link alone needs another poll.
-    // (past LINK_WAIT_MS the resolve below links it synchronously)
+    // (past LINK_WAIT_MS the resolve below links it synchronously). O14: each ask waits behind the GPU process's queued
+    // compiles (~20 ms on the Simulator, a missed vsync), so a link still unfinished is asked less often each time
+    let every = linkPollMs();
     if (parallel && isolateImageUploads) await boundedLinkWait(() => p.isReady(), async () => {
       const asked = performance.now();
-      do { await pause(); checkCurrent(); } while (performance.now() - asked < linkPollMs());
+      do { await pause(); checkCurrent(); } while (performance.now() - asked < every);
+      every = Math.min(every * 2, LIVE_LINK_POLL_MAX_MS);
     });
     if (!resolvedPrograms.has(p)) p.getUniforms();
     prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
