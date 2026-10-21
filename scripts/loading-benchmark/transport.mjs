@@ -38,6 +38,11 @@ export async function observeTransport(upstream, fixture = {}) {
         }
         response.end();
         receipts.push({ url: target.href, status: incoming.statusCode ?? 502, endedAt: Date.now(), bodyBytes: body,
+          requestCache: { cacheControl: request.headers['cache-control'], ifNoneMatch: request.headers['if-none-match'],
+            ifModifiedSince: request.headers['if-modified-since'], acceptEncoding: request.headers['accept-encoding'],
+            serviceWorker: request.headers['service-worker'], origin: request.headers.origin },
+          responseCache: { etag: incoming.headers.etag, cacheControl: incoming.headers['cache-control'],
+            vary: incoming.headers.vary, contentEncoding: incoming.headers['content-encoding'] },
           // Resource Timing's transferSize charges a fixed 300-byte header estimate.
           // Keep the independent observed payload and actual response headers separate.
           headerBytes: Buffer.byteLength(`HTTP/1.1 ${incoming.statusCode} ${incoming.statusMessage}\r\n${Object.entries(headers).map(([key, value]) => `${key}: ${value}\r\n`).join('')}\r\n`) });
