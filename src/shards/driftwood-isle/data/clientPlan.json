@@ -18,6 +18,13 @@
     {
       "kind": "debug.expose",
       "name": "driftwood"
+    },
+    {
+      "kind": "world.paths",
+      "rows": {
+        "id": "paths",
+        "name": "Paths"
+      }
     }
   ]
 }

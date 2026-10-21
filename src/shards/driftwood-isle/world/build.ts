@@ -18,7 +18,6 @@ import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { floorAtRects } from '@wildshard/engine/physics/box';
-import { installPagePathRamps } from '@wildshard/game/shardfile/pagePreparation';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import manifest from '../discovery.generated';
 import { MooringLines } from '../runtime/props/mooringLines';
@@ -198,9 +197,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // SF30 activation stays held until SF46 parity: keep the legacy model's live terrain, widths and owners exactly.
   const bridgeDeck = new RopeChain(world.physics, bridge.chainSpec());
   game.onFixed('post', () => { bridgeDeck.capture(); }, 'shard.driftwood.bridge.capture');
-  // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — after the decks register,
-  // so none where a deck carries the path (a board there pokes up through the bridge's planks); `ground.paths: 'plugin'`
-  installPagePathRamps(registry, { id: 'paths', name: 'Paths' });
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52), drawn by the client plan's baked tiles (world.baked, G532 (4)):
   // here its ground wears the cover it carries, its cover fades into the cover's ground map, the monkeys climb its palms
   await slice(completed + 1, total, 'Bridge physics and paths');
