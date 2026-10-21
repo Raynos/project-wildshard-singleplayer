@@ -220,10 +220,11 @@ jobs:
 
   # SF74 W16: typecheck and lint beside build-and-deploy (they were ~1.5 min of its serial critical path).
   typecheck-lint:
+    needs: products
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Keep complete type outputs in every job; partition lint files within the deadline.
+    # Restore verified generated inputs once prepared; partition only lint files.
     strategy:
       fail-fast: false
       matrix:
@@ -247,10 +248,25 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+      - name: Verify and restore exact-run generated inputs and products
+        run: python3 scripts/ci-products.py unpack
       - name: Typecheck
-        run: pnpm run typecheck
+        # Same complete checks as pnpm typecheck; inputs came from this run's
+        # verified products job, so do not regenerate them in every shard.
+        run: |
+          pnpm exec tsc --noEmit
+          pnpm exec tsc -b tsconfig.layers.json
+          pnpm exec tsc --noEmit -p api
+          pnpm exec tsc --noEmit -p scripts
+          pnpm exec tsc --noEmit -p drafts
+          pnpm exec tsc --noEmit -p drafts/tools
+          pnpm exec tsc --noEmit -p admin
+          pnpm exec tsc --noEmit -p admin/tools
       - name: Lint
-        # Typecheck already generated this exact tree. Fresh plugin workers bound AST retention.
+        # Fresh plugin workers bound AST retention on the verified exact tree.
         run: node scripts/lint-all.mjs --shard=${{ matrix.shard }}/4
 
   # All behaviour shards consume one exact-run preparation. Cold generation
