@@ -19,6 +19,7 @@ import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import people from '../data/questNpcs.generated.json' with { type: 'json' };
 import journal from '../data/journal.generated.json' with { type: 'json' };
 import { PINE_QUEST_HOST } from './questHost';
+import shelterProgram from '../behaviour/shelter.generated.json' with { type: 'json' };
 
 // The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
 // SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the
@@ -27,15 +28,16 @@ import { PINE_QUEST_HOST } from './questHost';
 const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: identity.seed });
 const libraryFiles = [...timbers.shardfile.files.filter(file => timbers.shardfile.library.includes(file.hash)), ...journal.files];
 const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
+// The original seven one-page guests plus the admitted shelter guest, with live and rewind copies.
+const scriptMemory = 14 * 65536 + shelterProgram.script.pages * 65536 * 2;
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...base, ...timbers.shardfile, plumbing, props: timbers.props,
   files: [...timbers.shardfile.files, ...journal.files], library: [...timbers.shardfile.library, ...journal.files.map(file => file.hash)],
-  // Seven admitted one-page v1 images reserve live and rewind copies.
-  budgets: { ...base.budgets, sim: { resident: 14*65536 + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 14*65536 + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
+  budgets: { ...base.budgets, sim: { resident: scriptMemory + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + scriptMemory + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
   accent: 'moss', rows: { ...base.rows, compendiums: [journal.row], loot: [{ id: 'barter', economy: tradeEconomy() }] },
   // the material graphs the runtime draws its own meshes in, built at build time (generators/lookMaterials.ts)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(looks.graphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
