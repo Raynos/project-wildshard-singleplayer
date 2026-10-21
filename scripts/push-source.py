@@ -12,7 +12,7 @@ import time
 TEXT = {'.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json', '.jsonc',
         '.yaml', '.yml', '.css', '.glsl', '.frag', '.vert', '.wgsl', '.as', '.py', '.sh', '.md', '.html'}
 ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', 'budgets', '.githooks'}
-TOOLS = ['local-gate-checks.mjs', 'gate-related-tests.mjs', 'push-inputs.mjs', 'test-products.json', 'push-tables.mjs']
+TOOLS = ['local-gate-checks.mjs', 'gate-related-tests.mjs', 'push-inputs.mjs', 'test-products.json', 'push-tables.mjs', 'authored-manifest.mjs', 'manifest-budget.mjs', 'manifest-spawns.mjs']
 
 
 def source_file(name):

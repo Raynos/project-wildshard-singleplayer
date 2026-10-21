@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { authoredManifestSource, productManifestPath } from '../scripts/authored-manifest.mjs';
+import { authoredManifestSource, productManifestPath } from './authored-manifest.mjs';
 import { manifestFolders, outputManifest, shardProducts } from '../scripts/shard-outputs.mjs';
 import { genStarterArmClips } from '../scripts/gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from '../scripts/gen-starter-weapons.mjs';
