@@ -1,0 +1,74 @@
+/** Client-only concrete loans between compiled entry capabilities. No shard
+ * callbacks, reflected paths, clocks or continuation state live in this book. */
+import type { Object3D } from 'three';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { RopeChain } from '@wildshard/engine/physics/ropeChain';
+import type { AmbientGroup } from '../ambient/flock';
+import type { CollectionCatalogue } from '../models/collectionDisplay';
+import type { QuestPageComposition } from '../quest/pageComposition';
+import type { CaveInterior } from './caveInterior';
+import type { ForestPage } from './forestPage';
+import type { SceneHandles } from './sceneHandles';
+
+/** A kind names a concrete platform owner, never an arbitrary shard result. */
+export interface EntryOwnerTypes {
+  scenes: SceneHandles;
+  forest: ForestPage;
+  cave: CaveInterior;
+  quest: QuestPageComposition;
+  object: Object3D;
+  chain: RopeChain;
+  ambient: AmbientGroup;
+  collection: CollectionCatalogue;
+}
+export type EntryOwnerKind = keyof EntryOwnerTypes;
+interface Loan<T> { readonly owner: Scope; readonly value: T }
+type Owners = { [K in EntryOwnerKind]: Map<string, Loan<EntryOwnerTypes[K]>> };
+const books = new WeakMap<Scope, Owners>();
+
+function check(scope: Scope, id: string): void {
+  if (scope.disposed || scope.disposing) throw new Error('Entry owner scope has ended');
+  if (!/^[A-Za-z][A-Za-z0-9_.:-]{0,255}$/u.test(id)) throw new Error('Invalid entry owner id');
+}
+function book(scope: Scope): Owners {
+  let value = books.get(scope);
+  if (value === undefined) {
+    value = { scenes: new Map(), forest: new Map(), cave: new Map(), quest: new Map(),
+      object: new Map(), chain: new Map(), ambient: new Map(), collection: new Map() };
+    books.set(scope, value);
+  }
+  return value;
+}
+function loan<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string): Loan<EntryOwnerTypes[K]> {
+  check(scope, id);
+  const value = books.get(scope)?.[kind].get(id);
+  if (value === undefined || value.owner.disposed || value.owner.disposing) throw new Error(`Missing live entry owner: ${kind}/${id}`);
+  return value;
+}
+function publish<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string, value: Loan<EntryOwnerTypes[K]>): void {
+  check(scope, id);
+  const entries: Map<string, Loan<EntryOwnerTypes[K]>> = book(scope)[kind];
+  if (entries.has(id)) throw new Error(`Duplicate entry owner: ${kind}/${id}`);
+  entries.set(id, value);
+  let forgetOwner = (): void => undefined, forgetBorrower = (): void => undefined;
+  const release = (): void => { entries.delete(id); forgetOwner(); forgetBorrower(); };
+  forgetBorrower = scope.capture('disposers', release);
+  if (value.owner !== scope) forgetOwner = value.owner.capture('disposers', release);
+}
+/** Called by the platform constructor after its data-backed resource is ready.
+ * Publication lends the value; its original host alone disposes the resource. */
+export function publishEntryOwner<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string, value: EntryOwnerTypes[K]): void {
+  publish(scope, kind, id, { owner: scope, value });
+}
+/** Entered capabilities borrow only from their own live construction ancestor.
+ * The original owner survives transitive loans; either scope ending drops the
+ * loan and both cleanup registrations without disposing a borrowed resource. */
+export function lendEntryOwner(scope: Scope, source: Scope, kind: EntryOwnerKind, id: string): void {
+  const value = loan(source, kind, id);
+  if (scope === source || !scope.belongsTo(value.owner)) throw new Error('Entry loan requires its construction ancestor');
+  publish(scope, kind, id, value);
+}
+/** Resolve a row id in one exact owner scope; there is no ambient/global fallback. */
+export function entryOwner<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string): EntryOwnerTypes[K] {
+  return loan(scope, kind, id).value;
+}

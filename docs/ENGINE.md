@@ -11014,3 +11014,24 @@ otherwise inputs at or below `through` return `min(input, max)` and higher
 inputs stay unchanged. Inputs and active cap numbers must be finite and
 nonnegative. These are authored mode choices, not automatic memory-limit
 changes or dynamic rendering quality.
+
+### Declared entry owner loans (G571)
+
+`game/shardfile/entryOwners` is the client-only boundary between compiled
+entry capabilities. `EntryOwnerTypes` lists concrete platform values:
+`scenes` (SceneHandles), `forest` (ForestPage), `cave` (CaveInterior),
+`quest` (QuestPageComposition), `object` (Object3D), `chain` (RopeChain),
+`ambient` (AmbientGroup) and `collection` (CollectionCatalogue).
+These are existing host instances, never
+shard callback objects or property paths. Shard data selects a kind and id;
+only compiled platform installers publish or lend its actual value.
+
+`publishEntryOwner(scope, kind, id, value)` publishes a completed owner's
+value once. `entryOwner(scope, kind, id)` requires an exact live publication;
+it never searches another scope or falls back to a global singleton.
+`lendEntryOwner(entered, construction, kind, id)` borrows an ancestor's
+publication without transferring disposal ownership. Transitive loans retain
+the original construction owner. Either scope ending drops the loan and its
+cleanup registrations; leaving an entered scope never disposes its world.
+A duplicate, invalid id, expired owner or cross-construction loan refuses.
+The book owns no clocks, rule decisions, script continuations or saved state.

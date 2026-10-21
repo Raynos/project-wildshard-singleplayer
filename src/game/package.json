@@ -274,7 +274,8 @@
     "./riding/reins": "./riding/reins.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
     "./quest/flagGates": "./quest/flagGates.ts",
-    "./quest/bodyOps": "./quest/bodyOps.ts"
+    "./quest/bodyOps": "./quest/bodyOps.ts",
+    "./shardfile/entryOwners": "./shardfile/entryOwners.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",
