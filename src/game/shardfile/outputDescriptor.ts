@@ -12,6 +12,8 @@ export interface OutputDescriptorReader {
   read: (path: string, maximum: number) => Promise<Uint8Array>;
   hash: (bytes: Uint8Array) => Promise<string>;
   cached?: (hash: string) => Promise<Uint8Array | null>;
+  /** A verified cache hit also completes its named section/schema path. */
+  cacheHit?: (path: string, hash: string, bytes: number) => void;
   store?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
   /** A client may let its loading panel draw between complete schema checks. */
   pause?: () => Promise<void>;
@@ -80,7 +82,10 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       bytes = await reader.read(section.path, section.bytes);
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Shardfile section hash or size mismatch');
       if (reader.store === undefined || !await reader.store(section.hash, bytes)) cached = false;
-    } else if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Cached shardfile section hash or size mismatch');
+    } else {
+      if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Cached shardfile section hash or size mismatch');
+      reader.cacheHit?.(section.path, section.hash, bytes.length);
+    }
     const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     return [section.name, value];
   };

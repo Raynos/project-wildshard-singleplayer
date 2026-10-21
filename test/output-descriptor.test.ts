@@ -7,6 +7,7 @@ import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCa
 import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
 
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
@@ -100,6 +101,18 @@ test('an evicted section of an older visit refetches online and replaces the off
   expect(store.product()?.source).toEqual(current.index);
   expect(await readProductDescriptor(offline)).toEqual(current.source);
   expect((await admitProduct(null, offline)).source).toEqual(current.source);
+});
+
+test('an offline descriptor resolves named section declarations as verified cache hits', async () => {
+  const { wires } = fixture(), store = cacheStore(), opts = options(wires, store.cache);
+  await admitProduct(await readProductDescriptor(opts), opts);
+  const accounting = new DownloadAccounting(base), dispose = installDownloadAccounting(accounting);
+  try {
+    await readProductDescriptor({ ...opts, offline: true, fetch: () => Promise.reject(new Error('Offline network')) });
+    expect(accounting.snapshot().pendingBytes).toBe(0);
+    expect(accounting.snapshot().cachedBytes).toBeGreaterThan(0);
+    expect(accounting.snapshot().networkBytes).toBe(0);
+  } finally { dispose(); }
 });
 
 test('a complete older visit still enforces saved-state compatibility', async () => {

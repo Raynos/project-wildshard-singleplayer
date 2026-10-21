@@ -155,6 +155,7 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, ...(lineage ? { lineage } : {}),
     ...(options.pause === undefined ? {} : { pause: options.pause }),
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
+    cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
     ...(cache === undefined ? {} : {
       cached: (hash: string) => cache.asset(base, hash),
