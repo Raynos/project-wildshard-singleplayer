@@ -62,6 +62,13 @@ export class LoadingTimeline {
       if (done !== undefined && total !== undefined && Number.isFinite(done) && Number.isFinite(total) && total > 0) {
         stage.fraction = Math.max(stage.fraction ?? 0, Math.min(total, Math.max(0, done)) / (total + 1));
       }
+      // Parallel work keeps its real detail live even while a newer stage
+      // owns the exclusive wall-time interval.
+      const row = this.rows.get(key);
+      if (row !== undefined) {
+        row.detail = stage.detail;
+        if (stage.fraction !== undefined) row.fraction = stage.fraction;
+      }
     }
   }
   /** A missing key becomes an explicit row, so an unrecognised stage can never disappear from the clock. */

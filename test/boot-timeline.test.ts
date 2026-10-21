@@ -57,3 +57,17 @@ it('carries real unit progress through aliases without granting stage completion
   stage.end();
   expect(timeline.snapshot().rows.find(row => row.key === 'world')?.state).toBe('ok');
 });
+
+it('keeps parallel work counts visible without charging its time twice', () => {
+  let clock = 0;
+  const timeline = new LoadingTimeline(loadingPath('grid'), clock, () => clock);
+  const admission = timeline.begin('admission'), assembly = timeline.begin('assembly');
+  clock = 200;
+  timeline.report('admission', 'Product schemas 1 / 4', 1, 4);
+  const snapshot = timeline.snapshot();
+  expect(snapshot.current).toBe('assembly');
+  expect(snapshot.rows.find(row => row.key === 'admission')).toMatchObject({ detail: 'Product schemas 1 / 4', fraction: 0.2, ms: 0, state: 'on' });
+  expect(snapshot.rows.find(row => row.key === 'assembly')?.ms).toBe(200);
+  admission.end(); assembly.end();
+  expect(timeline.snapshot().rows.reduce((sum, row) => sum + row.ms, 0)).toBe(200);
+});
