@@ -7,6 +7,10 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { nineLayoutSource, runLayout, SignRecorder } from '../src/shards/nine-dragon-stack/generators/layout';
 import { layoutProjection } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { prepareLayout, restoreLayout } from '../src/shards/nine-dragon-stack/world/layoutBake';
+import layout from '../src/shards/nine-dragon-stack/data/layout.generated.json' with { type: 'json' };
+
+/** the bounds the layout bake measured on the geometry it baked (bake-nine-layout.mjs, O19) */
+const layoutBounds = () => layout.bounds;
 
 function exactGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(Object.keys(actual.attributes)).toEqual(Object.keys(expected.attributes));
@@ -24,7 +28,7 @@ function exactGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(actual.boundingSphere).toEqual(expected.boundingSphere);
 }
 
-test('bakes every native solid/swept draw in order with exact channels, bounds and model ownership', async () => {
+test('bakes every native solid/swept draw in order with exact channels, bounds and model ownership', () => {
   const author = runLayout(new SignRecorder()), expected = new Map<string, BufferGeometry>();
   // The predecessor converted the solid names first, merging same-name swept
   // parts, then emitted swept-only names. No changed generator supplies this oracle.
@@ -41,9 +45,9 @@ test('bakes every native solid/swept draw in order with exact channels, bounds a
   for (const [name, kit] of author.kitxs) if (!author.kits.has(name) && kit.vertexCount > 0) expected.set(name, kit.build());
   const source = nineLayoutSource();
   expect(source.rows.kitxs).toEqual([]);
-  const rows = layoutProjection(source.rows, source.records), scenes = new SceneHandles();
+  const rows = layoutProjection(source.rows, source.records, layoutBounds()), scenes = new SceneHandles();
   for (const [id, geometry] of source.geometries.entries()) scenes.publish(`layout.${id}`, geometry.clone());
-  await prepareLayout(rows, scenes, () => Promise.resolve());
+  prepareLayout(rows, scenes);
   const restored = restoreLayout(rows, scenes);
   const actual = new Map([...restored.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]));
   expect([...actual.keys()]).toEqual([...expected.keys()]);
@@ -61,14 +65,14 @@ test('bakes every native solid/swept draw in order with exact channels, bounds a
   for (const geometry of [...actual.values(), ...expected.values(), ...restored.alphaKits.values()]) geometry.dispose();
 }, 30_000);
 
-test('restores the offline facade shell with exact packed channels and bounds', async () => {
+test('restores the offline facade shell with exact packed channels and bounds', () => {
   const source = nineLayoutSource(), index = source.rows.shell;
   if (index === null) throw new Error('Nine layout has no facade shell');
   const original = source.geometries[index];
   if (original === undefined) throw new Error('Nine layout lost its shell geometry');
-  const rows = layoutProjection(source.rows, source.records), scenes = new SceneHandles();
+  const rows = layoutProjection(source.rows, source.records, layoutBounds()), scenes = new SceneHandles();
   for (const [id, geometry] of source.geometries.entries()) scenes.publish(`layout.${id}`, geometry.clone());
-  await prepareLayout(rows, scenes, () => Promise.resolve());
+  prepareLayout(rows, scenes);
   const ctx = restoreLayout(rows, scenes);
   const restored = ctx.shell;
   if (restored === null) throw new Error('Nine restored no facade shell');

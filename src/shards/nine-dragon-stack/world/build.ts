@@ -118,8 +118,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
   progress(0.2, 'layout: baked');
-  // The scene host owns the geometry; retain each original bound with pauses between scans.
-  await prepareLayout(layout, opts.scenes, () => slice());
+  // The scene host owns the geometry; its baked bounds are assigned, no scan (O19).
+  prepareLayout(layout, opts.scenes);
   const ctx = restoreLayout(layout, opts.scenes);
   // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier

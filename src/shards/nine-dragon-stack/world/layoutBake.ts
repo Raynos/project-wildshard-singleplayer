@@ -3,19 +3,19 @@
  * placement owners. The admitted product carries small validated row JSON;
  * world scenes own the standard GLB source geometries.
  */
-import { Box3, Color, Matrix4, Vector3 } from 'three';
+import { Box3, Color, Matrix4, Sphere, Vector3 } from 'three';
 import type { LayoutProjection } from '../runtime/productSections.generated';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import type { Ctx } from './ctx';
 
-/** Each layout geometry is a mutable resource owned by the existing scene host. */
-export async function prepareLayout(rows: LayoutProjection, scenes: SceneHandles, pause: () => Promise<void>): Promise<void> {
+/** Each layout geometry is a mutable resource owned by the existing scene host. Its bounds are the offline bake's
+ *  (generators/bake-layout-bounds.mjs, O19): assigned, never scanned at entry (30-40 ms Simulator tasks each). */
+export function prepareLayout(rows: LayoutProjection, scenes: SceneHandles): void {
   for (const row of rows.geometries) {
-    const geometry = scenes.geometry(`layout.${row.id}`);
-    geometry.computeBoundingSphere();
-    if (row.box) geometry.computeBoundingBox(); else geometry.boundingBox = null;
-    await pause();
+    const geometry = scenes.geometry(`layout.${row.id}`), [x, y, z, radius] = row.sphere, box = row.bounds;
+    geometry.boundingSphere = new Sphere(new Vector3(x, y, z), radius);
+    geometry.boundingBox = box === undefined ? null : new Box3(new Vector3(box[0], box[1], box[2]), new Vector3(box[3], box[4], box[5]));
   }
 }
 

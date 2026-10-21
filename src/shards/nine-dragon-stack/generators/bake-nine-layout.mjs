@@ -50,7 +50,15 @@ export async function writeNineScene() {
   // the runtime decodes it in slices (runtime/geometry.ts `decodeNineLayout`). Plain JSON: the count leads and the records
   // precede the rows so the reader finds them without parsing the whole text.
   const layoutPath = 'src/shards/nine-dragon-stack/data/layout.generated.json';
-  writeFileSync(resolve(root, layoutPath), JSON.stringify({ version: 1, count: product.layout.records.length, records: product.layout.records, rows: product.layout.rows }, replacer));
+  // O19: each layout geometry's bounds from the geometry baked into its tiles, so entry assigns them instead of
+  // scanning every vertex (world/layoutBake.ts `prepareLayout`, 30-40 ms Simulator tasks each)
+  const bounds = product.layout.geometries.map(geometry => {
+    geometry.computeBoundingSphere(); geometry.computeBoundingBox();
+    const { boundingSphere: sphere, boundingBox: box } = geometry;
+    if (sphere === null || box === null) throw new Error('Nine layout geometry has no bounds');
+    return { sphere: [...sphere.center, sphere.radius], box: [...box.min, ...box.max] };
+  });
+  writeFileSync(resolve(root, layoutPath), JSON.stringify({ version: 1, count: product.layout.records.length, records: product.layout.records, rows: product.layout.rows, bounds }, replacer));
   for (const [hash, bytes] of assets) writeFileSync(resolve(out, hash), bytes);
   files.sort((a, b) => a.hash.localeCompare(b.hash));
   const metadata = { version: 1, notice: 'DO NOT EDIT: generators/bake-nine-layout.mjs through bake(scene, identity).',

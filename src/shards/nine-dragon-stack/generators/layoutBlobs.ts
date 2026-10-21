@@ -31,7 +31,7 @@ export function layoutBlobs(): NamedBlob[] {
   locate(rows, []);
   const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows, volumes: lightVolumeRows() });
   return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: wireSchema }),
-    nameBlob('geometry/layout-projection.json', 'json', new TextEncoder().encode(JSON.stringify(layoutProjection(rows, numeric),
+    nameBlob('geometry/layout-projection.json', 'json', new TextEncoder().encode(JSON.stringify(layoutProjection(rows, numeric, layout.bounds),
       (_key, value: unknown) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value))),
     nameBlob('geometry/world-f64.bin', 'bin', new Uint8Array(Float64Array.from(worldRows.records).buffer))];
 }

@@ -77,7 +77,8 @@ test('fixed sign words, RNG order and all eight cap lantern matrices preserve th
 
 test('layout blobs retain every float64 bit and signed author zero', () => {
   const raw: unknown = JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json', 'utf8'), layoutReviver);
-  const original = v.parse(v.object({ rows: LayoutRowsSchema, count: v.number(), records: v.array(v.number()) }), raw);
+  const original = v.parse(v.object({ rows: LayoutRowsSchema, count: v.number(), records: v.array(v.number()),
+    bounds: v.array(v.object({ sphere: v.array(v.number()), box: v.array(v.number()) })) }), raw);
   const blobs = layoutBlobs(), rows = blobs.find(row => row.file.name === 'geometry/layout.json');
   if (rows === undefined) throw new Error('Missing layout boot blobs');
   expect(blobs.some(row => row.file.name === 'geometry/layout-f64.bin')).toBe(false);
@@ -86,8 +87,8 @@ test('layout blobs retain every float64 bit and signed author zero', () => {
   expect(rows.file.jsonSchema).toBeDefined();
   const projection = blobs.find(row => row.file.name === 'geometry/layout-projection.json');
   if (projection === undefined) throw new Error('Missing client layout projection');
-  expect(JSON.parse(new TextDecoder().decode(projection.bytes), layoutReviver)).toEqual(layoutProjection(original.rows, original.records));
-  expect(layoutProjection(original.rows, original.records).fixed.lanterns).toEqual(fixed.lanterns);
+  expect(JSON.parse(new TextDecoder().decode(projection.bytes), layoutReviver)).toEqual(layoutProjection(original.rows, original.records, original.bounds));
+  expect(layoutProjection(original.rows, original.records, original.bounds).fixed.lanterns).toEqual(fixed.lanterns);
 });
 
 

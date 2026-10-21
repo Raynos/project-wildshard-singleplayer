@@ -3,8 +3,11 @@ import { LayoutProjectionSchema, type LayoutRows, type LayoutProjection } from '
 import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
 
+/** One layout geometry's bounds as the layout bake measured them (bake-nine-layout.mjs): [x, y, z, radius], [min, max] */
+export interface LayoutBounds { readonly sphere: readonly number[]; readonly box: readonly number[] }
+
 /** Decode the predecessor's mixed stream once at build time, retaining every double and signed zero. */
-export function layoutProjection(rows: LayoutRows, records: readonly number[]): LayoutProjection {
+export function layoutProjection(rows: LayoutRows, records: readonly number[], bounds: readonly LayoutBounds[]): LayoutProjection {
   if (rows.kitxs.length > 0) throw new Error('Nine layout requires offline merged kits');
   const c = rows.counts;
   let at = (c.walkers + c.sitters) * 16;
@@ -26,7 +29,11 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[]): 
   for (const row of rows.inKit) if (!rows.kits.some(kit => kit.name === row.kit)) throw new Error(`Nine model ${row.model} has no kit ${row.kit}`);
   return v.parse(LayoutProjectionSchema, { geometries: [...used].map(id => {
     const row = rows.geometries[id]; if (row === undefined) throw new Error(`Missing Nine geometry ${id}`);
-    return { id, box: row.box };
+    // O19: the layout bake's bounds, so entry assigns them instead of scanning vertices
+    const baked = bounds[id]; if (baked === undefined || bounds.length !== rows.geometries.length) throw new Error(`Missing Nine layout bounds ${id}`);
+    const geometry: { id: number; box: boolean; sphere: readonly number[]; bounds?: readonly number[] } = { id, box: row.box, sphere: baked.sphere };
+    if (row.box) geometry.bounds = baked.box;
+    return geometry;
   }), kits: rows.kits.map(row => [row.name, row.geo]), alphaKits: rows.alphaKits.map(row => [row.name, row.geo]),
   farOf: rows.farOf, inKit: rows.inKit, shell: rows.shell, lanterns, acs, hooks, hookMounts, inst,
   fixed: { lanterns: fixed.lanterns.map(row => row.map(Number)), drop: lantern.drop } });
