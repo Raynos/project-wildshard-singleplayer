@@ -9,7 +9,7 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 
-const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
+const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync.native, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
 const schema = 'shardfile-inputs/2', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs')]);
 const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FD] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
@@ -118,12 +118,21 @@ export async function captureProductInputs(root,receipt,run) {
  * @param {string} root @param {string} receipt @param {string[]} args @param {import('./bake-input-hashes.mjs').InputHashMemo} memo */
 export function productInputKey(root,receipt,args,memo) {
   try {
+    if(memo.root!==raw.real(root))return undefined;
     const saved = v.parse(Receipt,JSON.parse(raw.read(receipt,'utf8')));
     if (saved.node !== process.version
       || saved.inputs.some(entry=> inside(root,resolve(root,entry.slice(2))) !== entry.slice(2))
       || new Set(saved.inputs).size !== saved.inputs.length || Object.keys(saved.values).length !== saved.inputs.length
       || saved.seal !== digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs,values:saved.values}))) return undefined;
-    for (const entry of saved.inputs) if (saved.values[entry] !== value(root,entry,memo)) return undefined;
+    for (const entry of saved.inputs) {
+      const expected=saved.values[entry];
+      // A captured content digest already identifies a regular-file read. The
+      // hash memo checks type, containment and fresh stats itself; avoid doing
+      // those same filesystem checks once more in value(). Any type change
+      // refuses this receipt through the enclosing miss-on-error boundary.
+      const current=/^[a-f0-9]{64}$/u.test(expected) ? memo.hash(entry.slice(2)) : value(root,entry,memo);
+      if(expected!==current)return undefined;
+    }
     return digest(JSON.stringify({schema,node:process.version,platform:process.platform,arch:process.arch,args,inputs:saved.inputs.map(entry=>[entry,saved.values[entry]])}));
   } catch { return undefined; }
 }

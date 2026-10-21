@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned compiler input fixtures.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise promise reads in the recorder.
 import { readFile } from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths.
@@ -37,6 +37,12 @@ it('keys native-bundled modules, sync and async reads, negative probes and real 
   writeFileSync(resolve(root,'optional.json'),'{}'); expect(key()).toBeUndefined(); rmSync(resolve(root,'optional.json'));
   writeFileSync(resolve(root,'assets/new.txt'),'new'); expect(key()).toBeUndefined(); rmSync(resolve(root,'assets/new.txt'));
   expect(productInputKey(root,receipt,['--other-flags'],memo)).not.toBe(key());
+  expect(productInputKey(root,receipt,[],new InputHashMemo(fixture()))).toBeUndefined();
+  rmSync(resolve(root,'asset.txt'));mkdirSync(resolve(root,'asset.txt'));
+  expect(key()).toBeUndefined();rmSync(resolve(root,'asset.txt'),{recursive:true});
+  symlinkSync('entry.ts',resolve(root,'asset.txt'));
+  expect(key()).toBeUndefined();rmSync(resolve(root,'asset.txt'));writeFileSync(resolve(root,'asset.txt'),'asset');
+  expect(key()).toBe(before);
   writeFileSync(receipt,'{}'); expect(key()).toBeUndefined();
 });
 

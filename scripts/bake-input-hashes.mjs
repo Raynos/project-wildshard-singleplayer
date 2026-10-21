@@ -42,7 +42,7 @@ export class InputHashMemo {
   reads = 0;
   /** @param {string} root @param {string} [file] */
   constructor(root, file) {
-    this.root = realpathSync(root); this.file = file;
+    this.root = realpathSync.native(root); this.file = file;
     if (file !== undefined) try {
       const saved = JSON.parse(readFileSync(file, 'utf8'));
       if (saved?.schema === 'input-hashes/1' && Array.isArray(saved.entries)) for (const row of saved.entries) {
@@ -62,7 +62,7 @@ export class InputHashMemo {
     const frozen=this.frozen.get(path);
     if(!fresh && frozen!==undefined) return frozen;
     const at = resolve(this.root, path), stat = lstatSync(at, {bigint:true});
-    if (!stat.isFile() || !realpathSync(at).startsWith(this.root+sep)) throw new Error(`Invalid bake input ${path}`);
+    if (!stat.isFile() || !realpathSync.native(at).startsWith(this.root+sep)) throw new Error(`Invalid bake input ${path}`);
     const stamp = [stat.dev,stat.ino,stat.size,stat.mtimeNs,stat.ctimeNs].join(':');
     const seen = this.entries.get(path);
     const digest = seen?.stamp === stamp ? seen.digest : createHash('sha256').update(readFileSync(at)).digest('hex');
@@ -82,7 +82,7 @@ export class InputHashMemo {
     if(nested && this.ignored?.(path))return [];
     const cached=this.trees.get(path);if(!fresh && cached!==undefined)return cached;
     const at=resolve(this.root,path),stat=lstatSync(at);
-    if(stat.isSymbolicLink() || !realpathSync(at).startsWith(this.root+sep))throw new Error(`Invalid bake input ${path}`);
+    if(stat.isSymbolicLink() || !realpathSync.native(at).startsWith(this.root+sep))throw new Error(`Invalid bake input ${path}`);
     if(stat.isFile())return [path];
     if(!stat.isDirectory())throw new Error(`Invalid bake input ${path}`);
     const files=readdirSync(at).sort().filter(name=>name!=='node_modules'&&name!=='.git').flatMap(name=>this.paths(`${path}/${name}`,fresh,true));
@@ -113,7 +113,7 @@ export class InputHashMemo {
 /** Exact regular-file SHA256 input map shared by asset jobs and recorded bakes. Missing files refuse generation.
  * @param {string} root @param {Iterable<string>} paths @param {InputHashMemo} [memo] @returns {Record<string,string>} */
 export function bakeInputHashes(root, paths, memo = new InputHashMemo(root)) {
-  if (memo.root !== realpathSync(root)) throw new Error('Crossed input hash memo root');
+  if (memo.root !== realpathSync.native(root)) throw new Error('Crossed input hash memo root');
   return Object.fromEntries([...new Set(paths)].sort().map(path => [path,memo.hash(path)]));
 }
 

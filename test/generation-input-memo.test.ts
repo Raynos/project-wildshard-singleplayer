@@ -37,6 +37,8 @@ it('rejects same-size edits even after restoring mtime, and rejects links, missi
   expect(() => bakeInputHashes(root, ['missing'], memo)).toThrow();
   symlinkSync('input.txt', resolve(root, 'link'));
   expect(() => bakeInputHashes(root, ['link'], memo)).toThrow('Invalid bake input');
+  const other=fixture();symlinkSync(other,resolve(root,'outside'),'dir');
+  expect(() => bakeInputHashes(root,['outside/input.txt'],memo)).toThrow('Invalid bake input');
   expect(() => bakeInputHashes(root, ['../input.txt'], memo)).toThrow('Invalid bake input path');
   expect(() => bakeInputHashes(fixture(), ['input.txt'], memo)).toThrow('Crossed input hash memo root');
 });
