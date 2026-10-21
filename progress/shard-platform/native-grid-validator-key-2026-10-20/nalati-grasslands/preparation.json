@@ -1,0 +1,262 @@
+{
+  "origin": 1792551113032,
+  "pid": "80264",
+  "peak": {
+    "atMs": 52069,
+    "nativeMB": 1534.810592
+  },
+  "overlap": [
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.world.dressing",
+      "startTime": 47357,
+      "duration": 10588,
+      "samples": 100,
+      "nativeHighMB": 1534.810592
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:dressing.layers",
+      "startTime": 49840,
+      "duration": 6200,
+      "samples": 58,
+      "nativeHighMB": 1534.810592
+    }
+  ],
+  "dressingRanges": [
+    {
+      "name": "beforeDressing",
+      "samples": 299,
+      "peak": {
+        "atMs": 16093,
+        "nativeMB": 690.573296
+      }
+    },
+    {
+      "name": "insideDressing",
+      "samples": 100,
+      "peak": {
+        "atMs": 52069,
+        "nativeMB": 1534.810592
+      }
+    },
+    {
+      "name": "afterDressing",
+      "samples": 287,
+      "peak": {
+        "atMs": 69371,
+        "nativeMB": 813.849512
+      }
+    }
+  ],
+  "spans": [
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.looks",
+      "startTime": 47274,
+      "duration": 1,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.strings.register",
+      "startTime": 47275,
+      "duration": 0,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.state.adventure",
+      "startTime": 47287,
+      "duration": 13.000000000007276,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.world.scenes",
+      "startTime": 47320,
+      "duration": 1,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.look.painterly",
+      "startTime": 47320,
+      "duration": 0,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.world.water",
+      "startTime": 47321,
+      "duration": 36,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.world.dressing",
+      "startTime": 47357,
+      "duration": 10588,
+      "samples": 100,
+      "nativeHighMB": 1534.810592
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:dressing.packs",
+      "startTime": 47690,
+      "duration": 25,
+      "samples": 1,
+      "nativeHighMB": 519.541008
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:dressing.geometry",
+      "startTime": 47715,
+      "duration": 1954.0000000000073,
+      "samples": 18,
+      "nativeHighMB": 529.355048
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:dressing.materials",
+      "startTime": 49669.00000000001,
+      "duration": 170.99999999999272,
+      "samples": 2,
+      "nativeHighMB": 530.780432
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:dressing.layers",
+      "startTime": 49840,
+      "duration": 6200,
+      "samples": 58,
+      "nativeHighMB": 1534.810592
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:dressing.statics",
+      "startTime": 56041.00000000001,
+      "duration": 1893.9999999999927,
+      "samples": 18,
+      "nativeHighMB": 709.89296
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:dressing.instances",
+      "startTime": 57935,
+      "duration": 2.000000000007276,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.world.meadow",
+      "startTime": 57972,
+      "duration": 217,
+      "samples": 2,
+      "nativeHighMB": 710.007648
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:runtime.grass",
+      "startTime": 58005,
+      "duration": 184,
+      "samples": 2,
+      "nativeHighMB": 710.007648
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.world.sets",
+      "startTime": 58221,
+      "duration": 0,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.audio.cues",
+      "startTime": 58244,
+      "duration": 1.000000000007276,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.audio.scene",
+      "startTime": 58246,
+      "duration": 14,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.population.wildlife",
+      "startTime": 58269,
+      "duration": 101.00000000000728,
+      "samples": 1,
+      "nativeHighMB": 710.728544
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:world.riding.session",
+      "startTime": 58370.00000000001,
+      "duration": 55,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:runtime.cabins",
+      "startTime": 58436,
+      "duration": 0,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:runtime.props",
+      "startTime": 58525,
+      "duration": 1728,
+      "samples": 17,
+      "nativeHighMB": 685.398928
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:kit.world.paths",
+      "startTime": 60424,
+      "duration": 19,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:kit.held.cosmetics",
+      "startTime": 60449,
+      "duration": 2,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:kit.content.catalogue",
+      "startTime": 60449,
+      "duration": 0,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:play.audio.cues",
+      "startTime": 61590,
+      "duration": 0,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:play.audio.scene",
+      "startTime": 61611.00000000001,
+      "duration": 0.999999999992724,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:play.held.ranged-feel",
+      "startTime": 61640,
+      "duration": 1,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:play.bag.finds",
+      "startTime": 61641,
+      "duration": 12,
+      "samples": 0,
+      "nativeHighMB": null
+    },
+    {
+      "name": "wildshard.prepare:nalati-grasslands:play.practice.course",
+      "startTime": 61680,
+      "duration": 1.000000000007276,
+      "samples": 0,
+      "nativeHighMB": null
+    }
+  ]
+}
