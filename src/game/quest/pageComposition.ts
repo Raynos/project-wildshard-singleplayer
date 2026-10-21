@@ -138,19 +138,6 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   adventure.finale = { get actor() { return finale.actor; }, rewardAt: finale.rewardAt, rewardPose: finale.rewardPose };
   adventure.ecology = installPageReturns(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.returns))));
 
-  const bridge = w.registry.get(rows.sway.piece);
-  if (bridge !== undefined) {
-    let sway = 0, bt = 0;
-    w.game.onUpdate((dt) => {
-      const p = w.player.position, f = bridge.floor?.(p.x, p.z);
-      const on = f !== undefined && Math.abs(p.y - f) < rows.sway.height;
-      sway += ((on ? 1 : 0) - sway) * Math.min(1, dt * rows.sway.ease);
-      if (sway < rows.sway.threshold) return;
-      bt += dt * (rows.sway.rate + Math.hypot(w.player.velocity.x, w.player.velocity.z) * rows.sway.speed);
-      w.game.camera.rotation.z += Math.sin(bt * rows.sway.rollHz) * rows.sway.roll * sway;
-      w.game.camera.position.y += Math.sin(bt * rows.sway.dipHz) * rows.sway.dip * sway;
-    }, rows.systems.sway);
-  }
   let placeT = 0;
   w.game.onUpdate((_dt, t) => { if (t - placeT > rows.placeInterval) { placeT = t; places.update(w.player.position.x, w.player.position.z); } }, rows.systems.places);
   ctx.debug.expose(rows.debug, { content, flags, kit, spine: adventure.spine, places, finale: adventure.finale,

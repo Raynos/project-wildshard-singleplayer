@@ -18,8 +18,7 @@ export const QuestPageCompositionSchema = v.pipe(v.unknown(), v.check(isJsonData
   trader: v.strictObject({ figure: id, counter: id, offer: id, label: id, radius: n }),
   cable: v.strictObject({ scene: id, mode: id, carriage: id, prompt: id, radius: n, label: id, a: id, b: id, anchor: id, publish: id }),
   boss: v.strictObject({ pool: place, reward: id }),
-  sway: v.strictObject({ piece: id, height: n, ease: n, threshold: n, rate: n, speed: n, rollHz: n, roll: n, dipHz: n, dip: n }),
   guideHeight: n, placeInterval: n,
-  systems: v.strictObject({ speakerPose: id, traderPose: id, kit: id, talks: id, trader: id, cable: id, guide: id, sway: id, places: id, before: v.array(id) }),
+  systems: v.strictObject({ speakerPose: id, traderPose: id, kit: id, talks: id, trader: id, cable: id, guide: id, places: id, before: v.array(id) }),
 }));
 export type QuestPageCompositionRows = v.InferOutput<typeof QuestPageCompositionSchema>;

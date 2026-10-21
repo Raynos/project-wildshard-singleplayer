@@ -1,0 +1,21 @@
+{
+  "piece": "bridge",
+  "height": 0.35,
+  "ease": 3,
+  "threshold": 0.001,
+  "rate": 0.8,
+  "speed": 0.25,
+  "rollHz": 1.7,
+  "roll": 0.018,
+  "dipHz": 3.4,
+  "dip": 0.025,
+  "system": "shard.driftwood.adventure.3",
+  "before": [
+    "game.loot",
+    "body-shadow",
+    "keepsakes",
+    "last place",
+    "first hints",
+    "main.world"
+  ]
+}

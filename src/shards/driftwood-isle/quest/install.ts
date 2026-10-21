@@ -56,6 +56,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   ctx.system({ id: rows.systems.speakerPose, phase: 'update', before: [rows.systems.talks], run: (dt, time) => { npc.update(dt, time, player.position); } });
   ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
   const adventure = await installQuestPageComposition(ctx, rows);
+  installBridgeSway(ctx, await ctx.product.json<BridgeSwayRows>('quests/bridge-sway.json'));
   if (adventure.places === null) throw new Error('Driftwood adventure requires its discovery catalogue');
   const placed = [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
     ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed];
@@ -76,4 +77,30 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const presentation = await driftwoodLootPresentation({ economy, adventure, owned: h.owned, health, audio: h.audio });
   installRuntimeLoot(ctx, presentation, { shop: await ctx.product.json(rows.files.stall), minimap: true, before: rows.systems.before.filter(id => id !== 'game.loot') });
   return adventure;
+}
+
+/** G532(3): the rope deck remains listed shard view code until WASM-HOST. */
+export interface BridgeSwayRows {
+  readonly piece: string; readonly system: string; readonly before: readonly string[];
+  readonly height: number; readonly ease: number; readonly threshold: number;
+  readonly rate: number; readonly speed: number; readonly rollHz: number;
+  readonly roll: number; readonly dipHz: number; readonly dip: number;
+}
+
+/** Keep the shipping camera projection on the entered bridge's actual floor. */
+export function installBridgeSway(ctx: ShardContext, rows: BridgeSwayRows): void {
+  const world = ctx.game.runtime?.world;
+  if (world === undefined || world === null) throw new Error('Rope deck view requires its entered world');
+  const bridge = world.registry.get(rows.piece);
+  if (bridge === undefined) return;
+  let sway = 0, bt = 0;
+  ctx.system({ id: rows.system, phase: 'update', before: [...rows.before], run: dt => {
+    const p = world.player.position, f = bridge.floor?.(p.x, p.z);
+    const on = f !== undefined && Math.abs(p.y - f) < rows.height;
+    sway += ((on ? 1 : 0) - sway) * Math.min(1, dt * rows.ease);
+    if (sway < rows.threshold) return;
+    bt += dt * (rows.rate + Math.hypot(world.player.velocity.x, world.player.velocity.z) * rows.speed);
+    world.game.camera.rotation.z += Math.sin(bt * rows.rollHz) * rows.roll * sway;
+    world.game.camera.position.y += Math.sin(bt * rows.dipHz) * rows.dip * sway;
+  } });
 }
