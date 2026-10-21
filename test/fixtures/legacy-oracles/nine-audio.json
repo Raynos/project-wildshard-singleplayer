@@ -1,0 +1,285 @@
+{
+ "source": "frozen from src/shards/nine-dragon-stack-legacy/runtime/audio/files.ts at 0225ea44db",
+ "inventory": {
+  "synth": {
+   "files": {
+    "music": [
+     "/assets/music/piano/title-3d1f713a.m4a",
+     "/assets/music/orchestral/title-b47c8a52.m4a",
+     "/assets/music/folk/title-50001128.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/nd-well-calm-4dcde431.m4a",
+     "/assets/music/nine-dragon-stack/nd-well-tension-b91dc9e0.m4a",
+     "/assets/music/nine-dragon-stack/nd-fight-calm-f81a3489.m4a",
+     "/assets/music/nine-dragon-stack/nd-fight-tension-56031d7b.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a"
+    ],
+    "sfx": [
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ]
+   },
+   "priority": null,
+   "boot": {
+    "synth": [
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ],
+    "piano": [
+     "/assets/music/piano/title-3d1f713a.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ],
+    "orchestral": [
+     "/assets/music/orchestral/title-b47c8a52.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ],
+    "folk": [
+     "/assets/music/folk/title-50001128.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ]
+   }
+  },
+  "best": {
+   "files": {
+    "music": [
+     "/assets/music/piano/title-3d1f713a.m4a",
+     "/assets/music/orchestral/title-b47c8a52.m4a",
+     "/assets/music/folk/title-50001128.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/nd-well-calm-4dcde431.m4a",
+     "/assets/music/nine-dragon-stack/nd-well-tension-b91dc9e0.m4a",
+     "/assets/music/nine-dragon-stack/nd-fight-calm-f81a3489.m4a",
+     "/assets/music/nine-dragon-stack/nd-fight-tension-56031d7b.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a"
+    ],
+    "sfx": [
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ]
+   },
+   "priority": null,
+   "boot": {
+    "synth": [
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ],
+    "piano": [
+     "/assets/music/piano/title-3d1f713a.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ],
+    "orchestral": [
+     "/assets/music/orchestral/title-b47c8a52.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ],
+    "folk": [
+     "/assets/music/folk/title-50001128.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-calm-4a5af233.m4a",
+     "/assets/music/nine-dragon-stack/nd-market-tension-5a01320f.m4a",
+     "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
+     "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
+     "/assets/music/nine-dragon-stack/sting-chunk-d9289a49.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.market-1-71d8fdc0.m4a",
+     "/assets/sfx/nine-dragon-stack/bed.nd.well-1-ccb30904.m4a",
+     "/assets/sfx/nine-dragon-stack/hum.lantern-1-d0f0aab8.m4a",
+     "/assets/sfx/nine-dragon-stack/oneshots-2a6c7882.m4a"
+    ]
+   }
+  }
+ },
+ "decode": {
+  "synth/synth": {
+   "order": [
+    {
+     "kind": "title",
+     "style": "synth",
+     "slots": [
+      "title"
+     ],
+     "set": "base",
+     "stings": []
+    },
+    {
+     "kind": "score",
+     "set": {
+      "dir": "/assets/music/nine-dragon-stack/",
+      "manifestKey": "nine-dragon-stack"
+     },
+     "slots": [
+      "nd-market"
+     ],
+     "stings": true
+    },
+    {
+     "kind": "cues",
+     "set": "nine-dragon-stack"
+    }
+   ],
+   "ticks": 3
+  },
+  "synth/folk": {
+   "order": [
+    {
+     "kind": "title",
+     "style": "folk",
+     "slots": [
+      "title"
+     ],
+     "set": "base",
+     "stings": []
+    },
+    {
+     "kind": "score",
+     "set": {
+      "dir": "/assets/music/nine-dragon-stack/",
+      "manifestKey": "nine-dragon-stack"
+     },
+     "slots": [
+      "nd-market"
+     ],
+     "stings": true
+    },
+    {
+     "kind": "cues",
+     "set": "nine-dragon-stack"
+    }
+   ],
+   "ticks": 3
+  },
+  "best/synth": {
+   "order": [
+    {
+     "kind": "title",
+     "style": "synth",
+     "slots": [
+      "title"
+     ],
+     "set": "base",
+     "stings": []
+    },
+    {
+     "kind": "score",
+     "set": {
+      "dir": "/assets/music/nine-dragon-stack/",
+      "manifestKey": "nine-dragon-stack"
+     },
+     "slots": [
+      "nd-market"
+     ],
+     "stings": true
+    },
+    {
+     "kind": "cues",
+     "set": "nine-dragon-stack"
+    }
+   ],
+   "ticks": 3
+  },
+  "best/folk": {
+   "order": [
+    {
+     "kind": "title",
+     "style": "folk",
+     "slots": [
+      "title"
+     ],
+     "set": "base",
+     "stings": []
+    },
+    {
+     "kind": "score",
+     "set": {
+      "dir": "/assets/music/nine-dragon-stack/",
+      "manifestKey": "nine-dragon-stack"
+     },
+     "slots": [
+      "nd-market"
+     ],
+     "stings": true
+    },
+    {
+     "kind": "cues",
+     "set": "nine-dragon-stack"
+    }
+   ],
+   "ticks": 3
+  }
+ },
+ "picks": {
+  "0/calm": "nd-market",
+  "0/alert": "nd-market",
+  "0/combat": "nd-fight",
+  "0.5/calm": "nd-market",
+  "0.5/alert": "nd-market",
+  "0.5/combat": "nd-fight",
+  "0.50001/calm": "nd-well",
+  "0.50001/alert": "nd-well",
+  "0.50001/combat": "nd-fight",
+  "1/calm": "nd-well",
+  "1/alert": "nd-well",
+  "1/combat": "nd-fight"
+ }
+}

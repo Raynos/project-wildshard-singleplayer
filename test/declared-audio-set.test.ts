@@ -12,7 +12,7 @@ import {createCueRouter} from '@wildshard/engine/audio/cueRouting';
 import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
 import {ND_AUDIO} from '../src/shards/nine-dragon-stack/generators/audio';
 import {createNalatiAudio} from '../src/shards/nalati-grasslands-legacy/runtime/audio/files';
-import {createNdAudio,ndPick} from '../src/shards/nine-dragon-stack-legacy/runtime/audio/files';
+import NINE_FROZEN from './fixtures/legacy-oracles/nine-audio.json' with {type:'json'};
 import {steppePick,createSteppeScore} from '../src/shards/nalati-grasslands-legacy/runtime/audio/SteppeScore';
 import type {CombatCueOpts} from '@wildshard/engine/combat/cues';
 
@@ -20,9 +20,9 @@ const NALATI_AUDIO=parseAudioData(audioDeclaration.audio);
 
 // The frozen shards are independent executable oracles. They are never modified.
 afterEach(()=>{vi.restoreAllMocks();});
-it.each([[NALATI_AUDIO,createNalatiAudio],[ND_AUDIO,createNdAudio]] as const)('retains score-set inventory, boot order and Synth gates %#',async(rows,original)=>{
+it('retains score-set inventory, boot order and Synth gates (Nalati)',async()=>{
  const selected=vi.spyOn(settings,'getSfxSet');
- const declared=await createCatalogueAudio(rows),legacy=await original();
+ const declared=await createCatalogueAudio(NALATI_AUDIO),legacy=await createNalatiAudio();
  for(const sfx of ['synth',...settings.SFX_SETS] as const){
   selected.mockReturnValue(sfx);
   expect(declared.files()).toEqual(legacy.files());
@@ -30,7 +30,19 @@ it.each([[NALATI_AUDIO,createNalatiAudio],[ND_AUDIO,createNdAudio]] as const)('r
   for(const style of ['synth',...settings.MUSIC_STYLES] as const)expect(declared.bootFiles(style)).toEqual(legacy.bootFiles(style));
  }
 });
-it.each([[NALATI_AUDIO,createNalatiAudio],[ND_AUDIO,createNdAudio]] as const)('retains title/score/cue/sample decode order, overlays and completion ticks %#',async(rows,original)=>{
+// Nine Dragon's original audio, frozen (fixtures/legacy-oracles/nine-audio.json): its inventory per set and style
+it('retains score-set inventory, boot order and Synth gates (Nine Dragon)',async()=>{
+ const selected=vi.spyOn(settings,'getSfxSet');
+ const declared=await createCatalogueAudio(ND_AUDIO),frozen:Record<string,{files:unknown;priority:unknown;boot:Record<string,unknown>}>=NINE_FROZEN.inventory;
+ for(const sfx of ['synth',...settings.SFX_SETS] as const){
+  selected.mockReturnValue(sfx);
+  const row=frozen[sfx];if(row===undefined)throw new Error(`Missing frozen Nine audio set ${sfx}`);
+  expect(declared.files()).toEqual(row.files);
+  expect(declared.priorityFiles?.()??null).toEqual(row.priority);
+  for(const style of ['synth',...settings.MUSIC_STYLES] as const)expect(declared.bootFiles(style)).toEqual(row.boot[style]);
+ }
+});
+it.each([[NALATI_AUDIO,'nalati'],[ND_AUDIO,'nine']] as const)('retains title/score/cue/sample decode order, overlays and completion ticks %#',async(rows,which)=>{
  const selected=vi.spyOn(settings,'getSfxSet');
  let order:object[]=[];
  const buffer={} as AudioBuffer;
@@ -46,13 +58,16 @@ it.each([[NALATI_AUDIO,createNalatiAudio],[ND_AUDIO,createNdAudio]] as const)('r
  vi.spyOn(preload,'decodeSfxSet').mockImplementation((set,bed,_read,onFile)=>{
   order.push({kind:'samples',set,bed});onFile?.();return Promise.resolve({set,credit:'fixture',loops:new Map([['river',{buffer,loopStart:0,loopEnd:1,gain:0.2}]]),shots:new Map()});
  });
- const declared=await createCatalogueAudio(rows),legacy=await original();
+ const declared=await createCatalogueAudio(rows),legacy=which==='nalati'?await createNalatiAudio():null;
+ const frozen:Record<string,{order:unknown;ticks:number}>=NINE_FROZEN.decode;
  for(const sfx of ['synth',...settings.SFX_SETS] as const)for(const style of ['synth','folk'] as const){
   selected.mockReturnValue(sfx);
   const run=async(profile:typeof declared)=>{
    order=[];let ticks=0;const bank=await profile.decode(style,()=>Promise.resolve(new ArrayBuffer(0)),()=>Promise.resolve(buffer),()=>{ticks++;});return {order:[...order],ticks,bank};
   };
-  expect(await run(declared)).toEqual(await run(legacy));
+  if(legacy!==null){expect(await run(declared)).toEqual(await run(legacy));continue;}
+  // Nine Dragon's original decode order and ticks, frozen
+  const ran=await run(declared);expect({order:structuredClone(ran.order),ticks:ran.ticks}).toEqual(frozen[`${sfx}/${style}`]);
  }
 });
 it('preserves every Nalati scene fallback and Nine Dragon combat/Well precedence',()=>{
@@ -68,7 +83,7 @@ it('preserves every Nalati scene fallback and Nine Dragon combat/Well precedence
  const dragon=SetScore.declared(requireAudioProfile(ND_AUDIO.music,'music'),{refreshScore:onReady},{read,decode});
  for(const well of [0,0.5,0.50001,1])for(const mode of ['calm','alert','combat'] as const){
   const state={mode,intensity:0,underwater:false};dragon.scene['well']=well;
-  expect(dragon.target(state)).toBe(ndPick({well},state)[0]);
+  expect(dragon.target(state)).toBe(NINE_FROZEN.picks[`${well}/${mode}` as keyof typeof NINE_FROZEN.picks]);
  }
  const bank:ScoreBank={slots:new Map(),stings:new Map()};
  expect(dragon.pending).toBe(true);dragon.useBank(bank);expect(dragon.pending).toBe(false);
