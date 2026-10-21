@@ -48,9 +48,31 @@ try:
 except subprocess.CalledProcessError as error:
  assert error.returncode == 9
 assert len(calls) == 3
-assert calls[0][-5:] == ['_template', '--hours', '1', '--name', 'batch-_template']
+assert calls[0][-5:] == ['_template,pine-hollow', '--hours', '1', '--name', 'batch-check']
 assert calls[2][-2:] == ['stop', '4400']
 assert '--max' in calls[1] and '--shard=_template' in calls[1]
+print(json.dumps(True))
+`], { encoding: 'utf8' });
+  expect(JSON.parse(result)).toBe(true);
+});
+
+test('one batch preview keeps a distinct first-frame check for every requested shard', () => {
+  const result = execFileSync('python3', ['-c', `
+import json, os, pathlib, runpy, subprocess
+boot = runpy.run_path('scripts/batch_check.py')['boot']
+calls = []
+def run(command, **options):
+ assert options['env']['WILDSHARD_MIRROR_SLOT'] == 'check4'
+ calls.append(command)
+ return subprocess.CompletedProcess(command, 0, stdout='http://127.0.0.1:4402/\\n')
+boot.__globals__['run'] = run
+os.environ['WILDSHARD_MIRROR_SLOT'] = 'check4'
+boot(pathlib.Path('/repo'), 'abc123', ['_template', 'pine-hollow'], '/scratch')
+assert len(calls) == 4
+assert calls[0][-5:] == ['_template,pine-hollow', '--hours', '1', '--name', 'batch-check']
+assert '--shard=_template' in calls[1] and '--shard=pine-hollow' in calls[2]
+assert '--url=http://127.0.0.1:4402' in calls[1] and '--url=http://127.0.0.1:4402' in calls[2]
+assert calls[3][-2:] == ['stop', '4402']
 print(json.dumps(True))
 `], { encoding: 'utf8' });
   expect(JSON.parse(result)).toBe(true);

@@ -56,22 +56,24 @@ def check_sources(root, sha, base):
 
 def boot(root, sha, shards, scratch):
     env = dict(os.environ, SERVE_OWNER='batch-check-' + str(os.getpid()))
-    for shard in shards:
-        port = None
-        try:
-            served = run(['bash', str(root / 'scripts/serve-build.sh'), '--rev', sha, '--shard', shard,
-                          '--hours', '1', '--name', 'batch-' + shard], cwd=scratch, env=env,
-                         stdout=subprocess.PIPE, text=True)
-            match = re.search(r'^http://127\.0\.0\.1:(\d+)/$', served.stdout, re.MULTILINE)
-            if match is None:
-                raise ValueError('serve-build returned no preview URL: ' + served.stdout)
-            port = match.group(1)
+    if not shards:
+        return
+    port = None
+    try:
+        served = run(['bash', str(root / 'scripts/serve-build.sh'), '--rev', sha, '--shard', ','.join(shards),
+                      '--hours', '1', '--name', 'batch-check'], cwd=scratch, env=env,
+                     stdout=subprocess.PIPE, text=True)
+        match = re.search(r'^http://127\.0\.0\.1:(\d+)/$', served.stdout, re.MULTILINE)
+        if match is None:
+            raise ValueError('serve-build returned no preview URL: ' + served.stdout)
+        port = match.group(1)
+        for shard in shards:
             run(['bash', str(root / 'scripts/browser-lane.sh'), '--max', '6', 'node',
                  str(root / 'scripts/batch-first-frame.mjs'), '--url=http://127.0.0.1:' + port, '--shard=' + shard],
                 cwd=root, env=env)
-        finally:
-            # This unique owner also cleans up a preview if serving failed after starting it.
-            run(['bash', str(root / 'scripts/serve-build.sh'), 'stop', port or 'all-mine'], cwd=scratch, env=env)
+    finally:
+        # This unique owner also cleans up a preview if serving failed after starting it.
+        run(['bash', str(root / 'scripts/serve-build.sh'), 'stop', port or 'all-mine'], cwd=scratch, env=env)
 
 
 def main():
