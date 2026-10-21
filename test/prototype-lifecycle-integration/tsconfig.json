@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "types": ["vite/client", "node"] },
+  "include": ["./*.test.ts", "../../src/**/*.d.ts", "../../types/**/*.d.ts", "../../src/engine/boot/shardPrefetch.ts"]
+}
