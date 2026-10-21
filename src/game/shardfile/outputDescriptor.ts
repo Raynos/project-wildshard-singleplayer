@@ -15,6 +15,9 @@ export interface OutputDescriptorReader {
   offline: boolean;
   /** Only a matching build-pinned index and source receipt permits unchecked assembly. */
   firstParty?: boolean;
+  /** A previous visit read for its state lineage only: hash-checked sections assembled unparsed and never admitted, so an
+   *  older build's product is not refused by this build's section schemas (the caller parses identity and state). */
+  lineage?: boolean;
 }
 
 export interface OutputDescriptor {
@@ -86,6 +89,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     if (result.status === 'rejected') throw result.reason;
     (result.value[0].startsWith('schemas/') ? schemas : sections).set(...result.value);
   }
+  if (reader.lineage === true) return assembleOutputFields(index, sections, false);
   // G491: a build receipt never bypasses an authored custom schema at load.
   for (const row of index.sections) {
     if (row.name.startsWith('custom/')) validateCustomSchema(schemas.get(row.schema), sections.get(row.name));

@@ -111,6 +111,35 @@ test('a complete older visit still enforces saved-state compatibility', async ()
   expect(store.product()?.source).toEqual(visited.index);
 });
 
+// G531 retired the manifest's `entries.public`: a phone that visited before it holds sections this build's strict schemas
+// refuse. The visit is compared by identity and state only, so the shard still loads and the record is replaced.
+test('an older visit this build no longer parses is compared by its state lineage only', async () => {
+  const stale = (revision: number): { visited: CachedProduct; bytes: Map<string, Uint8Array> } => {
+    const old = fixture(false, 0, revision), section = old.index.sections.find(value => value.name === 'world/spawn');
+    const wire = section === undefined ? undefined : old.wires.get(section.path);
+    if (section === undefined || wire === undefined) throw new Error('Missing spawn section');
+    const payload: unknown = JSON.parse(new TextDecoder().decode(wire));
+    if (typeof payload !== 'object' || payload === null) throw new Error('Spawn section is not an object');
+    const bytes = encodeCanonicalJson({ ...payload, public: 'legacy' }), ref = hashImmutableBytes(bytes);
+    const sections = old.index.sections.map(value => value === section ? { ...value, hash: ref, bytes: bytes.length } : value);
+    return { visited: { source: { ...old.index, sections }, firstParty: true },
+      bytes: new Map([...old.index.sections.flatMap(value => { const b = old.wires.get(value.path); return b === undefined ? [] : [[value.hash, b] as const]; }), [ref, bytes]]) };
+  };
+  const seed = (store: ReturnType<typeof cacheStore>, revision: number): void => {
+    const { visited, bytes } = stale(revision);
+    for (const [ref, wire] of bytes) store.bytes.set(ref, wire);
+    void store.cache.putProduct(base, visited);
+  };
+  const current = fixture(false, 4, 2), store = cacheStore(), online = options(current.wires, store.cache);
+  seed(store, 1);
+  await expect(readProductDescriptor({ ...online, offline: true })).rejects.toThrow('undeclared field');
+  expect((await admitProduct(await readProductDescriptor(online), online)).source).toEqual(current.source);
+  expect(store.product()?.source).toEqual(current.index);
+  const downgrade = cacheStore(), older = options(fixture().wires, downgrade.cache);
+  seed(downgrade, 3);
+  await expect(admitProduct(await readProductDescriptor(older), older)).rejects.toThrow('revisions cannot move backwards');
+});
+
 test('index, section integrity and path/version refusals happen before any host or blob read', async () => {
   const { wires, index } = fixture(); let fetched = 0;
   const opts = options(wires), fetch = opts.fetch;

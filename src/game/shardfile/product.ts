@@ -147,10 +147,10 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
   for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
   return bytes;
 }
-function resolveDescriptor(input: unknown, options: ProductOptions): Promise<unknown> {
+function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false): Promise<unknown> {
   const base = new URL('.', options.base).href, cache = options.cache;
   return resolveOutputDescriptor(input, {
-    offline: options.offline, hash: options.hash, firstParty: options.firstParty,
+    offline: options.offline, hash: options.hash, firstParty: options.firstParty, ...(lineage ? { lineage } : {}),
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
     ...(cache === undefined ? {} : {
@@ -223,7 +223,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   if (hasDeclaredClientPage(source) && !options.firstParty) throw new Error('Native page features require a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && isOutputIndex(visited.source) && version(visited.source) === SHARDFILE_VERSION) {
     let previous: unknown;
-    try { previous = await resolveDescriptor(visited.source, { ...options, offline: true }); }
+    // Only its identity and state are compared: an older build's sections can fail this build's schemas (G531 retired
+    // `entries.public`), and refusing them would leave a returning player's shard unloadable.
+    try { previous = await resolveDescriptor(visited.source, { ...options, offline: true }, true); }
     catch (error) {
       // An old index can outlive its immutable sections. It is no longer an admitted offline copy;
       // the online descriptor above must complete admission and replace it, just like a first visit.
