@@ -75,16 +75,16 @@ it('scores a wave by how far each shard moved from its start toward the goal', (
 });
 
 
-it('advances W1, W2 and W3 only when both shards meet their mini-plan goals', () => {
+it('advances W1, W2 and W3 only when both shards have zero custom lines', () => {
   const at = { revision: 'a'.repeat(40), committedAt: '2026-10-17T12:00:00Z', now: '2026-10-17T12:10:00Z' };
-  const first = nextRuler(raw({ 'far-reach': 100, 'sunscar-dunes': 101 }), null, at);
+  const first = nextRuler(raw({ 'far-reach': 0, 'sunscar-dunes': 1 }), null, at);
   expect(first.wave.id).toBe('W1');
-  const second = nextRuler(raw({ 'far-reach': 100, 'sunscar-dunes': 100, 'pine-hollow': 200, 'driftwood-isle': 201 }), first, at);
+  const second = nextRuler(raw({ 'far-reach': 0, 'sunscar-dunes': 0, 'pine-hollow': 0, 'driftwood-isle': 1 }), first, at);
   expect(second.wave.id).toBe('W2');
   expect(second.wave.until).toBeNull();
-  const third = nextRuler(raw({ 'far-reach': 100, 'sunscar-dunes': 100, 'pine-hollow': 200, 'driftwood-isle': 200 }), second, at);
+  const third = nextRuler(raw({ 'far-reach': 0, 'sunscar-dunes': 0, 'pine-hollow': 0, 'driftwood-isle': 0, 'nalati-grasslands': 0, 'nine-dragon-stack': 1 }), second, at);
   expect(third.wave.id).toBe('W3');
-  const completed = nextRuler(raw(Object.fromEntries(SHARDS.map(shard => [shard.slug, shard.goal * 10]))), third, at);
+  const completed = nextRuler(raw(Object.fromEntries(SHARDS.map(shard => [shard.slug, 0]))), third, at);
   expect(completed.wave.id).toBe('NEXT');
 });
 
@@ -107,8 +107,8 @@ it('reopens the obsolete midnight schedule without losing its measured history',
 
 it('keeps a wave open when its displayed percentage rounds down to the goal', () => {
   const at = { revision: 'a'.repeat(40), committedAt: '2026-10-17T12:00:00Z', now: '2026-10-17T12:10:00Z' };
-  const ruler = nextRuler(raw({ 'far-reach': 1004, 'sunscar-dunes': 1000 }, 'source', 10000), null, at);
-  expect(ruler.shards.find(shard => shard.slug === 'far-reach')?.pct).toBe(10);
+  const ruler = nextRuler(raw({ 'far-reach': 1, 'sunscar-dunes': 0 }, 'source', 10000), null, at);
+  expect(ruler.shards.find(shard => shard.slug === 'far-reach')?.pct).toBe(0);
   expect(ruler.wave.id).toBe('W1');
 });
 
