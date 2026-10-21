@@ -7,6 +7,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { shardContext } from '../src/game/plugin/context';
 import { QuestViews } from '../src/game/plugin/ui';
+import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { parseShardSlug } from '../src/game/shard/slug';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
@@ -71,7 +72,7 @@ test('an unrelated barter counter uses the same shop, pays before grants and pre
     goods: [{ id: 'bundle', costs: [{ item: 'seed', n: 2, text: '2 seeds' }], payments: [{ owner: 'pack', path: ['take'], args: ['seed', 2], required: true }], grants: [{ owner: 'pack', path: ['add'], args: ['apple', 3] }] }],
   } };
   const { ctx, scope, events, pack } = page([{ economy }]);
-  const rows = { name: 'Orchard keeper', reopen: true, shop: { place: 'Orchard', barter: true, after: { bundle: [{ kind: 'toast', text: 'Traded · Apple bundle' }] } } };
+  const rows = { name: 'Orchard keeper', reopen: true, shop: { place: 'Orchard', barter: true, lifetime: 'entered', after: { bundle: [{ kind: 'toast', text: 'Traded · Apple bundle' }] } } };
   try {
     installQuestTrader(ctx, rows); const get = installQuestShop(ctx, rows), panel = get();
     const views = new QuestViews(ctx), hud = { holdPause: false, entered: true, setPaused: () => undefined };
@@ -91,10 +92,30 @@ test('Pine cards retain all original post-grant feedback as data and malformed f
     ...('skin' in trade.get ? [{ kind: 'wear', finish: trade.get.skin }] : []),
     { kind: 'bark', audio: 'ambience', group: 'trader', figure: 'trader' }, { kind: 'chime', at: 'none', gain: 1 }, { kind: 'toast', text: `Traded · ${trade.label}` },
   ]);
-  const { ctx, scope } = page(), rows = { name: 'Bad shop', reopen: true, shop: { place: 'Bad', barter: false, after: {} } };
+  const { ctx, scope } = page(), rows = { name: 'Bad shop', reopen: true, shop: { place: 'Bad', barter: false, lifetime: 'resident', after: {} } };
   try {
     installQuestTrader(ctx, rows);
     expect(() => installQuestShop(ctx, rows)).toThrow('exact purchase feedback');
     expect(() => installQuestShop(ctx, { ...rows, shop: { ...rows.shop, after: { key: [{ kind: 'call', owner: 'code', path: ['run'] }] } } })).toThrow();
   } finally { scope.dispose(); }
+});
+
+test('resident counters prepare off-board while entered counters recreate their real widgets on each home entry', () => {
+  vi.useFakeTimers();
+  const { ctx: base, scope } = page();
+  const retained = new RetainedRuntimeHooks(base, { deferActivation: true }), ctx = retained.context;
+  publishPurse(scope, new Purse('shop-entry', { read: () => 12, write: () => true }));
+  const { placement: _placement, view: _view, ...rows } = coinRows;
+  try {
+    const resident = installQuestTrader(ctx, rows), getResident = installQuestShop(ctx, rows), original = getResident();
+    expect(resident.shop).toBe(original);
+    const enteredRows = { ...rows, name: 'Entered counter', shop: { ...rows.shop, lifetime: 'entered' } };
+    const entered = installQuestTrader(ctx, enteredRows), getEntered = installQuestShop(ctx, enteredRows);
+    expect(entered.shop).toBeNull(); expect(() => getEntered()).toThrow('left its home');
+    retained.activate(); const first = getEntered(); expect(entered.shop).toBe(first);
+    retained.deactivate(); expect(entered.shop).toBeNull(); expect(first.scope.disposed).toBe(true);
+    expect(getResident()).toBe(original); expect(original.scope.disposed).toBe(false);
+    retained.activate(); expect(getEntered()).not.toBe(first); expect(getResident()).toBe(original);
+    original.dispose();
+  } finally { scope.dispose(); vi.useRealTimers(); }
 });

@@ -132,7 +132,7 @@ export function installQuestShop(ctx: ShardContext, input: unknown): () => ShopP
     return () => { play.hud.toast(effect.text); };
   })]));
   installedShops.add(stall);
-  const shop = views.view('trade', scope => {
+  const create = (scope: Scope): ShopPanel<QuestShopGood> => {
     const index = (good: QuestShopGood): number => goods.findIndex(value => value.id === good.id);
     const panel = new ShopPanel<QuestShopGood>({ trader: row.name, place: policy.place, goods,
       state: good => exchange.state(index(good)), scope,
@@ -148,7 +148,9 @@ export function installQuestShop(ctx: ShardContext, input: unknown): () => ShopP
       return true;
     };
     stall.shop = panel; panel.scope.onDispose(() => { if (stall.shop === panel) stall.shop = null; }); return panel;
-  });
+  };
+  const resident = policy.lifetime === 'resident' ? create(ctx.scope.child('trade')) : null;
+  const shop = resident === null ? views.view('trade', create) : () => resident;
   if (policy.modal !== undefined) {
     const modal = policy.modal;
     views.panelHold({ hud: play.hud, weapons: play.weapons, menu: play.menu, nolock: play.nolock, touchUi: play.touchUi, panels: [shop], restartOnClose: modal.restartOnClose,

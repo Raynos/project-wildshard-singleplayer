@@ -9537,8 +9537,10 @@ the admitted ammunition owner, modal policy and ordered purchase feedback
 (finish wear, named audio bark, chime, offer and toast). The common `Exchange`
 retains payment-before-grant order; the actual panel must be open to buy.
 Rows contain no callbacks or reflected methods. All feedback is admitted
-before panel construction. Pine keeps its entered modal lifecycle; Driftwood
-keeps its facing, distance-close and purse behaviour. `installRuntimeLoot`
+before panel construction. `shop.lifetime` selects `entered` widget recreation
+or a `resident` counter available during deferred cell preparation. Pine keeps
+its entered modal lifecycle; Driftwood keeps its resident counter, facing,
+distance-close and purse behaviour. `installRuntimeLoot`
 accepts these same rows in `options.shop` after publishing its actual purse
 with `loot/Purse.publishPurse`; `enteredPurse(scope)` borrows that owner and
 refuses after retirement. No second purse, inventory or save is created.

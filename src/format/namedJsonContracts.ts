@@ -51,7 +51,7 @@ const shopEffect = v.variant('kind', [
   v.strictObject({ kind: v.literal('offer') }), v.strictObject({ kind: v.literal('toast'), text }),
 ]);
 /** Shop cards, payment owners and ordered purchase feedback are inert content. */
-export const QuestShopSchema = v.strictObject({ place: text, barter: v.boolean(),
+export const QuestShopSchema = v.strictObject({ place: text, barter: v.boolean(), lifetime: v.picklist(['resident', 'entered']),
   ammunition: v.exactOptional(v.strictObject({ loadout: text, bolts: text })),
   modal: v.exactOptional(v.strictObject({ restartOnClose: v.boolean(), stow: v.boolean(), resumeSwimming: v.boolean() })),
   after: v.pipe(v.record(text, v.pipe(v.array(shopEffect), v.maxLength(16))), v.maxEntries(64)),
