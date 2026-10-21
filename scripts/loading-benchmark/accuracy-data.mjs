@@ -1,6 +1,9 @@
 export function accuracyRecorder() {
-      const state = { samples: [], final: null, readyAt: 0, last: '', lastSampleAt: 0, updates: [], errors: [] };
+      const state = { samples: [], final: null, readyAt: 0, last: '', lastSampleAt: 0, updates: [], errors: [], resources: [] };
       Reflect.set(window, '__loadingAccuracy', state);
+      new PerformanceObserver(list => {
+        if (!state.readyAt) for (const entry of list.getEntries()) state.resources.push(entry.toJSON());
+      }).observe({ type: 'resource', buffered: true });
       window.addEventListener('error', event => { if (state.errors.length < 100) state.errors.push(event.message); });
       window.addEventListener('unhandledrejection', event => { if (state.errors.length < 100) state.errors.push(String(event.reason)); });
       const read = () => {

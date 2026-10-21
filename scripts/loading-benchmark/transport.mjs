@@ -10,9 +10,13 @@ export async function observeTransport(upstream, fixture = {}) {
       response.end(fixture.start); return;
     }
     const target = new URL(request.url ?? '/', upstream);
-    const inject = fixture.recorder !== undefined && target.pathname === '/';
-    const forwarded = http.request(target, { method: request.method, headers: { ...request.headers, host: target.host,
-      ...(inject ? { 'accept-encoding': 'identity' } : {}) } }, incoming => {
+    const inject = fixture.recorder !== undefined && (target.pathname === '/' || target.pathname === '/index.html');
+    const requestHeaders = { ...request.headers, host: target.host };
+    if (inject) {
+      requestHeaders['accept-encoding'] = 'identity';
+      delete requestHeaders['if-none-match']; delete requestHeaders['if-modified-since'];
+    }
+    const forwarded = http.request(target, { method: request.method, headers: requestHeaders }, incoming => {
       // Fixed-length replies preserve the upstream wire length; unknown lengths use chunked framing.
       const headers = { ...incoming.headers, connection: 'close' };
       delete headers['keep-alive'];
@@ -29,6 +33,7 @@ export async function observeTransport(upstream, fixture = {}) {
           body = Buffer.byteLength(patched);
           delete headers['transfer-encoding'];
           headers['content-length'] = String(body);
+          headers['cache-control'] = 'no-store';
           response.writeHead(incoming.statusCode ?? 502, headers); response.write(patched);
         }
         response.end();
