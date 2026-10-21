@@ -292,6 +292,21 @@ export function placementCensus(): PlacementCensus {
 
 const _near = new THREE.Box3(), _nearC = new THREE.Vector3();
 
+/**
+ * The copies of a `place` call whose box centre stands within each circle (x, z, r: metres, on the ground), as a `Placed`
+ * of their own per circle — a named place's share of a field or a scatter (M12: every named place is a Set). One pass over
+ * the copies. A share draws nothing of its own (`object` is the call's), owns no colliders and culls nothing; null where
+ * no copy stands. Kept for the frozen pine-hollow-legacy world/places.ts until it retires.
+ */
+export function copiesNear(p: Placed, circles: readonly { readonly x: number; readonly z: number; readonly r: number }[]): (Placed | null)[] {
+  const idx: number[][] = circles.map(() => []);
+  for (let i = 0; i < p.copies; i++) {
+    p.copyBox(i, _near).getCenter(_nearC);
+    circles.forEach((c, k) => { if ((_nearC.x - c.x) ** 2 + (_nearC.z - c.z) ** 2 <= c.r * c.r) idx[k]?.push(i); });
+  }
+  return idx.map((list) => shareOf(p, list));
+}
+
 /** Copies `at` (indices into the call's placement order) of a `place` call as a `Placed` of their own, like a named place's
  *  shares: a named place's share of copies placed in one call across several places (Nine Dragon's lions). null: none. */
 export function copiesAt(p: Placed, at: readonly number[]): Placed | null {
