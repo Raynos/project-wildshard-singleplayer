@@ -6,7 +6,7 @@ import {runtimeClosures} from './shard-runtime-closure.mjs';
 import {outputCensus,portHeadline,codeLines,shaderCodeLines} from './shard-platform.mjs';
 import {outputContent} from './shard-output-content.mjs';
 import {customSectionFailures} from './shard-platform-sections.mjs';
-import {outputSections} from './shard-platform-output.mjs';
+import {createOutputReader} from './shard-platform-output.mjs';
 import {writeGeneratorInventory} from './generator-inventory.mjs';
 import {gridReady,m3Progress,planProgress,unknownGridReady} from './shard-milestones.mjs';
 import {decisionLegacyLines} from './decision-legacy-lines.mjs';
@@ -36,18 +36,18 @@ export async function outputReport(root,{build=true,sourceProgress=false,product
     // unclosed products without copies. All receive actual byte-validation evidence.
     await buildShardfiles(root,{strict:false,copyRuntime:'closed',reuse:true,...(reportOnly?{onFailure:failed}:{}),...(buildProduct===undefined?{}:{build:buildProduct})});
   }
-  const sections={},contents={};
+  const sections={},contents={},reader=createOutputReader(root,products);
   for(const [slug,state] of Object.entries(closure)) {
     if(Object.hasOwn(productFailures,slug))continue;
     try {
-      sections[slug]=outputSections(root,slug,products);
-      if(state.status==='closed')contents[slug]=outputContent(root,slug,products);
+      sections[slug]=reader.sections(slug);
+      if(state.status==='closed')contents[slug]=outputContent(root,slug,products,reader);
     } catch(error) {if(!reportOnly)throw error;failed(slug,error);}
   }
   const measurementError=Object.keys(productFailures).length===0?null:`Cross-shard ownership unavailable: ${Object.entries(productFailures).map(([slug,error])=>`${slug}: ${error}`).join('; ')}`;
   // G294 needs every verified section inventory to count shared users. Partial
   // output never supplies zeros, stale users, or a newly granted percentage.
-  const census=measurementError===null?outputCensus(root,products):{measures:{},inventory:{},source:{}};
+  const census=measurementError===null?outputCensus(root,products,reader):{measures:{},inventory:{},source:{}};
   const {measures,inventory,source}=census;
   // G496: data debt applies even before a shard's runtime closes. Its budget
   // findings are report-only here (G514): the ruler always measures.

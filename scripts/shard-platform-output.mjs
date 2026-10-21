@@ -18,10 +18,13 @@ function files(folder) {
  * Source is consulted only to verify P3's verbatim-copy contract, never as a missing-output fallback.
  * @param {string} root @param {string} slug @param {string} [products] */
 export function outputRuntime(root,slug,products=resolve(root,'out')) {
+  return readOutputRuntime(root,slug,products,()=>outputSections(root,slug,products));
+}
+function readOutputRuntime(root,slug,products,readSections) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid output shard slug');
   const folder=resolve(products,slug), indexPath=resolve(folder,'shard.json');
   if(!existsSync(indexPath))throw new Error(`${slug}: built output missing; build out/<slug> before measuring`);
-  const {index,sections,customSections,customSectionBytes}=outputSections(root,slug,products);
+  const {index,sections,customSections,customSectionBytes}=readSections();
   const listed=new Set(), runtime=[];
   for(const entry of index.runtime?.files??[]) {
     if(!entry.path.startsWith('runtime/')||!entry.path.endsWith('.ts')||listed.has(entry.path))throw new Error(`${slug}: invalid runtime inventory: ${entry.path}`);
@@ -41,6 +44,21 @@ export function outputRuntime(root,slug,products=resolve(root,'out')) {
   if(authoredRuntime.some(file=>!listed.has(file)))throw new Error(`${slug}: output omits authored runtime files`);
 
   return {index,runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
+}
+
+/** One immutable report shares verified bytes, never a process-wide verdict.
+ * @param {string} root @param {string} [products] */
+export function createOutputReader(root,products=resolve(root,'out')) {
+  const sections=new Map(),runtimes=new Map();
+  const readSections=slug=>{
+    if(!sections.has(slug))sections.set(slug,outputSections(root,slug,products));
+    return sections.get(slug);
+  };
+  const readRuntime=slug=>{
+    if(!runtimes.has(slug))runtimes.set(slug,readOutputRuntime(root,slug,products,()=>readSections(slug)));
+    return runtimes.get(slug);
+  };
+  return {sections:readSections,runtime:readRuntime};
 }
 
 

@@ -12,7 +12,7 @@ import { legacyInventory } from './legacy-shards.mjs';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { discoverGeneration } from './generate.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
-import { outputRuntime, outputSections } from './shard-platform-output.mjs';
+import { createOutputReader } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
@@ -645,7 +645,7 @@ function censusMemo() {
     symbols:new Map(),masks:new Map(),pending:new Map(),authored:new Map()};
 }
 /** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress @param {string} sectionProducts */
-function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out'), memo = censusMemo()) {
+function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out'), memo = censusMemo(), reader = createOutputReader(root,sourceProgress ? sectionProducts : products)) {
   const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || hasChargebackDeclarations(path);
   const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
@@ -741,8 +741,8 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     }
   }
   const outputs = Object.fromEntries(slugs.map(slug => [slug, sourceProgress
-    ? {runtime:authoredFiles[slug],sections:outputSections(root,slug,sectionProducts).sections,customSectionBytes:0,customSections:[]}
-    : outputRuntime(root, slug, products)]));
+    ? {runtime:authoredFiles[slug],sections:reader.sections(slug).sections,customSectionBytes:0,customSections:[]}
+    : reader.runtime(slug)]));
   const prefixOf = slug => `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
   const shardFiles = Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
   const hostFiles = new Map();
@@ -997,11 +997,11 @@ function progressLines(rows) {
 /** One immutable report shares syntax facts across output and source attribution.
  * Resolution, ownership and components still run separately for both bases.
  * @param {string} root @param {string} products */
-export function outputCensus(root = ROOT, products = resolve(root,'out')) {
+export function outputCensus(root = ROOT, products = resolve(root,'out'), reader = createOutputReader(root,products)) {
   const closure=runtimeClosures(root),closed=Object.keys(closure).filter(slug=>closure[slug].status==='closed');
   const memo=censusMemo();
-  const measures=countOutput(root,true,products,closed,false,products,memo);
-  const rows=countOutput(root,true,resolve(root,'src/shards'),Object.keys(closure),true,products,memo);
+  const measures=countOutput(root,true,products,closed,false,products,memo,reader);
+  const rows=countOutput(root,true,resolve(root,'src/shards'),Object.keys(closure),true,products,memo,reader);
   const inventory=Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{...row,measurement:'source'}]));
   return {measures,inventory,source:progressLines(rows)};
 }

@@ -5,7 +5,7 @@ import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable fixture, never a repository copy.
 import {tmpdir} from 'node:os';
-import {outputRuntime} from '../scripts/shard-platform-output.mjs';
+import {createOutputReader,outputRuntime} from '../scripts/shard-platform-output.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 import {parseOutputIndex} from '../src/format/outputIndex';
 import {nameBlob} from '../src/sdk/blobs';
@@ -67,5 +67,21 @@ it('refuses section corruption and omitted source runtimes instead of reporting 
   platformOutput(root,'_template');
   rmSync(join(root,'out/_template/runtime/index.ts'));
   expect(()=>outputRuntime(root,'_template')).toThrow('output omits authored runtime');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+it('scopes verified bytes to one report and still verifies runtime after section reads',()=>{
+ const root=mkdtempSync(join('tmp/','platform-output-report-'));
+ try{
+  platformOutput(root,'_template',{'runtime/index.ts':'export const X=1;'},{'custom/rows':'{"key":1}'});
+  const report=createOutputReader(root);
+  expect(report.sections('_template').sections).toEqual([{name:'custom/rows',value:{key:1}}]);
+  writeFileSync(join(root,'out/_template/runtime/index.ts'),'export const X=2;');
+  expect(()=>report.runtime('_template')).toThrow('runtime hash/size mismatch');
+  writeFileSync(join(root,'out/_template/runtime/index.ts'),'export const X=1;');
+  expect(report.runtime('_template')).toEqual(outputRuntime(root,'_template'));
+  writeFileSync(join(root,'out/_template/sections/custom/rows.json'),'{}');
+  expect(()=>createOutputReader(root).sections('_template')).toThrow('section hash/size mismatch');
+  expect(()=>createOutputReader(root).runtime('_template')).toThrow('section hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}
 });

@@ -1,12 +1,13 @@
 // P4 structural columns use only the emitted index and verified sections.
-import {outputRuntime} from './shard-platform-output.mjs';
+import {createOutputReader} from './shard-platform-output.mjs';
 import {outputFormat} from './shard-platform-format.mjs';
 
 /** Private binaries are opaque bin blobs without a platform decoder declaration.
  * This is structural evidence, never a visual/behaviour compatibility verdict.
- * @param {string} root @param {string} slug @param {string} products */
-export function outputContent(root,slug,products) {
-  const output=outputRuntime(root,slug,products);
+ * @param {string} root @param {string} slug @param {string} products
+ * @param {import('./shard-platform-output.mjs').OutputReader} reader */
+export function outputContent(root,slug,products,reader=createOutputReader(root,products)) {
+  const output=reader.runtime(slug);
   const source=outputFormat.assembleOutputShardfile(output.index,new Map(output.sections.map(row=>[row.name,row.value])));
   const decoded=new Set([
     ...source.meshCollision?.tiles.map(row=>row.file)??[],

@@ -1,3 +1,4 @@
+import type {OutputReader} from './shard-platform-output.mjs';
 import type { ComponentInventory } from './shard-components.mjs';
 
 /** G291's primary measure; native shards have no frozen denominator. */
@@ -36,7 +37,7 @@ export function outputShardLines(root?:string,includeSources?:boolean,products?:
 /** Full source-basis inventory for progress/components, never canonical output credit. */
 export function sourceProgressInventory(root?:string,products?:string):Record<string,ShardLines>;
 /** Shared syntax facts; all attribution and component rules retain their own basis. */
-export function outputCensus(root?:string,products?:string):{measures:Record<string,ShardLines>;inventory:Record<string,ShardLines>;source:ReturnType<typeof sourceProgressLines>};
+export function outputCensus(root?:string,products?:string,reader?:OutputReader):{measures:Record<string,ShardLines>;inventory:Record<string,ShardLines>;source:ReturnType<typeof sourceProgressLines>};
 /** G458 labelled source estimate only; never supplies output % or badges. */
 export function sourceProgressLines(root?:string,products?:string):Record<string,{basis:'source';customLines:number;legacyLines:number|null;assemblyScriptLines:number;assemblyScriptBudget:ShardLines['assemblyScriptBudget']}>;
 export function milestoneFlags(slug: string, row: ShardLines, root?: string): MilestoneFlags;
