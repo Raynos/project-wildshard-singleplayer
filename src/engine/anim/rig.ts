@@ -42,7 +42,7 @@ class BoundedRigLoader extends GLTFLoader implements RigLoader {
   parseBytesAsync(bytes: Uint8Array, path: string): Promise<GLTF> {
     return new Promise((resolve, reject) => { this.parseSource(() => Uint8Array.from(bytes).buffer, path, resolve, reject); });
   }
-  private parseSource(read: () => Parameters<GLTFLoader['parse']>[0], path: string, onLoad: (file: GLTF) => void, onError?: (error: unknown) => void): void {
+  private parseSource(read: () => Parameters<GLTFLoader['parse']>[0], path: string, onLoad: (file: GLTF) => void, onError?: Parameters<GLTFLoader['parse']>[3]): void {
     const parsed = decodeTail.then(async () => {
       // Cached CPU-only models otherwise chain every parse in microtasks. Let
       // uploads/frames and temporary-buffer retirement run between spent slices.
