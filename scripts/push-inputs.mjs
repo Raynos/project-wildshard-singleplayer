@@ -48,7 +48,7 @@ export function sourceWalker(root, runtimeOnly = false) {
       }
     }
     // Disk/script readers have literal paths without an import edge.
-    for (const match of source.matchAll(/['"`]((?:scripts|test|src)\/[\w./-]+\.(?:[cm]?[jt]s|py|sh|json))['"`]/gu)) {
+    for (const match of (runtimeOnly ? [] : source.matchAll(/['"`]((?:scripts|test|src)\/[\w./-]+\.(?:[cm]?[jt]s|py|sh|json))['"`]/gu))) {
       const file = match[1];
       dependencies.push(resolve(root, file));
     }

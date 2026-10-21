@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { manifestTypeTables, sectionTables } from '../scripts/push-tables.mjs';
 import { writeSectionSchemaBridge } from '../scripts/bake-section-schemas.mjs';
+import { sourceWalker } from '../scripts/push-inputs.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 
 test('metadata discovery emits the same checked TypeScript table', () => {
@@ -49,5 +50,19 @@ export const FILE_SCHEMAS = { 'data/example.json': RowSchema };
     await sectionTables(root, 'example');
     expect(paths.map(path => readFileSync(join(shard, path), 'utf8'))).toEqual(expected);
     await expect(writeSectionSchemaBridge(root, 'example')).rejects.toThrow();
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+
+test('runtime cache follows mixed value imports but not metadata file labels', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/push-runtime-walk-'));
+  try {
+    mkdirSync(join(root, 'src'));
+    writeFileSync(join(root, 'src/entry.ts'), "import type { Row } from './rows';\nimport { value } from './rows';\nexport const label = 'src/unexecuted.ts';\nexport { value };");
+    writeFileSync(join(root, 'src/rows.ts'), 'export const value = 1; export interface Row { value: number }');
+    writeFileSync(join(root, 'src/unexecuted.ts'), 'export const unused = true;');
+    expect(sourceWalker(root, true)(['src/entry.ts'])).toEqual(['src/entry.ts', 'src/rows.ts']);
+    expect(sourceWalker(root)(['src/entry.ts'])).toContain('src/unexecuted.ts');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
