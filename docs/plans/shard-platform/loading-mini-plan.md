@@ -147,5 +147,25 @@ before its checks resumed. The source batch passed types, lint and 750
 tests, including the fence regressions, but stopped on two Pine native
 quest witness mismatches. Its dependent preview and physical proofs did
 not run. Coordinator-confirmed repair `5e7c50bd89` is in newer HEAD; one
-replacement batch follows its consolidated compatibility verdict. No
-Phase 1 acceptance is claimed yet.
+replacement batch passed at `e245b2d5a7` in 792.1 s after its consolidated
+compatibility verdict. No Phase 1 acceptance is claimed yet.
+
+The `e245b2d5a7` diagnostic is committed in
+[`diagnostic-e245b2d`](../../../progress/loading/g543/diagnostic-e245b2d/README.md)
+(`911cca6b3e`): all six entry accuracy cases pass, and the required phone
+CPU 4x grid physics walk passes all eight routes with zero stuck and zero
+page errors. Native/desktop crossings return, with 28.1 / 9.6 s in home
+preparation. Phone return now reaches the independent transfer fence at
+z -255.985 and requests home, so the collider gap is fixed; preparation
+remains pending past 120 s amid 4,921 observed requests, mostly for other
+products. The failed return remains visible beside four viewed portraits.
+
+`b284b0cc61` gives actual regional world construction priority over
+speculative product network/cache reads at their next IO boundary. Older
+serialized world construction can drain; shared holds are reference counted,
+and disposal rejects unstarted reads. No validator/parser/worker slot is held
+while waiting and no cap changes. Strict lint, 16 focused tests and all ten
+native admission outcomes pass with no leaked claims. Read-only final-state
+diagnostics `47ff229154` and API notes `4d715a664f` follow it. One source batch
+and fresh physical/accuracy receipts are queued on `4d715a664f`. Phase 1 stays
+open for the phone return; O2 remains unapplied scratch work.
