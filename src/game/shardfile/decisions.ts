@@ -142,7 +142,7 @@ export class ShardDecisions {
         owners.add(name); this.fieldActors.add(handle); sim.registerStrikeCatalogue(name, [...this.strikes.values()]);
       }
       if (row.commands.some(name => ['spawn', 'despawn', 'impulse', 'weather'].includes(name))) throw new Error('Decision mechanic has no admitted platform row owner');
-      if ((Object.keys(row.bodies).length > 0 || Object.keys(row.colliders).length > 0) && bodyOps === undefined) throw new Error('Decision body requires its body authority');
+      if ((Object.keys(row.bodies ?? {}).length > 0 || Object.keys(row.colliders ?? {}).length > 0) && bodyOps === undefined) throw new Error('Decision body requires its body authority');
       if (row.commands.some(name => name === 'grant' || name === 'reward') && facts === undefined) throw new Error('Decision grant requires the authoritative ledger fact port');
       const binding = row.binding;
       const encounter = 'encounter' in binding ? requireValue(source.encounters.find(value => value.id === binding.encounter), 'encounter binding') : undefined;

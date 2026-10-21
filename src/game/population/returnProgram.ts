@@ -62,7 +62,7 @@ export class ReturnProgram {
     if (script === undefined) throw new Error('Missing return script');
     // Alias identity follows sorted names; wire object property order is immaterial.
     const named = Object.fromEntries([...SCRIPT_V1_REFERENCE_KINDS, 'params' as const].map(key =>
-      [key, Object.fromEntries(Object.entries(script[key]).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
+      [key, Object.fromEntries(Object.entries(script[key] ?? {}).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
     const declaration = JSON.stringify({ script: decisionScriptContract({ ...script, ...named }), bytes: row.bytes }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
     const previous = modules.get(script.module);
     if (previous !== undefined) {

@@ -31,12 +31,18 @@ const row = v.strictObject({
   fields: v.optional(aliases, {}), flags: v.optional(aliases, {}), zones: v.optional(aliases, {}), spots: v.optional(aliases, {}),
   targets: v.optional(aliases, {}), spawns: v.optional(aliases, {}), signals: v.optional(aliases, {}), facts: v.optional(aliases, {}),
   rewards: v.optional(aliases, {}), channels: v.optional(aliases, {}), impulses: v.optional(aliases, {}), weather: v.optional(aliases, {}),
-  bodies: v.optional(aliases, {}), colliders: v.optional(aliases, {}),
+  bodies: v.exactOptional(aliases), colliders: v.exactOptional(aliases),
   timers: v.optional(v.pipe(v.array(local), v.maxLength(64), v.check(values => unique(values), 'unique timer names')), []),
   stateVersion: positive, state: v.pipe(v.array(state), v.maxLength(16)),
   params: v.pipe(v.record(local, finite), v.check(value => Object.keys(value).length <= 32, 'bounded script parameters')),
 });
 export type DecisionScriptRow = v.InferOutput<typeof row>;
+/** Unused additive namespaces have no wire representation in pre-extension programs. */
+function omitEmptyBodyMaps(script: DecisionScriptRow): DecisionScriptRow {
+  const { bodies, colliders, ...original } = script;
+  return { ...original, ...(bodies === undefined || Object.keys(bodies).length === 0 ? {} : { bodies }),
+    ...(colliders === undefined || Object.keys(colliders).length === 0 ? {} : { colliders }) };
+}
 const reserved = new Set('abstract as assert async await boolean break case catch class const constructor continue debugger declare default delete do else enum export extends false final finally for from function get if implements import in instanceof interface is keyof let namespace never new null number of package private protected public readonly return set static string super switch symbol __proto__ prototype this throw true try type typeof undefined unknown var void while with yield bool i32 i64 f32 f64 usize'.split(' '));
 /** The same generated identifier rule applies to all namespaces, slots and parameters. */
 export function scriptV1Identifier(name: string): string {
@@ -57,7 +63,7 @@ export function decisionScriptRowRules(script: DecisionScriptRow): string[] {
   const viewEvents = new Set(['start', 'tick', 'timer', 'stop', 'flag', 'field', 'cue', 'channel']);
   const viewReads = new Set(['x', 'y', 'z', 'yaw', 'field', 'flag', 'playerFlag', 'random', 'distance', 'bearing']);
   if (script.side === 'view' && (script.on.some(name => !viewEvents.has(name)) || script.commands.some(name => SCRIPT_V1_COMMANDS[name] < 100) || script.reads.some(name => !viewReads.has(name)))) errors.push('view script uses only replicated reads and view ops');
-  for (const names of [...SCRIPT_V1_REFERENCE_KINDS.map(kind => Object.keys(script[kind])), script.timers, script.state.map(slot => slot.name), Object.keys(script.params)]) {
+  for (const names of [...SCRIPT_V1_REFERENCE_KINDS.map(kind => Object.keys(script[kind] ?? {})), script.timers, script.state.map(slot => slot.name), Object.keys(script.params)]) {
     if (!validNames(names)) errors.push('unique nonreserved generated binding names');
   }
   for (const slot of script.state) {
@@ -86,7 +92,8 @@ function safeInput(value: unknown): boolean {
 export const DecisionScriptsSchema = v.pipe(v.unknown(), v.check(safeInput, 'plain JSON without unsafe property names'), v.array(v.pipe(row, v.check(value => decisionScriptRowRules(value).length === 0, 'script row semantic rules'))),
   v.maxLength(64), v.check(rows => unique(rows.map(value => value.id)), 'unique script ids'),
   v.check(rows => rows.reduce((count, value) => count + ('spawnGroup' in value.binding ? Object.keys(value.actors).length : 1), 0) <= 64, 'at most 64 logical decision bindings'),
-  v.check(rows => new Set(rows.map(value => value.module)).size <= 8, 'at most eight decision modules'));
+  v.check(rows => new Set(rows.map(value => value.module)).size <= 8, 'at most eight decision modules'),
+  v.transform(rows => rows.map(omitEmptyBodyMaps)));
 export type DecisionScripts = v.InferOutput<typeof DecisionScriptsSchema>;
 /** Parse unknown direct input only after rejecting accessors, prototypes and non-JSON values. */
 export function parseDecisionScripts(input: unknown): DecisionScripts {
@@ -96,8 +103,8 @@ export function parseDecisionScripts(input: unknown): DecisionScripts {
 /** Mechanical continuation identity excludes provenance and unused additive body namespaces.
  * Pre-extension scripts retain their exact original serialized declaration. */
 export function decisionScriptContract(script: DecisionScriptRow): Omit<DecisionScriptRow, 'sourceHash' | 'bodies' | 'colliders'> & Partial<Pick<DecisionScriptRow, 'bodies' | 'colliders'>> {
-  const { sourceHash: _sourceHash, bodies, colliders, ...original } = script;
-  return { ...original, ...(Object.keys(bodies).length === 0 ? {} : { bodies }), ...(Object.keys(colliders).length === 0 ? {} : { colliders }) };
+  const { sourceHash: _sourceHash, ...original } = script;
+  return omitEmptyBodyMaps(original);
 }
 /** One authored group row resolves to one logical invocation/state owner per member.
  * Every invocation still shares the admitted module image. Alias order never changes identities.
@@ -124,7 +131,7 @@ export function decisionScriptRules(scripts: readonly DecisionScriptRow[], refer
     errors.push(...decisionScriptRowRules(script));
     const module = references.modules.get(script.module);
     if (module?.abi !== 1 || module.pages !== script.pages) errors.push('script module has matching admitted ABI and fixed pages');
-    for (const kind of SCRIPT_V1_REFERENCE_KINDS) for (const value of Object.values(script[kind])) {
+    for (const kind of SCRIPT_V1_REFERENCE_KINDS) for (const value of Object.values(script[kind] ?? {})) {
       if (references.ids[kind]?.has(value) !== true) errors.push(`script ${kind} reference resolves in its platform section`);
     }
     const binding = script.binding;

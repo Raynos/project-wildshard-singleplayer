@@ -24,9 +24,9 @@ export function decisionBindingMap(row: DecisionScriptRow, registries: DecisionR
       if (!Number.isSafeInteger(handle) || handle < 1 || handle > 0x7fffffff || handles.has(handle)) throw new Error(`Invalid or duplicate ${kind} registry handle`);
       handles.add(handle);
     }
-    const entries: [string, number][] = [], names = new Map<number, string>();
-    for (const alias of Object.keys(row[kind]).sort()) {
-      const target = row[kind][alias], handle = target === undefined ? undefined : registry?.get(target);
+    const entries: [string, number][] = [], names = new Map<number, string>(), aliases = row[kind] ?? {};
+    for (const alias of Object.keys(aliases).sort()) {
+      const target = aliases[alias], handle = target === undefined ? undefined : registry?.get(target);
       if (handle === undefined) throw new Error(`Missing ${kind} registry target for ${alias}`);
       if (names.has(handle)) throw new Error(`Duplicate ${kind} alias handle`);
       entries.push([alias, handle]); names.set(handle, alias);

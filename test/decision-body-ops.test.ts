@@ -74,6 +74,21 @@ test('pre-extension scripts keep the exact saved mechanical declaration', () => 
   expect(decisionScriptContract(extended).colliders).toEqual(row.colliders);
 });
 
+test('parsed and compiled programs omit unused additive maps from product JSON', async () => {
+  const { bodies: _bodies, colliders: _colliders, ...legacy } = row;
+  const input = { ...legacy, reads: [], commands: [] }, parsed = parseDecisionScripts([input])[0];
+  if (parsed === undefined) throw new Error('Missing legacy script');
+  expect(parsed).not.toHaveProperty('bodies'); expect(parsed).not.toHaveProperty('colliders');
+  expect(parseDecisionScripts([{ ...input, bodies: {}, colliders: {} }])[0]).toEqual(parsed);
+  const built = await compileDecisionScripts([input], {}, new Map([['behaviour/bodies.as', 'export function onStart():void{}']]), { asLineCeiling: 10 });
+  const compiled = built.rows[0]; if (compiled === undefined) throw new Error('Missing legacy compiled script');
+  expect(JSON.stringify(compiled)).not.toContain('"bodies"'); expect(JSON.stringify(compiled)).not.toContain('"colliders"');
+  expect(decisionBindingMap(compiled, {}).ids.bodies).toEqual({});
+  expect(decisionBindingMap(compiled, {}).ids.colliders).toEqual({});
+  const extended = parseDecisionScripts([row])[0]; if (extended === undefined) throw new Error('Missing extended script');
+  expect(extended.bodies).toEqual(row.bodies); expect(extended.colliders).toEqual(row.colliders);
+});
+
 
 test('additive body capabilities preserve the existing night director Wasm identity', async () => {
   const built = await compileDecisionScripts([NIGHT_SPAWN.script], spawnScriptRegistries(NIGHT_SPAWN),

@@ -379,6 +379,8 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
       if (valibotAction === GraphArmsSchema.entries.rig.entries.sockets.pipe[3]) return { ...jsonSchema, uniqueItems: true };
+      // This defining transform only omits empty optional namespaces; all nonempty maps retain the schema below.
+      if (valibotAction === DecisionScriptsSchema.pipe[7]) return jsonSchema;
       if (valibotAction === EdgeProfileSchema.pipe[1]) {
         // Both arrays must have the same native sample count; bound each branch exactly.
         return { ...jsonSchema, anyOf: [256, 257].map(count => ({ properties: {
