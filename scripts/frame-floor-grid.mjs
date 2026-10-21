@@ -331,9 +331,12 @@ export async function driveFloorGrid(plan, documentOrigin) {
   };
   if (!sameDocument() || !api?.world?.game || !api.shard?.grid) throw new Error('Grid floor lost its ready document before travel (navigation or graphics recovery)');
   const world = api.world, player = world.player, input = world.game.app.input;
-  const read = () => {
+  // sp-o2 (O14): the per-frame observer reads the live state alone (`frame`): the residency table (every claim's frozen
+  // row, the cost model) was ~2 ms a Simulator frame, max 24 ms, on Nine Dragon's road entry, which the phone never pays.
+  const read = (frame = false) => {
     if (!sameDocument() || window.__wildshard !== api) throw new Error('Grid floor document or API changed during travel (navigation or graphics recovery)');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
+    if (frame) return state;
     const residency = api.shard.grid.residency();
     return { ...state, claims: residency.claims, entryPreparation: world.game.entryPreparation ?? null, ...(plan.borrowedHome === undefined ? {} : {
       borrowedHome: { instance: residency.home?.instance, bytes: residency.home?.bytes, level: world.game.level?.id } }) };
@@ -367,7 +370,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
       const finish = error => { stop(); clearTimeout(timer); input.clear(); if (error) reject(error instanceof Error ? error : new Error(String(error))); else resolve(undefined); };
       stop = world.game.watchFrames(() => {
         try {
-          const state = read(), active = state.live.live, feet = active.worldFeet, now = performance.now(), seconds = (now - started) / 1000;
+          const state = read(true), active = state.live.live, feet = active.worldFeet, now = performance.now(), seconds = (now - started) / 1000;
           if (portal !== null) {
             const near = node => Math.hypot(feet.x - node.x, feet.z - node.z) < 1.5 && Math.abs(feet.y - node.y) < 0.5;
             if (plan.portal.reverse === true) {
