@@ -58,8 +58,6 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   // the named places' Sets: the client plan's `world.sets` rows (Wreck Cove's is the whole wreck and cove)
   await bindClientPlaceSets(ctx, new Map([['wreck', [...d.wreck.placed, ...d.cove.placed]]]), placed.filter(p => p !== undefined));
   const swords = h.weapons.list.map(({ id }) => h.weapons.get(id)).filter((w): w is Sword => w instanceof Sword);
-  const effects = ctx.app.effects, health = ctx.app.player;
-  if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');
   const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
   installItemEffects(ctx);
   const cosmetics = new Map([['hat', captainHat], ['cape', sailclothCape]] as const);
