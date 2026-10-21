@@ -3,13 +3,14 @@ import {expect,it,vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small isolated Git fixture, no repository copy.
 import {execFileSync} from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confined fixture files and cleanup.
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confined fixture paths.
 import {resolve,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate fixture Git configuration from the user's configuration.
 import process from 'node:process';
 import {GRID_READY_LATCHES,GridReadyLatchesSchema,latchedGridEvidence} from '../scripts/grid-ready-latches.mjs';
 import {runtimeGridEvidence} from '../scripts/grid-runtime-evidence.mjs';
+import {latchGridEvidence} from '../scripts/latch-grid-evidence.mjs';
 
 it('reads pinned latches from Git when the fenced mirror omits progress',()=>{
  const root=mkdtempSync(resolve('tmp','grid-latch-git-'));
@@ -39,6 +40,7 @@ it('reads pinned latches from Git when the fenced mirror omits progress',()=>{
     rows:[{name:'grid-template-entry-drive',frames:120,pass:false,contextLost:false,maxMs:900,p95Ms:40,medianFps:25}]}]}]}));
   const evidence=runtimeGridEvidence(root,'_template',carried,['failure.json'],{explorerMB:1200,loadingMB:1800});
   expect(evidence.oneFrameLooks?.verdict).toBe('pass');expect(evidence.frameFloor?.verdict).toBe('fail');
+  expect(runtimeGridEvidence(root,'_template',carried,['failure.json'],{explorerMB:1200,loadingMB:1800},false).oneFrameLooks?.verdict).toBe('fail');
   const removed=commit();
   expect(latchedGridEvidence(mirror,'_template',removed)).toEqual({});
   expect(latchedGridEvidence(mirror,'_template',carried).oneFrameLooks?.verdict).toBe('pass');
@@ -60,5 +62,28 @@ it('carries inline measurement numbers without a receipt folder',()=>{
   expect(()=>parse({...row,measurement:undefined})).toThrow('requires inline');
   expect(()=>parse({...row,receipt:'missing-commit'})).toThrow('paired');
   expect(()=>parse({...row,measurement:{...row.measurement,metrics:{bad:Infinity}}})).toThrow();
+ } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+it('writes qualified numbers inline from scratch observations without committing receipts',()=>{
+ const root=mkdtempSync(resolve('tmp','grid-latch-writer-')),source='a'.repeat(40);
+ try {
+  mkdirSync(resolve(root,'src/format'),{recursive:true});
+  writeFileSync(resolve(root,'src/format/memoryGates.json'),JSON.stringify({explorerMB:1200,loadingMB:1800}));
+  const row={name:'grid-entry-drive',frames:120,pass:true,contextLost:false,maxMs:166.7,p95Ms:50,medianFps:30};
+  const observation={schema:1,source,protocol:{profiler:false,glObserver:'off',quiet:true},runs:[{
+   sha:source,when:'2026-10-21T15:00:00Z',surface:'chromium',cohort:'grid',complete:true,glObserver:'off',
+   profile:{device:'iPhone 16 Pro',tier:'phone',cpu:4,muted:true},
+   cases:[{shard:'grid',complete:true,errors:[],routes:[{name:'entry',after:{current:'_template'}}],rows:[row]}]}]};
+  writeFileSync(resolve(root,'run.json'),JSON.stringify(observation));
+  expect(latchGridEvidence(root,'run.json','',['_template'])).toBe(1);
+  const result=v.parse(GridReadyLatchesSchema,JSON.parse(readFileSync(resolve(root,GRID_READY_LATCHES),'utf8')));
+  expect(result.entries[0]?.measurement?.metrics['grid-entry-drive.maxMs']).toBe(166.7);
+  expect(result.entries[0]?.receipt).toBeUndefined();expect(result.entries[0]?.receiptCommit).toBeUndefined();
+  // The writer never treats an existing pass as evidence for a new observation.
+  row.maxMs=300;writeFileSync(resolve(root,'run.json'),JSON.stringify(observation));
+  expect(latchGridEvidence(root,'run.json','',['_template'])).toBe(0);
+  expect(runtimeGridEvidence(root,'_template',source,['run.json'],{explorerMB:1200,loadingMB:1800},false).oneFrameLooks?.verdict).toBe('fail');
+  expect(latchedGridEvidence(root,'_template').oneFrameLooks?.verdict).toBe('pass');
  } finally {rmSync(root,{recursive:true,force:true});}
 });

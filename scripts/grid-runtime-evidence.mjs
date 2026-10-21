@@ -41,9 +41,10 @@ export function runtimeReceiptPaths(root) {
  * Current frame-floor receipts have no native memory readings: they cannot supply memory.
  * @param {string} root @param {string} slug @param {string|null} revision
  * @param {readonly string[]} paths @param {{explorerMB:number,loadingMB:number}} caps
+ * @param {boolean} [includeLatches] False only when qualifying a new observation for the latch writer.
  * @returns {Partial<Record<'memory'|'oneFrameLooks'|'frameFloor',import('./shard-milestones.mjs').Criterion>>} */
-export function runtimeGridEvidence(root,slug,revision,paths,caps) {
-  if(revision===null||!v.is(sha,revision))return latchedGridEvidence(root,slug);
+export function runtimeGridEvidence(root,slug,revision,paths,caps,includeLatches=true) {
+  if(revision===null||!v.is(sha,revision))return includeLatches?latchedGridEvidence(root,slug):{};
   const basis=`source ${revision}; exact source SHA`;
   /** @type {Record<'memory'|'oneFrameLooks'|'frameFloor',Array<{at:number,path:string,criterion:import('./shard-milestones.mjs').Criterion}>>} */
   const candidates={memory:[],oneFrameLooks:[],frameFloor:[]};
@@ -102,5 +103,5 @@ export function runtimeGridEvidence(root,slug,revision,paths,caps) {
   }
   return {...Object.fromEntries(Object.entries(candidates).flatMap(([name,rows])=>{
     rows.sort((a,b)=>b.at-a.at||a.path.localeCompare(b.path));return rows.slice(0,1).map(row=>[name,row.criterion]);
-  })),...latchedGridEvidence(root,slug,revision)};
+  })),...(includeLatches?latchedGridEvidence(root,slug,revision):{})};
 }
