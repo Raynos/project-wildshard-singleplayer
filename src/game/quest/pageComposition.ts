@@ -1,7 +1,6 @@
 /** Client-only entered quest presentation over existing native owners. */
 import type * as THREE from 'three';
-import * as v from 'valibot';
-import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
+import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
 import { installQuestHints } from './hints';
 import { questPageWorld } from './pageResources';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -39,8 +38,7 @@ export interface QuestPageComposition {
   readonly floorAt: (x: number, z: number) => number;
   readonly setAnchor: (name: string, a: QuestPlaceAnchor) => void;
 }
-async function preparePage(ctx: ShardContext, input: unknown) {
-  const rows = v.parse(QuestPageCompositionSchema, input);
+async function preparePage(ctx: ShardContext, rows: QuestPageCompositionRows) {
   const shell = ctx.game.runtime, world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Quest page requires its entered play host');
   if (ctx.scope.disposed) throw new Error('Quest page left during admission');
@@ -67,16 +65,16 @@ async function preparePage(ctx: ShardContext, input: unknown) {
 const preparations = new WeakMap<Scope, Map<string, Awaited<ReturnType<typeof preparePage>>>>();
 /** Prepare the real placement/interaction owners before borrowed figures enter.
  * The only author input is an admitted row; model construction stays outside. */
-export async function prepareQuestPageComposition(ctx: ShardContext, input: unknown): Promise<Pick<QuestPageComposition, 'place' | 'floorAt' | 'setAnchor'>> {
+export async function prepareQuestPageComposition(ctx: ShardContext, input: QuestPageCompositionRows): Promise<Pick<QuestPageComposition, 'place' | 'floorAt' | 'setAnchor'>> {
   const page = await preparePage(ctx, input), book = preparations.get(ctx.scope) ?? new Map<string, Awaited<ReturnType<typeof preparePage>>>();
   if (book.has(page.rows.id)) throw new Error('Duplicate quest page preparation');
   book.set(page.rows.id, page); preparations.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(page.rows.id); }); return page;
 }
 /** Complete a prepared page from declared native resource identities. */
-export async function installQuestPageComposition(ctx: ShardContext, input: unknown): Promise<QuestPageComposition> {
-  const id = v.parse(QuestPageCompositionSchema, input).id, page = preparations.get(ctx.scope)?.get(id);
+export async function installQuestPageComposition(ctx: ShardContext, input: QuestPageCompositionRows): Promise<QuestPageComposition> {
+  const page = preparations.get(ctx.scope)?.get(input.id);
   if (page === undefined || ctx.scope.disposed) throw new Error('Quest page is not prepared');
-  preparations.get(ctx.scope)?.delete(id);
+  preparations.get(ctx.scope)?.delete(input.id);
   const { entry, rows, world, h, scope, d, update, ironDrop, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit } = page;
   const adventure: QuestPageComposition = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   await entry.achievements();

@@ -11,6 +11,8 @@ import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { registerQuestPageWorld, questPageWorld } from '../src/game/quest/pageResources';
 import { installQuestTrader } from '../src/game/quest/trader';
 import { QuestPageCompositionSchema } from '../src/format/questPageComposition';
+import { output } from '../src/shards/driftwood-isle/generators/output';
+import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import rows from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 
 // The orchard fixture has a borrowed keeper, a fruit counter and an existing
@@ -67,4 +69,19 @@ test('page composition admits an authored place frame rather than a fixed island
     boss: { ...rows.boss, pool: { poi: 'orchard', x: 6, z: 7 } } };
   expect(v.parse(QuestPageCompositionSchema, orchard).frames).toEqual(orchard.frames);
   expect(() => v.parse(QuestPageCompositionSchema, { ...orchard, frames: { orchard: { x: 5, z: 8, rot: Number.NaN } } })).toThrow();
+});
+
+test('the emitted Driftwood page admits placement and ordered resources before installation', () => {
+  const file = output.namedFiles.find(row => row.name === 'quests/page-composition.json');
+  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (file === undefined || bytes === undefined || file.jsonSchema === undefined) throw new Error('Missing page composition admission');
+  const admitted = v.parse(QuestPageCompositionSchema, validateNamedJsonSchema(file.jsonSchema, bytes));
+  const jsonSchema = file.jsonSchema;
+  const rejects = (input: unknown): void => {
+    const invalidBytes = new TextEncoder().encode(JSON.stringify(input));
+    expect(() => validateNamedJsonSchema(jsonSchema, invalidBytes)).toThrow('refuses its schema');
+  };
+  rejects({ ...admitted, frames: { world: { x: 'unbound', z: 0, rot: 0 } } });
+  rejects({ ...admitted, systems: { ...admitted.systems, cable: '' } });
+  rejects({ ...admitted, runtimeHook: 'foreign' });
 });
