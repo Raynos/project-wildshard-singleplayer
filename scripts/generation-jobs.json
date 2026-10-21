@@ -955,7 +955,6 @@
       ],
       "inputRoots": [
         "src/shards/driftwood-isle/generators/bake-interactables.mjs",
-        "src/shards/driftwood-isle/generators/interactables.ts",
         "scripts/bake-output.mjs",
         "src/shards/driftwood-isle/generators/sea.ts",
         "src/shards/driftwood-isle/data/entryRows.json",
@@ -964,15 +963,11 @@
         "src/shards/driftwood-isle/data/terrainBindings.json"
       ],
       "outputs": [
-        "src/shards/driftwood-isle/data/interactables.generated.json",
-        "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",
         "src/shards/driftwood-isle/boot/sea.generated.json",
         "src/shards/driftwood-isle/boot/sea.generated.d.json.ts",
         "src/shards/driftwood-isle/boot/ground.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/interactables.generated.json",
-        "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",
         "src/shards/driftwood-isle/boot/sea.generated.json",
         "src/shards/driftwood-isle/boot/sea.generated.d.json.ts",
         "src/shards/driftwood-isle/boot/ground.generated.json"
