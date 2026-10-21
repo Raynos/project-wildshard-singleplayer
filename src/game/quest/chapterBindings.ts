@@ -21,8 +21,14 @@ export function enteredAdventurePersistence(scope: Scope): AdventurePersistence 
 const chapters = new WeakMap<Scope, Map<string, QuestChapter>>();
 /** Internal chapter publication; the existing presentation owns every resource. */
 export function publishBoundChapter(scope: Scope, id: string, chapter: QuestChapter): void {
-  const installed = chapters.get(scope) ?? new Map<string, QuestChapter>();
-  installed.set(id, chapter); chapters.set(scope, installed);
+  let installed = chapters.get(scope);
+  if (installed === undefined) {
+    installed = new Map<string, QuestChapter>(); chapters.set(scope, installed);
+    // O18: a retired scope object can outlive its region (a cached facade or listener still names it); the weak key
+    // then kept every visit's chapter, and through it that visit's whole world and script modules (~80 MB a visit)
+    scope.onDispose(() => { chapters.delete(scope); });
+  }
+  installed.set(id, chapter);
 }
 /** Framework admission refuses duplicate chapter installation. */
 export function hasBoundChapter(scope: Scope, id: string): boolean { return chapters.get(scope)?.has(id) === true; }

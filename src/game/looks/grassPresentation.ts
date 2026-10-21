@@ -44,7 +44,10 @@ interface Ring { T: number; G: number; mesh: THREE.Mesh; geo: InstancedBufferGeo
 /** Client-only camera-ring presentation over admitted height, mask and draw buffers. No shard callbacks enter this owner. */
 export class GrassPresentationProfile {
   private heightTex: THREE.DataTexture | null = null;
-  readonly instances = new Set<GrassPresentation>();
+  /** O18: held weakly. A strong set, with its removal registered on the ambient owner (the page level after an await),
+   *  kept every retired region's grass, its maps and buffers, for the page's life. */
+  private readonly instances = new Set<WeakRef<GrassPresentation>>();
+  track(instance: GrassPresentation): void { this.instances.add(new WeakRef(instance)); }
   readonly input: GrassPresentationRows;
   constructor(input: unknown) { this.input = v.parse(GrassPresentationSchema,input); this.uniforms.uGrassGain.value = this.input.view.gain; }
 readonly uniforms = {
@@ -76,7 +79,9 @@ mood(night: number, dusk: number, overcast: number): void {
     texture.magFilter = texture.minFilter = THREE.LinearFilter; texture.needsUpdate = true;
     this.heightTex = cacheUntilDisposed(texture, () => { if (this.heightTex === texture) this.heightTex = null; }); return texture;
   }
-  reseed(): void { for (const instance of this.instances) instance.reseed(); }
+  reseed(): void {
+    for (const ref of this.instances) { const instance = ref.deref(); if (instance === undefined) this.instances.delete(ref); else instance.reseed(); }
+  }
 }
 
 const _frustum = new THREE.Frustum(), _pv = new THREE.Matrix4(), _box = new THREE.Box3(), _origin = new THREE.Vector3();
@@ -96,8 +101,7 @@ export class GrassPresentation {
   constructor(private readonly profile: GrassPresentationProfile, private readonly sky: Sky, private readonly forest: Forest, private readonly bakeUniforms: StaticCaptureUniforms, private readonly atlas: Parameters<typeof loadSpecimenTexture>[0]) {
     this.params.playerRadius = profile.input.view.playerRadius;
     const grassRows = profile.input, { heightSize: HN, lattice: LAT, half: CHUNK_HALF } = grassRows.view, LN = Math.ceil(CHUNK_HALF * 2 / LAT) + 1;
-    profile.instances.add(this);
-    resourceScope().onDispose(() => { profile.instances.delete(this); });
+    profile.track(this);
     const tHeight = profile.heightTexture();
     const fd = decode(grassRows.field), gd = decode(grassRows.ground);
     const tField = new THREE.DataTexture(fd, LN, LN, THREE.RGBAFormat); tField.magFilter = tField.minFilter = THREE.LinearFilter; tField.needsUpdate = true;
