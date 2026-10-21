@@ -51,7 +51,7 @@ registerDraws('draw:zipline', { world: ziplineRows.world, trolley: ziplineRows.t
 // Finished foliage GLBs carry these exact native channels. The old transports
 // remain bake inputs, but no runtime/Explorer reader or declared section uses them.
 const retiredFoliage = new Set(['world/palms/phone.bin', 'world/palms/desktop.bin',
-  'world/hibiscus/phone.bin', 'world/hibiscus/desktop.bin']);
+  'world/hibiscus/phone.bin', 'world/hibiscus/desktop.bin', 'world/reef.bin']);
 const activeByUrl = Object.fromEntries(Object.entries(byUrl).filter(([, name]) => !retiredFoliage.has(name)));
 /** Build-only mapping for the runtime's checked logical-name mirrors. */
 export const DRIFTWOOD_ASSET_NAMES = activeByUrl;

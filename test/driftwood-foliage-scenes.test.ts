@@ -16,7 +16,7 @@ import { DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets
 const project = new URL('../src/shards/driftwood-isle/', import.meta.url);
 test('runtime foliage uses the finished GLBs without dangling retired transport aliases', () => {
   const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));
-  expect([...names].filter(name => /^world\/(palms|hibiscus)\//u.test(name))).toEqual([]);
+  expect([...names].filter(name => /^world\/(?:palms\/|hibiscus\/|reef\.bin$)/u.test(name))).toEqual([]);
   for (const name of Object.values(DRIFTWOOD_OUTPUT.custom.byUrl)) expect(names.has(name), name).toBe(true);
   for (const model of data.libraries.flatMap(library => library.models)) {
     const files = typeof model.file === 'string' ? [model.file] : Object.values(model.file);
