@@ -4,7 +4,8 @@ import terrain from '../data/terrain.json' with { type: 'json' };
 import door from '../behaviour/door.json' with { type: 'json' };
 import props from '../data/props.json' with { type: 'json' };
 import { PASTEL_HOOKS, PASTEL_STATE } from '../behaviour/hooks';
-import { PASTEL_ROWS } from '../data/rows';
+import rows from '../data/rows.json' with { type: 'json' };
+import { parseRows } from '@wildshard/sdk/rows';
 import { PASTEL_PLUMBING } from '../data/plumbing';
 import { PASTEL_UI } from '../data/ui';
 import { PASTEL_LOOK } from '../data/look';
@@ -15,11 +16,13 @@ import { ADVENTURE } from '../quests/adventure';
 import { PASTEL_LEDGER } from '../data/ledger';
 import { PASTEL_AUDIO } from '../data/audio';
 import { SPAWN } from '../data/spawn';
-import { ITEMS } from '../data/items';
+import ITEMS from '../data/items.json' with { type: 'json' };
 import { PASTEL_TARGETS } from '../data/targets';
 import { PASTEL_SKIN_COST, PASTEL_SKIN_FILES, PASTEL_SKIN_LIBRARY, PASTEL_SKIN_LOOKS } from '../data/skins';
 import { CLIENT_IDLE_BYTES, CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, PASTEL_CLIENT_SCRIPTS } from '../data/clientScripts';
 
+/** Pure template declarations (data/rows.json); SF16 binds these through the normal shardfile loader. */
+const PASTEL_ROWS = parseRows(rows);
 const base = emptyShardfile({ slug: 'pastel-plain', name: 'Pastel Plain', author: 'Wildshard', revision: 1, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };

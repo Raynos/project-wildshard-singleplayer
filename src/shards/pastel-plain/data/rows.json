@@ -1,7 +1,4 @@
-import { parseRows } from '@wildshard/sdk/rows';
-
-/** Pure template declarations; SF16 binds these through the normal shardfile loader. */
-export const PASTEL_ROWS = parseRows({
+{
   "strikes": [
     {
       "id": "pastel.blob.bump",
@@ -405,4 +402,4 @@ export const PASTEL_ROWS = parseRows({
       "chime": "cue.swap"
     }
   ]
-});
+}
