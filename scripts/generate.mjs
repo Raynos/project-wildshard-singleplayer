@@ -11,6 +11,7 @@ import { capturePreview, generationBrowserDigest } from './generation-capture.mj
 import { externalGenerationInputs, generationTools } from './generation-sources.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { outputPolicy } from './generation-inventory.mjs';
+import { generationSnapshotIdentity, publishGenerationSnapshot, verifiedGenerationSnapshot } from './generation-snapshot.mjs';
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
 const jobIdSchema = v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
@@ -167,6 +168,20 @@ function committedGenerationFiles(root) {
   return new Set(tree.stdout.split('\0').filter(Boolean));
 }
 
+/** @param {string} root @param {ReturnType<typeof discoverGeneration>['jobs']} jobs */
+function retainedGenerationFiles(root,jobs) {
+  const retained=committedGenerationFiles(root);
+  for(const job of jobs)for(const file of job.outputs)if(!job.buildTimeOutputs.includes(file) && !Object.hasOwn(job.buildOutputs,file))retained.add(file);
+  return retained;
+}
+
+/** Bind the recipe both before and after generation, including tools outside
+ * the source tree and retained-file admission from the exact exported tree.
+ * @param {string} root @param {ReturnType<typeof discoverGeneration>['jobs']} jobs @param {Set<string>} retained */
+function phaseSnapshotIdentity(root,jobs,retained) {
+  return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-snapshot.mjs','generation-capture.mjs','generation-sources.mjs','generation-inventory.mjs','link-node-modules.mjs']),tools:generationTools(jobs.flatMap(job=>job.toolCommands))});
+}
+
 /** Stage the declared source closure, generate there and publish verified outputs only; never mutate a source bake.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} descriptor
  * @param {{preparation?:import('./generate.mjs').GenerationPreparation,inputHashes?:InputHashMemo,cacheDir?:string,forceCompare?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string,preview?:{url:string,revision:string},onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */
@@ -279,8 +294,7 @@ export async function prepareGeneration(root,options={}) {
   /** @param {import('./generate.mjs').ShardGenerationJob} a @param {import('./generate.mjs').ShardGenerationJob} b */
   const conflicts=(a,b)=>a.outputs.some(file=>reads(b,file)) || b.outputs.some(file=>reads(a,file));
   const running=new Map();
-  const retained=committedGenerationFiles(root);
-  for(const job of jobs)for(const file of job.outputs)if(!job.buildTimeOutputs.includes(file) && !Object.hasOwn(job.buildOutputs,file))retained.add(file);
+  const retained=retainedGenerationFiles(root,jobs);
   const phaseOutputs=jobs.flatMap(job=>job.outputs);
   /** @type {Map<string,string[]>} */
   const outputRoots=new Map();
@@ -294,6 +308,12 @@ export async function prepareGeneration(root,options={}) {
   const preparation={outputs:phaseOutputs,retained,outputRoots,completedOutputs:new Map(),upstream:new Map()};
   const generated=new Set(preparation.outputs.filter(file=>!retained.has(file)));
   inputHashes.enableSnapshot(file=>generated.has(file)||postGenerationTable(root,'scripts/generation-jobs.json',file));
+  const snapshotFile=resolve(root,'.cache/generation-phase.json');
+  const snapshotIdentity=phaseSnapshotIdentity(root,jobs,retained);
+  if(verifiedGenerationSnapshot(snapshotFile,snapshotIdentity,inputHashes,jobs.flatMap(job=>[...Object.keys(job.buildOutputs),...job.buildTimeOutputs]))) {
+    for(const job of jobs)console.info(`generate: ${job.id}, verified snapshot, ${String(Object.keys(job.buildOutputs).length+job.buildTimeOutputs.length)} admitted build outputs`);
+    inputHashes.flush();return report;
+  }
   try { while(completed.size<jobs.length) {
     for(const [index,job] of jobs.entries()) {
       if(running.size>=concurrency) break;
@@ -319,7 +339,14 @@ export async function prepareGeneration(root,options={}) {
     }
     completed.add(finished.index);
   }
-  inputHashes.verifySnapshot();
+  const outputs=Object.fromEntries(jobs.flatMap(job=>[...Object.keys(job.buildOutputs),...job.buildTimeOutputs].map(file=>[file,preparation.completedOutputs?.get(file)?.hash])));
+  if(Object.values(outputs).some(hash=>hash===undefined))throw new Error('Incomplete generation phase outputs');
+  // Rebuild a typed complete map rather than granting missing output evidence.
+  /** @type {Record<string,string>} */
+  const verifiedOutputs={};
+  for(const [file,hash] of Object.entries(outputs))if(hash!==undefined)verifiedOutputs[file]=hash;
+  if(phaseSnapshotIdentity(root,jobs,retainedGenerationFiles(root,jobs))!==snapshotIdentity)throw new Error('Generation phase recipe changed');
+  publishGenerationSnapshot(snapshotFile,snapshotIdentity,inputHashes,verifiedOutputs);
   } finally {
     for(const result of preparation.upstream.values())result.release();
     inputHashes.flush();

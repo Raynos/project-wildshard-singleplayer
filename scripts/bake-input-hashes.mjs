@@ -103,6 +103,18 @@ export class InputHashMemo {
       roots.push(path);
     }
   }
+  /** Exact source evidence for a completed immutable phase. */
+  snapshotData() {
+    if(!this.snapshot)throw new Error('Generation source snapshot is not enabled');
+    this.verifySnapshot();
+    /** @type {Record<string,string[]>} */
+    const trees={};
+    for(const path of [...this.trees.keys()].sort((a,b)=>a.length-b.length||a.localeCompare(b))) {
+      if(Object.keys(trees).some(parent=>path.startsWith(`${parent}/`)))continue;
+      trees[path]=this.trees.get(path) ?? [];
+    }
+    return {inputs:Object.fromEntries(this.frozen),trees};
+  }
   flush() {
     if (this.file === undefined) return;
     try { mkdirSync(dirname(this.file), {recursive:true}); writeFileSync(this.file, JSON.stringify({schema:'input-hashes/1',entries:[...this.entries].map(([path,row])=>[path,row.stamp,row.digest])})); }

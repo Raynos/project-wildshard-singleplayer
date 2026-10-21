@@ -24,7 +24,9 @@ it('uses upstream producer identities and a clean stage on cold, warm and previo
   const outputPath=resolve(root,second);
   utimesSync(outputPath,123,456);
   const before=statSync(outputPath,{bigint:true});
+  log.mockClear();
   await prepareGeneration(root,{cacheDir});
+  expect(log.mock.calls.filter(row=>String(row[0]).includes('verified snapshot'))).toHaveLength(2);
   expect(statSync(outputPath,{bigint:true})).toMatchObject({dev:before.dev,ino:before.ino,size:before.size,mtimeNs:before.mtimeNs,ctimeNs:before.ctimeNs});
   writeFileSync(outputPath,'corrupt');utimesSync(outputPath,123,456);
   await prepareGeneration(root,{cacheDir});
@@ -44,7 +46,7 @@ it('uses upstream producer identities and a clean stage on cold, warm and previo
   for (const history of ['populated','empty']) {
     if(history==='empty') {rmSync(resolve(root,first));rmSync(resolve(root,second));}
     log.mockClear(); await prepareGeneration(root,{cacheDir});
-    expect(log.mock.calls.filter(row=>String(row[0]).includes('verified cache'))).toHaveLength(2);
+    expect(log.mock.calls.filter(row=>/verified (?:cache|snapshot)/u.test(String(row[0])))).toHaveLength(2);
     expect(log.mock.calls.some(row=>String(row[0]).includes(', generated,'))).toBe(false);
     expect(readFileSync(resolve(root,second),'utf8')).toBe(expected);
   }
@@ -73,7 +75,7 @@ it.each(['retained','committed'])('keeps %s binary outputs in broad consumers be
     expect(JSON.parse(readFileSync(resolve(root,output),'utf8'))).toEqual({binary:'committed-retained'});
     expect(readFileSync(resolve(root,binary),'utf8')).toBe('committed-retained');
     log.mockClear();await prepareGeneration(root,{cacheDir});
-    expect(log.mock.calls.filter(row=>String(row[0]).includes('verified cache'))).toHaveLength(2);
+    expect(log.mock.calls.filter(row=>/verified (?:cache|snapshot)/u.test(String(row[0])))).toHaveLength(2);
   }
   if(mode==='retained') {
     put(root,binary,'changed-retained');await prepareGeneration(root,{cacheDir});

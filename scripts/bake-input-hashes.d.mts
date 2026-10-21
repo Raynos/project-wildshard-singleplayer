@@ -16,5 +16,6 @@ export class InputHashMemo {
   paths(path:string,fresh?:boolean,nested?:boolean):string[];
   verifyInputs(inputs:Record<string,string>):void;
   verifySnapshot():void;
+  snapshotData():{inputs:Record<string,string>;trees:Record<string,string[]>};
   flush():void;
 }
