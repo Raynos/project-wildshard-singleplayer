@@ -61,6 +61,8 @@ export interface ProductOptions {
   reserve?: (source: Shardfile) => void;
   /** Trusted presentation observer; it does not participate in admission decisions. */
   progress?: (progress: ProductProgress) => void;
+  /** Trusted presentation scheduling between complete checks; validation never skips work. */
+  pause?: () => Promise<void>;
   /** The bundled page's own first-party index hashes, and its once-only reload when a newer deployment's index arrives. */
   built?: { indexes: ReadonlySet<string>; stale: () => Promise<void> };
 }
@@ -151,6 +153,7 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
   const base = new URL('.', options.base).href, cache = options.cache;
   return resolveOutputDescriptor(input, {
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, ...(lineage ? { lineage } : {}),
+    ...(options.pause === undefined ? {} : { pause: options.pause }),
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
     ...(cache === undefined ? {} : {

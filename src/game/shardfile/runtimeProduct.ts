@@ -5,7 +5,8 @@ import type { Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
-import { pacedResolve } from '@wildshard/engine/core/workSlice';
+import { buildYield, pacedResolve } from '@wildshard/engine/core/workSlice';
+import { pageScope } from '@wildshard/engine/app/resources';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { currentOwner } from '@wildshard/engine/app/ownership';
 import { shardProductData } from './productData';
@@ -63,9 +64,16 @@ async function staleRecovery(): Promise<void> {
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
   return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => waitFor(`Fetch ${new URL(url, base).pathname}`, fetch(url), 'file'),
+    pause: pauseDescriptor,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };
+}
+
+/** End a validation slice after a visible frame; Node readers inject no browser scheduler. */
+async function pauseDescriptor(): Promise<void> {
+  if (document.visibilityState !== 'visible') { await buildYield(pageScope); return; }
+  await new Promise<void>(resolve => { pageScope.raf(() => { pageScope.timeout(0, resolve); }); });
 }
 
 const provided = new Map<string, RuntimeProduct[]>();

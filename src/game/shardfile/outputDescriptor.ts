@@ -2,6 +2,7 @@ import { assembleOutputFields, assembleOutputShardfile, isOutputIndex, outputBlo
 import { builtValidationReceipt, validationSourceBytes, type ValidationReceipt } from '@wildshard/format/product';
 import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
 import { validateCustomSchema } from './customSchema';
+import { loadingStage, loadingUnits, waitFor } from '@wildshard/engine/boot/waits';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
@@ -12,6 +13,8 @@ export interface OutputDescriptorReader {
   hash: (bytes: Uint8Array) => Promise<string>;
   cached?: (hash: string) => Promise<Uint8Array | null>;
   store?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
+  /** A client may let its loading panel draw between complete schema checks. */
+  pause?: () => Promise<void>;
   offline: boolean;
   /** Only a matching build-pinned index and source receipt permits unchecked assembly. */
   firstParty?: boolean;
@@ -91,9 +94,16 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   }
   if (reader.lineage === true) return assembleOutputFields(index, sections, false);
   // G491: a build receipt never bypasses an authored custom schema at load.
-  for (const row of index.sections) {
-    if (row.name.startsWith('custom/')) validateCustomSchema(schemas.get(row.schema), sections.get(row.name));
-  }
+  const custom = index.sections.filter(row => row.name.startsWith('custom/'));
+  if (custom.length > 0) await loadingStage('admission', async () => {
+    const progress = loadingUnits('Product schemas', custom.length);
+    progress(0);
+    for (const [at, row] of custom.entries()) {
+      await waitFor(`Validate ${row.name}`, Promise.resolve().then(() => validateCustomSchema(schemas.get(row.schema), sections.get(row.name))), 'admission');
+      progress(at + 1, row.name);
+      await reader.pause?.();
+    }
+  });
   const indexHash = await reader.hash(validationSourceBytes(input));
   const receipt = reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash, indexHash) : null;
   let source: Shardfile;

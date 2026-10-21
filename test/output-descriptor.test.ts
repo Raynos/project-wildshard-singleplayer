@@ -175,6 +175,7 @@ test('every section request starts before a slow first response completes', asyn
 
 test('checks emitted custom schemas at load, including first-party and cached readers', async () => {
   const { index, wires } = fixture();
+  let paused = 0;
   const name = 'custom/probe', path = `sections/${name}.json`, schemaPath = `schemas/${name}.schema.json`;
   const schema = encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false });
   const measured = (file: string, bytes: Uint8Array) => ({ path: file, hash: hashImmutableBytes(bytes), bytes: bytes.length });
@@ -184,10 +185,12 @@ test('checks emitted custom schemas at load, including first-party and cached re
     wires.set('shard.json', encodeCanonicalJson({ ...index,
       sections: [...index.sections, { name, schema: schemaPath, ...measured(path, bytes) }],
       schemas: [measured(schemaPath, schemaBytes)] }));
-    return readProductDescriptor(options(wires));
+    return readProductDescriptor({ ...options(wires), pause: () => { paused++; return Promise.resolve(); } });
   };
   await expect(read({ n: 1 })).resolves.toBeDefined();
+  expect(paused).toBe(1);
   await expect(read({ n: 'bad' })).rejects.toThrow('refuses its schema');
+  expect(paused).toBe(1);
   await expect(read({})).rejects.toThrow('refuses its schema');
   await expect(read({ n: 1 }, encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', typo: true }))).rejects.toThrow();
   await read({ n: 1 });
