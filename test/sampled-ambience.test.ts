@@ -9,7 +9,7 @@ import { AudioSampleMixSchema } from '@wildshard/format/audioProfiles';
 import { app } from '@wildshard/engine/app/runtime';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { CueOpts } from '@wildshard/engine/audio/Cues';
-import { Thrown } from '@wildshard/engine/combat/Thrown';
+import { Thrown } from '@wildshard/sdk/runtime/weapons/Thrown';
 import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
 import {parseAudioData} from '@wildshard/format/audio';
 import { ND_AUDIO } from '../src/shards/nine-dragon-stack/generators/audio';
@@ -90,7 +90,7 @@ it('refuses missing mix inputs and invalid sample declarations', () => {
   const current = new SampledAmbience(new Audio(), { ...profile, sampleMix: { ...rows, values: [['broken', 'absent']] } });
   expect(() => current.set({})).toThrow('absent');
 });
-it('continues the carried javelin count and exact gravity step through the native helper', () => {
+it('continues the carried javelin count and exact gravity step through the frozen compatibility helper', () => {
   const item = items.rows.find(row => row.id === 'weapon.spear');
   const profile = parse(ThrownWeaponProfileSchema, item?.profile);
   const thrown = new Thrown({ ...profile, id: 'weapon.javelin' }), position = new Vector3(1, 2, 3), velocity = new Vector3(4, 5, 6);

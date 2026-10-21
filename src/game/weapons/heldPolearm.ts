@@ -5,8 +5,6 @@ import { aimRay, fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Melee } from '@wildshard/engine/combat/Melee';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
-import { Thrown } from '@wildshard/engine/combat/Thrown';
-import type { ThrownProfile } from '@wildshard/engine/combat/thrownProfile';
 import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
 import { impactSurfaceOf, worldHit, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, type WeaponState, type AimInfo, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
@@ -28,6 +26,8 @@ import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { HeldDecision } from './heldDecision';
+
+type JavelinProfile = schema.InferOutput<typeof ThrownWeaponProfileSchema>;
 
 export interface HeldPolearmWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 
@@ -57,7 +57,7 @@ export interface HeldPolearmView {
 
 export interface HeldPolearmOptions<P extends HeldPolearmProfile> {
   readonly profile: P;
-  readonly javelin: ThrownProfile;
+  readonly javelin: JavelinProfile;
   readonly view: HeldPolearmView;
   readonly program: unknown;
   readonly geometry: ReadonlyMap<string,THREE.BufferGeometry>;
@@ -92,10 +92,9 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   
   mount: HeldPolearmMount | null = null;
   
-  readonly thrown: Thrown;
-  get javelins(): number { return this.thrown.ammo; }
-  set javelins(value: number) { this.thrown.ammo = value; }
-  get maxJavelins(): number { return this.thrown.profile.carried; }
+  private readonly projectile: JavelinProfile;
+  javelins: number;
+  get maxJavelins(): number { return this.projectile.carried; }
   
   damageScale=1;
   
@@ -143,8 +142,8 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     super(opts.profile, app.combat);
     const carried = opts.javelin.carried;
     this.state = quiverState({ bolts: carried, loaded: true, reloading: false, reloadProgress: 0, ads: false }, carried);
-    this.thrown = new Thrown(opts.javelin);
-    this.arcPos = new Float32Array(this.thrown.profile.arcPoints * 3);
+    this.projectile = opts.javelin; this.javelins = carried;
+    this.arcPos = new Float32Array(this.projectile.arcPoints * 3);
     this.view = opts.view;this.law=new HeldDecision(opts.program,w.game.levelScope);this.geometry=opts.geometry;this.presentation=opts.presentation;
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: opts.profile.id } };
     this.game = w.game; this.sky = w.sky; this.player = w.player;
@@ -199,7 +198,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     targets.push(a);candidates.push({kind:0,id:targets.length,live:Number(a.alive&&a.hidden!==true&&prev!==undefined),distance:d,radius:targetRadius(a),height:Math.abs(a.position.y-p.y),angle:Math.acos(THREE.MathUtils.clamp((dx*fx+dz*fz)/Math.max(d,.0001),-1,1)),closing:-(vx*dx+vz*dz)/Math.max(d,.0001),since:t-(this.rehit.get(a)??-1e9)});
    }
    for(const [i,j] of [...this.javs.entries()].filter(([,slot])=>slot.state===2).sort(([,left],[,right])=>left.pos.distanceToSquared(p)-right.pos.distanceToSquared(p))){if(candidates.length>=8)break;candidates.push({kind:1,id:i+1,distance:Math.hypot(j.pos.x-p.x,j.pos.z-p.z),height:Math.abs(j.pos.y-p.y),random:gameplayRandom()});}
-   const policy=this.profile,projectile=this.thrown.profile,v=this.law.update(this.decisionT,{mode:0,held:Number(this.model.visible),enabled:Number(this.enabled),ads:Number(this.adsHeld),previousAds:Number(this.throwPrev),attack:Number(this.attackPending),tap:Number(this.tapPending),ammo:this.javelins,capacity:this.maxJavelins,thrust:this.thrustT,wind:this.windT,throwing:this.throwT,queued:Number(this.queued),release:Number(this.releaseQueued),threw:Number(this.threw),hit:Number(this.hitDone),windup:policy.thrust.windup,activeEnd:policy.thrust.activeEnd,total:policy.thrust.total,throwWindup:projectile.windup,throwRelease:projectile.release,recovery:projectile.recovery,mounted:Number(this.mount!==null),speed:this.mount?.speed??0,minSpeed:policy.lance.minSpeed,lanceReach:policy.lance.reach,cone:policy.lance.cone,rehit:policy.lance.rehit,baseDamage:policy.lance.baseDamage,speedDamage:policy.lance.speedDamage,pickupRadius:projectile.pickupRadius,pickupHeight:projectile.pickupHeight,survive:projectile.survive},candidates);
+   const policy=this.profile,projectile=this.projectile,v=this.law.update(this.decisionT,{mode:0,held:Number(this.model.visible),enabled:Number(this.enabled),ads:Number(this.adsHeld),previousAds:Number(this.throwPrev),attack:Number(this.attackPending),tap:Number(this.tapPending),ammo:this.javelins,capacity:this.maxJavelins,thrust:this.thrustT,wind:this.windT,throwing:this.throwT,queued:Number(this.queued),release:Number(this.releaseQueued),threw:Number(this.threw),hit:Number(this.hitDone),windup:policy.thrust.windup,activeEnd:policy.thrust.activeEnd,total:policy.thrust.total,throwWindup:projectile.windup,throwRelease:projectile.release,recovery:projectile.recovery,mounted:Number(this.mount!==null),speed:this.mount?.speed??0,minSpeed:policy.lance.minSpeed,lanceReach:policy.lance.reach,cone:policy.lance.cone,rehit:policy.lance.rehit,baseDamage:policy.lance.baseDamage,speedDamage:policy.lance.speedDamage,pickupRadius:projectile.pickupRadius,pickupHeight:projectile.pickupHeight,survive:projectile.survive},candidates);
    if(v===null)return;
    for(const target of targets)this.prevPos.set(target,target.position.clone());this.decisionT=0;this.attackPending=false;this.tapPending=false;
    this.thrustT=v['thrust']??-1;this.windT=v['wind']??-1;this.throwT=v['throwing']??-1;this.queued=v['queued']===1;this.releaseQueued=v['release']===1;this.threw=v['threw']===1;this.hitDone=v['hit']===1;this.throwPrev=v['previousAds']===1;this.lanceActive=v['lance']===1;
@@ -243,24 +242,24 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     this.arc.frustumCulled = false; this.arc.renderOrder = 1003; this.arc.visible = false;
     this.game.scene.add(this.arc);
 
-    const world = new THREE.InstancedMesh(this.part(this.presentation.parts.world), painterlyMaterial(this.sky, { vertexColors: true, rim: look.worldRim }), this.thrown.profile.pool);
+    const world = new THREE.InstancedMesh(this.part(this.presentation.parts.world), painterlyMaterial(this.sky, { vertexColors: true, rim: look.worldRim }), this.projectile.pool);
     world.count = 0; world.castShadow = true; world.receiveShadow = true; world.frustumCulled = false;
     this.game.scene.add(world);
-    for (let i = 0; i < this.thrown.profile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
+    for (let i = 0; i < this.projectile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
     return world;
   }
 
   private launch(): void {
     const j = this.javs.find((x) => x.state === 0);
     if (j === undefined || this.javelins <= 0) return;
-    if (!this.thrown.release()) return;
+    this.javelins--;
     this.aimPose(_commandOrigin, _commandRotation);
     this.aimRay(_commandOrigin, _fwd);
 
     _v1.set(0.22, 0.05, -0.3).applyQuaternion(_commandRotation).add(_commandOrigin);
     _v2.set(1, 0, 0).applyQuaternion(_commandRotation);
     _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize();
-    j.state = 1; j.age = 0; j.pos.copy(_v1); j.vel.copy(_dir).multiplyScalar(this.thrown.profile.speed);
+    j.state = 1; j.age = 0; j.pos.copy(_v1); j.vel.copy(_dir).multiplyScalar(this.projectile.speed);
     const m = this.mount;
     if (m !== null) { j.vel.x -= Math.sin(m.yaw) * m.speed; j.vel.z -= Math.cos(m.yaw) * m.speed; } 
     j.q.setFromUnitVectors(Y, _dir);
@@ -302,20 +301,20 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
         while (rem > 0) { // every way out of the flight breaks the loop
           const h = Math.min(rem, 1 / 120); rem -= h;
           _v1.copy(j.pos);
-          this.thrown.flightStep(j.pos, j.vel, h);
+          j.vel.y -= this.projectile.gravity * h; j.pos.addScaledVector(j.vel, h);
           const seg = _v2.subVectors(j.pos, _v1), len = seg.length();
           if (len < 1e-6) continue;
           _dir.copy(seg).multiplyScalar(1 / len);
 
-          _v3.copy(_v1).addScaledVector(_dir, this.thrown.profile.headOffset);
+          _v3.copy(_v1).addScaledVector(_dir, this.projectile.headOffset);
           _head.copy(_v3).addScaledVector(_dir, len);
-          const wall = worldHit(_v3, _head, this.thrown.profile.radius);
+          const wall = worldHit(_v3, _head, this.projectile.radius);
           if (this.targets) {
             const hit = this.targets.raycast(_v3, _dir, wall ? wall.distance : len);
             if (hit?.animal.alive === true) {
-              const dmg = Math.round(this.thrown.profile.damage * (hit.headshot ? this.thrown.profile.headMultiplier : 1) * this.damageScale);
+              const dmg = Math.round(this.projectile.damage * (hit.headshot ? this.projectile.headMultiplier : 1) * this.damageScale);
               const killed = hit.animal.applyDamage(dmg, hit.point, _dir);
-              if (!killed) hit.animal.stagger?.(_v2.set(_dir.x, 0, _dir.z).normalize(), this.thrown.profile.stagger);
+              if (!killed) hit.animal.stagger?.(_v2.set(_dir.x, 0, _dir.z).normalize(), this.projectile.stagger);
               this.onHit?.(hit.animal.kind, hit.headshot, killed);
               this.onImpact?.('flesh', hit.point);
               this.drop(j, hit.point);
@@ -328,7 +327,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
               const ws = this.player.waterSurfaceAt(_v3.x, _v3.z);
               if (ws !== null && ws > _v3.y) { j.state = 0; this.onImpact?.('ground', _v3); break; }
             }
-            if (sticksIn(wall.material)) { this.stick(j, _v3.addScaledVector(_dir, this.thrown.profile.radius), _dir, impactSurfaceOf(wall.material)); break; }
+            if (sticksIn(wall.material)) { this.stick(j, _v3.addScaledVector(_dir, this.projectile.radius), _dir, impactSurfaceOf(wall.material)); break; }
 
             _nrm.set(wall.normal.x, wall.normal.y, wall.normal.z);
             if (_nrm.dot(_dir) > 0) _nrm.negate();
@@ -357,12 +356,12 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     this.aimRay(_commandOrigin, _fwd);
     _v1.set(0.22, 0.05, -0.3).applyQuaternion(_commandRotation).add(_commandOrigin);
     _v2.set(1, 0, 0).applyQuaternion(_commandRotation);
-    _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize().multiplyScalar(this.thrown.profile.speed);
+    _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize().multiplyScalar(this.projectile.speed);
     const P = this.arcPos;
-    let hitAt = this.thrown.profile.arcPoints;
-    for (let i = 0; i < this.thrown.profile.arcPoints; i++) {
+    let hitAt = this.projectile.arcPoints;
+    for (let i = 0; i < this.projectile.arcPoints; i++) {
       const t = 0.06 + i * 0.05; // 1.6 s of flight ≈ 40 m
-      let x = _v1.x + _dir.x * t, y = _v1.y + _dir.y * t - 0.5 * this.thrown.profile.gravity * t * t, z = _v1.z + _dir.z * t;
+      let x = _v1.x + _dir.x * t, y = _v1.y + _dir.y * t - 0.5 * this.projectile.gravity * t * t, z = _v1.z + _dir.z * t;
       if (i >= hitAt) { x = P[(hitAt - 1) * 3] ?? x; y = P[(hitAt - 1) * 3 + 1] ?? y; z = P[(hitAt - 1) * 3 + 2] ?? z; }
       else if (i > 0) {
         _head.set(x, y, z);
@@ -473,13 +472,13 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
       sp.lerp(_v3.copy(LEFT_LOW.pos), tb); sq.slerp(LEFT_LOW.q, tb);
       let jp = JAV_COCK.pos, jq = JAV_COCK.q;
       let wind = 1;
-      if (windPose >= 0) wind = sstep(0, 1, windPose / this.thrown.profile.windup);
+      if (windPose >= 0) wind = sstep(0, 1, windPose / this.projectile.windup);
       if (throwPose >= 0) {
-        const f = throwPose < this.thrown.profile.release ? 1 - (1 - throwPose / this.thrown.profile.release) ** 2 : 1;
+        const f = throwPose < this.projectile.release ? 1 - (1 - throwPose / this.projectile.release) ** 2 : 1;
         jp = _vThrow.copy(JAV_COCK.pos).lerp(JAV_OUT.pos, f); jq = _qThrow.copy(JAV_COCK.q).slerp(JAV_OUT.q, f);
       }
       _vCock.copy(REST.pos).lerp(jp, wind); _qCock.copy(REST.q).slerp(jq, wind);
-      if (windPose >= 0) { _vCock.x += Math.sin(t * 31) * 0.002 * wind; _vCock.z += 0.02 * wind * sstep(0.6, 1, windPose / this.thrown.profile.windup); } // drawn back taut
+      if (windPose >= 0) { _vCock.x += Math.sin(t * 31) * 0.002 * wind; _vCock.z += 0.02 * wind * sstep(0.6, 1, windPose / this.projectile.windup); } // drawn back taut
       hp.lerp(_vCock, tb); hq.slerp(_qCock, tb);
     }
     this.heldJav.visible = (windPose >= 0 || (throwPose >= 0 && !this.threw)) && this.javelins > 0;
@@ -510,7 +509,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
       arm.scale.setScalar(scale);
     }
 
-    const arcAlpha = this.showArc && inHand && windPose >= this.thrown.profile.arcAfter ? sstep(this.thrown.profile.arcAfter, this.thrown.profile.windup, windPose) : 0;
+    const arcAlpha = this.showArc && inHand && windPose >= this.projectile.arcAfter ? sstep(this.projectile.arcAfter, this.projectile.windup, windPose) : 0;
     this.drawArc(arcAlpha);
 
     if (this.targets && inHand && (++this.aimFrame & 3) === 0) {
@@ -529,7 +528,7 @@ const spearPose=(row:PolearmRows['view']['poses']['rest']):HeldPolearmPose=>({po
 /** Client-only native polearm binding. Model parts, view poses, physics policy and
  * the <=10 Hz guest are admitted rows; no shard callbacks or subclasses. */
 export class PolearmSet {
- private data:{parts:ReturnType<typeof createModelLibrary<never,never>>;profile:HeldPolearmProfile;javelin:ThrownProfile;view:HeldPolearmView;rows:PolearmData}|null=null;
+ private data:{parts:ReturnType<typeof createModelLibrary<never,never>>;profile:HeldPolearmProfile;javelin:JavelinProfile;view:HeldPolearmView;rows:PolearmData}|null=null;
  constructor(private readonly rows:{file:string;item:`weapon.${string}`}){}
  readonly Weapon:new(world:HeldPolearmWorld,targets?:Targets,opts?:{allowUnlocked?:boolean;profile?:HeldPolearmProfile})=>HeldPolearm=((owner:PolearmSet)=>class extends HeldPolearm {
   constructor(world:HeldPolearmWorld,targets?:Targets,opts:{allowUnlocked?:boolean;profile?:HeldPolearmProfile}={}){
@@ -540,10 +539,10 @@ export class PolearmSet {
  async prepare(product:Pick<ShardProduct,'file'|'shardfile'>):Promise<void>{
   const rows=schema.parse(PolearmRowsSchema,JSON.parse(new TextDecoder().decode(await product.file(this.rows.file))));
   const item=product.shardfile.items.rows.find(row=>row.id===this.rows.item);
-  const {family:_family,...javelin}=schema.parse(ThrownWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined);
+  const javelin=schema.parse(ThrownWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined);
   const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[rows.pool]},'held-polearm');await parts.preload();
   const p=rows.view.poses;
-  this.data={parts,rows,profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin:{id:this.rows.item,...javelin},view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
+  this.data={parts,rows,profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin,view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
  }
  geometry(name:string):THREE.BufferGeometry{const part=this.need().parts.geometry(name);if(part===null)throw new Error(`Missing polearm part ${name}`);return part;}
  profile():HeldPolearmProfile{return this.need().profile;}

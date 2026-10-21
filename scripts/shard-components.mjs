@@ -183,8 +183,7 @@ const w3Paths = [
 // Sole-user platform contributions retain their canonical size. These reviewed
 // owners only distribute W3's existing charges into the component table.
 const w3SharedOwners = new Map([
-  ...['src/engine/combat/targets.ts', 'src/engine/combat/Thrown.ts',
-    'src/engine/combat/thrownProfile.ts', 'src/engine/combat/effects/types.ts',
+  ...['src/engine/combat/targets.ts', 'src/engine/combat/effects/types.ts',
     'src/engine/player/firstPersonArms.ts', 'src/game/weapons/heldLauncher.ts',
     'src/game/systems/viewmodel/armRig.ts'].map(path => [path, 'C6']),
   ...['src/game/shardfile/eliteEncounters.ts', 'src/sdk/crowds.ts',
