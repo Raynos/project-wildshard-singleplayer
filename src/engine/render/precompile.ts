@@ -644,6 +644,12 @@ export const LIVE_UPLOAD_BUDGET: UploadBudget = { ms: 8, bytes: 8 * 1024 * 1024 
 
 /** Live WebKit preparation settles one program per painted slice. A material can issue two side variants. */
 export const LIVE_PROGRAMS_PER_FRAME = 1;
+/**
+ * O14: how long live preparation leaves an unfinished link before it asks again (ms). WebKit answers COMPLETION_STATUS
+ * through its GPU process, behind every compile still queued there: ~20 ms a query on the Simulator. Asked once a slice,
+ * Nine Dragon's entry polled one Lambert program 154 times (3.2 s), one long frame each, before its link finished.
+ */
+export const LIVE_LINK_POLL_MS = 250;
 
 // Program identities are renderer-owned; preparation must not keep a retired renderer or revisit its resolved links.
 const resolvedPrograms = new WeakSet<ProgramLike>();
@@ -813,13 +819,14 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // Keep issue and first use on one painted slice when the driver has already finished linking.
   // An incomplete link is queued; it never blocks issuing the next material or loses its owner fence.
   const queued: ProgramLike[] = [], enqueued = new Set<ProgramLike>();
-  let settled = 0;
+  let settled = 0, unreadyAt = Number.NEGATIVE_INFINITY;
   const queue = (program: ProgramLike): void => {
     if (!enqueued.has(program) && needsPreparation(program)) { enqueued.add(program); queued.push(program); }
   };
   const settleOne = (): void => {
     const program = queued[settled];
-    if (program === undefined || parallel && !program.isReady()) return;
+    if (program === undefined || parallel && performance.now() - unreadyAt < LIVE_LINK_POLL_MS) return;
+    if (parallel && !program.isReady()) { unreadyAt = performance.now(); return; }
     if (!resolvedPrograms.has(program)) program.getUniforms();
     prepareBlocks(program); resolvedPrograms.add(program); enqueued.delete(program); settled++;
   };
@@ -920,7 +927,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     checkCurrent();
     // A live slice settles one ready program. An incomplete link alone needs another poll.
     if (parallel && isolateImageUploads) {
-      while (!p.isReady()) { await pause(); checkCurrent(); }
+      while (!p.isReady()) {
+        const asked = performance.now();
+        do { await pause(); checkCurrent(); } while (performance.now() - asked < LIVE_LINK_POLL_MS);
+      }
     }
     if (!resolvedPrograms.has(p)) p.getUniforms();
     prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
