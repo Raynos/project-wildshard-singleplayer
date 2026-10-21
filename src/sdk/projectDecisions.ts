@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { nativeRuntimeActorIds } from '@wildshard/format/nativeRuntimePlan';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
+import { DeclaredBodyOpsSchema, declaredBodyRegistries } from '@wildshard/format/bodySlots';
 import { parseActorMoves } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -40,7 +41,11 @@ export async function prepareProjectDecisions(project: string, source: Shardfile
   if (nativeEntry !== undefined && (nativeBytes === undefined || nativeBytes.length !== nativeEntry.bytes || hashImmutableBytes(nativeBytes) !== nativeEntry.hash)) throw new Error('Native plan section hash or size mismatch');
   const nativeActors = source.runtime === null && nativeBytes !== undefined
     ? nativeRuntimeActorIds(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(nativeBytes))) : [];
-  const built = await compileDecisionScripts(rows, buildDecisionRegistries(source, moves, worldTargets, strikes, rows, nativeActors), authored, options);
+  // G566: the shard's declared bodies (sim/bodies) resolve the scripts' Body / Collider aliases, as the runtime host does
+  const bodyEntry = platform?.sections.find(row => row.name === 'sim/bodies'), bodyBytes = bodyEntry === undefined ? undefined : platform?.files.get(bodyEntry.path);
+  if (bodyEntry !== undefined && (bodyBytes === undefined || bodyBytes.length !== bodyEntry.bytes || hashImmutableBytes(bodyBytes) !== bodyEntry.hash)) throw new Error('Declared body section hash or size mismatch');
+  const bodies = bodyBytes === undefined ? {} : declaredBodyRegistries(v.parse(DeclaredBodyOpsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bodyBytes))));
+  const built = await compileDecisionScripts(rows, { ...buildDecisionRegistries(source, moves, worldTargets, strikes, rows, nativeActors), ...bodies }, authored, options);
   const emitted = emitPlatformSections(new Map([['sim/scripts', built.rows]])), sections = [...(platform?.sections ?? []).filter(row => row.name !== 'sim/scripts'), ...emitted.sections];
   const files = new Map(platform?.files);
   for (const row of platform?.sections ?? []) if (row.name === 'sim/scripts') files.delete(row.path);

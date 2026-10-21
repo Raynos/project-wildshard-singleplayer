@@ -6,7 +6,8 @@ import { buildDecisionRegistries, decisionBindingMap, decisionSpawnGroups, DECIS
 import { parseActorMoves, actorMoveRules, type ActorMove } from '@wildshard/format/actorMoves';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
 import { parseWorldTargets, worldTargetSpots } from '@wildshard/format/worldTargets';
-import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Event, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
+import { SCRIPT_V1_COMMANDS, SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Event, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
+import type { DeclaredBodyOps } from '../quest/bodyOps';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { DecisionHost, type DecisionWorld, type DecisionContext, type DecisionSnapshot, type DecisionScript } from '@wildshard/engine/script/decision';
@@ -98,10 +99,12 @@ export class ShardDecisions {
   private readonly contract: string;
   private events: DecisionPublication['events'][number][] = [];
   private readonly strikes;
+  /** G566: the lent declared body authority (body reads 20..26, the declared floor list, body commands 17..22) */
+  private readonly bodies: DeclaredBodyOps | undefined;
   constructor(sim: DecisionRuntime, source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, sections: ReadonlyMap<string, unknown>,
     encounters: ReadonlyMap<string, DecisionEncounter>, quest: DeclaredQuests | undefined, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
-    navigation?: Pick<Navmesh, 'closestWalkable' | 'findPath'>, onDisabled?: ShardScriptPorts['onDisabled']) {
-    this.sim = sim; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
+    navigation?: Pick<Navmesh, 'closestWalkable' | 'findPath'>, onDisabled?: ShardScriptPorts['onDisabled'], bodyOps?: DeclaredBodyOps) {
+    this.sim = sim; this.bodies = bodyOps; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
     const declared = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
     this.rows = declared.flatMap(actorDecisionRows); this.spawnGroups = decisionSpawnGroups(source, declared);
     this.moves = parseActorMoves(sections.get('actors/moves') ?? []);
@@ -110,7 +113,8 @@ export class ShardDecisions {
     this.spots = targets === undefined ? new Map() : worldTargetSpots(targets);
     const nativePlan = sections.get('sim/runtime-plan');
     const nativeActors = source.runtime === null && nativePlan !== undefined ? nativeRuntimeActorIds(nativePlan) : [];
-    this.registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes, declared, nativeActors);
+    const registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes, declared, nativeActors);
+    this.registries = bodyOps === undefined ? registries : { ...registries, bodies: bodyOps.registries.bodies, colliders: bodyOps.registries.colliders };
     this.names = new Map([...this.registries.actors ?? [], [sim.player.id, DECISION_PLAYER_HANDLE] as const]); this.actors = inverse(this.names);
     this.strikes = new Map(simStrikes(source.rows));
     for (const { weight: _weight, ...row } of nativeStrikes) this.strikes.set(row.id, { ...row, range: row.range ?? Infinity });
@@ -138,6 +142,7 @@ export class ShardDecisions {
         owners.add(name); this.fieldActors.add(handle); sim.registerStrikeCatalogue(name, [...this.strikes.values()]);
       }
       if (row.commands.some(name => ['spawn', 'despawn', 'impulse', 'weather'].includes(name))) throw new Error('Decision mechanic has no admitted platform row owner');
+      if ((Object.keys(row.bodies).length > 0 || Object.keys(row.colliders).length > 0) && bodyOps === undefined) throw new Error('Decision body requires its body authority');
       if (row.commands.some(name => name === 'grant' || name === 'reward') && facts === undefined) throw new Error('Decision grant requires the authoritative ledger fact port');
       const binding = row.binding;
       const encounter = 'encounter' in binding ? requireValue(source.encounters.find(value => value.id === binding.encounter), 'encounter binding') : undefined;
@@ -199,6 +204,7 @@ export class ShardDecisions {
     const point = this.position(actor); return Math.hypot(point.x - row.x, point.z - row.z) <= row.radius;
   }
   private read(op: number, a: number, b: number, _context?: DecisionContext): number {
+    if (op >= SCRIPT_V1_READS.bodyX && op <= SCRIPT_V1_READS.playerIntent) return requireValue(this.bodies, 'body authority').read(op, a, b);
     if (op === 10) return Number(this.sim.flags.has(this.name('flags', a)));
     if (op === 17) { if (a !== DECISION_PLAYER_HANDLE) throw new Error('Decision player kind'); this.name('flags', b); return Number(this.playerFlags.has(b)); }
     if (op === 14) return Number(this.inside(this.name('zones', a), DECISION_PLAYER_HANDLE));
@@ -229,6 +235,7 @@ export class ShardDecisions {
     throw new Error('Decision read has no authoritative mechanic');
   }
   private list(op: number, a: number, b: number, output: Float64Array): number {
+    if (op === SCRIPT_V1_LISTS.declaredFloor) return requireValue(this.bodies, 'body authority').list(op, a, b, output);
     if (op === 6) {
       if (b < 0 || b > 10000) throw new Error('Radial query bounds');
       if (output.length < 2) return 0;
@@ -289,9 +296,13 @@ export class ShardDecisions {
     return names.length === 1 ? this.strikes.get(names[0] ?? '') : undefined;
   }
   private prepare(commands: readonly ScriptV1Command[], context: DecisionContext) {
-    const apply: (() => void)[] = [];
+    const apply: (() => void)[] = [], bodyCommands: ScriptV1Command[] = [];
+    for (const command of commands) if (command[0] >= SCRIPT_V1_COMMANDS['body.spawn'] && command[0] <= SCRIPT_V1_COMMANDS['body.retire']) bodyCommands.push(command);
+    // G566: one transaction; declared body commands validate before anything here commits, and apply in order with the rest
+    const body = bodyCommands.length === 0 ? null : requireValue(this.bodies, 'body authority').prepare(bodyCommands);
+    if (body !== null) apply.push(() => { body.commit(); });
     for (const [op, target, a, b] of commands) {
-      if (op === 8) continue; // Timers are the DecisionHost's transaction, not another clock.
+      if (op === 8 || (op >= SCRIPT_V1_COMMANDS['body.spawn'] && op <= SCRIPT_V1_COMMANDS['body.retire'])) continue; // Timers are the DecisionHost's transaction, not another clock.
       if (op === 1 || op === 2 || op === 3 || op === 4) {
         const name = this.owned(target, context), actor = requireValue(this.sim.entities.get(name), 'actor');
         if (op === 3) { apply.push(() => this.stop(target)); continue; }
@@ -488,6 +499,17 @@ export class ShardDecisions {
   /** View-only channel programs may change without invalidating a retained body's logical save.
    * Registry identities and every mechanical declaration remain exact. Guests with channel/signal
    * capabilities, and owners with actual mover authority, retain the complete original contract. */
+  /** How many script rows were appended since `saved` (0: the same contract), or null when it is incompatible. G566:
+   * a strict prefix of today's rows with every other field equal restores, and only the appended bindings start fresh. */
+  private appendedRows(saved: string): number | null {
+    if (this.matchesContract(saved)) return 0;
+    const record = v.record(v.string(), v.unknown()), rows = v.array(v.unknown());
+    const { rows: previousRows, ...previous } = v.parse(record, JSON.parse(saved)), { rows: currentRows, ...current } = v.parse(record, JSON.parse(this.contract));
+    const before = v.parse(rows, previousRows), now = v.parse(rows, currentRows);
+    if (before.length >= now.length || JSON.stringify(previous) !== JSON.stringify(current)
+      || before.some((row, i) => JSON.stringify(row) !== JSON.stringify(now[i]))) return null;
+    return now.length - before.length;
+  }
   private matchesContract(saved: string): boolean {
     if (saved === this.contract) return true;
     if (this.sim.borrowedActors === undefined || this.movers !== undefined || this.rows.some(row =>
@@ -506,7 +528,13 @@ export class ShardDecisions {
   /** Validate the whole logical record before mutation; loading invokes no Wasm or gameplay edge. */
   restore(input: SimValue): void {
     if (typeof input !== 'string') throw new Error('Invalid decision continuation');
-    const saved = v.parse(continuation, JSON.parse(input)); if (!this.matchesContract(saved.contract)) throw new Error('Incompatible decision continuation');
+    const parsed = v.parse(continuation, JSON.parse(input)), appended = this.appendedRows(parsed.contract);
+    if (appended === null) throw new Error('Incompatible decision continuation');
+    // appended bindings take this fresh host's own initial continuation and lifetime; the saved ones restore exactly
+    const fresh = this.host.snapshot(), first = this.rows.length - appended;
+    const added = fresh.bindings.filter(row => row.id > first);
+    const saved = appended === 0 ? parsed : { ...parsed, enabled: [...parsed.enabled, ...added.map(row => [row.id, row.enabled === true] as [number, boolean])],
+      decision: { ...parsed.decision, bindings: [...parsed.decision.bindings, ...added] } };
     const fields = new Map<number, Map<number, number>>();
     for (const [actor, field, value] of saved.fields) { this.position(actor); if (!this.fieldActors.has(actor)) throw new Error('Invalid public field owner'); this.validateField(field, value); const values = fields.get(actor) ?? new Map<number, number>(); if (values.has(field)) throw new Error('Duplicate decision field'); values.set(field, value); fields.set(actor, values); }
     const expectedFields = this.source.state.shared.filter(row => row.privacy === 'public' && row.type !== 'string').length;
