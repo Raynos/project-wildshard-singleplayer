@@ -70,6 +70,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 ## Dated exceptions
 
 - G571 (Jake, 2026-10-21): hosts added to convert Pine Hollow's and Driftwood Isle's remaining custom code into data or AssemblyScript count as platform from day one (test 1 waived) when they pass tests 2–6; each is listed here by name when it lands.
+- G571 grouped page actors: `game/population/pageGroups` `PageActorGroups` (with `Placement` and `Counts`) binds declared placements and an admitted return guest to the existing client animal manager. The guest owns refill timing/range/hidden-corpse decisions at ten Hz; the host retains ordered identity, counts and scope retirement. Client-only; no shard callback or selector. Test 1 waived; tests 2–6 covered by `test/population-projection.test.ts` and `test/native-roster-returns.test.ts`.
 - G478 riding presentation: `game/riding/mount` consumes profile rows and actor identities (fixture second shard).
 - G478 riding HUD: `game/riding/hud` consumes observation rows and retains the baseline HUD slots (fixture second shard).
 

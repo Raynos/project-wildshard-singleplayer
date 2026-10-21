@@ -16,7 +16,7 @@ const declarations = new Map([
   ['src/game/practice/course.ts', new Map(['MountedCourseController', 'HookCourseController', 'hookCoursePad', 'yawToward', 'HookCourseCourse', 'HookCourseRow', 'HookCoursePad'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','SlotViewActor','SlotSiteChange','Awake','PatrolEncounterView','PatrolViewActor','PatrolHit','Rider','PatrolActor','PatrolActorRoster'].map(name=>[name,'C4']))],
   ['src/game/population/pageGroups.ts', new Map([
-    'Placement', 'Counts', 'point', 'whole', 'PageActorGroups', 'PagePopulationPlanner',
+    'point', 'whole', 'PagePopulationPlanner',
     'nearestPopulationActor', 'PageWildEnvironment', 'wildEnv', 'bindPageGroups',
     'renderedPacks', 'renderedHerds', 'renderedDamage', 'renderedPackOf',
     'renderedHerdOf', 'observeHerdDamage', 'PageGroups',
@@ -102,7 +102,6 @@ const inline = new Map([
 
 /** @param {string} path @param {string} [name] */
 function reviewedOwner(path, name) {
-  if(path === 'src/game/population/pageGroups.ts' && ['Placement','Counts','PageActorGroups'].includes(name ?? '')) return 'driftwood-isle';
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts')) return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts',

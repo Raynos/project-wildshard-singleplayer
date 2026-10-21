@@ -8,6 +8,8 @@ import { overrideTerrain } from './fake/terrain';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import * as look from '../src/engine/world/lowpolyKit';
 import { PopulationProjection } from '../src/game/population/projection';
+import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnGate } from '../src/game/population/respawn';
 import { populationProjectionRows } from '../src/shards/driftwood-isle/generators/populationProjection';
 import { manager } from './fake/manager';
 import { mockCanvas } from './fake/weaponParity';
@@ -31,7 +33,7 @@ test('a marsh population projects memory effects, loose lights and practice retu
   const previous = f.manager.habitat.throwCoconut, sound = vi.fn<(name: string, at: Vector3) => void>(); f.manager.onSound = sound;
   const projection = new PopulationProjection(f.manager, f.game.scene, f.sky, scope, { ...source, id: 'marsh.volley', seed: SEED, random: 91,
     page: { phone: page, desktop: page }, counts: { hogs: { kind: 'boar', groups: false, practice: false } },
-    practice: { delay: .1, away: 5 }, hold: { kind: 'boar', x: 0, z: 0, r: 1, guardR: 1, step: 1, floor: Array.from({ length: 9 }, () => null) },
+    practice: { ...source.practice, law: { ...source.practice.law, parameters: { delay: .1, away: 5 } } }, hold: { kind: 'boar', x: 0, z: 0, r: 1, guardR: 1, step: 1, floor: Array.from({ length: 9 }, () => null) },
     splash: { ...source.splash, capacity: 12, count: 3 }, effects: [{ kind: 'boar', state: 'display', actions: [{ state: 3, sound: 'marsh.call', splash: 1 }],
       periodic: { state: 7, interval: .2, chance: 1, x: 'goal-x', z: 'goal-z', radius: .1, splash: .5 } }] });
   try {
@@ -64,4 +66,29 @@ test('both tiers bake every leaning crown and base with the installed native ter
         palm.z + Math.sin(palm.leanDir) * palm.lean * palm.h], base: [palm.x, base + .2, palm.z] });
     });
   }
+});
+
+
+test('the admitted return guest retains hidden-corpse gates and samples at ten Hz', () => {
+  const rows = populationProjectionRows().practice, rule = { delay: .3, away: 5, fade: 'hidden' } as const;
+  const guest = ReturnProgram.page(rows.program), sample = vi.spyOn(guest, 'project');
+  const law = new ProjectedState({ ...rows.law, parameters: { delay: rule.delay, away: rule.away }, signals: { step: rows.law.signal } }, guest);
+  const clock = { dead: 0, fade: -1 }, actions = { none: 0, fade: 1, replace: 2 };
+  for (const frame of [
+    { alive: true, hidden: false, distance: 20 },
+    ...Array.from({ length: 5 }, () => ({ alive: false, hidden: false, distance: 1 })),
+    { alive: false, hidden: false, distance: 5 },
+    { alive: false, hidden: true, distance: 4.99 },
+    { alive: false, hidden: true, distance: 5 },
+  ]) {
+    const calls = sample.mock.calls.length;
+    expect(law.step(.04, { ...frame, alive: Number(frame.alive), hidden: Number(frame.hidden) }).dt).toBe(0);
+    expect(sample).toHaveBeenCalledTimes(calls);
+    const next = law.step(.06, { ...frame, alive: Number(frame.alive), hidden: Number(frame.hidden) });
+    expect(sample).toHaveBeenCalledTimes(calls + 1);
+    expect(next.values['action']).toBe(actions[ReturnGate.step(clock, rule, .1, frame.alive, frame.distance, frame.hidden)]);
+    expect(law.value('dead')).toBe(clock.dead);
+  }
+  law.reset(); expect(law.value('dead')).toBe(0);
+  expect(law.step(.05, { alive: 0, hidden: 1, distance: 99 }).dt).toBe(0);
 });

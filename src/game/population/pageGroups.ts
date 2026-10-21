@@ -15,13 +15,13 @@ import { grassHeightAt, trample } from '../systems/looks/trample';
 import * as v from 'valibot';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { knockdownVelocity } from './relations';
-import { ReturnProgram } from './returnProgram';
+import { ReturnProgram, ProjectedState } from './returnProgram';
 import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { terrainHeight, terrainNormal, terrainWaterLevel } from '@wildshard/engine/world/terrainHeight';
 import type { Vector3 } from 'three';
-import { ReturnGate } from './respawn';
+import type { PopulationProjectionRows } from '@wildshard/format/populationProjection';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { EncounterRegistry, SpawnContext, SpawnEntry, SpawnPoint, Spawner } from '@wildshard/engine/ai/encounters';
 
@@ -48,7 +48,7 @@ export class FixedPageSpawnTable {
 type Placement = CreatureSpawnRow & { readonly herd: number; readonly practice?: true };
 interface Counts { readonly bodies: Map<string, number>; readonly groups: Map<string, number> }
 
-/** Grouped page lifetimes over the existing manager. Bodies keep their own AI,
+/** Client-only grouped page lifetimes over the existing manager. Bodies keep their own AI,
  * native identities and creature-stream order. The owner retires only what it
  * actually spawned. Authored rows select the training slot. */
 export class PageActorGroups {
@@ -56,8 +56,11 @@ export class PageActorGroups {
   readonly counts: Counts = { bodies: new Map(), groups: new Map() };
   private training: Animal | null = null;
   private trainingRow: Placement | null = null;
-  private readonly clock = { dead: 0, fade: -1 };
-  constructor(animals: AnimalManager) { this.owner = createCreatureSpawner(animals); }
+  private readonly law: ProjectedState;
+  constructor(animals: AnimalManager, row: PopulationProjectionRows['practice'], scope: Scope) {
+    this.owner = createCreatureSpawner(animals);
+    this.law = new ProjectedState({ ...row.law, signals: { step: row.law.signal } }, ReturnProgram.page(row.program, scope));
+  }
   get practice(): Animal | null { return this.training; }
   count(kind: string, groups = false): number { return (groups ? this.counts.groups : this.counts.bodies).get(kind) ?? 0; }
   private countBody(kind: string): void { this.counts.bodies.set(kind, this.count(kind) + 1); }
@@ -67,25 +70,26 @@ export class PageActorGroups {
   place(centres: readonly { readonly x: number; readonly z: number }[], kinds: readonly string[], rows: readonly Placement[]): void {
     this.owner.place(centres, kinds, rows, (actor, row) => {
       this.countBody(row.kind);
-      if (row.practice === true) { this.training = actor; this.trainingRow = row; this.clock.dead = 0; this.clock.fade = -1; }
+      if (row.practice === true) { this.training = actor; this.trainingRow = row; this.law.reset(); }
     }, kind => { this.counts.groups.set(kind, this.count(kind, true) + 1); });
   }
   /** Ungrouped actors retain herd −1. Presentation attaches to the real body. */
   loose(row: CreatureSpawnRow): Animal { const actor = this.owner.spawn(row.kind, row.x, row.z, row.yaw, row.variant ?? undefined); actor.herd = -1; this.countBody(row.kind); return actor; }
 
   /** Authored training homes refill after their corpse is hidden. Ordinary
-   * ecological returns stay independent and retain their own queue entry. */
-  updatePractice(dt: number, player: { readonly x: number; readonly z: number }, row: {
-    readonly delay: number; readonly away: number;
-  }): void {
+   * ecological returns stay independent and retain their own queue entry.
+   * The admitted guest owns the rule at ten Hz; native identity never leaves the manager. */
+  updatePractice(dt: number, player: { readonly x: number; readonly z: number }): void {
     const actor = this.training, placed = this.trainingRow;
     if (actor === null || placed === null) return;
-    const action = ReturnGate.step(this.clock, { ...row, fade: 'hidden' }, dt, actor.alive, Math.hypot(player.x - placed.x, player.z - placed.z), actor.hidden);
-    if (action === 'fade') actor.fadeOut();
-    if (action !== 'replace') return;
+    const result = this.law.step(dt, { alive: Number(actor.alive), hidden: Number(actor.hidden), distance: Math.hypot(player.x - placed.x, player.z - placed.z) });
+    if (result.dt === 0) return;
+    const action = v.parse(v.picklist([0, 1, 2]), result.values['action']);
+    if (action === 1) actor.fadeOut();
+    if (action !== 2) return;
     const [next] = this.owner.group(placed.kind, placed, [placed]);
     if (next === undefined) throw new Error('Missing training return');
-    this.training = next; this.clock.dead = 0; this.clock.fade = -1; this.countBody(placed.kind);
+    this.training = next; this.law.reset(); this.countBody(placed.kind);
   }
 
   dispose(): void { this.owner.dispose(); this.training = null; }

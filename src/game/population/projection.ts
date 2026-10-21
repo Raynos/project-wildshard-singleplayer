@@ -36,7 +36,7 @@ export class PopulationProjection {
   constructor(private readonly animals: AnimalManager, private readonly scene: THREE.Scene, sky: SkyRig, private readonly scope: Scope, input: unknown) {
     this.rows = v.parse(PopulationProjectionSchema, input); const row = this.rows;
     if (row.seed !== SEED) throw new Error('Population projection requires its authored seed');
-    this.creatures = new PageActorGroups(animals); this.rng = new Rng(row.random);
+    this.creatures = new PageActorGroups(animals, row.practice, scope); this.rng = new Rng(row.random);
     this.volley = new RowBodySlots(row.volley, app.bodies, { kind: row.id });
     const geometry = scope.own(new THREE.IcosahedronGeometry(row.volley.body.radius, row.husk.detail)), colour = new THREE.Color(row.husk.colour).toArray();
     geometry.setAttribute('color', new THREE.BufferAttribute(Float32Array.from({ length: geometry.getAttribute('position').count * 3 }, (_, i) => colour[i % 3] ?? 0), 3));
@@ -104,7 +104,7 @@ export class PopulationProjection {
   update(dt: number, time: number, player: THREE.Vector3): void {
     if (this.disposed) return;
     const row = this.rows, rng = app.rng.stream('cosmetic');
-    this.creatures.updatePractice(dt, player, row.practice); this.counts();
+    this.creatures.updatePractice(dt, player); this.counts();
     for (const observation of this.observers) {
       const actor = this.animals.animals.find(a => a.kind === observation.row.kind && a.alive);
       if (actor === undefined) continue;

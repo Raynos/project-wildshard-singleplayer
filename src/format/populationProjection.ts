@@ -2,6 +2,8 @@ import * as v from 'valibot';
 import { BodySlotsSchema } from './bodySlots';
 import { BodyLaunchSchema } from './nativeItems';
 import { ConeWeaponProfileSchema } from './weaponProfiles';
+import { ReturnProgramSchema } from './namedJsonContracts';
+import { EncounterScheduleSchema } from './encounterRows';
 
 const n = v.pipe(v.number(), v.finite()), key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const point = v.strictObject({ x: n, z: n }), position = v.tuple([n, n, n]);
@@ -15,7 +17,7 @@ const action = v.strictObject({ state: n, from: v.exactOptional(n), fromNot: v.e
 export const PopulationProjectionSchema = v.strictObject({
   id: key, seed: n, random: n, page: v.strictObject({ phone: page, desktop: page }),
   counts: v.record(key, v.strictObject({ kind: key, groups: v.boolean(), practice: v.boolean() })),
-  practice: v.strictObject({ delay: n, away: n }),
+  practice: v.strictObject({ program: ReturnProgramSchema, law: EncounterScheduleSchema }),
   hold: v.strictObject({ kind: key, ...point.entries, r: n, guardR: n, step: n, floor: v.array(v.nullable(n)) }),
   volley: BodySlotsSchema, launch: BodyLaunchSchema, strike: v.strictObject({ id: key, damage: n, tags: ConeWeaponProfileSchema.entries.gust.entries.tags }),
   contact: v.strictObject({ sound: key, landSound: key, landAge: n, splash: n }),
