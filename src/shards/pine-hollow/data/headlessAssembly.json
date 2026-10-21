@@ -12,7 +12,7 @@
     "@wildshard/game/quest/nativeStory": ["installNativeStory"],
     "@wildshard/format/contracts": ["parseContractCatalogue"],
     "@wildshard/format/achievementCounters": ["parseAchievementCounterData"],
-    "@wildshard/game/loot/exchange": ["parseExchange"],
+    "@wildshard/format/lootEconomy": ["parseBarterEconomy"],
     "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
     "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands"],
     "@wildshard/game/population/nativeBake": ["installNativeCollision"],
@@ -180,30 +180,22 @@
       }
     },
     {
-      "name": "tradesJson",
+      "name": "barter",
       "value": {
         "$call": [
           {
-            "$ref": ["assembly", "json"]
+            "$ref": ["@wildshard/format/lootEconomy", "parseBarterEconomy"]
           },
           {
-            "$ref": ["product"]
-          },
-          "quests/exchange.json"
+            "$ref": ["product", "shardfile", "rows", "loot", 0, "economy"]
+          }
         ]
       }
     },
     {
       "name": "trades",
       "value": {
-        "$call": [
-          {
-            "$ref": ["@wildshard/game/loot/exchange", "parseExchange"]
-          },
-          {
-            "$ref": ["tradesJson"]
-          }
-        ]
+        "$ref": ["barter", "exchange"]
       }
     },
     {

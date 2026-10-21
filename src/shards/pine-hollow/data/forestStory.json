@@ -8,7 +8,6 @@
   },
   "files": {
     "stall": "quests/stall.json",
-    "exchange": "quests/exchange.json",
     "contracts": "quests/contracts.json",
     "signals": "quests/lanterns.json",
     "door": "quests/mill-door.json",

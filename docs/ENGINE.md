@@ -10124,6 +10124,10 @@ The page keeps items → ammunition → finish → save → feedback ordering.
 Its finish captions are data in the existing story document. Retired reflected
 transaction/consequence documents live only as original-byte test fixtures;
 the primary product no longer publishes or decodes them.
+Pine's native trader reads the same admitted `rows.loot` barter economy
+as its page shop. The redundant named exchange document and extra native
+file read are retired; offer/payment/grant parity still uses the original
+catalogue fixture and the real native saved entry.
 
 The host uses G473's approved-platform exception. A made-up second shard in
 `test/contracts-platform.test.ts` drives two slots, unrelated kinds and tags,

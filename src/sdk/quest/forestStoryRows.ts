@@ -15,7 +15,7 @@ export interface ForestStoryContent {
 export interface ForestStoryRows {
   readonly page: string; readonly ranged: string; readonly content: `custom/${string}`;
   readonly panels: { readonly board: string; readonly count: string };
-  readonly files: Readonly<Record<'stall' | 'exchange' | 'contracts' | 'signals' | 'door' | 'services' | 'director', string>>;
+  readonly files: Readonly<Record<'stall' | 'contracts' | 'signals' | 'door' | 'services' | 'director', string>>;
   readonly talks: QuestPageTalksRows;
   readonly store: { readonly slot: string; readonly state: string };
   readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[];
