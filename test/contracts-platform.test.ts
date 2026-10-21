@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { CONTRACTS } from './fixtures/pine-contracts';
 import { parseContractCatalogue } from '../src/format/contracts';
 import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
 import { contractKill, counts, draw, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
@@ -6,6 +7,7 @@ import { contractKill, counts, draw, loadBoard, newBoard, recordKill, saveBoard 
 // A made-up island has two notices, different species/ranks, a tag objective,
 // a first-claim finish and four-item rewards. It has no lodge or Pine ids.
 const island = () => parseContractCatalogue({
+  program: CONTRACTS.program,
   id: 'island.notices', store: 'notices', slots: 2, attempts: 7,
   initial: [{ kind: 'hunt', target: 'crab' }, { kind: 'clear', target: 'invader' }],
   fallback: { kind: 'hunt', target: 'gull' },

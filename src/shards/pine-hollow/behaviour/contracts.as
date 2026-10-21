@@ -5,7 +5,7 @@ import {contractTag,contractElite,contractCounts,contractProgress,contractLoaded
 @inline function a(i:i32):f64{return get(Field.a00+i);}
 @inline function b(i:i32):f64{return get(Field.b00+i);}
 @inline function c(i:i32):f64{return get(Field.c00+i);}
-@inline function count():i32{return i32(get(Field.count));}
+@inline function count():i32{const size=i32(get(Field.count));assert(size>=0&&size<=4);return size;}
 export function onSignal(signal:i32,_value:f64,_source:i32):void{
  if(signal==Signal.random){Do.channel(Channel.value,contractRandom(get(Field.serial),get(Field.salt)));return;}
  if(signal==Signal.tag){
@@ -63,7 +63,7 @@ export function onSignal(signal:i32,_value:f64,_source:i32):void{
   Do.channel(Channel.open,nextOpen?1:0);Do.channel(Channel.operation,operation);Do.channel(Channel.slot,slot);return;
  }
  if(signal==Signal.restore){
-  const size=count(),next=get(Field.next),slots=get(Field.slots),claimed=get(Field.claimed),best=get(Field.best);
+  const size=i32(get(Field.count)),next=get(Field.next),slots=get(Field.slots),claimed=get(Field.claimed),best=get(Field.best);
   let valid=size==i32(slots)&&next>=slots&&best<=claimed&&get(Field.streak)<=best&&claimed<=next-slots;
   // The native owner lends one candidate at a time, against the same eight-row snapshot.
   const i=i32(get(Field.candidate)),serial=Read.field(i+1,Field.serial);

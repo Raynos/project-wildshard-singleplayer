@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { ContractCatalogue, ContractReward } from '@wildshard/format/contracts';
-import { claim, contractFor, loadBoard, recordKill, reroll, type Board, type KillInfo } from './contracts';
+import { claim, contractFor, loadBoard, recordKill, reroll, projectContract, type Board, type KillInfo } from './contracts';
 
 const integer = v.pipe(v.number(), v.finite(), v.safeInteger(), v.minValue(0));
 const BoardState = v.strictObject({ next: integer,
@@ -24,14 +24,14 @@ function boardFrom(contracts: ContractCatalogue, value: unknown): Board {
   const saved = v.parse(BoardState, value);
   const slots = saved.slots.map(slot => {
     const authored = contractFor(contracts, slot.serial, slot.kind, slot.target);
-    if (authored === null || slot.have > authored.need) throw new RangeError('Invalid contract board contract');
+    if (authored === null) throw new RangeError('Invalid contract board contract');
     return { ...authored, have: slot.have };
   });
-  if (saved.slots.length !== contracts.slots || saved.next < contracts.slots || slots.some(slot => slot.serial >= saved.next)
-    || new Set(slots.map(slot => slot.serial)).size !== contracts.slots
-    || saved.best > saved.claimed || saved.streak > saved.best || saved.claimed > saved.next - contracts.slots) {
-    throw new RangeError('Invalid contract board continuation');
-  }
+  const candidates = slots.map(slot => ({ serial: slot.serial, have: slot.have, need: slot.need, valid: 1 }));
+  // The same detached snapshot lends each candidate in order; no state mutates before every refusal check passes.
+  if (slots.length === 0 || slots.some((_, candidate) => projectContract(contracts, 'restore', { candidate,
+    count: slots.length, slots: contracts.slots, next: saved.next, claimed: saved.claimed,
+    best: saved.best, streak: saved.streak }, candidates)['value'] !== 1)) throw new RangeError('Invalid contract board continuation');
   return { next: saved.next, slots, claimed: saved.claimed, streak: saved.streak, best: saved.best };
 }
 
@@ -66,18 +66,16 @@ export class ContractBoard {
     return true;
   }
   use(value: number, eye: Point): ContractClaim | null {
-    if (value === CONTRACT_ACTION.close) { this.opened = false; return null; }
-    if (value === CONTRACT_ACTION.open) {
-      const dx = eye.x - this.ports.prompt.x, dy = eye.y - this.ports.prompt.y, dz = eye.z - this.ports.prompt.z;
-      if (!this.opened && Math.sqrt(dx * dx + dy * dy + dz * dz) < this.ports.radius) this.opened = true;
-      return null;
-    }
-    if (!this.opened || !Number.isInteger(value)) return null;
-    const claiming = value >= CONTRACT_ACTION.claim0 && value <= CONTRACT_ACTION.claim0 + this.ports.contracts.slots - 1;
-    const tearing = value >= CONTRACT_ACTION.tear0 && value <= CONTRACT_ACTION.tear0 + this.ports.contracts.slots - 1;
-    if (!claiming && !tearing) return null;
-    if (tearing) { this.tear(value - CONTRACT_ACTION.tear0); return null; }
-    return this.claim(value - CONTRACT_ACTION.claim0);
+    const pointValid = [eye.x, eye.y, eye.z].every(Number.isFinite), valid = Number.isFinite(value), prompt = this.ports.prompt;
+    const next = projectContract(this.ports.contracts, 'use', { value: valid ? value : 0, valid: Number(valid),
+      open: Number(this.opened), slots: this.ports.contracts.slots, pointValid: Number(pointValid),
+      x: pointValid ? eye.x : 0, y: pointValid ? eye.y : 0, z: pointValid ? eye.z : 0,
+      px: prompt.x, py: prompt.y, pz: prompt.z, radius: this.ports.radius });
+    this.opened = next['open'] === 1;
+    const slot = next['slot'];
+    if (slot === undefined) throw new Error('Missing board projection slot');
+    if (next['operation'] === 2) { this.tear(slot); return null; }
+    return next['operation'] === 1 ? this.claim(slot) : null;
   }
   snapshot(): { version: 1; open: boolean; board: v.InferOutput<typeof BoardState> } {
     const b = this.board;

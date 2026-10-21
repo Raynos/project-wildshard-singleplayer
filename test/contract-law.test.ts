@@ -5,7 +5,10 @@ import rulesSource from '../src/shards/pine-hollow/behaviour/contractsRules.as?r
 import {compileDecisionScripts} from '../src/sdk/buildDecisionScripts';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {CONTRACT_PROGRAM_SCRIPT,contractProgramRegistries} from '../src/shards/pine-hollow/generators/contractProgram';
-import {contractFor} from '../src/game/quest/contracts';
+import {contractFor,loadBoard,saveBoard,contractKill,newBoard,claim,draw} from '../src/game/quest/contracts';
+import {ContractBoard} from '../src/game/quest/contractBoard';
+import {parseContractCatalogue} from '../src/format/contracts';
+import wideDraws from './fixtures/legacy-contract-wide-draws.json' with {type:'json'};
 import {CONTRACTS} from './fixtures/pine-contracts';
 import baseline from './fixtures/legacy-contract-boundaries.json' with {type:'json'};
 
@@ -74,4 +77,25 @@ test('bounded projection packets fit the unchanged instruction allowance',()=>{
  expect(out(project('tag',{kind:9,variant:2,label:3,count:4,...arrays(Array.from({length:4},(_,i)=>i===3?9:1),Array.from({length:4},()=>-1),Array.from({length:4},()=>-1))}),'value')).toBe(1);
  const candidates=Array.from({length:8},(_,serial)=>({'contract.serial':serial,'contract.have':0,'contract.need':2,'contract.valid':1}));
  expect(out(project('restore',{candidate:7,count:8,slots:8,next:8,claimed:0,streak:0,best:0},candidates),'value')).toBe(1);
+});
+
+test('the AS bridge keeps historical malformed, fractional and negative save envelopes',()=>{
+ for(const {saved,wire}of baseline.loads)expect(saveBoard(loadBoard(CONTRACTS,saved))).toBe(wire);
+});
+test('all 64 selectors, 32 draw bands and late milestones survive transport partitioning',()=>{
+ const first=CONTRACTS.rows[0];if(first===undefined)throw new Error('Missing original offer');
+ const wide=parseContractCatalogue({...CONTRACTS,slots:8,initial:[],rows:Array.from({length:32},(_,i)=>({...first,id:`wide.${i}`,kind:'species',target:`target.${i}`})),draws:Array.from({length:32},(_,i)=>({below:(i+1)/32,kind:'species',targets:[`target.${i}`]})),fallback:{kind:'species',target:'target.0'},
+  tags:[{tag:'last-selector',any:Array.from({length:64},(_,i)=>({kind:`observed.${i}`}))}],
+  elites:Object.fromEntries(Array.from({length:64},(_,i)=>[`elite.${i}`,{name:`Elite ${i}`,kind:'deer',variant:`coat.${i}`}])) ,eliteIds:Array.from({length:64},(_,i)=>`elite.${i}`),
+  milestones:Array.from({length:32},(_,i)=>({claimed:i+1,skin:`finish.${i+1}`}))});
+ expect(contractKill(wide,{kind:'observed.63'}).tags).toEqual(['last-selector']);
+ expect(contractKill(wide,{kind:'deer',variant:'coat.63'}).elite).toBe('elite.63');
+ expect(Array.from({length:128},(_,serial)=>draw(wide,serial).target)).toEqual(wideDraws);
+ const board=newBoard(wide),slot=board.slots[0];if(slot===undefined)throw new Error('Missing initial offer');
+ board.claimed=31;board.next=39;slot.have=slot.need;
+ expect(claim(wide,board,0)?.skin).toBe('finish.32');
+ const owner=new ContractBoard({contracts:wide,prompt:{x:0,y:0,z:0},radius:3}),saved=owner.snapshot();
+ owner.restore(saved);expect(owner.snapshot()).toEqual(saved);
+ const duplicate={...saved,board:{...saved.board,slots:saved.board.slots.map((row,i)=>i===7?{...row,serial:0}:row)}};
+ expect(()=>owner.restore(duplicate)).toThrow();expect(owner.snapshot()).toEqual(saved);
 });
