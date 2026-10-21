@@ -1417,23 +1417,6 @@
       }
     },
     {
-      "module": "src/game/plugin/heldLauncher.ts",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nalati held bolt flight (G474)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "bolt-flight",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
-    },
-    {
       "module": "src/engine/world/water/ripples.ts",
       "shard": "nalati-grasslands",
       "plan": {

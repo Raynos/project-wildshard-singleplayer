@@ -1,4 +1,4 @@
-// Pine Hollow's Longbow in first person as data (the held bow draw, @wildshard/game/plugin/heldLauncher): its materials and
+// Pine Hollow's Longbow in first person as data (the held bow draw, @wildshard/game/weapons/heldLauncher): its materials and
 // grip poses. The stave's look and arrow are the bake's (generators/longbowLook.ts).
 
 /** The Longbow's material (the viewmodels' shared lit program): waxed yew, leather, linen. */

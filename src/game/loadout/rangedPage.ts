@@ -14,7 +14,7 @@ import { HeldFinishes } from './finishes';
 import { installHeldLoadout, type HeldLoadout } from './held';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import { ClaimedPickupRoster } from '../loot/runtime';
-import { HeldLauncher } from '../plugin/heldLauncher';
+import { HeldLauncher } from '../weapons/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';
 import { Bow } from '../weapons/Bow';
 import { eliteStream } from '../quest/eliteStreams';

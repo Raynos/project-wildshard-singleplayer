@@ -13,7 +13,7 @@ import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { bindRuntimeState } from '../plugin/headless';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import { runtimeAudio, sharedWeaponVoices } from '../plugin/audio';
-import { PLAIN_BOLT, HeldLauncher, type HeldBolt } from '../plugin/heldLauncher';
+import { PLAIN_BOLT, HeldLauncher, type HeldBolt } from '../weapons/heldLauncher';
 import { AmmoPouch } from './pouch';
 import { loadoutLegacySlot } from './persistence';
 import { HeldFirearm } from '../plugin/heldFirearm';

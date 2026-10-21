@@ -21,11 +21,11 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
 import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
 import * as v from 'valibot';
-import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldMaterialRow, type HeldModelRows } from './heldFirearm';
-import { createModelLibrary, type ModelLibrary } from './geometry';
+import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldMaterialRow, type HeldModelRows } from '../plugin/heldFirearm';
+import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
 import { HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
-import { createClientScene } from './ui';
-import { HeldPlayback } from './weaponFamily';
+import { createClientScene } from '../plugin/ui';
+import { HeldPlayback } from '../plugin/weaponFamily';
 
 /**
  * The held-launcher host (H3, SHARD-PLATFORM C6 view, G454 data only): a first-person crossbow loosing physical bolts,
@@ -358,8 +358,8 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
  * ears, `backScale` for a flat back, `tipInset` / `tipOffset` for the string's anchors, `nockX` for the nock's line); the
  * parts are borrowed from `model.geometry` by `rows.parts` (the stave carries the left fist; never mutated or disposed).
  * Materials are the viewmodels' lit rows or painterly ones; the wind is a gust row or the steppe's wind; `styles` names a
- * colour channel on the stave per paint (the first the base), which `setStyle` swaps in. Users: Pine's longbow, Nalati's
- * recurve (and its Golden Bow and Sky-Wolf paints). A shard's baked rows file loads with `loadHeldBow(url)`.
+ * colour channel on the stave per paint (the first the base), which `setStyle` swaps in.
+ * A baked rows file loads with `loadHeldBow(url)`.
  *
  *   const { rows, model } = await loadHeldBow(url);
  *   new Bow(world, targets, { row, profile: heldBowProfile(BASE, rows, model) });

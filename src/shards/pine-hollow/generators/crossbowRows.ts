@@ -3,7 +3,7 @@ import { BUCKSKIN } from './handsLook';
 import displayRest from '../data/crossbowDisplay.json' with { type: 'json' };
 
 /**
- * Pine Hollow's crossbow as rows on the held-launcher host (`@wildshard/game/plugin/heldLauncher`, H3), authored here and
+ * Pine Hollow's crossbow as rows on the held-launcher host (`@wildshard/game/weapons/heldLauncher`, H3), authored here and
  * written by the crossbow pool bake (bake-crossbow-pool.mjs) into `custom/crossbowPool` `rows` beside the baked parts; the
  * runtime (runtime/weapons/crossbow/Crossbow.ts) reads the section and never imports this file (G467).
  *

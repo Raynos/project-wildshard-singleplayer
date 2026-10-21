@@ -1,7 +1,7 @@
 // Pine Hollow's Longbow as the hands bake reads it (SHARD-PLATFORM M3; generators/handsPool.ts): a yew self bow twice as
 // tall as the starter recurve — the pale sapwood back, the orange-brown heartwood belly, a leather grip with a band of
 // amber, horn nocks, a linen string — its ash arrow and the hunter's gloved fists on it. The bake serialises this look into
-// `custom/handsPool`'s `bow` row; the held bow draw (@wildshard/game/plugin/heldLauncher heldBowProfile) reads it there.
+// `custom/handsPool`'s `bow` row; the held bow draw (@wildshard/game/weapons/heldLauncher heldBowProfile) reads it there.
 import * as v from 'valibot';
 import { HUNTER_HANDS } from './handsLook';
 

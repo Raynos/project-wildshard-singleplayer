@@ -14,7 +14,7 @@ import * as v from 'valibot';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { createModelLibrary, type ModelLibrary } from './geometry';
 import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRow } from './heldFirearm';
-import { HeldLauncher, bindHeldBow, type HeldLauncherRows, type HeldLauncherProfile } from './heldLauncher';
+import { HeldLauncher, bindHeldBow, type HeldLauncherRows, type HeldLauncherProfile } from '../weapons/heldLauncher';
 import { HeldTool, heldToolRows, type HeldToolBeat } from './heldTool';
 import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from './headless';
 import { ItemCatalogue } from './nativeItems';

@@ -2621,9 +2621,10 @@ stage ids refuse. This transient page projection adds no saved cursor.
 
 ### Approved platform feature receipts (G474–G477)
 
-The ruler records five approved features and their named future users in
-`lint/platform-pending-users.json`. `game/plugin/heldLauncher` (bolt flight,
-Nalati) and `engine/world/water/ripples` (Nalati) carry G474. G475 covers
+The ruler records approved features and their named future users in
+`lint/platform-pending-users.json`. `engine/world/water/ripples` (Nalati)
+carries G474. The held-bow builder has two real users, Pine and Nalati;
+the crossbow action remains Pine-only and receives no pending-user credit. G475 covers
 `engine/world/Atmosphere` (`ColourRampFog`, Nalati),
 `engine/world/lowpolyKit` (`bindLowPolyMaterial`, Nine) and
 `game/shardfile/hybrid` (`HybridResidentWorld`, Nine; G476 extends residency
@@ -4225,7 +4226,7 @@ hunter's hands) and Nalati's
 AR-15 (primitive rows, `mount: 'shared'`, `scaleRoot`, the ghost-ring `glow`). A texture row may name any engine
 viewmodel set (`walnut`, `brushed-steel`, `leather`, `cord`, `bolt` beside the modern three); its `repeat` is optional.
 
-H3's bolt-flight action: `@wildshard/game/plugin/heldLauncher`. `new HeldLauncher(world, targets, { row, profile, view,
+H3's bolt-flight action: `@wildshard/game/weapons/heldLauncher`. `new HeldLauncher(world, targets, { row, profile, view,
 rows, model, hands? })` is a held crossbow on data only: `rows.scene` is the model's private hierarchy
 (`createClientScene` rows over `model.geometry`), `rows.objects` its declared sight groups, `rows.nodes` the meshes the
 rows pose (string legs, serving, the loaded bolt, the sight post), `rows.fade` the materials that fade in sighted. The

@@ -9,7 +9,7 @@ import { installRoamingBossProjection } from '../boss/roamingProjection';
 import { prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
 import { enteredHeldLoadout } from '../loadout/held';
 import { HeldFinishes } from '../loadout/finishes';
-import { HeldLauncher } from '../plugin/heldLauncher';
+import { HeldLauncher } from '../weapons/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';
 import { Bow } from '../weapons/Bow';
 import { ITEMS } from '../bag/itemCatalog';

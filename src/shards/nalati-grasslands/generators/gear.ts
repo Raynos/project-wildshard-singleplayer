@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { BowStyle } from '@wildshard/game/weapons/starterBowProfile';
-import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/plugin/heldLauncher';
+import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/weapons/heldLauncher';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { heldFirearmDisplay } from '@wildshard/game/plugin/heldFirearm';
 import { parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';

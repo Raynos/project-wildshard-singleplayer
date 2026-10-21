@@ -6,7 +6,7 @@ import { ToonArms } from '../systems/viewmodel/toonArms';
 import { HeldGearSchema } from '@wildshard/format/heldGear';
 import * as v from 'valibot';
 import { HeldEquipment } from '../plugin/heldEquipment';
-import { heldBowArrow, heldBowDisplay, heldLauncherBolt, heldLauncherDisplay } from '../plugin/heldLauncher';
+import { heldBowArrow, heldBowDisplay, heldLauncherBolt, heldLauncherDisplay } from '../weapons/heldLauncher';
 import { heldToolSpecimen, heldToolRows } from '../plugin/heldTool';
 import { HeldFinishes } from '../loadout/finishes';
 import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';

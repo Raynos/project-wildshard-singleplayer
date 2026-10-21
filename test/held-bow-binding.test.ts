@@ -2,7 +2,7 @@ import { painterlyMaterial } from '../src/engine/world/painterly';
 import recurve from '../public/assets/nalati/baked/recurve-pool.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { BufferGeometry } from 'three';
-import { bindHeldBow } from '../src/game/plugin/heldLauncher';
+import { bindHeldBow } from '../src/game/weapons/heldLauncher';
 import { HeldBowDefinitionSchema } from '../src/format/weaponProfiles';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { PINE_HELD_BOW } from '../src/shards/pine-hollow/generators/longbow';
