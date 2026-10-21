@@ -27,7 +27,7 @@ test('a marsh population projects memory effects, loose lights and practice retu
   if (variant === undefined) throw new Error('Missing fixture variant');
   const row = { kind: 'boar', variant, x: 3, z: 4, yaw: 0, herd: 0, practice: true } as const;
   const page = { stream: new Rng(91).snapshot(), centres: [{ x: 3, z: 4 }], kinds: ['boar'], herds: 1,
-    enemies: [row, { kind: 'boar', variant, x: 7, z: 4, yaw: 0, herd: -1 }], perches: [{ crown: [2.5, 3.3, 2], base: [1, 0, 2] }] };
+    enemies: [row, { kind: 'boar', variant, x: 7, z: 4, yaw: 0, herd: -1 }], perches: [{ crown: [2.5, 14, 2], base: [1, 9.25, 2] }] };
   const previousPerches = [new Vector3(8, 9, 10)], previousBases = [new Vector3(8, 0, 10)];
   f.manager.habitat.perches = previousPerches; f.manager.habitat.perchBases = previousBases;
   const previous = f.manager.habitat.throwCoconut, sound = vi.fn<(name: string, at: Vector3) => void>(); f.manager.onSound = sound;
@@ -38,8 +38,8 @@ test('a marsh population projects memory effects, loose lights and practice retu
       periodic: { state: 7, interval: .2, chance: 1, x: 'goal-x', z: 'goal-z', radius: .1, splash: .5 } }] });
   try {
     await projection.build(); expect(projection.placed['hogs']).toBe(2);
-    expect(f.manager.habitat.perches[0]?.toArray()).toEqual([2.5, 3.3, 2]);
-    expect(f.manager.habitat.perchBases[0]?.toArray()).toEqual([1, 0, 2]);
+    expect(f.manager.habitat.perches[0]?.toArray()).toEqual([2.5, 14, 2]);
+    expect(f.manager.habitat.perchBases[0]?.toArray()).toEqual([1, 9.25, 2]);
     const actor = projection.practice; if (actor === null) throw new Error('Missing practice actor');
     actor.mem['display'] = 3; projection.update(.01, 1, new Vector3()); expect(sound).toHaveBeenCalledWith('marsh.call', actor.position);
     const points = projection.group.children.find((object): object is Points => object instanceof Points);
