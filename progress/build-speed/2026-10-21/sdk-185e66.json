@@ -1,0 +1,282 @@
+{
+  "revision": "185e6663dec93946ef66827870ef22327a4fb9a4",
+  "nice": 0,
+  "mode": "sdk-first",
+  "targetSeconds": 35,
+  "samples": [
+    {
+      "name": "sdk-first",
+      "seconds": 26.582433291,
+      "status": 0,
+      "spans": {
+        "gen": 18.951535749999998,
+        "preparation": 0.06610800000000018,
+        "products": 3.1487175830000016,
+        "census": 4.001707999999997
+      },
+      "producerSpawns": 26,
+      "generated": 26,
+      "verified": 217,
+      "snapshotVerified": 0,
+      "built": 0,
+      "reused": 24,
+      "parsed": true,
+      "measurementError": null,
+      "productFailures": {},
+      "cpu": {
+        "basis": "Each phase sums process self user/system CPU, including native threads and observed Node descendants; time(1) independently measures the whole command tree.",
+        "phases": {
+          "launch": {
+            "wallSeconds": 0.41436395800000625,
+            "userSeconds": 0.405456,
+            "systemSeconds": 0.061614
+          },
+          "gen": {
+            "wallSeconds": 18.951535749999998,
+            "userSeconds": 56.11192200000003,
+            "systemSeconds": 10.758326
+          },
+          "preparation": {
+            "wallSeconds": 0.06610800000000018,
+            "userSeconds": 0.063336,
+            "systemSeconds": 0.008649
+          },
+          "products": {
+            "wallSeconds": 3.1487175830000016,
+            "userSeconds": 2.131584,
+            "systemSeconds": 1.387648
+          },
+          "census": {
+            "wallSeconds": 4.001707999999997,
+            "userSeconds": 4.008598,
+            "systemSeconds": 0.596022
+          }
+        },
+        "total": {
+          "wallSeconds": 26.56,
+          "userSeconds": 65.59,
+          "systemSeconds": 13.3
+        },
+        "complete": true,
+        "observedTotal": {
+          "userSeconds": 62.720938000000025,
+          "systemSeconds": 12.812280000000001
+        }
+      }
+    }
+  ],
+  "pass": true,
+  "schema": "build-speed-proof/1",
+  "command": "node scripts/shard-platform.mjs --json --source-progress",
+  "base": "2115becca07052e36b70b7a54e2355ae1d5acc24",
+  "sdkDescendant": "185e6663dec93946ef66827870ef22327a4fb9a4",
+  "sdkDelta": "src/sdk/sourceReader.ts",
+  "isolation": "Only the immediate parent warmed private generation, product and compiler-normalization caches; descendant first invocation ran under the quiet and push locks.",
+  "scope": "SDK first-read case; the earlier official unchanged acceptance is quiet-61b2.json.",
+  "proof": "20261021T033103-sp-x6-x13-sdk-author-quiet-49160",
+  "quietReleasedAfterSeconds": 265.75,
+  "measurementWindow": {
+    "start": "2026-10-21T08:38:30.547Z",
+    "end": "2026-10-21T08:38:57.129Z"
+  },
+  "quietLeaseInterference": {
+    "reportedBy": "sp-o4",
+    "commit": "390b718ba4",
+    "hookPid": 89601,
+    "hookStart": "2026-10-21T08:38:54.680Z",
+    "hookEnd": "2026-10-21T08:39:01.580Z",
+    "overlapSeconds": 2.449,
+    "scope": "Passing threshold with reported CPU interference during the final census; this is not a clean-quiet claim. Earlier reported tsc ended before the measured window."
+  },
+  "unchangedCounter": {
+    "seconds": 14.180593541999999,
+    "status": 0,
+    "generated": 0,
+    "producerSpawns": 0,
+    "built": 0,
+    "reused": 24,
+    "measurementError": null,
+    "productFailures": {},
+    "scope": "Non-quiet correctness counter; the official unchanged acceptance remains quiet-61b2.json."
+  },
+  "parentAudit": {
+    "base": "2115becca07052e36b70b7a54e2355ae1d5acc24",
+    "sdkDescendantUnrun": true,
+    "products": [
+      {
+        "slug": "far-reach",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-mosslight-ruins",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-alien-plain",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-coral-drift",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "pastel-plain",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "_template",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "blender-template",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "sunscar-dunes",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "ink-cel-valley",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-ember-forge",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "pine-hollow",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "nine-dragon-stack",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-frostline-peaks",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-sky-harbor",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "nalati-grasslands",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-sky-race",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-thin-ice",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-night-market",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-desert-ruin",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "driftwood-isle",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-showcase-template",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-clockwork-canyon",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-lantern-bayou",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      },
+      {
+        "slug": "open-plot-starfall-observatory",
+        "inputs": [
+          "M src/sdk/sourceReader.ts",
+          "P src/sdk/sourceReader.ts"
+        ]
+      }
+    ]
+  },
+  "postMeasurementCorrectnessFence": {
+    "revision": "f2998307e33f8f6cc757a52323982cc5ca0e80c6",
+    "scope": "Directory package.json remains a content dependency even if not emitted; native main-entry regression, typed lint and real hooks pass. This stricter fence landed after the timed pair.",
+    "focusedProof": "20261021T034009-sp-x6-x13-package-fence-focused-97742"
+  },
+  "authorExecutionRevision": "ca120b08ffed281a8b1e62c2dae314f60e3adb69"
+}
