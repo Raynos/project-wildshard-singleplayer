@@ -38,19 +38,11 @@ import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
 
-/** What the world build hands the rest of the level: each part it built, nullable off Driftwood (its lists stay lists). */
-export type DriftwoodWorld = { [K in keyof BuiltWorld]: BuiltWorld[K] extends readonly unknown[] ? BuiltWorld[K] : BuiltWorld[K] | null };
-type BuiltWorld = Awaited<ReturnType<typeof build>>;
-
-/** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
-export function noDriftwoodWorld(): DriftwoodWorld {
-  return { pier: null, jetties: [], boat: null, rocks: null, hut: null, lookout: null, wreck: null, shrine: null,
-    bushes: null, gulls: null, trailside: null, bridge: null, seabed: null, palmSpecs: [], cove: null, palms: null, cover: null,
-    bridgeDeck: null };
-}
+/** What the world build hands the rest of the level: each part it built. */
+export type DriftwoodWorld = Awaited<ReturnType<typeof build>>;
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
-export function buildDriftwoodWorld(...args: Parameters<typeof build>): Promise<BuiltWorld> { return build(...args); }
+export function buildDriftwoodWorld(...args: Parameters<typeof build>): Promise<DriftwoodWorld> { return build(...args); }
 async function build(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>) {
   // G164: the whole island lowered, the sea at road level; G170: each declared entry landing is the inner end of an asphalt
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
@@ -200,5 +192,5 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
 const built = new WeakMap<object, DriftwoodWorld>();
 /** The plugin hands its world to the staged shell (keyed by the build's `ShardRuntime`). */
 export function keepDriftwoodWorld(runtime: object, world: DriftwoodWorld): void { built.set(runtime, world); }
-/** main.ts's readers until S4.2–S4.4 move them into the plugin: Driftwood's world, or nothing built off Driftwood. */
-export function driftwoodWorld(runtime: object): DriftwoodWorld { return built.get(runtime) ?? noDriftwoodWorld(); }
+/** The adventure's read of the world its plugin built. */
+export function driftwoodWorld(runtime: object): DriftwoodWorld { const world = built.get(runtime); if (world === undefined) throw new Error('Driftwood world is not built'); return world; }

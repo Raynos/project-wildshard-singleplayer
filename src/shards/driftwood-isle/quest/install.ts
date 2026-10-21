@@ -33,9 +33,8 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const { player } = world;
   const d = driftwoodWorld(shell);
   const rows = await ctx.product.json<QuestPageCompositionRows>('quests/page-composition.json');
-  registerQuestPageWorld(ctx.scope, rows.world, { pois: { hut: d.hut === null ? null : { anchors: d.hut.anchors },
-    lookout: d.lookout === null ? null : { anchors: d.lookout.anchors }, wreck: d.wreck === null ? null : { anchors: d.wreck.anchors },
-    shrine: d.shrine === null ? null : { anchors: d.shrine.anchors }, cave: d.cove === null ? null : { anchors: d.cove.anchors } }, flock: d.gulls?.flock ?? null });
+  registerQuestPageWorld(ctx.scope, rows.world, { pois: { hut: { anchors: d.hut.anchors }, lookout: { anchors: d.lookout.anchors },
+    wreck: { anchors: d.wreck.anchors }, shrine: { anchors: d.shrine.anchors }, cave: { anchors: d.cove.anchors } }, flock: d.gulls.flock });
   const placement = await prepareQuestPageComposition(ctx, rows);
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
   const npc = castawayFigure(world.sky, placement.place(rows.speaker.feet), placement.place(rows.speaker.fire), scenes, ctx.scope);
@@ -54,10 +53,10 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
   const adventure = await installQuestPageComposition(ctx, rows);
   installBridgeSway(ctx, { ...rows.sway, system: rows.systems.sway, before: rows.systems.before });
-  const placed = [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
-    ...(d.trailside?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []), adventure.zipline?.placed, ...adventure.kit.placed];
+  const placed = [d.pier.placed, d.boat.placed, ...d.jetties.map((j) => j.placed), d.hut.placed, d.lookout.placed, d.shrine.placed, d.bushes.placed, d.palms.placed, d.rocks.placed, d.bridge.placed,
+    ...d.trailside.placed, ...d.cover.placed, ...d.wreck.placed, ...d.cove.placed, adventure.zipline?.placed, ...adventure.kit.placed];
   // the named places' Sets: the client plan's `world.sets` rows (Wreck Cove's is the whole wreck and cove)
-  await bindClientPlaceSets(ctx, new Map([['wreck', [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])]]]), placed.filter(p => p !== undefined));
+  await bindClientPlaceSets(ctx, new Map([['wreck', [...d.wreck.placed, ...d.cove.placed]]]), placed.filter(p => p !== undefined));
   const swords = h.weapons.list.map(({ id }) => h.weapons.get(id)).filter((w): w is Sword => w instanceof Sword);
   const effects = ctx.app.effects, health = ctx.app.player;
   if (effects === null || health === null) throw new Error('Driftwood adventure requires the player effects');

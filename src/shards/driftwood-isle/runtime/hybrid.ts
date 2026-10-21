@@ -15,7 +15,6 @@ import { HeldClaims } from '@wildshard/game/loadout/claims';
 
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { boundResidentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
-import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { admitDriftwoodRows, driftwoodRows } from './boot/rows';
@@ -52,7 +51,7 @@ export class DriftwoodPlugin extends ShardPlugin {
       built = await residentWorld(ctx).load(ctx, async owner => {
         lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, ctx.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS)]));
         const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), baked = await residentBakedTiles(ctx, owner);
-        return withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress, scenes, baked));
+        return buildDriftwoodWorld(world, viewer, progress, scenes, baked);
       });
     }
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
@@ -60,12 +59,11 @@ export class DriftwoodPlugin extends ShardPlugin {
     shell.hooks.meleeSilent = true;
     const { pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
     Object.assign(shell.objects, { pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
-    shell.hooks.spawnFloor = (x, z) => pier?.floorHeightAt(x, z);
-    if (gulls !== null) shell.overhead.push(gulls.group);
-    if (built.cover !== null) shell.overhead.push(built.cover.group);
+    shell.hooks.spawnFloor = (x, z) => pier.floorHeightAt(x, z);
+    shell.overhead.push(gulls.group, built.cover.group);
     shell.hooks.places = () => this.adventure.value?.places?.points ?? [];
-    islandSystems<NonNullable<DriftwoodWorld['bridgeDeck']>>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
-    if (gulls !== null) await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), null, null, new Map([['gulls', gulls]]));
+    islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
+    await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), null, null, new Map([['gulls', gulls]]));
   }
 
   override async kit(ctx: ShardContext): Promise<void> {
