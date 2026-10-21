@@ -40,7 +40,9 @@ export function sourceWalker(root, runtimeOnly = false) {
       if (erased.has(imported.fileName) && !runtime.has(imported.fileName)) continue;
       const module = ts.resolveModuleName(imported.fileName, path, options, ts.sys).resolvedModule;
       if (module !== undefined) {
-        const target = module.resolvedFileName;
+        const declared = module.resolvedFileName;
+        const target = runtimeOnly ? declared.replace(/\.d\.json\.ts$/u, '.json').replace(/\.d\.mts$/u, '.mjs') : declared;
+        if (runtimeOnly && (/\.d\.[cm]?ts$/u.test(target) || !existsSync(target))) continue;
         dependencies.push(target);
         // A handwritten .d.mts types the script; its implementation still runs.
         const implementation = target.replace(/\.d\.mts$/u, '.mjs');

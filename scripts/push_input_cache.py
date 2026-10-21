@@ -79,7 +79,7 @@ const walk=sourceWalker(root,true),jobs=JSON.parse(readFileSync(0,'utf8')),rows=
 for(const job of jobs){
  const starts=[job.entry,...job.command.filter(path=>!path.startsWith('-')&&existsSync(resolve(root,path)))];
  const files=walk(starts);
- const opaque=files.some(file=>/\.[cm]?[jt]sx?$/.test(file)&&!['src/sdk/bake/json.mjs','src/sdk/bake/source-loader.mjs'].includes(file)&&/(?:\bimport\s*\(\s*[^'\"`]|(?:from|import)\s*['\"](?:node:)?child_process['\"])/.test(readFileSync(resolve(root,file),'utf8')));
+ const opaque=files.some(file=>/\.[cm]?[jt]sx?$/.test(file)&&!['src/sdk/bake/json.mjs','src/sdk/bake/source-loader.mjs','scripts/bake-output.mjs'].includes(file)&&/(?:\bimport\s*\(\s*[^'\"`]|(?:from|import)\s*['\"](?:node:)?child_process['\"])/.test(readFileSync(resolve(root,file),'utf8')));
  rows[job.id]=opaque?null:files;
 }
 console.log(JSON.stringify(rows));

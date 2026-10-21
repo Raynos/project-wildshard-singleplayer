@@ -66,3 +66,18 @@ test('runtime cache follows mixed value imports but not metadata file labels', (
     expect(sourceWalker(root)(['src/entry.ts'])).toContain('src/unexecuted.ts');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+
+test('runtime JSON imports read data rather than its type declaration graph', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/push-json-runtime-'));
+  try {
+    writeFileSync(join(root, 'tsconfig.json'), '{"compilerOptions":{"resolveJsonModule":true,"moduleResolution":"bundler","module":"esnext","allowArbitraryExtensions":true}}');
+    writeFileSync(join(root, 'entry.ts'), "import rows from './rows.json'; export default rows;");
+    writeFileSync(join(root, 'rows.json'), '{"value":1}');
+    writeFileSync(join(root, 'rows.d.json.ts'), "declare const value: import('./type-only').Row; export default value;");
+    writeFileSync(join(root, 'type-only.ts'), 'export interface Row { value: number }');
+    expect(sourceWalker(root, true)(['entry.ts'])).toEqual(['entry.ts', 'rows.json']);
+    expect(sourceWalker(root)(['entry.ts'])).toContain('type-only.ts');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
