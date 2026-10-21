@@ -21,11 +21,12 @@ import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/families/registry';
 import { staticGlb } from '../../src/sdk/bake/glb';
-import { boat } from '../../src/shards/driftwood-isle/models/catalogue';
+import { sites } from '../../src/shards/driftwood-isle/models/catalogue';
 import { TRAIL } from '../../src/shards/_template/data/layout';
 import { poolMask } from '../../src/shards/_template/generators/world';
 import source from '../../src/shards/_template/shard.config';
 
+const boat = sites.model('boat');
 const W = 600, H = 800;
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(1);
