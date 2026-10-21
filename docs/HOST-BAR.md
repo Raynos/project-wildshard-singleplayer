@@ -84,6 +84,8 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
   Its transition schema and per-frame geometry updates have no second shard;
   they are removed from the shared water surface and count to Pine C2.
 
+- G571 ranged page preparation: `game/loadout/rangedPage#prepareRangedPage` consumes admitted finish/collection source ids and ranged-page rows in the entered world phase. Existing equipment, inventory, geometry and menu owners stay authoritative. Client-only; tests 2–6 covered by `test/ranged-entry-capability.test.ts`; test 1 waived.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they

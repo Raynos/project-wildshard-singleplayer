@@ -3,12 +3,10 @@ import { ShardPlugin, type ShardContext } from '@wildshard/game/plugin/context';
 import { prepareForestPage, prepareForestPageLooks, placeForestPageModels } from '@wildshard/game/shardfile/forestPage';
 import { punchPageTerrain } from '@wildshard/game/shardfile/pagePreparation';
 import { bindPageWater } from '@wildshard/game/shardfile/pageWater';
-import { prepareRangedPage } from '@wildshard/game/loadout/rangedPage';
 import type { ForestPageRows } from '@wildshard/format/forestPage';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
-import { registerPackedGeometrySource } from '@wildshard/sdk/models/geometrySources';
 import { PosedDraw } from '@wildshard/sdk/looks/posedInstances';
 import { preparePineModelViews } from './models/antlerKing';
 import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
@@ -16,11 +14,6 @@ import { installPineLandmarks, type PineLandmarks } from './world/landmarks';
 export class PineHollow extends ShardPlugin {
   private landmarks: PineLandmarks | null = null;
   override async world(ctx: ShardContext): Promise<void> {
-    const rows = await ctx.product.json<RangedPageRows>('client/ranged-page.json'), finish = ctx.product.section('held/finishes').source;
-    if (finish === undefined) throw new Error('Missing declared finish geometry');
-    registerPackedGeometrySource(ctx.scope, rows.finishSource, { ...finish, label: 'held finishes' });
-    registerPackedGeometrySource(ctx.scope, rows.collection.source, { url: ctx.product.url(rows.collection.pack.url), rows: rows.collection.pack.rows, label: 'trophy-wall' });
-    await prepareRangedPage(ctx, rows);
     const input = await ctx.product.json<ForestPageRows>('world/forest-page.json'), world = ctx.game.runtime?.world;
     if (world === undefined || world === null) throw new Error('Missing forest world');
     await prepareForestPageLooks(ctx, input); bindPageWater(ctx, input.water);

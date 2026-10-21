@@ -5,6 +5,7 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { isDev } from '@wildshard/engine/core/devMode';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { registerPackedGeometrySource } from '@wildshard/engine/models/geometrySources';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
 import { applySkin, clearSkin, type SkinId } from '@wildshard/engine/player/Skins';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -40,8 +41,12 @@ export function rangedPage(scope: Scope, id: string): RangedPage { const page = 
 export async function prepareRangedPage(ctx: ShardContext, input: unknown): Promise<void> {
   const rows = v.parse(RangedPageSchema, input), runtime = ctx.game.runtime;
   if (runtime === undefined) throw new Error('Ranged page requires its runtime');
+  const finish = ctx.product.section('held/finishes').source;
+  if (finish === undefined) throw new Error('Missing declared finish geometry');
+  registerPackedGeometrySource(ctx.scope, rows.finishSource, { ...finish, label: 'held finishes' });
+  registerPackedGeometrySource(ctx.scope, rows.collection.source, { url: ctx.product.url(rows.collection.pack.url), rows: rows.collection.pack.rows, label: 'trophy-wall' });
   await HeldFinishes.prepare(ctx.product, ctx.scope, rows.finishSource);
-  const kinds = new ItemCatalogue(ctx.product.section('combat/items').items).inventory.kinds;
+  const kinds = new ItemCatalogue(ctx.product.shardfile.items).inventory.kinds;
   runtime.menu = { skins: () => runtime.play ? runtime.play.skins.cardRows(HeldFinishes.current(ctx.manifest.slug).cards) : [],
     onWearSkin: id => { runtime.hooks.wearFinish?.(id); }, skinsTitle: rows.menu.title,
     pack: { note: rows.menu.note, hint: rows.menu.hint, gearHint: rows.menu.gearHint, line: id => kinds.includes(id) ? rows.menu.lines[id] ?? rows.menu.noTrade : null } };

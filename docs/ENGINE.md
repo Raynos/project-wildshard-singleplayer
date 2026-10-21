@@ -11035,3 +11035,16 @@ the original construction owner. Either scope ending drops the loan and its
 cleanup registrations; leaving an entered scope never disposes its world.
 A duplicate, invalid id, expired owner or cross-construction loan refuses.
 The book owns no clocks, rule decisions, script continuations or saved state.
+
+### Ranged-page entry preparation (G571)
+
+The finite client-plan feature `{ kind: 'held.ranged-page', file }` reads an
+admitted ranged-page JSON blob during the entered world phase, after the
+platform's earlier world features and before shard world construction.
+Admission requires that file and `held/finishes`; item metadata comes from
+the already admitted native shardfile envelope.
+The host registers the declared finish and collection packed-geometry sources
+in the entered scope, then prepares the existing finish catalogue and menu.
+Packed URLs, labels, indices and the existing bag/finish owners are unchanged;
+leaving removes the source registrations. The feature selects no TS export,
+property path or callback and installs no additional gameplay clock.

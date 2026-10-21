@@ -5,6 +5,10 @@
       "kind": "strings.register"
     },
     {
+      "kind": "held.ranged-page",
+      "file": "client/ranged-page.json"
+    },
+    {
       "kind": "held.ranged-feel"
     },
     {
@@ -15,11 +19,28 @@
       "kind": "content.catalogue",
       "quests": true,
       "finishes": true,
-      "weapons": ["weapon.crossbow", "weapon.lever", "weapon.longbow"],
-      "ammunition": ["weapon.crossbow"],
-      "effects": ["finishes", "starter"],
-      "compendiums": ["pine.journal"],
-      "encounters": [{ "id": "antler-king", "displayName": "The Antler King", "showHeadBar": false }]
+      "weapons": [
+        "weapon.crossbow",
+        "weapon.lever",
+        "weapon.longbow"
+      ],
+      "ammunition": [
+        "weapon.crossbow"
+      ],
+      "effects": [
+        "finishes",
+        "starter"
+      ],
+      "compendiums": [
+        "pine.journal"
+      ],
+      "encounters": [
+        {
+          "id": "antler-king",
+          "displayName": "The Antler King",
+          "showHeadBar": false
+        }
+      ]
     }
   ]
 }
