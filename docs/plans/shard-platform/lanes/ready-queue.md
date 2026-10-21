@@ -18,6 +18,8 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 
 QA sp-o3 (+ sp-o2 on a facet split: mover, collections, map zones) · QB sp-x9 · QC sp-o5 · QD sp-x1 · QE done 937be4e247 (sp-o4: place sets -6, -1 section; figures/bridge/keepsakes stay listed, no second user) · QX sp-x8 (integrator). G3 entry-row move (hut/lookout/jetties/pier/boat) back to sp-o4; sp-o5 keeps QC2 + DW barrels after G566. G1c-G2e below are superseded by these rows.
 
+QB done 728a629a1d (sp-x9). Idle-Codex overflow (G551 wait lifted, logged): sp-x1 X4 Nine charged hosts; sp-x9 Nalati phase D own-folder code (1,280) toward data + AS + <= 150 listed.
+
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
 
 Jake 2026-10-21: every lane that finishes its current task takes a row here before any other row, except the
