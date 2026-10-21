@@ -3,6 +3,8 @@ import * as v from 'valibot';
 import { CosmeticFinishesSchema, type CosmeticFinishesRows } from '@wildshard/format/heldFinishes';
 import { EffectService, selectEffectGrants } from '@wildshard/engine/combat/effects/EffectService';
 import type { EffectTarget } from '@wildshard/engine/combat/effects/types';
+import { wearSkin } from '@wildshard/engine/models/gear';
+import { clearSkin, type MaterialSkinDef } from '@wildshard/engine/player/Skins';
 import { CosmeticsLocker, type CosmeticState } from '../cosmetics/locker';
 
 type Skin = CosmeticFinishesRows['skins'][number];
@@ -57,6 +59,16 @@ export class CosmeticFinishPainter {
 
 function paintObject(root: THREE.Object3D, row: Choice, kind: Paint['material']): () => void {
   const undo: (() => void)[] = [], seen = new Set<THREE.Material>();
+  const mats: Record<string, MaterialSkinDef['mats'][string]> = {};
+  root.traverse(object=>{
+    if(!meshObject(object))return;
+    for(const material of Array.isArray(object.material)?object.material:[object.material]){
+      if(kind==='standard'&&material instanceof THREE.MeshStandardMaterial||kind==='lambert'&&material instanceof THREE.MeshLambertMaterial)mats[material.name]={};
+    }
+  });
+  const id=JSON.stringify({row,kind});
+  const dressed=Object.keys(mats).length>0;
+  if(dressed)wearSkin(root,{skin:id},[{id,mats,material:kind}]);
   root.traverse(object => {
     if (!meshObject(object)) return;
     const materials: readonly THREE.Material[] = Array.isArray(object.material) ? object.material : [object.material];
@@ -79,7 +91,7 @@ function paintObject(root: THREE.Object3D, row: Choice, kind: Paint['material'])
       } else geometry.dispose();
     }
   });
-  return () => { for (const restore of undo) restore(); };
+  return () => { for (const restore of undo) restore();if(dressed)clearSkin(root); };
 }
 
 function repaintVertices(g: THREE.BufferGeometry, head: number, row: Repaint): boolean {

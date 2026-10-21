@@ -10452,3 +10452,16 @@ base cap up to 30 m/s and an optional boost boolean: 4× at or below the
 and scopes its DOM and listeners; it shows only while hovering in Developer.
 Shard manifests choose `hoverSpeedClass: 'road'` for grid padding; the
 default `'shard'` keeps ordinary cruise. See SHARDS.md for authoring.
+
+### Reversible material skins (G516)
+
+`models/gear.wearSkin(root, params, rows)` accepts identity/material rows
+for existing Standard or Lambert materials. It shares `player/Skins` state
+with the four-argument weapon-skin form. Material rows retain the source
+shader patches and program key; `clearSkin(root)` restores the original
+materials and disposes the clones. Clone identity follows each source
+material, including distinct materials with the same name.
+
+Real callers are Pine's held gear and Nalati's cosmetic finishes. The
+material row API has no callbacks; client lighting and texture/geometry
+painting remain with their existing presentation owners.

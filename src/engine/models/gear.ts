@@ -16,7 +16,7 @@ import { engineString } from '../strings';
  * while its file loads.
  */
 import * as THREE from 'three';
-import { applySkin, type SkinId, type WeaponKind, type SkinDef } from '../player/Skins';
+import { applySkin, applyMaterialSkin, type SkinId, type WeaponKind, type SkinDef, type MaterialSkinDef } from '../player/Skins';
 import type { SkyRig as Sky } from '../world/skyRig';
 import { announceModelReady, trackSpecimenReady, type ModelVariant } from './model';
 import type { Scope } from '../app/scope';
@@ -34,11 +34,18 @@ export function skinVariants(kind: WeaponKind, rows: readonly Pick<SkinDef, 'id'
 }
 
 /** dress a specimen in its variant's skin: Skins.applySkin clones the materials the skin changes, for this root alone */
-export function wearSkin(root: THREE.Object3D, p: GearSkinParams, sky: Sky, rows: readonly SkinDef[]): THREE.Object3D {
-  const skin = rows.find((row) => row.id === p.skin);
-  if (skin !== undefined) applySkin(root, skin, sky);
+export function wearSkin(root: THREE.Object3D, p: GearSkinParams, rows: readonly MaterialSkinDef[]): THREE.Object3D;
+export function wearSkin(root: THREE.Object3D, p: GearSkinParams, sky: Sky, rows: readonly SkinDef[]): THREE.Object3D;
+export function wearSkin(root: THREE.Object3D, p: GearSkinParams, sky: Sky | readonly MaterialSkinDef[], rows?: readonly SkinDef[]): THREE.Object3D {
+  if(materialRows(sky)){
+    const skin=sky.find(row=>row.id===p.skin);if(skin!==undefined)applyMaterialSkin(root,skin);
+  } else {
+    if(rows===undefined)throw new Error('Weapon skins require their registered rows');
+    const skin=rows.find(row=>row.id===p.skin);if(skin!==undefined)applySkin(root,skin,sky);
+  }
   return root;
 }
+function materialRows(value: Sky | readonly MaterialSkinDef[]): value is readonly MaterialSkinDef[] { return Array.isArray(value); }
 
 /** the wireframe box a specimen shows while its file loads (the training dummy's, E289) */
 function loadingBox(size: readonly [number, number, number]): THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> {
