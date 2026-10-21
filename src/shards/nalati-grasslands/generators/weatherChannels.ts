@@ -83,7 +83,7 @@ export const NALATI_WEATHER_PROGRAMS=parseClientChannels(pack('weather',recipes.
 /**
  * After the look (group `nalati.tint`): the panorama's live re-grade and the unlit water's light, from the finished look and
  * the frame's `overcast`, `rain`, `flash`, `waterRain` (0 indoors), `dayFog` and `dayKey` (the painted day's fog luminance
- * and key intensity). The re-grade (look/fog.ts `tint`, read by the panorama dome, the cloud sea and the panorama fog):
+ * and key intensity). The re-grade (look/render.ts `tint`, read by the panorama dome, the cloud sea and the panorama fog):
  * × the live key relative to the painted key (half strength, normalised: tints, doesn't dim), → white under the moon,
  * × the cloud light, → a storm's veil into the fog colour, + the flash. The water (data/lookGraphs.json 'nalati-water'):
  * its brightness follows the fog's, its sky the horizon toward the zenith, its sun the key, and the rain rings its surface.

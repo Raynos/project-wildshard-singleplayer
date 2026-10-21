@@ -72,5 +72,15 @@ const key = { turn: 40, lift: 15, ease: [-1, 12], sky: [0.4, 0.46, 0.62], ground
 // the painterly world (game/looks/painterlyLook PainterlyWorld): the static capture of the places, the dressing, the outcrops
 // and the crags (and the spruce), swept every 2 s; the phone's live shadow map holds only what moves at 512²; dusk over 12°…0°
 const world = { casters: ['pois', 'dressing', 'outcrops', 'crags'], sweep: 2, liveMap: 512, dusk: [12, 0] };
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key, world }));
+// the painted fog (engine/world/Atmosphere ColourRampFog with a panorama; look/render.ts): fogged materials fade into the
+// painting's haze straight behind them. Clear to 30 m, then 1 − exp(−(d − 30) · 0.0032), thinner with the ray's mean height
+// above the valley floor (−10 m), plus the day's aerial density (0.002) and whatever the weather adds. aerial = density,
+// clear distance, valley floor, day density. edge (N19, "make this far background transition super smooth and
+// invisible"): past the slab (N23's berm is the skyline) the ground and rings thicken into the same haze, strength 0.95
+// from 251 to 270 m from the slab centre, only beyond 20 m of view distance (a player by the edge still sees his feet)
+const fog = { start: 30, end: 600, aerial: [0.0032, 30, -10, 0.002], edge: [0.95, 251, 270, 20] };
+// soft cloud shadows (game/looks/paintedLook paintedAir): a 520 m tile, cover past 0.53 (± 0.06) takes 0.66 of the sun,
+// drifting at 1.6 × the wind + 2 m/s
+const air = { tile: 520, threshold: 0.53, strength: 0.66, softness: 0.06, drift: [1.6, 2] };
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key, world, fog, air }));
 writer.finish();
