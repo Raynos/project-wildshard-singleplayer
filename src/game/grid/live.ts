@@ -433,12 +433,12 @@ export class LiveGridHost {
       const early = bounded.length === 1 ? bounded[0] : undefined;
       const approach = moving ?? early ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && !this.issues.has(approach.instance)) {
-        // Direct cross-road approaches commit after the midpoint. A unique upcoming boulevard mouth uses
+        // G580 T4: a direct cross-road heading commits at the source edge, using the whole road for preparation.
+        // A unique upcoming boulevard mouth uses
         // the full readiness horizon; the last departed source is excluded until a real ray turns back into it.
         // Opaque alternatives at an ambiguous junction stay product/module-only until the turn identifies one destination.
-        const committedReach = (this.assembly.pitch - 2 * CHUNK_HALF) / 2;
-        const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach,
-          Math.min(committedReach, readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance));
+        const roadWidth = this.assembly.pitch - 2 * CHUNK_HALF;
+        const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
         if (this.distance(approach, feet) <= reach) {
           // A turn replaces any speculative world, including a declarative copy, only after durable disposal succeeds.
           // Never overlap opaque worlds, retry a failed save each tick, or discard an in-flight crossing reservation.
