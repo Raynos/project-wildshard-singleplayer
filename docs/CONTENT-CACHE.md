@@ -17,11 +17,13 @@ requires handling actual write failures.
 
 `pin(hashes)` returns an idempotent release function. Overlapping owners
 protect active critical bytes until all leases release. A durable LRU index
-tracks wire size and access order. Reads update access ages in memory; one
-scoped two-second flush coalesces their index writes. Writes, eviction and
-pagehide flush promptly, and remove the pending timer/listener. Entries carry
-recovery metadata if a
-quota failure prevented an index write. Browser-evicted or corrupted bytes
+tracks wire size and access order. Reads, writes and eviction update its
+in-memory metadata; the existing scoped two-second window coalesces index
+writes. Immutable blob writes finish before acknowledgement and carry
+recovery headers, so reopening recovers writes whose index has not flushed.
+Explicit flush, worker close and pagehide force pending metadata and remove
+the timer/listener. Entries also recover if a quota failure prevented an
+index write. Browser-evicted or corrupted bytes
 become cache misses. Concurrent reads of a missing address share one download.
 
 The product loader owns the visited manifest and publishes it only when its
