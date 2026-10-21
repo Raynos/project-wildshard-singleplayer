@@ -26,8 +26,10 @@ export function soakInspector(url, Socket = WebSocket) {
     else receive(message);
   });
   ws.on('close', retire); ws.on('error', retire);
+  // O12: 30 s, as a loaded Simulator's inspector answers late (10 s failed three 5x5 soaks at load ~110 with the game
+  // alive and its memory flat); a real page freeze still shows as the leg's in-page worstFrameMs
   const send = (method, params = {}) => new Promise((resolve, reject) => {
-    const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error(`Safari inspector timeout: ${method}`)); }, method === 'Heap.snapshot' ? 300000 : 10000);
+    const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error(`Safari inspector timeout: ${method}`)); }, method === 'Heap.snapshot' ? 300000 : 30000);
     pending.set(id, { resolve, reject, timer });
     const message = { id, method, params };
     try { ws.send(JSON.stringify(target ? { id: ++serial, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } } : message)); }
