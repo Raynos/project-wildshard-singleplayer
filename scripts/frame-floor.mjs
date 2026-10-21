@@ -421,7 +421,8 @@ async function measureShard(driver, shard, deadline) {
     // an unloaded home is refused/recovered onto the road; labelling that row 'spawn' hid the wrong view.
     const spawnRow = await standingSample(driver, meta.spawn); rows.push(spawnRow);
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
-    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' ? GRID_POSES : [])];
+    // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it
+    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' && gridScenario !== 'outer-road' ? GRID_POSES : [])];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
     const scan = [];
     for (const pose of candidates) {
