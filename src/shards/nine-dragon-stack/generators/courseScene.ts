@@ -1,7 +1,7 @@
 import PRACTICE_PROGRAM from '../behaviour/practice.generated.json' with {type:'json'};
 import * as THREE from 'three';
 import { CourseKit as DevKit, courseLabel as devLabel, captureCourse } from '@wildshard/sdk/bake/practiceCourse';
-import type { HookPracticeLayout, PracticeScene } from '@wildshard/format/practiceCourse';
+import type { HookPracticeLayout, PracticeScene } from '@wildshard/format/practiceCourseRows';
 import type course from '../data/grappleCourse.json';
 
 type ColliderDesc = PracticeScene['colliders'][number];

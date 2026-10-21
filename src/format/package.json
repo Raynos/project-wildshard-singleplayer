@@ -235,7 +235,7 @@
     "./sceneBuffers": "./sceneBuffers.ts",
     "./clientTrails": "./clientTrails.ts",
     "./clientCues": "./clientCues.ts",
-    "./practiceCourse": "./practiceCourse.ts",
+    "./practiceCourseRows": "./practiceCourseRows.ts",
     "./riding": "./riding.ts",
     "./scaledPost": "./scaledPost.ts",
     "./grapple": "./grapple.ts",

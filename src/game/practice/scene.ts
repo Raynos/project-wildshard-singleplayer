@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import { DevKit, devLabel, devMaterial } from '@wildshard/engine/practice/playground/devGrid';
 import type { RoomMap, RoomShape } from '@wildshard/engine/ui/roomMap';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { parsePracticeScene } from '@wildshard/format/practiceCourse';
+import type { PracticeScene } from '@wildshard/format/practiceCourseRows';
 
 /** Client-only presenter. Both room types declare geometry and maps as local rows; no shard hooks are accepted. */
-export function buildPracticeScene(input: unknown, origin: THREE.Vector3, name: string): { root: THREE.Group; colliders: ColliderDesc[]; map: RoomMap } {
-  const row = parsePracticeScene(input), kit = new DevKit(), extra: THREE.Object3D[] = [];
+export function buildPracticeScene(row: PracticeScene, origin: THREE.Vector3, name: string): { root: THREE.Group; colliders: ColliderDesc[]; map: RoomMap } {
+  const kit = new DevKit(), extra: THREE.Object3D[] = [];
   for (const part of row.parts) {
     const [x, y, z] = part.at, wx = x + origin.x, wy = y + origin.y, wz = z + origin.z;
     if (part.kind === 'box') kit.box(part.tone, wx, wy, wz, ...part.size, part.tint);

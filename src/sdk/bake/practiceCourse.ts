@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { parsePracticeScene, type PracticeScene } from '@wildshard/format/practiceCourse';
+import { parsePracticeScene, type PracticeScene } from '@wildshard/format/practiceCourseRows';
 
 type Part = PracticeScene['parts'][number];
 type Tone = Extract<Part, { kind: 'box' }>['tone'];

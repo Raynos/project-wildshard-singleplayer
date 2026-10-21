@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Vector3, Mesh, type BufferGeometry } from 'three';
-import { parsePracticeScene } from '@wildshard/format/practiceCourse';
+import { parsePracticeScene } from '@wildshard/format/practiceCourseRows';
 import { buildPracticeScene } from '@wildshard/game/practice/scene';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { grappleCourseScene } from '../src/shards/nine-dragon-stack/generators/courseScene';

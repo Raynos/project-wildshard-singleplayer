@@ -7,7 +7,7 @@ import { PlaygroundChip, clock, playgroundActive } from '@wildshard/engine/pract
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
 import type { RoomMap, RoomMarker } from '@wildshard/engine/ui/roomMap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { parseRidingPractice, type RidingPracticeLayout, type HookPracticeLayout, type HookPracticeRow } from '@wildshard/format/practiceCourse';
+import type { RidingPracticeLayout, HookPracticeLayout, HookPracticeRow } from '@wildshard/format/practiceCourseRows';
 import { isJsonData } from '@wildshard/format/json';
 import type { ShardContext } from '../plugin/context';
 import { ProjectedState, ReturnProgram } from '../population/returnProgram';
@@ -38,7 +38,7 @@ function hookCoursePad(row: HookCourseRow, id: string): HookCoursePad {
 const yawToward = (x: number, z: number, tx: number, tz: number): number => Math.atan2(-(tx - x), -(tz - z));
 
 /** Only rows and native page authority enter the shared room lifecycle. */
-export type PracticeCourseRows = { kind:'horse'; layout:unknown } | { kind:'grapple'; layout:HookPracticeLayout };
+export type PracticeCourseRows = { kind:'horse'; layout:RidingPracticeLayout } | { kind:'grapple'; layout:HookPracticeLayout };
 interface CourseController {
   readonly map:RoomMap;
   enter:()=>void; exit:()=>void; afterExit:()=>void; events:(active:boolean)=>void;
@@ -47,7 +47,7 @@ interface CourseController {
 function prepareCourse(ctx:ShardContext,input:PracticeCourseRows):
  {kind:'horse';layout:RidingPracticeLayout;mount:ReturnType<typeof pageRidingMount>} | {kind:'grapple';layout:HookPracticeLayout;law:ReturnProgram} {
   if(!isJsonData(input.layout))throw new Error('Practice rows require JSON data');
-  if(input.kind==='horse')return {kind:'horse',layout:parseRidingPractice(input.layout),mount:pageRidingMount(ctx)};
+  if(input.kind==='horse')return {kind:'horse',layout:input.layout,mount:pageRidingMount(ctx)};
   hookCoursePad(input.layout.course,input.layout.course.run.from);return {...input,law:ReturnProgram.page(input.layout.program,ctx.scope)};
 }
 

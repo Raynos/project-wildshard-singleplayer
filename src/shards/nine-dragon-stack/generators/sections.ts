@@ -1,5 +1,5 @@
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
-import { PracticeSceneSchema } from '@wildshard/format/practiceCourse';
+import { PracticeSceneSchema } from '@wildshard/format/practiceCourseRows';
 import * as v from 'valibot';
 
 const finite = v.number();
@@ -128,6 +128,9 @@ export const SignAtlasSchema = v.strictObject({
   neonLights: v.array(v.strictObject({ at: V3, color: V3, w: N, h: N, power: N, spill: N })),
   copies: v.array(v.strictObject({ neon: v.boolean(), boxes: v.array(N), poses: v.array(v.strictObject({ x: N, y: N, z: N, yaw: N, variant: v.string(), params: v.record(v.string(), v.unknown()) })) })),
 });
+
+/** Named practice files retain the defining bounded scene contract. */
+export const FixedPracticeFileSchema=v.strictObject({practice:v.strictObject({...FixedRowsSchema.entries.practice.entries,presentation:PracticeSceneSchema})});
 
 /** Validate the course with its defining public schema before serializing it. */
 export function parseFixedRows(value: unknown): Omit<v.InferOutput<typeof FixedRowsSchema>, 'practice'> & { practice: Omit<v.InferOutput<typeof FixedRowsSchema>['practice'], 'presentation'> & { presentation: v.InferOutput<typeof PracticeSceneSchema> } } {

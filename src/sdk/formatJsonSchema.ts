@@ -26,6 +26,7 @@ import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/forma
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
 import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
+import { PracticeSceneSchema,RidingPracticeSchema } from '@wildshard/format/practiceCourseRows';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
@@ -152,6 +153,8 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'practiceCourseRows.PracticeScene':PracticeSceneSchema,
+  'practiceCourseRows.RidingPractice':RidingPracticeSchema,
   'mountedSpecimenRows.MountedSpecimenSeat': MountedSpecimenSeatSchema,
   'speciesBookRows.SpeciesActorsFile': SpeciesActorsFileSchema,
   'arenaScriptRows.ArenaScriptFightFile': ArenaScriptFightFileSchema,

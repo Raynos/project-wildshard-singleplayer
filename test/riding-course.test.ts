@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
-import { parseRidingPractice } from '../src/format/practiceCourse';
+import { parseRidingPractice } from '../src/format/practiceCourseRows';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 

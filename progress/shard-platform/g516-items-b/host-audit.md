@@ -461,3 +461,25 @@ Only a build-time type declaration is added, never a product section.
 Root/layer types, typed lint and six focused suites (21 tests) pass.
 No rendering, collision, AS, codec, cap or budget changes. One Nalati
 batch follows the small source landing; the carrier owns the push gate.
+
+
+X4 practice defining admission: delete the whole runtime practiceCourse
+format module into build-only practiceCourseRows. Existing Nalati riding
+and Nine grapple files receive their defining named-file schemas. Their
+native readers borrow typed rows; the build still checks bounded meshes,
+colliders, map primitives, riding guest and family rows before emission.
+Preserve the producer's original objects and serialized key order.
+No native controller is relocated, uncharged or given a fixture user.
+The shared lifecycle/presenter and named admission have real Nalati/Nine
+users, HOST-BAR 6/6. Each family controller remains separately charged 4/6.
+Runtime canonical TS: **Nalati 0 / Nine 0 / platform -70**.
+Build TS **+75**, total TS **+5**. Custom-charge reduction is **0**;
+this is a shared runtime validation cut, not a native gameplay cut.
+Exact parent/candidate row parity: horse **93,606 bytes**, **101 colliders**,
+**113 parts**, SHA256 c1ff07d9c645b559d7b720969f808b97555a06639029da2c0dba48db8c549635;
+grapple **262,998 bytes**, **27 colliders**, **44 parts**, SHA256
+34174ec44dd8332016fb7451ac578dab0c4ec3a4ad7073377ad24c2daf449b21.
+All scene, map, collider and AS bytes are identical; schema metadata is
+build admission, with no new private payload or codec. Root/layer types,
+typed lint, four focused suites (20 tests) and real hooks pass. One
+Nalati/Nine batch follows; no Simulator job or physics change is needed.

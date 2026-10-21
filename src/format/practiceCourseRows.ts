@@ -1,3 +1,4 @@
+/** Build-only course admission. Native lifecycle and controllers remain counted. */
 import * as v from 'valibot';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { isJsonData } from './json';

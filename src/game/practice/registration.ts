@@ -1,7 +1,7 @@
 import type { ShardContext } from '../plugin/context';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
-import type { HookPracticeLayout } from '@wildshard/format/practiceCourse';
+import type { HookPracticeLayout,RidingPracticeLayout } from '@wildshard/format/practiceCourseRows';
 
 /** Client-only course cards load admitted layouts into the native practice rooms. */
 export function installPracticeCourse(ctx: ShardContext, row: ClientFeatureRow): void {
@@ -10,7 +10,7 @@ export function installPracticeCourse(ctx: ShardContext, row: ClientFeatureRow):
     load: async () => {
       const { PracticeCourse } = await import('./course');
       if (row.course === 'horse') {
-        const { practice } = await ctx.product.json<{ practice: unknown }>(row.file);
+        const { practice } = await ctx.product.json<{ practice: RidingPracticeLayout }>(row.file);
         return class extends PracticeCourse { constructor(host: PlaygroundHost) { super(host, ctx, {kind:'horse',layout:practice}); } };
       }
       const { practice } = await ctx.product.json<{ practice: HookPracticeLayout }>(row.file);
