@@ -16,8 +16,10 @@ it('counts undeclared network requests and early modules once, separately from c
     serverTiming: [{ name: 'ws-network', duration: 700 }], encodedBodySize: 900 }));
   accounting.resource(timing('/worker-hit.bin', { workerStart: 10, transferSize: 0,
     serverTiming: [{ name: 'ws-cache', duration: 0 }], encodedBodySize: 400 }));
-  expect(accounting.snapshot()).toEqual({ networkBytes: 2000, cachedBytes: 900,
-    pendingBytes: 0, filesDone: 4, filesTotal: 4, unclassifiedBytes: 0 });
+  accounting.resource(timing('/worker-safari-hit.js', { workerStart: 0, transferSize: 0,
+    serverTiming: [{ name: 'ws-cache', duration: 1024 }], encodedBodySize: 0 }));
+  expect(accounting.snapshot()).toEqual({ networkBytes: 2000, cachedBytes: 1924,
+    pendingBytes: 0, filesDone: 5, filesTotal: 5, unclassifiedBytes: 0 });
 });
 
 it('retains exact pending index sizes and resolves cache reads and late declarations', () => {

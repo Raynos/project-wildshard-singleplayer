@@ -61,7 +61,11 @@ export class DownloadAccounting {
     this.received.add(this.url(entry.name));
     const file = this.files.get(this.url(entry.name)); if (file !== undefined) file.complete = true;
     const hit = entry.serverTiming.some(timing => timing.name === 'ws-cache');
-    if (hit || (entry.workerStart === 0 && entry.transferSize === 0)) this.browserCache += entry.encodedBodySize;
+    if (hit) {
+      const bytes = entry.serverTiming.find(timing => timing.name === 'ws-cache')?.duration ?? 0;
+      this.browserCache += bytes > 0 ? bytes : entry.encodedBodySize;
+    }
+    else if (entry.workerStart === 0 && entry.transferSize === 0) this.browserCache += entry.encodedBodySize;
     else if (entry.transferSize > 0) this.network += entry.transferSize;
     else if (entry.serverTiming.some(timing => timing.name === 'ws-network')) {
       const receipt = entry.serverTiming.find(timing => timing.name === 'ws-network');

@@ -492,7 +492,7 @@ function transportReceipt(response, cached = false) {
   const headers = new Headers(response.headers);
   const previous = headers.get('server-timing');
   const bytes = Number(headers.get('content-length')) || 0;
-  headers.set('server-timing', `${previous ? `${previous},` : ''}${cached ? 'ws-cache' : `ws-network;dur=${bytes}`}`);
+  headers.set('server-timing', `${previous ? `${previous},` : ''}${cached ? 'ws-cache' : 'ws-network'};dur=${bytes}`);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
