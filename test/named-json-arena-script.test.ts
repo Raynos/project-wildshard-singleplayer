@@ -17,7 +17,7 @@ import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generat
 const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(value));
 
 test('real arena payloads have one defining schema at production and product read',async()=>{
-  const fight={...titan,arenaScript:titan.TITAN_HOST,programs,arenaFire};
+  const fight={arenaScript:titan.TITAN_HOST,programs,arenaFire};
   const fightSchema=namedJsonSchema(ArenaScriptFightFileSchema),geometrySchema=namedJsonSchema(ArenaScriptGeometrySchema);
   const fightBlob=nameBlob('combat/titan-fight.json','json',encode(fight),{jsonSchema:fightSchema});
   const geometryBlob=nameBlob('combat/titan-geometry.json','json',encode(geometry),{jsonSchema:geometrySchema});

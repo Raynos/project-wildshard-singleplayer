@@ -161,3 +161,22 @@ Retire tests of the deleted wrapper; strengthen the actual mounted Titan
 fight with authored support health, ranged/melee damage and retired-owner
 checks. Root/layer types, typed lint and six suites (22 tests) pass.
 No collider, codec, AS engine or resource/budget changes.
+
+
+G518 Nalati byte repair: the pinned compiler already uses O3 and emits
+no names/debug section; keep the compiler/AS engine unchanged. Factor
+history observation reads while preserving exact twelve-slot oldest-first
+sampling. Pack existing fire laws with existing pasture/wind, while
+attack and rules share the other module. The existing eight-module cap,
+32-command cap, fuel, memory and AS line ceilings remain unchanged.
+Use the existing radial query for sine/cosine facts; retain guest angle
+and motion policy and compare 480 steps to the original trajectory.
+Remove the unused duplicate Titan generator-export table from the named
+fight payload; all native arena and King consumers retain their rows.
+Measured Nalati private JSON: **46 / 12,497,444 B**, versus exact
+pushed base 62556d91e3 **46 / 12,519,886 B**
+(**-22,442 B**). Existing growth policy passes; no budget edit.
+Runtime source: **shards 0 / platform 0**; build TS **0**, MJS **0**,
+authored AS **+14**. Existing host scores/charges are unchanged.
+Root/layer types, typed lint, field/history/RNG/real boss suites and the
+emitted Nalati product pass. No collider or visual change.

@@ -1,4 +1,4 @@
-import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombined';
+import { Signal, Field, Channel, Read, Do } from './generated/nalatiPastureWind';
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 // Event projections; retained state belongs to the native binding at <= 10 Hz.
