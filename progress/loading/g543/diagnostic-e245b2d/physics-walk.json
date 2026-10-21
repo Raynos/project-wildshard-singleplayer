@@ -1,0 +1,302 @@
+{
+  "label": "g543-x17",
+  "build": "e245b2d-mvhnc7m5",
+  "tier": "phone",
+  "date": "2026-10-21T05:09:43.003Z",
+  "cpu": 4,
+  "walkCpu": 4,
+  "physics": {
+    "driftwood-isle": {
+      "colliders": 2247
+    }
+  },
+  "activation": {
+    "driftwood-isle": {
+      "systems": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "game.grid.origin.restore",
+        "game.grid.reveal.input",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input",
+        "game.grid.hud.fov",
+        "physics.bodies.pre",
+        "game.grid.live.pre",
+        "grid.runtime.driftwood-isle.pieces",
+        "shard.driftwood.movers",
+        "physics.movers",
+        "physics.step",
+        "physics.bodies.post",
+        "player.step",
+        "game.grid.session",
+        "game.grid.live.post",
+        "shard.driftwood.bridge.capture",
+        "player.update",
+        "training-arena",
+        "hud.perf",
+        "engine.world.bounds",
+        "game.grid.origin",
+        "engine.effects",
+        "main.6",
+        "engine.player.for",
+        "grid.runtime.driftwood-isle.forest",
+        "grid.look.driftwood-isle.frame",
+        "grid.runtime.driftwood-isle.callback.shard.driftwood.cover",
+        "shard.driftwood.ocean",
+        "shard.driftwood.palms",
+        "shard.driftwood.bridge.pose",
+        "shard.driftwood.seabed",
+        "shard.driftwood.cove",
+        "shard.driftwood.shrine",
+        "shard.driftwood.gulls",
+        "grid.runtime.driftwood-isle.callback.world.impacts",
+        "grid.runtime.driftwood-isle.animals",
+        "shard.driftwood.dusk",
+        "shard.driftwood.adventure",
+        "driftwood.speaker.pose",
+        "driftwood.trader.pose",
+        "shard.driftwood-isle.installSpine",
+        "shard.driftwood-isle.installTrader",
+        "shard.driftwood.adventure.2",
+        "shard.driftwood-isle.installGullGuide",
+        "shard.driftwood-isle.installComplete",
+        "shard.driftwood-isle.installFinale",
+        "shard.driftwood.director",
+        "shard.driftwood-isle.installEcology",
+        "shard.driftwood.adventure.3",
+        "shard.driftwood.adventure.4",
+        "game.loot",
+        "keepsakes",
+        "hud.combat",
+        "shard.driftwood.firstMinutes",
+        "first hints",
+        "main.world",
+        "client.baked.tiles",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "shard.driftwood.shrineHum",
+        "shard.driftwood.ambience",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud",
+        "engine.input.trace",
+        "engine.input.edges",
+        "engine.hud.pins",
+        "game.grid.frame",
+        "game.grid.reveal",
+        "game.grid.hud",
+        "grid.look.driftwood-isle",
+        "grid.clip.driftwood-isle"
+      ],
+      "deviceSaves": {
+        "devMode": true,
+        "life.lastUnload": null,
+        "telemetry.install": "66df5126-2db3-4419-a869-895d1b1c7aa6",
+        "telemetry.heartbeat": {
+          "session": "56859266-281e-4229-86fb-88d90d011f98",
+          "build": "e245b2d-mvhnc7m5",
+          "level": "platform.grid",
+          "stage": "play",
+          "at": 1792559419940,
+          "fps": 12,
+          "clean": false,
+          "error": false,
+          "contextLost": false
+        },
+        "gridIntent.once": null,
+        "grid.recovery.guard": null,
+        "titleArrival.once": null,
+        "life.lastEnd": {
+          "kind": "intentional",
+          "reason": "shard switch to driftwood-isle (fresh page)",
+          "at": 1792559384804,
+          "resident": "",
+          "mode": "",
+          "build": "e245b2d",
+          "bootedAt": 1792559384870,
+          "discarded": false,
+          "nav": "navigate"
+        },
+        "telemetry.reported": [
+          "aa418695-1c28-481b-b0f1-f08ba31580a1"
+        ],
+        "life.trace": [
+          "00:09:45 a5lu +0s boot \u00b7 nav navigate \u00b7 ?tier=phone&mute=1&nolock=1&sw=0&chunk=driftwood-isle \u00b7 win 402x681 vv 402x681@1.00+0,0 canvas 0,0 402x681 dpr 3 visible",
+          "00:10:17 a5lu +32s world ready \u00b7 first-paint 64ms, first-contentful-paint 64ms \u00b7 win 402x681 vv 402x681@1.00+0,0 canvas 0,0 402x681 dpr 3 visible"
+        ],
+        "life.traceAt": 1792559385968,
+        "boot.times": {
+          "phone:18": {
+            "renderer": 76.80000001192093,
+            "sky": 12.399999976158142,
+            "terrain": 1.199999988079071,
+            "cards": 2.699999988079071,
+            "forest": 9.600000023841858,
+            "physics": 5.599999964237213,
+            "edge": 90.09999996423721,
+            "grass": 0,
+            "cabins": 0.10000002384185791,
+            "props": 0.19999998807907104,
+            "animals": 8.099999964237213,
+            "weapon": 0.5999999642372131,
+            "assembly": 6563,
+            "menu": 18.30000001192093,
+            "shaders": 8253.5,
+            "firstFrame": 494.2000000476837,
+            "audio": 1.5999999642372131
+          }
+        }
+      }
+    }
+  },
+  "walkErrors": [],
+  "walk": [
+    {
+      "shard": "driftwood-isle",
+      "name": "pier",
+      "frames": 475,
+      "seconds": 27.3,
+      "end": {
+        "x": -19.735,
+        "y": 0.535,
+        "z": -150.615
+      },
+      "expectY": 1.325,
+      "maxY": 1.22,
+      "groundSpeedP50": 3.41,
+      "airFrames": 8,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "hut",
+      "frames": 217,
+      "seconds": 10.8,
+      "end": {
+        "x": -22,
+        "y": 18.906,
+        "z": -64.54
+      },
+      "expectY": 19.691,
+      "maxY": 18.91,
+      "groundSpeedP50": 4.08,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "bridge",
+      "frames": 274,
+      "seconds": 13.1,
+      "end": {
+        "x": 35.285,
+        "y": 12.268,
+        "z": 33.252
+      },
+      "expectY": 12.13,
+      "maxY": 12.27,
+      "groundSpeedP50": 3.85,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "lookout",
+      "frames": 89,
+      "seconds": 4.2,
+      "end": {
+        "x": 93.762,
+        "y": 40.529,
+        "z": 93.647
+      },
+      "expectY": 41.154,
+      "maxY": 40.53,
+      "groundSpeedP50": 3.34,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "wreck",
+      "frames": 86,
+      "seconds": 4.8,
+      "end": {
+        "x": 151.271,
+        "y": 3.808,
+        "z": 7.709
+      },
+      "expectY": 4.587,
+      "maxY": 3.81,
+      "groundSpeedP50": 3.65,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "cave",
+      "frames": 100,
+      "seconds": 5,
+      "end": {
+        "x": 142.001,
+        "y": 0.42,
+        "z": 18.548
+      },
+      "expectY": 1.2,
+      "maxY": 0.57,
+      "groundSpeedP50": 4.14,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "shrine",
+      "frames": 110,
+      "seconds": 4.8,
+      "end": {
+        "x": -96.979,
+        "y": 10.218,
+        "z": 106.605
+      },
+      "expectY": 10.998,
+      "maxY": 10.22,
+      "groundSpeedP50": 3.6,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "boat",
+      "frames": 56,
+      "seconds": 2.2,
+      "end": {
+        "x": -4.33,
+        "y": 0.212,
+        "z": -202.308
+      },
+      "expectY": 1.12,
+      "maxY": 1.22,
+      "groundSpeedP50": 3.88,
+      "airFrames": 8,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    }
+  ],
+  "rawSHA256": "175b4380b639739513244d400a8cd650fbc172292435e10cc8beffcb102ccea8"
+}

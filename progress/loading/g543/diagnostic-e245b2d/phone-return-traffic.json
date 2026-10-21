@@ -1,0 +1,117 @@
+{
+  "pin": "e245b2d5a798fd694c2df74ff7fa1a3ef49f1db0",
+  "requests": 4921,
+  "byProduct": {
+    "far-reach": 125,
+    "pine-hollow": 787,
+    "open-plot-sky-race": 166,
+    "_template": 205,
+    "sunscar-dunes": 148,
+    "blender-template": 157,
+    "open-plot-night-market": 166,
+    "nine-dragon-stack": 674,
+    "nalati-grasslands": 161,
+    "open-plot-coral-drift": 153,
+    "open-plot-lantern-bayou": 152,
+    "open-plot-alien-plain": 153,
+    "open-plot-ember-forge": 153,
+    "open-plot-desert-ruin": 153,
+    "pastel-plain": 197,
+    "open-plot-mosslight-ruins": 153,
+    "open-plot-clockwork-canyon": 153,
+    "ink-cel-valley": 197,
+    "open-plot-frostline-peaks": 153,
+    "open-plot-thin-ice": 153,
+    "open-plot-showcase-template": 152,
+    "open-plot-starfall-observatory": 152,
+    "open-plot-sky-harbor": 153,
+    "other": 88,
+    "driftwood-isle": 17
+  },
+  "samples": [
+    {
+      "at": 32734.899999976158,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": "driftwood-isle",
+      "gameplayReady": true,
+      "feet": {
+        "x": -1.8330010000955355e-06,
+        "y": 1.2048999945065588,
+        "z": -193.9999984044888
+      }
+    },
+    {
+      "at": 43167.09999996424,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": -5.95999160246663e-07,
+        "y": 0.44063892811216965,
+        "z": -250.350025751938
+      }
+    },
+    {
+      "at": 43819.19999998808,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "preparing",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.0062666013854624225,
+        "y": 0.4496788551076142,
+        "z": -260.0497365547243
+      }
+    },
+    {
+      "at": 43965.80000001192,
+      "crossing": {
+        "current": null,
+        "target": null,
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.00621542884614712,
+        "y": 0.44947153208478496,
+        "z": -260.7216074420038
+      }
+    },
+    {
+      "at": 47902,
+      "crossing": {
+        "current": null,
+        "target": "driftwood-isle",
+        "phase": "preparing",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.013931262891746066,
+        "y": 0.448098807172518,
+        "z": -255.98506318044826
+      }
+    }
+  ],
+  "failures": [
+    "Crossing route did not re-enter home: {\"left\":true,\"feet\":{\"x\":0.02339908926651635,\"y\":0.44932165214603303,\"z\":-255.98506017313127},\"issues\":{}}",
+    "Missing actual road exit or home re-entry"
+  ]
+}
