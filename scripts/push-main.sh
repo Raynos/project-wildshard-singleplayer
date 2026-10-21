@@ -126,6 +126,9 @@ for push_round in 1 2 3 4 5 6; do
   git push origin "$tip:refs/heads/main"; rc=$?
   record "$tip" "$ahead" "$regen" "$((SECONDS - t0))" "$rc"
   [ "$rc" = 0 ] || exit "$rc"
+  # A serialized carrier may batch future commits on its own cadence. Finish
+  # this fully gated upload, leaving later landings for its next invocation.
+  [ "${PUSH_SINGLE_BATCH:-0}" != 1 ] || exit 0
 done
 echo "push-main: still commits left after 6 pushes — run it again" >&2
 exit 75 # pushed, but more landed meanwhile: auto-push.sh goes again rather than calling it red
