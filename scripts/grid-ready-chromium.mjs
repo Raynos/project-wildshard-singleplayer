@@ -128,28 +128,36 @@ if(failed)throw new Error('Grid readiness finding; see per-shard receipts');
 /** Serialized browser observer: sparse residency snapshots and live drawn-frame intervals, no GL hooks. */
 function installReadinessProbe(instance,slug,sumOwned) {
  window.__gridReadyProbe?.finish();
- const api=window.__wildshard,game=api.world.game,context=game.renderer.getContext(),samples=[],intervals=[];
+ const api=window.__wildshard,game=api.world.game,context=game.renderer.getContext(),samples=[],intervals=[],longFrames=[];
+ let loadingPeak=null,playingPeak=null;
  let phase='loading',count=game.frameCount,last=0,raf=0,skipped=0,active=false,contextLost=false;
  const memory=()=>{
   const state=api.shard.grid.state(),claims=api.shard.grid.residency().claims;
   const own=claims.filter(row=>row.owner===instance||row.id===`product:grid:${slug}`);
-  samples.push({at:performance.now(),phase,bytes:sumOwned(own,instance,slug),current:state.live.live.current,
-   claims:own.map(row=>({id:row.id,category:row.category,bytes:row.bytes,accountedBytes:row.accountedBytes,coveredBy:row.coveredBy}))});
+  const row={at:performance.now(),phase,bytes:sumOwned(own,instance,slug),current:state.live.live.current};
+  samples.push(row);
+  const peak=()=>({...row,claims:own.map(claim=>({id:claim.id,category:claim.category,bytes:claim.bytes,accountedBytes:claim.accountedBytes,coveredBy:claim.coveredBy}))});
+  if(loadingPeak===null||row.bytes>loadingPeak.bytes)loadingPeak=peak();
+  if(phase==='playing'&&(playingPeak===null||row.bytes>playingPeak.bytes))playingPeak=peak();
  };
  const timer=setInterval(memory,250);memory();
  const tick=timestamp=>{
   if(!active)return;
-  if(game.frameCount!==count){intervals.push(timestamp-last);skipped+=Math.max(0,game.frameCount-count-1);last=timestamp;count=game.frameCount;}
+  if(game.frameCount!==count){
+   if(timestamp-last>100&&longFrames.length<300){const state=api.shard.grid.state();longFrames.push({startMs:last,endMs:timestamp,ms:timestamp-last,
+    current:state.live.live.current,crossing:state.live.crossing.phase,runtimeTiming:state.live.runtimeTiming,
+    workMs:game.workMs[(game.frameI+game.workMs.length-1)%game.workMs.length]});}
+   intervals.push(timestamp-last);skipped+=Math.max(0,game.frameCount-count-1);last=timestamp;count=game.frameCount;}
   contextLost||=context.isContextLost();raf=requestAnimationFrame(tick);
  };
  window.__gridReadyProbe={
-  start(nextPhase){phase=nextPhase;memory();intervals.length=0;count=game.frameCount;last=performance.now();skipped=0;active=true;raf=requestAnimationFrame(tick);},
+  start(nextPhase){phase=nextPhase;memory();intervals.length=0;longFrames.length=0;count=game.frameCount;last=performance.now();skipped=0;active=true;raf=requestAnimationFrame(tick);},
   stop(){active=false;cancelAnimationFrame(raf);memory();
    const sorted=[...intervals].sort((a,b)=>a-b),percentile=p=>sorted[Math.max(0,Math.ceil(sorted.length*p)-1)]??0;
    const maxMs=percentile(1),p95Ms=percentile(.95),medianFps=1000/percentile(.5),stallPass=intervals.length>0&&!contextLost&&skipped===0&&maxMs<=200;
-   return {frames:intervals.length,contextLost,skipped,maxMs,p95Ms,medianFps,stallPass,pass:stallPass&&p95Ms<=35&&Math.round(medianFps)>=30};
+   return {longFrames:[...longFrames],frames:intervals.length,contextLost,skipped,maxMs,p95Ms,medianFps,stallPass,pass:stallPass&&p95Ms<=35&&Math.round(medianFps)>=30};
   },
   finish(){active=false;cancelAnimationFrame(raf);clearInterval(timer);memory();return {samples:samples.length,playingPeakBytes:Math.max(0,...samples.filter(row=>row.phase==='playing').map(row=>row.bytes)),
-   loadingPeakBytes:Math.max(0,...samples.map(row=>row.bytes)),observations:samples};}
+   loadingPeakBytes:Math.max(0,...samples.map(row=>row.bytes)),peakClaims:{loading:loadingPeak,playing:playingPeak},observations:samples};}
  };
 }
