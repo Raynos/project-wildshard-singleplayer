@@ -19,7 +19,7 @@ files that must always check freshness.
 | `/basis/(.*)` | `public, max-age=2592000` | Reserved for the KTX2/Basis transcoder (P1). Unhashed, versioned with the static cache like the art. |
 | `/(.*).hdr` → `image/vnd.radiance`, `/(.*).glb` → `model/gltf-binary`, `/(.*).gltf` → `model/gltf+json`, `/(.*).ktx2` → `image/ktx2`, `/(.*).webmanifest` → `application/manifest+json` | `Content-Type` | Vercel's default MIME table serves `.hdr` / `.ktx2` as `application/octet-stream`; the loaders do not care, but Safari's PWA install and the SW's `content-length` byte accounting are happier with real types, and `.webmanifest` must be `application/manifest+json` for the iOS home-screen install. |
 | `/`, `/index.html` | `no-store` | The service worker owns the document (cache-first with a background revalidate). A cached `index.html` in the HTTP cache would pin an old build id and an old entry chunk beneath the worker. |
-| `/sw.js` | `no-cache` | Every update revalidates its ETag. An unchanged script returns 304 with no body; a changed script returns its full current bytes for the browser to compare. This retains immediate update discovery without re-downloading the unchanged worker on warm visits. |
+| `/sw.js` | `no-cache` | Registration uses `updateViaCache: 'all'`, so every update consults the HTTP cache and this header requires ETag revalidation. An unchanged script returns 304 with no body; a changed script returns its full current bytes for the browser to compare. This retains immediate update discovery without re-downloading the unchanged worker on warm visits. |
 | `/version.json` | `no-store` | The title-screen build pill (`src/engine/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
 | `/asset-index.json` | `no-store` | The byte table the loading screen sums; regenerated every build. Network-first in the SW with the last copy as the offline fallback. |
 | `/asset-manifest.json` | `no-store` | E160 / E161: every file under `public/assets` (packs included) → its content hash (sha256, first 8 hex). What the build names: the worker reads it on `activate` to keep exactly those entries and drop the rest. Fetched by the worker only, never by the page. |
@@ -96,8 +96,14 @@ Browser-internal service-worker script checks do not appear in page resource
 timing. A warm `8264f6dca2` comparison exposed two full unchanged `/sw.js`
 responses, about 41 KB missing from the counter: 23.46% of a 175.9 KB warm
 shardfile load and 10.50% of a 433.1 KB warm grid load. Those failures remain
-in the loading receipts. Revalidation with `no-cache` removes those repeated
-bodies while still fetching a changed worker in full. The remaining response
+in the loading receipts. WebKit's default `imports` registration mode still
+bypasses conditional caching and refetches the full script. The native probe
+at `32cde80543` demonstrated that `updateViaCache: 'all'` with the same
+`no-cache` header sends the ETag: unchanged replies are 304 even after a
+Safari restart, and changed replies transfer the full new body. This follows
+the [Service Worker update algorithm](https://w3c.github.io/ServiceWorker/#update-algorithm):
+the response's freshness policy remains authoritative when the HTTP cache
+is consulted. The remaining response
 headers are included in the independent network measurement and its 5% gate.
 
 ## iOS eviction (gauntlet `PWA_OFFLINE.md` §4.1)

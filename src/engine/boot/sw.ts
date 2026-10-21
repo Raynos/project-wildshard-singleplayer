@@ -186,7 +186,9 @@ function boot(): Promise<void> {
 async function register(s: ServiceWorkerContainer, settle: () => void): Promise<void> {
   const url = import.meta.env.DEV ? '/sw.js?sw=1' : '/sw.js';
   let reg: ServiceWorkerRegistration;
-  try { reg = await s.register(url, { scope: '/' }); } catch { settle(); return; }
+  // The host's no-cache still revalidates every update. Consult its ETag:
+  // WebKit's default imports mode bypasses that conditional HTTP cache.
+  try { reg = await s.register(url, { scope: '/', updateViaCache: 'all' }); } catch { settle(); return; }
   watch(reg);
   // Standalone installs live for days: keep discovering updates so the pill can offer them.
   pageScope.listen(document, 'visibilitychange', () => {
