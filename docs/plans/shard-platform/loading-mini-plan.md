@@ -29,9 +29,9 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code | Effort (est.) |
 |---|---|---|---|
 | **O1 — done `02fb4e4288`, `8f220455e8`, `94bf308bc1`** | Grid edges read from each neighbour's product index only, not the whole product (today 3,237 requests, 137.5 MB, 75.7 s) | `grid/edgeSources.ts:73-86`, `grid/products.ts:42-60`, `grid/session.ts:305-322` | 0.5 day |
-| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`, `bf332be4cc`; batch green `bd459dadaf`; native warm/cadence proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
-| **O3** | Home region reads files in parallel / prefetched from the product's file list (today one request in flight for 25 s) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
-| **O4 — source `0f63b7b167`, API `4c025e81bd`; served proof pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
+| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`, `bf332be4cc`, `4a2bed9f6f`; native warm bytes pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
+| **O3 — accepted `32cde80543`; receipts `fd69ae2b29`; carrier pending** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
+| **O4 — source `0f63b7b167`, API `4c025e81bd`; batch green `68aa1e372c`; served proof pending** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
 | **O5 — pulled forward: `b2e4c86d92`; desktop AO repair `32cde80543` first frames green; native warm/full acceptance pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes) | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
@@ -282,3 +282,47 @@ unchanged. The held-oldest regression fails on the old waves and passes
 on the new window; strict lint and 40 product/descriptor/residency tests
 pass. API notes are `4c025e81bd`. Its next batch and served proof remain
 separate from the in-flight exact-`32cde80543` cache acceptance matrix.
+
+That matrix completed: all six cold entries, both phone warm entries and
+all five real returns pass. Native warm entries reach first frame with
+417 / 610 ms detail gaps but fail byte parity (45.69% / 21.88%). WebKit
+refetches an unchanged 20,449-byte worker script; its many 304 metadata
+responses also expose Resource Timing's fixed 300-byte header estimate.
+The actual observed wire remains the only denominator. The coordinator
+directed worker revalidation plus fewer hash-verified metadata requests,
+not a new body-only metric or guessed byte credit.
+
+`4a2bed9f6f` reuses URL-cached first-party indexes only when their hash
+belongs to this bundled build, and cached sections only under the index's
+size/hash checks. Stale or oversized hints fall through to transport;
+identity and complete admission checks remain. Forty-seven focused tests
+and strict lint pass. The minimal native worker-mode probe follows under
+sim-lane before the next combined batch and cold/warm proof. O4's separate
+source batch at `68aa1e372c` passed in 473.6 s; its queued preview did not
+replace the retained diagnostic after the native warm failure.
+
+O3's cold-entry evidence is retained in
+[`parallel-reads-32cde80`](../../../progress/loading/g543/parallel-reads-32cde80/README.md)
+(`fd69ae2b29`): all four observed paths have 238 GLB reads with peak overlap
+four. Indexed prefetch already fulfills this row; the page-wide parser
+stays one. The separate source-mapped profile (`a33c82a6c2`) retains
+6.446 / 3.742 s of nested node-builder CPU on phone SHARD SELECT/grid.
+O5's remaining CPU cost stays open with sp-o2's light/key work; the
+post-warm first-frame cadence passes on the measured native cold/warm paths.
+
+The native worker probe is decisive under the unchanged `no-cache` header:
+default `imports` sends no ETag and returns 200/full for unchanged bytes;
+`all` returns 304/no body both before and after Safari restart. A changed
+body still returns 200 in full. `8e3d697c79` selects `all`; strict lint and
+the real preview policy test pass. The 47-test metadata fix is
+`4a2bed9f6f` (API `1928f28637`). One next source batch covers these pending
+cuts; its new served cold/warm matrix keeps the actual wire denominator.
+
+The complete diagnostic and four viewed portraits are retained in
+[`diagnostic-32cde80`](../../../progress/loading/g543/diagnostic-32cde80/README.md)
+(`f9d4b1b80e`). The standalone native HTTP comparison is
+[`worker-cache-native-20261021`](../../../progress/loading/g543/worker-cache-native-20261021/README.md)
+(`cd1c3e49c6`). The separate
+[`wire encoding inspection`](../../../progress/loading/g543/wire-encoding-32cde80/README.md)
+(`0acfe51797`) shows all three raw-size meshopt candidates grow under
+Brotli; the existing selection stays intact and O6 remains open.
