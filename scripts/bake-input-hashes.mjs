@@ -66,10 +66,13 @@ export class InputHashMemo {
     const stamp = [stat.dev,stat.ino,stat.size,stat.mtimeNs,stat.ctimeNs].join(':');
     const seen = this.entries.get(path);
     const digest = seen?.stamp === stamp ? seen.digest : createHash('sha256').update(readFileSync(at)).digest('hex');
-    if(seen?.stamp !== stamp)this.reads++;
-    // A concurrent writer must not make its bytes reusable under an older stat.
-    const after = lstatSync(at, {bigint:true});
-    if (!after.isFile() || [after.dev,after.ino,after.size,after.mtimeNs,after.ctimeNs].join(':') !== stamp) throw new Error(`Bake input changed while hashing: ${path}`);
+    if(seen?.stamp !== stamp) {
+      this.reads++;
+      // Fence actual reads against concurrent writes. A memo hit has already
+      // checked the current file identity and performs no content read.
+      const after = lstatSync(at, {bigint:true});
+      if (!after.isFile() || [after.dev,after.ino,after.size,after.mtimeNs,after.ctimeNs].join(':') !== stamp) throw new Error(`Bake input changed while hashing: ${path}`);
+    }
     this.entries.set(path, {stamp,digest});
     if(!fresh && this.ignored!==undefined && !this.ignored(path))this.frozen.set(path,digest);
     return digest;
