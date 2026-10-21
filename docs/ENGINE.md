@@ -9818,10 +9818,11 @@ has no durable state or additional save adapter. Product Wasm metadata admits
 its fixed page; the existing page decision authority prepares that memory.
 Named `actors/page-life.json` data is emitted with its defining source.
 
-SDK defining facades are `sdk/populationRoster`, `sdk/populationShelter`
-and `sdk/populationRespawn`; they
-borrow the same game implementation and install nothing on import.
-`populationRoster` also admits author rows before emission. Native identity
+Native population author rows use the defining format/populationRoster
+parser. The trusted headless assembly imports installPopulationRoster
+from game/population/roster directly; the redundant SDK forwarding module
+was retired in X20. SDK shelter and respawn facades still borrow the same
+game implementation and install nothing on import. Native identity
 and respawn retain the approved **native actor interface + spawn director**
 feature (`actor-spawn`, G474/G475/G477) in
 `lint/platform-pending-users.json`. The fabricated salt-marsh fixture drives

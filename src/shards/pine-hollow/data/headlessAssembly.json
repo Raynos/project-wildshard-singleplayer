@@ -16,7 +16,7 @@
     "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands"],
     "@wildshard/game/population/nativeBake": ["installNativeCollision"],
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
-    "@wildshard/sdk/populationRoster": ["installPopulationRoster"],
+    "@wildshard/game/population/roster": ["installPopulationRoster"],
     "@wildshard/game/population/environment": ["installPopulationEnvironment"],
     "@wildshard/game/boss/native": ["installGroundBoss"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
@@ -1091,7 +1091,7 @@
       "value": {
         "$call": [
           {
-            "$ref": ["@wildshard/sdk/populationRoster", "installPopulationRoster"]
+            "$ref": ["@wildshard/game/population/roster", "installPopulationRoster"]
           },
           {
             "$ref": ["host"]
