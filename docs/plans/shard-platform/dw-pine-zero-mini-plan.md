@@ -27,9 +27,11 @@ listed view code alone is already Pine 174, Driftwood 166, and nothing in the ru
 | **ZA** | Finish the claimed A rows (QC's charged spawn director, X20, G1d, G3, X11, QD, G553) | ~480 |
 | **ZB** | **Pine declared-entry row**, as Driftwood's X11: landmarks/hybrid/context wiring onto the declared runtime entry | ~106 |
 | **ZC** | **AS + data for the renderer-free one-user code** (G532 allows it): Pine shelter, chapterLead's route decisions; Driftwood pageGroups projection and the quest logic in `quest/install.ts`; Pine boot policy / manifest as data rows | ~120–150 |
-| **ZD** | **Real second users**: Template 2 adopts Driftwood's Blender island loader (`blobAssets.ts`, islandCover; G532 (4)); Nalati or Nine adopts NPC head focus and placed figures | ~150 |
+| **ZD** | **The right hosts, added to the engine/game (G571)**: for every one-user span (bucket B) design the generic data/AS host it belongs in (Blender island loader with Template 2, NPC head focus and placed figures, posed instances, boot file policy as data, herd shelter, chapter lead …); Jake approves them as platform from day one when they pass HOST-BAR tests 2–6 | ~350 (all of B) |
 | **ZE** | **The ruler tags listed view code** (a `listed` list per shard, HOST-BAR's register), so "listed" is measured and shown separately from custom | 0 (measurement) |
 | **ZF** | The remaining per-frame code (bucket C, plus King pose, posedInstances, figures, gulls, cover) needs WASM-HOST's view frame lane (H0, H0b, H1–H6, H9, H13 cutover); scope Pine's and Driftwood's lines into WASM-HOST's "Ties" section | ~350–450 per shard |
 
 After ZA–ZD: about 300–450 per shard, nearly all per-frame view code. **Strict zero needs WASM-HOST (ZF)**, or a rule
 that listed view code doesn't count as custom.
+
+**How (G571, Jake):** every line becomes data (rows, build-time generators) or AssemblyScript/WASM (decisions now; per-frame view through WASM-HOST's view lane, ZF). New hosts are fine where the right abstraction needs one. No shortcuts: no relabelling, no moving code to dodge the counter, no 'no honest cut' closes; a lane that can't find the correct design asks the coordinator for the host design instead of looping.

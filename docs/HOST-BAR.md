@@ -69,6 +69,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 ## Dated exceptions
 
+- G571 (Jake, 2026-10-21): hosts added to convert Pine Hollow's and Driftwood Isle's remaining custom code into data or AssemblyScript count as platform from day one (test 1 waived) when they pass tests 2–6; each is listed here by name when it lands.
 - G478 riding presentation: `game/riding/mount` consumes profile rows and actor identities (fixture second shard).
 - G478 riding HUD: `game/riding/hud` consumes observation rows and retains the baseline HUD slots (fixture second shard).
 
@@ -116,7 +117,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G532 (4) baked tiles: `game/shardfile/bakedTiles` (the `world.baked` client feature, `format/bakedTiles` rows) draws a Blender tile set in one look, lends it its offline lightmaps (`engine/render/lightmaps`: a graph look's lent params, or a standard surface's AO and bounce maps) and places its prototype families instanced with their collider boxes. Client-only presentation; Driftwood's cove (tiles, lightmaps, families) and Blender Template's ground (tiles, lightmaps) drive it, 6 / 6 with the families part one-user until a second shard places Blender prototypes.
 - G483 world scene assembly: `game/shardfile/sceneDressing` and `game/shardfile/sceneInstances` consume admitted geometry, material, scatter, private-scene and numeric pose rows; client-only presentation. The unrelated orchard fixture constructs, updates and retires these projections.
 
-- G483 declared page preparation: `game/shardfile/pageWater` binds admitted texture slots and look ids to the native pond; `game/shardfile/pagePreparation` binds native script-memory leases and generated terrain openings. Both are client-only setup, with data-only entry points and orchard coverage in `test/page-preparation.test.ts`.
+- G483 declared page preparation: `game/shardfile/pageWater` binds admitted texture slots and look ids to the native pond; `game/shardfile/pagePreparation` binds generated terrain openings and native path ramps. Both are client-only setup, with data-only entry points and orchard coverage in `test/page-preparation.test.ts`. Chapter script-memory preparation belongs to `game/quest/chapterDirector.readChapterDirector`, immediately around its actual clock construction.
 
 - `game/riding/physics`: G478 riding physics binds admitted reins, gait and road observations to native movement.
 - `game/riding/taming`: G478 taming sessions evaluate declared approach, breaking and riding guests over candidate observations.
@@ -126,3 +127,17 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - `game/riding/nativeTaming`: G478 native taming rows bind the actual player, candidates and decision guests.
 - `game/riding/client`: G478 client riding rows bind entered herds, taming, actions and presentation to native services.
 - `game/riding/nativePopulation`: G478 native population rows bind boot recipes, hunting, pasture and mount state to the native host.
+
+## Listed view register (G570)
+
+[The per-shard register](../lint/listed-view-code.json) names reviewed source
+files or top-level declarations, their reason to remain view code and the
+applicable G decision. Mixed modules list only their view declarations; imports
+and other decisions remain unlisted. A removed or uncharged registration reports
+no listed lines. Whole-file and named registrations cannot overlap.
+
+The ruler reports **listed view + other custom = total custom** for both source
+and built-output inventories. Listed view remains in the existing custom total,
+percentage, component counts, M3 and gates. The label grants no host credit and
+supplies no second user. New registrations require the same source review as
+the rest of this document; filenames or a client-only label alone are insufficient.
