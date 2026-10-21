@@ -1,0 +1,1040 @@
+{
+  "pin": "6c1495e58896afd8f142b7a5acd82b7f94378719",
+  "diagnosticOnly": true,
+  "errors": [
+    "Error: Safari inspector timeout: Timeline.stop"
+  ],
+  "timelineUsable": false,
+  "stageSeconds": 19.618000000000006,
+  "clockSeconds": 19.6,
+  "networkBytes": 185521502,
+  "displayedNetworkBytes": 179564542,
+  "byteError": 0.03210927000795843,
+  "maxDetailGapMs": 366,
+  "rawSHA256": "ceacc2ba4170f2b03d1b28b1d66da955598acc0cd84b77b5e206a9dec0f5ddb5",
+  "polls": [
+    {
+      "at": 3933,
+      "ms": 0,
+      "id": 1,
+      "result": true,
+      "step": "sky",
+      "detail": "step 5 / 24 \u00b7 Sky \u00b7 lighting"
+    },
+    {
+      "at": 3934,
+      "ms": 0,
+      "id": 2,
+      "result": true,
+      "step": "sky",
+      "detail": "step 5 / 24 \u00b7 Sky \u00b7 lighting"
+    },
+    {
+      "at": 3934,
+      "ms": 0,
+      "id": 3,
+      "result": true,
+      "step": "sky",
+      "detail": "step 5 / 24 \u00b7 Sky \u00b7 lighting"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 4,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 5,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 6,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 7,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 8,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 9,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 10,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 11,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 12,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 13,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 14,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 15,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 16,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 17,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 18,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 19,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 20,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 21,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 22,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 23,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 24,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 25,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 26,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 27,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 28,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 29,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 30,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 31,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 32,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 33,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 34,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 35,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 36,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 37,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 38,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 39,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 40,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 41,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 42,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 43,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 44,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 45,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 46,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 47,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 48,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 49,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 50,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 51,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 52,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 53,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 54,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 55,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 56,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 57,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 58,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 59,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 60,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 61,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 62,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 0,
+      "id": 63,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17470,
+      "ms": 1,
+      "id": 64,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 65,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 66,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 67,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 68,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 69,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 70,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 71,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 72,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 73,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 74,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 75,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 76,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 77,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 78,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 79,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 80,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 81,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 82,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 83,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 84,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 85,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 86,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 87,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 88,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 89,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 90,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 91,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 92,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 93,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 94,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 95,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 96,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 97,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 98,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 99,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 100,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 101,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 102,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 103,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 104,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 105,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 106,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 107,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 108,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 109,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 110,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 111,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 112,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 113,
+      "result": false,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 114,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 115,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 116,
+      "result": false,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 117,
+      "result": false,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 118,
+      "result": false,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 119,
+      "result": false,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17471,
+      "ms": 0,
+      "id": 120,
+      "result": false,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 139 materials \u00b7 156 / 184 batches \u00b7 parallel \u00b7 109 programs"
+    },
+    {
+      "at": 17479,
+      "ms": 0,
+      "id": 113,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 111 / 117 programs linked \u00b7 parallel \u00b7 120 programs"
+    },
+    {
+      "at": 17479,
+      "ms": 0,
+      "id": 116,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 111 / 117 programs linked \u00b7 parallel \u00b7 120 programs"
+    },
+    {
+      "at": 17479,
+      "ms": 0,
+      "id": 117,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 111 / 117 programs linked \u00b7 parallel \u00b7 120 programs"
+    },
+    {
+      "at": 17479,
+      "ms": 0,
+      "id": 118,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 111 / 117 programs linked \u00b7 parallel \u00b7 120 programs"
+    },
+    {
+      "at": 17479,
+      "ms": 0,
+      "id": 119,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 111 / 117 programs linked \u00b7 parallel \u00b7 120 programs"
+    },
+    {
+      "at": 17479,
+      "ms": 0,
+      "id": 120,
+      "result": true,
+      "step": "shaders",
+      "detail": "step 18 / 24 \u00b7 Shaders \u00b7 111 / 117 programs linked \u00b7 parallel \u00b7 120 programs"
+    }
+  ],
+  "firstFrame": {
+    "from": 17560,
+    "to": 17720,
+    "row": {
+      "label": "\u25b8 19 \u00b7 First frame",
+      "detail": "Pass 6 / 6 \u00b7 ready \u00b7 120 programs",
+      "duration": "165 ms",
+      "state": "ok",
+      "key": "firstFrame",
+      "ms": "165"
+    },
+    "pollsDuring": 0
+  },
+  "slowGLCalls": [],
+  "dropped": 0
+}

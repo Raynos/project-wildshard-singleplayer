@@ -52,3 +52,16 @@ passes without changing the engine motor or entry trigger.
 Four viewed real portrait frames carry burned-in build and device labels:
 [phone shardfile](phone-shardfile.jpg), [phone grid](phone-grid.jpg),
 [Simulator shardfile](simulator-shardfile.jpg), [Simulator grid](simulator-grid.jpg).
+
+A separate [GL poll diagnostic](native-link-polls.json) on this unchanged
+build did not reproduce the first-frame pause: firstFrame took 165 ms and
+the maximum detail interval was 366 ms. All six unfinished-link rechecks
+occurred 8 ms later during Shaders; no link query occurred during First
+frame. The 250 ms live-poll gate is therefore not confirmed as the cause
+of the original pause. Standalone `finishStage` supplies only `sliceMs`;
+its default non-isolated link path already polls each slice. The live
+cell path uses isolated uploads and is a different call site.
+
+WebKit `Timeline.stop` timed out. The raw capture reports that protocol
+error and remains diagnostic only; its GL timestamps add no queries and
+are retained here without claiming a Timeline attribution or acceptance.
