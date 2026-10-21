@@ -7,6 +7,7 @@ import json
 import math
 import os
 from pathlib import Path
+import shutil
 import signal
 import subprocess
 import sys
@@ -353,6 +354,10 @@ def main():
         # Build leases already bound concurrency; keep their normal CPU priority.
         # Full tests yield CPU, and nested wrappers inherit the owner's priority.
         launch = command if 'build' in resources else ['nice', '-n', '10', *command]
+        # BUILD-SPEED 1.2: every lane job runs in the utility QoS class on macOS, so the measurement lane, frame-floor
+        # and the Simulator (default QoS) win every CPU contest; CI's Linux runners have no taskpolicy.
+        if shutil.which('taskpolicy'):
+            launch = ['taskpolicy', '-c', 'utility', *launch]
         child = subprocess.Popen(launch, env=env, start_new_session=True,
                                  pass_fds=tuple(fd.fileno() for fd in held))
         entry['childPid'] = child.pid
