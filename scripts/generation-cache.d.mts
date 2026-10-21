@@ -7,6 +7,7 @@ export interface GenerationJob {
 /** Native jobs execute on every host; Darwin-only jobs are a separate bit-exactness restriction. */
 export interface GenerationOptions {
   inputHashes?: InputHashMemo; cacheDir?: string; platform?: string; arch?: string; forceCompare?: boolean;
+  /** Keep an observational miss separate from producer coalescing. */probe?: boolean;
   generate: (directory: string) => Promise<void>;
 }
 /** A verified immutable directory with the digest of every declared generated file. */

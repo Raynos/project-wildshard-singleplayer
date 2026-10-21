@@ -99,7 +99,7 @@ export async function runGenerationJob(root, descriptor, options) {
   // before execute inspects the entry; a later eviction sees this reader.
   const release = readLease(directory);
   // A force request must not turn into a warm hit by sharing an ordinary request.
-  const token = `${directory}:${options.forceCompare === true ? 'compare' : 'ensure'}`;
+  const token = `${directory}:${options.forceCompare === true ? 'compare' : options.probe === true ? 'probe' : 'ensure'}`;
   const prior = active.get(token);
   const task = prior ?? execute(root, directory, key, job, options).then(result => {
     if (!result.hit) maybePruneGenerationCache(options.cacheDir ?? generationCacheRoot(), { protect: [directory] });

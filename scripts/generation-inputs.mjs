@@ -14,6 +14,7 @@ const paths=v.pipe(v.array(path),v.maxLength(100_000));
 const Trace=v.strictObject({schema:v.literal('generation-reads/2'),files:paths,execution:paths,opaque:v.array(v.string()),seal:v.string()});
 const order=(/** @type {string} */ a,/** @type {string} */ b)=>a<b?-1:a>b?1:0;
 const code=/\.[cm]?[jt]sx?$/u;
+const cacheMiss=new Error('Observed generation cache miss');
 /** Missing, malformed, failed or opaque observations grant no narrower key.
  * @param {string} file @param {string} entry */
 function readTrace(file,entry) {
@@ -65,12 +66,11 @@ export async function runObservedGeneration(root,job,options,entry) {
     for(const name of names) {
       const trace=readTrace(resolve(profiles,name),entry);
       if(trace===undefined)continue;
-      const miss=new Error('Observed generation cache miss');
       try {
-        const result=await runGenerationJob(root,narrowed(trace),{...options,generate:()=>Promise.reject(miss)});
+        const result=await runGenerationJob(root,narrowed(trace),{...options,probe:true,generate:()=>Promise.reject(cacheMiss)});
         try {verifyExecution(trace);return result;}catch(error){result.release();throw error;}
       }
-      catch(error) {if(error!==miss)throw error;}
+      catch(error) {if(error!==cacheMiss)throw error;}
     }
   }
   const full=await runGenerationJob(root,job,options);

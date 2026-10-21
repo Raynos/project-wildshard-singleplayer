@@ -78,3 +78,9 @@ it('runs strict regeneration even when an observed key is warm',async()=>{
   await run();expect((await run()).hit).toBe(true);
   await expect(run(true)).rejects.toThrow('Regenerate-and-compare failed');
 });
+it('coalesces concurrent observed misses without sharing a probe failure with publication',async()=>{
+  const {root,run}=fixture();await run();put(root,'src/sdk/used.mjs','export const value=2;');
+  const results=await Promise.all([run(),run()]);
+  expect(results.map(row=>row.text)).toEqual(['2','2']);expect(results.every(row=>!row.hit)).toBe(true);
+  expect((await run()).hit).toBe(true);
+});
