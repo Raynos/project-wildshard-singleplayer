@@ -24,7 +24,7 @@ import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { bindQuestDeathEffects } from '../plugin/quests';
 import { installQuestChapter, installQuestFlags, installQuestInteractables, ownQuestTree, type QuestChapter } from './chapter';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from './story';
-import { installEnteredQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
+import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
 import { installChapterWakeEncounter } from './chapterDirector';
@@ -125,7 +125,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const stall = parseQuestTrader(traderStall), placement = stall.placement;
   if (placement === undefined) throw new Error('Page trader requires its declared placement');
   const feet = place(placement.feet), ax = feet.x + Math.sin(feet.yaw) * placement.tradeAhead, az = feet.z + Math.cos(feet.yaw) * placement.tradeAhead;
-  adventure.trader = installEnteredQuestTrader(ctx, traderStall, { figure: rows.trader.figure, counter: rows.trader.counter, offer: rows.trader.offer,
+  adventure.trader = installQuestTrader(ctx, traderStall, { figure: rows.trader.figure, counter: rows.trader.counter, offer: rows.trader.offer,
     at: { x: ax, y: floorAt(ax, az) + placement.tradeHeight, z: az }, prompt: { label: rows.trader.label, radius: rows.trader.radius }, before: rows.systems.before });
   const storyOwners = new Map<string, unknown>([['counters', grants], ['hud', w.hud], ['placement', { floorAt }]]);
   observeStoryFlags(story, scope, flags, storyOwners);

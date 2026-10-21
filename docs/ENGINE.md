@@ -9439,13 +9439,14 @@ The numeric evaluator, scalar binders and detached frame types are defined
 in `game/plugin/channels`; browser UI imports that module. Native pose
 imports therefore load no DOM or CSS presentation code.
 
-`@wildshard/game/quest/trader.installQuestTrader` binds Driftwood and Pine
-trader opening to admitted `quests/stall.json` rows. Driftwood lends its original
-models, entry scope, NPC rig, placement/floor queries and page prompt rows; the
-host preserves counter ownership, facing, pitch restoration, distance closing and
-late shop readiness. Pine lends its existing lazy panel and keeps its talk gate
-and panel-hold lifetime. Catalogue, flags, payments and saves stay with their
-existing owners. `parseQuestTrader` validates rows before any placement.
+`@wildshard/game/quest/trader.installQuestTrader(ctx, rows, resources?)`
+binds both Driftwood and Pine to one client-only trader owner. Placed shops
+name their already-entered figure, counter, offer signal, point and prompt;
+talk-opened shops omit these resources. The binding preserves facing, pitch
+restoration, distance closing and late shop readiness. Pine attaches its
+existing lazy panel when the talk gate opens; no panel is constructed during
+installation. Models, inventory, payments and saved state keep their original
+owners. `parseQuestTrader` validates rows before resources are borrowed.
 
 Numeric creature poses may declare up to 64 `scalars` observations. Each
 `{ name, path, fallback? }` copies one permitted frame field or a numeric

@@ -9,7 +9,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { registerQuestPageWorld, questPageWorld } from '../src/game/quest/pageResources';
-import { installEnteredQuestTrader } from '../src/game/quest/trader';
+import { installQuestTrader } from '../src/game/quest/trader';
 import { QuestPageCompositionSchema } from '../src/format/questPageComposition';
 import rows from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 
@@ -27,7 +27,7 @@ test('an orchard page borrows entered figures and its existing shop by ids', () 
   scope.run(() => { registry.add({ id: 'orchard.counter', name: 'Fruit counter', category: 'props', file: 'test/quest-page-composition.test.ts', object: new Group() }); });
   const ctx = { scope, game: { runtime: { world: { player, registry }, play: {}, interactables: prompts } },
     system: (row: Parameters<ShardContext['system']>[0]) => { systems.set(row.id, row); } };
-  const stall = installEnteredQuestTrader(ctx, { name: 'Lena', reopen: false,
+  const stall = installQuestTrader(ctx, { name: 'Lena', reopen: false,
     placement: { feet: { poi: 'world', x: 6, z: 3, yaw: 0 }, npc: 'orchard.keeper', counter: 'orchard.counter', counterAhead: 1, tradeAhead: 2, tradeHeight: 1, system: 'orchard.shop' },
     view: { pitch: -.2, closeDistance: 4 } }, {
     figure: 'orchard.keeper', counter: 'orchard.counter', offer: 'offer-fruit', at: { x: 6, y: 1, z: 5 }, prompt: { label: 'Buy fruit', radius: 2 }, before: [],

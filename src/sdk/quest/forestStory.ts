@@ -187,8 +187,8 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     return panel;
   });
 
-  const tradeOwner = installQuestTrader(traderStall, { player, shop: trade });
-  if (tradeOwner === null) throw new Error('The declared trader shop is required');
+  const tradeOwner = installQuestTrader(ctx, traderStall);
+  const openTrade = (): void => { tradeOwner.shop = trade(); tradeOwner.open(); };
   const steps = new QuestStepRunner(native.steps);
   const payMiller = (): void => {
     const paid = flags.has(rows.payment.flag);
@@ -204,7 +204,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
     kind: 'posed', create: (at, yaw) => figuresBook.create(kind, figureScenes, [at.x, at.y, at.z], yaw, ctx.scope), bark: fig => { sfx.bark(kind, fig.talkPoint); },
   }]));
   const talks = installStoryTalks(ui, source, { flags, scene: game.scene, registry: h.registry,
-    prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([[rows.payment.call, payMiller], [rows.trades.call, tradeOwner.open]]) });
+    prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([[rows.payment.call, payMiller], [rows.trades.call, openTrade]]) });
   const { people, dialogue } = talks;
   const trader = people.find(person => person.kind === rows.trades.figure);
   if (trader === undefined) throw new Error('The declared trader is required');
