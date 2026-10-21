@@ -40,6 +40,8 @@ DIR="$HOME/.browser-lane"
 mkdir -p "$DIR"
 MAX_AGE_MIN="${BROWSER_MAX_AGE_MIN:-90}"
 AGENT_BROWSER_MAX_AGE_H="${AGENT_BROWSER_MAX_AGE_H:-24}"
+# A detached proof (proof-run.sh, start_new_session) leaves a live browser with no parent; only a long-orphaned one is dead.
+ORPHAN_MIN="${BROWSER_ORPHAN_MIN:-10}"
 PREVIEW_MAX_AGE_H="${PREVIEW_MAX_AGE_H:-6}"
 DEV_MAX_AGE_H="${DEV_MAX_AGE_H:-2}"
 # BUILD-SPEED 1.3 (E491): the command must START with the browser binary, which may sit inside a "Google Chrome for
@@ -107,7 +109,7 @@ reap() {
     # counts, and the limit is a day; a Playwright browser is a capture, orphaned or past MAX_AGE_MIN means dead.
     if [[ "$(ps -o command= -p "$pid" 2>/dev/null)" == *".agent-browser/browsers/"* ]]; then
       [ "$a" -gt $((AGENT_BROWSER_MAX_AGE_H * 3600)) ] && why="agent-browser session older than ${AGENT_BROWSER_MAX_AGE_H} h"
-    elif [ "$ppid" = "1" ]; then why="orphaned (parent gone)"
+    elif [ "$ppid" = "1" ] && [ "$a" -gt $((ORPHAN_MIN * 60)) ]; then why="orphaned (parent gone) for over ${ORPHAN_MIN} min"
     elif [ "$a" -gt $((MAX_AGE_MIN * 60)) ]; then why="older than ${MAX_AGE_MIN} min"; fi
     [ -z "$why" ] && continue
     n=$((n + 1))
