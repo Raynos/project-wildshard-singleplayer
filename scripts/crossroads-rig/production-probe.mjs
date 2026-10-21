@@ -142,7 +142,7 @@ async function main() {
     const address = server.address(); if (address === null || typeof address === 'string') throw new Error('HTTP fixture did not bind');
     const base = `http://127.0.0.1:${address.port}/`;
     const workerOut = join(scratch, 'worker.json');
-    await run(join(ROOT, 'scripts/sim-lane.sh'), ['run', '--max', '8', 'sf22c-iphone-17-pro', process.execPath, import.meta.filename, '--worker', `--base=${base}`, `--worker-out=${workerOut}`], { cwd: scratch });
+    await run(join(ROOT, 'scripts/sim-lane.sh'), ['run', '--max', '8', 'wildshard-iphone', process.execPath, import.meta.filename, '--worker', `--base=${base}`, `--worker-out=${workerOut}`], { cwd: scratch });
     const read = await GET(new Request(`${base}api/telemetry?rig=crossroads`, { headers: { 'x-review-password': 'local-fixture' } }));
     const records = (await read.json()).records;
     const completed = records.filter((record) => record.rig?.stage === 'complete'), summary = records.find((record) => record.rig?.stage === 'summary');

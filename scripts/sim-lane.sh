@@ -6,7 +6,8 @@
 # the Mac had 1.5 GB free and the model jobs waited for memory.
 #
 #   scripts/sim-lane.sh run [--max <min>] [--keep] <device> <cmd …>
-#        boot <device> (a name or UDID; a missing name is created as an iPhone 17 Pro on the newest iOS runtime), run
+#        boot <device> (frame-floor-iphone-17-pro, wildshard-loading or wildshard-iphone, by name or UDID; G563: no other device
+#        is ever created, a missing wildshard-iphone is made as an iPhone 17 Pro on the newest iOS runtime), run
 #        <cmd> holding the lane, shut the device down after (--keep leaves it booted under a 30 min lease). <cmd> is
 #        killed after --max minutes (default 60). $SIM_UDID is set for <cmd>.
 #   scripts/sim-lane.sh lease <device> [<min>]      boot (if needed) and hold it for <min> minutes (default 30) while you
@@ -64,9 +65,19 @@ lease_valid() {
   [ "${exp:-0}" -gt "$(now)" ]
 }
 
-resolve() {  # name or UDID → UDID (creating a missing name)
-  local want="$1" u
-  u="$(xcrun simctl list devices -j | jq -r --arg w "$want" '.devices[][] | select(.udid == $w or .name == $w) | .udid' | head -1)"
+# G563 (Jake): the machine keeps three named devices; a lane never makes another (each new name was a 2-4 GB device).
+DEFAULT_DEVICE=wildshard-iphone
+DEVICES="frame-floor-iphone-17-pro wildshard-loading $DEFAULT_DEVICE"
+resolve() {  # name or UDID of one of $DEVICES → UDID (only the default is created, when missing)
+  local want="${1:-$DEFAULT_DEVICE}" u row name
+  row="$(xcrun simctl list devices -j | jq -r --arg w "$want" '.devices[][] | select(.udid == $w or .name == $w) | "\(.udid)\t\(.name)"' | head -1)"
+  u="${row%%$'\t'*}" name="${row#*$'\t'}"
+  case " $DEVICES " in *" ${name:-$want} "*) ;; *)
+    echo "sim-lane: refusing device '$want': use one of $DEVICES (default $DEFAULT_DEVICE); lanes never create devices" >&2; exit 1;;
+  esac
+  if [ -z "$u" ] && [ "$want" != "$DEFAULT_DEVICE" ]; then
+    echo "sim-lane: device '$want' does not exist on this Mac; use $DEFAULT_DEVICE" >&2; exit 1
+  fi
   if [ -z "$u" ]; then
     local rt dt
     rt="$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable)] | last | .identifier')"

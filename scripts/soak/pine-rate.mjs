@@ -43,7 +43,7 @@ async function main() {
     if (JSON.stringify(await (await fetch(new URL('version.json', base))).json()) !== JSON.stringify(version)) throw new Error('Rate preview changed');
     const directory = join(out, `attempt-${String(attempt).padStart(2, '0')}`); mkdirSync(directory);
     const manifest = { sha, out: directory, bases: [{ layout: 'dev', base, version }], contentCut: null,
-      routeScope: 'prepared', dryRun: true, legs: ['cells'], rehearsal: true, diagnosticFirstCrossing: true, device: 'sf57-sp-x3-pine-rate' };
+      routeScope: 'prepared', dryRun: true, legs: ['cells'], rehearsal: true, diagnosticFirstCrossing: true };
     const manifestPath = join(directory, 'manifest.json'); writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
     writeFileSync(join(directory, 'GO'), '');
     const status = await new Promise((resolve, reject) => {

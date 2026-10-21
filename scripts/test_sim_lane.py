@@ -28,7 +28,7 @@ root=pathlib.Path(os.environ['SIM_FIXTURE']);args=sys.argv[1:]
 with (root/'calls').open('a') as output: output.write(json.dumps(args)+'\\n')
 booted=root/'booted'
 if args[:3]==['simctl','list','devices']:
-    rows=[{'udid':''' + repr(UDID) + ''','name':'fixture-phone'}]
+    rows=[{'udid':''' + repr(UDID) + ''','name':'wildshard-iphone'}]
     print(json.dumps({'devices':{'iOS':rows if 'booted' not in args or booted.exists() else []}}))
 elif args[1]=='boot':
     code=int(os.environ.get('SIM_BOOT_RC','0'))
@@ -56,8 +56,8 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         path.write_text(f'#!{sys.executable}\n' + code)
         path.chmod(0o755)
 
-    def lane(self, mode='run', **extra):
-        args = ['/bin/bash', str(ROOT / 'scripts/sim-lane.sh'), mode, 'fixture-phone']
+    def lane(self, mode='run', device='wildshard-iphone', **extra):
+        args = ['/bin/bash', str(ROOT / 'scripts/sim-lane.sh'), mode, device]
         if mode == 'run':
             args.extend([sys.executable, str(self.child)])
         return subprocess.run(args, env={**self.env, **extra}, text=True,
@@ -69,6 +69,20 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
     def assert_not_handed_over(self):
         self.assertFalse((self.root / 'child-ran').exists())
         self.assertFalse((self.root / 'lane' / f'{UDID}.lease').exists())
+
+    def test_unlisted_device_is_refused_and_never_created(self):
+        # G563: a lane never creates a device; only the machine's three named devices run
+        result = self.lane(device='sf57-sp-x3-new-phone')
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn('refusing device', result.stderr)
+        self.assert_not_handed_over()
+        self.assertFalse(any(call[1:2] == ['create'] for call in self.calls()))
+
+    def test_missing_listed_device_is_refused_not_created(self):
+        result = self.lane(device='wildshard-loading')
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn('does not exist', result.stderr)
+        self.assertFalse(any(call[1:2] == ['create'] for call in self.calls()))
 
     def test_system_bash_parses(self):
         subprocess.run(['/bin/bash', '-n', str(ROOT / 'scripts/sim-lane.sh')], check=True)
