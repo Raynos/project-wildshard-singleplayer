@@ -46,6 +46,22 @@ export const ChapterDirectorSchema = v.strictObject({
 });
 /** Closed chapter publications: no reflected paths, methods or shard callbacks. */
 export type ChapterDirectorRows = v.InferOutput<typeof ChapterDirectorSchema>;
+/** Read-only observations shared by page and renderer-free chapter entries. */
+export function chapterObservations(rows: ChapterDirectorRows['observations'], frame: {
+  readonly flags: readonly string[]; readonly day: { readonly night: number } | null;
+  readonly player: { readonly x: number; readonly z: number };
+  readonly reward: { readonly x: number; readonly z: number } | null;
+}): Record<string, number> {
+  return Object.fromEntries(Object.entries(rows).map(([key, row]) => {
+    if (typeof row === 'number') return [key, row];
+    if ('flag' in row) return [key, Number(frame.flags.includes(row.flag))];
+    const value = row.read === 'day-present' ? Number(frame.day !== null) : row.read === 'night' ? frame.day?.night ?? 0
+      : row.read === 'player-x' ? frame.player.x : row.read === 'player-z' ? frame.player.z
+      : row.read === 'reward-x' ? frame.reward?.x : frame.reward?.z;
+    if (value === undefined) throw new Error('Chapter reward observation lacks its pose');
+    return [key, value];
+  }));
+}
 /** Admission is pure and precedes any subscription, clock or presentation. */
 export function parseChapterDirector(input: unknown): ChapterDirectorRows {
   const rows = v.parse(ChapterDirectorSchema, input);

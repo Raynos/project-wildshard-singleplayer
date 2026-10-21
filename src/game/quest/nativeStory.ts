@@ -4,6 +4,7 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { isJsonData } from '@wildshard/format/json';
+import { parseChapterDirector, chapterObservations } from '@wildshard/format/chapterDirector';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { NativeStoryRows, NativeStorySpots } from './nativeStoryRows';
 import { prepareNativeQuestEntry } from './nativeEntry';
@@ -52,6 +53,9 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   director: Awaited<ReturnType<typeof readDirectorProduct>>): NativeStory {
   if (!isJsonData(rows)) throw new Error('Native story requires JSON rows');
   const policy = rows.policy, content = rows.content, spots = rows.spots, flags = host.flags;
+  const clockRows = parseChapterDirector(policy.clock.director);
+  if (Object.values(clockRows.actions).some(effects => effects.some(effect => effect.kind !== 'flag' && effect.kind !== 'phase')))
+    throw new Error('Native chapter publications require flag or phase effects');
   const entry = prepareNativeQuestEntry(host, product.shardfile, content.table, spots.rows), { input, pack } = entry;
   const ammunition = nativeHeldAmmunition(host), launcher = readNativeRangedItem(host, policy.launcher);
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
@@ -109,16 +113,19 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     const day = host.dayClock ?? null; if (day === null) return;
     fast.on = { from: day.phase, span: questPhaseSpan(day.phase, to), t: 0, dur, to };
   };
-  const publish = (event: string, value: number): void => {
-    for (const row of policy.clock.publications) if (row.event === event) {
-      if (row.kind === 'clear') flags.clear(row.flag);
-      else if (row.kind === 'phase') fastForward(row.to, value);
-      else if (row.kind === 'flags') transitions.setFlags(row.flags);
-      else flags.set(row.flag);
+  const publish = (event: string): void => {
+    const effects = clockRows.actions[event]; if (effects === undefined) throw new Error('Unknown native chapter publication');
+    for (const effect of effects) {
+      if (effect.kind === 'phase') fastForward(effect.to, effect.seconds);
+      else if (effect.kind === 'flag') commitQuestEffects(host, policy.pack, [effect]);
     }
   };
-  const clock = DirectorScriptStageLane.bind(director.stages, director.create(), director.bindings,
-    new Map<string, unknown>([['flags', flags], ['clock', { day: () => host.dayClock ?? null, night: () => host.dayClock?.night ?? 0 }], ['publication', { publish }]]), host.scope);
+  const script = director.create();
+  const clock = new DirectorScriptStageLane(director.stages, script, { scope: host.scope,
+    observe: () => chapterObservations(clockRows.observations, { flags: flags.all, day: host.dayClock ?? null, player: host.player.position, reward: null }),
+    emits: { source: clockRows.source, value: 'literal', actions: new Map(Object.keys(clockRows.actions)
+      .filter(key => script.data.events.some(event => event.direction === 'output' && event.key === key)).map(key => [key, () => { publish(key); }])) },
+  }, false, clockRows.initialDt);
 
   const cables = cableModes(host.scope), cableId = policy.cable;
   cables.state(cableId);

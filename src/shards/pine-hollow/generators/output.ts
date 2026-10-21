@@ -6,7 +6,7 @@ import { RANGED_PAGE_BLOBS } from './rangedPage';
 import { FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB } from './forestPage';
 import { ROAMING_COMBAT_BLOB } from './roamingCombat';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
-import { CHAPTER_DIRECTOR } from './chapterDirector';
+import { CHAPTER_DIRECTOR, NATIVE_CHAPTER_DIRECTOR } from './chapterDirector';
 import { PINE_HULL_BOOK } from './riggedHulls';
 import { PAGE_LIFE, LIFE_WASM } from './pageLife';
 import logKit from '../data/logKit.json' with { type: 'json' };
@@ -94,7 +94,9 @@ const paintedRows=PINE_OUTPUT.custom['custom/paintedTextures'];
 const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'endGrain','glow']);
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
-const { actions: _nativeActions, cancel: _nativeCancel, ...nativeStoryPolicy } = nativeStory;
+const { actions: _nativeActions, cancel: _nativeCancel, clock: _nativeClock, ...nativeStoryBase } = nativeStory;
+const nativeStoryPolicy = { ...nativeStoryBase, clock: { wait: nativeStory.clock.wait, nightRequest: nativeStory.clock.nightRequest,
+  step: nativeStory.clock.step, dawnRequest: nativeStory.clock.dawnRequest, director: NATIVE_CHAPTER_DIRECTOR } };
 const clientJson=emitNamedBlobs([nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(nativeStoryPolicy))), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB, ROAMING_COMBAT_BLOB, LIFE_WASM, nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),

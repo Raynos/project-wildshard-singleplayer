@@ -3,6 +3,7 @@ import type { NpcDialogueRow } from '@wildshard/format/npcs';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import type { QuestStory } from '@wildshard/format/questStory';
+import type { ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import type { QuestReadingRows } from '../plugin/quests';
 
 interface Point { x: number; y: number; z: number }
@@ -15,8 +16,6 @@ export interface NativeStorySpots {
   readonly cable: { readonly prompt: Prompt };
   readonly signals: Readonly<Record<string, Prompt>>;
 }
-type Publication = { event: string } & (
-  { kind: 'clear' | 'flag'; flag: string } | { kind: 'flags'; flags: string[] } | { kind: 'phase'; to: number });
 /** Immutable composition over native quest steps, modal services and admitted AS.
  * G474 quests are approved platform functionality; there are no shard hooks. */
 export interface NativeStoryRows {
@@ -38,7 +37,7 @@ export interface NativeStoryRows {
     readonly touch: { readonly prefix: string; readonly item: string };
     readonly finish: { readonly id: string; readonly claims: number; readonly ids: readonly string[] };
     readonly lead: { readonly step: string; readonly target: string; readonly nightAbove: number };
-    readonly clock: { readonly night: number; readonly sunrise: number; readonly flags: string[]; readonly publications: readonly Publication[];
+    readonly clock: { readonly director: ChapterDirectorRows;
       readonly wait: string; readonly nightRequest: string; readonly step: string; readonly dawnRequest: string };
   };
 }

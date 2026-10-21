@@ -10,16 +10,28 @@ import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { installChapterStory } from '../src/game/quest/chapter';
 import { readChapterDirector } from '../src/game/quest/chapterDirector';
-import { parseChapterDirector } from '../src/format/chapterDirector';
+import { parseChapterDirector, chapterObservations } from '../src/format/chapterDirector';
 import type { ShardContext } from '../src/game/plugin/context';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { beatFlags } from '../src/shards/pine-hollow/generators/questBeats';
 import { CHAPTER_DIRECTOR as pineRows } from '../src/shards/pine-hollow/generators/chapterDirector';
+import { CHAPTER_DIRECTOR as driftRows } from '../src/shards/driftwood-isle/generators/chapterDirector';
 
 import pineLife from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
 
 const products = new Map<string, ShardProduct>();
+
+test('both real chapter declarations read live values through the same renderer-free projection', () => {
+  const frame = { flags: ['used:altar', 'dead:captain'], day: { night: 0.6 }, player: { x: -10, z: 20 }, reward: { x: 25, z: 30 } };
+  expect(chapterObservations(driftRows.observations, frame)).toEqual({ altar: 1, dead: 1, seen: 0,
+    'player-x': -10, 'player-z': 20, 'reward-x': 25, 'reward-z': 30 });
+  expect(chapterObservations(pineRows.observations, frame)).toEqual({ 'night-request': 0, 'dawn-request': 0, seen: 0, 'has-clock': 1, night: 0.6 });
+  frame.flags.push('seen:dawn'); frame.day.night = 0.9;
+  expect(chapterObservations(pineRows.observations, frame)).toMatchObject({ seen: 1, night: 0.9 });
+  expect(chapterObservations(pineRows.observations, { ...frame, day: null })).toMatchObject({ 'has-clock': 0, night: 0 });
+  expect(() => chapterObservations(driftRows.observations, { ...frame, reward: null })).toThrow('pose');
+});
 beforeAll(async () => {
   for (const slug of ['pine-hollow', 'driftwood-isle']) products.set(slug, await loadHeadlessProduct(`out/${slug}`));
 }, 30_000);

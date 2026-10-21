@@ -10566,6 +10566,15 @@ There are no shard callbacks or reflected service paths. The caller retains
 its update phase; native continuations and actor authority are unchanged.
 The completion card publishes its existing entered control for reward carry
 handover. Pine's watch/dawn and Driftwood's ring reward use this same path.
+`format/chapterDirector.chapterObservations(rows, frame)` reads their
+closed observation selectors from current flags, clock and positions without
+a renderer or callback ports. Both actual page chapters and Pine's native
+chapter use it. Native chapter publications now use the same closed director
+contract and existing stage lane, admitting flag/phase effects before entry.
+The producer retains the original native effect projection, including quiet
+presentation events and original phase durations. No reflected publication
+method is installed. Native request cadence, stage cursor and saved fast
+curve retain their original owners and wire.
 
 The renderer-free `game/quest/storyLaw.questPhaseSpan` and `questPhaseAt`
 share the forward clock arc between Pine's native/page watch and Driftwood's

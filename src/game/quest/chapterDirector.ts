@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
-import { parseChapterDirector, parseChapterWake, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
+import { parseChapterDirector, parseChapterWake, chapterObservations, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import { bindRuntimeBoss } from '../plugin/headless';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { WakeBossEncounter } from '../boss/wake';
@@ -114,15 +114,8 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
       else commitQuestEffects(ctx, rows.quest, [effect]);
     }
   };
-  const observe = (): Record<string, number> => Object.fromEntries(Object.entries(rows.observations).map(([key, row]) => {
-    if (typeof row === 'number') return [key, row];
-    if ('flag' in row) return [key, Number(flags.has(row.flag))];
-    const value = row.read === 'day-present' ? Number(day !== null) : row.read === 'night' ? day?.night ?? 0
-      : row.read === 'player-x' ? world.player.position.x : row.read === 'player-z' ? world.player.position.z
-      : row.read === 'reward-x' ? rewardAt?.x : rewardAt?.z;
-    if (value === undefined) throw new Error('Chapter reward observation lacks its pose');
-    return [key, value];
-  }));
+  const observe = (): Record<string, number> => chapterObservations(rows.observations,
+    { flags: flags.all, day, player: world.player.position, reward: rewardAt });
   const script = director.create();
   const clock = ctx.scope.run(() => new DirectorScriptStageLane(director.stages, script, { scope: ctx.scope, observe,
     emits: { source: rows.source, value: 'literal', actions: new Map(Object.keys(rows.actions).filter(key => script.data.events.some(event => event.direction === 'output' && event.key === key)).map(key => [key, () => { run(key); }])) },
