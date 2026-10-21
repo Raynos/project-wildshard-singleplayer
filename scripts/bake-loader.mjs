@@ -66,13 +66,14 @@ registerHooks({
 // E405 E414 / E415: the app identity and its asset tables, before any engine module runs (a bake that builds an App
 // reads saves, which need the game's save prefix; the boot code reads the tables) — what src/identity.ts installs for
 // a page. A Node tool may run before a table exists (`pnpm gen` writes them through this loader, bake-packs reads the
-// byte table while it builds the packs): a missing table installs empty.
+// byte table while it builds the packs): a missing table installs empty, and so does a stale one (a shard's discovery
+// file still naming a binding its manifest has since moved: the stack, not the message, names the generated file).
 /** @param {string} path */
 const here = (path) => new URL(path, import.meta.url).href;
 /** @param {string} path @returns {Promise<Record<string, unknown>>} */
 const optional = async (path) => {
   try { return await import(here(path)); } catch (error) {
-    if (error instanceof Error && (/generated/u.test(error.message) || ('code' in error && error.code === 'ERR_MODULE_NOT_FOUND'))) return {};
+    if (error instanceof Error && (/generated/u.test(error.message) || (error instanceof SyntaxError && /\.generated\.ts:\d/u.test(error.stack ?? '')) || ('code' in error && error.code === 'ERR_MODULE_NOT_FOUND'))) return {};
     throw error;
   }
 };
