@@ -1,4 +1,5 @@
 import { floorAtRects } from '@wildshard/engine/physics/box';
+import { timeClientPreparation } from './preparationTiming';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { SceneInstanceFields } from './sceneInstances';
 import * as THREE from 'three';
@@ -111,8 +112,9 @@ export class SceneDressing {
       for(const row of source.rows)definitions.set(row.model.id,catalogue.model(row.key));
     }
     const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows)]));
-    await Promise.all([...packs.values()].map(pack=>pack.load()));
+    await timeClientPreparation(ctx.product.slug,'dressing.packs',()=>Promise.all([...packs.values()].map(pack=>pack.load())));
     const bytes=new Map<string,Promise<Uint8Array>>(),addresses=new Map<string,Promise<Uint8Array>>(),geometry=new Map<string,THREE.BufferGeometry>(),materials=new Map<string,THREE.Material>();
+    await timeClientPreparation(ctx.product.slug,'dressing.geometry',async()=>{
     for(const [key,source]of Object.entries(rows.geometry)){
       let shape:THREE.BufferGeometry;
       if(source.kind==='asset'){shape=(await loadBoundSpecimen(sky,source.row)).geometry.clone();}
@@ -131,8 +133,10 @@ export class SceneDressing {
       if(source.kind==='inline'&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await pause();
     }
+    });
     // Shapes now own their arrays; retire inflated bake and pack scratch before material/contact preparation.
     bytes.clear();addresses.clear();packs.clear();
+    await timeClientPreparation(ctx.product.slug,'dressing.materials',async()=>{
     for(const [key,source]of Object.entries(rows.materials).sort((a,b)=>Number(a[1].kind==='mapped')-Number(b[1].kind==='mapped'))){
       const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row)).material
         :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):painterlyMaterial(sky,source);
@@ -142,12 +146,14 @@ export class SceneDressing {
       }
       materials.set(key,material);await pause();
     }
+    });
     const needGeometry=(id:string):THREE.BufferGeometry=>{const value=geometry.get(id);if(value===undefined)throw new Error(`Missing scene shape ${id}`);return value;};
     const needMaterial=(id:string):THREE.Material=>{const value=materials.get(id);if(value===undefined)throw new Error(`Missing scene paint ${id}`);return value;};
     const needModel=(id:string):ModelDef<object>=>{const value=definitions.get(id);if(value===undefined)throw new Error(`Missing scene model ${id}`);return value;};
     for(const row of rows.staticModels){const shape=needGeometry(row.geometry),material=needMaterial(row.material);
       const {surface,seed,variants,specimenYaw,...metadata}=row.model;
       definitions.set(row.model.id,defineModel<object>({...metadata,...(surface===undefined?{}:{surface}),...(seed===undefined?{}:{seed}),...(variants===undefined?{}:{variants}),...(specimenYaw===undefined?{}:{specimenYaw}),build:()=>[{geometry:shape.clone(),material,castShadow:false,receiveShadow:true}]}));}
+    await timeClientPreparation(ctx.product.slug,'dressing.layers',async()=>{
     for(const row of rows.layers){
       const data=row.binary?readSceneNumericTable(await ctx.product.file(row.file)):await ctx.product.json<unknown>(row.file);
       const selection=row.select;
@@ -160,6 +166,8 @@ export class SceneDressing {
         ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,split:{every:150,yieldTask:pause}},
       }));await registered.registered;this.placed.push(registered);await pause();
     }
+    });
+    await timeClientPreparation(ctx.product.slug,'dressing.statics',async()=>{
     for(const row of rows.statics){
       const made=createClientScene(row.recipe,{geometry:new Map(Object.entries(row.geometry).map(([key,id])=>[key,needGeometry(id)])),materials:new Map(Object.entries(row.materials).map(([key,id])=>[key,needMaterial(id)]))});
       const piece={name:row.name,object:made.root,tris:row.tris,placed:[] as Placed[]};this.pieces.set(row.name,piece);
@@ -171,7 +179,8 @@ export class SceneDressing {
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);await pause();
       }
     }
-    this.instances=new SceneInstanceFields(rows.instances,geometry,materials,new Map([...this.pieces].map(([key,piece])=>[key,piece.object])));
+    });
+    this.instances=await timeClientPreparation(ctx.product.slug,'dressing.instances',()=>new SceneInstanceFields(rows.instances,geometry,materials,new Map([...this.pieces].map(([key,piece])=>[key,piece.object]))));
     if(rows.wings!==undefined){this.wings=new AmbientWingField(rows.wings,new Map(rows.wings.layers.map(row=>[row.id,needGeometry(row.geometry)])),new Map(rows.wings.layers.map(row=>[row.id,needMaterial(row.material)])));this.group.add(this.wings.group);}
     if(rows.motes!==undefined){const row=rows.motes,rng=new Rng(row.seed),seeds=Float32Array.from({length:row.count*4},()=>rng.next()),shape=new THREE.BufferGeometry();
       shape.setAttribute('position',new THREE.BufferAttribute(new Float32Array(row.count*3),3));shape.setAttribute('aSeed',new THREE.BufferAttribute(seeds,4));ctx.scope.own(shape);
