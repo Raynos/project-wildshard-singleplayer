@@ -75,7 +75,6 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   chargePlatformUsers(new Map(), metadataBindings);
   expect(metadataBindings.get(`${explorer}\0Presentation`)).toEqual(users);
   expect(platformChargeback(explorer, 'Presentation')).toBeNull();
-  expect(charges.get('driftwood-isle')?.map(row => row.name)).toContain('DeclaredGeometryBatch');
   const figure = 'src/game/models/figureCatalogue.ts', hull = 'src/game/looks/speciesBook.ts';
   const both = new Set(['pine-hollow', 'driftwood-isle']);
   const bindings = new Map(['admitted','ProductFigureCatalogue','ProductFigureImports','FigureCatalogue'].map(name=>[`${figure}\0${name}`,both]));

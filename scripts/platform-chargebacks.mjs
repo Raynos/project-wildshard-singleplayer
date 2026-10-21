@@ -36,7 +36,6 @@ const declarations = new Map([
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/populationEnvironment.ts', new Map(['Stream', 'streamProjection', 'streamProfile', 'streamSurface', 'LiveStreamLevels'].map(name => [name, 'C1']))],
-  ['src/engine/models/ownedGeometry.ts', new Map([['DeclaredGeometryBatch', 'C1']])],
   ['src/engine/models/geometrySources.ts', new Map(['registerPackedGeometrySource', 'PackedGeometryImports'].map(name => [name, 'C1']))],
   ['src/game/looks/posedInstances.ts', new Map(['PosedLibrary', 'ProductPosedLibrary'].map(name => [name, 'C1']))],
   ['src/game/shardfile/clientCatalogue.ts', new Map([['CatalogueEconomy', 'C6']])],
@@ -77,12 +76,6 @@ const inline = new Map([
     ]],
   ])],
   ['src/format/populationEnvironment.ts', new Map([['LiveStreamLevels', [['const value = v.strictObject({ profile, add: finite, level:', 1]]]])],
-  ['src/engine/models/ownedGeometry.ts', new Map([['DeclaredGeometryBatch', [
-    ['  declare: (rows:', 1], ['  handle: (slot:', 1], ['  readonly ready:', 1],
-    ['  let declaration:', 2], ['    get ready()', 1], ['    declare: rows =>', 8],
-    ['    handle: slot =>', 1], ["if (!url || entries.has(url) || entries.size >= 128 || declaration", 1],
-    ['      ready = true;', 1], ['  return batch;', 1],
-  ]]])],
   ['src/game/shardfile/clientCatalogue.ts', new Map([['CatalogueEconomy', [
     ['const economy = row.economy', 1], ['if (economy !== undefined)', 1],
   ]]])],
@@ -115,7 +108,7 @@ function reviewedOwner(path, name) {
   if (['src/format/populationEnvironment.ts',
     'src/engine/models/geometrySources.ts', 'src/game/looks/posedInstances.ts',
     'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
-  if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts','src/engine/models/ownedGeometry.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',
+  if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',
     'src/game/quest/pageComposition.ts', 'src/format/questPageComposition.ts'].includes(path)) return 'driftwood-isle';
   return 'nalati-grasslands';
 }
