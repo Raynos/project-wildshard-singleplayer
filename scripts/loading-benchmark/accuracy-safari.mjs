@@ -6,7 +6,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { createServer } from 'node:net';
 import { observeTransport } from './transport.mjs';
 import { soakInspector } from '../soak/inspector.mjs';
-import { saveFixtureCode } from '../debug-settings.mjs';
+import { saveFixtureCode, harnessPinCode } from '../debug-settings.mjs';
 import { accuracyRecorder, accuracyCaption } from './accuracy-data.mjs';
 import { accuracyReport } from './accuracy-report.mjs';
 import { loadingCardIndex } from './catalogue.mjs';
@@ -85,7 +85,9 @@ let failed = false;
 try {
   for (const path of (arg('paths') ?? 'shardfile,grid').split(',')) {
     if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
-    transport = await observeTransport(upstream, { recorder: accuracyRecorder });
+    let offline = false;
+    transport = await observeTransport(upstream, { recorder: accuracyRecorder, offline: () => offline,
+      prelude: arg('ktx2-probe') === 'skip' ? harnessPinCode({ ktx2Probe: 'skip' }) : '' });
     base = transport.base;
     // Reuse this origin for warm disk caches, but launch Safari before every navigation.
     for (const visit of visits.split(',')) {
@@ -108,6 +110,7 @@ try {
         await inspector.evaluate(setup(path));
         await sleep(500); await connect();
         await wait(`performance.timeOrigin !== ${previousOrigin} && window.__loadingAccuracy !== undefined && document.querySelector('.ws-main-select') !== null`, 60000);
+        offline = visit === 'warm' && arg('offline-warm') === '1';
         if (path === 'grid') await gesture(`document.querySelector('.ws-main-grid').click()`);
         else {
           await gesture(`document.querySelector('.ws-main-select').click()`);

@@ -5,6 +5,8 @@ import { createHash } from 'node:crypto';
 export async function observeTransport(upstream, fixture = {}) {
   const receipts = [], htmlFixtures = [];
   const server = http.createServer((request, response) => {
+    // Proof-only offline boundary: fail the wire, retaining the browser's real worker/content caches.
+    if (fixture.offline?.() === true) { request.socket.destroy(); return; }
     if (request.url === '/sf67-start.html' && fixture.start !== undefined) {
       response.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });
       response.end(fixture.start); return;
@@ -27,7 +29,7 @@ export async function observeTransport(upstream, fixture = {}) {
       incoming.on('end', () => {
         if (inject) {
           const original = Buffer.concat(chunks).toString('utf8');
-          const patched = original.replace('<head>', `<head><script>(${fixture.recorder.toString()})();</script>`);
+          const patched = original.replace('<head>', `<head><script>${fixture.prelude ?? ''}(${fixture.recorder.toString()})();</script>`);
           htmlFixtures.push({ originalSHA256: createHash('sha256').update(original).digest('hex'),
             injectedSHA256: createHash('sha256').update(patched).digest('hex') });
           body = Buffer.byteLength(patched);

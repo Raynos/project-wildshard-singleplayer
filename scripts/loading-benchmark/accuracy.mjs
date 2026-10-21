@@ -29,7 +29,8 @@ if (!['cold', 'cold,warm'].includes(visits)) throw new Error('Visits must be col
 try {
   for (const path of arg('paths', 'shardfile,grid').split(',')) {
     if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
-    transport = await observeTransport(base);
+    let offline = false;
+    transport = await observeTransport(base, { offline: () => offline });
     const context = await browser.newContext(desktop ? { viewport: { width: 1440, height: 900 } } : phone);
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
     await saveFixture(context, { scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' });
@@ -61,6 +62,7 @@ try {
       let status = 'passed';
       try {
         await page.goto(transport.base, { waitUntil: 'load' });
+        offline = visit === 'warm' && arg('offline-warm', '0') === '1';
         if (arg('profile', '0') === '1') { await cdp.send('Profiler.enable'); await cdp.send('Profiler.start'); }
         if (path === 'grid') await page.locator('.ws-main-grid').click();
         else {
