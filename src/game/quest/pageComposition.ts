@@ -1,6 +1,7 @@
 /** Client-only entered quest presentation over existing native owners. */
 import type * as THREE from 'three';
 import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
+import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { installQuestHints } from './hints';
 import { questPageWorld } from './pageResources';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -92,7 +93,8 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     if (!practiceRoom.open) chapter.chip.update(t, world.player);
   }, rows.systems.talks);
   entry.deaths({ effects: [{ effects: [{ kind: 'kill' }] }], order: 35 });
-  adventure.trader = entry.trader({ rows: traderStall, resources: { ...rows.trader, before: rows.systems.before } });
+  adventure.trader = entry.trader({ rows: traderStall, resources: { ...rows.trader, before: rows.systems.before,
+    page: parseQuestPageInteractions(await ctx.product.json('quests/trader.json')) } });
   entry.observe();
   entry.bench();
   ironDrop?.bindGuardFlags(flags.all);

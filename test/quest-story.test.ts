@@ -33,6 +33,7 @@ import pinePage from '../src/shards/pine-hollow/data/forestStory.json';
 import type { Actor } from '../src/engine/combat/pipeline';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import deaths from '../src/shards/driftwood-isle/data/questDeaths.json';
+import { TRADER_PAGE } from '../src/shards/driftwood-isle/generators/traderPage';
 import { PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
 
 function product(source: typeof drift, story: typeof driftStory, counters: typeof DRIFTWOOD_FEAT_COUNTERS | typeof PINE_FEAT_COUNTERS) {
@@ -158,7 +159,8 @@ function talkPage(source: typeof drift, story: typeof driftStory, counters: type
 }
 
 test('entry traders keep talk-opened and placed counters on their actual figure, floor and shop owners', async () => {
-  for (const placed of [false, true]) {
+  for (const mode of ['talk', 'placed', 'declared'] as const) {
+    const placed = mode !== 'talk';
     setTerrainHeight((x, z) => x + z);
     const { ctx, scope } = talkPage(drift, driftStory, DRIFTWOOD_FEAT_COUNTERS);
     const figure = new FigureRows(new SceneHandles({ setupMaterial: () => undefined }), {
@@ -175,9 +177,11 @@ test('entry traders keep talk-opened and placed counters on their actual figure,
         placement: { feet: { poi: 'world', x: 6, z: 3, yaw: .5 }, npc: 'keeper', counter: 'counter', counterAhead: 1, tradeAhead: 2, tradeHeight: 1, system: 'entry.counter' },
         view: { pitch: -.2, closeDistance: 4 },
       } : {}) };
-      const data = { rows: policy, ...(placed ? { resources: { figure: 'keeper', counter: 'counter', offer: 'offer', label: 'Trade', radius: 2.5, before: [] } } : {}) };
+      const data = { rows: policy, ...(placed ? { resources: { figure: 'keeper', counter: 'counter', offer: 'offer', label: 'Trade', radius: 2.5, before: [], ...(mode === 'declared' ? { page: TRADER_PAGE } : {}) } } : {}) };
       expect(() => entry.trader({ ...data, run: () => undefined })).toThrow('JSON rows');
+      if (mode === 'declared') expect(() => entry.trader({ ...data, resources: { ...data.resources, page: { actions: [{ id: 'trade', after: [{ kind: 'call', target: 'missing' }] }] } } })).toThrow();
       const stall = entry.trader(data);
+      if (placed) expect(runtime.interactables[0]?.radius).toBe(0);
       let opened = 0, active = false;
       stall.shop = { open: () => { opened++; active = true; }, close: () => { active = false; }, get isOpen() { return active; } };
       if (placed) {
@@ -185,7 +189,9 @@ test('entry traders keep talk-opened and placed counters on their actual figure,
         expect(stall.at.toArray()).toEqual([x, x + z + 1, z]);
         expect(stall.trader?.position).toBe(figure.group.position);
         const prompt = runtime.interactables[0]; if (prompt === undefined) throw new Error('Missing entered counter prompt');
-        expect(prompt.label).toBe('Trade'); expect(prompt.radius).toBe(2.5); prompt.onInteract();
+        expect(prompt.label).toBe(mode === 'declared' ? 'Trade with Maren' : 'Trade');
+        expect(prompt.radius).toBe(mode === 'declared' ? 2.8 : 2.5); prompt.onInteract();
+        expect(prompt.radius).toBe(0);
         expect(world.player.pitch).toBe(-.2); expect(figure.takeSignal('offer')).toBe(true);
       } else { expect(stall.trader).toBeNull(); expect(runtime.interactables).toEqual([]); stall.open(); }
       expect(opened).toBe(1); stall.open(); expect(opened).toBe(1);

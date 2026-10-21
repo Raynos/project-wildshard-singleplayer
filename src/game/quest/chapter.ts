@@ -7,6 +7,7 @@ import { bindInteractPlacements, createQuestPlacements, type InteractTable } fro
 import { validateTable } from '@wildshard/engine/world/interact/validate';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { isJsonData } from '@wildshard/format/json';
+import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { app } from '@wildshard/engine/app/runtime';
 import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -118,7 +119,7 @@ const entryCable = v.strictObject({ mode: entryId, carriage: entryId,
     shot: v.exactOptional(v.strictObject({ audio: entryId, family: entryId, at: v.union([entryId, point]) })) })) });
 const entryTrader = v.strictObject({ rows: v.unknown(), resources: v.exactOptional(v.strictObject({
   figure: entryId, counter: entryId, offer: entryId, label: entryId,
-  radius: v.pipe(finite, v.minValue(0), v.maxValue(100)), before: v.pipe(v.array(entryId), v.maxLength(64)),
+  radius: v.pipe(finite, v.minValue(0), v.maxValue(100)), before: v.pipe(v.array(entryId), v.maxLength(64)), page: v.exactOptional(v.unknown()),
 })) });
 /** Client cable view borrows the existing scene and mode continuation. */
 export interface QuestCableView {
@@ -179,7 +180,8 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
       if (site === undefined) throw new Error('Quest trader resources require a declared placement');
       const feet = placement.place(site.feet), x = feet.x + Math.sin(feet.yaw) * site.tradeAhead, z = feet.z + Math.cos(feet.yaw) * site.tradeAhead;
       return installQuestTrader(ctx, trader.rows, { figure: resources.figure, counter: resources.counter, offer: resources.offer,
-        at: { x, y: placement.floorAt(x, z) + site.tradeHeight, z }, prompt: { label: resources.label, radius: resources.radius }, before: resources.before });
+        at: { x, y: placement.floorAt(x, z) + site.tradeHeight, z }, prompt: { label: resources.label, radius: resources.radius }, before: resources.before,
+        ...(resources.page === undefined ? {} : { page: parseQuestPageInteractions(resources.page) }) });
     },
     cable: async cableInput => {
       if (!isJsonData(cableInput)) throw new Error('Quest cable requires JSON rows');
