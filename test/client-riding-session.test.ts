@@ -14,7 +14,7 @@ test('client session rejects callback ports and admits an unrelated ride profile
   expect(admitted.rest).toEqual(rows.rest); expect(admitted.naming.maximum).toBe(8);
   for (const bad of [{ ...rows, naming: { ...rows.naming, maximum: 129 } },
     { ...rows, naming: { ...rows.naming, onSave: () => undefined } },
-    { ...rows, figure: { ...rows.figure, row: { build: () => null } } },
+    { ...rows, figure: { row: { build: () => null } } },
     { ...rows, taming: { ...rows.taming, owner: 'borrowed', path: ['herds'] } }])
     expect(() => parse(ClientRidingSessionSchema, bad)).toThrow();
 });

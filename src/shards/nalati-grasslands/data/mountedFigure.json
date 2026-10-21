@@ -1,6 +1,6 @@
 {
   "mount": "body",
-  "scene": {
+  "figure": {
     "version": 1,
     "root": "rider",
     "materials": [
@@ -30,7 +30,9 @@
         "id": "body",
         "geometry": "shepherd-body",
         "material": "rider",
-        "missing": "empty"
+        "missing": "empty",
+        "castShadow": true,
+        "receiveShadow": true
       },
       {
         "kind": "mesh",
@@ -42,7 +44,9 @@
           -0.2,
           0.6,
           0
-        ]
+        ],
+        "castShadow": true,
+        "receiveShadow": true
       }
     ]
   },
@@ -50,11 +54,6 @@
     "id": "rider",
     "rim": 0.4,
     "bands": 0.8
-  },
-  "shadows": {
-    "phone": false,
-    "other": true,
-    "receive": true
   },
   "speed": "speed",
   "gestures": [

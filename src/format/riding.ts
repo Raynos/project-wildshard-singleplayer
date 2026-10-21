@@ -102,5 +102,4 @@ export const ClientRidingSessionSchema = v.pipe(v.unknown(), v.check(isJsonData)
   roads: v.array(v.array(v.tuple([v.number(), v.number()]))), rest: v.strictObject({ ...point.entries, face: point }),
   taming: v.strictObject({ binding: PageTamingBindingSchema, rail: point }),
   naming: v.strictObject({ panel: PanelDefinitionSchema, action: v.string(), maximum: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(128)), notice: v.string(), bondedFeat: v.string() }),
-  figure: v.strictObject({ row: v.unknown(), shapes: v.record(v.string(), v.unknown()), geometry: v.pipe(v.array(v.string()), v.maxLength(16)) }),
 }));

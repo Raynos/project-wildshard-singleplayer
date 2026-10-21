@@ -4,7 +4,7 @@ import { atlasFigureSkin } from '@wildshard/game/systems/npc/figureSkins';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { TIER } from '@wildshard/engine/core/tier';
 import population from '../boot/peopleFrames.generated.json' with { type: 'json' };
-import { defineMountedSpecimen } from '@wildshard/game/riding/mountedFigure';
+import { defineMountedSpecimen } from '@wildshard/game/models/mountedSpecimen';
 import mountedSpecimen from '../boot/mountedSpecimen.json' with { type: 'json' };
 import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 

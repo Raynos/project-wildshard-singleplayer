@@ -5,7 +5,8 @@ const modules = new Map([
   ...['game/boss/arenaScript', 'game/boss/arenaField', 'game/boss/encounterPatrol',
     'game/population/creatureGuest', 'game/population/creatureFrame',
     'format/creatureGuest', 'format/creatureFrame'].map(path => [`src/${path}.ts`, 'C4']),
-  ...['game/riding/mountedFigure', 'game/riding/pastureView'].map(path => [`src/${path}.ts`, 'C7']),
+  // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
+  ['src/game/models/mountedSpecimen.ts', 'C1'],
   ['src/game/systems/viewmodel/graphArms.ts', 'C6'],
   // G516/G518: only one live shard drives these item hosts; fixtures grant no credit.
   ...['game/weapons/bowVariant', 'game/loadout/mounted', 'game/practice/ridingCourse',

@@ -2341,19 +2341,23 @@
   "closedComponents": {
     "pine-hollow": [
       "C3",
-      "C8"
+      "C8",
+      "C7"
     ],
     "driftwood-isle": [
       "C3",
-      "C8"
+      "C8",
+      "C7"
     ],
     "nalati-grasslands": [
       "C3",
-      "C8"
+      "C8",
+      "C7"
     ],
     "nine-dragon-stack": [
       "C3",
-      "C8"
+      "C8",
+      "C7"
     ]
   },
   "closingComponents": {
@@ -2364,7 +2368,7 @@
       "C7": 0
     },
     "nalati-grasslands": {
-      "C7": 93
+      "C7": 0
     },
     "nine-dragon-stack": {
       "C7": 0
