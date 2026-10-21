@@ -7247,13 +7247,6 @@ uses `NativeCreaturePose` directly with offline joint rows from
 `generators/bodies.ts` (`sim/taming-poses.json`). It retains its wind
 overlay, body cadence, adoption, legacy transforms and publication phase.
 
-`src/engine/boot/plan.ts#BuildStages<T>` sequences up to 512 world-build completions on a borrowed `Slice`.
-`build(detail, work, {objects?, values?})` returns the original constructor result, attaches selected objects
-to the supplied `parent` in order, appends selected values to `collect`, then reports completion and yields.
-Missing attachment/collection ports refuse before construction; failed work never reports completion.
-`next(detail)` completes work kept local. Optional `total` supplies progress units (1..512); without it the
-borrowed slice is called without progress arguments. The caller retains constructors, disposal and physics.
-
 `src/sdk/headlessRuntime.ts` also defines `createNativeBakeReader(input,
 options)`, a typed one-time native-world intake composed from those readers.
 `NativeBakedActor` and `NativePhysicsBake` retain ordered body/herd metadata,

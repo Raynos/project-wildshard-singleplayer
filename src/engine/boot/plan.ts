@@ -1,4 +1,3 @@
-import type { Object3D } from 'three';
 import { resourceScope } from '../app/resources';
 import { engineString } from '../strings';
 /**
@@ -136,52 +135,6 @@ export function slicer(budgetMs = 30, progress?: StepProgress): Slice {
 export interface Slice {
   (done?: number, total?: number, detail?: string): Promise<void>;
   due: () => Promise<void> | null;
-}
-
-/** Ordered build completion on the caller's existing slice clock. Constructors and ownership stay with the caller. */
-export class BuildStages<T> {
-  private count = 0;
-  private readonly options: {
-    readonly slice: Slice;
-    readonly total?: number;
-    readonly parent?: Pick<Object3D, 'add'>;
-    readonly collect?: T[];
-  };
-
-  constructor(options: BuildStages<T>['options']) {
-    if (options.total !== undefined && (!Number.isSafeInteger(options.total) || options.total < 1 || options.total > 512)) {
-      throw new Error('Build stage total must be an integer in 1..512');
-    }
-    this.options = options;
-  }
-
-  get completed(): number { return this.count; }
-
-  private available(): void {
-    if (this.count >= (this.options.total ?? 512)) throw new Error('Build stage budget exhausted');
-  }
-
-  /** Complete one local stage, reporting progress only when a total was supplied. */
-  async next(detail: string): Promise<void> {
-    this.available();
-    this.count++;
-    await (this.options.total === undefined ? this.options.slice() : this.options.slice(this.count, this.options.total, detail));
-  }
-
-  /** Run one constructor, attach/collect its selected outputs in order, then complete its stage. Failed work is not completed. */
-  async build<R>(detail: string, work: () => R | Promise<R>, ports: {
-    readonly objects?: (value: R) => readonly (Object3D | null | undefined)[];
-    readonly values?: (value: R) => readonly T[];
-  } = {}): Promise<R> {
-    this.available();
-    if (ports.objects && !this.options.parent) throw new Error('Build objects require a parent');
-    if (ports.values && !this.options.collect) throw new Error('Build values require a collector');
-    const value = await work();
-    for (const object of ports.objects?.(value) ?? []) if (object) this.options.parent?.add(object);
-    this.options.collect?.push(...(ports.values?.(value) ?? []));
-    await this.next(detail);
-    return value;
-  }
 }
 
 interface StepState { state: 'todo' | 'on' | 'ok'; fraction: number; sub: number; detail: string; t0: number; ms: number }
