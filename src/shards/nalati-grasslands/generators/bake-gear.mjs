@@ -1,5 +1,8 @@
 // Gear is constructed once offline; runtime cards and reward orbs decode rows.
 import { readFileSync } from 'node:fs';
+import { isDeepStrictEqual } from 'node:util';
+import { parse } from 'valibot';
+import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
@@ -82,7 +85,10 @@ try {
   const variant=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowVariant.json'),'utf8'));
   variant.program=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/kokpar.generated.json'),'utf8')).program;
   variant.multipliers=effects.multipliers;variant.trail=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'));
+  const admittedVariant=parse(BowVariantSchema,variant);
+  if(!isDeepStrictEqual(admittedVariant,variant))throw new Error('Bow variant must include its admitted defaults');
   writer.put(resolve(import.meta.dirname,'../boot/bowVariant.generated.json'),jsonBytes(variant));
+  writer.put(resolve(import.meta.dirname,'../boot/bowVariant.generated.d.json.ts'),"declare const variant: import('@wildshard/format/bowVariantRows').BowVariantRows;\nexport default variant;\n");
   writer.finish();
 } finally { environment.dispose(); }
 

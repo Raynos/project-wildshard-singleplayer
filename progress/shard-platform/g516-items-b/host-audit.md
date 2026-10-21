@@ -442,3 +442,22 @@ The baseline misses its interior p95 floor; the candidate passes all
 desktop floor rows. No visual tuning, collider, codec, cap or budget edit.
 Root/layer types, typed lint, three focused suites and real hooks pass;
 one coherent Nine/Driftwood batch follows the source landing.
+
+
+X4 bow defining admission: delete the whole runtime format/bowVariant
+module into build-only bowVariantRows. The existing Nalati gear baker
+validates the original rows and emits a typed JSON facade. It serializes
+the original admitted object so its field order and exact bytes survive;
+a deep equality check refuses omitted defaults. Same schema and bounds.
+The native prediction limit, room binding, charged power class, contact
+loop, AS module and actor owner remain. VariantBowPower stays Nalati-only
+HOST-BAR 4/6 (011101), fully charged; no host gains another user or credit.
+Runtime canonical TS: Nalati **0 / platform -17**, net **-17**.
+Build canonical TS **+16**, total canonical TS **-1**; baker wiring adds
+six physical lines. Relocation itself earns no credit.
+The JSON remains byte-identical: **22,184 bytes**, **20,105 compact bytes**,
+SHA256 b009694f18ce9832de952dca3d46f6680d4e3459f85076ec125aa219a0afc99c.
+Only a build-time type declaration is added, never a product section.
+Root/layer types, typed lint and six focused suites (21 tests) pass.
+No rendering, collision, AS, codec, cap or budget changes. One Nalati
+batch follows the small source landing; the carrier owns the push gate.

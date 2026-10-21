@@ -20,7 +20,7 @@
     "./bossSocketRig": "./bossSocketRig.ts",
     "./crowdPresentation": "./crowdPresentation.ts",
     "./wildlifePopulation": "./wildlifePopulation.ts",
-    "./bowVariant": "./bowVariant.ts",
+    "./bowVariantRows": "./bowVariantRows.ts",
     "./questPageComposition": "./questPageComposition.ts",
     "./populationProjection": "./populationProjection.ts",
     "./populationKeeper": "./populationKeeper.ts",

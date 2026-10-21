@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import {parse} from 'valibot';
-import {BowVariantSchema,type BowVariantRows} from '@wildshard/format/bowVariant';
+import type {BowVariantRows} from '@wildshard/format/bowVariantRows';
 import {sourceMultiplier} from '@wildshard/engine/combat/effects/types';
 import type {TargetAnimal} from '@wildshard/engine/combat/types';
 import {equipmentAnimals,equipmentActorOwner} from '../loadout/actors';
@@ -12,14 +11,13 @@ import type {Bow} from './Bow';
  * their identities; charged activation and contact numbers come from the guest. */
 export class VariantBowPower {
   private bow:Bow|null=null;
-  private readonly rows:BowVariantRows;
   private brain:ReturnProgram|null=null;
   private readonly trail:ProjectedTrail;
   private readonly pending:{t:number;target:TargetAnimal;point:THREE.Vector3;dir:THREE.Vector3;base:number}[]=[];
   private sunShot=false;
   private readonly origin=new THREE.Vector3();private readonly direction=new THREE.Vector3();private readonly velocity=new THREE.Vector3();private readonly at=new THREE.Vector3();private readonly segment=new THREE.Vector3();
-  constructor(scene:THREE.Scene,private readonly camera:THREE.Camera,input:unknown){
-    this.rows=parse(BowVariantSchema,input);if(this.rows.trail.points>48)throw new Error('Bow prediction exceeds its native contact bound');
+  constructor(scene:THREE.Scene,private readonly camera:THREE.Camera,private readonly rows:BowVariantRows){
+    if(this.rows.trail.points>48)throw new Error('Bow prediction exceeds its native contact bound');
     this.trail=new ProjectedTrail(scene,camera,this.rows.trail);
   }
   get applied():boolean{return this.bow!==null;}

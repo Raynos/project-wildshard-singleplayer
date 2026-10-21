@@ -30,6 +30,7 @@ import { ReturnProgram } from '../population/returnProgram';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { BossEncounterDefinitionSchema } from '@wildshard/format/bossEncounter';
 import { VariantBowPower } from '../weapons/bowVariant';
+import type { BowVariantRows } from '@wildshard/format/bowVariantRows';
 import type { MountedLoadout } from '../loadout/mounted';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
@@ -589,7 +590,7 @@ export class ArenaRoomEncounter {
     return this;
   }
   /** Concrete entered services supply native effects, never shard callbacks. */
-  bind(ctx: ShardContext, kit: MountedLoadout, rewardModel: ModelDef<object>, powerRows: unknown): void {
+  bind(ctx: ShardContext, kit: MountedLoadout, rewardModel: ModelDef<object>, powerRows: BowVariantRows): void {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Arena encounter requires its entered native kit');
     const health = ctx.app.player;
