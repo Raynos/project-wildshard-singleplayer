@@ -5,7 +5,7 @@ import lookGraphs from '../src/shards/driftwood-isle/data/lookGraphs.json' with 
 import { authoredGraphs } from './fixtures/authoredGraphs';
 import source from '../src/shards/driftwood-isle/shard.config';
 import { graphCreatureLook } from '../src/shards/driftwood-isle/runtime/looks/creatureLooks';
-import { CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
+import { CRAB_LOOK } from './fake/driftwoodLooks';
 
 const CREATURE_GRAPHS = authoredGraphs(lookGraphs.looks);
 

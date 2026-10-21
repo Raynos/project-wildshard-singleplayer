@@ -1312,7 +1312,10 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         const pose = poseRows === undefined ? undefined : numericCreaturePose(poseRows);
         const look: SpeciesLook = { id: row.id, species: row.species, kind: row.kind, fur: NO_FUR,
           rigContract: { skeleton: row.skeleton, sockets: row.sockets, clips: row.clips },
-          build: variant => { const key = row.variants === undefined ? variant.id : row.variants[variant.id]; if (key === undefined) throw new Error('Unknown packed creature look variant'); return catalogue.copy(family, key); },
+          build: variant => {
+            const key = row.variants === undefined ? variant.id : row.variants[variant.id]; if (key === undefined) throw new Error('Unknown packed creature look variant');
+            const body = catalogue.copy(family, key); return row.facetJitter === undefined ? body : { ...body, facetJitter: row.facetJitter };
+          },
         };
         if (row.rig !== undefined) look.rig = row.rig;
         if (row.standMem !== undefined) look.standMem = row.standMem;

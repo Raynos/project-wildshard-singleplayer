@@ -1,5 +1,18 @@
 [
   {
+    "id": "driftwood.look.crab",
+    "species": "creature.crab",
+    "kind": "crab",
+    "skeleton": "crab.v1",
+    "rig": "custom",
+    "sockets": [
+      "body",
+      "head"
+    ],
+    "clips": [],
+    "pose": "crab"
+  },
+  {
     "id": "driftwood.look.monkey",
     "species": "creature.monkey",
     "kind": "monkey",
@@ -39,5 +52,29 @@
       -2.3,
       6
     ]
+  },
+  {
+    "id": "driftwood.look.captain",
+    "species": "creature.captain",
+    "kind": "captain",
+    "skeleton": "captain.v1",
+    "rig": "custom",
+    "sockets": [
+      "body",
+      "head"
+    ],
+    "clips": [],
+    "standMem": {
+      "init": 1,
+      "rise": 1
+    },
+    "eyeGlow": [
+      0.2,
+      1.0,
+      1.0
+    ],
+    "eyeGlowIntensity": 1.4,
+    "pose": "captain",
+    "facetJitter": 0
   }
 ]

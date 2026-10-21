@@ -33,6 +33,8 @@ export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData)
     rig: v.exactOptional(v.picklist(['quadruped', 'custom'])), family: v.exactOptional(text), variants: v.exactOptional(v.record(text, text)),
     standMem: v.exactOptional(v.record(text, number)), eyeGlow: v.exactOptional(rgb), eyeGlowIntensity: v.exactOptional(number),
     lift: v.exactOptional(v.tuple([number, number, number, number])),
+    // the faceted body's per-facet jitter (0: a painted body's flat facets)
+    facetJitter: v.exactOptional(v.pipe(number, v.minValue(0))),
   })), v.maxLength(256)),
 }));
 /** Native group slot binding; 0.1 seconds is the fastest admitted decision cadence. */
