@@ -16,10 +16,11 @@ import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 import {compilerCodeHash} from './compiler-code.mjs';
+import {functionSource} from './function-source.mjs';
 
 const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync.native, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
-const schema = 'shardfile-inputs/4', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs')]);
+const schema = 'shardfile-inputs/4', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs'),resolve(import.meta.dirname,'function-source.mjs')]);
 const code=/\.[cm]?[jt]sx?$/u;
 const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FDMP] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
 /** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,traceOnly?:boolean,opaque?:Set<string>}>} */
@@ -108,9 +109,13 @@ export function installInputRecorder() {
     if(typeof text!=='string')throw new Error('Function source reader returned non-text');
     const scope=inputScope();
     if(scope!==undefined&&!scope.observing&&!/\{\s*\[native code\]\s*\}$/u.test(text)) {
-      // A function can originate in transformed TypeScript or a closure. Mark
-      // all executing modules as raw content rather than guess its source.
-      for(const file of modules)note('F',file);
+      scope.observing=true;
+      let source;
+      try {source=functionSource(this);}finally {scope.observing=false;}
+      if(source?.startsWith('file:'))note('F',fileURLToPath(source));
+      // Native builtins are pinned by Node's version. A bundled data URL or
+      // unrecognized origin retains all raw compiler modules as a fallback.
+      else if(source?.startsWith('node:')!==true)for(const file of modules)note('F',file);
     }
     return text;
   };

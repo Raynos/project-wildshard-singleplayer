@@ -13,6 +13,7 @@ import { captureProductInputs, productInputKey, productToolchainKey, recordBundl
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import {build as buildCompiler} from 'vite';
+import * as v from 'valibot';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -151,10 +152,11 @@ it.each([true,false])('keeps native compiler execution %s separate from raw runt
 it.each([false,true])('guards function text after the native bundle execution boundary: %s',async executed=>{
   const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
   const source='/** first docs */ export const compile=()=>1;';writeFileSync(compiler,source);
+  const bundled=v.parse(v.object({compile:v.function()}),await import(`data:text/javascript,${encodeURIComponent(source)}`));
   await captureProductInputs(root,receipt,()=>{
     recordModuleInput(compiler,{execution:true});
     if(executed)recordBundle({output:[{type:'chunk',moduleIds:[compiler]}]},{execution:true});
-    const callback=()=>1;callback.toString();
+    const callback=executed?bundled.compile:()=>1;callback.toString();
     recordBundle({output:[]});return Promise.resolve();
   });
   const memo=new InputHashMemo(root),key=()=>productInputKey(root,receipt,[],memo),initial=key();expect(initial).toMatch(/^[a-f0-9]{64}$/u);

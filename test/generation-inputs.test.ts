@@ -13,7 +13,7 @@ function fixture(source?:string) {
   const entry='src/shards/alpha/generators/bake-reader.mjs',output='src/shards/alpha/data/output.txt';
   put(root,entry,source??`import {value} from '../../../sdk/used.mjs';import fs from 'node:fs';fs.writeFileSync('${output}',String(value));`);
   put(root,'src/sdk/used.mjs','export const value=1;');put(root,'src/sdk/unread.ts','// unrelated source');
-  for(const name of ['generation-recorder.mjs','shardfile-inputs.mjs','compiler-code.mjs','bake-input-hashes.mjs']) {
+  for(const name of ['generation-recorder.mjs','shardfile-inputs.mjs','compiler-code.mjs','function-source.mjs','bake-input-hashes.mjs']) {
     mkdirSync(resolve(root,'scripts'),{recursive:true});copyFileSync(resolve('scripts',name),resolve(root,'scripts',name));
   }
   mkdirSync(resolve(root,'node_modules'));symlinkSync(realpathSync(resolve('node_modules/valibot')),resolve(root,'node_modules/valibot'));
