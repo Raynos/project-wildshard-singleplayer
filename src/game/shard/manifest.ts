@@ -19,6 +19,11 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import type { WaterBody } from '@wildshard/engine/world/water/body';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
+import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
+import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
+import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
+import { GroundRowsSchema } from '@wildshard/format/terrain';
+import * as v from 'valibot';
 
 import type { AccentId } from '@wildshard/format/accent';
 import type { RegionalSimCost, RuntimeCost } from '@wildshard/format/runtimeCost';
@@ -673,6 +678,21 @@ export function defineShard(rows: ShardManifestRows,
   return manifest;
 }
 
+
+/**
+ * A hybrid shard's ground from its declared rows (`GroundRowsSchema`, G4): its baked terrain field by key and seed with
+ * the declared trails, pads, pond, rest water level and datum, and its water bodies from the same rows a shardfile's water
+ * section admits (a declared stream also answers the terrain's `streamAt`: wading, the dry-ground test, the boundary).
+ * The manifest names a generated rows file (`ground: { platform: 'declared', rows }`); no shard code builds its ground.
+ */
+export function declaredGround(input: unknown): ShardManifest['ground'] {
+  const rows = v.parse(GroundRowsSchema, input), water = rows.bodies.map(row => declaredWaterBody(row));
+  const stream = water[rows.bodies.findIndex(row => row.kind === 'stream')];
+  const metadata = buildTerrainMetadata(rows.terrain.seed, { trails: rows.trails, cabinSites: rows.cabinSites,
+    ...(rows.pond === undefined ? {} : { pond: rows.pond }), ...(stream === undefined ? {} : { streamAt: stream.restAt }) }, () => rows.water);
+  const terrain = createBakedTerrainField(rows.terrain, { ...metadata, ...(rows.datum === undefined ? {} : { datum: rows.datum }) });
+  return { ...(rows.paths === undefined ? {} : { paths: rows.paths }), terrain, water };
+}
 
 /** Authored terrain, or the analytic placement floor for a structures-only manifest (y = -1000 m). */
 export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): ChunkTerrain {

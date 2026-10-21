@@ -329,8 +329,11 @@
       "export": "DRIFTWOOD_FAUNA_PLANS"
     },
     "ground": {
-      "module": "./boot/ground",
-      "export": "GROUND"
+      "platform": "declared",
+      "rows": {
+        "module": "./boot/ground.generated.json",
+        "export": "default"
+      }
     },
     "render": {
       "platform": "toon"

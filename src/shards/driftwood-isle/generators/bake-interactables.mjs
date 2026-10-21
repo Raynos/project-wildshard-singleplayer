@@ -1,6 +1,8 @@
 import { fileURLToPath } from 'node:url';
 import * as rows from './interactables.ts';
 import * as sea from './sea.ts';
+import { TRAILS } from './landscapeRows.ts';
+import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = new URL('../', import.meta.url);
@@ -26,4 +28,8 @@ declare const sea: {
 };
 export default sea;
 `));
+// G4: the manifest's declared ground (game `declaredGround`): the baked terrain by key and seed, the four mandated roads,
+// the beach bed and inland paths, the lowered sea's rest level, the world drop as the datum and the declared sea
+writer.put(fileURLToPath(new URL('boot/ground.generated.json', root)), jsonBytes({ terrain: { key: TERRAIN.key, seed: TERRAIN.seed },
+  trails: TRAILS, cabinSites: [], water: sea.DECLARED_SEA.level, datum: -sea.WORLD_DROP, bodies: [sea.DECLARED_SEA], paths: 'plugin' }));
 writer.finish();
