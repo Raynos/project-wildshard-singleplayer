@@ -98,6 +98,22 @@ it('invalidates when a new native directory entry can take precedence', async ()
   expect(productInputKey(root,receipt,[],memo)).not.toBe(before);
 });
 
+it('keeps package metadata as content when native resolution changes its main entry',async()=>{
+  const root=fixture(),receipt=resolve(root,'receipt.json'),packageFile=resolve(root,'module/package.json');
+  mkdirSync(resolve(root,'module'));writeFileSync(packageFile,JSON.stringify({main:'a.js'}));
+  writeFileSync(resolve(root,'module/a.js'),'export const value=1;');writeFileSync(resolve(root,'module/b.js'),'export const value=2;');
+  writeFileSync(resolve(root,'entry.ts'),"import {value} from './module';export const answer=value;");
+  await captureProductInputs(root,receipt,async()=>{
+    const result=await build({root,configFile:false,publicDir:false,logLevel:'silent',build:{write:false,lib:{entry:resolve(root,'entry.ts'),formats:['es'],fileName:'fixture'}}});
+    const output=Array.isArray(result)?result.at(0):result;
+    if(output===undefined||!('output'in output))throw new Error('Missing native fixture output');
+    const chunk=output.output.find(row=>row.type==='chunk');if(chunk===undefined)throw new Error('Missing native fixture chunk');
+    const value=v.parse(v.object({answer:v.number()}),await import(`data:text/javascript,${encodeURIComponent(chunk.code)}`));expect(value.answer).toBe(1);
+  });
+  const memo=new InputHashMemo(root);expect(productInputKey(root,receipt,[],memo)).toMatch(/^[a-f0-9]{64}$/u);
+  writeFileSync(packageFile,JSON.stringify({main:'b.js'}));expect(productInputKey(root,receipt,[],memo)).toBeUndefined();
+});
+
 it('rechecks absent descendants after a file parent becomes a directory', async () => {
   const root=fixture(), receipt=resolve(root,'receipt.json'), memo=new InputHashMemo(root);
   await captureProductInputs(root,receipt,()=>{

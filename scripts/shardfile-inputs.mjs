@@ -185,12 +185,13 @@ export function installInputRecorder() {
   syncBuiltinESMExports();
 }
 /** Bind candidate presence/type; selected modules record their actual bytes.
+ * Package metadata is resolver input even when it is not an emitted module.
  * A newly added higher-priority relative file must invalidate resolution.
  * @param {string} id @param {string|undefined} importer */
 export function recordResolution(id, importer) {
   if (!id.startsWith('.') || importer === undefined || !isAbsolute(importer)) return;
   const at = resolve(dirname(importer.split('?')[0]),id.split('?')[0]);
-  for (const suffix of ['', '.ts','.tsx','.mts','.js','.jsx','.mjs','.json','/package.json','/index.ts','/index.tsx','/index.mts','/index.js','/index.jsx','/index.mjs','/index.json']) note('P',at+suffix);
+  for (const suffix of ['', '.ts','.tsx','.mts','.js','.jsx','.mjs','.json','/package.json','/index.ts','/index.tsx','/index.mts','/index.js','/index.jsx','/index.mjs','/index.json']) note(suffix==='/package.json'?'F':'P',at+suffix);
 }
 /** Record resolved inputs before the native bundler reads them.
  * @param {string} id @param {{execution?:boolean}} [options] */
