@@ -102,6 +102,15 @@ test('millrace wakes on approach, finishes once after all three die, and allows 
   } finally { host.dispose(); }
 });
 
+test('G565: the script gates the millrace on its own declared quest flags (a done errand never races again)', () => {
+  const { host, runner, point, run } = scenario();
+  try {
+    point.x = -181; point.z = -144;
+    run(80, 1, ['errand:asked', 'errand:done']);
+    expect(runner.failure).toBeNull(); expect(active.created).toHaveLength(0); expect(runner.channel(1)).toBe(0);
+  } finally { host.dispose(); }
+});
+
 test('legacy mid-night identities and placement stream migrate without spawn or guest execution', () => {
   const { host, runner, point, run } = scenario();
   try {

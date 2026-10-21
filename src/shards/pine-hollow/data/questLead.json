@@ -33,5 +33,6 @@
   "trot": 1.3,
   "gone": 1.1,
   "first": 70,
-  "past": 4
+  "past": 4,
+  "nightAbove": 0.5
 }

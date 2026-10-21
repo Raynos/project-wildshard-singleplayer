@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { parseQuestStepRows, type QuestStepRows, type QuestSpawnPageRows } from '@wildshard/format/questSteps';
+import { parseQuestStepRows, type QuestStepRows } from '@wildshard/format/questSteps';
 
 /** Completions are data from the existing dialogue, actor, item or traversal owner. */
 export interface QuestStepSignal {
@@ -17,29 +17,6 @@ export interface QuestStepFrame {
 export type QuestStepEffect = QuestStepRows['steps'][number]['effects'][number]
   | { readonly kind: 'take'; readonly item: string; readonly count: number };
 interface Frame { flags: Set<string>; inventory: Record<string, number> | undefined; readonly source: QuestStepFrame }
-function spawnCondition(when: QuestSpawnPageRows['flags'][number]['when'], flags: ReadonlySet<string>): boolean {
-  return (when.all ?? []).every(flag => flags.has(flag)) && (when.any === undefined || when.any.some(flag => flags.has(flag)))
-    && (when.none ?? []).every(flag => !flags.has(flag));
-}
-/** Translate saved quest facts to the existing guest's declared observations. */
-export function questSpawnObservations(rows: QuestSpawnPageRows, flags: readonly string[], out: string[] = []): readonly string[] {
-  const current = new Set(flags); out.length = 0;
-  for (const row of rows.flags) if (spawnCondition(row.when, current)) out.push(row.flag);
-  return out;
-}
-/** Ordered completion effects use the same virtual flag updates as quest steps,
- * so a publication cannot pay a completed objective twice in one frame. */
-export function questSpawnPublications(rows: QuestSpawnPageRows, flags: readonly string[], published: readonly string[]): QuestSpawnPageRows['complete'][number]['effects'] {
-  const current = new Set(flags), output: QuestSpawnPageRows['complete'][number]['effects'] = [];
-  for (const row of rows.complete) {
-    if (!published.includes(row.flag) || !spawnCondition(row.when, current)) continue;
-    for (const effect of row.effects) {
-      if (effect.kind === 'flag') { if (effect.value === false) current.delete(effect.flag); else current.add(effect.flag); }
-      output.push(effect);
-    }
-  }
-  return output;
-}
 /** Bounded, renderer-free quest evaluator. State in and ordered commands out are plain data.
  * The existing owner commits effects synchronously in order. Script effects route only to the named admitted
  * Script ABI lane; the evaluator never invokes shard code, opens UI, mutates a pack or installs a scheduler.

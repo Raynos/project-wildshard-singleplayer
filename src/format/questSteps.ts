@@ -104,11 +104,11 @@ export function parseQuestServiceActions(input: unknown): v.InferOutput<typeof Q
 const pageEffects = v.pipe(v.array(QuestCommitEffectSchema), v.maxLength(32));
 /** A non-combat guide borrows an existing species model and an admitted
  * chapter projection. Path, motion and effect identities are authored data. */
-export const QuestLeadPageSchema = v.strictObject({ quest: name, step: name, signal: name,
-  nightAbove: v.pipe(finite, v.minValue(0), v.maxValue(1)), actor: v.strictObject({ kind: name, variant: name }),
+/** G565: the guide's view rows; its gate (quest step, night) and its appear / complete effects are its AS and chapter rows. */
+export const QuestLeadPageSchema = v.strictObject({ quest: name, signal: name, actor: v.strictObject({ kind: name, variant: name }),
   path: v.pipe(v.array(v.tuple([finite, finite])), v.minLength(1), v.maxLength(256)),
   motion: v.strictObject({ faceTurn: finite, trotSpeed: finite, trotTurn: finite, stopTurn: finite }),
-  sound: name, effects: v.strictObject({ appear: pageEffects, complete: pageEffects }),
+  sound: name,
   puffs: v.strictObject({ color: v.tuple([finite, finite, finite]), count: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(16)),
     height: finite, appear: v.tuple([finite, finite, finite, finite]), fade: v.tuple([finite, finite, finite, finite]) }),
 });
@@ -118,9 +118,9 @@ export function parseQuestLeadPage(input: unknown): QuestLeadPageRows { return v
 export const QuestSpawnPageSchema = v.strictObject({ quest: name, script: name,
   channel: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(64)),
   limit: v.strictObject({ phone: v.pipe(finite, v.safeInteger(), v.minValue(0), v.maxValue(256)), desktop: v.pipe(finite, v.safeInteger(), v.minValue(0), v.maxValue(256)) }),
-  flags: v.pipe(v.array(v.strictObject({ flag: name, when: condition })), v.maxLength(64)),
-  complete: v.pipe(v.array(v.strictObject({ flag: name, when: condition,
-    effects: pageEffects })), v.maxLength(64)),
+  /** G565: the script reads its declared quest flags itself (its spawn conditions are AS); a flag it raises that the quest
+   *  does not hold yet commits these effects once (they set the flag) */
+  complete: v.pipe(v.array(v.strictObject({ flag: name, effects: pageEffects })), v.maxLength(64)),
   cues: v.pipe(v.array(v.variant('kind', [v.strictObject({ id: v.pipe(finite, v.safeInteger(), v.minValue(1)), kind: v.literal('sound'), name }),
     v.strictObject({ id: v.pipe(finite, v.safeInteger(), v.minValue(1)), kind: v.literal('puff') })])), v.maxLength(64)),
   puffs: v.strictObject({ color: v.tuple([finite, finite, finite]), count: v.pipe(finite, v.safeInteger(), v.minValue(1), v.maxValue(16)),
@@ -129,8 +129,7 @@ export const QuestSpawnPageSchema = v.strictObject({ quest: name, script: name,
 export type QuestSpawnPageRows = v.InferOutput<typeof QuestSpawnPageSchema>;
 export function parseQuestSpawnPage(input: unknown): QuestSpawnPageRows {
   const rows = v.parse(QuestSpawnPageSchema, input);
-  if (new Set(rows.cues.map(row => row.id)).size !== rows.cues.length || new Set(rows.flags.map(row => row.flag)).size !== rows.flags.length
-    || new Set(rows.complete.map(row => row.flag)).size !== rows.complete.length)
+  if (new Set(rows.cues.map(row => row.id)).size !== rows.cues.length || new Set(rows.complete.map(row => row.flag)).size !== rows.complete.length)
     throw new Error('Duplicate quest spawn binding');
   return rows;
 }

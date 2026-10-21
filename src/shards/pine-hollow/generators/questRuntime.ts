@@ -9,19 +9,14 @@ import { PINE_READINGS } from './readings';
 import { pineQuestContent } from './questContent';
 import { contractCatalogue } from './contractRows';
 import { tradeCatalogue } from './trades';
-import { PINE_QUEST_SERVICES } from './questConsequences';
 
 /** Fixed quest laws and words; flags, reading clocks, modal ordering and saved state remain live. */
 export const PINE_QUEST_RUNTIME = {
-  leadPage: { quest: 'wardens-hollow', step: 'stag', signal: 'lead', nightAbove: 0.5, actor: { kind: 'deer', variant: 'ghost' }, path: lead.path,
+  leadPage: { quest: 'wardens-hollow', signal: 'lead', actor: { kind: 'deer', variant: 'ghost' }, path: lead.path,
     motion: { faceTurn: 3, trotSpeed: 4.5, trotTurn: 4, stopTurn: 1 }, sound: 'deer_call',
-    effects: { appear: PINE_QUEST_SERVICES.actions.filter(row => row.id === 'stag.appear').flatMap(row => row.effects),
-      complete: [...steps.steps.filter(row => row.kind === 'follow' && row.target === 'stag').flatMap<unknown>(row => row.effects),
-        ...PINE_QUEST_SERVICES.actions.filter(row => row.id === 'stag.complete').flatMap(row => row.effects)] },
     puffs: { color: [0.75, 1.6, 2.0], count: 3, height: 1.1, appear: [2.6, 0.7, 0.55, 0.7], fade: [0.6, 3.2, 0.7, 0.95] } },
   spawns: { quest: 'wardens-hollow', script: 'pine.night', channel: 1, limit: { phone: 3, desktop: 4 },
-    flags: [{ flag: 'errand:asked', when: { all: ['errand:asked'], none: ['errand:done'] } }],
-    complete: [{ flag: 'errand:done', when: { all: ['errand:asked'], none: ['errand:done'] }, effects: [
+    complete: [{ flag: 'errand:done', effects: [
       { kind: 'flag', flag: 'errand:done' },
       { kind: 'toast', text: 'The last of them goes down in the race. Behind you the mill wheel shudders, and turns' },
       { kind: 'sting', name: 'chunk' },

@@ -4,9 +4,10 @@ import { Field, Channel, Read, Do, Params } from './generated/pineLife';
 @inline function distance(ax:f64,az:f64,bx:f64,bz:f64):f64 { return Math.hypot(ax-bx,az-bz); }
 // Event projections retain the caller's clock and original i/mode/t continuation.
 // 0 silent, 1 first appearance, 2 later appearance, 3 fade, 4 cancel, 5 complete.
+// G565: it gates itself (the quest's lead step at night) and raises leadAppear / leadDone, whose effects are data.
 export function lead():void {
   let i=i32(get(Field.i)),mode=i32(get(Field.mode)),elapsed=get(Field.elapsed),event:i32=0;
-  const on=get(Field.on)!=0,begin=get(Field.begin)!=0,px=get(Field.playerX),pz=get(Field.playerZ);
+  const on=get(Field.leadStep)!=0&&get(Field.night)>Params.nightAbove,begin=get(Field.begin)!=0,px=get(Field.playerX),pz=get(Field.playerZ);
   if(!on) { if(mode!=0)event=4; i=0;mode=0; }
   else {
     if(mode==0&&distance(px,pz,Params.firstX,Params.firstZ)<=Params.first) {i=0;mode=1;elapsed=0;event=1;}
@@ -22,4 +23,5 @@ export function lead():void {
     }
   }
   Do.channel(Channel.i,i);Do.channel(Channel.mode,mode);Do.channel(Channel.elapsed,elapsed);Do.channel(Channel.event,event);
+  Do.channel(Channel.leadAppear,event==1?1:0);Do.channel(Channel.leadDone,event==5?1:0);
 }

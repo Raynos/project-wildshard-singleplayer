@@ -55,6 +55,8 @@ export const QuestLeadRowsSchema = v.strictObject({
   path: v.pipe(v.array(v.tuple([finite, finite])), v.minLength(1), v.maxLength(128)),
   near: v.pipe(finite, v.minValue(0)), first: v.pipe(finite, v.minValue(0)),
   trot: v.pipe(finite, v.minValue(0)), gone: v.pipe(finite, v.minValue(0)), past: v.pipe(finite, v.minValue(0)),
+  /** G565: the night share above which the guide walks (its AS gate) */
+  nightAbove: v.pipe(finite, v.minValue(0), v.maxValue(1)),
 });
 
 const questText = v.pipe(v.string(), v.maxLength(2048)), questNames = v.pipe(v.array(questText), v.maxLength(64));

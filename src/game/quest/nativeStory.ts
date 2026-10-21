@@ -154,7 +154,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     const names = new Map(Object.entries(policy.savedNames).map(([key, name]) => [name, key]));
     return Object.fromEntries(Object.entries(source).map(([key, saved]) => [names.get(key) ?? key, saved]));
   };
-  const leadInput = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, on: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };
+  const leadInput = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, leadStep: 0, night: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };
   const leadFailure = new Error('Stag projection omitted its continuation');
   const followed = { kind: 'follow', target: policy.lead.target } as const;
   const followedFrame: { flags: readonly string[] } = { flags: [] };
@@ -170,7 +170,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     if (host.state.tick % 6 !== 0) { if (lead.mode !== 'none') lead.t += dt; return; }
     const bend = content.lead.path[lead.i], player = host.player.position;
     leadInput.i = lead.i; leadInput.mode = modes.indexOf(lead.mode); leadInput.elapsed = lead.t; leadInput.dt = dt;
-    leadInput.on = Number(chapter.current?.id === policy.lead.step && (host.dayClock?.night ?? 0) > policy.lead.nightAbove);
+    leadInput.leadStep = Number(chapter.current?.id === policy.lead.step); leadInput.night = host.dayClock?.night ?? 0;
     leadInput.playerX = player.x; leadInput.playerZ = player.z; leadInput.atX = bend?.[0] ?? 0; leadInput.atZ = bend?.[1] ?? 0;
     const answer = leadProgram.project('lead', leadInput), i = answer['i'], mode = modes[answer['mode'] ?? -1], elapsed = answer['elapsed'];
     if (i === undefined || mode === undefined || elapsed === undefined) throw leadFailure;

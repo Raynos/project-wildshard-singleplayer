@@ -39,14 +39,19 @@ function fixture() {
   const quest = new QuestState({ id: 'marsh-guide', title: 'Guide', completeFlag: 'guide:finished',
     steps: [{ id: 'trail', objective: 'Follow', done: { all: ['guide:followed'] } }] }, flags, undefined, scope);
   publishBoundQuest(scope, quest);
-  publishBoundChapter(scope, quest.def.id, legacyDouble<QuestChapter>({ quest, project: (signal, input) => brain.project(signal, input) }));
+  // like the shared chapter host (chapter.ts): its decision rows add the leadStep observation and commit the lead's action channels
+  publishBoundChapter(scope, quest.def.id, legacyDouble<QuestChapter>({ quest, project: (signal, input) => {
+    const result = brain.project(signal, { ...input, leadStep: Number(quest.current?.id === 'trail') });
+    if (result['leadAppear'] === 1) effects.push('first');
+    if (result['leadDone'] === 1) { flags.set('guide:followed'); effects.push('done'); }
+    return result;
+  } }));
   const player = new Vector3(); let night = 1;
   const ctx = { scope } as ShardContext;
   Object.defineProperty(ctx, 'game', { value: { runtime: { world: { player: { position: player }, sky: { dayNight: { get night() { return night; } } } },
     play: { animals, hud: { toast: (text: string) => { effects.push(text); } } } } } });
-  const rows = parseQuestLeadPage({ quest: quest.def.id, step: 'trail', signal: 'lead', nightAbove: 0.5,
+  const rows = parseQuestLeadPage({ quest: quest.def.id, signal: 'lead',
     actor: { kind: 'marsh-ibex', variant: 'pale' }, path: LEAD.path, motion: { faceTurn: 3, trotSpeed: 4.5, trotTurn: 4, stopTurn: 1 }, sound: 'ibex.call',
-    effects: { appear: [{ kind: 'toast', text: 'first' }], complete: [{ kind: 'flag', flag: 'guide:followed' }, { kind: 'toast', text: 'done' }] },
     puffs: { color: [1, 1, 1], count: 1, height: 1, appear: [1, 2, 1, 1], fade: [2, 3, 1, 1] } });
   const native = installChapterLead(ctx, { leadPage: rows });
   const lead = { get active() { return native.active; }, get position() { return native.position; }, update: (dt: number, time: number, on: boolean, point: Vector3) => {
@@ -93,8 +98,8 @@ test('the shared walk completes all bends once and resumes its existing saved fi
   expect(effects.filter(effect => effect === 'call')).toHaveLength(LEAD.path.length);
   expect(effects.filter(effect => effect === 'done')).toHaveLength(1);
   const guest = ReturnProgram.page(program);
-  expect(guest.project('lead', { i: 2, mode: 3, elapsed: 0.8, begin: 0, dt: 0.4, on: 1, playerX: 0, playerZ: 0, atX: 86, atZ: 16 }))
-    .toEqual({ i: 2, mode: 1, elapsed: 0, event: 2 });
+  expect(guest.project('lead', { i: 2, mode: 3, elapsed: 0.8, begin: 0, dt: 0.4, leadStep: 1, night: 1, playerX: 0, playerZ: 0, atX: 86, atZ: 16 }))
+    .toEqual({ i: 2, mode: 1, elapsed: 0, event: 2, leadAppear: 0, leadDone: 0 });
 });
 
 test('v1 lead projections preserve cancellations and old-save suffixes', () => {
@@ -108,10 +113,13 @@ test('v1 lead projections preserve cancellations and old-save suffixes', () => {
       const player = tick % 173 === 0 ? { x: 300, z: 300 } : { x: bend?.[0] ?? 0, z: bend?.[1] ?? 0 };
       const on = tick % 197 !== 196, dt = tick % 7 === 0 ? 0.4 : 1 / 60;
       const event = original.step(dt, on, player);
-      const result = guest.project('lead', { ...state, begin: 0, dt, on: Number(on), playerX: player.x, playerZ: player.z, atX: bend?.[0] ?? 0, atZ: bend?.[1] ?? 0 });
-      Object.assign(state, result);
+      // G565: the guest gates itself (its quest step at night); alternate which input closes the gate
+      const gate = on ? { leadStep: 1, night: 1 } : tick % 2 === 0 ? { leadStep: 0, night: 1 } : { leadStep: 1, night: 0.5 };
+      const { i: nextI, mode: nextMode, elapsed: nextElapsed, ...result } = guest.project('lead', { ...state, begin: 0, dt, ...gate, playerX: player.x, playerZ: player.z, atX: bend?.[0] ?? 0, atZ: bend?.[1] ?? 0 });
+      Object.assign(state, { i: nextI, mode: nextMode, elapsed: nextElapsed });
       expect({ i: state.i, mode: modes[state.mode], t: state.elapsed }).toEqual(original.save());
-      expect(result['event']).toBe(event === null ? 0 : event.kind === 'appear' ? event.first ? 1 : 2 : event.kind === 'fade' ? 3 : event.done ? 5 : 4);
+      const kind = event === null ? 0 : event.kind === 'appear' ? event.first ? 1 : 2 : event.kind === 'fade' ? 3 : event.done ? 5 : 4;
+      expect(result).toEqual({ event: kind, leadAppear: Number(kind === 1), leadDone: Number(kind === 5) });
     }
   }
 });
