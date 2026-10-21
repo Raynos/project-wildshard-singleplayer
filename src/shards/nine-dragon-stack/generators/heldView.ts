@@ -3,7 +3,6 @@ import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 import profile from '../data/heldProfile.generated.json' with { type: 'json' };
 import pendants from '../data/heldPendants.json' with { type: 'json' };
-import decals from '../data/decals.json' with { type: 'json' };
 import arms from '../data/arms.json' with { type: 'json' };
 
 const { ARMS, ARMS_BASE, ARMS_MAPS } = arms;
@@ -24,7 +23,7 @@ export function heldView(): Readonly<Record<string, unknown>> {
     meshes: profile.meshes.map(({ name, look, channels, hull, doubleSide, maps }) => maps === '' ? { name, look, channels, hull, doubleSide } : { name, look, channels, hull, doubleSide, maps }),
     maps: { base: ARMS_BASE, names: ARMS_MAPS, kinds: { maps: 'uMapsTex', nrm: 'uNrmTex' }, anisotropy: 4 },
     weave: { file: 'looks/plain-weave.r8', size: 256, param: 'uSilk' },
-    decal: { atlas: decals.JIAN_DECALS, knob: 'nine.decalScale', param: 'uDecal' },
+    decal: { files: { phone: 'looks/jian-decal-phone.png', desktop: 'looks/jian-decal-desktop.png' }, param: 'uDecal' },
     back: looks.filter(id => id.includes('hull')), additive: [EDGE, TRAIL],
     pendants: { socket: ARMS.weapon, scene, materials,
       geometry: [{ file: 'weapons/jian-cloth.json' }, { file: 'weapons/jian-halo.json', field: 'geometry', name: 'edge' }] },

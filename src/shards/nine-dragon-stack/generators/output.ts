@@ -3,6 +3,7 @@ import { facadeWindowBlobs } from './facadeWindows';
 import entryProof from '../data/entryProof.generated.json' with { type: 'json' };
 import { heldGraphFiles } from './heldGraphFiles';
 import { heldView } from './heldView';
+import heldDecals from '../data/heldDecals.generated.json' with { type: 'json' };
 import { parseFixedRows,FixedPracticeFileSchema } from './sections';
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
 import AO_TUNING from '../data/aoLook.json' with { type: 'json' };
@@ -49,6 +50,7 @@ material.name = 'sword';
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const viewmodel = buildViewmodelParts();
 const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+  ...Object.entries(heldDecals).map(([tier, row]) => nameBlob(`looks/jian-decal-${tier}.png`, 'image', Uint8Array.from(atob(row.png), character => character.codePointAt(0) ?? 0))),
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/fixed-kits.json', 'json', json({ practice: parseFixedRows({ ...fixedKits, lantern, practice: grappleCourseScene(course) }).practice }),{jsonSchema:namedJsonSchema(FixedPracticeFileSchema)}),

@@ -31,6 +31,8 @@ test('held view admission preserves rows and refuses malformed named payloads', 
     {...row, rig:{...row.rig,sockets:['duplicate','duplicate']}},
     {...row, meshes:[{...row.meshes[0],hull:'yes'}]},
     {...row, pendants:{...row.pendants,geometry:[{file:'parts.json',field:'part'}]}},
+    {...row, decal:{...row.decal,files:{phone:row.decal.files.phone}}},
+    {...row, decal:{...row.decal,files:{...row.decal.files,desktop:''}}},
   ]) {
     expect(()=>parseGraphArms(bad)).toThrow();
     expect(()=>nameBlob('weapons/held.json','json',encode(bad),{jsonSchema:schema})).toThrow('refuses its schema');

@@ -1,6 +1,5 @@
 import * as v from 'valibot';
 import { PrivateSceneSchema } from './clientChannels';
-import { isJsonData } from './json';
 
 const finite = v.pipe(v.number(), v.finite());
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
@@ -25,9 +24,9 @@ export const GraphArmsSchema = v.strictObject({
   meshes: bounded(v.strictObject({ name, channels: v.record(name, name), look: name, maps: v.exactOptional(name), hull: v.boolean(), doubleSide: v.boolean() }), 64),
   /** per-mesh map pairs: `<base><maps>-<kind>.webp` (or its KTX2 stand-in) lent to the mesh look's params */
   maps: v.strictObject({ base: name, names, kinds: v.strictObject({ maps: name, nrm: name }), anisotropy: finite }),
-  /** an R8 repeating weave (a product file of size² texels) and a painted canvas atlas scaled by a plumbing knob */
+  /** an R8 repeating weave and per-tier lossless decal images, all named product files */
   weave: v.strictObject({ file: name, size: count, param: name }),
-  decal: v.strictObject({ atlas: v.custom<Readonly<Record<string, unknown>>>(isJsonData), knob: name, param: name }),
+  decal: v.strictObject({ files: v.strictObject({ phone: name, desktop: name }), param: name }),
   back: bounded(name, 64), additive: bounded(name, 64),
   /** the pendants: a private scene on a socket, its geometry read from product JSON (a file of named geometries, or one `field` as `name`) */
   pendants: v.strictObject({ socket: name, scene: PrivateSceneSchema, materials: bounded(name, 64),

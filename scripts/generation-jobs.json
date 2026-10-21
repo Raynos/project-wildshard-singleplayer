@@ -19705,6 +19705,45 @@
       "platform": "darwin"
     },
     {
+      "id": "nine-decal-atlas",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/engine/package.json",
+        "src/game/package.json",
+        "src/format/package.json",
+        "src/sdk/package.json",
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/image.ts",
+        "src/sdk/bake/worldImage.ts",
+        "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs",
+        "src/shards/nine-dragon-stack/generators/decalAtlasPage.ts",
+        "src/shards/nine-dragon-stack/data/decals.json",
+        "src/shards/nine-dragon-stack/data/plumbing.json",
+        "src/game/plugin/geometry.ts",
+        "src/engine/core/rng.ts",
+        "src/engine/core/noise.ts",
+        "src/engine",
+        "src/game"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/data/heldDecals.generated.json"
+      ],
+      "platform": "darwin",
+      "browser": true,
+      "catalogueDependencies": []
+    },
+    {
       "id": "nalati-sign-atlases",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",

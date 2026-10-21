@@ -1,6 +1,5 @@
 /** Nine's listed native held view. The product admits its rows before the rig, looks and textures are borrowed. */
-import * as v from 'valibot';
-import { BackSide, type BufferGeometry, BufferGeometryLoader, type CanvasTexture, DataTexture, DoubleSide, LinearMipmapLinearFilter, Mesh, NoColorSpace,
+import { BackSide, type BufferGeometry, BufferGeometryLoader, ClampToEdgeWrapping, DataTexture, DoubleSide, LinearMipmapLinearFilter, Mesh, NoColorSpace,
   type Object3D, RedFormat, RepeatWrapping, Texture, UnsignedByteType, Vector2, Vector3 } from 'three';
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
@@ -8,14 +7,12 @@ import { resourceScope } from '@wildshard/engine/app/resources';
 import { app } from '@wildshard/engine/app/runtime';
 import { fetchImage, phoneUrl } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
+import { loadTextureRow } from '@wildshard/engine/core/assets';
 import { SlashTrail } from '@wildshard/engine/combat/view/slashTrail';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { isJsonData } from '@wildshard/format/json';
 import type { GraphArmsRow } from '@wildshard/format/graphArmsRows';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { loadFirstPartyProduct, runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
-import { plumbingKnob } from '@wildshard/game/shard/declaredPlumbing';
-import { paintCanvasAtlas, type CanvasStep } from '@wildshard/game/plugin/geometry';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
@@ -23,9 +20,8 @@ import { ARM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armCl
 import { RigArms, swordArmsOf, type RigState } from '@wildshard/game/systems/viewmodel/rigArms';
 
 type Looks = Awaited<ReturnType<typeof runtimeLookMaterials>>;
-const AtlasSchema = v.object({ w: v.number(), h: v.number(), steps: v.array(v.custom<CanvasStep>(isJsonData)) });
-/** decoded maps by path and painted decals by product / tier, while some rig still holds them */
-const images = new Map<string, Promise<Texture>>(), resolved = new Map<string, Texture>(), atlases = new Map<string, CanvasTexture>();
+/** decoded maps and decals by immutable path, while some rig still holds them */
+const images = new Map<string, Promise<Texture>>(), resolved = new Map<string, Texture>(), atlases = new Map<string, Texture>();
 
 /** A rig's maps: the tier's KTX2 stand-in, else the image; numeric data, file orientation, trilinear. */
 function loadMap(path: string, anisotropy: number): Promise<Texture> {
@@ -88,10 +84,10 @@ export class GraphArms {
     const rig = await RigArms.load(R.url, { skeleton: R.skeleton, clips: armClipNames(ARM_CLIPS), sockets: R.sockets }, { skeleton: R.skeleton, clips: ARM_CLIPS, joints: R.joints }, false,
       { aliases: ARM_CLIPS, holdRight: R.holdRight, holdLeft: R.holdLeft, walkRate: R.walkRate, lag: R.lag, blade: row.blade });
     const silk = owner.own(weave(await product.file(row.weave.file), row.weave.size));
-    const key = `${slug}:${tier}`;
+    const key = product.url(row.decal.files[tier]);
     let decal = atlases.get(key);
     if (decal !== undefined && !app.assets.isAcquired(decal)) decal = undefined;
-    if (decal === undefined) { decal = retainCachedResources(paintCanvasAtlas(v.parse(AtlasSchema, row.decal.atlas), plumbingKnob(product.shardfile.plumbing, tier, row.decal.knob, 'number'))); atlases.set(key, decal); }
+    if (decal === undefined) { decal = retainCachedResources(await loadTextureRow({ url: key, srgb: true, anisotropy: 8, wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping })); atlases.set(key, decal); }
     ownSceneResource(decal, owner, app.assets);
     const maps = new Map(await Promise.all(row.maps.names.map(async name => [name, await Promise.all((['maps', 'nrm'] as const).map(async kind => {
       const texture = await loadMap(`${row.maps.base}${name}-${kind}.webp`, row.maps.anisotropy);
