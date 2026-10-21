@@ -4,7 +4,7 @@ import { parsePrivateScene } from '../src/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { ArenaField } from '../src/game/boss/arenaField';
 import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
 import { ReturnProgram } from '../src/game/population/returnProgram';

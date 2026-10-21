@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BoxGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three';
 import { defineModel, modelContext } from '../src/engine/models/model';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { WorldRegistry } from '../src/engine/world/registry';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { EncounterSites } from '../src/game/boss/encounterView';

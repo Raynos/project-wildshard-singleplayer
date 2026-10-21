@@ -144,7 +144,7 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
   const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
   const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
-  const { overrideTerrain } = await import('@wildshard/engine/world/Heightfield');
+  const { overrideTerrain } = await import('./fake/terrain');
   const v = await import('valibot');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, quests: [] }, { rapier });

@@ -4,7 +4,7 @@ import { Points, PointLight, MeshStandardMaterial, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { SEED } from '../src/engine/core/config';
 import { Rng } from '../src/engine/core/rng';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import * as look from '../src/engine/world/lowpolyKit';
 import { PopulationProjection } from '../src/game/population/projection';

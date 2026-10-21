@@ -1,5 +1,5 @@
 import weatherScript from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { expect, test } from 'vitest';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';

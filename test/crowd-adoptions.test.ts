@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { ForagerPopulation } from '../src/engine/ai/ambientForager';
 import { CrowdRoster, CrowdWeaponTarget, ForagerTargets } from '../src/game/shardfile/crowdRuntime';
 import { PAGE_LIFE } from '../src/shards/pine-hollow/generators/pageLife';

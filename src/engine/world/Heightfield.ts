@@ -19,9 +19,6 @@ function terrainOf(level: LevelSpec): TerrainField {
   return terrainFieldFor(level.ground, level.id);
 }
 
-/** Test/playground overrides keep their existing page-level behaviour. */
-type TerrainOverride = Partial<Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt' | 'trailDistance' | 'cabinMask' | 'pondMask' | 'waterLevel' | 'streamAt'>>;
-let override: TerrainOverride | null = null;
 let home: HeightfieldBinding | null = null;
 const frames: { binding: HeightfieldBinding }[] = [];
 
@@ -43,18 +40,13 @@ export class HeightfieldBinding {
     this.terrain = { ...this.terrain, ...baked, heightAt: datum === 0 ? baked.heightAt : (x, z) => baked.heightAt(x, z) + datum };
     if ((frames.at(-1)?.binding ?? home) === this) publish(this.terrain);
   }
-  /** @internal Preserve overrideTerrain's reset-to-analytic semantics. */
-  reset(over: TerrainOverride | null): void {
-    this.terrain = over === null ? this.base : { ...this.base, ...over };
-    if ((frames.at(-1)?.binding ?? home) === this) publish(this.terrain);
-  }
 }
 
 /** Capture the active retained field before an async build yields. */
 export function captureHeightfield(): HeightfieldBinding {
   const frame = frames.at(-1);
   if (frame !== undefined) return frame.binding;
-  if (home === null) { home = new HeightfieldBinding(activeLevel()); home.reset(override); }
+  home ??= new HeightfieldBinding(activeLevel());
   return home;
 }
 function field(): TerrainField { return captureHeightfield().field; }
@@ -117,7 +109,6 @@ setTerrainDatum(() => field().datum ?? 0);
 onLevelChange((level) => {
   if (terrainOf(level) !== home?.base || level.id !== home.level.id) {
     home = new HeightfieldBinding(level);
-    home.reset(override);
   }
   if (frames.length === 0) publish(home.field);
 });
@@ -130,18 +121,6 @@ onLevelChange((level) => {
  */
 export function _installBakedTerrain(baked: Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'>): void {
   captureHeightfield().install(baked);
-}
-
-/**
- * Bind terrain fields over the level's (a flat, dry world for a test or a playground: `{ heightAt: () => 0, waterLevel:
- * () => -100 }`) until the returned restore runs; a level change keeps them over the new level's field. Every reader
- * sees the same binding (the live exports here, the placement port), so nothing needs a module mock (E422).
- */
-export function overrideTerrain(over: TerrainOverride): () => void {
-  const prev = override, binding = captureHeightfield();
-  override = { ...prev, ...over };
-  binding.reset(override);
-  return () => { override = prev; captureHeightfield().reset(prev); };
 }
 
 /** whether (x, z) lies inside the level's square, `margin` metres in from its edge */

@@ -6,7 +6,7 @@ import { ReturnGate } from '../src/game/population/respawn';
 import { manager as realManager } from './fake/manager';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 
 test('materializes ordered groups through the manager and retires only owned actors', () => {
   interface Actor { herd: number; kind: string; pose: number[]; roll: number }

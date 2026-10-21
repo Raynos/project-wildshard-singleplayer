@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, Scene, ShaderMaterial, Vector3, type Vector2 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { app } from '../src/engine/app/runtime';
 import type { Game } from '../src/engine/core/Game';
 import { CombatCues } from '../src/engine/combat/cues';

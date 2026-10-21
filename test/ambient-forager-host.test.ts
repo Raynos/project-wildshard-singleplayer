@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest';
 import * as v from 'valibot';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { ForagerPopulation } from '../src/engine/ai/ambientForager';
 import { ForagerPopulationSchema, parseAmbientLife } from '../src/format/ambientLife';
 import { PINE_LIFE } from '../src/shards/pine-hollow/generators/ambientLife';

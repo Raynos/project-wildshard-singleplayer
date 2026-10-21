@@ -5,7 +5,7 @@ import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState } from '../src/engine/quest/core';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { nameBlob } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { manager } from './fake/manager';

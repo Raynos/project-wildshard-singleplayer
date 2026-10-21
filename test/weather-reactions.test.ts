@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { Scope } from '../src/engine/app/scope';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram, parseWeatherReactions } from '../src/format/weatherProgram';

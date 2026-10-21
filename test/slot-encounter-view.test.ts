@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import type { Game } from '../src/engine/core/Game';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { EncounterSlotsSchema } from '../src/game/boss/encounterPatrol';
 import { SlotEncounterView } from '../src/game/boss/encounterView';

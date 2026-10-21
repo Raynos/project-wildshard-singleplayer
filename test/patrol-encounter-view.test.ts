@@ -7,7 +7,7 @@ import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import type { Forest } from '../src/engine/world/forest/Forest';
 import type { SkyRig } from '../src/engine/world/skyRig';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { EncounterPatrolSchema } from '../src/game/boss/encounterPatrol';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';

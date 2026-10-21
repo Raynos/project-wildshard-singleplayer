@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { PlayerHealth } from '../src/engine/combat/health';
 import { EffectService } from '../src/engine/combat/effects/EffectService';
 import type { DamageDealt } from '../src/engine/combat/pipeline';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { PageCombatSession } from '../src/game/Boss';
 import type { ShardContext } from '../src/game/plugin/context';
 import { manager } from './fake/manager';

@@ -11,7 +11,7 @@ import { expect, test } from 'vitest';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/ai/phases';
-import { overrideTerrain } from '../src/engine/world/Heightfield';
+import { overrideTerrain } from './fake/terrain';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { ArenaScriptEncounter,parseArenaScriptData } from '../src/game/boss/arenaScript';
