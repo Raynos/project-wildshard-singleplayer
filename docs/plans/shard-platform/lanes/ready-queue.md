@@ -29,7 +29,7 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | G1a | Shared entry and Pine composition convergence; owned files and acceptance below | subset of G1 | sp-x8 |
 | G1b | Pine contract-board rules/continuation onto Pine AS + admitted data; preserve the existing page/native board API and saves | subset of G1 | sp-x9 (after its Driftwood loot batch) |
 | G2 | Driftwood C5 quests (227), split below; same shared host as G1 | 227 baseline | G2a + G2b |
-| G2a | Entered NPC/catalogue and outer quest binding; four native specimen cards are ready, exact live rig/material parity required | subset of G2 | sp-x6 (G551 file boundary released) |
+| G2a | Entered NPC/catalogue and outer quest binding; four native specimen cards are ready, exact live rig/material parity required | subset of G2 | done 4653a4c2a7 (sp-x6): DW -40, platform 0; people 35 / trader 19 / install 101 left to the shared entry (sp-x8) |
 | G2b | Driftwood page/native composition integration and remaining one-user presentation declarations on the shared entry | subset of G2 | sp-x8 |
 | G3 | Driftwood C1 world (625): world/build.ts remainder (180 code lines), ocean (O7), shrine (O8), cover, terrain cuts; rows + AS, listed view only for G532 (3) items | 625 | sp-o4 (O7) |
 | G4 | Pine C1 world (319): world build, pool (poolSurface listed), timber scenes, forest pages onto world/scenes and placements | 319 | sp-o1 08:30 |
@@ -38,7 +38,7 @@ the shard's AS + data; state net lines; no fake second user; graphical rows are 
 | G7 | Driftwood C4 creatures (202): creature looks/bodies onto shared species rows (Pine species as second user) | 202 | sp-o3 (after O18 stops) |
 | G8 | Pine + Driftwood C2 looks (125 + 73): look graphs as rows. Trample (30) folded into G4's forest-page move (Nalati's GrassPresentation is a baked steppe field, not a general host: a port is days of look risk for -30); 1-8 line exports only with a real second user, the rest stay with their owners' rows (G3/G4/G7/G1a) | 198 (realistic ~20) | parked: remaining spans are moves or one-user hosts (sp-o5 14:20) |
 | G9 | Pine C4 creatures (62) + C6 items (Pine 7, Driftwood 36) | 105 | Driftwood loot: sp-x9 (e52acff6ae, finishing); Pine tail dropped (sp-o5 14:20: King's limbAnimation rig has no second user, host bar test 1 fails; captain look row offered to G7) |
-| G10 | Grid containment (G550, Jake): in grid mode nothing draws outside its cell's bounds except the platform's declared layers (road, outer floor, sky); the shardfile validator refuses out-of-cell bounds in any section, and the grid loader clips or refuses any cell-owned object whose world bounds leave the cell, with a test that walks every drawn object on the 5x5 and fails on a stray one | platform | |
+| G10 | Grid containment (G550, Jake): in grid mode nothing draws outside its cell's bounds except the platform's declared layers (road, outer floor, sky); the shardfile validator refuses out-of-cell bounds in any section, and the grid loader clips or refuses any cell-owned object whose world bounds leave the cell, with a test that walks every drawn object on the 5x5 and fails on a stray one | platform | sp-x6 14:45 |
 
 ### G1/G2 file boundaries (G551, sp-x8)
 
