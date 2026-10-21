@@ -105,6 +105,11 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     def finish(result):
         # Lane notification is outside the check budget and never delays upload.
         if pending_notice is not None:
+            # The recipient may open this file as soon as Herdr delivers.
+            folder = root / 'tmp/push-loop'
+            folder.mkdir(parents=True, exist_ok=True)
+            detail = {key: value for key, value in result.items() if key != 'output'}
+            (folder / 'current.log').write_text(result.get('output', '') + '\n' + json.dumps(detail) + '\n')
             path, state, commits, message = pending_notice
             if notify(root, commits, message):
                 state['pinged'] = True

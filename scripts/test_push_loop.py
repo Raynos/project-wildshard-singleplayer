@@ -136,6 +136,11 @@ class PushLoop(unittest.TestCase):
 
         def notify(*args):
             self.assertEqual(self.git('rev-parse', 'origin/main'), good)
+            log = (self.root / 'tmp/push-loop/current.log').read_text()
+            self.assertEqual(log.splitlines()[0], 'bad')
+            detail = json.loads(log.splitlines()[-1])
+            self.assertEqual(detail['bad'], bad)
+            self.assertEqual(detail['tip'], good)
             notices.append(args)
             return True
 
