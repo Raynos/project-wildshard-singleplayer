@@ -9,7 +9,6 @@ import { terrainTileHeight } from '../src/format/terrainTileBytes';
 import { POPULATION_ENVIRONMENT } from '../src/shards/pine-hollow/generators/populationEnvironment';
 import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };
 import { declaredGround } from '../src/game/shard/manifest';
-import { creekWaterAt } from '../src/shards/pine-hollow/generators/geography';
 import { TreeGrid } from '../src/engine/world/forest/placement';
 import type { HuntTree } from '../src/engine/ai/hunt';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -31,18 +30,20 @@ test('Pine habitat rows retain exact metadata, creek surfaces, normals and trunk
     const rng = new Rng(41), points = Array.from({ length: 2000 }, () => [rng.range(-250,250),rng.range(-250,250)] as const);
     const stream = POPULATION_ENVIRONMENT.stream;
     if (stream === null) throw new Error('Missing authored water corridor');
-    for (const line of stream.lines) for (const fraction of [0,.3,1]) for (const side of [-1,0,1]) {
-      const length = Math.hypot(line.vx,line.vz);
-      points.push([line.x+line.vx*fraction-line.vz/length*side*stream.halfWidth,line.z+line.vz*fraction+line.vx/length*side*stream.halfWidth]);
+    // the declared creek's segments, on the centre and just inside each bank
+    for (let i = 1; i < stream.points.length; i++) {
+      const a = stream.points[i-1], b = stream.points[i]; if (a === undefined || b === undefined) continue;
+      const vx = b.x-a.x, vz = b.z-a.z, length = Math.hypot(vx,vz), half = stream.width/2*0.9;
+      for (const fraction of [0,.3,1]) for (const side of [-1,0,1]) points.push([a.x+vx*fraction-vz/length*side*half,a.z+vz*fraction+vx/length*side*half]);
     }
-    const terrain = declaredGround(groundRows).terrain;
-    if (terrain === undefined) throw new Error('Missing Pine terrain');
+    const declared = declaredGround(groundRows), terrain = declared.terrain, creek = declared.water?.find(body => body.id === 'creek');
+    if (terrain === undefined || creek === undefined) throw new Error('Missing Pine terrain or creek');
     for (const [x,z] of points) {
       expect(ground.heightAt(x,z)).toBe(samplers.heightAt(x,z));
       expect(ground.normalY(x,z)).toBe(samplers.normalAt(x,z)[1]);
       expect(ground.trailDistance(x,z)).toBe(terrain.trailDistance(x,z));
       expect(ground.cabinMask(x,z)).toBe(terrain.cabinMask(x,z));
-      expect(ground.streamAt(x,z)).toBe(creekWaterAt(x,z));
+      expect(ground.streamAt(x,z)).toBe(creek.restAt(x,z));
       expect(ground.trees(x,z,1)).toEqual(expectedTrees.nearby(x,z,1));
     }
   } finally { host.dispose(); }

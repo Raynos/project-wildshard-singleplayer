@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { NativeRidingSchema } from './nativeRiding';
+import { StreamWaterSchema } from './water';
 
 const finite = v.pipe(v.number(), v.finite());
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -9,9 +10,9 @@ const profile = v.strictObject({ pieces: v.pipe(v.array(v.strictObject({ until: 
 const value = v.strictObject({ profile, add: finite, level: v.exactOptional(key) });
 /** A projected centreline's segments (`streamProjection` reads them): each start, its run, squared length and arc start. */
 export const StreamLinesSchema = v.pipe(v.array(v.strictObject({ ...point.entries, vx: finite, vz: finite, l2: v.pipe(finite, v.minValue(0)), arc: finite, length: finite })), v.minLength(1), v.maxLength(1024));
-/** A projected water corridor selects an ordered surface band along its centreline.
- * Profiles retain their original arithmetic order; ties retain the first segment. */
-const stream = v.strictObject({ halfWidth: v.pipe(finite, v.minValue(0)),
+/** A projected water corridor selects an ordered surface band along its centreline (a generator's creek law,
+ * `streamSurface`). Profiles retain their original arithmetic order; ties retain the first segment. */
+export const StreamCorridorSchema = v.strictObject({ halfWidth: v.pipe(finite, v.minValue(0)),
   lines: StreamLinesSchema,
   bands: v.pipe(v.array(v.strictObject({ until: finite, inclusive: v.boolean(), values: v.pipe(v.array(value), v.minLength(1), v.maxLength(8)) })), v.maxLength(64)),
   last: v.pipe(v.array(value), v.minLength(1), v.maxLength(8)),
@@ -23,10 +24,11 @@ export const PopulationEnvironmentSchema = v.strictObject({
   trails: v.nullable(v.pipe(v.array(v.pipe(v.array(v.tuple([finite, finite])), v.maxLength(1024))), v.maxLength(128))),
   cabins: v.pipe(v.array(point), v.maxLength(1024)), pond: v.nullable(v.strictObject({ ...point.entries, r: finite })),
   trees: v.pipe(v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), v.maxLength(16384)),
-  stream: v.nullable(stream),
+  /** the habitat's water: a declared stream (format water), its rest surface the wading and dry-ground test */
+  stream: v.nullable(StreamWaterSchema),
 });
 export type PopulationEnvironmentRows = v.InferOutput<typeof PopulationEnvironmentSchema>;
-type Stream = NonNullable<PopulationEnvironmentRows['stream']>;
+type Stream = v.InferOutput<typeof StreamCorridorSchema>;
 /** Nearest admitted centreline segment; equal distances retain declaration order. */
 export function streamProjection(lines: Stream['lines'], x: number, z: number): { d: number; s: number } {
   let d = Infinity, s = 0;

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { PopulationEnvironmentSchema, PopulationFieldSchema, streamProjection, streamSurface, type PopulationEnvironmentRows } from '@wildshard/format/populationEnvironment';
+import { PopulationEnvironmentSchema, PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { unzlibSync } from 'fflate';
 import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
@@ -9,6 +9,7 @@ import { terrainTileHeight, decodeTerrainTile } from '@wildshard/format/terrainT
 import type { HuntGround, HuntTree } from '@wildshard/engine/ai/hunt';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
+import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
 import type { SimHost } from '@wildshard/engine/sim';
 
 /** Wander observations are published by the built-in shelter before roster decisions. */
@@ -21,11 +22,6 @@ export function populationEnvironment(host: SimHost, id: string): NativePopulati
   return ground;
 }
 
-type Stream = NonNullable<PopulationEnvironmentRows['stream']>;
-function surface(stream: Stream, x: number, z: number): number | null {
-  const point = streamProjection(stream.lines, x, z);
-  return point.d > stream.halfWidth ? null : streamSurface(stream, point.s);
-}
 
 /** Install exact ground, ordered trunk and projected-water observations from data.
  * No terrain, weather, actor or shard callback crosses this boundary. Both triangle
@@ -40,9 +36,9 @@ export function installPopulationEnvironment(host: SimHost, grid: Pick<BakedGrid
   const heightAt = rows.sampling === 'column-triangles'
     ? (x: number, z: number): number => terrainTileHeight(tile, x, z, { layout: 'column-major', boundary: 'clamp' })
     : bakedSamplers({ ...grid, seed: rows.seed, landscapeHash: 0, splat: new Uint8Array(0), undergrowth: null }).heightAt;
-  const stream = rows.stream;
+  const stream = rows.stream === null ? null : declaredWaterBody(rows.stream);
   const field = buildTerrainMetadata(rows.seed, { trails: rows.trails ?? [], cabinSites: rows.cabins.map(row => ({ ...row, rot: 0 })),
-    ...(rows.pond === null ? {} : { pond: rows.pond }), ...(stream === null ? {} : { streamAt: (x, z) => surface(stream, x, z) }) }, () => rows.water);
+    ...(rows.pond === null ? {} : { pond: rows.pond }), ...(stream === null ? {} : { streamAt: stream.restAt }) }, () => rows.water);
   const trees = new TreeGrid<HuntTree>();
   for (const [x, z, r] of rows.trees) trees.add({ x, z, r });
   const epsilon = rows.normalEpsilon;
@@ -54,7 +50,7 @@ export function installPopulationEnvironment(host: SimHost, grid: Pick<BakedGrid
     },
     trailDistance: rows.trails === null ? () => { throw new Error('Native population environment has no trails'); } : field.trailDistance,
     cabinMask: field.cabinMask, inChunk: (x, z, margin) => Math.abs(x) <= rows.chunkHalf-margin && Math.abs(z) <= rows.chunkHalf-margin,
-    streamAt: (x, z) => stream === null ? null : surface(stream,x,z), waterLevel: () => rows.water, pond: () => rows.pond,
+    streamAt: (x, z) => stream === null ? null : stream.restAt(x, z), waterLevel: () => rows.water, pond: () => rows.pond,
     sea: () => rows.sea, wetAt: () => false, trees: (x,z,r) => trees.nearby(x,z,r), treeless: () => rows.trees.length === 0,
     terrain: () => true, chunkHalf: rows.chunkHalf,
   };
