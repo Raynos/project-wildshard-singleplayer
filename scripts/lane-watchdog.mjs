@@ -164,7 +164,8 @@ async function poll() {
   const now = Date.now(), live = new Set();
   for (const agent of agents) {
     const name = agent.name;
-    if (name === undefined || !/^sp-[xo]\d+$/u.test(name)) continue;
+    // sp-x7 is the release watcher (G485): it idles between events by design and takes no rows.
+    if (name === undefined || !/^sp-[xo]\d+$/u.test(name) || name === 'sp-x7') continue;
     live.add(name);
     const identity = `${agent.pane_id}:${agent.agent_session?.value ?? ''}`;
     const status = agent.agent_status === 'idle' || agent.agent_status === 'done' ? 'idle/done' : agent.agent_status;
