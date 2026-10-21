@@ -176,18 +176,30 @@ wait_room() {  # $1 = a UDID that may already be booted (it doesn't need a new s
 }
 
 boot() {
-  is_booted "$1" && return 0
-  xcrun simctl boot "$1" >/dev/null 2>&1 || true
-  xcrun simctl bootstatus "$1" -b >/dev/null 2>&1 || true
+  local started=0 rc
+  if ! is_booted "$1"; then
+    xcrun simctl boot "$1" >/dev/null || return "$?"
+    started=1
+  fi
+  xcrun simctl bootstatus "$1" -b >/dev/null
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1"
+    rc=$?
+  fi
+  # A failed startup owns no lease. Release only the device this call booted.
+  if [ "$rc" -ne 0 ] && [ "$started" -eq 1 ]; then shutdown_dev "$1"; fi
+  return "$rc"
 }
 
 boot_in_lane() {
+  local rc
   while :; do
     wait_room "$1"
     exec 9>"$DIR/admission.lock"
     lockf -s 9 || return "$?"
     if is_booted "$1" || [ "$(booted_count)" -lt "$LANES" ]; then
-      boot "$1"; exec 9>&-; return 0
+      boot "$1"; rc=$?; exec 9>&-; return "$rc"
     fi
     exec 9>&- # someone admitted another device between the capacity check and the lock
   done
@@ -201,7 +213,12 @@ case "${1:-}" in
     dev="${2:?lease <device> [min]}"; min="${3:-30}"
     udid="$(locked_resolve "$dev")" || exit "$?"
     lock_device "$udid" || exit "$?"
-    boot_in_lane "$udid" || exit "$?"
+    if is_booted "$udid" && lease_valid "$udid"; then
+      # Renewing a live manual lease must not navigate its Safari page away.
+      xcrun simctl bootstatus "$udid" -b >/dev/null || exit "$?"
+    else
+      boot_in_lane "$udid" || exit "$?"
+    fi
     echo "$(( $(now) + min * 60 )) 0" > "$(lease_file "$udid")"
     echo "$udid"; echo "sim-lane: $dev leased for $min min — renew with the same command, end with: scripts/sim-lane.sh release $dev" >&2;;
   release)
