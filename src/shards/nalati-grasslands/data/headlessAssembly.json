@@ -75,6 +75,9 @@
     ],
     "@wildshard/engine/ai/strikeRows": [
       "strikeFromData"
+    ],
+    "@wildshard/game/population/returnProgram": [
+      "ReturnProgram"
     ]
   },
   "constants": {
@@ -776,6 +779,28 @@
               "strength": 0.5
             },
             "flatten": 0.85
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "@wildshard/game/population/returnProgram",
+                  "ReturnProgram",
+                  "native"
+                ]
+              },
+              {
+                "$ref": [
+                  "host"
+                ]
+              },
+              {
+                "$ref": [
+                  "boot",
+                  "admission"
+                ]
+              }
+            ]
           }
         ]
       }
@@ -1317,8 +1342,8 @@
                   },
                   "program": {
                     "$ref": [
-                      "constants",
-                      "groupAdmission"
+                      "boot",
+                      "admission"
                     ]
                   }
                 }

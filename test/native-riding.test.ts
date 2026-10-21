@@ -1,3 +1,4 @@
+import { ReturnProgram } from '../src/game/population/returnProgram';
 import type { PackPrey } from '@wildshard/engine/ai/pack';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
@@ -140,7 +141,6 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
   const { NativeWildlifeFrame, NativeWildEnvironment } = await import('@wildshard/game/population/nativeManager');
   const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
-  const { ReturnProgram } = await import('@wildshard/game/population/returnProgram');
   const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
   const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
   const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
@@ -158,7 +158,7 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
     { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
       trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } });
   const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
-  const environment = new NativeWildEnvironment(field, trample, { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 });
+  const environment = new NativeWildEnvironment(field, trample, { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, ReturnProgram.native(host,admission));
   expect(() => environment.onEvent('scare', 0, 0)).toThrow('Unbound'); environment.bind(host, frame);
   host.events.on('creature.signal', event => { signals.push(event.name); }, host.scope);
   host.onStep('orchard.wildlife', dt => { trample.update(dt, host.player.position); frame.update(dt, false); });
@@ -238,7 +238,7 @@ test('orchard fixture installs the complete native population through data rows'
     preyIdentity: target => ids.get(target) ?? '', resolvePrey: id => prey.get(id) ?? null }); pack.initialize();
   const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity,
     cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
-  const environment = new NativeWildEnvironment(field, new TrampleField(), { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 });
+  const environment = new NativeWildEnvironment(field, new TrampleField(), { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, ReturnProgram.native(host,admission));
   new NativeGroupCollection(host, [pack], [], new Map([[actor.entityId, actor]]), prey, ids, [actor], new WeakMap(), { id: 'orchard.groups', firstRaid: 14, environment });
   admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap()); admitNativeHerds(host, 'orchard.herds', []);
   const foragers = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41); foragers.colonies([{ x: 5, z: 5 }]);

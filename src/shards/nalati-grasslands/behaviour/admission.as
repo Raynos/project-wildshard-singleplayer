@@ -9,10 +9,27 @@ import { Signal, Field, Channel, Read, List, Do } from './generated/nalatiAdmiss
   return y<0?-theta:theta;
 }
 @inline function distance2(x:f64,z:f64):f64{return Math.sqrt(x*x+z*z);}
+@inline function cover(height:f64,crouched:f64):f64 {
+  return Math.min(1,Math.max(0,(height-.15)/((crouched!=0?1.05:1.75)-.15)));
+}
 // Synchronous admission/restore events and bounded 10 Hz sheepdog decisions.
 // The native owner retains bodies, clocks and both original random streams.
 @inline export function onSignal(signal:i32,value:f64,source:i32):void {
-  if(signal==Signal.steer) {
+  if(signal==Signal.visibility) {
+    const crouched=get(Field.crouched),speed=get(Field.speed);
+    let screen=0.0;
+    if(get(Field.count)>0)screen+=cover(Read.field(1,Field.height),crouched)/3;
+    if(get(Field.count)>1)screen+=cover(Read.field(2,Field.height),crouched)/3;
+    if(get(Field.count)>2)screen+=cover(Read.field(3,Field.height),crouched)/3;
+    const motion=get(Field.elapsed)<1?1.5:speed<.4?.3:speed<=2.6?.7:speed<5.2?1:1.5;
+    Do.channel(Channel.fraction,(1-.9*Math.max(cover(get(Field.height),crouched),.7*screen))*motion*get(Field.light));
+  } else if(signal==Signal.downwind) {
+    const distance=get(Field.distance);
+    Do.channel(Channel.accept,distance>=.001&&get(Field.strength)>=.05&&get(Field.dot)/distance>.82?1:0);
+  } else if(signal==Signal.hearing) {
+    const speed=get(Field.speed),slot=speed<.4?1:speed<=2.6?2:speed<5.2?3:4;
+    Do.channel(Channel.radius,Read.field(slot,Field.radius)*(speed>.4&&get(Field.height)>=.7?1.25:1)*(get(Field.storm)!=0?.5:1));
+  } else if(signal==Signal.steer) {
     const ready=get(Field.ready)!=0,dx=get(Field.tx)-get(Field.x),dz=get(Field.tz)-get(Field.z),speed=get(Field.speed);
     Do.channel(Channel.look,get(Field.look));Do.channel(Channel.state,ready?(speed>get(Field.threshold)?1:0):-1);
     Do.channel(Channel.yaw,ready?heading(dx,dz):get(Field.yaw));

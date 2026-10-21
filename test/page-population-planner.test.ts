@@ -28,7 +28,7 @@ test('marsh page groups resolve native ids, adoption and water from rows without
     wind: { x: 0,z: 1,strength: .5 },prey: 'marsh',damage: admission };
   const scope = new Scope('marsh');
   try {
-    wildEnv.enter(scope,rows); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
+    wildEnv.enter(scope,rows,ReturnProgram.page(admission,scope)); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
     herd.adoptStallion(buck);
     expect(renderedPackOf(scout)).toBe(pack); expect(renderedHerdOf(kid)).toBe(herd); expect(renderedHerdOf(buck)).toBe(herd);
     expect(pack.findPrey?.(0,0,10)).toBe(kid); expect(herd.findThreat?.(3,0,10)).toBe(scout);

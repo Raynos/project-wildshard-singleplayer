@@ -1,3 +1,5 @@
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Native host fixture uses the shipped physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -38,7 +40,7 @@ test('orchard native boot joins its own bake, raster senses and weather continua
     expect(roster.stream).toEqual(stream);
     const program = parseWeatherProgram({ ...pine,registers: { ...pine.registers,ready: 0,armed: 0,wait: 0,flash: 0,bearing: 2,low: 0,lowFor: 0 } });
     const reactions = { version: 1,hz: 5,script: storm.script,bytes: storm.bytes,active: ['rain'],flash: 'flash',shelter: { margin: 1,circles: [] },points: [],steps: [{ signal: 'tick',observe: [['dt','dt'],['armed','register.armed'],['pendingT','register.wait'],['ready','register.ready'],['storm','state.rain'],['gust','state.rain'],['bearing','register.bearing'],['flash','register.flash']],random: true,write: [['flash','register.flash']],emit: [] }] };
-    const env = new NativeWildEnvironment(field.grass.field,field.grass.trample,{ wind: { x: 1,z: 0,strength: .5 },flatten: .5 });
+    const env = new NativeWildEnvironment(field.grass.field,field.grass.trample,{ wind: { x: 1,z: 0,strength: .5 },flatten: .5 },ReturnProgram.native(host,admission));
     const weather = installWeatherContinuation(host,{ program: nativeWeatherBundle({ weather: program,reactions }),clock: { sunElevation: 0 },env,
       bake: { trees: [[3,4,1]],tops: [12] },rows: { step: 'orchard.weather',scareRadius: 20,windReference: 8,
         light: { base: .2,storm: .4,ramps: [[-10,10,.6]] },hit: { ask: 'weather.damage',tags: ['env.rain'],cause: { kind: 'rain',label: 'Rain',text: 'Rain' },toast: 'Rain' } } });

@@ -1,3 +1,5 @@
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual native simulation owners.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -32,7 +34,7 @@ test('orchard rows bind native senses, prey, adopted herd and deferred pack iden
   const host = createSimHost({ ...SIM_LEVEL, entities, quests: [] }, { rapier });
   const field = new GrassField({ seed: 19, half: 16, heightAt: () => 0, normalAt: () => [0,1,0], splatAt: () => [1,0,0,0],
     trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
-  const env = new NativeWildEnvironment(field,new TrampleField(),{ wind: { x: 1,z: 0,strength: .5 }, flatten: .85 });
+  const env = new NativeWildEnvironment(field,new TrampleField(),{ wind: { x: 1,z: 0,strength: .5 }, flatten: .85 },ReturnProgram.native(host,admission));
   const grid = { res: 2,size: 32,seed: 19,landscapeHash: 0,heights: new Float32Array(4),splat: new Uint8Array(16),undergrowth: null };
   try {
     const before = host.rng.snapshot();

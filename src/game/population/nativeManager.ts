@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
@@ -281,7 +282,7 @@ export class NativeWildEnvironment {
   lastShotT = -1e9; light = 1; storm = false;
   private host: SimHost | null = null;
   private frame: NativeWildlifeFrame | null = null;
-  constructor(readonly field: GrassField, readonly trampleField: TrampleField, private readonly rows: { wind: { x: number; z: number; strength: number }; flatten: number }) {
+  constructor(readonly field: GrassField, readonly trampleField: TrampleField, private readonly rows: { wind: { x: number; z: number; strength: number }; flatten: number }, private readonly author: ReturnProgram) {
     if (!(field instanceof GrassField) || !(trampleField instanceof TrampleField)) throw new Error('Invalid native grass owners'); this.wind = { ...rows.wind };
   }
   bind(host: SimHost, frame: NativeWildlifeFrame): void {
@@ -291,20 +292,16 @@ export class NativeWildEnvironment {
   grassHeightAt(x: number, z: number): number { return this.field.baseHeightAt(x,z)*(1-this.rows.flatten*this.trampleField.amountAt(x,z)); }
   /** Standard grass-cover senses over this world's concrete field owners. */
   visibility(x: number, z: number, player: Vector3, speed: number, now: number): number {
-    const cover = (height: number): number => Math.min(1, Math.max(0, (height-.15)/((this.playerCrouched ? 1.05 : 1.75)-.15)));
     const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz) || 1;
-    let screen = 0;
-    for (const step of [1.5,3,5]) { if (step > distance) break; screen += cover(this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step))/3; }
-    const motion = now-this.lastShotT < 1 ? 1.5 : speed < .4 ? .3 : speed <= 2.6 ? .7 : speed < 5.2 ? 1 : 1.5;
-    return (1-.9*Math.max(cover(this.grassStandingAt(player.x,player.z)),.7*screen))*motion*this.light;
+    const samples = [1.5,3,5].filter(step => step <= distance).map(step => ({ height: this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step) }));
+    return v.parse(v.number(), this.author.project('visibility', { height: this.grassStandingAt(player.x,player.z), crouched: Number(this.playerCrouched), speed, elapsed: now-this.lastShotT, light: this.light, count: samples.length }, undefined, samples)['fraction']);
   }
   downwind(x: number, z: number, player: Vector3): boolean {
-    const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz), wind = this.wind;
-    return distance >= 1e-3 && wind.strength >= .05 && (dx*wind.x+dz*wind.z)/distance > .82;
+    const dx = x-player.x, dz = z-player.z;
+    return this.author.project('downwind', { distance: Math.hypot(dx,dz), strength: this.wind.strength, dot: dx*this.wind.x+dz*this.wind.z })['accept'] === 1;
   }
   hearing(radii: readonly [number,number,number,number], player: Vector3, speed: number): number {
-    return (speed < .4 ? radii[0] : speed <= 2.6 ? radii[1] : speed < 5.2 ? radii[2] : radii[3])
-      *(speed > .4 && this.grassStandingAt(player.x,player.z) >= .7 ? 1.25 : 1)*(this.storm ? .5 : 1);
+    return v.parse(v.number(), this.author.project('hearing', { speed, height: this.grassStandingAt(player.x,player.z), storm: Number(this.storm) }, undefined, radii.map(radius => ({ radius })))['radius']);
   }
   trample(x: number, z: number, radius: number, strength: number, vx: number, vz: number): void { this.trampleField.push(x,z,radius,strength,vx,vz); }
   onEvent(name: string, x: number, z: number): void {
