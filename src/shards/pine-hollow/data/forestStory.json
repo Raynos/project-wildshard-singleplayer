@@ -97,8 +97,6 @@
         "under the creek bridge"
       ],
       "label": "Carved tokens",
-      "take": "Carved token \u2014 ",
-      "fallback": "somewhere quiet",
       "complete": "All eight carved tokens \u2014 they're on the ranger's mantel now",
       "shelf": "timbers.token-shelf"
     }

@@ -2,6 +2,8 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { InteractSfx } from '../src/engine/audio/interactSfx';
 import type { InteractEvent } from '../src/engine/world/interact/Interactables';
+import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
+import spots from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
 import { PINE_KIT_EVENTS } from '../src/shards/pine-hollow/generators/questEvents';
 import DRIFTWOOD_KIT_EVENTS from '../src/shards/driftwood-isle/data/questEvents.json' with { type: 'json' };
 
@@ -32,13 +34,20 @@ test('ordered event rows retain item/count-chip, toast, sound and sting effects 
   const pine = sfx.bindEvents(PINE_KIT_EVENTS, { toast: text => { effects.push(text); },
     item: id => id === 'amber-resin' ? { label: 'Amber resin', add: n => { effects.push(`resin ${String(n)}`); } } : null, calls: new Map([
     ['resin', () => { resin++; effects.push('resin chip'); }], ['all-resin', () => { if (resin > 0) effects.push('all resin'); }],
-    ['token', () => { effects.push('token chip and name'); }], ['all-tokens', () => { effects.push('shelf'); }],
+    ['token', () => { effects.push('token chip'); }], ['all-tokens', () => { effects.push('shelf'); }],
     ['pickup', () => { effects.push('pickup sting'); }],
   ]) });
   effects.length = 0; pine({ ...event('take', 'resin'), item: 'amber-resin', n: 1 });
   expect(effects).toEqual(['resin 1', 'resin chip', 'ui-chime', 'all resin']);
-  effects.length = 0; pine(event('take', 'token'));
-  expect(effects).toEqual(['token chip and name', 'ui-glyph', 'shelf']);
+  const tokens = pineTableFromPlacements(spots.rows).rows.filter(row => row.kind === 'pickup' && row.look === 'token');
+  const originalNames = ['the fire lookout', 'the hollow log', 'the islet', "the King's stones", 'the waterfall', 'the ridge cabin', 'the mill hamlet', 'under the creek bridge'];
+  expect(tokens).toHaveLength(originalNames.length);
+  for (const [index, def] of tokens.entries()) {
+    const text = `Carved token — ${originalNames[index]}`;
+    expect(def.toast).toBe(text);
+    effects.length = 0; pine({ type: 'take', def, text, at: new Vector3() });
+    expect(effects).toEqual(['token chip', text, 'ui-glyph', 'shelf']);
+  }
   effects.length = 0; pine(event('press')); expect(effects).toEqual([]);
   pine(event('locked')); expect(effects).toEqual(['Locked', 'ui-locked']);
 });

@@ -64,9 +64,8 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const count = (row: ForestStoryRows['collections'][number]): number => flags.count(row.prefix);
   if (shelfObject !== null && shelf !== undefined) shelfObject.visible = count(shelf) === shelf.names.length;
   const calls = new Map<string, (e: InteractEvent) => void>(rows.collections.flatMap(row => [
-    [row.event, (e: InteractEvent): void => {
+    [row.event, (): void => {
       chip().show({ label: row.label, n: count(row), of: row.names.length });
-      if (row.take !== undefined) { const index = Number(e.def.id.split('-').at(-1) ?? '1') - 1; hud.toast(row.take + (row.names[index] ?? row.fallback)); }
     }],
     [row.completeEvent, (): void => { if (count(row) === row.names.length) { hud.toast(row.complete); if (row.shelf !== undefined && shelfObject !== null) shelfObject.visible = true; } }],
   ]));

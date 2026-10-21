@@ -16,7 +16,7 @@
  */
 import { bindInteractPlacements, readInteractPlacements, type InteractTable, type PickupDef } from '@wildshard/engine/world/interact/types';
 
-import { RESIN_FLAG, TOKEN_FLAG } from './interactions';
+import { RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from './interactions';
 
 /** a resin drop's placement (the runtime resolves it: the trunk's side facing the trail, ~1.1 m up) */
 export interface Spot { x: number; z: number; y?: number; dy?: number }
@@ -38,7 +38,7 @@ export function pineTable(s: TableSites): InteractTable {
     at: { poi: 'world', x: p.x, z: p.z, ...(p.y !== undefined ? { y: p.y } : {}), dy: p.dy ?? 1.1 }, sets: [`${RESIN_FLAG}${i + 1}`],
   }));
   const tokens: PickupDef[] = s.tokens.map((p, i) => ({
-    kind: 'pickup', id: `token-${i + 1}`, look: 'token', label: 'the carved token', color: '#ffc27a',
+    kind: 'pickup', id: `token-${i + 1}`, look: 'token', label: 'the carved token', color: '#ffc27a', toast: `Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`,
     at: { poi: 'world', x: p.x, z: p.z, ...(p.y !== undefined ? { y: p.y } : {}), ...(p.dy !== undefined ? { dy: p.dy } : {}) }, sets: [`${TOKEN_FLAG}${i + 1}`],
   }));
   const bank = (side: number, along: number, dist: number) => ({ x: d.x + d.ax * side * dist + d.fx * along, z: d.z + d.az * side * dist + d.fz * along });
