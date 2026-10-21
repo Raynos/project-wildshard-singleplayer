@@ -142,14 +142,6 @@ function freeMesh(o: THREE.Object3D): void {
   for (const m of list) if (m instanceof THREE.Material) m.dispose();
 }
 
-/** A scene holding a copy of the dome at the origin (its geometry and material shared), for a `kind: 'scene'` environment:
- *  the node handler keeps the main and environment programs' uniforms paired. The host frees it with the backdrop. */
-export function domeEnvironmentScene(dome: THREE.Mesh): THREE.Scene {
-  const scene = new THREE.Scene();
-  scene.add(new THREE.Mesh(dome.geometry, dome.material));
-  return scene;
-}
-
 /** A shard's graph day sky as a sky backdrop (see the module comment). */
 export function graphDaySkyBackdrop<K>(spec: GraphDaySkySpec<K>): SkyBackdropFactory {
   return async (context) => {

@@ -4,7 +4,7 @@ import { TOON_DAY_PRESET, type ToonLookRow } from '@wildshard/format/toonLook';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { dayClock } from './dayClock';
 import { driveDayLight, runDayClock } from './daySky';
-import { domeEnvironmentScene, graphDaySkyBackdrop } from './graphDaySky';
+import { graphDaySkyBackdrop } from './graphDaySky';
 import type { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
 import { toonLighting } from './toonLighting';
 
@@ -28,7 +28,7 @@ export function toonSkyBackdrop(product: ShardProduct, row: ToonLookRow, rampFog
   const startSun = new THREE.Vector3(...style.startSun).normalize(), second = style.frames[1]?.[1] ?? style.frames[0]?.[1], first = day.presets[second ?? ''];
   if (first === undefined) throw new Error('faceted day: keys missing');
   return graphDaySkyBackdrop({ name: row.sky.name, source: product.shardfile, ids: [row.sky.dome.look, row.sky.clouds.look], dome: { graph: row.sky.dome.look, radius: row.sky.dome.radius, segments: row.sky.dome.segments, order: row.sky.dome.order }, channels: row.sky.channels, build: (context, g, dome) => {
-    const { sky, scene, level } = context, envScene = domeEnvironmentScene(dome), cloudMaterial = g.material(row.sky.clouds.look);
+    const { sky, scene, level } = context, envScene = new THREE.Scene().add(new THREE.Mesh(dome.geometry, dome.material)), cloudMaterial = g.material(row.sky.clouds.look);
     sky.sunDir.copy(startSun); g.setParam(row.sky.dome.look, 'sunDir', startSun.toArray()); // the first (offscreen) environment's sun
     cloudMaterial.toneMapped = false;
     const clouds = new THREE.Mesh(cumulusGeometry(row.sky.clouds.puffs), cloudMaterial);
