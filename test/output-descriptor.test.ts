@@ -203,7 +203,7 @@ test('checks emitted custom schemas at load, including first-party and cached re
   await expect(read({ n: 1 })).resolves.toBeDefined();
   expect(paused).toBe(1);
   await expect(read({ n: 'bad' })).rejects.toThrow('refuses its schema');
-  expect(paused).toBe(1);
+  expect(paused).toBe(2);
   await expect(read({})).rejects.toThrow('refuses its schema');
   await expect(read({ n: 1 }, encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', typo: true }))).rejects.toThrow();
   await read({ n: 1 });
@@ -214,4 +214,27 @@ test('checks emitted custom schemas at load, including first-party and cached re
   await expect(readProductDescriptor({ ...opts, offline: true })).resolves.toBeDefined();
   store.bytes.delete(hashImmutableBytes(schema));
   await expect(readProductDescriptor({ ...opts, offline: true })).rejects.toThrow('incomplete section cache');
+});
+
+test('concurrent products leave one paint boundary per custom schema check', async () => {
+  const { index, wires } = fixture(), name = 'custom/parallel', path = `sections/${name}.json`, schemaPath = `schemas/${name}.schema.json`;
+  const value = encodeCanonicalJson({ n: 1 }), schema = encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false });
+  const measured = (file: string, bytes: Uint8Array) => ({ path: file, hash: hashImmutableBytes(bytes), bytes: bytes.length });
+  wires.set(path, value); wires.set(schemaPath, schema);
+  const input = { ...index, sections: [...index.sections, { name, schema: schemaPath, ...measured(path, value) }], schemas: [measured(schemaPath, schema)] };
+  let blocked = true, pauses = 0;
+  const release: (() => void)[] = [];
+  const pause = (): Promise<void> => { pauses++; return blocked ? new Promise(resolve => { release.push(resolve); }) : Promise.resolve(); };
+  const read = () => resolveOutputDescriptor(input, { offline: false, hash, pause, read: file => {
+    const bytes = wires.get(file); if (bytes === undefined) throw new Error('Missing section'); return Promise.resolve(bytes);
+  } });
+  const products = [read(), read()];
+  try {
+    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
+    expect(release).toHaveLength(1);
+  } finally {
+    blocked = false; for (const done of release) done();
+    await Promise.all(products);
+  }
+  expect(pauses).toBe(2);
 });

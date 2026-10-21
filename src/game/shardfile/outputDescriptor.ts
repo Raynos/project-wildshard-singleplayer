@@ -36,6 +36,16 @@ export interface OutputDescriptor {
 // also preserves location through the hosts' shallow presentation-only copies.
 const descriptors = new WeakMap<object, OutputDescriptor>();
 const buildValidated = new WeakSet();
+// Parallel product reads keep their transport overlap. Their synchronous
+// schema checks share one queue so independent readers cannot refill one
+// paint interval with several compiles. Node readers inject no paint policy.
+let schemaChecks = Promise.resolve();
+function checkCustomSection(schema: unknown, value: unknown, pause: OutputDescriptorReader['pause']): Promise<unknown> {
+  if (pause === undefined) return Promise.resolve().then(() => validateCustomSchema(schema, value));
+  const checked = schemaChecks.then(async () => { await pause(); return validateCustomSchema(schema, value); });
+  schemaChecks = checked.then(() => undefined, () => undefined);
+  return checked;
+}
 
 /** A visited index is not an offline copy when any of its section bytes were evicted. */
 export class IncompleteOutputCacheError extends Error {
@@ -104,9 +114,8 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     const progress = loadingUnits('Product schemas', custom.length);
     progress(0);
     for (const [at, row] of custom.entries()) {
-      await waitFor(`Validate ${row.name}`, Promise.resolve().then(() => validateCustomSchema(schemas.get(row.schema), sections.get(row.name))), 'admission');
+      await waitFor(`Validate ${row.name}`, checkCustomSection(schemas.get(row.schema), sections.get(row.name), reader.pause), 'admission');
       progress(at + 1, row.name);
-      await reader.pause?.();
     }
   });
   const indexHash = await reader.hash(validationSourceBytes(input));
