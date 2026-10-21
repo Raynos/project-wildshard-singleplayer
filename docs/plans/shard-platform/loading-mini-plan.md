@@ -6,8 +6,8 @@ then let's optimize it later … one of the lanes that the builder has can be sp
 continuously working on the loading screen until it's fixed."*
 
 Audit: [Loading Screen Audit](https://claude.ai/artifact/5muMsLzQ8dBoAiuJs2oYoH) (live 97915af6c). One builder lane owns
-this plan end to end and stays on it until every row is done; it is an M2 gate (G537): no 5 x 5 mobile runs until
-Phase 1 is accepted.
+this plan end to end and stays on it until every row is done; it is an M2 gate (G537): Jake's three phone
+playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium and Simulator now (coordinator clarification).
 
 **Owner:** dedicated loading lane (`sp-x1`), 2026-10-20. L1 source landing first; each row stays open until its exact-build proof passes. STATE.md remains coordinator-owned.
 
@@ -19,7 +19,7 @@ Phase 1 is accepted.
 | **L2 — source `56b1bdf71`, worker receipts `e7f949385e`; final parity pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
 | **L3 — source `583123db2a`; proof pending** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
 | **L4 — source `c54a3c5c54`; proof pending** | A step table per load path (grid, shardfile, legacy) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
-| **L5 — source `7d02e8806a`, shader slice `19c10b2c0c`, plot slice `ccecd7678f`; final cadence pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
+| **L5 — source `7d02e8806a`, shader slice `19c10b2c0c`, plot slice `ccecd7678f`, reuse `e0b3064e09`; final cadence pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
 | **L6 — source `977a0d1303`; proof pending** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
 | **L7 — framework `04027abce7`, measured table `3b78200993`; final proof pending** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
 | **L8 — harness `88a252c39a`; exact-build receipts pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
@@ -52,3 +52,14 @@ SHARD SELECT first frame 33.5 s and grid 32.8 s. Stage sums are 33.769 /
 32.824 s; observed HTTP byte errors 1.46% / 4.07%. Cadence remains open
 (1.69 / 1.24 s), with shader/first-frame and assembly gaps retained in
 `tmp/loading-lane/current-chromium/` until final evidence is committed.
+
+The `7a8d7ab209` candidate reached first frame in Simulator SHARD SELECT
+in 19.4 s (stage sum 19.440 s, network error 4.33%, detail gap 973 ms).
+Its worker observer delivered 173 batches on Safari. The second Safari
+path lost its recorder; harness `ec56ae5f4d` gives each path a fresh origin.
+A new profile reproduced the phone grid gap at 1.376 s and mapped 403 ms
+to duplicate `plotCellColliders` generation in `GridSession.attach`.
+`e0b3064e09` reuses the already sliced meshes and yields completed assembly.
+Desktop profiles had 198 / 454 ms detail gaps; the earlier 4.35 / 2.33 s
+first-frame pauses did not recur. All remain diagnostic receipts: final
+acceptance must include the newer worker accounting and collider reuse.
