@@ -103,13 +103,14 @@ try {
       try { await wait(`window.__loadingAccuracy?.readyAt > 0`); } finally { off(); }
     } catch (error) { errors.push(String(error)); }
     try {
-      collected = JSON.parse(await inspector.evaluate(`JSON.stringify({ accuracy: window.__loadingAccuracy, origin: performance.timeOrigin, href: location.href, resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()), fatal: document.querySelector('#wserr .msg')?.textContent ?? '' })`));
+      collected = JSON.parse(await inspector.evaluate(`JSON.stringify({ accuracy: window.__loadingAccuracy, origin: performance.timeOrigin, href: location.href, resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()), controller: navigator.serviceWorker.controller?.scriptURL ?? null, fatal: document.querySelector('#wserr .msg')?.textContent ?? '' })`));
       const origin = collected.origin, end = origin + (collected.accuracy?.readyAt ?? 0);
       const received = transport.receipts.filter(receipt => receipt.endedAt >= origin && receipt.endedAt <= end);
       networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
       report = accuracyReport(collected.accuracy, networkBytes, path);
       errors.push(...(collected.accuracy?.errors ?? []));
       if (collected.fatal) errors.push(collected.fatal);
+      if (collected.controller === null) errors.push('Service worker did not control the served entry');
     } catch (error) { errors.push(String(error)); }
     const result = { pin, path, device: 'iOS Simulator Safari / portrait phone tier', cpu: 'native', errors,
       ...report, ...collected, protocolReceipts: events, transportReceipts: transport.receipts, htmlFixtures: transport.htmlFixtures };

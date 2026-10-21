@@ -67,6 +67,7 @@ try {
     const collected = await page.evaluate(() => ({ accuracy: Reflect.get(window, '__loadingAccuracy'),
       origin: performance.timeOrigin, now: performance.now(),
       resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
+      controller: navigator.serviceWorker.controller?.scriptURL ?? null,
       fatal: document.querySelector('#wserr .msg')?.textContent ?? '' }));
     const ready = collected.accuracy.readyAt > 0 ? collected.accuracy.readyAt : collected.now;
     const network = [...requests.values()].filter(request => request.ended * 1000 >= collected.origin
@@ -77,6 +78,7 @@ try {
     const report = accuracyReport(collected.accuracy, networkBytes, path);
     if (arg('profile', '0') === '1') writeFileSync(resolve(out, `${path}.cpuprofile`), JSON.stringify((await cdp.send('Profiler.stop')).profile));
     if (collected.fatal) errors.push(collected.fatal);
+    if (collected.controller === null) errors.push('Service worker did not control the served entry');
     if (errors.length > 0) status = 'failed';
     const receipt = { pin, path, device: desktop ? 'Desktop Chromium' : 'iPhone 16 Pro', cpu, status, errors, cdpNetworkBytes, transportReceipts: received, ...report, ...collected };
     writeFileSync(resolve(out, `${path}.json`), JSON.stringify(receipt, null, 2));
