@@ -9,7 +9,7 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture subprocess runtime.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { captureProductInputs, productInputKey, productToolchainKey, recordBundle } from '../scripts/shardfile-inputs.mjs';
+import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 
@@ -32,11 +32,29 @@ it('keys native-bundled modules, sync and async reads, negative probes and real 
   });
   const key = () => productInputKey(root,receipt,[],memo), before = key(); expect(before).toMatch(/^[a-f0-9]{64}$/u);
   writeFileSync(resolve(root,'src/engine/unread.generated.ts'),'unread'); expect(key()).toBe(before);
-  writeFileSync(resolve(root,'src/engine/used.ts'),'export const value=2;\n'); expect(key()).not.toBe(before);
-  const changed = key(); writeFileSync(resolve(root,'optional.json'),'{}'); expect(key()).not.toBe(changed);
-  const optional = key(); writeFileSync(resolve(root,'assets/new.txt'),'new'); expect(key()).not.toBe(optional);
+  writeFileSync(resolve(root,'src/engine/used.ts'),'export const value=2;\n'); expect(key()).toBeUndefined();
+  writeFileSync(resolve(root,'src/engine/used.ts'),'export const value=1;\n'); expect(key()).toBe(before);
+  writeFileSync(resolve(root,'optional.json'),'{}'); expect(key()).toBeUndefined(); rmSync(resolve(root,'optional.json'));
+  writeFileSync(resolve(root,'assets/new.txt'),'new'); expect(key()).toBeUndefined(); rmSync(resolve(root,'assets/new.txt'));
   expect(productInputKey(root,receipt,['--other-flags'],memo)).not.toBe(key());
   writeFileSync(receipt,'{}'); expect(key()).toBeUndefined();
+});
+
+it('keeps another revision from replacing a matching captured read set', async () => {
+  const first=fixture(), second=fixture(), directory=resolve(first,'receipts'), recipe=['same-product'];
+  writeFileSync(resolve(second,'asset.txt'),'second');
+  const receipts=[];
+  for(const root of [first,second]) {
+    const receipt=resolve(root,'trace.json'), memo=new InputHashMemo(root);
+    await captureProductInputs(root,receipt,()=>{readFileSync(resolve(root,'asset.txt'));recordBundle({output:[]});return Promise.resolve();});
+    const key=productInputKey(root,receipt,recipe,memo); if(key===undefined)throw new Error('Fixture requires a complete receipt');
+    publishProductInputs(directory,receipt,key);receipts.push(key);
+  }
+  expect(receipts[0]).not.toBe(receipts[1]);
+  expect(matchingProductInputKey(first,directory,recipe,new InputHashMemo(first))).toBe(receipts[0]);
+  expect(matchingProductInputKey(second,directory,recipe,new InputHashMemo(second))).toBe(receipts[1]);
+  writeFileSync(resolve(first,'asset.txt'),'third');
+  expect(matchingProductInputKey(first,directory,recipe,new InputHashMemo(first))).toBeUndefined();
 });
 it('keys compiler writes, refuses concurrent source edits and rejects incomplete traces', async () => {
   const root = fixture(), receipt = resolve(root,'receipt.json');

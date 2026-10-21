@@ -15,7 +15,7 @@ import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashe
 import { prepareDataMaps } from './bake-data-maps.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { InputHashMemo } from './bake-input-hashes.mjs';
-import { productInputKey, productToolchainKey } from './shardfile-inputs.mjs';
+import { productInputKey, productToolchainKey, matchingProductInputKey, publishProductInputs } from './shardfile-inputs.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 
@@ -84,8 +84,8 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const destination = resolve(root, 'out', entry.name);
     const normalized = flags.map(flag=>flag.replace(root,'<root>'));
     const recipe = [entry.name,...normalized,toolchain];
-    const receipt = resolve(shardfileCacheRoot(),'.inputs',entry.name,`${createHash('sha256').update(JSON.stringify(normalized)).digest('hex')}.json`);
-    const currentKey = () => recorded ? productInputKey(root,receipt,recipe,inputHashes) : shardfileKey(files ?? new Map(),entry.name,built,normalized);
+    const receipts = resolve(shardfileCacheRoot(),'.inputs-v2',entry.name,createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
+    const currentKey = () => recorded ? matchingProductInputKey(root,receipts,recipe,inputHashes) : shardfileKey(files ?? new Map(),entry.name,built,normalized);
     const key = currentKey();
     if (!strict && only !== undefined && !only.includes(entry.name)) {
       const here = readBuildKey(destination);
@@ -94,11 +94,15 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       return;
     }
     const how = await reuseOrBuild({ slug: entry.name, key:key ?? randomBytes(32).toString('hex'), destination, fresh:strict || !reuse && only === undefined, build: async out => {
+      const receipt=resolve(shardfileCacheRoot(),'.input-traces',`${process.pid}-${randomBytes(8).toString('hex')}.json`);
+      try {
       await buildOne(['build',project,out,'--product-only','--no-placeholders','--format=2',...flags,...(recorded?[`--input-receipt=${receipt}`]:[])]);
       if (recorded && productToolchainKey(root,inputHashes) !== toolchain) throw new Error('Product toolchain changed during build');
-      const next = currentKey();
+      const next = recorded ? productInputKey(root,receipt,recipe,inputHashes) : currentKey();
       if (next === undefined) throw new Error(`Missing complete product input receipt: ${entry.name}`);
+      if(recorded)publishProductInputs(receipts,receipt,next);
       return next;
+      } finally { if(recorded)rmSync(receipt,{force:true}); }
     } });
     console.info(`wildshard build: ${entry.name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;

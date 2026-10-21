@@ -9,10 +9,10 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 
-const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync, write:fs.writeFileSync, mkdir:fs.mkdirSync };
+const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
-const schema = 'shardfile-inputs/1', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs')]);
-const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FD] /u))),v.minLength(1)),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
+const schema = 'shardfile-inputs/2', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs')]);
+const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FD] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
 /** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean}>} */
 const scopes = new AsyncLocalStorage();
 let installed = false;
@@ -106,12 +106,12 @@ export async function captureProductInputs(root,receipt,run) {
     await run();
   });
   if (scope.invalid.length > 0 || scope.bundles === 0) throw new Error(`Incomplete product input trace: ${scope.invalid.join('; ')}`);
-  const inputs = [...scope.reads].sort(([a],[b])=>a.localeCompare(b)).map(([entry,before])=>{
+  const values = Object.fromEntries([...scope.reads].sort(([a],[b])=>a.localeCompare(b)).map(([entry,before])=>{
     const after = value(scope.root,entry);
     if (after !== before && !scope.writes.has(entry.slice(2)) && ![...scope.writes].some(file=>file.startsWith(`${entry.slice(2)}/`))) throw new Error(`Product input changed during build: ${entry}`);
-    return entry;
-  });
-  const body = {schema,node:process.version,inputs};
+    return [entry,after];
+  }));
+  const body = {schema,node:process.version,inputs:Object.keys(values),values};
   raw.mkdir(dirname(receipt),{recursive:true}); raw.write(receipt,JSON.stringify({...body,seal:digest(JSON.stringify(body))}));
 }
 /** A missing/malformed receipt always misses. Unread generated files never enter it.
@@ -121,9 +121,31 @@ export function productInputKey(root,receipt,args,memo) {
     const saved = v.parse(Receipt,JSON.parse(raw.read(receipt,'utf8')));
     if (saved.node !== process.version
       || saved.inputs.some(entry=> inside(root,resolve(root,entry.slice(2))) !== entry.slice(2))
-      || saved.seal !== digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs}))) return undefined;
-    return digest(JSON.stringify({schema,node:process.version,args,inputs:saved.inputs.map(entry=>[entry,value(root,entry,memo)])}));
+      || new Set(saved.inputs).size !== saved.inputs.length || Object.keys(saved.values).length !== saved.inputs.length
+      || saved.seal !== digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs,values:saved.values}))) return undefined;
+    for (const entry of saved.inputs) if (saved.values[entry] !== value(root,entry,memo)) return undefined;
+    return digest(JSON.stringify({schema,node:process.version,platform:process.platform,arch:process.arch,args,inputs:saved.inputs.map(entry=>[entry,saved.values[entry]])}));
   } catch { return undefined; }
+}
+/** Keep immutable read-set variants: simultaneous revisions cannot overwrite
+ * another build's evidence. Only a byte-matching captured snapshot can hit.
+ * @param {string} root @param {string} directory @param {string[]} args @param {import('./bake-input-hashes.mjs').InputHashMemo} memo */
+export function matchingProductInputKey(root,directory,args,memo) {
+  try {
+    const receipts=raw.list(directory).filter(file=>/^[a-f0-9]{64}\.json$/u.test(file)).map(file=>({file,mtime:raw.stat(resolve(directory,file)).mtimeMs})).sort((a,b)=>b.mtime-a.mtime);
+    for(const row of receipts.slice(0,12)) {
+      const key=productInputKey(root,resolve(directory,row.file),args,memo);
+      if(key !== undefined && row.file === `${key}.json`) return key;
+    }
+  } catch { /* Missing/incomplete evidence builds a fresh product. */ }
+  return undefined;
+}
+/** Publish one complete immutable receipt atomically.
+ * @param {string} directory @param {string} receipt @param {string} key */
+export function publishProductInputs(directory,receipt,key) {
+  raw.mkdir(directory,{recursive:true});
+  const temporary=resolve(directory,`${key}.${process.pid}.tmp`);
+  raw.write(temporary,raw.read(receipt)); raw.rename(temporary,resolve(directory,`${key}.json`));
 }
 if (process.execArgv.some((arg,index)=>arg==='--import' && process.execArgv[index+1] === import.meta.filename)) installInputRecorder();
 
