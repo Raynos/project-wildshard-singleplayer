@@ -77,6 +77,7 @@ export function writeBaseline(root,lane,shard,tier,baseline,fields) {
   const dir=join(root,'test/parity/baselines',lane);mkdirSync(dir,{recursive:true});
   for(const [name,pose] of Object.entries(object(baseline.poses))) {
     if(fields && !fields.some((p)=>p.startsWith(`poses.${name}`)))continue;
+    if(tier==='desktop')continue; // X22 (G416): desktop pose SSIM is information; only the phone's references are stored
     const target=join(dir,`${shard}.${tier}.${name}.jpg`);copyFileSync(string(object(pose).shot),target);object(pose).shot=target;
   }
   writeFileSync(join(dir,`${shard}.${tier}.json`),`${JSON.stringify(baseline,null,2)}\n`);

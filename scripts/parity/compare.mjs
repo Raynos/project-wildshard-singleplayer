@@ -163,6 +163,8 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
       emit(path, a, b, 'A', missing.length === 0, 'no baseline scheduler missing'); continue;
     }
     if (/^poses\.[^.]+\.ssim$/.test(path)) {
+      // X22 (G416): the phone's pose SSIM is the visual gate; desktop references are not stored (over the preview cap)
+      if (string(get(current, 'boot.tier')) === 'desktop') { emit(path, a, b, 'C', true, 'information (desktop)'); continue; }
       const pose = path.split('.')[1] ?? '', limit = Math.min(0.99, number(selfMin[pose] ?? 1) - 0.01);
       emit(path, a, b, 'B', number(b) >= limit, `≥ ${limit}`); continue;
     }
