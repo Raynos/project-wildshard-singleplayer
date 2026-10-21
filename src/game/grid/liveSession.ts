@@ -393,7 +393,7 @@ export class LiveGridSession {
       const leaveStart = diagnosticNow();
       gridCells.leave(); // entered callbacks must finish before their retained native world retires
       this.leaveTiming.push({ instance: from, leaveMs: diagnosticNow() - leaveStart }); if (this.leaveTiming.length > 16) this.leaveTiming.shift();
-      this.live.retire(from); // O20: in steps over frames; false retains the full source claim and the next materialization fence
+      this.live.unload(from); // false retains the full source claim and the next materialization fence (O20: retire() is held back)
     });
   }
 
