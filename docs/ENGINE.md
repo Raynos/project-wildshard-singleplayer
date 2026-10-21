@@ -6672,6 +6672,13 @@ figure placement, dialogue clock, saved flags, inventory, shop lifetime and
 the caller's update phase keep their original owners. Leaving during catalogue
 admission refuses before figures or dialogue are installed.
 
+`deaths(rows)` binds ordered death consequences to the entered creature
+roster, flag book, achievement counters and HUD. Optional move rows place
+existing table props at that creature's death position. The listener keeps
+its explicit priority and ends with the entry scope. Pine's contract board
+remains its following listener; Driftwood keeps key drops before notices and
+its later kill-counter listener. Rows accept no callbacks or method paths.
+
 The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
 the admitted table and pack for both native quest compositions. It borrows
 the worker's existing command and ledger adapter; `install(owners)` binds the

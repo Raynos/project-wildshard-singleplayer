@@ -7,5 +7,5 @@ export const PINE_DEATH_EFFECTS = [
 /** Only the page sets the King flag here; the native boss owns its own death flag. */
 export const PINE_PAGE_DEATH_EFFECTS = [
   { when: [{ kind: 'antler-king' }], effects: [{ kind: 'flag', flag: 'dead:king' }] },
-  ...PINE_DEATH_EFFECTS,
+  ...PINE_DEATH_EFFECTS.slice(0, -1),
 ] as const;

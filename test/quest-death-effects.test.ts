@@ -21,7 +21,8 @@ test('death rows retain achievement, contract notice and key/flag order without 
     order.push('contract-save');
     for (const index of moved) { const contract = board.slots[index]; if (contract !== undefined && isFilled(contract)) order.push('contract-toast'); }
   };
-  const page = bindQuestDeathEffects(PINE_PAGE_DEATH_EFFECTS, { flags, kill: pine.kill, event: pine.event, calls: new Map([['contracts', contracts]]) });
+  const consequences = bindQuestDeathEffects(PINE_PAGE_DEATH_EFFECTS, { flags, kill: pine.kill, event: pine.event });
+  const page = (body: Parameters<typeof contracts>[0]): void => { consequences(body); contracts(body); };
   page({ kind: 'deer', variant: 'ghost' });
   expect(order).toContain('pine.feat.ghost');
   expect(order.indexOf('pine.feat.ghost')).toBeLessThan(order.indexOf('contract-save'));

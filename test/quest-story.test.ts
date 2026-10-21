@@ -30,6 +30,10 @@ import { ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
 import { QuestPageTalksSchema } from '../src/format/npcs';
 import driftPage from '../src/shards/driftwood-isle/data/questPageComposition.json';
 import pinePage from '../src/shards/pine-hollow/data/forestStory.json';
+import type { Actor } from '../src/engine/combat/pipeline';
+import type { Animal } from '../src/engine/entities/AnimalView';
+import deaths from '../src/shards/driftwood-isle/data/questDeaths.json';
+import { PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
 
 function product(source: typeof drift, story: typeof driftStory, counters: typeof DRIFTWOOD_FEAT_COUNTERS | typeof PINE_FEAT_COUNTERS) {
   const policy = { ...counters, feats: counters.feats.map(({ id, count, ...row }) => ({ id, count,
@@ -146,10 +150,11 @@ function talkPage(source: typeof drift, story: typeof driftStory, counters: type
   const scope = new Scope('story-talk-entry'), host = new App(), swaps = vi.fn(), scene = new Scene();
   const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
   const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(source.identity.slug) }, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product(source, story, counters));
-  const weapons = { stowed: false };
-  Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), game: { scene }, sky: { setupMaterial: () => undefined } },
-    objects: {}, interactables: [], play: { audio: { weaponSwap: swaps }, weapons, inventory: { items: [] } } } });
-  return { ctx, scope, swaps, scene, weapons };
+  const weapons = { stowed: false }, animals: Pick<Animal, 'kind' | 'variant' | 'label' | 'position' | 'combatActor'>[] = [], toast = vi.fn();
+  Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), game: { scene }, sky: { setupMaterial: () => undefined },
+    player: { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, platforms: [] } },
+    objects: {}, interactables: [], play: { audio: { weaponSwap: swaps, voices: { play: () => undefined } }, weapons, inventory: { items: [] }, animals: { animals }, hud: { toast } } } });
+  return { ctx, scope, host, animals, toast, swaps, scene, weapons };
 }
 
 test('entered talk rows borrow the actual castaway and preserve opening, stow and greeting cadence', async () => {
@@ -197,4 +202,35 @@ test('both authored talk policies admit and reject executable model policies', (
     expect(v.safeParse(QuestPageTalksSchema, rows).success).toBe(true);
     expect(v.safeParse(QuestPageTalksSchema, { ...rows, calls: { arbitrary: { kind: 'callback', run: 'window.alert' } } }).success).toBe(false);
   }
+});
+
+test('page death entry preserves native creature identity, priority, key placement and disposal', async () => {
+  for (const [source, story, counters] of [[drift, driftStory, DRIFTWOOD_FEAT_COUNTERS], [pine, pineStory, PINE_FEAT_COUNTERS]] as const) {
+    const { ctx, scope, host, animals, toast } = talkPage(source, story, counters), events: string[] = [];
+    const actor: Actor = { id: 'dead-creature', tags: [], state: [], attributes: { health: 0, maxHealth: 1 }, alive: false, applyDamage: () => false };
+    const body = { kind: 'sailor', variant: 'ghost', label: 'Sailor', position: new Vector3(4, 0, 8), combatActor: () => actor };
+    animals.push(body);
+    try {
+      const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: 'quests/services.json', placement: {} });
+      entry.flags.reset();
+      expect(() => entry.deaths({ effects: [], order: 0 })).toThrow('entered achievement owners');
+      const achievements = await entry.achievements();
+      vi.spyOn(achievements, 'kill').mockImplementation((kind, variant) => { events.push(`kill:${kind}:${String(variant)}`); });
+      toast.mockImplementation(() => { events.push('toast'); });
+      const kit = await entry.interact({ table: { rows: [], external: [] } }, { id: 'death.kit', before: [] });
+      const move = vi.spyOn(kit, 'moveTo').mockImplementation(() => { events.push('move'); });
+      entry.deaths({ effects: [{ effects: [{ kind: 'kill' }] }], order: 35 });
+      ctx.on('actor.died', () => { events.push('between'); }, { order: 20 });
+      entry.deaths({ effects: deaths.page, moves: driftPage.deathMoves, order: 10 });
+      const payload = { actor, req: { source: 'env' as const, sourceTags: [], target: actor, amount: 1, point: new Vector3(), dir: new Vector3() } };
+      host.events.emit('actor.died', payload); host.events.flush('update');
+      expect(move).toHaveBeenCalledWith('hold-key', 4, 8);
+      expect(entry.flags.has('dead:sailor')).toBe(true);
+      expect(events).toEqual(['move', 'toast', 'between', 'kill:sailor:ghost']);
+      const before = [...events];
+      scope.dispose(); host.events.emit('actor.died', payload); host.events.flush('update');
+      expect(events).toEqual(before);
+    } finally { scope.dispose(); }
+  }
+  expect(PINE_PAGE_DEATH_EFFECTS).not.toContainEqual({ effects: [{ kind: 'call', name: 'contracts' }] });
 });

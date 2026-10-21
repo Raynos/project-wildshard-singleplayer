@@ -8,7 +8,6 @@ import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
 import type { MapPoi } from '@wildshard/engine/ui/Map';
@@ -17,7 +16,6 @@ import type { InteractEvent } from '@wildshard/engine/world/interact/Interactabl
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ItemId } from '@wildshard/game/Inventory';
-import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import * as THREE from 'three';
@@ -171,19 +169,17 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   const trade = installQuestShop(ctx, traderStall);
   ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
     panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
-  const killed = bindQuestDeathEffects(native.pageDeaths, { flags, kill: featFacts.kill, event: featFacts.event,
-    calls: new Map([['contracts', (a: AnimalManager['animals'][number]) => {
-      const moved = recordKill(contracts, board, contractKill(contracts, a));
-      if (moved.length === 0) return;
-      persistBoard();
-      for (const i of moved) {
-        const c = board.slots[i];
-        if (c) hud.toast(isFilled(c) ? `Contract filled · ${c.goal} — claim it at the lodge` : `Contract · ${c.goal} · ${c.have} / ${c.need}`);
-      }
-    }]]) });
+  entry.deaths({ effects: native.pageDeaths, order: 0 });
   ctx.on('actor.died', ({ actor }) => {
-    const a = animals.animals.find(animal => animal.combatActor() === actor);
-    if (a !== undefined) killed(a);
+    const animal = animals.animals.find(value => value.combatActor() === actor);
+    if (animal === undefined) return;
+    const moved = recordKill(contracts, board, contractKill(contracts, animal));
+    if (moved.length === 0) return;
+    persistBoard();
+    for (const i of moved) {
+      const c = board.slots[i];
+      if (c) hud.toast(isFilled(c) ? `Contract filled · ${c.goal} — claim it at the lodge` : `Contract · ${c.goal} · ${c.have} / ${c.need}`);
+    }
   });
 
   const cableId = rows.cable.id;

@@ -17,7 +17,6 @@ import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../plugin/context';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { bindQuestDeathEffects } from '../plugin/quests';
 import { prepareQuestEntry, type QuestChapter } from './chapter';
 import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
@@ -52,9 +51,6 @@ async function preparePage(ctx: ShardContext, input: unknown) {
       onUpdate: (run: (dt: number, time: number) => void, id: string): void => { ctx.system({ id, phase: 'update', before: rows.systems.before, run }); } },
     pois: d.pois,
     ironDrop: HeldClaims.current(ctx.manifest.slug).claim(rows.held) };
-  const onDeath = (run: (animal: Animal) => void, order: number): void => { ctx.on('actor.died', ({ actor }) => {
-    const animal = h.animals.animals.find(a => a.combatActor() === actor); if (animal !== undefined) run(animal);
-  }, { order }); };
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.discovery))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services,
@@ -70,7 +66,7 @@ async function preparePage(ctx: ShardContext, input: unknown) {
   kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { w.hud.toast(text); },
     item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
     calls: new Map(rows.services.map(id => [id, () => { services.run(id); }])) });
-  return { entry, rows, shell, world, h, scope, d, w, onDeath, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx };
+  return { entry, rows, shell, world, h, scope, d, w, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx };
 }
 const preparations = new WeakMap<Scope, Map<string, Awaited<ReturnType<typeof preparePage>>>>();
 /** Prepare the real placement/interaction owners before borrowed figures enter.
@@ -85,9 +81,9 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const id = v.parse(QuestPageCompositionSchema, input).id, page = preparations.get(ctx.scope)?.get(id);
   if (page === undefined || ctx.scope.disposed) throw new Error('Quest page is not prepared');
   preparations.get(ctx.scope)?.delete(id);
-  const { entry, rows, h, scope, d, w, onDeath, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
+  const { entry, rows, h, scope, d, w, story, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit, sfx } = page;
   const adventure: QuestPageComposition = { content, flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
-  const grants = await entry.achievements();
+  await entry.achievements();
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
   const placements = Object.fromEntries(Object.values(story.quest.markers).map(at => {
     const p = place(at); return [JSON.stringify(at), { x: p.x, y: p.y, z: p.z }];
@@ -96,13 +92,12 @@ export async function installQuestPageComposition(ctx: ShardContext, input: unkn
   const talks = await entry.talks(rows.talks);
   if (talks.people.length === 0) throw new Error('Quest requires its declared speaker');
   adventure.spine = { ...chapter, get places() { return chapter.places; }, get dialogue() { return talks.dialogue(); } };
-  onDeath(bindQuestDeathEffects<Animal>(rows.deaths, { flags, toast: text => { w.hud.toast(text); },
-    calls: new Map(rows.deathMoves.map(row => [row.effect, (body: Animal) => { kit.moveTo(row.target, body.position.x, body.position.z); }])) }), 10);
+  entry.deaths({ effects: rows.deaths, moves: rows.deathMoves, order: 10 });
   w.game.onUpdate((dt, t) => {
     talks.update(dt, t, w.player.position);
     if (!practiceRoom.open) chapter.chip.update(t, w.player);
   }, rows.systems.talks);
-  onDeath(animal => { grants.kill(animal.kind); }, 35);
+  entry.deaths({ effects: [{ effects: [{ kind: 'kill' }] }], order: 35 });
   const stall = parseQuestTrader(traderStall), placement = stall.placement;
   if (placement === undefined) throw new Error('Page trader requires its declared placement');
   const feet = place(placement.feet), ax = feet.x + Math.sin(feet.yaw) * placement.tradeAhead, az = feet.z + Math.cos(feet.yaw) * placement.tradeAhead;

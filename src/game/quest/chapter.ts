@@ -17,7 +17,7 @@ import type { FullMap } from '@wildshard/engine/ui/Map';
 import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui';
 import { parseQuestStory, parseChapterStoryPresentation } from '@wildshard/format/questStory';
 import { FigureRows } from '../systems/npc/figureRows';
-import { NpcDialogueRowSchema } from '../plugin/quests';
+import { NpcDialogueRowSchema, bindQuestDeathEffects } from '../plugin/quests';
 import { ReturnProgram } from '../population/returnProgram';
 import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from './chapterBindings';
 import { commitQuestEffects, readQuestServiceActions } from './effects';
@@ -36,6 +36,7 @@ import { SceneHandles } from '../shardfile/sceneHandles';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { QuestStepRunner } from './steps';
 import { openQuestTrader } from './trader';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -95,6 +96,8 @@ const entryPlacement = v.strictObject({ world: v.exactOptional(entryId),
   platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(finite, v.minValue(Number.MIN_VALUE))) });
 const entrySystem = v.strictObject({ id: entryId, before: v.pipe(v.array(entryId), v.maxLength(64)),
   after: v.optional(v.pipe(v.array(entryId), v.maxLength(64)), []) });
+const entryDeaths = v.strictObject({ effects: v.unknown(), order: v.pipe(finite, v.integer()),
+  moves: v.optional(v.pipe(v.array(v.strictObject({ effect: entryId, target: entryId })), v.maxLength(64)), []) });
 /** Prepared services retain the entered story's original state owners. */
 export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   readonly story: ReturnType<typeof parseQuestStory>; readonly flags: Flags;
@@ -105,6 +108,7 @@ export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   observe: () => void;
   bench: () => void;
   talks: (input: unknown) => Promise<ReturnType<typeof installStoryTalks<FigureRows>>>;
+  deaths: (input: unknown) => void;
 }
 /** Client-only quest entry shared by declared stories. Prepare saved flags,
  * service actions and placement first; install interactables after the caller
@@ -129,6 +133,20 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
   let interaction: Awaited<ReturnType<typeof installQuestInteractables>> | null = null;
   let installed = false, talksInstalled = false;
   return { story, flags, services, ...placement,
+    deaths: deathInput => {
+      if (!isJsonData(deathInput)) throw new Error('Quest deaths require JSON rows');
+      const deathRows = v.parse(entryDeaths, deathInput), play = ctx.game.runtime?.play, counters = achievements, kit = interaction;
+      if (ctx.scope.disposed || play === undefined || play === null || counters === null) throw new Error('Quest deaths require their entered achievement owners');
+      if (deathRows.moves.length > 0 && kit === null) throw new Error('Quest death moves require their entered table');
+      const killed = bindQuestDeathEffects<Animal>(deathRows.effects, { flags, kill: counters.kill, event: counters.event,
+        toast: text => { play.hud.toast(text); }, calls: new Map(deathRows.moves.map(row => [row.effect, (body: Animal) => {
+          kit?.moveTo(row.target, body.position.x, body.position.z);
+        }])) });
+      ctx.on('actor.died', ({ actor }) => {
+        const body = play.animals.animals.find(animal => animal.combatActor() === actor);
+        if (body !== undefined) killed(body);
+      }, { order: deathRows.order });
+    },
     talks: async talkInput => {
       if (!isJsonData(talkInput)) throw new Error('Quest talks require JSON rows');
       const talkRows = v.parse(QuestPageTalksSchema, talkInput), runtime = ctx.game.runtime, play = runtime?.play;
