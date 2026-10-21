@@ -173,11 +173,14 @@ test('chapter admission rejects shard callbacks, reflection and reward observati
 
 
 test('Pine chapter uses the same entered numeric decision owner as its client stag', async () => {
-  const f = await fixture('pine-hollow', ['talked:ranger']);
+  // G565: the client frame carries night; the chapter's rows add leadStep (the quest on its stag step) and commit leadAppear
+  const saved = ['talked:ranger', 'lit:pond', 'lit:ridge', 'used:ph-zip', 'lit:den'], f = await fixture('pine-hollow', saved);
   try {
-    const result = f.chapter.project('lead', { i: 0, mode: 0, elapsed: 0, begin: 0, dt: .1, on: 1,
-      playerX: 30, playerZ: -30, atX: 30, atZ: -30 });
-    expect(result['event']).toBe(1); expect(result['mode']).toBe(1);
-    expect(f.quest.flags.all).toEqual(['talked:ranger']);
+    const frame = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: .1, night: 0, playerX: 30, playerZ: -30, atX: 30, atZ: -30 };
+    expect(f.chapter.project('lead', frame)['event']).toBe(0); expect(f.events).toEqual([]);
+    const result = f.chapter.project('lead', { ...frame, night: 1 });
+    expect(result['event']).toBe(1); expect(result['mode']).toBe(1); expect(result['leadAppear']).toBe(1);
+    expect(f.events).toEqual(['On the west road, something pale is standing very still']);
+    expect(f.quest.flags.all).toEqual(saved);
   } finally { f.scope.dispose(); f.quest.dispose(); }
 });
