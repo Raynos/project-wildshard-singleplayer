@@ -177,6 +177,22 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(len(notices), 1)
         self.assertIn('typed-check', notices[0][2])
 
+    def test_ci_failure_notifies_the_changed_file_owner(self):
+        self.commit('src/unrelated.ts')
+        bad = self.commit('src/bad.ts')
+        tip = self.commit('src/later.ts')
+        notices = []
+        def command(args, **_):
+            if 'list' in args:
+                return json.dumps([{'headSha': tip, 'conclusion': 'failure', 'databaseId': 9},
+                                   {'headSha': self.base, 'conclusion': 'success', 'databaseId': 8}])
+            if '--log-failed' in args:
+                return 'src/bad.ts(2,1): error TS2322'
+            return '{"jobs":[{"name":"typed-check","conclusion":"failure"}]}'
+        WATCH['watch'](self.root, command=command, notify=lambda *args: notices.append(args) or True)
+        self.assertEqual(notices[0][1], [bad])
+        self.assertIn(bad, notices[0][2])
+
     def test_source_type_cache_binds_contents_and_inventory(self):
         records = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/data.json']
         key = CACHE['source_key'](records, ['src'])

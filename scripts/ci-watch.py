@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import runpy
 import subprocess
+import time
 
 PUSH = runpy.run_path(str(Path(__file__).with_name('push-loop.py')))
 
@@ -21,8 +22,16 @@ def watch(root, command=subprocess.check_output, notify=PUSH['ping']):
                                      cwd=root, text=True, timeout=30))
         names = ', '.join(job['name'] for job in details['jobs'] if job['conclusion'] in ('failure', 'timed_out')) or row['conclusion']
         green = next((run['headSha'] for run in runs[index + 1:] if run['conclusion'] == 'success'), None)
-        commits = PUSH['git'](root, 'rev-list', '--reverse', green + '..' + row['headSha']).splitlines() if green else [row['headSha']]
-        if notify(root, commits, '[ci-watch] CI red at ' + row['headSha'][:10] + ': ' + names + '. Fix forward; gh run view ' + str(row['databaseId']) + ' --log-failed'):
+        bad = None
+        if green:
+            failure = command(['gh', 'run', 'view', str(row['databaseId']), '--log-failed'], cwd=root, text=True, timeout=30)
+            files = PUSH['LIVE']['failure_paths'](failure)
+            bad = PUSH['offender'](root, green, row['headSha'], files, time.monotonic() + 10)
+        # A failed tip without file attribution belongs with its own owner;
+        # the first unrelated landing after an old green must not be blamed.
+        commits = [bad or row['headSha']]
+        attribution = '; attributed commit ' + bad if bad else ''
+        if notify(root, commits, '[ci-watch] CI red at ' + row['headSha'][:10] + ': ' + names + attribution + '. Fix forward; gh run view ' + str(row['databaseId']) + ' --log-failed'):
             state.write_text(json.dumps([*pinged, row['headSha']][-100:]))
         break
 
