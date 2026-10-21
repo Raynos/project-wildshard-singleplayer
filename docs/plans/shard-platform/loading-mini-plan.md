@@ -115,5 +115,10 @@ completed validation as well as before it; `390a57867c` shows completed counts
 from parallel stages without charging their overlapping time twice. All 23
 focused tests and strict lint pass. The source batch at `390a57867c` stopped
 before loading checks because generation omitted its new snapshot helper.
-`c6a7a68b9d` repairs that staging inventory; one replacement batch and its
-dependent exact-build proof are running on `6b3f3f58ec`. Phase 1 stays open.
+`c6a7a68b9d` repairs that staging inventory. The `6b3f3f58ec` batch passed
+types, lint and 769 tests, then refused its real first frame because the
+deck placement referenced a model outside its site catalogue. `6e92de3486`
+restores the deck and trail's direct placements. The next batch was stopped
+after 26 s when the coordinator reported a separate frozen-legacy type red;
+`801a9a6850` restores those frozen types. One replacement batch and its
+dependent exact-build proof are running on that exact SHA. Phase 1 stays open.
