@@ -107,7 +107,7 @@ try {
       const origin = collected.origin, end = origin + (collected.accuracy?.readyAt ?? 0);
       const received = transport.receipts.filter(receipt => receipt.endedAt >= origin && receipt.endedAt <= end);
       networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
-      report = accuracyReport(collected.accuracy, networkBytes);
+      report = accuracyReport(collected.accuracy, networkBytes, path);
       errors.push(...(collected.accuracy?.errors ?? []));
       if (collected.fatal) errors.push(collected.fatal);
     } catch (error) { errors.push(String(error)); }

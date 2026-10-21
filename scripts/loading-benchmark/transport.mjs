@@ -1,4 +1,4 @@
-// A read-only HTTP observer for Simulator parity: forwards the served committed build unchanged.
+// Observe served asset bytes unchanged; optional HTML recorder fixtures retain both content hashes.
 import http from 'node:http';
 import { createHash } from 'node:crypto';
 

@@ -74,7 +74,7 @@ try {
     const cdpNetworkBytes = network.reduce((sum, request) => sum + request.bytes, 0);
     const received = transport.receipts.filter(receipt => receipt.endedAt >= collected.origin && receipt.endedAt <= collected.origin + ready);
     const networkBytes = received.reduce((sum, receipt) => sum + receipt.bodyBytes + receipt.headerBytes, 0);
-    const report = accuracyReport(collected.accuracy, networkBytes);
+    const report = accuracyReport(collected.accuracy, networkBytes, path);
     if (arg('profile', '0') === '1') writeFileSync(resolve(out, `${path}.cpuprofile`), JSON.stringify((await cdp.send('Profiler.stop')).profile));
     if (collected.fatal) errors.push(collected.fatal);
     if (errors.length > 0) status = 'failed';

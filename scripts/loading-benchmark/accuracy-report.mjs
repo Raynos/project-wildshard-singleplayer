@@ -1,5 +1,5 @@
 /** Independent transport bytes come from the HTTP observer, never the displayed counter. */
-export function accuracyReport(accuracy, networkBytes) {
+export function accuracyReport(accuracy, networkBytes, expectedPath) {
   const final = accuracy.final;
   const seconds = duration => {
     const value = Number.parseFloat(duration);
@@ -18,6 +18,7 @@ export function accuracyReport(accuracy, networkBytes) {
   const maxDetailGapMs = Math.max(0, ...updates.slice(1).map((at, index) => at - updates[index]));
   const unaccountedSeconds = clockSeconds - stageSeconds;
   const failures = [];
+  if (expectedPath !== undefined && final?.path !== expectedPath) failures.push(`Expected ${expectedPath} load path, observed ${final?.path ?? 'none'}`);
   if (!(accuracy.readyAt > 0)) failures.push('First frame was not reached');
   if (Math.abs(unaccountedSeconds) > 3) failures.push('Stage sum differs from wall clock by more than 3 s');
   if (unaccountedSeconds > 2) failures.push('Unlabelled gap exceeds 2 s');

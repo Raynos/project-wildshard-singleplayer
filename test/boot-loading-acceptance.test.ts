@@ -30,3 +30,11 @@ it('rejects a silent start or tail even without two recorded detail changes', ()
     final: { clock: '00:03.0', networkBytes: '100', rows: [{ label: 'Admission', duration: '3 s' }] } }, 100);
   expect(receipt.failures).toContain('Detailed update gap exceeds 1 s');
 });
+
+
+it('refuses a different entry path even when its timing and byte checks pass', () => {
+  const accuracy = { readyAt: 1000, updates: [0, 900],
+    final: { path: 'legacy', clock: '00:01.0', networkBytes: '100', rows: [{ label: 'World', duration: '1 s' }] } };
+  expect(accuracyReport(accuracy, 100, 'shardfile').failures).toContain('Expected shardfile load path, observed legacy');
+  expect(accuracyReport(accuracy, 100, 'legacy').failures).toEqual([]);
+});
