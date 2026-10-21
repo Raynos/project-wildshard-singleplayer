@@ -16,20 +16,20 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code (from the audit) | Effort (est.) |
 |---|---|---|---|
 | **L1 — accepted `8264f6dca2`; source `0e5a42feb3`; carrier push pending** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
-| **L2 — accepted `8264f6dca2`; source `56b1bdf71 / 0912242443`; carrier push pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
+| **L2 — cold accepted `8264f6dca2`; warm revalidation `bf332be4cc` proof pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
 | **L3 — accepted `8264f6dca2`; source `583123db2a`; carrier push pending** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
 | **L4 — accepted `8264f6dca2`; source `c54a3c5c54`; carrier push pending** | A step table per load path (shardfile, grid entry, grid crossing; legacy comparison retained) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
 | **L5 — accepted `8264f6dca2`; source `91a491c8a8 / 390a57867c`; carrier push pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
 | **L6 — accepted `8264f6dca2`; source `977a0d1303`; carrier push pending** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
 | **L7 — accepted `8264f6dca2`; source `8dd0eeaa0e / 09bdb72199`; carrier push pending** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
-| **L8 — accepted `8264f6dca2`; source `88a252c39a / 6324155e85`; carrier push pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
+| **L8 — cold matrix accepted `8264f6dca2`; added warm proof pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
 
 ## Phase 2: fast (after Phase 1 is accepted)
 
 | Row | What | Code | Effort (est.) |
 |---|---|---|---|
 | **O1 — done `02fb4e4288`, `8f220455e8`, `94bf308bc1`** | Grid edges read from each neighbour's product index only, not the whole product (today 3,237 requests, 137.5 MB, 75.7 s) | `grid/edgeSources.ts:73-86`, `grid/products.ts:42-60`, `grid/session.ts:305-322` | 0.5 day |
-| **O2 — index batching `4313fc6482` pulled into L5; worker queue and running totals remain open** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
+| **O2 — source `c6324ac9ca`, `3ed2458d4a`, `3150c243ab`; warm revalidation `bf332be4cc`; served proof pending** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3** | Home region reads files in parallel / prefetched from the product's file list (today one request in flight for 25 s) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
 | **O5** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
@@ -198,3 +198,23 @@ The 250 ms poll did not explain the old standalone gap: the same old build
 showed 8 ms shader polls, zero first-frame polls and a 165 ms first frame.
 That diagnostic remains separate from this valid acceptance. Carrier push
 is pending for the new rendering fix; O2 now proceeds from the green gate.
+
+O2 source landed: `c6324ac9ca` queues excess validated cache commands behind
+the unchanged 64 posted slots, retaining request/idle/lifetime/close deadlines
+and FIFO checked fallback. `3ed2458d4a` maintains running byte/entry totals
+and LRU order after one recovery sort; quotas, pins and integrity stay intact.
+API notes are `3150c243ab`. Eighteen focused cache/worker/residency tests and
+strict lint pass. One combined source batch is pinned to `bf332be4cc`.
+
+The added same-origin warm baseline exposed a real L2 follow-up, retained
+in [`cache-baseline-8264f6d`](../../../progress/loading/g543/cache-baseline-8264f6d/README.md)
+(`6f1e827c6f`): two full unchanged service-worker script checks transfer
+about 41 KB that page resource timing cannot observe. Warm shardfile/grid
+byte parity fails 23.46% / 10.50%; stage sums and cadence pass. These bytes
+remain in the independent network denominator. Coordinator-approved
+`bf332be4cc` changes only the worker HTTP policy to `no-cache`, so every
+update still revalidates its ETag. A real preview HTTP test proves an
+unchanged 304/no body and a changed 200/full new body; strict lint passes.
+The served cold/warm proof closes that added L2/L8 follow-up before O2
+sign-off. Revisit harnesses `7886446dc2` / `bb9374ade6` preserve each real
+origin/context and record HTTP response status without changing the app.
