@@ -49,7 +49,6 @@ const viewmodel = buildViewmodelParts();
 const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
-  nameBlob('world/entry.json', 'json', json(nineWorldEntry())),
   nameBlob('geometry/fixed-kits.json', 'json', json({ practice: parseFixedRows({ ...fixedKits, lantern, practice: grappleCourseScene(course) }).practice })),
   nameBlob('weapons/jian-cloth.json', 'json', json(Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])))),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
@@ -60,4 +59,4 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(lightVolumeBlobs(), spill
 ]));
 
 export const output = { blobs: [{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"}], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', NINE_WORLD_SCENES], ['client/plan', {version:1,features:[practiceCard]}]])) };
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['client/plan', {version:1,features:[practiceCard]}]])) };

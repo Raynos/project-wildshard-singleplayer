@@ -91,7 +91,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const shared = new Shared(restoreWeave(await product.file('looks/silk-weave.r8')), (await product.json<{ readonly look: { readonly shared: ConstructorParameters<typeof Shared>[1] } }>('weapons/jian-row.json')).look.shared);
   const root = new Group();
   root.name = 'nine-dragon-stack';
-  const entry = WorldEntry.admit(await product.json<unknown>('world/entry.json'), { scenes: opts.scenes, root, tier, variant: opts.caps === true ? 'capped' : 'open' });
+  const entry = WorldEntry.admit(product.section('world/scenes').entry, { scenes: opts.scenes, root, tier, variant: opts.caps === true ? 'capped' : 'open' });
   // op-hitch29: the placing below runs in slices (`placeSliced` pauses between a model's levels, copies and parts; `slice()`
   // between the synchronous phases): a ~30 ms task while loading, an 8 ms work slice when a grid cell builds it in play
   const slice = slicer(30);

@@ -75,7 +75,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
   if (fixed.entryDecks.some(({ rect }) => rect.minX >= rect.maxX || rect.minZ >= rect.maxZ)) throw new Error('Entry deck requires a positive footprint');
   const { game, sky, player, registry } = world;
-  const entry = WorldEntry.admit(await driftwoodProduct().json<unknown>('world/entry.json'), { scenes, root: game.scene, tier: game.tier });
+  const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier });
   const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
   const sea = { level: LOWERED_SEA };

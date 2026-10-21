@@ -10,7 +10,7 @@ const foliage = (kind: 'bushes' | 'palms', mesh: string, castShadow: (tier: type
 });
 
 /**
- * Driftwood Isle's declared world entry (world/entry.json, run by @wildshard/game/shardfile/worldEntry in
+ * Driftwood Isle's declared world entry (the world/scenes section's entry, run by @wildshard/game/shardfile/worldEntry in
  * world/build.ts): the shore boulders, the hibiscus bushes and the coconut palms for this tier, the wreck, and the cove's small rocks.
  */
 export function driftwoodWorldEntry(): WorldEntryRows {

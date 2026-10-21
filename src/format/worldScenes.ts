@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { WorldEntrySchema } from './worldEntry';
 import { WorldSceneSurfaceSchema } from './worldSceneSurface';
 import { isJsonData } from './json';
 import { WorldSceneBindingsSchema } from './clientChannels';
@@ -89,6 +90,8 @@ const unique = (rows: readonly { readonly id: string }[]) => new Set(rows.map(ro
 /** Client-only static assembly. Recipes, slots and named references are bounded plain data. */
 export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World scenes require plain JSON'),
   v.strictObject({ version: v.literal(1), libraries: bounded(library, 32), materials: bounded(material, 128), steps: bounded(step, 64), catalogue: v.exactOptional(id),
+    // the declared world entry (format/worldEntry): the ordered rows the world build runs over these scenes
+    entry: v.exactOptional(WorldEntrySchema),
     dressing: v.exactOptional(v.strictObject({phone:id,desktop:id})),
     cosmeticDraws: v.exactOptional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(1000000))),
     batches: v.optional(bounded(WorldSceneBatchSchema, 32), []), lent: v.optional(bounded(lentTexture, 32), []),
