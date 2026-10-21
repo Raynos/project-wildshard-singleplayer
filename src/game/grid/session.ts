@@ -602,7 +602,7 @@ export class GridSession {
    */
   private screenInputs(): ReadonlyMap<string, CellScreenInput> {
     const out = new Map<string, CellScreenInput>(), live = this.live, cost = this.allocator.cost(), claimed = new Map<string, { bytes: number; count: number }>();
-    for (const entry of this.allocator.entries()) {
+    for (const entry of this.allocator.claims()) {
       const key = entry.owner === 'grid' && entry.id.startsWith('product:grid:') ? entry.id : entry.owner, was = claimed.get(key);
       claimed.set(key, { bytes: (was?.bytes ?? 0) + entry.bytes, count: (was?.count ?? 0) + 1 });
     }

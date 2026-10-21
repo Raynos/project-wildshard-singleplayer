@@ -144,6 +144,10 @@ export class ResidencyAllocator {
     const input = this.input(); return { ...contentCost(input), input };
   }
 
+  /** O14: every held claim's id, owner and bytes in admission order, unsorted and unsnapshotted: for per-tick totals (the
+   * cell screens' claimed bytes) that `entries()` re-sorted and froze for every row while a cell's claims came and went. */
+  claims(): IterableIterator<Readonly<Pick<ResidencyEntry, 'id' | 'owner' | 'bytes'>>> { return this.entries_.values(); }
+
   /** The table in id order (deterministic traces). Membership alone changes the order;
    * unchanged rows reuse their frozen snapshot, without retaining departed claims. */
   entries(): readonly ResidencyEntry[] {
