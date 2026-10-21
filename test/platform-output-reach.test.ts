@@ -1,11 +1,11 @@
-import {expect,it} from 'vitest';
+import {expect,it,vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Disposable output/reach fixture, never a repository export.
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync,unlinkSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confined fixture paths.
 import {join,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small temporary test repository.
 import {tmpdir} from 'node:os';
-import {outputShardLines,sourceProgressLines} from '../scripts/shard-platform.mjs';
+import {outputCensus,outputShardLines,sourceProgressLines,sourceProgressInventory} from '../scripts/shard-platform.mjs';
 import {sectionHostImports} from '../scripts/shard-platform-hosts.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
@@ -100,4 +100,25 @@ it('retains only checked proof-map imports after a handwritten catalogue is dele
   put('src/shards/driftwood-isle/data/headlessAssembly.json',JSON.stringify({version:1,modules:{'src/game/proof':['missing']}}));
   expect(()=>sourceProgressLines(root)).toThrow('Missing headless export');
  }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+
+it('shares syntax facts without merging source and output attribution',()=>{
+ const root=mkdtempSync(join('tmp/','platform-shared-census-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  vi.stubEnv('WS_SHARD_PARSE_CACHE',join(root,'.cache/parse'));
+  put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./shared':'./shared.ts'}}));
+  put('src/game/shared.ts','export function shared() { return 1; }');
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {shared} from '@wildshard/game/shared'; export const value=shared();"});
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const value=1;'});
+  put('src/shards/driftwood-isle/data/authored.ts',"import {shared} from '@wildshard/game/shared'; export const value=shared();");
+  const expected={measures:outputShardLines(root,true),inventory:sourceProgressInventory(root),source:sourceProgressLines(root)};
+  expect(outputCensus(root)).toEqual(expected);
+  put('src/game/shared.ts','export function shared() {\n return 2;\n}');
+  const changed=outputCensus(root);
+  expect(changed.measures).toEqual(outputShardLines(root,true));
+  expect(changed.source).toEqual(sourceProgressLines(root));
+  expect(changed.measures).not.toEqual(expected.measures);
+ }finally{vi.unstubAllEnvs();rmSync(root,{recursive:true,force:true});}
 });

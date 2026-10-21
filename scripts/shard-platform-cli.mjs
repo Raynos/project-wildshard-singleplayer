@@ -3,13 +3,14 @@
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {checkShares,sourceProgressInventory} from './shard-platform.mjs';
+import {checkShares} from './shard-platform.mjs';
 import {outputReport,refreshOutputReports} from './shard-output-report.mjs';
 import {componentStates,componentWave,SHARD_WAVES} from './shard-components.mjs';
 import {closedComponentFailures} from './check-closed-components.mjs';
 
 const ROOT=resolve(import.meta.dirname,'..'),LIST='lint/shard-platform.json';
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  process.env.WS_SHARD_PARSE_CACHE ??= resolve(ROOT,'.cache/shard-parse');
   const build = !process.argv.includes('--no-build');
   const sourceProgress = process.argv.includes('--source-progress');
   if (build && !process.env.WS_HEAVY_TOKEN) {
@@ -34,7 +35,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     const {rows,measures,sectionFailures,progress,netLines,dailyLines}=report;
     // Component closure in the labelled source-progress ruler must include
     // transitional shards whose standalone output has not closed yet.
-    const componentMeasures=report.measurementError!==null?{}:sourceProgress?sourceProgressInventory(ROOT,products):measures;
+    const componentMeasures=report.measurementError!==null?{}:sourceProgress?report.inventory:measures;
     const policy=JSON.parse(readFileSync(resolve(ROOT,'lint/ratchet.json'),'utf8'));
     const closingIds=[...new Set(Object.values(policy.closingComponents??{}).flatMap(row=>Object.keys(row)))];
     const lockedShards=[...new Set([...Object.keys(policy.closedComponents??{}),...Object.keys(policy.closingComponents??{})])];
@@ -81,7 +82,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     if (process.argv.includes('--check')) {
       const recorded=JSON.parse(readFileSync(resolve(ROOT,LIST),'utf8'));
       failures.push(...checkShares(recorded,measures));
-      if(lockedShards.length>0)failures.push(...closedComponentFailures(sourceProgress?componentMeasures:sourceProgressInventory(ROOT,products),policy.closedComponents,policy.closingComponents));
+      if(lockedShards.length>0)failures.push(...closedComponentFailures(report.inventory,policy.closedComponents,policy.closingComponents));
     }
     for (const failure of failures) console.error(`shard-platform: ${failure}`);
     if (failures.length>0) process.exitCode=1;

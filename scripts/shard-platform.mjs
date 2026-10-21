@@ -637,13 +637,13 @@ const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix 
   || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
 
 /** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress @param {string} sectionProducts */
-function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out')) {
+function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out'), sources = new Map()) {
   const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || hasChargebackDeclarations(path);
   const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
-  const texts = new Map(), graphs = new Map(), sources = new Map(), counts = new Map();
+  const texts = new Map(), graphs = new Map(), counts = new Map();
   const frozen = legacyInventory(root), pendingUsers = pendingPlatformUsers(root);
   const generated = new Set(exists('scripts/generation-jobs.json') ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
   // Retained source tables also have exact producer/output identities; older tooling predates generation jobs.
@@ -976,9 +976,23 @@ export function sourceProgressInventory(root = ROOT, products = resolve(root,'ou
  * estimate rather than disguising the output/source unit change as a cut. */
 export function sourceProgressLines(root = ROOT, products = resolve(root,'out')) {
   const rows=countOutput(root,false,resolve(root,'src/shards'),Object.keys(runtimeClosures(root)),true,products);
+  return progressLines(rows);
+}
+function progressLines(rows) {
   return Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{basis:'source',
     customLines:row.conversion.customRuntimeLines,legacyLines:row.conversion.legacyLines,
     assemblyScriptLines:row.assemblyScriptLines,assemblyScriptBudget:row.assemblyScriptBudget}]));
+}
+/** One immutable report shares syntax facts across output and source attribution.
+ * Resolution, ownership and components still run separately for both bases.
+ * @param {string} root @param {string} products */
+export function outputCensus(root = ROOT, products = resolve(root,'out')) {
+  const closure=runtimeClosures(root),closed=Object.keys(closure).filter(slug=>closure[slug].status==='closed');
+  const sources=new Map();
+  const measures=countOutput(root,true,products,closed,false,products,sources);
+  const rows=countOutput(root,true,resolve(root,'src/shards'),Object.keys(closure),true,products,sources);
+  const inventory=Object.fromEntries(Object.entries(rows).map(([slug,row])=>[slug,{...row,measurement:'source'}]));
+  return {measures,inventory,source:progressLines(rows)};
 }
 /** Headless availability is reported separately from the custom/frozen measure. */
 export function milestoneFlags(_slug, _row, root = ROOT) {
