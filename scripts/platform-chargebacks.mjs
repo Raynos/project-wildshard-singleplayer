@@ -7,6 +7,9 @@ const modules = new Map([
     'format/creatureGuest', 'format/creatureFrame'].map(path => [`src/${path}.ts`, 'C4']),
   ...['game/riding/mountedFigure', 'game/riding/pastureView'].map(path => [`src/${path}.ts`, 'C7']),
   ['src/game/systems/viewmodel/graphArms.ts', 'C6'],
+  // G516/G518: only one live shard drives these item hosts; fixtures grant no credit.
+  ...['game/weapons/bowVariant', 'game/loadout/mounted', 'game/practice/ridingCourse',
+    'engine/combat/Thrown', 'engine/combat/thrownProfile'].map(path => [`src/${path}.ts`, 'C6']),
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
