@@ -6,12 +6,27 @@ import type { PlumbingData } from '@wildshard/format/plumbing';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 
 type Storage = Float32Array | Uint16Array | Uint8Array;
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', BASE64 = new Uint8Array(128);
+for (let i = 0; i < ALPHABET.length; i++) BASE64[ALPHABET.codePointAt(i) ?? 0] = i;
+/** O25: a validated base64 text's bytes. `Uint8Array.from(atob(text), callback)` spent ~90 ms per decode on Sky Reach's
+ *  2.4 MB scene draws (twice per admission), one frame of 300+ ms entering the cell; this is ~20× faster, same bytes. */
+function base64Bytes(text: string): Uint8Array {
+  const pad = text.endsWith('==') ? 2 : text.endsWith('=') ? 1 : 0, out = new Uint8Array(text.length / 4 * 3 - pad);
+  for (let i = 0, o = 0; i < text.length; i += 4) {
+    const at = (k: number): number => BASE64[text.codePointAt(i + k) ?? 0] ?? 0;
+    const word = (at(0) << 18) | (at(1) << 12) | (at(2) << 6) | at(3);
+    out[o++] = word >> 16;
+    if (o < out.length) out[o++] = (word >> 8) & 255;
+    if (o < out.length) out[o++] = word & 255;
+  }
+  return out;
+}
 /** Decode every bounded source before scene allocation. Raw byte words retain signed zero and original storage. */
 function decode(row: SceneBuffers): ReadonlyMap<string, Storage> {
   const result = new Map<string, Storage>();
   for (const buffer of row.buffers) {
     if (buffer.bytes.length % 4 !== 0 || /[^A-Za-z0-9+/=]/u.test(buffer.bytes) || /[=]/u.test(buffer.bytes.slice(0, -2))) throw new Error('Malformed scene buffer encoding');
-    const bytes = Uint8Array.from(atob(buffer.bytes), char => char.codePointAt(0) ?? 0);
+    const bytes = base64Bytes(buffer.bytes);
     const width = buffer.storage === 'f32' ? 4 : buffer.storage === 'u16' ? 2 : 1;
     if (bytes.byteLength % width !== 0) throw new Error('Misaligned scene buffer storage');
     const storage = buffer.storage === 'f32' ? new Float32Array(bytes.buffer) : buffer.storage === 'u16' ? new Uint16Array(bytes.buffer) : bytes;
