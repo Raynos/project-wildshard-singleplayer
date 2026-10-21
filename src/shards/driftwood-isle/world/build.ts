@@ -33,33 +33,20 @@ import { updateWind } from '@wildshard/engine/world/wind';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import SEABED from '../data/seabedLook.json' with { type: 'json' };
 import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
-import { createAmbientFlock, type AmbientFlockDraw } from '@wildshard/sdk/looks/ambientFlock';
+import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
-import type { CustomSections, CoverComposition, EntryLandings } from '../runtime/productSections.generated.d.ts';
+import type { CoverComposition, EntryLandings } from '../runtime/productSections.generated.d.ts';
 import { followToonLook, toonLookState } from '@wildshard/game/looks/toonLook';
-import { createStreamedCover, type StreamedCoverHandle } from '@wildshard/game/looks/streamedCover';
+import { createStreamedCover } from '@wildshard/game/looks/streamedCover';
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { LOWERED_SEA } from './sea';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
-import { place, type ModelSite, type Placed } from '@wildshard/engine/models/place';
+import { place, type Placed } from '@wildshard/engine/models/place';
 
-interface Pier { placed: Placed; group: THREE.Object3D; floorHeightAt: (x: number, z: number) => number | undefined }
-interface Boat { placed: Placed; group: THREE.Object3D; ropes: THREE.Mesh; refreshPose: () => void; floorHeightAt: (x: number, z: number) => number | undefined }
-interface Seabed { mesh: THREE.Mesh; fish: THREE.InstancedMesh; tick: (dt: number) => void }
-type PalmSpec = CustomSections['custom/fixedLayouts']['foliage']['tiers']['phone']['palms']['specs'][number];
-
-
-type Shrine = ModelSite & Pick<LivingBuildings, 'update' | 'setDusk'>;
-
-/** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
-export interface DriftwoodWorld {
-  ocean: WaterSurface | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: { placed: Placed } | null;
-  hut: ModelSite | null; lookout: ModelSite | null; wreck: { group: THREE.Group; placed: Placed[]; anchors: typeof wreckBake.anchors; holdBounds: typeof wreckBake.holdBounds; floorHeightAt: (x: number, z: number) => number | undefined } | null; shrine: Shrine | null; bushes: { placed: Placed; mesh: THREE.Mesh } | null;
-  gulls: AmbientFlockDraw | null; trailside: { mesh: THREE.Mesh; placed: Placed[] } | null; bridge: ReturnType<typeof placeRopeBridge> | null; seabed: Seabed | null;
-  palmSpecs: PalmSpec[]; cove: { group: THREE.Group; placed: Placed[]; crabSites: CustomSections['custom/fixedLayouts']['cove']['spec']['crabSites']; anchors: CustomSections['custom/fixedLayouts']['cove']['native']['anchors']; update: () => void } | null; palms: { placed: Placed; mesh: THREE.Mesh; update: typeof updateWind } | null; cover: (StreamedCoverHandle & { placed: Placed[] }) | null;
-  bridgeDeck: RopeChain | null;
-}
+/** What the world build hands the rest of the level: each part it built, nullable off Driftwood (its lists stay lists). */
+export type DriftwoodWorld = { [K in keyof BuiltWorld]: BuiltWorld[K] extends readonly unknown[] ? BuiltWorld[K] : BuiltWorld[K] | null };
+type BuiltWorld = Awaited<ReturnType<typeof build>>;
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
@@ -69,7 +56,8 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 }
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
-export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>): Promise<DriftwoodWorld> {
+export function buildDriftwoodWorld(...args: Parameters<typeof build>): Promise<BuiltWorld> { return build(...args); }
+async function build(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>) {
   // G164: the whole island lowered, the sea at road level; G170: each declared entry landing is the inner end of an asphalt
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
   const landings = (await driftwoodProduct().json<EntryLandings>('world/entry-landings.json')).rows, fixed = driftwoodRows('custom/fixedLayouts');
@@ -103,9 +91,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
-  const placePier = async (id: string): Promise<Pier> => {
+  const placePier = async (id: string) => {
     const placed = await scenes.place(id);
-    return { placed, group: placed.object, floorHeightAt: (x, z) => scenes.floorAt(id, x, z) };
+    return { placed, group: placed.object, floorHeightAt: (x: number, z: number) => scenes.floorAt(id, x, z) };
   };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
   const pier = await placePier(firstPier.id);
@@ -150,7 +138,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
   });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
-  const jetties: Pier[] = [];
+  const jetties: Awaited<ReturnType<typeof placePier>>[] = [];
   for (const row of assembly.piers.slice(1)) {
     const jetty = await placePier(row.id); jetties.push(jetty); await stages.next(row.label);
   }
