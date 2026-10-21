@@ -1,20 +1,27 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "fc38b2e417fa808111ed402acaf4955a7853e53f",
- "committedAt": "2026-10-20T22:41:33.000Z",
- "measuredAt": "2026-10-20T22:55:27.241Z",
+ "revision": "4ded2a79d1fa1d51ec5581df5149af7bcd788f6a",
+ "committedAt": "2026-10-21T00:09:51.000Z",
+ "measuredAt": "2026-10-21T00:33:55.334Z",
  "basis": "source",
  "plan": {
   "lower": 0.6,
   "upper": 1
  },
  "m3": {
-  "cut": 88912,
+  "cut": 88883,
   "mustGo": 80173.3,
-  "fraction": 1.108997633875617
+  "fraction": 1.1086359174438372
  },
+ "productFailures": {},
  "m2": {
+  "ready": 0,
+  "fail": 0,
+  "unknown": 6,
+  "total": 6
+ },
+ "frameFloor": {
   "ready": 0,
   "fail": 0,
   "unknown": 6,
@@ -25,57 +32,57 @@
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
    "customCut": 4999,
-   "platformGrowth": 61562,
-   "netCut": -56563,
+   "platformGrowth": 62384,
+   "netCut": -57385,
    "layers": {
     "engine": {
      "before": 67206,
-     "after": 75966,
-     "growth": 8760
+     "after": 76446,
+     "growth": 9240
     },
     "game": {
      "before": 33346,
-     "after": 75775,
-     "growth": 42429
+     "after": 75973,
+     "growth": 42627
     },
     "format": {
      "before": 7102,
-     "after": 14199,
-     "growth": 7097
+     "after": 14208,
+     "growth": 7106
     },
     "sdk": {
      "before": 7240,
-     "after": 10516,
-     "growth": 3276
+     "after": 10651,
+     "growth": 3411
     }
    }
   },
   {
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
-   "customCut": 37700,
-   "platformGrowth": 57998,
-   "netCut": -20298,
+   "customCut": 37663,
+   "platformGrowth": 58820,
+   "netCut": -21157,
    "layers": {
     "engine": {
      "before": 67897,
-     "after": 75966,
-     "growth": 8069
+     "after": 76446,
+     "growth": 8549
     },
     "game": {
      "before": 35276,
-     "after": 75775,
-     "growth": 40499
+     "after": 75973,
+     "growth": 40697
     },
     "format": {
      "before": 7749,
-     "after": 14199,
-     "growth": 6450
+     "after": 14208,
+     "growth": 6459
     },
     "sdk": {
      "before": 7536,
-     "after": 10516,
-     "growth": 2980
+     "after": 10651,
+     "growth": 3115
     }
    }
   }
@@ -86,7 +93,7 @@
    "state": "open",
    "lines": {
     "pine-hollow": 331,
-    "driftwood-isle": 637,
+    "driftwood-isle": 670,
     "nalati-grasslands": 481,
     "nine-dragon-stack": 563
    }
@@ -137,7 +144,7 @@
    "lines": {
     "pine-hollow": 41,
     "driftwood-isle": 73,
-    "nalati-grasslands": 248,
+    "nalati-grasslands": 240,
     "nine-dragon-stack": 239
    }
   },
@@ -166,7 +173,7 @@
    "state": "open",
    "lines": {
     "pine-hollow": 171,
-    "driftwood-isle": 373,
+    "driftwood-isle": 377,
     "nalati-grasslands": 1185,
     "nine-dragon-stack": 202
    }
@@ -258,7 +265,7 @@
      "state": "open",
      "lines": {
       "pine-hollow": 331,
-      "driftwood-isle": 637
+      "driftwood-isle": 670
      }
     },
     "C2": {
@@ -322,7 +329,7 @@
      "state": "open",
      "lines": {
       "pine-hollow": 171,
-      "driftwood-isle": 373
+      "driftwood-isle": 377
      }
     }
    }
@@ -374,7 +381,7 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": 248,
+      "nalati-grasslands": 240,
       "nine-dragon-stack": 239
      }
     },
@@ -429,7 +436,7 @@
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
    }
   },
   {
@@ -437,9 +444,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 1535,
+   "custom": 1572,
    "legacy": 17167,
-   "pct": 8.9,
+   "pct": 9.2,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -451,7 +458,7 @@
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
    }
   },
   {
@@ -473,7 +480,7 @@
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
    }
   },
   {
@@ -495,7 +502,7 @@
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
    }
   },
   {
@@ -503,7 +510,7 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 4818,
+   "custom": 4810,
    "legacy": 28370,
    "pct": 17,
    "grid": "unknown",
@@ -517,7 +524,7 @@
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
    }
   },
   {
@@ -539,7 +546,7 @@
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "No qualified frame-floor reading bound to existing ruler revision fc38b2e417fa808111ed402acaf4955a7853e53f; source counts unchanged"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
    }
   }
  ],
@@ -547,6 +554,7 @@
   "_template",
   "blender-template",
   "ink-cel-valley",
+  "open-plots",
   "pastel-plain"
  ],
  "wave": {
@@ -1502,6 +1510,19 @@
     "nalati-grasslands": 16.982728234050054,
     "nine-dragon-stack": 8.587939936525983
    }
+  },
+  {
+   "revision": "4ded2a79d1fa1d51ec5581df5149af7bcd788f6a",
+   "at": "2026-10-21T00:09:51.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 8.336071344754753,
+    "driftwood-isle": 9.157103745558338,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 16.95452943249912,
+    "nine-dragon-stack": 8.587939936525983
+   }
   }
  ],
  "events": [
@@ -1561,11 +1582,5 @@
    "at": "2026-10-20T16:56:12.885Z",
    "label": "NEXT starts"
   }
- ],
- "frameFloor": {
-  "ready": 0,
-  "fail": 0,
-  "unknown": 6,
-  "total": 6
- }
+ ]
 }
