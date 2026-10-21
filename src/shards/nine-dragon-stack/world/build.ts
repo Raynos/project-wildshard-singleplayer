@@ -46,8 +46,6 @@ import { addKitMeshes } from '../runtime/kit/kitMeshes';
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
 
 
-/** the catalogue model of each set the square's builders queued (a pavilion's copies carry their turn) */
-const SETS: Readonly<Record<string, string>> = { booth: 'marketBooth', parasol: 'parasolTable', 'balustrade-panel': 'balustradePanel', pavilion: 'diningPavilion' };
 /** the guardian lion: its TRELLIS cast and authored LODs, loaded before the square places it */
 const cast = (key: string) => (ctx: ModelContext): readonly ModelPart[] => [{ geometry: need(ndLook(ctx).geo.get(key), `the cast ${key}`), material: lentLook('nine-architecture') }];
 const guardianLion = defineModel({ id: 'nine-dragon-stack/guardian-lion', name: 'Guardian lion', category: 'props', pipeline: 'trellis', file: 'src/shards/nine-dragon-stack/world/build.ts',
@@ -176,12 +174,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     nameDraws(lions, 'glb:lion');
     for (const [k, idx] of [['square', worldRows.shares.plaza], ['stair', worldRows.shares.street], ['rim', worldRows.shares.rim]] as const) { const share = copiesAt(lions, idx); if (share !== null) squareSets[k].push(share); }
   }
-  for (const { name, frames } of worldRows.sets) {
-    const placed = await placeSliced(models.model(need(SETS[name], `the set '${name}'`)), frames.map(frame => {
-      const m = new Matrix4().fromArray(worldData, frame);
-      return name === 'pavilion' ? Object.assign(at<Record<string, unknown>>(m), { params: { turn: Math.atan2(m.elements[8], m.elements[0]) } }) : at<Record<string, unknown>>(m);
-    }), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: `nds-set-${name}` } }, slice.due);
-    nameDraws(placed, `set:${name}`);
+  await entry.run('sets');
+  for (const { name } of worldRows.sets) {
+    const placed = entry.placed(`nine.set.${name}`); nameDraws(placed, `set:${name}`);
     (name === 'balustrade-panel' ? squareSets.square : market).push(placed);
   }
   if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });

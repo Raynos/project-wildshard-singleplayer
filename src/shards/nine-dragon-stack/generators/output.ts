@@ -31,7 +31,7 @@ import lantern from '../data/lantern.json' with { type: 'json' };
 import { spillBlobs } from './spillBlobs';
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
 import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './worldScenes';
-import { nineWorldEntry } from './worldEntry';
+import { nineSetPlacements, nineWorldEntry } from './worldEntry';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 
@@ -59,4 +59,4 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(lightVolumeBlobs(), spill
 ]));
 
 export const output = { blobs: [{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"}], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['client/plan', {version:1,features:[practiceCard]}]])) };
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry(), placements: [...NINE_WORLD_SCENES.placements, ...nineSetPlacements()] }], ['client/plan', {version:1,features:[practiceCard]}]])) };
