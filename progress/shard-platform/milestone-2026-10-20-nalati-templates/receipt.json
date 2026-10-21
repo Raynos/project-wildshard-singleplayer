@@ -1,0 +1,198 @@
+{
+  "schema": 1,
+  "source": "914015a32f45b68eb4ae732d5a1c396e4cf5c067",
+  "build": "devserver",
+  "harnessRevision": "3bb20ffe21e7b86677c9b07f05737961454efbde",
+  "protocol": {
+    "profiler": false,
+    "glObserver": "off",
+    "developer": "on",
+    "quiet": true,
+    "frames": 120,
+    "device": "frame-floor-iphone-17-pro"
+  },
+  "runs": [
+    {
+      "surface": "sim",
+      "pass": 1,
+      "cohort": "grid",
+      "sha": "914015a32f45b68eb4ae732d5a1c396e4cf5c067",
+      "when": "2026-10-21T04:00:22.016Z",
+      "elapsedSeconds": 282.968,
+      "complete": true,
+      "passFloor": false,
+      "underTenMinutes": true,
+      "glObserver": "off",
+      "gridRoutes": [
+        "nalati-grasslands-road-entry",
+        "template-interior",
+        "template-return"
+      ],
+      "cases": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": false,
+          "errors": [],
+          "routes": [
+            {
+              "name": "template-interior",
+              "to": "template-2",
+              "after": {
+                "current": "template-2",
+                "feet": {
+                  "x": 323.66,
+                  "z": 554.98
+                }
+              }
+            },
+            {
+              "name": "template-return",
+              "to": "driftwood-isle",
+              "after": {
+                "current": "driftwood-isle",
+                "feet": {
+                  "x": 0,
+                  "z": 231.24
+                }
+              }
+            },
+            {
+              "name": "nalati-grasslands-road-entry",
+              "to": "nalati-grasslands",
+              "after": {
+                "current": "nalati-grasslands",
+                "feet": {
+                  "x": 343.72,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "rows": [
+            {
+              "name": "spawn",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 122,
+              "maxMs": 229,
+              "stallPass": false
+            },
+            {
+              "name": "grid-deck-east",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 80,
+              "stallPass": true
+            },
+            {
+              "name": "grid-deck-north",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "stallPass": true
+            },
+            {
+              "name": "grid-template-interior-travel",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 43,
+              "maxMs": 77,
+              "stallPass": true
+            },
+            {
+              "name": "grid-template-interior-drive",
+              "frames": 1470,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 37,
+              "maxMs": 418,
+              "stallPass": false
+            },
+            {
+              "name": "grid-template-interior",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 34,
+              "stallPass": true
+            },
+            {
+              "name": "grid-template-return-travel",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 34,
+              "maxMs": 45,
+              "stallPass": true
+            },
+            {
+              "name": "grid-template-return-drive",
+              "frames": 2070,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 48,
+              "maxMs": 114,
+              "stallPass": true
+            },
+            {
+              "name": "grid-template-return",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 20,
+              "p95Ms": 59,
+              "maxMs": 65,
+              "stallPass": true
+            },
+            {
+              "name": "grid-nalati-grasslands-road-entry-travel",
+              "frames": 120,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 78,
+              "maxMs": 127,
+              "stallPass": true
+            },
+            {
+              "name": "grid-nalati-grasslands-road-entry-drive",
+              "frames": 600,
+              "pass": false,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 43,
+              "maxMs": 207,
+              "stallPass": false
+            },
+            {
+              "name": "grid-nalati-grasslands-road-entry",
+              "frames": 120,
+              "pass": true,
+              "contextLost": false,
+              "medianFps": 30.303,
+              "p95Ms": 35,
+              "maxMs": 47,
+              "stallPass": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
