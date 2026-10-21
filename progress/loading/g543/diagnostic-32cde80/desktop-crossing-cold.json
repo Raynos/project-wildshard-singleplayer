@@ -1,0 +1,77 @@
+{
+  "pin": "32cde805434270f8ab04091082bfc6b6fcc3c733",
+  "surface": "desktop",
+  "visit": "cold",
+  "device": "Desktop Chromium",
+  "cpu": 1,
+  "transitions": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "wallMs": 58.19999998807907,
+      "stageMs": 58.19999998807907,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 4.5
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 27.899999976158142
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 0.7000000476837158
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.09999996423721313
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 25
+        }
+      ]
+    },
+    {
+      "from": null,
+      "to": "driftwood-isle",
+      "wallMs": 2799.300000011921,
+      "stageMs": 2799.300000011921,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 2786
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 13.100000023841858
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 0
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.19999998807907104
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 0
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "rawSHA256": "1d19a933f20b110d3ee64f39297a13a23c31b490bec669e56b040a94737472b8"
+}
