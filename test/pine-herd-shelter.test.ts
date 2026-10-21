@@ -1,6 +1,6 @@
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
-import { expect, test } from 'vitest';
+import program from '../src/shards/pine-hollow/behaviour/shelter.generated.json' with { type: 'json' };
+import { expect, test, vi } from 'vitest';
 import { HerdShelter } from '../src/game/population/shelter';
 import look from '../src/shards/pine-hollow/data/populationShelter.json' with { type: 'json' };
 
@@ -33,4 +33,21 @@ test('page and native herds share wet goals and atomically resume a v1 shelter s
   expect(resumed.wanderGoal(0, 0)).not.toBeNull();
   resumed.update(80, 0);
   expect(resumed.wanderGoal(0, 0)).toBeNull();
+});
+
+
+test('shelter decisions borrow a ten-Hz sample and goal queries do not resample it', () => {
+  const guest = ReturnProgram.page(program), project = vi.spyOn(guest, 'project');
+  const herds = [{ kind: 'deer', cx: 10, cz: 0, members: [] }];
+  const shelter = new HerdShelter({ herds }, [{ x: 0, z: 0, r: 1, height: 25, cover: 1 }], look, guest);
+  for (let frame = 0; frame < 60; frame++) {
+    shelter.update(1 / 60, 1);
+    for (let actor = 0; actor < 20; actor++) shelter.wanderGoal(0, 1);
+  }
+  expect(project.mock.calls.filter(([signal]) => signal === 'shelterStep')).toHaveLength(10);
+  expect(project.mock.calls.filter(([signal]) => signal === 'shelterGoal').length).toBeLessThanOrEqual(11);
+  const goal = shelter.wanderGoal(0, 1);
+  expect(goal).toEqual({ x: 3.2, z: 0, r: look.spotR });
+  if (goal !== null) goal.x = 999;
+  expect(shelter.wanderGoal(0, 1)?.x).toBe(3.2);
 });

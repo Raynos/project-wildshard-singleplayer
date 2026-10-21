@@ -1,4 +1,4 @@
-import { ReturnProgram } from './returnProgram';
+import { ReturnProgram, ProjectedState } from './returnProgram';
 import { projectedSite } from './projectedSites';
 import type { SimHost } from '@wildshard/engine/sim';
 import { populationRoster } from './roster';
@@ -32,6 +32,8 @@ export class HerdShelter<T extends Tree> {
   private readonly kinds: ReadonlySet<string>;
   private readonly big: readonly T[];
   private shelters = new Map<Herd, Shelter>();
+  private readonly steps = new Map<Herd, ProjectedState>();
+  private readonly goals = new Map<Herd, { x: number; z: number; r: number } | null>();
 
   /** `animals` lends the herds; each tree carries its fixed crown-cover sample; `look` supplies the rule's numbers. */
   constructor(private readonly animals: { readonly herds: readonly Herd[] }, trees: readonly T[], private readonly look: HerdShelterRows, private readonly program: ReturnProgram) {
@@ -52,31 +54,51 @@ export class HerdShelter<T extends Tree> {
     return { x, z };
   }
 
-  /** Each frame: through the rain every sheltering herd's centre is held under its tree; after it the hold counts down. */
+  /** Sample the guest on the caller's clock; it owns wet, hold and expiry rules. */
   update(dt: number, rain: number): void {
-    const raining = rain > this.look.wet;
     for (const hd of this.animals.herds) {
       if (!this.kinds.has(hd.kind)) continue;
-      let s = this.shelters.get(hd);
-      if (raining) {
-        if (s === undefined) { s = { home: { x: hd.cx, z: hd.cz }, spot: this.pick(hd), hold: this.look.homeHold }; this.shelters.set(hd, s); }
-        s.hold = this.look.homeHold;
-        if (s.spot !== null) { hd.cx = s.spot.x; hd.cz = s.spot.z; }
-      } else if (s !== undefined && rain < this.look.dry) {
-        s.hold -= dt;
-        if (s.hold <= 0) this.shelters.delete(hd);
+      let clock = this.steps.get(hd);
+      if (clock === undefined) {
+        clock = new ProjectedState({ initial: {}, retain: {}, signals: { step: 'shelterStep' } }, this.program);
+        this.steps.set(hd, clock);
       }
+      let s = this.shelters.get(hd);
+      const sampled = clock.step(dt, { present: Number(s !== undefined), hold: s?.hold ?? 0, rain,
+        wet: this.look.wet, dry: this.look.dry, homeHold: this.look.homeHold });
+      if (sampled.dt === 0) continue;
+      const keep = sampled.values['keep'], create = sampled.values['create'], apply = sampled.values['apply'], hold = sampled.values['hold'];
+      if ((keep !== 0 && keep !== 1) || (create !== 0 && create !== 1) || (apply !== 0 && apply !== 1)
+        || hold === undefined || hold < 0 || hold > this.look.homeHold) throw new Error('Invalid shelter step projection');
+      if (keep === 0) this.shelters.delete(hd);
+      else {
+        if (create === 1) { s = { home: { x: hd.cx, z: hd.cz }, spot: this.pick(hd), hold }; this.shelters.set(hd, s); }
+        if (s === undefined) throw new Error('Shelter projection needs a retained home');
+        s.hold = hold;
+        if (apply === 1 && s.spot !== null) { hd.cx = s.spot.x; hd.cz = s.spot.z; }
+      }
+      this.goals.set(hd, this.goal(hd, rain));
     }
   }
 
-  /** Where herd `herd` wanders now: under its tree in the rain, back home after it; null when it is its own. */
+  private goal(hd: Herd, rain: number): { x: number; z: number; r: number } | null {
+    const s = this.shelters.get(hd), spot = s?.spot;
+    const out = this.program.project('shelterGoal', { present: Number(s !== undefined), spot: Number(spot !== undefined && spot !== null),
+      homeX: s?.home.x ?? 0, homeZ: s?.home.z ?? 0, spotX: spot?.x ?? 0, spotZ: spot?.z ?? 0,
+      rain, wet: this.look.wet, spotR: this.look.spotR, homeR: this.look.homeR });
+    const accept = out['accept'], x = out['x'], z = out['z'], r = out['r'];
+    if (accept === 0) return null;
+    if (accept !== 1 || x === undefined || z === undefined || r === undefined || r < 0) throw new Error('Invalid shelter goal projection');
+    return { x, z, r };
+  }
+
+  /** Borrow the latest projected goal; a v1 restore is sampled on its first query. */
   wanderGoal(herd: number, rain: number): { x: number; z: number; r: number } | null {
     const hd = this.animals.herds[herd];
-    if (hd === undefined) return null;
-    const s = this.shelters.get(hd);
-    if (s === undefined) return null;
-    if (rain > this.look.wet) return s.spot !== null ? { x: s.spot.x, z: s.spot.z, r: this.look.spotR } : null;
-    return { x: s.home.x, z: s.home.z, r: this.look.homeR };   // the rain is over: back out to graze
+    if (hd === undefined || !this.kinds.has(hd.kind)) return null;
+    let goal = this.goals.get(hd);
+    if (goal === undefined) { goal = this.goal(hd, rain); this.goals.set(hd, goal); }
+    return goal === null ? null : { ...goal };
   }
 
   /** Native v1 continuation in herd order; points never alias live state. */
@@ -97,7 +119,7 @@ export class HerdShelter<T extends Tree> {
       if (herd === undefined || !this.kinds.has(herd.kind) || shelter.hold > this.look.homeHold) throw new Error('Incompatible Population shelter continuation');
       next.set(herd, shelter);
     });
-    this.shelters = next;
+    this.shelters = next; this.steps.clear(); this.goals.clear();
   }
 
   /** Dev evidence: every sheltering kind's member's distance to the nearest big tree — the mean, how many stand within 6 m. */

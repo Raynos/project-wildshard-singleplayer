@@ -1,6 +1,7 @@
 import { fixtureNativeRoster } from './fixtures/native-roster';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
+import shelterProgram from '../src/shards/pine-hollow/behaviour/shelter.generated.json' with { type: 'json' };
 import { populationEnvironment } from '../src/game/population/environment';
 import { flatPopulationEnvironment } from './fixtures/population-environment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual shipped native physics owner, without a browser.
@@ -95,7 +96,7 @@ test('made-up salt-marsh roster reserves and adopts a body without draws and res
 test('made-up marsh rows shelter a flock and return nocturnal bodies in reverse death order', () => {
   const herds = [{ kind: 'heron', cx: 4, cz: 0, members: [] }];
   const shelter = new HerdShelter({ herds }, [{ x: 0, z: 0, r: 1, height: 8, cover: 1 }],
-    { kinds: ['heron'], bigTree: 5, reach: 20, homeHold: 2, clear: 1, spotR: 2, homeR: 4, wet: .4, dry: .2, heightBias: 1, coverBias: 2 }, ReturnProgram.page(program));
+    { kinds: ['heron'], bigTree: 5, reach: 20, homeHold: 2, clear: 1, spotR: 2, homeR: 4, wet: .4, dry: .2, heightBias: 1, coverBias: 2 }, ReturnProgram.page(shelterProgram));
   shelter.update(1, 1); expect(shelter.wanderGoal(0, 1)).toEqual({ x: 2, z: 0, r: 2 });
   const saved = shelter.snapshot(); shelter.restore(saved); expect(shelter.snapshot()).toEqual(saved);
   const queue = new RespawnQueue({ heron: { delay: { min: 2, max: 2 }, night: true } }, 10);
@@ -124,7 +125,7 @@ test('native shelter resolves its actual roster and weather without ports, prese
   if (step === undefined) throw new Error('Missing native weather cadence');
   const air = installWeatherContinuation(host, weather, { phase: 0 }, 'rain');
   const look = { kinds: ['marsh-beast'], bigTree: 5, reach: 20, homeHold: 3, clear: 1, spotR: 2, homeR: 6, wet: .3, dry: .1, heightBias: 0, coverBias: 0 };
-  const rows = { environment: 'fixture.habitat', step: 'marsh.shelter', roster: 'marsh.roster', weather: step, herdLimit: 8, look, program };
+  const rows = { environment: 'fixture.habitat', step: 'marsh.shelter', roster: 'marsh.roster', weather: step, herdLimit: 8, look, program: shelterProgram };
   const shelter = installNativeHerdShelter(host, [[0,0,1,8,1]], rows);
   try {
     expect(() => shelter.snapshot()).toThrow('Missing native population service');

@@ -20530,6 +20530,32 @@
       ]
     },
     {
+      "id": "pine-shelter",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-shelter.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-shelter.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/pine-hollow/behaviour/shelter.as",
+        "src/shards/pine-hollow/generators/bake-shelter.mjs"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/behaviour/shelter.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/behaviour/shelter.generated.json"
+      ]
+    },
+    {
       "id": "pine-cabin-living",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-cabin-living.mjs",
