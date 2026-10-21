@@ -39,8 +39,9 @@ export function generationCacheRoot(env = process.env) {
 export function generationKey(root, descriptor, host = {}) {
   const job = v.parse(Job, descriptor), platform = host.platform ?? process.platform, arch = host.arch ?? process.arch;
   if (job.outputs.length === 0 || new Set(job.outputs).size !== job.outputs.length || Object.keys(job.inputs).length === 0) throw new Error('Incomplete generation job');
+  const actual = bakeInputHashes(root,Object.keys(job.inputs),host.inputHashes);
   for (const [path, expected] of Object.entries(job.inputs)) {
-    if (bakeInputHashes(root, [path], host.inputHashes)[path] !== expected) throw new Error(`Generation input changed: ${path}`);
+    if (actual[path] !== expected) throw new Error(`Generation input changed: ${path}`);
   }
   return hash(canonical({ schema: 'generation-cache/1', job, node: process.version,
     host: job.platform === 'portable' ? 'portable' : { platform, arch } }));

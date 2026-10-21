@@ -1,21 +1,16 @@
 // Fast proofs (Jake 2026-10-15, "make each proof quick and cheap"): a shardfile product is rebuilt only when a file it
 // can read changed. Opt-in (`build-shardfiles.mjs --reuse`, used by serve-build.sh and `pnpm build:proof`); the push gate,
-// CI and Vercel run the plain `pnpm build`, which never reads this cache and rebuilds every shard.
+// CI and Vercel run the plain `pnpm build`, which rebuilds every shard before warming this cache.
 //
-// A shard's key hashes every file of the tree it could read, by content, minus what provably belongs elsewhere:
-//   - the other first-party shards' own folders (src/shards/<other>/; shards never import one another, `shard-sandbox`),
-//   - public paths with a folder named after another first-party shard (public/assets/<other>/, …/music/<other>/, …),
-//   - the outputs (public/shardfiles/, the legacy boot packs public/assets/packs/ that pile up per build and no SDK
-//     build reads, dist*, tmp/, .wildshard/ intermediates), the derived docs a full gen writes (lint/api-surface.json,
-//     scripts/README.md), scripts/generation-jobs.json (its effect is the generated files, hashed themselves) and the
-//     folders no build reads (docs/, test/ but its fixtures, art/, progress/, sources/,
-//     the native shells, the side sites).
-// Generated files (src/**/*.generated.*, restored bakes) are hashed as they sit on disk, so a gen output change is a
-// key change. Frozen legacy folders and anything shared stay in every key. node_modules is keyed by the lockfiles.
-// Products live in ~/.cache/wildshard/shardfiles/<slug>/<key>/ (shared by the mirror slots and the checkout), copied in
-// and out as APFS clones; a stat memo (path, size, mtime, inode) keeps the re-hash of ~9k files at ~0.1 s (1 s cold).
-// A full local build (the push gate's `pnpm build`) still builds every shard from scratch, then publishes what it built,
-// so a lane proving the pushed HEAD plus its own shard reuses every other shard.
+// The default compiler records its actual Node reads and native Vite inputs in
+// shardfile-inputs.mjs. This module stores immutable products and accepts the
+// completed cold-build key. A fresh gate still compiles every product, warming
+// the same cache without trusting a prior result.
+//
+// treeHashes/shardfileKey remain the conservative fallback for injected builders
+// that cannot supply a compiler receipt: other shards, outputs and unread repo
+// areas are excluded, while generated source bytes remain conservative inputs.
+// Products are shared across mirror slots in ~/.cache/wildshard/shardfiles.
 import { createHash, randomBytes } from 'node:crypto';
 import { constants, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, renameSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';

@@ -68,13 +68,20 @@ export function generationInputs(root,roots,memo,include=()=>true) {
     v.parse(path,relative);
     const file=resolve(base,relative),stat=lstatSync(file);
     if (stat.isSymbolicLink()) throw new Error(`Generation input is a symlink: ${relative}`);
-    if (!realpathSync(file).startsWith(base+sep)) throw new Error(`Generation input escaped: ${relative}`);
     if (stat.isDirectory()) {
+      if (!realpathSync(file).startsWith(base+sep)) throw new Error(`Generation input escaped: ${relative}`);
       for (const entry of readdirSync(file).sort((a,b)=>a<b?-1:a>b?1:0)) if(entry!=='node_modules' && entry!=='.git') walk(`${relative}/${entry}`);
     } else if (stat.isFile()) { if(include(relative)) files.add(relative); }
     else throw new Error(`Generation input is not regular: ${relative}`);
   }
-  for(const relative of roots) walk(relative);
+  // Infrastructure roots often contain dozens of explicit inputs too. Validate
+  // every declared path, then traverse each covered subtree only once.
+  for(const relative of roots) v.parse(path,relative);
+  const visited=[];
+  for(const relative of [...new Set(roots)].sort((a,b)=>a.length-b.length || a.localeCompare(b))) {
+    if(visited.some(parent=>relative.startsWith(`${parent}/`))) continue;
+    walk(relative); visited.push(relative);
+  }
   return bakeInputHashes(base,[...files].sort((a,b)=>a<b?-1:a>b?1:0),memo);
 }
 
