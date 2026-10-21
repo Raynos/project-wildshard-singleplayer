@@ -1472,7 +1472,7 @@
         "src/shards/pine-hollow/generators/bake-sky-channels.mjs",
         "src/shards/pine-hollow/generators/skyChannels.ts",
         "src/shards/pine-hollow/generators/rainChannels.ts",
-        "src/shards/pine-hollow/data/weatherLook.ts",
+        "src/shards/pine-hollow/data/weatherLook.json",
         "scripts/bake-output.mjs",
         "src/sdk/bake/source-loader.mjs",
         "src/format",

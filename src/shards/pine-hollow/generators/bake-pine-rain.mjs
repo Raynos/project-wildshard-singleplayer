@@ -7,6 +7,7 @@
 // src/shards/pine-hollow/data/rain.json; the page reads them (runtime/looks/rainFx.ts `loadRainBake`). `--check` refuses a
 // stale bake.
 // Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-rain.mjs [--check]
+import weather from '../data/weatherLook.json' with { type: 'json' };
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -23,7 +24,7 @@ const HF = await load('src/engine/world/Heightfield.ts');
 const BT = await load('src/engine/world/BakedTerrain.ts');
 const placement = await load('src/engine/world/forest/placement.ts');
 const config = await load('src/engine/core/config.ts');
-const { PINE_RAIN } = await load('src/shards/pine-hollow/data/weatherLook.ts');
+const { PINE_RAIN } = weather;
 
 const def = SHARDS.find((shard) => shard.slug === 'pine-hollow');
 if (def === undefined) throw new Error('bake-pine-rain: no pine-hollow shard');
