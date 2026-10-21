@@ -416,3 +416,13 @@ channels are already in the finished GLB; only custom aliases referenced
 the old product transport. The original bake input stays. One combined
 batch and served matrix cover these pending cuts without repeating the
 already-green `ff62a72304` check.
+
+The ten `ff62a72304` entry receipts, five successful returns and four
+viewed portrait frames are retained in
+[`diagnostic-ff62a72`](../../../progress/loading/g543/diagnostic-ff62a72/README.md)
+(`46cfc3958a`). The combined bootstrap/reef source batch at `de6833b8b7`
+passed in 793.2 s; its served cold/warm matrix remains the added warm
+L2/L8 and O2/O4 gate. Independent panel cut `52860bd662` reuses unchanged
+row paints at the existing cadence after the retained phone profile
+charged about 0.5 s to panel painting. Strict lint passes; its performance
+effect remains unmeasured. The ~20 s phone grid target stays open.
