@@ -1,0 +1,265 @@
+{
+  "pin": "de6833b8b7b2e11a5ddb80cbec7e684f6263227a",
+  "path": "grid",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "errors": [],
+  "stageSeconds": 10.109,
+  "clockSeconds": 10.1,
+  "unaccountedSeconds": -0.009000000000000341,
+  "displayedNetworkBytes": 23892,
+  "networkBytes": 23617,
+  "byteError": 0.011644154634373545,
+  "visibleByteError": 0,
+  "maxDetailGapMs": 655,
+  "failures": [],
+  "surface": "simulator",
+  "visit": "warm",
+  "rawSHA256": "f7cf4c10ebeb11444f4da3d2730df72a03dee0bfa8477f503d07d208fc7657b3",
+  "final": {
+    "at": 10117,
+    "clock": "00:10.1",
+    "detail": "gap after Audio \u00b7 music + sound effects",
+    "download": "0.02 MB downloaded \u00b7 145.0 MB from cache \u00b7 0.00 MB still expected \u00b7 976 / 976 files",
+    "footer": "Now working on: First frame",
+    "diagnostics": "Attempt 1 \u00b7 JS heap unavailable on Safari \u00b7 scene textures ~42 MiB\nLargest observed frame-update gap 0.2s at World assembly: Terrain seams \u00b7 14 batches\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "grid",
+    "step": "gap",
+    "setup": "100",
+    "networkBytes": "23892",
+    "cachedBytes": "144964441",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "496 ms",
+        "state": "ok",
+        "key": "modules",
+        "ms": "496"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "580 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "580"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "7 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "7"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "58 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "58"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "45 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "45"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 World assembly",
+        "detail": "25 cells \u00b7 96 seams \u00b7 road ready",
+        "duration": "2.6 s",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "2568"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Title art \u00b7 explore",
+        "detail": "28 / 28 pictures \u00b7 UI",
+        "duration": "4 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "4"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Shaders",
+        "detail": "13 / 13 post pipelines drawn \u00b7 167 programs",
+        "duration": "2.2 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "2168"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 167 programs",
+        "duration": "132 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "132"
+      },
+      {
+        "label": "\u25b8 gap after First frame",
+        "detail": "",
+        "duration": "2 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "2"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 0 / 0",
+        "duration": "2 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "2"
+      },
+      {
+        "label": "\u25b8 gap after Audio \u00b7 music + sound effects",
+        "detail": "",
+        "duration": "3 ms",
+        "state": "on",
+        "key": "gap",
+        "ms": "3"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Region world",
+        "detail": "",
+        "duration": "109 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "109"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "53 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "53"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "40 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "40"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Final activation",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "finish",
+        "ms": "1"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Home region",
+        "detail": "Home region 1 / 1 \u00b7 driftwood-isle \u00b7 Physics 2102 colliders \u00b7 Trees 0 forest records",
+        "duration": "3.8 s",
+        "state": "ok",
+        "key": "home",
+        "ms": "3762"
+      },
+      {
+        "label": "\u25b8 gap after Home region",
+        "detail": "",
+        "duration": "79 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "79"
+      }
+    ]
+  },
+  "firstAt": 299,
+  "readyAt": 10117,
+  "updates": 148,
+  "transport": {
+    "requests": 4,
+    "bodyBytes": 22692,
+    "headerBytes": 925
+  },
+  "observedTransport": [
+    {
+      "url": "http://127.0.0.1:4443/?chunk=driftwood-isle",
+      "status": 200,
+      "endedAt": 1792576909537,
+      "bodyBytes": 22201,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate",
+        "destination": "empty",
+        "mode": "navigate",
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      "responseCache": {
+        "etag": "W/\"4a12-SzJTQ9THkSwX1nG5Gz17UwiNwR4\"",
+        "cacheControl": "no-cache",
+        "vary": "Origin"
+      },
+      "headerBytes": 206
+    },
+    {
+      "url": "http://127.0.0.1:4443/manifest.webmanifest",
+      "status": 200,
+      "endedAt": 1792576909539,
+      "bodyBytes": 429,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"429-1792079788629\"",
+        "cacheControl": "no-store",
+        "vary": "Origin"
+      },
+      "headerBytes": 251
+    },
+    {
+      "url": "http://127.0.0.1:4443/api/telemetry",
+      "status": 404,
+      "endedAt": 1792576909572,
+      "bodyBytes": 0,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate",
+        "origin": "http://127.0.0.1:64008",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 228
+    },
+    {
+      "url": "http://127.0.0.1:4443/version.json?t=1792576909574",
+      "status": 200,
+      "endedAt": 1792576909581,
+      "bodyBytes": 62,
+      "requestCache": {
+        "cacheControl": "no-cache",
+        "acceptEncoding": "gzip, deflate",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"62-1792576750143\"",
+        "cacheControl": "no-store",
+        "vary": "Origin"
+      },
+      "headerBytes": 240
+    }
+  ]
+}

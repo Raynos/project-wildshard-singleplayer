@@ -1,0 +1,297 @@
+{
+  "pin": "de6833b8b7b2e11a5ddb80cbec7e684f6263227a",
+  "path": "grid",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "errors": [],
+  "stageSeconds": 16.81730000001192,
+  "clockSeconds": 16.8,
+  "unaccountedSeconds": -0.017300000011918115,
+  "displayedNetworkBytes": 57300,
+  "networkBytes": 78273,
+  "byteError": 0.26794680157908857,
+  "visibleByteError": 0.16957316060455074,
+  "maxDetailGapMs": 458.69999998807907,
+  "failures": [
+    "Network bytes are unavailable or differ by more than 5%",
+    "Visible MB count differs by more than 5%"
+  ],
+  "surface": "phone",
+  "visit": "warm",
+  "rawSHA256": "678cd966db20d9e7d35b610a63dbe00432f2e8e719983e5a9d283a44dc77af1c",
+  "final": {
+    "at": 16883.399999976158,
+    "clock": "00:16.8",
+    "detail": "step 14 / 16 \u00b7 Final activation",
+    "download": "0.06 MB downloaded \u00b7 156.1 MB from cache \u00b7 0.00 MB still expected \u00b7 995 / 995 files",
+    "footer": "Now working on: Audio \u00b7 music + sound effects",
+    "diagnostics": "Attempt 1 \u00b7 JS heap 69 MiB \u00b7 scene textures ~42 MiB\nLargest observed frame-update gap 0.4s at World assembly: Terrain seams \u00b7 17 batches\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "grid",
+    "step": "finish",
+    "setup": "100",
+    "networkBytes": "57300",
+    "cachedBytes": "156080913",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 gap before setup",
+        "detail": "",
+        "duration": "1 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.5"
+      },
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "730 ms",
+        "state": "ok",
+        "key": "modules",
+        "ms": "729.9000000357628"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "762 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "762.2000000476837"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "18 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "17.5"
+      },
+      {
+        "label": "\u25b8 gap after Texture and audio preparation",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.09999996423721313"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "80 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "79.59999996423721"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "12 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "12.100000023841858"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 World assembly",
+        "detail": "25 cells \u00b7 96 seams \u00b7 road ready",
+        "duration": "4.4 s",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "4418.800000011921"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Title art \u00b7 explore",
+        "detail": "28 / 28 pictures \u00b7 UI",
+        "duration": "12 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "11.699999988079071"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Shaders",
+        "detail": "13 / 13 post pipelines drawn \u00b7 167 programs",
+        "duration": "4.4 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "4371.5"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 167 programs",
+        "duration": "318 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "318"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 0 / 0",
+        "duration": "8 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "7.900000035762787"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Region world",
+        "detail": "",
+        "duration": "360 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "359.90000009536743"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "161 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "160.69999998807907"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "116 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "115.5"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Final activation",
+        "detail": "",
+        "duration": "183 ms",
+        "state": "on",
+        "key": "finish",
+        "ms": "182.69999992847443"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Home region",
+        "detail": "Home region 1 / 1 \u00b7 driftwood-isle \u00b7 Physics 2102 colliders \u00b7 Trees 0 forest records",
+        "duration": "5.3 s",
+        "state": "ok",
+        "key": "home",
+        "ms": "5268.699999928474"
+      }
+    ]
+  },
+  "firstAt": 587.1999999880791,
+  "readyAt": 16883.399999976158,
+  "updates": 208,
+  "transport": {
+    "requests": 6,
+    "bodyBytes": 76727,
+    "headerBytes": 1546
+  },
+  "observedTransport": [
+    {
+      "url": "http://127.0.0.1:4443/?chunk=driftwood-isle",
+      "status": 200,
+      "endedAt": 1792577138849,
+      "bodyBytes": 5212,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "navigate",
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+      },
+      "responseCache": {
+        "etag": "W/\"4a12-SzJTQ9THkSwX1nG5Gz17UwiNwR4\"",
+        "cacheControl": "no-cache",
+        "vary": "Origin",
+        "contentEncoding": "gzip"
+      },
+      "headerBytes": 235
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/title/driftwood-isle-portrait.jpg",
+      "status": 200,
+      "endedAt": 1792577138940,
+      "bodyBytes": 50826,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "no-cors",
+        "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+      },
+      "responseCache": {
+        "etag": "W/\"50826-1792079788623\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/api/telemetry",
+      "status": 404,
+      "endedAt": 1792577138968,
+      "bodyBytes": 0,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "origin": "http://127.0.0.1:54903",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 228
+    },
+    {
+      "url": "http://127.0.0.1:4443/version.json?t=1792577138994",
+      "status": 200,
+      "endedAt": 1792577138996,
+      "bodyBytes": 62,
+      "requestCache": {
+        "cacheControl": "no-cache",
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"62-1792576750143\"",
+        "cacheControl": "no-store",
+        "vary": "Origin"
+      },
+      "headerBytes": 240
+    },
+    {
+      "url": "http://127.0.0.1:4443/sw.js",
+      "status": 200,
+      "endedAt": 1792577147489,
+      "bodyBytes": 95,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "serviceWorker": "script",
+        "destination": "serviceworker",
+        "mode": "same-origin",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"95-1792576750144\"",
+        "cacheControl": "no-cache"
+      },
+      "headerBytes": 257
+    },
+    {
+      "url": "http://127.0.0.1:4443/sw-core/d74819a8e999675ff12c2ed8858492451592af9e67a2a83466d7131413b1e239.js",
+      "status": 200,
+      "endedAt": 1792577147492,
+      "bodyBytes": 20532,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "script",
+        "mode": "no-cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"57097-1792576750144\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "contentEncoding": "gzip"
+      },
+      "headerBytes": 319
+    }
+  ]
+}

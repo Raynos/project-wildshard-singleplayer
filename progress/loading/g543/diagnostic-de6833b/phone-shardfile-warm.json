@@ -1,0 +1,2611 @@
+{
+  "pin": "de6833b8b7b2e11a5ddb80cbec7e684f6263227a",
+  "path": "shardfile",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "errors": [],
+  "stageSeconds": 25.147600000023846,
+  "clockSeconds": 25.1,
+  "unaccountedSeconds": -0.04760000002384501,
+  "displayedNetworkBytes": 15963697,
+  "networkBytes": 15959495,
+  "byteError": 0.0002632915389866659,
+  "visibleByteError": 0,
+  "maxDetailGapMs": 398.60000002384186,
+  "failures": [],
+  "surface": "phone",
+  "visit": "warm",
+  "rawSHA256": "2ccdf93f0ad78192376a43587e63161df2a77c9e4cab26ab2f3ce92e6012c4f1",
+  "final": {
+    "at": 25238.599999964237,
+    "clock": "00:25.1",
+    "detail": "step 24 / 24 \u00b7 Final activation",
+    "download": "16.0 MB downloaded \u00b7 142.0 MB from cache \u00b7 0.00 MB still expected \u00b7 1012 / 1012 files",
+    "footer": "Now waiting for: Decode selected audio clip \u00b7 0.0 s \u00b7 0 files in flight",
+    "diagnostics": "Attempt 1 \u00b7 JS heap 69 MiB \u00b7 scene textures ~2 MiB\nLargest observed frame-update gap 0.3s at Preparing application services\nIncludes JS, GC, layout and page suspension\nTotal RAM / CPU unavailable in page",
+    "waiting": "Decode selected audio clip",
+    "filesInFlight": "0",
+    "stalled": "false",
+    "path": "shardfile",
+    "step": "finish",
+    "setup": "100",
+    "networkBytes": "15963697",
+    "cachedBytes": "142032368",
+    "pendingBytes": "0",
+    "rows": [
+      {
+        "label": "\u25b8 1 \u00b7 Application modules",
+        "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+        "duration": "1.3 s",
+        "state": "ok",
+        "key": "modules",
+        "ms": "1322.0000000596046"
+      },
+      {
+        "label": "\u25b8 2 \u00b7 Product admission",
+        "detail": "Product schemas 8 / 8 \u00b7 custom/trailside",
+        "duration": "862 ms",
+        "state": "ok",
+        "key": "admission",
+        "ms": "862.0999999642372"
+      },
+      {
+        "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+        "detail": "",
+        "duration": "72 ms",
+        "state": "ok",
+        "key": "data",
+        "ms": "72.10000002384186"
+      },
+      {
+        "label": "\u25b8 gap after Texture and audio preparation",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "gap",
+        "ms": "0.19999998807907104"
+      },
+      {
+        "label": "\u25b8 4 \u00b7 Renderer",
+        "detail": "",
+        "duration": "238 ms",
+        "state": "ok",
+        "key": "renderer",
+        "ms": "237.80000001192093"
+      },
+      {
+        "label": "\u25b8 5 \u00b7 Sky \u00b7 lighting",
+        "detail": "",
+        "duration": "1.3 s",
+        "state": "ok",
+        "key": "sky",
+        "ms": "1251.7999999523163"
+      },
+      {
+        "label": "\u25b8 6 \u00b7 Terrain \u00b7 heightfield",
+        "detail": "256\u00b2 heightfield",
+        "duration": "108 ms",
+        "state": "ok",
+        "key": "terrain",
+        "ms": "107.60000002384186"
+      },
+      {
+        "label": "\u25b8 7 \u00b7 Tree cards",
+        "detail": "",
+        "duration": "9 ms",
+        "state": "ok",
+        "key": "cards",
+        "ms": "9.099999964237213"
+      },
+      {
+        "label": "\u25b8 8 \u00b7 Trees",
+        "detail": "0 trees",
+        "duration": "21 ms",
+        "state": "ok",
+        "key": "forest",
+        "ms": "20.5"
+      },
+      {
+        "label": "\u25b8 9 \u00b7 Physics \u00b7 Rapier \u00b7 navmesh",
+        "detail": "5 colliders",
+        "duration": "33 ms",
+        "state": "ok",
+        "key": "physics",
+        "ms": "33.10000002384186"
+      },
+      {
+        "label": "\u25b8 10 \u00b7 Chunk edge \u00b7 water \u00b7 horizon",
+        "detail": "",
+        "duration": "56 ms",
+        "state": "ok",
+        "key": "edge",
+        "ms": "56.30000001192093"
+      },
+      {
+        "label": "\u25b8 11 \u00b7 Grass \u00b7 ground cover",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "grass",
+        "ms": "0.10000002384185791"
+      },
+      {
+        "label": "\u25b8 12 \u00b7 Buildings",
+        "detail": "",
+        "duration": "0 ms",
+        "state": "ok",
+        "key": "cabins",
+        "ms": "0"
+      },
+      {
+        "label": "\u25b8 13 \u00b7 Props",
+        "detail": "Baked island",
+        "duration": "5.3 s",
+        "state": "ok",
+        "key": "props",
+        "ms": "5255.399999976158"
+      },
+      {
+        "label": "\u25b8 14 \u00b7 Animals",
+        "detail": "13 animals",
+        "duration": "179 ms",
+        "state": "ok",
+        "key": "animals",
+        "ms": "179"
+      },
+      {
+        "label": "\u25b8 15 \u00b7 Weapons \u00b7 HUD",
+        "detail": "",
+        "duration": "7 ms",
+        "state": "ok",
+        "key": "weapon",
+        "ms": "6.599999964237213"
+      },
+      {
+        "label": "\u25b8 16 \u00b7 World assembly",
+        "detail": "",
+        "duration": "9 ms",
+        "state": "ok",
+        "key": "assembly",
+        "ms": "8.899999976158142"
+      },
+      {
+        "label": "\u25b8 17 \u00b7 Title art \u00b7 explore",
+        "detail": "40 / 40 pictures \u00b7 UI",
+        "duration": "23 ms",
+        "state": "ok",
+        "key": "menu",
+        "ms": "23.099999964237213"
+      },
+      {
+        "label": "\u25b8 18 \u00b7 Shaders",
+        "detail": "8 / 8 post pipelines drawn \u00b7 119 programs",
+        "duration": "13.0 s",
+        "state": "ok",
+        "key": "shaders",
+        "ms": "12976.199999988079"
+      },
+      {
+        "label": "\u25b8 19 \u00b7 First frame",
+        "detail": "Pass 6 / 6 \u00b7 ready \u00b7 119 programs",
+        "duration": "585 ms",
+        "state": "ok",
+        "key": "firstFrame",
+        "ms": "585.1000000238419"
+      },
+      {
+        "label": "\u25b8 20 \u00b7 Audio \u00b7 music + sound effects",
+        "detail": "Prepared audio clips 89 / 91",
+        "duration": "322 ms",
+        "state": "ok",
+        "key": "audio",
+        "ms": "322.4000000357628"
+      },
+      {
+        "label": "\u25b8 21 \u00b7 Region world",
+        "detail": "",
+        "duration": "157 ms",
+        "state": "ok",
+        "key": "world",
+        "ms": "156.5"
+      },
+      {
+        "label": "\u25b8 22 \u00b7 Equipment and HUD",
+        "detail": "",
+        "duration": "783 ms",
+        "state": "ok",
+        "key": "loadout",
+        "ms": "783.4000000357628"
+      },
+      {
+        "label": "\u25b8 23 \u00b7 Gameplay and saved state",
+        "detail": "",
+        "duration": "807 ms",
+        "state": "ok",
+        "key": "gameplay",
+        "ms": "806.9000000357628"
+      },
+      {
+        "label": "\u25b8 24 \u00b7 Final activation",
+        "detail": "",
+        "duration": "71 ms",
+        "state": "on",
+        "key": "finish",
+        "ms": "71.39999997615814"
+      }
+    ]
+  },
+  "firstAt": 932,
+  "readyAt": 25238.599999964237,
+  "updates": 234,
+  "transport": {
+    "requests": 131,
+    "bodyBytes": 15924997,
+    "headerBytes": 34498
+  },
+  "observedTransport": [
+    {
+      "url": "http://127.0.0.1:4443/?chunk=driftwood-isle",
+      "status": 200,
+      "endedAt": 1792577004848,
+      "bodyBytes": 5212,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "navigate",
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+      },
+      "responseCache": {
+        "etag": "W/\"4a12-SzJTQ9THkSwX1nG5Gz17UwiNwR4\"",
+        "cacheControl": "no-cache",
+        "vary": "Origin",
+        "contentEncoding": "gzip"
+      },
+      "headerBytes": 235
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/title/driftwood-isle-portrait.jpg",
+      "status": 200,
+      "endedAt": 1792577004968,
+      "bodyBytes": 50826,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "no-cors",
+        "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+      },
+      "responseCache": {
+        "etag": "W/\"50826-1792079788623\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/api/telemetry",
+      "status": 404,
+      "endedAt": 1792577005018,
+      "bodyBytes": 0,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "origin": "http://127.0.0.1:52879",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 228
+    },
+    {
+      "url": "http://127.0.0.1:4443/version.json?t=1792577005067",
+      "status": 200,
+      "endedAt": 1792577005090,
+      "bodyBytes": 62,
+      "requestCache": {
+        "cacheControl": "no-cache",
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"62-1792576750143\"",
+        "cacheControl": "no-store",
+        "vary": "Origin"
+      },
+      "headerBytes": 240
+    },
+    {
+      "url": "http://127.0.0.1:4443/shardfiles/driftwood-isle/shard.json",
+      "status": 200,
+      "endedAt": 1792577006133,
+      "bodyBytes": 77605,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"772735-1792576750307\"",
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin",
+        "contentEncoding": "gzip"
+      },
+      "headerBytes": 302
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/baked/driftwood-isle/tex/giant.phone.webp?v=ed924bba",
+      "status": 200,
+      "endedAt": 1792577007178,
+      "bodyBytes": 7488,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7488-1792079787337\"",
+        "cacheControl": "public, max-age=0, must-revalidate",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/physics/rapier.wasm?v=2935a533",
+      "status": 200,
+      "endedAt": 1792577007191,
+      "bodyBytes": 836316,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin",
+        "contentEncoding": "br"
+      },
+      "headerBytes": 219
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/driftwood-isle-landscape-D57Z8kOe.jpg",
+      "status": 200,
+      "endedAt": 1792577007191,
+      "bodyBytes": 206802,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"206802-1792576750136\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/pine-hollow-portrait-CaUCW0-1.jpg",
+      "status": 200,
+      "endedAt": 1792577007192,
+      "bodyBytes": 211789,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"211789-1792576750141\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/nalati-grasslands-portrait-iRhxpjY5.jpg",
+      "status": 200,
+      "endedAt": 1792577007192,
+      "bodyBytes": 265177,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"265177-1792576750138\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/nine-dragon-stack-portrait-CTG5PDPS.jpg",
+      "status": 200,
+      "endedAt": 1792577007193,
+      "bodyBytes": 271060,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"271060-1792576750140\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sunscar-dunes-portrait-CPb7DZ2F.jpg",
+      "status": 200,
+      "endedAt": 1792577007476,
+      "bodyBytes": 192736,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"192736-1792576750142\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/world-driftwood-isle-BSVK6wCJ.webp",
+      "status": 200,
+      "endedAt": 1792577007520,
+      "bodyBytes": 32714,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"32714-1792576750142\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/far-reach-portrait-7xTM47v2.jpg",
+      "status": 200,
+      "endedAt": 1792577007520,
+      "bodyBytes": 207600,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"207600-1792576750137\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/models-driftwood-isle-Bq7WGtPe.webp",
+      "status": 200,
+      "endedAt": 1792577007539,
+      "bodyBytes": 31812,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"31812-1792576750137\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/practice-driftwood-isle-CY0vGxR0.webp",
+      "status": 200,
+      "endedAt": 1792577007539,
+      "bodyBytes": 32390,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"32390-1792576750141\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sets-driftwood-isle-DsZc-qdI.webp",
+      "status": 200,
+      "endedAt": 1792577007539,
+      "bodyBytes": 38848,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"38848-1792576750141\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/driftwood-spawn-live-C4vYc2We.jpg",
+      "status": 200,
+      "endedAt": 1792577007540,
+      "bodyBytes": 89312,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"89312-1792576750136\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/driftwood-right-live-BFLM86MU.jpg",
+      "status": 200,
+      "endedAt": 1792577007541,
+      "bodyBytes": 81895,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"81895-1792576750136\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 267
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/driftwood-spawn-target-CIGaGG-o.jpg",
+      "status": 200,
+      "endedAt": 1792577007552,
+      "bodyBytes": 344410,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"344410-1792576750136\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/pine-tension-cc014e5b.m4a",
+      "status": 200,
+      "endedAt": 1792577007554,
+      "bodyBytes": 508407,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"508407-1792079788050\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/driftwood-right-target-DCPusEqc.jpg",
+      "status": 200,
+      "endedAt": 1792577007555,
+      "bodyBytes": 486109,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"486109-1792576750136\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/driftwood-overlook-live-CrbjAT5l.jpg",
+      "status": 200,
+      "endedAt": 1792577007555,
+      "bodyBytes": 352881,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"352881-1792576750136\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/driftwood-overlook-target-CFFCacaF.jpg",
+      "status": 200,
+      "endedAt": 1792577007555,
+      "bodyBytes": 678562,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"678562-1792576750136\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 269
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/pine-calm-923e0056.m4a",
+      "status": 200,
+      "endedAt": 1792577007555,
+      "bodyBytes": 753131,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"753131-1792079788048\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/island-calm-05125ed8.m4a",
+      "status": 200,
+      "endedAt": 1792577007558,
+      "bodyBytes": 710677,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"710677-1792079788045\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/island-tension-7faf0468.m4a",
+      "status": 200,
+      "endedAt": 1792577007575,
+      "bodyBytes": 480309,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"480309-1792079788046\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/title-3d1f713a.m4a",
+      "status": 200,
+      "endedAt": 1792577007618,
+      "bodyBytes": 762019,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"762019-1792079788052\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/sting-death-99b071e0.m4a",
+      "status": 200,
+      "endedAt": 1792577007630,
+      "bodyBytes": 55748,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"55748-1792079788050\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+      "status": 200,
+      "endedAt": 1792577007676,
+      "bodyBytes": 43558,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"43558-1792079788050\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/piano/sting-pickup-6ed91318.m4a",
+      "status": 200,
+      "endedAt": 1792577007676,
+      "bodyBytes": 25148,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"25148-1792079788050\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+      "status": 200,
+      "endedAt": 1792577007676,
+      "bodyBytes": 340528,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"340528-1792079788361\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/lut/driftwood-isle.bin?v=1232cd60",
+      "status": 200,
+      "endedAt": 1792577007683,
+      "bodyBytes": 143748,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"143748-1792079787860\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 283
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+      "status": 200,
+      "endedAt": 1792577007693,
+      "bodyBytes": 126342,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"126342-1792079788372\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+      "status": 200,
+      "endedAt": 1792577007694,
+      "bodyBytes": 269492,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"269492-1792079788365\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/crossbowFire-3-18ccf9f0.m4a",
+      "status": 200,
+      "endedAt": 1792577007761,
+      "bodyBytes": 9890,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9890-1792079788367\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/dryFire-2-88071d1d.m4a",
+      "status": 200,
+      "endedAt": 1792577007788,
+      "bodyBytes": 1975,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"1975-1792079788368\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/dryFire-3-173415cb.m4a",
+      "status": 200,
+      "endedAt": 1792577007802,
+      "bodyBytes": 2175,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"2175-1792079788368\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boltImpact-wood-2-8e9e99ee.m4a",
+      "status": 200,
+      "endedAt": 1792577007822,
+      "bodyBytes": 9265,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9265-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boltImpact-wood-3-673a0ef6.m4a",
+      "status": 200,
+      "endedAt": 1792577007822,
+      "bodyBytes": 7952,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7952-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boltImpact-ground-2-5e8a3076.m4a",
+      "status": 200,
+      "endedAt": 1792577007822,
+      "bodyBytes": 5926,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"5926-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boltImpact-ground-1-f81140e6.m4a",
+      "status": 200,
+      "endedAt": 1792577007836,
+      "bodyBytes": 7272,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7272-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boltImpact-flesh-2-13ed7f2c.m4a",
+      "status": 200,
+      "endedAt": 1792577007836,
+      "bodyBytes": 6270,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6270-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boltImpact-flesh-3-62e25aa5.m4a",
+      "status": 200,
+      "endedAt": 1792577007836,
+      "bodyBytes": 7004,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7004-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+      "status": 200,
+      "endedAt": 1792577007864,
+      "bodyBytes": 2677,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"2677-1792079788377\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+      "status": 200,
+      "endedAt": 1792577007864,
+      "bodyBytes": 6366,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6366-1792079788377\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+      "status": 200,
+      "endedAt": 1792577007890,
+      "bodyBytes": 4632,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"4632-1792079788377\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+      "status": 200,
+      "endedAt": 1792577007890,
+      "bodyBytes": 9660,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9660-1792079788377\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+      "status": 200,
+      "endedAt": 1792577007907,
+      "bodyBytes": 8747,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"8747-1792079788377\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+      "status": 200,
+      "endedAt": 1792577007907,
+      "bodyBytes": 4601,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"4601-1792079788377\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+      "status": 200,
+      "endedAt": 1792577007907,
+      "bodyBytes": 3376,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"3376-1792079788377\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/dodge-2-13887dd8.m4a",
+      "status": 200,
+      "endedAt": 1792577007907,
+      "bodyBytes": 8896,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"8896-1792079788367\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/dodge-3-453516f6.m4a",
+      "status": 200,
+      "endedAt": 1792577007907,
+      "bodyBytes": 7073,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7073-1792079788368\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/lunge-3-be45ba7a.m4a",
+      "status": 200,
+      "endedAt": 1792577007907,
+      "bodyBytes": 3333,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"3333-1792079788374\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/reload-3-d81ab6e2.m4a",
+      "status": 200,
+      "endedAt": 1792577007953,
+      "bodyBytes": 12747,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"12747-1792079788374\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/reload-1-d3e6d32a.m4a",
+      "status": 200,
+      "endedAt": 1792577007953,
+      "bodyBytes": 13917,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13917-1792079788374\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+      "status": 200,
+      "endedAt": 1792577007954,
+      "bodyBytes": 14778,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"14778-1792079788374\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+      "status": 200,
+      "endedAt": 1792577007973,
+      "bodyBytes": 9552,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9552-1792079788374\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+      "status": 200,
+      "endedAt": 1792577007973,
+      "bodyBytes": 15060,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"15060-1792079788374\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/rifleReload-3-20027167.m4a",
+      "status": 200,
+      "endedAt": 1792577007974,
+      "bodyBytes": 10915,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"10915-1792079788375\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+      "status": 200,
+      "endedAt": 1792577007984,
+      "bodyBytes": 5319,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"5319-1792079788378\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a",
+      "status": 200,
+      "endedAt": 1792577007986,
+      "bodyBytes": 6211,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6211-1792079788369\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-litter-3-09ceed7a.m4a",
+      "status": 200,
+      "endedAt": 1792577007999,
+      "bodyBytes": 6143,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6143-1792079788369\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-planks-3-d919e436.m4a",
+      "status": 200,
+      "endedAt": 1792577008001,
+      "bodyBytes": 4405,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"4405-1792079788370\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+      "status": 200,
+      "endedAt": 1792577008028,
+      "bodyBytes": 7755,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7755-1792079788370\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a",
+      "status": 200,
+      "endedAt": 1792577008029,
+      "bodyBytes": 6045,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6045-1792079788369\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/land-2-773487f2.m4a",
+      "status": 200,
+      "endedAt": 1792577008029,
+      "bodyBytes": 7847,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7847-1792079788373\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/land-3-eebff605.m4a",
+      "status": 200,
+      "endedAt": 1792577008029,
+      "bodyBytes": 7282,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7282-1792079788373\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+      "status": 200,
+      "endedAt": 1792577008029,
+      "bodyBytes": 7694,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"7694-1792079788370\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+      "status": 200,
+      "endedAt": 1792577008029,
+      "bodyBytes": 9378,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9378-1792079788373\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/land-hard-1-2ce640be.m4a",
+      "status": 200,
+      "endedAt": 1792577008037,
+      "bodyBytes": 9366,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9366-1792079788373\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/splash-3-9509efbe.m4a",
+      "status": 200,
+      "endedAt": 1792577008037,
+      "bodyBytes": 17676,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17676-1792079788376\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/splash-2-03ab63ae.m4a",
+      "status": 200,
+      "endedAt": 1792577008037,
+      "bodyBytes": 17311,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17311-1792079788376\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+      "status": 200,
+      "endedAt": 1792577008042,
+      "bodyBytes": 9300,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9300-1792079788378\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/wadeStep-2-402e850a.m4a",
+      "status": 200,
+      "endedAt": 1792577008042,
+      "bodyBytes": 9192,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"9192-1792079788378\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+      "status": 200,
+      "endedAt": 1792577008043,
+      "bodyBytes": 10583,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"10583-1792079788376\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+      "status": 200,
+      "endedAt": 1792577008049,
+      "bodyBytes": 13373,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13373-1792079788378\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/dive-1-4b978224.m4a",
+      "status": 200,
+      "endedAt": 1792577008049,
+      "bodyBytes": 13331,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13331-1792079788367\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/dive-3-e74abc72.m4a",
+      "status": 200,
+      "endedAt": 1792577008156,
+      "bodyBytes": 13491,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13491-1792079788367\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/surface-3-85550528.m4a",
+      "status": 200,
+      "endedAt": 1792577008156,
+      "bodyBytes": 13712,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13712-1792079788376\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+      "status": 200,
+      "endedAt": 1792577008224,
+      "bodyBytes": 13188,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13188-1792079788376\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+      "status": 200,
+      "endedAt": 1792577008245,
+      "bodyBytes": 5299,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"5299-1792079788370\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/kill-3-5f7ea225.m4a",
+      "status": 200,
+      "endedAt": 1792577008253,
+      "bodyBytes": 8530,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"8530-1792079788372\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/kill-2-5e4acc1b.m4a",
+      "status": 200,
+      "endedAt": 1792577008254,
+      "bodyBytes": 8278,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"8278-1792079788372\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+      "status": 200,
+      "endedAt": 1792577008254,
+      "bodyBytes": 12277,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"12277-1792079788367\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/deer_call-1-7cd35867.m4a",
+      "status": 200,
+      "endedAt": 1792577008254,
+      "bodyBytes": 17580,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17580-1792079788367\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+      "status": 200,
+      "endedAt": 1792577008254,
+      "bodyBytes": 15555,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"15555-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+      "status": 200,
+      "endedAt": 1792577008254,
+      "bodyBytes": 17556,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17556-1792079788371\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+      "status": 200,
+      "endedAt": 1792577008257,
+      "bodyBytes": 17561,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17561-1792079788371\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/boar_squeal-1-804df37c.m4a",
+      "status": 200,
+      "endedAt": 1792577008264,
+      "bodyBytes": 13493,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13493-1792079788366\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/elk_bugle-3-f6e8030e.m4a",
+      "status": 200,
+      "endedAt": 1792577008264,
+      "bodyBytes": 17431,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17431-1792079788369\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/elk_bugle-2-0e80875f.m4a",
+      "status": 200,
+      "endedAt": 1792577008264,
+      "bodyBytes": 23194,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"23194-1792079788368\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/bear_growl-3-f91d7740.m4a",
+      "status": 200,
+      "endedAt": 1792577008296,
+      "bodyBytes": 15123,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"15123-1792079788359\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/bear_roar-3-9f1e177e.m4a",
+      "status": 200,
+      "endedAt": 1792577008299,
+      "bodyBytes": 20975,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"20975-1792079788359\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/bear_roar-2-29e3055e.m4a",
+      "status": 200,
+      "endedAt": 1792577008323,
+      "bodyBytes": 20980,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"20980-1792079788359\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+      "status": 200,
+      "endedAt": 1792577008323,
+      "bodyBytes": 17420,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17420-1792079788359\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+      "status": 200,
+      "endedAt": 1792577008335,
+      "bodyBytes": 13190,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13190-1792079788359\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-mud-2-99e4a10d.m4a",
+      "status": 200,
+      "endedAt": 1792577008358,
+      "bodyBytes": 6863,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6863-1792079788369\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-mud-1-1dd22736.m4a",
+      "status": 200,
+      "endedAt": 1792577008361,
+      "bodyBytes": 6983,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6983-1792079788369\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-rock-2-58c2cc26.m4a",
+      "status": 200,
+      "endedAt": 1792577008361,
+      "bodyBytes": 6083,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6083-1792079788370\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-rock-3-98e0e874.m4a",
+      "status": 200,
+      "endedAt": 1792577008361,
+      "bodyBytes": 6174,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6174-1792079788370\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/best/footstep-wet-1-58d313a2.m4a",
+      "status": 200,
+      "endedAt": 1792577008361,
+      "bodyBytes": 6164,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"6164-1792079788370\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/sting-death-771d34f7.m4a",
+      "status": 200,
+      "endedAt": 1792577008382,
+      "bodyBytes": 55673,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"55673-1792079788042\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+      "status": 200,
+      "endedAt": 1792577008383,
+      "bodyBytes": 549719,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"549719-1792079788040\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+      "status": 200,
+      "endedAt": 1792577008384,
+      "bodyBytes": 370765,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"370765-1792079788041\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/island-tension-73116f36.m4a",
+      "status": 200,
+      "endedAt": 1792577008385,
+      "bodyBytes": 454133,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"454133-1792079788039\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/title-b47c8a52.m4a",
+      "status": 200,
+      "endedAt": 1792577008394,
+      "bodyBytes": 560625,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"560625-1792079788043\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+      "status": 200,
+      "endedAt": 1792577008394,
+      "bodyBytes": 43427,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"43427-1792079788041\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+      "status": 200,
+      "endedAt": 1792577008394,
+      "bodyBytes": 25145,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"25145-1792079788042\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/orchestral/island-calm-27861d1b.m4a",
+      "status": 200,
+      "endedAt": 1792577008397,
+      "bodyBytes": 674130,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"674130-1792079788038\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/sting-death-67f54fe8.m4a",
+      "status": 200,
+      "endedAt": 1792577008410,
+      "bodyBytes": 55723,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"55723-1792079787992\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/pine-tension-180bc197.m4a",
+      "status": 200,
+      "endedAt": 1792577008410,
+      "bodyBytes": 604751,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"604751-1792079787992\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/island-tension-bb05ab64.m4a",
+      "status": 200,
+      "endedAt": 1792577008410,
+      "bodyBytes": 375569,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"375569-1792079787988\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/island-calm-d7d189f9.m4a",
+      "status": 200,
+      "endedAt": 1792577008411,
+      "bodyBytes": 555208,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"555208-1792079787987\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/pine-calm-10905c79.m4a",
+      "status": 200,
+      "endedAt": 1792577008412,
+      "bodyBytes": 891250,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"891250-1792079787990\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/title-50001128.m4a",
+      "status": 200,
+      "endedAt": 1792577008413,
+      "bodyBytes": 808308,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"808308-1792079788002\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/sting-chunk-31c10eaf.m4a",
+      "status": 200,
+      "endedAt": 1792577008420,
+      "bodyBytes": 43513,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"43513-1792079787992\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/music/folk/sting-pickup-332f81db.m4a",
+      "status": 200,
+      "endedAt": 1792577008420,
+      "bodyBytes": 25195,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"25195-1792079787992\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/bed-island-1-4611714d.m4a",
+      "status": 200,
+      "endedAt": 1792577008426,
+      "bodyBytes": 199372,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"199372-1792079788380\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/hum-shrine-2-d89ed03a.m4a",
+      "status": 200,
+      "endedAt": 1792577008455,
+      "bodyBytes": 119020,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"119020-1792079788381\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 268
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/gull-1-5fa9130b.m4a",
+      "status": 200,
+      "endedAt": 1792577008470,
+      "bodyBytes": 21764,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"21764-1792079788381\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/crab_click-2-aefbc41d.m4a",
+      "status": 200,
+      "endedAt": 1792577008472,
+      "bodyBytes": 12514,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"12514-1792079788380\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/crab_click-3-f47e95a3.m4a",
+      "status": 200,
+      "endedAt": 1792577008494,
+      "bodyBytes": 10919,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"10919-1792079788381\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/crab_snap-2-bff601ad.m4a",
+      "status": 200,
+      "endedAt": 1792577008494,
+      "bodyBytes": 2458,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"2458-1792079788381\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/crab_snap-3-69ea11c0.m4a",
+      "status": 200,
+      "endedAt": 1792577008497,
+      "bodyBytes": 2356,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"2356-1792079788381\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 264
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/monkey_chatter-3-1c7d7e2d.m4a",
+      "status": 200,
+      "endedAt": 1792577008497,
+      "bodyBytes": 21775,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"21775-1792079788381\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/monkey_shriek-2-54acd647.m4a",
+      "status": 200,
+      "endedAt": 1792577008502,
+      "bodyBytes": 10910,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"10910-1792079788382\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/monkey_shriek-1-1a358b4e.m4a",
+      "status": 200,
+      "endedAt": 1792577008528,
+      "bodyBytes": 13651,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"13651-1792079788382\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/assets/sfx/driftwood-isle/sailor_groan-2-43e2a981.m4a",
+      "status": 200,
+      "endedAt": 1792577008532,
+      "bodyBytes": 17041,
+      "requestCache": {
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "destination": "empty",
+        "mode": "cors",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "etag": "W/\"17041-1792079788382\"",
+        "cacheControl": "public, max-age=31536000, immutable",
+        "vary": "Origin"
+      },
+      "headerBytes": 266
+    },
+    {
+      "url": "http://127.0.0.1:4443/sw.js",
+      "status": 304,
+      "endedAt": 1792577010626,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"95-1792576750144\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:59:10 GMT",
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "serviceWorker": "script",
+        "destination": "serviceworker",
+        "mode": "same-origin",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "cacheControl": "no-cache"
+      },
+      "headerBytes": 142
+    },
+    {
+      "url": "http://127.0.0.1:4443/sw.js",
+      "status": 304,
+      "endedAt": 1792577011732,
+      "bodyBytes": 0,
+      "requestCache": {
+        "ifNoneMatch": "W/\"95-1792576750144\"",
+        "ifModifiedSince": "Wed, 21 Oct 2026 09:59:10 GMT",
+        "acceptEncoding": "gzip, deflate, br, zstd",
+        "serviceWorker": "script",
+        "destination": "serviceworker",
+        "mode": "same-origin",
+        "accept": "*/*"
+      },
+      "responseCache": {
+        "cacheControl": "no-cache"
+      },
+      "headerBytes": 142
+    }
+  ]
+}

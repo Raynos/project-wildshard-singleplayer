@@ -1,0 +1,366 @@
+[
+  {
+    "encoding": "identity",
+    "phase": "register",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "bodyBytes": 95,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "cache-control": "max-age=0",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49523/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      },
+      {
+        "path": "/sw-core/2fbaa4b09021da4ea70cb596c894b51f491a1f6ab35841c5d41de2a8702ef7ab.js",
+        "status": 200,
+        "bodyBytes": 57865,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "cache-control": "max-age=0",
+          "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+          "accept": "*/*",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "no-cors",
+          "sec-fetch-dest": "script",
+          "referer": "http://127.0.0.1:49523/sw.js",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "identity",
+    "phase": "unchanged-same-page",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 304,
+        "bodyBytes": 0,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49523/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "if-none-match": "\"448db24dc42e3b4fa6633b323888cc42eab8419232f96fd052565e5c7b4a1f8e\""
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "identity",
+    "phase": "unchanged-after-cache-pressure",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "bodyBytes": 95,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49523/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      },
+      {
+        "path": "/sw-core/2fbaa4b09021da4ea70cb596c894b51f491a1f6ab35841c5d41de2a8702ef7ab.js",
+        "status": 200,
+        "bodyBytes": 57865,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "no-cors",
+          "sec-fetch-dest": "script",
+          "referer": "http://127.0.0.1:49523/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "identity",
+    "phase": "unchanged-new-page",
+    "requests": []
+  },
+  {
+    "encoding": "identity",
+    "phase": "unchanged-after-new-page",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 304,
+        "bodyBytes": 0,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49523/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "if-none-match": "\"448db24dc42e3b4fa6633b323888cc42eab8419232f96fd052565e5c7b4a1f8e\""
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "identity",
+    "phase": "changed-core",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "bodyBytes": 95,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49523/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "if-none-match": "\"448db24dc42e3b4fa6633b323888cc42eab8419232f96fd052565e5c7b4a1f8e\""
+        }
+      },
+      {
+        "path": "/sw-core/662c02127ac8bad38d87166467d1cf270f320605b51db4fb5ebdf037e6983034.js",
+        "status": 200,
+        "bodyBytes": 57865,
+        "requestHeaders": {
+          "host": "127.0.0.1:49523",
+          "connection": "keep-alive",
+          "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+          "accept": "*/*",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "no-cors",
+          "sec-fetch-dest": "script",
+          "referer": "http://127.0.0.1:49523/sw.js",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "identity",
+    "phase": "changed-core-reached-client",
+    "version": "other"
+  },
+  {
+    "encoding": "gzip",
+    "phase": "register",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "bodyBytes": 95,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "cache-control": "max-age=0",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49535/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      },
+      {
+        "path": "/sw-core/2fbaa4b09021da4ea70cb596c894b51f491a1f6ab35841c5d41de2a8702ef7ab.js",
+        "status": 200,
+        "bodyBytes": 344,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "cache-control": "max-age=0",
+          "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+          "accept": "*/*",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "no-cors",
+          "sec-fetch-dest": "script",
+          "referer": "http://127.0.0.1:49535/sw.js",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "gzip",
+    "phase": "unchanged-same-page",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 304,
+        "bodyBytes": 0,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49535/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "if-none-match": "\"448db24dc42e3b4fa6633b323888cc42eab8419232f96fd052565e5c7b4a1f8e\""
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "gzip",
+    "phase": "unchanged-after-cache-pressure",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "bodyBytes": 95,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49535/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      },
+      {
+        "path": "/sw-core/2fbaa4b09021da4ea70cb596c894b51f491a1f6ab35841c5d41de2a8702ef7ab.js",
+        "status": 200,
+        "bodyBytes": 344,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "no-cors",
+          "sec-fetch-dest": "script",
+          "referer": "http://127.0.0.1:49535/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "gzip",
+    "phase": "unchanged-new-page",
+    "requests": []
+  },
+  {
+    "encoding": "gzip",
+    "phase": "unchanged-after-new-page",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 304,
+        "bodyBytes": 0,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49535/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "if-none-match": "\"448db24dc42e3b4fa6633b323888cc42eab8419232f96fd052565e5c7b4a1f8e\""
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "gzip",
+    "phase": "changed-core",
+    "mode": "all",
+    "requests": [
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "bodyBytes": 95,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "service-worker": "script",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "same-origin",
+          "sec-fetch-dest": "serviceworker",
+          "referer": "http://127.0.0.1:49535/",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "if-none-match": "\"448db24dc42e3b4fa6633b323888cc42eab8419232f96fd052565e5c7b4a1f8e\""
+        }
+      },
+      {
+        "path": "/sw-core/662c02127ac8bad38d87166467d1cf270f320605b51db4fb5ebdf037e6983034.js",
+        "status": 200,
+        "bodyBytes": 343,
+        "requestHeaders": {
+          "host": "127.0.0.1:49535",
+          "connection": "keep-alive",
+          "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+          "accept": "*/*",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-mode": "no-cors",
+          "sec-fetch-dest": "script",
+          "referer": "http://127.0.0.1:49535/sw.js",
+          "accept-encoding": "gzip, deflate, br, zstd"
+        }
+      }
+    ]
+  },
+  {
+    "encoding": "gzip",
+    "phase": "changed-core-reached-client",
+    "version": "other"
+  }
+]
