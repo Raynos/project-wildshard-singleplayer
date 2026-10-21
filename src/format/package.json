@@ -47,6 +47,7 @@
     "./contracts": "./contracts.ts",
     "./bossEncounter": "./bossEncounter.ts",
     "./specimenCatalogue": "./specimenCatalogue.ts",
+    "./mountedSpecimenRows": "./mountedSpecimenRows.ts",
     "./exchange": "./exchange.ts",
     "./panelTemplate": "./panelTemplate.ts",
     "./questStory": "./questStory.ts",

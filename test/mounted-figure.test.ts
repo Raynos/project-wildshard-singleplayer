@@ -1,3 +1,5 @@
+import { parse } from 'valibot';
+import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { expect, test } from 'vitest';
 import { Bone, BoxGeometry, Skeleton } from 'three';
 import { ShepherdRider as MountedFigure } from '../src/shards/nalati-grasslands/runtime/looks/rider';
@@ -10,7 +12,7 @@ test('a marsh ferryman binds different joints and cue clocks without another cha
   const profile = { ...rows, mount: 'waist', figure: { ...rows.figure, root: 'ferryman', nodes: [
     { kind: 'group', id: 'ferryman', children: ['oar'] }, { kind: 'mesh', id: 'oar', geometry: 'oar', material: 'rider', missing: 'empty' },
   ] }, gestures: [{ cue: 'rowing', clock: 'strokeT', duration: .45 }], clips: JSON.parse(JSON.stringify(rows.clips).replaceAll('"rider"', '"ferryman"').replaceAll('"arm"', '"oar"').replaceAll('crackT', 'strokeT')) as unknown };
-  const figure = new MountedFigure(profile, new Map([['oar', geometry]]));
+  const figure = new MountedFigure(parse(MountedSpecimenSeatSchema,profile), new Map([['oar', geometry]]));
   const joint = new Bone(); joint.name = 'waist';
   figure.attach(legacyDouble<Animal>({ mesh: legacyDouble<Animal['mesh']>({ skeleton: new Skeleton([joint]) }) }));
   expect(joint.children).toContain(figure.root);

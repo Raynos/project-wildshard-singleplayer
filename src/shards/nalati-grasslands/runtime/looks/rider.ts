@@ -1,3 +1,4 @@
+import type { MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
 /**
  * The shepherd's rider (listed view code, G530 / O1): Nalati's only mounted figure, so its drawing lives here, not as a
  * one-user platform host. Two painterly meshes seated on the camp horse's `body` joint, leaning with the horse's speed and
@@ -5,23 +6,12 @@
  * joint, eased clips, cue clocks, its meshes' shadows; the shape book's shepherd geometry). The raid, its cues and the horse are the riding
  * host's; this reads them once a frame and decides nothing.
  */
-import * as v from 'valibot';
 import type { BufferGeometry, Object3D } from 'three';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
-import { ClipRowsSchema } from '@wildshard/format/kitFigure';
-import { isJsonData } from '@wildshard/format/json';
 import { shapeBook } from '@wildshard/game/models/shapeBook';
 import { playClips, type ClipCtx } from '@wildshard/game/plugin/animation';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 
-const number = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1));
-/** The rider's profile rows. */
-export const RiderProfileSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
-  mount: id, figure: PrivateSceneSchema, material: v.strictObject({ id, rim: number, bands: number }),
-  clips: ClipRowsSchema, speed: id,
-  gestures: v.pipe(v.array(v.strictObject({ cue: id, clock: id, duration: v.pipe(number, v.minValue(.01)) })), v.maxLength(16)),
-}));
 /** The rider's admitted rows: the profile file and the shape-book geometry it draws. */
 export const RIDER = { json: 'riding/mounted-figure.json', geometry: ['shepherd-body', 'shepherd-arm'] } as const;
 
@@ -32,11 +22,11 @@ interface Mount { readonly mesh: { readonly skeleton: { getBoneByName: (name: st
 
 export class ShepherdRider {
   readonly root: Object3D;
-  private readonly row: v.InferOutput<typeof RiderProfileSchema>;
+  private readonly row: MountedSpecimenSeatRows;
   private readonly frame: ClipCtx;
   private seat: Mount | null = null;
-  constructor(input: unknown, geometry: ReadonlyMap<string, BufferGeometry>) {
-    const row = this.row = v.parse(RiderProfileSchema, input);
+  constructor(input: MountedSpecimenSeatRows, geometry: ReadonlyMap<string, BufferGeometry>) {
+    const row = this.row = input;
     const material = painterlyMaterial(null, { rim: row.material.rim, bands: row.material.bands });
     const view = createClientScene(row.figure, { geometry, materials: new Map([[row.material.id, material]]) });
     this.root = view.root;
@@ -67,5 +57,5 @@ export class ShepherdRider {
 export async function loadShepherdRider(product: { readonly json: <T>(name: string) => Promise<T> }, shapes: object, own: (geometry: BufferGeometry) => void): Promise<ShepherdRider> {
   const geometry = new Map(shapeBook(shapes).geometries(RIDER.geometry));
   for (let i = 0; i < 4; i++) { const key = RIDER.geometry[i]; if (key === undefined) break; const part = geometry.get(key); if (part !== undefined) own(part); }
-  return new ShepherdRider(await product.json<unknown>(RIDER.json), geometry);
+  return new ShepherdRider(await product.json<MountedSpecimenSeatRows>(RIDER.json), geometry);
 }

@@ -352,3 +352,20 @@ This is honest charge-back ownership, with the same admitted AS weak-point refer
 Root/layer types, typed lint, real boss/slot/patrol/cue tests and entered
 product/lifetime isolation pass. No collider, payload, codec or budget
 changes. One Pine+Nalati batch covers the accumulated wiring cuts.
+
+
+X4 mounted figure admission: move the complete existing rider profile and
+specimen seat validation to the defining riding/mounted-figure.json
+schema. Typed native readers validate before constructing either view;
+keep clip, gesture-duration/count, scene and painterly material bounds.
+The seated specimen factory remains honestly Nalati-only HOST-BAR 4/6,
+C1 charged; direct relocation was refused by the callback guard and is
+not included. No callbacks, native model factories or host APIs grow.
+ShepherdRider remains listed Nalati view code 4/6. Existing named-file
+admission is real multi-shard 6/6; fixtures grant no user credit.
+Runtime TS: **Nalati -10 / platform -4**, net **-14**. Build TS **+13**,
+authored AS **0**; physical TS **-1**. Private JSON remains exactly
+**46 / 12,497,444 bytes**. Root/layer types, typed lint, five suites,
+exact POI paint/gesture pose tests, native specimen catalogue and the
+Nalati product build pass. Invalid seat/material/gesture rows refuse
+production and product read. No visual, collider, codec or budget change.
