@@ -134,3 +134,31 @@ it('shares syntax facts without merging source and output attribution',()=>{
   expect(()=>outputCensus(root)).toThrow('Missing pending platform export');
  }finally{vi.unstubAllEnvs();rmSync(root,{recursive:true,force:true});}
 });
+
+
+it.each([
+ ["import { privateWork as defining } from '@wildshard/game/implementation'; export const forwarded: typeof defining = defining;", "import { forwarded as previous } from './inner'; const local = previous; export const chosen = local;"],
+ ["export { privateWork as forwarded } from '@wildshard/game/implementation';", "export { forwarded as chosen } from './inner';"],
+ ["import * as defining from '@wildshard/game/implementation'; export const forwarded = defining.privateWork;", "import * as previous from './inner'; export const chosen = previous.forwarded;"],
+ ["import { privateWork as defining } from '@wildshard/game/implementation'; export default defining;", "import previous from './inner'; export const chosen = previous;"],
+])('follows SDK forwarding chains to the same defining declarations (%s)',(inner,outer)=>{
+ const root=mkdtempSync(join('tmp/','platform-forwarding-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./implementation':'./implementation.ts'}}));
+  put('src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',exports:{'./outer':'./outer.ts'}}));
+  put('src/game/implementation.ts','function helper() { return 1; }\nexport function privateWork() { return helper(); }\nexport function sharedWork() { return 2; }\nexport function unused() { return 3; }');
+  put('src/sdk/inner.ts',inner);put('src/sdk/outer.ts',outer);
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {privateWork} from '@wildshard/game/implementation'; export const value=privateWork();"});
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {sharedWork} from '@wildshard/game/implementation'; export const value=sharedWork();"});
+  const defining=()=>outputShardLines(root,true)['pine-hollow']?.customSources?.filter(row=>row.path==='src/game/implementation.ts');
+  const direct=defining();
+  expect(direct?.map(row=>row.name)).toEqual(['helper','privateWork']);
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {chosen} from '@wildshard/sdk/outer'; export const value=chosen();"});
+  expect(defining()).toEqual(direct);
+  // A genuine second shard using the same forwarded binding shares it;
+  // forwarding modules themselves never manufacture another shard user.
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {chosen} from '@wildshard/sdk/outer'; import {sharedWork} from '@wildshard/game/implementation'; export const value=[chosen(),sharedWork()];"});
+  expect(defining()).toEqual([]);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
