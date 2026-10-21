@@ -103,3 +103,20 @@ print(json.dumps(True))
 `], { encoding: 'utf8' });
   expect(JSON.parse(result)).toBe(true);
 });
+
+
+test('build and gate children retain the normal caller priority', () => {
+  const result = execFileSync('python3', ['-c', `
+import json, os, pathlib, subprocess, sys, tempfile
+repo = pathlib.Path.cwd()
+with tempfile.TemporaryDirectory(prefix='priority-test-', dir=repo / 'tmp') as temporary:
+ env = {k:v for k,v in os.environ.items() if not k.startswith('WS_HEAVY_')}
+ env['WS_HEAVY_ROOT'] = temporary
+ parent = os.getpriority(os.PRIO_PROCESS, 0)
+ for kind in ('build','gate'):
+  child = subprocess.run([sys.executable,str(repo/'scripts/heavy-lane.py'),kind,'--',sys.executable,'-c','import os; print(os.getpriority(os.PRIO_PROCESS, 0))'],env=env,capture_output=True,text=True,check=True)
+  assert int(child.stdout) == parent, (kind, parent, child.stdout, child.stderr)
+print(json.dumps(True))
+`], { encoding: 'utf8' });
+  expect(JSON.parse(result)).toBe(true);
+});

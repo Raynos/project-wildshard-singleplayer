@@ -318,9 +318,10 @@ def main():
                'WS_HEAVY_SCHEDULER_ROOT': str(root)}
         if args.kind == 'gate':
             env['WS_HEAVY_GATE'] = '1'
-        # Owned heavy commands and their descendants yield CPU to interactive lanes.
-        # Nested wrappers reuse the lease and inherit this priority without adding it again.
-        child = subprocess.Popen(['nice', '-n', '10', *command], env=env, start_new_session=True,
+        # Build leases already bound concurrency; keep their normal CPU priority.
+        # Full tests yield CPU, and nested wrappers inherit the owner's priority.
+        launch = command if 'build' in resources else ['nice', '-n', '10', *command]
+        child = subprocess.Popen(launch, env=env, start_new_session=True,
                                  pass_fds=tuple(fd.fileno() for fd in held))
         entry['childPid'] = child.pid
         with scheduler(root):
