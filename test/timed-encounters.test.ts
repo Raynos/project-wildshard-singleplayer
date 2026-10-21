@@ -8,7 +8,6 @@ import { Scope } from '../src/engine/app/scope';
 import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import type { DayCycleClock } from '../src/engine/world/dayCycle';
-import type { PageCreatureGuest } from '../src/game/population/creatureGuest';
 import { TimedEncounters } from '../src/game/boss/timedEncounters';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { legacyDouble } from './fake/FakeGame';
@@ -27,7 +26,7 @@ test('a marsh watch composes its own phases, native identities, figures and cont
   try {
     const clock = legacyDouble<DayCycleClock>({ dayPhase: 'day' });
     const watch = new TimedEncounters({ game, player: legacyDouble<Player>({ position: new Vector3(1, 0, 2) }), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, clock },
-      parse(TimedEncountersSchema,rows), { rider: figure, captain: figure, storm: figure }, legacyDouble<PageCreatureGuest>({ weakPoint: () => false }), new CueDirector(game, night.cues, scope));
+      parse(TimedEncountersSchema,rows), { rider: figure, captain: figure, storm: figure }, { weakPoint: () => false }, new CueDirector(game, night.cues, scope));
     expect(watch.slots).toBeDefined(); expect(watch.riders).toBeDefined();
     expect(watch.target(new Vector3(), new Vector3(0, 0, 1), 10, null)).toBeNull();
     watch.update(.05, .05);

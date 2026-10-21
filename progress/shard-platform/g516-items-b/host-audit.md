@@ -314,3 +314,19 @@ pass. Malformed compact attributes, oversized catalogue, crack indices
 and material rows refuse both production and product read. The old
 constructor-only callback refusal now runs at the defining admission.
 No collider descriptors, rendering, style, resource bounds or budgets change.
+
+
+X4 balbal binding: delete the complete PageCreatureGuest game module.
+The actual Nalati balbal lends its native observations and contact runner
+directly to the same admitted AS; no instantiable pretend shared host or
+arbitrary input API remains. Preserve per-actor ten-Hz clock, memory,
+movement, sound, strikes, translated/scaled/lifted weak points and damage.
+Native view/observation code remains Nalati-only HOST-BAR 4/6, fully
+counted. ReturnProgram remains the existing real multi-shard host 6/6;
+its ABI, clocks, implementation and bounds do not change.
+Runtime TS: **Nalati +51 / platform -62**, net **-11**. Build/AS/data **0**.
+Retire the deleted module's C4 charge only; native code is directly
+owned. The cadence test now drives the actual balbal binding rather
+than a configurable orchard wrapper; keep all exact weak-point cases
+and real boss victories. Root/layer types, typed lint and focused suites
+pass. No collider, visual, schema, codec, resource or budget changes.

@@ -27,7 +27,6 @@
     "./looks/forestRoofMask": "./looks/forestRoofMask.ts",
     "./looks/forestWeather": "./looks/forestWeather.ts",
     "./looks/forestGround": "./looks/forestGround.ts",
-    "./population/creatureGuest": "./population/creatureGuest.ts",
     "./quest/nativeInputs": "./quest/nativeInputs.ts",
     "./quest/nativeComposition": "./quest/nativeComposition.ts",
     "./boss/roamingProjection": "./boss/roamingProjection.ts",

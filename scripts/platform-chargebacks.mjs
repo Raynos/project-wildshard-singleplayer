@@ -3,7 +3,6 @@
 /** @type {Map<string,import('./shard-components.mjs').Component>} */
 const modules = new Map([
   ...['game/boss/arenaScript', 'game/boss/arenaField',
-    'game/population/creatureGuest',
     'format/creatureGuest'].map(path => [`src/${path}.ts`, 'C4']),
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
   ['src/game/models/mountedSpecimen.ts', 'C1'],

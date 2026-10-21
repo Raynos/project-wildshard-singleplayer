@@ -16,8 +16,10 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { CueDirector } from '../audio/cueDirector';
 import { ReturnProgram } from '../population/returnProgram';
 import { wildEnv } from '../population/pageGroups';
-import type { PageCreatureGuest } from '../population/creatureGuest';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
+
+interface CreatureObservation {readonly weakPoint:(actor:Animal,point:Vector3)=>boolean}
 
 interface TimedEncounterContext {
   readonly game: Game; readonly sky: SkyRig; readonly player: Player; readonly forest: Forest;
@@ -30,7 +32,7 @@ export class TimedEncounters {
   private readonly rows; private readonly strike;
   private readonly contacts = new StrikeRunner(); private readonly direction = new Vector3();
   constructor(private readonly ctx: TimedEncounterContext, input: TimedEncountersRows,
-    figures: Readonly<Record<string, BufferGeometry>>, guest: PageCreatureGuest, private readonly cues: CueDirector) {
+    figures: Readonly<Record<string, BufferGeometry>>, guest: CreatureObservation, private readonly cues: CueDirector) {
     const rows = this.rows = input, scope = ctx.game.levelScope;
     if (scope.disposed) throw new Error('Encounter owner was disposed during admission');
     this.strike = strikeFromData(rows.contact.strike);
@@ -41,7 +43,7 @@ export class TimedEncounters {
   }
   /** Borrow declared presentation owners while the encounter keeps its clock. */
   static async install(owner: ShardContext, ctx: TimedEncounterContext, file: string,
-    figures: Readonly<Record<string, BufferGeometry>>, guest: PageCreatureGuest): Promise<TimedEncounters> {
+    figures: Readonly<Record<string, BufferGeometry>>, guest: CreatureObservation): Promise<TimedEncounters> {
     const input = await owner.product.json<TimedEncountersRows>(file);
     const presentation = clientNativeBook(owner).presentations.get(input.presentation);
     if (presentation === undefined) throw new Error('Missing declared encounter presentation');

@@ -1,27 +1,24 @@
 import { array,number,parse,tuple } from 'valibot';
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
-import { PageCreatureGuest } from '../src/game/population/creatureGuest';
+import { creatureGuest } from '../src/shards/nalati-grasslands/species/balbal';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import type { DamageRequest } from '../src/engine/combat/pipeline';
 import { legacyDouble } from './fake/FakeGame';
 import rows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type:'json' };
-import presentation from '../src/shards/nalati-grasslands/data/species.generated.json' with { type:'json' };
-import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type:'json' };
 
 const weakPoints=parse(array(tuple([number(),number(),number()])),rows.weak);
 
-test('orchard guardian guest observes native bodies at ten Hz and samples declared weak points',()=>{
-  const guest=new PageCreatureGuest({...rows.balbalGuest,program:presentation.program,strike:strikes.balbal,
-    clock:'orchardThinkAt',playerKeys:['orchardPlayerX','orchardPlayerZ']});
+test('the actual balbal binding observes native bodies at ten Hz and samples declared weak points',()=>{
+  const guest=creatureGuest();
   const actor=legacyDouble<Animal>({entityId:'orchard.guard',kind:'stone-guardian',mem:{},position:new Vector3(),yaw:0,scale:1,yOffset:0,
     state:'idle',attackPhase:-1,lookTarget:new Vector3(),lookWeight:0,startAttack:()=>undefined,cancelAttack:()=>undefined,setMotion:()=>undefined});
   const context=legacyDouble<ThinkCtx>({dt:.02,t:.02,player:new Vector3(10,0,0),calm:false,steer:()=>undefined,reach:()=>true,hurt:()=>undefined,sound:()=>undefined});
-  guest.binding.think(actor,context);expect(actor.mem['orchardThinkAt']).toBe(.02);expect(actor.mem['balbalThinkAt']).toBeUndefined();
+  guest.binding.think(actor,context);expect(actor.mem['balbalThinkAt']).toBe(.02);expect(actor.mem['orchardThinkAt']).toBeUndefined();
   const before={...actor.mem};context.t=.08;guest.binding.think(actor,context);expect(actor.mem).toEqual(before);
-  context.t=.12;guest.binding.think(actor,context);expect(actor.mem['orchardThinkAt']).toBe(.12);
-  actor.mem['orchardPlayerX']=0;actor.mem['orchardPlayerZ']=0;
+  context.t=.12;guest.binding.think(actor,context);expect(actor.mem['balbalThinkAt']).toBe(.12);
+  actor.mem['balbalPlayerX']=0;actor.mem['balbalPlayerZ']=0;
   const weak=weakPoints[0];if(weak===undefined)throw new Error('Missing authored weak point');
   const point=new Vector3(...weak),direction=new Vector3();expect(guest.weakPoint(actor,point)).toBe(true);expect(guest.weakPoint(actor,new Vector3(2,1,0))).toBe(false);
   expect(guest.binding.damageMul(actor,point,direction,legacyDouble<DamageRequest>({sourceTags:['weapon.javelin']}))).toBe(2.5);
@@ -32,7 +29,7 @@ test('orchard guardian guest observes native bodies at ten Hz and samples declar
 
 
 test('authored weak-point query preserves yaw, body lift, scale and strict radius',()=>{
-  const guest=new PageCreatureGuest({...rows.balbalGuest,program:presentation.program,strike:strikes.balbal});
+  const guest=creatureGuest();
   const actor=legacyDouble<Animal>({mem:{},position:new Vector3(12,-3,8),yaw:.7,scale:2.75,yOffset:.3});
   const world=(x:number,y:number,z:number):Vector3=>new Vector3(
     actor.position.x+actor.scale*(x*Math.cos(actor.yaw)+z*Math.sin(actor.yaw)),
