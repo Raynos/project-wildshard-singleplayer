@@ -11,7 +11,7 @@ export interface ContentCachePorts {
   origin: string; hash: (bytes: Uint8Array) => Promise<string>;
   estimate?: () => Promise<{ usage?: number; quota?: number }>;
   maxBytes?: number; maxEntries?: number; reserveBytes?: number; now?: () => number;
-  /** Optional lifecycle listener; installed only while read ages are dirty, removed after a flush. */
+  /** Optional lifecycle listener; installed only while metadata is dirty, removed after a flush. */
   pagehide?: EventTarget;
 }
 /** Aggregate wire bytes on disk; decoded CPU/GPU allocations belong to their session owners. */
@@ -98,7 +98,7 @@ export class ContentCache {
     await this.metadata(cache); return cache;
   }
   private statsNow(): ContentCacheStats { const values = Object.values(this.index); return { entries: values.length, bytes: values.reduce((sum, entry) => sum + entry.bytes, 0) }; }
-  private readAgeChanged(): void {
+  private metadataChanged(): void {
     this.dirty = true;
     if (this.flushTimer !== undefined) return;
     const target = this.ports.pagehide;
@@ -108,7 +108,7 @@ export class ContentCache {
     }
     this.flushTimer = this.scope.timeout(2000, () => { this.flushTimer = undefined; void this.flush(); });
   }
-  /** Coalesce read-age writes; explicit writes/evictions and pagehide flush without waiting for the read window. */
+  /** Coalesce index writes; immutable blob writes remain durable before returning. Pagehide/close force the index. */
   flush(): Promise<void> {
     if (this.pendingFlush !== undefined) return this.pendingFlush;
     const pending = this.serial(async () => {
@@ -130,7 +130,7 @@ export class ContentCache {
     const victim = Object.entries(this.index).filter(([hash]) => hash !== except && !this.pinned.has(hash))
       .sort(([a, left], [b, right]) => left.used - right.used || (a < b ? -1 : a > b ? 1 : 0))[0];
     if (victim === undefined) return false;
-    await cache.delete(this.key(victim[0])); delete this.index[victim[0]]; return true;
+    await cache.delete(this.key(victim[0])); delete this.index[victim[0]]; this.metadataChanged(); return true;
   }
   private async budget(): Promise<number> {
     const estimate = await this.ports.estimate?.().catch(() => undefined);
@@ -145,12 +145,12 @@ export class ContentCache {
     return this.serial(async () => {
       const cache = await this.open().catch(() => undefined); if (cache === undefined) return null;
       const response = await cache.match(key);
-      if (response === undefined) { if (this.index[hash] !== undefined) { delete this.index[hash]; await this.metadata(cache); } return null; }
+      if (response === undefined) { if (this.index[hash] !== undefined) { delete this.index[hash]; this.metadataChanged(); } return null; }
       let bytes: Uint8Array;
       try { bytes = await read(response, MAX_FILE); }
-      catch { await cache.delete(key); delete this.index[hash]; await this.metadata(cache); return null; }
-      if (await this.ports.hash(bytes) !== hash) { await cache.delete(key); delete this.index[hash]; await this.metadata(cache); return null; }
-      this.index[hash] = { bytes: bytes.length, used: this.used() }; this.readAgeChanged(); return bytes;
+      catch { await cache.delete(key); delete this.index[hash]; this.metadataChanged(); return null; }
+      if (await this.ports.hash(bytes) !== hash) { await cache.delete(key); delete this.index[hash]; this.metadataChanged(); return null; }
+      this.index[hash] = { bytes: bytes.length, used: this.used() }; this.metadataChanged(); return bytes;
     });
   }
   /** Refuses mismatched bytes. Unavailable disk capacity returns false while an online load can still continue. */
@@ -163,15 +163,15 @@ export class ContentCache {
       if (bytes.length > budget || this.entries === 0) return false;
       const before = this.index[hash], used = this.used();
       while (this.statsNow().bytes - (before?.bytes ?? 0) + bytes.length > budget || this.statsNow().entries + Number(before === undefined) > this.entries) {
-        if (!await this.evict(cache, hash)) { await this.metadata(cache); return false; }
+        if (!await this.evict(cache, hash)) return false;
       }
       for (;;) {
         try { await cache.put(key, new Response(bytes, { headers: { 'x-ws-bytes': String(bytes.length), 'x-ws-used': String(used) } })); break; }
         catch (error) {
-          if (typeof error !== 'object' || error === null || !('name' in error) || error.name !== 'QuotaExceededError' || !await this.evict(cache, hash)) { await this.metadata(cache); return false; }
+          if (typeof error !== 'object' || error === null || !('name' in error) || error.name !== 'QuotaExceededError' || !await this.evict(cache, hash)) return false;
         }
       }
-      this.index[hash] = { bytes: bytes.length, used }; await this.metadata(cache); return true;
+      this.index[hash] = { bytes: bytes.length, used }; this.metadataChanged(); return true;
     });
   }
   /** One network read per concurrent immutable address; offline misses never try the network. */
