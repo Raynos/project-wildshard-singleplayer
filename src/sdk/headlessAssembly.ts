@@ -132,7 +132,11 @@ function evaluate(value: Value, env: Environment): unknown {
     const requireGround = (): void => { if (!hasStaticGround(host.physics)) throw new Error('Native body scripts require admitted ground'); };
     if (context.restoring) onSimHostRestored(host, requireGround);
     else requireGround();
-    const sections = new Map<string, unknown>([['sim/scripts', product.section('sim/scripts')], ['sim/bodies', product.section('sim/bodies')]]);
+    // The native continuation includes all admitted decision registries, even
+    // when this guest only writes bodies. Keep the legacy full contract.
+    const sections = new Map<string, unknown>();
+    for (const name of ['sim/scripts', 'sim/bodies', 'actors/moves', 'actors/strikes', 'world/targets', 'sim/runtime-plan'] as const)
+      if (product.has(name)) sections.set(name, product.section(name));
     installNativeBodyScripts(host, product.shardfile, preparation.assets, context.restoring, sections);
     return undefined;
   }

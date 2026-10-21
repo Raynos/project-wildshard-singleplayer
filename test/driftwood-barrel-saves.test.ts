@@ -38,7 +38,10 @@ let nativePlan: HeadlessRuntimePlan;
 beforeAll(async () => {
   const built = await compileDecisionScripts([{ ...watch, params }], declaredBodyRegistries(bodies), new Map([[watch.source, barrelSource]]), { asLineCeiling: 200 });
   const [row] = built.rows, [blob] = built.blobs; if (row === undefined || blob === undefined) throw new Error('Missing barrel program');
-  sections = new Map<string, unknown>([['sim/scripts', parseDecisionScripts([row])], ['sim/bodies', bodies]]);
+  sections = new Map<string, unknown>([['sim/scripts', parseDecisionScripts([row])], ['sim/bodies', bodies],
+    // This admitted registry is outside sim/bodies but is still part of the
+    // exact legacy decision contract carried by the barrel's save envelope.
+    ['world/targets', { targets: [], spots: [{ id: 'fixture.unchanged', at: [3, 4, 5], yaw: .25 }] }]]);
   assets = new Map([[row.module.slice('blobs/wasm/'.length, -'.wasm'.length), blob.bytes]]);
   const declaration = { version: 1, modules: {}, constants: {}, prepare: [],
     install: [{ name: 'bodyScripts', value: { $native: 'native.body-scripts' } }],
@@ -120,7 +123,7 @@ test('a migrated save restores into a fresh host with the same body count, handl
 });
 
 
-test('the finite body capability preserves the old callable phase and snapshot bytes', async () => {
+test('the finite body capability preserves full legacy registries, phases and snapshot bytes', async () => {
   const R = await rapier, builtinHost = createSimHost(level, { rapier: R }), callable = createSimHost(level, { rapier: R });
   try {
     migrated(builtinHost, false); migrated(callable, false, false);
