@@ -48,6 +48,12 @@ export function pineGeography() {
   return { forest, stream, creek: { lines, dam, riffle: p.riffle, lead, crest, depth, halfWidth, run, bed } };
 }
 
+/** G4: the beaver pool's reach as a declared clip (game `declaredStreamClip`): within 12 m of the creek, riffle to dam face */
+export function pondClip(geography = pineGeography()) {
+  const { lines, riffle, dam, lead } = geography.creek;
+  return { lines, within: 12, from: riffle, to: dam - lead };
+}
+
 /** the beaver pool's live water level (world/beaverPool.ts publishes it) */
 export const POOL_LEVEL = 'pine-hollow.beaver-pool';
 
@@ -102,5 +108,6 @@ if (import.meta.main) {
   const writer = byteWriter(process.argv.includes('--check'), 'pine-geography'), geography = pineGeography();
   writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes(geography, 0));
   writer.put(fileURLToPath(new URL('../data/ground.generated.json', import.meta.url)), jsonBytes(pineGround(geography), 0));
+  writer.put(fileURLToPath(new URL('../data/pondClip.generated.json', import.meta.url)), jsonBytes(pondClip(geography), 0));
   writer.finish();
 }

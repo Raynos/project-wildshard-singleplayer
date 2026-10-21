@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW } from './contentBounds';
 import { WaterSchema } from './water';
+import { StreamLinesSchema } from './populationEnvironment';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(7));
@@ -57,3 +58,11 @@ export const GroundRowsSchema = v.strictObject({
   paths: v.exactOptional(v.literal('plugin')),
 });
 export type GroundRows = v.InferOutput<typeof GroundRowsSchema>;
+
+const finite = v.pipe(v.number(), v.finite());
+/** A declared forest's exact candidate answers (the manifest's `forestQueries`, G4): every jittered sample's density, scale
+ *  and species mix, read from a generated geography file's `forest` rows (its other rows are not read). */
+export const ForestRowsSchema = v.object({ forest: v.pipe(v.array(v.strictObject({ x: finite, z: finite, density: finite,
+  scale: finite, species: v.record(v.pipe(v.string(), v.minLength(1), v.maxLength(64)), finite) })), v.maxLength(65536)) });
+/** A declared clip (the manifest's `pondClip`, G4): the cells strictly within `within` of a centreline, between arcs. */
+export const StreamClipSchema = v.strictObject({ lines: StreamLinesSchema, within: v.pipe(finite, v.minValue(0)), from: finite, to: finite });

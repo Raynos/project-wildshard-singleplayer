@@ -2,10 +2,10 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import pine from '../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
-import { inBeaverPool, FOREST_QUERIES } from '../src/shards/pine-hollow/world/terrain';
+import clipRows from '../src/shards/pine-hollow/data/pondClip.generated.json' with { type: 'json' };
 import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
 import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };
-import { declaredGround } from '../src/game/shard/manifest';
+import { declaredForestQueries, declaredGround, declaredStreamClip } from '../src/game/shard/manifest';
 import { setLiveWaterLevel } from '../src/engine/world/water/declared';
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';
 import geography from '../src/shards/pine-hollow/data/geography.generated.json' with { type: 'json' };
@@ -23,6 +23,7 @@ it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {
 });
 
 const creek = declaredGround(groundRows).water?.find(body => body.id === 'creek');
+const FOREST_QUERIES = declaredForestQueries(geography), inBeaverPool = declaredStreamClip(clipRows);
 const POOL = 'pine-hollow.beaver-pool';
 
 it('keeps the declared creek under the live beaver pool level', () => {

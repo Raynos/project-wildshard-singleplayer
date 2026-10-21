@@ -7,10 +7,12 @@ const point = v.strictObject({ x: finite, z: finite });
 const line = v.strictObject({ from: finite, to: finite, start: finite, offset: finite, span: v.pipe(finite, v.minValue(Number.MIN_VALUE)) });
 const profile = v.strictObject({ pieces: v.pipe(v.array(v.strictObject({ until: finite, line })), v.maxLength(64)), last: line });
 const value = v.strictObject({ profile, add: finite, level: v.exactOptional(key) });
+/** A projected centreline's segments (`streamProjection` reads them): each start, its run, squared length and arc start. */
+export const StreamLinesSchema = v.pipe(v.array(v.strictObject({ ...point.entries, vx: finite, vz: finite, l2: v.pipe(finite, v.minValue(0)), arc: finite, length: finite })), v.minLength(1), v.maxLength(1024));
 /** A projected water corridor selects an ordered surface band along its centreline.
  * Profiles retain their original arithmetic order; ties retain the first segment. */
 const stream = v.strictObject({ halfWidth: v.pipe(finite, v.minValue(0)),
-  lines: v.pipe(v.array(v.strictObject({ ...point.entries, vx: finite, vz: finite, l2: v.pipe(finite, v.minValue(0)), arc: finite, length: finite })), v.minLength(1), v.maxLength(1024)),
+  lines: StreamLinesSchema,
   bands: v.pipe(v.array(v.strictObject({ until: finite, inclusive: v.boolean(), values: v.pipe(v.array(value), v.minLength(1), v.maxLength(8)) })), v.maxLength(64)),
   last: v.pipe(v.array(value), v.minLength(1), v.maxLength(8)),
 });

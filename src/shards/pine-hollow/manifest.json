@@ -206,6 +206,20 @@
     "desktop": {
       "pointLightSkip": true,
       "textures": "ktx2"
+    },
+    "grid": {
+      "phone": {
+        "treeHiDist": 45,
+        "treeLoDist": 97.5,
+        "treeTwigDist": 18,
+        "pine.cabinDetailDist": 52.5,
+        "animalHideDist": 112.5,
+        "animalShadowDist": 45,
+        "animalEyeDist": 33.75,
+        "animalOneDrawDist": 75,
+        "shadowFar": 45,
+        "pickupOrbDist": 90
+      }
     }
   },
   "atmosphere": {
@@ -393,6 +407,7 @@
     "bark": "pine_bark",
     "twigAtlas": "pine_tree_01",
     "set": "pine-hollow-trees",
+    "treeSet": "world/tree-set.json",
     "setVariants": [
       {
         "name": "pine-a",
@@ -773,20 +788,18 @@
       }
     },
     "forestQueries": {
-      "module": "./world/terrain",
-      "export": "FOREST_QUERIES"
-    },
-    "tierPolicy": {
-      "module": "./world/terrain",
-      "export": "pineTiers"
-    },
-    "treeFactory": {
-      "module": "./world/treeFactory",
-      "export": "pineFactory"
+      "platform": "declared",
+      "rows": {
+        "module": "./data/geography.generated.json",
+        "export": "default"
+      }
     },
     "pondClip": {
-      "module": "./world/terrain",
-      "export": "inBeaverPool"
+      "platform": "declared",
+      "rows": {
+        "module": "./data/pondClip.generated.json",
+        "export": "default"
+      }
     },
     "ktx2": {
       "module": "./runtime/boot/gpuTable",

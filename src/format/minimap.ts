@@ -196,15 +196,17 @@ const bindingModule = v.pipe(text, v.regex(/^\.\/[a-zA-Z0-9_-]+(?:[./][a-zA-Z0-9
 const bindingName = v.pipe(text, v.regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u));
 const binding = v.strictObject({module: bindingModule, export: bindingName});
 const moduleBinding = v.strictObject({module: bindingModule});
+/** G4: rows a shard generates for the game to build from (`declaredGround`, `declaredForestQueries`, `declaredStreamClip`) */
+const declared = v.strictObject({ platform: v.literal('declared'), rows: binding });
 const bindings = v.strictObject({
   accent: text, budgets: binding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(binding),
   mapPalette: v.exactOptional(binding), poses: v.exactOptional(binding), audioCues: v.exactOptional(binding),
   boot: v.exactOptional(v.strictObject({files: binding, sources: binding, lateReads: v.exactOptional(binding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding)})),
-  forestQueries: v.exactOptional(binding), treeFactory: v.exactOptional(binding), tierPolicy: v.exactOptional(binding),
-  pondClip: v.exactOptional(binding), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule })])), audioPreload: v.exactOptional(binding),
+  forestQueries: v.exactOptional(v.union([binding, declared])),
+  pondClip: v.exactOptional(v.union([binding, declared])), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
   entry: v.exactOptional(v.strictObject({ legacy: bindingModule, retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']) })),
-  ground: v.exactOptional(v.union([binding, v.strictObject({ platform: v.literal('declared'), rows: binding })])), render: v.exactOptional(v.union([binding, v.strictObject({ platform: v.picklist(['painted', 'toon']) })])), load: v.exactOptional(moduleBinding),
+  ground: v.exactOptional(v.union([binding, declared])), render: v.exactOptional(v.union([binding, v.strictObject({ platform: v.picklist(['painted', 'toon']) })])), load: v.exactOptional(moduleBinding),
   ktx2: v.exactOptional(v.union([moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
 });
 const tier = v.objectWithRest({aa: v.exactOptional(v.picklist(['fxaa', 'smaa', 'off'])),
@@ -227,7 +229,9 @@ export const ManifestMetadataSchema = v.strictObject({
   fight: v.exactOptional(v.strictObject({maxHitDamage: v.exactOptional(number), capExempt: v.exactOptional(strings), attackers: v.exactOptional(number), telegraphed: v.exactOptional(v.boolean()),
     input: v.exactOptional(v.strictObject({bufferMs: number, coyoteMs: number}))})),
   creatures: v.exactOptional(v.strictObject({lowPoly: v.boolean(), waitForModels: v.boolean(), furRim: v.boolean(), tintRange: number, oneMaterial: v.boolean()})),
-  tiers: v.exactOptional(v.strictObject({phone: v.exactOptional(tier), desktop: v.exactOptional(tier)})),
+  // `grid`: rows laid over each tier's while the page is a grid cell (G4; read when the level applies its row)
+  tiers: v.exactOptional(v.strictObject({phone: v.exactOptional(tier), desktop: v.exactOptional(tier),
+    grid: v.exactOptional(v.strictObject({phone: v.exactOptional(tier), desktop: v.exactOptional(tier)}))})),
   loot: v.exactOptional(v.strictObject({coins: v.exactOptional(v.boolean())})),
   hud: v.exactOptional(v.strictObject({bands: v.pipe(v.array(v.picklist(['band.1', 'band.2', 'band.3', 'band.4', 'band.5', 'band.6'])), v.maxLength(6))})),
   bag: v.exactOptional(v.strictObject({tabs: strings, pack: v.strictObject({slots: number, keeps: v.exactOptional(strings)})})),
@@ -241,7 +245,7 @@ export const ManifestMetadataSchema = v.strictObject({
   biome: text, blurb: text, card: v.strictObject({ thumb: image, portrait: image, landscape: image }),
   style: text, kitLook: v.picklist(['toon', 'painterly', 'pbr']), hands: v.exactOptional(v.picklist(['toon', 'pbr'])),
   weapon: v.picklist(['crossbow', 'sword', 'custom']), treeCount: v.pipe(number, v.integer(), v.minValue(0)),
-  trees: v.strictObject({ factory: v.exactOptional(v.literal('none')), noun: text, bark: v.exactOptional(text), twigAtlas: v.exactOptional(text), set: v.exactOptional(text), drawnBy: v.exactOptional(v.literal('model')),
+  trees: v.strictObject({ factory: v.exactOptional(v.literal('none')), noun: text, bark: v.exactOptional(text), twigAtlas: v.exactOptional(text), set: v.exactOptional(text), treeSet: v.exactOptional(text), drawnBy: v.exactOptional(v.literal('model')),
     setVariants: v.exactOptional(v.array(v.strictObject({name: text, species: text, height: number, trunk: number, collider: number}))) }),
   assetGlobs: v.pipe(v.array(text), v.maxLength(128)),
   spawn: v.strictObject({ x: number, y: v.exactOptional(number), z: number, yaw: number }),

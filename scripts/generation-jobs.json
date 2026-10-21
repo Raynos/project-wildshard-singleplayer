@@ -1116,11 +1116,13 @@
       ],
       "outputs": [
         "src/shards/pine-hollow/data/geography.generated.json",
-        "src/shards/pine-hollow/data/ground.generated.json"
+        "src/shards/pine-hollow/data/ground.generated.json",
+        "src/shards/pine-hollow/data/pondClip.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/pine-hollow/data/geography.generated.json",
-        "src/shards/pine-hollow/data/ground.generated.json"
+        "src/shards/pine-hollow/data/ground.generated.json",
+        "src/shards/pine-hollow/data/pondClip.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": [

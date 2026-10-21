@@ -22,7 +22,9 @@ import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
-import { GroundRowsSchema } from '@wildshard/format/terrain';
+import { ForestRowsSchema, GroundRowsSchema, StreamClipSchema } from '@wildshard/format/terrain';
+import { streamProjection } from '@wildshard/format/populationEnvironment';
+import { currentPageMode } from '../grid/pageMode';
 import * as v from 'valibot';
 
 import type { AccentId } from '@wildshard/format/accent';
@@ -694,6 +696,23 @@ export function declaredGround(input: unknown): ShardManifest['ground'] {
   return { ...(rows.paths === undefined ? {} : { paths: rows.paths }), terrain, water };
 }
 
+/** A declared forest's queries (`ForestRowsSchema`, G4): each exact jittered candidate answers from its generated row. */
+export function declaredForestQueries(input: unknown): Required<Pick<ChunkForest, 'density' | 'scale' | 'species'>> {
+  const at = new Map(v.parse(ForestRowsSchema, input).forest.map(row => [`${String(row.x)},${String(row.z)}`, row]));
+  const row = (x: number, z: number) => {
+    const found = at.get(`${String(x)},${String(z)}`);
+    if (found === undefined) throw new Error('Forest candidate differs from its declared rows');
+    return found;
+  };
+  return { density: (x, z) => row(x, z).density, scale: (x, z) => row(x, z).scale, species: (x, z) => row(x, z).species };
+}
+
+/** A declared clip (`StreamClipSchema`, G4): the cells strictly within `within` of its centreline between arcs `from`, `to`. */
+export function declaredStreamClip(input: unknown): (x: number, z: number) => boolean {
+  const rows = v.parse(StreamClipSchema, input);
+  return (x, z) => { const n = streamProjection(rows.lines, x, z); return n.d < rows.within && n.s >= rows.from && n.s <= rows.to; };
+}
+
 /** Authored terrain, or the analytic placement floor for a structures-only manifest (y = -1000 m). */
 export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): ChunkTerrain {
   return terrainFieldFor(manifest.ground, manifest.slug);
@@ -706,9 +725,7 @@ export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetada
   readonly mapPalette?: MapPaletteRow;
   readonly audioBindings?: Pick<NonNullable<ShardManifest['audio']>, 'cues' | 'preload'>;
   readonly bootBindings?: Pick<BootSpec, 'files' | 'sources' | 'lateReads' | 'bakedUnread' | 'audio'>;
-  readonly treeFactory?: ChunkTrees['factory'];
   readonly forestQueries?: Pick<ChunkForest, 'density' | 'scale' | 'species'>;
-  readonly tierPolicy?: (rows: Required<TierOverrides>) => TierOverrides;
 };
 /** Validate authored metadata, resolve literal bundled image imports and compose
  * the unchanged native boot owners. Missing source images refuse admission. */
@@ -721,7 +738,7 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     if (url === undefined) throw new Error('Manifest source image is not bundled');
     return url;
   };
-  const { mapPalette: palette, audioBindings, bootBindings, treeFactory, forestQueries, tierPolicy, poses, ...bindings } = rows;
+  const { mapPalette: palette, audioBindings, bootBindings, forestQueries, poses, ...bindings } = rows;
   const preload=audioBindings?.preload??(data.audio.catalogue===true?async()=>{
     const {productAudioCatalogue}=await import('../shardfile/audioCatalogue');return productAudioCatalogue(slug);
   }:undefined);
@@ -729,16 +746,23 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     const {productAudioFiles}=await import('../shardfile/audioCatalogue');return productAudioFiles(slug);
   }:undefined);
   const compare = data.explore.compare?.map(row => ({...row, live: image(row.live), image: image(row.image)}));
-  const factory = treeFactory ?? data.trees.factory;
+  // a declared tree set (its product's rows file) builds on the game's tree set factory
+  const set = data.trees.treeSet;
+  const factory: ChunkTrees['factory'] | undefined = set === undefined ? data.trees.factory : async () => {
+    const { productTreeSet, TreeSetFactory } = await import('../models/treeSet');
+    return async (renderer) => new TreeSetFactory(renderer, await productTreeSet(slug, set)).build();
+  };
   if (factory === undefined) throw new Error('Manifest trees have no declared factory');
   const trees: ChunkTrees = {...data.trees, factory};
   const spawns = data.spawns ?? bindings.spawns;
   if (spawns === undefined) throw new Error('Manifest has no declared spawn inventory');
-  const tiers = (() => {
-    if (tierPolicy === undefined) return data.tiers;
-    const {phone, desktop} = data.tiers ?? {};
-    if (phone === undefined || desktop === undefined) throw new Error('Manifest tier policy requires both tier rows');
-    return tierPolicy({phone, desktop});
+  const tiers = ((): TierOverrides | undefined => {
+    const {grid, phone, desktop} = data.tiers ?? {};
+    if (grid === undefined) return data.tiers;
+    if (phone === undefined || desktop === undefined) throw new Error('Manifest grid tier rows require both tier rows');
+    // read when the level applies its row: the page mode is decided at boot, after discovery
+    return { get phone() { return currentPageMode() === 'grid' ? {...phone, ...grid.phone} : phone; },
+      get desktop() { return currentPageMode() === 'grid' ? {...desktop, ...grid.desktop} : desktop; } };
   })();
   if (bootData !== undefined && bootBindings === undefined) throw new Error('Manifest boot inventory has no native binding');
   return defineShard({ ...bindings, ...data, slug, trees, spawns,

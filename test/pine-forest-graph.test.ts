@@ -6,7 +6,7 @@ import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { t
 import { authoredGraphs } from './fixtures/authoredGraphs';
 
 const FOREST_GRAPHS = authoredGraphs(lookGraphs.views);
-/** each look's lent textures (world/treeFactory.ts): the bark arrays, the card and impostor atlases */
+/** each look's lent textures (the manifest's tree set, game models/treeSet.ts): the bark arrays, the card and impostor atlases */
 const FOREST_TEXTURES = { bark: ['barkMap', 'barkNormal', 'barkArm'], cards: ['cardMap', 'cardNormal', 'cardArm'], far: ['farMap', 'farNormal'] };
 
 test("Pine's forest graphs validate in their budgets and compile swayed, dissolving trees with lent textures", () => {
