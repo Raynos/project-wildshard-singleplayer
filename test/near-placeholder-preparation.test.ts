@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BoxGeometry, BufferAttribute, BufferGeometry, Group } from 'three';
 import { installFarProxy, type FarProxyView } from '../src/game/grid/farView';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { NearPlaceholders, type NearPlaceholderHost } from '../src/game/grid/nearPlaceholderView';
+import { bakedNearFiles, NearPlaceholders, type NearPlaceholderHost } from '../src/game/grid/nearPlaceholderView';
 
 function fixture() {
   const root = new Group(), geometry = new BoxGeometry(), allocator = new ResidencyAllocator();
@@ -60,4 +60,28 @@ test('proxy installation publishes the same exact packed sphere', () => {
   expect(view.mesh.parent).toBe(root);
   expect(geometry.boundingBox).toBeNull();
   view.dispose(); oracle.dispose();
+});
+
+
+test('legacy near requests require a complete published asset pair', () => {
+  const row = '/assets/baked/content/near.json', mesh = '/assets/baked/content/near.glb';
+  expect(bakedNearFiles('content', {})).toBeNull();
+  expect(bakedNearFiles('content', { [row]: 100 })).toBeNull();
+  expect(bakedNearFiles('content', { [mesh]: 200 })).toBeNull();
+  expect(bakedNearFiles('content', { [row]: 100, [mesh]: 200 })).toEqual({ row, mesh });
+});
+
+test('a missing near view keeps the far proxy and is not repeatedly requested', async () => {
+  const root = new Group(), load = vi.fn(() => Promise.reject(new Error('No declared near placeholder'))), cover = vi.fn();
+  const near = new NearPlaceholders({ allocator: new ResidencyAllocator(), root: () => root, pitch: 555,
+    cells: [{ instance: 'cell', slug: 'content', cell: [0, 0], origin: { x: 0, y: 0, z: 0 } }],
+    load, cover: (instance, covered) => { cover(instance, covered); }, mask: () => new Set<number>() });
+  try {
+    near.update({ x: 0, z: 0 }, null); await Promise.resolve();
+    near.update({ x: 0, z: 0 }, null); await Promise.resolve();
+    expect(load).toHaveBeenCalledOnce();
+    expect(cover).not.toHaveBeenCalled();
+    expect(root.children).toHaveLength(0);
+    expect(near.state().cells).toEqual([{ instance: 'cell', shows: 'none' }]);
+  } finally { near.dispose(); }
 });

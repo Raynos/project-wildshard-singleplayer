@@ -26,6 +26,7 @@ import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
 import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
+import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { StepProgress } from '@wildshard/engine/boot/plan';
@@ -53,7 +54,7 @@ import { decodeFarImpostor, farBandShare } from './farImpostorView';
 import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';
 import { bindCellCover, cellCoverPort } from './cellCover';
 import { FAR_RING, type FarLookRuntime } from './farProxy';
-import { NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
+import { bakedNearFiles, NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
@@ -236,10 +237,12 @@ async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProd
       }
     } finally { retained.release(); }
   }
-  const response = await fetch(versionedUrl(`/assets/baked/${slug}/near.json`));
+  const baked = bakedNearFiles(slug, publicBytes());
+  if (baked === null) throw new Error('No declared near placeholder; retain far proxy');
+  const response = await fetch(versionedUrl(baked.row));
   if (!response.ok) throw new Error(`near.json ${slug}: ${String(response.status)}`);
   const row = v.parse(NearRow, await response.json());
-  const gltf = await createRigLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/near.glb`));
+  const gltf = await createRigLoader().loadAsync(versionedUrl(baked.mesh));
   let geometry: BufferGeometry | undefined;
   gltf.scene.traverse((node) => { if (geometry === undefined && node instanceof Mesh) { const found: unknown = node.geometry; if (found instanceof BufferGeometry) geometry = found as BufferGeometry; } });
   if (geometry === undefined) throw new Error(`near.glb ${slug}: no mesh`);

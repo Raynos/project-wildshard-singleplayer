@@ -15,6 +15,12 @@ import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import { installFarProxy, type FarPrepared, type FarProxyView } from './farView';
 import { planNearPlaceholders } from './nearPlaceholderPlan';
 
+/** A legacy near view exists only when both files are in this build's asset inventory. */
+export function bakedNearFiles(slug: string, files: Readonly<Record<string, number>>): { readonly row: string; readonly mesh: string } | null {
+  const base = `/assets/baked/${slug}/near`, row = `${base}.json`, mesh = `${base}.glb`;
+  return files[row] === undefined || files[mesh] === undefined ? null : { row, mesh };
+}
+
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {
   /** G380 / G385 C: every cell near, no reach or four-cell cap (the hero captures' harness pin only, never a setting) */
