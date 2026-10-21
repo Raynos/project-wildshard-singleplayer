@@ -3,6 +3,8 @@ import { GULL_DRAW } from './gullDraw';
 import nativeQuestSpots from '../data/spots.generated.json' with { type: 'json' };
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import pageComposition from '../data/questPageComposition.json' with { type: 'json' };
+import questContinuation from '../data/questContinuation.json' with { type: 'json' };
+import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
 import questFrames from '../data/questFrames.json' with { type: 'json' };
 import questEvents from '../data/questEvents.json' with { type: 'json' };
 import questDeaths from '../data/questDeaths.json' with { type: 'json' };
@@ -102,7 +104,7 @@ const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS
 const nativeFeats = parseAchievementCounterData(counterRows).feats.filter(row => row.kind === undefined);
 const nativeCounters = parseAchievementCounterData({ ...counterRows, feats: nativeFeats, flags: nativeFeats.map(feat => DRIFTWOOD_FEAT_COUNTERS.flags.find(row => row.id === feat.id) ?? { id: feat.id, method: 'count', value: { constant: 0 } }), write: 'each' });
 const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(parseWorldScene(value)));
-const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page })))), nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const placements = emitNamedBlobs([nameBlob('quests/continuation.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestContinuationSchema, questContinuation)))), nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page })))), nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
 

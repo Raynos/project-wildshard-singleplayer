@@ -1,5 +1,6 @@
 import { PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
+import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
@@ -26,6 +27,7 @@ import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/forma
 const text = v.string(), number = v.number();
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/page-composition.json': QuestPageCompositionSchema,
+  'quests/continuation.json': QuestContinuationSchema,
   'actors/projection.json': PopulationProjectionSchema,
   'actors/page-life.json': PageLifeSchema,
   'world/cover-composition.json': CoverCompositionSchema,

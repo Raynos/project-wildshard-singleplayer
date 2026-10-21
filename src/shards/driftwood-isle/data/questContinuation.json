@@ -1,0 +1,10 @@
+{
+  "quest": "driftwood.adventure",
+  "collection": "driftwood.collections",
+  "collections": "collections",
+  "cosmetics": { "file": "models/world-scenes.json", "models": { "hat": "captainHat", "cape": "sailclothCape" } },
+  "loot": {
+    "id": "driftwood.loot", "shop": "quests/stall.json", "minimap": true,
+    "before": ["body-shadow", "keepsakes", "last place", "first hints", "main.world"]
+  }
+}
