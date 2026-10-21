@@ -1,0 +1,104 @@
+{
+  "sha": "3c696e1134cea78a1d0142bb6969b02c149acd5b",
+  "surface": "Chromium iPhone 16 Pro, muted",
+  "quiet": false,
+  "results": [
+    {
+      "success": true,
+      "data": {
+        "lifecycle": {
+          "effectiveLaunch": {
+            "browserLaunched": true,
+            "engine": "chrome",
+            "launchHash": 6481937606291078277
+          },
+          "launched": false,
+          "relaunchedBrowser": false,
+          "restartedBackground": false,
+          "restoreStatus": "not_configured",
+          "reused": true,
+          "saveStatus": "not_attempted"
+        },
+        "origin": "http://127.0.0.1:4404/?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&touch=1&tier=phone",
+        "result": {
+          "ammoAfter": 8,
+          "ammoBefore": 0,
+          "build": "3c696e1-mvhuopv7",
+          "button": "Need 1 boar hide",
+          "counts": {
+            "amber-resin": 4,
+            "lodge-ribbon": 3
+          },
+          "errors": [],
+          "rides": {
+            "canoe": {
+              "name": "canoe-ride",
+              "vertices": 1494,
+              "visible": false
+            },
+            "sameParent": true,
+            "trolley": {
+              "name": "zip-trolley",
+              "roughness": 0.86,
+              "vertices": 372
+            }
+          },
+          "shard": "pine-hollow",
+          "talks": {
+            "before": {},
+            "flag": true,
+            "paid": {
+              "amber-resin": 4,
+              "lodge-ribbon": 3
+            },
+            "repeated": {
+              "amber-resin": 4,
+              "lodge-ribbon": 3
+            }
+          },
+          "viewport": {
+            "dpr": 3,
+            "height": 874,
+            "width": 402
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "success": true,
+      "data": {
+        "lifecycle": {
+          "effectiveLaunch": {
+            "browserLaunched": true,
+            "engine": "chrome",
+            "launchHash": 6481937606291078277
+          },
+          "launched": false,
+          "relaunchedBrowser": false,
+          "restartedBackground": false,
+          "restoreStatus": "not_configured",
+          "reused": true,
+          "saveStatus": "not_attempted"
+        },
+        "origin": "http://127.0.0.1:4404/?chunk=driftwood-isle&mute=1&nolock=1&skipintro=1&touch=1&tier=phone",
+        "result": {
+          "build": "3c696e1-mvhuopv7",
+          "button": "Whetstone I \u00b7 Owned",
+          "coins": 0,
+          "errors": [],
+          "owned": [
+            "whetstone-1"
+          ],
+          "shard": "driftwood-isle",
+          "viewport": {
+            "dpr": 3,
+            "height": 874,
+            "width": 402
+          }
+        }
+      },
+      "error": null
+    }
+  ]
+}
