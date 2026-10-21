@@ -326,3 +326,23 @@ The complete diagnostic and four viewed portraits are retained in
 [`wire encoding inspection`](../../../progress/loading/g543/wire-encoding-32cde80/README.md)
 (`0acfe51797`) shows all three raw-size meshopt candidates grow under
 Brotli; the existing selection stays intact and O6 remains open.
+
+The combined source batch at `3c696e1134` passed in 814.6 s after the Pine
+config repair. Its ten entries all reach first frame and five real returns
+pass; six entries pass all accuracy checks. The retained diagnostic has
+three warm byte failures (both native paths and phone grid) plus a native
+cold grid title-art gap of 1,002 ms. Metadata revalidations are eliminated,
+but Origin-dependent worker checks and lost background-document timing
+remain visible. No request or failure is excluded from the wire denominator.
+
+`c8dcbc0b23` makes preview `/sw.js` invariant to Origin, matching production
+(checked: no Origin variation, strong ETag, but live old `cdff44f21` still
+has `no-store`). The unchanged response is 304 and a same-length changed
+script is 200/full in the real preview regression. `41c2e21e54` clears a
+full worker timing buffer at its existing capacity: the 320-request replay
+regression fails before the fix, then recovers the latest response with
+78 entries retained. `0c78b3da6a` names artwork queue/read/decode and lazy UI
+awaits; no counter advances on a timer and wait ages do not count as work.
+Strict lint passes. One combined source batch and exact-build cold/warm
+matrix cover these cuts; warm L2/L8 and O2/O4 remain open until that proof.
+Production `no-cache` plus ETag is checked again after the carrying release.

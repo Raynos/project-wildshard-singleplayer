@@ -94,17 +94,33 @@ checked against an independent HTTP observer on cold and warm served builds.
 
 Browser-internal service-worker script checks do not appear in page resource
 timing. A warm `8264f6dca2` comparison exposed two full unchanged `/sw.js`
-responses, about 41 KB missing from the counter: 23.46% of a 175.9 KB warm
-shardfile load and 10.50% of a 433.1 KB warm grid load. Those failures remain
-in the loading receipts. WebKit's default `imports` registration mode still
-bypasses conditional caching and refetches the full script. The native probe
-at `32cde80543` demonstrated that `updateViaCache: 'all'` with the same
-`no-cache` header sends the ETag: unchanged replies are 304 even after a
-Safari restart, and changed replies transfer the full new body. This follows
+responses, about 41 KB missing from the counter. Those failures remain in
+the loading receipts. WebKit's default `imports` mode bypasses conditional
+caching; `updateViaCache: 'all'` consults the HTTP cache under the same
+`no-cache` policy. Explicit native updates revalidate unchanged bytes as
+304, and changed bytes still transfer in full. This follows
 the [Service Worker update algorithm](https://w3c.github.io/ServiceWorker/#update-algorithm):
 the response's freshness policy remains authoritative when the HTTP cache
-is consulted. The remaining response
-headers are included in the independent network measurement and its 5% gate.
+is consulted. The actual game additionally exposed a preview-only mismatch:
+navigation updates include Origin while explicit updates omit it. Preview's
+`Vary: Origin` split those HTTP-cache entries and caused unchanged 200s.
+The preview plugin makes only `/sw.js` origin-invariant, with production's
+wildcard ACAO, preserving other Vary fields and conditional revalidation.
+The regression covers both request forms and a same-length changed body.
+
+Production checked on 2026-10-21 has no `Vary: Origin` and a strong ETag,
+but live `cdff44f21` still has the older `no-store` policy. Confirm
+`no-cache` and ETag after the release carrying this policy; the local
+source change is not evidence that the live host has deployed it.
+
+Background document revalidation remains part of the same wire denominator.
+A new page can miss the worker's live message before its listener starts;
+a full Resource Timing buffer then replayed only older entries. The worker
+now clears that buffer when full, at the existing browser capacity. A
+320-request real-worker regression recovers the late response without
+growing the 250-entry buffer. All actual response headers remain in the
+independent network measurement and its 5% gate; no body-only metric or
+guessed header credit replaces it.
 
 ## iOS eviction (gauntlet `PWA_OFFLINE.md` §4.1)
 
