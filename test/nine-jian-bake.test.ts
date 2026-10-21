@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { BufferAttribute, BufferGeometryLoader, MaterialLoader, MeshStandardMaterial, ShaderMaterial, type BufferGeometry } from 'three';
+import { BufferAttribute, BufferGeometryLoader, MaterialLoader, ShaderMaterial, type BufferGeometry } from 'three';
 import { output } from '../src/shards/nine-dragon-stack/generators/output';
 import baseline from './fixtures/nine-jian-buffers.json' with { type: 'json' };
 
@@ -23,22 +23,16 @@ function blob(name: string): unknown {
   return JSON.parse(new TextDecoder().decode(bytes), (_key, value: unknown) => value === '-0' ? -0 : value);
 }
 
-// Captured from vm/jian.ts and vm/swordSupport.ts before deleting either runtime module.
-test('named Jian bakes preserve every original vertex and index byte', async () => {
+// Captured from the original live halo before deleting its runtime producer.
+test('named Jian halo preserves every original vertex and index byte', async () => {
   const halo = v.parse(v.strictObject({ geometry: v.unknown(), material: v.unknown() }), blob('weapons/jian-halo.json'));
-  const support = v.parse(v.strictObject({ sword: v.unknown(), arms: v.unknown(), material: v.unknown(), tipY: v.number(), baseY: v.number() }), blob('weapons/jian-support.json'));
+  expect(output.namedFiles.some(row => row.name === 'weapons/jian-support.json')).toBe(false);
   const loader = new BufferGeometryLoader();
   expect(await channels(loader.parse(halo.geometry))).toEqual(baseline.halo);
-  expect(await channels(loader.parse(support.sword))).toEqual(baseline.sword);
-  expect(await channels(loader.parse(support.arms))).toEqual(baseline.arms);
-  expect([support.tipY, support.baseY]).toEqual([baseline.tipY, baseline.baseY]);
   const material = new MaterialLoader().parse(halo.material);
   expect(material).toBeInstanceOf(ShaderMaterial);
   expect(material).toMatchObject({ transparent: true, depthWrite: false, blending: 5, blendSrc: 201, blendDst: 201, blendSrcAlpha: 200, blendDstAlpha: 201,
     uniforms: { uRes: { value: { x: 1, y: 1 } }, uPx: { value: 14 }, uTime: { value: 0 }, uGain: { value: 1 } } });
-  const wood = new MaterialLoader().parse(support.material);
-  expect(wood).toBeInstanceOf(MeshStandardMaterial);
-  expect(wood).toMatchObject({ name: 'sword', flatShading: true, vertexColors: true, roughness: 0.82, metalness: 0, envMapIntensity: 0.6 });
 });
 
 test('held effects are admitted graph rows with independent frame params', async () => {
