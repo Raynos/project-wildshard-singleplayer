@@ -17,8 +17,7 @@ if (DRIFTWOOD_QUEST === undefined) throw new Error('Missing declared chapter');
 const originals = {
   "DRIFTWOOD_QUESTS": "db864504348b2e29323dc304c3c7bcfd1d7ef9dd49b1b4ffddff4d6df3f79ec3",
   "DRIFTWOOD_MARKERS": "da24e56f3cbb383cae488b79fbcd4680295185d3beb1405c9690437a82ec9b59",
-  "QUEST_NPCS": "46922485d24413abca301edbc06b0fcf354fed05b86d8b1c3099fcc816a07e8d",
-  "QUEST_HOST": "3acc26706852c7feb16810c46d5870e85a79505fcd8478bfa76030464efe595c"
+  "QUEST_NPCS": "46922485d24413abca301edbc06b0fcf354fed05b86d8b1c3099fcc816a07e8d"
 };
 const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 
@@ -35,8 +34,20 @@ test('the retained DW producer preserves story, POI anchors, NPC policy and orde
   expect(story.quest.id).toBe('sealed-ring');
   expect(hash(story.quest.markers)).toBe(originals.DRIFTWOOD_MARKERS);
   expect(hash(DRIFTWOOD_MARKERS)).toBe(originals.DRIFTWOOD_MARKERS);
-  expect(hash(QUEST_HOST)).toBe(originals.QUEST_HOST);
-  expect(hash(loaded.shard.questHost)).toBe(originals.QUEST_HOST);
+  expect(loaded.shard.questHost).toEqual(QUEST_HOST);
+  expect(QUEST_HOST?.commands.routes.map(route => [route.value, route.spot])).toEqual([
+    [1, 'iron-sword'], [100, 'castaway-chest'], [101, 'beacon'], [102, 'shard-lookout'],
+    [103, 'hold-key'], [104, 'hold-pump'], [105, 'hold-winch'], [106, 'strongbox'],
+    [110, 'sluice'], [111, 'shard-cave'], [112, 'altar'], [113, 'reef-treasure'],
+    [114, 'vista-bench'], [0, 'castaway.talk'], [2, 'zipline'],
+  ]);
+  expect(QUEST_HOST?.commands.inputs).toMatchObject({ riding: 'event:quest.zipline-riding' });
+  expect(QUEST_HOST?.observations).toContainEqual({
+    binding: 'event:quest.zipline-riding', kind: 'cable', cable: 'driftwood.zipline', state: 'riding',
+  });
+  expect(QUEST_HOST?.commands.routes.find(route => route.spot === 'zipline')).toMatchObject({
+    value: 2, when: '!riding', action: { kind: 'cable', cable: 'driftwood.zipline', command: 'start' },
+  });
   expect(hash(QUEST_NPCS)).toBe(originals.QUEST_NPCS);
   expect(hash(loaded.shard.questNpcs)).toBe(originals.QUEST_NPCS);
   expect(DRIFTWOOD_MARKERS['shrine']).toEqual({ poi: 'shrine', anchor: 'shrine.altar', x: 0, z: 2.4 });
