@@ -4737,7 +4737,8 @@ reading and independent hashing. An index hash must belong to the running
 client's bundled index set; section bytes must match their index hash and
 size. Stale, oversized or unavailable URL hints fall through to normal
 transport. `ProductOptions.cachedResponse(url, hash, maximum)` supplies
-optional section hints; consumers retain size/hash verification.
+optional section and blob hints, including released-library rereads;
+consumers retain size/hash verification after a content-cache miss.
 `OutputDescriptorReader.cached(hash, path, maximum)` receives the declared
 path and bound so the same checks cover split custom schemas and sections.
 Verified cache bytes are reported separately from network transport; this
