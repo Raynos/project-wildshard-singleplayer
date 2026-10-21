@@ -18,6 +18,7 @@ import { InputHashMemo } from './bake-input-hashes.mjs';
 import { productInputKey, productToolchainKey, matchingProductInputKey, publishProductInputs } from './shardfile-inputs.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { productFolder, shardOutputs } from './shard-outputs.mjs';
+import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
@@ -66,7 +67,11 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const recorded = build === runWildshard;
   const files = recorded ? undefined : treeHashes(root);
   const inputHashes = new InputHashMemo(root,resolve(root,'.cache/shardfile-input-hashes.json'));
-  const toolchain = recorded ? productToolchainKey(root,inputHashes) : '';
+  // The validation receipt every product carries is checked against this revision (vite.config.ts, the ruler). The
+  // cached author CLI computes it once per compiler child, so a traced read set may miss its sources: key it directly,
+  // or a product reused after the revision moved ships a stale receipt.
+  const toolchainOf = () => `${productToolchainKey(root,inputHashes)}:${shardfileValidationRevision(root)}`;
+  const toolchain = recorded ? toolchainOf() : '';
   try {
   await runShardBuildPool(products, async ({ name, folder, output }, signal) => {
     const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
@@ -106,7 +111,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       const receipt=resolve(shardfileCacheRoot(),'.input-traces',`${process.pid}-${randomBytes(8).toString('hex')}.json`);
       try {
       await buildOne(['build',project,out,'--product-only','--no-placeholders','--format=2',...flags,...(recorded?[`--input-receipt=${receipt}`]:[])]);
-      if (recorded && productToolchainKey(root,inputHashes) !== toolchain) throw new Error('Product toolchain changed during build');
+      if (recorded && toolchainOf() !== toolchain) throw new Error('Product toolchain changed during build');
       const next = recorded ? productInputKey(root,receipt,recipe,inputHashes) : currentKey();
       if (next === undefined) throw new Error(`Missing complete product input receipt: ${name}`);
       if(recorded)publishProductInputs(receipts,receipt,next);
