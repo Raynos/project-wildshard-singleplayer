@@ -2,7 +2,7 @@
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { driftwoodRows } from '../../src/shards/driftwood-isle/runtime/boot/rows';
+import { driftwoodRows, driftwoodProduct } from '../../src/shards/driftwood-isle/runtime/boot/rows';
 import type * as THREE from 'three';
 import { type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -42,7 +42,7 @@ export const trader: ModelDef<object> = originalModel<object>({
   prepare: loadFixedGeometry, defaults: {},
   build: (ctx) => {
     const geometry = new Map(Object.entries(fixedGeometryGroups().npc.trader).map(([part, slot]) => [part, fixedDraw(slot).copy()]));
-    const rig = new KitFigure(ctx.sky, 'trader', FIGURES.rows('trader'), FIGURES.kit('trader'), { geometry }, new SceneHandles(ctx.sky));
+    const rig = new KitFigure(ctx.sky, 'trader', FIGURES.rows('trader'), FIGURES.kit('trader'), { geometry, channels: driftwoodProduct().shardfile.clientChannels }, new SceneHandles(ctx.sky));
     byGroup.set(rig.group, rig); return rig.group;
   },
   colliders: () => FigureRows.collidersFor(FIGURES.rows('trader')),

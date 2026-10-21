@@ -6,13 +6,15 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { KitFigureSchema, type KitFigureRows } from '@wildshard/format/kitFigure';
 import { FigureRowSchema } from '@wildshard/format/figures';
-import { playClips, stepNpcFacing, stepNpcHeadFocus, type ClipCtx, type NpcHeadFocusInput } from '../../plugin/animation';
+import { playClips, type ClipCtx } from '../../plugin/animation';
+import { installChannelPrograms } from '../../plugin/channelPrograms';
 import { createClientScene, bindWorldSceneParts } from '../../plugin/ui';
 import type { SceneHandles } from '../../shardfile/sceneHandles';
 import { FigureRows } from './figureRows';
 
-/** What the shard lends the recipe: its kit geometries and any extra objects (a fire, its smoke), by recipe id. */
-export interface KitFigurePorts { readonly geometry: ReadonlyMap<string, THREE.BufferGeometry>; readonly objects?: ReadonlyMap<string, THREE.Object3D> }
+/** What the shard lends the recipe: its kit geometries and any extra objects (a fire, its smoke), by recipe id, and the
+ *  product's client channels holding the figure's attention group `npc.<name>`. */
+export interface KitFigurePorts { readonly geometry: ReadonlyMap<string, THREE.BufferGeometry>; readonly objects?: ReadonlyMap<string, THREE.Object3D>; readonly channels: unknown }
 
 /** 0 → 1 → 0 over a gesture: eased in over its first quarter, out over its last */
 function ease(u: number): number {
@@ -23,7 +25,8 @@ function ease(u: number): number {
 /**
  * A kit figure (format/kitFigure `KitFigureSchema`): the recipe built at the figure's own origin, every bound part and
  * lent object published as `<name>.<part>.source` (the group as `<name>.source`) for its figure row, and per frame the
- * gestures, the turn to face the player, the head's attention and the pose clips. `companions` hide with a `hide` figure.
+ * gestures, the turn to face the player and the head's attention (its channel programs: owner `focus` what it observes,
+ * owner `figure` the pose they keep) and the pose clips. `companions` hide with a `hide` figure.
  */
 export class KitFigure {
   readonly group = new THREE.Group();
@@ -34,13 +37,13 @@ export class KitFigure {
   private readonly bones: Record<string, THREE.Object3D> = {};
   private readonly figure: THREE.Object3D;
   private readonly pose: ClipCtx = { bones: {}, t: 0, phase: 0, speed: 0, alive: true, deathT: 0, attack: -1, mem: {} };
-  private readonly focus: NpcHeadFocusInput = { distance: 0, relativeYaw: 0, playerY: 0, headY: 0 };
-  private readonly gaze = { headYaw: 0, headPitch: 0, glanceT: 0, glanceYaw: 0, glancePitch: 0 };
+  private readonly focus = { distance: 0, toward: 0, talking: 0, turns: 1, playerY: 0, headY: 0, override: 0, overrideYaw: 0, overridePitch: 0, offsetYaw: 0, offsetPitch: 0 };
+  private readonly gaze = { turn: 0, headYaw: 0, headPitch: 0, glanceT: 0, glanceYaw: 0, glancePitch: 0 };
+  private readonly motion: ReturnType<typeof installChannelPrograms>;
   private readonly timers: number[];
   private readonly armed: boolean[];
   private gesture = -1;
   private clock = 0;
-  private turn = 0;
 
   /** `name` the figure catalogue id, `figure` its figure row, `input` its kit rows. */
   constructor(sky: SkyRig, name: string, figure: unknown, input: unknown, ports: KitFigurePorts, resources: SceneHandles, owner?: Scope) {
@@ -55,7 +58,7 @@ export class KitFigure {
     resources.publish(`${name}.source`, this.group);
     for (const [part, object] of parts) { this.bones[part] = object; resources.publish(`${name}.${part}.source`, object); }
     this.pose.bones = this.bones;
-    this.gaze.glancePitch = typeof rows.head.idle.pitch === 'number' ? rows.head.idle.pitch : rows.head.idle.pitch.below;
+    this.motion = installChannelPrograms(ports.channels, `npc.${name}`, new Map<string, unknown>([['figure', this.gaze], ['focus', this.focus]]));
     this.timers = rows.gestures.map(row => row.starts.find(start => start.kind === 'every')?.first ?? 0);
     this.armed = rows.gestures.map(() => true);
     this.drawDistance = v.parse(FigureRowSchema, figure).drawDistance;
@@ -110,16 +113,14 @@ export class KitFigure {
     this.choose(d, t, dt);
     const playing = rows.gestures[this.gesture], weight = playing === undefined ? 0 : playing.eased ? ease(this.clock / Math.max(1e-6, playing.seconds)) : 1;
     // its facing from the placed pose (a placement's matrix decomposes to Euler (π, a, π) past ±90°: rotation.y alone is not the yaw)
-    const e = this.group.matrixWorld.elements, bodyYaw = Math.atan2(e[8], e[10]), toYou = Math.atan2(dx, dz);
-    const faces = (d < rows.facing.range || this.talking) && (playing?.turns ?? true);
-    this.turn = stepNpcFacing(this.turn, faces ? toYou - bodyYaw : 0, rows.facing, dt);
-    const focus = this.focus, offer = playing?.offer !== undefined && d < playing.offer.within ? playing.offer : undefined;
-    focus.distance = d; focus.relativeYaw = toYou - bodyYaw - this.turn; focus.playerY = player.y; focus.headY = gp.y + rows.neck + 0.1;
-    focus.overrideYaw = playing?.look?.yaw; focus.overridePitch = playing?.look?.pitch;
+    const e = this.group.matrixWorld.elements, focus = this.focus, offer = playing?.offer !== undefined && d < playing.offer.within ? playing.offer : undefined;
+    focus.distance = d; focus.toward = Math.atan2(dx, dz) - Math.atan2(e[8], e[10]); focus.talking = Number(this.talking); focus.turns = Number(playing?.turns ?? true);
+    focus.playerY = player.y; focus.headY = gp.y + rows.neck + 0.1; focus.override = Number(playing?.look !== undefined);
+    focus.overrideYaw = playing?.look?.yaw ?? 0; focus.overridePitch = playing?.look?.pitch ?? 0;
     focus.offsetYaw = offer === undefined ? 0 : offer.yaw * weight; focus.offsetPitch = offer === undefined ? 0 : offer.pitch * weight;
-    stepNpcHeadFocus(this.gaze, rows.head, focus, dt, t);
+    this.motion.evaluate({ time: t, delta: dt, values: {} });
     const pose = this.pose, mem = pose.mem; pose.t = t; pose.phase = this.clock;
-    mem['gesture'] = playing?.code ?? 0; mem['weight'] = weight; mem['turn'] = this.turn; mem['talking'] = Number(this.talking);
+    mem['gesture'] = playing?.code ?? 0; mem['weight'] = weight; mem['turn'] = this.gaze.turn; mem['talking'] = Number(this.talking);
     mem['headPitch'] = this.gaze.headPitch; mem['headYaw'] = this.gaze.headYaw;
     playClips(rows.pose, pose);
   }

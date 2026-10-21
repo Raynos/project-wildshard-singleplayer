@@ -13,7 +13,7 @@ import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { driftwoodRows } from '../boot/rows';
+import { driftwoodRows, driftwoodProduct } from '../boot/rows';
 import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, fixedGeometryReady, FIGURES } from '../boot/blobAssets';
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
@@ -34,7 +34,7 @@ export function castawayFigure(sky: Sky, feet: Pos, fire: Pos, resources: SceneH
   const geometry = new Map([['body', fixedDraw(kit.body).copy()], ['camp', fixedDraw(kit.camp).copy().translate(f.x, f.y, f.z)],
     ['head', fixedDraw(kit.head).copy()], ['arm', fixedDraw(kit.arm).copy()]]);
   const objects = new Map<string, THREE.Object3D>([['flames', flames], ['smoke', smoke]]);
-  const figure = new KitFigure(sky, 'castaway', FIGURES.rows('castaway'), FIGURES.kit('castaway'), { geometry, objects }, resources, owner);
+  const figure = new KitFigure(sky, 'castaway', FIGURES.rows('castaway'), FIGURES.kit('castaway'), { geometry, objects, channels: driftwoodProduct().shardfile.clientChannels }, resources, owner);
   figure.group.position.set(feet.x, feet.y, feet.z); figure.group.rotation.y = yaw;
   return figure;
 }

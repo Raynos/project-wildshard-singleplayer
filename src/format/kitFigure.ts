@@ -43,7 +43,7 @@ const gestureStart = v.variant('kind', [
 ]);
 /**
  * A figure built from kit meshes (G478 figures; client-only presentation): its scene recipe and its bindings, the pivots
- * its pose clips drive, the turn to face the player (`facing`), the head's attention (`head`) and its gestures. Each
+ * its pose clips drive and its gestures (the turn to face the player and the head's attention are its channel programs). Each
  * gesture plays `seconds` with the clip memory `gesture` = its code, `weight` its eased 0 → 1 → 0, `phase` its clock;
  * `turns: false` holds the figure's idle facing, `look` overrides the head and `offer` offsets it within `within`.
  * `hide` hides the figure and its companions past the figure row's draw distance.
@@ -51,11 +51,6 @@ const gestureStart = v.variant('kind', [
 export const KitFigureSchema: v.GenericSchema<unknown, KitFigureRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figure requires plain JSON'), v.strictObject({
   scene: v.strictObject({ recipe: v.unknown(), parts: v.record(id, v.picklist(['group', 'object'])), bindings: v.unknown() }),
   material: id, neck: n, hide: v.boolean(),
-  facing: v.strictObject({ range: n, rate: n, maxSpeed: v.exactOptional(n), wrapTarget: v.exactOptional(v.boolean()), wrapOutput: v.exactOptional(v.boolean()) }),
-  head: v.strictObject({ range: n, yawLimit: n, pitchLimit: v.exactOptional(n), pitchScale: n, eyeHeight: n, minimumDistance: n,
-    response: v.picklist(['linear', 'exponential']), rate: n, clampAfterOffset: v.boolean(),
-    idle: v.strictObject({ cadence: v.strictObject({ kind: v.picklist(['sine', 'cycle']), base: n, frequency: n, span: n, strict: v.exactOptional(v.boolean()) }),
-      yaw: v.tuple([n, n]), yawWeight: v.exactOptional(n), pitch: v.union([n, v.strictObject({ frequency: n, threshold: n, above: n, below: n })]) }) }),
   pose: ClipRowsSchema,
   gestures: v.pipe(v.array(v.strictObject({ id, code: v.pipe(n, v.integer(), v.minValue(1), v.maxValue(8)), seconds: v.pipe(n, v.minValue(0)), eased: v.boolean(),
     starts: v.pipe(v.array(gestureStart), v.minLength(1), v.maxLength(2)), turns: v.boolean(),
@@ -67,11 +62,6 @@ type GestureStart = { kind: 'signal' } | { kind: 'approach'; inside: number; bey
 export interface KitFigureRows {
   scene: { recipe: unknown; parts: Record<string, 'group' | 'object'>; bindings: unknown };
   material: string; neck: number; hide: boolean;
-  facing: { range: number; rate: number; maxSpeed?: number; wrapTarget?: boolean; wrapOutput?: boolean };
-  head: { range: number; yawLimit: number; pitchLimit?: number; pitchScale: number; eyeHeight: number; minimumDistance: number;
-    response: 'linear' | 'exponential'; rate: number; clampAfterOffset: boolean;
-    idle: { cadence: { kind: 'sine' | 'cycle'; base: number; frequency: number; span: number; strict?: boolean };
-      yaw: [number, number]; yawWeight?: number; pitch: number | { frequency: number; threshold: number; above: number; below: number } } };
   pose: ClipRowData[];
   gestures: { id: string; code: number; seconds: number; eased: boolean; starts: GestureStart[]; turns: boolean;
     look?: { yaw: number; pitch: number }; offer?: { yaw: number; pitch: number; within: number } }[];

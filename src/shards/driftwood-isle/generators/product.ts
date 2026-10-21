@@ -7,6 +7,7 @@ import questRows from '../data/questRows.generated.json' with { type: 'json' };
 import { DRIFTWOOD_LEDGER } from './ledger';
 import DRIFTWOOD_SWORDS from '../data/items.generated.json' with { type: 'json' };
 import { DRIFTWOOD_SPAWNS } from './spawns';
+import { NPC_FOCUS_PROGRAMS } from './npcFocusPrograms';
 import AUDIO from '../data/audio.generated.json' with { type: 'json' };
 import { DRIFTWOOD_EDGE_HEIGHTS } from './edges';
 import DRIFTWOOD_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
@@ -58,7 +59,7 @@ export default parseShardfile({
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) },
     samplers: { [coat.hash]: { wrap: 'repeat' } } },
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['state', 'quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
-  clientChannels: skyChannels.clientChannels,
+  clientChannels: [...skyChannels.clientChannels, ...NPC_FOCUS_PROGRAMS],
   quests: { ...questRows.quests, achievements: DRIFTWOOD_FEATS }, questHost: questRows.host, questNpcs: questRows.npcs, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: AUDIO.audio,

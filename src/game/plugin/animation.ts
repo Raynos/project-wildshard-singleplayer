@@ -93,68 +93,6 @@ export function stepCreatureLift(actor: Pick<AnimalSim, 'mem' | 'yOffset'>, dt: 
   return up;
 }
 
-/** Native angular response; input/output wrapping and a speed cap are independent policies. */
-export interface NpcFacingProfile {
-  readonly rate: number;
-  readonly maxSpeed?: number;
-  readonly wrapTarget?: boolean;
-  readonly wrapOutput?: boolean;
-}
-/** Advance one caller-owned yaw using its existing frame; acceptance and body placement stay native. */
-export function stepNpcFacing(current: number, target: number, profile: NpcFacingProfile, dt: number): number {
-  if (!Number.isFinite(current) || !Number.isFinite(target) || !Number.isFinite(dt) || dt < 0 || !Number.isFinite(profile.rate) || profile.rate < 0
-    || profile.maxSpeed !== undefined && (!Number.isFinite(profile.maxSpeed) || profile.maxSpeed < 0)) throw new RangeError('Invalid NPC facing frame');
-  const wanted = profile.wrapTarget === true ? Math.atan2(Math.sin(target), Math.cos(target)) : target;
-  const delta = wanted - current;
-  let step = Math.atan2(Math.sin(delta), Math.cos(delta)) * (1 - Math.exp(-profile.rate * dt));
-  if (profile.maxSpeed !== undefined) step = Math.max(-profile.maxSpeed * dt, Math.min(profile.maxSpeed * dt, step));
-  const next = current + step;
-  return profile.wrapOutput === true ? Math.atan2(Math.sin(next), Math.cos(next)) : next;
-}
-/** Caller-owned transient attention; it does not replace an NPC's reading or save owner. */
-export interface NpcHeadFocusState { headYaw: number; headPitch: number; glanceT: number; glanceYaw: number; glancePitch: number }
-/** Numeric focus, idle cadence and response laws for an already-owned head pivot. */
-export interface NpcHeadFocusProfile {
-  readonly range: number; readonly yawLimit: number; readonly pitchLimit?: number; readonly pitchScale: number;
-  readonly eyeHeight: number; readonly minimumDistance: number; readonly response: 'linear' | 'exponential'; readonly rate: number;
-  readonly clampAfterOffset: boolean;
-  readonly idle: {
-    readonly cadence: { readonly kind: 'sine' | 'cycle'; readonly base: number; readonly frequency: number; readonly span: number; readonly strict?: boolean };
-    readonly yaw: readonly [number, number]; readonly yawWeight?: number;
-    readonly pitch: number | { readonly frequency: number; readonly threshold: number; readonly above: number; readonly below: number };
-  };
-}
-/** Numeric target observations; gesture overrides do not transfer gesture/reading ownership. */
-export interface NpcHeadFocusInput {
-  distance: number; relativeYaw: number; playerY: number; headY: number;
-  focused?: boolean; overrideYaw?: number | undefined; overridePitch?: number | undefined; offsetYaw?: number; offsetPitch?: number;
-}
-/** Step one head without allocations, renderer access or random draws. Idle clocks advance only when idle is selected. */
-export function stepNpcHeadFocus(state: NpcHeadFocusState, profile: NpcHeadFocusProfile, input: NpcHeadFocusInput, dt: number, time: number): void {
-  if (!Number.isFinite(dt) || dt < 0 || !Number.isFinite(time)) throw new RangeError('Invalid NPC focus clock');
-  let yaw: number, pitch: number;
-  if (input.overrideYaw !== undefined && input.overridePitch !== undefined) { yaw = input.overrideYaw; pitch = input.overridePitch; }
-  else if (input.focused ?? input.distance < profile.range) {
-    yaw = Math.max(-profile.yawLimit, Math.min(profile.yawLimit, Math.atan2(Math.sin(input.relativeYaw), Math.cos(input.relativeYaw))));
-    pitch = -Math.atan2(input.playerY + profile.eyeHeight - input.headY, Math.max(profile.minimumDistance, input.distance));
-    if (profile.pitchLimit !== undefined) pitch = Math.max(-profile.pitchLimit, Math.min(profile.pitchLimit, pitch));
-    pitch *= profile.pitchScale;
-    yaw += input.offsetYaw ?? 0; pitch += input.offsetPitch ?? 0;
-  } else {
-    state.glanceT -= dt;
-    const idle = profile.idle, cadence = idle.cadence;
-    if (cadence.strict === true ? state.glanceT < 0 : state.glanceT <= 0) {
-      state.glanceT = cadence.base + (cadence.kind === 'sine' ? (Math.sin(time * cadence.frequency) + 1) * cadence.span : (time * cadence.frequency) % cadence.span);
-      state.glanceYaw = Math.sin(time * idle.yaw[0]) * idle.yaw[1];
-      state.glancePitch = typeof idle.pitch === 'number' ? idle.pitch : Math.sin(time * idle.pitch.frequency) > idle.pitch.threshold ? idle.pitch.above : idle.pitch.below;
-    }
-    yaw = state.glanceYaw * (idle.yawWeight ?? 1); pitch = state.glancePitch;
-  }
-  if (profile.clampAfterOffset) yaw = Math.max(-profile.yawLimit, Math.min(profile.yawLimit, yaw));
-  const response = profile.response === 'linear' ? Math.min(1, dt * profile.rate) : 1 - Math.exp(-profile.rate * dt);
-  state.headYaw += (yaw - state.headYaw) * response; state.headPitch += (pitch - state.headPitch) * response;
-}
-
 const UNIT_SCALE = [1, 1, 1] as const;
 const ORDERS = new Set<EulerOrder>(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']);
 
