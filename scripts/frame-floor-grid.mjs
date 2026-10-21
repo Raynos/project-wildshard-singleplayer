@@ -115,7 +115,8 @@ export function gridFloorPlans(state, scenario, options = {}) {
     const pine = road('pine-hollow');
     return [pine, road('sunscar-dunes'), { ...pine, name: 'pine-hollow-road-reentry' }];
   }
-  if (scenario === 'cell') {
+  // O17: `cold` is the cell entry with no standing pose beside the cell first (frame-floor.mjs skips the deck poses)
+  if (scenario === 'cell' || scenario === 'cold') {
     // op-frame22 (SF63 / G158): any assembled cell by its slug, entered from the road at the edge that faces home (a corner
     // cell from its home-side midpoint), one road seed, then held input into its interior
     const target = state.cells.find(cell => cell.instance === options.cell) ?? state.cells.find(cell => cell.slug === options.cell);

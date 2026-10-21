@@ -57,11 +57,11 @@ const gridCell = flag('grid-cell', '');
 const roadApproach = args.includes('--road-approach');
 const entrySocket = args.includes('--entry-socket');
 const risingIslet = flag('rising-islet', '');
-if (risingIslet !== '' && (gridScenario !== 'cell' || !['north', 'east', 'south', 'west'].includes(risingIslet))) throw new Error('--rising-islet=<north|east|south|west> requires a cell with an authored lift');
-if (entrySocket && gridScenario !== 'cell') throw new Error('--entry-socket requires the cell scenario');
-if (roadApproach && gridScenario !== 'cell') throw new Error('--road-approach requires the cell scenario');
+if (risingIslet !== '' && (!['cell', 'cold'].includes(gridScenario) || !['north', 'east', 'south', 'west'].includes(risingIslet))) throw new Error('--rising-islet=<north|east|south|west> requires a cell with an authored lift');
+if (entrySocket && !['cell', 'cold'].includes(gridScenario)) throw new Error('--entry-socket requires the cell scenario');
+if (roadApproach && !['cell', 'cold'].includes(gridScenario)) throw new Error('--road-approach requires the cell scenario');
 const gridCellPoseArg = flag('grid-cell-pose', '');
-if ((gridScenario === 'cell') !== (gridCell !== '') || (gridCellPoseArg !== '' && gridScenario !== 'cell')) throw new Error('--grid-scenario=cell takes --grid-cell=<slug|instance> (and optionally --grid-cell-pose); neither goes with another scenario');
+if (['cell', 'cold'].includes(gridScenario) !== (gridCell !== '') || (gridCellPoseArg !== '' && !['cell', 'cold'].includes(gridScenario))) throw new Error('--grid-scenario=cell takes --grid-cell=<slug|instance> (and optionally --grid-cell-pose); neither goes with another scenario');
 if (publicGrid && gridScenario === 'cell') throw new Error('The cell scenario needs Developer mode');
 /** a pose in the entered cell's local frame (metres, degrees), measured standing after the entry */
 const gridCellPose = gridCellPoseArg === '' ? null : (() => {
@@ -121,7 +121,7 @@ const gpuTraceDir = flag('gpu-trace', '');
 if (gpuTraceDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(gpuTraceDir))) throw new Error('--gpu-trace=<existing dir> traces desktop grid drives only');
 const GPU_TRACE_CATEGORIES = ['toplevel', 'gpu', 'gpu.service', 'gpu.decoder', 'gpu.angle', 'gpu.capture', 'viz', 'cc', 'blink', 'blink.user_timing', 'devtools.timeline', 'disabled-by-default-devtools.timeline', 'disabled-by-default-devtools.timeline.frame', 'disabled-by-default-gpu.service', 'disabled-by-default-gpu.device', 'disabled-by-default-gpu.decoder', 'disabled-by-default-gpu_cmd_queue', 'disabled-by-default-skia.gpu', 'v8.execute', 'scheduler', 'disabled-by-default-v8.cpu_profiler'];
 const LONGTASK_SCRIPT = cpuProfileDir === '' ? '' : `window.__frameFloorLongTasks=[];try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.__frameFloorLongTasks.push([e.startTime,e.duration]);}).observe({type:'longtask',buffered:true});}catch{}`;
-if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'milestone', 'reentry', 'outer-road'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
+if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'milestone', 'reentry', 'outer-road', 'cold'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
 if (publicGrid && (gridScenario === 'milestone' || gridScenario === 'reentry')) throw new Error('Milestone and re-entry floors require Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
@@ -421,8 +421,9 @@ async function measureShard(driver, shard, deadline) {
     // an unloaded home is refused/recovered onto the road; labelling that row 'spawn' hid the wrong view.
     const spawnRow = await standingSample(driver, meta.spawn); rows.push(spawnRow);
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
-    // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it
-    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' && gridScenario !== 'outer-road' ? GRID_POSES : [])];
+    // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it. O17: a
+    // cold entry likewise approaches its cell with no standing pose beside it first
+    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' && !['outer-road', 'cold'].includes(gridScenario) ? GRID_POSES : [])];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
     const scan = [];
     for (const pose of candidates) {
@@ -463,7 +464,7 @@ async function measureShard(driver, shard, deadline) {
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
       for (let plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach, entrySocket, ...(risingIslet === '' ? {} : { risingIslet }) }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
-        if ((gridScenario === 'milestone' || gridScenario === 'reentry' || gridScenario === 'cell') && plan.from === null) {
+        if ((gridScenario === 'milestone' || gridScenario === 'reentry' || gridScenario === 'cell' || gridScenario === 'cold') && plan.from === null) {
           const cell = state.cells.find(row => row.instance === plan.to);
           if (!cell) throw new Error('Floor entry cell missing');
           const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;

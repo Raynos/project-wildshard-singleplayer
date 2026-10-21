@@ -327,9 +327,11 @@ async function drivePrepared(manifest) {
     circuitDiagnostic(manifest.diagnosticCircuits, { qualifying: manifest.rehearsal === false, dryRun: policy.dryRun, contentCut, firstCrossing: manifest.diagnosticFirstCrossing === true, layout, leg, routeScope });
   }
   while (!existsSync(join(out, 'GO'))) await sleep(1000);
+  // O12: the frame floor's one Simulator, not a fresh device per run: a new device's cold shader cache reset the GPU
+  // ~15 s into the first Pine build (context lost, then recovery or a reload), and each run left a device behind
   for (const { layout, base } of bases) {
     for (const leg of manifest.legs ?? ['cells', 'road']) {
-      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), manifest.device ?? `sf57-sp-x3-${layout}-${process.pid}`, process.execPath, import.meta.filename,
+      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), manifest.device ?? 'frame-floor-iphone-17-pro', process.execPath, import.meta.filename,
         '--worker', ...(manifest.diagnosticReentry === undefined ? [] : [`--diagnostic-reentry=${manifest.diagnosticReentry}`]), ...(manifest.diagnosticCircuits === undefined ? [] : [`--diagnostic-circuits=${manifest.diagnosticCircuits}`]), ...(policy.dryRun ? ['--dry-run'] : []), ...(manifest.diagnosticFirstCrossing === true ? ['--diagnostic-first-crossing'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, `--route-scope=${routeScope}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
     }
   }
