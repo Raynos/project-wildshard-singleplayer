@@ -246,6 +246,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   });
 
   const presentation = entry.chapter({ program: native.lead.program });
+  const places = presentation.discover(rows.map.pois.map(p => ({ id: p.id, label: p.name, x: p.x, z: p.z, r: p.r, quiet: true })));
   const questChip = presentation.chip, objective = presentation.objective;
   const clock = await readChapterDirector(ctx, rows.files.director);
   ui.retainRoot(objective.root, () => { objective.hide(false); });
@@ -315,7 +316,7 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
       const cam = game.camera.position;
       for (const p of people) p.lod(cam);
       zip.trolley.visible = cables.state(cableId).riding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
-      if (!perfLap.active) for (const p of rows.map.pois) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`); // E350 F-J1: a lap's spot is not discovered
+      if (!perfLap.active) places.update(pp.x, pp.z); // E350 F-J1: a lap's spot is not discovered
       if (!perfLap.active && hollow && !flags.has(rows.secret.flag) && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
         flags.set(rows.secret.flag); hud.toast(rows.secret.text);
       }
