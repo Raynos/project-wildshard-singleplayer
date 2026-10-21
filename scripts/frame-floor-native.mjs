@@ -52,7 +52,11 @@ export function startFloorNative(root, directory, device, read, interrupt) {
     const code = await done;
     await observing;
     process.removeListener('SIGTERM', terminate);
-    writeFileSync(join(directory, 'gpu.json'), JSON.stringify({ gpu, errors }));
+    // Read completed scalar spans only after sampling; no profiler or scene walk.
+    let preparation = [], preparationError;
+    try { preparation = await read(`performance.getEntriesByType('measure').filter(row => row.name.startsWith('wildshard.prepare:')).map(({name,startTime,duration}) => ({name,startTime,duration}))`); }
+    catch (error) { preparationError = String(error); }
+    writeFileSync(join(directory, 'gpu.json'), JSON.stringify({ gpu, errors, preparation, preparationError }));
     const native = readFileSync(file, 'utf8').trim().split('\n').map(line => JSON.parse(line));
     if (interrupted !== undefined) throw new Error(interrupted);
     return gradeFloorNative(native, gpu, errors, code);

@@ -1,4 +1,5 @@
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
+import { timeClientPreparation } from './preparationTiming';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
 import { materialTextureRefs } from '@wildshard/format/materials';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
@@ -200,7 +201,7 @@ export class ShardfileClient {
   async world(ctx: ShardContext): Promise<void> {
     // Admission is complete before either the base client or a feature allocates resources.
     this.plan = admitClientPlan(ctx.product.has('client/plan') ? ctx.product.section('client/plan') : { version: 1, features: [] }, ctx.product);
-    await this.worldData(ctx);
+    await timeClientPreparation(ctx.product.slug, 'world.data', () => this.worldData(ctx));
     await this.phase(ctx, 'world');
   }
 

@@ -1,4 +1,5 @@
 import { installClientAdventurePersistence } from '../quest/persistence';
+import { timeClientPreparation } from './preparationTiming';
 import { installPracticeCourse } from '../practice/registration';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { hasLentLook, lendLooks } from './lentLooks';
@@ -185,11 +186,13 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
   if (phase === 'world' && lifetime !== 'resident' && rows.length > 0) {
     if (ctx.scope.disposed || resident.disposed) throw new Error('Client feature owner is disposed');
     const missing = Object.keys(ctx.product.shardfile.look.materials).filter(id => !hasLentLook(id));
-    if (missing.length > 0) lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, missing));
+    if (missing.length > 0) await timeClientPreparation(ctx.product.slug, 'world.looks', async () => {
+      lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, missing));
+    });
   }
   for (const { row, install } of rows) {
     if (ctx.scope.disposed || resident.disposed) throw new Error('Client feature owner is disposed');
-    await install(ctx, row, resident);
+    await timeClientPreparation(ctx.product.slug, `${phase}.${row.kind}`, () => install(ctx, row, resident));
     await buildYield(ctx.scope);
   }
 }
