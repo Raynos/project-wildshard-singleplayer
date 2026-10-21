@@ -353,12 +353,20 @@ export class GridSession {
         camera: () => host.frame?.camera, plans, admission }, async () => {
           progress?.detail(`Road geometry · ${++batches} batches · ${strips.length} seams`); await construction.check();
         });
+      const plotColliders: CollisionMesh[] = [];
+      for (const [index, plot] of assembly.plots.entries()) {
+        progress?.detail(`Plot ground · ${index} / ${assembly.plots.length}`);
+        await construction.check();
+        plotColliders.push(...plotCellColliders([plot]));
+      }
+      progress?.detail(`Plot ground · ${assembly.plots.length} / ${assembly.plots.length}`);
+      await construction.yield();
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams · road ready`);
-      return new GridSession(host, edges, allocator, strips, { road, plans });
+      return new GridSession(host, edges, allocator, strips, { road, plans, plotColliders });
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad; readonly plans: Map<Mesh, CullPlan> }) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad; readonly plans: Map<Mesh, CullPlan>; readonly plotColliders?: readonly CollisionMesh[] }) {
     this.host = host;
     this.mapImages = new CellMinimaps(host.scope, async slug => {
       const pending = gridShardfileProduct(slug, { allocator: this.allocator, scope: host.scope });
@@ -440,7 +448,7 @@ export class GridSession {
     const nativeMesh = (mesh: CollisionMesh): CollisionMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
     for (const { mesh } of this.strips) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
-    for (const mesh of plotCellColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
+    for (const mesh of preparedRoad?.plotColliders ?? plotCellColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     try {
       this.plots = installPlotCells({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
         feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } });
