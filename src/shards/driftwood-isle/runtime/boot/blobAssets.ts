@@ -1,13 +1,14 @@
 import { FigureCatalogue } from '@wildshard/sdk/npc/figures';
 import { CollectionCatalogue } from '@wildshard/game/models/collectionDisplay';
-import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import type { OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { fixedDraws, type FixedDraws } from '@wildshard/game/models/fixedDraws';
 import type { BufferGeometry } from 'three';
 import type { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import { driftwoodRows, admitDriftwoodRows, driftwoodProduct } from './rows';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import type { CustomSections, FixedGeometryGroups } from '../productSections.generated.d.ts';
+import type { FixedGeometryGroups } from '../productSections.generated.d.ts';
 
 /** Renderer services stay behind the explicit page/Explorer load, outside offline geometry authoring. */
 export async function loadDriftwoodProduct(owner: Scope = resourceScope()): Promise<ShardProduct> {
@@ -19,20 +20,13 @@ export async function loadDriftwoodProduct(owner: Scope = resourceScope()): Prom
 
 export const FIGURES = new FigureCatalogue('driftwood-isle', 'people/catalogue.json');
 
-/** One owned template per admitted fixed draw slot (its GLB channels renamed as declared), loaded together. */
-const fixed = new Map<string, OwnedGeometry>();
-let inventory: FixedGeometryGroups | null = null, fixedReady = false;
-/** The admitted fixed library stays bounded as authored units are added. */
-const MAX_FIXED_DRAWS = 128;
-function prepareFixedTemplates(): void {
-  const rows = driftwoodRows('custom/fixedLayouts').fixedDraws; if (fixed.size > 0) return;
-  for (let i = 0; i < MAX_FIXED_DRAWS; i++) { const row = rows[i]; if (row === undefined) break; fixed.set(row.slot, createOwnedGeometry(row.slot, Object.fromEntries(row.channels))); }
-}
-function fixedHandle(slot: string): OwnedGeometry { const handle = fixed.get(slot); if (handle === undefined) throw new Error(`Baked model was not loaded: ${slot}`); return handle; }
+/** The admitted fixed draws (custom/fixedLayouts.fixedDraws) as one library, made on its first use. */
+let library: FixedDraws | null = null, inventory: FixedGeometryGroups | null = null;
+const draws = (): FixedDraws => { library ??= fixedDraws(driftwoodProduct(), driftwoodRows('custom/fixedLayouts').fixedDraws); return library; };
 /** Select an inert owned handle; admitted data declares its channels before intake. */
 export function fixedDraw(slot: string): OwnedGeometry {
-  return { load: bytes => { if (bytes === undefined && !fixedReady) return loadFixedGeometry(); prepareFixedTemplates(); return fixedHandle(slot).load(bytes); },
-    adopt: geometry => { prepareFixedTemplates(); fixedHandle(slot).adopt(geometry); }, copy: () => fixedHandle(slot).copy(), take: () => fixedHandle(slot).take() };
+  return { load: bytes => bytes === undefined && !draws().ready ? loadFixedGeometry() : draws().handle(slot).load(bytes),
+    adopt: geometry => { draws().handle(slot).adopt(geometry); }, copy: () => draws().handle(slot).copy(), take: () => draws().handle(slot).take() };
 }
 /** Typed named groups are read only after the same explicit geometry admission. */
 export function fixedGeometryGroups(): FixedGeometryGroups {
@@ -40,26 +34,13 @@ export function fixedGeometryGroups(): FixedGeometryGroups {
   return inventory;
 }
 /** The current owned templates have completed their admitted intake. */
-export function fixedGeometryReady(): boolean { return fixedReady; }
+export function fixedGeometryReady(): boolean { return library?.ready ?? false; }
 /** Acquire original source draws through the existing assembler, or named blobs for cold Explorer cards. */
 export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readWholeGeometry>[0]): Promise<void> {
   const product = bytes === undefined && owner === undefined ? await loadDriftwoodProduct() : driftwoodProduct();
   await FIGURES.admit(product);
-  const rows = product.section<CustomSections['custom/fixedLayouts']>('custom/fixedLayouts').fixedDraws;
-  if (rows.length === 0 || rows.length > MAX_FIXED_DRAWS) throw new Error('Undeclared fixed draw slots');
   inventory ??= await product.json<FixedGeometryGroups>('models/fixed-geometry.json');
-  prepareFixedTemplates();
-  const assembled = owner === undefined ? undefined : await (await import('@wildshard/game/plugin/geometry')).readWholeGeometry(owner, 'driftwood-isle');
-  try {
-    const admitted = new Map(await Promise.all(rows.map(async row => {
-      const name = row.file, geometry = assembled?.get(name.slice(name.lastIndexOf('/') + 1, -4))?.geometry;
-      const value = assembled === undefined ? bytes?.get(name) ?? (bytes === undefined ? await product.file(name) : undefined) : geometry;
-      if (value === undefined) throw new Error('Missing Driftwood source draw');
-      return [row.slot, value] as const;
-    })));
-    if (assembled !== undefined && assembled.size !== admitted.size) throw new Error('Unexpected admitted Driftwood source draw');
-    await Promise.all([...fixed].map(([slot, geometry]) => geometry.load(admitted.get(slot)))); fixedReady = true;
-  } finally { for (let i = 0, views = [...assembled?.values() ?? []]; i < MAX_FIXED_DRAWS; i++) { const view = views[i]; if (view === undefined) break; view.release?.(); } }
+  await draws().load(bytes, owner);
 }
 
 /** Inert collection binding shares the original fixed-draw intake without loading the live creature roster. */

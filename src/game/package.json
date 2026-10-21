@@ -20,6 +20,7 @@
     "./shardfile/clientMeadow": "./shardfile/clientMeadow.ts",
     "./looks/speciesBook": "./looks/speciesBook.ts",
     "./looks/vertexWear": "./looks/vertexWear.ts",
+    "./models/fixedDraws": "./models/fixedDraws.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./audio/forestPage": "./audio/forestPage.ts",
     "./audio/cueDirector": "./audio/cueDirector.ts",
