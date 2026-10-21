@@ -6,7 +6,7 @@ import { decisionBindingMap } from '../src/format/decisionBindings';
 import { DecisionHost, type DecisionScript } from '../src/engine/script/decision';
 import { NIGHT_SPAWN } from '../src/shards/pine-hollow/generators/nightSpawn';
 import { spawnScriptRegistries } from '../src/format/spawnScripts';
-import type { ScriptV1Command } from '../src/format/scriptAbiV1';
+import { SCRIPT_V1_READS, type ScriptV1ReadName, type ScriptV1Command } from '../src/format/scriptAbiV1';
 
 const row = { id: 'test.bodies', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`,
   source: 'behaviour/bodies.as', binding: { shard: true }, onFail: 'hold', on: ['start'],
@@ -22,7 +22,7 @@ async function fixture(body: string) {
   if (script === undefined || blob === undefined) throw new Error('Missing body program');
   const map = decisionBindingMap(script, registries), committed: ScriptV1Command[] = [];
   let prepared = 0;
-  const declaration: DecisionScript = { ...script, ids: map.ids, lists: [] };
+  const declaration: DecisionScript = { ...script, ids: map.ids, reads: script.reads.filter((read): read is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, read)), lists: [] };
   const host = new DecisionHost({ scripts: [declaration], bindings: [{ id: 1, script: row.id, self: 0, actors: [], instance: 0 }],
     seed: [1, 2], modules: new Map([[script.module, blob.bytes]]), world: {
       read: () => 0, list: () => 0, failed: () => undefined,
