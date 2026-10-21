@@ -12,7 +12,6 @@ import { PineQuestViews } from '../../quest/views';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { CaveInterior } from '@wildshard/game/shardfile/caveInterior';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -44,7 +43,6 @@ export class PineLandmarks {
   async installChapter(ctx: ShardContext, input: RangedPageRows): Promise<void> {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Missing landmark play services');
-    const floor = forestPage(ctx.scope, input.forest);
     const page = await installRangedPage(ctx, { ...input, shadowBatch: !pineMemoryTrim() });
     this.chapter = await PineQuestViews.install(ctx, this);
     const ambience = page.ambience;
@@ -53,7 +51,6 @@ export class PineLandmarks {
     await installForestWeather(ctx, await ctx.product.json('world/forest-weather.json'));
     const life = await installPageLife(ctx, await ctx.product.json(input.life), page.compendium?.state ?? null, ambience.sfx);
     Object.assign(runtime.objects, { pineLife: life });
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins: floor.cabins, props: floor.props, streams: floor.streams, pineLife: life });
   }
 
   update(dt: number, t: number): void { this.chapter?.present(dt, t); this.crags?.cave.presentFrame(t, this.sky); }

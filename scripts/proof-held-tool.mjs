@@ -38,7 +38,7 @@ try {
           g.frameGate = () => false;
           for (const held of w.weapons.list) held.model.visible = false;
           w.hands.group.visible = false;
-          const life = g.app.debug.snapshot()['harness.shard.pine-hollow'].pineLife;
+          const life = g.app.debug.snapshot()['harness.shard.pine-hollow'].objects.pineLife;
           const carcass = w.animals.animals[0];
           const root = camera.getObjectByName('skin-knife');
           if (life === undefined || carcass === undefined || root === undefined) throw new Error('Missing real held tool/harvest owner');

@@ -8,6 +8,10 @@
       "kind": "held.ranged-feel"
     },
     {
+      "kind": "debug.expose",
+      "name": "harness.shard.pine-hollow"
+    },
+    {
       "kind": "content.catalogue",
       "quests": true,
       "finishes": true,
