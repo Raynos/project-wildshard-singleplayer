@@ -548,15 +548,16 @@ export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
 /**
  * Every material the composer's passes own (fullscreen materials, the blur / luminance /
  * downsample materials passes swap in, nested passes of effects), each on a screen triangle in an
- * empty scene: no fog, no lights, into a frame buffer — except the pass that renders to screen.
+ * empty scene: no fog or lights, using internal pass targets where declared, otherwise the composer's
+ * buffer — except the pass that renders to screen. Targets and borrowed materials keep their identities.
  */
 export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.WebGLRenderTarget | null, per = Number.POSITIVE_INFINITY): CompileJob[] {
-  const found = new Map<THREE.Material, boolean>(); // material → renders to screen
+  const found = new Map<THREE.Material, THREE.WebGLRenderTarget | null>();
   // A scene pass can point back to its composer. Revisit a pass reached more directly so that
   // an earlier, deeper route cannot exhaust the depth budget before its nested effects are read.
   const visited = new Map<object, number>();
-  const walk = (v: unknown, toScreenIn: boolean, depth: number): void => {
-    let toScreen = toScreenIn;
+  const walk = (v: unknown, targetIn: THREE.WebGLRenderTarget | null, depth: number): void => {
+    let target = targetIn;
     if (v === null || typeof v !== 'object' || (visited.get(v) ?? Number.POSITIVE_INFINITY) <= depth || depth > 4) return;
     // AGX never updates its adaptation passes. Bloom still draws luminance when its threshold is zero.
     if (v instanceof ToneMappingEffect && v.mode !== ToneMappingMode.REINHARD2_ADAPTIVE) return;
@@ -566,22 +567,34 @@ export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.Web
       const m = o as unknown as THREE.ShaderMaterial;
       // The god-rays light source's MeshBasicMaterial already has its in-scene program.
       const idle = !m.isShaderMaterial;
-      if (!idle && !found.has(m)) found.set(m, toScreen);
+      if (!idle && !found.has(m)) found.set(m, target);
       return;
     }
     if (o.isTexture || o.isWebGLRenderTarget || o.isCamera || o.isScene || ArrayBuffer.isView(v)) return;
-    if (o.isObject3D) { if (o.isMesh) walk((o as unknown as THREE.Mesh).material, toScreen, depth + 1); return; }
+    if (o.isObject3D) { if (o.isMesh) walk((o as unknown as THREE.Mesh).material, target, depth + 1); return; }
     visited.set(v, depth);
-    if (v instanceof Pass) { toScreen = v.renderToScreen; walk(v.fullscreenMaterial, toScreen, depth + 1); }
-    for (const val of Array.isArray(v) ? v : Object.values(o)) walk(val, toScreen, depth + 1);
+    // Internal luminance/blur passes draw into their own targets, whose depth
+    // attachment can differ from the composer's input even at the same format.
+    const ownTarget: unknown = Reflect.get(v, 'renderTarget');
+    if (ownTarget instanceof THREE.WebGLRenderTarget) target = ownTarget;
+    if (v instanceof Pass) {
+      target = v.renderToScreen ? null : ownTarget instanceof THREE.WebGLRenderTarget ? ownTarget : rt;
+      walk(v.fullscreenMaterial, target, depth + 1);
+    }
+    for (const [key, val] of Object.entries(o)) if (key !== 'composer') walk(val, target, depth + 1);
   };
-  for (const pass of composer.passes) walk(pass, pass.renderToScreen, 0);
+  for (const pass of composer.passes) walk(pass, pass.renderToScreen ? null : rt, 0);
   const tri = postTriangle();
   const jobs: CompileJob[] = [];
   const empty = new THREE.Scene();
-  const groups = { buffer: new THREE.Group(), screen: new THREE.Group() };
-  for (const [m, toScreen] of found) (toScreen ? groups.screen : groups.buffer).add(new THREE.Mesh(tri, m));
-  for (const [group, target, label] of [[groups.buffer, rt, 's_178612197e2b'], [groups.screen, null, 's_9070659b32c3']] as const) {
+  const groups = new Map<THREE.WebGLRenderTarget | null, THREE.Group>();
+  for (const [material, target] of found) {
+    let group = groups.get(target);
+    if (group === undefined) { group = new THREE.Group(); groups.set(target, group); }
+    const mesh = new THREE.Mesh(tri, material); mesh.frustumCulled = false; group.add(mesh);
+  }
+  for (const [target, group] of groups) {
+    const label = target === null ? 's_9070659b32c3' : 's_178612197e2b';
     const meshes = [...group.children];
     for (let i = 0; i < meshes.length; i += per) {
       const root = new THREE.Group();
@@ -592,6 +605,24 @@ export function postJobs(composer: Pick<EffectComposer, 'passes'>, rt: THREE.Web
   const first = jobs[0];
   if (first === undefined) tri.dispose(); else first.dispose = disposerOf([tri]);
   return jobs;
+}
+
+/** Draw linked post materials individually into their existing targets before the first composer frame.
+ * Each completed draw gets a paint opportunity. No effect clock, simulation, target size or material is changed;
+ * the real composer overwrites these temporary pixels. Target face/mip are restored on failure and cancellation. */
+export async function warmPostJobs(renderer: Pick<Renderer, 'getRenderTarget' | 'getActiveCubeFace' | 'getActiveMipmapLevel' | 'setRenderTarget' | 'render'>,
+  jobs: readonly CompileJob[], pause: () => Promise<void>, current: () => boolean,
+  onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  for (const [index, job] of jobs.entries()) {
+    if (!current()) throw new Error('Shader warm-up owner left');
+    const target = renderer.getRenderTarget(), face = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
+    try { renderer.setRenderTarget(job.rt); renderer.render(job.root, camera); }
+    finally { renderer.setRenderTarget(target, face, mip); }
+    onProgress?.(index + 1, jobs.length, `${index + 1} / ${jobs.length} post pipelines drawn`);
+    await pause();
+  }
+  if (!current()) throw new Error('Shader warm-up owner left');
 }
 
 /**
@@ -1014,6 +1045,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void>;
     /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget;
     /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage;
+    /** Warm post draw pipelines one material per paint during initial loading; never used by live preparation. */ warmPost?: boolean;
     /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
@@ -1063,7 +1095,9 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)));
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(...kinded('background', [bg])); else bg?.dispose?.();
-    if (policy?.post !== false) jobs.push(...kinded('post', postJobs(game.composer, rt, single ? 1 : Number.POSITIVE_INFINITY)));
+    const post = policy?.post === false ? [] : kinded('post', postJobs(game.composer, rt, single || options.warmPost === true ? 1 : Number.POSITIVE_INFINITY));
+    // Issue the post links first so driver work overlaps the world/shadow jobs.
+    if (options.warmPost === true) jobs.unshift(...post); else jobs.push(...post);
     // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
@@ -1074,7 +1108,14 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const owner = options.owner ?? resourceScope();
     if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);
+    let completed = 0, total = 0;
+    const warm = options.warmPost === true ? post : [];
+    const progress = (done: number, count: number, detail: string): void => {
+      completed = done; total = count; onProgress?.(done, count + warm.length, detail);
+    };
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, progress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);
+    if (warm.length > 0) await warmPostJobs(game.renderer, warm, options.pause ?? frame, options.current ?? (() => true),
+      (done, count, detail) => { onProgress?.(completed + done, total + count, detail); });
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   
