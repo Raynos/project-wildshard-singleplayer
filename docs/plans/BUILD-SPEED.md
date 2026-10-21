@@ -136,6 +136,9 @@ the pusher lane a round.
 - **Deletes:** nothing. **Risk:** low. **Effort:** about 1 h each.
 - **Verify:** two consecutive green deploy runs; red shards per day from the deploy workflow.
 - **Jake:** ☑ fix both, never quarantine (10-21)
+- **Done (10-21, sp-x8):** both were already fixed (quest cable: c8cf164dd6 restored the cables fixture; DW digest:
+  fb781f41c1); deploy push runs 39617646471 (a67c54d210) and 39619243789 (579bb34b59) ran all three files green on
+  all 10 shards. No quarantine.
 
 **Wave 1 Verify, before Wave 2 is asked:** host idle during lane tests above 20 % median; Codex poll share under 10 %;
 MCP processes ≤ one set per session that uses them; two green deploys in a row; receipt counts flat.
