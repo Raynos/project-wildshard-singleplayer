@@ -4,7 +4,7 @@ import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { ownedSoakPlans, soakRoadTour, soakCellPeaks, soakPortalPlan, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
-import { soakCatalogue } from './route.ts';
+import { soakCatalogue, SOAK_CAPS } from './route.ts';
 import { circuitPlans } from './boundary.mjs';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
@@ -333,4 +333,10 @@ void test('O12 a leg into or out of a portal cell follows its declared portal', 
   assert.deepEqual([out.from, out.to], ['p', 'a']);
   assert.deepEqual(out.waypoints.slice(0, 4).map(point => [point.x, point.z]), [[0, 545], [0, 535], [0, 535], [0, 295]]);
   assert.equal(out.portal.reverse, true);
+});
+
+void test('O12 the soak grades memory against the one memory switch, not a number of its own', () => {
+  const gates = JSON.parse(readFileSync('src/format/memoryGates.json', 'utf8'));
+  assert.deepEqual(SOAK_CAPS, { playingBytes: gates.explorerMB * 1_000_000, loadingBytes: gates.loadingMB * 1_000_000 });
+  assert.equal(readFileSync('scripts/soak/route.ts', 'utf8').includes('1_000_000_000'), false);
 });

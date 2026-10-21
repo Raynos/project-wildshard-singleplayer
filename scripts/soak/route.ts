@@ -1,3 +1,8 @@
+import memoryGates from '../../src/format/memoryGates.json' with { type: 'json' };
+
+/** The soak's memory caps are the one memory switch's (src/format/memoryGates.json, G534: 1200 playing / 1800 loading MB),
+ *  decimal bytes, never a number of its own. */
+export const SOAK_CAPS = Object.freeze({ playingBytes: memoryGates.explorerMB * 1_000_000, loadingBytes: memoryGates.loadingMB * 1_000_000 });
 interface Cell { readonly instance: string; readonly slug: string; readonly cell: readonly number[] }
 interface Point { readonly x: number; readonly z: number }
 interface Step extends Point { readonly kind: string; readonly instance?: string; readonly slug?: string; readonly id?: string; readonly seconds?: number }
@@ -162,7 +167,7 @@ export function gradeSoak({ drive: driveBounds, samples: tagged, windows, second
       answerers: (leak.after.events?.answerers ?? 0) - (leak.before?.events?.answerers ?? 0),
     } });
   // G186 amends the ordinary drift rule only after a picked content cut. Invisible savings keep it gated.
-  const memoryPass = (cut !== null || recovery) && seconds - tourSeconds >= requiredSeconds && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && calibration && leakZero && errors.length === 0;
+  const memoryPass = (cut !== null || recovery) && seconds - tourSeconds >= requiredSeconds && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= SOAK_CAPS.playingBytes && loadingPeakBytes <= SOAK_CAPS.loadingBytes && calibration && leakZero && errors.length === 0;
   return { contentCut: cut, requiredSeconds, memoryPass, gatePass: !rehearsal && memoryPass && refused.length === 0 && visited && expectedCrossroads > 0 && new Set(crossroads).size === expectedCrossroads,
     peakBytes, loadingPeakBytes, phoneEstimateBytes: peakBytes * 1.4, baselines, baselineDeltaBytes, loops, recovery, calibration, ratios, missingGlSamples, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size, rehearsal,
     limitation: refused.length === 0 ? null : 'Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48.' };
