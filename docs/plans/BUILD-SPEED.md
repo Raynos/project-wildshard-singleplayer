@@ -56,6 +56,7 @@ Claude 50 % and Codex 54 % of the week used at day 1.9 and 1.3; `scripts/` 33 �
 | D3 | If Wave 1 caps are not enough, CPU-only lane work runs in a Linux container with hard caps; the host keeps the Super cores, the GPU, git, the agents, the Simulator and GPU captures. The GPU cannot be partitioned; GPU captures get a schedule. | with Phase 3.2 |
 | D4 | Measurement stays on the host. | decided (10-21) |
 | D5 | Polling is forbidden for both agent kinds. | decided (10-21); Phase 1.4 |
+| D6 | **The push gate and the ruler keep normal priority:** Phase 1.2's `taskpolicy -c utility` wraps lane jobs only; `heavy-lane.py gate` (the push gate and everything under its lease) and the ruler's measurement build (`scripts/admin-data/ruler.mjs`) run at default QoS, as G548 B5 set (Jake, 10-21 ~10:35 Cancun, on the plan agent's review of Wave 1: *"exempt the push gate and the ruler approved"*; SHARD-PLATFORM G562). | decided (10-21); amends 1.2 |
 
 ## Wave 1: stop the bleeding (nothing deleted, every step reversible in minutes)
 
@@ -87,7 +88,7 @@ lower-QoS work onto the lower core tier and lets default-priority work win conte
   **Effort:** 20 min.
 - **Verify:** one frame-floor milestone run on the Simulator during full lane load, drive p95 compared with the last
   quiet reading at the same SHA (Phase 3.4 is the full protocol). **Rollback:** revert.
-- **Jake:** ☑ A (10-21)
+- **Jake:** ☑ A (10-21); amended by D6: the push gate and the ruler stay at default QoS.
 
 ### Phase 1.3 Memory and indexing hygiene
 
