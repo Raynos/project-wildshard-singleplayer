@@ -2,7 +2,7 @@
   "version": 1,
   "modules": {
     "@wildshard/game/population/mixedRoster": ["installMixedPopulation"],
-    "@wildshard/game/quest/nativeStory": ["installNativeChapterDirector"],
+    "@wildshard/game/quest/nativeChapter": ["installNativeChapterDirector"],
     "@wildshard/game/quest/killSteps": ["installQuestKillSteps"],
     "@wildshard/game/quest/nativeComposition": ["readNativeQuestSpots", "installNativeQuestComposition"],
     "src/shards/driftwood-isle/world/sea": ["DRIFTWOOD_SEA", "LOWERED_SEA"],
@@ -548,7 +548,7 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/quest/nativeStory",
+              "@wildshard/game/quest/nativeChapter",
               "installNativeChapterDirector"
             ]
           },

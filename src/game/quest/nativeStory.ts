@@ -4,8 +4,6 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { isJsonData } from '@wildshard/format/json';
-import { ChapterDirectorSchema, parseChapterDirector } from '@wildshard/format/chapterDirector';
-import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { NativeStoryRows } from './nativeStoryRows';
 import { prepareNativeQuestEntry } from './nativeEntry';
@@ -18,58 +16,17 @@ import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
 import type { installDeclaredQuestHost } from '../plugin/simulation';
 import { ReturnProgram } from '../population/returnProgram';
-import type { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
+import type { readDirectorProduct } from '../plugin/director';
 import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
 import { ContractBoard, CONTRACT_ACTION } from './contractBoard';
 import { contractKill } from './contracts';
 import { questBenchPose } from './storyLaw';
-import { ChapterClock } from './chapterClock';
 import { Exchange } from '../loot/exchange';
 import { QuestStepRunner } from './steps';
-import { installNativeQuestChannels } from './nativeInputs';
-import { mixedPopulation } from '../population/mixedRoster';
-import { installWakeBoss } from '../boss/nativeWake';
+import { installNativeChapterDirector } from './nativeChapter';
 
 const finite = v.pipe(v.number(), v.finite());
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
-const chapterName = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
-const nativeChapter = v.strictObject({ id: chapterName, rows: ChapterDirectorSchema, reward: v.exactOptional(chapterName),
-  wake: v.exactOptional(v.strictObject({ population: chapterName, encounter: WakeEncounterSchema,
-    placement: v.strictObject({ pool: v.object({ x: finite, z: finite }), arena: finite }),
-    cues: v.pipe(v.array(v.strictObject({ id: chapterName, operation: v.picklist(['restore', 'wake', 'effects']) })), v.maxLength(64)) })) });
-
-/** Renderer-free chapter entry. Closed rows borrow actual population, encounter
- * and reward owners; the caller retains its existing step and save envelope. */
-export function installNativeChapterDirector(host: SimHost, director: Awaited<ReturnType<typeof readDirectorProduct>>, input: unknown, restoring = false): {
-  readonly clock: DirectorScriptStageLane; readonly fast: { on: v.InferOutput<typeof Fast> | null };
-  readonly update: (dt: number, step?: string) => void;
-} {
-  if (host.scope.disposed || !isJsonData(input)) throw new Error('Native chapter requires live JSON rows');
-  const policy = v.parse(nativeChapter, input), rows = parseChapterDirector(policy.rows);
-  const cues = new Map(policy.wake?.cues.map(cue => [cue.id, cue]));
-  if (cues.size !== (policy.wake?.cues.length ?? 0)) throw new Error('Duplicate native chapter cue');
-  for (const effects of Object.values(rows.actions)) for (const effect of effects) {
-    if (effect.kind === 'cue' && !cues.has(effect.id)) throw new Error('Missing native chapter cue');
-    if (effect.kind === 'reward' && policy.reward === undefined) throw new Error('Missing native chapter reward owner');
-    if (!['flag', 'phase', 'cue', 'reward'].includes(effect.kind)) throw new Error('Native chapter requires closed native effects');
-  }
-  const population = policy.wake === undefined ? null : mixedPopulation(host, policy.wake.population);
-  const encounter = policy.wake === undefined ? null : installWakeBoss(host, policy.wake.encounter, policy.wake.placement);
-  const reward = policy.reward === undefined ? null : installNativeQuestChannels(host, policy.reward, { started: false, completed: false });
-  const timeline = new ChapterClock(host.scope, director, rows, host.flags,
-    { get day() { return host.dayClock ?? null; }, player: host.player.position, reward: rows.reward ?? null, finish: 'assign' }, effect => {
-      if (effect.kind === 'reward' && reward !== null) reward[effect.state] = true;
-      else if (effect.kind === 'cue' && population !== null && encounter !== null && policy.wake !== undefined) {
-        const cue = cues.get(effect.id); if (cue === undefined) throw new Error('Unknown native chapter cue');
-        if (cue.operation !== 'effects') {
-          if (population.captain() === null) population.spawnCaptain();
-          encounter.publish(cue.operation === 'wake' ? policy.wake.encounter.events.wake : policy.wake.encounter.events.restore);
-        }
-      }
-    }, restoring);
-  timeline.lane.registerNative(host, policy.id);
-  return { clock: timeline.lane, fast: timeline.fast, update: (dt, step) => { timeline.update(dt, step); } };
-}
 const LeadSaved = v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(['none', 'stare', 'trot', 'gone']), t: v.pipe(finite, v.minValue(0)) });
 const questSaved = (pack: ReturnType<typeof nativeInventorySchema<string>>, ids: readonly string[]) => v.strictObject({ lead: LeadSaved,
   clock: v.pipe(v.string(), v.maxLength(1000000)), fast: v.nullable(Fast), cable: v.nullable(v.strictObject({ s: finite, v: finite })), pickup: v.boolean(),

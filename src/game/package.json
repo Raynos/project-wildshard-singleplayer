@@ -17,6 +17,7 @@
     "./shardfile/pageWater": "./shardfile/pageWater.ts",
     "./shardfile/pagePreparation": "./shardfile/pagePreparation.ts",
     "./quest/nativeStory": "./quest/nativeStory.ts",
+    "./quest/nativeChapter": "./quest/nativeChapter.ts",
     "./shardfile/clientMeadow": "./shardfile/clientMeadow.ts",
     "./looks/speciesBook": "./looks/speciesBook.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",

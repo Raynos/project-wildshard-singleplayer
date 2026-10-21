@@ -10567,6 +10567,11 @@ three figure runtime modules. The legacy snapshots still use the old wrapper.
 
 ### Chapter director publications
 
+`game/quest/nativeChapter.installNativeChapterDirector(host, director, rows)`
+is the renderer-free binding used by Pine and Driftwood. It borrows the shared
+`ChapterClock` and native population/reward owners; the caller retains its
+original update phase and save envelope. It imports no page or board module.
+
 `game/quest/chapterDirector.readChapterDirector(ctx, file)` is client-only.
 It reads closed `format/chapterDirector` rows and the admitted stage/director
 product. The entered chapter supplies its original flags and objective;
