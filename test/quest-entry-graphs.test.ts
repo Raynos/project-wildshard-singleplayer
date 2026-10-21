@@ -14,9 +14,32 @@ import driftwood from '../src/shards/driftwood-isle/generators/product';
 import people from '../src/shards/pine-hollow/data/questNpcs.generated.json' with { type: 'json' };
 import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from '../src/shards/pine-hollow/generators/questRuntime';
 import { parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
+import type { QuestHostPorts } from '../src/game/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
+
+/** Isolate command admission with concrete mutable service observations. Full
+ * living entry/save replay still runs through each actual native composition. */
+function pineCommandOwners(calls: string[] = []): { owners: Omit<QuestHostPorts, 'commands' | 'fact' | 'coins'>; modal: Record<string, boolean> } {
+  const row = pine.questHost; if (row === undefined || row === null) throw new Error('Missing Pine host');
+  const modal: Record<string, boolean> = { riding: false, trading: false, boarding: false, reading: false, selectable: true, pickup: true };
+  const spots = [...new Set(row.commands.routes.flatMap(route => route.spot === null ? [] : [route.spot]))]
+    .map(id => ({ id, x: 0, y: 1.68, z: 1, radius: 3 }));
+  const actions = new Map<string, (value: number) => void>(row.commands.routes.flatMap(route => {
+    if (route.action.kind !== 'owner') return [];
+    const id = route.action.id;
+    return [[id, (value: number): void => {
+      calls.push(`${id}/${String(value)}`);
+      if (id === 'talk.ranger') modal['reading'] = true;
+      if (id === 'quest.trade.close') modal['trading'] = false;
+      if (id === 'quest.board.close') modal['boarding'] = false;
+      if (id === 'quest.cancel') { modal['reading'] = false; modal['trading'] = false; modal['boarding'] = false; }
+    }]];
+  }));
+  return { modal, owners: { spots: { interact: spots, crack: [] }, actions,
+    observations: new Map(Object.keys(modal).map(id => [id, () => modal[id] === true])) } };
+}
 
 test('both quest entries use an admitted host without changing Pine decision flag handles', () => {
   for (const source of [pine, driftwood]) {
@@ -47,7 +70,7 @@ test('Pine declared entry preserves external action results, continuation and qu
       interactions: PINE_QUEST_RUNTIME.interactions, npcs: [] }, { ...ports(beforeFacts), drive: 'external' });
     const nextPorts = ports(afterFacts);
     registerNativeQuestInputs(after, { scripts: nextPorts.commands, walk: () => ({ x: 0, z: 0 }), ledger: nextPorts });
-    const entry = prepareNativeQuestEntry(after, pine, { rows: [], external: [] }, []), current = entry.install();
+    const entry = prepareNativeQuestEntry(after, pine, { rows: [], external: [] }, []), current = entry.install(pineCommandOwners().owners);
     expect(() => entry.install()).toThrow('already installed');
     const saved = (host: typeof before) => [...host.adapters].map(([id, adapter]) => [id, adapter.snapshot()]);
     expect(saved(after)).toEqual(saved(before));
@@ -111,4 +134,31 @@ test('native entry counters preserve stable facts, quiet restore and scoped flag
       host.dispose(); counters.restore({}); host.flags.set('after-disposal'); expect(facts).toHaveLength(2);
     } finally { host.dispose(); }
   }
+});
+
+
+test('Pine admitted routes preserve same-tick modal priority, actor values, cancel and strict reach', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), calls: string[] = [];
+  try {
+    registerNativeQuestInputs(host, { scripts: () => [], walk: () => ({ x: 0, z: 0 }), ledger: { fact: () => undefined, coins: () => undefined } });
+    const { owners, modal } = pineCommandOwners(calls), entry = prepareNativeQuestEntry(host, pine, { rows: [], external: [] }, []), graph = entry.install(owners);
+    const command = (value: number, actorId = 'pine.interact') => graph.accept({ actorId, value });
+    expect(command(0)).toBe(true); expect(command(1)).toBe(true);
+    expect(calls).toEqual(['talk.ranger/0', 'quest.reading.next/1']);
+    expect(command(10, 'pine.trade')).toBe(false); expect(command(-1)).toBe(true);
+    modal['boarding'] = true; modal['trading'] = true;
+    command(19); command(19); command(19);
+    expect(calls.slice(-3)).toEqual(['quest.trade.close/19', 'quest.board.close/19', 'talk.miller/19']);
+    modal['reading'] = false;
+    expect(command(10, 'pine.trade')).toBe(true);
+    expect(command(0, 'pine.ammo')).toBe(true);
+    expect(command(0, 'pine.lodge')).toBe(true);
+    expect(calls.slice(-3)).toEqual(['quest.trade.use/10', 'quest.ammo.cycle/0', 'quest.board.use/0']);
+    modal['riding'] = true; expect(command(-1)).toBe(false); expect(command(10, 'pine.trade')).toBe(false);
+    modal['riding'] = false;
+    host.player.position.set(0, 0, 4); expect(command(0)).toBe(false); // Exactly three metres: still outside.
+    host.player.position.z = 3.99; expect(command(0)).toBe(true);
+    expect(command(0, 'unrelated')).toBe(false);
+  } finally { host.dispose(); }
 });

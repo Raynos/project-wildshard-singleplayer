@@ -67,8 +67,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     addBolts: (n: number) => { launcher.item.addBolts(n); }, canSelectAmmo: () => launcher.frame.live.has(policy.launcher),
     day: () => host.dayClock ?? null, night: () => host.dayClock?.night ?? 0,
     takeBossReward: (eye: { x: number; y: number; z: number }) => takeNativeBossReward(host, policy.boss, eye) };
-  const EYE = policy.eye, MAX_SETS = 16, MAX_COMMANDS = 1024, INTERACT = policy.actor, TRADE = policy.trade,
-    AMMO = policy.ammo, TRADE_CLOSE = -1, QUEST_STEP = policy.step, PICKUP_FLAG = policy.pickup.flag,
+  const EYE = policy.eye, MAX_SETS = 16, MAX_COMMANDS = 1024, TRADE_CLOSE = -1, QUEST_STEP = policy.step, PICKUP_FLAG = policy.pickup.flag,
     benchRows = policy.bench;
   const { touchCount: TOUCH_COUNT, readingDelay: READING_DELAY } = content.policy;
   const indexed = entry.rules, Saved = questSaved(nativeInventorySchema(entry.inventory), policy.finish.ids);
@@ -79,11 +78,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   };
   const latch = required(policy.latch), benchRule = required(policy.benchRow), bench = benchRule.spot;
   if (benchRule.d.kind !== 'bench' || benchRule.prompt === null) throw new Error('Story bench requires its prompt');
-  const rowOf = (value: number): Rule | null => {
-    const action = policy.actions.find(row => row.value === value && row.kind === 'row');
-    return action?.kind === 'row' ? required(action.target) : null;
-  };
-  const graph = entry.install();
+  const graph = entry.install(commandOwners());
   const quests = graph.quests;
   const chapter = quests.quests[0];
   if (chapter === undefined) throw new Error('Story requires its chapter');
@@ -103,11 +98,6 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     commitQuestEffects(host, policy.pack, steps.signal({ kind: 'talk', target: kind }, { flags: flags.all, inventory: pack.snapshot().counts }));
     if (kind === policy.trader) trader.open();
   });
-  const near = (p: { x: number; y: number; z: number } | null, radius: number): boolean => {
-    if (p === null || radius <= 0) return false;
-    eye.copy(host.player.position); eye.y += EYE;
-    return at.set(p.x, p.y, p.z).distanceTo(eye) < radius;
-  };
 
   const interact = (r: Rule): void => {
     const d = r.d;
@@ -161,25 +151,31 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
   };
   const initialBoard = board.snapshot();
 
-  const act = (value: number): void => {
-    if (cables.state(cableId).riding) return;
-    if (value === policy.cancel) { dialogue.dismiss(); board.use(CONTRACT_ACTION.close, eye); trader.use(TRADE_CLOSE); return; }
-    if (trader.active) { trader.use(TRADE_CLOSE); return; }
-    if (board.active) { board.use(CONTRACT_ACTION.close, eye); return; }
-    if (dialogue.active) { dialogue.press(policy.primary); return; }
-    const action = policy.actions.find(row => row.value === value);
-    if (action === undefined) return;
-    if (action.kind === 'reward') { eye.copy(host.player.position); eye.y += EYE; ports.takeBossReward(eye); }
-    else if (action.kind === 'talk') {
-      const spot = people.find(person => person.kind === action.target);
-      if (spot !== undefined && near(spot.prompt, spot.prompt.radius)) dialogue.press(action.target);
-    } else if (action.kind === 'lantern') {
-      const point = spots.signals[action.target];
-      if (point !== undefined && near(point, point.radius)) graph.run(action.row);
-    } else if (action.kind === 'cable') { if (near(spots.cable.prompt, spots.cable.prompt.radius)) cables.start(cableId); }
-    else if (action.kind === 'pickup') { if (!flags.has(PICKUP_FLAG) && near(spots.pickup, spots.pickup.radius)) { flags.set(PICKUP_FLAG); state.pickup = true; } }
-    else { const row = rowOf(value); if (row !== null && near(row.prompt, row.promptRadius())) interact(row); }
-  };
+  // Construct the callbacks at the graph's original phase. They resolve live
+  // owners only when command delivery starts, after preparation has completed.
+  function commandOwners(): NonNullable<Parameters<typeof entry.install>[0]> {
+    return { spots: { crack: [], interact: [
+    ...[...indexed.values()].flatMap(row => row.spot.prompt === null ? [] : [{ id: row.d.id, ...row.spot.prompt, get radius() { return row.promptRadius(); } }]),
+    ...spots.people.map(person => ({ id: `talk.${person.kind}`, ...person.prompt })),
+    ...Object.entries(spots.signals).map(([id, prompt]) => ({ id: `signal.${id}`, x: prompt.x, y: prompt.y, z: prompt.z, radius: prompt.radius })),
+    { id: 'quest.cable', ...spots.cable.prompt }, { id: 'quest.pickup', ...spots.pickup },
+  ] }, observations: new Map([
+    ['riding', () => cables.state(cableId).riding], ['trading', () => trader.active], ['boarding', () => board.active], ['reading', () => dialogue.active],
+    ['selectable', ports.canSelectAmmo], ['pickup', () => !flags.has(PICKUP_FLAG)],
+  ]), actions: new Map<string, (value: number) => void>([
+    ['quest.cancel', () => { dialogue.dismiss(); board.use(CONTRACT_ACTION.close, eye); trader.use(TRADE_CLOSE); }],
+    ['quest.trade.close', () => { trader.use(TRADE_CLOSE); }], ['quest.board.close', () => { board.use(CONTRACT_ACTION.close, eye); }],
+    ['quest.reading.next', () => { dialogue.press(policy.primary); }],
+    ['quest.trade.use', value => { trader.use(value); }], ['quest.ammo.cycle', () => { ports.ammunition.cycle(); }],
+    ['quest.board.use', value => { eye.copy(host.player.position); eye.y += EYE; useBoard(value); }],
+    ['quest.cable', () => { cables.start(cableId); }], ['quest.pickup', () => { flags.set(PICKUP_FLAG); state.pickup = true; }],
+    ['quest.reward', () => { eye.copy(host.player.position); eye.y += EYE; ports.takeBossReward(eye); }],
+    ...[...indexed.keys()].map(id => [id, () => { interact(required(id)); }] as const),
+    ...spots.people.map(person => [`talk.${person.kind}`, () => { dialogue.press(person.kind); }] as const),
+  ]) };
+  }
+
+
 
   host.scope.onDispose(flags.onChange((flag, on) => { if (on && flag === policy.clock.wait) clock.request(policy.clock.nightRequest); }));
   counterBook.observe();
@@ -209,12 +205,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     const list = ports.commands();
     for (let c = 0; c < MAX_COMMANDS; c++) {
       const command = list[c]; if (command === undefined) break;
-      if (command.actorId === INTERACT) act(command.value);
-      else if (command.actorId === TRADE && !dialogue.active && !board.active && !cables.state(cableId).riding) trader.use(command.value);
-      else if (command.actorId === AMMO && command.value === 0 && !dialogue.active && !trader.active && !board.active && !cables.state(cableId).riding && ports.canSelectAmmo()) ports.ammunition.cycle();
-      else if (command.actorId === ports.contracts.id && !dialogue.active && !trader.active && !cables.state(cableId).riding) {
-        eye.copy(host.player.position); eye.y += EYE; useBoard(command.value);
-      }
+      graph.accept(command);
     }
     dialogue.advanceReading(dt, host.player.position);
     cables.updateNative(cableId, dt, host);

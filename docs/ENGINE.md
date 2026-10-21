@@ -3378,9 +3378,16 @@ limits. `installDeclaredQuestHost` selects that admitted composition before
 borrowing native ports. Bound presentation projections retain no quest host;
 omission leaves the previous serialized bytes unchanged.
 
-Pine and Driftwood both select this admitted native composition. Pine keeps
-external modal/ride delivery and its existing graph continuation, with no new
-command step. Optional unique `questHost.flags` declare the composition's
+Pine and Driftwood both select this admitted native composition and its
+ordered command router. Routes select an actor (the graph actor by default),
+a finite command value or `null` for any value, a required nearby spot or
+`null` for an existing global/modal owner, and a bounded boolean condition.
+The first eligible route wins; its owner receives the original command value.
+Pine calls `accept(command)` in its original fixed step, preserving same-tick
+modal priority and its graph continuation without installing a command step.
+Driftwood's declared command step uses that same dispatcher with its original
+live prompt selection and sight. No new saved routing cursor is introduced.
+Optional unique `questHost.flags` declare the composition's
 additional durable interaction flags without changing `quests.flags`, its AS
 handle registry or existing saved decision contracts. Both page and native bindings read that root
 graph; the custom story payload contains no second graph or interaction table.

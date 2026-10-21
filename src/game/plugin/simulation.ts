@@ -1083,7 +1083,7 @@ export interface QuestHostPorts extends Omit<QuestGraphPorts, 'drive' | 'summon'
   /** Boolean observations such as a mover's enabled pose, keyed by the authored owner id. */
   readonly observations?: ReadonlyMap<string, () => boolean>;
   /** Accepted external commands delivered to their original native owner. */
-  readonly actions?: ReadonlyMap<string, () => void>;
+  readonly actions?: ReadonlyMap<string, (value: number) => void>;
   /** Stage actions retain their native effect owner, keyed by director id. Flag actions are bound automatically. */
   readonly directorActions?: ReadonlyMap<string, readonly DirectorActionBinding[]>;
   readonly mechanics?: QuestMechanics;
@@ -1120,28 +1120,32 @@ function questObservation(host: SimHost, row: QuestHostRow['observations'][numbe
 /** Compose an admitted quest graph, bounded command routes and ordered director stages on their original fixed steps.
  * Required owners refuse before installation. Quiet seeds and individual continuation strings preserve existing saves;
  * a transient flag stage introduces no saved cursor. The caller still owns all body, mover and encounter lifetimes. */
-export function installQuestHost(host: SimHost, quests: QuestData, input: QuestHostRow, ports: QuestHostPorts): ReturnType<typeof installQuestGraph> {
+export interface NativeQuestHost extends ReturnType<typeof installQuestGraph> {
+  /** Dispatch one accepted command at its existing owner's phase; adds no step or saved cursor. */
+  readonly accept: (command: { readonly actorId: string; readonly value: number }) => boolean;
+}
+export function installQuestHost(host: SimHost, quests: QuestData, input: QuestHostRow, ports: QuestHostPorts): NativeQuestHost {
   const row = parseQuestHost(input);
   if (ports.prompts !== undefined && ports.prompts.length > 1024) throw new Error('Quest prompt roster exceeds its finite bound');
   if (row.actors.ids.some(id => host.entities.get(id) === undefined)) throw new Error(row.actors.error);
   const observations = new Map(row.observations.map(observation => [observation.binding, questObservation(host, observation, ports)]));
-  const actions = new Map<number, () => void>();
+  const actions = new Map<QuestHostRow['commands']['routes'][number], (value: number) => void>();
   for (const route of row.commands.routes) {
-    if (!(ports.prompts === undefined ? [...row.npcs.map(npc => npc.spot), ...ports.spots.interact.map(spot => spot.id), ...ports.spots.crack.map(spot => `crack.${spot.id}`)] : ports.prompts.map(prompt => prompt.id)).includes(route.spot)) throw new Error(`Undeclared quest spot ${route.spot}`);
+    if (route.spot !== null && !(ports.prompts === undefined ? [...row.npcs.map(npc => npc.spot), ...ports.spots.interact.map(spot => spot.id), ...ports.spots.crack.map(spot => `crack.${spot.id}`)] : ports.prompts.map(prompt => prompt.id)).includes(route.spot)) throw new Error(`Undeclared quest spot ${route.spot}`);
     if (route.action.kind === 'owner') {
       const owner = ports.actions?.get(route.action.id);
       if (owner === undefined) throw new Error(`Unbound quest command ${route.action.id}`);
-      actions.set(route.value, owner);
+      actions.set(route, owner);
     } else if (route.action.kind === 'mover') {
       const action = route.action, motion = ports.mechanics?.motion;
       if (motion === undefined || !motion.data.some(value => value.id === action.mover)) throw new Error(`Unbound quest mover ${action.mover}`);
-      actions.set(route.value, () => { motion.command(action.mover, action.command); });
+      actions.set(route, () => { motion.command(action.mover, action.command); });
     } else if (route.action.kind === 'cable') {
       const action = route.action, cables = ports.mechanics?.cables;
       if (cables === undefined) throw new Error(`Unbound quest cable ${action.cable}`);
-      cables.state(action.cable); actions.set(route.value, () => { cables.start(action.cable); });
+      cables.state(action.cable); actions.set(route, () => { cables.start(action.cable); });
     } else if (route.action.kind === 'flag') {
-      const action = route.action; actions.set(route.value, () => { host.flags.set(action.flag, action.value); });
+      const action = route.action; actions.set(route, () => { host.flags.set(action.flag, action.value); });
     }
   }
   const observe = (binding: string): boolean => {
@@ -1163,7 +1167,7 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     if (stage === undefined) throw new Error(`Undeclared quest director ${request.director}`);
     return [request.target, stage.lane] as const;
   }));
-  const routes = row.commands.routes.map(route => ({ ...route, condition: compileDirectorWhen(route.when, Object.keys(row.commands.inputs)) }));
+  const routes = row.commands.routes.map(route => ({ ...route, authored: route, condition: compileDirectorWhen(route.when, Object.keys(row.commands.inputs)) }));
   // Continuations are registered in authored order, before the interaction graph as on the shipping native hosts.
   for (const { row: stage, lane } of stages) {
     const saved = stage.continuation;
@@ -1174,22 +1178,29 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
   const graph = installQuestGraph(host, { quests, graph: row.graph, interactions: row.interactions, npcs: row.npcs }, {
     ...ports, drive: row.drive, summon: target => { requests.get(target)?.advance(); },
   });
-  if (row.commands.step !== null) host.onStep(row.commands.step, () => {
-    const commands = ports.commands();
-    for (let index = 0; index < 1024; index++) {
-      const command = commands[index];
-      if (command === undefined) break;
-      if (command.actorId !== row.graph.actor) continue;
-      const route = routes.find(candidate => candidate.value === command.value);
-      if (route === undefined || !graph.near(route.spot)) continue;
+  const accept: NativeQuestHost['accept'] = command => {
+    for (const route of routes) {
+      if (command.actorId !== (route.actor ?? row.graph.actor) || route.value !== null && route.value !== command.value) continue;
+      if (route.spot !== null && !graph.near(route.spot)) continue;
       const values = Object.fromEntries(Object.entries(row.commands.inputs).map(([key, binding]) => [key, binding.startsWith('flag:') ? host.flags.has(binding.slice(5)) : observe(binding)]));
       if (!evaluateDirectorWhen(route.condition, values)) continue;
       if (route.action.kind === 'row') graph.run(route.action.id);
-      else actions.get(route.value)?.();
+      else {
+        actions.get(route.authored)?.(command.value);
+      }
+      return true;
+    }
+    return false;
+  };
+  if (row.commands.step !== null) host.onStep(row.commands.step, () => {
+    const commands = ports.commands();
+    for (let index = 0; index < 1024; index++) {
+      const command = commands[index]; if (command === undefined) break;
+      accept(command);
     }
     for (const stage of stages) if (stage.row.tick) stage.lane.advance();
   });
-  return graph;
+  return { ...graph, accept };
 }
 
 /** Borrowed world reaction owners; no hit, flag, prompt or saved state is reconstructed. */
@@ -1233,7 +1244,7 @@ export function bindQuestWorldReactions(input: QuestWorldReactionsData, ports: Q
 }
 
 /** Select only the admitted root composition; missing or unbound rows refuse before any borrowed owner is read. */
-export function installDeclaredQuestHost(host: SimHost, source: Shardfile, ports: QuestHostPorts): ReturnType<typeof installQuestGraph> {
+export function installDeclaredQuestHost(host: SimHost, source: Shardfile, ports: QuestHostPorts): NativeQuestHost {
   if (source.questHost === undefined || source.questHost === null || source.runtime?.binds?.includes('quests') !== true && !hasDeclaredClientPage(source)) throw new Error('Missing admitted native quest host');
   return installQuestHost(host, source.quests, source.questHost, ports);
 }

@@ -34,7 +34,7 @@ const raw = v.strictObject({
   commands: v.strictObject({
     step: v.nullable(name), inputs,
     routes: v.pipe(v.array(v.strictObject({
-      value: v.pipe(v.number(), v.safeInteger(), v.minValue(0)), spot: name,
+      value: v.nullable(v.pipe(v.number(), v.safeInteger())), actor: v.exactOptional(name), spot: v.nullable(name),
       when: v.pipe(v.string(), v.minLength(1), v.maxLength(1024)),
       action: v.variant('kind', [v.strictObject({ kind: v.literal('row'), id: name }), v.strictObject({ kind: v.literal('owner'), id: name }),
         v.strictObject({ kind: v.literal('mover'), mover: name, command: v.picklist([1, 2, 3]) }),
@@ -58,11 +58,11 @@ export function questHostRules(row: QuestHostRow): readonly string[] {
   const unique = (values: readonly (string | number)[]): boolean => new Set(values).size === values.length;
   if (!unique(row.flags ?? [])) errors.push('Unique quest-owned flags');
   if (!unique(row.actors.ids) || !unique(row.stages.map(stage => stage.row.id)) || !unique(row.observations.map(observation => observation.binding))
-    || !unique(row.summons.map(request => request.target)) || !unique(row.commands.routes.map(route => route.value))
+    || !unique(row.summons.map(request => request.target)) || !unique(row.commands.routes.map(route => JSON.stringify([route.actor ?? row.graph.actor, route.value, route.spot, route.when])))
     || !unique(row.npcs.map(npc => npc.id)) || !unique(row.npcs.map(npc => npc.spot))) errors.push('Unique native quest identities');
   if (row.drive === 'external' && row.interactions.marks.length > 0) errors.push('External quest marks require their existing continuation owner');
   if (row.drive === 'commands' && row.commands.routes.length > 0) errors.push('Native quest command routes have one owner');
-  if (row.commands.step === null && (row.commands.routes.length > 0 || row.stages.some(stage => stage.tick))) errors.push('Tick-driven quest rows require a step');
+  if (row.commands.step === null && row.stages.some(stage => stage.tick)) errors.push('Tick-driven quest rows require a step');
   if (!unique(row.stages.flatMap(stage => stage.continuation === undefined ? [] : [stage.continuation.step]))) errors.push('Unique quest continuation steps');
   if (row.stages.some(stage => stage.continuation?.step === row.commands.step || row.drive === 'commands' && stage.continuation?.step === row.graph.step)
     || row.drive === 'commands' && row.commands.step === row.graph.step) errors.push('Distinct quest continuation owners');

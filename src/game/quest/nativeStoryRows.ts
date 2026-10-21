@@ -15,8 +15,6 @@ export interface NativeStorySpots {
   readonly cable: { readonly prompt: Prompt };
   readonly signals: Readonly<Record<string, Prompt>>;
 }
-type Action = { value: number } & (
-  { kind: 'talk' | 'row'; target: string } | { kind: 'lantern'; target: string; row: string } | { kind: 'cable' | 'pickup' | 'reward' });
 type Publication = { event: string } & (
   { kind: 'clear' | 'flag'; flag: string } | { kind: 'flags'; flags: string[] } | { kind: 'phase'; to: number });
 /** Immutable composition over native quest steps, modal services and admitted AS.
@@ -34,8 +32,8 @@ export interface NativeStoryRows {
     readonly savedNames: Readonly<Record<string, string>>;
     readonly actor: string; readonly trade: string; readonly ammo: string; readonly step: string;
     readonly eye: number; readonly launcher: number; readonly boss: string; readonly cable: string; readonly pack: string;
-    readonly cancel: number; readonly primary: string; readonly trader: string;
-    readonly actions: readonly Action[]; readonly latch: string; readonly benchRow: string; readonly bench: QuestStory['bench'];
+    readonly primary: string; readonly trader: string;
+    readonly latch: string; readonly benchRow: string; readonly bench: QuestStory['bench'];
     readonly pickup: { readonly flag: string };
     readonly touch: { readonly prefix: string; readonly item: string };
     readonly finish: { readonly id: string; readonly claims: number; readonly ids: readonly string[] };

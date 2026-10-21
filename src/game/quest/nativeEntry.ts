@@ -8,6 +8,8 @@ import { installDeclaredQuestHost, type QuestHostPorts } from '../plugin/simulat
 import { nativeQuestInputs } from './nativeInputs';
 import { AchievementCounterBook, type AchievementCounterRows } from '../achievements';
 
+type NativeQuestOwners = Omit<QuestHostPorts, 'spots' | 'commands' | 'fact' | 'coins'> & { readonly spots?: QuestHostPorts['spots'] };
+
 /** The existing saved counter book with its actual native ledger owner. */
 interface NativeQuestAchievements extends AchievementCounterBook {
   readonly flush: () => void; readonly sync: () => void; readonly observe: () => void;
@@ -23,7 +25,7 @@ export function prepareNativeQuestEntry<Spot extends { readonly id: string; read
   readonly input: ReturnType<typeof nativeQuestInputs>; readonly inventory: ItemCatalogue['inventory'];
   readonly rules: ReturnType<typeof bindQuestTableSpots<Spot>>; readonly pack: NativeInventory<string>;
   readonly achievements: (rows: AchievementCounterRows, initial?: Readonly<Record<string, number>>) => NativeQuestAchievements;
-  readonly install: (owners?: Omit<QuestHostPorts, 'spots' | 'commands' | 'fact' | 'coins'>) => ReturnType<typeof installDeclaredQuestHost>;
+  readonly install: (owners?: NativeQuestOwners) => ReturnType<typeof installDeclaredQuestHost>;
 } {
   if (host.scope.disposed) throw new Error('Native quest entry left before preparation');
   const input = nativeQuestInputs(host), inventory = new ItemCatalogue(source.items).inventory;
@@ -41,10 +43,10 @@ export function prepareNativeQuestEntry<Spot extends { readonly id: string; read
         host.scope.onDispose(host.flags.onChange((flag, on) => { if (on && !flag.startsWith('plate:') && !flag.startsWith('lever:')) sync(); }));
       } });
     },
-    install: (owners: Omit<QuestHostPorts, 'spots' | 'commands' | 'fact' | 'coins'> = {}): ReturnType<typeof installDeclaredQuestHost> => {
+    install: (owners: NativeQuestOwners = {}): ReturnType<typeof installDeclaredQuestHost> => {
       if (installed || host.scope.disposed) throw new Error('Native quest entry already installed or disposed');
       installed = true;
-      return installDeclaredQuestHost(host, source, { ...owners, spots: { interact: [], crack: [] },
+      return installDeclaredQuestHost(host, source, { ...owners, spots: owners.spots ?? { interact: [], crack: [] },
         commands: input.scripts, fact: input.ledger.fact, coins: input.ledger.coins });
     } };
 }
