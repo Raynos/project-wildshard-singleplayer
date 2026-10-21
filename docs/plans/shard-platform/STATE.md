@@ -4,7 +4,7 @@
 
 Desktop 120 fps (one 150 ms grid compile frame). **Live:** 6f3c74693 (21:07Z): QA+QB, X5, ruler fix, G566, Pastel 0. Sim: hitches gone (Pine 118, Nine 58 ms); p95 36-51 ms Pine road / Nine drive (G561).
 
-**Tooling:** BUILD-SPEED; push loop sp-x1 (6c69722a50). G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
+**Tooling:** BUILD-SPEED; push loop LIVE (53e0880f4f green, 44 s). G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
 
 **Rules:** lanes/common.md; G569 watchdog nudges idle lanes (48894c561c).
 
