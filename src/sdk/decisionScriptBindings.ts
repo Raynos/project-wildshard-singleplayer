@@ -66,6 +66,8 @@ export function generateDecisionBindings(input: unknown, registries: DecisionReg
   const row = parseDecisionScripts([input])[0]; if (row === undefined) throw new Error('Missing decision row');
   const map = decisionBindingMap(row,registries), lines = ['// Generated from the admitted decision row. Never edit.',"import * as core from '../../sdk/as/ws';"];
   for (const kind of [...SCRIPT_V1_REFERENCE_KINDS,'timers'] as const) {
+    // Unused additive namespaces must not perturb existing guest bytecode.
+    if ((kind === 'bodies' || kind === 'colliders') && Object.keys(map.ids[kind] ?? {}).length === 0) continue;
     const name = kind === 'timers' ? 'Timer' : namespaces[kind];
     lines.push(`export namespace ${name} {`,...Object.entries(map.ids[kind]??{}).map(([alias,id])=>`  export const ${scriptV1Identifier(alias)}:i32=${id};`),'}');
   }

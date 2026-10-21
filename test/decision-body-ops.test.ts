@@ -1,8 +1,11 @@
+import nightSource from '../src/shards/pine-hollow/behaviour/night.as?raw';
 import { expect, test } from 'vitest';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { decisionScriptContract, parseDecisionScripts } from '../src/format/decisionScripts';
 import { decisionBindingMap } from '../src/format/decisionBindings';
 import { DecisionHost, type DecisionScript } from '../src/engine/script/decision';
+import { NIGHT_SPAWN } from '../src/shards/pine-hollow/generators/nightSpawn';
+import { spawnScriptRegistries } from '../src/format/spawnScripts';
 import type { ScriptV1Command } from '../src/format/scriptAbiV1';
 
 const row = { id: 'test.bodies', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`,
@@ -69,4 +72,11 @@ test('pre-extension scripts keep the exact saved mechanical declaration', () => 
   if (extended === undefined) throw new Error('Missing body script');
   expect(decisionScriptContract(extended).bodies).toEqual(row.bodies);
   expect(decisionScriptContract(extended).colliders).toEqual(row.colliders);
+});
+
+
+test('additive body capabilities preserve the existing night director Wasm identity', async () => {
+  const built = await compileDecisionScripts([NIGHT_SPAWN.script], spawnScriptRegistries(NIGHT_SPAWN),
+    new Map([['behaviour/night.as', nightSource]]), { asLineCeiling: 2130 });
+  expect(built.blobs[0]?.file.hash).toBe('3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135');
 });
