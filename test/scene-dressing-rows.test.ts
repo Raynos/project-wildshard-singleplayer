@@ -102,6 +102,25 @@ test('uploaded dressing channels retire while picking and cloneable templates re
   }
 });
 
+test('packed dressing hulls register exact independent float lanes in source order',async()=>{
+  const pattern=[-1,0,-1,1,0,-1,0,1,1,0,0,0,.25,0,-.5,1,0,-1,0,1,1,0,0,0];
+  const points=Float32Array.from({length:67*12},(_,i)=>pattern[i%pattern.length]??0),origins=Array.from({length:67},(_,i)=>[i,i+1,i+2,12]);
+  let encoded='';for(const byte of zlibSync(new Uint8Array(points.buffer)))encoded+=String.fromCodePoint(byte);
+  const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'packed-contact');shape.dispose();
+  let modelEncoded='';for(const byte of zlibSync(join(blocks)))modelEncoded+=String.fromCodePoint(byte);
+  const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),added=vi.spyOn(registry,'add'),ctx={} as ShardContext;
+  Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product:{},game:{runtime:{world:{sky:null}}}});
+  await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(modelEncoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
+    staticModels:[{model:{id:'fixture/packed-contact',name:'Packed',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
+    statics:[{name:'contact',tris:12,geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]},
+      members:[{model:'fixture/packed-contact',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',data:btoa(encoded),origins,surface:'rock'}}]}]});
+  const rows=added.mock.calls[0]?.[0].colliders??[],first=rows[0],second=rows[1];
+  if(first?.kind!=='hull'||second?.kind!=='hull')throw new Error('Missing packed contacts');
+  expect(rows).toEqual(origins.map(([x,y,z],i)=>({kind:'hull',x,y,z,points:points.slice(i*12,(i+1)*12),surface:'rock'})));
+  expect(first.points.buffer).not.toBe(points.buffer);expect(first.points.buffer).not.toBe(second.points.buffer);
+  first.points[0]=9;expect(points[0]).toBe(-1);expect(second.points[0]).toBe(.25);scope.dispose();
+});
+
 test('geometry source addresses remain binary while the JSON address word stays bounded',()=>{
   const bytes=new Uint8Array(8),view=new DataView(bytes.buffer);view.setUint32(0,17000000,true);view.setUint32(4,10000000,true);
   expect(readSceneGeometryAddress(bytes,0)).toBe(17000000);expect(readSceneGeometryAddress(bytes,1)).toBe(10000000);

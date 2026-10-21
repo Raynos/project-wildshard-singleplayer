@@ -203,8 +203,13 @@ function meshObject(value:THREE.Object3D):value is THREE.Mesh{return value insta
 
 function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts'],readonly unknown[]>):ReturnType<typeof contacts>{
   const bytes=unzlibSync(Uint8Array.from(atob(row.data),c=>c.codePointAt(0)??0)),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
-  const rows=row.origins.map(([x,y,z,count])=>{const points=Array.from({length:count},(_,i)=>view.getFloat32((at+i)*4,true));at+=count;return{kind:'hull',x,y,z,points,surface:row.surface};});
-  if(at*4!==bytes.length)throw new Error('Packed scene contacts differ from their origins');return contacts(rows);
+  // Bound temporary number lanes without rebuilding the admission schema for every hull.
+  const owned:ReturnType<typeof contacts>=[];
+  for(let start=0;start<row.origins.length;start+=64){
+    const rows=row.origins.slice(start,start+64).map(([x,y,z,count])=>{const points=Array.from({length:count},(_,i)=>view.getFloat32((at+i)*4,true));at+=count;return{kind:'hull',x,y,z,points,surface:row.surface};});
+    owned.push(...contacts(rows));
+  }
+  if(at*4!==bytes.length)throw new Error('Packed scene contacts differ from their origins');return owned;
 }
 
 function requiredMaterial(rows:ReadonlyMap<string,THREE.Material>,key:string):THREE.Material{const value=rows.get(key);if(value===undefined)throw new Error('Missing mapped scene material');return value;}
