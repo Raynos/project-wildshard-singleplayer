@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "71baa56bfb5a4eaa3822ce59bb9898828edbb167",
- "committedAt": "2026-10-21T02:12:15.000Z",
- "measuredAt": "2026-10-21T02:18:02.009Z",
+ "revision": "6b3f3f58ec08aa7fe074b5f67a7e9378a716f672",
+ "committedAt": "2026-10-21T03:37:53.000Z",
+ "measuredAt": "2026-10-21T03:41:43.819Z",
  "basis": "source",
  "plan": {
   "lower": 0.6,
   "upper": 1
  },
  "m3": {
-  "cut": 89022,
+  "cut": 88885,
   "mustGo": 80173.3,
-  "fraction": 1.1103696617202983
+  "fraction": 1.1086608634046495
  },
  "productFailures": {},
  "m2": {
@@ -32,57 +32,57 @@
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
    "customCut": 4999,
-   "platformGrowth": 62789,
-   "netCut": -57790,
+   "platformGrowth": 62405,
+   "netCut": -57406,
    "layers": {
     "engine": {
      "before": 67206,
-     "after": 76538,
-     "growth": 9332
+     "after": 76540,
+     "growth": 9334
     },
     "game": {
      "before": 33346,
-     "after": 76275,
-     "growth": 42929
+     "after": 75853,
+     "growth": 42507
     },
     "format": {
      "before": 7102,
-     "after": 14229,
-     "growth": 7127
+     "after": 14249,
+     "growth": 7147
     },
     "sdk": {
      "before": 7240,
-     "after": 10641,
-     "growth": 3401
+     "after": 10657,
+     "growth": 3417
     }
    }
   },
   {
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
-   "customCut": 37752,
-   "platformGrowth": 59225,
-   "netCut": -21473,
+   "customCut": 37795,
+   "platformGrowth": 58841,
+   "netCut": -21046,
    "layers": {
     "engine": {
      "before": 67897,
-     "after": 76538,
-     "growth": 8641
+     "after": 76540,
+     "growth": 8643
     },
     "game": {
      "before": 35276,
-     "after": 76275,
-     "growth": 40999
+     "after": 75853,
+     "growth": 40577
     },
     "format": {
      "before": 7749,
-     "after": 14229,
-     "growth": 6480
+     "after": 14249,
+     "growth": 6500
     },
     "sdk": {
      "before": 7536,
-     "after": 10641,
-     "growth": 3105
+     "after": 10657,
+     "growth": 3121
     }
    }
   }
@@ -92,9 +92,9 @@
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": 310,
-    "driftwood-isle": 670,
-    "nalati-grasslands": 481,
+    "pine-hollow": 304,
+    "driftwood-isle": 651,
+    "nalati-grasslands": 575,
     "nine-dragon-stack": 563
    }
   },
@@ -102,10 +102,10 @@
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": 112,
+    "pine-hollow": 111,
     "driftwood-isle": 74,
-    "nalati-grasslands": 353,
-    "nine-dragon-stack": 805
+    "nalati-grasslands": 407,
+    "nine-dragon-stack": 802
    }
   },
   "C3": {
@@ -122,7 +122,7 @@
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": 37,
+    "pine-hollow": 23,
     "driftwood-isle": 157,
     "nalati-grasslands": 2144,
     "nine-dragon-stack": 0
@@ -134,7 +134,7 @@
    "lines": {
     "pine-hollow": 1059,
     "driftwood-isle": 221,
-    "nalati-grasslands": 285,
+    "nalati-grasslands": 284,
     "nine-dragon-stack": 0
    }
   },
@@ -144,17 +144,17 @@
    "lines": {
     "pine-hollow": 13,
     "driftwood-isle": 58,
-    "nalati-grasslands": 222,
-    "nine-dragon-stack": 239
+    "nalati-grasslands": 461,
+    "nine-dragon-stack": 205
    }
   },
   "C7": {
-   "closed": false,
-   "state": "closing",
+   "closed": true,
+   "state": "closed",
    "lines": {
     "pine-hollow": 0,
     "driftwood-isle": 0,
-    "nalati-grasslands": 93,
+    "nalati-grasslands": 0,
     "nine-dragon-stack": 0
    }
   },
@@ -173,8 +173,8 @@
    "state": "open",
    "lines": {
     "pine-hollow": 172,
-    "driftwood-isle": 376,
-    "nalati-grasslands": 1186,
+    "driftwood-isle": 373,
+    "nalati-grasslands": 1110,
     "nine-dragon-stack": 202
    }
   }
@@ -264,15 +264,15 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "pine-hollow": 310,
-      "driftwood-isle": 670
+      "pine-hollow": 304,
+      "driftwood-isle": 651
      }
     },
     "C2": {
      "closed": false,
      "state": "open",
      "lines": {
-      "pine-hollow": 112,
+      "pine-hollow": 111,
       "driftwood-isle": 74
      }
     },
@@ -288,7 +288,7 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "pine-hollow": 37,
+      "pine-hollow": 23,
       "driftwood-isle": 157
      }
     },
@@ -329,7 +329,7 @@
      "state": "open",
      "lines": {
       "pine-hollow": 172,
-      "driftwood-isle": 376
+      "driftwood-isle": 373
      }
     }
    }
@@ -341,7 +341,7 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": 481,
+      "nalati-grasslands": 575,
       "nine-dragon-stack": 563
      }
     },
@@ -349,8 +349,8 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": 353,
-      "nine-dragon-stack": 805
+      "nalati-grasslands": 407,
+      "nine-dragon-stack": 802
      }
     },
     "C3": {
@@ -373,7 +373,7 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": 285,
+      "nalati-grasslands": 284,
       "nine-dragon-stack": 0
      }
     },
@@ -381,15 +381,15 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": 222,
-      "nine-dragon-stack": 239
+      "nalati-grasslands": 461,
+      "nine-dragon-stack": 205
      }
     },
     "C7": {
-     "closed": false,
-     "state": "closing",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "nalati-grasslands": 93,
+      "nalati-grasslands": 0,
       "nine-dragon-stack": 0
      }
     },
@@ -405,7 +405,7 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": 1186,
+      "nalati-grasslands": 1110,
       "nine-dragon-stack": 202
      }
     }
@@ -413,8 +413,10 @@
   }
  ],
  "customSectionFailures": [
+  "driftwood-isle: custom-section count 59 exceeds 58",
   "nalati-grasslands: custom-section count 46 exceeds 43",
-  "nalati-grasslands: custom-section bytes 12569378 exceeds 12290241"
+  "nalati-grasslands: custom-section bytes 12519886 exceeds 12290241",
+  "nine-dragon-stack: custom-section count 21 exceeds 20"
  ],
  "shards": [
   {
@@ -422,9 +424,9 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 20,
-   "custom": 1703,
+   "custom": 1682,
    "legacy": 21305,
-   "pct": 8,
+   "pct": 7.9,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -444,9 +446,9 @@
    "name": "Driftwood",
    "wave": "W2",
    "goal": 20,
-   "custom": 1556,
+   "custom": 1534,
    "legacy": 17167,
-   "pct": 9.1,
+   "pct": 8.9,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -510,9 +512,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 20,
-   "custom": 4764,
+   "custom": 4981,
    "legacy": 28370,
-   "pct": 16.8,
+   "pct": 17.6,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -532,9 +534,9 @@
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 20,
-   "custom": 1809,
+   "custom": 1772,
    "legacy": 21111,
-   "pct": 8.6,
+   "pct": 8.4,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -1548,6 +1550,19 @@
     "sunscar-dunes": 0,
     "nalati-grasslands": 16.792386323581248,
     "nine-dragon-stack": 8.568992468381413
+   }
+  },
+  {
+   "revision": "6b3f3f58ec08aa7fe074b5f67a7e9378a716f672",
+   "at": "2026-10-21T03:37:53.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 7.894860361417508,
+    "driftwood-isle": 8.935748820411254,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 17.557278815650335,
+    "nine-dragon-stack": 8.393728388044147
    }
   }
  ],
