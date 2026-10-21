@@ -11000,3 +11000,17 @@ checked even without `drawBounds`; a visual overhang no longer widens admission.
 Navigation voxel envelopes and model-local culling spheres retain their separate
 typed coordinate contracts; the loader checks the actual placed draw bounds.
 
+### Page-mode policy rows (G573)
+
+`game/shard/pagePolicy.pageModeValue({ shard, grid })` selects the value for
+its existing page mode, preserving separate standalone and grid policies.
+The object must contain exactly those two own keys and JSON values; accessors,
+callbacks and extra keys refuse. This server-safe read installs no service,
+retains no callback and adds no clock.
+
+`pageModeCap({ shard, grid }, input)` accepts a policy of `null` or
+`{ through, max }` for each mode. A selected null policy keeps the input;
+otherwise inputs at or below `through` return `min(input, max)` and higher
+inputs stay unchanged. Inputs and active cap numbers must be finite and
+nonnegative. These are authored mode choices, not automatic memory-limit
+changes or dynamic rendering quality.
