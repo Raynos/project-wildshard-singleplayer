@@ -152,7 +152,15 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       const looks = [baked.look, ...Object.values(baked.instances?.looks ?? {}).map(slot => slot.look)];
       if (files.some(file => 'file' in file && !product.hasFile(file.file)) || looks.some(look => product.shardfile.look.materials[look] === undefined)) throw new Error('Baked tiles require their admitted files and look');
     }
-    for(const row of plan.features)if(row.kind==='world.water')for(const water of row.rows){if(!product.hasFile(water.geometry)||product.shardfile.look.materials[water.surface.look]===undefined||water.surface.floor!==undefined)throw new Error('Water requires declared geometry and look without floor textures');}
+    for(const row of plan.features)if(row.kind==='world.water')for(const water of row.rows){
+      if(product.shardfile.look.materials[water.surface.look]===undefined)throw new Error('Water requires its declared look');
+      if('geometry' in water){if(!product.hasFile(water.geometry)||water.surface.floor!==undefined)throw new Error('Water requires declared geometry and look without floor textures');continue;}
+      // O7: a drawn row's files are admitted product files or immutable assets; its floor, dry rects and foam fit its surface
+      const draw=water.draw,files=[draw.grid.phone,draw.grid.desktop,...(draw.floor===undefined?[]:[draw.floor])];
+      if(files.some(file=>'file' in file&&!product.hasFile(file.file)))throw new Error('Water requires its admitted draw files');
+      if((water.surface.floor===undefined)!==(draw.floor===undefined)||(draw.foam.length>0&&draw.floor===undefined))throw new Error('Water floor and foam require a floored surface and its baked floor');
+      if(draw.dry.length>(water.surface.dry?.slots??0))throw new Error('Water clips more dry rectangles than its surface has slots');
+    }
     for (const row of plan.features) if ((row.kind === 'state.adventure' || row.kind === 'world.meadow') && !product.hasFile(row.file)) throw new Error('World services require their admitted data files');
     for (const row of plan.features) if (row.kind === 'riding.session' && (!product.hasFile(row.file) || !plan.features.some(feature => feature.kind === 'population.wildlife'))) throw new Error('Riding requires its admitted session file and wildlife feature');
     for (const row of plan.features) if (row.kind === 'population.wildlife' && [row.file, row.crowd.json, row.crowd.binary].some(file => !product.hasFile(file))) throw new Error('Wildlife requires its admitted population and crowd files');

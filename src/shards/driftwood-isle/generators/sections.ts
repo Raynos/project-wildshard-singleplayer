@@ -4,7 +4,6 @@ import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import { AmbientFlockSchema } from '@wildshard/format/ambientLife';
 import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
-import { WaterSurfaceSchema } from '@wildshard/format/water';
 
 const reach = v.strictObject({ near: v.number(), far: v.number(), grow: v.number() });
 const text = v.pipe(v.string(), v.maxLength(512));
@@ -183,9 +182,6 @@ export const SECTIONS = {
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
   /** the gull flock (data/gullsLook.ts GULL_FLOCK, @wildshard/sdk/looks/ambientFlock) */
   'custom/gullFlock': AmbientFlockSchema,
-  /** the sea's water-surface row and its baked grid per tier and floor (data/oceanLook.ts, data/oceanFiles.ts; world/Ocean.ts) */
-  'custom/oceanSurface': v.strictObject({ surface: WaterSurfaceSchema, files: v.strictObject({ level: number, phone: text, desktop: text, floor: text }),
-    foam: v.pipe(v.array(box), v.maxLength(2048)) }),
 } as const;
 
 const bridgeSpan = v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number });

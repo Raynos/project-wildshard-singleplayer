@@ -12,8 +12,10 @@ import * as v from 'valibot';
 const finite = v.pipe(v.number(), v.finite());
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-Z][a-zA-Z0-9._-]*$/u));
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
-const source = v.union([v.strictObject({ file: v.pipe(v.string(), v.minLength(1), v.maxLength(256)) }),
+/** A product's named file or an immutable public asset path (shared with the client plan's water rows). */
+export const BakedSourceSchema = v.union([v.strictObject({ file: v.pipe(v.string(), v.minLength(1), v.maxLength(256)) }),
   v.strictObject({ url: v.pipe(v.string(), v.maxLength(512), v.regex(/^\/assets\/[A-Za-z0-9_./-]+$/u), v.check(path => !path.includes('..'), 'no traversal')) })]);
+const source = BakedSourceSchema;
 const tiers = <T extends v.GenericSchema>(row: T) => v.strictObject({ phone: row, desktop: row });
 const part = v.strictObject({ geometry: name, material: id, clone: v.boolean(), castShadow: v.boolean(), receiveShadow: v.boolean() });
 const parts = v.pipe(v.record(name, v.pipe(v.array(part), v.maxLength(16))), v.maxEntries(256));
