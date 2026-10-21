@@ -8,3 +8,5 @@ export function shardProducts(root: string, folders: readonly string[]): ShardPr
 export function outputManifest(root: string, folder: string, output: ShardOutputRow): Record<string, unknown>;
 export function manifestFolders(root: string): string[];
 export function productFolder(root: string, slug: string): string;
+/** The built product that stands for a source shard in per-shard measures (its first output, else itself). */
+export function representativeProduct(root: string, slug: string): string;

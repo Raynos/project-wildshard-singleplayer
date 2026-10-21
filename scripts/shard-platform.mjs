@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // G291: authored runtime TS / the frozen legacy TS size is the primary 80/20 measure.
 // G417: one measure only; platform-native shards have no frozen denominator.
+import { representativeProduct } from './shard-outputs.mjs';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
@@ -743,7 +744,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const outputs = Object.fromEntries(slugs.map(slug => [slug, sourceProgress
     ? {runtime:authoredFiles[slug],sections:reader.sections(slug).sections,customSectionBytes:0,customSections:[]}
     : reader.runtime(slug)]));
-  const prefixOf = slug => `${relative(root, resolve(products, slug)).replaceAll('\\', '/')}/`;
+  const prefixOf = slug => `${relative(root, resolve(products, representativeProduct(root, slug))).replaceAll('\\', '/')}/`;
   const shardFiles = Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
   const hostFiles = new Map();
   for (const [slug, output] of Object.entries(outputs)) {

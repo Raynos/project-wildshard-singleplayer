@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { relative, resolve } from 'node:path';
 import { outputFormat } from './shard-platform-format.mjs';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
+import { representativeProduct, shardOutputs } from './shard-outputs.mjs';
 
 const {parseOutputIndex}=outputFormat;
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -22,7 +23,8 @@ export function outputRuntime(root,slug,products=resolve(root,'out')) {
 }
 function readOutputRuntime(root,slug,products,readSections) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid output shard slug');
-  const folder=resolve(products,slug), indexPath=resolve(folder,'shard.json');
+  // SF88g: a source shard that emits several outputs (one source, no runtime of its own) is read through its first output
+  const folder=resolve(products,representativeProduct(root,slug)), indexPath=resolve(folder,'shard.json');
   if(!existsSync(indexPath))throw new Error(`${slug}: built output missing; build out/<slug> before measuring`);
   const {index,sections,customSections,customSectionBytes}=readSections();
   const listed=new Set(), runtime=[];
@@ -69,6 +71,20 @@ export function createOutputReader(root,products=resolve(root,'out')) {
  * @param {string} root @param {string} slug @param {string} [products] */
 export function outputSections(root,slug,products=resolve(root,'out')) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid output shard slug');
+  // SF88g: a source shard that emits several outputs is ONE shard: its inventory is the union of its outputs' sections
+  // (each output verified like any product; a section name counts once), its private JSON the sum of theirs.
+  const outputs=shardOutputs(root,slug);
+  if(outputs!==null) {
+    if(outputs.length===0)throw new Error(`${slug}: section inventory missing; build every shard before measuring`);
+    const rows=outputs.map(output=>productSections(output.slug,products)),first=rows[0];
+    const named=new Map();
+    for(const row of rows)for(const section of row.sections)if(!named.has(section.name))named.set(section.name,section);
+    return {index:first.index,sections:[...named.values()],customSections:rows.flatMap(row=>row.customSections),customSectionBytes:rows.reduce((sum,row)=>sum+row.customSectionBytes,0)};
+  }
+  return productSections(slug,products);
+}
+/** One built product's verified sections. @param {string} slug @param {string} products */
+function productSections(slug,products) {
   const folder=resolve(products,slug), indexPath=resolve(folder,'shard.json');
   if(!existsSync(indexPath))throw new Error(`${slug}: section inventory missing; build every shard before measuring`);
   const index=parseOutputIndex(JSON.parse(readFileSync(indexPath,'utf8')));

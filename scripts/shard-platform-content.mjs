@@ -1,3 +1,4 @@
+import { representativeProduct } from './shard-outputs.mjs';
 import { execFileSync } from 'node:child_process';
 import { execPath } from 'node:process';
 import { createHash } from 'node:crypto';
@@ -22,7 +23,7 @@ const present = value => value !== undefined && value !== null;
 
 /** Read only an emitted shard.json; a missing/invalid product never masquerades as zero world content. */
 export function shardContent(slug, root, products = resolve(root, 'public/shardfiles')) {
-  const path = resolve(products, slug, 'shard.json');
+  const product = representativeProduct(root, slug), path = resolve(products, product, 'shard.json');
   let privateBinaries = [...privateFiles(resolve(root, 'src/shards', slug), root), ...privateFiles(resolve(root, 'public/assets/baked', slug), root)].sort((a, b) => a.localeCompare(b));
   const absent = status => ({ status, product: relative(root, path), privateBinaries, tiles: null, files: null, colliders: null, trustedSimulation: null, structuralWorld: null, gate: { enforcement: 'report-only', status: 'unavailable', issues: [`product ${status}`] } });
   if (!existsSync(path)) return absent('missing');
@@ -46,7 +47,7 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
   if (present(source.terrain?.sampling)) {
     try {
       const profile = source.terrain.sampling, file = source.files.find(row => row.hash === profile.file);
-      const candidates = [resolve(products, slug, 'assets', profile.file), resolve(root, 'src/shards', slug, 'assets', profile.file)];
+      const candidates = [resolve(products, product, 'assets', profile.file), resolve(root, 'src/shards', slug, 'assets', profile.file)];
       const payload = candidates.find(candidate => existsSync(candidate));
       if (payload === undefined || file?.kind !== 'binary' || !source.critical?.includes(profile.file)) return absent('invalid');
       const bytes = readFileSync(payload);
@@ -66,7 +67,7 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
     try {
       if (navigationRules({ ...source, navigation: source.navigation }).length > 0) return absent('invalid');
       const file = source.files.find(row => row.hash === source.navigation.file);
-      const candidates = [resolve(products, slug, 'assets', source.navigation.file), resolve(root, 'src/shards', slug, 'assets', source.navigation.file)];
+      const candidates = [resolve(products, product, 'assets', source.navigation.file), resolve(root, 'src/shards', slug, 'assets', source.navigation.file)];
       const payload = candidates.find(candidate => existsSync(candidate));
       if (payload === undefined || file === undefined) return absent('invalid');
       const bytes = readFileSync(payload);
