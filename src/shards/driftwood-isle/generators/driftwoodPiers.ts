@@ -4,7 +4,7 @@ import type {BufferGeometry} from 'three';
 import type {ColliderDesc} from '@wildshard/engine/world/registry';
 import {pierParamsKey,type PierParams} from './pierContract';
 import authoredPierRows from './pierRows.json' with { type: 'json' };
-import {LOWERED_SEA} from '../world/sea';
+import { DECLARED_SEA } from './sea';
 import {driftwoodGroundSampler} from './groundSampling';
 import {deckGeometry,pierWorldLayout} from './pier';
 import {worldPierSites,resolvePierParams} from './pierSites';
@@ -16,7 +16,7 @@ const { PIER_DEFAULTS, PIER_VARIANTS } = authoredPierRows;
 export function originalPiers():{geometry:Map<string,BufferGeometry>;rows:{id:string;world:ReturnType<typeof pierWorldLayout>|null;paramKey:string;params:PierParams;cloth:boolean;colliders:ReturnType<typeof colliderRows>}[]} {
  const ground=driftwoodGroundSampler(),geometry=new Map<string,BufferGeometry>();
  const sites=worldPierSites(),rows:{id:string;world:ReturnType<typeof pierWorldLayout>|null;paramKey:string;params:PierParams;cloth:boolean;colliders:ReturnType<typeof colliderRows>}[]=[];
- const inputs=[...sites.map((site,i)=>({id:`world-${i}`,site,params:resolvePierParams(site,ground,LOWERED_SEA)})),
+ const inputs=[...sites.map((site,i)=>({id:`world-${i}`,site,params:resolvePierParams(site,ground,DECLARED_SEA.level)})),
   ...PIER_VARIANTS.map(v=>({id:`specimen-${v.id}`,site:null,params:{...PIER_DEFAULTS,...v.params}}))];
  for(const {id,site,params} of inputs){
   const made=deckGeometry(params,new Rng(SEED^0x9e37));

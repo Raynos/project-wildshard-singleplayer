@@ -1,8 +1,7 @@
 import {CHUNK_HALF,ENTRY_WIDTH} from '@wildshard/format/contentBounds';
 import {PIER,JETTIES} from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
-import { LOWERED_SEA } from '../world/sea';
-import { PIER_START } from './sea';
+import { DECLARED_SEA, PIER_START } from './sea';
 import authoredPierRows from './pierRows.json' with { type: 'json' };
 import type {PierSpec,PierParams} from './pierContract';
 
@@ -14,7 +13,7 @@ const { PENNANT_WIND } = authoredPierRows;
 
 /** The same four site declarations used by the native world build. */
 export function worldPierSites():PierSpec[] {
- const cut=PIER_START,seaRamp={run:9,flare:ENTRY_WIDTH},deckY=LOWERED_SEA+1.2;
+ const cut=PIER_START,seaRamp={run:9,flare:ENTRY_WIDTH},deckY=DECLARED_SEA.level+1.2;
  return [{x:0,z:-CHUNK_HALF+cut,length:PIER.length-cut,width:4,deckY,landing:true,pennantAt:PIER_PENNANT_AT-cut,seaRamp},
   ...JETTIES.map(j=>({x:j.x+Math.sin(j.rot)*cut,z:j.z+Math.cos(j.rot)*cut,rot:j.rot,length:j.length-cut,width:3,deckY,landing:j.landing??false,seaRamp}))];
 }

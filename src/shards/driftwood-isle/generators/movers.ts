@@ -5,8 +5,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
 import { BRIDGE } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
-import { LOWERED_SEA } from '../world/sea';
-import { WORLD_DROP } from './sea';
+import { DECLARED_SEA, WORLD_DROP } from './sea';
 import { driftwoodGroundField } from './groundRows';
 import { boatColliders } from './staticWorld';
 import { BOAT_LAYOUT } from './boatLayout';
@@ -18,7 +17,7 @@ const { BOAT_MOOR } = authoredLayout;
 /** Movers run only in SF46's hybrid world, lowered as one by WORLD_DROP (G164): the boat rides the lowered sea at its
  *  mooring by the pier, the rope bridge hangs between the lowered banks. This build-only capture runs in Node, where no
  *  Debug row is saved, so it reads the manifest field, whose datum is already lowered. */
-const SEA = LOWERED_SEA, BOAT = BOAT_MOOR;
+const SEA = DECLARED_SEA.level, BOAT = BOAT_MOOR;
 /** Trusted build-only capture of the unchanged model's collision/rest layout on today's exact terrain, lowered. */
 export function captureDriftwoodMovers(boatModule: string, bridgeModule: string): MoverData {
   const terrain = driftwoodGroundField();

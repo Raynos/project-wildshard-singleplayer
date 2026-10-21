@@ -12,7 +12,7 @@ import type { PierParams, PierSpec } from './pierContract';
 import { BOAT_LAYOUT } from './boatLayout';
 import { BOAT_CLEATS } from './boatFrame';
 import { pierPosts } from './pierLayout';
-import { LOWERED_SEA } from '../world/sea';
+import { DECLARED_SEA } from './sea';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 
 const { BOAT_MOOR } = authoredLayout;
@@ -42,7 +42,7 @@ function moorings(spec: PierSpec, params: PierParams, x: number, z: number): [XZ
 
 /** The boat's lines at rest, world space, `aMoor` = (bow-cleat weight, stern-cleat weight) per vertex. */
 export function mooringLinesGeometry(spec: PierSpec, params: PierParams): THREE.BufferGeometry {
-  const row = BOAT_MOORING, color = new THREE.Color(row.color), waterY = LOWERED_SEA, heading = 0;
+  const row = BOAT_MOORING, color = new THREE.Color(row.color), waterY = DECLARED_SEA.level, heading = 0;
   const cs = Math.cos(heading), sn = Math.sin(heading);
   const cleat = (lz: number, ly: number): THREE.Vector3 => new THREE.Vector3(BOAT_MOOR.x + lz * sn, waterY + ly, BOAT_MOOR.z + lz * cs);
   const length = BOAT_LAYOUT.length, cleats = [cleat(-length / 2 + 0.3, BOAT_CLEATS[0]?.y ?? 0.7), cleat(length / 2 - 0.3, BOAT_CLEATS[1]?.y ?? 0.7)];
