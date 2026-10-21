@@ -289,8 +289,13 @@ interface Slot {
   /** sp-o100: the inputs the key was last built from (the snapshot's row, the whole seconds, near, the art's readiness):
    *  the screen is a pure function of them, so an unchanged frame skips building and stringifying its content */
   inputs: { readonly state: CellScreenInput; readonly elapsedS: number | null; readonly near: boolean; readonly art: boolean } | null;
+  /** O14: the status, layout and art of the last whole paint, its time (s), and whether its facts have moved since */
+  shape: string; painted: number; stale: boolean;
 }
-const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
+// O14: a loading neighbour's facts (the page's memory, its claims) move with every snapshot while another cell builds, so
+// each screen repainted and re-uploaded its whole canvas (~4.5 ms on the Simulator) at the snapshot's ~10 Hz: 393 uploads
+// in Nine Dragon's 37 s world build. A screen whose status, layout and art hold repaints whole at most once a FULL_EVERY s.
+const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6, FULL_EVERY = 1;
 // Screens stay inside the closed cell, beyond a 20 m glide, leaving the entire road and soft wall clear.
 const SETBACK = 24, NEAR = 55, NEAR_SCALE = 2;
 
@@ -367,7 +372,7 @@ export function installCellScreens(input: {
           if (!queued) later();
         };
         return { ready: input.prepare === undefined, preparing: false, ordinal, dispose: () => { slotOwner.dispose(); }, upload, mesh, material, canvas, context: canvas.getContext('2d'), texture,
-          instance: null, key: '', clock: '', along: 0, sliding: false, status: null, since: 0, inputs: null };
+          instance: null, key: '', clock: '', along: 0, sliding: false, status: null, since: 0, inputs: null, shape: '', painted: 0, stale: false };
       });
     };
     input.scene.add(group);
@@ -424,7 +429,7 @@ export function installCellScreens(input: {
           }
           if (s === undefined) continue;
           if (!slots.includes(s)) slots.push(s);
-          s.instance = cell.instance; s.key = ''; s.clock = ''; s.inputs = null; s.status = null; s.sliding = false;
+          s.instance = cell.instance; s.key = ''; s.clock = ''; s.inputs = null; s.status = null; s.sliding = false; s.shape = ''; s.stale = false;
           const dx = feet.x - cell.x, dz = feet.z - cell.z; s.along = Math.abs(dx) >= Math.abs(dz) ? dz : dx;
         }
         const state = snapshot.get(cell.instance); if (state === undefined) continue;
@@ -434,14 +439,16 @@ export function installCellScreens(input: {
         place(s, cell, feet);
         const near = Math.hypot(feet.x - s.mesh.position.x, feet.z - s.mesh.position.z) < NEAR;
         s.mesh.visible = s.ready;
-        const last = s.inputs;
-        if (last?.state === state && last.elapsedS === frame.elapsedS && last.near === near && last.art === (picture !== null)) continue;
+        const last = s.inputs, due = s.stale && now - s.painted >= FULL_EVERY;
+        if (!due && last?.state === state && last.elapsedS === frame.elapsedS && last.near === near && last.art === (picture !== null)) continue;
         s.inputs = { state, elapsedS: frame.elapsedS, near, art: picture !== null };
         // the near layout paints no clock; the full layout's clock alone repaints and uploads only its rectangle
         const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(near ? nearScreenFacts(screen) : { ...screen, clock: '' })}`;
         if (s.context === null) continue;
-        if (key !== s.key) { s.key = key; s.clock = screen.clock; drawCellScreen(s.context, screen, picture, near); s.upload('full'); draws++; }
-        else if (!near && screen.clock !== s.clock) { s.clock = screen.clock; s.upload(drawCellScreenClock(s.context, screen, picture) ? 'clock' : 'full'); draws++; }
+        const shape = `${state.status}${key.slice(0, 2)}`, held = shape === s.shape && now - s.painted < FULL_EVERY;
+        if (key !== s.key && !held) { s.key = key; s.clock = screen.clock; s.shape = shape; s.painted = now; s.stale = false; drawCellScreen(s.context, screen, picture, near); s.upload('full'); draws++; }
+        else if (key !== s.key) s.stale = true;
+        if (!near && screen.clock !== s.clock) { s.clock = screen.clock; s.upload(drawCellScreenClock(s.context, screen, picture) ? 'clock' : 'full'); draws++; }
         if (!s.ready && !s.preparing && input.prepare !== undefined) {
           s.preparing = true;
           const pending = s, current = (): boolean => !owner.disposed && pending.mesh.parent === group;
