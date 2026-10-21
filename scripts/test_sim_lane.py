@@ -94,7 +94,7 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         commands = [row[1] for row in self.calls()]
         self.assertLess(commands.index('bootstatus'), commands.index('openurl'))
         self.assertEqual(commands[-2:], ['shutdown', 'list'])
-        self.assertTrue(all(row[-1] == 'about:blank' for row in self.calls() if row[1] == 'openurl'))
+        self.assertTrue(all(row[-1] == 'http://127.0.0.1:9/' for row in self.calls() if row[1] == 'openurl'))
 
     def test_url_failure_is_bounded_and_lease_is_not_published(self):
         started = time.monotonic()

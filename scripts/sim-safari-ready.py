@@ -6,6 +6,9 @@ import sys
 import time
 
 
+PROBE_URL = 'http://127.0.0.1:9/'
+
+
 def wait_for_safari(udid):
     try:
         timeout = float(os.environ.get('SIM_SAFARI_READY_TIMEOUT', '120'))
@@ -22,7 +25,9 @@ def wait_for_safari(udid):
             print(f'sim-lane: Safari URL readiness timed out after {timeout:g}s: {detail}', file=sys.stderr)
             return code
         try:
-            result = subprocess.run(['xcrun', 'simctl', 'openurl', udid, 'about:blank'],
+            # an http URL: this runtime refuses about:blank with LSApplicationWorkspaceErrorDomain 115 even when Safari
+            # opens pages (every sim-lane run failed its probe, 2026-10-21); nothing need listen on the discard port
+            result = subprocess.run(['xcrun', 'simctl', 'openurl', udid, PROBE_URL],
                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
                 timeout=min(10, remaining), check=False)
             if result.returncode == 0:
