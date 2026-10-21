@@ -34,6 +34,15 @@
       "latchedAt": "2026-10-21T14:09:10.453Z"
     },
     {
+      "shard": "far-reach",
+      "criterion": "oneFrameLooks",
+      "source": "9a60a22397e6c4250524df97982f57a0ae6228fb",
+      "receiptCommit": "72c53005993d07b6359464ce6a06488d6446fb38",
+      "receipt": "progress/shard-platform/grid-ready-9a60a22/far-reach--far-reach/receipt.json",
+      "latchedAt": "2026-10-21T14:56:42.906Z",
+      "quiet": false
+    },
+    {
       "shard": "ink-cel-valley",
       "criterion": "memory",
       "source": "8c7861b92613fcdb04faaf7234ed868183984982",
@@ -152,6 +161,15 @@
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-lantern-bayou--open-plot-0-1/receipt.json",
       "latchedAt": "2026-10-21T14:09:10.918Z"
+    },
+    {
+      "shard": "open-plot-lantern-bayou",
+      "criterion": "oneFrameLooks",
+      "source": "9a60a22397e6c4250524df97982f57a0ae6228fb",
+      "receiptCommit": "72c53005993d07b6359464ce6a06488d6446fb38",
+      "receipt": "progress/shard-platform/grid-ready-9a60a22/open-plot-lantern-bayou--open-plot-0-1/receipt.json",
+      "latchedAt": "2026-10-21T14:56:42.971Z",
+      "quiet": false
     },
     {
       "shard": "open-plot-mosslight-ruins",
@@ -288,6 +306,15 @@
       "receiptCommit": "eaf46953ab84fcc58588e0862275be54185cf667",
       "receipt": "progress/shard-platform/grid-ready-c9c8645/sunscar-dunes--sunscar-dunes/receipt.json",
       "latchedAt": "2026-10-21T14:09:11.516Z"
+    },
+    {
+      "shard": "sunscar-dunes",
+      "criterion": "oneFrameLooks",
+      "source": "9a60a22397e6c4250524df97982f57a0ae6228fb",
+      "receiptCommit": "72c53005993d07b6359464ce6a06488d6446fb38",
+      "receipt": "progress/shard-platform/grid-ready-9a60a22/sunscar-dunes--sunscar-dunes/receipt.json",
+      "latchedAt": "2026-10-21T14:56:42.834Z",
+      "quiet": false
     }
   ]
 }
