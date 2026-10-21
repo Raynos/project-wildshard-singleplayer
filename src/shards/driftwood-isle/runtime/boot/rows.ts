@@ -9,12 +9,7 @@ let admitted: ShardProduct | null = null;
 export function admitDriftwoodRows(product: ShardProduct): void { admitted = product; }
 
 /** A client row section of the admitted product (build-validated sections); throws before the product is admitted. */
-export function driftwoodRows<K extends RowSection>(name: K): CustomSections[K] {
-  if (admitted === null) throw new Error(`Driftwood reads ${name} before its product is admitted`);
-  return admitted.section<CustomSections[K]>(name);
-}
-
-/** Only live view shadow choices remain; geometry counts and dimensions compile offline. */
+export function driftwoodRows<K extends RowSection>(name: K): CustomSections[K] { return driftwoodProduct().section<CustomSections[K]>(name); }
 
 /** Native boot consumers borrow the same session-admitted named bytes as their sections. */
 export function driftwoodProduct(): ShardProduct {

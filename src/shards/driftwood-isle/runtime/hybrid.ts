@@ -33,8 +33,6 @@ function residentWorld(context: ShardContext): HybridResidentWorld<DriftwoodWorl
   return resident;
 }
 
-const PROBE_KEYS = ['pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
-
 /** Driftwood owns its world, creatures, loadout, adventure and audio through scoped hooks. */
 export class DriftwoodPlugin extends ShardPlugin {
   private readonly adventure: { value: Adventure | null } = { value: null };
@@ -65,9 +63,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     shell.hooks.spawnFloor = (x, z) => pier?.floorHeightAt(x, z);
     if (gulls !== null) shell.overhead.push(gulls.group);
     if (built.cover !== null) shell.overhead.push(built.cover.group);
-    // the probe's `shard` handles (E405 AG25: the shard names its own; the engine's probe keeps no shard table), read
-    // when the probe installs, so `enemies` (creatures hook) is there too
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(PROBE_KEYS.map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     shell.hooks.places = () => this.adventure.value?.places?.points ?? [];
     islandSystems<NonNullable<DriftwoodWorld['bridgeDeck']>>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
     if (gulls !== null) await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), null, null, new Map([['gulls', gulls]]));
