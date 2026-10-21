@@ -383,3 +383,26 @@ PageActorGroups 41. Attribution **Nalati -43 / Driftwood +43**, total 0.
 Runtime source **0 shard / 0 platform**; this is not a source reduction.
 Typed lint, 12 focused chargeback cases, root types and real hooks pass.
 No budgets, payloads, physics, drawing or gameplay change.
+
+
+X4 balbal defining admission: delete the whole runtime creatureGuest
+format module. Its unchanged field/tuple/key/array limits now live in
+build-only speciesBookRows and the existing actors/sheep.json contract.
+Move the already-authored boot observations into that admitted guest;
+keep the native state-identity check and typed borrowing before play.
+The native balbal stays Nalati-only HOST-BAR 4/6, fully counted. Named
+file admission remains a real multi-shard HOST-BAR 6/6; no new host,
+codec, fake user or platform credit is introduced.
+The producer omits only schema-default empty reference maps/timers and
+null tick values from the existing held, look and Titan script declarations.
+The existing parser restores the exact same manifest, with identical AS
+bytes, module identities, ABI, clocks and resource bounds. No decoder,
+codec, host API or script module is introduced. Real ten-Hz binding,
+transformed weak points, damage, weapon and boss suites pass.
+Runtime canonical TS: **Nalati 0 / platform -13**, net **-13**;
+physical runtime TS **-16**, build schema **+11** canonical (+14 physical).
+Build wiring and wire helper **+15** physical lines; authored AS **0**, compiled AS identical.
+Private JSON **46 / 12,496,787 bytes**, **-657 bytes** versus
+3c696e1134's retained receipt; no cap or budget changes.
+Root/layer types, typed lint, focused suites and product build pass.
+No collider, rendering, style, actor identity or cadence changes.

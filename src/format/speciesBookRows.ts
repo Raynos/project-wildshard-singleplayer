@@ -2,8 +2,22 @@ import * as v from 'valibot';
 import { isJsonData } from './json';
 import { SpeciesSchema } from './speciesPrograms';
 import { RidingPresentationSchema } from './riding';
+import { CreatureStrikeSchema } from './creatures';
 import { SkinClipNameSchema } from './skinData';
 import { SpeciesGroupSchema, DirectedSpeciesSchema } from './speciesLooks';
+
+const guestNumber=v.pipe(v.number(),v.finite()),key=v.pipe(v.string(),v.minLength(1),v.maxLength(96),v.check(value=>!['__proto__','prototype','constructor'].includes(value)));
+/** The admitted guest owns every decision. Rows specify observation defaults,
+ * retained outputs and native contact/presentation resources. */
+export const CreatureGuestSchema=v.pipe(v.unknown(),v.check(isJsonData),v.object({
+  program:v.unknown(),clock:key,playerKeys:v.tuple([key,key]),
+  memory:v.pipe(v.record(key,v.object({value:guestNumber,source:v.optional(v.picklist(['x','z','yaw'])),
+    when:v.optional(v.object({field:key,equal:guestNumber,value:guestNumber}))})),v.maxEntries(64)),
+  writes:v.pipe(v.array(key),v.maxLength(64)),states:v.pipe(v.array(key),v.maxLength(32)),sounds:v.pipe(v.array(v.string()),v.maxLength(32)),
+  attack:v.pipe(guestNumber,v.minValue(0)),strike:CreatureStrikeSchema,strikeSound:v.string(),length:v.tuple([guestNumber,v.pipe(guestNumber,v.minValue(.000001)),guestNumber]),
+  piercing:v.object({legacy:key,tags:v.pipe(v.array(key),v.maxLength(16)),equipment:v.pipe(v.array(key),v.maxLength(16))}),
+}));
+export type CreatureGuestRows=v.InferOutput<typeof CreatureGuestSchema>;
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(4096)),number=v.pipe(v.number(),v.finite()),rgb=v.tuple([number,number,number]);
 /** Build-only species catalogue admission. Native consumers import row types. */
@@ -33,7 +47,7 @@ export type NativeSpeciesLookBookRows=v.InferOutput<typeof NativeSpeciesLookBook
 const poseConfig=v.object({prefix:v.string(),group:v.string(),scalars:v.array(v.unknown()),look:v.exactOptional(v.unknown()),alive:v.exactOptional(v.boolean())});
 const cracks=v.object({attrs:v.array(v.tuple([v.string(),v.picklist(['f32','u16']),v.number(),v.boolean()])),count:v.number(),index:v.literal('u32'),indexCount:v.number(),box:v.boolean()});
 /** The existing named actors file retains its exact body, pose and crack payload. */
-export const SpeciesPresentationSchema=v.object({poses:v.record(v.string(),poseConfig),packedBodies:CompactSpeciesBodiesSchema,program:v.unknown(),strike:v.unknown(),lookBook:v.pick(book,['slug','rows','program']),cracks});
+export const SpeciesPresentationSchema=v.object({poses:v.record(v.string(),poseConfig),packedBodies:CompactSpeciesBodiesSchema,guest:CreatureGuestSchema,lookBook:v.pick(book,['slug','rows','program']),cracks});
 export const SpeciesActorsFileSchema=v.looseObject({species:SpeciesPresentationSchema});
 export type SpeciesPresentationRows=v.InferOutput<typeof SpeciesPresentationSchema>;
 export type SpeciesActorsFileRows=v.InferOutput<typeof SpeciesActorsFileSchema>;

@@ -375,6 +375,7 @@
       ],
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-species.mjs",
+        "src/shards/nalati-grasslands/generators/returnProgramRows.ts",
         "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/shards/nalati-grasslands/generators/speciesPoses.ts",
         "src/shards/nalati-grasslands/generators/balbalCracks.ts",

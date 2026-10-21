@@ -6,11 +6,11 @@ import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' 
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { SpeciesLookBook } from '@wildshard/game/looks/speciesBook';
 import type * as THREE from 'three';
-import type { SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
+import type { CreatureGuestRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
 
 let crackGeometry: THREE.BufferGeometry | null = null;
 let book:SpeciesLookBook|null=null;
-let speciesData: { packedBodies: unknown; program: unknown; strike: unknown } | null = null;
+let speciesData: SpeciesPresentationRows | null = null;
 /** Product JSON is admitted before the first creature build or frame. */
 export async function prepareNalatiSpecies(data: SpeciesPresentationRows, programs: readonly { readonly id: string }[], bytes: Uint8Array): Promise<void> {
   const poses = Object.entries(data.poses).map(([key, { prefix, ...row }]) => [key, { ...row, programs: programs.filter(program => program.id.startsWith(prefix)) }] as const);
@@ -31,7 +31,7 @@ export async function preloadNalatiBodies():Promise<void>{await speciesLookBook(
 
 /** The crack mesh is generated once against the original skeleton at build time. */
 export function balbalCrackGeometry(): THREE.BufferGeometry { if (crackGeometry === null) throw new Error('Missing balbal crack geometry'); return crackGeometry; }
-export function speciesGuestRows(): { program: unknown; strike: unknown } { if (speciesData === null) throw new Error('Missing species guest program'); return { program: speciesData.program,strike: speciesData.strike }; }
+export function speciesGuestRows(): CreatureGuestRows { if (speciesData === null) throw new Error('Missing species guest program'); return speciesData.guest; }
 
 type KingPrograms=ReturnType<typeof parseClientChannels>;
 let king:{programs:KingPrograms;pose:ReturnType<typeof numericCreaturePose>;look:[number,number,number]}|null=null;

@@ -9,7 +9,7 @@ import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import { CreatureGuestSchema } from '@wildshard/format/creatureGuest';
+import type { CreatureGuestRows } from '@wildshard/format/speciesBookRows';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' };
 import { poseNalatiCreature,balbalCrackGeometry,speciesGuestRows } from './presentation';
@@ -17,12 +17,12 @@ import { poseNalatiCreature,balbalCrackGeometry,speciesGuestRows } from './prese
 export const BALBAL = speciesRows.balbal.kind;
 export const BALBAL_SLAM = speciesRows.slam;
 const cracks = new WeakMap<Animal, THREE.MeshBasicMaterial>();
-let admitted:v.InferOutput<typeof CreatureGuestSchema>|null=null;
+let admitted:CreatureGuestRows|null=null;
 let strike:ReturnType<typeof strikeFromData>|null=null;
 const contacts=new StrikeRunner();
-function guestRows():v.InferOutput<typeof CreatureGuestSchema>{
+function guestRows():CreatureGuestRows{
   if(admitted!==null)return admitted;
-  const row=v.parse(CreatureGuestSchema,{...speciesRows.balbalGuest,...speciesGuestRows()});
+  const row=speciesGuestRows();
   if(row.states.some(state=>!ANIMAL_STATES.some(value=>value===state)))throw new Error('Unknown creature state');
   admitted=row;return row;
 }

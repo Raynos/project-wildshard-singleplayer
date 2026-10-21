@@ -14,7 +14,6 @@
     "./speciesLooks": "./speciesLooks.ts",
     "./rangedPage": "./rangedPage.ts",
     "./forestPage": "./forestPage.ts",
-    "./creatureGuest": "./creatureGuest.ts",
     "./nativeQuestComposition": "./nativeQuestComposition.ts",
     "./roamingCombat": "./roamingCombat.ts",
     "./roamingBossProjection": "./roamingBossProjection.ts",

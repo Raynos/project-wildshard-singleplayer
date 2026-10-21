@@ -2,8 +2,7 @@
 // not an allowance or a budget. A real second shard needs a reviewed re-score.
 /** @type {Map<string,import('./shard-components.mjs').Component>} */
 const modules = new Map([
-  ...['game/boss/arenaScript', 'game/boss/arenaField',
-    'format/creatureGuest'].map(path => [`src/${path}.ts`, 'C4']),
+  ...['game/boss/arenaScript', 'game/boss/arenaField'].map(path => [`src/${path}.ts`, 'C4']),
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
   ['src/game/models/mountedSpecimen.ts', 'C1'],
   ['src/game/systems/viewmodel/graphArms.ts', 'C6'],

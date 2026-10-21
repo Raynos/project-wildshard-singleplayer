@@ -6,6 +6,12 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import type { DamageRequest } from '../src/engine/combat/pipeline';
 import { legacyDouble } from './fake/FakeGame';
+import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
+import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type:'json' };
+import { parseDecisionScripts } from '../src/format/decisionScripts';
+import sourceAdmission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type:'json' };
+import { CreatureGuestSchema } from '../src/format/speciesBookRows';
+import generated from '../src/shards/nalati-grasslands/data/species.generated.json' with { type:'json' };
 import rows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type:'json' };
 
 const weakPoints=parse(array(tuple([number(),number(),number()])),rows.weak);
@@ -43,5 +49,28 @@ test('authored weak-point query preserves yaw, body lift, scale and strict radiu
   for(const [x,y,z] of weakPoints)for(const offset of [-.5,-.25,-.1,0,.1,.25,.5]) {
     const at=world(x+offset,y,z);
     expect(guest.weakPoint(actor,at)).toBe(reference(at));
+  }
+});
+
+test('named creature observations retain the original bounds before native use',()=>{
+  const guest=parse(CreatureGuestSchema,generated.presentation.guest);
+  expect(guest.clock).toBe(rows.balbalGuest.clock);
+  expect(guest.memory).toEqual(rows.balbalGuest.memory);
+  expect(guest.states).toEqual(rows.balbalGuest.states);
+  expect(()=>parse(CreatureGuestSchema,{...guest,length:[1,0,1]})).toThrow();
+  expect(()=>parse(CreatureGuestSchema,{...guest,writes:Array.from({length:65},()=> 'x')})).toThrow();
+});
+
+test('omitted script defaults retain the exact admitted look declaration',()=>{
+  const actual=parseDecisionScripts([generated.presentation.lookBook.program.script]);
+  expect(actual).toEqual(parseDecisionScripts([sourceAdmission.script]));
+  expect(generated.presentation.lookBook.program.bytes).toBe(sourceAdmission.bytes);
+});
+
+test('wire defaults preserve every existing Titan program and module',()=>{
+  for(const program of Object.values(titan)) {
+    const wire=wireProgram(program);
+    expect(parseDecisionScripts([wire.script])).toEqual(parseDecisionScripts([program.script]));
+    expect(wire.bytes).toBe(program.bytes);
   }
 });

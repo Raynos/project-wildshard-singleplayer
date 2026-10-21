@@ -13,6 +13,8 @@ import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import bodyRows from '../data/bodies.json' with { type: 'json' };
 import { SPECIES_POSES } from './speciesPoses.ts';
 import { buildCracks } from './balbalCracks.ts';
+import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
+import { wireProgram } from './returnProgramRows.ts';
 
 const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url)));
 // The existing weak-point row bounds move with their build-time admission.
@@ -86,11 +88,12 @@ const crackIndex=cracks.index;if(crackIndex===null)throw new Error('Missing crac
 let last=0;const deltas=Int32Array.from(crackIndex.array,index=>{const delta=index-last;last=index;return delta;});crackBlocks.push(new Uint8Array(deltas.buffer));crackSize+=deltas.byteLength;
 const crackBytes=new Uint8Array(crackSize);let crackAt=0;for(const bytes of crackBlocks){crackBytes.set(bytes,crackAt);crackAt+=bytes.length;}
 const crackRow={attrs:crackAttrs,count:cracks.getAttribute('position').count,index:'u32',indexCount:crackIndex.count,box:false};
-const program={script,bytes:Buffer.from(blob.bytes).toString('base64')};
-const presentation={packedBodies:compactBodies,poses:poseConfigs,cracks:crackRow,program,strike:strikes.balbal,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS,program:admission}};
+const program=wireProgram({script,bytes:Buffer.from(blob.bytes).toString('base64')});
+const guest=v.parse(CreatureGuestSchema,{...speciesRows.balbalGuest,program,strike:strikes.balbal});
+const presentation={packedBodies:compactBodies,poses:poseConfigs,cracks:crackRow,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS,program:wireProgram(admission)}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL(`../../../../public${file}`,import.meta.url)),compressed);
 writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,crackBytes:Array.from(crackBytes),program}));
-const {balbal,king,slam,kingFrame,kingPoseDefaults,balbalGuest}=speciesRows;
-writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes({balbal:{kind:balbal.kind},king:{kind:king.kind},slam,kingFrame,kingPoseDefaults,balbalGuest}));
+const {balbal,king,slam,kingFrame,kingPoseDefaults}=speciesRows;
+writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes({balbal:{kind:balbal.kind},king:{kind:king.kind},slam,kingFrame,kingPoseDefaults}));
 writer.finish();

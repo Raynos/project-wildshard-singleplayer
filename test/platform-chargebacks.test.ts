@@ -131,14 +131,13 @@ test('day-one feature credit cannot erase a G520 chargeback', () => {
   expect(unapproved.exports).toEqual([]);
 });
 
-test('chargebacks retain their exact component and include creature schemas', () => {
+test('chargebacks retain their exact component after guest admission', () => {
   const sources = [
-    { path: 'src/format/creatureGuest.ts', kind: 'sole-module', lines: 14 },
     { path: 'src/game/models/mountedSpecimen.ts', kind: 'sole-module', lines: 27 },
     { path: 'src/game/looks/painterlyLook.ts', name: 'PainterlyWorld', kind: 'sole-export', lines: 40 },
   ] as const;
-  const inventory = componentInventory('.', 'nalati-grasslands', [...sources], 81);
-  expect(inventory.counts.C4).toBe(14);
+  const inventory = componentInventory('.', 'nalati-grasslands', [...sources], 67);
+  expect(inventory.counts.C4).toBe(0);
   expect(inventory.counts.C1).toBe(27); expect(inventory.counts.C7).toBe(0);
   expect(inventory.counts.C2).toBe(40);
   expect(inventory.unknown).toEqual([]);
