@@ -31,7 +31,8 @@ import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
 import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
 import { RainPresentation } from './rainPresentation';
 import { lentLook, pushLentParams, setLentParam, setLentTexture } from './lentLooks';
-import { HerdShelter, populationShelter } from '../populationShelter';
+import { HerdShelter } from '@wildshard/game/population/shelter';
+import { parsePopulationShelter } from '@wildshard/format/herdShelter';
 
 declare module '@wildshard/engine/events/maps' {
   interface EventMap { 'weather.changed': WeatherHUD }
@@ -62,7 +63,7 @@ export async function installForestWeather(ctx: ShardContext, input: unknown): P
   const forest = policy.files.observations === undefined || policy.files.rain === undefined || policy.files.shelter === undefined ? null : {
     h: forestWeatherObservations(ctx, await ctx.product.json(policy.files.observations)),
     fx: await RainPresentation.install(ctx, await ctx.product.json(policy.files.rain)),
-    shelter: populationShelter(await read(policy.files.shelter)),
+    shelter: parsePopulationShelter(await read(policy.files.shelter)),
   };
   const dev = { paused: false };
   let weather: WeatherContinuation, storm: { rows: Storm; reactions: WeatherReactions; world: v.InferOutput<typeof WeatherWorldSchema> } | null = null;
@@ -84,7 +85,7 @@ export async function installForestWeather(ctx: ShardContext, input: unknown): P
 
 function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies: { face: SkyFace; painted: PaintedSky | null }, weather: WeatherContinuation,
   storm: { rows: Storm; reactions: WeatherReactions; world: v.InferOutput<typeof WeatherWorldSchema> } | null,
-  forest: { h: ForestWeatherObservations; fx: RainPresentation; shelter: ReturnType<typeof populationShelter> } | null,
+  forest: { h: ForestWeatherObservations; fx: RainPresentation; shelter: ReturnType<typeof parsePopulationShelter> } | null,
   parts: Awaited<ReturnType<typeof weatherParts>> | null, policy: ForestWeatherRows, dev: { paused: boolean }, entered?: ShardContext): ForestWeatherRig {
   const game = world.game, sky = skies.face, group = new THREE.Group(), atT = policy.heldPhase, setMode = (m: string, t = atT): void => { weather.setMode(m, t); };
   group.name = 'weather-fx'; if (forest !== null) group.add(forest.fx.group); if (parts !== null) group.add(parts.group);
