@@ -1,18 +1,15 @@
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
-import type { AdventurePersistence as NalatiPersistence } from '@wildshard/game/quest/persistence';
 import { clientWildlife, type PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
-import { Group, Mesh, type Vector3, type Object3D } from 'three';
+import { Group, Mesh, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
-import type { TargetHit } from '@wildshard/engine/combat/types';
-import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { wind } from '@wildshard/engine/world/steppeWind';
 
 
@@ -52,7 +49,7 @@ export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 export type NalatiWeather = Nalati['weather'];
 export type NalatiCtx = NonNullable<ShardRuntime['world']>;
 
-async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress, persistence?: NalatiPersistence) {
+async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress) {
   const { admission } = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
@@ -163,7 +160,7 @@ async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?:
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const nalati = {
-    persistence, pois, weather, groups, boss, elites, titan,
+    pois, weather, groups, boss, elites, titan,
     get stealth(): Stealth | null { return stealth; },
     get ride(): Ride | null { return ride; },
     get wildlife() { return clientWildlife(plugin); },
@@ -182,17 +179,6 @@ async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?:
 
       const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
       painter = clientCosmeticFinishes(plugin).painter;
-    },
-    onShot(): void { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; },
-    onImpact(_surface: ImpactSurface, point: Vector3): void {
-      // a landing arrow / javelin (not a sabre / spear blow at arm's length)
-      if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;
-      wildlife.disturb(point.x, point.z);
-      ride?.noteShot(point.x, point.z);
-    },
-    sheepTarget(origin: Vector3, dir: Vector3, maxDist: number, hit: TargetHit | null): TargetHit | null {
-      if (wildlife === null) return hit;
-      return titan.target(origin,dir,maxDist,night.target(origin,dir,maxDist,wildlife.raycastWeapon(origin,dir,maxDist,hit)));
     },
   };
   // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
@@ -242,9 +228,16 @@ async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?:
     previous = id;
   }
   plugin.system({ id: 'shard.nalati.reins', phase: 'late', run: (dt) => { ride?.late(dt); } });
-  plugin.on('weapon.fired', () => { nalati.onShot(); });
-  plugin.on('weapon.impact', ({ surface, point }) => { nalati.onImpact(surface, point); });
-  plugin.answer('combat.targets.ray', (request: RayTargets): RayTargets => ({ ...request, hit: nalati.sheepTarget(request.origin, request.dir, request.maxDist, request.hit) }));
+  plugin.on('weapon.fired', () => { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; });
+  // A landing arrow or javelin, preserving the original exclusion around the player.
+  plugin.on('weapon.impact', ({ point }) => {
+    if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;
+    wildlife.disturb(point.x, point.z);
+    ride?.noteShot(point.x, point.z);
+  });
+  plugin.answer('combat.targets.ray', (request: RayTargets): RayTargets => ({ ...request,
+    hit: wildlife === null ? request.hit : titan.target(request.origin,request.dir,request.maxDist,
+      night.target(request.origin,request.dir,request.maxDist,wildlife.raycastWeapon(request.origin,request.dir,request.maxDist,request.hit))) }));
   plugin.answer('combat.aimTargets', (list) => {
     const filtered = list.filter((a) => !('mem' in a) || typeof a.mem !== 'object' || a.mem === null || (!('hidden' in a.mem) || a.mem.hidden !== 1) && (!('owned' in a.mem) || a.mem.owned !== 1));
     const heart = titan.lockTarget();

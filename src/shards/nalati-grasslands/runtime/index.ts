@@ -40,7 +40,7 @@ export class NalatiPlugin extends ShardPlugin {
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
     await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
-    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress, enteredAdventurePersistence(ctx.scope)));
+    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     await arsenal.blade.prepare(ctx.product);
     await arsenal.polearm.prepare(ctx.product);
     await prepareWeaponCatalogue();
