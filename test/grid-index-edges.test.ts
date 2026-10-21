@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { outputSectionPayloads } from '@wildshard/format/outputIndex';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { readGridProductEdges } from '../src/game/grid/products';
+import { readGridProductEdges, readGridProductFar } from '../src/game/grid/products';
 
 function fixture() {
   const source = emptyShardfile({ slug: 'edge-fixture', name: 'Edges', author: 'Test', revision: 1, seed: 9 });
@@ -60,4 +60,13 @@ test('warm edge sections use exact cached bytes without another network revalida
   expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url]);
   await expect(readGridProductEdges(f.url, f.source.identity.slug, { ...f.options,
     cachedResponse: async () => { await Promise.resolve(); return new Uint8Array(bytes.length); } })).rejects.toThrow('hash or size');
+});
+
+test('O26: a world without mesh collision reads only the index and its collision section for its far proxy', async () => {
+  const f = fixture(), collision = new URL('sections/world/collision.json', f.url).href;
+  const payload = outputSectionPayloads(f.source).get('world/collision');
+  if (payload === undefined) throw new Error('Missing collision fixture');
+  f.wires.set(collision, new TextEncoder().encode(encodeCanonicalJson(payload)));
+  expect(await readGridProductFar(f.url, f.source.identity.slug, f.options)).toBeNull();
+  expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url, collision]);
 });

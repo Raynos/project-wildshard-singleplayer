@@ -11,10 +11,16 @@ function isMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 /** three's merge returns null for parts whose attributes differ (its typing omits it). */
 const merge: (parts: BufferGeometry[]) => BufferGeometry | null = mergeGeometries;
 
-/** Authored mesh worlds ship their one-draw proxy inside the admitted product, without a second baked-folder copy. */
-export async function loadShardfileFar(source: Shardfile, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number }> {
-  const far = source.far, ref = source.props?.far;
-  if (far === null || ref === null || ref === undefined || !far.files.includes(ref)) throw new Error('Authored world has no declared far GLB');
+/** What a shardfile's far proxy reads (O26: read from its sections, not a whole admitted product): its far row, its props'
+ * far GLB and its first fog key's colour (the haze). */
+export interface ShardfileFarRows {
+  readonly far: Shardfile['far']; readonly farRef: string | null;
+  readonly fog: Shardfile['look']['keys'][number]['fog']['colour'] | null;
+}
+/** Authored mesh worlds ship their one-draw proxy inside their product, without a second baked-folder copy. */
+export async function loadShardfileFar(rows: ShardfileFarRows, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number }> {
+  const { far, farRef: ref } = rows;
+  if (far === null || ref === null || !far.files.includes(ref)) throw new Error('Authored world has no declared far GLB');
   const gltf = await createRigLoader().parseAsync((await read(ref)).slice().buffer, '');
   gltf.scene.updateMatrixWorld(true);
   const meshes: Mesh[] = [];
@@ -32,13 +38,12 @@ export async function loadShardfileFar(source: Shardfile, read: (ref: string) =>
   geometry.applyMatrix4(mesh.matrixWorld);
   // G539: its baked impostor, when the build gave it one
   const impostor = far.impostor === undefined ? null : await decodeFarImpostor(far.impostor, await read(far.impostor.file));
-  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(source), impostor }, bytes: far.decoded + far.gpu };
+  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(rows.fog), impostor }, bytes: far.decoded + far.gpu };
 }
 
 /** A shardfile's own placeholder look: pbr, hazed over the grid's distances (GRID_FAR_HAZE) in its first fog key's colour. */
-function shardfileHaze(source: Shardfile): FarPrepared['look'] {
-  const fog = source.look.keys[0]?.fog;
-  return { family: 'pbr', haze: { colour: fog?.colour ?? [1, 1, 1], ...GRID_FAR_HAZE } };
+function shardfileHaze(fog: ShardfileFarRows['fog']): FarPrepared['look'] {
+  return { family: 'pbr', haze: { colour: fog ?? [1, 1, 1], ...GRID_FAR_HAZE } };
 }
 
 /**
@@ -69,5 +74,5 @@ export async function loadShardfileNear(source: Shardfile, read: (ref: string) =
   const geometry = parts.length === 1 ? first : merge(parts);
   if (parts.length > 1) for (const part of parts) part.dispose();
   if (geometry === null) throw new Error('Near content has no mergeable mesh');
-  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(source) }, bytes: cost.content.resident, owns: false };
+  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(source.look.keys[0]?.fog.colour ?? null) }, bytes: cost.content.resident, owns: false };
 }

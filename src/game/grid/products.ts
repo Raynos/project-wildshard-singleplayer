@@ -12,7 +12,9 @@ import { GridPostCosts } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
 import { neighbourProductFiles } from '../shardfile/productCost';
-import { parseOutputIndex } from '@wildshard/format/outputIndex';
+import { outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
+import { FarSchema, ShardReferenceSchema } from '@wildshard/format/shardSections';
+import type { ShardfileFarRows } from './shardfileFar';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
@@ -22,23 +24,40 @@ import { GridAdmissionPriority } from './admissionPriority';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
 const farRow = v.looseObject({ far: v.nullable(v.looseObject({ decoded: v.number(), gpu: v.number() })) });
+const farRows = { tiles: v.looseObject({ far: FarSchema }), props: v.looseObject({ props: v.nullable(v.looseObject({ far: v.nullable(ShardReferenceSchema) })) }),
+  look: v.looseObject({ look: v.looseObject({ keys: v.array(v.looseObject({ fog: v.looseObject({ colour: v.tuple([v.number(), v.number(), v.number()]) }) })) }) }),
+  collision: v.looseObject({ meshCollision: v.unknown() }) };
 const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
 
-/** One hash-verified section of a product's bounded index (null when the index has none). No runtime or asset is admitted. */
-async function readGridProductSection(url: string, identity: string, name: string, options: ProductOptions): Promise<unknown> {
+/** A product's bounded index, read once for several section or file reads (no runtime or asset is admitted). */
+interface GridProductIndex { readonly index: OutputIndex; readonly url: string; readonly options: ProductOptions }
+async function readGridProductIndex(url: string, identity: string, options: ProductOptions): Promise<GridProductIndex> {
   const index = parseOutputIndex(await readIndexBytes(await boundedResponse(await options.fetch(url), limits.sourceBytes), options));
   const { slug: declaredIdentity } = index.identity;
   if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid product index identity differs from its cell');
-  const section = index.sections.find(row => row.name === name);
+  return { index, url, options };
+}
+/** One immutable file the index declares (a section or a blob), from the content cache or the product URL, size and hash
+ * checked; a network read is kept in the content cache like an admission's. */
+async function readGridProductFile(at: GridProductIndex, path: string, hash: string, size: number): Promise<Uint8Array> {
+  const { options } = at, base = new URL('.', at.url).href, address = new URL(path, at.url).href;
+  declareDownloadFile(address, size);
+  const held = await options.cache?.asset(base, hash) ?? await options.cachedResponse?.(address, hash, size);
+  const bytes = held ?? await boundedResponse(await options.fetch(address), size);
+  if (bytes.length !== size || await options.hash(bytes) !== hash) throw new Error(`Grid product file ${path} hash or size mismatch`);
+  if (held !== null && held !== undefined) recordCachedDownload(hash, bytes.length, address);
+  else await options.cache?.putAsset(base, hash, bytes);
+  return bytes;
+}
+/** One hash-verified section of the index, parsed (null when the index has none). */
+async function readGridSection(at: GridProductIndex, name: string): Promise<unknown> {
+  const section = at.index.sections.find(row => row.name === name);
   if (section === undefined) return null;
-  const address = new URL(section.path, url).href;
-  declareDownloadFile(address, section.bytes);
-  const held = await options.cache?.asset(new URL('.', url).href, section.hash)
-    ?? await options.cachedResponse?.(address, section.hash, section.bytes);
-  const bytes = held ?? await boundedResponse(await options.fetch(address), section.bytes);
-  if (bytes.length !== section.bytes || await options.hash(bytes) !== section.hash) throw new Error(`Grid ${name} section hash or size mismatch`);
-  if (held !== null && held !== undefined) recordCachedDownload(section.hash, bytes.length, address);
-  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await readGridProductFile(at, section.path, section.hash, section.bytes)));
+}
+/** One hash-verified section of a product's bounded index (null when the index has none). No runtime or asset is admitted. */
+async function readGridProductSection(url: string, identity: string, name: string, options: ProductOptions): Promise<unknown> {
+  return readGridSection(await readGridProductIndex(url, identity, options), name);
 }
 /** Read only the bounded index and its hash-verified world/edge section. This does not admit a runtime or asset. */
 export async function readGridProductEdges(url: string, identity: string, options: ProductOptions): Promise<Pick<Shardfile, 'edge' | 'entryways'>> {
@@ -57,6 +76,38 @@ export function gridShardfileFarBytes(slug: string): Promise<number | null> | nu
   const url = new URL(descriptor, location.href);
   return readGridProductSection(url.href, slug, 'world/tiles', browserShardfileOptions(new URL('.', url).href, true))
     .then(rows => { if (rows === null) return null; const { far } = v.parse(farRow, rows); return far === null ? null : far.decoded + far.gpu; });
+}
+
+/**
+ * O26: a shardfile cell's far proxy straight from its product: the index, its world/tiles (the far row), world/props (the far
+ * GLB), look/look (the haze colour) and world/collision sections, and the far files, each hash-verified, without admitting
+ * the whole product first (its admission, ~8-20 s a product at 4x CPU, held every shardfile neighbour's far proxy and so the
+ * grid reveal's ringsReady). No residency claim: the far ring's own lease charges the proxy. Null when the slug has no
+ * shardfile or no mesh-collision world (its far proxy is the baked folder's).
+ */
+export function readGridShardfileFar(slug: string): Promise<GridShardfileFar | null> {
+  const descriptor = findShard(slug)?.shardfile;
+  if (descriptor === undefined) return Promise.resolve(null);
+  const url = new URL(descriptor, location.href);
+  return readGridProductFar(url.href, slug, browserShardfileOptions(new URL('.', url).href, true));
+}
+/** A shardfile far proxy's rows and a verified reader for its declared far files. */
+export interface GridShardfileFar { readonly rows: ShardfileFarRows; readonly read: (ref: string) => Promise<Uint8Array> }
+/** `readGridShardfileFar` for one product URL (null: no mesh-collision world, so its far proxy is the baked folder's). */
+export async function readGridProductFar(url: string, identity: string, options: ProductOptions): Promise<GridShardfileFar | null> {
+  const at = await readGridProductIndex(url, identity, options);
+  const collision = await readGridSection(at, 'world/collision');
+  if (collision === null || v.parse(farRows.collision, collision).meshCollision === null) return null;
+  const [tiles, props, look] = await Promise.all([readGridSection(at, 'world/tiles'), readGridSection(at, 'world/props'), readGridSection(at, 'look/look')]);
+  const fog = look === null ? null : v.parse(farRows.look, look).look.keys[0]?.fog.colour ?? null;
+  const rows: ShardfileFarRows = { far: tiles === null ? null : v.parse(farRows.tiles, tiles).far, farRef: props === null ? null : v.parse(farRows.props, props).props?.far ?? null, fog };
+  const read = (ref: string): Promise<Uint8Array> => {
+    const hash = ref.replace(/^commons:/u, ''), commons = ref.startsWith('commons:');
+    const file = at.index.files.find(row => row.hash === hash && (row.commons === true) === commons);
+    if (file === undefined || rows.far?.files.includes(ref) !== true) return Promise.reject(new Error('Undeclared grid far file'));
+    return readGridProductFile(at, outputBlobPath(file), hash, file.compressed);
+  };
+  return { rows, read };
 }
 
 /** Equal catalogue copies share edge metadata; full product admission stays on the ordinary approach path. */
