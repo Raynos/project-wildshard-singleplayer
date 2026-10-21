@@ -4,6 +4,9 @@ import barrelSource from '../src/shards/driftwood-isle/behaviour/barrels.as?raw'
 import { beforeAll, expect, test } from 'vitest';
 import * as v from 'valibot';
 import { emptyShardfile } from '../src/sdk/author';
+import { prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
+import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { declaredBodyRegistries, DeclaredBodyOpsSchema } from '../src/format/bodySlots';
@@ -31,16 +34,26 @@ const bodies = v.parse(DeclaredBodyOpsSchema, { ...BARREL_BODIES, bodies: [{ ...
 const params = { ...watch.params, homeX: HOME.x, homeY: HOME.y, homeZ: HOME.z, water: 10, plateAX: 90, plateBX: -90 };
 const source = emptyShardfile({ slug: 'barrel-saves', name: 'Barrel Saves', author: 'Test', seed: 3, revision: 1 });
 let sections = new Map<string, unknown>(), assets = new Map<string, Uint8Array>();
+let nativePlan: HeadlessRuntimePlan;
 beforeAll(async () => {
   const built = await compileDecisionScripts([{ ...watch, params }], declaredBodyRegistries(bodies), new Map([[watch.source, barrelSource]]), { asLineCeiling: 200 });
   const [row] = built.rows, [blob] = built.blobs; if (row === undefined || blob === undefined) throw new Error('Missing barrel program');
   sections = new Map<string, unknown>([['sim/scripts', parseDecisionScripts([row])], ['sim/bodies', bodies]]);
   assets = new Map([[row.module.slice('blobs/wasm/'.length, -'.wasm'.length), blob.bytes]]);
+  const declaration = { version: 1, modules: {}, constants: {}, prepare: [],
+    install: [{ name: 'bodyScripts', value: { $native: 'native.body-scripts' } }],
+    level: { speed: 5, lift: .1, ground: { size: 32, height: 0 } },
+    ports: { ground: false, heightAt: { $fn: 0 } }, entries: { $fn: { lanes: 0, steps: 0 } } };
+  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections,
+    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
+    read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
+  nativePlan = await prepareHeadlessAssembly({ shard: source, product, assets, rapier: await rapier }, {});
 });
 const envelope = v.strictObject({ barrel: v.unknown() });
 /** The quest composition's barrel envelope over today's props and body scripts. */
-function migrated(host: SimHost, restoring: boolean): NativeQuestProps {
-  installNativeBodyScripts(host, source, assets, restoring, sections);
+function migrated(host: SimHost, restoring: boolean, builtin = true): NativeQuestProps {
+  if (builtin) nativePlan.install(host, { restoring, commands: () => [], emit: () => undefined });
+  else installNativeBodyScripts(host, source, assets, restoring, sections);
   const props = new NativeQuestProps(host, { drops: [], floors: [], gates: [], bodies: [{ owner: OWNER, body: 'barrel' }] }, restoring);
   host.onStep('quest.props', dt => { props.step(dt, { x: 0, z: 0 }); }, {
     snapshot: () => ({ barrel: props.snapshot(OWNER) }), restore: value => { props.restore(OWNER, v.parse(envelope, value).barrel); },
@@ -104,4 +117,15 @@ test('a migrated save restores into a fresh host with the same body count, handl
       expect(snapshotSimHost(fork)).toEqual(snapshotSimHost(host)); expect(fork.physics.world.bodies.len()).toBe(count);
     } finally { fork.dispose(); }
   } finally { host.dispose(); }
+});
+
+
+test('the finite body capability preserves the old callable phase and snapshot bytes', async () => {
+  const R = await rapier, builtinHost = createSimHost(level, { rapier: R }), callable = createSimHost(level, { rapier: R });
+  try {
+    migrated(builtinHost, false); migrated(callable, false, false);
+    expect(snapshotSimHost(builtinHost)).toEqual(snapshotSimHost(callable));
+    for (let i = 0; i < 120; i++) { builtinHost.step(); callable.step(); }
+    expect(snapshotSimHost(builtinHost)).toEqual(snapshotSimHost(callable));
+  } finally { builtinHost.dispose(); callable.dispose(); }
 });

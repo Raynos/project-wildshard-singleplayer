@@ -5,6 +5,8 @@ import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/hea
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/sim';
+import { snapshotSimHost } from '../src/engine/sim/snapshot';
+import { tagCollider } from '../src/engine/physics/surface';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 
 const ref = (...path: readonly (string | number)[]) => ({ $ref: path });
@@ -54,4 +56,49 @@ test('refuses undeclared code, prototype traversal and binding collisions before
     expect(() => checkedHeadlessAssembly({ ...declaration, entries: ref(...path) }, modules)).toThrow();
   expect(() => checkedHeadlessAssembly({ ...declaration, install: [{ name: 'host', value: null }] }, modules)).toThrow('conflicts');
   expect(() => checkedHeadlessAssembly({ ...declaration, entries: { $eval: 'source' } }, modules)).toThrow();
+});
+
+test('admits only one top-level native installation, never constants or nested expressions', () => {
+  const native = { $native: 'native.body-scripts' };
+  const install = [{ name: 'bodies', value: native }];
+  expect(() => checkedHeadlessAssembly({ ...base, install }, {})).not.toThrow();
+  expect(() => checkedHeadlessAssembly({ ...base, constants: { literal: { $ref: ['not-an-expression'] } } }, {})).not.toThrow();
+  for (const declaration of [
+    { ...base, constants: { nested: [native] } },
+    { ...base, prepare: install },
+    { ...base, install: [{ name: 'bodies', value: { nested: native } }] },
+    { ...base, install: [{ name: 'bodies', value: { $fn: native } }] },
+    { ...base, install: [{ name: 'bodies', value: { $native: 'native.unknown' } }] },
+    { ...base, install: [...install, { name: 'second', value: native }] },
+  ]) expect(() => checkedHeadlessAssembly(declaration, {})).toThrow();
+});
+
+test('refuses native body scripts before real ground admission or after its host ends', async () => {
+  const shard = emptyShardfile({ slug: 'native-ground', name: 'Native Ground', author: 'Test', revision: 1, seed: 1 });
+  const declaration = { ...base, install: [{ name: 'bodies', value: { $native: 'native.body-scripts' } }] };
+  const product = createShardProduct({ slug: 'native-ground', revision: 1, shardfile: shard, sections: new Map(),
+    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
+    read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
+  const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, {});
+  const host = createSimHost(plan.level, { ...plan.ports, rapier });
+  const context = { restoring: false, commands: () => [], emit: () => undefined };
+  try {
+    const before = snapshotSimHost(host);
+    expect(() => plan.install(host, context)).toThrow('require admitted ground');
+    expect(snapshotSimHost(host)).toEqual(before);
+    // A disabled floor, a sensor and a dynamic ground-tagged body do not
+    // establish the static collision admission this capability requires.
+    const physics = host.physics;
+    const moving = physics.world.createRigidBody(physics.R.RigidBodyDesc.dynamic());
+    const falseGround = [
+      physics.world.createCollider(physics.R.ColliderDesc.cuboid(1, 1, 1).setEnabled(false)),
+      physics.world.createCollider(physics.R.ColliderDesc.cuboid(1, 1, 1).setSensor(true)),
+      physics.world.createCollider(physics.R.ColliderDesc.cuboid(1, 1, 1), moving),
+    ];
+    for (const collider of falseGround) tagCollider(collider, 'ground');
+    const unready = snapshotSimHost(host);
+    expect(() => plan.install(host, context)).toThrow('require admitted ground');
+    expect(snapshotSimHost(host)).toEqual(unready);
+  } finally { host.dispose(); }
+  expect(() => plan.install(host, context)).toThrow('owner has ended');
 });

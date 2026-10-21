@@ -147,3 +147,15 @@ export function staticBoxCollider(physics: Physics, box: { readonly x: number; r
   });
   return found[0] ?? null;
 }
+
+/** Admission-only check for an enabled static ground collider. No simulation
+ * tick or query-pipeline update is needed for newly admitted native terrain. */
+export function hasStaticGround(physics: Physics): boolean {
+  let found = false;
+  physics.world.forEachCollider(collider => {
+    const parent = collider.parent();
+    if (collider.isEnabled() && !collider.isSensor() && (parent === null || parent.isFixed())
+      && tagOf(collider)?.material === 'ground') found = true;
+  });
+  return found;
+}

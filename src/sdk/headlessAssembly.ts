@@ -3,7 +3,9 @@ import { trustedLevel } from '@wildshard/game/plugin/simulation';
 import { createSimHost } from '@wildshard/engine/sim';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
-import type { HeadlessRuntimePlan, HeadlessRuntimePreparation } from './headlessRuntime';
+import { installNativeBodyScripts } from '@wildshard/game/quest/nativeBodyScripts';
+import { hasStaticGround } from '@wildshard/engine/physics/query';
+import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation } from './headlessRuntime';
 
 /** Static imports supplied by the trusted caller and checked by the producer.
  * Keys are repository-local module identifiers, never URLs to load at runtime. */
@@ -14,12 +16,13 @@ interface Assembly { readonly version: 1; readonly modules: Readonly<Record<stri
   readonly constants: Value;
   readonly prepare: readonly Row[]; readonly install: readonly Row[]; readonly level: Value; readonly ports: Value;
   readonly entries: Value }
-interface Environment { readonly values: Map<string, unknown>; readonly parent?: Environment }
+interface NativeInstallation { readonly host: ReturnType<typeof createSimHost>; readonly context: HeadlessRuntimeInstallation; readonly preparation: HeadlessRuntimePreparation }
+interface Environment { readonly values: Map<string, unknown>; readonly parent?: Environment; readonly native?: NativeInstallation }
 const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
 const callable = (value: unknown): value is (...args: readonly unknown[]) => unknown => typeof value === 'function';
 const valueList = (value: Value | undefined): value is readonly Value[] => Array.isArray(value);
 const safeKey = (key: string): boolean => key.length > 0 && key.length <= 256 && !['__proto__', 'prototype', 'constructor', 'caller', 'callee', 'arguments'].includes(key);
-const operations = new Set(['$ref', '$call', '$new', '$fn', '$set', '$if', '$or', '$coalesce', '$eq', '$not', '$sequence']);
+const operations = new Set(['$ref', '$call', '$new', '$fn', '$set', '$if', '$or', '$coalesce', '$eq', '$not', '$sequence', '$native']);
 
 
 function valueData(value: unknown, depth = 0): value is Value {
@@ -59,9 +62,14 @@ export function checkedHeadlessAssembly(input: unknown, modules: HeadlessAssembl
     declared[name] = exports;
   }
   if (Object.keys(declared).length !== Object.keys(modules).length) throw new Error('Assembly module catalogue differs from its static imports');
-  const inspect = (value: Value): void => {
+  let bodyScripts = false;
+  const inspect = (value: Value, native = false): void => {
     if (valueList(value)) { for (const child of value) inspect(child); return; }
     if (value === null || typeof value !== 'object') return;
+    if ('$native' in value) {
+      if (!native || value['$native'] !== 'native.body-scripts' || bodyScripts) throw new Error('Invalid native assembly capability');
+      bodyScripts = true; return;
+    }
     const path = value['$ref'];
     if (path !== undefined) {
       if (!valueList(path) || typeof path[0] !== 'string' || path.length > 16 || path.length === 0
@@ -73,7 +81,16 @@ export function checkedHeadlessAssembly(input: unknown, modules: HeadlessAssembl
     }
     for (const child of Object.values(value)) inspect(child);
   };
-  for (const row of [...input['prepare'], ...input['install']]) inspect(row.value);
+  // Constants are literal data: reject reserved native expressions without
+  // interpreting ordinary literal references stored inside them.
+  const inspectConstants = (value: Value): void => {
+    if (value === null || typeof value !== 'object') return;
+    if (!valueList(value) && Object.hasOwn(value, '$native')) throw new Error('Native capability is not constant data');
+    for (const child of Object.values(value)) inspectConstants(child);
+  };
+  inspectConstants(input['constants']);
+  for (const row of input['prepare']) inspect(row.value);
+  for (const row of input['install']) inspect(row.value, true);
   inspect(input['entries']); inspect(input['level']); inspect(input['ports']);
   return { version: 1, modules: declared, constants: input['constants'], prepare: input['prepare'], install: input['install'], level: input['level'], ports: input['ports'], entries: input['entries'] };
 }
@@ -106,6 +123,15 @@ function evaluate(value: Value, env: Environment): unknown {
       if (index === path.length - 2 && callable(result)) result = result.bind(receiver);
     }
     return result;
+  }
+  if (op === '$native') {
+    if (input !== 'native.body-scripts' || env.native === undefined) throw new Error('Native capability requires its installation frame');
+    const { host, context, preparation } = env.native, product = preparation.product;
+    if (host.scope.disposed || host.scope.disposing) throw new Error('Native capability owner has ended');
+    if (!hasStaticGround(host.physics)) throw new Error('Native body scripts require admitted ground');
+    const sections = new Map<string, unknown>([['sim/scripts', product.section('sim/scripts')], ['sim/bodies', product.section('sim/bodies')]]);
+    installNativeBodyScripts(host, product.shardfile, preparation.assets, context.restoring, sections);
+    return undefined;
   }
   if (op === '$fn') return (...args: readonly unknown[]): unknown => evaluate(input, { values: new Map([['args', args]]), parent: env });
   if (op === '$not') { const truth = Boolean(evaluate(input, env)); return !truth; }
@@ -157,6 +183,9 @@ const primitives = {
   },
 };
 /** Assemble one native plan from declared ordered calls to existing owners.
+ * The finite native.body-scripts capability is install-only, after real ground
+ * admission and before quest props. Its typed frame adds no callable path,
+ * clock or snapshot adapter.
  * Each install has fresh bindings; late callback reads retain that install's
  * live environment, including owners registered later. Save adapters, clocks,
  * physics, phases and disposal remain entirely with the called installers.
@@ -182,7 +211,7 @@ export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePrepar
   const entries = evaluate(declaration.entries, env);
   if (!callable(entries)) throw new Error('Missing assembly entry proof');
   return { level, ports: { ground: false, heightAt },
-    install: (host, context) => { installRows(declaration, { values: new Map<string, unknown>([['host', host], ['context', context]]), parent: env }); },
+    install: (host, context) => { installRows(declaration, { values: new Map<string, unknown>([['host', host], ['context', context]]), parent: env, native: { host, context, preparation } }); },
     proveEntries: host => {
       const proof = entries(host);
       if (!record(proof)) throw new Error('Invalid assembly entry result');

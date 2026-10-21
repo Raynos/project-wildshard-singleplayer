@@ -16,7 +16,6 @@
     "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands"],
     "@wildshard/game/population/nativeBake": ["installNativeCollision", "nativeBakeGround", "nativeBakeFloats"],
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
-    "@wildshard/game/quest/nativeBodyScripts": ["installNativeBodyScripts"],
     "@wildshard/game/plugin/nativeItems": ["installNativeItems"],
     "@wildshard/game/plugin/mover": ["proveTerrainEntries"],
     "@wildshard/format/terrainTileBytes": ["terrainTileHeight"]
@@ -806,37 +805,7 @@
     },
     {
       "name": "bodyScripts",
-      "value": {
-        "$call": [
-          {
-            "$ref": [
-              "@wildshard/game/quest/nativeBodyScripts",
-              "installNativeBodyScripts"
-            ]
-          },
-          {
-            "$ref": [
-              "host"
-            ]
-          },
-          {
-            "$ref": [
-              "shard"
-            ]
-          },
-          {
-            "$ref": [
-              "assets"
-            ]
-          },
-          {
-            "$ref": [
-              "context",
-              "restoring"
-            ]
-          }
-        ]
-      }
+      "value": {"$native": "native.body-scripts"}
     },
     {
       "name": "quest",

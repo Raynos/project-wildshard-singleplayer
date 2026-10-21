@@ -147,3 +147,4 @@ and built-output inventories. Listed view remains in the existing custom total,
 percentage, component counts, M3 and gates. The label grants no host credit and
 supplies no second user. New registrations require the same source review as
 the rest of this document; filenames or a client-only label alone are insufficient.
+- G571 native body scripts: `game/quest/nativeBodyScripts` installs admitted sim body rows and their AS decisions through the finite `native.body-scripts` top-level headless capability. Real static ground admission precedes installation; body post/decision/pre and quest-envelope continuation retain their original native owners and adapter ids. Renderer-free; no authored callbacks or reflected ports. Test 1 waived; tests 2–6 covered by `test/headless-assembly.test.ts` and `test/driftwood-barrel-saves.test.ts`, including refused unready hosts, old-save adoption and byte-identical snapshots.
