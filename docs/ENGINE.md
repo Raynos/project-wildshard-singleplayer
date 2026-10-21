@@ -6597,6 +6597,13 @@ height uses the selected floor plus `dy`. Borrowed models/floors remain
 live. Malformed coordinates, unsafe anchor paths and absent local frames
 refuse before the caller registers a prompt or piece. It owns no save.
 
+`game/quest/chapter.prepareQuestEntry(ctx, story, rows)` is the client quest
+entry shared by Pine and Driftwood. Rows name service actions and borrowed
+world frames/floor policy. The returned entry shares saved flags and placement;
+`interact(interactions, system)` installs its table once in the declared update
+order, after the existing progression binding. No new quest cursor, inventory,
+ledger or save is created. Entry rows admit no functions or reflected methods.
+
 Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing
 scene assembler passes them to MeshStandardMaterial before its named world

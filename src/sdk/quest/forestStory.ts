@@ -1,7 +1,7 @@
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { readChapterDirector, installQuestSpawnDirector, installChapterLead } from '@wildshard/game/quest/chapterDirector';
-import { commitQuestEffects, readQuestServiceActions } from '@wildshard/game/quest/effects';
-import { installChapterStory, installQuestFlags, installQuestInteractables } from '@wildshard/game/quest/chapter';
+import { commitQuestEffects } from '@wildshard/game/quest/effects';
+import { installChapterStory, prepareQuestEntry } from '@wildshard/game/quest/chapter';
 import { QuestStepRunner } from '@wildshard/game/quest/steps';
 import { installQuestTrader } from '@wildshard/game/quest/trader';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
@@ -16,7 +16,7 @@ import { jsonSchema } from '@wildshard/engine/saves/slots';
 import type { MapPoi } from '@wildshard/engine/ui/Map';
 import { test } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
-import { createQuestPlacements, type Interactable } from '@wildshard/engine/world/interact/types';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
@@ -72,20 +72,18 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   if (ctx.scope.disposed) throw new Error('Story left during model admission');
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const figureScenes = new SceneHandles(sky);
-  const flags = installQuestFlags(ctx, story.quest.id, h.chunkId);
-  const serviceActions = await readQuestServiceActions(ctx, story.quest.id, rows.files.services);
+  const entry = await prepareQuestEntry(ctx, story, { services: rows.files.services, placement: { registryReach: 20 } });
+  const { flags, services: serviceActions, floorAt } = entry;
   const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = await bindStoryAchievements(ctx, story, progress, h.chunkId, facts);
   const { state: quest, cables } = bindRuntimeQuest(ctx, source, story.quest.id, { flags, facts });
 
   const sfx = equipment.ambience.sfx;
   const shot = (name: Parameters<DeclaredSoundBank['shot']>[0], at?: THREE.Vector3): void => { sfx.shot(name, at ? { at } : {}); };
 
-  const { floorAt } = createQuestPlacements({ terrain: heightAt, registry: h.registry, registryReach: 20 });
-
   const { table, interactions: lanternRules } = native;
-  const kit = await installQuestInteractables(ctx, story.quest.id, { table, registryReach: 20 });
+  const kit = await entry.interact({ table, registryReach: 20 },
+    { id: 'quest.kit', after: ['engine.compendium.installCompendium'], before: ['hud.combat', 'main.frame'] });
   const kitSfx = kit.sfx;
-  ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
   const ui = new QuestViews(ctx);
   const chip = ui.view('count', (scope) => new DataPanel(countPanel, { scope }));

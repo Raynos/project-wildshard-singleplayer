@@ -9,12 +9,10 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { installWorldScenes } from '../shardfile/worldScenes';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
-import { readQuestServiceActions } from './effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
-import { createQuestPlacements, type Interactable, type InteractTable, type QuestPlace, type QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
-import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import type { Interactable, InteractTable, QuestPlace, QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
 import { ITEMS } from '../bag/itemCatalog';
 import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../plugin/context';
@@ -22,7 +20,7 @@ import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { bindQuestDeathEffects } from '../plugin/quests';
-import { installQuestChapter, installQuestFlags, installQuestInteractables, ownQuestTree, type QuestChapter } from './chapter';
+import { installQuestChapter, prepareQuestEntry, ownQuestTree, type QuestChapter } from './chapter';
 import { readQuestStory, bindStoryAchievements, observeStoryFlags, bindStoryBench, installStoryTalks } from './story';
 import { installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
@@ -61,17 +59,15 @@ async function preparePage(ctx: ShardContext, input: unknown) {
     const animal = h.animals.animals.find(a => a.combatActor() === actor); if (animal !== undefined) run(animal);
   }, { order }); };
   const story = await readQuestStory(ctx);
-  const services = await readQuestServiceActions(ctx, story.quest.id, rows.files.services);
   const content = parseAdventureContent(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.discovery))));
   const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
-  const flags = installQuestFlags(ctx, story.quest.id, w.chunk.slug);
-
-  const { floorAt, place, setAnchor, anchors } = createQuestPlacements({ terrain: terrainHeight, platforms: w.player.platforms, frames: rows.frames, pois: w.pois, registry: w.registry });
+  const entry = await prepareQuestEntry(ctx, story, { services: rows.files.services,
+    placement: { world: rows.world, frames: rows.frames, platforms: true } });
+  const { flags, services, floorAt, place, setAnchor, anchors } = entry;
 
   const assembly = await ctx.product.json<{ constants: { interact: InteractTable; interactSpots: unknown } }>(rows.files.assembly);
-  const kit = await installQuestInteractables(ctx, story.quest.id, { table: assembly.constants.interact,
-    placements: assembly.constants.interactSpots, platforms: true });
-  w.game.onUpdate((dt, t) => kit.update(dt, t), rows.systems.kit);
+  const kit = await entry.interact({ table: assembly.constants.interact, placements: assembly.constants.interactSpots, platforms: true },
+    { id: rows.systems.kit, before: rows.systems.before });
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
   const sfx = kit.sfx;

@@ -20,7 +20,7 @@ import { FigureRows } from '../systems/npc/figureRows';
 import { NpcDialogueRowSchema } from '../plugin/quests';
 import { ReturnProgram } from '../population/returnProgram';
 import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from './chapterBindings';
-import { commitQuestEffects } from './effects';
+import { commitQuestEffects, readQuestServiceActions } from './effects';
 import { QuestEffectSchema } from '@wildshard/format/questSteps';
 import type { ShardContext } from '../plugin/context';
 import { completionProjection, type CompletionProgress } from '../complete/declared';
@@ -28,6 +28,7 @@ import type { QuestPresentationHost, QuestPresentationOptions } from '../plugin/
 import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from './boundState';
 import { bindRuntimeQuest } from '../plugin/headless';
 import { bindStoryChapters, presentChapterStory, presentQuestStory } from './story';
+import { questPageWorld } from './pageResources';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -79,6 +80,46 @@ export function ownQuestTree(object: Object3D, scope: Scope): void {
 export function installQuestFlags(ctx: Pick<QuestChapterContext, 'scope' | 'product'>, id: string, level: string): Flags {
   if (!ctx.product.shardfile.quests.quests.some(row => row.id === id)) throw new Error('Quest flags require a declared quest');
   return installBoundQuestFlags(ctx.scope, id, level);
+}
+
+const entryId = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
+const entryPlacement = v.strictObject({ world: v.exactOptional(entryId),
+  frames: v.exactOptional(v.pipe(v.record(entryId, v.strictObject({ x: finite, z: finite, rot: finite })), v.maxEntries(4096))),
+  platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(finite, v.minValue(Number.MIN_VALUE))) });
+const entrySystem = v.strictObject({ id: entryId, before: v.pipe(v.array(entryId), v.maxLength(64)),
+  after: v.optional(v.pipe(v.array(entryId), v.maxLength(64)), []) });
+/** Prepared services retain the entered story's original state owners. */
+export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
+  readonly story: ReturnType<typeof parseQuestStory>; readonly flags: Flags;
+  readonly services: Awaited<ReturnType<typeof readQuestServiceActions>>;
+  interact: (interactions: Parameters<typeof installQuestInteractables>[2], system: unknown) => Promise<Awaited<ReturnType<typeof installQuestInteractables>>>;
+}
+/** Client-only quest entry shared by declared stories. Prepare saved flags,
+ * service actions and placement first; install interactables after the caller
+ * binds progression. Both stages take data and preserve the original owners. */
+export async function prepareQuestEntry(ctx: ShardContext, storyInput: unknown, input: unknown): Promise<QuestEntry> {
+  if (!isJsonData(input)) throw new Error('Quest entry requires plain JSON rows');
+  const rows = v.parse(v.strictObject({ services: entryId, placement: entryPlacement }), input), story = parseQuestStory(storyInput);
+  const world = ctx.game.runtime?.world;
+  if (world === undefined || world === null || ctx.scope.disposed) throw new Error('Quest entry requires its entered world');
+  const policy = rows.placement;
+  const placement = createQuestPlacements({ terrain: terrainHeight, registry: world.registry,
+    ...(policy.world === undefined ? {} : { pois: questPageWorld(ctx.scope, policy.world).pois }),
+    ...(policy.frames === undefined ? {} : { frames: policy.frames }),
+    ...(policy.platforms === true ? { platforms: world.player.platforms } : {}),
+    ...(policy.registryReach === undefined ? {} : { registryReach: policy.registryReach }) });
+  const flags = installQuestFlags(ctx, story.quest.id, ctx.manifest.slug);
+  const services = await readQuestServiceActions(ctx, story.quest.id, rows.services);
+  let installed = false;
+  return { story, flags, services, ...placement,
+    interact: async (interactions: Parameters<typeof installQuestInteractables>[2], system: unknown): Promise<Awaited<ReturnType<typeof installQuestInteractables>>> => {
+      const order = v.parse(entrySystem, system);
+      if (installed || ctx.scope.disposed) throw new Error('Quest entry interactables already installed or disposed');
+      installed = true;
+      const kit = await installQuestInteractables(ctx, story.quest.id, interactions);
+      ctx.system({ id: order.id, phase: 'update', before: order.before, after: order.after, run: (dt, time) => { kit.update(dt, time); } });
+      return kit;
+    } };
 }
 
 /** Client-only chapter presentation. Intake is story/placement rows and an existing quest id;
