@@ -15,14 +15,14 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 
 | Row | What | Code (from the audit) | Effort (est.) |
 |---|---|---|---|
-| **L1 — source `0e5a42feb3`; Chromium first-frame proof green at `e1799246dd`; final gate pending** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
-| **L2 — source `56b1bdf71`, worker receipts `e7f949385e`, startup replay `55b310a603`, cached section paths `0912242443`; final parity pending** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
-| **L3 — source `583123db2a`; proof pending** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
-| **L4 — source `c54a3c5c54`; proof pending** | A step table per load path (shardfile, grid entry, grid crossing; legacy comparison retained) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
-| **L5 — source `7d02e8806a`, shader slice `19c10b2c0c`, plot slice `ccecd7678f`, reuse `e0b3064e09`, schema yield `760a8c9846`, page queue `fb4b943579`, consumer paint `91a491c8a8`, parallel detail `390a57867c`, index batching `4313fc6482`, audio counts `21a07a76d5`; final cadence pending** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
-| **L6 — source `977a0d1303`; proof pending** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
-| **L7 — framework `04027abce7`, measured table `8dd0eeaa0e`, actual-unit fractions `09bdb72199`; final proof pending** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
-| **L8 — harness `88a252c39a`, real crossing proof `abd2957d63`; exact-build receipts pending** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
+| **L1 — source `0e5a42feb3`; six first frames and wall sums green at `801a9a6850`; final gate X17** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
+| **L2 — source `56b1bdf71`, worker receipts `e7f949385e`, startup replay `55b310a603`, cached section paths `0912242443`; six-entry parity green at `801a9a6850`, final gate X17** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
+| **L3 — source `583123db2a`; six entry receipts green at `801a9a6850`; final gate X17** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
+| **L4 — source `c54a3c5c54`; entry and crossing tables green at `801a9a6850`; phone return X17 open** | A step table per load path (shardfile, grid entry, grid crossing; legacy comparison retained) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
+| **L5 — source `7d02e8806a`, shader slice `19c10b2c0c`, plot slice `ccecd7678f`, reuse `e0b3064e09`, schema yield `760a8c9846`, page queue `fb4b943579`, consumer paint `91a491c8a8`, parallel detail `390a57867c`, index batching `4313fc6482`, audio counts `21a07a76d5`; six-entry cadence green at `801a9a6850`, final gate X17** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
+| **L6 — source `977a0d1303`; focused and six-entry checks green at `801a9a6850`; final gate X17** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
+| **L7 — framework `04027abce7`, measured table `8dd0eeaa0e`, actual-unit fractions `09bdb72199`; six entries green at `801a9a6850`, final gate X17** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
+| **L8 — harness `88a252c39a`, real crossing proof `abd2957d63`, recorder v2 `6324155e85`; six entries green at `801a9a6850`, phone return blocked by X17** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
 
 ## Phase 2: fast (after Phase 1 is accepted)
 
@@ -120,5 +120,27 @@ types, lint and 769 tests, then refused its real first frame because the
 deck placement referenced a model outside its site catalogue. `6e92de3486`
 restores the deck and trail's direct placements. The next batch was stopped
 after 26 s when the coordinator reported a separate frozen-legacy type red;
-`801a9a6850` restores those frozen types. One replacement batch and its
-dependent exact-build proof are running on that exact SHA. Phase 1 stays open.
+`801a9a6850` restores those frozen types. Its source batch passed in 623.1 s.
+
+All six entry accuracy cases now pass at `801a9a6850`; their four viewed
+portrait frames and compact receipts are committed in
+[`diagnostic-801a9a6`](../../../progress/loading/g543/diagnostic-801a9a6/README.md)
+(`abb4275bf0`). Byte errors are at most 0.37%; all stage sums balance.
+Phone detail gaps are 556.7 / 651.0 ms, native 250 / 360 ms, desktop
+158.1 / 190.4 ms. Native and desktop crossings both return. Phone returns
+stop at z -256.649 on foot and in normal hover (`0ed2dba967`); X17 is
+assigned to this lane and blocks the remaining gate. The registered
+readiness wall's width, capsule radius and controller skin stop feet
+6.65 m outside the cell, before its unchanged <=6 m entry trigger.
+Eight native regressions reproduce that original stop on all four mouths
+in walking and hover modes. The collider-data fix and physical proofs
+follow separately. Phase 1 stays open; O2 has only unapplied scratch work.
+
+X17 data fix `e77e887075` moves only the registered readiness-wall centres
+one metre inward. The unchanged transfer fence still holds outside the
+cell; all three readiness parts and a real motor reframe remain required.
+All eight native mouth/mode cases now pass, along with four crossing and
+admission checks (12 tests total) and strict lint. One exact-SHA source
+batch, the six entries/three crossings and the required grid physics walk
+are queued on that fix. The sp-x6 B6 quiet window released both surfaces
+before its checks resumed. No Phase 1 acceptance is claimed yet.
