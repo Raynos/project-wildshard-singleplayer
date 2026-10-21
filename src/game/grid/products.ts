@@ -21,23 +21,42 @@ import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boo
 import { GridAdmissionPriority } from './admissionPriority';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
+const farRow = v.looseObject({ far: v.nullable(v.looseObject({ decoded: v.number(), gpu: v.number() })) });
 const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
 
-/** Read only the bounded index and its hash-verified world/edge section. This does not admit a runtime or asset. */
-export async function readGridProductEdges(url: string, identity: string, options: ProductOptions): Promise<Pick<Shardfile, 'edge' | 'entryways'>> {
+/** One hash-verified section of a product's bounded index (null when the index has none). No runtime or asset is admitted. */
+async function readGridProductSection(url: string, identity: string, name: string, options: ProductOptions): Promise<unknown> {
   const index = parseOutputIndex(await readIndexBytes(await boundedResponse(await options.fetch(url), limits.sourceBytes), options));
   const { slug: declaredIdentity } = index.identity;
-  if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid edge index identity differs from its cell');
-  const section = index.sections.find(row => row.name === 'world/edge');
-  if (section === undefined) throw new Error('Grid edge index lacks world/edge');
+  if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid product index identity differs from its cell');
+  const section = index.sections.find(row => row.name === name);
+  if (section === undefined) return null;
   const address = new URL(section.path, url).href;
   declareDownloadFile(address, section.bytes);
   const held = await options.cache?.asset(new URL('.', url).href, section.hash)
     ?? await options.cachedResponse?.(address, section.hash, section.bytes);
   const bytes = held ?? await boundedResponse(await options.fetch(address), section.bytes);
-  if (bytes.length !== section.bytes || await options.hash(bytes) !== section.hash) throw new Error('Grid edge section hash or size mismatch');
+  if (bytes.length !== section.bytes || await options.hash(bytes) !== section.hash) throw new Error(`Grid ${name} section hash or size mismatch`);
   if (held !== null && held !== undefined) recordCachedDownload(section.hash, bytes.length, address);
-  return v.parse(edgeRows, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+}
+/** Read only the bounded index and its hash-verified world/edge section. This does not admit a runtime or asset. */
+export async function readGridProductEdges(url: string, identity: string, options: ProductOptions): Promise<Pick<Shardfile, 'edge' | 'entryways'>> {
+  const rows = await readGridProductSection(url, identity, 'world/edge', options);
+  if (rows === null) throw new Error('Grid edge index lacks world/edge');
+  return v.parse(edgeRows, rows);
+}
+/**
+ * The far proxy's declared resident bytes (decoded + GPU, what `loadShardfileFar` charges once it loads) from the index and
+ * its world/tiles section: the far ring charges these before the proxy arrives instead of the 1.6 MB cap, so a visible
+ * cell is never left out of the ring for placeholder charges (null: no far row). No admission, no claim.
+ */
+export function gridShardfileFarBytes(slug: string): Promise<number | null> | null {
+  const descriptor = findShard(slug)?.shardfile;
+  if (descriptor === undefined) return null;
+  const url = new URL(descriptor, location.href);
+  return readGridProductSection(url.href, slug, 'world/tiles', browserShardfileOptions(new URL('.', url).href, true))
+    .then(rows => { if (rows === null) return null; const { far } = v.parse(farRow, rows); return far === null ? null : far.decoded + far.gpu; });
 }
 
 /** Equal catalogue copies share edge metadata; full product admission stays on the ordinary approach path. */

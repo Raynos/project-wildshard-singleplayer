@@ -48,7 +48,7 @@ import { gridCells, pageGridInstance, pageMode } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
-import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
+import { RenderRings, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingWait } from './rings';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { decodeFarImpostor, farBandShare } from './farImpostorView';
 import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';
@@ -58,7 +58,7 @@ import { bakedNearFiles, NearPlaceholders, type NearPlaceholderState } from './n
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
-import { gridShardfileEdges, gridShardfileProduct } from './products';
+import { gridShardfileEdges, gridShardfileFarBytes, gridShardfileProduct } from './products';
 import { loadShardfileFar, loadShardfileNear } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
@@ -140,6 +140,8 @@ export interface GridSessionState {
   readonly home: string; readonly inside: string | null; readonly feet: { x: number; z: number };
   readonly cells: readonly { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly shows: GridCellShows; readonly drawn: GridCellDrawn }[];
   readonly strips: number; readonly ringsReady: boolean;
+  /** what `ringsReady` still waits on: the visible cells not yet drawn, and the far ring's plan (budget, charges, left out) */
+  readonly ringsWait: { readonly cells: readonly RingWait[]; readonly far: FarPlan };
   /** SF17b's boulevard look: segments, junctions, roundabouts, signs, lights and draws */
   readonly road: RoadLookState;
   /** the seams' materials: triangles and draws per material (phase 2, G90 / G91 / G101) */
@@ -269,6 +271,8 @@ export class GridSession {
   private readonly rings: RenderRings<LevelPrepared<FarPrepared, PreparedRingTile>>;
   private readonly neighbours: readonly GridCell[];
   private readonly costs = new Map<string, number>();
+  /** each shardfile neighbour's declared far bytes, read at start: its far ring charge until the proxy loads (then `costs`) */
+  private readonly declaredFar = new Map<string, number>();
   /** G107 / SF66: each shard's baked map, downscaled once and shared by all its copies. */
   private readonly mapImages: CellMinimaps;
   private readonly strips: readonly CollisionStrip[];
@@ -374,6 +378,13 @@ export class GridSession {
     this.home = this.assembly.cell(instance);
     const home = this.home;
     this.neighbours = this.assembly.cells.filter((cell) => host.ownedHome === true || cell.instance !== home.instance);
+    // ringsReady: the far ring charges each proxy its declared bytes before it loads, not the 1.6 MB cap, so placeholder
+    // charges never leave a visible cell out of the ring (12 visible proxies of 0.4-1.6 MB fit its 14.4 MB)
+    const declare = async (cell: GridCell): Promise<void> => {
+      try { const bytes = await gridShardfileFarBytes(cell.slug); if (bytes !== null) this.declaredFar.set(cell.instance, bytes); }
+      catch { /* the proxy's own load charges it */ }
+    };
+    for (const cell of this.neighbours) void declare(cell);
     for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); }
     // the deck: one generator run (`create` runs it sliced and hands it over), one draw, the same vertices as the platform colliders
     const strips = prebuilt ?? platformStripsNow(this.assembly, edges);
@@ -523,7 +534,7 @@ export class GridSession {
     // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them
-    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000
+    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
       : this.near.owns(id) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots, tiles.instances);
@@ -724,7 +735,7 @@ export class GridSession {
     return {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => { const d = drawn(cell.instance); return { instance: cell.instance, slug: cell.slug, cell: cell.cell, shows: shows(cell.instance, d), drawn: d }; }),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), cellLoading: this.cellLoading.open, ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), cellLoading: this.cellLoading.open, ringsReady: this.rings.ready(), ringsWait: { cells: this.rings.waiting(), far: this.rings.farPlan() },
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
       rings: { frame: stats.frame, far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },

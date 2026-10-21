@@ -63,6 +63,13 @@ export interface RingOptions {
   residentCaps?: Partial<Record<RingLevel, number>>;
   uploadsPerFrame?: number; uploadBytesPerFrame?: number; maxInFlight?: number;
 }
+/** The far ring's last plan: its byte budget, what it charged, and each proxy within reach it left out for the budget
+ * (`visible`: inside the view distance, where `ready()` waits on it). */
+export interface FarPlan { readonly budget: number; readonly charged: number; readonly wanted: readonly FarCharge[]; readonly omitted: readonly FarCharge[] }
+/** One far proxy's charge (its catalogue bytes) and whether its cell is in view. */
+export interface FarCharge { readonly instance: string; readonly bytes: number; readonly visible: boolean }
+/** A visible cell `ready()` waits on, and its far proxy's slot: never requested, in flight, queued for upload, uploaded (its finer tiles are the gap), or none. */
+export interface RingWait { readonly instance: string; readonly far: 'unrequested' | 'fetching' | 'queued' | 'uploaded' | 'none' }
 /** One step's readout for the drive tests and the HUD. */
 export interface RingStats { frame: number; resident: Record<RingLevel, number>; inFlight: number; queued: number; refused: number; uploads: number; evictions: number }
 
@@ -118,6 +125,7 @@ export class RenderRings<D> {
   private evictions = 0;
   private uploads = 0;
   private visibleCells: readonly RingCell[] = [];
+  private farPlanned: FarPlan = { budget: 0, charged: 0, wanted: [], omitted: [] };
   private disposed = false;
 
   constructor(cells: readonly RingCell[], allocator: ResidencyAllocator, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
@@ -136,15 +144,21 @@ export class RenderRings<D> {
    * True once every patch of every visible cell is drawn by an uploaded level (L0, its L1, or the far proxy), or has no
    * tile at any level to draw: the loader may uncover the view (until then the loading screen covers it).
    */
-  ready(): boolean {
-    const up = (instance: string, level: RingLevel, x: number, z: number): boolean | null => this.catalogue(instance, level, x, z) === null ? null : this.slots.get(key(instance, level, x, z))?.state === 'uploaded';
-    for (const cell of this.visibleCells) {
-      const far = up(cell.instance, 'far', 0, 0); if (far === true) continue;
-      for (let z = 0; z < 8; z++) for (let x = 0; x < 8; x++) {
-        const levels = [up(cell.instance, 'l1', Math.floor(x / 2), Math.floor(z / 2)), up(cell.instance, 'l0', x, z), far];
-        if (levels.includes(true) || levels.every((level) => level === null)) continue;
-        return false;
-      }
+  ready(): boolean { return this.visibleCells.every((cell) => this.drawn(cell)); }
+  /** The visible cells `ready()` still waits on (a readout: the reveal's diagnostics and the drive tests). */
+  waiting(): readonly RingWait[] {
+    return this.visibleCells.filter((cell) => !this.drawn(cell)).map((cell) => ({ instance: cell.instance,
+      far: this.catalogue(cell.instance, 'far', 0, 0) === null ? 'none' : this.slots.get(key(cell.instance, 'far', 0, 0))?.state ?? 'unrequested' }));
+  }
+  /** The far ring's last plan (budget, charges, proxies left out). */
+  farPlan(): FarPlan { return this.farPlanned; }
+  private drawn(cell: RingCell): boolean {
+    const up = (level: RingLevel, x: number, z: number): boolean | null => this.catalogue(cell.instance, level, x, z) === null ? null : this.slots.get(key(cell.instance, level, x, z))?.state === 'uploaded';
+    const far = up('far', 0, 0); if (far === true) return true;
+    for (let z = 0; z < 8; z++) for (let x = 0; x < 8; x++) {
+      const levels = [up('l1', Math.floor(x / 2), Math.floor(z / 2)), up('l0', x, z), far];
+      if (levels.includes(true) || levels.every((level) => level === null)) continue;
+      return false;
     }
     return true;
   }
@@ -210,16 +224,18 @@ export class RenderRings<D> {
     // the far ring: nearest first while the proxies' own bytes fit its budget; a cell with no far proxy keeps the old
     // reach and slot count for its 16 L1 tiles (its coarse level), which the near L1 refinement shares
     let farBytes = 0, coarse = 0;
+    const wanted: FarCharge[] = [], omitted: FarCharge[] = [];
     for (const { cell, d } of ranked) {
       if (d > this.options.farRadius) break;
       const bytes = this.catalogue(cell.instance, 'far', 0, 0);
       if (bytes !== null) {
-        if (farBytes + bytes > this.farBudget()) continue;
-        farBytes += bytes; add(this.tile(cell.instance, 'far', 0, 0), d); continue;
+        if (farBytes + bytes > this.farBudget()) { omitted.push({ instance: cell.instance, bytes, visible: d <= this.options.viewDistance }); continue; }
+        farBytes += bytes; wanted.push({ instance: cell.instance, bytes, visible: d <= this.options.viewDistance }); add(this.tile(cell.instance, 'far', 0, 0), d); continue;
       }
       if (d > this.options.viewDistance + this.options.farPrefetch || ++coarse > this.options.farCount) continue;
       for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) add(this.tile(cell.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z));
     }
+    this.farPlanned = { budget: this.farBudget(), charged: farBytes, wanted, omitted };
     const l1: { tile: RingTile; d: number }[] = [], l0: { tile: RingTile; d: number }[] = [];
     for (const { cell, d } of ranked) {
       if (d > L1_RADIUS) continue;
