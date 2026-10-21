@@ -46,6 +46,8 @@ export class ContentCache {
   private readonly reserve: number;
   private cache: Pick<Cache, 'match' | 'put' | 'delete' | 'keys'> | undefined;
   private index: Record<string, Entry> = {};
+  private readonly lru = new Map<string, Entry>();
+  private totalBytes = 0;
   private clock = 0;
   private dirty = false;
   private readonly scope = new Scope('content-cache');
@@ -91,13 +93,30 @@ export class ContentCache {
       }
     }
     for (const hash of Object.keys(this.index)) if (!actual.has(hash)) delete this.index[hash];
-    this.clock = Object.values(this.index).reduce((latest, entry) => Math.max(latest, entry.used), this.clock);
+    // Recover durable access order once; ordinary operations maintain it in place.
+    const entries = Object.entries(this.index).sort(([a, left], [b, right]) => left.used - right.used || (a < b ? -1 : a > b ? 1 : 0));
+    this.lru.clear(); this.totalBytes = 0;
+    for (const [hash, entry] of entries) {
+      this.lru.set(hash, entry); this.totalBytes += entry.bytes;
+      this.clock = Math.max(this.clock, entry.used);
+    }
     this.cache = cache;
     const budget = await this.budget();
     while (this.statsNow().bytes > budget || this.statsNow().entries > this.entries) if (!await this.evict(cache, '')) break;
     await this.metadata(cache); return cache;
   }
-  private statsNow(): ContentCacheStats { const values = Object.values(this.index); return { entries: values.length, bytes: values.reduce((sum, entry) => sum + entry.bytes, 0) }; }
+  private statsNow(): ContentCacheStats { return { entries: this.lru.size, bytes: this.totalBytes }; }
+  private remember(hash: string, entry: Entry): void {
+    this.totalBytes += entry.bytes - (this.index[hash]?.bytes ?? 0);
+    this.index[hash] = entry;
+    this.lru.delete(hash); this.lru.set(hash, entry);
+  }
+  private forget(hash: string): void {
+    const entry = this.index[hash];
+    if (entry === undefined) return;
+    this.totalBytes -= entry.bytes;
+    delete this.index[hash]; this.lru.delete(hash);
+  }
   private metadataChanged(): void {
     this.dirty = true;
     if (this.flushTimer !== undefined) return;
@@ -127,10 +146,11 @@ export class ContentCache {
     await cache.put(new URL('index', this.root).href, Response.json(this.index)).catch(() => undefined);
   }
   private async evict(cache: Pick<Cache, 'delete'>, except: string): Promise<boolean> {
-    const victim = Object.entries(this.index).filter(([hash]) => hash !== except && !this.pinned.has(hash))
-      .sort(([a, left], [b, right]) => left.used - right.used || (a < b ? -1 : a > b ? 1 : 0))[0];
-    if (victim === undefined) return false;
-    await cache.delete(this.key(victim[0])); delete this.index[victim[0]]; this.metadataChanged(); return true;
+    for (const hash of this.lru.keys()) {
+      if (hash === except || this.pinned.has(hash)) continue;
+      await cache.delete(this.key(hash)); this.forget(hash); this.metadataChanged(); return true;
+    }
+    return false;
   }
   private async budget(): Promise<number> {
     const estimate = await this.ports.estimate?.().catch(() => undefined);
@@ -145,12 +165,12 @@ export class ContentCache {
     return this.serial(async () => {
       const cache = await this.open().catch(() => undefined); if (cache === undefined) return null;
       const response = await cache.match(key);
-      if (response === undefined) { if (this.index[hash] !== undefined) { delete this.index[hash]; this.metadataChanged(); } return null; }
+      if (response === undefined) { if (this.index[hash] !== undefined) { this.forget(hash); this.metadataChanged(); } return null; }
       let bytes: Uint8Array;
       try { bytes = await read(response, MAX_FILE); }
-      catch { await cache.delete(key); delete this.index[hash]; this.metadataChanged(); return null; }
-      if (await this.ports.hash(bytes) !== hash) { await cache.delete(key); delete this.index[hash]; this.metadataChanged(); return null; }
-      this.index[hash] = { bytes: bytes.length, used: this.used() }; this.metadataChanged(); return bytes;
+      catch { await cache.delete(key); this.forget(hash); this.metadataChanged(); return null; }
+      if (await this.ports.hash(bytes) !== hash) { await cache.delete(key); this.forget(hash); this.metadataChanged(); return null; }
+      this.remember(hash, { bytes: bytes.length, used: this.used() }); this.metadataChanged(); return bytes;
     });
   }
   /** Refuses mismatched bytes. Unavailable disk capacity returns false while an online load can still continue. */
@@ -171,7 +191,7 @@ export class ContentCache {
           if (typeof error !== 'object' || error === null || !('name' in error) || error.name !== 'QuotaExceededError' || !await this.evict(cache, hash)) return false;
         }
       }
-      this.index[hash] = { bytes: bytes.length, used }; this.metadataChanged(); return true;
+      this.remember(hash, { bytes: bytes.length, used }); this.metadataChanged(); return true;
     });
   }
   /** One network read per concurrent immutable address; offline misses never try the network. */
