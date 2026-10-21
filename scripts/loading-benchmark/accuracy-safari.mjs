@@ -31,8 +31,8 @@ async function freePort() {
 const listPort = await freePort(), pagePort = await freePort();
 const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${socket}`, '-c', `null:${listPort},:${pagePort}-${pagePort + 8}`], { stdio: ['ignore', 'ignore', 'pipe'] });
 const proxyErrors = []; proxy.stderr.on('data', value => { proxyErrors.push(String(value)); });
-let inspector;
-async function connect() {
+let inspector, selectedPageId;
+async function connect(expectedUrl) {
   inspector?.close(); inspector = undefined;
   let lastProtocolError = '';
   const deadline = Date.now() + 60000;
@@ -40,7 +40,11 @@ async function connect() {
     for (let port = pagePort; port <= pagePort + 8; port++) {
       try {
         const pages = await (await fetch(`http://127.0.0.1:${port}/json`, { signal: AbortSignal.timeout(500) })).json();
-        const page = pages.find(row => row.url?.startsWith(base));
+        const page = expectedUrl === undefined
+          ? pages.find(row => row.id === selectedPageId && row.url?.startsWith(base))
+            ?? pages.findLast(row => row.url?.startsWith(base))
+          : pages.findLast(row => row.url === expectedUrl);
+        if (page) selectedPageId = page.id;
         if (page) {
           inspector = soakInspector(page.webSocketDebuggerUrl); await inspector.opened;
           // Target.targetCreated follows the socket handshake. Sending a bare
@@ -77,11 +81,13 @@ try {
     const events = [], errors = [];
     let collected, networkBytes = null, report;
     try {
-      execFileSync('xcrun', ['simctl', 'openurl', udid, new URL('/version.json', base).href]);
-      await connect();
+      const initialURL = new URL('/version.json', base).href;
+      execFileSync('xcrun', ['simctl', 'openurl', udid, initialURL]);
+      await connect(initialURL);
+      const previousOrigin = await inspector.evaluate('performance.timeOrigin');
       await inspector.evaluate(`setTimeout(() => location.replace('/sf67-start.html'), 100); true`);
       await sleep(500); await connect();
-      await wait(`document.querySelector('.ws-main-select') !== null`, 60000);
+      await wait(`performance.timeOrigin !== ${previousOrigin} && window.__loadingAccuracy !== undefined && document.querySelector('.ws-main-select') !== null`, 60000);
       if (path === 'grid') await gesture(`document.querySelector('.ws-main-grid').click()`);
       else {
         await gesture(`document.querySelector('.ws-main-select').click()`);
