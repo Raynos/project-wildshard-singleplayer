@@ -2,10 +2,11 @@
 // Rust-bundled module inputs and resolution candidates which bypass Node fs.
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
+import * as childProcess from 'node:child_process';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash } from 'node:crypto';
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 import {compilerCodeHash} from './compiler-code.mjs';
@@ -15,8 +16,13 @@ const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').
 const schema = 'shardfile-inputs/3', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs')]);
 const code=/\.[cm]?[jt]sx?$/u;
 const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FDM] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
-/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean}>} */
+/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,traceOnly?:boolean,opaque?:Set<string>}>} */
 const scopes = new AsyncLocalStorage();
+/** @type {ReturnType<typeof scopes.getStore>} */
+let generationScope;
+/** @type {'F'|'M'} */
+let moduleKind='M';
+const inputScope=()=>scopes.getStore() ?? generationScope;
 let installed = false;
 /** @param {unknown} target */
 function localPath(target) {
@@ -52,12 +58,17 @@ function value(root, entry, memo) {
 }
 /** @param {string} kind @param {unknown} target */
 function note(kind, target) {
-  const scope = scopes.getStore(), path = localPath(target);
+  const scope = inputScope(), path = localPath(target);
   if (scope === undefined || scope.observing || path === undefined) return;
-  const file = inside(scope.root,path); if (file === undefined) return;
+  const file = inside(scope.root,path);
+  if(file===undefined) {
+    if(kind!=='W'&&scope.traceOnly&&path!==scope.root&&!path.split(sep).includes('node_modules'))scope.opaque?.add('external-read');
+    return;
+  }
   if (kind === 'W') { scope.writes.add(file); return; }
   const entry = `${kind} ${file}`;
   if (scope.reads.has(entry)) return;
+  if(scope.traceOnly){scope.reads.set(entry,'read');return;}
   scope.observing = true;
   try { scope.reads.set(entry,value(scope.root,entry)); } catch (error) { scope.invalid.push(`${entry}: ${String(error)}`); }
   finally { scope.observing = false; }
@@ -65,8 +76,13 @@ function note(kind, target) {
 /** Install once in the compiler process, before its entry imports load. */
 export function installInputRecorder() {
   if (installed) return; installed = true;
-  registerHooks({load(url,context,next) {
-    const file=url.startsWith('file:')?fileURLToPath(url):undefined,scope=scopes.getStore();
+  registerHooks({
+  resolve(specifier,context,next) {
+    if(/^(?:node:)?(?:worker_threads|http|https|http2|net|tls)$/u.test(specifier))generationScope?.opaque?.add('worker-or-network');
+    return next(specifier,context);
+  },
+  load(url,context,next) {
+    const file=url.startsWith('file:')?fileURLToPath(url):undefined,scope=inputScope();
     if(file!==undefined)modules.add(file);
     // Reading a module to execute it differs from consuming its source text.
     // Hide only the loader's own I/O; explicit reads after evaluation stay F.
@@ -75,7 +91,7 @@ export function installInputRecorder() {
     let loaded;
     try {loaded=next(url,context);}
     finally {if(scope!==undefined)scope.observing=observing ?? false;}
-    if(file!==undefined)note(code.test(file)?'M':'F',file);
+    if(file!==undefined)note(code.test(file)?moduleKind:'F',file);
     return loaded;
   }});
   /** @type {unknown} */
@@ -86,7 +102,7 @@ export function installInputRecorder() {
     /** @type {unknown} */
     const text=Reflect.apply(functionText,this,[]);
     if(typeof text!=='string')throw new Error('Function source reader returned non-text');
-    const scope=scopes.getStore();
+    const scope=inputScope();
     if(scope!==undefined&&!scope.observing&&!/\{\s*\[native code\]\s*\}$/u.test(text)) {
       // A function can originate in transformed TypeScript or a closure. Mark
       // all executing modules as raw content rather than guess its source.
@@ -103,11 +119,31 @@ export function installInputRecorder() {
       Object.defineProperties(traced,Object.getOwnPropertyDescriptors(original)); table[name] = traced;
     }
   };
-  wrap(fs,['readFileSync','readFile','existsSync','statSync','stat','lstatSync','lstat','openSync','open','createReadStream','accessSync','access','realpathSync','copyFileSync','cpSync'],'F');
+  wrap(fs,['openAsBlob','readFileSync','readFile','existsSync','statSync','stat','lstatSync','lstat','openSync','open','createReadStream','accessSync','access','realpathSync','copyFileSync','cpSync'],'F');
   wrap(fs,['readdirSync','readdir','opendirSync','opendir'],'D');
   wrap(fs,['writeFileSync','writeFile','appendFileSync','appendFile'],'W');
   wrap(fsp,['readFile','stat','lstat','open','access','realpath','copyFile','cp'],'F');
   wrap(fsp,['readdir','opendir'],'D'); wrap(fsp,['writeFile','appendFile'],'W');
+  const nativeLoad=process.dlopen.bind(process);
+  process.dlopen=(...args)=>{generationScope?.opaque?.add('native-addon');nativeLoad(...args);};
+  const request=globalThis.fetch.bind(globalThis);
+  globalThis.fetch=(...args)=>{generationScope?.opaque?.add('network');return request(...args);};
+  /** @param {Record<string,unknown>} table */
+  const observeChildren=table=>{
+    for(const name of ['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork']) {
+      const original=table[name];if(typeof original!=='function')continue;
+      /** @this {unknown} @param {...unknown} args */
+      const traced=function traced(...args) {
+        const version=typeof args[0]==='string'&&Array.isArray(args[1])&&args[1].length===1&&
+          ((['magick','cwebp','basisu'].includes(basename(args[0]))&&args[1][0]==='-version')||
+           (args[0]===process.execPath&&args[1][0]==='--version'));
+        if(!version)generationScope?.opaque?.add('child-process');
+        return Reflect.apply(original,this,args);
+      };
+      Object.defineProperties(traced,Object.getOwnPropertyDescriptors(original));table[name]=traced;
+    }
+  };
+  observeChildren(childProcess.default);
   syncBuiltinESMExports();
 }
 /** Bundler resolution can select a newly added higher-priority relative file.
@@ -122,7 +158,7 @@ export function recordResolution(id, importer) {
 export function recordModuleInput(id) { if (isAbsolute(id)) note('F',id.split('?')[0]); }
 /** @param {unknown} result */
 export function recordBundle(result) {
-  const scope = scopes.getStore(); if (scope === undefined) return;
+  const scope = inputScope(); if (scope === undefined) return;
   scope.bundles++;
   for (const build of Array.isArray(result) ? result : [result]) if (build !== null && typeof build === 'object' && 'output' in build && Array.isArray(build.output)) {
     for (const chunk of build.output) if (chunk.type === 'chunk') for (const id of chunk.moduleIds ?? Object.keys(chunk.modules ?? {})) if (typeof id === 'string' && isAbsolute(id)) note('F',id.split('?')[0]);
@@ -131,10 +167,11 @@ export function recordBundle(result) {
 /** A successful, complete compiler writes its receipt after checking read stability.
  * @param {string} root @param {string} receipt @param {()=>Promise<void>} run */
 export async function captureProductInputs(root,receipt,run) {
+  if(generationScope!==undefined)generationScope.opaque?.add('nested-product-compiler');
   installInputRecorder();
   const scope = {root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false};
   await scopes.run(scope,async () => {
-    for (const file of modules) note(code.test(file)?'M':'F',file);
+    for (const file of modules) note(code.test(file)?moduleKind:'F',file);
     await run();
   });
   if (scope.invalid.length > 0 || scope.bundles === 0) throw new Error(`Incomplete product input trace: ${scope.invalid.join('; ')}`);
@@ -208,4 +245,20 @@ export function inputRecorderPlugin() {
     /** @param {string} id */
     load(id) { if (scope !== undefined) scopes.run(scope,()=>recordModuleInput(id)); return null; },
   };
+}
+
+/** Start one isolated producer's raw Node read trace. Unknown native, network,
+ * worker or child-process reads retain the full conservative input closure.
+ * @param {string} root @param {string} receipt */
+export function startGenerationInputTrace(root,receipt) {
+  if(generationScope!==undefined)throw new Error('Generation trace already active');
+  moduleKind='F';installInputRecorder();
+  const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,opaque:new Set()};
+  generationScope=scope;scopes.enterWith(scope);
+  for(const file of modules)if(inside(scope.root,file)!==undefined)note('F',file);
+  process.on('exit',status=>{
+    if(status!==0)return;
+    const body={schema:'generation-reads/1',files:[...scope.reads.keys()].filter(entry=>/^[FM] /u.test(entry)).map(entry=>entry.slice(2)).sort((a,b)=>a<b?-1:a>b?1:0),opaque:[...scope.opaque].sort((a,b)=>a<b?-1:a>b?1:0)};
+    raw.write(receipt,JSON.stringify({...body,seal:digest(JSON.stringify(body))}));
+  });
 }

@@ -12,3 +12,6 @@ export function publishProductInputs(directory:string,receipt:string,key:string)
 export function productToolchainKey(root:string,memo:InputHashMemo):string;
 
 export function inputRecorderPlugin():Plugin;
+
+/** Isolated raw read tracing with conservative fallback for unobserved I/O. */
+export function startGenerationInputTrace(root:string,receipt:string):void;
