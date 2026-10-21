@@ -47,3 +47,17 @@ test('hidden catalogue names keep the authored product identity, like ordinary f
   expect(await readGridProductEdges(f.url, `_${f.source.identity.slug}`, f.options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
   expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url, f.edgeUrl]);
 });
+
+test('warm edge sections use exact cached bytes without another network revalidation', async () => {
+  const f = fixture(), bytes = f.wires.get(f.edgeUrl);
+  if (bytes === undefined) throw new Error('Missing edge fixture');
+  const cachedResponse = vi.fn(async (_url: string, _hash: string, _maximum: number) => {
+    await Promise.resolve(); return bytes;
+  });
+  expect(await readGridProductEdges(f.url, f.source.identity.slug, { ...f.options, cachedResponse }))
+    .toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+  expect(cachedResponse).toHaveBeenCalledExactlyOnceWith(f.edgeUrl, hashImmutableBytes(bytes), bytes.length);
+  expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url]);
+  await expect(readGridProductEdges(f.url, f.source.identity.slug, { ...f.options,
+    cachedResponse: async () => { await Promise.resolve(); return new Uint8Array(bytes.length); } })).rejects.toThrow('hash or size');
+});

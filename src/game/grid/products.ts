@@ -17,7 +17,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
-import { declareDownloadFile } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/download';
 import { GridAdmissionPriority } from './admissionPriority';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
@@ -30,9 +30,13 @@ export async function readGridProductEdges(url: string, identity: string, option
   if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid edge index identity differs from its cell');
   const section = index.sections.find(row => row.name === 'world/edge');
   if (section === undefined) throw new Error('Grid edge index lacks world/edge');
-  declareDownloadFile(new URL(section.path, url).href, section.bytes);
-  const bytes = await boundedResponse(await options.fetch(new URL(section.path, url).href), section.bytes);
+  const address = new URL(section.path, url).href;
+  declareDownloadFile(address, section.bytes);
+  const held = await options.cache?.asset(new URL('.', url).href, section.hash)
+    ?? await options.cachedResponse?.(address, section.hash, section.bytes);
+  const bytes = held ?? await boundedResponse(await options.fetch(address), section.bytes);
   if (bytes.length !== section.bytes || await options.hash(bytes) !== section.hash) throw new Error('Grid edge section hash or size mismatch');
+  if (held !== null && held !== undefined) recordCachedDownload(section.hash, bytes.length, address);
   return v.parse(edgeRows, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
 }
 

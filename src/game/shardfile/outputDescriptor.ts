@@ -11,7 +11,7 @@ export interface OutputDescriptorReader {
   declare?: (path: string, bytes: number) => void;
   read: (path: string, maximum: number) => Promise<Uint8Array>;
   hash: (bytes: Uint8Array) => Promise<string>;
-  cached?: (hash: string) => Promise<Uint8Array | null>;
+  cached?: (hash: string, path: string, maximum: number) => Promise<Uint8Array | null>;
   /** A verified cache hit also completes its named section/schema path. */
   cacheHit?: (path: string, hash: string, bytes: number) => void;
   store?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
@@ -92,7 +92,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const sections = new Map<string, unknown>();
   let cached = reader.cached !== undefined;
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {
-    let bytes = await reader.cached?.(section.hash);
+    let bytes = await reader.cached?.(section.hash, section.path, section.bytes);
     if (bytes === null || bytes === undefined) {
       if (reader.offline) throw new IncompleteOutputCacheError();
       bytes = await reader.read(section.path, section.bytes);

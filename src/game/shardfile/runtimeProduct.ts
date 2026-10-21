@@ -22,6 +22,9 @@ import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { clientMaterials } from './clientMaterials';
 import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import type { ShardContext } from '../plugin/context';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
+import { cachedTransport } from './cachedTransport';
+import { recordCachedDownload } from '@wildshard/engine/boot/download';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -63,7 +66,17 @@ async function staleRecovery(): Promise<void> {
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
-  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => waitFor(`Fetch ${new URL(url, base).pathname}`, fetch(url), 'file'),
+  const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
+  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash,
+    fetch: url => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
+      if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
+        const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash));
+        if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(Uint8Array.from(held.bytes)); }
+      }
+      return fetch(url);
+    })(), 'file'),
+    ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
+      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null }),
     pause: pauseDescriptor,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),

@@ -53,6 +53,8 @@ export interface ProductOptions {
   /** Optional catalogue SHA-256 of the exact format-2 index wire bytes. */
   descriptorHash?: string;
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
+  /** Optional URL-cache hint; every section reader still verifies its declared size and hash. */
+  cachedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
   /** G216: trusted page Developer policy; authored data cannot provide it or bypass exact asset checks. */
@@ -157,8 +159,11 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
+    ...(cache === undefined && options.cachedResponse === undefined ? {} : {
+      cached: async (hash: string, path: string, maximum: number) => await cache?.asset(base, hash)
+        ?? await options.cachedResponse?.(new URL(path, base).href, hash, maximum) ?? null,
+    }),
     ...(cache === undefined ? {} : {
-      cached: (hash: string) => cache.asset(base, hash),
       store: async (hash: string, bytes: Uint8Array) => await cache.putAsset(base, hash, bytes) !== false,
     }),
   });
