@@ -851,7 +851,9 @@ never double-charges a worker-owned transfer or calls its HTTP-cache hit network
 shows downloaded bytes and cache bytes separately; unclassified worker receipts
 stay explicit. Service-worker Resource Timing batches reach the page through
 `receiveWorkerDownloads(value, pageOrigin)`; the pure receiver converts clocks
-and buffers early receipts until an attempt installs. `ws-receipt` marks the
+and buffers early receipts until an attempt installs. On listener installation
+and controller changes the page requests replay from the worker's existing
+Resource Timing buffer; receipt identity prevents double counting. `ws-receipt` marks the
 synthetic page response so the actual worker fetch owns network/cache bytes
 once. Cache hits carry `ws-cache` sizes for Safari. No accounting reads or tees
 response bodies. Expected files remain pending
@@ -869,8 +871,10 @@ ownership, scheduling or concurrency. Synchronous work remains a reported stage.
 vocabulary and measured baseline tables supplied by the composition root.
 Each calibration names its tier, path, identity, source SHA, sample count and
 per-stage milliseconds. Like-for-like local history blends with that baseline;
-missing measurements use explicit row-weight fallbacks. Running rows approach
-their expected share exponentially; only completion grants the full share.
+missing measurements use explicit row-weight fallbacks. Running rows use real
+completed units when available, reserving a final completion unit; unmetered
+rows approach their expected share exponentially. Only completion grants the
+full share.
 The engine contains no content identities or product measurements.
 `loadingStage(key, work)` in `@wildshard/engine/boot/waits` measures semantic
 boundaries, including LevelLoader hooks and initial home entry. Nested stages
@@ -898,7 +902,8 @@ CPU utilisation. Home-region counts come from the actual regional world.
 
 `Loading.setPath(path, calibrations)` selects the path table and timing-history key
 (tier, path, identity). `boot/weights` blends measured baseline and local
-stage timings; a running stage eases toward its expected time share,
+stage timings; a running stage uses its reported units, or eases toward its
+expected time share when no units are known,
 while `Loading.done()` grants completion and stores exclusive durations.
 The application supplies its committed timing table with Simulator receipts; paths
 without measurements use the declared step weights as a fallback.
@@ -7801,6 +7806,10 @@ receipts and offline cache reads (G491). Missing or malformed schemas and
 invalid values fail the load. `game/shardfile/customSchema.validateCustomSchema`
 uses the same pinned Ajv policy as the SDK's `validateDefinedSection`: strict
 and non-coercing. Build validators stay in the SDK's authoring-only closure.
+`OutputDescriptorReader.pause` (forwarded by `ProductOptions.pause`) is an
+optional trusted scheduling callback after each complete custom-schema check.
+The client yields for a paint there; Node admission needs no client scheduler.
+Schema counts and live waits describe the actual checks; file reads stay parallel.
 Missing, streamed and absent-product reads keep the normal product refusals.
 Checked products deep-freeze these values; schema-backed reads remain
 available for external or unconverted readers. Immutable product content
