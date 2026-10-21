@@ -10,8 +10,11 @@ function installCrossingProbe(drive) {
   window.__loadingCrossing = state;
   drive({ steps: [{ kind: 'crossroads', id: 'loading-south-road', x, z: z - 277.5 },
     { kind: 'enter', instance: home.instance, slug: home.slug, x, z: z - 210 }] }, 120);
-  let previous = '', stop = () => undefined;
-  stop = api.world.game.watchFrames(() => {
+  // The production drive already owns the single harness.walk system.
+  // Read completed crossing diagnostics on paint without installing another.
+  let previous = '', frame = 0;
+  const sample = () => {
+    frame = requestAnimationFrame(sample);
     const current = api.shard.grid.state(), live = current.live;
     const key = JSON.stringify([live?.crossing, current.inside, live?.live.gameplayReady]);
     if (key !== previous) {
@@ -28,8 +31,9 @@ function installCrossingProbe(drive) {
       state.timings.push(timings[i]); state.rows.push(rows[i] ?? []);
     }
     state.endedAt = performance.now(); state.done = true;
-    window.__sf57.stop(); stop(); stop = () => undefined;
-  });
+    window.__sf57.stop(); cancelAnimationFrame(frame);
+  };
+  frame = requestAnimationFrame(sample);
   return true;
 }
 

@@ -78,6 +78,9 @@ async function gesture(expression) {
 }
 let failed = false;
 try {
+  // sim-lane boot completion can precede the first Safari launch. Surface a
+  // launch failure before navigation rather than measuring a boot-logo page.
+  execFileSync('xcrun', ['simctl', 'launch', udid, 'com.apple.mobilesafari'], { stdio: 'ignore', timeout: 60000 });
   for (const path of (arg('paths') ?? 'shardfile,grid').split(',')) {
     if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
     transport = await observeTransport(upstream, { recorder: accuracyRecorder, start: start(path) });
