@@ -167,5 +167,9 @@ and disposal rejects unstarted reads. No validator/parser/worker slot is held
 while waiting and no cap changes. Strict lint, 16 focused tests and all ten
 native admission outcomes pass with no leaked claims. Read-only final-state
 diagnostics `47ff229154` and API notes `4d715a664f` follow it. One source batch
-and fresh physical/accuracy receipts are queued on `4d715a664f`. Phase 1 stays
-open for the phone return; O2 remains unapplied scratch work.
+at `4d715a664f` passed types, lint and 751 tests including priority, but stopped
+on a separate platform-chargeback assertion: Pine was counted as an
+`ArenaBossScript` user alongside Nalati. The coordinator routed that repair
+to sp-x9; no preview or physical cases ran on this pin. One replacement batch
+follows the repair and CPU quiet release. Phase 1 stays open for the phone
+return; O2 remains unapplied scratch work.
