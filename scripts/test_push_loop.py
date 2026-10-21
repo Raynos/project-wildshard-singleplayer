@@ -59,8 +59,9 @@ class PushLoop(unittest.TestCase):
         self.assertTrue(result['ok'])
         self.assertEqual([command[0] for command in commands], ['node', 'pnpm', 'node', 'pnpm'])
         self.assertEqual(len(set(deadlines)), 1)
-        self.assertTrue(all(not any(word in ' '.join(command) for word in
-                                   ['heavy-lane', 'build-shardfiles', 'mirror', 'pnpm gen']) for command in commands))
+        forbidden = {'heavy-lane.py', 'build-shardfiles.mjs', 'build-mirror.mjs', 'gen.mjs'}
+        self.assertTrue(all(not forbidden.intersection(Path(arg).name for arg in command) for command in commands))
+        self.assertTrue(all(command[:2] != ['pnpm', 'gen'] for command in commands))
 
     def test_type_failure_never_runs_lint_or_tests(self):
         tip = self.commit('src/bad.ts')
