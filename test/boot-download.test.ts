@@ -73,8 +73,8 @@ it('uses actual worker transfers instead of charging synthetic response lengths 
   try {
     accounting.resource(file);
     receiveWorkerDownloads(receipt, 1000); receiveWorkerDownloads(receipt, 1000);
-    expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 1000 });
+    expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 1000, filesDone: 1 });
     receiveWorkerDownloads({ ...receipt, timings: [{ ...receipt.timings[0], startTime: 3, transferSize: 1300 }] }, 1000);
-    expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, cachedBytes: 1000 });
+    expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, cachedBytes: 1000, filesDone: 2 });
   } finally { dispose(); }
 });
