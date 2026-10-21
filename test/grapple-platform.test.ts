@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import PRACTICE_PROGRAM from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- Native traversal uses the shipped physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
@@ -12,6 +13,7 @@ import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playg
 import { parseGrappleProfile, parseGrappleFilament, type GrappleRows } from '@wildshard/format/grapple';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { GrappleTool } from '@wildshard/game/grapple/tool';
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { PracticeCourse } from '@wildshard/game/practice/course';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { grappleNeedsLift, grappleLiftTo } from '@wildshard/game/grapple/sim';
@@ -89,18 +91,19 @@ test('quarry practice rows select the equipped native tool and translate their h
   const tool = new GrappleTool(legacyDouble<ShardContext>({}), { equipment: { ...SWORD_WOOD, id: 'tool.quarry-claw' },
     profile: quarry, presentation: legacyDouble<GrappleRows>({}), hooks: [] });
   const select = vi.spyOn(tool, 'setGrappleCourse');
+  let update: Parameters<PlaygroundHost['game']['onUpdate']>[0] = () => undefined;
   const position = new Vector3(), pads = room.pads.map(pad => ({ ...pad, x: pad.x + 20 }));
   const host = legacyDouble<PlaygroundHost>({
     game: legacyDouble<PlaygroundHost['game']>({
       app: legacyDouble<PlaygroundHost['game']['app']>({ equipment: legacyDouble<NonNullable<PlaygroundHost['game']['app']['equipment']>>({ tools: [tool] }) }),
-      onUpdate: () => undefined,
+      onUpdate: run => {update=run;},
     }),
-    player: legacyDouble<PlaygroundHost['player']>({ position, velocity: new Vector3(), hover: false,
+    player: legacyDouble<PlaygroundHost['player']>({ position, velocity: new Vector3(), hover: false, onGround: true,
       setHover: () => undefined, spawn: (x, z, _yaw, y) => { position.set(x, y ?? 0, z); } }),
     registry: legacyDouble<PlaygroundHost['registry']>({ add: piece => piece }),
     spawn: { x: 11, z: -9 }, toast: () => undefined,
   });
-  const course = new PracticeCourse(host, legacyDouble<ShardContext>({}), {kind:'grapple',layout:{ course: { ...room, title: 'Quarry hook run', pads },
+  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope}), {kind:'grapple',layout:{ program:PRACTICE_PROGRAM,course: { ...room, title: 'Quarry hook run', pads },
     hooks: [{ pad: 'quarry-hook', x: 3, y: 4, z: 5 }],
     presentation: { parts: [], colliders: [], map: { bounds: { x0: -20, x1: 20, z0: -20, z1: 20 }, shapes: [] } } } });
   try {
@@ -108,6 +111,9 @@ test('quarry practice rows select the equipped native tool and translate their h
     expect(select).toHaveBeenLastCalledWith({ name: 'Quarry hook run', hooks: [new Vector3(14, 3004, -4)] });
     const start=pads.find(pad=>pad.id===room.run.from);if(start===undefined)throw new Error('Missing start pad');
     expect(position.toArray()).toEqual([host.spawn.x+start.x,3000+start.top,host.spawn.z+start.z+start.d/2-3]);
+    const project=vi.spyOn(ReturnProgram.prototype,'project');
+    try {for(let frame=0;frame<60;frame++)update(1/60,frame/60);expect(project).toHaveBeenCalledTimes(10);}
+    finally {project.mockRestore();}
     course.exit(); expect(select).toHaveBeenLastCalledWith(null); expect(course.entered).toBe(false);
   } finally { select.mockRestore(); course.exit(); scope.dispose(); app.levelScope = previous; app.setState(state); }
 });

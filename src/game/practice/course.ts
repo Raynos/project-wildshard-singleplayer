@@ -67,10 +67,10 @@ interface CourseController {
   restart:()=>void; update:(delta:number)=>void;
 }
 function prepareCourse(ctx:ShardContext,input:PracticeCourseRows):
- {kind:'horse';layout:RidingPracticeLayout;mount:ReturnType<typeof pageRidingMount>} | {kind:'grapple';layout:HookPracticeLayout} {
+ {kind:'horse';layout:RidingPracticeLayout;mount:ReturnType<typeof pageRidingMount>} | {kind:'grapple';layout:HookPracticeLayout;law:ReturnProgram} {
   if(!isJsonData(input.layout))throw new Error('Practice rows require JSON data');
   if(input.kind==='horse')return {kind:'horse',layout:parseRidingPractice(input.layout),mount:pageRidingMount(ctx)};
-  hookCoursePad(input.layout.course,input.layout.course.run.from);return input;
+  hookCoursePad(input.layout.course,input.layout.course.run.from);return {...input,law:ReturnProgram.page(input.layout.program,ctx.scope)};
 }
 
 class MountedCourseController implements CourseController {
@@ -173,18 +173,13 @@ class HookCourseController implements CourseController {
   private readonly course: HookCourseCourse;
   /** the lowest pad floor: a fall `fallY` under it is a fall */
   private readonly lowest: number;
-  private run: 'ready' | 'running' | 'done' = 'ready';
-  private t0 = 0;
-  private elapsed = 0;
-  private best: number | null = null;
-  /** the last pad stood on (a fall comes back here) */
-  private checkpoint: HookCoursePad;
-  /** pads reached this run, for the status line */
-  private reached = new Set<string>();
+  private readonly state={phase:0,started:0,elapsed:0,best:-1,checkpoint:0};
+  private pending=0;
+  private readonly reached=new Set<string>();
 
-  constructor(host:PlaygroundHost,layout:HookPracticeLayout,private readonly room:PracticeCourse,map:RoomMap) {
+  constructor(host:PlaygroundHost,layout:HookPracticeLayout,private readonly law:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
     this.host=host;this.row=layout.course;this.map=map;
-    this.lowest=Math.min(...this.row.pads.map(p=>p.top));this.checkpoint=hookCoursePad(this.row,this.row.run.from);
+    this.lowest=Math.min(...this.row.pads.map(p=>p.top));
     const o=room.origin;this.hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
     this.course={name:room.title,hooks:this.hooks};
   }
@@ -200,13 +195,26 @@ class HookCourseController implements CourseController {
   events(active:boolean):void {app.events.emit('practice.active',active);}
   afterExit():void {this.tool().setGrappleCourse(null);}
 
-  /** ↺: back on the start facing its next pad, the run reset */
+  /** The guest resets its continuation; the native presenter moves the body. */
   restart(): void {
-    this.run = 'ready'; this.elapsed = 0; this.reached.clear();
-    this.checkpoint = hookCoursePad(this.row, this.row.run.from);
-    this.place(this.checkpoint, true);
-    this.room.chip.status(this.row.words.ready);
-    this.room.chip.time(0, this.best);
+    this.pending=0;this.reached.clear();this.project('reset',null);
+    this.place(this.pad(this.state.checkpoint),true);
+    this.room.chip.status(this.row.words.ready);this.room.chip.time(0,this.best);
+  }
+  private get best():number|null {return this.state.best<0?null:this.state.best;}
+  private pad(index:number):HookCoursePad {
+    const pad=this.row.pads[index];if(pad===undefined)throw new Error('Invalid practice checkpoint');return pad;
+  }
+  private project(signal:string,pad:HookCoursePad|null):Readonly<Record<string,number>> {
+    const row=this.row,start=hookCoursePad(row,row.run.from),p=this.host.player.position,o=this.room.origin;
+    const out=this.law.project(signal,{...this.state,now:performance.now()/1000,x:p.x-o.x,y:p.y-o.y,z:p.z-o.z,
+      startPad:row.pads.indexOf(start),finishPad:row.pads.indexOf(hookCoursePad(row,row.run.to)),pad:pad===null?-1:row.pads.indexOf(pad),
+      eligible:Number(pad!==null&&pad.kind!=='start'&&pad.kind!=='range'),
+      startX:start.x,startZ:start.z,startWidth:start.w,startDepth:start.d,lowest:this.lowest,fallY:row.fallY});
+    for(const key of ['phase','started','elapsed','best','checkpoint'] as const) {
+      const value=out[key];if(value===undefined)throw new Error('Missing practice continuation');this.state[key]=value;
+    }
+    return out;
   }
 
   /** on a pad's floor facing its next pad's hook (the start: 3 m in from its near end, the next pad dead ahead) */
@@ -230,36 +238,26 @@ class HookCourseController implements CourseController {
     return null;
   }
 
-  update(_delta:number): void {
-    const { player } = this.host;
-    const row = this.row, words = row.words;
-    if (player.hover) player.setHover(false); // no board in the dev room (as in the Practice arena)
-    const o = this.room.origin, p = player.position;
-    const pad = player.onGround ? this.padUnder() : null;
-    if (pad !== null) {
-      this.checkpoint = pad;
-      if (pad.kind !== 'start' && pad.kind !== 'range') this.reached.add(pad.id);
+  update(delta:number): void {
+    const {player}=this.host,row=this.row,words=row.words;
+    if(player.hover)player.setHover(false);
+    this.pending+=delta;
+    if(this.pending>=.1-1e-9) {
+      this.pending=0;
+      const pad=player.onGround?this.padUnder():null,out=this.project('step',pad);
+      const visit=out['visit'];if(visit!==undefined&&visit>=0)this.reached.add(this.pad(visit).id);
+      if(out['finish']===1) {
+        const time=clock(this.state.elapsed);
+        this.room.chip.status(fill(words.finish,{time}),'done');
+        this.host.toast(fill(words.done,{time,best:this.best===this.state.elapsed?words.best:''}));
+      } else if(this.state.phase===1) this.room.chip.status(pad!==null?fill(words.running,{pad:pad.label}):fill(words.between,{reached:this.reached.size,goals:row.run.goals}),'go');
+      if(out['fell']===1) {
+        const checkpoint=this.pad(this.state.checkpoint);
+        this.place(checkpoint,checkpoint.id===row.run.from);this.host.toast(fill(words.fell,{pad:checkpoint.label}));
+      }
     }
-    // the run starts across the start's line (its far edge, toward the next pad; a range line off its west side does not
-    // count) and stops on the finish pad
-    const s = hookCoursePad(row, row.run.from);
-    if (this.run === 'ready' && p.z - o.z < s.z - s.d / 2 && p.x - o.x > s.x - s.w / 2 - 1) { this.run = 'running'; this.t0 = performance.now(); }
-    if (this.run === 'running') {
-      this.elapsed = (performance.now() - this.t0) / 1000;
-      if (pad?.id === row.run.to) {
-        this.run = 'done';
-        this.best = this.best === null ? this.elapsed : Math.min(this.best, this.elapsed);
-        const time = clock(this.elapsed);
-        this.room.chip.status(fill(words.finish, { time }), 'done');
-        this.host.toast(fill(words.done, { time, best: this.best === this.elapsed ? words.best : '' }));
-      } else this.room.chip.status(pad !== null ? fill(words.running, { pad: pad.label }) : fill(words.between, { reached: this.reached.size, goals: row.run.goals }), 'go');
-    }
-    this.room.chip.time(this.elapsed, this.best);
-    // a fall into the pit: back on the last pad, facing its next hook
-    if (p.y < o.y + this.lowest - row.fallY) {
-      this.place(this.checkpoint, this.checkpoint.id === row.run.from);
-      this.host.toast(fill(words.fell, { pad: this.checkpoint.label }));
-    }
+    const elapsed=this.state.phase===1?performance.now()/1000-this.state.started:this.state.elapsed;
+    this.room.chip.time(elapsed,this.best);
   }
 }
 
@@ -280,7 +278,7 @@ export class PracticeCourse implements Playground {
     this.root=root;root.visible=false;
     host.registry.add({id:row.piece.id,name:row.piece.name,category:'ground',file:row.piece.file,object:root,colliders,surface:data.kind==='horse'?'wood':'metal',solidFloor:true});
     this.chip=new PlaygroundChip(row.chip,()=>{this.restart();});
-    this.controller=data.kind==='horse'?new MountedCourseController(host,data.layout,data.mount,ctx.scope,this,map):new HookCourseController(host,data.layout,this,map);
+    this.controller=data.kind==='horse'?new MountedCourseController(host,data.layout,data.mount,ctx.scope,this,map):new HookCourseController(host,data.layout,data.law,this,map);
     this.map=this.controller.map;
     host.game.onUpdate(dt=>{if(this.active)this.controller.update(dt);},row.piece.id);
   }

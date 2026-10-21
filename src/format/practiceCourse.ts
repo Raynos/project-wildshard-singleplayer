@@ -74,5 +74,5 @@ export interface HookPracticeRow {
 }
 /** Offline traversal-room presentation and the run's data. */
 export interface HookPracticeLayout {
-  presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
+  program: unknown; presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
 }

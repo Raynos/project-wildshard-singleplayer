@@ -1,3 +1,4 @@
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { PracticeSceneSchema } from '@wildshard/format/practiceCourse';
 import * as v from 'valibot';
 
@@ -114,7 +115,7 @@ const Course = v.strictObject({
 });
 export const FixedRowsSchema = v.strictObject({ signs: v.array(SignCall), lanterns: v.array(v.array(v.number())),
   lantern: v.strictObject({ drop: v.number(), glow: v.strictObject({ color: v.number(), w: v.number(), h: v.number(), power: v.number(), spill: v.number() }) }),
-  practice: v.strictObject({ presentation: v.unknown(), hooks: v.pipe(v.array(v.strictObject({ pad: v.string(), x: finite, y: finite, z: finite })), v.maxLength(256)), course: Course }),
+  practice: v.strictObject({ program: ReturnProgramSchema, presentation: v.unknown(), hooks: v.pipe(v.array(v.strictObject({ pad: v.string(), x: finite, y: finite, z: finite })), v.maxLength(256)), course: Course }),
 });
 
 const N = v.number();

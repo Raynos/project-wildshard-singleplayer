@@ -1,3 +1,4 @@
+import PRACTICE_PROGRAM from '../behaviour/practice.generated.json' with {type:'json'};
 import * as THREE from 'three';
 import { CourseKit as DevKit, courseLabel as devLabel, captureCourse } from '@wildshard/sdk/bake/practiceCourse';
 import type { HookPracticeLayout, PracticeScene } from '@wildshard/format/practiceCourse';
@@ -169,4 +170,4 @@ function target(row: HookCourseRow, x: number, y: number, z: number, r: number):
   return m;
 }
 
-export function grappleCourseScene(row: HookCourseRow): HookPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(row,origin); return { presentation: captureCourse(root,colliders,courseMap(row,origin)), hooks: hookCourseHooks(row), course: row }; }
+export function grappleCourseScene(row: HookCourseRow): HookPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(row,origin); return { program: PRACTICE_PROGRAM, presentation: captureCourse(root,colliders,courseMap(row,origin)), hooks: hookCourseHooks(row), course: row }; }

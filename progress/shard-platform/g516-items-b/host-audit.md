@@ -44,3 +44,13 @@ Runtime physical TS delta: **shards 0, platform -63**. The registry receives
 the same scene rows, collider descriptors and surface for each course.
 Focused checks cover live entered-mount reuse, repeated room entry/exit,
 grapple hook transforms, the mounted guest and separate controller charges.
+
+
+X4 Nine rule follow-up: the grapple course's checkpoint, start/finish and fall
+rules now live in `nine-dragon-stack/behaviour/practice.as` (22 physical AS
+lines), requested no faster than 10 Hz. Native code retains measurements,
+placement, timer interpolation and HUD presentation; its one-user charge is
+retained. Runtime physical TS delta: **shards 0, platform -2**; authored Nine
+AS **+22**. The ordinary baker uses the existing 256-line convention (no
+existing limit changed), and emits its stateless guest into the named course
+JSON. Real route, seeded continuation and 60-render-frame cadence tests pass.

@@ -3,6 +3,32 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "nine-practice",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/practiceDecision.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/practiceDecision.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nine-dragon-stack/behaviour",
+        "src/shards/nine-dragon-stack/generators/practiceDecision.mjs"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/behaviour/practice.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/behaviour/practice.generated.json"
+      ],
+      "platform": "portable"
+    },
+    {
       "id": "nalati-layout",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-layout.mjs",
