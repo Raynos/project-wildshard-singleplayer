@@ -11082,6 +11082,13 @@ non-sensor static colliders tagged as ground. It is an admission query that
 requires no simulation tick or query-pipeline update. Disabled, sensor,
 dynamic and untagged colliders establish no ground readiness.
 
+`engine/sim/snapshot.onSimHostRestored(host, check)` registers a compiled
+service check only during `restoreSimHost` installation. Checks run once,
+after physics, tags and adapters have restored and before the host returns.
+Calls outside that transaction refuse; a failed check disposes the host.
+The native body capability uses this boundary for restored ground admission;
+fresh installation still requires actual ground before construction.
+
 ### Stateless herd shelter projections (G571)
 
 `game/population/shelter.HerdShelter` and `installNativeHerdShelter` consume
