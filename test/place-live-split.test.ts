@@ -149,6 +149,6 @@ test('a live cell clip publishes the exact box and same clip decision in its cur
   const scan = vi.spyOn(geometry, 'computeBoundingBox'), clip = cellClip(root, 50, scope);
   try {
     expect(clip.sweep()).toBe(1); expect(scan).not.toHaveBeenCalled(); expect(geometry.boundingBox).toEqual(oracle.boundingBox);
-    expect(clip.state()).toEqual({ meshes: 1, materials: 1, unclipped: 0 }); expect(clip.sweep()).toBe(0);
+    expect(clip.state()).toEqual({ meshes: 1, materials: 1, unclipped: 0, checked: 1, refused: 0 }); expect(clip.sweep()).toBe(0);
   } finally { scope.dispose(); geometry.dispose(); oracle.dispose(); material.dispose(); }
 });
