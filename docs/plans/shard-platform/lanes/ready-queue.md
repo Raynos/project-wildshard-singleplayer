@@ -32,11 +32,11 @@ Counts are official ruler customs at e3a7990c5b/fe5e6b50b1. Each row: real secon
 | Z4 | Opus | Pine C2 looks (118) + C4 creatures (59) | residue (sp-o1, spans at de19d7959a): poolSurface 61 is listed view (level transition, no second user); trample GLSL 30 charged; King 49 (registerKing on the limb rig: G9, no second user); dayKeys 6 (a clock spec of functions, $ref in sp-x8's headlessAssembly); render 8 (keyed sky, Pine-only); ~20 one-line owner APIs. Only real cut: a hull-book client binding with Driftwood species/bodies.ts as second user (Pine -11, DW -9), in Z5's files |
 | Z5 | Opus | Driftwood C4 creatures (101) + C1 world remainder (425) | C1: sp-o5. C4: sp-o1, hull-book binding (look/hull-book, Pine as second user) in flight; rest is residue (spans at 589607151c): pageGroups PageActorGroups 43 (reviewed DW-owned, only DW's projection uses it), creatures/install 23 (wiring of shared hosts), gull model 8, crab front-shell 7 (no second directional-armour user), one-liners |
 | Z6 | Codex | Nalati non-graphical own code (combat/quest/state) | sp-x9 |
-| Z7 | Codex | Nine C6 items (265) + C9 glue (199) | sp-x8 |
+| Z7 | Codex | Nine C6 items (265) + C9 glue (199) | done (sp-x8: Nine -36, Nalati -11 charged; Nine 1,797, residue graphical/presenter/native wiring) |
 | Z8 | Codex | Pine C9 glue (229): no honest cut found (boot lists filePolicy/files/gpuTable 91 hang on grid-only ASTC 6x6; hybrid 36 wires Pine-only forest/ranged pages; shelter 25 and manifest forest/clip 13 have no second user, Nalati forest is a mask; explorer 18 a listed chargeback) | triaged, no honest cut (sp-o3 547b24916d: boot lists need page-mode rows, hybrid wires Pine-only pages, shelter/forest readers one user) |
 | Z9 | Codex | Driftwood C9 glue (271) | sp-o5 (attributing) |
 | Z10 | Codex | Ink Cel Valley residue + open-plots (148) | sp-o3 / sp-o1 |
-| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path |sp-x9 |
+| Z11 | Codex | Nalati charged platform hosts (3,123): any module that gains a real data path | sp-x9 (non-graphical) + sp-o4 (graphical, empty); Nalati C9 1,037 split with sp-x8 |
 
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
 
