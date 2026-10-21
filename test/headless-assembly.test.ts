@@ -8,6 +8,9 @@ import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { tagCollider } from '../src/engine/physics/surface';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
+import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import driftwoodAssembly from '../src/shards/driftwood-isle/data/headlessAssembly.json' with { type: 'json' };
 
 const ref = (...path: readonly (string | number)[]) => ({ $ref: path });
 const base = { version: 1, modules: {}, constants: {}, prepare: [], install: [],
@@ -71,6 +74,19 @@ test('admits only one top-level native installation, never constants or nested e
     { ...base, install: [{ name: 'bodies', value: { $native: 'native.unknown' } }] },
     { ...base, install: [...install, { name: 'second', value: native }] },
   ]) expect(() => checkedHeadlessAssembly(declaration, {})).toThrow();
+});
+
+test('the shipped assembly passes its wire fence without admitting native expressions elsewhere', () => {
+  const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
+  expect(validateNamedJsonSchema(HEADLESS_ASSEMBLY_JSON_SCHEMA, encode(driftwoodAssembly))).toEqual(driftwoodAssembly);
+  expect(driftwoodAssembly.install.find(row => row.name === 'bodyScripts')?.value).toEqual({ $native: 'native.body-scripts' });
+  const native = { $native: 'native.body-scripts' }, install = [{ name: 'bodyScripts', value: native }];
+  for (const declaration of [
+    { ...base, constants: { hidden: native } }, { ...base, prepare: install },
+    { ...base, install: [{ name: 'bodyScripts', value: { nested: native } }] },
+    { ...base, install: [{ name: 'bodyScripts', value: { $native: 'native.unknown' } }] },
+    { ...base, install: [{ name: 'bodyScripts', value: { ...native, ports: {} } }] },
+  ]) expect(() => validateNamedJsonSchema(HEADLESS_ASSEMBLY_JSON_SCHEMA, encode(declaration))).toThrow();
 });
 
 test('refuses native body scripts before real ground admission or after its host ends', async () => {

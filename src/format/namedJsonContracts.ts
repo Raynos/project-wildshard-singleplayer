@@ -69,10 +69,15 @@ export const HEADLESS_ASSEMBLY_JSON_SCHEMA = {
         additionalProperties: { $ref: '#/definitions/value' } }] },
     rows: { type: 'array', maxItems: 256, items: { type: 'object', additionalProperties: false,
       required: ['name', 'value'], properties: { name: { $ref: '#/definitions/key' }, value: { $ref: '#/definitions/value' } } } },
+    installRows: { type: 'array', maxItems: 256, items: { type: 'object', additionalProperties: false,
+      required: ['name', 'value'], properties: { name: { $ref: '#/definitions/key' }, value: { anyOf: [
+        { $ref: '#/definitions/value' },
+        { type: 'object', additionalProperties: false, required: ['$native'], properties: { $native: { const: 'native.body-scripts' } } },
+      ] } } } },
   },
   properties: { version: { const: 1 }, modules: { type: 'object', propertyNames: {
     type: 'string', pattern: '^(?:@wildshard/[a-z]+/|src/(?:shards|game|engine|sdk)/)[A-Za-z0-9_./-]+$',
   }, additionalProperties: { type: 'array', maxItems: 256, uniqueItems: true, items: { $ref: '#/definitions/key' } } },
-  constants: { $ref: '#/definitions/value' }, prepare: { $ref: '#/definitions/rows' }, install: { $ref: '#/definitions/rows' },
+  constants: { $ref: '#/definitions/value' }, prepare: { $ref: '#/definitions/rows' }, install: { $ref: '#/definitions/installRows' },
   level: { $ref: '#/definitions/value' }, ports: { $ref: '#/definitions/value' }, entries: { $ref: '#/definitions/value' } },
 };
