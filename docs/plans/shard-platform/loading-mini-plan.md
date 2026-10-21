@@ -32,7 +32,7 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | **O2 — accepted `de6833b8b7`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Content cache: the worker stops giving up at 64 pending; batched index writes; running byte and entry totals instead of rescans and sorts per write | `boot/contentCacheWorker.ts:109`, `boot/contentCache.ts:100-178` | 1 day |
 | **O3 — done; accepted `32cde80543`, receipts `fd69ae2b29`, pushed** | Home region reads files in parallel / prefetched from the product's file list (the old one-request finding is closed) | `game/shardfile/worldScenes.ts` (~lines 88, 118, 146, 170, 178, 244), `grid/liveSession.ts:533-556` | 1 day |
 | **O4 — accepted `de6833b8b7`; source `0f63b7b167`; receipts `9fd203d409`; Chromium cache-pressure residual documented; pushed** | Shardfile admission without waves of 4 that wait for the slowest file | `shardfile/product.ts:259` | 0.5 day |
-| **O5 — `b2e4c86d92`, AO repair `32cde80543`; current shader CPU mapped `30213acf49`; final target open** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
+| **O5 — warm-up `b2e4c86d92`, AO repair `32cde80543`; traversal cut `61e45099ae`; served proof pending** | Shader cost on shardfile/grid (~10 s main-thread vs ~1 s legacy): source-mapped profile, then fix (likely the node-material graph builder) | profile first | investigate |
 | **O6 — source `48d648401a`, `be7b843f6e`; final served proof pending** | Close the shardfile-vs-legacy gap for Driftwood (3.6x slower, 3x the bytes); retire 34,444,304 bytes of duplicate foliage transport | after O1–O5; frozen legacy comparison only (G498/G531), outside the Phase 1 gate | investigate |
 
 Target after Phase 2: the grid Driftwood load at or under about 20 s at 4x CPU in Chromium, measured again in the Simulator.
@@ -484,3 +484,29 @@ sum and cadence check passes. The measured device is `wildshard-loading`
 separate frame-floor device (AC96). Both are recorded, without a reset-device
 warm-cache claim. The approximate 20 s target remains open at 23.6 s on
 phone CPU 4x; the next exact-build proof measures the road allocation cuts.
+
+The `f8f5ee9a9d` candidate verdict is retained in
+[`diagnostic-f8f5ee9`](../../../progress/loading/g543/diagnostic-f8f5ee9/README.md)
+(`6dcc23c550`): CPU-4x phone SHARD SELECT/grid take 22.8 / 20.7 s,
+both within accuracy limits. Native grid and both desktop entries pass,
+as do all three road returns; native SHARD SELECT alone fails cadence at
+1,943 ms during post-chain first frame. An independently controlled GL
+trace does not reproduce the stall (333 ms maximum detail gap, 136 ms
+first frame); it establishes no rendering fix or cause. Harness guard
+`a003d8e8f4` waits for the real worker to claim the cold title before its
+fixture reload. The ordinary affected native-only receipt follows; the
+coordinator accepts 20.7 s as meeting the approximate 20 s O6 target once
+that ordinary receipt is green. The failed receipt remains visible.
+
+O5 source `61e45099ae` replaces temporary child descriptors with eager
+ordered node snapshots during one synchronous build. Custom collectors
+and exception restoration retain the stock path; no graph cache survives
+the build. Existing node build diagnostics stay inside the wrapper.
+Strict lint and 17 traversal, exact shader/uniform, shadow and graph-key
+tests pass. Baseline exclusive CPU attribution and the focused receipt
+are retained in
+[`node-traversal-61e4509`](../../../progress/loading/g543/node-traversal-61e4509/README.md)
+(`31479624d3`); API notes are `b68a48cf79`. One combined Driftwood/Nine/Pine
+source batch and exact served phone, desktop-AO and native matrix are
+queued after the ordinary native timing window. Whole-entry savings are
+not yet established; O5 remains open.
