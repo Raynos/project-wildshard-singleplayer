@@ -228,3 +228,20 @@ view charge remains in the census. Root/layer types, typed lint and
 six focused suites (35 tests) pass, including real roster lifecycle, alternate
 route/memory/freeze and exact borrowed AI first-clock draw order.
 No collider descriptors, visuals, codec, resource bounds or budgets change.
+
+
+X4 arena lifecycle admission: remove the entire single-user arena-script
+bossFight overload and dispatch branch. The real native arena now uses
+existing ProjectedState directly from its admitted fight rows. Move the
+complete ArenaScriptBossProfile schema from runtime bossProfiles to
+the existing build-only arenaScriptRows admission module; preserve every
+numeric, key, retained-channel and event bound. The emitted fight data and
+AS programs are unchanged; no new native host API is added.
+ProjectedState retains real Nalati + Nine HOST-BAR 6/6; the native arena
+remains Nalati-only 4/6/C4. Retire only the old runtime schema's named
+charge; the schema now runs at the existing product admission boundary.
+Runtime TS: **shards 0 / platform -16**; build TS **+12**; AS/data **0**
+(**physical source -4** overall). Root/layer types, typed lint and five
+focused suites pass, including real boss play, native shared patterns,
+named JSON admission and unchanged life/damage/tell/boundary decisions.
+No collider descriptors, visuals, resource limits, codec or budgets change.

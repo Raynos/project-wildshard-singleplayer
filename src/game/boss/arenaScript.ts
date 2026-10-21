@@ -22,7 +22,6 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
-import { bossFight } from '../plugin/bossPhase';
 import type { ShardContext } from '../plugin/context';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import type { WeatherReactions } from '../weather/reactions';
@@ -113,7 +112,7 @@ export class ArenaScriptFight implements BossScript {
     this.boundary = { field: this.field,boundary: data.boundary,mask: 0 };
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
     this.rules = ReturnProgram.page(this.data.programs.rules, ctx.game.levelScope);
-    this.life = bossFight(this.data.script,{ program: this.rules });
+    this.life = new ProjectedState(this.data.script.fight,this.rules);
     this.support = new ProjectedState({...this.data.support,signal:'couple'},this.rules);
     this.body = arenaScriptCloud(scene, this.pose, data);
     this.fightDraw = installChannelPrograms(this.data.geometry.poses, this.data.view.group, new Map<string,unknown>([

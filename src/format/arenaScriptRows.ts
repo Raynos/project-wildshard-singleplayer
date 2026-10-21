@@ -1,11 +1,23 @@
 import * as v from 'valibot';
-import { ArenaScriptBossProfileSchema } from './bossProfiles';
 import { BossEncounterDefinitionSchema,BossEncounterPresentationSchema } from './bossEncounter';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { CreatureStrikeSchema } from './creatures';
 import { ArenaEncounterSchema,ArenaFieldSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema,CloudBodySchema,ArenaSceneSchema } from './encounterRows';
 
 /** Build-only validation; runtime readers import the inferred types only. */
+const arenaNumber=v.pipe(v.number(),v.finite(),v.minValue(-1e6),v.maxValue(1e6));
+const arenaKey=v.pipe(v.string(),v.minLength(1),v.maxLength(512));
+/** The boss host owns retained values and cadence; an admitted AS module owns
+ * lifecycle, phase, damage and boundary policy. No authored ports are lent. */
+export const ArenaScriptBossProfileSchema = v.strictObject({
+  kind: v.literal('boss'), pattern: v.literal('arena-script'), fight: v.strictObject({
+    initial: v.pipe(v.record(arenaKey, arenaNumber), v.maxEntries(32)),
+    parameters: v.pipe(v.record(arenaKey, arenaNumber), v.maxEntries(32)),
+    signals: v.pipe(v.record(arenaKey, arenaKey), v.maxEntries(16)),
+    retain: v.pipe(v.record(arenaKey, arenaKey), v.maxEntries(32)),
+  }),
+});
+
 const finite = v.pipe(v.number(),v.finite()), label = v.pipe(v.string(),v.minLength(1));
 const point = v.strictObject({ x: finite,z: finite });
 const pose = v.strictObject({ rise: finite,bend: finite,kneel: finite,raise: finite,castL: finite,stride: finite,heartOpen: finite });

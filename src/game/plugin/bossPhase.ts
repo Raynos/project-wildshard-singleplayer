@@ -1,6 +1,5 @@
 import { easeField } from '@wildshard/engine/world/easedFields';
-import { ArenaScriptBossProfileSchema, ScriptBossProfileSchema, type ArenaScriptBossProfile, type BossProfile } from '@wildshard/format/bossProfiles';
-import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
+import { ScriptBossProfileSchema, type BossProfile } from '@wildshard/format/bossProfiles';
 import { EliteScriptLane } from './brain';
 import { createRoamingBossFight } from "../shardfile/phasedBossRoaming";
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
@@ -930,8 +929,6 @@ function bodyBossFight<B extends BodyBossActor>(profile: Extract<BossFightProfil
 
 const bossKind = (kind: unknown): boolean => kind === 'boss';
 
-/** Run arena lifecycle and retained state on the admitted AS decision owner. */
-export function bossFight(profile: ArenaScriptBossProfile, ports: { readonly program: ReturnProgram }): ProjectedState;
 /** Run the complete fixed-arena boss law on the host's actual bodies, strikes and views. */
 export function bossFight<B extends PhasedBossBody>(profile: Extract<BossFightProfile,{pattern:'arena'}>, ports: PhasedBossPorts<B>): PhasedBossFight<B>;
 /** Run roaming strikes, hazards, adds and native lane/RNG continuation without changing their clock. */
@@ -943,9 +940,8 @@ export function bossFight<B extends BodyBossActor>(profile: Extract<BossFightPro
 /** Run an admitted existing AS fight policy with its original lane clock, rewind law and command order. */
 export function bossFight(profile: ScriptBossProfile, ports: ScriptBossPorts): EliteScriptLane;
 /** Strict pattern-to-host resolution happens before allocation, RNG, actor changes or view calls. */
-export function bossFight<B extends PhasedBossBody,C extends RoamingBossBody,D extends BodyBossActor,L,R,K extends string,A extends string,Q extends string>(profile: BossFightProfile<K,A,Q>|ScriptBossProfile|ArenaScriptBossProfile,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>|SpawnedBossPorts<D>|HeldBossPorts<D>|ScriptBossPorts|{ readonly program: ReturnProgram }): PhasedBossFight<B>|RoamingBossFight<C,L,R>|SpawnedBossFight<D>|HeldBossFight|EliteScriptLane|ProjectedState {
+export function bossFight<B extends PhasedBossBody,C extends RoamingBossBody,D extends BodyBossActor,L,R,K extends string,A extends string,Q extends string>(profile: BossFightProfile<K,A,Q>|ScriptBossProfile,ports: PhasedBossPorts<B>|RoamingBossPorts<C,L,R,K,A,Q>|SpawnedBossPorts<D>|HeldBossPorts<D>|ScriptBossPorts): PhasedBossFight<B>|RoamingBossFight<C,L,R>|SpawnedBossFight<D>|HeldBossFight|EliteScriptLane {
   if (!bossKind(profile.kind)) throw new Error('Unknown boss row kind');
-  if (profile.pattern === 'arena-script' && 'program' in ports) return new ProjectedState(v.parse(ArenaScriptBossProfileSchema,profile).fight,ports.program);
   if (profile.pattern === 'script' && 'bytes' in ports && ports.bytes instanceof Uint8Array && 'random' in ports && typeof ports.random === 'function') {
     const admitted = v.parse(ScriptBossProfileSchema, profile);
     return new EliteScriptLane(admitted.fight, ports.bytes, ports.random);

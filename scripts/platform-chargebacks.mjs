@@ -15,7 +15,6 @@ const modules = new Map([
 const declarations = new Map([
   ['src/game/practice/course.ts', new Map(['MountedCourseController', 'HookCourseController', 'hookCoursePad', 'yawToward', 'HookCourseCourse', 'HookCourseRow', 'HookCoursePad'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','SlotViewActor','SlotSiteChange','Awake','PatrolEncounterView','PatrolViewActor','PatrolHit','Rider','PatrolActor','PatrolActorRoster'].map(name=>[name,'C4']))],
-  ['src/format/bossProfiles.ts', new Map([['ArenaScriptBossProfileSchema', 'C4'], ['ArenaScriptBossProfile', 'C4']])],
   ['src/game/population/pageGroups.ts', new Map([
     'Placement', 'Counts', 'point', 'whole', 'PageActorGroups', 'PagePopulationPlanner',
     'nearestPopulationActor', 'PageWildEnvironment', 'wildEnv', 'bindPageGroups',

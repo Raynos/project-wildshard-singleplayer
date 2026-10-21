@@ -1,15 +1,14 @@
 import { expect, test } from 'vitest';
 import { parse } from 'valibot';
-import { ArenaScriptBossProfileSchema } from '../src/format/bossProfiles';
-import { bossFight } from '../src/game/plugin/bossPhase';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ArenaScriptBossProfileSchema } from '../src/format/arenaScriptRows';
+import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { TITAN_SCRIPT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 
 const frame = { mode: 3, broke: 0, px: 0, pz: 0, cx: 0, cz: 0, radius: 10, mounted: 1 };
 
-test('boss host retains AS lifecycle, heart damage and bounded decisions', () => {
-  const host = bossFight(parse(ArenaScriptBossProfileSchema,TITAN_SCRIPT),{ program: ReturnProgram.page(programs.rules) });
+test('admitted arena rows retain AS lifecycle, heart damage and bounded decisions', () => {
+  const host = new ProjectedState(parse(ArenaScriptBossProfileSchema,TITAN_SCRIPT).fight,ReturnProgram.page(programs.rules));
   host.restart({ phase: 0,share: 1 }); host.event('begin',{ phase: 0 }); host.event('tied',{ amount: 1 });
   expect(host.step(.05,frame)).toEqual({ dt: 0,values: {} });
   const first = host.step(.05,frame); expect(first.values['enter']).toBe(1); expect(host.value('open')).toBe(1);
@@ -22,7 +21,7 @@ test('boss host retains AS lifecycle, heart damage and bounded decisions', () =>
 test('an orchard boss uses different health and parameters on the same boss host', () => {
   const profile = parse(ArenaScriptBossProfileSchema,{ ...TITAN_SCRIPT,fight: { ...TITAN_SCRIPT.fight,
     initial: { ...TITAN_SCRIPT.fight.initial,hp: 150 },parameters: { fullHp: 150,fullDraw: 40,fullDrawMul: 3 } } });
-  const host = bossFight(profile,{ program: ReturnProgram.page(programs.rules) });
+  const host = new ProjectedState(profile.fight,ReturnProgram.page(programs.rules));
   host.restart({ phase: 2,share: .5 }); expect(host.value('hp')).toBe(75);
   host.event('begin',{ phase: 2 }); host.event('damage',{ mode: 0,amount: 20 }); expect(host.value('hp')).toBe(55);
   host.event('clamp',{ share: .2 }); expect(host.value('hp')).toBe(30);
@@ -30,7 +29,7 @@ test('an orchard boss uses different health and parameters on the same boss host
 });
 
 test('arena script emits tells, placement and one wall hit while retaining admission', () => {
-  const host = bossFight(parse(ArenaScriptBossProfileSchema,TITAN_SCRIPT),{ program: ReturnProgram.page(programs.rules) });
+  const host = new ProjectedState(parse(ArenaScriptBossProfileSchema,TITAN_SCRIPT).fight,ReturnProgram.page(programs.rules));
   host.event('tied',{ amount: 1 }); host.event('seal',{ amount: 1 });
   host.restart({ phase: 2,share: .34,tied: host.value('tied'),sealed: host.value('sealed') });
   expect(host.value('tied')).toBe(1); expect(host.value('sealed')).toBe(1);
@@ -57,4 +56,12 @@ test('bounded rider trigonometry stays close to native headings within fixed fue
     const row = program.project('rider',{ ...base,mode: 3,t: 2,ax,az });
     expect(Math.abs((row['theta'] ?? 0)-Math.atan2(ax,az))).toBeLessThan(.00002);
   }
+});
+
+test('build admission keeps arena numeric, key and retained-channel bounds',()=>{
+  const parseFight=(fight:unknown)=>parse(ArenaScriptBossProfileSchema,{...TITAN_SCRIPT,fight});
+  expect(()=>parseFight({...TITAN_SCRIPT.fight,initial:{hp:Infinity}})).toThrow();
+  expect(()=>parseFight({...TITAN_SCRIPT.fight,parameters:{hp:1000001}})).toThrow();
+  expect(()=>parseFight({...TITAN_SCRIPT.fight,initial:Object.fromEntries(Array.from({length:33},(_,i)=>[`slot${String(i)}`,0]))})).toThrow();
+  expect(()=>parseFight({...TITAN_SCRIPT.fight,signals:{['x'.repeat(513)]:'damage'}})).toThrow();
 });
