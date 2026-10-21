@@ -1,0 +1,108 @@
+{
+  "surface": "phone",
+  "pin": "091224244315d67c88dc61ee1e34df8b5b2bb649",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "rawSHA256": "4fc0a434e90f5741c07076c7e1800605b1a493fdd307f03b3df371413ba520da",
+  "transitions": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "wallMs": 156.19999998807907,
+      "stageMs": 156.19999998807907,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 23.099999964237213
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 10
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 4.5
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.19999998807907104
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 118.40000003576279
+        }
+      ]
+    }
+  ],
+  "failures": [
+    "Crossing route did not re-enter home",
+    "Missing actual road exit or home re-entry"
+  ],
+  "startedAt": 37046.89999997616,
+  "endedAt": 157091,
+  "timings": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "requestedAt": 47814.80000001192,
+      "readyAt": 47837.89999997616,
+      "start": 47847.89999997616,
+      "checkpointEnd": 47852.39999997616,
+      "commitEnd": 47852.59999996424,
+      "end": 47971
+    }
+  ],
+  "samples": [
+    {
+      "at": 37104.59999996424,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": "driftwood-isle",
+      "gameplayReady": true
+    },
+    {
+      "at": 47198.19999998808,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true
+    },
+    {
+      "at": 47838.89999997616,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true
+    },
+    {
+      "at": 48003.69999998808,
+      "crossing": {
+        "current": null,
+        "target": null,
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true
+    }
+  ],
+  "networkBytes": 442235550,
+  "requests": 2887
+}

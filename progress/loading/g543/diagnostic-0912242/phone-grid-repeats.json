@@ -1,0 +1,206 @@
+{
+  "receipts": [
+    {
+      "kind": "unprofiled",
+      "pin": "091224244315d67c88dc61ee1e34df8b5b2bb649",
+      "rawSHA256": "74a252a0e8b63c1ecc02e325adc6d46bd6382645a99bbdbb5b158d467160448f",
+      "clockSeconds": 34.1,
+      "stageSeconds": 34.084400000035764,
+      "byteError": 0.0007774783317376153,
+      "maxDetailGapMs": 1117.9000000357628,
+      "failures": [
+        "Detailed update gap exceeds 1 s"
+      ],
+      "longestInterval": {
+        "start": 7959.099999964237,
+        "end": 9077,
+        "samples": [
+          {
+            "at": 7959.099999964237,
+            "step": "assembly",
+            "detail": "step 6 / 16 \u00b7 World assembly \u00b7 Plot ground \u00b7 14 / 14",
+            "footer": "Now working on: World assembly",
+            "waiting": "",
+            "networkBytes": "16038149",
+            "cachedBytes": "7947186",
+            "pendingBytes": "0"
+          },
+          {
+            "at": 9077,
+            "step": "assembly",
+            "detail": "step 6 / 16 \u00b7 World assembly \u00b7 11 cells \u00b7 96 seams \u00b7 road ready",
+            "footer": "Now working on: World assembly",
+            "waiting": "",
+            "networkBytes": "16038149",
+            "cachedBytes": "7947186",
+            "pendingBytes": "0"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "profiled",
+      "pin": "091224244315d67c88dc61ee1e34df8b5b2bb649",
+      "rawSHA256": "dd22d6ad4687cb59331a60bf10546717a71691f7fc9e37bb987e1c13ac17d9a1",
+      "clockSeconds": 35.5,
+      "stageSeconds": 35.54110000002385,
+      "byteError": 4.9861052096994906e-05,
+      "maxDetailGapMs": 1049.2000000476837,
+      "failures": [
+        "Detailed update gap exceeds 1 s"
+      ],
+      "longestInterval": {
+        "start": 8416.5,
+        "end": 9465.700000047684,
+        "samples": [
+          {
+            "at": 8416.5,
+            "step": "assembly",
+            "detail": "step 6 / 16 \u00b7 World assembly \u00b7 Plot ground \u00b7 14 / 14",
+            "footer": "Now working on: World assembly",
+            "waiting": "",
+            "networkBytes": "17334794",
+            "cachedBytes": "4066615",
+            "pendingBytes": "0"
+          },
+          {
+            "at": 9465.700000047684,
+            "step": "assembly",
+            "detail": "step 6 / 16 \u00b7 World assembly \u00b7 11 cells \u00b7 96 seams \u00b7 road ready",
+            "footer": "Now working on: World assembly",
+            "waiting": "",
+            "networkBytes": "17334794",
+            "cachedBytes": "4066615",
+            "pendingBytes": "0"
+          }
+        ]
+      }
+    }
+  ],
+  "profileInterval": {
+    "start": 8416.5,
+    "end": 9465.700000047684,
+    "totals": [
+      {
+        "ms": 1048.4100000000003,
+        "function": "(root)",
+        "source": "",
+        "line": 0
+      },
+      {
+        "ms": 443.142,
+        "function": "be",
+        "source": "src/game/shardfile/customSchema.ts",
+        "line": 8
+      },
+      {
+        "ms": 443.142,
+        "function": "",
+        "source": "src/game/shardfile/outputDescriptor.ts",
+        "line": 107
+      },
+      {
+        "ms": 431.44800000000004,
+        "function": "Se",
+        "source": "src/game/shardfile/customSchema.ts",
+        "line": 19
+      },
+      {
+        "ms": 291.62399999999997,
+        "function": "D",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/ajv.js",
+        "line": 112
+      },
+      {
+        "ms": 234.47099999999995,
+        "function": "I",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "line": 86
+      },
+      {
+        "ms": 234.47099999999995,
+        "function": "d",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "line": 32
+      },
+      {
+        "ms": 234.47099999999995,
+        "function": "R",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/ajv.js",
+        "line": 329
+      },
+      {
+        "ms": 220.57699999999997,
+        "function": "t.exports",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/dotjs/validate.js",
+        "line": 2
+      },
+      {
+        "ms": 218.79899999999995,
+        "function": "t.exports",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/dotjs/properties.js",
+        "line": 2
+      },
+      {
+        "ms": 217.66799999999992,
+        "function": "t.exports",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/dotjs/validate.js",
+        "line": 2
+      },
+      {
+        "ms": 204.99499999999995,
+        "function": "L",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "line": 177
+      },
+      {
+        "ms": 204.99499999999995,
+        "function": "t.exports",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/dotjs/ref.js",
+        "line": 2
+      },
+      {
+        "ms": 197.49199999999996,
+        "function": "s",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/resolve.js",
+        "line": 26
+      },
+      {
+        "ms": 195.90799999999996,
+        "function": "I",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "line": 86
+      },
+      {
+        "ms": 190.65399999999997,
+        "function": "t.exports",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/dotjs/validate.js",
+        "line": 2
+      },
+      {
+        "ms": 188.43300000000002,
+        "function": "(program)",
+        "source": "",
+        "line": 0
+      },
+      {
+        "ms": 153.30899999999997,
+        "function": "I",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "line": 86
+      },
+      {
+        "ms": 153.30899999999997,
+        "function": "s",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/resolve.js",
+        "line": 26
+      },
+      {
+        "ms": 153.30899999999997,
+        "function": "L",
+        "source": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "line": 177
+      }
+    ]
+  }
+}
