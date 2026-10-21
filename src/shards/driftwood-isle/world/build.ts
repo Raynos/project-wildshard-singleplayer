@@ -3,7 +3,7 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { loadIslandCover } from './islandCover';
-import { TIER } from '@wildshard/engine/core/tier';
+import { TIER, buildTier } from '@wildshard/engine/core/tier';
 import { readDriftwoodBlob, loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
@@ -21,12 +21,14 @@ import { floorAtRects } from '@wildshard/engine/physics/box';
 import { installPagePathRamps } from '@wildshard/game/shardfile/pagePreparation';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import manifest from '../discovery.generated';
+import { WaterSurface, waterSurfaceLook } from '@wildshard/game/systems/looks/waterSurface';
+import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { MooringLines } from '../runtime/props/mooringLines';
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
-import { hasLentLook, lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { hasLentLook, lentLook, lentLooksOf, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import SEABED from '../data/seabedLook.json' with { type: 'json' };
@@ -34,10 +36,11 @@ import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' 
 import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
 import type { CoverComposition, EntryLandings } from '../runtime/productSections.generated.d.ts';
-import { followToonLook } from '@wildshard/game/looks/toonLook';
+import { followToonLook, toonLookState } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover } from '@wildshard/game/looks/streamedCover';
 import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
+import { LOWERED_SEA } from './sea';
 import { modelContext, sharedModelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 
@@ -63,6 +66,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier });
   const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),readDriftwoodBlob(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
+  const sea = { level: LOWERED_SEA };
   const slice = slicer(30, progress);
   const assembly = fixed.assembly, total = 15 + assembly.piers.length;
   let completed = 0;
@@ -73,12 +77,23 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     return value;
   };
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
-  // the road decks each declared landing carries (the sea itself is the client plan's `world.water` row, O7)
+  // G170: the ocean is clipped out under each whole road deck (the socket and its landing), not only the socket
   const deckRows = landings.map(({ edge }) => {
     const row = fixed.entryDecks.find(deck => deck.edge === edge);
     if (row === undefined) throw new Error('Missing admitted entry deck');
     return row;
-  });
+  }), decks = deckRows.map(({ rect }) => rect);
+  const oceanRows = driftwoodRows('custom/oceanSurface'), oceanLook = oceanRows.surface.look;
+  const grid = createOwnedGeometry(oceanRows.files[buildTier()], { _depth: 'aDepth', _seed: 'aSeed' });
+  const [, floor] = await Promise.all([grid.load(), fetch(oceanRows.files.floor, { cache: 'force-cache' }).then(async response => {
+    if (!response.ok) throw new Error(`Baked sea floor load failed (${response.status})`);
+    return new Uint16Array(await response.arrayBuffer());
+  })]);
+  if (oceanRows.files.level !== sea.level) throw new Error('The baked ocean is for another sea level');
+  toonLookState(driftwoodProduct()).dayLight.uSeaLevel.value = sea.level;
+  const ocean = new WaterSurface(oceanRows.surface, waterSurfaceLook(lentLooksOf(oceanLook), oceanLook))
+    .draw(grid.take(), { level: sea.level, floor, dry: decks, lent: { night: toonLookState(driftwoodProduct()).dayLight.uToonNight } });
+  game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
@@ -192,6 +207,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const coverLogs = scenes.mesh(coverComposition.mesh);
   Object.assign(coverLogs.userData, coverComposition.userData); cover.group.add(coverLogs);
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover');
+  ocean.foamAround(oceanRows.foam); // foam rings around every pile, rock and hull standing in the sea (Ocean W2; generators/oceanFoam.ts)
   await complete('Palms and ground cover');
   await macrotask();
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
@@ -214,10 +230,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const smallRocks = scenes.mesh('rocks.small');
   palmSpecs.push(...fixed.foliage.islandPalms);
   await slice(total, total, 'Baked island');
-  gpuOnlyTrees([pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,
+  gpuOnlyTrees([ocean.group, pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, seabed.fish, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
-  // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  return { ocean: null, pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
+  return { ocean, pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }
 
 const built = new WeakMap<object, DriftwoodWorld>();

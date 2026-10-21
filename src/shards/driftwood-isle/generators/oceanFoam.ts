@@ -13,7 +13,7 @@ import { BRIDGE } from './worldSites';
 import { OCEAN_FILES } from './oceanFiles';
 import { OCEAN_SURFACE } from './oceanLook';
 
-export interface Box { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly rot: number; readonly yTop: number; readonly yBottom: number }
+interface Box { readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly rot: number; readonly yTop: number; readonly yBottom: number }
 interface Site { readonly origin: { readonly x: number; readonly y: number; readonly z: number }; readonly colliders: readonly Box[] }
 
 const placedSite = ({ origin, colliders }: Site): Box[] => colliders.map(box => ({ ...box, x: box.x + origin.x, z: box.z + origin.z, yTop: box.yTop + origin.y, yBottom: box.yBottom + origin.y }));
