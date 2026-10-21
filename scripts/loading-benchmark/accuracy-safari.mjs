@@ -15,7 +15,7 @@ import { crossingProbeCode, crossingReport } from './crossing.mjs';
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const udid = process.env.SIM_UDID, upstream = arg('base'), pin = arg('pin'), dist = arg('dist'), out = arg('out');
 if (!udid || !upstream || !dist || !out || !/^[a-f0-9]{40}$/u.test(pin ?? '')) throw new Error('Requires sim-lane and base/pin/dist/out');
-const start = path => `<!doctype html><script>${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};location.replace('/');</script>`;
+const setup = path => `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};setTimeout(() => location.replace('/'), 100); true`;
 let transport, base;
 const version = await (await fetch(new URL('/version.json', upstream))).json();
 if (!version.build?.startsWith(pin.slice(0, 7)) || JSON.parse(readFileSync(resolvePath(dist, 'version.json'), 'utf8')).build !== version.build) throw new Error('HTTP/disk pin mismatch');
@@ -82,7 +82,7 @@ let failed = false;
 try {
   for (const path of (arg('paths') ?? 'shardfile,grid').split(',')) {
     if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
-    transport = await observeTransport(upstream, { recorder: accuracyRecorder, start: start(path) });
+    transport = await observeTransport(upstream, { recorder: accuracyRecorder });
     base = transport.base;
     // Reuse this origin for warm disk caches, but launch Safari before every navigation.
     for (const visit of visits.split(',')) {
@@ -96,7 +96,9 @@ try {
         execFileSync('xcrun', ['simctl', 'openurl', udid, initialURL]);
         await connect(initialURL);
         const previousOrigin = await inspector.evaluate('performance.timeOrigin');
-        await inspector.evaluate(`setTimeout(() => location.replace('/sf67-start.html'), 100); true`);
+        // A controlled navigation would cache a fixture document as the app shell.
+        // Set the same save fixtures on this inspected origin, then load the real title.
+        await inspector.evaluate(setup(path));
         await sleep(500); await connect();
         await wait(`performance.timeOrigin !== ${previousOrigin} && window.__loadingAccuracy !== undefined && document.querySelector('.ws-main-select') !== null`, 60000);
         if (path === 'grid') await gesture(`document.querySelector('.ws-main-grid').click()`);
