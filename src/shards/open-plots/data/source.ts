@@ -1,4 +1,5 @@
 import hologram from './hologram.graph.json' with { type: 'json' };
+import beam from './beam.graph.json' with { type: 'json' };
 
 /** One idea row of `outputs.json`: the product slug, the idea's asset folder, its display name and HUD accent. */
 export interface PlotIdea { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string }
@@ -9,7 +10,8 @@ const pbr = (colour: [number, number, number], roughness = 1) => ({ family: 'pbr
 /** The plot's look (G541, G545): the survey floor drawn as SF56's measure grid in the plot navy and cyan, a kerb and frames
  *  in plain PBR, the billboard and sign as lit-from-within pictures, the plinth rim as cyan light, and the idea's hologram
  *  in the ONE shared hologram graph (`data/hologram.graph.json`: additive, fresnel rim, world-Y scanlines and a sweep,
- *  feature edges and a faint wireframe from the generator's edge code, the slow turn about the plinth's axis). */
+ *  feature edges and a faint wireframe from the generator's edge code, the slow turn about the plinth's axis), and the
+ *  corner beams in `data/beam.graph.json` (G539: additive cyan thinning with height, gone over 300-850 m of view depth). */
 export const LOOK = {
   grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine', familyLooks: {}, families: ['pbr'], graphs: 'required',
   materials: {
@@ -20,6 +22,7 @@ export const LOOK = {
     billboard: { family: 'emissive', colour: [1, 1, 1], intensity: 1 },
     sign: { family: 'emissive', colour: [1, 1, 1], intensity: 1 },
     hologram: { family: 'graph', graph: hologram },
+    beam: { family: 'graph', graph: beam },
   },
   day: { minutes: 12, start: 0.72, maxElevation: 40, azimuth: 71 }, dayOverride: 0.72,
   keys: [{ time: 0, sky: { zenith: [0.2, 0.22, 0.42], horizon: [0.86, 0.62, 0.58] },

@@ -9,7 +9,7 @@ function project(row: PlotIdea) {
   const source = sourceFor(row);
   return { ...emptyShardfile(source.identity), ...source,
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_',
-      materials: { Floor: 'floor', Kerb: 'kerb', Plinth: 'plinth', Rim: 'rim', Frame: 'frame', Billboard: 'billboard', Sign: 'sign', Hologram: 'hologram' } },
+      materials: { Floor: 'floor', Kerb: 'kerb', Plinth: 'plinth', Rim: 'rim', Frame: 'frame', Billboard: 'billboard', Sign: 'sign', Hologram: 'hologram', Beam: 'beam' } },
   };
 }
 

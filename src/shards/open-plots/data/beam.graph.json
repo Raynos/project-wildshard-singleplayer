@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "effectState": { "blend": "additive", "depthWrite": false, "fog": false, "singlePass": true },
+  "doubleSided": true,
+  "params": {
+    "colour": { "type": "colour", "value": [0.2745, 0.902, 1] },
+    "top": { "type": "float", "value": 60, "min": 1, "max": 120 }
+  },
+  "nodes": {
+    "pl": { "op": "positionLocal" },
+    "y": { "op": "swizzle", "in": ["pl"], "mask": "y" },
+    "topP": { "op": "param", "param": "top" },
+    "rise": { "op": "div", "in": ["y", "topP"] },
+    "riseS": { "op": "saturate", "in": ["rise"] },
+    "left": { "op": "oneMinus", "in": ["riseS"] },
+    "taper": { "op": "pow", "in": ["left", 1.6] },
+    "glow": { "op": "mul", "in": ["taper", 0.6] },
+    "pv": { "op": "positionView" },
+    "depth": { "op": "length", "in": ["pv"] },
+    "fadeS": { "op": "smoothstep", "in": [300, 850, "depth"] },
+    "keep": { "op": "oneMinus", "in": ["fadeS"] },
+    "a0": { "op": "mul", "in": ["glow", "keep"] },
+    "alpha": { "op": "saturate", "in": ["a0"] },
+    "colourP": { "op": "param", "param": "colour" }
+  },
+  "stages": {
+    "surface": { "colour": "colourP", "alpha": "alpha" }
+  }
+}

@@ -2,7 +2,9 @@
 // outputs.json (SF88g: each its own product), built from data alone. A 500 m plot on a flat floor with a kerb broken by four entries, the showroom in
 // the middle: a low round plinth (radius 10 m) with a glowing rim, the idea's hologram standing on it (drawn by the one
 // shared `hologram` graph, which turns it), the idea's billboard behind it (north, +Z) and the 'OPEN PLOT · COMING SOON'
-// sign in front. Collision is its own `collide_` nodes (floor, kerb, plinth, billboard and sign), never the hologram.
+// sign in front, and a striped beacon in each corner with a cyan sky beam (G539: capped at 60 m, fading with height and
+// out over 300-850 m in the `beam` graph). Collision is its own `collide_` nodes (floor, kerb, plinth, billboard, sign and
+// beacon posts), never the hologram or a beam.
 //
 // The hologram's vertex colours carry its edges for the graph: each triangle's three corners are unique vertices and
 // colour channel i is half the barycentric of corner i, lifted by 0.5 when the edge opposite corner i is not a feature
@@ -24,6 +26,8 @@ const BILLBOARD = { z: 26, width: 24, height: 13.5, bottom: 5, depth: 0.5 };
 const SIGN = { x: 15, z: -10, width: 7.5, height: 2.5, bottom: 1.2, yaw: 0.4 };
 const KERB = { inner: 238, outer: 240, height: 0.5, gap: 15 };
 const FLOOR_STEP = 25;
+/** G539: the corner beacons (inside the kerb's corners) and their beams, height-capped so they never read across the 5 x 5 */
+const BEACON = { at: 244, half: 0.45, band: 0.9, bands: 6, beam: 60, twin: 45, width: 0.8 };
 
 const ideas = JSON.parse(readFileSync(resolve(ROOT, 'outputs.json'), 'utf8')).outputs;
 
@@ -143,6 +147,17 @@ async function plot(idea) {
     kerbs.push([[side > 0 ? inner : -outer, 0, -inner], [side > 0 ? outer : -inner, height, -gap]], [[side > 0 ? inner : -outer, 0, gap], [side > 0 ? outer : -inner, height, inner]]);
   }
   for (const [min, max] of kerbs) soup.box('Kerb', min, max, kerb);
+  // the corner beacons: white-and-orange striped posts, a cyan cap and two crossed beam quads (a tall one and its twin)
+  const { at: corner, half: post, band, bands, beam, twin, width } = BEACON, postTop = band * bands;
+  for (const [x, z] of [[-corner, -corner], [corner, -corner], [corner, corner], [-corner, corner]]) {
+    for (let k = 0; k < bands; k++) soup.box('Frame', [x - post, k * band, z - post], [x + post, (k + 1) * band, z + post], k % 2 === 0 ? [0.91, 0.93, 0.94] : [1, 0.48, 0.1]);
+    soup.box('Rim', [x - post - 0.15, postTop, z - post - 0.15], [x + post + 0.15, postTop + 0.5, z + post + 0.15]);
+    for (const [dx, beamTop] of [[0, beam], [0.5, twin]]) {
+      const bx = x - Math.sign(x) * dx, half = width / 2, y0 = postTop + 0.5;
+      soup.quad('Beam', [bx - half, y0, z], [bx + half, y0, z], [bx + half, beamTop, z], [bx - half, beamTop, z]);
+      soup.quad('Beam', [bx, y0, z - half], [bx, y0, z + half], [bx, beamTop, z + half], [bx, beamTop, z - half]);
+    }
+  }
   // the plinth: a low drum and its glowing rim
   const { radius, rim, segments } = PLINTH, top = PLINTH.height, ring = (r, i, y) => [r * Math.sin(i / segments * Math.PI * 2), y, r * Math.cos(i / segments * Math.PI * 2)];
   for (let i = 0; i < segments; i++) {
@@ -187,6 +202,7 @@ async function writeWorld(idea, { soup, assets, kerbs }) {
     Sign: doc.createMaterial('Sign').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('sign', resolve(assets, 'sign.webp'))),
     // the far proxy keeps the hologram as a dim teal silhouette (its colour times the edge code)
     Hologram: doc.createMaterial('Hologram').setBaseColorFactor([0.1, 0.45, 0.55, 1]).setMetallicFactor(0),
+    Beam: doc.createMaterial('Beam').setBaseColorFactor([0.27, 0.9, 1, 1]).setMetallicFactor(0),
   };
   for (const [, material] of Object.entries(materials)) if (material.getBaseColorTexture() !== null) {
     material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
@@ -199,10 +215,13 @@ async function writeWorld(idea, { soup, assets, kerbs }) {
     scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));
   };
   for (const [name, part] of soup.parts) node(name === 'Floor' ? 'ws_terrain_floor' : `draw_${name.toLowerCase()}`, part, materials[name], name === 'Billboard' || name === 'Sign');
-  // collision: the floor, the kerb, the plinth drum, the billboard and the sign (never the hologram, never the rim)
+  // collision: the floor, the kerb, the beacon posts, the plinth drum, the billboard and the sign (never the hologram,
+  // the rim or a beam)
   const solid = new Soup();
   solid.quad('Solid', [-250, 0, -250], [-250, 0, 250], [250, 0, 250], [250, 0, -250]);
   for (const [min, max] of kerbs) solid.box('Solid', min, max);
+  const { at: corner, half: post } = BEACON, postTop = BEACON.band * BEACON.bands + 0.5;
+  for (const [x, z] of [[-corner, -corner], [corner, -corner], [corner, corner], [-corner, corner]]) solid.box('Solid', [x - post, 0, z - post], [x + post, postTop, z + post]);
   const steps = 24, top = PLINTH.height, r = PLINTH.radius, ring = (i, y) => [r * Math.sin(i / steps * Math.PI * 2), y, r * Math.cos(i / steps * Math.PI * 2)];
   for (let i = 0; i < steps; i++) { solid.quad('Solid', ring(i, 0), ring(i + 1, 0), ring(i + 1, top), ring(i, top)); solid.tri('Solid', [0, top, 0], ring(i, top), ring(i + 1, top)); }
   const b = BILLBOARD;
