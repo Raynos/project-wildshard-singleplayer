@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry, BufferAttribute, BufferGeometry, Float16BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
-import { createOwnedGeometry, createOwnedGeometryBatch } from '../src/engine/models/ownedGeometry';
+import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { staticGlb } from '../src/sdk/bake/glb';
 import * as rigLoaders from '../src/engine/anim/rig';
 
@@ -53,44 +53,6 @@ it.each([false, true])('takes private GLB attributes without another geometry co
       expect(intake.take()).toBe(taken);
     } finally { taken.dispose(); }
   } finally { loader.mockRestore(); source.dispose(); material.dispose(); }
-});
-
-it('loads the declared batch while retaining each handle ownership and retry', async () => {
-  const batch = createOwnedGeometryBatch(), a = batch.geometry('a'), b = batch.geometry('b');
-  const source = new BoxGeometry();
-  const requests: string[] = [];
-  const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(input => { requests.push(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url); return Promise.reject(new Error('missing source')); });
-  try {
-    await expect(batch.load(new Map([['a', source]]))).rejects.toThrow('missing source');
-    expect(requests).toEqual(['b']);
-    await batch.load(new Map([['a', source], ['b', source]]));
-    const first = a.take(), second = b.take();
-    expect(first).not.toBe(second); expect(first).not.toBe(source);
-    expect(() => a.copy()).toThrow('not loaded');
-    a.adopt(first); expect(a.take()).toBe(first);
-    first.dispose(); second.dispose();
-    expect(() => batch.geometry('a')).toThrow('declaration');
-    const bounded = createOwnedGeometryBatch();
-    for (let i = 0; i < 128; i++) bounded.geometry(String(i));
-    expect(() => bounded.geometry('overflow')).toThrow('declaration');
-  } finally { fetch.mockRestore(); source.dispose(); }
-});
-
-it('admits stable slot tables atomically and retains independent take/copy handles', async () => {
-  const batch = createOwnedGeometryBatch(), source = new BoxGeometry();
-  const rows = [{ slot: 'beam', channels: [] }, { slot: 'panel', channels: [] }];
-  try {
-    expect(() => batch.declare([...rows, rows[0] ?? rows[1] ?? { slot: '', channels: [] }])).toThrow('declaration');
-    expect(() => batch.handle('beam')).toThrow('not loaded');
-    batch.declare(rows); batch.declare(structuredClone(rows));
-    expect(() => batch.declare([{ slot: 'other', channels: [] }])).toThrow('changed');
-    expect(() => batch.geometry('extra')).toThrow('declaration'); expect(batch.ready).toBe(false);
-    await batch.load(new Map(rows.map(row => [row.slot, source]))); expect(batch.ready).toBe(true);
-    const beam = batch.handle('beam').take(), panel = batch.handle('panel').copy();
-    expect(beam.getAttribute('position').array).toEqual(panel.getAttribute('position').array);
-    expect(beam.getAttribute('position').array.buffer).not.toBe(panel.getAttribute('position').array.buffer);
-    beam.dispose(); panel.dispose(); batch.handle('panel').take().dispose();
-  } finally { source.dispose(); }
 });
 
 it('restores native half-float bits, packed vec4 normals and explicit identity indices', async () => {

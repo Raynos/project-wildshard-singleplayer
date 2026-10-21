@@ -3089,16 +3089,6 @@ installs nothing. Driftwood's fixed, foliage and specimen intakes use this host.
 G441 pending user: Nine's `world/specimens.ts` `SpecimenBake` will replace its
 keyed clone/delete templates with owned intakes, adopting assembled geometry
 from `runtime/geometry.ts`; `world/modelLook.ts` keeps its context ownership.
-`createOwnedGeometryBatch()` groups up to 128 unique named/source intakes;
-`geometry(url, channels?)` returns the same owned handle, and `load(bytes?)`
-starts every declared intake concurrently. A missing map entry retains the
-original URL fetch path. The batch holds handles, never another geometry copy;
-callers still decide when readiness is committed and when admitted sources
-are released. Driftwood's fixed and cover preloads use it. Nine's
-`runtime/geometry.ts#readNineSpecimens` and `world/specimens.ts` will register
-its bounded keyed templates and adopt the assembled geometry into these
-handles; the existing copy/take and per-context ownership remain local.
-This pending second user is rechecked at the end of W3.
 
 
 `@wildshard/game/plugin/ui` admits a browser product with `shardfileSource` or selects it with
