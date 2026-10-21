@@ -1,7 +1,6 @@
-import { declaredLootEconomy } from '@wildshard/game/shard/declaredRows';
-import { installRuntimeLoot, enteredLootPresentation } from '@wildshard/game/loot/runtime';
+import { publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { installQuestContinuation } from '@wildshard/game/quest/continuation';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import { prepareQuestPageComposition, installQuestPageComposition, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
@@ -11,15 +10,12 @@ import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import { castawayFigure } from '../runtime/models/people';
 import { enteredTrader, traderOf } from '../runtime/models/trader';
-import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import { sharedModelContext } from '@wildshard/engine/models/model';
 import { place as placeModel } from '@wildshard/engine/models/place';
 import { ownQuestTree } from '@wildshard/game/quest/chapter';
 import { parseQuestTrader } from '@wildshard/game/quest/trader';
-import { installDeclaredCollectionKeepsakes } from '@wildshard/game/compendium/keepsakes';
 import { COLLECTIONS } from '../runtime/boot/blobAssets';
-import { captainHat, sailclothCape, tradeCounter, trader as traderCard } from '../models/catalogue';
-import { driftwoodRows } from '../runtime/boot/rows';
-import { installItemEffects } from '@wildshard/game/loadout/effects';
+import { tradeCounter, trader as traderCard } from '../models/catalogue';
 import { productHullBook } from '@wildshard/game/looks/speciesBook';
 
 /** Prewarm the real hulls before the entered chapter can restore a saved altar. */
@@ -33,6 +29,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const { player } = world;
   const d = driftwoodWorld(shell);
   const rows = await ctx.product.json<QuestPageCompositionRows>('quests/page-composition.json');
+  const continuation = await ctx.product.json<{ readonly collection: string }>('quests/continuation.json');
   registerQuestPageWorld(ctx.scope, rows.world, { pois: { hut: { anchors: d.hut.anchors }, lookout: { anchors: d.lookout.anchors },
     wreck: { anchors: d.wreck.anchors }, shrine: { anchors: d.shrine.anchors }, cave: { anchors: d.cove.anchors } }, flock: d.gulls.flock });
   const placement = await prepareQuestPageComposition(ctx, rows);
@@ -52,23 +49,14 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   ctx.system({ id: rows.systems.speakerPose, phase: 'update', before: [rows.systems.talks], run: (dt, time) => { npc.update(dt, time, player.position); } });
   ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
   const adventure = await installQuestPageComposition(ctx, rows);
+  publishEntryOwner(ctx.scope, 'quest', rows.id, adventure);
+  publishEntryOwner(ctx.scope, 'collection', continuation.collection, COLLECTIONS);
   installBridgeSway(ctx, { ...rows.sway, system: rows.systems.sway, before: rows.systems.before });
   const placed = [d.pier.placed, d.boat.placed, ...d.jetties.map((j) => j.placed), d.hut.placed, d.lookout.placed, d.shrine.placed, d.bushes.placed, d.palms.placed, d.rocks.placed, d.bridge.placed,
     ...d.trailside.placed, ...d.cover.placed, ...d.wreck.placed, ...d.cove.placed, adventure.zipline?.placed, ...adventure.kit.placed];
   // the named places' Sets: the client plan's `world.sets` rows (Wreck Cove's is the whole wreck and cove)
   await bindClientPlaceSets(ctx, new Map([['wreck', [...d.wreck.placed, ...d.cove.placed]]]), placed.filter(p => p !== undefined));
-  const swords = h.weapons.list.map(({ id }) => h.weapons.get(id)).filter((w): w is Sword => w instanceof Sword);
-  const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
-  installItemEffects(ctx);
-  const cosmetics = new Map([['hat', captainHat], ['cape', sailclothCape]] as const);
-  const modelSources = sharedModelContext(world.sky);
-  const bindCosmetic = (model: ModelDef<Record<string, unknown>>): ModelDef<Record<string, unknown>> => ({ ...model,
-    build: (_context, params, rng) => model.build({ ...modelSources, specimenScope: ctx.scope }, params, rng) });
-  await installDeclaredCollectionKeepsakes(ctx, driftwoodRows('custom/collections').keepsakes, economy,
-    new Map([['collection', { adventure, world, play: h, swords, catalogue: COLLECTIONS,
-      models: new Map([...cosmetics].map(([id, model]) => [id, bindCosmetic(model)])) }]]));
-  const presentation = enteredLootPresentation(ctx, 'driftwood.loot');
-  installRuntimeLoot(ctx, presentation, { shop: await ctx.product.json(rows.files.stall), minimap: true, before: rows.systems.before.filter(id => id !== 'game.loot') });
+  await installQuestContinuation(ctx, continuation);
   return adventure;
 }
 

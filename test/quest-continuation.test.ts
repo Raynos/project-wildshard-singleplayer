@@ -72,7 +72,8 @@ test.each(['cosmetics', 'shop'])('leaving during the %s read prevents later serv
   expect(entryOwner(f.scope, 'collection', rows.collection)).toBe(f.catalogue);
   expect(f.system.mock.calls.map(([row]) => row.id)).toEqual(phase === 'cosmetics' ? [] : ['keepsakes']);
   f.scope.dispose(); const calls = f.system.mock.calls.length;
-  pending.resolve(phase === 'cosmetics' ? cosmeticBytes : shopBytes); await running;
+  // Retired cosmetic bytes must not even reach catalogue admission.
+  pending.resolve(phase === 'cosmetics' ? encode({ retired: true }) : shopBytes); await running;
   expect(f.system).toHaveBeenCalledTimes(calls);
   expect(reads).toEqual(phase === 'cosmetics' ? ['cosmetics'] : ['cosmetics', 'shop']);
   expect({ flags: f.flags.all, owned: f.owned.all }).toEqual(before);
