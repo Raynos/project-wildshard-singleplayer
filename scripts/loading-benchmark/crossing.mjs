@@ -22,6 +22,7 @@ function installCrossingProbe(drive) {
     const failure = window.__sf57.events.find(event => event.type === 'failure');
     if (!entry && !failure && !window.__sf57.done) return;
     if (!entry) state.errors.push(failure?.error ?? 'Crossing route did not re-enter home');
+    state.errors.push(...(window.__loadingAccuracy?.errors ?? []));
     const timings = live?.crossingTiming ?? [], rows = live?.crossingLoading ?? [];
     for (let i = 0; i < timings.length; i++) if (timings[i].requestedAt >= state.startedAt) {
       state.timings.push(timings[i]); state.rows.push(rows[i] ?? []);

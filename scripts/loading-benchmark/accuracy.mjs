@@ -22,10 +22,11 @@ const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
 const desktop = arg('surface', 'phone') === 'desktop';
 const cpu = desktop ? 1 : 4;
 let failed = false;
+let transport;
 try {
   for (const path of arg('paths', 'shardfile,grid').split(',')) {
     if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
-    const transport = await observeTransport(base);
+    transport = await observeTransport(base);
     const context = await browser.newContext(desktop ? { viewport: { width: 1440, height: 900 } } : phone);
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
     await saveFixture(context, { scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' });
@@ -111,8 +112,8 @@ try {
       console.info(JSON.stringify({ path: 'crossing', ...crossingResult }));
       if (crossingResult.failures.length > 0) failed = true;
     }
-    await context.close(); await transport.close();
+    await context.close(); await transport.close(); transport = undefined;
     if (status !== 'passed' || (arg('accept', '0') === '1' && report.failures.length > 0)) failed = true;
   }
-} finally { await browser.close(); }
+} finally { await browser.close(); await transport?.close(); }
 if (failed) throw new Error('Loading capture failed; see per-path receipts');
