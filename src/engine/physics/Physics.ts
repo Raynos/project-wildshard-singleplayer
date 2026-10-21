@@ -110,9 +110,16 @@ export class Physics {
   /** Rapier's complete same-version continuation; a fresh Physics instance can consume it. */
   snapshot(): Uint8Array { return this.world.takeSnapshot(); }
 
+  /**
+   * One fixed step. O15: `World.step` ends with `mapNewSoftBodies`, which wraps the pieces a tearing soft body split off:
+   * two full JS walks of every body and every collider (a wasm `contains` call each) after every step, 84 % of the
+   * step's samples on Driftwood's road entry (Simulator). The engine never makes a soft body (the set stays empty), so
+   * nothing can appear or vanish natively; the pipeline steps the same sets directly and the walks are skipped.
+   */
   step(): void {
-    const t0 = performance.now();
-    this.world.step();
+    const t0 = performance.now(), w = this.world;
+    if (w.softBodies.len() > 0) throw new Error('Physics steps no soft bodies: their split pieces would go unwrapped');
+    w.physicsPipeline.step(w.gravity, w.integrationParameters, w.islands, w.broadPhase, w.narrowPhase, w.bodies, w.colliders, w.softBodies, w.impulseJoints, w.multibodyJoints, w.ccdSolver);
     this.stepMs = performance.now() - t0;
   }
 
