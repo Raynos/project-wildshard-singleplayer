@@ -121,7 +121,7 @@ const gpuTraceDir = flag('gpu-trace', '');
 if (gpuTraceDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(gpuTraceDir))) throw new Error('--gpu-trace=<existing dir> traces desktop grid drives only');
 const GPU_TRACE_CATEGORIES = ['toplevel', 'gpu', 'gpu.service', 'gpu.decoder', 'gpu.angle', 'gpu.capture', 'viz', 'cc', 'blink', 'blink.user_timing', 'devtools.timeline', 'disabled-by-default-devtools.timeline', 'disabled-by-default-devtools.timeline.frame', 'disabled-by-default-gpu.service', 'disabled-by-default-gpu.device', 'disabled-by-default-gpu.decoder', 'disabled-by-default-gpu_cmd_queue', 'disabled-by-default-skia.gpu', 'v8.execute', 'scheduler', 'disabled-by-default-v8.cpu_profiler'];
 const LONGTASK_SCRIPT = cpuProfileDir === '' ? '' : `window.__frameFloorLongTasks=[];try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.__frameFloorLongTasks.push([e.startTime,e.duration]);}).observe({type:'longtask',buffered:true});}catch{}`;
-if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'milestone', 'reentry', 'outer-road', 'cold'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
+if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'milestone', 'reentry', 'outer-road', 'cold', 'nine-return'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
 if (publicGrid && (gridScenario === 'milestone' || gridScenario === 'reentry')) throw new Error('Milestone and re-entry floors require Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
@@ -423,7 +423,7 @@ async function measureShard(driver, shard, deadline) {
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
     // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it. O17: a
     // cold entry likewise approaches its cell with no standing pose beside it first
-    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' && !['outer-road', 'cold'].includes(gridScenario) ? GRID_POSES : [])];
+    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' && !['outer-road', 'cold', 'nine-return'].includes(gridScenario) ? GRID_POSES : [])];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
     const scan = [];
     for (const pose of candidates) {
@@ -464,8 +464,9 @@ async function measureShard(driver, shard, deadline) {
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
       for (let plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach, entrySocket, ...(risingIslet === '' ? {} : { risingIslet }) }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
-        if ((gridScenario === 'milestone' || gridScenario === 'reentry' || gridScenario === 'cell' || gridScenario === 'cold') && plan.from === null) {
-          const cell = state.cells.find(row => row.instance === plan.to);
+        // nine-return also leaves Nine by its declared portal (a plan from a cell to the road)
+        if ((['milestone', 'reentry', 'cell', 'cold'].includes(gridScenario) && plan.from === null) || (gridScenario === 'nine-return' && (plan.from === null || plan.to === null))) {
+          const cell = state.cells.find(row => row.instance === (plan.from ?? plan.to));
           if (!cell) throw new Error('Floor entry cell missing');
           const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
           const entries = await driver.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(path)})`);

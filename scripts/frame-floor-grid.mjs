@@ -115,6 +115,19 @@ export function gridFloorPlans(state, scenario, options = {}) {
     const pine = road('pine-hollow');
     return [pine, road('sunscar-dunes'), { ...pine, name: 'pine-hollow-road-reentry' }];
   }
+  if (scenario === 'nine-return') {
+    // O12 (coordinator ruling 2026-10-21): the soak's Nine legs on the floor's own page: Nine entered cold from the road,
+    // left by its portal, home again, twice (the soak froze 11-25 s on some Nine retire + home re-admission legs)
+    const nine = state.cells.find(cell => cell.slug === 'nine-dragon-stack');
+    if (!nine) throw new Error('Nine return requires the Developer Nine cell');
+    const [entry] = gridFloorPlans(state, 'cell', { cell: nine.instance, roadApproach: true });
+    if (!entry) throw new Error('Missing Nine road entry');
+    const n = origin(nine), road = { x: n.x, z: n.z + 277.5 }, homeRoad = { x: h.x, z: road.z };
+    const leave = { name: 'nine-leave', from: nine.instance, to: null, movement: 'road-hover', hoverMaxSpeed: 30, waypoints: [road], requiredResidents: [], finishOnArrival: false };
+    const back = { name: 'home-return', from: null, to: home.instance, movement: 'road-hover', hoverMaxSpeed: 30,
+      waypoints: [homeRoad, { x: h.x, z: h.z - 210 }], requiredResidents: [home.instance], finishOnArrival: false };
+    return [entry, leave, back, { ...entry, name: 'nine-reentry', start: homeRoad }, { ...leave, name: 'nine-leave-2' }, { ...back, name: 'home-return-2' }];
+  }
   // O17: `cold` is the cell entry with no standing pose beside the cell first (frame-floor.mjs skips the deck poses)
   if (scenario === 'cell' || scenario === 'cold') {
     // op-frame22 (SF63 / G158): any assembled cell by its slug, entered from the road at the edge that faces home (a corner
