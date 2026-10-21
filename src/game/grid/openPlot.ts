@@ -12,19 +12,32 @@
  * pictures from `public/assets/grid/open-plot/<idea>.webp` once they decode) and freed after their last upload. Every
  * byte is one platform render claim in the allocator, admitted up front.
  */
-import { AdditiveBlending, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, Group, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial,
+import { AdditiveBlending, BoxGeometry, type Material, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, Group, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial,
   type Object3D, PlaneGeometry, SRGBColorSpace, ShaderMaterial } from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { fetchImage } from '@wildshard/engine/boot/bytes';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import type { StripMesh } from '@wildshard/engine/sim/strips';
 import type { GridPlot } from './assembly';
 import type { PlatformRenderAdmission } from './renderResidency';
 import { GAME_STRINGS } from '../strings';
 import { DEMO_IDEAS, FACE, PICTURE_ATLAS, PLAQUE_RECT, PLOT_IDEAS, SIGN_RECT, TEXT_ATLAS, faceRect, labelRect, openPlotBytes, openPlotGeometry, type AtlasRect, type OpenPlotGeometry, type PlotEntries, type PlotIdea } from './openPlotLayout';
 
-/** A plot farther than this (m, from the feet to its square) is hidden whole; its beacons' beams are the far marker until then. */
+/** A plot farther than this (m, from the feet to its square) is hidden whole. */
 const VISIBLE = 900;
+/**
+ * G539: the plot's glow (its fog-free lines, beams, hologram, cards and scan) fades out with view depth (m) and is gone
+ * before the plot hides, so nothing fog-free reads across the grid and nothing pops at `VISIBLE`.
+ */
+export const GLOW_FADE = { near: 300, far: 850 } as const;
+/** Fade a glow material's alpha with view depth (`GLOW_FADE`): one multiply at the end of its fragment shader. */
+function fadeGlow(material: Material, scope: Scope): void {
+  patchShader(material, 'g539-glow-fade', PATCH_ORDER.decorate, (shader): void => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <premultiplied_alpha_fragment>',
+      `gl_FragColor.a *= 1.0 - smoothstep(${GLOW_FADE.near.toFixed(1)}, ${GLOW_FADE.far.toFixed(1)}, 1.0 / gl_FragCoord.w);\n#include <premultiplied_alpha_fragment>`);
+  }, { key: (prior) => `${prior}|g539-glow-fade`, scope });
+}
 const FLOOR_Y = 0.03;
 /** the floor's own colour at the feet and its haze toward the horizon (G219's H board: a deep navy floor, not black) */
 const FLOOR_NAVY = 0x07223a, FLOOR_HAZE = 0x3f86a8;
@@ -200,6 +213,7 @@ export function installPlotCells(input: {
     floorMaterial.name = 'grid-open-plot-floor';
     disposables.push(solidMaterial, lines, holo, scan, glassMaterial, floorMaterial, ...[pictureMaterial, textMaterial, cards].filter((m): m is MeshBasicMaterial => m !== null));
     lineMaterial = lines; holoMaterial = holo; cardMaterial = cards; scanMaterial = scan;
+    for (const glow of [lines, holo, scan, glassMaterial, ...(cards === null ? [] : [cards])]) fadeGlow(glow, owner);
     const scanGeometry = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), glassGeometry = new BoxGeometry(1, 1, 1); disposables.push(scanGeometry, glassGeometry);
     for (const { plot, geometry: g } of built) {
       const group = new Group(); group.name = `grid-open-plot:${plot.instance}`;

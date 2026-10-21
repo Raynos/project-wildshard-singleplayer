@@ -218,6 +218,8 @@ const DEMOS: Readonly<Record<DemoIdea, (out: Piece[]) => number>> = {
 };
 function demoPieces(idea: DemoIdea): { ground: number; pieces: Piece[] } { const pieces: Piece[] = []; return { ground: DEMOS[idea](pieces), pieces }; }
 
+/** G539: the corner beacons' sky beams' height (m); the shorter twin stands at three quarters of it. */
+export const BEAM_TOP = 60;
 /** The plot's whole geometry for its billboard idea (the catalogue row's `billboard`). */
 export function openPlotGeometry(billboard: PlotIdea): OpenPlotGeometry {
   const solid = new Solid(), lines = new Lines(), holo = new Lines(), pictures = new Quads(PICTURE_ATLAS), text = new Quads(TEXT_ATLAS), cards = new Quads(PICTURE_ATLAS);
@@ -228,7 +230,8 @@ export function openPlotGeometry(billboard: PlotIdea): OpenPlotGeometry {
     solid.box(cx, cz, 0, 1.1, 1.1, 0.4, 0, C.steel);
     for (let k = 0; k < 6; k++) solid.box(cx, cz, 0.4 + k * 0.9, 0.45, 0.45, 0.9, 0, k % 2 === 0 ? C.white : C.orange);
     solid.prism(cx, cz, 5.8, 0.7, 0.7, 0.6, 8, C.cyan);
-    lines.seg([cx, 6.4, cz], [cx, 220, cz]); lines.seg([cx + 0.3, 6.4, cz], [cx + 0.3, 160, cz]);
+    // G539: the beams stay but are height-capped (they once stood 220 m and read from across the 5 × 5)
+    lines.seg([cx, 6.4, cz], [cx, BEAM_TOP, cz]); lines.seg([cx + 0.3, 6.4, cz], [cx + 0.3, BEAM_TOP * 0.75, cz]);
   }
   for (const side of PLOT_SIDES) {
     const frame = entryFrame(side), { demo } = entries[side], n = frame.out;
