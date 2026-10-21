@@ -4,7 +4,8 @@ import {mkdirSync,mkdtempSync,readFileSync,rmSync,statSync,utimesSync,writeFileS
 import {resolve} from 'node:path';
 import {afterEach,expect,it,vi} from 'vitest';
 import {InputHashMemo} from '../scripts/bake-input-hashes.mjs';
-import {generationInputs,prepareGeneration} from '../scripts/generate.mjs';
+import {generateShardJob,generationInputs,prepareGeneration} from '../scripts/generate.mjs';
+import {linkNodeModules} from '../scripts/link-node-modules.mjs';
 import {generationSnapshotIdentity,publishGenerationSnapshot,verifiedGenerationSnapshot} from '../scripts/generation-snapshot.mjs';
 
 const owned:string[]=[];
@@ -56,4 +57,14 @@ it('uses independently verified local outputs after cache eviction and regenerat
   writeFileSync(resolve(root,output),'wrong');log.mockClear();await prepareGeneration(root,{cacheDir});
   expect(log.mock.calls.some(row=>String(row[0]).includes(', generated,'))).toBe(true);
   expect(readFileSync(resolve(root,output),'utf8')).toBe('input');
+});
+it('stages the snapshot helper for cold producers importing generation infrastructure',async()=>{
+  const {root}=fixture(),entry='src/shards/alpha/generators/bake-import.mjs',output='source/output.txt';
+  mkdirSync(resolve(root,'scripts'));mkdirSync(resolve(root,'src/shards/alpha/generators'),{recursive:true});
+  writeFileSync(resolve(root,'scripts/generation-snapshot.mjs'),readFileSync('scripts/generation-snapshot.mjs'));
+  writeFileSync(resolve(root,entry),`import fs from 'node:fs';import {generationSnapshotIdentity} from '../../../../scripts/generation-snapshot.mjs';fs.writeFileSync('${output}',generationSnapshotIdentity('staged'));`);
+  writeFileSync(resolve(root,'scripts/generation-jobs.json'),'{}');linkNodeModules(resolve('.'),root);
+  const result=await generateShardJob(root,{id:'fixture-import',shard:'alpha',entry,command:[entry],inputRoots:['src/shards/alpha'],outputs:[output],buildTimeOutputs:[output],platform:'portable'},{cacheDir:resolve(root,'cache'),restore:true});
+  try {expect(readFileSync(resolve(root,output),'utf8')).toBe(generationSnapshotIdentity('staged'));}
+  finally {result.release();}
 });
