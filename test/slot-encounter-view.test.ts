@@ -11,8 +11,8 @@ import { SlotEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 
-// A made-up orchard (the slot view's fixture second user): crowned guard statues on their own plinths, cues and wedge,
-// on the roster law Nalati's balbals share.
+// Alternate-data fixture only: crowned guards, plinths, cues and wedge.
+// This grants no second-shard credit to the native slot owner.
 const slots = { ...v.parse(EncounterSlotsSchema,night.slots), actors: { kind: 'orchard-statue', variant: 'guard', variants: { '2': 'crowned' }, herd: -2, yaw: .5, sink: -1,
   memory: { rising: 0 }, home: { x: 'originX', z: 'originZ', yaw: 'facing' }, dawn: 'returning', gone: 'buried' } };
 const cue = (id: string) => ({ id, vfx: [] });
@@ -31,16 +31,16 @@ type Body = ReturnType<typeof body>;
 let restore = (): void => undefined;
 afterEach(() => { restore(); vi.restoreAllMocks(); });
 
-function orchard(): { view: SlotEncounterView<Body>; heard: { id: string; at: number[] }[]; bodies: Body[]; scene: Scene; weak: { on: boolean } } {
+function orchard(): { view: SlotEncounterView<Body>; heard: { id: string; at: number[] }[]; bodies: Body[]; retired:Body[]; scene: Scene; weak: { on: boolean } } {
   restore = overrideTerrain({ heightAt: () => 3 });
   const scope = new Scope('orchard'), scene = new Scene(), game = {} as Game;
   Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: scene } });
-  const cues = new CueDirector(game, { version: 1, fields: [], rows: ids.map(cue) }), heard: { id: string; at: number[] }[] = [], bodies: Body[] = [], weak = { on: false };
+  const cues = new CueDirector(game, { version: 1, fields: [], rows: ids.map(cue) }), heard: { id: string; at: number[] }[] = [], bodies: Body[] = [], retired:Body[]=[], weak = { on: false };
   vi.spyOn(cues, 'cue').mockImplementation((id, at) => { heard.push({ id, at: at.toArray() }); });
   const sites = [{ x: 2, z: 5, yaw: 1, variant: 2 }, { x: 7, z: 9, yaw: 0, variant: 0 }];
   const slotView = new SlotEncounterView<Body>(slots, view, ReturnProgram.page(night.program), { scene, cues, sites, guest: { weakPoint: () => weak.on } });
-  slotView.attachActors({ factory: { model: () => undefined }, spawn: (_kind, x, z, yaw, variant) => { const b = body(String(bodies.length), x, z, yaw, variant); bodies.push(b); return b; }, retire: a => { a.hidden = true; } });
-  return { view: slotView, heard, bodies, scene, weak };
+  slotView.attachActors({ factory: { model: () => undefined }, spawn: (_kind, x, z, yaw, variant) => { const b = body(String(bodies.length), x, z, yaw, variant); bodies.push(b); return b; }, retire: a => { a.hidden = true; retired.push(a); } });
+  return { view: slotView, heard, bodies, retired, scene, weak };
 }
 
 test('an orchard wakes its own sites with its own cues and hands their show and hide back as data', () => {
@@ -92,4 +92,26 @@ test('a broken guard plays its rubble once and its plinth stands again when the 
 test('view rows refuse unknown keys and a cue outside the cue namespace', () => {
   expect(() => v.parse(SlotViewSchema, { ...view, extra: 1 })).toThrow();
   expect(() => v.parse(SlotViewSchema, { ...view, cues: { ...view.cues, wake: 'wake' } })).toThrow();
+});
+
+test('one body roster rejects duplicate wakes and retires each returned actor once',()=>{
+  const {view:slotView,bodies,retired}=orchard();
+  slotView.wake([0,0,1]);slotView.wake([0]);expect(bodies).toHaveLength(2);
+  const first=slotView.awake[0]?.a,second=slotView.awake[1]?.a;if(first===undefined||second===undefined)throw new Error('Missing guards');
+  expect(first.variant).toBe('crowned');expect(first.yaw).toBe(1.5);expect(first.mem['originX']).toBe(2);expect(first.yOffset).toBe(-2);
+  first.alive=false;slotView.update(.1,{kind:1});slotView.update(3.2,{kind:1});expect(retired.filter(a=>a===first)).toHaveLength(1);
+  const dawn=structuredClone(slotView.update(.1,{kind:0}));expect(dawn).toContainEqual({index:0,awake:0});expect(second.mem['returning']).toBe(1);
+  expect(slotView.update(.1,{kind:0})).not.toContainEqual({index:0,awake:0});
+  second.mem['buried']=1;expect(structuredClone(slotView.update(.1,{kind:0}))).toContainEqual({index:1,awake:0});
+  slotView.update(.1,{kind:0});expect(retired.filter(a=>a===second)).toHaveLength(1);
+});
+
+test('a corpse retiring after dawn restores its site on the next day step',()=>{
+  const {view:slotView,retired}=orchard();slotView.wake([0]);
+  const guard=slotView.awake[0]?.a;if(guard===undefined)throw new Error('Missing guard');
+  slotView.update(.1,{kind:1});guard.alive=false;slotView.update(.1,{kind:0});
+  expect(slotView.update(3.2,{kind:0})).not.toContainEqual({index:0,awake:0});
+  expect(retired.filter(a=>a===guard)).toHaveLength(1);
+  expect(structuredClone(slotView.update(.1,{kind:0}))).toContainEqual({index:0,awake:0});
+  expect(slotView.update(.1,{kind:0})).not.toContainEqual({index:0,awake:0});
 });

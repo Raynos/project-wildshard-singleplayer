@@ -2,7 +2,7 @@
  * This value host owns groups and clocks; bodies and drawing remain external. */
 import type { ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { EncounterPatrolRows,EncounterSlotsRows } from '@wildshard/format/encounterRows';
+import type { EncounterPatrolRows } from '@wildshard/format/encounterRows';
 
 export interface PatrolMember { readonly id: string; readonly state: Record<string, number>; group: PatrolGroup | null; slot: number }
 export interface PatrolGroup { readonly members: PatrolMember[]; readonly state: Record<string, number> }
@@ -133,94 +133,3 @@ export class EncounterPatrol<A extends PatrolActor = PatrolActor> {
   }
 }
 
-export interface SlotActor extends PatrolActor { readonly scale: number; yOffset: number }
-export interface EncounterSlotSite { readonly x: number; readonly z: number; readonly yaw: number; readonly variant: number }
-export interface EncounterSlotActor<A extends SlotActor> { readonly a: A; readonly index: number }
-/** Static encounter slots share the same numeric observation/effect transport.
- * The guest owns each cycle's selection and each occupied slot's lifetime. */
-export class EncounterSlots<A extends SlotActor = SlotActor> {
-  readonly cycle: Record<string, number>;
-  private readonly rows: EncounterSlotsRows;
-  private readonly members = new Map<string, Record<string, number>>();
-  private readonly retired = new Map<string, Readonly<Record<string, number>>>();
-  private elapsed = 0;
-  private roster: PatrolActorRoster<A> | null = null;
-  private readonly actors = new Map<string, EncounterSlotActor<A>>();
-  constructor(input: EncounterSlotsRows, private readonly program: ReturnProgram) {
-    this.rows = input; this.cycle = { ...this.rows.cycle.initial };
-  }
-  attachActors(roster: PatrolActorRoster<A>): void {
-    const rows = this.rows.actors; if (rows === undefined) throw new Error('Missing slot actor rows');
-    for (const variant of new Set([rows.variant,...Object.values(rows.variants)])) roster.factory.model(rows.kind,variant);
-    this.roster = roster;
-  }
-  spawnActors(sites: readonly EncounterSlotSite[], which?: readonly number[]): readonly EncounterSlotActor<A>[] {
-    const rows = this.rows.actors; if (rows === undefined || this.roster === null) return [];
-    const out: EncounterSlotActor<A>[] = [];
-    for (const index of which ?? this.select({ count: sites.length, night: this.cycle['t'] ?? 0 })) {
-      if (this.actors.size >= 8 || [...this.actors.values()].some(row => row.index === index)) continue;
-      const site = sites[index]; if (site === undefined) continue;
-      const yaw = site.yaw + rows.yaw, a = this.roster.spawn(rows.kind,site.x,site.z,yaw,rows.variants[String(site.variant)] ?? rows.variant);
-      a.herd = rows.herd; Object.assign(a.mem,rows.memory);
-      a.mem[rows.home.x] = site.x; a.mem[rows.home.z] = site.z; a.mem[rows.home.yaw] = yaw; a.yOffset = rows.sink * a.scale;
-      this.add(a.entityId); const binding = { a,index }; this.actors.set(a.entityId,binding); out.push(binding);
-    }
-    return out;
-  }
-  dawnActors(): readonly number[] {
-    const rows = this.rows.actors; if (rows === undefined) throw new Error('Missing slot actor rows');
-    const released: number[] = [];
-    for (const { a,index } of this.actors.values()) { if (a.alive) a.mem[rows.dawn] = 1; else if (a.hidden) released.push(index); }
-    return released;
-  }
-  retireActor(actor: A, delayed: boolean): void {
-    const row = this.actors.get(actor.entityId); if (row === undefined) return;
-    this.roster?.retire(actor); this.actors.delete(actor.entityId);
-    if (delayed) this.retire(actor.entityId,{ index: row.index }); else this.remove(actor.entityId);
-  }
-  updateActors(dt: number, frame: Readonly<Record<string, number>>): ReturnType<EncounterSlots['update']> {
-    const rows = this.rows.actors; if (rows === undefined) throw new Error('Missing slot actor rows');
-    return this.update(this.roster === null ? 0 : dt, frame, [...this.actors.values()].map(({ a }) => ({ id: a.entityId, fields: { alive: Number(a.alive), gone: a.mem[rows.gone] ?? 0 } })));
-  }
-  add(id: string): void {
-    if (this.members.has(id)) throw new Error('Duplicate encounter slot');
-    this.members.set(id, { ...this.rows.member.initial });
-  }
-  remove(id: string): void { this.members.delete(id); }
-  retire(id: string, metadata: Readonly<Record<string, number>>): void {
-    if (!this.members.has(id)) throw new Error('Unknown retired encounter slot');
-    if(Object.values(metadata).some(value=>!Number.isFinite(value)))throw new Error('Invalid retired slot metadata');
-    this.members.delete(id); this.retired.set(id, {...metadata});
-  }
-  select(observations: Readonly<Record<string, number>>): number[] {
-    const selected = new Set<number>();
-    for (let slot = 0; slot < this.rows.select.count; slot++) {
-      const result = this.program.project(this.rows.select.signal, { ...this.cycle, ...observations, slot });
-      const index = result['index'];
-      if (index !== undefined) {
-        if (!Number.isSafeInteger(index) || index < 0) throw new Error('Invalid encounter slot selection');
-        selected.add(index);
-      }
-    }
-    return [...selected];
-  }
-  update(dt: number, frame: Readonly<Record<string, number>>, observed: readonly { readonly id: string; readonly fields: Readonly<Record<string, number>> }[]): {
-    cycle: Readonly<Record<string, number>>; members: ReadonlyMap<string, Readonly<Record<string, number>>>; released: readonly Readonly<Record<string, number>>[];
-  } {
-    this.elapsed += dt;
-    const results = new Map<string, Readonly<Record<string, number>>>();
-    if (this.elapsed + 1e-9 < .1) return { cycle: {}, members: results, released: [] };
-    const step = this.elapsed; this.elapsed = 0;
-    const cycle = this.program.project(this.rows.cycle.signal, { ...this.cycle, ...frame, dt: step });
-    Object.assign(this.cycle, cycle);
-    for (const row of observed) {
-      const state = this.members.get(row.id);
-      if (state === undefined) throw new Error('Unknown encounter slot observation');
-      const result = this.program.project(this.rows.member.signal, { ...state, ...row.fields, dt: step });
-      Object.assign(state, result); results.set(row.id, result);
-    }
-    const released = cycle[this.rows.release] === 1 ? [...this.retired.values()] : [];
-    if (released.length > 0) this.retired.clear();
-    return { cycle, members: results, released };
-  }
-}

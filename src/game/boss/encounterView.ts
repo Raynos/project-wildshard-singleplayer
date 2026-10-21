@@ -26,7 +26,7 @@ import { ProjectedState, type ReturnProgram } from '../population/returnProgram'
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
-import { EncounterPatrol, EncounterSlots, type EncounterSlotSite, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember, type SlotActor } from './encounterPatrol';
+import { EncounterPatrol, type PatrolActor, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember } from './encounterPatrol';
 import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows,SlotViewRows,PatrolViewRows,CloudBodyRows,ArenaSceneRows,EncounterMaterialRows } from '@wildshard/format/encounterRows';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -39,7 +39,7 @@ const finite = v.pipe(v.number(), v.finite());
  * `strike` + `hold`, alpha `alpha[0] + alpha[1] × fill`, then `alpha[2]` on the blow.
  */
 /** A slot actor as drawn: where it stands and faces, its health and its attack's phase (−1 between attacks). */
-export interface SlotViewActor extends SlotActor { readonly position: { readonly x: number; readonly y: number; readonly z: number }; readonly yaw: number; readonly hp: number; readonly attackPhase: number }
+export interface SlotViewActor extends PatrolActor { readonly scale:number; yOffset:number; readonly position: { readonly x: number; readonly y: number; readonly z: number }; readonly yaw: number; readonly hp: number; readonly attackPhase: number }
 const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
 /**
  * The sites a slot encounter wakes from (`name`'s statues): one instanced copy of the model's `variants[k]` at each
@@ -56,7 +56,7 @@ export const EncounterSitesSchema = v.strictObject({
   sites: v.pipe(v.array(v.strictObject({ x: finite, z: finite, yaw: finite, scale: finite, tilt: v.optional(finite, 0) })), v.maxLength(256)),
 });
 /** A placed site: where it stands and the copy that draws it. */
-export interface EncounterSite extends EncounterSlotSite { readonly y: number; readonly scale: number; readonly tilt: number; readonly slot: number;
+export interface EncounterSite { readonly x:number; readonly z:number; readonly yaw:number; readonly variant:number; readonly y: number; readonly scale: number; readonly tilt: number; readonly slot: number;
   readonly collider: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number; ghost: true } }
 /** A slot encounter's sites on the ground: drawn instanced, solid while they stand, hidden while their actor is out. */
 export class EncounterSites {
@@ -111,21 +111,23 @@ export class EncounterSites {
 }
 /** A site whose actor woke (`awake` 1: hide it) or is home again (0: stand it back up), for the caller's own sites. */
 export interface SlotSiteChange { readonly index: number; readonly awake: number }
-interface Awake<A> { readonly a: A; readonly site: number; lastHp: number; readonly wedge: GroundTell }
+interface Awake<A> { readonly a: A; readonly site: number; readonly law:ProjectedState; lastHp: number; readonly wedge: GroundTell }
 const point = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
 
-/** A slot encounter on its sites, drawn from rows: the roster's law stays in `EncounterSlots`, the look in cue rows; the
+/** A slot encounter keeps one native body roster; existing AS owns its cycle and members; the
  * sites' own show and hide is the caller's, from the changes `update` returns. */
 export class SlotEncounterView<A extends SlotViewActor = Animal> {
-  readonly slots: EncounterSlots<A>;
+  private readonly cycle:ProjectedState;
+  private readonly retired:number[]=[];
+  private roster:PatrolActorRoster<A>|null=null;
   readonly awake: Awake<A>[] = [];
   private readonly changes: SlotSiteChange[] = [];
   private readonly rows: SlotViewRows;
   private readonly wedges: GroundTell[] = [];
   private trailT = 0;
-  constructor(slots: EncounterSlotsRows, view: SlotViewRows, program: ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
-    readonly sites: readonly EncounterSlotSite[] | null; readonly guest: { readonly weakPoint: (actor: A, at: THREE.Vector3) => boolean } }) {
-    this.slots = new EncounterSlots<A>(slots, program); this.rows = view;
+  constructor(private readonly slots:EncounterSlotsRows, view: SlotViewRows, private readonly program:ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
+    readonly sites: readonly Pick<EncounterSite,'x'|'z'|'yaw'|'variant'>[] | null; readonly guest: { readonly weakPoint: (actor: A, at: THREE.Vector3) => boolean } }) {
+    this.cycle=new ProjectedState({...slots.cycle,signals:{step:slots.cycle.signal}},program);this.rows=view;
     const tell = this.rows.tell;
     for (let i = 0; i < tell.pool; i++) {
       const fill = { value: 0 }, alpha = { value: 0 };
@@ -135,31 +137,52 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
       this.wedges.push(new GroundTell(ports.scene, 'wedge', 0, { cone: tell.cone, material, fill, alpha }));
     }
   }
-  attachActors(roster: PatrolActorRoster<A>): void { this.slots.attachActors(roster); }
+  attachActors(roster:PatrolActorRoster<A>):void {
+    const rows=this.slots.actors;if(rows===undefined)throw new Error('Missing slot actor rows');
+    for(const variant of new Set([rows.variant,...Object.values(rows.variants)]))roster.factory.model(rows.kind,variant);
+    this.roster=roster;
+  }
   /** Wake the chosen sites (the cycle's own choice when `which` is omitted); the changes until the next `update`. */
   wake(which?: readonly number[]): readonly SlotSiteChange[] {
-    const sites = this.ports.sites; if (sites === null) return this.changes;
-    for (const { a, index } of this.slots.spawnActors(sites, which)) {
-      const site = sites[index], wedge = this.wedges[this.awake.length % this.wedges.length];
-      if (site === undefined || wedge === undefined) continue;
-      this.changes.push({ index, awake: 1 }); this.awake.push({ a, site: index, lastHp: a.hp, wedge });
+    const sites=this.ports.sites,rows=this.slots.actors,roster=this.roster;if(sites===null||rows===undefined||roster===null)return this.changes;
+    const selected=new Set<number>();
+    if(which!==undefined)for(const index of which)selected.add(index);
+    else for(let slot=0;slot<this.slots.select.count;slot++){
+      const out=this.program.project(this.slots.select.signal,{...this.cycle.state,count:sites.length,night:this.cycle.state['t']??0,slot}),index=out['index'];
+      if(index!==undefined){if(!Number.isSafeInteger(index)||index<0)throw new Error('Invalid encounter slot selection');selected.add(index);}
+    }
+    for(const index of selected){
+      if(this.awake.length>=8||this.awake.some(row=>row.site===index))continue;
+      const site=sites[index],wedge=this.wedges[this.awake.length%this.wedges.length];if(site===undefined||wedge===undefined)continue;
+      const yaw=site.yaw+rows.yaw,a=roster.spawn(rows.kind,site.x,site.z,yaw,rows.variants[String(site.variant)]??rows.variant);
+      a.herd=rows.herd;Object.assign(a.mem,rows.memory);a.mem[rows.home.x]=site.x;a.mem[rows.home.z]=site.z;a.mem[rows.home.yaw]=yaw;a.yOffset=rows.sink*a.scale;
+      this.changes.push({index,awake:1});this.awake.push({a,site:index,lastHp:a.hp,wedge,law:new ProjectedState(this.slots.member,this.program)});
       this.ports.cues.cue(this.rows.cues.wake, point.set(site.x, heightAt(site.x, site.z) + this.rows.lift.wake, site.z), UP);
     }
     return this.changes;
   }
   /** Send every actor home; a site whose actor is already gone stands again. */
-  dawn(): readonly SlotSiteChange[] { for (const index of this.slots.dawnActors()) this.changes.push({ index, awake: 0 }); return this.changes; }
+  dawn():readonly SlotSiteChange[]{
+    const rows=this.slots.actors;if(rows===undefined)throw new Error('Missing slot actor rows');
+    for(const {a,site}of this.awake){if(a.alive)a.mem[rows.dawn]=1;else if(a.hidden)this.changes.push({index:site,awake:0});}return this.changes;
+  }
+  private retire(index:number,delayed:boolean):void {
+    const member=this.awake[index];if(member===undefined)return;
+    this.roster?.retire(member.a);if(delayed)this.retired.push(member.site);this.awake.splice(index,1);
+  }
   /** Step the roster and draw it; the sites to hide or show since the last call. */
   update(dt: number, frame: Readonly<Record<string, number>>): readonly SlotSiteChange[] {
     this.changes.length = 0;
-    const rows = this.rows, cues = this.ports.cues, step = this.slots.updateActors(dt, frame);
-    if (step.cycle[rows.cycle.wake] === 1) this.wake();
-    if (step.cycle[rows.cycle.dawn] === 1) this.dawn();
-    for (const row of step.released) { const index = row['index']; if (index !== undefined) this.changes.push({ index, awake: 0 }); }
+    const rows=this.rows,cues=this.ports.cues,actors=this.slots.actors;if(actors===undefined)throw new Error('Missing slot actor rows');
+    const step=this.cycle.step(this.roster===null?0:dt,frame),members=new Map<Awake<A>,Readonly<Record<string,number>>>();
+    if(step.dt>0)for(const member of this.awake)members.set(member,member.law.project({dt:step.dt,alive:Number(member.a.alive),gone:member.a.mem[actors.gone]??0}));
+    if(step.values[rows.cycle.wake]===1)this.wake();
+    if(step.values[rows.cycle.dawn]===1)this.dawn();
+    if(step.values[this.slots.release]===1){for(const index of this.retired)this.changes.push({index,awake:0});this.retired.length=0;}
     this.trailT += dt; const trail = this.trailT > rows.every; if (trail) this.trailT = 0;
     for (let i = this.awake.length - 1; i >= 0; i--) {
       const w = this.awake[i]; if (w === undefined) continue;
-      const a = w.a, sc = a.scale, state = step.members.get(a.entityId) ?? {};
+      const a = w.a, sc = a.scale, state = members.get(w) ?? {};
       if (a.hp < w.lastHp) {
         point.set(a.position.x, a.position.y + rows.lift.hit * sc, a.position.z);
         cues.cue(this.ports.guest.weakPoint(a, point) ? rows.cues.weak : a.hp < w.lastHp - rows.cues.hard.drop ? rows.cues.hard.cue : rows.cues.hit, point, UP);
@@ -168,10 +191,10 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
       if (!a.alive) {
         w.wedge.hide();
         if (state[rows.states.broken] === 1) cues.cue(rows.cues.broken, point.set(a.position.x, a.position.y + rows.lift.broken * sc, a.position.z), UP);
-        if (state[rows.states.retire] === 1) { this.slots.retireActor(a, true); this.awake.splice(i, 1); }
+        if (state[rows.states.retire] === 1) { this.retire(i,true); }
         continue;
       }
-      if (state[rows.states.home] === 1) { this.slots.retireActor(a, false); this.changes.push({ index: w.site, awake: 0 }); this.awake.splice(i, 1); continue; }
+      if (state[rows.states.home] === 1) { this.retire(i,false); this.changes.push({ index: w.site, awake: 0 }); continue; }
       if (trail) for (const row of rows.trails) {
         const value = a.mem[row.field] ?? 0;
         if (value < row.min || value >= row.max || (row.chance < 1 && app.rng.stream('cosmetic').next() >= row.chance)) continue;

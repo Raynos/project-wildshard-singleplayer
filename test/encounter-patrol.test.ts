@@ -1,7 +1,7 @@
-import { EncounterPatrolSchema, EncounterSlotsSchema } from '@wildshard/format/encounterRows';
+import { EncounterPatrolSchema } from '@wildshard/format/encounterRows';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { EncounterPatrol, EncounterSlots } from '../src/game/boss/encounterPatrol';
+import { EncounterPatrol } from '../src/game/boss/encounterPatrol';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
@@ -99,27 +99,3 @@ test('an orchard mounted patrol borrows its roster, leader and memory mapping', 
   expect(host.members).toHaveLength(1);
 });
 
-test('orchard statue slots own spawning, dawn return and delayed plinth release', () => {
-  const rows = { ...v.parse(EncounterSlotsSchema,night.slots), actors: { kind: 'orchard-statue', variant: 'guard', variants: { '2': 'crowned' }, herd: -2, yaw: .5, sink: -1,
-    memory: { rising: 0 }, home: { x: 'originX', z: 'originZ', yaw: 'facing' }, dawn: 'returning', gone: 'buried' } };
-  const body = (id: string, x: number, z: number, yaw: number, variant: string) => ({ entityId: id, position: { x,z }, yaw, variant, herd: 0, alive: true, hidden: false, scale: 2, yOffset: 0, mem: {} as Record<string,number> });
-  type Body = ReturnType<typeof body>;
-  const host = new EncounterSlots<Body>(rows,ReturnProgram.page(night.program));
-  let count = 0, retired = 0;
-  host.attachActors({ factory: { model: () => undefined }, spawn: (_kind,x,z,yaw,variant) => body(String(count++),x,z,yaw,variant), retire: a => { a.hidden = true; retired++; } });
-  const sites = [{ x: 2,z: 5,yaw: 1,variant: 2 },{ x: 7,z: 9,yaw: 0,variant: 0 }];
-  const [first,second] = host.spawnActors(sites,[0,0,1]);
-  if (first === undefined || second === undefined) throw new Error('Missing statue fixture');
-  expect(count).toBe(2); expect(first.a.variant).toBe('crowned'); expect(first.a.yaw).toBe(1.5);
-  expect(first.a.mem['originX']).toBe(2); expect(first.a.yOffset).toBe(-2);
-  expect(host.updateActors(.05,{ kind: 1 }).members.size).toBe(0);
-  first.a.alive = false;
-  const broken = host.updateActors(.05,{ kind: 1 }); expect(broken.members.get(first.a.entityId)?.['broken']).toBe(1);
-  host.retireActor(first.a,true); host.retireActor(first.a,true); expect(retired).toBe(1);
-  expect(host.dawnActors()).toEqual([]); expect(second.a.mem['returning']).toBe(1);
-  expect(host.updateActors(.1,{ kind: 0 }).released).toEqual([{ index: 0 }]);
-  second.a.mem['buried'] = 1;
-  expect(host.updateActors(.1,{ kind: 0 }).members.get(second.a.entityId)?.['statue']).toBe(1);
-  host.retireActor(second.a,false); expect(retired).toBe(2);
-  expect(host.updateActors(.1,{ kind: 0 }).released).toEqual([]);
-});

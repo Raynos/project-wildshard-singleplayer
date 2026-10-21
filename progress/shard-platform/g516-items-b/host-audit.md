@@ -193,3 +193,21 @@ preserved. Runtime physical TS: **shards 0 / platform -20**; build/AS **0**.
 Root/layer types, typed lint and two focused suites (12 tests) pass,
 including original and alternate-data AS lap/record/fall sequences.
 No collider, data-byte, codec, guest-resource or budget change.
+
+
+X4 static encounter slots: delete the complete EncounterSlots and its
+private actor, member and retirement maps. SlotEncounterView retains the
+single real body roster; existing ProjectedState owns each member and
+cycle continuation. Existing night AS still decides dusk/dawn, rotating
+selection, break, home and retirement. Keep native body placement and
+cue order, including the next-day release of corpses retired after dawn.
+ProjectedState retains real Nalati + Nine HOST-BAR 6/6. The slot adapter
+and its private types remain Nalati-only HOST-BAR 4/6/C4, explicitly
+charged despite optional dispatchers. Fixtures grant no second user.
+Physical runtime TS: **shards 0 / platform -68**; build/AS/data rows **0**.
+This is a physical deletion, not a claim of 68 lines of ruler credit;
+the explicit single-user view charge remains in the next census.
+Root/layer types, typed lint and five focused suites (27 tests) pass.
+Retire wrapper-only fixtures; verify real native duplicate wakes,
+variant/home/height joins, one retirement, dawn and late corpse release.
+No collider descriptors, visuals, codec, resource bounds or budgets change.
