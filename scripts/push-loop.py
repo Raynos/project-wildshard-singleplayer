@@ -18,6 +18,9 @@ git = LIVE['git']
 def check_committed(root, base, tip, deadline):
     try:
         with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), deadline) as (tree, tools):
+            rc, output = LIVE['run'](['node', str(tree / 'scripts/gen-shard-words.mjs')], tree, deadline)
+            if rc:
+                return {'ok': False, 'phase': 'lint-tables', 'files': LIVE['failure_paths'](output), 'output': output}
             available = json.loads((tree / '.push-types.json').read_text())['available']
             if available:
                 rc, output = LIVE['run'](['node', '--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
@@ -79,6 +82,8 @@ def offender(root, base, tip, files, deadline):
         return None
     commits = git(root, 'rev-list', '--reverse', '--first-parent', base + '..' + tip).splitlines()
     for sha in commits:
+        if time.monotonic() >= deadline:
+            return None
         touched = git(root, 'diff-tree', '--no-commit-id', '--name-only', '-r', sha).splitlines()
         if set(touched).intersection(inputs):
             return sha
@@ -87,7 +92,8 @@ def offender(root, base, tip, files, deadline):
 
 def tick(root, checker=check_committed, uploader=None, notify=ping):
     started = time.monotonic()
-    deadline = started + LIVE['LIMIT']
+    # Reaping the snapshot is part of the 45-second ceiling too.
+    deadline = started + LIVE['LIMIT'] - 2
     pending_notice = None
 
     def finish(result):
@@ -147,7 +153,7 @@ def main():
     root = Path(git(Path.cwd(), 'rev-parse', '--show-toplevel'))
     if len(sys.argv) == 3 and sys.argv[1] == '--check':
         tip = git(root, 'rev-parse', sys.argv[2])
-        result = check_committed(root, git(root, 'merge-base', 'origin/main', tip), tip, time.monotonic() + LIVE['LIMIT'])
+        result = check_committed(root, git(root, 'merge-base', 'origin/main', tip), tip, time.monotonic() + LIVE['LIMIT'] - 2)
         print(json.dumps(result))
         return 0 if result['ok'] else 1
     folder = root / 'tmp/push-loop'

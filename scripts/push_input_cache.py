@@ -111,7 +111,10 @@ def restore(repo, tree, records, deadline):
     file = repo / 'tmp/push-input-cache/entries.json'
     deadline = min(deadline, time.monotonic() + 8)
     def matches(saved):
-        return isinstance(saved, dict) and saved.get('schema') == 'push-type-inputs/2' and source_key(records, saved['roots']) == saved['key']
+        try:
+            return isinstance(saved, dict) and saved.get('schema') == 'push-type-inputs/2' and source_key(records, saved['roots']) == saved['key']
+        except (KeyError, TypeError):
+            return False
     try:
         saved = json.loads(file.read_text())
     except (FileNotFoundError, json.JSONDecodeError):
@@ -134,7 +137,7 @@ def restore(repo, tree, records, deadline):
                 publish(repo, revision, generated, deadline)
                 saved = json.loads(file.read_text())
                 break
-            except (ValueError, OSError):
+            except (ValueError, OSError, KeyError, TypeError):
                 continue
             except (TimeoutError, subprocess.TimeoutExpired):
                 return False
@@ -155,5 +158,5 @@ def restore(repo, tree, records, deadline):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
         return True
-    except (FileNotFoundError, KeyError, json.JSONDecodeError):
+    except (OSError, KeyError, ValueError, TypeError):
         return False

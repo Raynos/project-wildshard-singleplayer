@@ -204,8 +204,7 @@ class PushLoop(unittest.TestCase):
         (self.root / 'tmp/push-input-cache/blobs' / digest).write_text('corrupt')
         clean = self.root / 'another-check'
         clean.mkdir()
-        with self.assertRaisesRegex(ValueError, 'Corrupt'):
-            CACHE['restore'](self.root, clean, records, time.monotonic() + 5)
+        self.assertFalse(CACHE['restore'](self.root, clean, records, time.monotonic() + 5))
         saved['inputs']['src/base.ts'] = 'f' * 64
         encoded = json.dumps(saved, ensure_ascii=False, separators=(',', ':'))
         phase.write_text(json.dumps({**saved, 'seal': hashlib.sha256(encoded.encode()).hexdigest()}))
