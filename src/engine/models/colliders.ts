@@ -9,6 +9,23 @@ import type { Material as SurfaceMaterial } from '../physics/surface';
 import type { ColliderDesc } from '../world/registry';
 import type { Placement } from './model';
 
+function finiteLaneValue(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Collider values must be finite');
+  return value;
+}
+function copyLane<T extends Float32Array | Uint32Array>(values: readonly unknown[], Storage: new (length: number) => T, read: (value: unknown) => number): T {
+  const count = values.length;
+  if (!Number.isSafeInteger(count) || count < 0 || count > 6_000_000) throw new Error('Collider geometry must be a bounded array');
+  const owned = new Storage(count);
+  // Use indexed facts, never a caller's custom iterator or a changing length.
+  for (let i = 0; i < count; i++) owned[i] = read(values[i]);
+  return owned;
+}
+function indexLaneValue(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 0xffff_ffff) throw new Error('Collider indices must fit Uint32');
+  return value;
+}
+
 /** Decode fresh registry descriptors from serialized facts. Callers explicitly admit shape kinds and surfaces;
  * absent surfaces stay absent, unless requireSurface is true. No physics objects are created here.
  * At most 65,536 rows and 6,000,000 values per geometry lane are admitted; indices must fit Uint32. */
@@ -22,19 +39,15 @@ export function readColliderRows(rows: readonly unknown[], policy: {
   const point = val.strictObject({ x: finite, y: finite, z: finite }, 'Collider lacks an endpoint');
   const surface = val.exactOptional(val.picklist(policy.surfaces));
   const at = { x: finite, y: finite, z: finite, yaw: val.exactOptional(finite), rot: val.exactOptional(val.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface };
-  // Validate the borrowed numeric lane in place. val.array would first clone
-  // every JS number, only for the owned typed-array conversion to copy it again.
-  const lane = val.custom<number[]>(input => {
-    if (!Array.isArray(input) || input.length > 6_000_000) return false;
-    for (const value of input) if (typeof value !== 'number' || !Number.isFinite(value)) return false;
-    return true;
-  }, 'Collider geometry must contain bounded finite values');
+  // Borrow bounded storage, then validate each value while copying it once.
+  // A lane accessor cannot change a checked value before its owned conversion.
+  const lane = val.custom<unknown[]>(input => Array.isArray(input) && input.length <= 6_000_000, 'Collider geometry must be a bounded array');
   const schema = val.variant('kind', [
     val.strictObject({ kind: val.literal('box'), ...at, hx: finite, hy: finite, hz: finite }),
     val.strictObject({ kind: val.literal('capsule'), ...at, halfHeight: finite, radius: finite }),
     val.strictObject({ kind: val.literal('ball'), ...at, radius: finite }),
     val.strictObject({ kind: val.literal('hull'), ...at, points: lane }),
-    val.strictObject({ kind: val.literal('trimesh'), ...at, vertices: lane, indices: val.pipe(lane, val.check(values => values.every(value => Number.isInteger(value) && value >= 0 && value <= 0xffff_ffff))) }),
+    val.strictObject({ kind: val.literal('trimesh'), ...at, vertices: lane, indices: lane }),
     val.strictObject({ kind: val.literal('treads'), from: point, to: point, width: finite, count: val.pipe(finite, val.integer(), val.minValue(1)), surface }),
   ]);
   return rows.map(raw => {
@@ -42,8 +55,8 @@ export function readColliderRows(rows: readonly unknown[], policy: {
     const actual = 'surface' in raw ? raw.surface : undefined;
     if ((actual === undefined && policy.requireSurface === true) || (actual !== undefined && !policy.surfaces.some(allowed => allowed === actual))) throw new Error('Unexpected collider surface');
     const row = val.parse(schema, raw);
-    if (row.kind === 'hull') return { ...row, points: Float32Array.from(row.points) };
-    if (row.kind === 'trimesh') return { ...row, vertices: Float32Array.from(row.vertices), indices: Uint32Array.from(row.indices) };
+    if (row.kind === 'hull') return { ...row, points: copyLane(row.points, Float32Array, finiteLaneValue) };
+    if (row.kind === 'trimesh') return { ...row, vertices: copyLane(row.vertices, Float32Array, finiteLaneValue), indices: copyLane(row.indices, Uint32Array, indexLaneValue) };
     return row;
   });
 }
