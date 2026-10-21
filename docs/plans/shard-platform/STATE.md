@@ -4,6 +4,8 @@
 
 **Live:** bb04f4a37 (14:59Z) carries the R1 arrival fix 2a1f3c89d3; deploy starvation fixed (a5a3c8fbca: newest both-green ships). Reply to wildshard-v: release first, no push holds (G438/G506).
 
+**Tooling:** BUILD-SPEED (E491) owns it; no tooling rows here. G560 latches carry their numbers in the entry (no receipt folders).
+
 **Rules:** G465/G467/G468/G469/G470/G482/G492/G493/G496/G506/G509/G510/G512/G518 (lanes/common.md).
 
 **For wildshard-v:** G550 hero: art/grid/round-35-hero-retake/sq-ne-b-o24-{iphone,desktop,board}.jpg (5a410d548f); outer band now draws its ground (O24 haze fix 734f24a81a); holograms/beams still fade past 850 m by design, so G550's 'holograms in the distance' needs a pick: keep the fade (recommended, draw cost) or extend it.
