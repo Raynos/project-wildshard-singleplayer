@@ -226,6 +226,17 @@ export class Game {
       if (resource instanceof THREE.Texture) {
         const texture: unknown = Reflect.get(props, '__webglTexture'); if (texture !== undefined) textures.add(texture);
       }
+      // X22: a retained render target's attachments are retained textures too (three counts each in info.memory.textures);
+      // counting only Texture resources charged every page-level target to the level as a leak (12 phone / 20 desktop)
+      if (resource instanceof THREE.WebGLRenderTarget) {
+        const colour: unknown = Reflect.get(resource, 'textures'), depth: unknown = Reflect.get(resource, 'depthTexture'), attachments: unknown[] = [depth];
+        if (Array.isArray(colour)) for (let i = 0; i < colour.length; i++) { const item: unknown = Reflect.get(colour, i); attachments.push(item); }
+        for (const attachment of attachments) {
+          const state: unknown = attachment instanceof THREE.Texture ? this.renderer.properties.get(attachment) : null;
+          const texture: unknown = typeof state === 'object' && state !== null ? Reflect.get(state, '__webglTexture') : undefined;
+          if (texture !== undefined) textures.add(texture);
+        }
+      }
       if (resource instanceof THREE.Material) {
         const compiled: unknown = Reflect.get(props, 'programs');
         if (compiled instanceof Map) for (const program of compiled.values()) programs.add(program);
