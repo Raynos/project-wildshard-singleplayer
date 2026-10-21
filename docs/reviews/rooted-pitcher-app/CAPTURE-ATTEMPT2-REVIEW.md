@@ -1,0 +1,22 @@
+# Actual Pitcher second capture: independent review
+
+2026-10-21. Source b0303faa9ea58ca0533fde7a7c9edc53649e22e5, protected by d8999996af6a9552878fe810f9131a487eaabc3c. Immutable PIN2 protected by fdfe1cf7b6abfa82817e0f1651e27781b11359cb. This is not public admission.
+
+Originals retained unchanged. Read-only inspection of saved JSON and direct viewing with an image viewer of original capture/01-living.jpg, 03-frozen.jpg, 05-player-defeated.jpg, and 04-retry.jpg. No new image/video derivatives, browser activity, builds, source edits, Git operations, or publication. Python scripts and derived inspection/metrics JSON are confined to independent-review2. The trace was parsed for schema and metrics, not replayed. Detailed metrics are retained with the original capture under independent-review2/metrics.json.
+
+## Supported observations
+- Saved trace: 4,830 fixed, 808 render, 23 event and 7 lifecycle records; errors empty and overflow false. This is the saved prefix through third-bout Retry, not a completed lifecycle suite.
+- Player positions change and the partial harness reports realMovement true. This is not player-only navigation proof: report records 17 diagnostic placements. Enemy living position moves under sword hits from [0,900,-7] toward [-3.9202,900,-13.0259]; living rooted stability is not established.
+- Enemy receives thirteen 12-damage sword receipts, one killed=true at render frame135 (native frame403, native time6.716666666666648s) and exactly one enemy actor.died event. Health reaches zero. Practice coins progress 0,2,6,10 and remain10 until Retry. No duplicated death or rewards are observed in this interval; this is not proof against all future duplicates.
+- Frozen owner has 349 snapshots across wallTime170721.7–195552ms: all physical position, rotation, velocity and complete view/bone transform objects match exactly. The corpse remains upright, explicitly HELD DEATH/NO FOLD. It does not prove a collapse animation.
+- Bout2 has four crown hits of16 and four bilateral hits of11, alternating with active-phase strike IDs at damage events. Health100→84→73→57→46→30→19→3→0; final bilateral kills at render frame784 (native frame1792, native time29.86666666666625s), followed by one player actor.died. Original defeat JPG displays0 and defeat text.
+- Retry after corpse and Retry after defeat both dispose prior owners with scopeClosed true, released terminal leases, returned outcomes and remainingBodies0. New bouts attach at nativeClock frame0; enemy150, player100, coins0, 0 bodies/18 colliders/2 controllers. Original Retry JPG is bout2; bout3 reset is trace evidence, not that screenshot.
+- No observer errors in trace and no errors/denied requests in partial report. This does not establish the missing end-to-end system-fault gates.
+
+## Not established
+Back disposal, Back-to-start freshness, reload freshness, reload/storage isolation, terminal global fault checks, and completion of the planned lifecycle suite remain unproved. Exit137 exact cause unknown. Root termination-receipt.json reports video41680896 bytes, SHA256 dfd498d69ab10415aa572f9137c1caa3bb75be9a4a28cd4decc6ff17018805d8. Root ffprobe found19069 VP8 frames at402×874/25fps but premature EOF and no duration. This is not a finalized complete-cycle video. No admission or quality score is warranted.
+
+## Exact-definition sharing feasibility
+Observed schema has pose.recipe as a JSON STRING (not object), repeated5,664 times, one exact value of29,224 characters:165,524,736 repeated raw characters. control is another JSON string; decoding it reveals decision as a JSON string; decoding that reveals contract as a JSON string. Contract repeats5,664 times, one exact2,393-character value:13,553,952 raw characters. SHA256 values are recorded in metrics.json.
+
+Content-addressed exact-string interning can share these repeated definitions losslessly for the captured data. Preserve type and raw string contents; resolving references must reproduce each original field exactly, including nested encoding. Do not strip control wholesale: decision fields/state and strike clocks/phases are dynamic. Stable in this capture is not a universal immutability guarantee: detect changed definition content, intern a new entry, and retain explicit references. Exact original outer JSON-file bytes additionally require retaining original formatting/order, rather than claiming ordinary parse/re-serialization is byte-identical. No observer implementation files were edited.

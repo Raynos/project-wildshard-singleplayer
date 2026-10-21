@@ -13,9 +13,40 @@ export function installNativeOwnerObservation(provenance) {
     demo.game.levelScope.onDispose(() => { overlay.remove(); });
   }
   const trace = { fixed: [], render: [], events: [], lifecycle: [], errors: [], overflow: false };
+  // Compact mode is explicit so historical proof callers keep their original representation.
+  // Definitions are exact source strings, not hashes, compressed payloads or reconstructed recipes.
+  const compact = options.internDefinitions === true;
+  const definitions = [], indexes = new Map();
+  if (compact) Object.assign(trace, { schema: 'wildshard.native-owner.interned-trace.v1', definitions,
+    encoding: 'Only pose.recipe and control.decision.contract are interned. json-string wrappers restore exact canonical JSON strings. All other fields and every row are retained.' });
+  const intern = (kind, value) => {
+    if (typeof value !== 'string') return value;
+    let byValue = indexes.get(kind);
+    if (!byValue) { byValue = new Map(); indexes.set(kind, byValue); }
+    let id = byValue.get(value);
+    if (id === undefined) { id = definitions.length; definitions.push({ kind, value }); byValue.set(value, id); }
+    return { $nativeDefinition: id };
+  };
+  const encode = row => {
+    if (!compact) return row;
+    if (row.pose && typeof row.pose.recipe === 'string') row.pose.recipe = intern('pose.recipe', row.pose.recipe);
+    if (typeof row.control === 'string') {
+      const control = JSON.parse(row.control);
+      // Noncanonical external strings remain verbatim rather than silently changing whitespace/key order.
+      if (JSON.stringify(control) === row.control && typeof control.decision === 'string') {
+        const decision = JSON.parse(control.decision);
+        if (JSON.stringify(decision) === control.decision && typeof decision.contract === 'string') {
+          decision.contract = intern('control.decision.contract', decision.contract);
+          control.decision = { $nativeEncoding: 'json-string', value: decision };
+          row.control = { $nativeEncoding: 'json-string', value: control };
+        }
+      }
+    }
+    return row;
+  };
   window.__nativeOwnerTrace = trace; window.__nativeOwnerPhase = 'entry';
   let attached = null, attachedOwner = null, bout = 0;
-  const append = (stream, value) => { if (trace[stream].length < 30000) trace[stream].push(value); else trace.overflow = true; };
+  const append = (stream, value) => { if (trace[stream].length < 30000) trace[stream].push(encode(value)); else trace.overflow = true; };
   const observe = (stream, read) => {
     try { append(stream, read()); }
     catch (error) { if (trace.errors.length < 100) trace.errors.push({ stream, error: error instanceof Error ? error.message : String(error) }); else trace.overflow = true; }
@@ -90,5 +121,28 @@ export function installNativeOwnerObservation(provenance) {
     scope: 'Read-only snapshots after original pre/post/render calls and existing queued receipts; no extra evaluator or clock.',
     camera: 'Unmodified real player camera and viewmodel',
     clockOverlay: overlay !== null,
+    traceEncoding: compact ? 'wildshard.native-owner.interned-trace.v1' : 'legacy-inline',
     clockCorrelation: 'When enabled, overlay is updated after the original draw from that same passive render sample. Match visible PERF/BOUT/NATIVE text to render trace rows; recorder may omit or repeat draws. Wall anchors alone are approximate, not exact video PTS mapping.', synthetic: options.synthetic, modelAdmission: false };
+}
+
+/** Reconstruct one row, not a second full trace. Reject invalid references rather than masking missing evidence. */
+export function reconstructNativeOwnerRow(row, definitions) {
+  const resolve = (reference, kind) => {
+    if (reference === null || typeof reference !== 'object' || !Object.hasOwn(reference, '$nativeDefinition')) return reference;
+    const definition = definitions[reference.$nativeDefinition];
+    if (!definition || definition.kind !== kind || typeof definition.value !== 'string') throw new Error(`Invalid native definition: ${kind}`);
+    return definition.value;
+  };
+  const restored = { ...row };
+  if (row.pose) restored.pose = { ...row.pose, recipe: resolve(row.pose.recipe, 'pose.recipe') };
+  if (row.control?.$nativeEncoding === 'json-string') {
+    const control = { ...row.control.value };
+    if (control.decision?.$nativeEncoding === 'json-string') {
+      const decision = { ...control.decision.value };
+      decision.contract = resolve(decision.contract, 'control.decision.contract');
+      control.decision = JSON.stringify(decision);
+    }
+    restored.control = JSON.stringify(control);
+  }
+  return restored;
 }

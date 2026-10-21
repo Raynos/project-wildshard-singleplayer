@@ -23,3 +23,8 @@ await test('the shared runtime retains actor-owned timing, damage and products w
   assert.equal((code.match(/new TrainingArena\(/g)??[]).length,1);
   assert.equal(digest(readFileSync('src/pufferGaitContinuityPreview.ts')), '54662e9d697533877bb2c7cbe0a29ae415769416d6db3223558a1ab67feeb15d');
 });
+await test('fifth opponent is explicit, fail-closed and absent from active pins', () => {
+  assert.equal(pins.enemies.pitcher, undefined);
+  assert.throws(() => admitSharedArena(root, source, {}), /Invalid rooted input descriptor/);
+  assert.deepEqual(admitSharedArena(root, source).map(row => row.id), ['mantis', 'conch', 'colossus', 'puffer']);
+});

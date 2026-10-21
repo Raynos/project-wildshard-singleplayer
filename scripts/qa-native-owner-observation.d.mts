@@ -1,5 +1,5 @@
 /** Detached installation receipt. Observation never supplies simulation or restoration authority. */
-export function installNativeOwnerObservation(provenance?: { readonly synthetic: boolean; readonly clockOverlay?: boolean }): {
+export function installNativeOwnerObservation(provenance?: { readonly synthetic: boolean; readonly clockOverlay?: boolean; readonly internDefinitions?: boolean }): {
   schema: string;
   installed: { wallTime: number; frame: number; gameTime: number; alpha: number; phase: string; bout: number };
   clocks: string;
@@ -7,6 +7,9 @@ export function installNativeOwnerObservation(provenance?: { readonly synthetic:
   camera: string;
   clockOverlay: boolean;
   clockCorrelation: string;
+  traceEncoding: string;
   synthetic: boolean;
   modelAdmission: boolean;
 };
+
+export function reconstructNativeOwnerRow<T extends Record<string, unknown>>(row: T, definitions: readonly { kind: string; value: string }[]): T;

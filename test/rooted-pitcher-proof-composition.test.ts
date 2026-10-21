@@ -89,18 +89,25 @@ test('rooted source retains both real strikes and bounded native guest', () => {
 
 test('capture reads the real singular strike snapshot and refuses plural or inactive fixtures', () => {
   const harness = readFileSync('scripts/qa-rooted-pitcher-proof.mjs', 'utf8');
-  const begin = harness.indexOf('  const strikes = cycle.fixed.map(');
-  const end = harness.indexOf('  report.checks.actualPlayerReceipts', begin);
-  expect(begin).toBeGreaterThan(0); expect(end).toBeGreaterThan(begin);
-  const expression = `${harness.slice(begin, end)}; report.checks.bothRealStrikes;`;
+  const collect = /const control = typeof row\.control[^\n]+\n\s+if \(control\?\.strike[^\n]+/u.exec(harness)?.[0];
+  const verdict = /report\.checks\.bothRealStrikes = [^\n]+/u.exec(harness)?.[0];
+  if (collect === undefined || verdict === undefined) throw new Error('Missing actual streamed strike checks');
   const ids = ['strike.pitcher.crown', 'strike.pitcher.bilateral'];
-  const check = (key: string, phase: string): unknown => runInNewContext(expression, {
-    cycle: { fixed: ids.map(currentId => ({ control: JSON.stringify({ [key]: { currentId, phase } }) })) }, report: { checks: {} },
-  });
+  const check = (key: string, phase: string, compact = false): unknown => {
+    const summary = { strikes: new Set<string>() };
+    for (const currentId of ids) {
+      const value = { [key]: { currentId, phase } };
+      const row = { control: compact ? { $nativeEncoding: 'json-string', value } : JSON.stringify(value) };
+      runInNewContext(collect, { row, summary });
+    }
+    return runInNewContext(`${verdict}; report.checks.bothRealStrikes;`, { cycle: summary, report: { checks: {} } });
+  };
   expect(readFileSync('src/game/shardfile/borrowedDecisions.ts', 'utf8')).toContain('strike: runner.snapshot()');
   expect(check('strike', 'active')).toBe(true);
   expect(check('strikes', 'active')).toBe(false);
   expect(check('strike', 'windup')).toBe(false);
+  expect(check('strike', 'active', true)).toBe(true);
+  expect(check('strikes', 'active', true)).toBe(false);
 });
 
 test('proof paths preserve legacy defaults and require explicit safe paired retry destinations', () => {

@@ -2,10 +2,16 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary source-proof products stay in repository tmp.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the exact exporter with bounded in-memory transport, not a browser.
+import { runInNewContext } from 'node:vm';
+// oxlint-disable-next-line import/no-nodejs-modules -- Check exported bytes against their source receipt.
+import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Bounded exporter transport bytes.
+import { Buffer } from 'node:buffer';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
-import { installNativeOwnerObservation } from '../scripts/qa-native-owner-observation.mjs';
+import { installNativeOwnerObservation, reconstructNativeOwnerRow } from '../scripts/qa-native-owner-observation.mjs';
 import { disposalErrorMessages } from '../src/engine/app/scope';
 import proof from '../src/shards/driftwood-isle/data/nativeOwnerProof.json';
 import { buildNativeOwnerProofProduct, nativeOwnerProofBodies } from '../src/shards/driftwood-isle/generators/nativeOwnerProof';
@@ -60,14 +66,14 @@ test('new strict product exercises real native multiple hits, physical handoff, 
   } finally { f.owner.dispose(); }
 });
 
-function observer(f: Awaited<ReturnType<typeof fixture>>, provenance?: { synthetic: boolean; clockOverlay?: boolean }) {
+function observer(f: Awaited<ReturnType<typeof fixture>>, provenance?: { synthetic: boolean; clockOverlay?: boolean; internDefinitions?: boolean }) {
   const token = Symbol('actual-render-result'), render = vi.fn(() => token);
   const owner = { native: f.native, targets: [f.view], events: f.events, practicePlayer: f.player,
     bout: f.owner, retry: vi.fn(), loot: { receipt: { coins: 0, complete: false } } };
   const demo = { arena: { entered: true, opponent: owner, playerVitals: { health: 100, maxHealth: 100 } },
     player: f.outside.player, game: { frameCount: 0, frameTime: 0, alpha: 1, composer: { render }, levelScope: f.owner } };
   const browser: { __practiceDemo: typeof demo; __nativeOwnerSample?: () => unknown;
-    __nativeOwnerTrace?: { errors: unknown[]; lifecycle: { event: string; outcome?: string }[] } } = { __practiceDemo: demo };
+    __nativeOwnerTrace?: { overflow: boolean; errors: unknown[]; lifecycle: { event: string; outcome?: string }[]; render: Record<string, unknown>[]; fixed: Record<string, unknown>[]; definitions?: { kind: string; value: string }[] } } = { __practiceDemo: demo };
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
   Object.defineProperty(globalThis, 'window', { value: browser, writable: true, configurable: true });
   const restoreWindow = (): void => {
@@ -156,4 +162,127 @@ test('optional clock overlay follows the actual forwarded draw and disposes with
     if (previousDocument === undefined) Reflect.deleteProperty(globalThis, 'document');
     else Object.defineProperty(globalThis, 'document', previousDocument);
   }
+});
+
+
+test('interned passive rows reconstruct exact live, hit, lethal, frozen and disposed native snapshots without dropping dynamics', async () => {
+  const f = await fixture(product, true);
+  let restoreWindow: () => void = () => undefined;
+  const time = vi.spyOn(performance, 'now').mockReturnValue(123.456);
+  try {
+    const o = observer(f, { synthetic: false, internDefinitions: true }); restoreWindow = o.restoreWindow;
+    expect(o.receipt.traceEncoding).toBe('wildshard.native-owner.interned-trace.v1');
+    const verify = () => {
+      const original = structuredClone(o.sample()) as Record<string, unknown>;
+      o.demo.game.composer.render();
+      const row = o.trace.render.at(-1);
+      if (!row || !o.trace.definitions) throw new Error('Missing compact row or definitions');
+      expect(reconstructNativeOwnerRow(structuredClone(row), o.trace.definitions)).toEqual(original);
+      // Reconstructing must not mutate retained rows or definitions.
+      expect(JSON.stringify(reconstructNativeOwnerRow(row, o.trace.definitions))).toBe(JSON.stringify(original));
+      return row;
+    };
+    const living = verify(), retainedLiving = JSON.stringify(living);
+    const originalLiving = JSON.stringify(reconstructNativeOwnerRow(living, o.trace.definitions ?? []));
+    const hit = (amount: number) => f.combat.hit({ source: 'env', sourceTags: ['dmg.melee'], target: f.native.actor.combatActor(), amount,
+      point: f.native.actor.position.clone(), dir: new Vector3(.7, .2, -.5) });
+    hit(1); f.tick(); verify(); hit(10000); verify();
+    for (let i = 0; i < 310; i++) f.tick();
+    verify();
+    expect(o.trace.fixed.length).toBe(622);
+    expect(JSON.stringify(living)).toBe(retainedLiving);
+    expect(JSON.stringify(reconstructNativeOwnerRow(living, o.trace.definitions ?? []))).toBe(originalLiving);
+    expect(o.trace.definitions?.map(row => row.kind)).toEqual(['pose.recipe', 'control.decision.contract']);
+    expect(JSON.stringify(living).length).toBeLessThan(JSON.stringify(reconstructNativeOwnerRow(living, o.trace.definitions ?? [])).length);
+    expect(o.trace.errors).toEqual([]);
+    const control = reconstructNativeOwnerRow(o.trace.fixed[0] ?? {}, o.trace.definitions ?? [])['control'];
+    expect(typeof control).toBe('string'); // Existing downstream JSON.parse(...).strike remains available.
+    f.owner.dispose(); f.native.dispose(); verify();
+    expect(o.trace.errors).toEqual([]);
+  } finally { time.mockRestore(); f.owner.dispose(); restoreWindow(); }
+});
+
+test('interned observer retains changed definitions and noncanonical strings losslessly', async () => {
+  const f = await fixture(product, true);
+  let restoreWindow: () => void = () => undefined;
+  const time = vi.spyOn(performance, 'now').mockReturnValue(88);
+  try {
+    const o = observer(f, { synthetic: false, internDefinitions: true }); restoreWindow = o.restoreWindow;
+    const original = f.native.pose.snapshot.bind(f.native.pose);
+    const pose = vi.spyOn(f.native.pose, 'snapshot').mockImplementation(() => {
+      const row = JSON.parse(original()) as { recipe: string }; row.recipe += ' '; return JSON.stringify(row);
+    });
+    const originalControl = f.native.control.snapshot();
+    if (typeof originalControl !== 'string') throw new Error('Expected original control JSON string');
+    const control = vi.spyOn(f.native.control, 'snapshot').mockReturnValue(` ${originalControl} `);
+    const expected = structuredClone(o.sample()) as Record<string, unknown>;
+    o.demo.game.composer.render();
+    expect(reconstructNativeOwnerRow(o.trace.render.at(-1) ?? {}, o.trace.definitions ?? [])).toEqual(expected);
+    expect(o.trace.definitions).toHaveLength(3);
+    expect(() => reconstructNativeOwnerRow(o.trace.render.at(-1) ?? {}, [])).toThrow('Invalid native definition');
+    const changed = JSON.parse(originalControl) as { decision: string };
+    const decision = JSON.parse(changed.decision) as { contract: string };
+    decision.contract += ' '; changed.decision = JSON.stringify(decision);
+    control.mockReturnValue(JSON.stringify(changed));
+    const changedExpected = structuredClone(o.sample()) as Record<string, unknown>;
+    o.demo.game.composer.render();
+    expect(reconstructNativeOwnerRow(o.trace.render.at(-1) ?? {}, o.trace.definitions ?? [])).toEqual(changedExpected);
+    expect(o.trace.definitions).toHaveLength(4);
+    pose.mockRestore(); control.mockRestore();
+  } finally { time.mockRestore(); f.owner.dispose(); restoreWindow(); }
+});
+
+
+test('interned mode preserves safety bounds and explicitly flags incomplete observation', async () => {
+  const f = await fixture(product, true);
+  let restoreWindow: () => void = () => undefined;
+  try {
+    const o = observer(f, { synthetic: false, internDefinitions: true }); restoreWindow = o.restoreWindow;
+    o.trace.render.length = 30000;
+    expect(o.demo.game.composer.render()).toBe(o.token);
+    expect(o.trace.render).toHaveLength(30000); expect(o.trace.overflow).toBe(true);
+    o.trace.overflow = false; o.trace.errors.length = 100;
+    const snapshot = vi.spyOn(f.native.pose, 'snapshot').mockImplementation(() => { throw new Error('bounded read fault'); });
+    expect(o.demo.game.composer.render()).toBe(o.token);
+    expect(o.trace.errors).toHaveLength(100); expect(o.trace.overflow).toBe(true);
+    snapshot.mockRestore();
+  } finally { f.owner.dispose(); restoreWindow(); }
+});
+
+
+test('exact JSON exporter fixes a point-in-time boundary, transports bounded batches, and checks the same dynamic receipts', async () => {
+  const source = readFileSync('scripts/qa-rooted-pitcher-proof.mjs', 'utf8');
+  const functionSource = source.slice(source.indexOf('async function preserveTrace('), source.indexOf('const server = createServer'));
+  const trace = { schema: 'wildshard.native-owner.interned-trace.v1', encoding: 'test', overflow: false,
+    definitions: [{ kind: 'pose.recipe', value: '{"source":"original"}' }],
+    fixed: Array.from({ length: 130 }, (_, frame) => ({ frame, control: { value: { strike: { phase: 'active', currentId: 'strike.pitcher.crown' } } } })),
+    render: [{ frame: 1 }], events: [{ event: 'damage.dealt', target: 'enemy', killed: true }, { event: 'damage.dealt', target: 'player', killed: false }],
+    lifecycle: [{ event: 'attached', nativeClock: { frame: 0 } }, { event: 'dispose-after', scopeClosed: true, owner: { lease: 'released' }, outcome: 'returned' }], errors: [] };
+  const report: Record<string, unknown> = {}, chunks: Buffer[] = [], batches: number[] = [];
+  let evaluations = 0;
+  const page = { evaluate: (read: (arg?: unknown) => unknown, arg?: unknown) => {
+    const detached: unknown = structuredClone(read(arg));
+    if (evaluations++ === 0) {
+      trace.fixed.push({ frame: 130, control: { value: { strike: { phase: 'active', currentId: 'later-not-in-boundary' } } } });
+      trace.render.push({ frame: 2 }); trace.definitions.push({ kind: 'pose.recipe', value: '{"source":"later"}' });
+    }
+    if (Array.isArray(detached)) batches.push(detached.length);
+    return Promise.resolve(detached);
+  } };
+  const preserve = runInNewContext(`${functionSource}; preserveTrace`, {
+    window: { __nativeOwnerTrace: trace }, performance: { now: () => 123 }, Date, Buffer, createHash,
+    openSync: () => 7, closeSync: vi.fn(),
+    writeSync: (_fd: number, buffer: Buffer, offset: number, length: number) => {
+      // Deliberately partial writes exercise the lossless byte loop too.
+      const count = Math.min(length, 37); chunks.push(Buffer.from(buffer.subarray(offset, offset + count))); return count;
+    }, report, out: '/unused', join: (...parts: string[]) => parts.join('/'), save: vi.fn(),
+  }) as (page: unknown, label: string) => Promise<{ enemyKilled: boolean; playerHit: boolean; strikes: Set<string>; attached: unknown[]; disposed: unknown[] }>;
+  const summary = await preserve(page, 'boundary');
+  const bytes = Buffer.concat(chunks), exported = JSON.parse(bytes.toString()) as typeof trace;
+  expect(exported.fixed).toHaveLength(130); expect(exported.render).toHaveLength(1); expect(exported.definitions).toHaveLength(1);
+  expect(exported.fixed.map(row => row.frame)).toEqual(Array.from({ length: 130 }, (_, frame) => frame));
+  expect(exported.events).toEqual(trace.events); expect(exported.lifecycle).toEqual(trace.lifecycle);
+  expect(Math.max(...batches)).toBe(64); expect(summary.enemyKilled).toBe(true); expect(summary.playerHit).toBe(true);
+  expect([...summary.strikes]).toEqual(['strike.pitcher.crown']); expect(summary.attached).toHaveLength(1); expect(summary.disposed).toHaveLength(1);
+  expect(report['boundaryTrace']).toMatchObject({ bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'), fixed: 130, rendered: 1 });
 });

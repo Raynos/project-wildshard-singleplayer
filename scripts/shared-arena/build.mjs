@@ -13,10 +13,12 @@ import { admitSharedArena, digest } from './admission.mjs';
 
 assertHeavyLease('build');
 const root = resolve('.'), hostRoot = process.argv[2], destination = process.argv[3];
-if (!hostRoot || !destination) throw new Error('Usage: build.mjs <retained-host-directory> <new-output-directory>');
+if (!hostRoot || !destination) throw new Error('Usage: build.mjs <retained-host-directory> <new-output-directory> [rooted-input.json]');
 const outDir = resolve(destination);
 if (existsSync(outDir) && readdirSync(outDir).length > 0) throw new Error('Arena output must be new or empty');
-const entries = admitSharedArena(root, hostRoot);
+const rootedInputPath = process.argv.at(4);
+const rootedInput = rootedInputPath === undefined ? undefined : JSON.parse(readFileSync(resolve(root, rootedInputPath), 'utf8'));
+const entries = admitSharedArena(root, hostRoot, rootedInput);
 const revision = shardfileValidationRevision(root);
 // Run real current SDK validation, not just historic receipt matching. Stale runtime receipts fall back to normal admission.
 const require = createRequire(resolve('src/sdk/package.json'));
@@ -67,7 +69,7 @@ await build({ configFile: false, publicDir:false, base:'./', resolve:{alias:rapi
  load(id){return id.startsWith('\0shared-arena:')?tables.get(id.slice('\0shared-arena:'.length))??null:null;},
  writeBundle(){written=true;},closeBundle(){if(!written)return;copyFileSync(join(outDir,'practice.html'),join(outDir,'arena.html'));copyFileSync(join(outDir,'practice.html'),join(outDir,'index.html'));
  for(const [url,path]of assets){const dest=join(outDir,url.slice(1));mkdirSync(dirname(dest),{recursive:true});copyFileSync(path,dest);}
- for(const entry of entries)copyFileSync(join(entry.host,`${entry.id}-preview.json`),join(outDir,`${entry.id}-preview.json`));
+ for(const entry of entries)copyFileSync(join(entry.host,entry.previewFile),join(outDir,entry.previewFile));
  const report={schema:'wildshard.shared-arena.build.v1',builtAt:new Date().toISOString(),revision,singleRuntime:true,worldPersistence:false,bellback:'unavailable',products:entries.map(row=>({id:row.id,candidate:row.preview.candidate,mode:row.preview.mode,sourceHash:row.index.build.sourceHash,originalValidator:row.validation.revision,currentSdkValidation:'passed'}))};
  writeFileSync(join(outDir,'shared-arena-build.json'),`${JSON.stringify(report,null,2)}\n`);
  }}]});

@@ -1,3 +1,4 @@
+import { admitRootedPitcher } from './rooted-product.mjs';
 import { isDeepStrictEqual } from 'node:util';
 import { createHash } from 'node:crypto';
 import { readFileSync, lstatSync } from 'node:fs';
@@ -16,7 +17,8 @@ function normalizeJsonNumbers(value) {
   return Object.is(value, -0) ? 0 : value;
 }
 /** Exact published WIP tuples only. Refuses substitutions, edited payloads, stale source admission, and extra species. */
-export function admitSharedArena(root, hostRoot) {
+export function admitSharedArena(root, hostRoot, rootedInput) {
+  if (!isDeepStrictEqual(Object.keys(pins.enemies), ['mantis', 'conch', 'colossus', 'puffer'])) throw new Error('Original four Arena pins must remain unchanged');
   const admitted = { mantis: admitMantisPrecontact(root), conch: admitConchReviewedBuild(root), colossus: admitColossusNative(root) };
   const rows = [];
   const contentKeys = new Set();
@@ -43,8 +45,16 @@ export function admitSharedArena(root, hostRoot) {
       if (contentKeys.has(key)) throw new Error(`Duplicate arena content key: ${key}`);
       contentKeys.add(key);
     }
-    rows.push({ id, host, index, validation, preview, bodies, looks });
+    rows.push({ id, host, index, validation, preview, bodies, looks, previewFile: `${id}-preview.json` });
   }
   if (rows.length !== 4 || rows.some(row => row.id === 'bellback')) throw new Error('Arena catalogue must contain exactly four admitted enemies');
+  if (rootedInput !== undefined) {
+    const row = admitRootedPitcher(root, rootedInput);
+    for (const look of row.looks.looks) for (const key of [`look:${look.id}`, `species:${look.species}`, `kind:${look.kind}`]) {
+      if (contentKeys.has(key)) throw new Error(`Duplicate arena content key: ${key}`);
+      contentKeys.add(key);
+    }
+    rows.push(row);
+  }
   return rows;
 }
