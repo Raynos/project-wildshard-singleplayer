@@ -149,3 +149,9 @@ cutover → H17 → H14; H10/H11 only on profile evidence; H12 with each landing
 SHARD-PLATFORM keeps its G515/G516 host routes (held-melee host for the Jian combo, blade-sampling rows, weather
 host rows) and does not wait for this plan. If a SHARD-PLATFORM row truly cannot reach zero without H8 or H9, it is
 listed here with its lines instead of being forced into a one-user host.
+
+**Bug-fix exceptions landed before this plan starts (G517 allows only bug fixes):**
+
+- 2026-10-20, sp-o3 (granted by the SHARD-PLATFORM coordinator): stateless AssemblyScript return programs share one
+  `WebAssembly.Memory` per page size instead of creating one each, because iOS runs a full GC for every new Memory
+  (40–80 ms each). H-rows that redesign memory ownership start from this.
