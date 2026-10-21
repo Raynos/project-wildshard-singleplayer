@@ -12,6 +12,7 @@
     "log": ".git/command-logs/batch-check-4264mx5t.log"
   },
   "proof": ".git/proofs/20261021T080422-loading-arrival-warm-offline-entries-65361.json",
-  "native": "S5 in sim-queue; sp-o5 owns it",
-  "limits": "No cap, renderer scale, layout or pose changes. Actual warm wire is zero because upstream sockets are closed. Ring readiness remains a separate investigation; these entries deliberately exercise Skip."
+  "native": "PASS: S5, sp-o5, 1b9d56deff; cold and warm offline release controls. Warm ends at709ms, zero wire, no errors.",
+  "limits": "No cap, renderer scale, layout or pose changes. Actual warm wire is zero because upstream sockets are closed. Ring readiness remains a separate investigation; these entries deliberately exercise Skip.",
+  "accuracyResiduals": "R2/G554: native warm update gap1006ms; native cold displayed/visible MB mismatch. Neither is credited as loading accuracy acceptance."
 }
