@@ -1,0 +1,336 @@
+{
+  "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
+  "driver": "df58ee81b00beefc422b8d5adc8b76c5a18ba19c",
+  "sourceGate": "f762cfebc98f98154761a8bc6607435ca7133c52 full local gate green and pushed",
+  "proof": ".git/proofs/20261021T084806-ruler-gr3-four-shards-plots-69807.json",
+  "completeCases": 19,
+  "memoryPasses": 19,
+  "visualPasses": 15,
+  "protocol": "Live phone tier, iPhone16 Pro, CPU4x, muted, scale2; real held-input entry/look/leave; memory-infra detailed dumps outside timed windows; page totals informational. Shared-machine observation; no isolated performance claim.",
+  "open": "Template1, Signal, Sky and Lantern Bayou have intervals >200ms. Greens latch; those four visual findings remain open for the approved bounded quiet repeat and platform attribution.",
+  "cases": [
+    {
+      "shard": "_template",
+      "instance": "template-2",
+      "complete": true,
+      "memory": {
+        "playing": 15983772,
+        "loading": 15983772,
+        "pass": true
+      },
+      "oneFrameLooks": false,
+      "frameMaxMs": [
+        283.3,
+        116.6,
+        466.6
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/_template--template-2/receipt.json"
+    },
+    {
+      "shard": "blender-template",
+      "instance": "blender-template-1",
+      "complete": true,
+      "memory": {
+        "playing": 10896601,
+        "loading": 11304817,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        183.3,
+        33.5,
+        100
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/blender-template--blender-template-1/receipt.json"
+    },
+    {
+      "shard": "far-reach",
+      "instance": "far-reach",
+      "complete": true,
+      "memory": {
+        "playing": 222019983,
+        "loading": 226197771,
+        "pass": true
+      },
+      "oneFrameLooks": false,
+      "frameMaxMs": [
+        366.7,
+        50.1,
+        116.7
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/far-reach--far-reach/receipt.json"
+    },
+    {
+      "shard": "open-plot-alien-plain",
+      "instance": "open-plot-4-0",
+      "complete": true,
+      "memory": {
+        "playing": 25589225,
+        "loading": 25589225,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        150,
+        50,
+        166.7
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-alien-plain--open-plot-4-0/receipt.json"
+    },
+    {
+      "shard": "open-plot-clockwork-canyon",
+      "instance": "open-plot-4-3",
+      "complete": true,
+      "memory": {
+        "playing": 23513656,
+        "loading": 23513656,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        150,
+        33.4,
+        150
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-clockwork-canyon--open-plot-4-3/receipt.json"
+    },
+    {
+      "shard": "open-plot-coral-drift",
+      "instance": "open-plot-0-0",
+      "complete": true,
+      "memory": {
+        "playing": 25697602,
+        "loading": 25697602,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        150,
+        33.5,
+        116.6
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-coral-drift--open-plot-0-0/receipt.json"
+    },
+    {
+      "shard": "open-plot-desert-ruin",
+      "instance": "open-plot-3-0",
+      "complete": true,
+      "memory": {
+        "playing": 25844619,
+        "loading": 25844619,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        150,
+        33.5,
+        166.7
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-desert-ruin--open-plot-3-0/receipt.json"
+    },
+    {
+      "shard": "open-plot-ember-forge",
+      "instance": "open-plot-4-1",
+      "complete": true,
+      "memory": {
+        "playing": 26003711,
+        "loading": 26003711,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        133.4,
+        33.4,
+        116.6
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-ember-forge--open-plot-4-1/receipt.json"
+    },
+    {
+      "shard": "open-plot-frostline-peaks",
+      "instance": "open-plot-0-4",
+      "complete": true,
+      "memory": {
+        "playing": 23730612,
+        "loading": 23730612,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        133.3,
+        50.1,
+        133.4
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-frostline-peaks--open-plot-0-4/receipt.json"
+    },
+    {
+      "shard": "open-plot-lantern-bayou",
+      "instance": "open-plot-0-1",
+      "complete": true,
+      "memory": {
+        "playing": 25854666,
+        "loading": 25854666,
+        "pass": true
+      },
+      "oneFrameLooks": false,
+      "frameMaxMs": [
+        216.7,
+        166.6,
+        433.3
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-lantern-bayou--open-plot-0-1/receipt.json"
+    },
+    {
+      "shard": "open-plot-mosslight-ruins",
+      "instance": "open-plot-0-3",
+      "complete": true,
+      "memory": {
+        "playing": 23552041,
+        "loading": 23552041,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        133.4,
+        33.5,
+        133.4
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-mosslight-ruins--open-plot-0-3/receipt.json"
+    },
+    {
+      "shard": "open-plot-night-market",
+      "instance": "open-plot-1-0",
+      "complete": true,
+      "memory": {
+        "playing": 25431899,
+        "loading": 25431899,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        150,
+        66.7,
+        116.6
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-night-market--open-plot-1-0/receipt.json"
+    },
+    {
+      "shard": "open-plot-night-market",
+      "instance": "open-plot-nw",
+      "complete": true,
+      "memory": {
+        "playing": 24373775,
+        "loading": 24373775,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        150.1,
+        33.5,
+        133.3
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-night-market--open-plot-nw/receipt.json"
+    },
+    {
+      "shard": "open-plot-showcase-template",
+      "instance": "open-plot-2-4",
+      "complete": true,
+      "memory": {
+        "playing": 24745343,
+        "loading": 24745343,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        116.6,
+        50,
+        133.3
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-showcase-template--open-plot-2-4/receipt.json"
+    },
+    {
+      "shard": "open-plot-sky-harbor",
+      "instance": "open-plot-4-4",
+      "complete": true,
+      "memory": {
+        "playing": 24067146,
+        "loading": 24067146,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        116.7,
+        33.5,
+        83.4
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-harbor--open-plot-4-4/receipt.json"
+    },
+    {
+      "shard": "open-plot-sky-race",
+      "instance": "open-plot-2-0",
+      "complete": true,
+      "memory": {
+        "playing": 25655467,
+        "loading": 25655467,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        166.7,
+        33.5,
+        116.7
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-sky-race--open-plot-2-0/receipt.json"
+    },
+    {
+      "shard": "open-plot-starfall-observatory",
+      "instance": "open-plot-3-4",
+      "complete": true,
+      "memory": {
+        "playing": 23601314,
+        "loading": 23601314,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        133.3,
+        33.5,
+        100.1
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-starfall-observatory--open-plot-3-4/receipt.json"
+    },
+    {
+      "shard": "open-plot-thin-ice",
+      "instance": "open-plot-1-4",
+      "complete": true,
+      "memory": {
+        "playing": 23529913,
+        "loading": 23529913,
+        "pass": true
+      },
+      "oneFrameLooks": true,
+      "frameMaxMs": [
+        150.1,
+        50,
+        133.3
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/open-plot-thin-ice--open-plot-1-4/receipt.json"
+    },
+    {
+      "shard": "sunscar-dunes",
+      "instance": "sunscar-dunes",
+      "complete": true,
+      "memory": {
+        "playing": 125394493,
+        "loading": 128911957,
+        "pass": true
+      },
+      "oneFrameLooks": false,
+      "frameMaxMs": [
+        216.6,
+        100,
+        66.7
+      ],
+      "receipt": "progress/shard-platform/grid-ready-c9c8645/sunscar-dunes--sunscar-dunes/receipt.json"
+    }
+  ]
+}
