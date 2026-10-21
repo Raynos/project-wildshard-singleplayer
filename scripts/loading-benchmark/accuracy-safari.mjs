@@ -53,8 +53,12 @@ async function connect() {
 async function wait(expression) {
   const deadline = Date.now() + 300000;
   while (Date.now() < deadline) {
-    try { if (await inspector.evaluate(expression)) return; }
-    catch { await connect(); }
+    let raw;
+    try { raw = await inspector.evaluate(`JSON.stringify({ ready: !!(${expression}), fatal: document.querySelector('#wserr .msg')?.textContent ?? '', errors: window.__loadingAccuracy?.errors ?? [] })`); }
+    catch { await connect(); await sleep(200); continue; }
+    const state = JSON.parse(raw);
+    if (state.fatal || state.errors.length > 0) throw new Error(`Safari application error: ${state.fatal.length > 0 ? state.fatal : state.errors.join('; ')}`);
+    if (state.ready) return;
     await sleep(200);
   }
   throw new Error(`Safari timeout: ${expression}`);

@@ -1,5 +1,5 @@
 export function accuracyRecorder() {
-      const state = { samples: [], final: null, readyAt: 0, last: '', updates: [], errors: [] };
+      const state = { samples: [], final: null, readyAt: 0, last: '', lastSampleAt: 0, updates: [], errors: [] };
       Reflect.set(window, '__loadingAccuracy', state);
       window.addEventListener('error', event => { if (state.errors.length < 100) state.errors.push(event.message); });
       window.addEventListener('unhandledrejection', event => { if (state.errors.length < 100) state.errors.push(String(event.reason)); });
@@ -18,14 +18,16 @@ export function accuracyRecorder() {
           networkBytes: root.dataset.networkBytes, cachedBytes: root.dataset.cachedBytes,
           pendingBytes: root.dataset.pendingBytes, rows };
         const detailed = `${sample.detail}|${rows.map(row => `${row.detail}:${row.duration}`).join('|')}`;
-        if (detailed !== state.last) { state.updates.push(now); state.last = detailed; }
-        state.samples.push(sample); state.final = sample;
+        const changed = detailed !== state.last;
+        if (changed) { state.updates.push(now); state.last = detailed; }
+        if (changed || now - state.lastSampleAt >= 250) { state.samples.push(sample); state.lastSampleAt = now; }
+        state.final = sample;
         if (root.classList.contains('hide')) state.readyAt = now;
       };
       setInterval(read, 250);
       document.addEventListener('DOMContentLoaded', () => {
-        new MutationObserver(() => {
-          if (document.querySelector('.ws-load.hide')) read();
-        }).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class'] });
+        new MutationObserver(read).observe(document.documentElement, {
+          attributes: true, subtree: true, childList: true, characterData: true, attributeFilter: ['class'],
+        });
       });
     }
