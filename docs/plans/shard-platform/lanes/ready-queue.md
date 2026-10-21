@@ -16,7 +16,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 
 ## G565 quest host (top priority; rows in quest-host-mini-plan.md)
 
-QA sp-o3 · QB sp-x9 · QC sp-o5 · QD sp-x1 · QE sp-o4 · QX sp-x8 (integrator). G1c-G2e below are superseded by these rows.
+QA sp-o3 (+ sp-o2 on a facet split: mover, collections, map zones) · QB sp-x9 · QC sp-o5 · QD sp-x1 · QE sp-o4 · QX sp-x8 (integrator). G1c-G2e below are superseded by these rows.
 
 ## G551: Driftwood + Pine to zero (take these FIRST at your task boundary)
 
