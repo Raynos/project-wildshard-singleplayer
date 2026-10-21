@@ -1,5 +1,5 @@
-import { NINE_CLIENT_CHANNELS } from './clientMotion';
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
+import { NINE_CLIENT_CHANNELS } from './clientMotion';
 import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_BLOBS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
 import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS } from './castSources';
@@ -151,7 +151,23 @@ const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => gr
 const lent = [...signTextures, { kind: 'layers', looks: painted, param: 'uPaint', base: '/assets/nine-dragon/paint', label: 'Nine Dragon paint array (GPU only)', size: paint.sizes, anisotropy: 8, layers: paint.layers.map(({ name, alpha }) => ({ name, alpha })) },
   { kind: 'image', looks: ['nine-canopy-cards'], param: 'atlas', sizeParam: 'atlasSize', ...canopy.atlas },
   { kind: 'image', looks: ['nine-scroll'], param: 'scroll', url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: 1001, anisotropy: 4 }];
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+// G4: the night market's and the square's balustrade sets as placements of their catalogue models at their baked frames
+// (world/build.ts places each by id): a pavilion's copies carry their turn
+const SET_MODELS: Readonly<Record<string, string>> = { booth: 'marketBooth', parasol: 'parasolTable', 'balustrade-panel': 'balustradePanel', pavilion: 'diningPavilion' };
+const record = (i: number): number => { const value = worldRows.records[i]; if (typeof value !== 'number') throw new Error('Nine set frame record differs'); return value; };
+// a pavilion's turn is one of its authored choices (the frame's atan2 differs in its last bit between maths libraries)
+const pavilionTurns = parseWorldSceneModels(explorer.catalogue).models.find(row => row.key === 'diningPavilion')?.choices.flatMap(authored => {
+  const turn = authored.params['turn']; return typeof turn === 'number' ? [turn] : []; }) ?? [];
+const authoredTurn = (turn: number): number => {
+  const near = pavilionTurns.find(value => Math.abs(value - turn) < 1e-9); if (near === undefined) throw new Error(`Nine pavilion turn ${turn} is no authored choice`); return near;
+};
+export const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
+  const model = SET_MODELS[name]; if (model === undefined) throw new Error(`Nine set ${name} has no catalogue model`);
+  return { id: `nds-set-${name}`, model, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-set-${name}` },
+    poses: frames.map(frame => { const matrix = Array.from({ length: 16 }, (_, k) => record(frame + k));
+      return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(name === 'pavilion' ? { params: { turn: authoredTurn(Math.atan2(matrix[8] ?? 0, matrix[0] ?? 1)) } } : {}) }; }) };
+});
+export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], placements: SET_PLACEMENTS, libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo')],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
