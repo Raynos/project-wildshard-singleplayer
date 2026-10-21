@@ -89,7 +89,7 @@ test('an unrelated barter counter uses the same shop, pays before grants and pre
 });
 
 test('Pine cards retain all original post-grant feedback as data and malformed feedback refuses before construction', () => {
-  const trader = FIGURE_CATALOGUE.figures.trader;
+  const trader = FIGURE_CATALOGUE.figures['trader'];
   if (trader === undefined) throw new Error('Missing authored trader figure');
   expect(trader.phone.id).toBe(trader.desktop.id);
   for (const trade of TRADES) expect(barterRows.shop?.after[trade.id]).toEqual([
