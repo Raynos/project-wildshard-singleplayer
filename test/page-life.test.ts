@@ -44,6 +44,23 @@ test('forest v1 decisions retain arrival draws and exact corpse boundaries', () 
     expect(guest.project('guide', { night, combat })).toEqual({ eligible });
 });
 
+test('hollow admission retains the original floor-plane distance and strict vertical boundary', () => {
+  const guest = ReturnProgram.page(program);
+  const center = new Vector3(), point = new Vector3();
+  for (const [x, y, z] of [[0, 0, 0], [15, 2, -20], [10000, 10, -10000]]) {
+    if (x === undefined || y === undefined || z === undefined) throw new Error('Missing original center');
+    center.set(x, y, z);
+    for (const dy of [0, 0.3, 2.3]) for (const dx of [0, 2.2 - 1e-9, 2.2, 2.2 + 1e-9])
+      for (const height of [0, 0.8 - 1e-9, 0.8, 0.8 + 1e-9]) for (const taken of [0, 1]) {
+        const floorY = y + dy, playerX = x + dx, playerY = floorY + height, playerZ = z;
+        const original = taken === 0 && center.distanceToSquared(point.set(playerX, floorY, playerZ)) < 2.2 * 2.2
+          && Math.abs(playerY - floorY) < 0.8;
+        expect(guest.project('secret', { playerX, playerY, playerZ, atX: x, atY: y, atZ: z, floorY, taken }))
+          .toEqual({ accept: Number(original) });
+      }
+  }
+});
+
 test('page owner preserves the real coast flock and an independent marsh draw', async () => {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));

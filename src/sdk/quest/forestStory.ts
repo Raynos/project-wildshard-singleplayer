@@ -199,7 +199,10 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
       for (const p of people) p.lod(cam);
       zip.trolley.visible = cables.state(cableId).riding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
       if (!perfLap.active) places.update(pp.x, pp.z); // E350 F-J1: a lap's spot is not discovered
-      if (!perfLap.active && hollow && !flags.has(rows.secret.flag) && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
+      if (!perfLap.active && hollow && presentation.project('secret', {
+        playerX: pp.x, playerY: pp.y, playerZ: pp.z, taken: Number(flags.has(rows.secret.flag)),
+        atX: hollow.mid.x, atY: hollow.mid.y, atZ: hollow.mid.z, floorY: hollow.floorY,
+      })['accept'] === 1) {
         flags.set(rows.secret.flag); hud.toast(rows.secret.text);
       }
       if (journalFull()) featFacts.event('journal', 1);
