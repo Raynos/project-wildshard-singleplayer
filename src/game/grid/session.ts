@@ -619,8 +619,10 @@ export class GridSession {
       if (entry.owner === id) claimed += entry.bytes;
       if (entry.owner === 'grid' && entry.id === `product:grid:${target.slug}`) { claimed += entry.bytes; product = true; }
     }
-    const stages = live.live.readiness.status(id), timings = live.hookTimings();
-    const hooks = new Set(timings.completed.filter(row => row.instance === id && row.start >= since).map(row => row.hook));
+    // its entered hooks of this run: from its latest beforeWorld (a road-prepared world ran some before the screen opened)
+    const stages = live.live.readiness.status(id), timings = live.hookTimings(), own = timings.completed.filter(row => row.instance === id);
+    let run = -1; own.forEach((row, index) => { if (row.hook === 'beforeWorld') run = index; });
+    const hooks = new Set((run === -1 ? own.filter(row => row.start >= since) : own.slice(run)).map(row => row.hook));
     const hook = timings.current?.instance === id ? timings.current.hook : null;
     return { instance: id, slug: target.slug, name: this.shardName(id), refusal: reason, product: product || stages.runtime || stages.ready,
       claimedMB: claimed / 1e6, requested: stages.requested, runtime: stages.runtime, colliders: stages.colliders, sim: stages.sim,
