@@ -1,0 +1,3257 @@
+{
+  "input": "tmp/loading-lane/o2-cache-phone/shardfile/cold/shardfile.cpuprofile",
+  "dist": "tmp/serve/20261021-011939-4443/dist",
+  "sourceMappedChunks": 218,
+  "unmappedChunks": [
+    "/",
+    "/assets/preload-helper-BZ1Pz5am.js",
+    "/assets/rolldown-runtime-B0Z9INg1.js",
+    "/assets/three.module-jrSDJyKk.js"
+  ],
+  "totalSampleMs": 29440.74100000001,
+  "self": [
+    {
+      "id": 2,
+      "selfMs": 4958,
+      "inclusiveMs": 4958,
+      "functionName": "(program)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 11,
+      "selfMs": 2409.1,
+      "inclusiveMs": 2409.1,
+      "functionName": "(idle)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 18,
+      "selfMs": 581.9,
+      "inclusiveMs": 581.9,
+      "functionName": "(garbage collector)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 102,
+      "selfMs": 507.3,
+      "inclusiveMs": 507.3,
+      "functionName": "",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 270,
+      "selfMs": 477.8,
+      "inclusiveMs": 653.6,
+      "functionName": "paintNow",
+      "scriptId": "291",
+      "url": "http://127.0.0.1:50337/assets/Loading-DZiFAiA6.js",
+      "lineNumber": 23,
+      "columnNumber": 5628,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 5620,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 184,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 2669,
+      "selfMs": 368,
+      "inclusiveMs": 370,
+      "functionName": "tf",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 119320,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 119318,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 192,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 2416,
+      "selfMs": 341.1,
+      "inclusiveMs": 341.1,
+      "functionName": "tf",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 119320,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 119318,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 192,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 378,
+      "selfMs": 176.6,
+      "inclusiveMs": 181.4,
+      "functionName": "Zd",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 117561,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 117559,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 130,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 181,
+      "selfMs": 148.2,
+      "inclusiveMs": 282,
+      "functionName": "ei",
+      "scriptId": "191",
+      "url": "http://127.0.0.1:50337/assets/shardList-pmT-LVeD.js",
+      "lineNumber": 1,
+      "columnNumber": 1539030,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 1539028,
+        "originalSource": "../../../../build-mirror/check/tree/src/shards/nalati-grasslands/world/geography.ts",
+        "originalLine": 10,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 2098,
+      "selfMs": 124.8,
+      "inclusiveMs": 154.3,
+      "functionName": "C",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4161,
+      "columnNumber": 291,
+      "original": {
+        "generatedLine": 4161,
+        "generatedColumn": 290,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 7021,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 2668,
+      "selfMs": 91.9,
+      "inclusiveMs": 91.9,
+      "functionName": "fetch",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 4075,
+      "selfMs": 87.8,
+      "inclusiveMs": 282.6,
+      "functionName": "add",
+      "scriptId": "98",
+      "url": "http://127.0.0.1:50337/assets/geometry-CnxACDRp.js",
+      "lineNumber": 49,
+      "columnNumber": 65081,
+      "original": {
+        "generatedLine": 49,
+        "generatedColumn": 65078,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/geometry.ts",
+        "originalLine": 1700,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 184,
+      "selfMs": 87.7,
+      "inclusiveMs": 112.4,
+      "functionName": "O",
+      "scriptId": "110",
+      "url": "http://127.0.0.1:50337/assets/browser-CkBbyCHl.js",
+      "lineNumber": 0,
+      "columnNumber": 1979,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 1971,
+        "originalSource": "../../../../../node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/esm/browser.js",
+        "originalLine": 215,
+        "originalColumn": 12
+      }
+    },
+    {
+      "id": 4079,
+      "selfMs": 84.2,
+      "inclusiveMs": 144.3,
+      "functionName": "~run",
+      "scriptId": "9",
+      "url": "http://127.0.0.1:50337/assets/dist-BldHy6UX.js",
+      "lineNumber": 0,
+      "columnNumber": 5428,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 5422,
+        "originalSource": "../../../../../node_modules/.pnpm/valibot@1.5.0_typescript@7.0.2/node_modules/valibot/dist/index.mjs",
+        "originalLine": 4439,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 8525,
+      "selfMs": 80.9,
+      "inclusiveMs": 80.9,
+      "functionName": "dg",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4117,
+      "columnNumber": 9749,
+      "original": {
+        "generatedLine": 4117,
+        "generatedColumn": 9747,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 6157,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 2957,
+      "selfMs": 78.3,
+      "inclusiveMs": 111.4,
+      "functionName": "",
+      "scriptId": "134",
+      "url": "http://127.0.0.1:50337/assets/shardSchema-eg-hdVK5.js",
+      "lineNumber": 0,
+      "columnNumber": 59875,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 59870,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/budget.ts",
+        "originalLine": 36,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 2977,
+      "selfMs": 76,
+      "inclusiveMs": 76,
+      "functionName": "pump",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 91046,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 91042,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/contentCacheWorker.ts",
+        "originalLine": 125,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 2662,
+      "selfMs": 73.4,
+      "inclusiveMs": 608,
+      "functionName": "S",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 121499,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 121499,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/product.ts",
+        "originalLine": 259,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 47926,
+      "selfMs": 67,
+      "inclusiveMs": 67,
+      "functionName": "isError",
+      "scriptId": "142",
+      "url": "",
+      "lineNumber": 56,
+      "columnNumber": 16
+    },
+    {
+      "id": 7539,
+      "selfMs": 66.9,
+      "inclusiveMs": 633.3,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 7538,
+      "selfMs": 66.1,
+      "inclusiveMs": 1474.3,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 7422,
+      "selfMs": 65.9,
+      "inclusiveMs": 179.1,
+      "functionName": "y",
+      "scriptId": "371",
+      "url": "http://127.0.0.1:50337/assets/shadowChunks-CiBVkcMZ.js",
+      "lineNumber": 0,
+      "columnNumber": 1254,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 1253,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/world/shadowChunks.ts",
+        "originalLine": 98,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 264,
+      "selfMs": 58.2,
+      "inclusiveMs": 111.4,
+      "functionName": "read",
+      "scriptId": "5",
+      "url": "",
+      "lineNumber": 12,
+      "columnNumber": 19
+    },
+    {
+      "id": 47400,
+      "selfMs": 55.7,
+      "inclusiveMs": 55.7,
+      "functionName": "Ee",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 13895,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 13893,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 10658,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 3977,
+      "selfMs": 54.8,
+      "inclusiveMs": 62.6,
+      "functionName": "r",
+      "scriptId": "55",
+      "url": "http://127.0.0.1:50337/assets/json-HUsVkccs.js",
+      "lineNumber": 0,
+      "columnNumber": 915,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 914,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/json.ts",
+        "originalLine": 49,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 2973,
+      "selfMs": 54.7,
+      "inclusiveMs": 143.3,
+      "functionName": "put",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 91715,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 91712,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/contentCacheWorker.ts",
+        "originalLine": 150,
+        "originalColumn": 8
+      }
+    },
+    {
+      "id": 3978,
+      "selfMs": 53.9,
+      "inclusiveMs": 221.2,
+      "functionName": "Se",
+      "scriptId": "164",
+      "url": "http://127.0.0.1:50337/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 121509,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 121507,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/customSchema.ts",
+        "originalLine": 18,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 2448,
+      "selfMs": 53.6,
+      "inclusiveMs": 113.7,
+      "functionName": "parse",
+      "scriptId": "45",
+      "url": "http://127.0.0.1:50337/assets/GLTFLoader-BM0P2zwW.js",
+      "lineNumber": 0,
+      "columnNumber": 8958,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 8953,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+        "originalLine": 429,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8507,
+      "selfMs": 51.8,
+      "inclusiveMs": 60.5,
+      "functionName": "h",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4168,
+      "columnNumber": 2274,
+      "original": {
+        "generatedLine": 4168,
+        "generatedColumn": 2273,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 7356,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 8067,
+      "selfMs": 51.2,
+      "inclusiveMs": 342.6,
+      "functionName": "Ct",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 41286,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 41284,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 18406,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 13145,
+      "selfMs": 51,
+      "inclusiveMs": 57.7,
+      "functionName": "updateShaderParameters",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 323,
+      "columnNumber": 17565,
+      "original": {
+        "generatedLine": 323,
+        "generatedColumn": 17543,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/tsl/WebGLNodesHandler.js",
+        "originalLine": 520,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 7421,
+      "selfMs": 44.5,
+      "inclusiveMs": 224.8,
+      "functionName": "m",
+      "scriptId": "371",
+      "url": "http://127.0.0.1:50337/assets/shadowChunks-CiBVkcMZ.js",
+      "lineNumber": 0,
+      "columnNumber": 221,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 220,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/world/shadowChunks.ts",
+        "originalLine": 43,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 1967,
+      "selfMs": 43.6,
+      "inclusiveMs": 7939.7,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 27,
+      "columnNumber": 1554,
+      "original": {
+        "generatedLine": 27,
+        "generatedColumn": 1549,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 55868,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2485,
+      "selfMs": 41.5,
+      "inclusiveMs": 41.5,
+      "functionName": "Ze",
+      "scriptId": "45",
+      "url": "http://127.0.0.1:50337/assets/GLTFLoader-BM0P2zwW.js",
+      "lineNumber": 0,
+      "columnNumber": 23586,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 23575,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+        "originalLine": 1872,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1552,
+      "selfMs": 40.8,
+      "inclusiveMs": 40.8,
+      "functionName": "fetch",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 7537,
+      "selfMs": 39.6,
+      "inclusiveMs": 1722.2,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 5746,
+      "selfMs": 37.8,
+      "inclusiveMs": 44.4,
+      "functionName": "O",
+      "scriptId": "110",
+      "url": "http://127.0.0.1:50337/assets/browser-CkBbyCHl.js",
+      "lineNumber": 0,
+      "columnNumber": 1979,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 1971,
+        "originalSource": "../../../../../node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/esm/browser.js",
+        "originalLine": 215,
+        "originalColumn": 12
+      }
+    },
+    {
+      "id": 3150,
+      "selfMs": 37.1,
+      "inclusiveMs": 37.1,
+      "functionName": "",
+      "scriptId": "43",
+      "url": "http://127.0.0.1:50337/assets/rig-CbqkwLgP.js",
+      "lineNumber": 0,
+      "columnNumber": 480,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 468,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/anim/rig.ts",
+        "originalLine": 42,
+        "originalColumn": 51
+      }
+    },
+    {
+      "id": 4080,
+      "selfMs": 36,
+      "inclusiveMs": 57.5,
+      "functionName": "~run",
+      "scriptId": "9",
+      "url": "http://127.0.0.1:50337/assets/dist-BldHy6UX.js",
+      "lineNumber": 0,
+      "columnNumber": 17988,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 17982,
+        "originalSource": "../../../../../node_modules/.pnpm/valibot@1.5.0_typescript@7.0.2/node_modules/valibot/dist/index.mjs",
+        "originalLine": 7412,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 3158,
+      "selfMs": 35.3,
+      "inclusiveMs": 35.3,
+      "functionName": "",
+      "scriptId": "45",
+      "url": "http://127.0.0.1:50337/assets/GLTFLoader-BM0P2zwW.js",
+      "lineNumber": 0,
+      "columnNumber": 34388,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 34380,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+        "originalLine": 3107,
+        "originalColumn": 68
+      }
+    },
+    {
+      "id": 8068,
+      "selfMs": 35.1,
+      "inclusiveMs": 134.8,
+      "functionName": "yt",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 38301,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 38299,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 18223,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 2487,
+      "selfMs": 35,
+      "inclusiveMs": 35,
+      "functionName": "wasm-function[2]",
+      "scriptId": "187",
+      "url": "wasm://wasm/e5dcf6aa",
+      "lineNumber": 0,
+      "columnNumber": 436
+    },
+    {
+      "id": 53,
+      "selfMs": 34.8,
+      "inclusiveMs": 34.8,
+      "functionName": "appendChild",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 469,
+      "selfMs": 33.5,
+      "inclusiveMs": 65.5,
+      "functionName": "a",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 99208,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 99208,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/outputDescriptor.ts",
+        "originalLine": 93,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 318,
+      "selfMs": 30,
+      "inclusiveMs": 46.7,
+      "functionName": "",
+      "scriptId": "20",
+      "url": "http://127.0.0.1:50337/assets/preload-helper-BZ1Pz5am.js",
+      "lineNumber": 0,
+      "columnNumber": 473
+    },
+    {
+      "id": 1731,
+      "selfMs": 29.4,
+      "inclusiveMs": 29.4,
+      "functionName": "arrayBuffer",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 3863,
+      "selfMs": 29.3,
+      "inclusiveMs": 29.3,
+      "functionName": "copy",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 92723,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 92719,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 17115,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8066,
+      "selfMs": 28.4,
+      "inclusiveMs": 413.9,
+      "functionName": "M_.renderBufferDirect",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 29367,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 29359,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17232,
+        "originalColumn": 28
+      }
+    },
+    {
+      "id": 2960,
+      "selfMs": 28.4,
+      "inclusiveMs": 28.4,
+      "functionName": "pr",
+      "scriptId": "134",
+      "url": "http://127.0.0.1:50337/assets/shardSchema-eg-hdVK5.js",
+      "lineNumber": 0,
+      "columnNumber": 59300,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 59297,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/budget.ts",
+        "originalLine": 20,
+        "originalColumn": 6
+      }
+    },
+    {
+      "id": 1467,
+      "selfMs": 28,
+      "inclusiveMs": 119.7,
+      "functionName": "paintRows",
+      "scriptId": "291",
+      "url": "http://127.0.0.1:50337/assets/Loading-DZiFAiA6.js",
+      "lineNumber": 23,
+      "columnNumber": 8016,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 8007,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 245,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 3030,
+      "selfMs": 28,
+      "inclusiveMs": 29,
+      "functionName": "_",
+      "scriptId": "186",
+      "url": "http://127.0.0.1:50337/assets/context-XtCinAYa.js",
+      "lineNumber": 1,
+      "columnNumber": 3499,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 3498,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/stillImage.ts",
+        "originalLine": 3,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 2149,
+      "selfMs": 27.8,
+      "inclusiveMs": 27.8,
+      "functionName": "E",
+      "scriptId": "291",
+      "url": "http://127.0.0.1:50337/assets/Loading-DZiFAiA6.js",
+      "lineNumber": 23,
+      "columnNumber": 1271,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 1269,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 35,
+        "originalColumn": 6
+      }
+    },
+    {
+      "id": 8063,
+      "selfMs": 27.3,
+      "inclusiveMs": 509.8,
+      "functionName": "t.renderBufferDirect",
+      "scriptId": "46",
+      "url": "http://127.0.0.1:50337/assets/gpuLabels-CmOtIvrD.js",
+      "lineNumber": 0,
+      "columnNumber": 10153,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 10134,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/gpuLabels.ts",
+        "originalLine": 393,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 2667,
+      "selfMs": 26.3,
+      "inclusiveMs": 119.9,
+      "functionName": "",
+      "scriptId": "162",
+      "url": "http://127.0.0.1:50337/assets/bytes-DPt_TBSx.js",
+      "lineNumber": 0,
+      "columnNumber": 3038,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 3032,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/bytes.ts",
+        "originalLine": 87,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 497,
+      "selfMs": 25.5,
+      "inclusiveMs": 63.6,
+      "functionName": "receive",
+      "scriptId": "122",
+      "url": "http://127.0.0.1:50337/assets/runtimeProduct-DccxkkCO.js",
+      "lineNumber": 0,
+      "columnNumber": 89931,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 89924,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/boot/contentCacheWorker.ts",
+        "originalLine": 91,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 511,
+      "selfMs": 25.5,
+      "inclusiveMs": 478.4,
+      "functionName": "Se",
+      "scriptId": "164",
+      "url": "http://127.0.0.1:50337/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 121509,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 121507,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/customSchema.ts",
+        "originalLine": 18,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 47180,
+      "selfMs": 25.2,
+      "inclusiveMs": 26.5,
+      "functionName": "program",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 324,
+      "columnNumber": 2998,
+      "original": {
+        "generatedLine": 324,
+        "generatedColumn": 2991,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/nodes/nodePlainUniforms.ts",
+        "originalLine": 177,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 269,
+      "selfMs": 23.9,
+      "inclusiveMs": 780,
+      "functionName": "tickClock",
+      "scriptId": "291",
+      "url": "http://127.0.0.1:50337/assets/Loading-DZiFAiA6.js",
+      "lineNumber": 23,
+      "columnNumber": 9039,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 9030,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 273,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 8226,
+      "selfMs": 23.8,
+      "inclusiveMs": 101,
+      "functionName": "M_.renderBufferDirect",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 29367,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 29359,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17232,
+        "originalColumn": 28
+      }
+    },
+    {
+      "id": 1946,
+      "selfMs": 23.4,
+      "inclusiveMs": 57.6,
+      "functionName": "H",
+      "scriptId": "46",
+      "url": "http://127.0.0.1:50337/assets/gpuLabels-CmOtIvrD.js",
+      "lineNumber": 0,
+      "columnNumber": 4598,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 4597,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/gpuLabels.ts",
+        "originalLine": 146,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 2176,
+      "selfMs": 22.9,
+      "inclusiveMs": 22.9,
+      "functionName": "requestAnimationFrame",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 4002,
+      "selfMs": 22.7,
+      "inclusiveMs": 57.7,
+      "functionName": "I",
+      "scriptId": "164",
+      "url": "http://127.0.0.1:50337/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 37811,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 37810,
+        "originalSource": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "originalLine": 85,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 20494,
+      "selfMs": 22.5,
+      "inclusiveMs": 22.5,
+      "functionName": "querySelector",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 15428,
+      "selfMs": 22.5,
+      "inclusiveMs": 22.5,
+      "functionName": "Ee",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 13895,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 13893,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 10658,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 14343,
+      "selfMs": 22.5,
+      "inclusiveMs": 22.5,
+      "functionName": "Dg",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4127,
+      "columnNumber": 343,
+      "original": {
+        "generatedLine": 4127,
+        "generatedColumn": 341,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 6372,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 10317,
+      "selfMs": 22.3,
+      "inclusiveMs": 432.7,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 20999,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 20994,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 4584,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2707,
+      "selfMs": 22.1,
+      "inclusiveMs": 22.1,
+      "functionName": "r",
+      "scriptId": "17",
+      "url": "http://127.0.0.1:50337/assets/strings-o2lDAL2C.js",
+      "lineNumber": 71,
+      "columnNumber": 875,
+      "original": {
+        "generatedLine": 71,
+        "generatedColumn": 874,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/strings.ts",
+        "originalLine": 647,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 7566,
+      "selfMs": 22,
+      "inclusiveMs": 179.7,
+      "functionName": "t.renderBufferDirect",
+      "scriptId": "46",
+      "url": "http://127.0.0.1:50337/assets/gpuLabels-CmOtIvrD.js",
+      "lineNumber": 0,
+      "columnNumber": 10153,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 10134,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/gpuLabels.ts",
+        "originalLine": 393,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 14403,
+      "selfMs": 21.9,
+      "inclusiveMs": 31.3,
+      "functionName": "intersectsSphere",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 159652,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 159636,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 25975,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 5006,
+      "selfMs": 21.7,
+      "inclusiveMs": 21.7,
+      "functionName": "l",
+      "scriptId": "96",
+      "url": "http://127.0.0.1:50337/assets/materialGraph-dJN0SlbU.js",
+      "lineNumber": 0,
+      "columnNumber": 272,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 272,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/materialGraph.ts",
+        "originalLine": 257,
+        "originalColumn": 23
+      }
+    },
+    {
+      "id": 4066,
+      "selfMs": 21.4,
+      "inclusiveMs": 377.5,
+      "functionName": "Cr",
+      "scriptId": "98",
+      "url": "http://127.0.0.1:50337/assets/geometry-CnxACDRp.js",
+      "lineNumber": 49,
+      "columnNumber": 67629,
+      "original": {
+        "generatedLine": 49,
+        "generatedColumn": 67627,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/geometry.ts",
+        "originalLine": 1785,
+        "originalColumn": 22
+      }
+    },
+    {
+      "id": 594,
+      "selfMs": 20.8,
+      "inclusiveMs": 55.9,
+      "functionName": "paintWaiting",
+      "scriptId": "291",
+      "url": "http://127.0.0.1:50337/assets/Loading-DZiFAiA6.js",
+      "lineNumber": 23,
+      "columnNumber": 9882,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 9870,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 299,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1468,
+      "selfMs": 20.6,
+      "inclusiveMs": 76.1,
+      "functionName": "",
+      "scriptId": "291",
+      "url": "http://127.0.0.1:50337/assets/Loading-DZiFAiA6.js",
+      "lineNumber": 23,
+      "columnNumber": 8615,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 8607,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/ui/Loading.ts",
+        "originalLine": 260,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 7423,
+      "selfMs": 20.5,
+      "inclusiveMs": 32.8,
+      "functionName": "h",
+      "scriptId": "371",
+      "url": "http://127.0.0.1:50337/assets/shadowChunks-CiBVkcMZ.js",
+      "lineNumber": 0,
+      "columnNumber": 1345,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 1343,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/world/shadowChunks.ts",
+        "originalLine": 104,
+        "originalColumn": 8
+      }
+    },
+    {
+      "id": 1022,
+      "selfMs": 20.1,
+      "inclusiveMs": 76.9,
+      "functionName": "Ur",
+      "scriptId": "134",
+      "url": "http://127.0.0.1:50337/assets/shardSchema-eg-hdVK5.js",
+      "lineNumber": 0,
+      "columnNumber": 82023,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 82021,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/product.ts",
+        "originalLine": 411,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 9808,
+      "selfMs": 19.9,
+      "inclusiveMs": 626.1,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2099,
+      "selfMs": 19.8,
+      "inclusiveMs": 28.3,
+      "functionName": "ug",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4117,
+      "columnNumber": 9015,
+      "original": {
+        "generatedLine": 4117,
+        "generatedColumn": 9004,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 6063,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2427,
+      "selfMs": 18.6,
+      "inclusiveMs": 18.6,
+      "functionName": "$e",
+      "scriptId": "156",
+      "url": "http://127.0.0.1:50337/assets/headless-CXvLVkvV.js",
+      "lineNumber": 0,
+      "columnNumber": 34299,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 34297,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/headless.ts",
+        "originalLine": 51,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 694,
+      "selfMs": 18.6,
+      "inclusiveMs": 77.2,
+      "functionName": "I",
+      "scriptId": "164",
+      "url": "http://127.0.0.1:50337/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 37811,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 37810,
+        "originalSource": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "originalLine": 85,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 179,
+      "selfMs": 18.6,
+      "inclusiveMs": 324.6,
+      "functionName": "",
+      "scriptId": "191",
+      "url": "http://127.0.0.1:50337/assets/shardList-pmT-LVeD.js",
+      "lineNumber": -1,
+      "columnNumber": -1,
+      "original": {}
+    },
+    {
+      "id": 8065,
+      "selfMs": 18.5,
+      "inclusiveMs": 450.7,
+      "functionName": "e.renderBufferDirect",
+      "scriptId": "353",
+      "url": "http://127.0.0.1:50337/assets/session-CmxHyMF8.js",
+      "lineNumber": 744,
+      "columnNumber": 4938,
+      "original": {
+        "generatedLine": 744,
+        "generatedColumn": 4919,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/uploadOwnership.ts",
+        "originalLine": 211,
+        "originalColumn": 13
+      }
+    },
+    {
+      "id": 5023,
+      "selfMs": 18.5,
+      "inclusiveMs": 18.5,
+      "functionName": "l",
+      "scriptId": "96",
+      "url": "http://127.0.0.1:50337/assets/materialGraph-dJN0SlbU.js",
+      "lineNumber": 0,
+      "columnNumber": 272,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 272,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/materialGraph.ts",
+        "originalLine": 257,
+        "originalColumn": 23
+      }
+    },
+    {
+      "id": 2864,
+      "selfMs": 18.5,
+      "inclusiveMs": 18.5,
+      "functionName": "C",
+      "scriptId": "137",
+      "url": "http://127.0.0.1:50337/assets/runtime-1rIxApz3.js",
+      "lineNumber": 0,
+      "columnNumber": 2031,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 2030,
+        "originalSource": "../../../../build-mirror/check/tree/src/format/stillImage.ts",
+        "originalLine": 53,
+        "originalColumn": 9
+      }
+    },
+    {
+      "id": 7550,
+      "selfMs": 18.3,
+      "inclusiveMs": 118.6,
+      "functionName": "M_.renderBufferDirect",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 29367,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 29359,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17232,
+        "originalColumn": 28
+      }
+    },
+    {
+      "id": 1582,
+      "selfMs": 18.2,
+      "inclusiveMs": 18.2,
+      "functionName": "Et",
+      "scriptId": "354",
+      "url": "http://127.0.0.1:50337/assets/dist-LzNje3pp.js",
+      "lineNumber": 0,
+      "columnNumber": 14346,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 14343,
+        "originalSource": "../../../../../node_modules/.pnpm/navcat@0.4.1_three@0.186.0/node_modules/navcat/dist/index.js",
+        "originalLine": 7945,
+        "originalColumn": 6
+      }
+    },
+    {
+      "id": 231,
+      "selfMs": 17.9,
+      "inclusiveMs": 17.9,
+      "functionName": "",
+      "scriptId": "5",
+      "url": "",
+      "lineNumber": 4,
+      "columnNumber": 58
+    },
+    {
+      "id": 3061,
+      "selfMs": 17.9,
+      "inclusiveMs": 17.9,
+      "functionName": "$e",
+      "scriptId": "156",
+      "url": "http://127.0.0.1:50337/assets/headless-CXvLVkvV.js",
+      "lineNumber": 0,
+      "columnNumber": 34299,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 34297,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/headless.ts",
+        "originalLine": 51,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 16396,
+      "selfMs": 17.7,
+      "inclusiveMs": 19.2,
+      "functionName": "a",
+      "scriptId": "97",
+      "url": "http://127.0.0.1:50337/assets/ktx2-IKFQHiw1.js",
+      "lineNumber": 1,
+      "columnNumber": 12277,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 12275,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/allocationJournal.ts",
+        "originalLine": 40,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 2738,
+      "selfMs": 17.7,
+      "inclusiveMs": 17.7,
+      "functionName": "",
+      "scriptId": "5",
+      "url": "",
+      "lineNumber": 18,
+      "columnNumber": 78
+    },
+    {
+      "id": 3606,
+      "selfMs": 17.6,
+      "inclusiveMs": 202.1,
+      "functionName": "li",
+      "scriptId": "420",
+      "url": "http://127.0.0.1:50337/assets/worldScenes-BAp21iXb.js",
+      "lineNumber": 1,
+      "columnNumber": 46877,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 46875,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/shardfile/worldScenes.ts",
+        "originalLine": 62,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 887,
+      "selfMs": 17.4,
+      "inclusiveMs": 22.7,
+      "functionName": "I",
+      "scriptId": "164",
+      "url": "http://127.0.0.1:50337/assets/shardProduct-DwIak9WT.js",
+      "lineNumber": 0,
+      "columnNumber": 37811,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 37810,
+        "originalSource": "../../../../../node_modules/.pnpm/ajv@6.15.0/node_modules/ajv/lib/compile/index.js",
+        "originalLine": 85,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 472,
+      "selfMs": 17.2,
+      "inclusiveMs": 17.2,
+      "functionName": "fetch",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 47466,
+      "selfMs": 17.2,
+      "inclusiveMs": 75.2,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 3060,
+      "selfMs": 17.1,
+      "inclusiveMs": 17.1,
+      "functionName": "$e",
+      "scriptId": "156",
+      "url": "http://127.0.0.1:50337/assets/headless-CXvLVkvV.js",
+      "lineNumber": 0,
+      "columnNumber": 34299,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 34297,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/headless.ts",
+        "originalLine": 51,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 4199,
+      "selfMs": 17.1,
+      "inclusiveMs": 30.7,
+      "functionName": "finishSteps",
+      "scriptId": "98",
+      "url": "http://127.0.0.1:50337/assets/geometry-CnxACDRp.js",
+      "lineNumber": 49,
+      "columnNumber": 67185,
+      "original": {
+        "generatedLine": 49,
+        "generatedColumn": 67174,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/geometry.ts",
+        "originalLine": 1751,
+        "originalColumn": 3
+      }
+    },
+    {
+      "id": 16,
+      "selfMs": 17,
+      "inclusiveMs": 25.7,
+      "functionName": "PerformanceObserver.observe.type",
+      "scriptId": "5",
+      "url": "",
+      "lineNumber": 7,
+      "columnNumber": 30
+    },
+    {
+      "id": 7426,
+      "selfMs": 16.9,
+      "inclusiveMs": 43,
+      "functionName": "fromBufferAttribute",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 22794,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 22775,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 5996,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 7540,
+      "selfMs": 16.8,
+      "inclusiveMs": 230,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 340,
+      "selfMs": 16.8,
+      "inclusiveMs": 20.4,
+      "functionName": "",
+      "scriptId": "353",
+      "url": "http://127.0.0.1:50337/assets/session-CmxHyMF8.js",
+      "lineNumber": 0,
+      "columnNumber": 0,
+      "original": {}
+    },
+    {
+      "id": 4086,
+      "selfMs": 16.7,
+      "inclusiveMs": 16.7,
+      "functionName": "$e",
+      "scriptId": "156",
+      "url": "http://127.0.0.1:50337/assets/headless-CXvLVkvV.js",
+      "lineNumber": 0,
+      "columnNumber": 34299,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 34297,
+        "originalSource": "../../../../build-mirror/check/tree/src/game/plugin/headless.ts",
+        "originalLine": 51,
+        "originalColumn": 16
+      }
+    }
+  ],
+  "inclusive": [
+    {
+      "id": 1,
+      "selfMs": 0,
+      "inclusiveMs": 29440.7,
+      "functionName": "(root)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 1934,
+      "selfMs": 5.8,
+      "inclusiveMs": 10828.7,
+      "functionName": "$e",
+      "scriptId": "368",
+      "url": "http://127.0.0.1:50337/assets/precompile-BBmUE8f-.js",
+      "lineNumber": 1,
+      "columnNumber": 17987,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 17985,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/precompile.ts",
+        "originalLine": 793,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 1944,
+      "selfMs": 1.5,
+      "inclusiveMs": 10489.9,
+      "functionName": "",
+      "scriptId": "46",
+      "url": "http://127.0.0.1:50337/assets/gpuLabels-CmOtIvrD.js",
+      "lineNumber": 0,
+      "columnNumber": 9886,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 9878,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/gpuLabels.ts",
+        "originalLine": 380,
+        "originalColumn": 34
+      }
+    },
+    {
+      "id": 1947,
+      "selfMs": 0,
+      "inclusiveMs": 10415.4,
+      "functionName": "e.compile",
+      "scriptId": "353",
+      "url": "http://127.0.0.1:50337/assets/session-CmxHyMF8.js",
+      "lineNumber": 744,
+      "columnNumber": 5178,
+      "original": {
+        "generatedLine": 744,
+        "generatedColumn": 5170,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/uploadOwnership.ts",
+        "originalLine": 223,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 1952,
+      "selfMs": 7.2,
+      "inclusiveMs": 10379.5,
+      "functionName": "M_.compile",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 31121,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 31113,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17432,
+        "originalColumn": 17
+      }
+    },
+    {
+      "id": 1953,
+      "selfMs": 0,
+      "inclusiveMs": 8445.3,
+      "functionName": "traverse",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 62919,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 62911,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 12971,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1959,
+      "selfMs": 0,
+      "inclusiveMs": 8427.3,
+      "functionName": "traverse",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 0,
+      "columnNumber": 62919,
+      "original": {
+        "generatedLine": 0,
+        "generatedColumn": 62911,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js",
+        "originalLine": 12971,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1960,
+      "selfMs": 0,
+      "inclusiveMs": 8427.3,
+      "functionName": "",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 31712,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 31704,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17496,
+        "originalColumn": 19
+      }
+    },
+    {
+      "id": 1961,
+      "selfMs": 1.6,
+      "inclusiveMs": 8427.3,
+      "functionName": "at",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 30868,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 30866,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 17394,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 1962,
+      "selfMs": 11.6,
+      "inclusiveMs": 8424.8,
+      "functionName": "yt",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4219,
+      "columnNumber": 38301,
+      "original": {
+        "generatedLine": 4219,
+        "generatedColumn": 38299,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 18223,
+        "originalColumn": 11
+      }
+    },
+    {
+      "id": 1963,
+      "selfMs": 0,
+      "inclusiveMs": 8158.6,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 329,
+      "columnNumber": 12565,
+      "original": {
+        "generatedLine": 329,
+        "generatedColumn": 12560,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/nodes/engineNodesHandler.ts",
+        "originalLine": 691,
+        "originalColumn": 2
+      }
+    },
+    {
+      "id": 1964,
+      "selfMs": 0,
+      "inclusiveMs": 8045.4,
+      "functionName": "jD",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 324,
+      "columnNumber": 6790,
+      "original": {
+        "generatedLine": 324,
+        "generatedColumn": 6788,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/nodes/nodeInstancing.ts",
+        "originalLine": 54,
+        "originalColumn": 16
+      }
+    },
+    {
+      "id": 1965,
+      "selfMs": 2.5,
+      "inclusiveMs": 8045.4,
+      "functionName": "",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 329,
+      "columnNumber": 12608,
+      "original": {
+        "generatedLine": 329,
+        "generatedColumn": 12606,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/nodes/engineNodesHandler.ts",
+        "originalLine": 693,
+        "originalColumn": 70
+      }
+    },
+    {
+      "id": 1966,
+      "selfMs": 2.3,
+      "inclusiveMs": 8042.9,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 323,
+      "columnNumber": 16873,
+      "original": {
+        "generatedLine": 323,
+        "generatedColumn": 16868,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/tsl/WebGLNodesHandler.js",
+        "originalLine": 450,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 1967,
+      "selfMs": 43.6,
+      "inclusiveMs": 7939.7,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 27,
+      "columnNumber": 1554,
+      "original": {
+        "generatedLine": 27,
+        "generatedColumn": 1549,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 55868,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2031,
+      "selfMs": 0.9,
+      "inclusiveMs": 5349.6,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2032,
+      "selfMs": 1.5,
+      "inclusiveMs": 5243.3,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2033,
+      "selfMs": 1.2,
+      "inclusiveMs": 5241.8,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2,
+      "selfMs": 4958,
+      "inclusiveMs": 4958,
+      "functionName": "(program)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 2035,
+      "selfMs": 5.4,
+      "inclusiveMs": 3500.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2036,
+      "selfMs": 0,
+      "inclusiveMs": 3420.7,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2037,
+      "selfMs": 0,
+      "inclusiveMs": 3420.7,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2038,
+      "selfMs": 0,
+      "inclusiveMs": 3420,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2039,
+      "selfMs": 0,
+      "inclusiveMs": 3416.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2040,
+      "selfMs": 1.6,
+      "inclusiveMs": 3416.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8585,
+      "selfMs": 1.1,
+      "inclusiveMs": 3395.2,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8586,
+      "selfMs": 0,
+      "inclusiveMs": 3394.1,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8587,
+      "selfMs": 0,
+      "inclusiveMs": 3394.1,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8588,
+      "selfMs": 1.9,
+      "inclusiveMs": 3392.6,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8589,
+      "selfMs": 0,
+      "inclusiveMs": 3390.7,
+      "functionName": "setup",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 22,
+      "columnNumber": 3601,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 3596,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 20464,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8590,
+      "selfMs": 0,
+      "inclusiveMs": 3389.5,
+      "functionName": "setup",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 599,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 594,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 8942,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8591,
+      "selfMs": 0,
+      "inclusiveMs": 3389.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8628,
+      "selfMs": 14.5,
+      "inclusiveMs": 3215.9,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8629,
+      "selfMs": 10.8,
+      "inclusiveMs": 3094.6,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11,
+      "selfMs": 2409.1,
+      "inclusiveMs": 2409.1,
+      "functionName": "(idle)",
+      "scriptId": "0",
+      "url": "",
+      "lineNumber": -1,
+      "columnNumber": -1
+    },
+    {
+      "id": 2044,
+      "selfMs": 0,
+      "inclusiveMs": 2199.1,
+      "functionName": "flowNode",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 24,
+      "columnNumber": 221,
+      "original": {
+        "generatedLine": 24,
+        "generatedColumn": 213,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 55180,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2051,
+      "selfMs": 14,
+      "inclusiveMs": 2197,
+      "functionName": "flowChildNode",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 24,
+      "columnNumber": 1583,
+      "original": {
+        "generatedLine": 24,
+        "generatedColumn": 1570,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 55404,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2052,
+      "selfMs": 0.9,
+      "inclusiveMs": 2183,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2053,
+      "selfMs": 1.9,
+      "inclusiveMs": 2106.2,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2054,
+      "selfMs": 1.8,
+      "inclusiveMs": 2104.3,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2055,
+      "selfMs": 2,
+      "inclusiveMs": 2009.6,
+      "functionName": "generate",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 30885,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 30877,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 6329,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 2056,
+      "selfMs": 0,
+      "inclusiveMs": 1995.1,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8630,
+      "selfMs": 7.9,
+      "inclusiveMs": 1980,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8631,
+      "selfMs": 2.9,
+      "inclusiveMs": 1972.1,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 8632,
+      "selfMs": 0.9,
+      "inclusiveMs": 1959.1,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10180,
+      "selfMs": 0,
+      "inclusiveMs": 1940.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10181,
+      "selfMs": 0,
+      "inclusiveMs": 1937,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10182,
+      "selfMs": 0,
+      "inclusiveMs": 1921.4,
+      "functionName": "generate",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 38513,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 38505,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 7554,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10183,
+      "selfMs": 0,
+      "inclusiveMs": 1918.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10184,
+      "selfMs": 0,
+      "inclusiveMs": 1918.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10185,
+      "selfMs": 0,
+      "inclusiveMs": 1918.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10186,
+      "selfMs": 1.5,
+      "inclusiveMs": 1918.4,
+      "functionName": "generate",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 12088,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 12080,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3209,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10187,
+      "selfMs": 0,
+      "inclusiveMs": 1908.8,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10188,
+      "selfMs": 0,
+      "inclusiveMs": 1908.8,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10189,
+      "selfMs": 0,
+      "inclusiveMs": 1908.8,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10190,
+      "selfMs": 0,
+      "inclusiveMs": 1908.8,
+      "functionName": "generate",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 33943,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 33935,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 6794,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10191,
+      "selfMs": 0,
+      "inclusiveMs": 1908.8,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10192,
+      "selfMs": 0,
+      "inclusiveMs": 1908.8,
+      "functionName": "generate",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 688,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 680,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 8954,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10193,
+      "selfMs": 0,
+      "inclusiveMs": 1906.7,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10194,
+      "selfMs": 0,
+      "inclusiveMs": 1905.6,
+      "functionName": "generate",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7391,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7383,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2441,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10195,
+      "selfMs": 0,
+      "inclusiveMs": 1905.6,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10196,
+      "selfMs": 8.8,
+      "inclusiveMs": 1905.6,
+      "functionName": "generate",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 14614,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 14606,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 11712,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 10197,
+      "selfMs": 1.8,
+      "inclusiveMs": 1896.8,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 7528,
+      "selfMs": 0,
+      "inclusiveMs": 1844,
+      "functionName": "i.render",
+      "scriptId": "353",
+      "url": "http://127.0.0.1:50337/assets/session-CmxHyMF8.js",
+      "lineNumber": 1847,
+      "columnNumber": 1860,
+      "original": {
+        "generatedLine": 1847,
+        "generatedColumn": 1853,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/core/Game.ts",
+        "originalLine": 412,
+        "originalColumn": 14
+      }
+    },
+    {
+      "id": 7529,
+      "selfMs": 1.6,
+      "inclusiveMs": 1842.5,
+      "functionName": "Ct.e.shadowMap.render",
+      "scriptId": "97",
+      "url": "http://127.0.0.1:50337/assets/ktx2-IKFQHiw1.js",
+      "lineNumber": 1,
+      "columnNumber": 16100,
+      "original": {
+        "generatedLine": 1,
+        "generatedColumn": 16093,
+        "originalSource": "../../../../build-mirror/check/tree/src/engine/render/shadowMaterialOwnership.ts",
+        "originalLine": 22,
+        "originalColumn": 21
+      }
+    },
+    {
+      "id": 7530,
+      "selfMs": 1.8,
+      "inclusiveMs": 1835.6,
+      "functionName": "render",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 729,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 721,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9142,
+        "originalColumn": 15
+      }
+    },
+    {
+      "id": 7536,
+      "selfMs": 13.7,
+      "inclusiveMs": 1739.8,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 9789,
+      "selfMs": 3.2,
+      "inclusiveMs": 1728.3,
+      "functionName": "analyze",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 7537,
+      "selfMs": 39.6,
+      "inclusiveMs": 1722.2,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 9790,
+      "selfMs": 0,
+      "inclusiveMs": 1722,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9791,
+      "selfMs": 0,
+      "inclusiveMs": 1707,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9792,
+      "selfMs": 0,
+      "inclusiveMs": 1707,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9793,
+      "selfMs": 0,
+      "inclusiveMs": 1707,
+      "functionName": "analyze",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9794,
+      "selfMs": 0,
+      "inclusiveMs": 1707,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9795,
+      "selfMs": 0,
+      "inclusiveMs": 1707,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9796,
+      "selfMs": 0,
+      "inclusiveMs": 1707,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9797,
+      "selfMs": 0,
+      "inclusiveMs": 1707,
+      "functionName": "analyze",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9798,
+      "selfMs": 0,
+      "inclusiveMs": 1672.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9799,
+      "selfMs": 0,
+      "inclusiveMs": 1672.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9800,
+      "selfMs": 0,
+      "inclusiveMs": 1672.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9801,
+      "selfMs": 0,
+      "inclusiveMs": 1672.5,
+      "functionName": "analyze",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7073,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7066,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2400,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9802,
+      "selfMs": 0,
+      "inclusiveMs": 1672.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9803,
+      "selfMs": 1.1,
+      "inclusiveMs": 1672.5,
+      "functionName": "analyze",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 488,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 481,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 8926,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9804,
+      "selfMs": 0,
+      "inclusiveMs": 1671.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9805,
+      "selfMs": 4.1,
+      "inclusiveMs": 1671.4,
+      "functionName": "analyze",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 23,
+      "columnNumber": 11654,
+      "original": {
+        "generatedLine": 23,
+        "generatedColumn": 11647,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 46118,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 9806,
+      "selfMs": 11.1,
+      "inclusiveMs": 1596.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 7538,
+      "selfMs": 66.1,
+      "inclusiveMs": 1474.3,
+      "functionName": "b",
+      "scriptId": "38",
+      "url": "http://127.0.0.1:50337/assets/three.module-D0kZyzyv.js",
+      "lineNumber": 4195,
+      "columnNumber": 5840,
+      "original": {
+        "generatedLine": 4195,
+        "generatedColumn": 5839,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "originalLine": 9568,
+        "originalColumn": 10
+      }
+    },
+    {
+      "id": 11363,
+      "selfMs": 1,
+      "inclusiveMs": 1264.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11364,
+      "selfMs": 0,
+      "inclusiveMs": 1263.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11365,
+      "selfMs": 2,
+      "inclusiveMs": 1152.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11367,
+      "selfMs": 0,
+      "inclusiveMs": 1146.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11368,
+      "selfMs": 0,
+      "inclusiveMs": 1146.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 20999,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 20994,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 4584,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11369,
+      "selfMs": 0,
+      "inclusiveMs": 1142.9,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 22,
+      "columnNumber": 66700,
+      "original": {
+        "generatedLine": 22,
+        "generatedColumn": 66695,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 36324,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11370,
+      "selfMs": 0,
+      "inclusiveMs": 1135.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11371,
+      "selfMs": 3.2,
+      "inclusiveMs": 1135.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11372,
+      "selfMs": 0,
+      "inclusiveMs": 1132.3,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11373,
+      "selfMs": 1.7,
+      "inclusiveMs": 1132.3,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11374,
+      "selfMs": 0,
+      "inclusiveMs": 1130.6,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 7693,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 7688,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 2515,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11375,
+      "selfMs": 0.1,
+      "inclusiveMs": 1129.5,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 12,
+      "columnNumber": 2241,
+      "original": {
+        "generatedLine": 12,
+        "generatedColumn": 2236,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 9307,
+        "originalColumn": 1
+      }
+    },
+    {
+      "id": 11376,
+      "selfMs": 1.6,
+      "inclusiveMs": 1129.4,
+      "functionName": "build",
+      "scriptId": "895",
+      "url": "http://127.0.0.1:50337/assets/engineNodesHandler-BWceq8cz.js",
+      "lineNumber": 2,
+      "columnNumber": 11379,
+      "original": {
+        "generatedLine": 2,
+        "generatedColumn": 11374,
+        "originalSource": "../../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.webgpu.js",
+        "originalLine": 3119,
+        "originalColumn": 1
+      }
+    }
+  ]
+}
