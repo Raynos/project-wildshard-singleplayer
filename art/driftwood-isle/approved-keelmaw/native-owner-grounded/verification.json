@@ -1,0 +1,85 @@
+{
+  "runtimeAcceptance": false,
+  "contactAcceptance": false,
+  "visualAcceptance": false,
+  "sourceRepair": {
+    "originalRestMinY": -0.081614,
+    "groundedRestMinY": 0.005,
+    "changedParts": [
+      "FL_carpus",
+      "FR_carpus"
+    ],
+    "rigBindChanges": false,
+    "rootLift": false,
+    "solverChanges": false,
+    "hullPadding": false,
+    "hulls": 7,
+    "hullVertices": 459
+  },
+  "tests": {
+    "owner": {
+      "passed": 9,
+      "total": 9
+    },
+    "grounded": {
+      "passed": 6,
+      "total": 6,
+      "note": "Includes physical measurement, not a passing contact gate."
+    }
+  },
+  "physicalEvidence": {
+    "provisional": true,
+    "reason": "NativeRigidCorpse source changed concurrently after run launch; exact frozen-source reproduction not claimed. Other captured source hashes unchanged.",
+    "trials": [
+      {
+        "lethalTick": 0,
+        "lethalPhase": "idle",
+        "fixedMinimum": 899.9591646124038,
+        "renderMinimum": 899.9638680479809,
+        "hullMinimum": 899.9591646124038,
+        "passesSampledFlatContact": false,
+        "worstFixedTick": 123,
+        "worstPenetrationMm": 40.83538759618932,
+        "firstSecondMinimum": 899.9987952971196,
+        "frozenMinimum": 899.9997608264597
+      },
+      {
+        "lethalTick": 145,
+        "lethalPhase": "windup",
+        "fixedMinimum": 899.9517233106191,
+        "renderMinimum": 899.9584193070408,
+        "hullMinimum": 899.9517233106191,
+        "passesSampledFlatContact": false,
+        "worstFixedTick": 124,
+        "worstPenetrationMm": 48.27668938094121,
+        "firstSecondMinimum": 899.9993737422799,
+        "frozenMinimum": 899.9990385399957
+      },
+      {
+        "lethalTick": 165,
+        "lethalPhase": "active",
+        "fixedMinimum": 899.9441368617778,
+        "renderMinimum": 899.9510105397883,
+        "hullMinimum": 899.9441368617778,
+        "passesSampledFlatContact": false,
+        "worstFixedTick": 123,
+        "worstPenetrationMm": 55.86313822220745,
+        "firstSecondMinimum": 899.9997983176773,
+        "frozenMinimum": 899.9991483552903
+      },
+      {
+        "lethalTick": 185,
+        "lethalPhase": "recover",
+        "fixedMinimum": 899.9944444387685,
+        "renderMinimum": 899.995103561282,
+        "hullMinimum": 899.9944444387684,
+        "passesSampledFlatContact": false,
+        "worstFixedTick": 129,
+        "worstPenetrationMm": 5.5555612315174585,
+        "firstSecondMinimum": 899.999817007442,
+        "frozenMinimum": 899.9995204311574
+      }
+    ],
+    "limitation": "Recorded minima do not retain minimizing part or root matrices, so exact failing part is unknown. Worst crossings occur after the one-second authored local blend. No follow-up tuning or diagnostic rerun."
+  }
+}

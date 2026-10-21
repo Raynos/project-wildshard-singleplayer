@@ -1,0 +1,20 @@
+{
+  "acceptance": false,
+  "files": {
+    "metadata.json": {
+      "origin": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/metadata.json",
+      "sha256": "6736293d157d30d1416e0033196dcb5479acff7a0100778d12a350831636b58d",
+      "bytes": 22054
+    },
+    "native-source.json": {
+      "origin": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/native-source.json",
+      "sha256": "32fb9e7dde21acfe0dbe42225c716c9f6a881b31b3aa4fa61c0e1e00aabf4dcc",
+      "bytes": 1492706
+    },
+    "payload.bin": {
+      "origin": "art/driftwood-isle/approved-keelmaw/complete-character-refined/model/payload.bin",
+      "sha256": "69fa4a3b91d819cd6ad0cbd6aba6477f62def3bebde598a8b138f8f50d6ce012",
+      "bytes": 64269
+    }
+  }
+}

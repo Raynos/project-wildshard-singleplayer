@@ -1,0 +1,26 @@
+{
+  "acceptance": false,
+  "producer": "art/driftwood-isle/approved-keelmaw/native-owner-grounded/build_keelmaw.py",
+  "files": {
+    "metadata.json": {
+      "origin": "art/driftwood-isle/approved-keelmaw/native-owner-grounded/model/metadata.json",
+      "sha256": "77c4dc9909b5126c4126927bf592d29df8562f6e42e6147f2f26b6392a969d5b",
+      "bytes": 83599
+    },
+    "native-source.json": {
+      "origin": "art/driftwood-isle/approved-keelmaw/native-owner-grounded/model/native-source.json",
+      "sha256": "6f5f93d5e5c7bbfad76f9dd2b8f36d953551e8b0570e8b30f9253ee1fc6643c1",
+      "bytes": 1492729
+    },
+    "payload.bin": {
+      "origin": "art/driftwood-isle/approved-keelmaw/native-owner-grounded/model/payload.bin",
+      "sha256": "d5f3e72187c1d934801a45b1848e157951f5558f964b9bacc4819b19281e5afe",
+      "bytes": 64266
+    },
+    "corpse-hull-audit.json": {
+      "origin": "art/driftwood-isle/approved-keelmaw/native-owner-grounded/model/corpse-hull-audit.json",
+      "sha256": "991fc5bd0f5464b6ca26d2448f1550f880d24a8e16b458ef921998725bbfda06",
+      "bytes": 1696
+    }
+  }
+}

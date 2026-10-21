@@ -1,10 +1,20 @@
 {
   "extends": "../../../../tsconfig.json",
-  "compilerOptions": { "types": ["vite/client", "node"] },
+  "compilerOptions": {
+    "types": [
+      "vite/client",
+      "node"
+    ]
+  },
   "include": [
-    "medusaNativeClips.ts", "medusaNativeSource.ts", "native.test.ts",
+    "medusaNativeClips.ts",
+    "medusaNativeSource.ts",
+    "native.test.ts",
     "../../../../test/native-rigid-corpse-resource.test.ts",
     "../../../../test/animal-pose-flight-clock.test.ts",
-    "../../../../src/**/*.d.ts", "../../../../src/engine/boot/shardPrefetch.ts"
+    "../../../../src/**/*.d.ts",
+    "../../../../src/engine/boot/shardPrefetch.ts",
+    "medusaBorrowedOwner.ts",
+    "borrowed.test.ts"
   ]
 }

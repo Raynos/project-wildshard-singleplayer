@@ -1,0 +1,76 @@
+{
+  "method": "Exact mesh convex support. Seven animated/static ownership groups, no padding. Shape containment is not physical contact acceptance.",
+  "nativeSourceSha256": "6f5f93d5e5c7bbfad76f9dd2b8f36d953551e8b0570e8b30f9253ee1fc6643c1",
+  "parts": [
+    {
+      "bone": "body",
+      "hullPoints": 102,
+      "sourceParts": [
+        "body",
+        "FL_shoulder",
+        "FL_carpus",
+        "FL_fetlock",
+        "FR_shoulder",
+        "FR_carpus",
+        "FR_fetlock",
+        "BL_hip",
+        "BL_stifle",
+        "BL_hock",
+        "BR_hip",
+        "BR_stifle",
+        "BR_hock"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    },
+    {
+      "bone": "neck1",
+      "hullPoints": 65,
+      "sourceParts": [
+        "neck1"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    },
+    {
+      "bone": "head",
+      "hullPoints": 80,
+      "sourceParts": [
+        "head"
+      ],
+      "maximumOutsideDistance": 6.661338147750939e-15
+    },
+    {
+      "bone": "jaw",
+      "hullPoints": 61,
+      "sourceParts": [
+        "jaw"
+      ],
+      "maximumOutsideDistance": 1.6653345369377348e-15
+    },
+    {
+      "bone": "tail1",
+      "hullPoints": 43,
+      "sourceParts": [
+        "tail1"
+      ],
+      "maximumOutsideDistance": 2.220446049250313e-16
+    },
+    {
+      "bone": "tail2",
+      "hullPoints": 40,
+      "sourceParts": [
+        "tail2"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    },
+    {
+      "bone": "tail3",
+      "hullPoints": 68,
+      "sourceParts": [
+        "tail3"
+      ],
+      "maximumOutsideDistance": 4.440892098500626e-16
+    }
+  ],
+  "runtimeAcceptance": false,
+  "contactAcceptance": false
+}
