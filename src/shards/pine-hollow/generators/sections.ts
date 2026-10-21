@@ -167,7 +167,6 @@ export const CabinRowsSchema = v.strictObject({ bin: v.string(), bytes: cabinNum
 
 export const CabinSeedsSchema = v.array(v.strictObject({ ordinal: v.pipe(v.number(), v.integer(), v.minValue(0)), width: v.literal(4), values: v.array(finite) }));
 export const RuntimeGraphsSchema = v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(128));
-export const PlaceSetsSchema = v.array(v.strictObject({ id: v.string(), place: v.string(), name: v.string(), x: v.number(), z: v.number(), r: v.number() }));
 
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
@@ -201,7 +200,6 @@ export const SECTIONS = {
   'custom/grazers': PineGrazersSchema,
   'custom/thrallLook': ThrallLookSchema,
   'custom/runtimeGraphs': RuntimeGraphsSchema,
-  'custom/placeSets': PlaceSetsSchema,
   'custom/cabinAmbience': CabinAmbienceSchema,
   'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,coatMap:texture,coatNormal:texture}),chalk:CollectionChalkSchema}),
   'custom/trophyMounts':CollectionMountPackSchema,
