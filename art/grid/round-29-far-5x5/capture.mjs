@@ -33,6 +33,8 @@ const POSES = [
   ['ne-corner', EDGE, -EDGE, Math.atan2(1, -1)],
   // the board's view: on the south road, looking up the platform past its middle (between the corner plots)
   ['south-road', -700, EDGE, Math.atan2(-0.55, 1)],
+  // G538: across the platform from the east road toward Signal Dunes (cell −1, 0)
+  ['east-road', EDGE, -1000, Math.atan2(1, -0.38)],
 ];
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -59,7 +61,10 @@ try {
       const info = game.renderer.info.render;
       return { rings: state.rings, drawnFar: state.cells.filter((c) => c.drawn.far).map((c) => c.instance),
         cameraFar: game.camera.far, draws: info.calls, triangles: info.triangles, residentMB: state.residentMB, playingMB: state.playingMB,
-        heapMB: Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1e6) };
+        heapMB: Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1e6),
+        categoriesMB: Object.fromEntries(Object.entries(grid.residency().cost.input).map(([k, n]) => [k, Math.round(n / 1e5) / 10])),
+        // G539: the cells whose far tier draws as its impostor (wholly or in the band's fade)
+        impostors: (() => { const names = []; game.scene.traverse((o) => { if (o.name === 'far-impostor' && o.visible) names.push(o.parent?.name ?? '?'); }); return names; })() };
     }) });
     await page.screenshot({ path: resolvePath(OUT, `${name}.jpg`), type: 'jpeg', quality: 80 });
     console.log(JSON.stringify(readings.at(-1)));
