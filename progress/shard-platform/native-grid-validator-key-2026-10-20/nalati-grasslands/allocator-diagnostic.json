@@ -1,0 +1,84 @@
+{
+  "source": "9bed83c7b2c442c757bd1f4441e18d7f1406d0f3",
+  "diagnosticOnly": true,
+  "qualifyingMemory": false,
+  "quiet": false,
+  "nativeSample": {
+    "diagnosticOnly": true,
+    "note": "vmmap may interrupt; no cap credit",
+    "sample": {
+      "type": "sample",
+      "t": "2026-10-21T03:00:53.500950+00:00",
+      "phase": "measure",
+      "elapsed": 46.16,
+      "footprint": 1268345800,
+      "interval": 1268345800,
+      "pids": {
+        "62157": [
+          44485224,
+          44485224
+        ],
+        "62214": [
+          1184470872,
+          1184470872
+        ],
+        "62377": [
+          39389704,
+          39389704
+        ]
+      },
+      "gpu": 129747896,
+      "load": 88.08,
+      "readMs": 4.4,
+      "processIdentities": {
+        "webContent": {
+          "62157": {
+            "startAbstime": 10547859536511,
+            "footprintBytes": 44485224,
+            "intervalMaxBytes": 44485224
+          },
+          "62214": {
+            "startAbstime": 10547892281659,
+            "footprintBytes": 1184470872,
+            "intervalMaxBytes": 1184470872
+          },
+          "62377": {
+            "startAbstime": 10547929705625,
+            "footprintBytes": 39389704,
+            "intervalMaxBytes": 39389704
+          }
+        },
+        "gpu": {
+          "62175": {
+            "startAbstime": 10547868297064,
+            "footprintBytes": 129747896,
+            "intervalMaxBytes": 129797048
+          }
+        }
+      }
+    },
+    "pid": 62214,
+    "confirmed": {
+      "pid": 62214,
+      "startAbstime": 10547892281659,
+      "physicalFootprintBytes": 1184470872,
+      "residentBytes": 4569628672,
+      "lifetimeMaxPhysicalFootprintBytes": 2234962648,
+      "intervalMaxPhysicalFootprintBytes": 1184470872
+    },
+    "began": 1792551653.5013509,
+    "ended": 1792551657.356488,
+    "exit": 0
+  },
+  "mapSha256": "4d690cafbaced8d758a8f26046cc4664dc38967497e8c7750b747afb68f0ccca",
+  "vmmapUnits": "Rounded binary K/M/G; never compare these rounded categories to decimal caps.",
+  "observedDirty": {
+    "WebKit Malloc": "1.1G",
+    "JS JIT generated code": "57.5M",
+    "JS VM Gigacage": "50.1M",
+    "CG raster data": "5696K",
+    "Image IO": "0K"
+  },
+  "interpretation": "Most dirty storage is in the WebKit allocator. This does not identify a particular JavaScript class or allocating function. vmmap creates a corpse copy and perturbs the subsequent footprint; the diagnostic peaks receive no cap credit.",
+  "proof": ".git/proofs/20261020T215531-sp-x8-nalati-layer-allocation-19242.json"
+}

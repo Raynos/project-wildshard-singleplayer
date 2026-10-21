@@ -14,7 +14,7 @@ import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/pa
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { Rng } from '@wildshard/engine/core/rng';
 import { buildYield } from '@wildshard/engine/core/workSlice';
-import { scatterLayer, instanceBoxes, type ScatterLayer } from '@wildshard/engine/render/scatterInstances';
+import { scatterLayer, instanceBoxes, type ScatterLayer, type ScatterPose } from '@wildshard/engine/render/scatterInstances';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
@@ -43,6 +43,9 @@ export function readSceneFloors(input:unknown):((x:number,z:number)=>number|unde
 
 /** Numeric table decoder for dense scatter poses, preserving authored float64 values. */
 export function readSceneNumericTable(bytes: Uint8Array): Record<string, number>[] {
+  return [...sceneNumericRows(bytes)];
+}
+function* sceneNumericRows(bytes: Uint8Array): IterableIterator<Record<string, number>> {
   const invalid = new Error('Invalid scene numeric table');
   if (bytes.byteLength < 16) throw invalid;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -51,9 +54,29 @@ export function readSceneNumericTable(bytes: Uint8Array): Record<string, number>
   if(count>100000||width<1||width>32||header>2048||header<1||bytes.length!==16+header+count*width*8)throw invalid;
   const keys=new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(16,16+header)).split('\0');
   if(keys.length!==width||new Set(keys).size!==width||keys.some(key=>!/^[a-zA-Z][a-zA-Z0-9]{0,30}$/u.test(key)))throw invalid;
-  return Array.from({length:count},(_,row)=>Object.fromEntries(keys.map((key,column)=>{
-    const value=view.getFloat64(16+header+(row*width+column)*8,true);if(!Number.isFinite(value))throw invalid;return[key,value];
-  })));
+  for(let row=0;row<count;row++){
+    const pose:Record<string,number>={};
+    for(let column=0;column<width;column++){
+      const key=keys[column],value=view.getFloat64(16+header+(row*width+column)*8,true);
+      if(key===undefined||!Number.isFinite(value))throw invalid;pose[key]=value;
+    }
+    yield pose;
+  }
+}
+
+// Only the final draw poses survive a decode slice; raw records and validation
+// scratch never accumulate into a second full numeric table.
+async function sceneScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'][number],pause:()=>Promise<void>):Promise<ScatterPose[]>{
+  let source:Iterable<unknown>;
+  if(row.binary)source=sceneNumericRows(await ctx.product.file(row.file));
+  else{const data=await ctx.product.json<unknown>(row.file);if(!Array.isArray(data))throw new Error('Scene scatter rows must be an array');source=data;}
+  const poses:ScatterPose[]=[],selection=row.select;let at=0;
+  for(const input of source){
+    const {solid,...pose}=v.parse(SceneScatterPoseSchema,input);
+    if(selection===undefined||(at%selection.modulo===selection.remainder)===selection.equal)poses.push(solid===undefined?pose:{...pose,solid:true});
+    if(++at%256===0)await pause();
+  }
+  return poses;
 }
 
 /** Dense little-endian source addresses keep byte offsets out of bounded JSON rows. */
@@ -155,16 +178,15 @@ export class SceneDressing {
       definitions.set(row.model.id,defineModel<object>({...metadata,...(surface===undefined?{}:{surface}),...(seed===undefined?{}:{seed}),...(variants===undefined?{}:{variants}),...(specimenYaw===undefined?{}:{specimenYaw}),build:()=>[{geometry:shape.clone(),material,castShadow:false,receiveShadow:true}]}));}
     await timeClientPreparation(ctx.product.slug,'dressing.layers',async()=>{
     for(const row of rows.layers){
-      const data=row.binary?readSceneNumericTable(await ctx.product.file(row.file)):await ctx.product.json<unknown>(row.file);
-      const selection=row.select;
-      const poses=v.parse(v.array(SceneScatterPoseSchema),data).filter((_,i)=>selection===undefined||(i%selection.modulo===selection.remainder)===selection.equal)
-        .map(({solid,...pose})=>solid===undefined?pose:Object.assign(pose,{solid:true as const}));
-      if(poses.length===0)continue;
+      await timeClientPreparation(ctx.product.slug,`dressing.layer.${row.id}`,async()=>{
+      const poses=await timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause));
+      if(poses.length===0)return;
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
       const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts);
       const registered=withOwner(ctx.scope,()=>place(needModel(row.model),poses.map(it=>({x:it.x,y:it.y,z:it.z})),{
         ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,split:{every:150,yieldTask:pause}},
-      }));await registered.registered;this.placed.push(registered);await pause();
+      }));await registered.registered;this.placed.push(registered);
+      });await pause();
     }
     });
     await timeClientPreparation(ctx.product.slug,'dressing.statics',async()=>{
