@@ -2,7 +2,7 @@ import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
-import { loadIslandCover } from './islandCover';
+import { loadVertexWear } from '@wildshard/game/looks/vertexWear';
 import { TIER } from '@wildshard/engine/core/tier';
 import { loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 /**
@@ -48,8 +48,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const fixed = driftwoodRows('custom/fixedLayouts');
   const { game, sky, player, registry } = world;
   const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier, piece: (piece) => { registry.add(piece); } });
-  const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover(),driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
-  islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, world/islandCover.ts)
+  const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadVertexWear(driftwoodProduct(), fixed.coverFiles[TIER]),driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
+  islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, generators/islandCover.ts)
+  const coverMap = islandCover.texture; if (coverMap === null) throw new Error('The island cover carries its ground map');
   const slice = slicer(30, progress);
   const assembly = fixed.assembly, total = 15 + assembly.piers.length;
   let completed = 0;
@@ -173,7 +174,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const looks = fixed.nativeView.ISLAND_LOOKS, reach = fixed.nativeView.ISLAND_TIERS[TIER];
   island.tiles.forEach((tile, i) => { islandCover.wear(tile.geometry, i + 1); });
   for (const [id, c] of [[looks.cover, reach.cover], [looks.coverBig, reach.big]] as const) {
-    setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...islandCover.groundRect]); setLentTexture(id, 'groundMap', islandCover.ground);
+    setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...islandCover.rect]); setLentTexture(id, 'groundMap', coverMap);
   }
   await entry.run('smallRocks'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
   const smallRocks = scenes.mesh('rocks.small');

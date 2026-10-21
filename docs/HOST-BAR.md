@@ -87,6 +87,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
   they are removed from the shared water surface and count to Pine C2.
 
 - G571 ranged page preparation: `game/loadout/rangedPage#prepareRangedPage` consumes admitted finish/collection source ids and ranged-page rows in the entered world phase. Existing equipment, inventory, geometry and menu owners stay authoritative. Client-only; tests 2–6 covered by `test/ranged-entry-capability.test.ts`; test 1 waived.
+- G571 vertex wear: `game/looks/vertexWear#loadVertexWear`, `format/vertexWear#VertexWearSchema`. Client-only.
 
 The ruler reads exact module or `module#binding` selectors from the G571
 list entries above. A named binding never approves other declarations in its

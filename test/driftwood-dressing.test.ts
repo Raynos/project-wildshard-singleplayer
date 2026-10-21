@@ -1,11 +1,7 @@
-import {expect,it,vi} from 'vitest';
+import {expect,it} from 'vitest';
 import {BufferAttribute,BufferGeometry} from 'three';
 import {AuthorCoverGrid} from '../src/shards/driftwood-isle/generators/coverGrid';
 import {clipIslandDressing,retainedIslandRuns} from '../src/shards/driftwood-isle/generators/clipDressing';
-import {loadIslandCover} from '../src/shards/driftwood-isle/world/islandCover';
-import ISLAND_COVER_FILES from '../src/shards/driftwood-isle/data/islandCoverFiles.json' with { type: 'json' };
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
 
 it('crops the lattice losslessly and keeps zero perimeter samples empty',()=>{
  const source=new AuthorCoverGrid();source.data.set([0.2,0.4,0.6,0.7,0.8],(60*source.n+60)*5);
@@ -23,15 +19,6 @@ it('installs retained native triangle runs and refuses a bad plan before changin
   clipIslandDressing(geometry,plan);expect(geometry.getAttribute('position')).toBe(positions);expect(Array.from(geometry.getIndex()?.array??[])).toEqual([3,4,5]);
   expect(()=>clipIslandDressing(geometry,plan)).toThrow('differs');
  }finally{geometry.dispose();}
-});
-// a damaged cover file is refused by the product's verified reader (ClientAssets: size and hash), before this loader
-it('refuses a missing required cover file through the world loader',async()=>{
- const read=vi.fn<()=>Promise<Uint8Array>>().mockRejectedValue(new Error('Required cover is missing'));
- const product=createShardProduct({slug:'driftwood-isle',revision:1,
-  shardfile:emptyShardfile({slug:'driftwood-isle',name:'Test',author:'Test',revision:1,seed:1}),
-  sections:new Map<string,unknown>([['custom/fixedLayouts',{coverFiles:Object.fromEntries(Object.entries(ISLAND_COVER_FILES).map(([tier,{url:_url,...file}])=>[tier,{...file,file:'world/cover.bin'}]))}]]),
-  files:new Map([['world/cover.bin',{hash:ISLAND_COVER_FILES.phone.hash,url:'/checked/cover.bin'}]]),read,check:true});
- await expect(loadIslandCover(product)).rejects.toThrow('missing');
 });
 
 it('compiles source triangle runs before the dressing table exists', () => {

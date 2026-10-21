@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./arenaScriptRows": "./arenaScriptRows.ts",
+    "./vertexWear": "./vertexWear.ts",
     "./encounterRows": "./encounterRows.ts",
     "./speciesBookRows": "./speciesBookRows.ts",
     "./bakedTiles": "./bakedTiles.ts",

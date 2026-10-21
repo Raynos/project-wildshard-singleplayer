@@ -158,7 +158,7 @@ export function islandSets(f: Float32Array, meta: CoverMeta, used: number, phone
   return { casters, covers, bigs, smallRocks: apart };
 }
 
-/** The tier's cover file (world/islandCover.ts): the ground map, then each terrain's cover bytes — part 0 the faceted
+/** The tier's cover file (a vertex wear row, game/looks/vertexWear.ts): the ground map, then each terrain's cover bytes — part 0 the faceted
  *  ground's grid (TERRAIN_RES², row by row), then the island's terrain tiles — and the layout its declaration carries. */
 export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}, seed: number): Promise<{bytes:Uint8Array;cells:Uint8Array;used:number;texture:{width:number;height:number};groundRect:[number,number,number,number];parts:[number,number][]}> {
   const base = '/assets/models/driftwood-blender/';
