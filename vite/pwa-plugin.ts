@@ -2,7 +2,8 @@
  * PWA plugin (project/archive/2026-09-22-load-perf.md §P3, docs/design/cache-policy.md). Ported from the `trials:pwa` plugin
  * in game-demos/trials-gauntlet-demo/vite.config.ts.
  *
- * Build: emits `sw.js` from `src/engine/pwa/sw.js` with three stamps baked in.
+ * Build: emits a tiny `sw.js` bootstrap importing a SHA-256-named core from
+ * `src/engine/pwa/sw.js`, with three stamps baked into that immutable core.
  *   __BUILD_ID__  `<BUILD_ID>-<hash of every emitted file + the public/ list>`. A deploy that changes bytes is
  *                 a byte-different worker (the browser installs it, the build pill adopts it); a REBUILD OF THE
  *                 SAME TREE is the same worker. (BUILD_ID alone carries `Date.now()` — on its own it would make
@@ -46,6 +47,12 @@ function publicStamp(root: string, subs: string[]): string[] {
 
 interface HeaderRule { source: string; headers: { key: string; value: string }[] }
 
+/** The browser's top-level update check stays tiny; imports name their exact immutable bytes. */
+export function workerScripts(core: string): { fileName: string; bootstrap: string } {
+  const fileName = `sw-core/${createHash('sha256').update(core).digest('hex')}.js`;
+  return { fileName, bootstrap: `importScripts(${JSON.stringify(`/${fileName}`)});\n` };
+}
+
 /**
  * `vercel.json` `source` → RegExp. Only the forms the file uses: literal paths and `(.*)` groups
  * (Vercel's path-to-regexp escapes everything else, `.` included).
@@ -84,7 +91,9 @@ export function pwaPlugin(buildId: string): Plugin {
         .map(([name, item]) => `${name}:${item.type === 'chunk' ? Buffer.byteLength(item.code) : Buffer.byteLength(item.source)}`);
       const build = `${buildId}-${contentStamp([...emitted, ...assetRows])}`;
       const hashed = Object.keys(bundle).filter((name) => /^assets\/[^/]+-[\w-]{8}\.\w+$/.test(name)).map((name) => `/${name}`).sort();
-      this.emitFile({ type: 'asset', fileName: 'sw.js', source: stamp(src, build, assets, hashed) });
+      const core = stamp(src, build, assets, hashed), scripts = workerScripts(core);
+      this.emitFile({ type: 'asset', fileName: scripts.fileName, source: core });
+      this.emitFile({ type: 'asset', fileName: 'sw.js', source: scripts.bootstrap });
       this.info(`sw.js emitted (ws-shell-${build}, ws-static-${assets}, ws-immutable: ${hashed.length} files)`);
     } },
     // Preview mirrors the production host: the same vercel.json rules, last match wins per header.
@@ -93,7 +102,7 @@ export function pwaPlugin(buildId: string): Plugin {
       server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
         const pathname = req.url?.split('?')[0] ?? '';
         for (const r of rules) if (r.re.test(pathname)) for (const h of r.headers) res.setHeader(h.key, h.value);
-        if (pathname === '/sw.js') {
+        if (pathname === '/sw.js' || pathname.startsWith('/sw-core/')) {
           // The public worker is identical for every Origin, like production.
           // Preview CORS otherwise splits WebKit's HTTP cache between a soft
           // navigation update (Origin present) and reg.update() (absent).
