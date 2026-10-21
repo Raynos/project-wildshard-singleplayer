@@ -1,5 +1,6 @@
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
-import { nativeQuestInputs, nativeQuestChannels } from './nativeInputs';
+import { nativeQuestChannels } from './nativeInputs';
+import { prepareNativeQuestEntry } from './nativeEntry';
 import { nativeStageLane } from '../plugin/director';
 import { mixedPopulation } from '../population/mixedRoster';
 import * as v from 'valibot';
@@ -10,12 +11,12 @@ import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import { bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredQuests } from './declared';
-import { bindQuestTableSpots, QuestRewardController, installNativeQuestProps } from '../plugin/quests';
-import { installDeclaredQuestHost } from '../plugin/simulation';
+import { QuestRewardController, installNativeQuestProps } from '../plugin/quests';
+import type { installDeclaredQuestHost } from '../plugin/simulation';
 import { AchievementCounterBook, type AchievementCounterRows } from '../achievements';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
-import { NativeInventory } from '../inventoryLaw';
-import { ItemCatalogue, nativeMeleeItem } from '../plugin/nativeItems';
+import type { NativeInventory } from '../inventoryLaw';
+import { nativeMeleeItem } from '../plugin/nativeItems';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration } from './interactionRows';
 
@@ -52,13 +53,12 @@ const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.s
 /** Renderer-free quest step composition on existing prop, cable, input, roster,
  * equipment and director owners. The post-player phase owns live continuation. */
 export function installNativeQuestComposition(host: SimHost, ports: NativeQuestCompositionInput): { quests: DeclaredQuests; pack: NativeInventory<string> } {
-  const policy = v.parse(NativeQuestCompositionSchema, ports.rows), input = nativeQuestInputs(host);
+  const policy = v.parse(NativeQuestCompositionSchema, ports.rows);
   const population = mixedPopulation(host, policy.population), equipment = nativeMeleeItem(host, policy.equipment);
   const finale = nativeStageLane(host, policy.director), channels = nativeQuestChannels(host, policy.reward.channels);
   const { table, spots } = ports, flags = host.flags;
-  const rules = [...bindQuestTableSpots(table, spots.rows, flags, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true }).values()];
-
-  const pack = new NativeInventory(new ItemCatalogue(ports.source.items).inventory, host);
+  const entry = prepareNativeQuestEntry(host, ports.source, table, spots.rows, { rows: policy.limits.rows, items: policy.limits.rows, ordered: true });
+  const { input, pack } = entry, rules = [...entry.rules.values()];
   const props = installNativeQuestProps(host, ports.props, ports.restoring);
   const walked = { x: 0, z: 0 };
 
@@ -112,8 +112,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     if (r?.spot.prompt === undefined) return undefined;
     return { act: policy.actions.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
   });
-  const graph = installDeclaredQuestHost(host, ports.source, { spots: { interact: [], crack: [] }, prompts, commands: input.scripts,
-    mechanics: { cables }, fact: input.ledger.fact, coins: input.ledger.coins, directorActions: new Map(),
+  const graph = entry.install({ prompts, mechanics: { cables }, directorActions: new Map(),
     observations: new Map([[policy.heldObservation, () => !state.iron && !guarded()], [policy.cableObservation, () => !cables.state(cableId).riding]]),
     actions: new Map<string, () => void>([
       [policy.heldId, () => { state.iron = true; equipment.equip(policy.heldSlot); }], [policy.cableId, () => { cables.start(cableId); }],

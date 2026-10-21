@@ -4,7 +4,10 @@ import { expect, test } from 'vitest';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { installQuestGraph } from '../src/game/plugin/quests';
-import { installDeclaredQuestHost } from '../src/game/plugin/simulation';
+import { prepareNativeQuestEntry } from '../src/game/quest/nativeEntry';
+import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
+import { nativeInventorySchema } from '../src/game/inventoryLaw';
+import * as v from 'valibot';
 import { parseQuestHost, questHostBindingRules } from '../src/format/questHost';
 import pine from '../src/shards/pine-hollow/generators/product';
 import driftwood from '../src/shards/driftwood-isle/generators/product';
@@ -40,7 +43,10 @@ test('Pine declared entry preserves external action results, continuation and qu
   try {
     const original = installQuestGraph(before, { quests: pine.quests, graph: PINE_QUEST_RUNTIME.graph,
       interactions: PINE_QUEST_RUNTIME.interactions, npcs: [] }, { ...ports(beforeFacts), drive: 'external' });
-    const current = installDeclaredQuestHost(after, pine, ports(afterFacts));
+    const nextPorts = ports(afterFacts);
+    registerNativeQuestInputs(after, { scripts: nextPorts.commands, walk: () => ({ x: 0, z: 0 }), ledger: nextPorts });
+    const entry = prepareNativeQuestEntry(after, pine, { rows: [], external: [] }, []), current = entry.install();
+    expect(() => entry.install()).toThrow('already installed');
     const saved = (host: typeof before) => [...host.adapters].map(([id, adapter]) => [id, adapter.snapshot()]);
     expect(saved(after)).toEqual(saved(before));
     for (const row of PINE_QUEST_RUNTIME.interactions.rows) {
@@ -61,4 +67,23 @@ test('Pine declared entry preserves external action results, continuation and qu
     }
     expect(afterFacts).toEqual([]);
   } finally { before.dispose(); after.dispose(); }
+});
+
+
+test('both native entries retain their declared pack policy and reject table admission before registering it', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  for (const source of [pine, driftwood]) {
+    const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+    try {
+      registerNativeQuestInputs(host, { scripts: () => [], walk: () => ({ x: 0, z: 0 }), ledger: { fact: () => undefined, coins: () => undefined } });
+      const table = { rows: [{ id: 'seat', kind: 'bench' as const, label: 'Sit', at: { poi: 'world' as const, x: 0, z: 0 } }], external: [] };
+      expect(() => prepareNativeQuestEntry(host, source, table, [])).toThrow();
+      const entry = prepareNativeQuestEntry(host, source, table, [{ id: 'seat', kind: 'bench' }], { ordered: true });
+      const item = entry.inventory.kinds[0]; if (item === undefined) throw new Error('Missing inventory kind');
+      expect(entry.pack.add(item, 2)).toBe(true);
+      const saved = entry.pack.snapshot(); expect(v.parse(nativeInventorySchema(entry.inventory), saved)).toEqual(saved);
+      entry.pack.take(item); entry.pack.restore(saved); expect(entry.pack.count(item)).toBe(2);
+      host.dispose(); expect(() => entry.install()).toThrow('disposed');
+    } finally { host.dispose(); }
+  }
 });

@@ -6628,6 +6628,14 @@ No author-supplied counter method or reflected synchronization path is accepted.
 `bench()` binds the entered table's seat to that same player, HUD and floor
 policy. Story rows supply the seat pose and words, without borrowed method paths.
 
+The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
+the admitted table and pack for both native quest compositions. It borrows
+the worker's existing command and ledger adapter; `install(owners)` binds the
+same declared graph once at the composition's original phase. The owners are
+trusted platform mechanics, not an author callback API. Table bounds and
+ordering retain each declaration's existing policy; saved pack schemas, graph
+adapters and command order are unchanged. A disposed or reused entry refuses.
+
 Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing
 scene assembler passes them to MeshStandardMaterial before its named world

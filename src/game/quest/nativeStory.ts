@@ -6,21 +6,21 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { isJsonData } from '@wildshard/format/json';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { NativeStoryRows, NativeStorySpots } from './nativeStoryRows';
-import { nativeQuestInputs } from './nativeInputs';
+import { prepareNativeQuestEntry } from './nativeEntry';
 import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/nativeAmmunition';
-import { readNativeRangedItem, ItemCatalogue } from '../plugin/nativeItems';
+import { readNativeRangedItem } from '../plugin/nativeItems';
 import { takeNativeBossReward } from '../boss/native';
 import { commitQuestEffects } from './effects';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
-import { bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
-import { installDeclaredQuestHost } from '../plugin/simulation';
+import { bindQuestDeathEffects, createReadingRoster } from '../plugin/quests';
+import type { installDeclaredQuestHost } from '../plugin/simulation';
 import { ReturnProgram } from '../population/returnProgram';
 import { AchievementCounterBook } from '../achievements';
 import { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
-import { NativeInventory, nativeInventorySchema } from '../inventoryLaw';
+import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
 import { ContractBoard, CONTRACT_ACTION } from './contractBoard';
 import { contractKill } from './contracts';
 import { questBenchPose } from './storyLaw';
@@ -58,11 +58,12 @@ export interface NativeStory {
 export function installNativeStory(host: SimHost, product: ShardProduct, rows: NativeStoryRows): NativeStory {
   if (!isJsonData(rows)) throw new Error('Native story requires JSON rows');
   const policy = rows.policy, content = rows.content, spots = rows.spots, flags = host.flags;
-  const input = nativeQuestInputs(host), ammunition = nativeHeldAmmunition(host), launcher = readNativeRangedItem(host, policy.launcher);
+  const entry = prepareNativeQuestEntry(host, product.shardfile, content.table, spots.rows), { input, pack } = entry;
+  const ammunition = nativeHeldAmmunition(host), launcher = readNativeRangedItem(host, policy.launcher);
   if (launcher.kind !== 'bolt') throw new Error('Story launcher requires a bolt item');
   const director = prepared.get(product);
   if (director === undefined) throw new Error('Native story has no prepared director');
-  const ports = { ...rows, inventory: new ItemCatalogue(product.shardfile.items).inventory,
+  const ports = { ...rows,
     commands: input.scripts, fact: input.ledger.fact, coins: input.ledger.coins, director, ammunition,
     addBolts: (n: number) => { launcher.item.addBolts(n); }, canSelectAmmo: () => launcher.frame.live.has(policy.launcher),
     day: () => host.dayClock ?? null, night: () => host.dayClock?.night ?? 0,
@@ -71,8 +72,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     AMMO = policy.ammo, TRADE_CLOSE = -1, QUEST_STEP = policy.step, PICKUP_FLAG = policy.pickup.flag,
     benchRows = policy.bench;
   const { touchCount: TOUCH_COUNT, readingDelay: READING_DELAY } = content.policy;
-  const { table } = content, indexed = bindQuestTableSpots(table, spots.rows, flags);
-  const pack = new NativeInventory(ports.inventory, host), Saved = questSaved(nativeInventorySchema(ports.inventory), policy.finish.ids);
+  const indexed = entry.rules, Saved = questSaved(nativeInventorySchema(entry.inventory), policy.finish.ids);
   const required = (id: string): Rule => {
     const row = indexed.get(id);
     if (row === undefined) throw new Error(`Missing story quest row ${id}`);
@@ -84,8 +84,7 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
     const action = policy.actions.find(row => row.value === value && row.kind === 'row');
     return action?.kind === 'row' ? required(action.target) : null;
   };
-  const graph = installDeclaredQuestHost(host, product.shardfile,
-    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins });
+  const graph = entry.install();
   const quests = graph.quests;
   const chapter = quests.quests[0];
   if (chapter === undefined) throw new Error('Story requires its chapter');
@@ -205,11 +204,11 @@ export function installNativeStory(host: SimHost, product: ShardProduct, rows: N
 
   const lead: v.InferOutput<typeof LeadSaved> = { i: 0, mode: 'none', t: 0 }, leadProgram = ReturnProgram.native(host, content.lead.program);
   const modes = ['none', 'stare', 'trot', 'gone'] as const;
-  const envelope = (value: Record<string, SimValue>): Record<string, SimValue> => Object.fromEntries(Object.entries(value).map(([key, entry]) => [policy.savedNames[key] ?? key, entry]));
+  const envelope = (value: Record<string, SimValue>): Record<string, SimValue> => Object.fromEntries(Object.entries(value).map(([key, saved]) => [policy.savedNames[key] ?? key, saved]));
   const decoded = (value: unknown): Record<string, unknown> => {
     const source = v.parse(v.record(v.string(), v.unknown()), value);
     const names = new Map(Object.entries(policy.savedNames).map(([key, name]) => [name, key]));
-    return Object.fromEntries(Object.entries(source).map(([key, entry]) => [names.get(key) ?? key, entry]));
+    return Object.fromEntries(Object.entries(source).map(([key, saved]) => [names.get(key) ?? key, saved]));
   };
   const leadInput = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, on: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };
   const leadFailure = new Error('Stag projection omitted its continuation');
