@@ -10625,6 +10625,15 @@ reward pose. Sampling leaves elapsed time and the saved envelope with their
 original owners; the page still commits its completed phase through the
 existing backdrop setter.
 
+Page and renderer-free chapter entries share the internal `ChapterClock`
+timing implementation: the same observation projection, ordered flag/phase
+effects, flag-triggered requests and stage lane initialization. Page-specific
+captions, inventory and cues remain in the entered adapter; native encounter
+and reward effects remain in the native adapter. Native continuation bytes
+and step-driven requests keep their original saved owners. The page still
+finishes phase travel with the backdrop setter; native travel directly
+assigns its clock. This internal implementation is not an exported SDK hook.
+
 `NativeQuestHost.dispatch(commands)` delivers at most 1024 commands in
 order through the existing admitted routes. Pine calls it at its original
 quest phase; Driftwood's declared command step calls the same dispatcher.

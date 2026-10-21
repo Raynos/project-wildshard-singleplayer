@@ -1,13 +1,13 @@
 import { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
-import { parseChapterDirector, parseChapterWake, chapterObservations, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
+import { parseChapterDirector, parseChapterWake, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import { bindRuntimeBoss } from '../plugin/headless';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { WakeBossEncounter } from '../boss/wake';
 import { presentWakeBoss } from '../boss/presentation';
 import type { ShardContext } from '../plugin/context';
-import { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
+import { readDirectorProduct } from '../plugin/director';
 import { enteredCompletion } from '../complete/declared';
 import { boundQuestChapter } from './chapter';
 import { commitQuestEffects } from './effects';
@@ -20,7 +20,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { questSpawnObservations, questSpawnPublications } from './steps';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { questPhaseSpan, questPhaseAt } from './storyLaw';
+import { ChapterClock } from './chapterClock';
 
 /** Client-only chapter/boss binding over the existing AS director and native
  * spawn owner. Content supplies rows, ids and the resolved arena position;
@@ -87,9 +87,9 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
   if (world === undefined || world === null || play === undefined || play === null) throw new Error('Chapter director requires its entered play services');
   const day = world.sky.dayNight;
   const rewardAt = rows.reward === undefined ? null : new Vector3(rows.reward.x, rows.reward.y, rows.reward.z);
-  let fast: { from: number; span: number; t: number; dur: number; to: number } | null = null;
   const cues: string[] = [], state = { started: false, completed: false };
-  ctx.scope.onDispose(() => { cues.length = 0; fast = null; });
+  let timeline: ChapterClock | null = null;
+  ctx.scope.onDispose(() => { cues.length = 0; if (timeline !== null) timeline.fast.on = null; });
   const caption = ctx.scope.run(() => new RewardCaption(rows.caption.kicker, rows.caption.title, rows.caption.subtitle));
   const reward = rows.reward === undefined || rewardAt === null ? null : new QuestRewardController(world.player, day,
     { ...rows.reward, at: rewardAt, when: () => state.started,
@@ -99,43 +99,22 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
       release: () => { play.weapons.visible = true; chapter.objective.hide(false); },
     });
   ctx.scope.onDispose(() => { reward?.dispose(); caption.scope.dispose(); });
-  const run = (id: string): void => {
-    if (ctx.scope.disposed) return;
-    const effects = rows.actions[id]; if (effects === undefined) throw new Error(`Unknown chapter publication ${id}`);
-    for (const effect of effects) {
-      if (effect.kind === 'phase') {
-        if (day !== null) fast = { from: day.phase, span: questPhaseSpan(day.phase, effect.to), t: 0, dur: effect.seconds, to: effect.to };
-      } else if (effect.kind === 'caption') caption.show(effect.show);
+  const clock = ctx.scope.run(() => new ChapterClock(ctx.scope, director, rows, flags,
+    { day, player: world.player.position, reward: rewardAt, finish: 'set' }, effect => {
+      if (effect.kind === 'caption') caption.show(effect.show);
       else if (effect.kind === 'objective') chapter.objective.hide(effect.hide);
       else if (effect.kind === 'cue') {
         if (cues.length >= 64) throw new Error('Chapter cue allowance');
         cues.push(effect.id);
       } else if (effect.kind === 'reward') state[effect.state] = true;
       else commitQuestEffects(ctx, rows.quest, [effect]);
-    }
-  };
-  const observe = (): Record<string, number> => chapterObservations(rows.observations,
-    { flags: flags.all, day, player: world.player.position, reward: rewardAt });
-  const script = director.create();
-  const clock = ctx.scope.run(() => new DirectorScriptStageLane(director.stages, script, { scope: ctx.scope, observe,
-    emits: { source: rows.source, value: 'literal', actions: new Map(Object.keys(rows.actions).filter(key => script.data.events.some(event => event.direction === 'output' && event.key === key)).map(key => [key, () => { run(key); }])) },
-  }, false, rows.initialDt));
-  const request = (id: string): void => { clock.request(id); };
-  ctx.scope.onDispose(flags.onChange((key, on) => {
-    if (!on) return;
-    if (rows.changes.includes(key)) clock.changed();
-    for (const row of rows.requests) if ('flag' in row && row.flag === key) request(row.request);
-  }));
-  ctx.scope.onDispose(chapter.quest.observe({ step: step => {
-    for (const row of rows.requests) if ('step' in row && row.step === step?.id) request(row.request);
-  } }));
-  for (const row of rows.requests) if ('step' in row && row.step === chapter.quest.current?.id) request(row.request);
-  return { caption, rewardAt, rewardPose: rows.reward, run, request, takeCues: () => cues.splice(0), update: dt => {
+    }));
+  timeline = clock;
+  const request = (id: string): void => { clock.lane.request(id); };
+  ctx.scope.onDispose(chapter.quest.observe({ step: step => { clock.requestStep(step?.id); } }));
+  clock.requestStep(chapter.quest.current?.id);
+  return { caption, rewardAt, rewardPose: rows.reward, run: id => { clock.run(id); }, request, takeCues: () => cues.splice(0), update: dt => {
     if (ctx.scope.disposed) return;
-    if (fast !== null && day !== null) {
-      fast.t += dt; day.phase = questPhaseAt(fast.from, fast.span, fast.t, fast.dur);
-      if (fast.t / fast.dur >= 1) { const to = fast.to; fast = null; void day.set(to); }
-    }
     clock.update(dt); reward?.update(dt, state.completed);
   } };
 }
