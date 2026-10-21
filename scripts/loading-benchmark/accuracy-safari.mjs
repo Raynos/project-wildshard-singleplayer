@@ -147,6 +147,8 @@ try {
           await wait(`document.querySelector('.ws-load') === null && window.__wildshard?.world?.game.renderer !== undefined`, 10000);
           const frame = await inspector.evaluate('window.__wildshard.world.game.renderer.info.render.frame');
           await wait(`window.__wildshard.world.game.renderer.info.render.frame > ${frame}`, 10000);
+          // Diagnostic only, after the frozen first-frame measurement window.
+          result.nodeBuilds = JSON.parse(await inspector.evaluate('JSON.stringify(window.__wildshard?.world?.game.nodeBuilds ?? null)'));
         }
         const caption = `${pin.slice(0, 7)} · ${collected?.accuracy?.final?.path ?? `${path} request`} · iPhone 16 Pro · Simulator`;
         await inspector.evaluate(`(${accuracyCaption.toString()})(${JSON.stringify(caption)})`);

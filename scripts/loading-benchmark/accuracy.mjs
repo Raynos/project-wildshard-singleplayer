@@ -100,6 +100,10 @@ try {
         const frame = await page.evaluate(() => window.__wildshard?.world?.game.renderer.info.render.frame ?? -1);
         await page.waitForFunction(previous => (window.__wildshard?.world?.game.renderer.info.render.frame ?? -1) > previous,
           frame, { timeout: 10_000 });
+        // Read existing bounded diagnostics after the recorded first frame;
+        // this does not extend the byte/cadence measurement window.
+        receipt.nodeBuilds = await page.evaluate(() => window.__wildshard?.world?.game.nodeBuilds ?? null);
+        writeFileSync(resolve(directory, `${path}.json`), JSON.stringify(receipt, null, 2));
       }
       if (!desktop) {
         await page.evaluate(accuracyCaption, `${pin.slice(0, 7)} · ${collected.accuracy.final?.path ?? `${path} request`} · iPhone 16 Pro · CPU ${cpu}x`);
