@@ -6,7 +6,7 @@
 
 **Tooling:** BUILD-SPEED. G568: push loop (sp-x1, landing), one batch per row. G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
 
-**Rules:** lanes/common.md.
+**Rules:** lanes/common.md; G569: watchdog nudges idle lanes itself (48894c561c), no 'unless redirected' turn endings.
 
 **Lanes:** Z rows in lanes/ready-queue.md (self-pull); quest host G565 done (X5).
 
