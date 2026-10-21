@@ -132,8 +132,11 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
   };
   const check = (node: Draw, submitted = false, view?: Camera): void => {
     checked++; if (!submitted) node.updateWorldMatrix(true, false);
-    const held = drawVariants.get(node), current = Array.isArray(node.material) ? node.material : [node.material];
-    if (held !== undefined && current.some(material => !held.has(material))) unclip(node);
+    const held = drawVariants.get(node);
+    if (held !== undefined) {
+      const current = node.material;
+      if (Array.isArray(current) ? current.some(material => !held.has(material)) : !held.has(current)) unclip(node);
+    }
     if (!node.geometry.hasAttribute('position') || node.geometry.getAttribute('position').count === 0) return;
     if (node instanceof Sprite) {
       const scale = node.getWorldScale(new Vector3());
@@ -167,7 +170,8 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
       if (node.geometry.boundingBox === null) throw new Error('Cell draw has no geometry bounds');
       projectBounds(node.geometry.boundingBox, node.matrixWorld, box);
     }
-    if (![...box.min, ...box.max].every(Number.isFinite)) throw new Error('Cell draw has nonfinite bounds');
+    if (!Number.isFinite(box.min.x) || !Number.isFinite(box.min.y) || !Number.isFinite(box.min.z)
+      || !Number.isFinite(box.max.x) || !Number.isFinite(box.max.y) || !Number.isFinite(box.max.z)) throw new Error('Cell draw has nonfinite bounds');
     const rounding = Number.EPSILON * Math.max(half, Math.abs(origin.x), Math.abs(origin.z)) * 32;
     if (box.min.x >= cell.value.x - rounding && box.max.x <= cell.value.z + rounding && box.min.z >= cell.value.y - rounding && box.max.z <= cell.value.w + rounding) {
       const visible = refused.get(node);
@@ -221,10 +225,10 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
   };
   const mark = (node: Object3D, tree = false, force = !tree): void => {
     if (checking || !watched.has(node)) return;
-    if (!shown(node)) { samePose.get(node)?.(); return; } // Reveal forces fresh bounds for the whole subtree.
     if (force) forced.add(node);
     const repeated = dirty.get(node) === true || (!tree && dirty.has(node));
     if (repeated && refused.size === 0) return;
+    if (!shown(node)) { samePose.get(node)?.(); forced.delete(node); return; } // Reveal forces fresh bounds for the whole subtree.
     dirty.set(node, tree || dirty.get(node) === true);
     if (tree) for (const draw of descendants.get(node) ?? []) gate(draw);
     else if (isDraw(node)) gate(node);
