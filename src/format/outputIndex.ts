@@ -1,5 +1,6 @@
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
 import * as v from 'valibot';
+import { assertCellBounds } from './cellBounds';
 import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSchema';
 import { RuntimeSchema } from './runtime';
 import { RuntimeSpawnsSchema } from './runtimeSpawns';
@@ -113,7 +114,7 @@ export function outputBlobPath(file: Pick<OutputFile, 'kind' | 'hash' | 'path'>)
 /** Whether a section is an independently authored plain platform value. */
 export function isPlatformDataSection(name:string):name is keyof typeof OUTPUT_DATA_SECTIONS{return Object.hasOwn(OUTPUT_DATA_SECTIONS,name);}
 /** Validate both legacy envelopes and independently authored platform values. */
-export function validateOutputSection(name:string,value:unknown):unknown{return isPlatformDataSection(name)?v.parse(OUTPUT_DATA_SECTIONS[name].schema,value):parseOutputSection(name,value);}
+export function validateOutputSection(name:string,value:unknown):unknown{assertCellBounds(value,name);return isPlatformDataSection(name)?v.parse(OUTPUT_DATA_SECTIONS[name].schema,value):parseOutputSection(name,value);}
 /** Deterministic platform section values; custom author sections are added separately. */
 export function outputSectionPayloads(source: Shardfile): ReadonlyMap<string, unknown> {
   const result = new Map<string, unknown>();
@@ -128,6 +129,7 @@ export function outputSectionPayloads(source: Shardfile): ReadonlyMap<string, un
 }
 /** Check each platform section against the same defining field schemas as the monolith. */
 export function parseOutputSection(name: string, input: unknown): Record<string, unknown> {
+  assertCellBounds(input, name);
   const mapping = OUTPUT_SECTIONS.find(row => row.name === name);
   if (mapping === undefined) throw new Error('Unknown platform section');
   if (!isJsonData(input) || typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error('Section must contain JSON fields');
@@ -149,6 +151,7 @@ export function assembleOutputFields(index: OutputIndex, sections: ReadonlyMap<s
   if (sections.size !== index.sections.length || index.sections.some(entry => !sections.has(entry.name))) throw new Error('Missing or surplus output section');
   const rows: Record<string, unknown> = {};
   for (const entry of index.sections) {
+    if (checkSections) assertCellBounds(sections.get(entry.name), entry.name);
     if (entry.name.startsWith('custom/')) continue;
     if (isPlatformDataSection(entry.name)) {if(checkSections)v.parse(OUTPUT_DATA_SECTIONS[entry.name].schema,sections.get(entry.name));continue;}
     const payload=sections.get(entry.name);

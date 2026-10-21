@@ -21,6 +21,7 @@
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
 import { platformInputs } from './platformInputs';
+import { cellClip } from './cellClip';
 import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } from 'three';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
@@ -435,6 +436,7 @@ export class GridSession {
       // G164: a shard whose whole world is shifted vertically at runtime (its terrain field's `datum`, Driftwood's hybrid row)
       // shows its baked far proxy shifted by the same amount, as its own bake installs; absent, the root sits at road height
       const root = new Group(); root.name = `grid-cell:${cell.instance}`; root.position.set(cell.origin.x - home.origin.x, findShard(cell.slug)?.ground.terrain?.datum ?? 0, cell.origin.z - home.origin.z);
+      const containment = cellClip(root, CHUNK_HALF, host.scope); containment.sweep();
       root.updateMatrixWorld(); host.scene.add(root); roots.set(cell.instance, root);
       // playtest 1: a shared product's copy wears its own number panels (copyIdentity.ts)
       const marks = copyMarks(cell.instance, cell.identity);

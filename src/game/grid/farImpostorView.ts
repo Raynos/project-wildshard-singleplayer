@@ -7,7 +7,7 @@
  * rest, so a cell never pops between them. The texels pack to RGBA 5551 (2 bytes, the bake's own quantisation) in a
  * worker, off the main thread, and leave the JS heap once uploaded. Generic: nothing here knows a shard.
  */
-import { DataTexture, LinearFilter, Mesh, PlaneGeometry, RGBAFormat, ShaderMaterial, Sphere, UnsignedShort5551Type, Vector3, type Color, type Material, type Object3D } from 'three';
+import { Box3, DataTexture, LinearFilter, Mesh, PlaneGeometry, RGBAFormat, ShaderMaterial, Sphere, UnsignedShort5551Type, Vector3, type Color, type Material, type Object3D } from 'three';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { FarImpostor } from '@wildshard/format/shardSections';
 import type { FarHaze } from './farProxy';
@@ -115,6 +115,7 @@ export function installFarImpostor(root: Object3D, data: FarImpostorData, look: 
   decorate?.(material);
   // the quad is placed in the vertex shader: x across (−½ … ½ of the width), y up (0 … 1 of the span)
   const geometry = new PlaneGeometry(1, 1).translate(0, 0.5, 0);
+  geometry.boundingBox = new Box3(new Vector3(-row.width / 2, row.bottom, -row.width / 2), new Vector3(row.width / 2, row.top, row.width / 2));
   geometry.boundingSphere = new Sphere(new Vector3(0, (row.bottom + row.top) / 2, 0), Math.hypot(row.width / 2, (row.top - row.bottom) / 2));
   const mesh = new Mesh(geometry, material);
   mesh.name = 'far-impostor'; mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.visible = false;

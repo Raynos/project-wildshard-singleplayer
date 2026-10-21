@@ -4,7 +4,7 @@ import * as THREE from 'three';
 /** The native stream's complete packed geometry contract. */
 export interface StreamShapeRows { bytes: number; vertices: number; indices: number; wide: boolean }
 
-/** Restore the original channels, triangle width and smoothed normals without resampling. */
+/** Restore native channels and ordinals, bounding the creek mouth at the cell edge (G550). */
 export function streamGeometry(bytes: Uint8Array, rows: StreamShapeRows): THREE.BufferGeometry {
   if (bytes.length !== rows.bytes) throw new Error(`[streams] the bake holds ${String(bytes.length)} bytes, its rows ${String(rows.bytes)}`);
   const buffer = new ArrayBuffer(bytes.length); new Uint8Array(buffer).set(bytes);
@@ -12,6 +12,7 @@ export function streamGeometry(bytes: Uint8Array, rows: StreamShapeRows): THREE.
   let at = 0;
   const floats = (count: number): Float32Array => { const a = new Float32Array(buffer, at, count); at += pad4(count * 4); return a; };
   const pos = floats(n * 3), uv = floats(n * 2), aw = floats(n * 4);
+  for (let i = 0; i < pos.length; i += 3) for (const axis of [0, 2]) pos[i + axis] = Math.max(-250, Math.min(250, pos[i + axis] ?? Number.NaN));
   const index = rows.wide ? new Uint32Array(buffer, at, rows.indices) : new Uint16Array(buffer, at, rows.indices);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

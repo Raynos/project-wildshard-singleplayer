@@ -1,5 +1,6 @@
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 import { isJsonData } from './json';
+import { assertCellBounds } from './cellBounds';
 import { assertCommonsCosts } from './commonsCosts';
 
 const identifierKeys = new Set(['id', 'slug', 'name', 'actorId', 'rewardId', 'field', 'scene', 'entity', 'owner', 'sharedField', 'playerField']);
@@ -26,6 +27,7 @@ export function preflightShardfile(input: unknown): void {
   arrayCap(own(state, 'shared'), limits.stateFields, 'shared state'); arrayCap(own(state, 'player'), limits.stateFields, 'player state');
   arrayCap(own(input, 'water'), limits.waterBodies, 'water');
   if (!isJsonData(input)) throw new Error('Shardfile preflight requires bounded plain JSON data');
+  assertCellBounds(input);
 
   let bytes = 0;
   const encoder = new TextEncoder();

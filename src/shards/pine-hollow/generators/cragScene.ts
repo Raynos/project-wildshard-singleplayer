@@ -38,7 +38,7 @@ export function pineCragWorldScene(skin: Record<CragTier, SkinBake>): THREE.Scen
     if (!(node instanceof THREE.Mesh)) throw new Error('Crag author source must be a mesh');
     const geometry: unknown = node.geometry, material: unknown = node.material;
     if (!isGeometry(geometry) || !isMaterial(material)) throw new Error('Crag author source must retain its native geometry');
-    scene.add(new WholeShape(node.name, new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true, overhang: 1 }));
+    scene.add(new WholeShape(node.name, new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true }));
   }
   return scene;
 }

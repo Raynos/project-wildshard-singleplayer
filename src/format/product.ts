@@ -514,21 +514,24 @@ export function performanceTargetIssues(source: Shardfile, policy: 'refuse' | 'w
   return issues;
 }
 
-/** Refuse forged visual overhang or draw extents using actual transformed triangle bytes, never accessor bounds. */
+/** Check the exact placed prop XZ footprint, even without drawBounds or overhang. Height keeps its own contract. */
 export function validatePropDrawBounds(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): void {
-  const props = source.props; if (props?.overhang === undefined) return;
-  const limit = 250 + props.overhang;
+  const props = source.props; if (props === null) return;
+  const validate = (ref: string, bounds?: Shardfile['tiles'][number]['bounds']): void => {
+    const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing prop draw bytes');
+    visitGlbTriangles(bytes, triangle => {
+      for (const point of triangle) {
+        if (Math.abs(point.x) > 250 || Math.abs(point.z) > 250) throw new Error('Prop exceeds cell draw bounds');
+        if (bounds !== undefined && (point.x < bounds.min[0] || point.x > bounds.max[0] || point.y < bounds.min[1] || point.y > bounds.max[1] || point.z < bounds.min[2] || point.z > bounds.max[2])) throw new Error('Prop exceeds declared visual draw bounds');
+      }
+    });
+  };
   for (const row of props.tiles) {
     const tile = source.tiles.find(candidate => candidate.lod === row.lod && candidate.x === row.x && candidate.z === row.z);
     if (tile === undefined) throw new Error('Missing prop draw tile');
-    const bounds = tile.drawBounds ?? tile.bounds;
-    for (const ref of [row.file, ...row.additionalFiles ?? []]) {
-      const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing prop draw bytes');
-      visitGlbTriangles(bytes, triangle => {
-        for (const point of triangle) if (Math.abs(point.x) > limit || Math.abs(point.z) > limit || point.x < bounds.min[0] || point.x > bounds.max[0] || point.y < bounds.min[1] || point.y > bounds.max[1] || point.z < bounds.min[2] || point.z > bounds.max[2]) throw new Error('Prop exceeds declared visual draw bounds');
-      });
-    }
+    for (const ref of [row.file, ...row.additionalFiles ?? []]) validate(ref, tile.drawBounds);
   }
+  for (const ref of [...props.panels.map(row => row.file), ...props.wholeLibrary ?? [], ...props.far === null ? [] : [props.far]]) validate(ref);
 }
 
 /** Report deterministic declared bounds and measured native execution; the caller supplies trusted provenance policy. */

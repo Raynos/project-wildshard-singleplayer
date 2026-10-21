@@ -34,6 +34,8 @@ import { WorldRegistry, type Piece } from '@wildshard/engine/world/registry';
 import type { GridCell } from './assembly';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import { cellCoverOf } from './cellCover';
+import { cellClip } from './cellClip';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
 
 /** The page's registry slot (`App.registryValue`): the frame that owns the traveller owns the registry verbs. */
 export interface RegionalRegistrySlot { registryValue: WorldRegistry | null }
@@ -110,6 +112,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     registry.pieces.length = 0; registry.picks.length = 0; registry.sets.length = 0;
     movers.clear(); platforms.length = 0;
   });
+  const containment = cellClip(root, CHUNK_HALF, scope); containment.sweep();
   request.scene.add(root);
   // The neutral road has the page sun/fill, no regional point lights or cell PMREM. Prepare those exact keys before leaving.
   if (isScene(request.scene)) registerExteriorLighting(request.scene, scope, root, null);
@@ -176,7 +179,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     forgetView = scope.capture('disposers', restore);
   };
   return {
-    scope, root, registry, queries, enter: owner => { bind(owner, true); }, prepare: owner => { bind(owner, false); }, sync,
+    scope, root, registry, queries, enter: owner => { bind(owner, true); containment.update(); }, prepare: owner => { bind(owner, false); }, sync,
     census: () => {
       const native = physics.scopedCensus(scope);
       return { bodies: native.bodies, colliders: native.colliders, pieces: registry.pieces.length, objects: root.children.length,

@@ -8,13 +8,15 @@ const pad4 = (bytes: number): number => Math.ceil(bytes / 4) * 4;
 /** Original aligned position, AO and triangle block size. */
 export function skinBytes(vertices: number, indices: number): number { return pad4(vertices * 12) + pad4(vertices * 4) + pad4(indices * 2); }
 
-/** The original native attributes, normals and bounds, without resampling or index conversion. */
+/** Native attributes and ordinals, with the boundary lip projected onto the exact cell edge (G550). */
 export function skinGeometry(pos: Float32Array, ao: Float32Array, index: Uint16Array): THREE.BufferGeometry {
+  const bounded = pos.slice();
+  for (let i = 0; i < bounded.length; i += 3) for (const axis of [0, 2]) bounded[i + axis] = Math.max(-250, Math.min(250, bounded[i + axis] ?? Number.NaN));
   const k = ao.length;
   const cd = new Float32Array(k * 4), ct = new Float32Array(k * 2);
   for (let i = 0; i < k; i++) { cd[i * 4] = ao[i] ?? 0; cd[i * 4 + 1] = 1; cd[i * 4 + 3] = 1; ct[i * 2 + 1] = 1; }
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('position', new THREE.BufferAttribute(bounded, 3));
   g.setAttribute('cdata', new THREE.BufferAttribute(cd, 4));
   g.setAttribute('ctint', new THREE.BufferAttribute(ct, 2));
   g.setIndex(new THREE.BufferAttribute(index, 1));

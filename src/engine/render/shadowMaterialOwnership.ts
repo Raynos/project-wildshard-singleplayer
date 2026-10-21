@@ -2,6 +2,7 @@ import { MeshDepthMaterial, MeshDistanceMaterial } from 'three';
 import type { Renderer } from './renderer';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
+import { admitObjectDraw } from './drawGuards';
 
 type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<Renderer['shadowMap'], 'render'> };
 /** Install after upload observation: native shadow cache materials must be registered before their first upload.
@@ -10,6 +11,7 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
   let drawing = false;
   const draw = renderer.renderBufferDirect.bind(renderer), shadows = renderer.shadowMap.render.bind(renderer.shadowMap);
   renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
+    if (!admitObjectDraw(camera, scene, geometry, material, object, group)) return;
     if (drawing && (material instanceof MeshDepthMaterial || material instanceof MeshDistanceMaterial) &&
       material !== object.customDepthMaterial && material !== object.customDistanceMaterial) {
       const key = `renderer:shadow:${material.uuid}`;

@@ -198,11 +198,11 @@ export function pineStreamGeometry(ground: PineStreamGround): THREE.BufferGeomet
   geometry.computeBoundingBox(); geometry.computeBoundingSphere(); return geometry;
 }
 
-/** The full water draw on centroid-owned tiles, with its declared one-metre visual edge allowance. */
+/** The full water draw on centroid-owned tiles, bounded at the exact cell edge. */
 export function pineStreamScene(ground: PineStreamGround): THREE.Scene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.streams';
   const geometry = pineStreamGeometry(ground), material = new THREE.MeshStandardMaterial({ roughness: 1 });
-  scene.add(new WholeShape('pine-streams', new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true, overhang: 1 }));
+  scene.add(new WholeShape('pine-streams', new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true }));
   return scene;
 }
 

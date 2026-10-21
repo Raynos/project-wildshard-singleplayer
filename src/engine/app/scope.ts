@@ -249,15 +249,16 @@ export class Scope {
   private readonly timerCancels = new Map<ReturnType<typeof setTimeout>, () => void>();
   cancelTimer(id: ReturnType<typeof setTimeout> | 0 | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels.get(id)?.(); }
 
-  /** THREE-style persistent emitter subscription, with no DOM casts. */
+  /** THREE-style subscription, released by its owner or the returned unsubscribe. */
   listenEmitter<K extends string, E>(target: {
     addEventListener: (type: K, fn: (event: E) => void) => void;
     removeEventListener: (type: K, fn: (event: E) => void) => void;
-  }, type: K, fn: (event: E) => void): void {
-    if (this.closed) return;
+  }, type: K, fn: (event: E) => void): () => void {
+    if (this.closed) return () => undefined;
     const listener = (event: E): void => { withOwner(this, () => fn(event)); };
     target.addEventListener(type, listener);
-    this.track('listeners', () => { target.removeEventListener(type, listener); });
+    const forget = this.track('listeners', () => { target.removeEventListener(type, listener); });
+    return () => { target.removeEventListener(type, listener); forget(); };
   }
 
   /** One emitter event, released on delivery or owner disposal (including renderer resource events). */

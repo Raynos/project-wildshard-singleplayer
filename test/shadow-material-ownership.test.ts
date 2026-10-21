@@ -5,6 +5,7 @@ import { AssetService } from '../src/engine/app/assets';
 import { ownSceneTree, sceneResourceOwner } from '../src/engine/app/sceneOwnership';
 import { UploadOwnership } from '../src/engine/render/uploadOwnership';
 import { installShadowMaterialOwnership } from '../src/engine/render/shadowMaterialOwnership';
+import { guardObjectDraw } from '../src/engine/render/drawGuards';
 import type { Renderer } from '../src/engine/render/renderer';
 
 test('retiring a resident releases native shadow leases but never owns the shared depth cache', () => {
@@ -35,4 +36,21 @@ test('retiring a resident releases native shadow leases but never owns the share
   expect(() => depth.dispose()).not.toThrow();
   expect(assets.retained()).toEqual([]);
   page.dispose();
+});
+
+
+test('the existing submission port refuses guarded draws and releases each guard with its scope', () => {
+  const page = new Scope('renderer'), first = new Scope('first'), second = new Scope('second'), assets = new AssetService();
+  const geometry = new BufferGeometry(), material = new MeshBasicMaterial(), mesh = new Mesh(geometry, material), camera = new PerspectiveCamera(), scene = new Scene();
+  const submit = vi.fn<Renderer['renderBufferDirect']>();
+  const renderer = { renderBufferDirect: submit, shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>() } };
+  installShadowMaterialOwnership(renderer, assets, page);
+  const deny = vi.fn(() => false), allow = vi.fn(() => true);
+  guardObjectDraw(mesh, deny, first); guardObjectDraw(mesh, allow, second);
+  const draw = (): void => { renderer.renderBufferDirect(camera, scene, geometry, material, mesh, { start: 0, count: 0, materialIndex: 0 }); };
+  try {
+    draw(); expect(deny).toHaveBeenCalledOnce(); expect(submit).not.toHaveBeenCalled();
+    first.dispose(); draw(); expect(deny).toHaveBeenCalledOnce(); expect(allow).toHaveBeenCalledOnce(); expect(submit).toHaveBeenCalledOnce();
+    second.dispose(); draw(); expect(allow).toHaveBeenCalledOnce(); expect(submit).toHaveBeenCalledTimes(2);
+  } finally { first.dispose(); second.dispose(); page.dispose(); geometry.dispose(); material.dispose(); }
 });

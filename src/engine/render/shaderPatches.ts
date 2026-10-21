@@ -52,7 +52,7 @@ export interface ShaderPatchOptions {
   scope?: Scope;
 }
 
-interface Entry { readonly id: string; readonly order: number; readonly seq: number; readonly fn: ShaderPatchFn; readonly textures?: readonly THREE.Texture[] }
+interface Entry { readonly id: string; readonly order: number; readonly seq: number; readonly fn: ShaderPatchFn; readonly key?: ShaderPatchKey; readonly textures?: readonly THREE.Texture[] }
 interface State {
   entries: Entry[];
   /** Uniform textures observed when these callbacks actually compile. */
@@ -138,7 +138,7 @@ export function takeForeignHook(mat: THREE.Material, install: () => void): Shade
 export function patchShader(mat: THREE.Material, id: string, order: number, fn: ShaderPatchFn, opts: ShaderPatchOptions = {}): () => void {
   const mode = opts.mode ?? 'chain';
   const state = stateOf(mat, mode);
-  const entry: Entry = { id, order, seq: seq++, fn, ...(opts.textures === undefined ? {} : { textures: [...opts.textures] }) };
+  const entry: Entry = { id, order, seq: seq++, fn, ...(opts.key === undefined ? {} : { key: opts.key }), ...(opts.textures === undefined ? {} : { textures: [...opts.textures] }) };
   state.entries = [...state.entries, entry].sort((a, b) => a.order - b.order || a.seq - b.seq);
   const keyBefore = state.key, explicitBefore = state.explicitKey;
   const { key } = opts;
@@ -163,6 +163,23 @@ export function patchShader(mat: THREE.Material, id: string, order: number, fn: 
   };
   opts.scope?.onDispose(undo);
   return undo;
+}
+
+const nodePatchKeys = new WeakMap<State, { readonly entries: readonly Entry[]; readonly suffix: string; readonly keys: readonly ShaderPatchKey[] }>();
+/** Retain registered source patches when a node renderer supplies its own context/program key. */
+export function shaderPatchProgramKey(material: THREE.Material, rendererKey: string): string {
+  const state = states.get(material);
+  if (state === undefined || material.onBeforeCompile !== state.runner) return rendererKey;
+  let memo = nodePatchKeys.get(state);
+  if (memo === undefined || memo.entries !== state.entries) {
+    const own = state.entries.filter(entry => entry.id !== 'inherited');
+    memo = { entries: state.entries, suffix: own.length === 0 ? '' : `|${defaultKey(state.entries)}|${own.map(entry => entry.id).join('|')}`,
+      keys: [...own].sort((a, b) => a.seq - b.seq).flatMap(entry => entry.key === undefined ? [] : [entry.key]) };
+    nodePatchKeys.set(state, memo);
+  }
+  let key = rendererKey + memo.suffix;
+  for (const operation of memo.keys) key = typeof operation === 'string' ? `${key}|${operation}` : operation(key);
+  return key;
 }
 
 /**

@@ -52,6 +52,7 @@ import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { ConvertNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
 import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
+import { shaderPatchProgramKey } from '../shaderPatches';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { colourRampFog, engineFog } from './engineFog';
@@ -458,7 +459,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const receive = object instanceof THREE.Object3D && object.receiveShadow;
       const stamp = keyContext();
       const rawOutput = this.userData['graphRawOutput'] === true, objectKey = nodeObjectKey(object);
-      if (stamp < 0) return wholeKey(stockKey.call(this), this.toneMapped, rawOutput, objectKey, fog, layer);
+      if (stamp < 0) return shaderPatchProgramKey(this, wholeKey(stockKey.call(this), this.toneMapped, rawOutput, objectKey, fog, layer));
       let memos = stockKeys.get(this);
       if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
       let memo = memos.find(m => m.stamp === stamp);
@@ -474,11 +475,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       let shape = memo.keys.get(objectKey);
       if (shape === undefined) { shape = [undefined, undefined]; memo.keys.set(objectKey, shape); }
       const slot = receive ? 1 : 0, kept = shape[slot];
-      if (kept !== undefined) return kept;
+      if (kept !== undefined) return shaderPatchProgramKey(this, kept);
       let stock = receive ? memo.receive : memo.plain;
       if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key;
-      return key;
+      return shaderPatchProgramKey(this, key);
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);

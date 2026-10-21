@@ -1,6 +1,8 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
+import { Scope } from '../src/engine/app/scope';
+import { PATCH_ORDER, patchShader } from '../src/engine/render/shaderPatches';
 import { NodeMaterial } from 'three/webgpu';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 
@@ -111,4 +113,30 @@ test('the program-key memo keeps a key per bound target across alternating rende
   for (let i = 0; i < 3; i++) { expect(call(offscreen)).toBe(inTarget); expect(call(null)).toBe(screen); }
   expect(walk).toHaveBeenCalledTimes(2);
   walk.mockRestore();
+});
+
+
+test('node binding retains a registered clip key and releases it with its owner', () => {
+  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
+  for (const [key, value] of Object.entries({
+    extensions: { has: () => false, get: () => null }, getContext: (): object => ({}), getRenderTarget: (): THREE.WebGLRenderTarget | null => null,
+    toneMapping: THREE.NoToneMapping, outputColorSpace: THREE.LinearSRGBColorSpace,
+    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
+    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
+  })) Reflect.set(renderer, key, value);
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const geometry = new THREE.PlaneGeometry(), mesh = new THREE.Mesh(geometry, material), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), owner = new Scope('node-clip');
+  scene.add(mesh); handler.renderStart(scene, camera); handler.updateLights([]);
+  try {
+    handler.setObject(mesh, material); const plain = material.customProgramCacheKey(); let edge = 'a';
+    patchShader(material, 'grid-cell-clip', PATCH_ORDER.view, shader => { shader.fragmentShader += '\n// cell boundary'; }, { key: key => `${key}|grid-cell-clip:${edge}`, scope: owner });
+    handler.setObject(mesh, material); const clipped = material.customProgramCacheKey();
+    expect(clipped).not.toBe(plain); expect(clipped).toContain('|grid-cell-clip');
+    handler.setObject(mesh, material); expect(material.customProgramCacheKey()).toBe(clipped);
+    edge = 'b'; handler.setObject(mesh, material); expect(material.customProgramCacheKey()).not.toBe(clipped);
+    edge = 'a'; handler.setObject(mesh, material); expect(material.customProgramCacheKey()).toBe(clipped);
+    owner.dispose(); handler.setObject(mesh, material); expect(material.customProgramCacheKey()).toBe(plain);
+  } finally { owner.dispose(); handler.renderEnd(); geometry.dispose(); material.dispose(); }
 });

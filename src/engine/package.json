@@ -444,6 +444,7 @@
     "./fx/lightEmitters": "./fx/lightEmitters.ts",
     "./world/easedFields": "./world/easedFields.ts",
     "./render/scatterInstances": "./render/scatterInstances.ts",
-    "./models/geometryPack": "./models/geometryPack.ts"
+    "./models/geometryPack": "./models/geometryPack.ts",
+    "./render/drawGuards": "./render/drawGuards.ts"
   }
 }
