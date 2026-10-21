@@ -29,11 +29,17 @@ const recipe = { scene: { version: 1, root: 'root', nodes: [
   { kind: 'mesh', id: 'water', geometry: 'water', material: 'water', missing: 'empty', name: WATER_SURFACES.creek.name, receiveShadow: true, renderOrder: WATER_SURFACES.creek.renderOrder },
   { kind: 'mesh', id: 'spray', geometry: 'quad', material: 'spray', missing: 'empty', name: 'waterfall-spray', renderOrder: 7, frustumCulled: false, instances: count },
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
+// the beaver pool's still surface and dam trickle (G4): their geometry for the pool view (world/beaverPool.ts draws them
+// on its own water surfaces), published as `pool.still` / `pool.trickle`; the world never adds this group
+const poolRecipe = { scene: { version: 1, root: 'root', nodes: [
+  { kind: 'group', id: 'root', children: ['still', 'trickle'] },
+  ...(['still', 'trickle'] as const).map(id => ({ kind: 'mesh', id, geometry: id, material: 'water', missing: 'empty', name: `pine-pool-${id}` })),
+], materials: [{ kind: 'port', id: 'water', source: 'water' }] }, imports: [] };
 v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
 /** The bear cave (G483 world scene assembly): its baked interior, its mouth's frame, its look near the mouth and its rock. */
 const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file: 'world/crag-cave.json', roof: { url: codeParts.url, rows: codeParts.rows, part: codeParts.parts['cave-roof'] }, look: CAVE_LOOK,
   frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
-export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)),
+export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('scenes/pool.json', 'json', encode(poolRecipe)),
   nameBlob(SPRAY, 'bin', new Uint8Array(Float32Array.from([...matrices, ...spray.seed, ...spray.size]).buffer)),
   ...CABIN_JSON_BLOBS, TREE_SET_BLOB, ...QUEST_RIDE_BLOBS,
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
@@ -41,6 +47,8 @@ export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG
 export const SCENE_MODEL_BLOBS = [
   { name: 'models/stream-water.glb', kind: 'glb', source: 'assets/stream-scenes/water.glb' },
   { name: 'models/stream-quad.glb', kind: 'glb', source: 'assets/stream-scenes/quad.glb' },
+  { name: 'models/pool-still.glb', kind: 'glb', source: 'assets/pool-scenes/still.glb' },
+  { name: 'models/pool-trickle.glb', kind: 'glb', source: 'assets/pool-scenes/trickle.glb' },
   ...MODEL_BLOBS, ...QUEST_RIDE_MODEL_BLOBS,
 ];
 /** Ordered stream assembly plus named raw-model placement sets, over shared material slots. */
@@ -49,6 +57,9 @@ export const WORLD_SCENES: WorldScenesSection = {
   libraries: [...MODEL_SCENES.libraries, QUEST_RIDE_LIBRARY, { id: 'streams', kind: 'owned', models: [
     { id: 'water', file: 'models/stream-water.glb', attributes: { _awater: 'aWater' } },
     { id: 'quad', file: 'models/stream-quad.glb', attributes: {} },
+  ] }, { id: 'pool', kind: 'owned', models: [
+    { id: 'still', file: 'models/pool-still.glb', attributes: { _awater: 'aWater' } },
+    { id: 'trickle', file: 'models/pool-trickle.glb', attributes: { _awater: 'aWater' } },
   ] }],
   materials: [...MODEL_SCENES.materials, QUEST_RIDE_MATERIAL, { id: 'water', kind: 'look', look: WATER_SURFACES.creek.look }, { id: 'spray', kind: 'look', look: SPRAY_LOOK }],
   steps: [QUEST_RIDE_STEP, { id: 'streams', scene: 'scenes/streams.json',
@@ -57,5 +68,8 @@ export const WORLD_SCENES: WorldScenesSection = {
     instanceAttributes: [{ part: 'spray', target: 'instanceMatrix', width: 16, packet: sprayPacket(0) },
       { part: 'spray', name: 'aSeed', width: 4, packet: sprayPacket(16) }, { part: 'spray', name: 'aSize', width: 3, packet: sprayPacket(20) }],
     publish: { water: { kind: 'object', part: 'water' }, spray: { kind: 'object', part: 'spray' } },
+  }, { id: 'pool', scene: 'scenes/pool.json', geometry: { still: { library: 'pool', model: 'still' }, trickle: { library: 'pool', model: 'trickle' } },
+    materials: { water: 'water' }, registry: [], bounds: [], instanceAttributes: [],
+    publish: { still: { kind: 'object', part: 'still' }, trickle: { kind: 'object', part: 'trickle' } },
   }],
 };

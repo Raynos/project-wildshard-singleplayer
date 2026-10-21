@@ -45,7 +45,7 @@ export class PineQuestViews {
     const spawnPuffs = ctx.scope.own(new DomePuffs(world.game.scene, new THREE.Color(...thralls.puffs.color), thralls.puffs.count));
     const hollow: PineQuestOwners['hollow'] = { at: null };
     void floor.cabins.resources.place(view.secret.scene).then(() => { hollow.at = new THREE.Vector3().fromArray(view.secret.mid); return hollow; });
-    const pool = await new BeaverPool(world.sky).build(); landmarks.group.add(pool.group);
+    const pool = await new BeaverPool().build(ctx); landmarks.group.add(pool.group);
     return new PineQuestViews({ flags, pool, view, floor, spine, facets, journal: () => equipment.compendium, player: world.player.position,
       stag, thralls, leadPuffs, spawnPuffs, hollow });
   }

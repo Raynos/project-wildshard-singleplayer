@@ -20029,15 +20029,20 @@
         "public/assets/pine-hollow/baked/streams.bin",
         "src/format",
         "src/sdk",
-        "scripts/bake-output.mjs"
+        "scripts/bake-output.mjs",
+        "src/shards/pine-hollow/data/beaverPool.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/stream-scenes/water.glb",
-        "src/shards/pine-hollow/assets/stream-scenes/quad.glb"
+        "src/shards/pine-hollow/assets/stream-scenes/quad.glb",
+        "src/shards/pine-hollow/assets/pool-scenes/still.glb",
+        "src/shards/pine-hollow/assets/pool-scenes/trickle.glb"
       ],
       "buildTimeOutputs": [
         "src/shards/pine-hollow/assets/stream-scenes/water.glb",
-        "src/shards/pine-hollow/assets/stream-scenes/quad.glb"
+        "src/shards/pine-hollow/assets/stream-scenes/quad.glb",
+        "src/shards/pine-hollow/assets/pool-scenes/still.glb",
+        "src/shards/pine-hollow/assets/pool-scenes/trickle.glb"
       ],
       "platform": "portable"
     },

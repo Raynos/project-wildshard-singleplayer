@@ -1,23 +1,22 @@
 /** Pine owns its per-frame pool lowering and wet-bed presentation. */
 import * as THREE from 'three';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import type { ShardContext } from '@wildshard/game/plugin/context';
+import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
+import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
 import type { PineWaterSurface } from './poolSurface';
 import { drawPineWater, pineWaterSurface, setWaterFade } from './water';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { setLiveWaterLevel } from '@wildshard/engine/world/water/declared';
-import { loadSiteTimbers } from '../runtime/world/timberSites';
-import { pineModels } from '../runtime/world/context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
 export class BeaverPool {
   readonly group = new THREE.Group();
   private surface: PineWaterSurface | undefined;
   private flow: THREE.Mesh | undefined;
-  constructor(private readonly sky: Sky) {}
-  async build(): Promise<this> {
-    const views = await loadSiteTimbers(pineModels(this.sky));
-    const still = views.get('pine-pool-still'), trickle = views.get('pine-pool-trickle');
-    if (still === undefined || trickle === undefined) throw new Error('[pool] admitted water draws missing');
+  /** the still surface and the dam trickle: the world scenes' published pool meshes (generators/worldScenes.ts `pool`) */
+  async build(ctx: ShardContext): Promise<this> {
+    const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
+    const still = scenes.mesh('pool.still'), trickle = scenes.mesh('pool.trickle');
     this.surface = drawPineWater('pool', still.geometry.clone(), authored.poolGround);
     this.flow = pineWaterSurface('trickle', trickle.geometry.clone());
     this.group.add(this.surface.mesh, this.flow); this.group.name = 'beaver-pool';

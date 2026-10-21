@@ -5,7 +5,7 @@
 // the level seed, which is the timbers' stream), and writes what each builder leaves, at its site and on the turntable
 // (each material's parts and the glass as float32 blocks, in byte lanes, zlib) to
 // public/assets/pine-hollow/baked/site-timbers.bin and the rows to src/shards/pine-hollow/data/siteTimbers.json, which the
-// page finishes the timbers from (src/shards/pine-hollow/world/timberSites.ts).
+// page finishes the timbers from (its world scenes' timber library, generators/timberSceneContribution.ts).
 // test/shards/pine-hollow/site-timbers-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs
 import { createHash } from 'node:crypto';
