@@ -4,7 +4,7 @@ import { decisionBindingMap, buildDecisionRegistries, type DecisionBindingMap } 
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { CreaturesSchema } from '@wildshard/format/creatures';
 import * as v from 'valibot';
-import { CREATURES } from './creatures';
+import CREATURES from './creatures.json' with { type: 'json' };
 import rowData from './rows.json' with { type: 'json' };
 import { parseRows } from '@wildshard/sdk/rows';
 

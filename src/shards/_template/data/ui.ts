@@ -1,5 +1,5 @@
-import { ENCOUNTER_UI } from './encounters';
-import { TEMPLATE_TEXT } from './text';
+import encounters from './encounters.json' with { type: 'json' };
+import TEMPLATE_TEXT from './text.json' with { type: 'json' };
 import terrain from './terrain.json' with { type: 'json' };
 
 /** Existing baseline HUD slots, labels and bag text; content has no custom HTML renderer. */
@@ -8,5 +8,5 @@ export const TEMPLATE_UI = [
   { kind: 'counter', id: 'template.oil', label: TEMPLATE_TEXT.oil, band: 'band.3', order: 20, min: 0, max: 1, field: 'template.lantern.oil' },
   { kind: 'relabel', id: 'template.jump-label', spot: 'jump', label: 'JUMP', icon: null },
   { kind: 'bagPanel', id: 'template.notes', tab: { id: 'notes', title: TEMPLATE_TEXT.notes, icon: 'book', order: 50 }, order: 0, paragraphs: [TEMPLATE_TEXT.note] },
-  ...ENCOUNTER_UI,
+  ...encounters.ui,
 ];

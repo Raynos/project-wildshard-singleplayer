@@ -1,5 +1,5 @@
 import terrain from './terrain.json' with { type: 'json' };
-import { TEMPLATE_TEXT } from './text';
+import TEMPLATE_TEXT from './text.json' with { type: 'json' };
 
 /** Published door state controls the existing named panel/collider, with its legacy interaction point and radius. */
 export const TEMPLATE_TARGETS = {

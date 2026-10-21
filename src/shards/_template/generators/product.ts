@@ -1,4 +1,4 @@
-import { TEMPLATE_DIRECTORS } from '../data/director';
+import TEMPLATE_DIRECTORS from '../data/director.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import terrain from '../data/terrain.json' with { type: 'json' };
@@ -7,16 +7,16 @@ import props from '../data/props.json' with { type: 'json' };
 import { TEMPLATE_HOOKS, TEMPLATE_STATE } from '../behaviour/hooks';
 import rows from '../data/rows.json' with { type: 'json' };
 import { parseRows } from '@wildshard/sdk/rows';
-import { TEMPLATE_PLUMBING } from '../data/plumbing';
+import TEMPLATE_PLUMBING from '../data/plumbing.json' with { type: 'json' };
 import { TEMPLATE_UI } from '../data/ui';
 import { TEMPLATE_LOOK } from '../data/look';
-import { TEMPLATE_WATER } from '../data/water';
-import { CREATURES } from '../data/creatures';
-import { ENCOUNTERS } from '../data/encounters';
-import { TEMPLATE_QUESTS } from '../data/quests';
-import { TEMPLATE_LEDGER } from '../data/ledger';
-import { TEMPLATE_AUDIO } from '../data/audio';
-import { SPAWN } from '../data/spawn';
+import TEMPLATE_WATER from '../data/water.json' with { type: 'json' };
+import CREATURES from '../data/creatures.json' with { type: 'json' };
+import ENCOUNTERS from '../data/encounters.json' with { type: 'json' };
+import TEMPLATE_QUESTS from '../data/quests.json' with { type: 'json' };
+import TEMPLATE_LEDGER from '../data/ledger.json' with { type: 'json' };
+import TEMPLATE_AUDIO from '../data/audio.json' with { type: 'json' };
+import SPAWN from '../data/spawn.json' with { type: 'json' };
 import ITEMS from '../data/items.json' with { type: 'json' };
 import { TEMPLATE_TARGETS } from '../data/targets';
 import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from '../data/skins';
@@ -48,7 +48,7 @@ export default parseShardfile({ ...base, accent: 'sand',
   look: TEMPLATE_LOOK, spawn: SPAWN, rows: { ...TEMPLATE_ROWS, looks: TEMPLATE_SKIN_LOOKS }, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
   terrain: { ...terrain.terrain, ...TERRAIN_DRAW }, tiles, files: [...terrain.files, ...props.files, ...TEMPLATE_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,
   library: [...props.library, ...TEMPLATE_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS, clientScripts: TEMPLATE_CLIENT_SCRIPTS,
-  critical: [...terrain.critical, door.hash, itemModule], water: TEMPLATE_WATER, creatures: CREATURES, encounters: ENCOUNTERS,
+  critical: [...terrain.critical, door.hash, itemModule], water: TEMPLATE_WATER, creatures: CREATURES, encounters: ENCOUNTERS.encounters,
   quests: TEMPLATE_QUESTS, directors: TEMPLATE_DIRECTORS, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: TEMPLATE_STATE, hooks: TEMPLATE_HOOKS,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
 });
