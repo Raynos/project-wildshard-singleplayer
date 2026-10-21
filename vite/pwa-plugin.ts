@@ -93,6 +93,17 @@ export function pwaPlugin(buildId: string): Plugin {
       server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
         const pathname = req.url?.split('?')[0] ?? '';
         for (const r of rules) if (r.re.test(pathname)) for (const h of r.headers) res.setHeader(h.key, h.value);
+        if (pathname === '/sw.js') {
+          // The public worker is identical for every Origin, like production.
+          // Preview CORS otherwise splits WebKit's HTTP cache between a soft
+          // navigation update (Origin present) and reg.update() (absent).
+          const value = res.getHeader('Vary');
+          const varying = (Array.isArray(value) ? value.join(',') : String(value ?? '')).split(',')
+            .map(part => part.trim()).filter(part => part !== '' && part.toLowerCase() !== 'origin');
+          if (varying.length === 0) res.removeHeader('Vary');
+          else res.setHeader('Vary', varying.join(', '));
+          res.setHeader('Access-Control-Allow-Origin', '*');
+        }
         next();
       });
     },

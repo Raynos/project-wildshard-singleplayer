@@ -23,9 +23,18 @@ test('worker updates revalidate unchanged bytes and fetch a changed script in fu
     expect(await first.text()).toBe(original);
     const firstTag = first.headers.get('etag');
     if (firstTag === null) throw new Error('Worker has no revalidation tag');
-    const unchanged = await fetch(url, { headers: { 'if-none-match': firstTag } });
-    expect(unchanged.status).toBe(304); expect((await unchanged.arrayBuffer()).byteLength).toBe(0);
-    const changed = 'self.version = "second build with changed bytes";';
+    for (const origin of [undefined, 'http://localhost:4312']) {
+      const headers: Record<string, string> = origin === undefined ? {} : { origin };
+      const copy = await fetch(url, { headers });
+      expect(copy.headers.get('vary')?.toLowerCase() ?? '').not.toContain('origin');
+      expect(copy.headers.get('access-control-allow-origin')).toBe('*');
+      expect(copy.headers.get('etag')).toBe(firstTag);
+      expect(await copy.text()).toBe(original);
+      const unchanged = await fetch(url, { headers: { ...headers, 'if-none-match': firstTag } });
+      expect(unchanged.status).toBe(304); expect((await unchanged.arrayBuffer()).byteLength).toBe(0);
+    }
+    const changed = 'self.version = "other";';
+    expect(changed.length).toBe(original.length);
     writeFileSync(file, changed);
     const update = await fetch(url, { headers: { 'if-none-match': firstTag } });
     expect(update.status).toBe(200); expect(update.headers.get('cache-control')).toBe('no-cache');
