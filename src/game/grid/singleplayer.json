@@ -132,11 +132,180 @@
       ]
     },
     {
-      "instance": "open-plots-solo",
-      "slug": "open-plots",
+      "instance": "open-plot-showcase-template-solo",
+      "slug": "open-plot-showcase-template",
+      "cell": [
+        -7,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-thin-ice-solo",
+      "slug": "open-plot-thin-ice",
+      "cell": [
+        -6,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-frostline-peaks-solo",
+      "slug": "open-plot-frostline-peaks",
+      "cell": [
+        -5,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-ember-forge-solo",
+      "slug": "open-plot-ember-forge",
+      "cell": [
+        -4,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-lantern-bayou-solo",
+      "slug": "open-plot-lantern-bayou",
+      "cell": [
+        -3,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-sky-harbor-solo",
+      "slug": "open-plot-sky-harbor",
+      "cell": [
+        -2,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-coral-drift-solo",
+      "slug": "open-plot-coral-drift",
+      "cell": [
+        -1,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-clockwork-canyon-solo",
+      "slug": "open-plot-clockwork-canyon",
+      "cell": [
+        0,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-starfall-observatory-solo",
+      "slug": "open-plot-starfall-observatory",
+      "cell": [
+        1,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-mosslight-ruins-solo",
+      "slug": "open-plot-mosslight-ruins",
       "cell": [
         2,
-        1
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-alien-plain-solo",
+      "slug": "open-plot-alien-plain",
+      "cell": [
+        3,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-desert-ruin-solo",
+      "slug": "open-plot-desert-ruin",
+      "cell": [
+        4,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-night-market-solo",
+      "slug": "open-plot-night-market",
+      "cell": [
+        5,
+        8
+      ],
+      "size": [
+        500,
+        500,
+        500
+      ]
+    },
+    {
+      "instance": "open-plot-sky-race-solo",
+      "slug": "open-plot-sky-race",
+      "cell": [
+        6,
+        8
       ],
       "size": [
         500,
@@ -492,7 +661,7 @@
       },
       {
         "instance": "open-plot-ember-forge",
-        "slug": "open-plots",
+        "slug": "open-plot-ember-forge",
         "cell": [
           2,
           -1

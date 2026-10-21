@@ -26,7 +26,7 @@
     }
   },
   "biome": "Open plot · coming soon",
-  "blurb": "An open plot of the grid: walk round the Ember Forge hologram, a world still to be built.",
+  "blurb": "An open plot of the grid, a world still to be built.",
   "boundary": {
     "visible": false
   },
@@ -91,7 +91,7 @@
   "minimap": {
     "image": "/assets/open-plots/map/top.webp"
   },
-  "name": "Open Plot · Ember Forge",
+  "name": "Open Plots",
   "order": 11,
   "pois": [
     {

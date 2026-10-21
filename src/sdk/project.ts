@@ -58,10 +58,17 @@ async function authorModule(project: string, file: string): Promise<Record<strin
   return Object.fromEntries(Object.entries(loaded));
 }
 
-async function projectModule(project: string, decisionLegacyLines?: number): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
+/** SF88g: one declared output of a source folder that emits several products (`outputs` in shard.config.ts, keyed by slug). */
+function outputDeclaration(loaded: Record<string, unknown>, output: string): unknown {
+  const outputs = loaded['outputs'];
+  if (typeof outputs !== 'object' || outputs === null || !Object.hasOwn(outputs, output)) throw new Error(`config declares no output ${output}`);
+  return Reflect.get(outputs, output);
+}
+
+async function projectModule(project: string, decisionLegacyLines?: number, selected?: string): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
   const loaded = await authorModule(project, 'shard.config.ts');
   if (!('default' in loaded)) throw new Error('config has no default export');
-  let declaration: unknown = loaded['default'];
+  let declaration: unknown = selected === undefined ? loaded['default'] : outputDeclaration(loaded, selected);
   let shard: Shardfile;
   const baked = new Map<string, Uint8Array>(), root = realpathSync(project);
   const sourcePath = (path: string): string => {
@@ -91,8 +98,8 @@ async function projectModule(project: string, decisionLegacyLines?: number): Pro
 }
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
-export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
-  const loaded = await projectModule(project, options.decisionLegacyLines), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
+export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number; output?: string } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
+  const loaded = await projectModule(project, options.decisionLegacyLines, options.output), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
   for (const [hash, bytes] of loaded.baked) pinned.set(hash, bytes);
   for (const [hash, bytes] of loaded.output.assets) {
     const previous = pinned.get(hash);
@@ -139,7 +146,7 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; output?: string; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
   await buildBehaviourProject(project);
   const loaded = await readProjectAssets(project, options.map, options.manifest, options), assets = loaded.assets;
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard

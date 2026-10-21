@@ -11,6 +11,7 @@ import { shardfileValidationRevision } from './shardfile-validation-revision.mjs
 import { rapierAlias } from '../vite/rapier.ts';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
+import { outputManifest, shardOutputs } from './shard-outputs.mjs';
 
 let runner;
 const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sdk/package.json'));
@@ -35,8 +36,12 @@ export async function runWildshard(args) {
   })();
   const root = resolve(import.meta.dirname, '..');
   const project = args[1] === undefined ? undefined : resolve(args[1]);
+  // SF88g: `--output=<slug>` builds one declared output of the folder, under its own slug and composed manifest
+  const selected = args.find(arg => arg.startsWith('--output='))?.slice(9);
+  const output = project === undefined || selected === undefined ? undefined : shardOutputs(root, basename(project))?.find(row => row.slug === selected);
+  if (selected !== undefined && output === undefined) throw new Error(`wildshard: ${basename(project ?? '')} declares no output ${selected}`);
   const manifest = project === undefined || !['build', 'validate', 'prove'].includes(args[0] ?? '') || !existsSync(resolve(project, 'shard.config.ts')) ? undefined : {
-    folder: basename(project), ...(existsSync(resolve(project, 'manifest.json')) ? { file: resolve(project, 'manifest.json') } : {}),
+    folder: output?.slug ?? basename(project), ...(output !== undefined ? { composed: outputManifest(root, basename(project), output.row) } : existsSync(resolve(project, 'manifest.json')) ? { file: resolve(project, 'manifest.json') } : {}),
     imageRoots: [{ prefix: `/src/shards/${basename(project)}/`, directory: project }, { prefix: '/assets/', directory: resolve(root, 'public/assets') }],
   };
   const legacy = project === undefined ? undefined : decisionLegacyLines(root, basename(project));

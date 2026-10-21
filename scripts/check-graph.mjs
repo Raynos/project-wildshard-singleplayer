@@ -81,7 +81,8 @@ export function reachViolation(from, to, dynamic) {
     return null;
   }
   const slug = toLayer.slice('shards/'.length);
-  if (from === GENERATED_TABLE && (to === `src/shards/${slug}/manifest.ts` || to === `src/shards/${slug}/discovery.generated.ts`)) return null;
+  // SF88g: a source folder that emits several products has one discovery module per output (discovery.<slug>.generated.ts)
+  if (from === GENERATED_TABLE && (to === `src/shards/${slug}/manifest.ts` || /^discovery(?:\.[a-z0-9-]+)?\.generated\.ts$/u.test(to.slice(`src/shards/${slug}/`.length)))) return null;
   return `${from} reaches into ${to}: only ${GENERATED_TABLE} imports a shard (its manifest), and a plugin loads only by import() from its own manifest`;
 }
 

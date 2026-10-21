@@ -1,8 +1,7 @@
-import ideas from './ideas.json' with { type: 'json' };
 import hologram from './hologram.graph.json' with { type: 'json' };
 
-const [idea] = ideas.ideas;
-if (idea === undefined) throw new Error('open-plots: data/ideas.json needs an idea row');
+/** One idea row of `outputs.json`: the product slug, the idea's asset folder, its display name and HUD accent. */
+export interface PlotIdea { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string }
 
 const pbr = (colour: [number, number, number], roughness = 1) => ({ family: 'pbr', colour, roughness, metalness: 0, maps: { colour: null, normal: null, orm: null }, normalScale: 1, occlusion: 1,
   envStrength: 1, vertexColours: true, faceted: false, doubleSided: false, alphaCutoff: 0, ground: null, measure: null }) as const;
@@ -28,10 +27,16 @@ export const LOOK = {
     ambient: { sky: [0.62, 0.66, 0.86], ground: [0.32, 0.34, 0.42], intensity: 0.8 } }],
 } as const;
 
-/** Build and catalogue share identity, accent, spawn and look (validated whole by the build's parseShardfile). P1 emits the
- *  first idea row (SF88g P2: one output per row). */
-export const SOURCE = {
-  identity: { slug: 'open-plots', name: `Open Plot · ${idea.name}`, author: 'Wildshard', revision: 1, seed: 541 },
-  accent: idea.accent, spawn: { x: 0, y: 0.1, z: -45, yaw: Math.PI },
-  look: LOOK,
-};
+/** An output's identity, accent, spawn and look before the world bake. */
+export interface PlotSource {
+  readonly identity: { readonly slug: string; readonly name: string; readonly author: string; readonly revision: number; readonly seed: number };
+  readonly accent: string; readonly spawn: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }; readonly look: typeof LOOK;
+}
+/** One output's identity, accent, spawn and look (validated whole by the build's parseShardfile; SF88g: one per idea). */
+export function sourceFor(row: PlotIdea): PlotSource {
+  return {
+    identity: { slug: row.slug, name: `Open Plot · ${row.name}`, author: 'Wildshard', revision: 1, seed: 541 },
+    accent: row.accent, spawn: { x: 0, y: 0.1, z: -45, yaw: Math.PI },
+    look: LOOK,
+  };
+}

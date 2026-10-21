@@ -1,0 +1,593 @@
+{
+  "why": "SF88g (G538/G539/G541/G542): the open-plots source shard emits one product per idea row (scripts/shard-outputs.mjs). The generator and shard.config.ts read idea, name and accent; manifest overrides merge into manifest.json. Each idea's inputs live in public/assets/open-plots/<idea>/.",
+  "outputs": [
+    {
+      "slug": "open-plot-showcase-template",
+      "idea": "showcase-template",
+      "name": "Showcase Template",
+      "accent": "teal",
+      "manifest": {
+        "name": "Open Plot · Showcase Template",
+        "blurb": "An open plot of the grid: walk round the Showcase Template hologram, a world still to be built.",
+        "bindings": {
+          "accent": "teal"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/showcase-template.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/showcase-template.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/showcase-template.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/showcase-template.jpg",
+            "models": "/src/shards/open-plots/thumbs/showcase-template.jpg",
+            "sets": "/src/shards/open-plots/thumbs/showcase-template.jpg",
+            "practice": "/src/shards/open-plots/thumbs/showcase-template.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Showcase Template hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-thin-ice",
+      "idea": "thin-ice",
+      "name": "Thin Ice",
+      "accent": "azure",
+      "manifest": {
+        "name": "Open Plot · Thin Ice",
+        "blurb": "An open plot of the grid: walk round the Thin Ice hologram, a world still to be built.",
+        "bindings": {
+          "accent": "azure"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/thin-ice.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/thin-ice.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/thin-ice.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/thin-ice.jpg",
+            "models": "/src/shards/open-plots/thumbs/thin-ice.jpg",
+            "sets": "/src/shards/open-plots/thumbs/thin-ice.jpg",
+            "practice": "/src/shards/open-plots/thumbs/thin-ice.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Thin Ice hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-frostline-peaks",
+      "idea": "frostline-peaks",
+      "name": "Frostline Peaks",
+      "accent": "periwinkle",
+      "manifest": {
+        "name": "Open Plot · Frostline Peaks",
+        "blurb": "An open plot of the grid: walk round the Frostline Peaks hologram, a world still to be built.",
+        "bindings": {
+          "accent": "periwinkle"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/frostline-peaks.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
+            "models": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
+            "sets": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
+            "practice": "/src/shards/open-plots/thumbs/frostline-peaks.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Frostline Peaks hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-ember-forge",
+      "idea": "ember-forge",
+      "name": "Ember Forge",
+      "accent": "ember",
+      "manifest": {
+        "name": "Open Plot · Ember Forge",
+        "blurb": "An open plot of the grid: walk round the Ember Forge hologram, a world still to be built.",
+        "bindings": {
+          "accent": "ember"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/ember-forge.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/ember-forge.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/ember-forge.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/ember-forge.jpg",
+            "models": "/src/shards/open-plots/thumbs/ember-forge.jpg",
+            "sets": "/src/shards/open-plots/thumbs/ember-forge.jpg",
+            "practice": "/src/shards/open-plots/thumbs/ember-forge.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Ember Forge hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-lantern-bayou",
+      "idea": "lantern-bayou",
+      "name": "Lantern Bayou",
+      "accent": "marigold",
+      "manifest": {
+        "name": "Open Plot · Lantern Bayou",
+        "blurb": "An open plot of the grid: walk round the Lantern Bayou hologram, a world still to be built.",
+        "bindings": {
+          "accent": "marigold"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/lantern-bayou.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
+            "models": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
+            "sets": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
+            "practice": "/src/shards/open-plots/thumbs/lantern-bayou.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Lantern Bayou hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-sky-harbor",
+      "idea": "sky-harbor",
+      "name": "Sky Harbor",
+      "accent": "cornflower",
+      "manifest": {
+        "name": "Open Plot · Sky Harbor",
+        "blurb": "An open plot of the grid: walk round the Sky Harbor hologram, a world still to be built.",
+        "bindings": {
+          "accent": "cornflower"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/sky-harbor.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/sky-harbor.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/sky-harbor.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/sky-harbor.jpg",
+            "models": "/src/shards/open-plots/thumbs/sky-harbor.jpg",
+            "sets": "/src/shards/open-plots/thumbs/sky-harbor.jpg",
+            "practice": "/src/shards/open-plots/thumbs/sky-harbor.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Sky Harbor hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-coral-drift",
+      "idea": "coral-drift",
+      "name": "Coral Drift",
+      "accent": "coral",
+      "manifest": {
+        "name": "Open Plot · Coral Drift",
+        "blurb": "An open plot of the grid: walk round the Coral Drift hologram, a world still to be built.",
+        "bindings": {
+          "accent": "coral"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/coral-drift.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/coral-drift.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/coral-drift.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/coral-drift.jpg",
+            "models": "/src/shards/open-plots/thumbs/coral-drift.jpg",
+            "sets": "/src/shards/open-plots/thumbs/coral-drift.jpg",
+            "practice": "/src/shards/open-plots/thumbs/coral-drift.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Coral Drift hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-clockwork-canyon",
+      "idea": "clockwork-canyon",
+      "name": "Clockwork Canyon",
+      "accent": "tangerine",
+      "manifest": {
+        "name": "Open Plot · Clockwork Canyon",
+        "blurb": "An open plot of the grid: walk round the Clockwork Canyon hologram, a world still to be built.",
+        "bindings": {
+          "accent": "tangerine"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg",
+            "models": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg",
+            "sets": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg",
+            "practice": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Clockwork Canyon hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-starfall-observatory",
+      "idea": "starfall-observatory",
+      "name": "Starfall Observatory",
+      "accent": "iris",
+      "manifest": {
+        "name": "Open Plot · Starfall Observatory",
+        "blurb": "An open plot of the grid: walk round the Starfall Observatory hologram, a world still to be built.",
+        "bindings": {
+          "accent": "iris"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/starfall-observatory.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
+            "models": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
+            "sets": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
+            "practice": "/src/shards/open-plots/thumbs/starfall-observatory.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Starfall Observatory hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-mosslight-ruins",
+      "idea": "mosslight-ruins",
+      "name": "Mosslight Ruins",
+      "accent": "moss",
+      "manifest": {
+        "name": "Open Plot · Mosslight Ruins",
+        "blurb": "An open plot of the grid: walk round the Mosslight Ruins hologram, a world still to be built.",
+        "bindings": {
+          "accent": "moss"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
+            "models": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
+            "sets": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
+            "practice": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Mosslight Ruins hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-alien-plain",
+      "idea": "alien-plain",
+      "name": "Pastel Alien Plain",
+      "accent": "lilac",
+      "manifest": {
+        "name": "Open Plot · Pastel Alien Plain",
+        "blurb": "An open plot of the grid: walk round the Pastel Alien Plain hologram, a world still to be built.",
+        "bindings": {
+          "accent": "lilac"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/alien-plain.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/alien-plain.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/alien-plain.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/alien-plain.jpg",
+            "models": "/src/shards/open-plots/thumbs/alien-plain.jpg",
+            "sets": "/src/shards/open-plots/thumbs/alien-plain.jpg",
+            "practice": "/src/shards/open-plots/thumbs/alien-plain.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Pastel Alien Plain hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-desert-ruin",
+      "idea": "desert-ruin",
+      "name": "Desert Ruin",
+      "accent": "sand",
+      "manifest": {
+        "name": "Open Plot · Desert Ruin",
+        "blurb": "An open plot of the grid: walk round the Desert Ruin hologram, a world still to be built.",
+        "bindings": {
+          "accent": "sand"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/desert-ruin.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/desert-ruin.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/desert-ruin.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/desert-ruin.jpg",
+            "models": "/src/shards/open-plots/thumbs/desert-ruin.jpg",
+            "sets": "/src/shards/open-plots/thumbs/desert-ruin.jpg",
+            "practice": "/src/shards/open-plots/thumbs/desert-ruin.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Desert Ruin hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-night-market",
+      "idea": "night-market",
+      "name": "Neon Night Market",
+      "accent": "pink",
+      "manifest": {
+        "name": "Open Plot · Neon Night Market",
+        "blurb": "An open plot of the grid: walk round the Neon Night Market hologram, a world still to be built.",
+        "bindings": {
+          "accent": "pink"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/night-market.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/night-market.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/night-market.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/night-market.jpg",
+            "models": "/src/shards/open-plots/thumbs/night-market.jpg",
+            "sets": "/src/shards/open-plots/thumbs/night-market.jpg",
+            "practice": "/src/shards/open-plots/thumbs/night-market.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Neon Night Market hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    },
+    {
+      "slug": "open-plot-sky-race",
+      "idea": "sky-race",
+      "name": "Floating Island Race",
+      "accent": "mint",
+      "manifest": {
+        "name": "Open Plot · Floating Island Race",
+        "blurb": "An open plot of the grid: walk round the Floating Island Race hologram, a world still to be built.",
+        "bindings": {
+          "accent": "mint"
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/sky-race.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/sky-race.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/sky-race.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/sky-race.jpg",
+            "models": "/src/shards/open-plots/thumbs/sky-race.jpg",
+            "sets": "/src/shards/open-plots/thumbs/sky-race.jpg",
+            "practice": "/src/shards/open-plots/thumbs/sky-race.jpg"
+          }
+        },
+        "pois": [
+          {
+            "id": "hologram",
+            "name": "Floating Island Race hologram",
+            "r": 12,
+            "x": 0,
+            "z": 0
+          },
+          {
+            "id": "billboard",
+            "name": "Billboard",
+            "r": 14,
+            "x": 0,
+            "z": 26
+          }
+        ]
+      }
+    }
+  ]
+}

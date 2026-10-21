@@ -76,6 +76,18 @@ def boot(root, sha, shards, scratch):
         run(['bash', str(root / 'scripts/serve-build.sh'), 'stop', port or 'all-mine'], cwd=scratch, env=env)
 
 
+def declared_outputs(root, sha):
+    """Every output slug the source folders at this commit declare (src/shards/<folder>/outputs.json)."""
+    listing = subprocess.check_output(['git', 'ls-tree', '--name-only', sha, 'src/shards/'], cwd=root, text=True).split()
+    slugs = set()
+    for folder in listing:
+        shown = subprocess.run(['git', 'show', sha + ':' + folder + '/outputs.json'], cwd=root,
+                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        if shown.returncode == 0:
+            slugs.update(row['slug'] for row in json.loads(shown.stdout)['outputs'])
+    return slugs
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rev', default='HEAD', help='immutable commit to check')
@@ -89,10 +101,11 @@ def main():
     for shard in args.shards:
         if re.fullmatch(r'[a-z0-9_-]+', shard) is None:
             parser.error('invalid shard slug: ' + shard)
-        # A declared shard has manifest.json; a shard still on the trusted runtime has manifest.ts.
+        # A declared shard has manifest.json; a shard still on the trusted runtime has manifest.ts; an output of a source
+        # folder (SF88g, scripts/shard-outputs.mjs) is a row of that folder's outputs.json.
         if not any(subprocess.run(['git', 'cat-file', '-e', sha + ':src/shards/' + shard + '/manifest.' + ext],
                                   cwd=root, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
-                   for ext in ('json', 'ts')):
+                   for ext in ('json', 'ts')) and shard not in declared_outputs(root, sha):
             parser.error('no shard manifest at ' + sha + ': ' + shard)
     if args.inside:
         check_sources(root, sha, base)

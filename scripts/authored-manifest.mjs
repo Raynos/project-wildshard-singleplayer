@@ -5,13 +5,20 @@ import { relative, resolve } from 'node:path';
 export function shardManifestPath(root, slug) {
   return `src/shards/${slug}/${existsSync(resolve(root, `src/shards/${slug}/manifest.json`)) ? 'discovery.generated.ts' : 'manifest.ts'}`;
 }
-/** Literal imports keep authored image strings inside the bundler's asset graph. */
-export function authoredManifestSource(root, slug, { generation = false } = {}) {
-  const file = `src/shards/${slug}/manifest.json`;
-  if (existsSync(resolve(root, `src/shards/${slug}/manifest.ts`))) throw new Error(`${file}: duplicate authored manifest authority`);
-  const data = JSON.parse(readFileSync(resolve(root, file), 'utf8'));
+/** A product's discovery module: its folder's, or one per declared output (SF88g, scripts/shard-outputs.mjs). */
+export function productManifestPath(root, product) {
+  return product.output === null ? shardManifestPath(root, product.slug) : `src/shards/${product.folder}/discovery.${product.slug}.generated.ts`;
+}
+/** Literal imports keep authored image strings inside the bundler's asset graph. An output of a source folder (SF88g) passes
+ * its `composed` manifest (scripts/shard-outputs.mjs outputManifest), so this module, which generation jobs load from
+ * their isolated exports, imports nothing more.
+ * @param {string} root @param {string} slug @param {{ generation?: boolean, folder?: string, composed?: Record<string, unknown> | null }} [options] */
+export function authoredManifestSource(root, slug, { generation = false, folder = slug, composed = null } = {}) {
+  const file = composed === null ? `src/shards/${folder}/manifest.json` : `src/shards/${folder}/outputs.json#${slug}`;
+  if (existsSync(resolve(root, `src/shards/${folder}/manifest.ts`))) throw new Error(`${file}: duplicate authored manifest authority`);
+  const data = composed ?? JSON.parse(readFileSync(resolve(root, file), 'utf8'));
   if (data.slug !== slug) throw new Error(`${file}: identity differs from its folder`);
-  const mapPath = resolve(root, `src/shards/${slug}/look/map.json`);
+  const mapPath = resolve(root, `src/shards/${folder}/look/map.json`);
   // Geometry producers run before the map they feed. Only their discovery
   // compilation may defer this one declared output; final discovery checks it.
   const generatedMap = generation && existsSync(mapPath) && JSON.parse(readFileSync(mapPath, 'utf8')).painter?.version === 1
@@ -19,7 +26,7 @@ export function authoredManifestSource(root, slug, { generation = false } = {}) 
   const images = new Set();
   const visit = value => {
     if (typeof value === 'string' && value.startsWith('/src/')) {
-      if (!value.startsWith(`/src/shards/${slug}/`) || !/^\/src\/shards\/[a-z0-9_-]+\/[a-zA-Z0-9_./-]+\.(?:jpe?g|png|webp|svg|hdr)$/u.test(value) || value.includes('..') || !existsSync(resolve(root, value.slice(1)))) throw new Error(`${file}: missing or invalid source image ${value}`);
+      if (!value.startsWith(`/src/shards/${folder}/`) || !/^\/src\/shards\/[a-z0-9_-]+\/[a-zA-Z0-9_./-]+\.(?:jpe?g|png|webp|svg|hdr)$/u.test(value) || value.includes('..') || !existsSync(resolve(root, value.slice(1)))) throw new Error(`${file}: missing or invalid source image ${value}`);
       images.add(value);
     } else if (typeof value === 'string' && value.startsWith('/assets/') && value !== generatedMap && !existsSync(resolve(root, 'public', value.slice(1).split('?')[0]))) throw new Error(`${file}: missing public image ${value}`);
     else if (Array.isArray(value)) value.forEach(visit);
@@ -29,7 +36,7 @@ export function authoredManifestSource(root, slug, { generation = false } = {}) 
   const paths = [...images], imports = [], bound = new Map();
   const modulePath = value => {
     if (typeof value !== 'string' || !/^\.\/[a-zA-Z0-9_./-]+$/u.test(value) || value.split('/').includes('..')) throw new Error(`${file}: invalid binding module`);
-    if (![value, `${value}.ts`, `${value}.js`, `${value}/index.ts`].some(path => existsSync(resolve(root, `src/shards/${slug}`, path)))) throw new Error(`${file}: unknown binding module ${value}`);
+    if (![value, `${value}.ts`, `${value}.js`, `${value}/index.ts`].some(path => existsSync(resolve(root, `src/shards/${folder}`, path)))) throw new Error(`${file}: unknown binding module ${value}`);
     return value;
   };
   const value = ref => {
@@ -55,9 +62,9 @@ export function authoredManifestSource(root, slug, { generation = false } = {}) 
   const budgetPath = modulePath(b.budgets?.module);
   if (budgetPath.endsWith('.json') && b.budgets.export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
   const budget = budgetPath.endsWith('.json')
-    ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${slug}`, budgetPath), 'utf8')))
+    ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, budgetPath), 'utf8')))
     : budgetPath.startsWith('./data/')
-    ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-budget.mjs'), resolve(root, `src/shards/${slug}`, budgetPath.endsWith('.ts') ? budgetPath : `${budgetPath}.ts`), b.budgets.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
+    ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-budget.mjs'), resolve(root, `src/shards/${folder}`, budgetPath.endsWith('.ts') ? budgetPath : `${budgetPath}.ts`), b.budgets.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
     : value(b.budgets);
   const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${budget}`];
   for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'tierPolicy', 'pondClip']) if (b[key]) {
@@ -65,12 +72,12 @@ export function authoredManifestSource(root, slug, { generation = false } = {}) 
     // arity without importing an executable coordinate recipe into discovery.
     const palette = key === 'mapPalette' && modulePath(b[key].module).endsWith('.json');
     if (palette && b[key].export !== 'default') throw new Error(`${file}: JSON bindings name their default export`);
-    rows.push(`${key}: ${palette ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${slug}`, b[key].module), 'utf8'))) : value(b[key])}`);
+    rows.push(`${key}: ${palette ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, b[key].module), 'utf8'))) : value(b[key])}`);
   }
   if (b.spawns) {
     const path = modulePath(b.spawns.module);
     const spawns = path.startsWith('./generators/')
-      ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-spawns.mjs'), resolve(root, `src/shards/${slug}`, path.endsWith('.ts') ? path : `${path}.ts`), b.spawns.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
+      ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-spawns.mjs'), resolve(root, `src/shards/${folder}`, path.endsWith('.ts') ? path : `${path}.ts`), b.spawns.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
       : value(b.spawns);
     rows.push(`spawns: ${spawns}`);
   }
@@ -110,10 +117,10 @@ export function authoredManifestSource(root, slug, { generation = false } = {}) 
   const forwards = native.some(row => row.includes('callWithProduct('));
   return `// Generated by scripts/gen-shards.mjs — do not edit or commit.
 import { defineAuthoredShard } from '../../game/shard/manifest';
-import data from './manifest.json' with { type: 'json' };${forwards ? `
+${composed === null ? "import data from './manifest.json' with { type: 'json' };" : `const data = ${JSON.stringify(data)};`}${forwards ? `
 import type { ShardProduct } from '../../game/shardfile/shardProduct';` : ''}
 ${imports.join('\n')}
-${paths.map((path, i) => `import image${i} from ${JSON.stringify(`./${relative(resolve(root, `src/shards/${slug}`), resolve(root, path.slice(1))).replaceAll('\\', '/')}`)};`).join('\n')}
+${paths.map((path, i) => `import image${i} from ${JSON.stringify(`./${relative(resolve(root, `src/shards/${folder}`), resolve(root, path.slice(1))).replaceAll('\\', '/')}`)};`).join('\n')}
 ${forwards ? `/** A look or roster factory called with the shard's product; a factory that takes none is accepted as it is. */
 const callWithProduct = <T>(make: (product: ShardProduct) => T, product: ShardProduct): T => make(product);
 ` : ''}const rows: Parameters<typeof defineAuthoredShard>[2] = { ${rows.join(', ')} };

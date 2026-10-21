@@ -1,5 +1,5 @@
 // The open-plots generator (SHARD-PLATFORM SF88g, G538/G539/G541/G545): one plot world GLB per idea row of
-// data/ideas.json, built from data alone. A 500 m plot on a flat floor with a kerb broken by four entries, the showroom in
+// outputs.json (SF88g: each its own product), built from data alone. A 500 m plot on a flat floor with a kerb broken by four entries, the showroom in
 // the middle: a low round plinth (radius 10 m) with a glowing rim, the idea's hologram standing on it (drawn by the one
 // shared `hologram` graph, which turns it), the idea's billboard behind it (north, +Z) and the 'OPEN PLOT · COMING SOON'
 // sign in front. Collision is its own `collide_` nodes (floor, kerb, plinth, billboard and sign), never the hologram.
@@ -25,7 +25,7 @@ const SIGN = { x: 15, z: -10, width: 7.5, height: 2.5, bottom: 1.2, yaw: 0.4 };
 const KERB = { inner: 238, outer: 240, height: 0.5, gap: 15 };
 const FLOOR_STEP = 25;
 
-const ideas = JSON.parse(readFileSync(resolve(ROOT, 'data/ideas.json'), 'utf8')).ideas;
+const ideas = JSON.parse(readFileSync(resolve(ROOT, 'outputs.json'), 'utf8')).outputs;
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -130,7 +130,7 @@ async function hologram(file) {
 }
 
 async function plot(idea) {
-  const assets = resolve(REPO, 'public/assets/open-plots', idea.id), soup = new Soup();
+  const assets = resolve(REPO, 'public/assets/open-plots', idea.idea), soup = new Soup();
   // the floor: a grid of 25 m quads, the four avenues and the plaza lighter than the field
   const shade = (x, z) => Math.hypot(x, z) < 36 ? [0.86, 0.9, 0.96] : Math.abs(x) < 6 || Math.abs(z) < 6 ? [0.74, 0.8, 0.88] : [0.58, 0.64, 0.74];
   for (let x = -250; x < 250; x += FLOOR_STEP) for (let z = -250; z < 250; z += FLOOR_STEP) {
@@ -211,13 +211,12 @@ async function writeWorld(idea, { soup, assets, kerbs }) {
   const s = SIGN, w = s.width / 2, c = [[-w, 0, 0], [w, 0, 0], [w, s.bottom + s.height + 0.2, 0], [-w, s.bottom + s.height + 0.2, 0], [-w, 0, 0.3], [w, 0, 0.3], [w, s.bottom + s.height + 0.2, 0.3], [-w, s.bottom + s.height + 0.2, 0.3]].map(p => yawPoint(p, s.yaw, [s.x, 0, s.z]));
   for (const [i, j, k, l] of [[4, 5, 6, 7], [1, 0, 3, 2], [0, 4, 7, 3], [5, 1, 2, 6], [3, 7, 6, 2], [0, 1, 5, 4]]) solid.quad('Solid', c[i], c[j], c[k], c[l]);
   node('collide_plot', solid.part('Solid'), materials.Kerb, false);
-  const io = new NodeIO(), bytes = await io.writeBinary(doc), out = resolve(ROOT, 'assets');
+  const io = new NodeIO(), bytes = await io.writeBinary(doc), out = resolve(ROOT, 'assets', idea.idea);
   mkdirSync(out, { recursive: true });
   writeFileSync(resolve(out, 'world.glb'), bytes);
-  console.info(`open-plots: ${idea.id} world.glb ${bytes.length} bytes, hologram ${soup.part('Hologram').positions.length / 9} triangles`);
+  console.info(`open-plots: ${idea.slug} world.glb ${bytes.length} bytes, hologram ${soup.part('Hologram').positions.length / 9} triangles`);
 }
 
-// P1: the source shard emits one output, its first idea row (P2 emits one product per row); its map is painted from it.
-const [first] = ideas;
-await writeWorld(first, await plot(first));
-await paintDataMap(REPO, 'open-plots');
+// One world per idea row, then each output's data map from its own world (every world first: the map hash reads them all).
+for (const idea of ideas) await writeWorld(idea, await plot(idea));
+for (const idea of ideas) await paintDataMap(REPO, 'open-plots', { output: idea.slug, glbs: [`assets/${idea.idea}/world.glb`] });

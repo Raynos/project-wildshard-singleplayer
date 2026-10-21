@@ -1,5 +1,6 @@
 // E362 AG14: discover vocabulary and ownership without loading shard runtime modules.
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { outputManifest, shardOutputs } from './shard-outputs.mjs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
@@ -153,6 +154,9 @@ export function shardWordData(root, shard) {
       });
     }
     shards[entry.name] = { name: data?.name ?? entry.name, ids: [...ids].sort((a, b) => a.localeCompare(b)), settings: [...settings].sort((a, b) => a.localeCompare(b)), assets: data?.assetGlobs ?? [] };
+    // SF88g: each declared output is a product of its own name; the folder keeps the source assets, an output owns its map
+    for (const output of shardOutputs(root, entry.name) ?? []) shards[output.slug] = { name: outputManifest(root, entry.name, output.row).name ?? output.slug,
+      ids: shards[entry.name].ids, settings: shards[entry.name].settings, assets: [`public/assets/${output.slug}/**`] };
   }
   return wordInventory(shards);
 }

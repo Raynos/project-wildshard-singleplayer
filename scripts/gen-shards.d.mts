@@ -1,4 +1,6 @@
 export function shardFolders(root: string): string[];
+/** Every product slug (SF88g: a folder's declared outputs, else the folder itself). */
+export function shardSlugs(root: string): string[];
 export function shardSource(root: string): string;
 /** Type-only facade over generated identity data, including registered frozen copies. */
 export function slugSource(root: string): string;

@@ -17,6 +17,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 import { productInputKey, productToolchainKey, matchingProductInputKey, publishProductInputs } from './shardfile-inputs.mjs';
 import { quietCli } from './quiet-cli.mjs';
+import { productFolder, shardOutputs } from './shard-outputs.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
@@ -30,7 +31,7 @@ import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = 'closed',onFailure } = {}) {
   if(onFailure!==undefined&&(strict||catalog))throw new Error('Product failure collection is report-only; strict/catalog builds must fail');
   if (catalog && only !== undefined) throw new Error('wildshard build: --catalog requires every project; --shard cannot publish a catalog');
-  if(onFailure===undefined)await prepareDataMaps(root, strict ? undefined : only);
+  if(onFailure===undefined)await prepareDataMaps(root, strict ? undefined : only?.map(slug => productFolder(root, slug)));
   const outputRoot = resolve(root, 'out');
   // A partial/ordinary build cannot leave a previous complete catalog vouching for changed products.
   if (!catalog) rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
@@ -49,68 +50,76 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     };
     walk(resolve(project, 'runtime')); return issues;
   };
-  const built = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort();
+  const folders = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort((a, b) => a.localeCompare(b));
+  // SF88g: a folder with declared outputs (scripts/shard-outputs.mjs) builds one product per output, each to out/<slug>
+  const products = folders.flatMap(folder => (shardOutputs(root, folder) ?? [{ slug: folder }]).map(row => ({ name: row.slug, folder, output: row.slug === folder ? undefined : row.slug })));
+  const built = products.map(row => row.name).sort((a, b) => a.localeCompare(b));
+  // A product folder no source declares any more (a folder that now emits outputs, a dropped output) never ships stale
+  for (const entry of existsSync(outputRoot) ? readdirSync(outputRoot, { withFileTypes: true }) : []) {
+    if (entry.isDirectory() && !entry.name.startsWith('.') && !built.includes(entry.name) && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(outputRoot, entry.name, 'shard.json'))) {
+      rmSync(resolve(outputRoot, entry.name), { recursive: true, force: true }); console.info(`wildshard build: ${entry.name} is no longer a product; removed`);
+    }
+  }
   for (const slug of only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
-  if(onFailure===undefined)for (const slug of only ?? built) checkHeadlessAssembly(root, slug);
+  if(onFailure===undefined)for (const folder of new Set((only ?? built).map(slug => products.find(row => row.name === slug)?.folder ?? slug))) checkHeadlessAssembly(root, folder);
   if ((reuse || only !== undefined) && strict) console.warn('wildshard build: --reuse / --shard ignored in CI; building every shard');
   const recorded = build === runWildshard;
   const files = recorded ? undefined : treeHashes(root);
   const inputHashes = new InputHashMemo(root,resolve(root,'.cache/shardfile-input-hashes.json'));
   const toolchain = recorded ? productToolchainKey(root,inputHashes) : '';
   try {
-  await runShardBuildPool(readdirSync(projects, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)), async (entry, signal) => {
+  await runShardBuildPool(products, async ({ name, folder, output }, signal) => {
     const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
-    const project = resolve(projects, entry.name);
-    if (!entry.isDirectory() || Object.hasOwn(frozen.shards, entry.name) || !existsSync(resolve(project, 'shard.config.ts'))) return;
+    const project = resolve(projects, folder);
     try {
-    if(onFailure!==undefined){await prepareDataMaps(root,[entry.name]);checkHeadlessAssembly(root,entry.name);}
+    if(onFailure!==undefined){await prepareDataMaps(root,[folder]);checkHeadlessAssembly(root,folder);}
     const started = performance.now();
-    const stamp = mapStampPath(project);
+    const stamp = output === undefined ? mapStampPath(project) : resolve(project, `look/map.${output}.baked.json`);
     const expected = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')).tilesHash : null;
     const actual = mapTilesHash(project);
     if (expected !== actual) {
-      stale.push(entry.name);
-      console.error(`wildshard map inputs: ${JSON.stringify({ shard: entry.name, expected, actual, files: mapInputHashes(project) })}`);
+      stale.push(name);
+      console.error(`wildshard map inputs: ${JSON.stringify({ shard: name, expected, actual, files: mapInputHashes(project) })}`);
     }
     const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
-    if (map !== undefined && map.image !== `/assets/${entry.name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${entry.name}`);
+    if (map !== undefined && map.image !== `/assets/${name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${name}`);
     if (map !== undefined) await verifyMapPixels(resolve(root, 'public', map.image.slice(1)), map.pixelHash);
     const issues = catalog || copyRuntime === 'closed' ? runtimeIssues(project) : [];
-    runtimeReport.push({ slug: entry.name, runtime: issues.length > 0 ? 'source' : 'output', issues });
-    const flags = [...(copyRuntime === true || (catalog || copyRuntime === 'closed') && issues.length === 0 ? ['--copy-runtime'] : []), ...(map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`])];
+    runtimeReport.push({ slug: name, runtime: issues.length > 0 ? 'source' : 'output', issues });
+    const flags = [...(copyRuntime === true || (catalog || copyRuntime === 'closed') && issues.length === 0 ? ['--copy-runtime'] : []), ...(map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`]), ...(output === undefined ? [] : [`--output=${output}`])];
     // --no-placeholders (G348): a first-party product keeps its own bytes; its near / far views come from the repo bakes
     // until the grid reads a shardfile's `near`. The CLI's default baked a near row into Signal Dunes' product, whose play
     // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
-    const destination = resolve(root, 'out', entry.name);
+    const destination = resolve(root, 'out', name);
     const normalized = flags.map(flag=>flag.replace(root,'<root>'));
-    const recipe = [entry.name,...normalized,toolchain];
-    const receipts = resolve(shardfileCacheRoot(),'.inputs-v2',entry.name,createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
-    const currentKey = () => recorded ? matchingProductInputKey(root,receipts,recipe,inputHashes) : shardfileKey(files ?? new Map(),entry.name,built,normalized);
+    const recipe = [name,...normalized,toolchain];
+    const receipts = resolve(shardfileCacheRoot(),'.inputs-v2',name,createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
+    const currentKey = () => recorded ? matchingProductInputKey(root,receipts,recipe,inputHashes) : shardfileKey(files ?? new Map(),name,folders.filter(other=>other!==folder),normalized);
     const key = currentKey();
-    if (!strict && only !== undefined && !only.includes(entry.name)) {
+    if (!strict && only !== undefined && !only.includes(name)) {
       const here = readBuildKey(destination);
-      if (here !== key && existsSync(destination)) { rmSync(destination, { recursive: true, force: true }); console.info(`wildshard build: ${entry.name} skipped (--shard), stale product removed`); }
-      else console.info(`wildshard build: ${entry.name} skipped (--shard)${here === key ? ', product current' : ''}`);
+      if (here !== key && existsSync(destination)) { rmSync(destination, { recursive: true, force: true }); console.info(`wildshard build: ${name} skipped (--shard), stale product removed`); }
+      else console.info(`wildshard build: ${name} skipped (--shard)${here === key ? ', product current' : ''}`);
       return;
     }
-    const how = await reuseOrBuild({ slug: entry.name, key:key ?? randomBytes(32).toString('hex'), destination, fresh:strict || !reuse && only === undefined, build: async out => {
+    const how = await reuseOrBuild({ slug: name, key:key ?? randomBytes(32).toString('hex'), destination, fresh:strict || !reuse && only === undefined, build: async out => {
       const receipt=resolve(shardfileCacheRoot(),'.input-traces',`${process.pid}-${randomBytes(8).toString('hex')}.json`);
       try {
       await buildOne(['build',project,out,'--product-only','--no-placeholders','--format=2',...flags,...(recorded?[`--input-receipt=${receipt}`]:[])]);
       if (recorded && productToolchainKey(root,inputHashes) !== toolchain) throw new Error('Product toolchain changed during build');
       const next = recorded ? productInputKey(root,receipt,recipe,inputHashes) : currentKey();
-      if (next === undefined) throw new Error(`Missing complete product input receipt: ${entry.name}`);
+      if (next === undefined) throw new Error(`Missing complete product input receipt: ${name}`);
       if(recorded)publishProductInputs(receipts,receipt,next);
       return next;
       } finally { if(recorded)rmSync(receipt,{force:true}); }
     } });
-    console.info(`wildshard build: ${entry.name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
+    console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     } catch(error) {
       if(onFailure===undefined)throw error;
       // A previous product cannot vouch for a failed rebuild or grant a census user.
-      rmSync(resolve(outputRoot,entry.name),{recursive:true,force:true});
-      onFailure(entry.name,error);
+      rmSync(resolve(outputRoot,name),{recursive:true,force:true});
+      onFailure(name,error);
     }
   });
   } finally { inputHashes.flush(); }

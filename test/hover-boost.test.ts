@@ -13,7 +13,7 @@ import { MANIFEST as main } from '../src/shards/driftwood-isle/discovery.generat
 import { PASTEL } from '../src/shards/pastel-plain/manifest';
 import { INK } from '../src/shards/ink-cel-valley/manifest';
 import { MANIFEST as blender } from '../src/shards/blender-template/discovery.generated';
-import { MANIFEST as openPlot } from '../src/shards/open-plots/discovery.generated';
+import { MANIFEST as openPlot } from '../src/shards/open-plots/discovery.open-plot-ember-forge.generated';
 
 const centre = { x: 0, y: 0, z: 0 };
 afterEach(() => { setDev(false); document.body.replaceChildren(); });

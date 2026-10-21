@@ -8,6 +8,8 @@ import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 export interface ProjectManifestSource {
   readonly folder: string;
   readonly file?: string;
+  /** SF88g: an output's composed manifest (its folder's manifest.json with the output's overrides), in place of `file`. */
+  readonly composed?: unknown;
   readonly imageRoots: readonly { readonly prefix: string; readonly directory: string }[];
 }
 
@@ -27,7 +29,7 @@ export async function readManifestSource(source: ProjectManifestSource, declared
     if (!/^\/(?:[a-zA-Z0-9_-]+\/)+$/u.test(root.prefix)) throw new Error('Manifest image root needs a bounded absolute URL prefix');
     return { prefix: root.prefix, directory: fs.realpathSync(root.directory) };
   });
-  const input = source.file === undefined ? declared : reader.readShardfileSource(source.file);
+  const input = source.composed ?? (source.file === undefined ? declared : reader.readShardfileSource(source.file));
   if (input === undefined) throw new Error('Manifest intake requires an explicit file or declared level metadata');
   const authored = parseManifestMetadata(input, source.folder), images = new Map<string, Uint8Array>();
   for (const { url } of manifestImages(authored)) {

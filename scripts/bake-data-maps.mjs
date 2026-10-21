@@ -30,8 +30,10 @@ export async function prepareDataMaps(root, only) {
 }
 
 /** Paint the exact render lattice and placed prop triangles. Each address is
- * already world-space in the authored products; no second placement law exists. */
-export async function paintDataMap(root, slug) {
+ * already world-space in the authored products; no second placement law exists.
+ * SF88g: `output` paints one declared output of the folder (scripts/shard-outputs.mjs) from its own `glbs`, into
+ * public/assets/<output>/map/top.webp with its stamp at look/map.<output>.baked.json. */
+export async function paintDataMap(root, slug, { output, glbs } = {}) {
   const { decodeTerrainTile } = await import('../src/format/terrainTileBytes.ts');
   const dir = resolve(root, 'src/shards', slug), settings = json(mapSettingsPath(dir));
   const tilesHash = mapTilesHash(dir);
@@ -54,22 +56,23 @@ export async function paintDataMap(root, slug) {
     for (const tile of props.tiles.filter(entry => entry.lod === 0)) for (const ref of [tile.file, ...tile.additionalFiles ?? []]) await raster.glb(input(`assets/${ref}`));
     for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(input(`assets/${panel.file}`));
   }
-  for (const file of painter.glbs ?? []) await raster.glb(input(file));
+  for (const file of glbs ?? painter.glbs ?? []) await raster.glb(input(file));
   if (painter.scenes !== undefined) {
     const { paintMapScenes } = await import('./map-scenes.mjs');
     await paintMapScenes(raster, painter.scenes, settings, { input, json: file => json(input(file)), bytes: file => readFileSync(input(file)) });
   }
   if (raster.triangles === 0) throw new Error(`${slug}: data map is empty`);
   const pixels = stylizeMap(raster, settings.style);
-  const image = resolve(root, 'public/assets', slug, 'map/top.webp');
+  const product = output ?? slug, image = resolve(root, 'public/assets', product, 'map/top.webp');
   mkdirSync(dirname(image), { recursive: true });
   // Lossless VP8L stores precisely the integer raster; no lossy SIMD rounding.
   const bytes = await sharp(pixels, { raw: { width: 1000, height: 1000, channels: 4 } }).webp({ lossless: true, effort: 6 }).toBuffer();
   if (mapTilesHash(dir) !== tilesHash) throw new Error(`${slug}: map inputs changed while painting`);
   writeFileSync(image, bytes);
-  const stamp = { version: 1, tilesHash, pixelHash: await mapPixelHash(image), image: `/assets/${slug}/map/top.webp`, size: 1000, metres: MAP_METRES, north: '+z', east: '-x', style: `data:${settings.style.kind}`, bytes: bytes.length };
-  const stampPath = mapStampPath(dir); mkdirSync(dirname(stampPath), { recursive: true });
+  const stamp = { version: 1, tilesHash, pixelHash: await mapPixelHash(image), image: `/assets/${product}/map/top.webp`, size: 1000, metres: MAP_METRES, north: '+z', east: '-x', style: `data:${settings.style.kind}`, bytes: bytes.length };
+  const stampPath = output === undefined ? mapStampPath(dir) : resolve(dir, `look/map.${output}.baked.json`); mkdirSync(dirname(stampPath), { recursive: true });
   writeFileSync(stampPath, `${JSON.stringify(stamp, null, 2)}\n`);
+  if (output !== undefined) { console.info(`data-map: ${output}, ${raster.triangles} source triangles, ${bytes.length} bytes`); return { raster, stamp }; }
   const companion = resolve(dir, 'data/productMap.json');
   if (companion !== stampPath && (painter.authored === true || existsSync(companion))) writeFileSync(companion, `${JSON.stringify(stamp, null, 2)}\n`);
   if (painter.authored === true) writeFileSync(resolve(dir, 'assets/map.webp'), bytes);
