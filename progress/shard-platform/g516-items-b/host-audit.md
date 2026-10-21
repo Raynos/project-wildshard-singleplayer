@@ -211,3 +211,20 @@ Root/layer types, typed lint and five focused suites (27 tests) pass.
 Retire wrapper-only fixtures; verify real native duplicate wakes,
 variant/home/height joins, one retirement, dawn and late corpse release.
 No collider descriptors, visuals, codec, resource bounds or budgets change.
+
+
+X4 patrol roster: delete the complete EncounterPatrol module and its
+second actor/member/group maps. PatrolEncounterView keeps the actual
+body roster; existing ProjectedState retains cycle, group and member
+continuations. Existing night AS still chooses admission, route,
+steering, fades, first/retry firing clocks, kills and dawn dissolution.
+Preserve source-ordered borrowed AI draws and the 100 ms decision step.
+ProjectedState retains real Nalati + Nine HOST-BAR 6/6. The native
+patrol adapter and its types remain Nalati-only HOST-BAR 4/6/C4,
+explicitly charged despite optional dispatch. Fixtures grant no credit.
+Physical runtime TS: **shards 0 / platform -91**; build/AS/data **0**.
+This is physical deletion, not equal ruler credit: the native patrol
+view charge remains in the census. Root/layer types, typed lint and
+six focused suites (35 tests) pass, including real roster lifecycle, alternate
+route/memory/freeze and exact borrowed AI first-clock draw order.
+No collider descriptors, visuals, codec, resource bounds or budgets change.

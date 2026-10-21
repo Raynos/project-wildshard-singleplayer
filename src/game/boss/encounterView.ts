@@ -1,6 +1,6 @@
 /** Client-only encounter views (the boss fight host, G474): a slot encounter's cues and telegraph on the cue director
  * and ground tells, a patrol's looks, figures, arrows and cues, and a boss's cloud body. The law stays in
- * `encounterPatrol` and the fight; no shard renderer callback is accepted. Never imported by renderer-free hosts. */
+ * existing AS projections and the fight; no shard renderer callback is accepted. Never imported by renderer-free hosts. */
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
@@ -26,7 +26,6 @@ import { ProjectedState, type ReturnProgram } from '../population/returnProgram'
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
-import { EncounterPatrol, type PatrolActor, type PatrolActorBinding, type PatrolActorRoster, type PatrolMember } from './encounterPatrol';
 import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows,SlotViewRows,PatrolViewRows,CloudBodyRows,ArenaSceneRows,EncounterMaterialRows } from '@wildshard/format/encounterRows';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -222,18 +221,24 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
  * (`aim` signal, from `lift` over the seat) and where its arrows hit you or the world; and `targets`, spheres in the bone's
  * frame (radius × scale) that a ray may hit before the body's own capsules.
  */
+/** Native bodies and allocation authority; neither supplies authored rules. */
+interface PatrolActor { readonly entityId:string; readonly position:{readonly x:number;readonly z:number}; readonly mem:Record<string,number>; readonly alive:boolean; readonly hidden:boolean; herd:number }
+interface PatrolActorRoster<A extends PatrolActor> { readonly factory:{model:(kind:string,variant:string)=>unknown}; spawn:(kind:string,x:number,z:number,yaw:number,variant:string)=>A; retire:(actor:A)=>void }
 /** A patrol actor as drawn: its skinned body, scale, variant and facing; a target the player's shots can strike. */
 export interface PatrolViewActor extends TargetAnimal { readonly entityId: string; readonly mem: Record<string, number>; readonly hidden: boolean; herd: number;
   readonly mesh: THREE.SkinnedMesh; scale: number; readonly variant: string; readonly yaw: number }
 /** An arrow that struck the player this step: its damage and who loosed it. */
 export interface PatrolHit<A> { readonly damage: number; readonly from: A | null }
-interface Rider<A> { readonly a: A; readonly scope: Scope; readonly fades: THREE.IUniform<number>[]; readonly law: PatrolMember; readonly bone: THREE.Object3D }
+interface Rider<A> { readonly a: A; readonly scope: Scope; readonly fades: THREE.IUniform<number>[]; readonly law:ProjectedState; readonly group:ProjectedState|null; readonly slot:number; readonly steering:Record<string,number>; readonly bone: THREE.Object3D }
 const seat = new THREE.Vector3(), back = new THREE.Vector3(), aimed = new THREE.Vector3(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), crossing = new THREE.Vector3();
 
-/** A patrol encounter drawn from rows: `EncounterPatrol` owns the law and `ProjectedState` the motion; this draws them. */
+/** One native patrol roster; existing AS projections own cycle, group and member decisions. */
 export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   readonly riders: Rider<A>[] = [];
-  readonly patrol: EncounterPatrol<A>;
+  private readonly cycle:ProjectedState;
+  private readonly groups:ProjectedState[]=[];
+  private roster:PatrolActorRoster<A>|null=null;
+  private readonly random=app.rng.stream('ai');
   readonly arrows: Projectiles;
   private readonly rows: PatrolViewRows;
   private readonly motion: ProjectedState;
@@ -241,11 +246,12 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   private readonly hits: PatrolHit<A>[] = [];
   private readonly hit: TargetHit;
   private shooter: A | null = null;
-  get killsTonight(): number { return this.patrol.kills; }
-  constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, private readonly program: ReturnProgram,
+  get killsTonight(): number { return this.cycle.value('kills'); }
+  private get living():number{return this.riders.filter(r=>r.law.state['dead']!==1).length;}
+  constructor(private readonly input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, private readonly program: ReturnProgram,
     private readonly ports: ProjectileWorld & { readonly cues: CueDirector; readonly figures: Readonly<Record<string, THREE.BufferGeometry>> }) {
     this.rows = input.view;
-    this.patrol = new EncounterPatrol<A>(input.patrol, program, app.rng.stream('ai')); this.motion = new ProjectedState(input.motion, program);
+    this.cycle=new ProjectedState({initial:{respawn:-1,phase:-1,kills:0},signals:{step:input.patrol.signals.cycle,empty:input.patrol.signals.empty}},program);this.motion=new ProjectedState(input.motion,program);
     for (const key of Object.keys(this.rows.looks)) if (ports.figures[key] === undefined) throw new Error(`Missing patrol figure: ${key}`);
     const { geometry, colour, renderOrder, ...kind } = this.rows.arrow;
     this.arrows = new Projectiles(ports, undefined, { ...kind, geometry: new THREE.BufferGeometryLoader().parse(geometry),
@@ -256,20 +262,35 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     this.arrows.onImpact = (_surface, at) => { ports.cues.cue(this.rows.cues.impact, at, UP); };
     this.hit = { animal: { kind: '', position: new THREE.Vector3(), alive: false, applyDamage: () => false, damageFor: () => 0 }, point: new THREE.Vector3(), distance: 0, headshot: false };
   }
-  attachActors(roster: PatrolActorRoster<A>): void { this.patrol.attachActors(roster); }
+  attachActors(roster:PatrolActorRoster<A>):void{
+    const rows=this.input.patrol.actors;if(rows===undefined)throw new Error('Missing patrol actor rows');
+    roster.factory.model(rows.kind,rows.variant);this.roster=roster;
+  }
   /** One actor at (x, z) facing `yaw`, outside any line (drive its steering memory); `quiet` takes the quiet look. */
   spawnRider(at: { readonly x: number; readonly z: number; readonly yaw: number; readonly variant?: string; readonly quiet?: boolean }): A | null {
-    const bound = this.patrol.spawnActor({ x: at.x, z: at.z, yaw: at.yaw, ...(at.variant === undefined ? {} : { variant: at.variant }), quiet: Number(at.quiet === true) });
-    return bound === null ? null : this.present(bound, at.quiet === true);
+    return this.spawn(at,null,0);
   }
   /** A line of `count` from `at` (m along the route; default the farthest from the player), `captain` at its head. */
   spawnLine(at: { readonly count?: number; readonly captain?: boolean; readonly at?: number } = {}): A[] {
-    return this.patrol.spawnActors(this.ports.player.position, { ...at, leader: at.captain === true }).map(bound => this.present(bound, false));
+    const rows=this.input.patrol,actors=rows.actors;if(actors===undefined||this.roster===null)return [];
+    const count=at.count??actors.count;if(!Number.isSafeInteger(count)||count<0||count>8)throw new RangeError('Invalid patrol group size');
+    const p=this.ports.player.position,start=this.program.project(rows.signals.start,{...rows.parameters,at:at.at??-1,px:p.x,pz:p.z},this.random);
+    const group=new ProjectedState({initial:{...rows.group,...start},parameters:rows.parameters,signal:rows.signals.group},this.program);this.groups.push(group);
+    const slots=Array.from({length:count},(_,slot)=>this.program.project(rows.signals.slot,{...rows.parameters,...group.state,slot}));
+    return slots.flatMap((placement,slot)=>{const actor=this.spawn({x:placement['x']??0,z:placement['z']??0,yaw:placement['yaw']??0,variant:slot===0&&at.captain===true?actors.leader:actors.variant},group,slot);return actor===null?[]:[actor];});
   }
-  dissolve(actor: A): void { this.patrol.dissolveActor(actor); }
+  dissolve(actor:A):void{this.riders.find(r=>r.a===actor)?.law.event('dissolve');}
   dawn(): void { for (const r of this.riders) this.dissolve(r.a); }
-  private present(bound: PatrolActorBinding<A>, quiet: boolean): A {
-    const { a, law } = bound, rows = this.rows, key = quiet ? rows.quietLook : rows.looks[a.variant] === undefined ? Object.keys(rows.looks)[0] ?? '' : a.variant;
+  private spawn(at:{readonly x:number;readonly z:number;readonly yaw:number;readonly variant?:string;readonly quiet?:boolean},group:ProjectedState|null,slot:number):A|null{
+    const rows=this.input.patrol,actors=rows.actors;if(actors===undefined||this.roster===null)return null;
+    const a=this.roster.spawn(actors.kind,at.x,at.z,at.yaw,at.variant??actors.variant);a.herd=actors.herd;
+    if(this.riders.some(r=>r.a.entityId===a.entityId))throw new Error('Invalid patrol member');
+    const law=new ProjectedState({initial:{...rows.member,quiet:Number(at.quiet===true),...this.program.project(rows.signals.retry,{first:1},this.random)},
+      signals:{member:rows.signals.member,fire:rows.signals.fire,retry:rows.signals.retry,dissolve:rows.signals.dissolve}},this.program);
+    return this.present(a,law,group,slot,at.quiet===true);
+  }
+  private present(a:A,law:ProjectedState,group:ProjectedState|null,slot:number,quiet:boolean):A {
+    const rows=this.rows,key=quiet?rows.quietLook:rows.looks[a.variant]===undefined?Object.keys(rows.looks)[0]??'':a.variant;
     const patch = rows.looks[key], figure = this.ports.figures[key], bone = a.mesh.skeleton.getBoneByName(rows.figure.bone);
     if (patch === undefined || figure === undefined || bone === undefined) throw new Error(`Patrol look ${key} needs its style, figure and bone`);
     const scope = this.ports.game.levelScope.child('patrol-actor'), fades: THREE.IUniform<number>[] = [];
@@ -287,7 +308,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     // a ghost casts no shadow: the roster sets castShadow every frame, so it stays pinned off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });
     const mesh = new THREE.Mesh(figure, material()); mesh.name = `${patch.key}-figure`; mesh.frustumCulled = false; bone.add(mesh);
-    this.riders.push({ a, scope, fades, law, bone });
+    this.riders.push({a,scope,fades,law,bone,group,slot,steering:{}});
     this.ports.cues.cue(rows.cues.form, seat.set(a.position.x, heightAt(a.position.x, a.position.z) + rows.lift.form, a.position.z), UP);
     return a;
   }
@@ -313,14 +334,37 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   update(dt: number, t: number, frame: Readonly<Record<string, number>>, freeze = false): readonly PatrolHit<A>[] {
     this.hits.length = 0; this.time.value = t;
     const rows = this.rows, cues = this.ports.cues, p = this.ports.player.position;
-    const step = this.patrol.updateActors(dt, { ...frame, px: p.x, py: p.y, pz: p.z }, freeze);
-    if (step.dt > 0) this.motion.project({ dt: step.dt, px: p.x, pz: p.z });
-    if (step.spawn) this.spawnLine();
-    const effects = new Map(step.effects.map(effect => [effect.member.id, effect]));
+    const tick={...frame,px:p.x,py:p.y,pz:p.z},step=this.cycle.step(this.roster===null?0:dt,{...tick,living:this.living});
+    const effects=new Map<Rider<A>,Readonly<Record<string,number>>>(),patrol=this.input.patrol,actors=patrol.actors;
+    if(actors===undefined)throw new Error('Missing patrol actor rows');
+    if(step.dt>0){
+      if(step.values['dissolve']===1)this.dawn();
+      for(const group of this.groups){
+        const members=this.riders.filter(r=>r.group===group),lead=members.find(r=>r.law.state['dead']!==1);if(lead===undefined)continue;
+        group.project({...tick,dt:step.dt,ax:lead.a.position.x,az:lead.a.position.z});
+        for(const r of members){if(r.law.state['dead']===1)continue;const a=r.a,target=this.program.project(patrol.signals.target,{...patrol.parameters,...group.state,...tick,slot:r.slot,ax:a.position.x,az:a.position.z});
+          Object.assign(r.steering,{tx:target['x']??a.position.x,tz:target['z']??a.position.z,v:target['speed']??0,turn:target['turn']??0});}
+      }
+      for(const r of this.riders){
+        const a=r.a,result=r.law.event('member',{dt:step.dt,alive:Number(a.alive)});
+        const fire=r.law.event('fire',{dt:step.dt,hidden:Number(a.hidden),distance:Math.hypot(p.x-a.position.x,p.z-a.position.z),engaged:Number(r.group===null||r.group.state['mode']===1)});
+        if(fire['shoot']===1)r.law.event('retry',{first:0},this.random);effects.set(r,{...result,shoot:fire['shoot']??0});
+      }
+      const empty=Number(this.groups.some(group=>this.riders.filter(r=>r.group===group).every(r=>r.law.state['dead']===1||r.a.hidden)));
+      this.cycle.event('empty',{...tick,living:this.living,killed:[...effects.values()].filter(effect=>effect['killed']===1).length,empty});
+      for(let i=this.groups.length-1;i>=0;i--){const group=this.groups[i];if(group!==undefined&&this.riders.filter(r=>r.group===group).every(r=>r.law.state['dead']===1||r.a.hidden))this.groups.splice(i,1);}
+    }
+    for(const r of this.riders){
+      const a=r.a;a.mem[actors.player.x]=p.x;a.mem[actors.player.z]=p.z;
+      if(r.group!==null)for(const [slot,channel]of Object.entries(actors.steering)){const value=r.steering[channel]??r.law.state[channel];if(value!==undefined)a.mem[slot]=value;}
+      if(freeze){a.mem[actors.target.x]=a.position.x;a.mem[actors.target.z]=a.position.z;}
+    }
+    if(step.dt>0)this.motion.project({dt:step.dt,px:p.x,pz:p.z});
+    if(step.values['spawn']===1)this.spawnLine();
     for (let i = this.riders.length - 1; i >= 0; i--) {
       const r = this.riders[i]; if (r === undefined) continue;
-      const a = r.a, effect = effects.get(r.law.id), state = r.law.state;
-      if (effect?.retire === true) { this.patrol.retireActor(a); r.scope.dispose(); this.riders.splice(i, 1); continue; }
+      const a = r.a, effect = effects.get(r), state = r.law.state;
+      if (effect?.['retire'] === 1) { this.roster?.retire(a); r.scope.dispose(); this.riders.splice(i, 1); continue; }
       for (const fade of r.fades) fade.value = state[rows.states.fade] ?? 0;
       if ((state[rows.states.dying] ?? 0) > 0) cues.cue(rows.cues.tear, this.seat(r), UP);
       if (state[rows.states.dead] === 1 || a.hidden) continue;
@@ -328,7 +372,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
         back.set(-Math.sin(a.yaw), 0, -Math.cos(a.yaw));
         cues.cue(rows.trail.cue, this.seat(r).addScaledVector(back, rows.trail.back), back);
       }
-      if (!freeze && effect?.shoot === true) this.shoot(r);
+      if (!freeze && effect?.['shoot'] === 1) this.shoot(r);
     }
     this.arrows.update(dt);
     return this.hits;

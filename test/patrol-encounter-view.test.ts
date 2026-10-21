@@ -1,4 +1,4 @@
-import { EncounterPatrolSchema, PatrolViewSchema } from '@wildshard/format/encounterRows';
+import { EncounterPatrolSchema, PatrolViewSchema, type EncounterPatrolRows } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Bone, BoxGeometry, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, Vector3, type Vector2 } from 'three';
 import * as v from 'valibot';
@@ -12,10 +12,11 @@ import { overrideTerrain } from './fake/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
+import { Rng } from '../src/engine/core/rng';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 
-// A made-up orchard watch (the patrol view's fixture second user): lantern wraiths and their warden riding its own rows,
-// looks, figures, cues, targets and a plain dart, on the patrol law Nalati's ghost riders share.
+// Alternate-data fixture only: lantern wraiths, a warden and declared looks/cues.
+// This grants no second-shard credit to the native patrol adapter.
 const look = (key: string) => ({ key, common: '#include <common>\nuniform float uGFade;\nuniform float uGTime;', fragment: '#include <dithering_fragment>\ngl_FragColor.rgb *= uGFade;' });
 const view = v.parse(PatrolViewSchema, { looks: { scout: look('orchard-scout'), warden: look('orchard-warden'), hush: look('orchard-hush') }, quietLook: 'hush', quietScale: 2,
   figure: { bone: 'saddle' }, seat: [0, 1, 0], states: { fade: 'fade', dying: 'dying', dead: 'dead' },
@@ -39,7 +40,7 @@ type Body = ReturnType<typeof body>;
 let restore = (): void => undefined;
 afterEach(() => { restore(); vi.restoreAllMocks(); });
 
-function orchard() {
+function orchard(input:EncounterPatrolRows=patrol) {
   restore = overrideTerrain({ heightAt: () => 2 });
   const scope = new Scope('orchard-watch'), scene = new Scene(), game = {} as Game;
   Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: scene }, camera: { value: new PerspectiveCamera(60) },
@@ -48,10 +49,11 @@ function orchard() {
   const heard: { id: string; at: number[] }[] = [];
   vi.spyOn(cues, 'cue').mockImplementation((id, at) => { heard.push({ id, at: at.toArray() }); });
   const figure = new BoxGeometry(0.4, 1, 0.4), bodies: Body[] = [];
-  const watch = new PatrolEncounterView<Body>({ patrol, motion: night.motion, view }, ReturnProgram.page(night.program),
+  const program=ReturnProgram.page(night.program);
+  const watch = new PatrolEncounterView<Body>({ patrol:input, motion: night.motion, view }, program,
     { game, sky: {} as SkyRig, player, forest: {} as Forest, cues, figures: { scout: figure, warden: figure, hush: figure } });
   watch.attachActors({ factory: { model: () => undefined }, spawn: (_kind, x, z, yaw, variant) => { const b = body(String(bodies.length), x, z, yaw, variant); bodies.push(b); return b; }, retire: a => { a.hidden = true; } });
-  return { watch, heard, bodies, scene, player, scope };
+  return { watch, heard, bodies, scene, player, scope, program };
 }
 
 test('an orchard watch forms its own line in its own looks and figures, and a quiet one grows', () => {
@@ -105,4 +107,63 @@ test('view rows refuse a look without its figure', () => {
   Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: new Scene() } });
   expect(() => new PatrolEncounterView<Body>({ patrol, motion: night.motion, view }, ReturnProgram.page(night.program),
     { game, sky: {} as SkyRig, player: { position: new Vector3() } as Player, forest: {} as Forest, cues: {} as CueDirector, figures: {} })).toThrow('figure');
+});
+
+test('the real native roster admits once, holds, dissolves at dawn and resets next night',()=>{
+  const {watch,heard,scope}=orchard();
+  try{
+    for(let i=0;i<8;i++)watch.update(.1,i*.1,{hold:0,night:1});
+    expect(watch.riders).toHaveLength(2);expect(heard.filter(row=>row.id==='cue.orchard.form')).toHaveLength(2);
+    const victim=watch.riders[0]?.a;if(victim===undefined)throw new Error('Missing watch');victim.alive=false;
+    for(let i=0;i<15;i++)watch.update(.1,1+i*.1,{hold:1,night:1});
+    expect(watch.killsTonight).toBe(1);expect(victim.hidden).toBe(true);expect(watch.riders.some(r=>r.a===victim)).toBe(false);
+    watch.update(.1,3,{hold:0,night:0});expect(watch.killsTonight).toBe(1);
+    for(let i=0;i<25;i++)watch.update(.1,4+i*.1,{hold:0,night:0});
+    expect(watch.riders).toEqual([]);expect(watch.killsTonight).toBe(1);
+    for(let i=0;i<40;i++)watch.update(.1,7+i*.1,{hold:1,night:1});
+    expect(watch.riders).toEqual([]);expect(watch.killsTonight).toBe(0);
+    watch.update(.1,12,{hold:0,night:0});
+    for(let i=0;i<25;i++)watch.update(.1,13+i*.1,{hold:0,night:1});
+    expect(watch.riders).toHaveLength(2);
+  }finally{scope.dispose();}
+});
+
+test('borrowed route and memory rows keep native steering and freeze independent of drawing',()=>{
+  const input={...patrol,parameters:{...patrol.parameters,center:-40,x0:18,x1:16,x2:12,x3:7,z1:4,z2:8,z3:12,z4:16,d1:5,d2:10,d3:15,d4:20,canter:2},
+    actors:{...patrol.actors,player:{x:'seenX',z:'seenZ'},target:{x:'goalX',z:'goalZ'},steering:{goalX:'tx',goalZ:'tz',speed:'v'}}};
+  const {watch,player,scope}=orchard(input);
+  try{
+    player.position.set(200,0,-40);const line=watch.spawnLine({captain:true,at:0});
+    expect(line.map(a=>a.variant)).toEqual(['warden','scout']);const first=line[0];if(first===undefined)throw new Error('Missing watch');
+    watch.update(.1,1,{hold:1,night:1});expect(first.herd).toBe(-2);expect(first.mem['seenX']).toBe(200);expect(first.mem['speed']).toBe(2);
+    watch.update(.05,1.05,{hold:1,night:1},true);expect(first.mem['goalX']).toBe(first.position.x);expect(first.mem['goalZ']).toBe(first.position.z);
+    expect(()=>watch.spawnLine({count:9})).toThrow('group size');
+  }finally{scope.dispose();}
+});
+
+test('forming a native line preserves borrowed AI draw order and each first firing clock',()=>{
+  const stream=app.rng.stream('ai'),before=stream.snapshot(),oracle=new Rng(0);oracle.restore(before);
+  const {watch,player,scope}=orchard(),program=ReturnProgram.page(night.program);
+  try{
+    program.project(patrol.signals.start,{...patrol.parameters,at:0,px:player.position.x,pz:player.position.z},oracle);
+    const expected=Array.from({length:patrol.actors.count},()=>program.project(patrol.signals.retry,{first:1},oracle)['fireT']);
+    watch.spawnLine({at:0});expect(watch.riders.map(r=>r.law.state['fireT'])).toEqual(expected);expect(stream.snapshot()).toEqual(oracle.snapshot());
+  }finally{scope.dispose();stream.restore(before);}
+});
+
+test('actual firing borrows ten-Hz player motion and rejects teleport samples',()=>{
+  const {watch,player,scope,program}=orchard(),project=vi.spyOn(program,'project');
+  try{
+    const actor=watch.spawnRider({x:0,z:0,yaw:0}),rider=watch.riders[0];
+    if(actor===null||rider===undefined)throw new Error('Missing watch');
+    const fire=(dt:number)=>{
+      rider.law.set({fireT:0,fade:1});project.mockClear();watch.update(dt,1,{hold:1,night:1});
+      return project.mock.calls.find(([signal])=>signal===view.aim)?.[1];
+    };
+    expect(fire(.1)?.['vx']).toBe(0);player.position.x=1;
+    expect(fire(.1)?.['vx']).toBe(10);expect(fire(.05)).toBeUndefined();
+    player.position.x=100;player.position.z=0;actor.position.x=100;
+    // A nearby shot after teleport still receives a rejected velocity sample.
+    actor.position.z=-30;expect(fire(.1)?.['vx']).toBe(0);expect(fire(.1)?.['vz']).toBe(0);
+  }finally{scope.dispose();}
 });

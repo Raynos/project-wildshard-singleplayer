@@ -185,8 +185,9 @@ test('shared practice lifetime preserves each real controller charge', () => {
 
 test('the single slot roster stays charged despite an optional dispatcher',()=>{
   const path='src/game/boss/encounterView.ts',both=new Set(['nalati-grasslands','pine-hollow']);
-  const modules=new Map([[path,both]]),bindings=new Map([[`${path}\0SlotEncounterView`,both],[`${path}\0CloudBody`,both]]);
+  const modules=new Map([[path,both]]),bindings=new Map([[`${path}\0SlotEncounterView`,both],[`${path}\0PatrolEncounterView`,both],[`${path}\0CloudBody`,both]]);
   chargePlatformUsers(modules,bindings);
   expect([...bindings.get(`${path}\0SlotEncounterView`)??[]]).toEqual(['nalati-grasslands']);
+  expect([...bindings.get(`${path}\0PatrolEncounterView`)??[]]).toEqual(['nalati-grasslands']);
   expect(bindings.get(`${path}\0CloudBody`)).toEqual(both);expect(platformChargeback(path,'SlotEncounterView')).toBe('C4');
 });
