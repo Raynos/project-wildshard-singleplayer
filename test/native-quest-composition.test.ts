@@ -20,7 +20,7 @@ import swords from '../src/shards/driftwood-isle/data/nativeSwords.json' with { 
 import declaration from '../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
 import module from '../src/shards/driftwood-isle/behaviour/director.json' with { type: 'json' };
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json' with { type: 'json' };
-import bindings from '../src/shards/driftwood-isle/data/directorBindings.json' with { type: 'json' };
+import bindings from './fixtures/driftwood-director-bindings.json' with { type: 'json' };
 import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/generators/modes';
 
 const level = { ...SIM_LEVEL, entities: [], quests: [] };

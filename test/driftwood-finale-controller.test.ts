@@ -6,7 +6,7 @@ import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/pl
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import module from '../src/shards/driftwood-isle/behaviour/director.json';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json';
-import bindings from '../src/shards/driftwood-isle/data/directorBindings.json';
+import bindings from './fixtures/driftwood-director-bindings.json' with { type: 'json' };
 
 function createDriftwoodFinale(scope: Scope, lane: ConstructorParameters<typeof DirectorScriptStageLane>[1], ports: {
   flags: Flags; player: Vector3; rewardAt: Vector3; reward: { started: boolean; completed: boolean };

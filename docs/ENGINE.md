@@ -10601,6 +10601,10 @@ caller retains the update phase and saved stage/fast-forward envelopes.
 `DirectorScriptStageLane.registerNative(host, id)` publishes that existing
 continuation for the native composition; it adds no clock or save owner.
 Both emitted director documents keep their legacy `bindings` key as null.
+The original Driftwood binding JSON is retained unchanged only in
+`test/fixtures/driftwood-director-bindings.json`. Its independent original
+clock, encounter and native-composition comparisons still run; no live
+producer or runtime imports the reflected author document.
 
 The renderer-free `game/quest/storyLaw.questPhaseSpan` and `questPhaseAt`
 share the forward clock arc between Pine's native/page watch and Driftwood's

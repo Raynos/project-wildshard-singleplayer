@@ -21,7 +21,7 @@ import { CHAPTER_DIRECTOR } from '../src/shards/driftwood-isle/generators/chapte
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import module from '../src/shards/driftwood-isle/behaviour/director.json';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json';
-import bindings from '../src/shards/driftwood-isle/data/directorBindings.json';
+import bindings from './fixtures/driftwood-director-bindings.json' with { type: 'json' };
 
 test('salt-marsh chapter binds cue effects and the baseline boss bar through data', async () => {
   const runtime = source.runtime, spawns = runtime?.spawns, original = spawns?.bosses[0];
