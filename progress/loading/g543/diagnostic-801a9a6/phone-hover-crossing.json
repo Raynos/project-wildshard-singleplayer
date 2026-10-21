@@ -1,0 +1,158 @@
+{
+  "pin": "801a9a68505d09b4f84b840660397d3ebcc5b39d",
+  "device": "iPhone 16 Pro",
+  "cpu": 4,
+  "startedAt": 31690.30000001192,
+  "endedAt": 151724.59999996424,
+  "errors": [
+    "Crossing route did not re-enter home: {\"left\":true,\"feet\":{\"x\":0.03696957027116465,\"y\":0.4500974773402333,\"z\":-256.64946267417906},\"issues\":{}}"
+  ],
+  "samples": [
+    {
+      "at": 31707.69999998808,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": "driftwood-isle",
+      "gameplayReady": true,
+      "feet": {
+        "x": -1.8305240774285636e-06,
+        "y": 1.204799994523637,
+        "z": -193.99999836485802
+      }
+    },
+    {
+      "at": 42501.80000001192,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": -6.003096179041378e-07,
+        "y": 0.44000518501894287,
+        "z": -250.1166652578671
+      }
+    },
+    {
+      "at": 43362.09999996424,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "preparing",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.007693336374544946,
+        "y": 0.4494717102715776,
+        "z": -260.04995427135
+      }
+    },
+    {
+      "at": 43494,
+      "crossing": {
+        "current": null,
+        "target": null,
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.00762215973573277,
+        "y": 0.44934552994772436,
+        "z": -260.73515844944484
+      }
+    }
+  ],
+  "timings": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "requestedAt": 43348.89999997616,
+      "readyAt": 43371.09999996424,
+      "start": 43382.09999996424,
+      "checkpointEnd": 43384.69999998808,
+      "commitEnd": 43385.69999998808,
+      "end": 43468.30000001192
+    }
+  ],
+  "rows": [
+    [
+      {
+        "key": "prepare",
+        "label": "Prepare destination",
+        "ms": 22.19999998807907
+      },
+      {
+        "key": "boundary",
+        "label": "Await transfer boundary",
+        "ms": 11
+      },
+      {
+        "key": "checkpoint",
+        "label": "Save source state",
+        "ms": 2.600000023841858
+      },
+      {
+        "key": "commit",
+        "label": "Enter destination",
+        "ms": 1
+      },
+      {
+        "key": "activate",
+        "label": "Activate destination",
+        "ms": 82.60000002384186
+      }
+    ]
+  ],
+  "transitions": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "wallMs": 119.40000003576279,
+      "stageMs": 119.40000003576279,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 22.19999998807907
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 11
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 2.600000023841858
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 1
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 82.60000002384186
+        }
+      ]
+    }
+  ],
+  "failures": [
+    "Crossing route did not re-enter home: {\"left\":true,\"feet\":{\"x\":0.03696957027116465,\"y\":0.4500974773402333,\"z\":-256.64946267417906},\"issues\":{}}",
+    "Missing actual road exit or home re-entry"
+  ],
+  "networkBytes": 496244454,
+  "rawSHA256": "731eb305dc441cfed9bad26ddfaa8e238adedb6293f860dae650529111234b77"
+}

@@ -1,0 +1,271 @@
+{
+  "pin": "801a9a68505d09b4f84b840660397d3ebcc5b39d",
+  "device": "Desktop Chromium",
+  "cpu": 1,
+  "startedAt": 12046,
+  "endedAt": 37950.30000001192,
+  "errors": [],
+  "samples": [
+    {
+      "at": 12048.900000035763,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": "driftwood-isle",
+      "gameplayReady": true,
+      "feet": {
+        "x": -1.8176886948939597e-06,
+        "y": 1.204599994594173,
+        "z": -193.99999852841188
+      }
+    },
+    {
+      "at": 22883.400000035763,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": -5.961003304091883e-07,
+        "y": 0.44000518581962955,
+        "z": -250.11666542142098
+      }
+    },
+    {
+      "at": 23515,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "preparing",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.006266604097908711,
+        "y": 0.44967885512737327,
+        "z": -260.0497367084497
+      }
+    },
+    {
+      "at": 23558.69999998808,
+      "crossing": {
+        "current": null,
+        "target": null,
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": 0.00624850384185207,
+        "y": 0.4495647825623769,
+        "z": -260.38400551681457
+      }
+    },
+    {
+      "at": 36548.19999998808,
+      "crossing": {
+        "current": null,
+        "target": "driftwood-isle",
+        "phase": "preparing",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": -0.043049744561128596,
+        "y": 0.02000059852970365,
+        "z": -255.98510348506954
+      }
+    },
+    {
+      "at": 36566.60000002384,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": null,
+      "gameplayReady": true,
+      "feet": {
+        "x": -0.04298255220578313,
+        "y": 0.02009904474642893,
+        "z": -255.91343685694721
+      }
+    },
+    {
+      "at": 37950.30000001192,
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "inside": "driftwood-isle",
+      "gameplayReady": true,
+      "feet": {
+        "x": -0.03737663939113873,
+        "y": 0.01999999737917163,
+        "z": -249.96511045553473
+      }
+    }
+  ],
+  "timings": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "requestedAt": 23513.100000023842,
+      "readyAt": 23518.5,
+      "start": 23529.100000023842,
+      "checkpointEnd": 23530.100000023842,
+      "commitEnd": 23530.19999998808,
+      "end": 23555.80000001192
+    },
+    {
+      "from": null,
+      "to": "driftwood-isle",
+      "requestedAt": 36547.10000002384,
+      "readyAt": 36552.40000003576,
+      "start": 36563.90000003576,
+      "checkpointEnd": 36563.90000003576,
+      "commitEnd": 36564,
+      "end": 36564
+    }
+  ],
+  "rows": [
+    [
+      {
+        "key": "prepare",
+        "label": "Prepare destination",
+        "ms": 5.399999976158142
+      },
+      {
+        "key": "boundary",
+        "label": "Await transfer boundary",
+        "ms": 10.600000023841858
+      },
+      {
+        "key": "checkpoint",
+        "label": "Save source state",
+        "ms": 1
+      },
+      {
+        "key": "commit",
+        "label": "Enter destination",
+        "ms": 0.09999996423721313
+      },
+      {
+        "key": "activate",
+        "label": "Activate destination",
+        "ms": 25.600000023841858
+      }
+    ],
+    [
+      {
+        "key": "prepare",
+        "label": "Prepare destination",
+        "ms": 5.300000011920929
+      },
+      {
+        "key": "boundary",
+        "label": "Await transfer boundary",
+        "ms": 11.5
+      },
+      {
+        "key": "checkpoint",
+        "label": "Save source state",
+        "ms": 0
+      },
+      {
+        "key": "commit",
+        "label": "Enter destination",
+        "ms": 0.09999996423721313
+      },
+      {
+        "key": "activate",
+        "label": "Activate destination",
+        "ms": 0
+      }
+    ]
+  ],
+  "transitions": [
+    {
+      "from": "driftwood-isle",
+      "to": null,
+      "wallMs": 42.69999998807907,
+      "stageMs": 42.69999998807907,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 5.399999976158142
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 10.600000023841858
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 1
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.09999996423721313
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 25.600000023841858
+        }
+      ]
+    },
+    {
+      "from": null,
+      "to": "driftwood-isle",
+      "wallMs": 16.899999976158142,
+      "stageMs": 16.899999976158142,
+      "rows": [
+        {
+          "key": "prepare",
+          "label": "Prepare destination",
+          "ms": 5.300000011920929
+        },
+        {
+          "key": "boundary",
+          "label": "Await transfer boundary",
+          "ms": 11.5
+        },
+        {
+          "key": "checkpoint",
+          "label": "Save source state",
+          "ms": 0
+        },
+        {
+          "key": "commit",
+          "label": "Enter destination",
+          "ms": 0.09999996423721313
+        },
+        {
+          "key": "activate",
+          "label": "Activate destination",
+          "ms": 0
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "networkBytes": 703843301,
+  "rawSHA256": "8c2cb71ce242378a19826c27c5a306cbd1f48aee6f358fd93a6cf75051b28547"
+}
