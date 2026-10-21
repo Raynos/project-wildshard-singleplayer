@@ -1,6 +1,6 @@
 # Wildshard Admin
 
-**Status:** `unread` 2026-10-08. SF68 (E462, G248–G251): the third site, with no game in it. Portrait-first for iPhone Safari,
+**Status:** `superseded` (2026-10-21 ~09:30 Cancun: Jake read the current pages and asked which still matter; the plan agent marked the rest superseded, history kept). Was: `unread` 2026-10-08. SF68 (E462, G248–G251): the third site, with no game in it. Portrait-first for iPhone Safari,
 public and unlisted. It's rebuilt from committed reports on every deploy and has four tools:
 - **memory explorer:** the itemized and SF64 reports by situation and build; GPU vs RAM by owner, then by asset; the 1.0 GB line;
   measured, estimated and unattributed shown apart; a compare view;
