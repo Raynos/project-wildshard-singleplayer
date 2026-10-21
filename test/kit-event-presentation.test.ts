@@ -29,13 +29,14 @@ test('ordered event rows retain item/count-chip, toast, sound and sting effects 
   driftwood(event('release')); expect(sounds.at(-1)?.rate).toBeGreaterThan(pressed ?? 0);
 
   let resin = 0;
-  const pine = sfx.bindEvents(PINE_KIT_EVENTS, { toast: text => { effects.push(text); }, calls: new Map([
+  const pine = sfx.bindEvents(PINE_KIT_EVENTS, { toast: text => { effects.push(text); },
+    item: id => id === 'amber-resin' ? { label: 'Amber resin', add: n => { effects.push(`resin ${String(n)}`); } } : null, calls: new Map([
     ['resin', () => { resin++; effects.push('resin chip'); }], ['all-resin', () => { if (resin > 0) effects.push('all resin'); }],
     ['token', () => { effects.push('token chip and name'); }], ['all-tokens', () => { effects.push('shelf'); }],
     ['pickup', () => { effects.push('pickup sting'); }],
   ]) });
-  effects.length = 0; pine(event('take', 'resin'));
-  expect(effects).toEqual(['resin chip', 'ui-chime', 'all resin']);
+  effects.length = 0; pine({ ...event('take', 'resin'), item: 'amber-resin', n: 1 });
+  expect(effects).toEqual(['resin 1', 'resin chip', 'ui-chime', 'all resin']);
   effects.length = 0; pine(event('take', 'token'));
   expect(effects).toEqual(['token chip and name', 'ui-glyph', 'shelf']);
   effects.length = 0; pine(event('press')); expect(effects).toEqual([]);

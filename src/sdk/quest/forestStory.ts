@@ -19,7 +19,7 @@ import type { ForestStoryRows, ForestStoryContent, ForestStory } from './forestS
 import { forestPage } from '@wildshard/game/shardfile/forestPage';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { DataPanel, readDataPanels } from '@wildshard/game/ui/dataPanels';
-import { isItemId } from '@wildshard/game/bag/itemCatalog';
+import { isItemId, ITEMS } from '@wildshard/game/bag/itemCatalog';
 import { isJsonData } from '@wildshard/format/json';
 import { QuestViews, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 
@@ -65,14 +65,14 @@ export async function installForestStory(ctx: ShardContext, rows: ForestStoryRow
   if (shelfObject !== null && shelf !== undefined) shelfObject.visible = count(shelf) === shelf.names.length;
   const calls = new Map<string, (e: InteractEvent) => void>(rows.collections.flatMap(row => [
     [row.event, (e: InteractEvent): void => {
-      if (row.item !== undefined) { if (!isItemId(row.item)) throw new Error('Unknown story item'); inventory.add(row.item); }
       chip().show({ label: row.label, n: count(row), of: row.names.length });
       if (row.take !== undefined) { const index = Number(e.def.id.split('-').at(-1) ?? '1') - 1; hud.toast(row.take + (row.names[index] ?? row.fallback)); }
     }],
     [row.completeEvent, (): void => { if (count(row) === row.names.length) { hud.toast(row.complete); if (row.shelf !== undefined && shelfObject !== null) shelfObject.visible = true; } }],
   ]));
   calls.set(rows.pickupEvent, () => { h.music.sting('pickup'); });
-  kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls });
+  kit.onEvent = kitSfx.bindEvents(native.events, { toast: text => { hud.toast(text); }, calls,
+    item: id => isItemId(id) ? { label: ITEMS[id].label, add: n => { inventory.add(id, n); } } : null });
   entry.bench();
 
   const points = Object.fromEntries(rows.signals.map(row => [row.id, new THREE.Vector3(row.x, floorAt(row.x, row.z) + row.height, row.z)]));

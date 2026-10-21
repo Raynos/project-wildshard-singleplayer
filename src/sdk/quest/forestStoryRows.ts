@@ -19,7 +19,7 @@ export interface ForestStoryRows {
   readonly talks: QuestPageTalksRows;
   readonly store: { readonly slot: string; readonly state: string };
   readonly collections: readonly { readonly event: string; readonly completeEvent: string; readonly prefix: string; readonly names: readonly string[];
-    readonly label: string; readonly complete: string; readonly item?: string; readonly take?: string; readonly fallback?: string; readonly shelf?: string }[];
+    readonly label: string; readonly complete: string; readonly take?: string; readonly fallback?: string; readonly shelf?: string }[];
   readonly pickupEvent: string;
   /** `lantern`: the forest page lantern this signal lights while any of its `when` flags is set */
   readonly signals: readonly (Point & { readonly id: string; readonly height: number; readonly lantern: { readonly id: string; readonly when: readonly string[] } })[];
