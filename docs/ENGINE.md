@@ -10949,3 +10949,40 @@ Pine, Driftwood, Nalati and Nine consume the real admitted metadata.
 The rifle bake reads Nalati's item profile directly. SDK firearm/melee
 compatibility types remain solely for frozen legacy source; no current
 shard runtime imports those facades.
+### Grid cell draw containment (G550)
+
+Grid roots admit each drawable once and subscribe to child additions/removals.
+The admitted cell origin stays fixed if a cell root later moves; the draw audit
+checks against independent centres from the authored grid.
+Scoped transform, geometry-version, instance and material change subscriptions
+feed a deduplicated queue, drained when an affected draw reaches submission.
+Entry can flush explicitly before preparing a newly shown runtime. No frame
+scheduler sweeps cell roots. An admission-built draw index avoids bone-tree walks.
+Restore/apply writes coalesce against the final pose; pure height translations
+skip checks where the parent Y axis has no XZ contribution. Hidden subtrees
+re-admit when shown; bone changes invalidate their skins,
+which validate their current pose only on actual draw submission.
+`render/drawGuards.guardObjectDraw` also validates a changed submission after
+object callbacks, before native colour or shadow submission. A refusal skips
+that draw, including stale geometry or material selected before a callback changed it.
+Invisible refusals are reconsidered on explicit changes so they can draw again.
+The existing renderer submission port calls `render/drawGuards.admitObjectDraw`;
+there is no additional global submission wrapper.
+
+A bounded draw keeps its original program. Only straddlers borrow a scoped clip
+variant; the actual draw camera supplies its clip-to-world matrix, including
+node graph programs without classic camera-uniform names. The node renderer
+retains registered shader patch discrimination with `shaderPatchProgramKey`.
+Containment cuts only the XZ footprint, never a tall structure's top. Crossing shadow
+casters and raw-coordinate shaders are refused as a whole. Platform roads,
+outer floor and sky live outside cell roots. Scope disposal restores field
+subscriptions and releases draw guards and material variants immediately.
+`Scope.listenEmitter` returns an unsubscribe function that removes the listener
+and releases its scope bookkeeping; owner disposal remains the fallback cleanup.
+
+The format's spatial AABBs and cell rectangles must fit the same cell envelope
+in every section, including custom sections. Placed prop triangle bytes are
+checked even without `drawBounds`; a visual overhang no longer widens admission.
+Navigation voxel envelopes and model-local culling spheres retain their separate
+typed coordinate contracts; the loader checks the actual placed draw bounds.
+
