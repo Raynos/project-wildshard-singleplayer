@@ -6,10 +6,11 @@ import {afterEach,expect,it,vi} from 'vitest';
 import {InputHashMemo} from '../scripts/bake-input-hashes.mjs';
 import {generateShardJob,generationInputs,prepareGeneration} from '../scripts/generate.mjs';
 import {linkNodeModules} from '../scripts/link-node-modules.mjs';
+import {createDataMapPreparation} from '../scripts/bake-data-maps.mjs';
 import {generationSnapshotIdentity,publishGenerationSnapshot,verifiedGenerationSnapshot} from '../scripts/generation-snapshot.mjs';
 
 const owned:string[]=[];
-afterEach(()=>{vi.restoreAllMocks();for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
+afterEach(()=>{vi.restoreAllMocks();vi.unstubAllEnvs();for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
 function fixture() {
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-snapshot-'));owned.push(root);
   mkdirSync(resolve(root,'source'));writeFileSync(resolve(root,'source/input.txt'),'input');writeFileSync(resolve(root,'source/output.txt'),'output');
@@ -46,6 +47,9 @@ it('refuses to publish changed source bytes or an unverified local output',()=>{
 it('uses independently verified local outputs after cache eviction and regenerates altered outputs',async()=>{
   const {root}=fixture(),entry='src/shards/alpha/generators/bake-fixture.mjs',output='source/output.txt';
   mkdirSync(resolve(root,'scripts'));mkdirSync(resolve(root,'src/shards/alpha/generators'),{recursive:true});
+  mkdirSync(resolve(root,'src/shards/alpha/look'));
+  writeFileSync(resolve(root,'src/shards/alpha/shard.config.ts'),'export default {};');
+  writeFileSync(resolve(root,'src/shards/alpha/look/map.json'),JSON.stringify({painter:{version:1,job:'fixture-local'}}));
   writeFileSync(resolve(root,entry),`import fs from 'node:fs';fs.writeFileSync('${output}',fs.readFileSync('source/input.txt'));`);
   const job={id:'fixture-local',shard:'alpha',entry,command:[entry],inputRoots:['source','src/shards/alpha'],outputs:[output],buildTimeOutputs:[output],platform:'portable'};
   writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[job]}));
@@ -54,6 +58,14 @@ it('uses independently verified local outputs after cache eviction and regenerat
   log.mockClear();await prepareGeneration(root,{cacheDir});
   expect(log.mock.calls.some(row=>String(row[0]).includes('verified snapshot'))).toBe(true);
   expect(readFileSync(resolve(root,output),'utf8')).toBe('input');
+  vi.stubEnv('WILDSHARD_GENERATE_CACHE',cacheDir);
+  const generate=vi.spyOn(await import('../scripts/generate.mjs'),'generateShardJob'),prepareMaps=createDataMapPreparation(root);
+  await prepareMaps(['alpha']);await prepareMaps(['alpha']);expect(generate).not.toHaveBeenCalled();
+  writeFileSync(resolve(root,output),'wrong');
+  await createDataMapPreparation(root)(['alpha']);expect(generate).toHaveBeenCalledOnce();
+  expect(readFileSync(resolve(root,output),'utf8')).toBe('input');
+  generate.mockClear();
+  rmSync(cacheDir,{recursive:true});
   writeFileSync(resolve(root,output),'wrong');log.mockClear();await prepareGeneration(root,{cacheDir});
   expect(log.mock.calls.some(row=>String(row[0]).includes(', generated,'))).toBe(true);
   expect(readFileSync(resolve(root,output),'utf8')).toBe('input');

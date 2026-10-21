@@ -182,6 +182,18 @@ function phaseSnapshotIdentity(root,jobs,retained) {
   return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-snapshot.mjs','generation-capture.mjs','generation-sources.mjs','generation-inventory.mjs','link-node-modules.mjs']),tools:generationTools(jobs.flatMap(job=>job.toolCommands))});
 }
 
+/** Recheck a completed local phase at the next build fence. This is a fresh
+ * verification, never a process-global cached verdict.
+ * @param {string} root */
+export function verifiedPreparedGeneration(root) {
+  const jobs=discoverGeneration(root).jobs.filter(job=>Object.keys(job.buildOutputs).length>0||job.buildTimeOutputs.length>0);
+  const retained=retainedGenerationFiles(root,jobs),generated=new Set(jobs.flatMap(job=>job.outputs).filter(file=>!retained.has(file)));
+  const memo=new InputHashMemo(root,resolve(root,'.cache/generation-hashes.json'));
+  memo.enableSnapshot(file=>generated.has(file)||postGenerationTable(root,'scripts/generation-jobs.json',file));
+  try {return verifiedGenerationSnapshot(resolve(root,'.cache/generation-phase.json'),phaseSnapshotIdentity(root,jobs,retained),memo,jobs.flatMap(job=>Object.keys(job.buildOutputs).concat(job.buildTimeOutputs)));}
+  finally {memo.flush();}
+}
+
 /** Stage the declared source closure, generate there and publish verified outputs only; never mutate a source bake.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} descriptor
  * @param {{preparation?:import('./generate.mjs').GenerationPreparation,inputHashes?:InputHashMemo,cacheDir?:string,forceCompare?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string,preview?:{url:string,revision:string},onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */

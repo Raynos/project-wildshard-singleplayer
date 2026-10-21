@@ -103,3 +103,12 @@ it('keeps ordinary, strict and catalogue builds hard on failure', async () => {
   await expect(buildShardfiles(root, { strict: true, onFailure })).rejects.toThrow('report-only');
   await expect(buildShardfiles(root, { strict: false, catalog: true, onFailure })).rejects.toThrow('report-only');
 });
+
+it('collects generation discovery failures within each report product boundary',async()=>{
+  const root=fixture(),failures:string[]=[];
+  writeFileSync(resolve(root,'scripts/generation-jobs.json'),'{}');
+  const build=():Promise<void>=>Promise.resolve();
+  expect(await buildShardfiles(root,{strict:false,build,onFailure:slug=>{failures.push(slug);}})).toBe(0);
+  expect(failures.sort()).toEqual([...MILESTONE_SHARDS].sort());
+  await expect(buildShardfiles(root,{strict:false,build})).rejects.toThrow();
+});

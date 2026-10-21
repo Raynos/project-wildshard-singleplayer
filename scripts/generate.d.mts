@@ -18,6 +18,8 @@ export function generateShardJob(root:string,job:ShardGenerationJob,options?:{pr
 export function reportGeneration(root:string):ReturnType<typeof discoverGeneration> & {missing:string[]};
 /** Generate only admitted build outputs, verifying pinned hashes before restoring missing files. */
 export function prepareGeneration(root:string,options?:{cacheDir?:string;concurrency?:number}):Promise<ReturnType<typeof reportGeneration>>;
+/** Freshly verify a complete local generation receipt before the product phase. */
+export function verifiedPreparedGeneration(root:string):boolean;
 
 /** Completed producers supply immutable cache files and identity to later broad-folder consumers. */
 export interface GenerationPreparation { outputs:string[]; /** Retained source files stay byte-keyed even when another job names them. */retained?:Set<string>; /** Phase indexes avoid scanning unrelated outputs for each consumer. */outputRoots?:Map<string,string[]>;completedOutputs?:Map<string,{id:string;result:GenerationResult;hash:string}>;upstream:Map<string,GenerationResult> }

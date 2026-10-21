@@ -12,7 +12,7 @@ import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
-import { prepareDataMaps } from './bake-data-maps.mjs';
+import { createDataMapPreparation } from './bake-data-maps.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 import { productInputKey, productToolchainKey, matchingProductInputKey, publishProductInputs } from './shardfile-inputs.mjs';
@@ -32,7 +32,8 @@ import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = 'closed',onFailure } = {}) {
   if(onFailure!==undefined&&(strict||catalog))throw new Error('Product failure collection is report-only; strict/catalog builds must fail');
   if (catalog && only !== undefined) throw new Error('wildshard build: --catalog requires every project; --shard cannot publish a catalog');
-  if(onFailure===undefined)await prepareDataMaps(root, strict ? undefined : only?.map(slug => productFolder(root, slug)));
+  const prepareMaps=createDataMapPreparation(root);
+  if(onFailure===undefined)await prepareMaps(strict ? undefined : only?.map(slug => productFolder(root, slug)));
   const outputRoot = resolve(root, 'out');
   // A partial/ordinary build cannot leave a previous complete catalog vouching for changed products.
   if (!catalog) rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
@@ -90,7 +91,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     if(onFailure!==undefined){
       let preparation=folderPreparation.get(folder);
       if(preparation===undefined) {
-        preparation=(async()=>{await prepareDataMaps(root,[folder]);checkHeadlessAssembly(root,folder);})();
+        preparation=(async()=>{await prepareMaps([folder]);checkHeadlessAssembly(root,folder);})();
         folderPreparation.set(folder,preparation);
       }
       await preparation;

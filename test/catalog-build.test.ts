@@ -66,14 +66,16 @@ it('prepares a multi-output folder once per report while checking every output r
     put(root,`public${image}`,png);const stamp={image,tilesHash:mapTilesHash(project),pixelHash:await mapPixelHash(resolve(root,`public${image}`))};
     put(project,path,JSON.stringify(stamp));stamps.push({path,stamp});
   }
-  const prepare=vi.spyOn(dataMaps,'prepareDataMaps'),options={strict:false,reuse:true,build:builder(calls),onFailure:(slug:string,error:unknown)=>{failures[slug]=String(error);}};
+  const prepared:string[][]=[],create=dataMaps.createDataMapPreparation;
+  vi.spyOn(dataMaps,'createDataMapPreparation').mockImplementation(projectRoot=>{const prepare=create(projectRoot);return only=>{prepared.push([...(only??[])]);return prepare(only);};});
+  const options={strict:false,reuse:true,build:builder(calls),onFailure:(slug:string,error:unknown)=>{failures[slug]=String(error);}};
   expect(await buildShardfiles(root,options)).toBe(3);expect(failures).toEqual({});
-  expect(prepare.mock.calls.filter(([,only])=>only?.includes('beta'))).toHaveLength(1);
+  expect(prepared.filter(only=>only.includes('beta'))).toHaveLength(1);
   const second=stamps[1];if(second===undefined)throw new Error('Fixture needs two maps');
-  put(project,second.path,JSON.stringify({...second.stamp,pixelHash:'0'.repeat(64)}));prepare.mockClear();
+  put(project,second.path,JSON.stringify({...second.stamp,pixelHash:'0'.repeat(64)}));prepared.length=0;
   expect(await buildShardfiles(root,options)).toBe(2);
   expect(failures['beta-second']).toContain('decoded pixels differ');expect(failures['beta-first']).toBeUndefined();
-  expect(prepare.mock.calls.filter(([,only])=>only?.includes('beta'))).toHaveLength(1);
+  expect(prepared.filter(only=>only.includes('beta'))).toHaveLength(1);
 });
 it('builds both copied runtimes before one complete output-only catalog and publishes it with the app', async () => {
   const root = await fixture(), calls: string[][] = [];

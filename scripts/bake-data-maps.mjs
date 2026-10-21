@@ -6,30 +6,55 @@ import { dirname, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { MapRaster, stylizeMap } from './map-painter.mjs';
 import { MAP_METRES, mapPixelHash, mapSettingsPath, mapStampPath, mapShards, mapTilesHash } from './map-hash.mjs';
-import { discoverGeneration, generateShardJob } from './generate.mjs';
+import { discoverGeneration, generateShardJob, verifiedPreparedGeneration } from './generate.mjs';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 
 const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
 const json = file => JSON.parse(readFileSync(file, 'utf8'));
 
-/** A direct shardfile build has the same map generation fence as pnpm gen. */
-export async function prepareDataMaps(root, only) {
-  const jobs = discoverGeneration(root).jobs;
-  const inputHashes=new InputHashMemo(root,resolve(root,'.cache/generation-hashes.json'));
-  try {for (const { slug, dir } of mapShards(root)) {
+/** One build-scoped map fence. Every output raster is still verified by the
+ * product build; source/output snapshot verification is shared within a report.
+ * @param {string} root */
+export function createDataMapPreparation(root) {
+  /** @type {ReturnType<typeof discoverGeneration>['jobs']|undefined} */
+  let phaseJobs;
+  /** @type {InputHashMemo|undefined} */
+  let sharedHashes;
+  /** @type {boolean|undefined} */
+  let localVerified;
+  /** @param {readonly string[]|undefined} only */
+  return async only=>{
+  // Discovery stays inside the per-folder failure boundary in report mode.
+  const jobs=phaseJobs ??= discoverGeneration(root).jobs;
+  const selected=[];
+  for (const { slug, dir } of mapShards(root)) {
     if (only !== undefined && !only.includes(slug)) continue;
     const settings = json(mapSettingsPath(dir));
     if (settings.painter === undefined) continue;
     for (const id of settings.painter.prerequisites ?? []) {
       const prerequisite = jobs.find(row => row.id === id);
       if (prerequisite === undefined) throw new Error(`${slug}: missing map prerequisite ${id}`);
-      await generateShardJob(root, prerequisite, { restore: true,inputHashes });
+      selected.push(prerequisite);
     }
     const job = jobs.find(row => row.id === settings.painter.job);
     if (job === undefined) throw new Error(`${slug}: data map generation job is missing`);
-    await generateShardJob(root, job, { restore: true,inputHashes });
-  }} finally {inputHashes.flush();}
+    selected.push(job);
+  }
+  if(selected.length===0)return;
+  localVerified ??= verifiedPreparedGeneration(root);
+  // A retained/non-admitted output may need restoration which the phase does
+  // not promise. Keep the ordinary generator path for any such declaration.
+  if(localVerified&&selected.every(job=>job.outputs.every(file=>(job.buildTimeOutputs??[]).includes(file)||Object.hasOwn(job.buildOutputs??{},file))))return;
+  localVerified=false;
+  const inputHashes=sharedHashes ??= new InputHashMemo(root,resolve(root,'.cache/generation-hashes.json'));
+  try {for(const job of selected)(await generateShardJob(root,job,{restore:true,inputHashes})).release();}
+  finally {inputHashes.flush();}
+  };
 }
+
+/** A standalone shardfile build gets the same fresh generation fence.
+ * @param {string} root @param {readonly string[]} [only] */
+export async function prepareDataMaps(root,only) {await createDataMapPreparation(root)(only);}
 
 /** Paint the exact render lattice and placed prop triangles. Each address is
  * already world-space in the authored products; no second placement law exists.
