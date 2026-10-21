@@ -40,9 +40,15 @@ const buildValidated = new WeakSet();
 // schema checks share one queue so independent readers cannot refill one
 // paint interval with several compiles. Node readers inject no paint policy.
 let schemaChecks = Promise.resolve();
-function checkCustomSection(schema: unknown, value: unknown, pause: OutputDescriptorReader['pause']): Promise<unknown> {
-  if (pause === undefined) return Promise.resolve().then(() => validateCustomSchema(schema, value));
-  const checked = schemaChecks.then(async () => { await pause(); return validateCustomSchema(schema, value); });
+function checkCustomSection(work: () => unknown, pause: OutputDescriptorReader['pause']): Promise<unknown> {
+  if (pause === undefined) return Promise.resolve().then(work);
+  const checked = schemaChecks.then(async () => {
+    await pause();
+    const value = await loadingStage('admission', work);
+    // Keep the completed check separate from its consumer's assembly/hash work.
+    await pause();
+    return value;
+  });
   schemaChecks = checked.then(() => undefined, () => undefined);
   return checked;
 }
@@ -114,8 +120,11 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     const progress = loadingUnits('Product schemas', custom.length);
     progress(0);
     for (const [at, row] of custom.entries()) {
-      await waitFor(`Validate ${row.name}`, checkCustomSection(schemas.get(row.schema), sections.get(row.name), reader.pause), 'admission');
-      progress(at + 1, row.name);
+      await waitFor(`Validate ${row.name}`, checkCustomSection(() => {
+        const value = validateCustomSchema(schemas.get(row.schema), sections.get(row.name));
+        progress(at + 1, row.name);
+        return value;
+      }, reader.pause), 'admission');
     }
   });
   const indexHash = await reader.hash(validationSourceBytes(input));

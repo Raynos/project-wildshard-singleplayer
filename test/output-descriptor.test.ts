@@ -201,9 +201,9 @@ test('checks emitted custom schemas at load, including first-party and cached re
     return readProductDescriptor({ ...options(wires), pause: () => { paused++; return Promise.resolve(); } });
   };
   await expect(read({ n: 1 })).resolves.toBeDefined();
-  expect(paused).toBe(1);
-  await expect(read({ n: 'bad' })).rejects.toThrow('refuses its schema');
   expect(paused).toBe(2);
+  await expect(read({ n: 'bad' })).rejects.toThrow('refuses its schema');
+  expect(paused).toBe(3);
   await expect(read({})).rejects.toThrow('refuses its schema');
   await expect(read({ n: 1 }, encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', typo: true }))).rejects.toThrow();
   await read({ n: 1 });
@@ -222,19 +222,23 @@ test('concurrent products leave one paint boundary per custom schema check', asy
   const measured = (file: string, bytes: Uint8Array) => ({ path: file, hash: hashImmutableBytes(bytes), bytes: bytes.length });
   wires.set(path, value); wires.set(schemaPath, schema);
   const input = { ...index, sections: [...index.sections, { name, schema: schemaPath, ...measured(path, value) }], schemas: [measured(schemaPath, schema)] };
-  let blocked = true, pauses = 0;
+  let blocked = true, pauses = 0, completed = 0;
   const release: (() => void)[] = [];
   const pause = (): Promise<void> => { pauses++; return blocked ? new Promise(resolve => { release.push(resolve); }) : Promise.resolve(); };
   const read = () => resolveOutputDescriptor(input, { offline: false, hash, pause, read: file => {
     const bytes = wires.get(file); if (bytes === undefined) throw new Error('Missing section'); return Promise.resolve(bytes);
   } });
-  const products = [read(), read()];
+  const products = [read(), read()].map(async product => { const descriptor = await product; completed++; return descriptor; });
   try {
     await new Promise<void>(resolve => { setTimeout(resolve, 0); });
     expect(release).toHaveLength(1);
+    release[0]?.();
+    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
+    expect(release).toHaveLength(2);
+    expect(completed).toBe(0); // A complete check paints before its consumer resumes.
   } finally {
     blocked = false; for (const done of release) done();
     await Promise.all(products);
   }
-  expect(pauses).toBe(2);
+  expect(pauses).toBe(4);
 });
