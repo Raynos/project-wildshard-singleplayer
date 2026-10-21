@@ -1,0 +1,175 @@
+{
+  "pin": "8042d30ab3497069af298350ce1c63bb0be68e5b",
+  "path": "grid",
+  "device": "iOS Simulator Safari / portrait phone tier",
+  "cpu": "native",
+  "errors": [],
+  "stageSeconds": 44.86499999999999,
+  "clockSeconds": 44.9,
+  "unaccountedSeconds": 0.0350000000000108,
+  "networkBytes": 184289058,
+  "displayedNetworkBytes": 172100836,
+  "byteError": 0.06613643876784046,
+  "maxDetailGapMs": 1832,
+  "failures": [
+    "Detailed update gap exceeds 1 s",
+    "Network bytes are unavailable or differ by more than 5%",
+    "Visible MB count differs by more than 5%"
+  ],
+  "purpose": "Simulator timing calibration; accuracy acceptance remains open",
+  "rawSHA256": "83142b9f73bb94724897dd1d5ef0ff2d6c0663f0f8a66d53a63c9518c6bc46c7",
+  "rows": [
+    {
+      "label": "\u25b8 1 \u00b7 Application modules",
+      "detail": "Preparing application services \u00b7 0 / 0 files \u00b7 0.00 MB read",
+      "duration": "1.6 s",
+      "state": "ok",
+      "key": "modules",
+      "ms": "1562"
+    },
+    {
+      "label": "\u25b8 2 \u00b7 Product admission",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "admission",
+      "ms": "0"
+    },
+    {
+      "label": "\u25b8 3 \u00b7 Texture and audio preparation",
+      "detail": "",
+      "duration": "7 ms",
+      "state": "ok",
+      "key": "data",
+      "ms": "7"
+    },
+    {
+      "label": "\u25b8 gap after Texture and audio preparation",
+      "detail": "",
+      "duration": "1 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "1"
+    },
+    {
+      "label": "\u25b8 4 \u00b7 Renderer",
+      "detail": "",
+      "duration": "23 ms",
+      "state": "ok",
+      "key": "renderer",
+      "ms": "23"
+    },
+    {
+      "label": "\u25b8 5 \u00b7 Weapons \u00b7 HUD",
+      "detail": "",
+      "duration": "2 ms",
+      "state": "ok",
+      "key": "weapon",
+      "ms": "2"
+    },
+    {
+      "label": "\u25b8 6 \u00b7 World assembly",
+      "detail": "11 cells \u00b7 96 seams \u00b7 road ready",
+      "duration": "7.1 s",
+      "state": "ok",
+      "key": "assembly",
+      "ms": "7065"
+    },
+    {
+      "label": "\u25b8 7 \u00b7 Title art \u00b7 explore",
+      "detail": "15 / 15 pictures \u00b7 UI",
+      "duration": "1.0 s",
+      "state": "ok",
+      "key": "menu",
+      "ms": "1008"
+    },
+    {
+      "label": "\u25b8 8 \u00b7 Shaders",
+      "detail": "25 / 25 textures uploaded \u00b7 175 programs",
+      "duration": "18.4 s",
+      "state": "ok",
+      "key": "shaders",
+      "ms": "18435"
+    },
+    {
+      "label": "\u25b8 9 \u00b7 First frame",
+      "detail": "Pass 6 / 6 \u00b7 ready \u00b7 175 programs",
+      "duration": "4.4 s",
+      "state": "ok",
+      "key": "firstFrame",
+      "ms": "4352"
+    },
+    {
+      "label": "\u25b8 gap after First frame",
+      "detail": "",
+      "duration": "4 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "4"
+    },
+    {
+      "label": "\u25b8 10 \u00b7 Audio \u00b7 music + sound effects",
+      "detail": "94 / 94 audio files",
+      "duration": "6 ms",
+      "state": "ok",
+      "key": "audio",
+      "ms": "6"
+    },
+    {
+      "label": "\u25b8 gap after Audio \u00b7 music + sound effects",
+      "detail": "",
+      "duration": "3 ms",
+      "state": "on",
+      "key": "gap",
+      "ms": "3"
+    },
+    {
+      "label": "\u25b8 11 \u00b7 Region world",
+      "detail": "",
+      "duration": "318 ms",
+      "state": "ok",
+      "key": "world",
+      "ms": "318"
+    },
+    {
+      "label": "\u25b8 12 \u00b7 Equipment and HUD",
+      "detail": "",
+      "duration": "83 ms",
+      "state": "ok",
+      "key": "loadout",
+      "ms": "83"
+    },
+    {
+      "label": "\u25b8 13 \u00b7 Gameplay and saved state",
+      "detail": "",
+      "duration": "77 ms",
+      "state": "ok",
+      "key": "gameplay",
+      "ms": "77"
+    },
+    {
+      "label": "\u25b8 14 \u00b7 Final activation",
+      "detail": "",
+      "duration": "0 ms",
+      "state": "ok",
+      "key": "finish",
+      "ms": "0"
+    },
+    {
+      "label": "\u25b8 15 \u00b7 Home region",
+      "detail": "Home region 1 / 1 \u00b7 driftwood-isle \u00b7 Physics 2102 colliders \u00b7 Trees 0 forest records",
+      "duration": "11.7 s",
+      "state": "ok",
+      "key": "home",
+      "ms": "11723"
+    },
+    {
+      "label": "\u25b8 gap after Home region",
+      "detail": "",
+      "duration": "196 ms",
+      "state": "ok",
+      "key": "gap",
+      "ms": "196"
+    }
+  ]
+}
