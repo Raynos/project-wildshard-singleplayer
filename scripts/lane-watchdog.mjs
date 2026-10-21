@@ -161,11 +161,13 @@ async function poll() {
       if (parsed.success) panes.set(parsed.output.sha, parsed.output.pane);
     } catch { /* Partial concurrent ledger append supplies no attribution. */ }
   }
+  const EXEMPT = new Set(['sp-x7', 'sp-o1', 'sp-o3']);
   const now = Date.now(), live = new Set();
   for (const agent of agents) {
     const name = agent.name;
-    // sp-x7 is the release watcher (G485): it idles between events by design and takes no rows.
-    if (name === undefined || !/^sp-[xo]\d+$/u.test(name) || name === 'sp-x7') continue;
+    // sp-x7 is the release watcher (G485) and idles between events by design; sp-o1 and sp-o3 stopped
+    // when Opus dropped to three lanes (G574). None of them takes rows.
+    if (name === undefined || !/^sp-[xo]\d+$/u.test(name) || EXEMPT.has(name)) continue;
     live.add(name);
     const identity = `${agent.pane_id}:${agent.agent_session?.value ?? ''}`;
     const status = agent.agent_status === 'idle' || agent.agent_status === 'done' ? 'idle/done' : agent.agent_status;
