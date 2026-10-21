@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./arenaScriptRows": "./arenaScriptRows.ts",
     "./bakedTiles": "./bakedTiles.ts",
     "./findsCatalogue": "./findsCatalogue.ts",
     "./forestWeather": "./forestWeather.ts",

@@ -7873,6 +7873,10 @@ as `files[].jsonSchema`. `nameBlob`, disk admission and `product.json()`
 validate against it without coercion or defaults. The metadata is not part
 of the source asset-cost row. Missing wire schemas remain explicit migration
 debt in SHARD-PLATFORM's G491J queue row; a typed generic alone is no proof.
+`format/arenaScriptRows` defines the build-only fight and geometry schemas
+for the existing arena named files. Their producer attaches these exact
+schemas; `readArenaScriptData` reads checked JSON without importing a
+validator into play. Native arena code retains its sole-user attribution.
 
 Build-only `generators/sections.ts` may also declare `FILE_SCHEMAS` for
 immutable `data/` or `boot/` JSON imports. The compiler validates those files

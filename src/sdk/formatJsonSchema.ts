@@ -1,3 +1,4 @@
+import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
@@ -43,7 +44,7 @@ import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, ScriptBrainSch
 import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from '@wildshard/format/flyers';
 import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from '@wildshard/format/grazers';
 import { GroupBrainSchema } from '@wildshard/format/groupBrains';
-import { CreaturesSchema, CreatureHomeSchema } from '@wildshard/format/creatures';
+import { CreaturesSchema, CreatureHomeSchema, CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { FlockSchema } from '@wildshard/format/crowds';
 import { EncountersSchema } from '@wildshard/format/encounters';
 import { AudioMusicSchema, AudioSamplesSchema, AudioZonesSchema } from '@wildshard/format/audioProfiles';
@@ -114,6 +115,7 @@ const customSchemas = new Map<object, JsonSchema>([
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
 ]);
+customSchemas.set(CreatureStrikeSchema.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.*-]+$' });
 // Exact fixed-palette validator; a caller's new custom schema receives no bridge.
 customSchemas.set(AccentSchema.pipe[2], { type: 'string', enum: [...ACCENT_IDS] });
 // Template-literal item identities keep their exact native predicates; only these defining schema objects bridge.
@@ -145,6 +147,8 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'arenaScriptRows.ArenaScriptFightFile': ArenaScriptFightFileSchema,
+  'arenaScriptRows.ArenaScriptGeometry': ArenaScriptGeometrySchema,
   'roamingCombat.RoamingCombat': RoamingCombatSchema,
   'populationProjection.PopulationProjection': PopulationProjectionSchema,
   'sceneDressing.SceneDressing': SceneDressingSchema,

@@ -1,8 +1,8 @@
+import type { ArenaScriptData,ArenaScriptRows,ArenaScriptFightFile } from '@wildshard/format/arenaScriptRows';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 /** Client projection of the G474 arena-script boss contract. Authored inputs
  * are rows; entered native owners supply rendering, health, riding and kit. */
 import * as THREE from 'three';
-import * as v from 'valibot';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -22,10 +22,6 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
-import { ArenaScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
-import { BossEncounterDefinitionSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
-import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
-import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { bossFight, type ArenaBossScript } from '../plugin/bossPhase';
 import type { ShardContext } from '../plugin/context';
 import { installChannelPrograms } from '../plugin/channelPrograms';
@@ -46,48 +42,11 @@ import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import { pageRidingMount, respawnPageMounted } from '../riding/client';
 import type { Mount } from '../riding/mount';
 
-const finite = v.pipe(v.number(),v.finite()), label = v.pipe(v.string(),v.minLength(1));
-const point = v.strictObject({ x: finite,z: finite });
-const pose = v.strictObject({ rise: finite,bend: finite,kneel: finite,raise: finite,castL: finite,stride: finite,heartOpen: finite });
-const tuning = v.strictObject({ spearDamage: finite,spearRadius: finite,spearAim: finite,spearLock: finite,spearStuck: finite,
-  whirlDamage: finite,whirlRadius: finite,riderHp: finite,riderChip: finite,chargeDamage: finite,laneSeconds: finite,flankSeconds: finite,stunSeconds: finite,
-  cell: finite,burnSeconds: finite,fireDps: finite,maxFlames: finite,chainDamage: finite,chainRadius: finite,chainLand: finite,fullDraw: finite,fullDrawMul: finite });
-const lines = v.strictObject({ kneels: label,grassFire: label,immuneDome: label,immuneSpear: label,spearStuck: label,riderBreaks: label,lastRider: label,
-  burning: label,chain: label,wall: label,tie: label,tieOnFoot: label,tieQuiet: label,wantsRider: label,quiet: label,wakes: label,spear: label,charge: label,whirl: label });
-/** Declared resources and effect bindings for an AS arena script. Every sub-host
- * admits its own bounded field, support, clock and view rows before allocation. */
-export const ArenaScriptRowsSchema = v.strictObject({
-  script: ArenaScriptBossProfileSchema,clocks: v.unknown(),field: v.unknown(),support: v.unknown(),whirls: v.unknown(),arenaFire: v.unknown(),
-  programs: v.strictObject({ attack: ReturnProgramSchema,fire: ReturnProgramSchema,wind: ReturnProgramSchema,rules: ReturnProgramSchema }),
-  supportSites: v.pipe(v.array(v.strictObject({ x: finite,z: finite,theta: finite })),v.maxLength(8)),
-  arena: v.strictObject({ center: point,body: point,anchor: point,ground: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),
-  phases: v.pipe(v.array(v.strictObject({ at: finite,caption: v.string(),name: label })),v.maxLength(16)),
-  definition: BossEncounterDefinitionSchema,reward: BossEncounterPresentationSchema.entries.reward,
-  skin: v.strictObject({ id: label,toast: label }),lines,tuning,boundary: v.strictObject({ x: finite,z: finite,radius: finite }),
-  phaseLines: v.array(v.string()),tieLines: v.array(v.string()),immuneLines: v.array(v.string()),seeds: v.pipe(v.array(point),v.maxLength(16)),
-  pose,contacts: v.record(label,CreatureStrikeSchema),whole: v.pipe(v.array(label),v.maxLength(8)),
-  view: v.strictObject({ group: label,dome: label,bodyRoot: label,quietVariant: label,remaining: label,debug: label,
-    notice: finite,promptLift: finite,wallDamage: finite,target: v.strictObject({ damage: finite,open: finite,closed: finite,range: finite }),
-    light: v.strictObject({ colour: finite,y: finite }),
-    reward: v.strictObject({ distance: finite,lift: finite }),respawn: v.strictObject({ distance: finite,yaw: finite,steed: finite }),
-    introBolt: point }),
-  weather: v.strictObject({ strike: label,clearing: label,storm: label }),record: v.strictObject({ kind: label,variant: label }),
-});
-export type ArenaScriptRows = v.InferOutput<typeof ArenaScriptRowsSchema>;
-const tier = v.strictObject({ flames: v.unknown(),puffs: v.unknown() });
-const geometrySchema = v.object({ body: v.looseObject({ geometry: v.record(label,v.unknown()),puffs: v.record(label,v.unknown()) }),
-  eyes: v.unknown(),poses: v.unknown(),phone: tier,desktop: tier,arena: v.unknown() });
-export type ArenaScriptData = ArenaScriptRows & { geometry: v.InferOutput<typeof geometrySchema> };
-/** Decode named product rows without installing a client service or callback. */
+/** Read schema-checked named products; no validator is imported into play. */
 export async function readArenaScriptData(product: Pick<ShardProduct,'json'>, files: { fight: string; geometry: string }): Promise<ArenaScriptData> {
-  const [input,geometry] = await Promise.all([product.json<unknown>(files.fight),product.json<unknown>(files.geometry)]);
-  return parseArenaScriptData(input,geometry);
+  const [root,geometry]=await Promise.all([product.json<ArenaScriptFightFile>(files.fight),product.json<ArenaScriptData['geometry']>(files.geometry)]);
+  return {...root.arenaScript,programs:root.programs,arenaFire:root.arenaFire,geometry};
 }
-export function parseArenaScriptData(input: unknown, geometry: unknown): ArenaScriptData {
-  const root = v.parse(v.object({ arenaScript: v.record(v.string(),v.unknown()),programs: v.unknown(),arenaFire: v.unknown() }),input);
-  return { ...v.parse(ArenaScriptRowsSchema,{ ...root.arenaScript,programs: root.programs,arenaFire: root.arenaFire }),geometry: v.parse(geometrySchema,geometry) };
-}
-export const arenaScriptPose = (): v.InferOutput<typeof pose> => ({ rise: 0,bend: 0,kneel: 0,raise: .2,castL: 0,stride: 0,heartOpen: 0 });
 /** Native cloud resources are identical for an entered fight and its specimen. */
 export function arenaScriptCloud(scene: THREE.Scene, state: Readonly<Record<string,number>>, data: ArenaScriptData): CloudBody {
   const g = data.geometry;
@@ -102,7 +61,7 @@ export class ArenaScriptFight implements BossScript {
   private readonly data: ArenaScriptData;
   readonly body: CloudBody;
   /** the body's pose, set by the fight and read by its channel rows */
-  readonly pose = arenaScriptPose();
+  readonly pose:ArenaScriptRows['pose'];
   get phase(): number { return this.life.value('phase'); }
   get hp(): number { return this.life.value('hp'); }
   private set hp(hp: number) { this.life.event('support',{ hp,broke: Number(this.domeBroken) }); }
@@ -144,7 +103,7 @@ export class ArenaScriptFight implements BossScript {
   private readonly viewRead = { fighting: 0, victoryT: -1, phase: 0, domeBroken: 0, open: 0, flash: 0 };
 
   constructor(private readonly ctx: ArenaScriptWorld, private readonly host: ArenaScriptEncounter, data: ArenaScriptData) {
-    this.data = data; Object.assign(this.pose,data.pose);
+    this.data = data; this.pose={...data.pose};
     const scene = ctx.game.scene;
     this.author = ReturnProgram.page(this.data.programs.attack, ctx.game.levelScope);
     this.clocks = new ArenaEncounter(this.data.clocks, this.author, app.rng.stream('ai'));
@@ -154,7 +113,7 @@ export class ArenaScriptFight implements BossScript {
     this.boundary = { field: this.field,boundary: data.boundary,mask: 0 };
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
     this.rules = ReturnProgram.page(this.data.programs.rules, ctx.game.levelScope);
-    this.life = bossFight(v.parse(ArenaScriptBossProfileSchema,this.data.script),{ program: this.rules });
+    this.life = bossFight(this.data.script,{ program: this.rules });
     this.support = new CoupledEncounter(this.data.support, this.rules, app.rng.stream('ai'));
     this.body = arenaScriptCloud(scene, this.pose, data);
     this.fightDraw = installChannelPrograms(this.data.geometry.poses, this.data.view.group, new Map<string,unknown>([

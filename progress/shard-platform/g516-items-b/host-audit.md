@@ -54,3 +54,15 @@ retained. Runtime physical TS delta: **shards 0, platform -2**; authored Nine
 AS **+22**. The ordinary baker uses the existing 256-line convention (no
 existing limit changed), and emits its stateless guest into the named course
 JSON. Real route, seeded continuation and 60-render-frame cadence tests pass.
+
+
+X4 Nalati arena validation follow-up: the defining fight/geometry validators
+move to build-only `format/arenaScriptRows`. The existing named-JSON producer
+attaches those exact schemas to its existing files; the normal product reader
+checks them before returning the typed values. No new data codec or custom
+section is introduced, and neither arena behavior nor the remaining one-user
+arena charge earns second-user credit. The generic named-JSON host retains its
+real users (6/6); the native arena stays charged (4/6).
+Runtime physical TS delta: **shards 0, platform -41**. Build-only TS **+55**
+(schema +50, converter +4, producer +1); total physical TS **+14**. Native
+fight scenarios and producer/read-side malformed-row refusals cover the move.
