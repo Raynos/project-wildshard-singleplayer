@@ -250,6 +250,27 @@ def status(root):
         return {'active': active, 'queue': sorted(state['queue'], key=lambda row: (row['priority'], row['ticket']))}
 
 
+def mirror_first(command, wrapper):
+    """Hoist explicit mirror admission; self-managed check/serve tools own inner leases."""
+    if not command:
+        return None
+    interpreter = Path(command[0]).name
+    script_at = 1 if interpreter in ('node', 'nodejs', 'bash', 'sh', 'python3', 'python') else 0
+    if len(command) <= script_at:
+        return None
+    script = Path(command[script_at]).name
+    if script == 'build-mirror.mjs' and (script_at == 0 or interpreter in ('node', 'nodejs')):
+        action = command[script_at + 1] if len(command) > script_at + 1 else None
+        if action == 'run' and '--' in command:
+            split = command.index('--')
+            return [*command[:split + 1], *wrapper, *command[split + 1:]]
+        if action == 'sync':
+            return command
+    if script in ('batch-check.sh', 'serve-build.sh', 'batch_check.py') and '--inside' not in command:
+        return command
+    return None
+
+
 def main():
     from quiet_logs import requested, run_logged
     args_before_command = sys.argv[1:sys.argv.index('--')] if '--' in sys.argv else sys.argv[1:]
@@ -273,7 +294,18 @@ def main():
     if not command or not math.isfinite(args.max) or args.max <= 0:
         parser.error('give a command after -- and a positive --max')
     resources = RESOURCES[args.kind]
-    if inherited(root, resources):
+    owns_lane = inherited(root, resources)
+    ordered = mirror_first(command, [sys.executable, str(Path(__file__).resolve()), *argv[:separator], '--'])
+    if ordered is not None:
+        if os.environ.get('WS_HEAVY_TOKEN'):
+            parser.error('mirror admission must precede the outer heavy lease; move this command outside that lease')
+        if args.kind in ('full-test', 'check') and not full_suite_allowed():
+            print(FULL_SUITE_REFUSAL, file=sys.stderr)
+            return 2
+        print('heavy-lane: mirror admission precedes build lease', file=sys.stderr, flush=True)
+        code = subprocess.call(ordered)
+        return code if code >= 0 else 128 - code
+    if owns_lane:
         env = dict(os.environ)
         if args.kind == 'gate':
             env['WS_HEAVY_GATE'] = '1'

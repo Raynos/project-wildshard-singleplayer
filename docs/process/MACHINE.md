@@ -46,6 +46,12 @@ and app Vite builds refuse an absent or copied lease before workers start. Focus
 unrestricted; `--project`, `--shard` and reporter flags alone are still full runs. Listing tests needs no lease.
 An SDK package build that includes its app clients also runs through the build wrapper.
 
+**Lock order: mirror slot, then heavy lease.** Run batch-check and serve-build directly; they request their build
+leases inside the mirror. The heavy wrapper hoists an explicit mirror command outside its lease and delegates
+self-managed check/serve commands. A nested or unknown shell wrapper that tries to enter a mirror while holding a
+heavy lease refuses before joining the slot queue. Release the outer lease and put heavy-lane inside build-mirror
+instead; no build capacity may be held while waiting for a mirror.
+
 The push gate has its **own `push-gate` lease** and consumes one of the two build slots (G547).
 One gate runs at a time and takes the next free build slot ahead of queued ordinary builds. Its descendants reuse
 the lease. Running older wrappers keep their original locks; an older gate reserves one build slot during migration.

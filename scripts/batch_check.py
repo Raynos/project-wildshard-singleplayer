@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""G509 per-batch checks. The mirror lock precedes every build lease."""
+"""G509 per-batch checks. Run directly: mirror admission precedes inner build leases."""
 import argparse
 import json
 import os

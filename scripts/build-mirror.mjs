@@ -18,6 +18,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
+import { assertHeavyLease } from './heavy-lane-lease.mjs';
 
 const REPO = resolve(import.meta.dirname, '..');
 const EXCLUDED = new Set(['art', 'progress', 'sources']);
@@ -104,6 +105,17 @@ const MIRROR_SLOTS = new Set(['gate', 'commit', 'check', 'check2', 'check3', 'ch
 
 export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
   if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use gate, commit or check..check5`);
+  // Unknown shell wrappers cannot be hoisted by heavy-lane. Refuse before queueing,
+  // so an owner never waits for a mirror while consuming capacity its preview needs.
+  if (env.WS_HEAVY_TOKEN) {
+    /** @type {('build'|'full-test')[]} */
+    const resources = ['build', 'full-test'];
+    for (const resource of resources) {
+      let held = false;
+      try { assertHeavyLease(resource, env); held = true; } catch { /* copied/stale tokens own no capacity */ }
+      if (held) throw new Error('build-mirror: acquire the mirror slot before the heavy lease; run heavy-lane inside build-mirror');
+    }
+  }
   const root = join(mirrorRoot(env, repo), slot);
   const dir = join(root, 'tree');
   mkdirSync(dir, { recursive: true });

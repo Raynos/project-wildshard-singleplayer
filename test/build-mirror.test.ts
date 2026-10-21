@@ -34,7 +34,9 @@ function fixture(): { repo: string; commit: (files: Record<string, string | null
     git('commit', '-q', '-m', 'fixture');
     return git('rev-parse', 'HEAD');
   };
-  return { repo, commit, env: { ...processEnv, WILDSHARD_BUILD_MIRROR: join(base, 'mirror') } };
+  // The toy repository owns no outer CI/full-test capacity.
+  const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('WS_HEAVY_')));
+  return { repo, commit, env: { ...env, WILDSHARD_BUILD_MIRROR: join(base, 'mirror') } };
 }
 
 it('syncs only what differs, drops art/progress/sources, and leaves the checkout untouched', () => {

@@ -1,6 +1,11 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise real flock leases in an isolated owned fixture.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
+
+test('two checks waiting on a mirror leave build capacity for its preview', () => {
+  const result = spawnSync('python3', ['scripts/test_lease_order.py'], { encoding: 'utf8', timeout: 25000 });
+  expect(result.status, result.stderr).toBe(0);
+}, 30000);
 
 test('two builds share capacity with a priority gate, inherit leases and report one day', () => {
   const result = execFileSync('python3', ['-c', `
