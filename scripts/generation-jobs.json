@@ -1059,11 +1059,9 @@
         "src/game",
         "src/format",
         "src/shards/driftwood-isle/generators/interactables.ts",
-        "src/shards/driftwood-isle-legacy/quest/interactables.ts",
         "src/shards/pine-hollow/generators/questTable.ts",
         "src/shards/pine-hollow/generators/interactions.ts",
-        "src/shards/pine-hollow/data/spots.generated.json",
-        "src/shards/pine-hollow-legacy/quest/table.ts"
+        "src/shards/pine-hollow/data/spots.generated.json"
       ],
       "outputs": [
         "src/game/data/pickupCatalogue.json"

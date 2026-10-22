@@ -2,6 +2,8 @@
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the same Node binary as the test worker.
 import { execPath } from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify the producer's declared inputs alongside its real bake.
+import { readFileSync } from 'node:fs';
 import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
@@ -30,8 +32,12 @@ function sameGeometry(actual: THREE.BufferGeometry, expected: THREE.BufferGeomet
   expect(actual.boundingSphere).toEqual(expected.boundingSphere);
 }
 
-it('covers every reachable seed in real table order, including frozen callers', () => {
-  const output = execFileSync(execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', 'scripts/bake-pickups.mjs', '--check'], { encoding: 'utf8' });
+it('covers every reachable seed in real table order without importing frozen callers', () => {
+  const program = `import {registerHooks} from 'node:module';
+registerHooks({resolve(specifier,context,next){if(specifier.includes('-legacy/'))throw new Error('Legacy pickup dependency: '+specifier);return next(specifier,context);}});
+await import('./scripts/bake-pickups.mjs');`;
+  const output = execFileSync(execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
+    '--input-type=module', '--eval', program, '--', '--check'], { encoding: 'utf8' });
   // The producer traces Interactables.parts and its real cache, then compares every encoded output byte.
   const result: unknown = JSON.parse(output);
   expect(result).toMatchObject({ variants: 23, rawBytes: 370224, compressedBytes: 78685, encodedBytes: 104948 });
@@ -44,8 +50,12 @@ it('covers every reachable seed in real table order, including frozen callers', 
   expect(row('pine-hollow', 'ridge-flint')).toEqual([{ key: 'flint', seed: 6787 }]);
   expect(row('pine-hollow', 'resin-1')).toEqual([{ key: 'resin', seed: 6789 }]);
   expect(row('pine-hollow', 'token-1')).toEqual([{ key: 'token', seed: 6790 }, { key: 'token-rim', seed: 6791 }]);
-  expect(traces['driftwood-isle-legacy']).toEqual(traces['driftwood-isle']);
-  expect(traces['pine-hollow-legacy']).toEqual(traces['pine-hollow']);
+  expect(Object.keys(traces).sort()).toEqual(['driftwood-isle', 'pine-hollow']);
+  const jobs = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), inputRoots: v.array(v.string()) })) }),
+    JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8'))).jobs;
+  const inputs = jobs.find(job => job.id === 'shared-pickups')?.inputRoots;
+  if (inputs === undefined) throw new Error('Missing shared-pickups producer');
+  expect(inputs.some(path => path.includes('-legacy/'))).toBe(false);
 });
 
 it('restores every prepared geometry byte and gives each owner independent arrays', () => {

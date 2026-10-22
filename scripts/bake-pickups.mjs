@@ -9,16 +9,11 @@ import { Interactables, Live } from '../src/engine/world/interact/Interactables.
 import { pickupLook, registerPickupLook } from '../src/engine/world/interact/types.ts';
 import { readBakedGeometry } from '../src/game/plugin/geometry.ts';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables.ts';
-import { DRIFTWOOD_INTERACT as LEGACY_DRIFTWOOD } from '../src/shards/driftwood-isle-legacy/quest/interactables.ts';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable.ts';
-import { pineTable as legacyPineTable, RESIN_COUNT, TOKEN_NAMES } from '../src/shards/pine-hollow-legacy/quest/table.ts';
 
 const seed = 0x1a7e, variants = new Map(), traces = {};
 const spots = JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/spots.generated.json', import.meta.url), 'utf8'));
 const pine = pineTableFromPlacements(spots.rows);
-const legacyPine = legacyPineTable({ resin: Array.from({ length: RESIN_COUNT }, () => ({ x: 0, z: 0 })),
-  tokens: TOKEN_NAMES.map(() => ({ x: 0, z: 0 })), dam: { x: 0, z: 0, fx: 0, fz: 1, ax: 1, az: 0 },
-  finder: { x: 0, y: 0, z: 0 }, bench: { x: 0, y: 0, z: 0, yaw: 0 } });
 const add = (part, value) => {
   const key = `${part.key}:${value}`;
   if (!variants.has(key)) variants.set(key, { part, seed: value });
@@ -33,8 +28,7 @@ for (const row of authoredPickups) registerPickupLook(row.id, { ...row,
   }),
 });
 // Run the actual engine cache and seed counter; visibility and saved flags never skip construction.
-for (const [name, table] of Object.entries({ 'driftwood-isle': DRIFTWOOD_INTERACT, 'pine-hollow': pine,
-  'driftwood-isle-legacy': LEGACY_DRIFTWOOD, 'pine-hollow-legacy': legacyPine })) {
+for (const [name, table] of Object.entries({ 'driftwood-isle': DRIFTWOOD_INTERACT, 'pine-hollow': pine })) {
   const flags = { has: () => false }, runner = new Interactables({ flags }), rows = [], seeds = new Map();
   const original = runner.geo.bind(runner);
   runner.geo = (key, batch, make) => original(key, batch, () => {
