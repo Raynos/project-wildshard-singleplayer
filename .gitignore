@@ -1974,9 +1974,8 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Sky pre-admission boot metadata
 /src/shards/far-reach/boot/*.generated.json
 
-# Nalati spruce geometry is compiled offline.
-/public/assets/nalati/baked/spruce.bin
-/public/assets/nalati/baked/spruce.json
+# Nalati spruce geometry is compiled offline (a rest pool for its tree set).
+/public/assets/nalati/baked/spruce-*.glb
 
 # Nine fixed geometry is rebuilt by its retained author.
 /public/assets/nine-dragon/baked/casts/

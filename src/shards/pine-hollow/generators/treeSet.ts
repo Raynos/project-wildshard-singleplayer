@@ -56,7 +56,7 @@ const LABEL: Readonly<Record<string, string>> = {
 export const TREE_SET = v.parse(TreeSetSchema, {
   product: 'pine-hollow', set: PINE_TREE_ASSETS.set,
   geometry: { url: treeRest.geometry, parts: treeRest.parts, channels: treeRest.channels },
-  looks: FOREST_LOOKS, anisotropy: { cards: 8, far: 4 }, tintBark: false,
+  looks: { kind: 'graphs', ...FOREST_LOOKS, anisotropy: { cards: 8, far: 4 } }, tintBark: false,
   model: { id: 'pine-hollow/forest-tree', name: 'Forest tree', file: 'src/shards/pine-hollow/generators/treeSet.ts' },
   variants: PINE_TREE_SET.map(s => ({ name: s.name, label: LABEL[s.name] ?? s.name, species: s.species, height: s.height, trunk: s.trunk, collider: s.collider })),
 });

@@ -8,6 +8,8 @@ import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@
 import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { FOREST_BANDS, trunkCapsule } from '@wildshard/engine/world/forest/Forest';
 import { BARK_LAYERS, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { TreeFactory, isTreeMaterial, type TreeMaterial } from '@wildshard/engine/world/TreeFactory';
 import { TreeSetSchema, type TreeSetRows } from '@wildshard/format/treeSetRows';
 import { createModelLibrary } from '../plugin/geometry';
@@ -21,27 +23,48 @@ export async function productTreeSet(slug: string, file: string): Promise<TreeSe
 }
 
 /**
- * The set's tree factory: its geometry pool, card and impostor atlases and bark array, nothing baked at launch; four
- * materials in the forest's LOD slots wearing the set's look.materials graphs, compiled on the page renderer with the
- * set's textures lent (the bark tiles the bark array by its per-vertex layer).
+ * The set's tree factory: its geometry pool, nothing baked at launch, and four materials in the forest's LOD slots:
+ * painterly vertex-coloured surfaces on the page sky, or the set's look.materials graphs compiled on the page renderer
+ * with its card and impostor atlases and bark array lent (the bark tiles the bark array by its per-vertex layer).
  */
 export class TreeSetFactory extends TreeFactory {
-  constructor(private readonly renderer: LookReplaceContext['renderer'], private readonly rows: TreeSetRows) { super(renderer); }
+  constructor(private readonly renderer: LookReplaceContext['renderer'], private readonly rows: TreeSetRows, private readonly sky: SkyRig) { super(renderer); }
 
   override async build(): Promise<this> {
-    const rows = this.rows, U = treeSetUrls(rows.set);
+    const rows = this.rows, graphs = rows.looks;
     const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1, geometryPools: [rows.geometry] }, '[trees]');
+    this.tintBark = rows.tintBark;
+    if (graphs.kind === 'painterly') {
+      await library.preload();
+      this.barkMaterial = painterlyMaterial(this.sky, graphs.bark); this.needleMaterial = painterlyMaterial(this.sky, graphs.needles);
+      this.twigMaterial = painterlyMaterial(this.sky, graphs.twigs); this.farMaterial = painterlyMaterial(this.sky, graphs.far);
+    } else await this.graphMaterials(library.preload(), graphs);
+    for (const s of rows.variants) {
+      const part = (name: string): THREE.BufferGeometry => {
+        const geometry = library.geometry(`${s.name}__${name}`, { borrow: true });
+        if (geometry === null) throw new Error(`[trees] the set has no ${s.name}__${name}`);
+        return geometry;
+      };
+      const trunkLo = rows.geometry.parts.includes(`${s.name}__trunkLo`) ? { trunkLo: part('trunkLo') } : {};
+      this.variants.push({ trunk: part('trunk'), ...trunkLo, cardsHi: part('hi'), cardsLo: part('lo'), twigs: part('twigs'), far: part('far'),
+        height: s.height, trunkRadius: s.trunk, species: s.species, collider: s.collider });
+    }
+    return this;
+  }
+
+  /** The look.materials graphs with the set's atlases and bark array lent, once the pool is loaded. */
+  private async graphMaterials(pool: Promise<unknown>, graphs: Extract<TreeSetRows['looks'], { kind: 'graphs' }>): Promise<void> {
+    const rows = this.rows, U = treeSetUrls(rows.set);
     // the loader fences compressed maps before returning; choose the final sampler while mips exist
     const sampler = (anisotropy: number) => (texture: THREE.Texture): void => { texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; texture.anisotropy = anisotropy; };
-    const cards = sampler(rows.anisotropy.cards), far = sampler(rows.anisotropy.far);
+    const cards = sampler(graphs.anisotropy.cards), far = sampler(graphs.anisotropy.far);
     const [, cardAlbedo, cardNormal, cardArm, farAlbedo, farNormal, bark, looks] = await Promise.all([
-      library.preload(),
+      pool,
       loadTexture(U.cardsAlbedo, true, 1, undefined, cards), loadTexture(U.cardsNormal, false, 1, undefined, cards), loadTexture(U.cardsArm, false, 1, undefined, cards),
       loadTexture(U.farAlbedo, true, 1, undefined, far), loadTexture(U.farNormal, false, 1, undefined, far),
       loadPBRArray([...BARK_LAYERS], TIER_CONFIG.layerSize),
-      firstPartyDescriptor(rows.product).then(source => lookGraphMaterials(resourceScope(), { renderer: this.renderer }, source, Object.values(rows.looks))),
+      firstPartyDescriptor(rows.product).then(source => lookGraphMaterials(resourceScope(), { renderer: this.renderer }, source, [graphs.bark, graphs.needles, graphs.twigs, graphs.far])),
     ]);
-    this.tintBark = rows.tintBark;
     lendLooks(resourceScope(), looks);
     const look = (id: string, lent: Readonly<Record<string, THREE.Texture>>): TreeMaterial => {
       for (const [name, texture] of Object.entries(lent)) looks.setTexture(id, name, texture);
@@ -50,21 +73,11 @@ export class TreeSetFactory extends TreeFactory {
       if (!isTreeMaterial(m)) throw new Error(`[trees] ${id} has no base colour (not a standard-model graph)`);
       return m;
     };
-    this.barkMaterial = look(rows.looks.bark, { barkMap: bark.map, barkNormal: bark.normalMap, barkArm: bark.armMap });
+    this.barkMaterial = look(graphs.bark, { barkMap: bark.map, barkNormal: bark.normalMap, barkArm: bark.armMap });
     const card = { cardMap: cardAlbedo, cardNormal, cardArm };
-    this.needleMaterial = look(rows.looks.needles, card);
-    this.twigMaterial = look(rows.looks.twigs, card);
-    this.farMaterial = look(rows.looks.far, { farMap: farAlbedo, farNormal });
-    for (const s of rows.variants) {
-      const part = (name: string): THREE.BufferGeometry => {
-        const geometry = library.geometry(`${s.name}__${name}`, { borrow: true });
-        if (geometry === null) throw new Error(`[trees] the set has no ${s.name}__${name}`);
-        return geometry;
-      };
-      this.variants.push({ trunk: part('trunk'), trunkLo: part('trunkLo'), cardsHi: part('hi'), cardsLo: part('lo'), twigs: part('twigs'), far: part('far'),
-        height: s.height, trunkRadius: s.trunk, species: s.species, collider: s.collider });
-    }
-    return this;
+    this.needleMaterial = look(graphs.needles, card);
+    this.twigMaterial = look(graphs.twigs, card);
+    this.farMaterial = look(graphs.far, { farMap: farAlbedo, farNormal });
   }
 }
 

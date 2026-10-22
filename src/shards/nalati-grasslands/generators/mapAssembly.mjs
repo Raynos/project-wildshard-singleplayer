@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 import { MapAssembly, mapBinary, mapGeometry, mapModel, mapForest, readMapJson } from '../../../../scripts/map-assembly.mjs';
-import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
+import { mapPool } from '../../../../scripts/map-world.mjs';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
@@ -71,13 +71,16 @@ export async function nalatiMapAssembly() {
   const trails = [layout.S_ROAD_PTS, layout.N_ROAD_PTS, layout.E_ROAD_PTS, layout.W_ROAD_PTS, layout.SKY_ROAD, layout.CAMP_SPUR,
     ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL];
   const field = { ...buildTerrainMetadata(native.seed, { trails, cabinSites: [] }, () => geography.river.level), ...bakedSamplers(native), pondMask: channel('pond') };
-  const spruce = readMapJson(resolve(root, 'public/assets/nalati/baked/spruce.json'));
+  const spruce = read('data/spruceRest.generated.json');
   const trees = mapForest({ slug: 'nalati-grasslands', label: 'map', seed: native.seed, treeCount: 1400 }, field,
-    { ...discovery.forest, mask: channel('forest') }, spruce.variants);
-  const pack = new GeometryPack(mapBinary(resolve(root, 'public/assets/nalati/baked/spruce.bin')), packedRows(spruce.pack), 'map');
-  for (const [i, variant] of spruce.variants.entries()) {
+    { ...discovery.forest, mask: channel('forest') }, spruce.variants.map(row => ({ trunkRadius: row.trunk, height: row.height })));
+  const shapes = await mapPool(resolve(root, `public${spruce.geometry}`));
+  for (const i of spruce.variants.keys()) {
     const matrices = trees.filter(tree => tree.variant === i).map(tree => pose({ ...tree, yaw: tree.rot }));
-    for (const key of ['trunk', 'cardsHi', 'twigs']) assembly.add(`spruce:${i}:${key}`, pack.geometry(variant[key]), matrices);
+    for (const [part, key] of [['trunk', 'trunk'], ['hi', 'cardsHi'], ['twigs', 'twigs']]) {
+      const geometry = shapes.get(`spruce-${i}__${part}`); if (geometry === undefined) throw new Error(`Missing map spruce ${i}/${part}`);
+      assembly.add(`spruce:${i}:${key}`, geometry, matrices);
+    }
   }
   assembly.add('cloth', mapCloth(cloth, [-.92, -.38, 1]));
   return { assembly, native };

@@ -1,4 +1,4 @@
-import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import { declaredTreeSet, type ShardManifest } from '@wildshard/game/shard/manifest';
 import { DECLARATION } from './boot/declaration.generated';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { nalatiWetAt } from './wet';
@@ -28,7 +28,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   groundColor, surfaceAt,
   ground: GROUND,
   navmesh: { excludeGroundAt: (x, z, y) => y <= TERRAIN.waterLevel() + 0.25 || (nalatiWetAt(x, z) && TERRAIN.trailDistance(x, z) > 3.5) },
-  trees: { ...DECLARATION.trees, factory: () => import('./world/spruceView').then(m => m.spruceFactory) },
+  trees: { ...DECLARATION.trees, factory: declaredTreeSet('nalati-grasslands', 'world/tree-set.json') },
   forest: { ...DECLARATION.forest, mask: forestMask },
 };
 // oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.

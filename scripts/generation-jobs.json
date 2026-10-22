@@ -19642,31 +19642,25 @@
         "src/shards/nalati-grasslands/generators/bake-spruce.mjs"
       ],
       "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/nalati-grasslands/generators/spruceGeometry.ts",
+        "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
         "scripts/bake-loader.mjs",
         "scripts/bake-output.mjs",
-        "src/engine/app/identity.ts",
-        "src/game/identity.ts",
-        "src/engine/boot/tables.ts",
-        "src/game/shard/list.ts",
-        "src/engine/core/noise.ts",
-        "src/engine/core/rng.ts",
-        "src/engine/world/forest/treeSpec.ts",
-        "src/sdk/package.json",
-        "src/engine/package.json",
-        "src/sdk/kit/geometryPack.ts",
-        "src/shards/nalati-grasslands/generators/spruceGeometry.ts",
-        "src/shards/nalati-grasslands/generators/bake-spruce.mjs"
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
       ],
       "outputs": [
-        "public/assets/nalati/baked/spruce.bin",
-        "public/assets/nalati/baked/spruce.json"
+        "public/assets/nalati/baked/spruce-cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
+        "src/shards/nalati-grasslands/data/spruceRest.generated.json"
       ],
       "buildTimeOutputs": [
-        "public/assets/nalati/baked/spruce.bin",
-        "public/assets/nalati/baked/spruce.json"
+        "public/assets/nalati/baked/spruce-cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
+        "src/shards/nalati-grasslands/data/spruceRest.generated.json"
       ],
       "platform": "portable"
     },
@@ -21989,6 +21983,8 @@
         "public/assets/nalati/baked",
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "scripts/map-assembly.mjs",
+        "scripts/map-world.mjs",
+        "scripts/map-painter.mjs",
         "scripts/bake-loader.mjs",
         "package.json",
         "pnpm-lock.yaml",

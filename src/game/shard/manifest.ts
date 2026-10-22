@@ -178,12 +178,20 @@ export interface ChunkAssets {
   boreal?: { normalK: [number, number, number, number]; trailDust: [number, number, number, number]; grassTint: RGB };
 }
 
+/** A declared tree set's factory: its product's rows `file` built on the game's tree set factory (models/treeSet). */
+export function declaredTreeSet(slug: string, file: string): ChunkTrees['factory'] {
+  return async () => {
+    const { productTreeSet, TreeSetFactory } = await import('../models/treeSet');
+    return async (renderer, sky) => new TreeSetFactory(renderer, await productTreeSet(slug, file), sky).build();
+  };
+}
+
 /** Which tree builder to use and what it should be textured with. */
 export interface ChunkTrees {
   /**
    * `'pine'` → `src/engine/world/TreeFactory.ts` (baked branch cards). New species = new factory id. `'none'`: the
    * shard has no forest trees — no tree textures, geometry or branch-card bake at launch, an empty Forest
-   * (collision / culling hooks still work). `'spruce'` → `src/shards/nalati-grasslands/world/Spruce.ts` (painterly Tian Shan spruce, no textures).
+   * (collision / culling hooks still work). A baked tree set's rows (look graphs or painterly) build on `declaredTreeSet`.
    */
   factory: 'none' | (() => Promise<(renderer: LookReplaceContext['renderer'], sky: Sky) => Promise<TreeFactory>>);
   /** PBR set for the trunks (the `'pine'` factory's; omitted by a shard without pines) */
@@ -769,10 +777,7 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
   const compare = data.explore.compare?.map(row => ({...row, live: image(row.live), image: image(row.image)}));
   // a declared tree set (its product's rows file) builds on the game's tree set factory
   const set = data.trees.treeSet;
-  const factory: ChunkTrees['factory'] | undefined = set === undefined ? data.trees.factory : async () => {
-    const { productTreeSet, TreeSetFactory } = await import('../models/treeSet');
-    return async (renderer) => new TreeSetFactory(renderer, await productTreeSet(slug, set)).build();
-  };
+  const factory: ChunkTrees['factory'] | undefined = set === undefined ? data.trees.factory : declaredTreeSet(slug, set);
   if (factory === undefined) throw new Error('Manifest trees have no declared factory');
   const trees: ChunkTrees = {...data.trees, factory};
   const spawns = data.spawns ?? bindings.spawns;
