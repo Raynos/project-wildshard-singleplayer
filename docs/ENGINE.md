@@ -11945,3 +11945,10 @@ callback, writing into and returning its supplied output. declaredSurface
 compiles the existing surface callback with a fresh three-component result.
 Both retain the original ignored height/slope arguments and sampling order;
 rows name no callbacks or channel paths and create no cache or world owner.
+
+declaredMapColour admits the same explicit ScalarTripletSchema as the ground
+and surface bindings. It compiles the existing minimap ground signature,
+writing components in order into the supplied output and returning void.
+Height, slope and forest arguments remain unused; clamping/interpolation stay
+with the original baked sampler. Existing mapPalette overlays and POIs retain
+their original construction, with no new lookup, section, owner or load path.

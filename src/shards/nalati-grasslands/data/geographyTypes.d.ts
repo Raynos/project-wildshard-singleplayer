@@ -8,8 +8,9 @@ export interface GeographyRows {
   spawn: { x: number; z: number; yaw: number };
   river: { level: number };
   ground: GroundRows;
-  channels: Record<'wet' | 'forest' | 'valley' | 'bowl' | 'snow' | 'mapRed' | 'mapGreen' | 'mapBlue', ScalarLatticeRows>;
+  channels: Record<'wet' | 'forest' | 'valley' | 'bowl' | 'snow', ScalarLatticeRows>;
   pigment: ScalarTripletRows;
   surface: ScalarTripletRows;
+  mapPigment: ScalarTripletRows;
   map: MapPaletteRow;
 }

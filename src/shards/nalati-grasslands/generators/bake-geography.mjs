@@ -36,8 +36,9 @@ const profile = Array.from({ length: 501 }, (_, i) => [RIVER.z(i - 250), RIVER.h
 const channels = Object.fromEntries(Object.entries(arrays).map(([key, values]) => [key, encode(values)]));
 const lattice = key => v.parse(ScalarLatticeSchema,{ res,size,values: { type: 'f32',count: res*res,data: channels[key] } });
 const data = { res, size, seed: SEED, spawn: SPAWN, river: { level: RIVER.level },
-  channels: Object.fromEntries(Object.keys(channels).filter(key => !['pond','red','green','blue','gravel','rock','ice'].includes(key)).map(key => [key,lattice(key)])),
+  channels: Object.fromEntries(Object.keys(channels).filter(key => !['pond','red','green','blue','gravel','rock','ice','mapRed','mapGreen','mapBlue'].includes(key)).map(key => [key,lattice(key)])),
   pigment: v.parse(ScalarTripletSchema,['red','green','blue'].map(lattice)),surface: v.parse(ScalarTripletSchema,['gravel','rock','ice'].map(lattice)),
+  mapPigment: v.parse(ScalarTripletSchema,['mapRed','mapGreen','mapBlue'].map(lattice)),
   ground: v.parse(GroundRowsSchema,{ terrain: { key: 'nalati-grasslands',seed: SEED },trails: TERRAIN.trails,cabinSites: [],water: RIVER.level,
     paths: 'plugin',mask: { res,size,values: { type: 'f32',count: res*res,data: channels.pond } },bodies: [{ id: 'river',kind: 'terrain-basin' }] }),
   map: { ground: { base: [92, 128, 58], layers: [] }, segments: [],
