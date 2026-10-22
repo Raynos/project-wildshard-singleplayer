@@ -142,7 +142,7 @@ async function hologram(file) {
 const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
 
 /**
- * G608: the far-only stand-ins (the source's `far_` nodes, which only the far proxy draws): the hologram
+ * G608: the far-only stand-ins (the source's `far_` nodes, which only the far proxy and the near view draw): the hologram
  * welded by position and indexed (so the far bake can simplify it into the far budget) and a glowing box up each beam.
  */
 async function farStandIns(holo) {
@@ -231,7 +231,7 @@ async function writeWorld(idea, { soup, assets, kerbs, far }) {
     Sign: doc.createMaterial('Sign').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('sign', resolve(assets, 'sign.webp'))),
     Hologram: doc.createMaterial('Hologram').setBaseColorFactor([0.1, 0.45, 0.55, 1]).setMetallicFactor(0),
     Beam: doc.createMaterial('Beam').setBaseColorFactor([0.27, 0.9, 1, 1]).setMetallicFactor(0),
-    // G608: the far stand-ins' glow (the far proxy only)
+    // G608: the far stand-ins' glow (the far proxy and the near view only)
     Glow: doc.createMaterial('Glow').setBaseColorFactor([...GLOW, 1]).setRoughnessFactor(1).setMetallicFactor(0),
   };
   for (const [, material] of Object.entries(materials)) if (material.getBaseColorTexture() !== null) {

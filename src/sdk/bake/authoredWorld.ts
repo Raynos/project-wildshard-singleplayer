@@ -13,6 +13,8 @@ import { staticGlb, type GlbPrimitive } from './glb';
 import { simplifyWorldPrimitive } from './worldLod';
 import { bakeWorldCollision } from './worldCollision';
 import { WorldBakeRows } from './worldRows';
+import { coarseNearView, shardfileWorld } from './placeholders';
+import type { NearPrototype } from './nearPlaceholder';
 
 /** In-memory authored-world result; the project loader reads source bytes and the build writes only the product. */
 export interface AuthoredWorldProduct { shard: Shardfile; assets: Map<string, Uint8Array> }
@@ -105,7 +107,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     });
     // The far proxy is an independently measured vertex-colour approximation, one draw and no interactive panels.
     // additive graph surfaces (a hologram) are light without a far silhouette; the world's far-only nodes (its source's
-    // `far` prefix) stand in for them here (G608)
+    // `far` prefix) stand in for them here and in the near view (G608)
     const light = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id]; return entry?.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive' ? [index] : []; }));
     const farRows = await Promise.all([...world.static, ...world.undrawn, ...world.far].filter(row => !light.has(row.material)).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
     const farParts = farRows.map(row => {
@@ -145,6 +147,14 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       props: { ...baked.props, panels, far: farFile.hash }, library: [...new Set([...oldLibrary, ...library])], critical: [...new Set([...oldCritical, ...baked.critical])],
       meshCollision: { version: 1, tiles: collision.tiles.map(({ x, z, file }) => ({ x, z, file })), panels: panelCollision },
       far: { bounds: { min: farBox.min.toArray(), max: farBox.max.toArray() }, files: [farFile.hash], compressed: farFile.compressed, decoded: farFile.decoded, gpu: farFile.gpu, triangles: farFile.triangles, draws: farFile.draws }, edge: edges(world) });
-    return { shard, assets: baked.assets };
+    if (authored.near !== 'coarse') return { shard, assets: baked.assets };
+    // G608: its own near view: the coarse tiles without the light surfaces, and the far-only nodes in their own colours
+    const lightNames = new Set(world.materials.flatMap((row, index) => light.has(index) ? [row.name] : []));
+    const stands = world.far.map((row): NearPrototype => {
+      const colour = world.materials[row.material]?.colour ?? [1, 1, 1], n = row.positions.length / 3, width = row.colours === null ? 0 : row.colours.length / n;
+      const colours = Float32Array.from({ length: n * 3 }, (_, k) => (row.colours?.[Math.floor(k / 3) * width + k % 3] ?? 1) * (colour[k % 3] ?? 1));
+      return { name: `far:${row.node}`, positions: Float32Array.from(row.positions), colours, index: row.indices, transforms: [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]] };
+    });
+    return { shard: await coarseNearView(shard, baked.assets, [...await shardfileWorld(shard, baked.assets, name => lightNames.has(name)), ...stands]), assets: baked.assets };
   } finally { catalogue.dispose(); geometry.forEach(part => part.dispose()); }
 }

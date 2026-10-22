@@ -33,7 +33,7 @@ export interface WorldPrimitive {
 export interface WorldPanel { id: string; colliderId: string; node: string; transform: number[]; primitives: WorldPrimitive[] }
 /** Fully normalized, memory-only build input; no GLB node is silently omitted or converted to a heightfield.
  *  `undrawn`: the collision primitives under the source's `undrawn` prefix (a baked-tiles row draws them); `far`: the
- *  primitives under its `far` prefix (only the far proxy draws them; they never collide). */
+ *  primitives under its `far` prefix (only the far proxy and the near view draw them; they never collide). */
 export interface NormalizedWorld { static: WorldPrimitive[]; collision: WorldPrimitive[]; undrawn: WorldPrimitive[]; far: WorldPrimitive[]; panels: WorldPanel[]; materials: WorldMaterial[]; images: WorldImage[] }
 
 function samples(accessor: Accessor, width: number, count: number): Float32Array {

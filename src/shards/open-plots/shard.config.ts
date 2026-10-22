@@ -19,8 +19,8 @@ const look = { ...source.look, materials: { ...source.look.materials,
 function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string }) {
   const identity = { slug: row.slug, name: `Open Plot · ${row.name}`, author: source.author, revision: source.revision, seed: source.seed };
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look,
-    // G608: the `far_` stand-ins draw only in the far proxy
-    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_',
+    // G608: the `far_` stand-ins draw only in the far proxy and the plot's own coarse near view
+    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', near: 'coarse',
       materials: { Floor: 'floor', Kerb: 'kerb', Plinth: 'plinth', Rim: 'rim', Frame: 'frame', Billboard: 'billboard', Sign: 'sign', Hologram: 'hologram', Beam: 'beam', Glow: 'rim' } },
   };
 }
