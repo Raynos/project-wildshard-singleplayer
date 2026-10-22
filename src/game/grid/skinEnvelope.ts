@@ -1,13 +1,14 @@
-import { Box3, Matrix4, Mesh, Vector3, Vector4, type SkinnedMesh } from 'three';
+import { Box3, Matrix4, Mesh, Vector3, Vector4, type BufferAttribute, type BufferGeometry, type InterleavedBufferAttribute, type SkinnedMesh } from 'three';
 
-/** A conservative mesh-local envelope of the uploaded linear skin. Geometry and
- * bind inputs are scanned once; each changed pose transforms one box per bone.
- * Signed weights and morph targets use the exact uploaded-vertex fallback. */
-export function skinEnvelope(mesh: SkinnedMesh): (() => Box3) | null {
-  const geometry = mesh.geometry;
-  if ((geometry.morphAttributes.position?.length ?? 0) > 0) return null;
-  if (!geometry.hasAttribute('skinIndex') || !geometry.hasAttribute('skinWeight')) return null;
-  const position = geometry.getAttribute('position'), indices = geometry.getAttribute('skinIndex'), weights = geometry.getAttribute('skinWeight');
+type Attribute = BufferAttribute | InterleavedBufferAttribute;
+interface Scan { readonly parts: readonly { readonly index: number; readonly centre: Vector3; readonly extent: Vector3 }[]; readonly minSum: number; readonly maxSum: number }
+interface Scanned { readonly inputs: readonly Attribute[]; readonly versions: readonly number[]; readonly bones: number; readonly bind: readonly number[]; readonly scan: Scan | null }
+/** One scan per geometry, uploaded attribute versions, bone count and bind matrix: a herd's skinned copies share their
+ *  geometry and bind pose, so the vertex walk runs once rather than once per copy (Pine's afterKit, G590). */
+const scans = new WeakMap<BufferGeometry, Scanned[]>();
+const version = (attribute: Attribute): number => 'isInterleavedBufferAttribute' in attribute ? attribute.data.version : attribute.version;
+
+function scanSkin(mesh: SkinnedMesh, position: Attribute, indices: Attribute, weights: Attribute): Scan | null {
   const boxes = mesh.skeleton.bones.map(() => new Box3()), point = new Vector3();
   let minSum = Infinity, maxSum = 0;
   for (let i = 0; i < position.count; i++) {
@@ -21,7 +22,28 @@ export function skinEnvelope(mesh: SkinnedMesh): (() => Box3) | null {
     }
     minSum = Math.min(minSum, sum); maxSum = Math.max(maxSum, sum);
   }
-  const parts = boxes.flatMap((box, index) => box.isEmpty() ? [] : [{ index, centre: box.getCenter(new Vector3()), extent: box.getSize(new Vector3()).multiplyScalar(0.5) }]);
+  return { minSum, maxSum, parts: boxes.flatMap((box, index) => box.isEmpty() ? [] : [{ index, centre: box.getCenter(new Vector3()), extent: box.getSize(new Vector3()).multiplyScalar(0.5) }]) };
+}
+
+/** A conservative mesh-local envelope of the uploaded linear skin. Geometry and
+ * bind inputs are scanned once (shared by every mesh on the same uploaded inputs and bind); each changed pose
+ * transforms one box per bone. Signed weights and morph targets use the exact uploaded-vertex fallback. */
+export function skinEnvelope(mesh: SkinnedMesh): (() => Box3) | null {
+  const geometry = mesh.geometry;
+  if ((geometry.morphAttributes.position?.length ?? 0) > 0) return null;
+  if (!geometry.hasAttribute('skinIndex') || !geometry.hasAttribute('skinWeight')) return null;
+  const position = geometry.getAttribute('position'), indices = geometry.getAttribute('skinIndex'), weights = geometry.getAttribute('skinWeight');
+  const inputs = [position, indices, weights], versions = inputs.map(version), bones = mesh.skeleton.bones.length, bind = mesh.bindMatrix.elements;
+  let held = scans.get(geometry); if (held === undefined) { held = []; scans.set(geometry, held); }
+  let found = held.find(row => row.bones === bones && row.inputs.every((input, i) => input === inputs[i] && row.versions[i] === versions[i])
+    && row.bind.every((value, i) => value === bind[i]));
+  if (found === undefined) {
+    found = { inputs, versions, bones, bind: [...bind], scan: scanSkin(mesh, position, indices, weights) };
+    held.push(found); if (held.length > 8) held.shift();
+  }
+  const scan = found.scan;
+  if (scan === null) return null;
+  const { parts, minSum, maxSum } = scan, point = new Vector3();
   const result = new Box3(), bone = new Matrix4(), pose = new Matrix4();
   return () => {
     const uploaded = mesh.skeleton.boneMatrices;
