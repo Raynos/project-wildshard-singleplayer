@@ -1,4 +1,4 @@
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateDefinedSection } from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test, vi } from 'vitest';
@@ -171,8 +171,7 @@ test('production site data retains original firefly offsets and order without an
 
 test('site-life custom sections convert with their suffix and defining checks intact', () => {
   expect(() => formatJsonSchema(WorldAssemblySchema, 'draft-07')).not.toThrow();
-  const schema = formatJsonSchema(WorldAssemblySchema, 'draft-07');
-  if (schema === undefined) throw new Error('Missing generated stage schema');
+  const schema = namedJsonSchema(WorldAssemblySchema);
   const encoded = new TextEncoder().encode(encodeCanonicalJson(schema));
   expect(validateDefinedSection(encoded, stages)).toEqual(stages);
   const wrong = { stages: [{ ...stages.stages[0], life: { ...lifeRow, file: 'wrong.bin' } }] };
