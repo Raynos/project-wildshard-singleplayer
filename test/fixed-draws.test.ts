@@ -94,3 +94,36 @@ test('a partial read failure releases every slot that loaded and reports the fai
     expect(disposed.mock.calls.length - before).toBe(1);
   } finally { disposed.mockRestore(); }
 });
+
+// G602/G603: a fixed draw row may name a baked geometry block instead of a GLB (Nalati's prepared shapes)
+const baked = { attrs: [['position', 'f32', 3, false], ['aTone', 'u8', 1, true]] as [string, 'f32' | 'u8', number, boolean][], count: 3, index: 'u16' as const, indexCount: 3, box: true, expand: false };
+function block(x: number): Uint8Array {
+  const position = new Float32Array([x, 0, 0, 1, 0, 0, 0, 1, 0]), tone = new Uint8Array([10, 20, 30, 0]), deltas = new Int32Array([0, 1, 1]);
+  const out = new Uint8Array(position.byteLength + tone.byteLength + deltas.byteLength);
+  out.set(new Uint8Array(position.buffer), 0); out.set(tone, position.byteLength); out.set(new Uint8Array(deltas.buffer), position.byteLength + tone.byteLength);
+  return out;
+}
+const stoneRow = { slot: 'stone', file: 'shapes/stone.bin', channels: [['aTone', 'tone']] as [string, string][], baked };
+const bakedRows = [stoneRow, { slot: 'flat', file: 'shapes/flat.bin', channels: [], baked: { ...baked, expand: true } }];
+
+test('a baked row decodes its block exactly, renames its channels and expands when declared', async () => {
+  const files = new Map([['shapes/stone.bin', block(4)], ['shapes/flat.bin', block(6)]]);
+  const read = { slug: 'fixture', file: (name: string) => { const found = files.get(name); return found === undefined ? Promise.reject(new Error(`unread ${name}`)) : Promise.resolve(found); } };
+  const draws = fixedDraws(read, bakedRows);
+  await draws.load();
+  const stone = draws.handle('stone').copy(), flat = draws.handle('flat').copy();
+  expect(stone.getAttribute('position').getX(0)).toBe(4); expect(stone.hasAttribute('tone')).toBe(true); expect(stone.hasAttribute('aTone')).toBe(false);
+  expect(Array.from(stone.getIndex()?.array ?? [])).toEqual([0, 1, 2]); expect(stone.boundingBox).not.toBeNull();
+  expect(flat.getIndex()).toBeNull(); expect(flat.getAttribute('position').getX(0)).toBe(6);
+  // a card's cold copy reads the same row through the product
+  const card = new Scope('card'), cold = await coldFixedDraws(read, bakedRows, card, ['stone']);
+  expect(cold.handle('stone').copy().getAttribute('position').getX(0)).toBe(4); card.dispose();
+});
+
+test('a baked row refuses a wrong byte count, a missing channel or geometry instead of bytes', async () => {
+  const short = { slug: 'fixture', file: () => Promise.resolve(block(1).slice(0, 8)) };
+  await expect(fixedDraws(short, [stoneRow]).load()).rejects.toThrow('byte count differs: stone');
+  const read = { slug: 'fixture', file: () => Promise.resolve(block(1)) };
+  await expect(fixedDraws(read, [{ ...stoneRow, channels: [['aMissing', 'x']] }]).load()).rejects.toThrow('missing aMissing: stone');
+  await expect(fixedDraws(product, [stoneRow]).load(new Map([['shapes/stone.bin', tri(1)]]))).rejects.toThrow('needs its file bytes: stone');
+});

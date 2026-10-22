@@ -4,7 +4,7 @@ import type { BufferGeometry } from 'three';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { readWholeGeometry } from '../plugin/geometry';
+import { bakedGeometryBytes, readBakedGeometry, type readWholeGeometry } from '../plugin/geometry';
 
 /** One loaded library of fixed draws (see fixedDraws). */
 export interface FixedDraws {
@@ -15,6 +15,27 @@ export interface FixedDraws {
   load: (bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readWholeGeometry>[0]) => Promise<void>;
   /** the slot's owned template: its intake, a deep copy, or the template itself transferred */
   handle: (slot: string) => OwnedGeometry;
+}
+
+type FixedDrawRow = v.InferOutput<typeof FixedDrawRowsSchema>[number];
+/** One slot's intake: a GLB file (or an assembled geometry) through the template's own loader, or a baked block decoded
+ *  here: its byte count exact, its declared channels renamed, adopted without a copy. */
+function admitSlot(row: FixedDrawRow, template: OwnedGeometry, value: Uint8Array | BufferGeometry | undefined): Promise<void> {
+  const baked = row.baked;
+  if (baked === undefined) return template.load(value);
+  if (!(value instanceof Uint8Array)) return Promise.reject(new Error(`Baked fixed draw needs its file bytes: ${row.slot}`));
+  if (value.byteLength !== bakedGeometryBytes(baked)) return Promise.reject(new Error(`Baked fixed draw byte count differs: ${row.slot}`));
+  let geometry = readBakedGeometry(value, 0, baked);
+  if (baked.expand) {
+    const flat = geometry.toNonIndexed(); geometry.dispose(); geometry = flat;
+    geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+  }
+  for (const [from, to] of row.channels) {
+    if (!geometry.hasAttribute(from)) { geometry.dispose(); return Promise.reject(new Error(`Baked fixed draw is missing ${from}: ${row.slot}`)); }
+    geometry.setAttribute(to, geometry.getAttribute(from)); geometry.deleteAttribute(from);
+  }
+  template.adopt(geometry);
+  return Promise.resolve();
 }
 
 /** G571: a product's fixed draws (rows: `FixedDrawRowsSchema`) as owned geometry templates, loaded together. Client-only. */
@@ -29,13 +50,17 @@ export function fixedDraws(product: Pick<ShardProduct, 'file' | 'slug'>, input: 
       const assembled = owner === undefined ? undefined : await (await import('../plugin/geometry')).readWholeGeometry(owner, product.slug);
       try {
         const admitted = new Map(await Promise.all(rows.map(async row => {
-          const name = row.file, geometry = assembled?.get(name.slice(name.lastIndexOf('/') + 1, -4))?.geometry;
-          const value = assembled === undefined ? bytes?.get(name) ?? (bytes === undefined ? await product.file(name) : undefined) : geometry;
+          // a baked block is never part of the whole-geometry assembly (GLB meshes only): it reads its own file
+          const name = row.file, geometry = row.baked === undefined ? assembled?.get(name.slice(name.lastIndexOf('/') + 1, -4))?.geometry : undefined;
+          const value = assembled === undefined || row.baked !== undefined ? bytes?.get(name) ?? (bytes === undefined ? await product.file(name) : undefined) : geometry;
           if (value === undefined) throw new Error(`Missing fixed draw: ${row.slot}`);
           return [row.slot, value] as const;
         })));
-        if (assembled !== undefined && assembled.size !== admitted.size) throw new Error('Unexpected assembled fixed draw');
-        await Promise.all([...templates].map(([slot, template]) => template.load(admitted.get(slot))));
+        if (assembled !== undefined && assembled.size !== rows.filter(row => row.baked === undefined).length) throw new Error('Unexpected assembled fixed draw');
+        await Promise.all(rows.map(row => {
+          const template = templates.get(row.slot); if (template === undefined) throw new Error(`Undeclared fixed draw: ${row.slot}`);
+          return admitSlot(row, template, admitted.get(row.slot));
+        }));
         ready = true;
       } finally { for (const view of assembled?.values() ?? []) view.release?.(); }
     },
@@ -57,7 +82,7 @@ export async function coldFixedDraws(product: Pick<ShardProduct, 'file' | 'slug'
   const settled = await Promise.allSettled(rows.map(async row => {
     const bytes = await product.file(row.file);
     if (closed()) throw new Error('Cold fixed draws owner left');
-    await draws.handle(row.slot).load(bytes); loaded.push(row.slot);
+    await admitSlot(row, draws.handle(row.slot), bytes); loaded.push(row.slot);
   }));
   const failed = settled.find(result => result.status === 'rejected');
   if (failed !== undefined || closed()) {
