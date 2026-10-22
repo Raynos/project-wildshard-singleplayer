@@ -4,6 +4,7 @@ import * as v from 'valibot';
 import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, BatchedMesh, InstancedMesh, type Object3D } from 'three';
 import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
 import { Scope } from '../src/engine/app/scope';
+import { AssetService } from '../src/engine/app/assets';
 import { WorldSceneBatchSchema } from '../src/format/worldSceneBatch';
 import { WorldSceneBatch } from '../src/game/shardfile/worldSceneBatch';
 import { WorldRegistry } from '../src/engine/world/registry';
@@ -88,7 +89,7 @@ test('resident rows share one native batch across a named model and fixed tail',
     choices: [{ id: 'only', params: {}, size: [1, 1, 1], draws: [draw], lods: [{ from: { phone: 2, desktop: 4 }, draws: [draw] }], colliders: [] }] }] };
   const files = new Map([['models/stone.glb', staticGlb([{ geometry, material }])], ['models/catalogue.json', new TextEncoder().encode(JSON.stringify(catalogue))]]);
   const game = { renderer: null, onUpdate: vi.fn() };
-  const context = { scope: owner, app: { registry }, game: {}, cube: null,
+  const context = { scope: owner, app: { registry, assets: new AssetService() }, game: {}, cube: null,
     product: { shardfile: emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 3 }),
       hasFile: (id: string) => files.has(id), url: (id: string) => id,
       file: (id: string) => { const bytes = files.get(id); return bytes === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(bytes); } } } as ShardContext;

@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Box3, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
+import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
+import { AssetService } from '../src/engine/app/assets';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
 import { emptyBuildingLifeRows } from '../src/format/buildings';
@@ -45,7 +46,7 @@ function fixture(cell = false): ShardContext {
   const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
   const files = new Map([['models/stone.glb', triangle()], ['scenes/open.json', encode(recipe)], ['scenes/cell.json', encode(cellRecipe)]]);
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 3 });
-  return { scope, app: { registry }, game: {}, cube: cell ? { half: 250 } : null,
+  return { scope, app: { registry, assets: new AssetService() }, game: {}, cube: cell ? { half: 250 } : null,
     product: { shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); } } } as ShardContext;
 }
@@ -471,6 +472,43 @@ test('native scalar observations gate original contacts without adding a second 
     expect(() => handles.setNumber('harbour.enabled', Number.NaN)).toThrow('finite');
     expect(() => handles.setNumber('harbour.at', 1)).toThrow('Expected scene number');
   } finally { context.scope.dispose(); }
+});
+
+test('retired residents reuse decoder storage with fresh roots, materials and collision owners', async () => {
+  const first = fixture(), next = fixture(), assets = first.app.assets;
+  Object.assign(next.app, { assets });
+  const read = vi.spyOn(next.product, 'file');
+  try {
+    const a = await installWorldScenes(first, section());
+    const original = a.group('harbour.root').children[0];
+    if (!(original instanceof Mesh)) throw new Error('Missing first scene draw');
+    const originalGeometry: unknown = original.geometry;
+    if (!(originalGeometry instanceof NativeBufferGeometry)) throw new Error('Missing first geometry');
+    const originalPosition: unknown = originalGeometry.getAttribute('position');
+    if (!(originalPosition instanceof NativeBufferAttribute)) throw new Error('Missing first position');
+    originalPosition.setX(0, 99);
+    first.scope.dispose();
+    expect(first.app.registry.pieces).toHaveLength(0);
+    expect(assets.retained().map(entry => entry.refs)).toEqual([0]);
+    const b = await installWorldScenes(next, section());
+    const replacement = b.group('harbour.root').children[0];
+    if (!(replacement instanceof Mesh)) throw new Error('Missing next scene draw');
+    expect(read.mock.calls.map(([file]) => file)).not.toContain('models/stone.glb');
+    expect(b.group('harbour.root')).not.toBe(a.group('harbour.root'));
+    expect(replacement.geometry).not.toBe(original.geometry);
+    expect(replacement.material).not.toBe(original.material);
+    const replacementGeometry: unknown = replacement.geometry;
+    if (!(replacementGeometry instanceof NativeBufferGeometry)) throw new Error('Missing next geometry');
+    const replacementPosition: unknown = replacementGeometry.getAttribute('position');
+    if (!(replacementPosition instanceof NativeBufferAttribute)) throw new Error('Missing next position');
+    expect(replacementPosition.getX(0)).toBe(0);
+    expect(next.app.registry.pieces).toHaveLength(1);
+    next.scope.dispose(); expect(next.app.registry.pieces).toHaveLength(0);
+  } finally {
+    first.scope.dispose(); next.scope.dispose();
+    for (const entry of assets.retained()) assets.evictCached(entry.key);
+    read.mockRestore();
+  }
 });
 
 test.each(['harbour.at', 'markers.east.enabled', 'absent'])('collision scalar %s refuses before scene mutation', async active => {

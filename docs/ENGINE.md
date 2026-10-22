@@ -450,6 +450,12 @@ World-scene buffered draws reuse geometry by admitted content URL, tier and ever
 resolved instance count. Each entered scope acquires that storage and constructs
 fresh draw objects with its own materials. Unkeyed callers keep scope disposal;
 a retiring scope cannot prepare or acquire a new draw.
+Owned world-scene GLB templates use the same charged idle retention, keyed by
+admitted content URL, ordered segment URLs, tier and sorted channel mapping.
+Each construction scope acquires its own lease and gives consumers deep private
+copies; completion or cancellation releases the lease. Only completed geometry
+is shared, with disposal invalidating the memo; bytes, materials, products and
+pending owners are never retained by the cache.
 
 **The leak test.** The gate loads your shard, unloads it and checks the census is back to its title-screen value
 (geometries, textures, materials, bodies, listeners, audio nodes, timers). Code-built trees use their explicit scope:

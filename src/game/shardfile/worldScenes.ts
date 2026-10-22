@@ -18,7 +18,7 @@ import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitW
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
-import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield } from '@wildshard/engine/core/workSlice';
@@ -245,16 +245,16 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner));
         finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
       } else if (row.kind === 'owned') {
-        const models = new Map<string, ReturnType<typeof createOwnedGeometry>>();
+        const models = new Map<string, WorldSceneGeometry>();
         const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
         const modelProgress = loadingUnits('Home models', neededModels.length);
         modelProgress(0, row.id);
         for (const [modelIndex, model] of neededModels.entries()) {
           const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-          const geometry = createOwnedGeometry(product.url(file), model.attributes);
-          await geometry.load(await product.file(file), model.segments === undefined ? undefined : await Promise.all(model.segments.map(segment => product.file(segment)))); models.set(model.id, geometry);
+          const geometry = await readWorldSceneGeometry(owner, product, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
+          finish.push(geometry.done); models.set(model.id, geometry);
           modelProgress(modelIndex + 1, model.id);
-          // Transfer on first use; later copies come from the independently owned original.
+          // Consumers keep private mutable copies; finish releases the construction lease.
           await buildYield(owner);
         }
         libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
