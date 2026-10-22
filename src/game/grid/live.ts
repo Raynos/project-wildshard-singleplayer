@@ -394,12 +394,21 @@ export class LiveGridHost {
    * may drop it before the crossing. */
   private warmAhead(): string | null {
     if (!this.warm() || this.active === null) return null;
-    const active = this.assembly.cell(this.active), lastSource = this.transitions.at(-1)?.from ?? null;
+    const active = this.assembly.cell(this.active), lastSource = this.lastSource();
     return [...this.residents.keys()].find(id => {
       if (id === this.active || id === lastSource) return false;
       const cell = this.assembly.cell(id);
       return Math.max(Math.abs(cell.origin.x - active.origin.x), Math.abs(cell.origin.z - active.origin.z)) <= this.assembly.pitch * 1.001;
     }) ?? null;
+  }
+  /** The cell most recently left for another (the active one excluded): a road crossing records two transitions,
+   * source -> road and road -> destination, so the last transition alone names only the road. */
+  private lastSource(): string | null {
+    for (let i = this.transitions.length - 1; i >= 0; i--) {
+      const from = this.transitions[i]?.from ?? null;
+      if (from !== null && from !== this.active) return from;
+    }
+    return null;
   }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
   retry(instance: string): void {
@@ -437,7 +446,7 @@ export class LiveGridHost {
     // G580 T1: still inside the source, the nearest neighbour builds whole now (one at a time), so the wall is
     // open and its runtime parked by the time the traveller reaches it (the crossing re-activates it).
     // One neighbour at a time beside the source just left: a second build would only queue in front of the crossing.
-    const lastSource = this.transitions.at(-1)?.from ?? null;
+    const lastSource = this.lastSource();
     const ahead = [...this.residents.keys()].some(id => id !== this.active && id !== lastSource);
     if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0 && this.warm() && !ahead) {
       // the neighbour ahead, whatever its readiness reach (inside a source a player can stand for minutes): the nearest by

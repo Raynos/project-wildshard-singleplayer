@@ -148,3 +148,45 @@ test('warm: the neighbour built ahead stays whole however long the traveller sta
     expect(residency.allocator.entries().find(row => row.id === `sim:${east.instance}`)?.needed).toBe(true);
   } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
 });
+
+test('warm: after a road crossing, the next neighbour builds ahead beside the kept source', async () => {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const home = assembly.cell('driftwood-isle');
+  const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
+  const beyond = assembly.cells.find(cell => cell.origin.x === 2 * assembly.pitch && cell.origin.z === 0);
+  if (east === undefined || beyond === undefined) throw new Error('Missing east neighbours');
+  const page = createSimHost(level, { rapier }), residency = new PageResidency(), created: string[] = [];
+  const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  const live = new LiveGridHost(assembly, {
+    home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
+    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
+    prefetchable: cell => cell.instance === east.instance || cell.instance === beyond.instance,
+    readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
+      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
+    admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+      create: () => {
+        created.push(cell.instance);
+        const host = createSimHost(level, { rapier, playerBody: false, ground: false });
+        return Promise.resolve({ host, dispose: () => { host.dispose(); } });
+      } }),
+  });
+  const settle = async (): Promise<void> => {
+    for (let i = 0; i < 20 && live.state().pending.length > 0; i++) await new Promise(resolve => { setTimeout(resolve, 5); });
+  };
+  try {
+    const enterHome = await live.prepare(null, home.instance); enterHome.commit();
+    player.position.x = CHUNK_HALF - 20; live.beforeFixed(); await settle();
+    const leave = await live.prepare(home.instance, null); leave.commit();
+    player.position.x = CHUNK_HALF + 0.5; live.beforeFixed();
+    const enter = await live.prepare(null, east.instance); enter.commit();
+    // inside the destination, facing on east: the source just left stays, and the next cell builds ahead
+    player.position.x = CHUNK_HALF - 20; player.position.z = 0; live.beforeFixed(); await settle();
+    expect(live.state().transitions.slice(-2)).toEqual([{ from: home.instance, to: null }, { from: null, to: east.instance }]);
+    expect(created).toEqual([home.instance, east.instance, beyond.instance]);
+    expect(live.state().residents).toEqual([home.instance, east.instance, beyond.instance].sort());
+    expect(live.state().issues).toEqual({});
+  } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
+});
