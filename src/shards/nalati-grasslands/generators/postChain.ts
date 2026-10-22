@@ -36,7 +36,7 @@ function gradeGraph(shadow: readonly number[], light: readonly number[], uniform
 /** Author the painted grade as a post-graph look (G600 L1, game/looks/postGraphLook): the scene pass, the desktop bloom blur
  *  and the grade (which blends that bloom) over the live grade uniforms the world lends ('nalati-grade'); the client only
  *  binds them. The grid cell carries the same chain, its bloom included. */
-export function postChainRows(): { readonly postGraph: PostGraphLookRow; readonly shadow: readonly number[]; readonly light: readonly number[]; readonly lum: readonly number[]; readonly uniforms: { readonly uV2Exposure: number; readonly uV2Sat: number; readonly uV2LookSat: number }; readonly fogLut: readonly number[] } {
+export function postChainRows(): { readonly postGraph: PostGraphLookRow; readonly paintedFog: { readonly haze: readonly number[]; readonly order: number }; readonly world: { readonly grade: { readonly lend: string; readonly uniforms: { readonly uV2Exposure: number; readonly uV2Sat: number; readonly uV2LookSat: number }; readonly saturation: string }; readonly tint: Readonly<Record<string, string>> }; readonly shadow: readonly number[]; readonly light: readonly number[]; readonly lum: readonly number[]; readonly uniforms: { readonly uV2Exposure: number; readonly uV2Sat: number; readonly uV2LookSat: number }; readonly fogLut: readonly number[] } {
   const shadow = [0.92, 0.96, 1.05], light = [1.07, 0.99, 0.84], lum = [...LUM];
   const uniforms = { uV2Exposure: 1, uV2Sat: 1.05, uV2LookSat: 1 };
   const bloom = 0.28, postGraph = {
@@ -46,7 +46,13 @@ export function postChainRows(): { readonly postGraph: PostGraphLookRow; readonl
     sides: [{ bloom: 'bloom', tiers: ['desktop'], threshold: 0.95, smoothing: 0.3, radius: 0.7 }], composite: { pass: 'grade', output: 'frame' },
     inputs: { tBloom: { side: 'bloom', output: 'bloom' } }, uniforms: { uBloomIntensity: bloom }, live: 'nalati-grade', scene: {},
   } satisfies PostGraphLookRow;
-  return { postGraph, shadow, light, lum, uniforms, fogLut: ungradedFog(shadow, light, lum, uniforms.uV2Exposure, uniforms.uV2Sat) };
+  // the painted world's grade (game/looks/paintedWorld `world.grade`, lent for the grade graph) and the panorama's names for
+  // the engine's panorama tint
+  const world = { grade: { lend: 'nalati-grade', uniforms, saturation: 'uV2LookSat' },
+    tint: { uV2KeyTint: 'key', uV2Moon: 'moon', uV2Light: 'light', uV2Veil: 'veil', uV2VeilCol: 'veilColour', uV2Flash: 'flash' } };
+  // the panorama fog's near / zenith haze and its fog slot (game/looks/paintedWorld `fog`)
+  const paintedFog = { haze: [0.2, 0.21, 0.26], order: 300 };
+  return { postGraph, world, paintedFog, shadow, light, lum, uniforms, fogLut: ungradedFog(shadow, light, lum, uniforms.uV2Exposure, uniforms.uV2Sat) };
 }
 
 /**

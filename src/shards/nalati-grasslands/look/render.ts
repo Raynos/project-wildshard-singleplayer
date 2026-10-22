@@ -7,7 +7,7 @@
  *                   (the 256 × 1 azimuth LUT un-graded at build time, re-tinted by the hour / weather
  *                   as the dome is), the painted ground, the GPU blade rings + shader flowers, no engine cloud layer or
  *                   planet (the panorama dome is the sky); all shaded by the static capture, from the boot rows
- * The panorama dome, the day keys and the per-frame look are wired by `wireLookV2` (index.ts) over the same parts.
+ * The panorama dome, the painter's key light and the static capture (the `world` rows) are wired by `wireLookV2` (index.ts).
  */
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { postGraphLookOf } from '@wildshard/game/looks/postGraphLook';
@@ -20,7 +20,9 @@ import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 
 export const shardRender = (): LookStrategy => ({
   ...postGraphLookOf('nalati-grasslands', metadata.postChain.postGraph),
-  ...paintedWorld('nalati-grasslands', { fog: { ...paintedTextures.fog, haze: [0.2, 0.21, 0.26], order: 300, lut: metadata.postChain.fogLut }, air: paintedTextures.air,
+  ...paintedWorld('nalati-grasslands', { fog: { ...paintedTextures.fog, ...metadata.postChain.paintedFog, lut: metadata.postChain.fogLut }, air: paintedTextures.air,
     ground: 'ground' in paintedTextures ? paintedTextures.ground : null, tiles: specimenData.materials, capture: captureRows,
-    grass: { rows: grassRows, cards: paintedTextures.cards } }).look,
+    grass: { rows: grassRows, cards: paintedTextures.cards },
+    world: { rows: 'world' in paintedTextures ? paintedTextures.world : null, panorama: 'panorama' in paintedTextures ? paintedTextures.panorama : null,
+      key: 'key' in paintedTextures ? paintedTextures.key : null, ridge: metadata.panoramaRidge, ...metadata.postChain.world } }).look,
 });

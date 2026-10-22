@@ -3,12 +3,6 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { NalatiWeather } from '../runtime/state';
-import { PainterlyWorld } from '@wildshard/game/looks/painterlyLook';
-import { lendUniforms } from '@wildshard/sdk/looks/lentLooks';
-import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
-import captureRows from '../boot/staticCapture.generated.json' with { type: 'json' };
-import metadata from '../bootMetadata.generated.json' with { type: 'json' };
-import { gradeUniforms } from './grade';
 import { paintedWorldOf } from '@wildshard/game/looks/paintedWorld';
 
 export interface LookV2Ctx {
@@ -20,17 +14,12 @@ export interface LookV2Ctx {
   forest: Forest;
 }
 
-/** Nalati's painterly world (game/looks/painterlyLook): the panorama, the painter's key, the static capture and the grass's mood,
- *  from the boot rows, hearing the grade and the live re-grade (render.ts `tint`) and following the weather's hour and storm. */
+/** Nalati's painterly world (game/looks/paintedWorld `wire`, the look's `world` rows): the panorama, the painter's key, the
+ *  static capture and the grass's mood, hearing the grade and the live re-grade and following the weather's hour and storm. */
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
-  const { game, sky, weather } = ctx, rows = paintedTextures, { fogLut, tint, grass: grassProfile, bake: bakeUniforms } = paintedWorldOf('nalati-grasslands');
-  // the grade graph's live uniforms (look/grade.ts), lent to the post-graph look before it composes
-  lendUniforms(game.levelScope, 'nalati-grade', gradeUniforms);
-  const uniforms = Object.fromEntries(Object.entries({ ...gradeUniforms, uV2KeyTint: tint.key, uV2Moon: tint.moon, uV2Light: tint.light, uV2Veil: tint.veil, uV2VeilCol: tint.veilColour, uV2Flash: tint.flash }).filter(([key]) => key !== 'uV2LookSat'));
-  const world = await PainterlyWorld.build('world' in rows ? rows.world : null, { renderer: game.renderer, scene: game.scene, scope: game.levelScope, sky, stars: weather.dome,
-    groups: ctx.groups, casters: [ctx.forest.group], grass: grassProfile, capture: { rows: captureRows, uniforms: bakeUniforms },
-    panorama: { rows: 'panorama' in rows ? rows.panorama : null, ridge: metadata.panoramaRidge, lut: fogLut, uniforms },
-    key: { rows: 'key' in rows ? rows.key : null, daySaturation: game.level.grade.saturation, saturation: gradeUniforms.uV2LookSat } });
+  const { game, sky, weather } = ctx;
+  const world = await paintedWorldOf('nalati-grasslands').wire({ renderer: game.renderer, scene: game.scene, scope: game.levelScope, sky, stars: weather.dome,
+    groups: ctx.groups, casters: [ctx.forest.group], daySaturation: game.level.grade.saturation });
   if (world === null) return;
   ctx.groups['skyV2'] = world.panorama.dome;
   ctx.updates.push(dt => { world.update(dt, { look: weather.look, sunElevation: weather.clock.sunElevation, overcast: weather.air.overcast }); });
