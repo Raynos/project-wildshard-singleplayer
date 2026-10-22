@@ -10166,6 +10166,10 @@ Catalogue sources may also name a declared pool part. The shared
 part roster and channel-renaming rules. Resident scenes decode the pool;
 cold cards read only the files holding their declared parts through the
 verified product reader. Card geometry stays with its source owner.
+The pool decoder admits and detaches plain rows before URL lookup or reads.
+A cold subset contains distinct file-row references from that declared pool;
+foreign rows refuse. Channel names and sources are unique per file, with
+nonempty, distinct part subsets contained in the file's complete roster.
 
 `game/shardfile/worldSceneMaterials` owns source PBR slots (`kind: 'source'`).
 They declare a source URL, asset-manager aliases,

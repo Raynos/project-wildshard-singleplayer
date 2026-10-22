@@ -32,11 +32,18 @@ const library = v.variant('kind', [
   // A rest pool per file (tier-selected by name or by `tier`), its Float32 application channels renamed on load;
   // `publish` names every part as an owned geometry handle `<publish>.<part>`.
   v.strictObject({ id, kind: v.literal('pool'), publish: v.exactOptional(id), files: bounded(v.strictObject({ file: tierFile, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), parts: bounded(id, 128),
-    channels: v.exactOptional(bounded(v.strictObject({ name: id, source: id, width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(bounded(id, 128)) }), 16)) }), 32),
+    channels: v.exactOptional(bounded(v.strictObject({ name: v.pipe(id, v.regex(/^[A-Za-z][A-Za-z0-9_]{0,63}$/u), v.check(name => !['position', 'normal', 'color', 'uv', 'uv1', 'tangent', 'constructor', 'prototype', '__proto__'].includes(name))),
+      source: v.pipe(id, v.regex(/^_[a-z0-9_]{1,63}$/u), v.check(source => source !== '__proto__')), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(v.pipe(bounded(id, 128), v.minLength(1))) }), 16)) }), 32),
     painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
 ]);
 const poolParts = (files: readonly { readonly tier?: 'phone' | 'desktop'; readonly parts: readonly string[] }[]): boolean => (['phone', 'desktop'] as const)
-  .every(tier => { const parts = files.flatMap(file => file.tier === undefined || file.tier === tier ? file.parts : []); return new Set(parts).size === parts.length; });
+  .every(tier => { const active = files.filter(file => file.tier === undefined || file.tier === tier), parts = active.flatMap(file => file.parts); return active.length <= 16 && parts.length <= 128 && new Set(parts).size === parts.length; });
+type PoolFile = Extract<v.InferOutput<typeof library>, { kind: 'pool' }>['files'][number];
+const poolChannels = (files: readonly PoolFile[]): boolean => files.every(file => {
+  const channels = file.channels ?? [];
+  return new Set(channels.map(row => row.name)).size === channels.length && new Set(channels.map(row => row.source)).size === channels.length
+    && channels.every(row => row.parts === undefined || new Set(row.parts).size === row.parts.length && row.parts.every(part => file.parts.includes(part)));
+});
 const material = v.variant('kind', [WorldSceneSurfaceSchema,
   v.strictObject({ id, kind: v.literal('source'), load: v.optional(v.picklist(['resident', 'placement']), 'resident'), url: id, publishObject: v.exactOptional(id), aliases: v.optional(v.record(id, id), {}), part: v.optional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(127)), 0),
     anisotropy: v.optional(v.pipe(finite, v.minValue(1), v.maxValue(16)), 1), anisotropyMaps: v.optional(bounded(v.picklist(['map', 'normalMap', 'roughnessMap', 'aoMap']), 4), ['map', 'normalMap']), envMapIntensity: v.optional(finite, 1),
@@ -122,7 +129,7 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
-    && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' || entry.kind === 'whole' ? unique(entry.models) : poolParts(entry.files) && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
+    && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' || entry.kind === 'whole' ? unique(entry.models) : poolParts(entry.files) && poolChannels(entry.files) && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
     && row.steps.every(entry => entry.registry.every(piece => piece.active === undefined || piece.mode === undefined) && (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
       && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'),
   // a mapped material's maps come from a resident source row before it

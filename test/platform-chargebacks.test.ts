@@ -337,3 +337,19 @@ test('C3 approvals select exactly the picked ground and engine primitives', () =
     expect(approvedG571Host(approvals,path,'unreviewedBinding')).toBe(false);
   }
 });
+
+
+test('the hardened CORE scene host credits all fourteen inline lines without changing their owner', () => {
+  const approvals = g571HostApprovals('.'), paths = ['src/game/shardfile/worldScenes.ts', 'src/game/shardfile/scenePools.ts', 'src/format/worldScenes.ts'];
+  // G601 C2's former volume description already named the whole format module.
+  const previous = new Map<string, Set<string> | null>([['src/format/worldScenes.ts', null]]);
+  let before = 0, chargedBefore = 0, after = 0;
+  for (const path of paths) for (const span of inlinePlatformSpans(path, readFileSync(path, 'utf8'))) {
+    expect(platformChargeback(path, span.name)).toBe('C1');
+    before += span.lines.length;
+    if (!approvedG571Host(previous, path, span.name)) chargedBefore += span.lines.length;
+    if (!approvedG571Host(approvals, path, span.name)) after += span.lines.length;
+  }
+  expect(before).toBe(14); expect(chargedBefore).toBe(9); expect(after).toBe(0);
+  expect(paths.every(path => approvals.get(path) === null)).toBe(true);
+});

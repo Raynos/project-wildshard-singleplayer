@@ -29,8 +29,8 @@ const section = () => parseWorldScenes({ version: 1,
     repeat: [{ id: 'east', position: [4, 0, 0] }, { id: 'west', position: [-4, 0, 0] }], publish: { stone: { kind: 'object', part: 'stone' } } }],
 });
 
-function triangle(): Uint8Array {
-  const json = new TextEncoder().encode(JSON.stringify({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ mesh: 0 }],
+function triangle(name?: string): Uint8Array {
+  const json = new TextEncoder().encode(JSON.stringify({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ mesh: 0, ...(name === undefined ? {} : { name, extras: { restGroups: [], restBox: [0, 0, 0, 1, 1, 0], restSphere: [0.5, 0.5, 0, 1] } }) }],
     meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }], buffers: [{ byteLength: 36 }],
     bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: 36 }], accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 0] }] }));
   const padded = Math.ceil(json.length / 4) * 4, bytes = new Uint8Array(12 + 8 + padded + 8 + 36), header = new DataView(bytes.buffer);
@@ -687,4 +687,43 @@ test.each(['disposed', 'disposing'] as const)('placement reads do not allocate a
     expect(await refusal).toEqual(new Error('Scene placement owner is disposed'));
     expect(f.started).toEqual([0, 1, 2, 3]); expect(f.geometry).toEqual([]);
   } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
+});
+
+
+test('independent pool publications retain native geometry and retire on the supplied scene owner', async () => {
+  const context = fixture(), bytes = triangle('tile'), reads: string[] = [];
+  const { TIER } = await import('../src/engine/core/tier');
+  vi.spyOn(context.product, 'hasFile').mockReturnValue(true);
+  vi.spyOn(context.product, 'file').mockImplementation(name => { reads.push(name); return Promise.resolve(bytes); });
+  const rows = parseWorldScenes({ version: 1, materials: [], steps: [], libraries: [
+    { id: 'tiles', kind: 'pool', publish: 'terrain', files: [
+      { file: 'inactive.glb', tier: TIER === 'phone' ? 'desktop' : 'phone', parts: ['unused'] }, { file: 'tile.glb', tier: TIER, parts: ['tile'] },
+    ] },
+  ] });
+  const { worldScenesForTier } = await import('../src/format/worldScenes');
+  const handles = await installWorldScenes(context, worldScenesForTier(rows, TIER));
+  const geometry = handles.geometry('terrain.tile'), disposed = vi.spyOn(geometry, 'dispose');
+  expect(reads).toEqual(['tile.glb']); expect(geometry.getAttribute('position').count).toBe(3);
+  expect(Array.from(geometry.getAttribute('position').array)).toEqual([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+  expect(geometry.boundingBox?.max.toArray()).toEqual([1, 1, 0]);
+  context.scope.dispose(); expect(disposed).toHaveBeenCalledTimes(1);
+});
+
+
+test('a resident pool held across ancestor retirement publishes no native geometry', async () => {
+  const context = fixture(), resident = context.scope.child('retained.scene'), bytes = triangle('tile');
+  let release: (value: Uint8Array) => void = () => undefined, started: () => void = () => undefined;
+  const held = new Promise<Uint8Array>(resolve => { release = resolve; }), reading = new Promise<void>(resolve => { started = resolve; });
+  vi.spyOn(context.product, 'hasFile').mockReturnValue(true);
+  vi.spyOn(context.product, 'file').mockImplementation(() => { started(); return held; });
+  const { SceneHandles } = await import('../src/game/shardfile/sceneHandles');
+  const publish = vi.spyOn(SceneHandles.prototype, 'publish');
+  const rows = parseWorldScenes({ version: 1, materials: [], steps: [], libraries: [{ id: 'tiles', kind: 'pool', publish: 'terrain', files: [{ file: 'tile.glb', parts: ['tile'] }] }] });
+  const pending = installWorldScenes(context, rows, resident); await reading;
+  context.scope.onDisposeSteps(function* retirementSlices() { yield; yield; });
+  const retiring = context.scope.disposeSteps(); retiring.next();
+  expect(resident.disposed).toBe(false); expect(resident.disposing).toBe(true);
+  release(bytes); await expect(pending).rejects.toThrow('scene owner is retired');
+  expect(publish).not.toHaveBeenCalled();
+  while (retiring.next().done !== true) { /* complete the original native owner's retirement */ }
 });

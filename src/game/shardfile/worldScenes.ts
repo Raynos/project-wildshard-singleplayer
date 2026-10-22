@@ -39,6 +39,9 @@ import { timeClientPreparation } from './preparationTiming';
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
+function requireSceneOwner(owner: Scope): void {
+  if (owner.disposed || owner.disposing) throw new Error('World scene owner is retired');
+}
 interface Library {
   readonly geometry: (id: string) => BufferGeometry | null;
   readonly models?: Pick<ModelLibrary<string, string>, 'painted'>;
@@ -49,7 +52,7 @@ const residents = new WeakMap<Scope, WeakMap<ShardContext['product'], Promise<Sc
 /** Client-only scene host. Takes declared rows and an engine lifetime, never shard constructors or callbacks.
  * Results build once per resident/product and remain valid across entered play scopes. */
 export function installWorldScenes(ctx: ShardContext, input: WorldScenesSection, resident: Scope = ctx.scope): Promise<SceneHandles> {
-  if (resident.disposed) return Promise.reject(new Error('World scene resident is disposed'));
+  if (resident.disposed || resident.disposing) return Promise.reject(new Error('World scene resident is disposed or retiring'));
   let products = residents.get(resident);
   if (products === undefined) { products = new WeakMap(); residents.set(resident, products); }
   const previous = products.get(ctx.product); if (previous !== undefined) return previous;
@@ -286,8 +289,10 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
           }
           libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
         } else {
+          requireSceneOwner(owner);
           const models = worldScenePool(product, row);
           await models.preload(() => buildYield(owner));
+          requireSceneOwner(owner);
           if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
             const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
             owner.onDispose(() => { geometry.dispose(); }); handles.publish(`${row.publish}.${part}`, geometry);
