@@ -11408,3 +11408,22 @@ CSS paths in `bindings.entry.styles`. Discovery generates literal bundled
 imports and awaits them before its compiled runtime/native entry imports.
 There is no runtime path resolver, arbitrary module binding or style change;
 ordinary manifests without styles keep their original loader.
+
+### Site life after construction
+
+A WorldAssembly site may declare life as {file, root, cloud: {draw, look,
+pose}}. BuildingCloudPoseSchema defines the same finite scene-point pose,
+bounds, seeds and ordering as ordinary building clouds, including the rule
+that a parent requires a scene-point reference. The descriptor has no
+visibility, callback, phase or progress selector.
+
+The site preflights its original loaded FixedDraws, product file reader,
+root publication and optional lent material before construction. After the
+existing site slice, it publishes the site's original root and creates the
+cloud before reading the existing building-life JSON. Cold clouds keep the
+original invisible/default-material behaviour. The existing LivingBuildings
+look and life rows, initialDusk and update(0) initialize one buildings loan
+under the site id. Declared lending borrows that same construction owner.
+Scope retirement and changed draw, reader, root or material identities
+refuse later effects or publication. No additional slice, intake, clock,
+section or per-frame updater is installed by site construction.

@@ -158,11 +158,16 @@ export function emptyBuildingLifeRows(): BuildingLifeRows { return { doors: [], 
 export function parseBuildingLifeLook(input: unknown): BuildingLifeLook { return v.parse(BuildingLifeLookSchema, input); }
 export function parseBuildingLifeRows(input: unknown): BuildingLifeRows { return v.parse(BuildingLifeRowsSchema, input); }
 
+/** Original finite cloud pose fields, shared by scene clouds and site-life rows. */
+const cloudPose = { seeds: v.boolean(), name: v.pipe(v.string(), v.maxLength(256)), at: v.union([triple, ScenePointRefSchema]), center: triple,
+  radius: nonnegative, order: finite, parent: v.exactOptional(id) };
+/** A parent converts only a scene point into its local frame, never a numeric point. */
+export const BuildingCloudPoseSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'), v.strictObject(cloudPose),
+  v.check(row => row.parent === undefined || !Array.isArray(row.at), 'Cloud parent requires a scene point reference'));
 /** Visual recipe for an ordinary seed or baked-quad cloud. */
-export const BuildingCloudSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'), v.strictObject({
-  geometry: id, material: v.nullable(id), seeds: v.boolean(), name: v.pipe(v.string(), v.maxLength(256)), at: v.union([triple, ScenePointRefSchema]), center: triple,
-  radius: nonnegative, order: finite, visible: v.boolean(), parent: v.exactOptional(id),
-}), v.check(row => row.parent === undefined || !Array.isArray(row.at), 'Cloud parent requires a scene point reference'));
+export const BuildingCloudSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Building cloud requires plain JSON'),
+  v.strictObject({ geometry: id, material: v.nullable(id), ...cloudPose, visible: v.boolean() }),
+  v.check(row => row.parent === undefined || !Array.isArray(row.at), 'Cloud parent requires a scene point reference'));
 const frame = v.strictObject({ metalness: finite, roughness: finite, color: finite });
 /** Building appearance is independent of the shape library and the life clock. */
 export const BakedBuildingLookSchema = v.strictObject({ detail: list(id), far: list(id),

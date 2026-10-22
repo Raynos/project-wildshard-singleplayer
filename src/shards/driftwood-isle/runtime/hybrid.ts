@@ -55,7 +55,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (resident !== undefined) {
       for (const id of ['cover']) entryOwner(resident, 'placed', id);
       for (const id of ['cover']) lendEntryOwner(ctx.scope, resident, 'placed', id);
-      lendEntryOwner(ctx.scope, resident, 'buildings', 'shrine');
       lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.gulls');
       lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.cover');
     }

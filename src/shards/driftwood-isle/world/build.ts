@@ -18,11 +18,7 @@ import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import manifest from '../discovery.generated';
-import * as v from 'valibot';
-import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
-import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
-import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
-import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
+import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { createAmbientFlock } from '@wildshard/game/ambient/ambientFlock';
 import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
@@ -62,7 +58,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
   // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
-  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete, draws: fixedDrawLibrary(), physics: world.physics, fixed: game,
+  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete, product: driftwoodProduct(), draws: fixedDrawLibrary(), physics: world.physics, fixed: game,
     entry: { root: game.scene, tier: game.tier, physics: world.physics, piece: (piece) => { registry.add(piece); } } });
   const only = (id: string): Placed => { const [placed] = entryOwner(scope, 'placed', id); if (placed === undefined) throw new Error(`Driftwood ${id} placed nothing`); return placed; };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
@@ -92,18 +88,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const wreck = { group: entryOwner(scope, 'object', 'wreck'), placed: entryOwner(scope, 'placed', 'wreck'), anchors: structuredClone(wreckBake.anchors), holdBounds: { ...wreckBake.holdBounds }, floorHeightAt: entryOwner(scope, 'floor', 'wreck') };
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
   await stages.next('shrine');
-  const shrine = await (async () => {
-    const { baseY, terrace } = fixed.shrine.world, placed = { group: entryOwner(scope, 'object', 'shrine'), placed: only('shrine'),
-      anchors: entryOwner(scope, 'site', 'shrine'), floorHeightAt: entryOwner(scope, 'floor', 'shrine') };
-    const resources = scenes, graph = driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, lit = hasLentLook(graph);
-    resources.publish('shrine.root', placed.group);
-    placed.group.add(createBuildingCloud(resources, { geometry: resources.lend(fixedDraw('shrineFireflies').copy()), material: lit ? resources.lend(lentLook(graph)) : null,
-      seeds: false, name: 'shrine-fireflies', at: { point: 'shrine.root', offset: [0, baseY, 0] }, parent: 'shrine.root', center: [0, terrace - baseY, 0], radius: 18, order: 4, visible: lit }));
-    const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await driftwoodProduct().file('world/building-life.json'))));
-    const life = new LivingBuildings(resources, data.look); life.add(data.life); life.setDusk(data.initialDusk); life.update(0);
-    publishEntryOwner(scope, 'buildings', 'shrine', life);
-    return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
-  })();
+  const shrineLife = entryOwner(scope, 'buildings', 'shrine');
+  const shrine = { group: entryOwner(scope, 'object', 'shrine'), placed: only('shrine'), anchors: entryOwner(scope, 'site', 'shrine'),
+    floorHeightAt: entryOwner(scope, 'floor', 'shrine'), update: shrineLife.update.bind(shrineLife), setDusk: shrineLife.setDusk.bind(shrineLife) };
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   for (const row of assembly.piers.slice(1)) await stages.next(row.id);
   await slice();

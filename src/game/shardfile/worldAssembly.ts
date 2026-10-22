@@ -1,3 +1,8 @@
+import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
+import { LivingBuildings } from './livingBuildings';
+import { createBuildingCloud } from './buildingCloud';
+import { hasLentLook, lentLook } from './lentLooks';
+import type { ShardProduct } from './shardProduct';
 import { RopeDeckSite } from '../models/ropeDeckSite';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -23,6 +28,8 @@ export interface WorldAssemblyPorts {
   readonly registry: WorldRegistry | null;
   /** Original already-loaded templates; no stage creates a second intake. */
   readonly draws?: FixedDraws;
+  /** The original admitted product reader; site life never creates an intake. */
+  readonly product?: Pick<ShardProduct, 'file'>;
   /** Original simulation and fixed-post registration authority for rope chains. */
   readonly physics?: Physics;
   readonly fixed?: Pick<Game, 'onFixed'>;
@@ -57,7 +64,16 @@ export class WorldAssembly {
     const { scope, scenes } = this.ports;
     // a retired or retiring construction (a sliced ancestor retirement) allocates and publishes nothing more
     const live = (): void => { if (scope.disposed || scope.disposing) throw new Error('World assembly owner left'); };
-    live(); this.at++;
+    live();
+    const lifeRow = stage.kind === 'site' ? stage.life : undefined;
+    const lifePorts = lifeRow === undefined ? undefined : (() => {
+      const draws = this.ports.draws, product = this.ports.product;
+      if (draws === undefined || !draws.ready || product === undefined) throw new Error('World site life needs loaded draws and its product');
+      const draw = draws.handle(lifeRow.cloud.draw), material = hasLentLook(lifeRow.cloud.look) ? lentLook(lifeRow.cloud.look) : null;
+      if (scenes.has(lifeRow.root)) throw new Error('World site life root is already published');
+      return { draws, draw, product, read: product.file, material };
+    })();
+    this.at++;
     if (stage.kind === 'rope-deck') {
       const draws = this.ports.draws, registry = this.ports.registry;
       if (draws === undefined || !draws.ready) throw new Error('World rope deck needs loaded fixed draws');
@@ -97,6 +113,27 @@ export class WorldAssembly {
     } else publishEntryOwner(scope, 'object', stage.id, stage.kind === 'mesh' ? scenes.mesh(stage.part) : scenes.group(stage.part));
     await this.ports.slice(stage.label);
     live();
+    if (lifeRow !== undefined && lifePorts !== undefined) {
+      const group = entryOwner(scope, 'object', stage.id);
+      const unchanged = (): void => {
+        live();
+        const material = hasLentLook(lifeRow.cloud.look) ? lentLook(lifeRow.cloud.look) : null;
+        if (this.ports.product !== lifePorts.product || lifePorts.product.file !== lifePorts.read || this.ports.draws !== lifePorts.draws || !lifePorts.draws.ready
+          || lifePorts.draws.handle(lifeRow.cloud.draw) !== lifePorts.draw || material !== lifePorts.material
+          || entryOwner(scope, 'object', stage.id) !== group) throw new Error('World site life owners changed');
+      };
+      unchanged();
+      scenes.publish(lifeRow.root, group);
+      group.add(createBuildingCloud(scenes, { ...lifeRow.cloud.pose, geometry: scenes.lend(lifePorts.draw.copy()),
+        material: lifePorts.material === null ? null : scenes.lend(lifePorts.material), visible: lifePorts.material !== null }));
+      const bytes = await lifePorts.product.file(lifeRow.file);
+      unchanged();
+      if (scenes.object(lifeRow.root) !== group) throw new Error('World site life root changed');
+      const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema,
+        initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+      const life = new LivingBuildings(scenes, data.look); life.add(data.life); life.setDusk(data.initialDusk); life.update(0);
+      unchanged(); publishEntryOwner(scope, 'buildings', stage.id, life);
+    }
   }
 
   /** Every declared stage ran. */
@@ -126,10 +163,10 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 }
 
 /** The loan kinds a stage publishes, from its declaration alone. */
-function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain')[] {
+function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings')[] {
   if (stage.kind === 'rope-deck') return ['object', 'placed', 'floor', 'rope-deck'];
   if (stage.kind === 'rope-chain') return ['chain'];
-  if (stage.kind === 'site') return ['object', 'placed', 'site', 'floor'];
+  if (stage.kind === 'site') return ['object', 'placed', 'site', 'floor', ...stage.life === undefined ? [] : ['buildings'] as const];
   if (stage.kind === 'place') return ['object', 'placed', 'floor'];
   if (stage.kind === 'entry') return ['placed', ...stage.object === undefined ? [] : ['object'] as const, ...stage.floor === undefined ? [] : ['floor'] as const];
   return ['object'];
