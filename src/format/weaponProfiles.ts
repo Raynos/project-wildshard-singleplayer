@@ -223,6 +223,12 @@ export const HeldFirearmViewSchema = v.looseObject({ kick: real, port: vec3,
   flash: v.strictObject({ frames: real, lightTime: real, light: real, size: v.exactOptional(real) }),
   brass: v.strictObject({ count: real, life: real }), tracer: v.strictObject({ count: real, time: real }),
 });
+/** Complete baked firearm page; product admission validates it before native allocation. */
+export const HeldFirearmPageSchema = v.object({
+  feel: v.looseObject({ ads: v.looseObject({ blend: real }) }),
+  view: HeldFirearmViewSchema, rows: HeldFirearmRowsSchema,
+});
+
 /** Admit complete playback without changing the existing firearm controller. */
 export function parseHeldFirearmRows(input: unknown): v.InferOutput<typeof HeldFirearmRowsSchema> { return v.parse(HeldFirearmRowsSchema, input); }
 /** Admit camera/pool rows before the held owner allocates them. */

@@ -1,9 +1,8 @@
 import { parse } from 'valibot';
-import * as v from 'valibot';
 import type { ShardContext } from '../plugin/context';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { HeldFirearm } from '../plugin/heldFirearm';
-import { FirearmWeaponProfileSchema,parseHeldFirearmRows,parseHeldFirearmView } from '@wildshard/format/weaponProfiles';
+import { HeldFirearm, type HeldFirearmProfile, type HeldFirearmView, type HeldFirearmRows } from '../plugin/heldFirearm';
+import { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { bindRuntimeEquipment } from '../plugin/headless';
 import type { VariantBowPower } from '../weapons/bowVariant';
 import { MountedLoadoutSchema, type MountedLoadoutRows } from '@wildshard/format/loadout';
@@ -62,11 +61,11 @@ export class MountedArsenal {
     ctx.scope.onDispose(()=>{this.pageKits.delete(ctx.scope);});
     runtime.buildEquipment=async(targets,allowUnlocked)=>{
       const kit=await this.build(world,targets,allowUnlocked,ctx.product.shardfile.items);await macrotask();
-      const data=v.parse(v.object({feel:v.looseObject({ads:v.looseObject({blend:v.number()})}),view:v.unknown(),rows:v.unknown()}),await ctx.product.json<unknown>(page.firearm.file));
+      const data=await ctx.product.json<{feel:Pick<HeldFirearmProfile,'ads'>;view:HeldFirearmView;rows:HeldFirearmRows}>(page.firearm.file);
       const item=ctx.product.shardfile.items.rows.find(row=>row.id===page.firearm.item);
       const profile={...parse(FirearmWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined),...data.feel};
       const rifle=new HeldFirearm(world,targets,{row:catalogue.equipment(page.firearm.item),allowUnlocked,muzzleLight:page.firearm.muzzleLight,
-        profile,view:parseHeldFirearmView(data.view),rows:parseHeldFirearmRows(data.rows),model:{}});
+        profile,view:data.view,rows:data.rows,model:{}});
       if(ctx.scope.disposed)throw new Error('Mounted page left during equipment assembly');
       bindRuntimeEquipment(ctx,ctx.product.shardfile,[kit.bow,kit.sabre,kit.spear,rifle].map(weapon=>{
         const source=ctx.product.shardfile.items.rows.find(row=>row.id===weapon.row.id);return {id:weapon.row.id,weapon,profile:source?.kind==='weapon'?source.profile:undefined};
