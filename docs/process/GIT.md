@@ -59,6 +59,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     caller-owned indexes, not Git's validated temporary pathspec index; every other hook still checks that index.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
   60 seconds. Lanes commit their green source; `scripts/push-main.sh` requests one scheduled tick when needed.
+  These are temporary coordinator processes, never launchd services (G582). `scripts/sp-tools.sh start` opens
+  one Herdr pane named `sp-tools` with push, CI, smoke and lane-watchdog processes plus a 15-minute active-check
+  wake for sp-x7. `scripts/sp-tools.sh stop` stops scheduling and drains active ticks; `status` identifies its owner.
+  Tool source lives in `scripts/`; disposable tool logs live in `tmp/sp-tools/`. The pane inherits the current
+  tool environment without version-pinned Codex PATH entries.
   Never run `git push` or start the retired carrier/full local push gate.
 - **The local push gate has a 45-second ceiling and checks committed source only.** It checks changed roots' types,
   oxlint on changed files, then related tests within the remaining budget. Foreign working or staged edits never

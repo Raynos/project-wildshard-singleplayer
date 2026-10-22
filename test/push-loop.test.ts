@@ -7,6 +7,7 @@ import { liveTests, sourceInputs } from '../scripts/push-inputs.mjs';
 
 test('live checks, prefix uploads, refusal retries and CI notifications', () => {
   execFileSync('python3', ['scripts/test_push_loop.py'], { encoding: 'utf8', timeout: 30_000 });
+  execFileSync('python3', ['scripts/test_sp_tools.py'], { encoding: 'utf8', timeout: 30_000 });
 });
 
 test('failure attribution follows real transitive source imports', () => {

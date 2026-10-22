@@ -15,7 +15,7 @@ PUSH = runpy.run_path(str(ROOT / 'scripts/push-loop.py'))
 LIVE = PUSH['LIVE']
 WATCH = runpy.run_path(str(ROOT / 'scripts/ci-watch.py'))
 CACHE = runpy.run_path(str(ROOT / 'scripts/push_input_cache.py'))
-INSTALL = runpy.run_path(str(ROOT / 'scripts/install-push-loop.py'))
+TOOLS = runpy.run_path(str(ROOT / 'scripts/sp-tools.py'))
 
 
 class PushLoop(unittest.TestCase):
@@ -49,15 +49,15 @@ class PushLoop(unittest.TestCase):
         self.git('commit', '-qm', 'fixture')
         return self.git('rev-parse', 'HEAD')
 
-    def test_schedules_keep_the_notification_session_without_a_stale_pane(self):
-        context = {'HERDR_SESSION': 'fixture', 'HERDR_SOCKET_PATH': '/fixture/herdr.sock',
-                   'HERDR_PANE_ID': 'w1:p1'}
-        jobs = INSTALL['jobs'](self.root, sys.executable, '/bin', context)
-        self.assertEqual(len(jobs), 2)
-        for job in jobs:
-            self.assertEqual(job['EnvironmentVariables'], {
-                'PATH': '/bin', 'HERDR_ENV': '1', 'HERDR_SESSION': 'fixture',
-                'HERDR_SOCKET_PATH': '/fixture/herdr.sock'})
+    def test_pane_environment_drops_ephemeral_codex_path_and_keeps_session(self):
+        context = {'HERDR_ENV': '1', 'HERDR_SESSION': 'fixture',
+                   'HERDR_SOCKET_PATH': '/fixture/herdr.sock', 'HERDR_PANE_ID': 'w1:p1',
+                   'PATH': '/Users/me/.codex/packages/standalone/releases/old/codex-path:/bin:/Users/me/.codex/tmp/arg0/tool:/usr/local/bin:/bin'}
+        cleaned = TOOLS['environment'](context)
+        self.assertEqual(cleaned['PATH'], '/bin:/usr/local/bin')
+        self.assertEqual(cleaned['HERDR_SESSION'], 'fixture')
+        self.assertEqual(cleaned['HERDR_SOCKET_PATH'], '/fixture/herdr.sock')
+        self.assertEqual(context['PATH'].split(':')[0], '/Users/me/.codex/packages/standalone/releases/old/codex-path')
 
     def test_green_checks_only_live_types_lint_and_budgeted_tests(self):
         tip = self.commit('src/good.ts')

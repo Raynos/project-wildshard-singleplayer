@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One launchd tick: live checks, safe prefix upload, lane notification. No history edits."""
+"""One temporary push tick: live checks, safe prefix upload, lane notification. No history edits."""
 import hashlib
 import json
 import os

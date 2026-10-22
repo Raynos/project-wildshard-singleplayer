@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One five-minute launchd tick; notify each failed CI revision once."""
+"""One temporary CI observation; notify each failed CI revision once."""
 import json
 from pathlib import Path
 import runpy
