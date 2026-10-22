@@ -3,7 +3,8 @@
     "pond": "pine-water-pond",
     "creek": "pine-water-creek",
     "trickle": "pine-water-trickle",
-    "puddle": "pine-water-puddle"
+    "puddle": "pine-water-puddle",
+    "pool": "pine-water-pool"
   },
   "surfaces": {
     "creek": {
@@ -12,7 +13,7 @@
       "renderOrder": 6
     },
     "pool": {
-      "look": "pine-water-creek",
+      "look": "pine-water-pool",
       "name": "beaver-pool",
       "renderOrder": 5,
       "transition": {

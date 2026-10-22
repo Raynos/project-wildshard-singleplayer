@@ -14,10 +14,12 @@ const { looks: WATER_LOOKS, surfaces: WATER_SURFACES } = waterRows;
 export function pineWaterSurface(kind: keyof typeof WATER_SURFACES, geometry: THREE.BufferGeometry): THREE.Mesh {
   return drawPineWater(kind, geometry).mesh;
 }
-/** Bind a mutable surface to its admitted per-vertex bed. */
-export function drawPineWater(kind: keyof typeof WATER_SURFACES, geometry: THREE.BufferGeometry, ground?: readonly number[]): PineWaterSurface {
+/** a water surface that can carry a level transition (the pool) */
+export function drawPineWater(kind: keyof typeof WATER_SURFACES, geometry: THREE.BufferGeometry): PineWaterSurface {
   const row = WATER_SURFACES[kind];
-  return new PineWaterSurface(row, { material: lentLook(row.look) }).draw(geometry, ground === undefined ? {} : { ground });
+  return new PineWaterSurface(row, { material: lentLook(row.look) }).draw(geometry);
 }
 /** scale a water look's alpha */
 export function setWaterFade(look: keyof typeof WATER_LOOKS, fade: number): void { setLentParam(WATER_LOOKS[look], 'fade', fade); }
+/** the pool look's live level (its vertex stage lowers the surface over the bed) */
+export function setPoolLevel(level: number): void { setLentParam(WATER_LOOKS.pool, 'level', level); }

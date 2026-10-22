@@ -1,10 +1,9 @@
-/** Listed Pine view code: per-frame wet-bed projection for the beaver pool.
- * The shared surface owns drawing; Pine owns its reversible lowering look. */
-import type * as THREE from 'three';
+/** Pine's reversible pool lowering: the eased level the story's open / shut selects. The pool's look graph
+ * (generators/waterGraphs.ts, `level`) stands each vertex at it over the baked bed, so no vertex is rewritten here. */
 import * as v from 'valibot';
 import { WaterSurfaceSchema } from '@wildshard/format/water';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { WaterSurface, type WaterSurfaceDraw, type WaterSurfaceLook } from '@wildshard/game/systems/looks/waterSurface';
+import { WaterSurface, type WaterSurfaceLook } from '@wildshard/game/systems/looks/waterSurface';
 
 const finite = v.pipe(v.number(), v.finite());
 const transition = v.strictObject({ full: finite, lowered: finite,
@@ -17,7 +16,6 @@ const schema = v.strictObject({ ...WaterSurfaceSchema.entries, transition: v.exa
 /** Local presentation only; story commands select the full or lowered state. */
 export class PineWaterSurface extends WaterSurface {
   private readonly transition: v.InferOutput<typeof transition> | undefined;
-  private ground = new Float32Array(0);
   private travel = 0;
   private lowered = false;
   constructor(input: unknown, look: WaterSurfaceLook) {
@@ -27,13 +25,7 @@ export class PineWaterSurface extends WaterSurface {
   }
   /** Reveal of the trickle from the pool's normalized travel band. */
   get reveal(): number { const band = this.transition?.reveal; return band === undefined ? 0 : smoothstep(band[0], band[1], this.travel); }
-  override draw(geometry: THREE.BufferGeometry, at: WaterSurfaceDraw & { readonly ground?: readonly number[] } = {}): this {
-    const row = this.transition;
-    if (row !== undefined && (at.ground?.length !== geometry.getAttribute('position').count
-      || !at.ground.every(Number.isFinite) || !geometry.hasAttribute(row.depth))) throw new Error('Water transition requires matching bed and depth channels');
-    this.ground = Float32Array.from(at.ground ?? []);
-    super.draw(geometry, at); this.applyLevel(); return this;
-  }
+  override draw(...args: Parameters<WaterSurface['draw']>): this { super.draw(...args); this.applyLevel(); return this; }
   /** Saved state can settle immediately without an animation. */
   setLowered(lowered: boolean, instant = false): void {
     if (this.transition === undefined) throw new Error('Water surface has no level transition');
@@ -43,20 +35,7 @@ export class PineWaterSurface extends WaterSurface {
   private applyLevel(): void {
     const row = this.transition;
     if (row === undefined) return;
-    const eased = 1 - (1 - this.travel) ** row.exponent;
-    this.level = row.full + (row.lowered - row.full) * eased;
-    const geometry = this.mesh.geometry, position = geometry.getAttribute('position'), depth = geometry.getAttribute(row.depth);
-    for (let i = 0; i < position.count; i++) {
-      const h = this.ground[i]; if (h === undefined) throw new Error('Missing admitted water bed');
-      const d = this.level - h;
-      let y = this.level, code = d;
-      if (d < 0) {
-        if (h < row.full) { y = h + row.lift; code = Math.max(d, row.film); }
-        else if (d > row.bank) y = h + row.lift;
-      }
-      position.setY(i, y); depth.setX(i, code);
-    }
-    position.needsUpdate = true; depth.needsUpdate = true;
+    this.level = row.full + (row.lowered - row.full) * (1 - (1 - this.travel) ** row.exponent);
   }
   override update(dt: number): void {
     const row = this.transition, goal = this.lowered ? 1 : 0;

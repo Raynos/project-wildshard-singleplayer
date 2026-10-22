@@ -34,7 +34,10 @@ const FOREST = [0.035, 0.052, 0.03], SHALLOW = [0.042, 0.04, 0.02], DEEP = [0.00
 
 const INV_PI = 1 / Math.PI;
 
-function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
+/** a pool's lowering (data/waterLook.json surfaces.pool.transition): its full level and the bed's lift, film and bank */
+interface PoolLowering { readonly full: number; readonly lift: number; readonly film: number; readonly bank: number }
+
+function waterGraph(sinEl: number, skyline: boolean, puddle: boolean, pool?: PoolLowering): GraphIr {
   const nodes: Record<string, GraphNode> = {};
   let next = 0;
   const op = (name: string, inputs?: readonly GraphRef[], extra?: Omit<GraphNode, 'op' | 'in'>): string => {
@@ -49,7 +52,19 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
   const hash = (c: GraphRef): string => op('fract', [mul(op('sin', [dot(c, [12.9898, 78.233])]), 43758.5453)]);
 
   const water = op('attribute', undefined, { name: 'aWater', type: 'vec4' });
-  const depthW = swz(water, 'x'), flowK = swz(water, 'y'), kAbs = swz(water, 'w');
+  // a lowering pool: its vertices are baked at the full level with aWater.x = full - bed, so the vertex stage stands each
+  // at the live `level` (or a lift over the bed where the water has left it) and hands the fragment the depth code
+  // (the wet film's floor where a bed above the full line dries, else level - bed)
+  let depthW = swz(water, 'x'), position: string | undefined;
+  if (pool !== undefined) {
+    const level = param('level'), bed = sub(pool.full, depthW), d = sub(level, bed), lifted = add(bed, pool.lift);
+    const below = op('lt', [d, 0]), under = op('lt', [bed, pool.full]);
+    const y = op('select', [below, op('select', [under, lifted, op('select', [op('gt', [d, pool.bank]), lifted, level])]), level]);
+    const pG = op('positionGeometry');
+    position = op('combine', [swz(pG, 'x'), y, swz(pG, 'z')]);
+    depthW = op('varying', [op('select', [below, op('select', [under, op('max', [d, pool.film]), d]), d])]);
+  }
+  const flowK = swz(water, 'y'), kAbs = swz(water, 'w');
   // still water's map coordinates are world x / z (the pond, the puddles: no uv attribute needed), running water's its uv
   const pw = op('positionWorld'), eye = op('cameraPosition'), uvm = skyline || puddle ? swz(pw, 'xz') : op('uv'), T = op('windTime'), wd = op('windDirection');
   const rain = param('rain');
@@ -166,8 +181,9 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
       skyC: { type: 'vec4', value: [0, 0, 0, 0], min: -100000, max: 100000 },
       skyOn: { type: 'float', value: skyline ? 1 : 0, min: 0, max: 1 }, sinEl: { type: 'float', value: sinEl, min: -1, max: 1 },
       fade: { type: 'float', value: 1, min: 0, max: 1 }, rain: { type: 'float', value: 0, min: 0, max: 1 }, topDown: { type: 'float', value: 0, min: 0, max: 1 },
+      ...(pool === undefined ? {} : { level: { type: 'float' as const, value: pool.full, min: -1000, max: 1000 } }),
     },
-    nodes, stages: { 'vertex.scale': { fog: 0.5 }, surface: { colour: bodyK, alpha, roughness: r, metalness: 0, normal },
+    nodes, stages: { ...(position === undefined ? {} : { 'vertex.position': { position } }), 'vertex.scale': { fog: 0.5 }, surface: { colour: bodyK, alpha, roughness: r, metalness: 0, normal },
       lighting: { sun, ambient } },
   };
 }
@@ -176,4 +192,5 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
 export const WATER_GRAPHS: Readonly<Record<string, GraphIr>> = {
   [WATER_LOOKS.pond]: waterGraph(0.22, true, false), [WATER_LOOKS.creek]: waterGraph(0.3, false, false),
   [WATER_LOOKS.trickle]: waterGraph(0.3, false, false), [WATER_LOOKS.puddle]: waterGraph(0.12, false, true),
+  [WATER_LOOKS.pool]: waterGraph(0.3, false, false, waterRows.surfaces.pool.transition),
 };
