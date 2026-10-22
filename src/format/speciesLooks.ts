@@ -3,6 +3,7 @@ import { isJsonData } from './json';
 import { SpeciesSchema } from './speciesPrograms';
 import { SkinClipNameSchema } from './skinData';
 import { NumericPoseSchema } from './clientChannels';
+import { RidingPresentationSchema } from './riding';
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(4096)),number=v.pipe(v.number(),v.finite()),rgb=v.tuple([number,number,number]);
 const fur = v.object({ texSeed: number, tex: v.object({ contrast: number, grizzle: number, normalStrength: number,
@@ -33,9 +34,15 @@ const DerivedSpeciesSchema = v.strictObject({ from: text, label: text,
   rig: v.strictObject({ skeleton: text, sockets: v.array(text), bones: v.array(v.object({ name: text, parent: v.nullable(text), pos: rgb })), dims,
     spec: v.unknown(), blend: v.unknown(), clips: v.unknown() }),
   think: v.literal('external'), damage: v.literal('roamingBoss') });
+const part=v.tuple([v.number(),v.number(),v.number(),v.array(v.tuple([v.number(),v.number(),v.number()])),v.picklist(['u16','u32'])]);
+/** Packed creature bodies in compact form: shared attribute layouts and skeletons, each part [count, indexCount, start,
+ *  groups, index]; the hull book expands them to the packed body owner's rows. */
+export const CompactSpeciesBodiesSchema=v.object({file:v.string(),bytes:v.number(),attrs:v.array(v.tuple([v.string(),v.picklist(['f32','u16']),v.number(),v.boolean()])),skeletons:v.array(v.object({bones:v.unknown(),dims:v.unknown()})),
+ rows:v.array(v.object({kind:v.string(),variant:v.string(),skeleton:v.number(),fur:v.array(part),hard:v.array(part),eye:v.array(part)}))});
+export type CompactSpeciesBodiesRows=v.InferOutput<typeof CompactSpeciesBodiesSchema>;
 /** Rigged hull looks compose shared fauna or declared rest bodies with authored coat and joint rows. */
 export const HullLookBookSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({ slug: text,
-  body: v.exactOptional(v.unknown()), definitions: v.record(text, HullSpeciesSchema), derived: v.optional(v.record(text, DerivedSpeciesSchema), {}), rows: v.pipe(v.array(v.strictObject({
+  body: v.exactOptional(v.unknown()), compactBody: v.exactOptional(CompactSpeciesBodiesSchema), definitions: v.record(text, HullSpeciesSchema), derived: v.optional(v.record(text, DerivedSpeciesSchema), {}), rows: v.pipe(v.array(v.strictObject({
     id: text, species: text, kind: text, base: v.picklist(['boar', 'bear', 'definition', 'registered']),
     required: v.boolean(), variants: v.exactOptional(v.record(text, variantLook)), postPose: v.exactOptional(NumericPoseSchema),
   })), v.maxLength(256)) }));
@@ -46,7 +53,17 @@ export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData)
   poses: v.record(text, NumericPoseSchema),
   rows: v.pipe(v.array(v.strictObject({ id: text, species: text, kind: text, skeleton: text,
     sockets: v.array(text), clips: v.array(SkinClipNameSchema), pose: v.exactOptional(text),
-    rig: v.exactOptional(v.picklist(['quadruped', 'custom'])), family: v.exactOptional(text), variants: v.exactOptional(v.record(text, text)),
+    rig: v.exactOptional(v.picklist(['quadruped', 'custom'])), family: v.exactOptional(text),
+    // each variant's packed body key, or that key with its coat tints and build traits
+    variants: v.exactOptional(v.record(text, v.union([text, v.strictObject({ body: text, tint: v.exactOptional(v.record(text, rgb)),
+      traits: v.exactOptional(v.record(text, v.union([number, v.boolean()]))) })]))),
+    // G600 L8 / G602 (the hull book's packed looks): a painterly body material, the book's rigged hull skins, the alive /
+    // dead post-pose programmes (`poses` ids) with the mount's riding envelopes on the alive one, a stance and a gait
+    material: v.exactOptional(v.strictObject({ family: v.literal('painterly'), rim: number, bands: number })),
+    hulls: v.exactOptional(v.literal(true)),
+    postPose: v.exactOptional(v.strictObject({ alive: text, dead: v.exactOptional(text), envelopes: v.exactOptional(RidingPresentationSchema) })),
+    stance: v.exactOptional(v.strictObject({ grazeNeck: number, gallopTail: number })),
+    gait: v.exactOptional(v.strictObject({ trot: number, gallop: number })),
     standMem: v.exactOptional(v.record(text, number)), eyeGlow: v.exactOptional(rgb), eyeGlowIntensity: v.exactOptional(number),
     lift: v.exactOptional(v.tuple([number, number, number, number])),
     // the faceted body's per-facet jitter (0: a painted body's flat facets)

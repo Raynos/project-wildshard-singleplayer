@@ -1306,14 +1306,16 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
       if (new Set(book.rows.map(row => row.id)).size !== book.rows.length || new Set(book.rows.map(row => row.kind)).size !== book.rows.length) throw new Error('Duplicate packed creature look');
       const all = book.rows.map((row): SpeciesLook => {
         const family = row.family ?? row.kind;
-        if (!bake.bodies.some(body => body.kind === family) || Object.values(row.variants ?? {}).some(variant => !keys.has(JSON.stringify([family, variant])))) throw new Error('Missing packed creature look body');
+        const bodyKey = (source: NonNullable<typeof row.variants>[string]): string => typeof source === 'string' ? source : source.body;
+        if (!bake.bodies.some(body => body.kind === family) || Object.values(row.variants ?? {}).some(variant => !keys.has(JSON.stringify([family, bodyKey(variant)])))) throw new Error('Missing packed creature look body');
         const poseRows = row.pose === undefined ? undefined : book.poses[row.pose];
         if (row.pose !== undefined && poseRows === undefined) throw new Error('Missing packed creature joint pose');
         const pose = poseRows === undefined ? undefined : numericCreaturePose(poseRows);
         const look: SpeciesLook = { id: row.id, species: row.species, kind: row.kind, fur: NO_FUR,
           rigContract: { skeleton: row.skeleton, sockets: row.sockets, clips: row.clips },
           build: variant => {
-            const key = row.variants === undefined ? variant.id : row.variants[variant.id]; if (key === undefined) throw new Error('Unknown packed creature look variant');
+            const source = row.variants?.[variant.id], key = row.variants === undefined ? variant.id : source === undefined ? undefined : bodyKey(source);
+            if (key === undefined) throw new Error('Unknown packed creature look variant');
             const body = catalogue.copy(family, key); return row.facetJitter === undefined ? body : { ...body, facetJitter: row.facetJitter };
           },
         };

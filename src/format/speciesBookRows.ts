@@ -4,7 +4,7 @@ import { SpeciesSchema } from './speciesPrograms';
 import { RidingPresentationSchema } from './riding';
 import { CreatureStrikeSchema } from './creatures';
 import { SkinClipNameSchema } from './skinData';
-import { SpeciesGroupSchema, DirectedSpeciesSchema } from './speciesLooks';
+import { SpeciesGroupSchema, DirectedSpeciesSchema, CompactSpeciesBodiesSchema } from './speciesLooks';
 
 const guestNumber=v.pipe(v.number(),v.finite()),key=v.pipe(v.string(),v.minLength(1),v.maxLength(96),v.check(value=>!['__proto__','prototype','constructor'].includes(value)));
 /** The admitted guest owns every decision. Rows specify observation defaults,
@@ -37,12 +37,8 @@ const book=v.object({slug:text,body:v.unknown(),poses:v.optional(v.record(text,v
 });
 
 export const SpeciesLookBookSchema=v.pipe(v.unknown(),v.check(isJsonData),book);
-const part=v.tuple([v.number(),v.number(),v.number(),v.array(v.tuple([v.number(),v.number(),v.number()])),v.picklist(['u16','u32'])]);
-export const CompactSpeciesBodiesSchema=v.object({file:v.string(),bytes:v.number(),attrs:v.array(v.tuple([v.string(),v.picklist(['f32','u16']),v.number(),v.boolean()])),skeletons:v.array(v.object({bones:v.unknown(),dims:v.unknown()})),
- rows:v.array(v.object({kind:v.string(),variant:v.string(),skeleton:v.number(),fur:v.array(part),hard:v.array(part),eye:v.array(part)}))});
 /** Complete packed metadata is checked before the native geometry owner allocates. */
 export const NativeSpeciesLookBookSchema=v.pipe(v.unknown(),v.check(isJsonData),v.object({...book.entries,body:CompactSpeciesBodiesSchema}));
-export type CompactSpeciesBodiesRows=v.InferOutput<typeof CompactSpeciesBodiesSchema>;
 export type NativeSpeciesLookBookRows=v.InferOutput<typeof NativeSpeciesLookBookSchema>;
 const poseConfig=v.object({prefix:v.string(),group:v.string(),scalars:v.array(v.unknown()),look:v.exactOptional(v.unknown()),alive:v.exactOptional(v.boolean())});
 const cracks=v.object({attrs:v.array(v.tuple([v.string(),v.picklist(['f32','u16']),v.number(),v.boolean()])),count:v.number(),index:v.literal('u32'),indexCount:v.number(),box:v.boolean()});

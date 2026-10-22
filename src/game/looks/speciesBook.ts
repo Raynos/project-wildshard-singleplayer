@@ -9,11 +9,11 @@ import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';
 import { packedCreatureBodies,type BakedGeometryRow } from '../plugin/geometry';
 import { productRiggedHulls } from './riggedHulls';
-import { HullLookBookSchema } from '@wildshard/format/speciesLooks';
-import type { CompactSpeciesBodiesRows, NativeSpeciesLookBookRows } from '@wildshard/format/speciesBookRows';
+import { HullLookBookSchema, PackedCreatureLooksSchema, type CompactSpeciesBodiesRows } from '@wildshard/format/speciesLooks';
+import type { NativeSpeciesLookBookRows } from '@wildshard/format/speciesBookRows';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { hasSpecies, registerSpecies, speciesDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { roamingBossDamage } from '../boss/roamingProjection';
 import { limbAnimation } from '../animation/limbView';
 import { BOAR_LOOK } from '../systems/species/view/boar';
@@ -30,8 +30,9 @@ export class HullLookBook {
     if (new Set(this.book.rows.map(row => row.kind)).size !== this.book.rows.length
       || new Set(this.book.rows.map(row => row.id)).size !== this.book.rows.length
       || this.book.rows.some(row => row.base === 'definition' && this.book.definitions[row.kind] === undefined)) throw new Error('Invalid hull look references');
-    this.hulls = this.book.body === undefined ? productRiggedHulls(this.book.slug) : undefined;
-    this.bodies = this.book.body === undefined ? undefined : packedCreatureBodies(this.book.body);
+    const packed = this.book.body ?? (this.book.compactBody === undefined ? undefined : expandCompactBodies(this.book.compactBody));
+    this.hulls = packed === undefined ? productRiggedHulls(this.book.slug) : undefined;
+    this.bodies = packed === undefined ? undefined : packedCreatureBodies(packed);
   }
   /** The same packed owner supplies custom rigs and ordinary fauna without retaining another bake. */
   get packed(): ReturnType<typeof packedCreatureBodies> { if (this.bodies === undefined) throw new Error('Look book has no packed bodies'); return this.bodies; }
@@ -76,6 +77,44 @@ export class HullLookBook {
   }
   /** Authored order is shared by page installation and cold specimen preparation. */
   get looks(): readonly SpeciesLook[] { return this.book.rows.map(row => this.look(row.kind)); }
+  /** G600 L8 / G602: the packed bodies' looks (`PackedCreatureLooksSchema` rows) with each row's optional coat tints and
+   *  traits, painterly material, rigged hull skins (the book's slug), alive / dead post-pose programmes (riding envelopes
+   *  on the alive one), stance and gait. `pose` runs one of the rows' programmes over a borrowed rig. Rows only. */
+  packedLooks(input: unknown): { readonly all: readonly SpeciesLook[]; get: (kind: string) => SpeciesLook; pose: (id: string, context: AnimalRigContext) => void } {
+    const book = v.parse(PackedCreatureLooksSchema, input), packed = this.packed, base = packed.looks(book);
+    const programmes = new Map(Object.entries(book.poses).map(([id, row]) => [id, numericCreaturePose(row)] as const));
+    const envelopes = new Map(book.rows.flatMap(row => row.postPose?.envelopes === undefined ? [] : [[row.postPose.alive, row.postPose.envelopes] as const]));
+    const pose = (id: string, context: AnimalRigContext): void => {
+      const programme = programmes.get(id); if (programme === undefined) throw new Error('Missing species pose programme');
+      const envelope = envelopes.get(id); if (envelope !== undefined) poseRidingEnvelopes(context, envelope, wildEnv.wind);
+      programme(context);
+    };
+    let hulls: ReturnType<typeof productRiggedHulls> | undefined;
+    const skins = (): ReturnType<typeof productRiggedHulls> => { hulls ??= productRiggedHulls(this.book.slug); return hulls; };
+    const all = book.rows.map((row): SpeciesLook => {
+      const look = base.get(row.kind), kind = row.kind, post = row.postPose, material = row.material;
+      if (post !== undefined && (!programmes.has(post.alive) || post.dead !== undefined && !programmes.has(post.dead))) throw new Error('Missing species pose programme');
+      const coats = Object.entries(row.variants ?? {}).flatMap(([id, source]) => typeof source === 'string' ? [] : [[id, {
+        ...(source.tint === undefined ? {} : { tint: source.tint }), ...(source.traits === undefined ? {} : { traits: source.traits }) }] as const]);
+      return Object.assign<SpeciesLook, Partial<SpeciesLook>>(look, {
+        ...(coats.length === 0 ? {} : { variants: Object.fromEntries(coats) }),
+        ...(material === undefined ? {} : { material: (sky, glow, intensity = 1) => {
+          const made = painterlyMaterial(sky, { rim: material.rim, bands: material.bands });
+          if (glow !== undefined) { made.emissive.setRGB(...glow); made.emissiveIntensity = intensity; }
+          return made;
+        } }),
+        ...(row.hulls !== true ? {} : {
+          preload: async () => { await Promise.all([packed.preload(), skins().preload()]); },
+          hasSkin: (variant: VariantDef) => skins().hullOf(kind, variant.id) !== null,
+          loadSkin: async (variant: VariantDef) => { const name = skins().hullOf(kind, variant.id); if (name !== null) await skins().load(name); },
+          skin: (variant: VariantDef, bones: readonly BoneDef[]) => { const hull = skins().skin(kind, variant.id, bones); return hull === null ? null : { ...hull, normalMap: null, overgrown: false }; },
+        }),
+        ...(post === undefined ? {} : { postPose: (context: AnimalRigContext) => { pose(context.alive ? post.alive : post.dead ?? post.alive, context); } }),
+        ...(row.stance === undefined ? {} : { pose: row.stance }), ...(row.gait === undefined ? {} : { gait: row.gait }),
+      });
+    });
+    return { all, pose, get: kind => { const look = all.find(row => row.kind === kind); if (look === undefined) throw new Error('Unknown packed creature look'); return look; } };
+  }
 }
 
 const productBooks = new Map<string, HullLookBook>();
@@ -89,7 +128,8 @@ export function productHullBook(product: { readonly section: (name: 'look/hull-b
 
 /** Expand compact byte addressing only; the native packed owner admits every
  * geometry block, skeleton and dimension before it copies a body. */
-function packedRows(data:CompactSpeciesBodiesRows):unknown{
+/** The compact packed body rows (`CompactSpeciesBodiesSchema`) as the packed body owner's rows. */
+function expandCompactBodies(data:CompactSpeciesBodiesRows):unknown{
   const parts=(rows:CompactSpeciesBodiesRows['rows'][number]['fur'])=>rows.map(([count,indexCount,start,groups,index])=>{
     let at=start;const offsets=data.attrs.map(([,type,width])=>{const offset=at,length=count*width*(type==='u16'?2:4);at+=length+(4-length%4)%4;return offset;});
     offsets.push(at);const row:BakedGeometryRow={attrs:data.attrs,count,index,indexCount,box:false};return {offsets,groups,indexEncoding:'raw',row};
@@ -108,7 +148,7 @@ export class SpeciesLookBook {
   private readonly bodies;
   private readonly hulls;
   constructor(book:NativeSpeciesLookBookRows){
-    this.bodies=packedCreatureBodies(packedRows(book.body));this.hulls=productRiggedHulls(book.slug);
+    this.bodies=packedCreatureBodies(expandCompactBodies(book.body));this.hulls=productRiggedHulls(book.slug);
     for (const [id, pose] of Object.entries(book.poses ?? {})) this.poses.set(id, numericCreaturePose(pose));
     for (const row of book.rows) if (row.postPose !== undefined) {
       if (!this.poses.has(row.postPose.alive) || row.postPose.dead !== undefined && !this.poses.has(row.postPose.dead)) throw new Error('Missing species pose programme');
