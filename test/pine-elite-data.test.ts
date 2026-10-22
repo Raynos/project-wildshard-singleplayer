@@ -11,7 +11,8 @@ import { installPopulationRoster } from '../src/game/population/roster';
 import { installNativeEliteFeature } from '../src/game/quest/eliteFeature';
 import { eliteStream } from '../src/game/quest/eliteStreams';
 import { DayCycle } from '../src/engine/world/dayCycle';
-import { PINE_DAY, PINE_PHASES } from '../src/shards/pine-hollow/look/dayKeys';
+import { keyedSkyDaySpec } from '../src/game/looks/keyedSkyClock';
+import PINE_SKY from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import data from '../src/shards/pine-hollow/behaviour/elites.generated.json' with { type: 'json' };
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -28,7 +29,7 @@ async function fixture() {
   installPopulationRoster(host, { population: readSpeciesPrograms(PINE_SPECIES_PROGRAMS), nav: null, spawnY: 20,
     bake: { actors: [], parked, herds: [] } }, { version: 1, environment: 'fixture.habitat', step: 'pine.roster', seed: 1368, bodyCount: 0, limit: 512,
     scripted: 'sidestep', encounter: 'test', poseKinds: [], spawn: { x: 0, z: 0 }, fauna: [], identities: [], ordinary: {}, reserves: [], homes: [] });
-  const day = new DayCycle(PINE_DAY); await day.set(PINE_PHASES.night);
+  const day = new DayCycle(keyedSkyDaySpec(PINE_SKY)); await day.set(PINE_SKY.phases.night);
   const feature = installNativeEliteFeature(host, day, data); feature.initialize();
   return { host, feature };
 }

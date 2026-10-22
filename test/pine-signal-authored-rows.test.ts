@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import sky from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { KEYED_SKY } from '../src/format/keyedSky';
-import { PINE_KEYED_DAY } from '../src/shards/pine-hollow/look/dayKeys';
+import { keyedSkyDay } from '../src/game/looks/keyedSkyClock';
 import { FIRE_GRAPHS } from '../src/shards/sunscar-dunes/generators/fireLook';
 import { signalProductRows } from '../src/shards/sunscar-dunes/generators/product';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -20,7 +20,7 @@ for (const [label, rows, hash] of [
 }
 
 test('the keyed clock consumes the authored sky JSON', () => {
-  expect(PINE_KEYED_DAY.style).toEqual(sky);
+  expect(keyedSkyDay(sky).style).toEqual(sky);
 });
 
 test('the clock boundary refuses malformed tuples and weather field kinds', () => {

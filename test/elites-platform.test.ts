@@ -62,7 +62,9 @@ test('a made-up reed guardian drives different species, slots and laws through t
   const { installPopulationRoster } = await import('../src/game/population/roster');
   const { installNativeEliteFeature } = await import('../src/game/quest/eliteFeature');
   const { DayCycle } = await import('../src/engine/world/dayCycle');
-  const { PINE_DAY, PINE_PHASES } = await import('../src/shards/pine-hollow/look/dayKeys');
+  // Pine's day: its keyed-sky row through the game's clock spec (as its headless assembly builds it)
+  const [{ keyedSkyDaySpec }, { default: PINE_SKY }] = await Promise.all([import('../src/game/looks/keyedSkyClock'), import('../src/shards/pine-hollow/data/sky.json', { with: { type: 'json' } })]);
+  const PINE_DAY = keyedSkyDaySpec(PINE_SKY), PINE_PHASES = PINE_SKY.phases;
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const host = createSimHost({ ...SIM_LEVEL, id: 'reed-marsh', entities: [] }, { rapier });
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing recipe');
