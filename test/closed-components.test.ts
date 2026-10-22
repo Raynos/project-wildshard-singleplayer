@@ -10,7 +10,7 @@ import { componentInventory } from '../scripts/shard-components.mjs';
 
 test('a line in each closed component fails; other components remain available', () => {
   const root = mkdtempSync(join(tmpdir(), 'closed-components-'));
-  const policy = { 'pine-hollow': ['C3', 'C7', 'C8'] };
+  const policy = { 'pine-hollow': ['C3', 'C7', 'C8'], 'nine-dragon-stack': ['C5'] };
   const put = (path: string, source: string): void => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
   try {
     put('src/shards/pine-hollow/runtime/index.ts', 'export const worldBuild = 1;\n');
@@ -24,6 +24,9 @@ test('a line in each closed component fails; other components remain available',
       expect(closedComponentSources(root, policy)).toEqual([expect.stringContaining(`CLOSED ${id}`)]);
       rmSync(join(root, path));
     }
+    put('src/shards/nine-dragon-stack/quest/story.ts', 'export const quest = 1;\n');
+    expect(closedComponentSources(root, policy)).toEqual([expect.stringContaining('nine-dragon-stack: CLOSED C5')]);
+    rmSync(join(root, 'src/shards/nine-dragon-stack/quest/story.ts'));
     put('src/shards/pine-hollow/runtime/weapons/item.ts', 'export const weapon = 1;\n');
     expect(closedComponentSources(root, policy)).toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
