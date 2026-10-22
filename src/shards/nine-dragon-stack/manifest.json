@@ -426,8 +426,12 @@
       "file": "weapons/jian-row.json"
     },
     "render": {
-      "module": "./look/render",
-      "export": "shardRender"
+      "platform": "post",
+      "file": "weapons/jian-row.json",
+      "field": [
+        "look",
+        "post"
+      ]
     },
     "roster": {
       "module": "./models/gear",

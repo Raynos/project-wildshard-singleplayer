@@ -16,7 +16,6 @@
       { "path": "src/shards/nalati-grasslands/look/render.ts", "reason": "The private painterly render strategy retains its fog, terrain and grade projection.", "decision": "G478" }
     ],
     "nine-dragon-stack": [
-      { "path": "src/shards/nine-dragon-stack/look/render.ts", "reason": "The retained post/composite render strategy remains listed view code after the graph cost audit.", "decision": "G570" },
       { "path": "src/shards/nine-dragon-stack/runtime/viewmodel/graphArms.ts", "reason": "The admitted native held rig draws weapon poses, materials, textures and trails.", "decision": "G570" }
     ]
   }

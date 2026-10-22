@@ -31,11 +31,12 @@ const ordered = bands.every((band, k) => k === 0 || (band.upper <= (bands[k - 1]
 const baseBandDepth = sharedUniforms.uBands.v4s[0]?.[2] ?? 1;
 const eye = (axis: string): Expr => (_b, read) => read('view', [`eye${axis.toUpperCase()}`]);
 const root = (axis: string): Expr => (_b, read) => read('view', [`root${axis.toUpperCase()}`]);
+const EYE = ['x', 'y', 'z'].map(eye);
 /** the frame's numbers: each uniform's components (one, or x / y / z) */
 const FRAME: Readonly<Record<string, readonly Expr[]>> = {
   uTime: [b => b.clock('time')],
   uNear: [(_b, read) => read('view', ['near'])],
-  uCam: ['x', 'y', 'z'].map(eye),
+  uCam: EYE,
   uRootAt: ['x', 'y', 'z'].map(root),
   uBandWin: [
     (b, read) => { const y = read('view', ['eyeY']); return bands.reduce((sum, band) => b.binary('add', sum, b.binary('gt', b.constant(band.lower), y)), b.constant(0)); },
@@ -106,6 +107,8 @@ export const NINE_FRAME_CHANNELS = numericChannelPrograms(NINE_FRAME_GROUP, NINE
   ...Object.entries(FRAME).flatMap(([name, parts]) => parts.map((expr, at) => ({ target: 'bag', path: port(name, at, parts.length), expr }))),
   { target: 'nine-streaks', path: ['projection', 'x'], expr: (_b, read) => read('view', ['p00']) },
   { target: 'nine-streaks', path: ['projection', 'y'], expr: (_b, read) => read('view', ['p11']) },
+  // the painted sky (the 'nine-sky' look's sphere round the eye) stands on the eye in the root's frame
+  ...EYE.map((expr, at) => ({ target: 'nine-sky', path: port('uCam', at, EYE.length), expr })),
   ...looks.outputs,
 ]);
 /** the lent texture rows (format/postGraphLook `textures`) */

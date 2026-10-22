@@ -228,7 +228,10 @@ const bindings = v.strictObject({
   ground: v.exactOptional(v.union([binding, declared])), render: v.exactOptional(v.union([binding, v.strictObject({ platform: v.picklist(['painted', 'toon']) }),
     // G571: a keyed day / night sky look from rows (game looks/keyedSky `keyedSkyRender`): its channel set, dome / env
     // looks and the page-mode trim row (packed keys and the small environment) of a page policy file
-    v.strictObject({ platform: v.literal('keyed'), channels: text, looks: binding, trim: binding, trimRow: bindingName })])), load: v.exactOptional(moduleBinding),
+    v.strictObject({ platform: v.literal('keyed'), channels: text, looks: binding, trim: binding, trimRow: bindingName }),
+    // G599: a post-graph look read from a product file's row (game looks/postGraphLook `postGraphLook`): the file and the
+    // field path to its row
+    v.strictObject({ platform: v.literal('post'), file: text, field: v.pipe(v.array(text), v.minLength(1), v.maxLength(8)) })])), load: v.exactOptional(moduleBinding),
   ktx2: v.exactOptional(v.union([pageBoot, moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
 });
 const tier = v.objectWithRest({aa: v.exactOptional(v.picklist(['fxaa', 'smaa', 'off'])),

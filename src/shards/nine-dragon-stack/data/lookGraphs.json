@@ -14,6 +14,14 @@
    "fog": false
   },
   "params": {
+   "uCam": {
+    "type": "vec3",
+    "value": [
+     0,
+     0,
+     0
+    ]
+   },
    "skyTop": {
     "type": "colour",
     "value": [
@@ -57,8 +65,18 @@
    }
   },
   "nodes": {
+   "skyGeometry": {
+    "op": "positionGeometry"
+   },
+   "skyEye": {
+    "op": "param",
+    "param": "uCam"
+   },
    "s0": {
-    "op": "positionLocal"
+    "op": "varying",
+    "in": [
+     "skyGeometry"
+    ]
    },
    "s1": {
     "op": "normalize",
@@ -2925,6 +2943,9 @@
   "stages": {
    "surface": {
     "colour": "s192"
+   },
+   "vertex.offset": {
+    "offset": "skyEye"
    }
   }
  },

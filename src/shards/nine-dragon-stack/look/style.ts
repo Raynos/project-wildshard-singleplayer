@@ -29,6 +29,7 @@ function sharedUniforms(silk: Texture, rows: SharedUniformRows) {
     ...uniformsFrom((metadata.looks.paint as LookRows['paint']).uniforms),
     ...lightVolUniforms(),
     // the silk fog's band depth against its authored depth (a capture that clears the bands scales it), written each frame
+    // by the look's 'nine.frame' channel group (generators/frameChannels.ts)
     bandDepth: { value: 1 },
   };
 }
@@ -36,6 +37,5 @@ function sharedUniforms(silk: Texture, rows: SharedUniformRows) {
 /** uniforms every world program shares (one object each, so a write reaches every material) */
 export class Shared {
   readonly u;
-  readonly baseBandDepth: number;
-  constructor(silk: Texture, rows: SharedUniformRows) { this.u = sharedUniforms(silk, rows); this.baseBandDepth = rows.uBands.v4s[0]?.[2] ?? 1; }
+  constructor(silk: Texture, rows: SharedUniformRows) { this.u = sharedUniforms(silk, rows); }
 }

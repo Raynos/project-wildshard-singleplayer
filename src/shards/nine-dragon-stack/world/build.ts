@@ -12,7 +12,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Data3DTexture, LinearFilter, Group, Mesh, type PerspectiveCamera, Vector3,
+  Data3DTexture, LinearFilter, Group, Mesh, Vector3,
 } from 'three';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
@@ -39,11 +39,8 @@ export interface NineDragonWorld {
   readonly root: Group;
   /** the look's shared uniforms (time, the eye, the silk fog, the paint, the light pools) */
   readonly shared: Shared;
-  /** per frame: time (s) and the camera the frame is drawn from */
+  /** per frame: the movers on the page clock (s) */
   update: (t: number) => void;
-  /** per frame, with the camera as drawn: nothing left to cull here (the kits' draw distances are the fabric's weld
-   *  culls, model placement owns instance culling); goes with its last caller */
-  cull: (camera: PerspectiveCamera) => void;
   /** G200: whether the decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
   readonly entryCaps?: boolean;
   /** where each paper lantern hangs (the lanterns' hum, runtime/audio/ambience.ts) */
@@ -178,5 +175,5 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
 
   // the movers on the page clock (the clock, the eye and the fog's band window are the look's channel group)
   const update = (t: number): void => { for (const m of running) m.advance(t); };
-  return { root, shared, update, cull: () => undefined, entryCaps, lanterns: lanternsAt };
+  return { root, shared, update, entryCaps, lanterns: lanternsAt };
 }
