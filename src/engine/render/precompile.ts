@@ -80,6 +80,8 @@ export interface CompileJob {
   kind?: string;
   /** Detached compile lights; their shadow storage ends with this warm. */
   lights?: CompileLights;
+  /** Future lights still to copy into `lights`: copied just before this job compiles, inside its own work slice. */
+  futureLights?: readonly THREE.Light[];
   /** Configure a shared, per-draw-configured material (a graph shadow-depth variant) just before this job compiles. */
   prepare?: () => void;
 }
@@ -425,9 +427,8 @@ export function includeFutureLights(jobs: readonly CompileJob[], target: THREE.S
   };
   visit(future);
   for (const job of jobs) if (job.target === target) {
-    const lights = job.lights ?? new CompileLights();
-    for (const light of added) job.root.add(lights.copy(light));
-    job.lights = lights;
+    job.lights ??= new CompileLights();
+    job.futureLights = [...job.futureLights ?? [], ...added];
     if (environment !== null) job.environment = environment;
   }
 }
@@ -941,6 +942,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
       if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
       renderer.setRenderTarget(job.rt);
+      if (job.lights !== undefined && job.futureLights !== undefined) {
+        for (const light of job.futureLights) job.root.add(job.lights.copy(light));
+        delete job.futureLights;
+      }
       job.lights?.prepare();
       if (setting('buildPacing') === 'links') restoreLights = job.lights?.borrowSources();
       job.prepare?.();
@@ -1148,6 +1153,14 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     // chunking above scoped to the content frame so warm-up cannot restructure other residents.
     const scene = game.rootScene;
     const rt = game.composer.inputBuffer;
+    // A live warm-up builds its jobs in work slices too (its compile slices start only in runPrecompile): the setup below
+    // was one 190-220 ms task when a crossing prepared a resident (Driftwood and Pine drives on the phone at 4x)
+    const live = options.sliceMs !== undefined, setup = workSlice();
+    const pace = async (): Promise<void> => {
+      if (!live || !setup.due()) return;
+      await setup.yield();
+      if (options.current?.() === false) throw new Error('Shader warm-up owner left');
+    };
     const policy = game.level.boot.shaders;
     // sp-o289: the shadow pass's own depth substitutes (graph shadow-depth variants), where a back-end registered them
     const depthVariants = shadowDepthResolver(game.renderer);
@@ -1156,15 +1169,18 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
-      : setting('buildPacing') === 'entry' ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true))
+      : live || setting('buildPacing') === 'entry' ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true))
       : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();
     options.futureLighting?.traverse(object => { for (const material of materialsOf(object)) entered.add(material); });
     for (const job of jobs) job.kind = job.root.children.some(clone => materialsOf(clone).some(material => entered.has(material))) ? 'scene-entered' : 'scene-other';
+    await pace();
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
     if (policy?.scene !== false) jobs.push(...kinded('family', familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots))), ...kinded('offscreen', offscreenJobs(scene, 1, excludedRoots)));
+    await pace();
     if (policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)));
+    await pace();
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(...kinded('background', [bg])); else bg?.dispose?.();
     const post = policy?.post === false ? [] : kinded('post', postJobs(game.composer, rt, single || options.warmPost === true ? 1 : Number.POSITIVE_INFINITY));
@@ -1174,9 +1190,11 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
       ? kinded('previous-shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)) : [];
+    await pace();
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
     if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving)));
+    await pace();
     const owner = options.owner ?? resourceScope();
     if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
@@ -1185,6 +1203,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const progress = (done: number, count: number, detail: string): void => {
       completed = done; total = count; onProgress?.(done, count + warm.length, detail);
     };
+    if (live) { await setup.yield(); if (options.current?.() === false) throw new Error('Shader warm-up owner left'); }
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, progress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);
     if (warm.length > 0) await warmPostJobs(game.renderer, warm, options.pause ?? frame, options.current ?? (() => true),
       (done, count, detail) => { onProgress?.(completed + done, total + count, detail); });
