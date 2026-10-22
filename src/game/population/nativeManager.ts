@@ -126,17 +126,16 @@ export class NativePopulationDriver {
     this.author = ReturnProgram.native(host, rows.program);
     for (const actor of bodies) this.admit(actor);
     host.useBodyStep({ before: (_id, body, dt) => {
-      const actor = this.body(body); if (actor === undefined || actor.hidden || !actor.alive || actor.stunned || actor.kind === rows.dogKind) return;
+      const actor = this.bodies.find(candidate => candidate === body); if (actor === undefined || actor.hidden || !actor.alive || actor.stunned || actor.kind === rows.dogKind) return;
       const elite = elites.brains.get(actor);
       if (elite !== undefined) elite.act(actor);
       else if (actor.kind === rows.packKind) { const pack = packs.get(actor); if (pack !== undefined) { const c = this.context(actor, dt); pack.drive(actor, c, true); c.confine(actor); } }
       else { const herd = herds.get(actor); if (herd !== undefined) herd.drive(actor, this.context(actor, dt), true); }
     }, after: (_id, body) => {
-      const actor = this.body(body); if (actor?.alive === true && !actor.hidden && !actor.stunned && actor.state === 'charge') hunt.chargeContact(actor, host.player.position);
+      const actor = this.bodies.find(candidate => candidate === body); if (actor?.alive === true && !actor.hidden && !actor.stunned && actor.state === 'charge') hunt.chargeContact(actor, host.player.position);
     } });
   }
-  private body(actor: AnimalSim): HuntBody | undefined { return this.bodies.find(body => body === actor); }
-  private required(actor: AnimalSim): HuntBody { const body = this.body(actor); if (body === undefined) throw this.missing; return body; }
+  private required(actor: AnimalSim): HuntBody { const body = this.bodies.find(candidate => candidate === actor); if (body === undefined) throw this.missing; return body; }
   private makeContext(actor: HuntBody) {
     const { observation } = createNativeSpeciesContext({ host: this.host, hunt: this.hunt, rng: this.rng,
       world: null, heightAt: (x, z) => this.host.groundHeightAt(x, z), waterLevel: 0 }, actor, null);
