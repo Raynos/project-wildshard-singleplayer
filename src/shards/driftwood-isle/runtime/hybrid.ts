@@ -7,7 +7,6 @@ import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/p
 
 import { buildDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
 import { islandSystems } from './world/systems';
-import { installPageLife } from '@wildshard/game/population/pageLife';
 
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { boundResidentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
@@ -63,13 +62,13 @@ export class DriftwoodPlugin extends ShardPlugin {
     }
     if (resident !== undefined) {
       lendEntryOwner(ctx.scope, resident, 'ambient', 'driftwood.gulls');
+      lendEntryOwner(ctx.scope, resident, 'ambient-draw', 'driftwood.gulls');
       lendEntryOwner(ctx.scope, resident, 'fixed-draws', 'driftwood.fixed-draws');
     }
     if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'collection', 'driftwood.collections');
     const { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
     Object.assign(shell.objects, { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
     islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
-    await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), null, null, new Map([['gulls', gulls]]));
   }
 }
 

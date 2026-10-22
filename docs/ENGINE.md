@@ -11341,3 +11341,16 @@ A view module remains a critical boot asset, outside the render library.
 Its fixed runtime memory counts toward the existing client script limits and
 library memory budget. Legacy ABI0/1 contracts and their accounting remain
 unchanged. Missing, mismatched or conflicting declarations refuse admission.
+
+### Entered ambient draw loans
+
+`world.ambient-life` names one admitted page-life file and a finite list of
+flock id / ambient-draw owner ids. The owner kind is the existing concrete
+AmbientFlockDraw, published by the original world construction and lent into
+the entry. World-bindings installs it after runtime hooks and movers; the
+existing page-life host owns its update order, cues and retirement.
+
+Every id and resolved draw must be distinct. All loans resolve before the
+read and retain their original identity across admission. The feature creates
+no replacement flock, draw library or cache; inner library/material reads
+fence retiring owners before further allocation.

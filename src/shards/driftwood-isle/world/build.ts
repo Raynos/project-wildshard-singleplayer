@@ -168,6 +168,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
   publishEntryOwner(scope, 'object', 'driftwood.gulls', gulls.group);
+  publishEntryOwner(scope, 'ambient-draw', 'driftwood.gulls', gulls);
   publishEntryOwner(scope, 'object', 'driftwood.cover', cover.group);
   publishEntryOwner(scope, 'chain', 'bridge.deck', bridgeDeck);
   publishEntryOwner(scope, 'placed', 'bridge', [bridge.placed]);

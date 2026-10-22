@@ -103,6 +103,16 @@
         "driftwood.cover"
       ],
       "meleeSilent": true
+    },
+    {
+      "kind": "world.ambient-life",
+      "file": "actors/page-life.json",
+      "flocks": [
+        {
+          "id": "gulls",
+          "owner": "driftwood.gulls"
+        }
+      ]
     }
   ]
 }

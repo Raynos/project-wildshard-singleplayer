@@ -66,6 +66,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: installClientMeadow },
   // Construction and entered lending finish before these fixed owner bindings.
   // Rows cannot choose this boundary or move it after the shell captures hooks.
+  'world.ambient-life': { phase: 'world-bindings', rank: 20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'world.ambient-life') throw new Error('Invalid ambient life feature');
+    const { installClientAmbientLife } = await import('./clientAmbientLife');
+    await installClientAmbientLife(ctx, row);
+  } },
   'world.runtime-hooks': { phase: 'world-bindings', rank: 0, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'world.runtime-hooks') throw new Error('Invalid runtime hooks feature');
     const { installClientRuntimeHooks } = await import('./clientRuntimeHooks');
@@ -281,6 +286,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       if(draw.dry.length>(water.surface.dry?.slots??0))throw new Error('Water clips more dry rectangles than its surface has slots');
     }
     for (const row of plan.features) if (row.kind === 'view.deck-camera-sway' && !product.hasFile(row.module)) throw new Error('Deck view requires its admitted module');
+    for (const row of plan.features) if (row.kind === 'world.ambient-life' && !product.hasFile(row.file)) throw new Error('Ambient life requires its admitted data file');
     for (const row of plan.features) if (row.kind === 'held.ranged-page' && !product.hasFile(row.file)) throw new Error('Ranged page requires its admitted data file');
     // G571: a forest page, its cave, weather and life name admitted files; a cave's spots and the life name a declared ranged page
     for (const row of plan.features) {

@@ -21,3 +21,19 @@ test('the actual emitted mover row retains exact boat floats and original constr
   expect(CLIENT_FEATURES['world.runtime-hooks'].phase).toBe('world-bindings');
   expect(CLIENT_FEATURES['world.runtime-hooks'].rank).toBeLessThan(CLIENT_FEATURES['world.movers'].rank);
 }, 30000);
+
+
+test('the admitted ambient row borrows the original draw after world bindings without a second file', async () => {
+  const loaded = await readProjectAssets('src/shards/driftwood-isle');
+  const bytes = loaded.output.platform?.files.get('sections/client/plan.json');
+  if (bytes === undefined) throw new Error('Missing admitted client plan');
+  const input: unknown = JSON.parse(new TextDecoder().decode(bytes)), plan = parseClientPlan(input);
+  const row = { kind: 'world.ambient-life', file: 'actors/page-life.json', flocks: [{ id: 'gulls', owner: 'driftwood.gulls' }] };
+  expect(plan.features.find(value => value.kind === 'world.ambient-life')).toEqual(row);
+  expect(CLIENT_FEATURES['world.ambient-life'].phase).toBe('world-bindings');
+  expect(CLIENT_FEATURES['world.ambient-life'].rank).toBeGreaterThan(CLIENT_FEATURES['world.movers'].rank);
+  for (const flocks of [
+    [{ id: 'gulls', owner: 'original' }, { id: 'other', owner: 'original' }],
+    [{ id: 'gulls', owner: 'original' }, { id: 'gulls', owner: 'other' }],
+  ]) expect(() => parseClientPlan({ version: 1, features: [{ ...row, flocks }] })).toThrow('unique ambient');
+}, 30000);
