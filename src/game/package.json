@@ -27,6 +27,7 @@
     "./looks/vertexWear": "./looks/vertexWear.ts",
     "./models/fixedDraws": "./models/fixedDraws.ts",
     "./models/islandLibrary": "./models/islandLibrary.ts",
+    "./models/socketRigCreature": "./models/socketRigCreature.ts",
     "./models/ropeDeckSite": "./models/ropeDeckSite.ts",
     "./shardfile/worldAssembly": "./shardfile/worldAssembly.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",

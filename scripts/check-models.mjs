@@ -244,7 +244,6 @@ const MODEL_RELOCATIONS = new Map([
   ['driftwood-isle', 'runtime/models/trader.ts', 'trader.ts'],
   ['driftwood-isle', 'runtime/models/trailside.ts', 'trailside.ts'],
   ['driftwood-isle', 'runtime/models/zipline.ts', 'zipline.ts'],
-  ['pine-hollow', 'runtime/models/antlerKing.ts', 'antlerKing.ts'],
   ['pine-hollow', 'runtime/models/caveArch.ts', 'caveArch.ts'],
   ['pine-hollow', 'runtime/models/fallenLog.ts', 'fallenLog.ts'],
   ['pine-hollow', 'runtime/models/fern.ts', 'fern.ts'],
