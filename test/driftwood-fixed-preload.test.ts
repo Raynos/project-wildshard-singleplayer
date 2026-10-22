@@ -20,7 +20,7 @@ it('preloads fixed and cover handles from admitted geometry without fetching', a
   admitDriftwoodFixtureRows();
   const source = new BoxGeometry(), fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('unexpected fetch'));
   try {
-    await expect(loadFixedGeometry(new Map())).rejects.toThrow('Missing Driftwood source draw');
+    await expect(loadFixedGeometry(new Map())).rejects.toThrow('Missing fixed draw: ');
     await loadFixedGeometry(new Map(Object.values(FIXED_MODEL_FILES).map(url => [url, source])));
     expect(fixedGeometryReady()).toBe(true);
     await fixedDraw('wendellHead').load();
