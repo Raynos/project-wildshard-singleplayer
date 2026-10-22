@@ -274,7 +274,8 @@
     "./fixedDraws": "./fixedDraws.ts",
     "./islandLibrary": "./islandLibrary.ts",
     "./catalogueEconomy": "./catalogueEconomy.ts",
-    "./lootBag": "./lootBag.ts"
+    "./lootBag": "./lootBag.ts",
+    "./spawnScriptV2": "./spawnScriptV2.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

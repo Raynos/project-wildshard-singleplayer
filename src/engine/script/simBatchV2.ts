@@ -61,6 +61,12 @@ export class SimBatchV2 {
   get failures(): number { return this.failureCount; }
   get disabled(): boolean { return this.stopped; }
   get lastRefusal(): Error | null { return this.refusal; }
+  /** The existing native save owner restores its tick and quarantine count.
+   * No guest call, memory snapshot or transaction survives this boundary. */
+  resumeAt(tick: number,failures: number): void {
+    if (this.busy || !Number.isSafeInteger(tick) || tick < 0 || !Number.isInteger(failures) || failures < 0 || failures > 3) throw new Error('Invalid v2 native continuation');
+    this.tick = tick;this.sequence = 0;this.pending = null;this.failureCount = failures;this.stopped = failures === 3;this.refusal = null;
+  }
   /** Consecutive authoritative 60 Hz ticks only. Capture runs once, only on an
    * eligible active module tick. It must not drain a saved inbox; the prepared
    * transaction consumes input and stages all state/commands/RNG together. */

@@ -79,8 +79,13 @@ let sliceStart:i32=-1;
 @inline export function edgeValue(index:i32,axis:i32):f64{assert(axis>=0&&axis<2);return load<f64>(row(8,index)+16+usize(axis)*8);}
 @inline export function eventWord(index:i32,field:i32):i32{assert(field>=0&&field<6);return load<i32>(row(9,index)+usize(field)*4);}
 @inline export function eventValue(index:i32,field:i32):f64{assert(field>=0&&field<4);return load<f64>(row(9,index)+24+usize(field)*8);}
+@inline export function actorCommand(op:i32,target:i32,a:f64=0,b:f64=0,c:f64=0):void{
+  assert((op>=1&&op<=7||op==12||op==13)&&target>=0);writeAction(op,target,a,b,c);
+}
 @inline function worldAction(op:i32,target:i32,a:f64,b:f64,c:f64):void{
-  assert(target>0);const dir=directory(10),n=load<u32>(dir+16);assert(n<load<u32>(dir+12));
+  assert(target>0);writeAction(op,target,a,b,c);
+}
+@inline function writeAction(op:i32,target:i32,a:f64,b:f64,c:f64):void{const dir=directory(10),n=load<u32>(dir+16);assert(n<load<u32>(dir+12));
   store<u32>(dir+16,n+1);const at=row(10,i32(n));
   store<i32>(at,handle());store<i32>(at+4,op);store<i32>(at+8,target);store<u32>(at+12,0);
   store<f64>(at+16,a);store<f64>(at+24,b);store<f64>(at+32,c);

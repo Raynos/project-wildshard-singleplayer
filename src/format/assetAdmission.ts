@@ -172,7 +172,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     const spawns = s.runtime.spawns;
     const actors=new Set([...spawns?.bosses??[], ...spawns?.homes??[], ...spawns?.actors??[]].map(row=>row.id));
     for(const field of s.state.shared.filter(candidate=>candidate.privacy==='public')) {
-      if(!scripts.some(row=>row.side==='sim'&&Object.values(row.fields).includes(field.name)&&Object.values(row.actors).length>0
+      if(!scripts.some(row=>row.abi!==2&&row.side==='sim'&&Object.values(row.fields).includes(field.name)&&Object.values(row.actors).length>0
         &&Object.values(row.actors).every(actor=>actors.has(actor))))throw new Error('Runtime actor field requires its actual declared sim guest');
     }
   }

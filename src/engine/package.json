@@ -458,6 +458,7 @@
     "./world/easedFields": "./world/easedFields.ts",
     "./render/scatterInstances": "./render/scatterInstances.ts",
     "./models/geometryPack": "./models/geometryPack.ts",
-    "./render/drawGuards": "./render/drawGuards.ts"
+    "./render/drawGuards": "./render/drawGuards.ts",
+    "./script/ownedSimBatchV2": "./script/ownedSimBatchV2.ts"
   }
 }

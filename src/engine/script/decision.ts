@@ -242,6 +242,15 @@ export class DecisionHost {
   }
   /** Commit/timer/inbox phases only. The external engine runner executes its
    * guest after this; native movement/contact remains with the existing owner. */
+  /** The borrowed native clock, without serializing its continuation. */
+  get externalTick(): number {
+    check(!this.busy && this.options.externalDivisor !== undefined, 'external clock ownership');return this.tick;
+  }
+  /** Cheap external inbox probe; no continuation copy on an idle fixed step. */
+  get pendingExternal(): boolean {
+    check(!this.busy && this.options.externalDivisor !== undefined, 'external inbox ownership');
+    return this.rows.some(row => row.queue.size > 0);
+  }
   stepExternal(tick: number): void {
     check(this.options.externalDivisor !== undefined, 'missing external runner');
     this.advance(tick, true);
@@ -446,7 +455,7 @@ export class DecisionHost {
   /** Validate the complete continuation and native command suffix without
    * mutation or Wasm. The nonthrowing owner commit is guarded against a stale
    * capture. Used by the v2 runner as well as quiet restore, never content. */
-  prepareRestore(input: DecisionSnapshot): () => void {
+  prepareRestore(input: DecisionSnapshot): (() => void) & { readonly validate: () => void } {
     check(!this.busy, 'restore during call'); this.busy = true;
     try {
     const snapshot = structuredClone(input);
@@ -494,8 +503,9 @@ export class DecisionHost {
       return { row, saved, values, timers, queue, pending, transaction, next, nextTimers };
     });
     const revision = this.revision;
-    return () => {
-      check(!this.busy && this.revision === revision, 'stale prepared continuation');
+    const validate = (): void => { check(!this.busy && this.revision === revision, 'stale prepared continuation'); };
+    return Object.assign(() => {
+      validate();
       this.busy = true;
       try {
     this.tick = snapshot.tick;
@@ -512,7 +522,7 @@ export class DecisionHost {
     }
       this.revision++;
       } finally { this.busy = false; }
-    };
+    }, { validate });
     } finally { this.busy = false; }
   }
   private trace(entry: DecisionTrace): void {

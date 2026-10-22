@@ -65,7 +65,7 @@ export class InputInboxV2 {
    * observes their player; events for sleeping bindings remain pending. New
    * arrivals after capture remain pending, even if they share the same tick. */
   capture(atTick: number,bindings: ReadonlyMap<string,V2InputBinding>,players: ReadonlyMap<string,number>): {
-    readonly edges: readonly V2EdgeInput[]; readonly events: readonly V2EventInput[]; readonly accept: () => void;
+    readonly edges: readonly V2EdgeInput[]; readonly events: readonly V2EventInput[]; readonly validate: () => void; readonly accept: () => void;
   } {
     tick(atTick);if (atTick < this.state.deliveryTick) throw new Error('Stale v2 input delivery');
     for (const [id,value] of players) { if (!this.rights.players.has(id)) throw new Error('Unowned v2 input player');handle(value); }
@@ -95,8 +95,9 @@ export class InputInboxV2 {
       return { binding: row.binding,kind: row.kind,subject: resolve(row.subject),player: playerHandle,atTick: row.atTick,sequence: row.sequence,values: [...row.values] };
     });
     const edgeIds = new Set(selectedEdges.map(row => row.sequence)), eventIds = new Set(selectedEvents.map(row => row.sequence)), generation = this.generation;
-    return { edges,events,accept: () => {
-      if (generation !== this.generation) throw new Error('Stale v2 input acceptance');
+    const validate = (): void => { if (generation !== this.generation) throw new Error('Stale v2 input acceptance'); };
+    return { edges,events,validate,accept: () => {
+      validate();
       this.state.edges = this.state.edges.filter(row => !edgeIds.has(row.sequence));this.state.events = this.state.events.filter(row => !eventIds.has(row.sequence));
       this.state.deliveryTick = atTick;this.generation++;
     } };

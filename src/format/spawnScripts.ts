@@ -1,7 +1,9 @@
 import * as v from 'valibot';
+import { SpawnScriptV2Schema } from './spawnScriptV2';
+import { layoutV2 } from './scriptWireV2';
 import { isJsonData } from './json';
 import { SpawnCombatSchema } from './spawnCombat';
-import { parseDecisionScripts, type DecisionScriptRow } from './decisionScripts';
+import { actorDecisionRows,parseDecisionScripts, type DecisionScriptRow } from './decisionScripts';
 import { actorMoveRules, parseActorMoves } from './actorMoves';
 import type { DecisionRegistries } from './decisionBindings';
 
@@ -9,8 +11,9 @@ const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const handle = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(256));
 export const SpawnScriptRowSchema = v.strictObject({
+  v2: v.exactOptional(SpawnScriptV2Schema),
   step: key, roster: key, seed: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff)), script: v.unknown(), bytes: v.string(), controlState: key, maximum: handle,
-  slots: v.pipe(v.array(v.strictObject({ id: key, handle, release: v.exactOptional(v.picklist(['retain', 'detach'])) })), v.minLength(1), v.maxLength(8)),
+  slots: v.pipe(v.array(v.strictObject({ id: key, handle, authority: v.exactOptional(v.literal('observe')),release: v.exactOptional(v.picklist(['retain', 'detach'])) })), v.minLength(1), v.maxLength(8)),
   species: v.pipe(v.array(v.strictObject({ id: key, kind: key, variant: key })), v.minLength(1), v.maxLength(64)),
   sites: v.pipe(v.array(v.strictObject({ id: key, slot: key,
     point: v.exactOptional(v.tuple([finite, finite])), face: v.union([v.literal('player'), v.tuple([finite, finite])]),
@@ -45,9 +48,21 @@ export function parseSpawnScript(input: unknown): SpawnScriptRows {
   if (script?.side !== 'sim' || !('shard' in script.binding || 'spawnGroup' in script.binding)) throw new Error('Spawn script requires a simulation shard binding');
   const result = { ...data, script, moves: parseActorMoves(data.moves) };
   const registry = spawnScriptRegistries(result);
+  if (data.v2 !== undefined) {
+    const row = data.v2, capacities = new Map(row.capacities.map(item => [item.kind,item.capacity]));
+    const layout = layoutV2(row.io,row.artifact.pages,capacities);
+    const bindings = actorDecisionRows(script).length;
+    const needed = new Map([[1,bindings],[2,bindings*script.state.length],[3,bindings*script.state.length],[4,bindings*Object.keys(script.params).length],[5,bindings],[6,bindings*data.fields.length],[7,1],[9,16],[21,bindings],[22,bindings]]);
+    if ([...needed].some(([kind,count]) => (capacities.get(kind) ?? 0) < count)) throw new Error('Incomplete spawn v2 input layout');
+    if (capacities.size !== row.capacities.length || layout.bytes !== row.artifact.ioBytes) throw new Error('Invalid spawn v2 layout');
+    if (row.self !== undefined && 'spawnGroup' in script.binding) throw new Error('V2 spawn groups use their own self slots');
+    if (row.self !== undefined && !registry.actors?.has(row.self)) throw new Error('Unknown v2 self slot');
+    for (const column of row.columns) if (data.fields[column.id-1]?.id !== column.name || data.fields[column.id-1]?.source !== 'observed') throw new Error('V2 column requires matching observed field');
+  }
   if (new Set(data.slots.map(row => row.handle)).size !== data.slots.length || new Set(data.slots.map(row => row.id)).size !== data.slots.length) throw new Error('Duplicate spawn slot handle');
   for (const name of ['species', 'sites', 'spawns'] as const)
     if (new Set(data[name].map(row => row.id)).size !== data[name].length) throw new Error('Duplicate spawn recipe');
+  if (data.slots.some(row => row.authority === 'observe') && data.v2 === undefined) throw new Error('Observation-only slots require v2');
   if (data.sites.some(row => !registry.actors?.has(row.slot)) || data.spawns.some(row =>
     !data.sites.some(site => site.id === row.site) || !data.species.some(species => species.id === row.species))) throw new Error('Missing spawn recipe reference');
   if (Object.values(script.spawns).some(id => {
@@ -67,4 +82,4 @@ export function parseSpawnScript(input: unknown): SpawnScriptRows {
 
 /** Owned spawn directors are admitted separately from automatically installed actor decisions. */
 export const SpawnScriptsSchema = v.pipe(v.array(v.unknown()), v.maxLength(16), v.transform(input => input.map(parseSpawnScript)),
-  v.check(input => input.every(row => row.bytes === '') && new Set(input.map(row => row.step)).size === input.length, 'Catalogue modules must use admitted product bytes and unique step ids'));
+  v.check(input => input.every(row => row.bytes === '' && (row.v2 === undefined || row.v2.bytes === '')) && new Set(input.map(row => row.step)).size === input.length, 'Catalogue modules must use admitted product bytes and unique step ids'));

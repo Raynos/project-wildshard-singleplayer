@@ -22,7 +22,9 @@ export const ViewModuleSchema = v.strictObject({ id: v.pipe(v.string(), v.minLen
 export const ViewModulesSchema = v.pipe(v.array(ViewModuleSchema), v.maxLength(64),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length && new Set(rows.map(row => row.module)).size === rows.length, 'Unique view module ids and paths'));
 export type ViewModuleRow = v.InferOutput<typeof ViewModuleSchema>;
-export type ScriptAdmissionRows = readonly (DecisionScripts[number] | ViewModuleRow)[];
+const OwnedSimModuleSchema = v.strictObject({ ...ViewModuleSchema.entries,side: v.literal('sim'),lane: v.literal('sim') });
+const OwnedV2ModulesSchema = v.array(v.union([ViewModuleSchema,OwnedSimModuleSchema]));
+export type ScriptAdmissionRows = readonly (DecisionScripts[number] | ViewModuleRow | v.InferOutput<typeof OwnedSimModuleSchema>)[];
 /** Admit the declared ABI, including instrumentation; v1 and v2 fixed memory must match its row exactly. A v2 module is
  *  admitted (admitScriptV2, its declared lane, I/O and revisions) on a copy of its bytes, before anything instantiates it. */
 export function admitScriptContract(bytes: Uint8Array, input: Extract<ScriptContract, { abi: 0 | 1 }>): ScriptAdmission;
@@ -48,7 +50,7 @@ export function decisionScriptsFromSections(sections?: ReadonlyMap<string, unkno
 /** Resolve complete module paths against the inventory, never by sniffing bytes or matching a loose filename. */
 export function decisionModuleContracts(input: ScriptAdmissionRows, files: readonly { hash: string; kind: string; path?: string }[]): ReadonlyMap<string, Extract<ScriptContract, { abi: 1 | 2 }>> {
   const decisions = parseDecisionScripts(input.filter(row => row.abi !== 2));
-  const views = v.parse(ViewModulesSchema, input.filter(row => row.abi === 2));
+  const views = v.parse(OwnedV2ModulesSchema, input.filter(row => row.abi === 2));
   const rows = [...decisions, ...views], contracts = new Map<string, Extract<ScriptContract, { abi: 1 | 2 }>>(), sides = new Map<string, string>();
   if (new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Duplicate script admission id');
   for (const row of rows) {
@@ -68,5 +70,6 @@ export function scriptAdmissionRows(sections?: ReadonlyMap<string, unknown>): Sc
   const spawn = v.parse(SpawnScriptsSchema, sections?.get('actors/spawn-scripts') ?? []);
   const decisions = parseDecisionScripts([...decisionScriptsFromSections(sections), ...spawn.map(row => row.script),
     ...parseDecisionScripts(sections?.get('actors/return-scripts') ?? [])]);
-  return [...decisions, ...v.parse(ViewModulesSchema, sections?.get('view/modules') ?? [])];
+  const owned = spawn.flatMap(row => row.v2 === undefined ? [] : [{ abi: 2 as const,id: `${row.step}:v2`,side: 'sim' as const,lane: 'sim' as const,module: `blobs/wasm/${row.v2.artifact.hash}.wasm`,pages: row.v2.artifact.pages,ioBytes: row.v2.artifact.ioBytes,compilerRevision: row.v2.artifact.compilerRevision,admissionRevision: row.v2.artifact.admissionRevision }]);
+  return [...decisions, ...v.parse(ViewModulesSchema, sections?.get('view/modules') ?? []),...owned];
 }

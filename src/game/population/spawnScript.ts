@@ -1,4 +1,10 @@
 import * as v from 'valibot';
+import { OwnedSimBatchV2,type OwnedV2Binding,type OwnedV2Frame } from '@wildshard/engine/script/ownedSimBatchV2';
+import { ObservationColumnsV2,type V2ColumnOwners } from '@wildshard/engine/script/observationColumnsV2';
+import { layoutV2 } from '@wildshard/format/scriptWireV2';
+import { SpawnInputV2Schema } from '@wildshard/format/spawnScriptV2';
+
+
 import { actorDecisionRows, decisionScriptContract } from '@wildshard/format/decisionScripts';
 import { ScriptStrikes, type ScriptStrikeHit } from './scriptStrikes';
 import { canReach } from '@wildshard/engine/ai/reach';
@@ -12,12 +18,15 @@ import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import { Rng } from '@wildshard/engine/core/rng';
 import { DECISION_PLAYER_HANDLE, decisionBindingMap } from '@wildshard/format/decisionBindings';
 import { parseSpawnScript, SpawnScriptsSchema, spawnScriptRegistries, type SpawnScriptRows } from '@wildshard/format/spawnScripts';
-import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
+import { SCRIPT_V1_EVENTS, SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { populationRoster } from './roster';
 import { ANIMAL_STATES, type AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+
+/** Entered concrete service loans only; no shard callback or reflected name resolver. */
+export type SpawnV2Owners = Omit<V2ColumnOwners,'self' | 'player' | 'observed' | 't' | 'dt'>;
 
 type ControlledBody = AnimalSim & { hidden?: boolean };
 const claimedBodies = new WeakMap<AnimalSim, SpawnScript>();
@@ -39,7 +48,7 @@ interface Motion { readonly id: number; readonly target: number; readonly runner
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
 const pair = v.tuple([natural, finite]);
-const Saved = v.strictObject({ version: v.literal(2), contract: v.string(), decision: v.custom<DecisionSnapshot>(input => typeof input === 'object' && input !== null),
+const Saved = v.strictObject({ v2Input: v.exactOptional(SpawnInputV2Schema),version: v.literal(2), contract: v.string(), decision: v.custom<DecisionSnapshot>(input => typeof input === 'object' && input !== null),
   actors: v.array(v.tuple([natural, v.string()])), fields: v.array(v.tuple([natural, natural, finite])),
   channels: v.array(pair), force: v.pipe(natural, v.maxValue(8)), elapsed: v.pipe(finite, v.minValue(0), v.maxValue(1 / 60)),
   strikes: v.exactOptional(v.unknown()),
@@ -52,6 +61,10 @@ function value<T>(input: T | undefined, reason: string): T { if (input === undef
 export class SpawnScript {
   readonly host: DecisionHost;
   private readonly rows: SpawnScriptRows;
+  private readonly v2: OwnedSimBatchV2 | undefined;
+  private readonly v2Columns: ObservationColumnsV2 | undefined;
+  private readonly v2Contract: string | undefined;
+  private readonly v2Bindings: readonly OwnedV2Binding[];
   private readonly handles = new Map<number, ControlledBody>();
   private readonly adoptedBodies = new WeakSet<AnimalSim>();
   private readonly fields = new Map<string, number>();
@@ -74,13 +87,17 @@ export class SpawnScript {
   private readonly controlState: AnimalSim['state'];
   /** The decision host's final refusal, exposed without a callback into content. */
   get failure(): string | null { return this.disabledReason; }
-  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly validatorFor?: SpawnScript) {
+  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners) {
     const rows = parseSpawnScript(input); this.rows = rows;
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
     const bytes = Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
     admitScriptContract(bytes, { abi: 1, pages: rows.script.pages });
-    this.contract = JSON.stringify({ ...rows, script: decisionScriptContract(rows.script), bytes: undefined });
+    const { v2: selected,...originalRows } = rows;
+    this.contract = JSON.stringify({ ...originalRows, script: decisionScriptContract(rows.script), bytes: undefined });
+    this.v2Contract = selected === undefined ? undefined : JSON.stringify({ ...selected,bytes: undefined });
+    if (selected !== undefined && v2Owners === undefined) throw new Error('V2 spawn requires entered concrete owners');
+    this.v2Columns = selected === undefined || v2Owners === undefined ? undefined : new ObservationColumnsV2(selected.columns,v2Owners.scope);
     const scripts: DecisionScript[] = [];
     for (const row of actorDecisionRows(rows.script)) {
       const state: DecisionScript['state'][number][] = [];
@@ -102,11 +119,21 @@ export class SpawnScript {
       if (op !== 3) throw new Error('Unsupported population list'); out[0] = bodies.height(a, b); return 1;
     }, prepare: (commands, context) => this.prepare(commands, context), failed: (_mode, _context, reason) => { this.disabledReason = reason; } };
     this.host = new DecisionHost({ scripts, bindings, modules: new Map([[rows.script.module, bytes]]), seed: [rows.seed >>> 0, 0],
-      world, limits: { fuelPerCall: 2000000, fuelPerTick: 8000000 } });
-    if ('shard' in rows.script.binding) for (const binding of bindings) this.host.enqueue(binding.id, [1, 0, 0, 0, 0, 0]);
+      world, ...(selected === undefined ? {} : { externalDivisor: selected.divisor }),limits: { fuelPerCall: 2000000, fuelPerTick: 8000000 } });
+    this.v2Bindings = bindings.map(binding => ({ binding: { ...binding,self: selected?.self === undefined ? binding.self : value(rows.slots.find(slot => slot.id === selected.self), 'v2 self').handle },script: value(scripts.find(script => script.id === binding.script), 'v2 declaration') }));
+    if (selected !== undefined) {
+      const modern = Uint8Array.from(atob(selected.bytes), byte => byte.codePointAt(0) ?? 0);
+      admitScriptContract(modern,{ abi: 2,lane: 'sim',pages: selected.artifact.pages,ioBytes: selected.artifact.ioBytes,compilerRevision: selected.artifact.compilerRevision,admissionRevision: selected.artifact.admissionRevision });
+      this.v2 = new OwnedSimBatchV2(modern,{ host: this.host,bindings: this.v2Bindings,layout: layoutV2(selected.io,selected.artifact.pages,new Map(selected.capacities.map(row => [row.kind,row.capacity]))),
+        divisor: selected.divisor,fuel: selected.fuel,initFuel: selected.initFuel,seed: [rows.seed >>> 0,0],eventKinds: new Set(rows.script.on.map(name => SCRIPT_V1_EVENTS[name])) });
+    }
+    if ('shard' in rows.script.binding) for (const binding of bindings) {
+      if (this.v2 === undefined) this.host.enqueue(binding.id,[1,0,0,0,0,0]);
+      else if (rows.script.on.includes('start')) this.v2.enqueue(0,binding.id,[1,0,0,0,0,0],this.v2Identities());
+    }
   }
   /** Native binding takes existing platform authorities and rows, never per-shard ports. */
-  static native(host: SimHost, input: unknown): SpawnScript {
+  static native(host: SimHost, input: unknown,v2Owners?: SpawnV2Owners): SpawnScript {
     const rows = parseSpawnScript(input), roster = populationRoster(host, rows.roster);
     for (const row of rows.species) roster.validateSpawn(row.kind, row.variant);
     return new SpawnScript(rows, { spawn: roster.spawn, retire: actor => {
@@ -114,18 +141,36 @@ export class SpawnScript {
       roster.retire(body);
     }, actor: roster.actor,
       height: (x, z) => host.groundHeightAt(x, z), available: roster.available, boot: () => roster.bodies().filter(row => row.scripted).map(row => row.actor),
-      reach: (body, target) => canReach(body, target, host.physics) });
+      reach: (body, target) => canReach(body, target, host.physics) },v2Owners);
   }
   /** Client-only binding to the actual AnimalManager. Its existing spawn/retire path owns bodies and draws. */
-  static page(animals: AnimalManager, input: unknown, physics?: Physics | null): SpawnScript {
+  static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners): SpawnScript {
     return new SpawnScript(input, { spawn: (kind, x, z, yaw, variant) => animals.spawn(kind, x, z, yaw, variant),
       retire: actor => { const real = animals.animals.find(row => row === actor); if (real === undefined) throw new Error('Foreign page spawn retirement'); animals.retire(real); },
       actor: id => animals.animals.find(row => row.entityId === id) ?? null, height: terrainHeight,
       available: () => 16384 - animals.animals.length, boot: () => animals.animals.filter(row => row.scripted),
       reach: (body, target) => physics !== undefined && physics !== null && canReach(body, target, physics),
       show: (body, visible) => { const real = animals.animals.find(row => row === body); if (real !== undefined) real.mesh.visible = visible; },
-    });
+    },v2Owners);
   }
+  private v2Identities(): ReadonlyMap<number,string> {
+    const rows = new Map([...this.handles].map(([handle,body]) => [handle,body.entityId]));rows.set(DECISION_PLAYER_HANDLE,`${this.rows.step}:player`);return rows;
+  }
+  private captureV2(due: ReadonlySet<number>): OwnedV2Frame {
+    const owners = value(this.v2Owners,'entered v2 owners'), columns = value(this.v2Columns,'v2 columns');
+    if (owners.scope.disposed || owners.scope.disposing) throw new Error('Retired v2 actor scope');
+    const player = DECISION_PLAYER_HANDLE, observed = new Map(this.handles), identities = new Map(this.v2Identities());identities.set(player,`${this.rows.step}:player`);
+    return { players: [{ identity: `${this.rows.step}:player`,handle: player,atTick: this.tick,pose: { ...this.point,yaw: this.playerYaw } }],
+      bindings: this.v2Bindings.map(({ binding }) => {
+        const self = this.actor(binding.self), slot = this.rows.slots.findIndex(row => row.handle === binding.self);
+        const values = new Map((due.has(binding.id) ? columns.capture({ ...owners,self: { group: this.rows.roster,slot: Math.max(0,slot),identity: self?.entityId ?? '',actor: self ?? null },observed,player: { position: this.point },t: this.tick/60,dt: 1/60 }) : []).map(row => [row.name,row.value]));
+        return { id: binding.id,observed: identities,fields: this.rows.fields.map((row,index) => {
+          const n = values.get(row.id) ?? (row.source === 'observed' ? this.observations.get(row.id) : this.field(binding.self,index+1));
+          return { name: row.id,id: index+1,...(n === undefined ? {} : { value: n }) };
+        }),sample: { atTick: this.tick,target: player,...(self === undefined ? {} : { pose: { x: self.position.x,y: self.position.y,z: self.position.z,yaw: self.yaw },hpShare: self.hp/self.maxHp }) } };
+      }) };
+  }
+  private observational(handle: number): boolean { return this.rows.slots.some(row => row.handle === handle && row.authority === 'observe'); }
   private actor(handle: number): ControlledBody | undefined { return this.handles.get(handle); }
   private position(handle: number): Point { return handle === DECISION_PLAYER_HANDLE ? this.point : this.actor(handle)?.position ?? { x: 0, y: 0, z: 0 }; }
   private field(actor: number, id: number): number {
@@ -177,6 +222,7 @@ export class SpawnScript {
     let capacity = this.bodies.available();
     const slot = (name: string): number => value(this.rows.slots.find(row => row.id === name), 'slot').handle;
     for (const [op, actor, a, b, c] of commands) {
+      if ([1,2,3,4,6].includes(op) && this.observational(actor)) throw new Error('Read-only actor authority');
       if (op === 4) {
         const row = value(this.rows.fields[a - 1], 'field'); this.fieldBounds(row.id, b);
         if (['night', 'limit', 'observed', 'channel', 'seed', 'lastHit', 'strikeTime'].includes(row.source) || Math.abs(b) > 10000 || c !== 0) throw new Error('Population field authority');
@@ -204,7 +250,7 @@ export class SpawnScript {
       } else if (op === 5) {
         const row = value(this.rows.spawns[a - 1], 'spawn row'), species = value(this.rows.species.find(item => item.id === row.species), 'species');
         const site = value(this.rows.sites.find(item => item.id === row.site), 'site'), handle = slot(site.slot);
-        if (b !== 0 || c !== 0 || pending.has(handle) || (this.actor(handle)?.alive === true && !retiring.has(handle)) || capacity < 1) throw new Error('Occupied or invalid spawn slot');
+        if (this.observational(handle) || b !== 0 || c !== 0 || pending.has(handle) || (this.actor(handle)?.alive === true && !retiring.has(handle)) || capacity < 1) throw new Error('Occupied or invalid spawn slot');
         if ('spawnGroup' in this.rows.script.binding && handle !== context.binding.self) throw new Error('Spawn group slot ownership');
         capacity--;
         const coordinate = (source: 'x' | 'z'): number => {
@@ -263,11 +309,20 @@ export class SpawnScript {
   /** Existing native/page owners supply observations as values; the guest cannot call back into shard code. */
   advance(dt: number, point: Point, night: number, maximum: number, flags: readonly string[]): void {
     if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid population elapsed time');
+    if (this.v2Owners?.scope.disposed || this.v2Owners?.scope.disposing) throw new Error('Retired v2 actor scope');
+    if (this.v2 !== undefined && ![point.x,point.y,point.z,night,maximum].every(Number.isFinite)) throw new Error('Invalid v2 actor frame');
+    if (this.v2 !== undefined && [...this.handles.values()].some(body => this.bodies.actor(body.entityId) !== body)) throw new Error('Retired v2 actor identity');
     this.point = point; this.night = night; this.maximum = maximum;
     this.flags.clear(); for (const flag of flags) this.flags.add(flag);
     this.elapsed += dt;
     while (this.elapsed + Number.EPSILON >= 1 / 60) {
-      this.elapsed = Math.max(0, this.elapsed - 1 / 60); this.host.step(++this.tick);
+      this.elapsed = Math.max(0, this.elapsed - 1 / 60);
+      if (this.v2 === undefined) this.host.step(++this.tick);
+      else {
+        this.host.stepExternal(++this.tick);
+        this.v2.advance(this.tick,due => this.captureV2(due),this.v2Identities());
+        this.disabledReason = this.v2.failure?.message ?? null;
+      }
       for (const [handle, motion] of this.motions) {
         const body = this.actor(handle); if (body === undefined || !body.alive) { this.motions.delete(handle); continue; }
         const site = this.rows.sites.find(row => this.rows.slots.find(slot => slot.id === row.slot)?.handle === handle);
@@ -282,6 +337,7 @@ export class SpawnScript {
         if (frame.done !== undefined) { this.motions.delete(handle); if (this.rows.script.on.includes('move.done')) this.enqueue(handle, [10, handle, motion.id, Number(frame.done), 0, 0]); }
       }
       for (const [handle, body] of this.handles) {
+        if (this.observational(handle)) continue;
         if ('spawnGroup' in this.rows.script.binding) { body.lookTarget.set(this.point.x, this.point.y + this.sourceField(handle, 'lookHeight'), this.point.z); }
         const frame = this.combat.advance(handle, 1 / 60, body, this.point, this.bodies.reach(body, this.point));
         if (frame.hit !== null) this.effects.push({ kind: 'hit', actor: handle, hit: frame.hit });
@@ -301,7 +357,9 @@ export class SpawnScript {
     const id = this.rows.fields.findIndex(row => row.source === source); return id === -1 ? 0 : this.field(handle, id + 1);
   }
   private enqueue(actor: number, event: Parameters<DecisionHost['enqueue']>[1]): void {
-    this.host.enqueue(value(this.bindings.get('spawnGroup' in this.rows.script.binding ? actor : 0), 'binding actor'), event);
+    const binding = value(this.bindings.get('spawnGroup' in this.rows.script.binding ? actor : 0), 'binding actor');
+    if (this.v2 === undefined) this.host.enqueue(binding,event);
+    else if (this.rows.script.on.some(name => SCRIPT_V1_EVENTS[name] === event[0])) this.v2.enqueue(this.tick,binding,event,this.v2Identities());
   }
   private emitCue(actor: number, name: string): void {
     const id = this.rows.cues.indexOf(name) + 1; if (id < 1) throw new Error('Missing owned cue');
@@ -326,8 +384,10 @@ export class SpawnScript {
   /** Explicit adoption takes an id, never a body supplied by content or a reflected object path. */
   adopt(slot: string, id: string): void {
     const handle = value(this.rows.slots.find(row => row.id === slot), 'adopted slot').handle, body = this.bodies.actor(id);
-    if (body === null || !this.compatible(handle, body) || (claimedBodies.has(body) && claimedBodies.get(body) !== this)) throw new Error('Incompatible adopted script actor');
-    this.handles.set(handle, body); claimedBodies.set(body, this); this.adoptedBodies.add(body);
+    if (body === null || !this.compatible(handle, body) || (!this.observational(handle) && claimedBodies.has(body) && claimedBodies.get(body) !== this)) throw new Error('Incompatible adopted script actor');
+    this.handles.set(handle, body);
+    if (this.observational(handle)) return;
+    claimedBodies.set(body, this); this.adoptedBodies.add(body);
     body.scripted = true; body.herd = -1; body.state = this.controlState;
   }
   /** Encounter lifecycle activation uses the same recipe/site/real roster authority as guest spawning. */
@@ -335,25 +395,29 @@ export class SpawnScript {
     if (!Number.isFinite(yaw)) throw new Error('Invalid activation yaw');
     const spawn = value(this.rows.spawns.find(row => row.id === recipe), 'activation recipe'), site = value(this.rows.sites.find(row => row.id === spawn.site), 'activation site');
     const slot = value(this.rows.slots.find(row => row.id === site.slot), 'activation slot'), species = value(this.rows.species.find(row => row.id === spawn.species), 'activation species');
-    if (site.point === undefined || this.actor(slot.handle)?.alive === true) throw new Error('Invalid lifecycle site or occupied slot');
+    if (this.observational(slot.handle) || site.point === undefined || this.actor(slot.handle)?.alive === true) throw new Error('Invalid lifecycle site or occupied slot');
     this.interrupt(); this.detach(slot.handle); this.fields.clear(); this.channels.clear();
     const initial = this.host.snapshot(), bindings: DecisionSnapshot['bindings'][number][] = [];
     for (const binding of initial.bindings) bindings.push({ ...binding, slots: Object.fromEntries(this.rows.script.state.map(row => [row.name, row.default])),
-      timers: {}, pending: [], lastCall: initial.tick, failures: 0, disabled: false });
+      timers: {}, pending: [], lastCall: initial.tick, failures: 0, disabled: false,...(this.v2 === undefined ? {} : { enabled: true }) });
     this.host.restore({ ...initial, bindings, staged: [] });
+    this.v2?.clearInput(true);
     const boot = this.bodies.boot().find(body => this.compatible(slot.handle, body) && !claimedBodies.has(body) && !this.adoptedBodies.has(body));
     const body = boot ?? this.bodies.spawn(species.kind, site.point[0], site.point[1], yaw, species.variant);
     this.adopt(slot.id, body.entityId); this.enqueue(slot.handle, [1, 0, 0, 0, 0, 0]); return body;
   }
   retire(slot: string): void {
     const handle = value(this.rows.slots.find(row => row.id === slot), 'retired slot').handle, body = this.actor(handle);
+    if (this.observational(handle)) throw new Error('Read-only actor retirement');
     if (body !== undefined) this.bodies.retire(body); this.detach(handle); this.interrupt();
   }
   interrupt(): void {
     const initial = this.host.snapshot(), bindings: DecisionSnapshot['bindings'][number][] = [];
     for (const binding of initial.bindings) bindings.push({ ...binding, pending: [] });
     this.host.restore({ ...initial, bindings, staged: [] });
+    this.v2?.clearInput();
     for (const [handle, body] of this.handles) {
+      if (this.observational(handle)) continue;
       this.combat.cancel(handle, body); this.motions.delete(handle); body.setMotion(body.yaw, 0);
       const hidden = this.rows.fields.findIndex(row => row.source === 'hidden') + 1;
       if (hidden > 0) { body.hidden = false; this.bodies.show?.(body, true); this.fields.set(`${handle}:${hidden}`, 0); }
@@ -369,19 +433,22 @@ export class SpawnScript {
   }
   /** Platform observations are finite named values. Only fields declared as observed can receive them. */
   observe(input: Readonly<Record<string, number>>): void {
-    for (const [id, n] of Object.entries(input)) {
+    const entries = Object.entries(input);
+    for (const [id, n] of entries) {
+      if (this.rows.v2?.columns.some(row => row.name === id)) throw new Error('Duplicate v2 observation publication');
       if (!Number.isFinite(n) || !this.rows.fields.some(row => row.id === id && row.source === 'observed')) throw new Error('Invalid script observation');
-      this.observations.set(id, n);
     }
+    for (const [id,n] of entries) this.observations.set(id,n);
   }
   frame(point: Point, night: number, observations: Readonly<Record<string, number>>, yaw = 0): void {
-    this.point = point; this.night = night; this.playerYaw = yaw;
+    if (this.v2 !== undefined && ![point.x,point.y,point.z,night,yaw].every(Number.isFinite)) throw new Error('Invalid v2 actor frame');
     this.observe(Object.fromEntries(Object.entries({ ...observations, night }).filter(([id]) => this.rows.fields.some(row => row.id === id && row.source === 'observed'))));
+    this.point = point;this.night = night;this.playerYaw = yaw;
   }
   advanceFrame(dt: number): void { this.advance(dt, this.point, this.night, this.rows.maximum, this.rows.flags.filter(flag => this.flags.has(flag))); }
-  /** Validate on an isolated owner with the same real body authority; no body write or guest invocation occurs. */
+  /** Preflight the same native authority without a body write or guest call. */
   prepareRestore(input: SimValue): () => void {
-    const candidate = new SpawnScript(this.rows, this.bodies, this); candidate.restore(input);
+    this.restoreSnapshot(input,true);
     return () => { this.restore(input); };
   }
   /** Historical controller state enters through finite named values and actual roster ids, never reflected ports. */
@@ -415,16 +482,19 @@ export class SpawnScript {
     actors: [...this.handles].map(([handle, body]) => [handle, body.entityId]),
     ...(this.rows.strikes === undefined ? {} : { strikes: this.combat.snapshot() }),
     fields: [...this.fields].map(([key, n]) => { const parts = key.split(':'); return [Number(parts[0]), Number(parts[1]), n]; }), channels: [...this.channels], force: this.forced, elapsed: this.elapsed,
-    moves: [...this.motions].map(([actor, motion]) => ({ actor, id: motion.id, target: motion.target, state: motion.runner.snapshot() })) }); }
+    moves: [...this.motions].map(([actor, motion]) => ({ actor, id: motion.id, target: motion.target, state: motion.runner.snapshot() })),
+    ...(this.v2 === undefined ? {} : { v2Input: { version: 1,contract: this.v2Contract,...this.v2.snapshot() } }) }); }
   /** Restore body references only after the real roster has reinstalled them. No draws, spawns, guest calls or effects. */
-  restore(input: SimValue): void {
+  restore(input: SimValue): void { this.restoreSnapshot(input,false); }
+  private restoreSnapshot(input: SimValue,validateOnly: boolean): void {
     const raw: unknown = typeof input === 'string' ? JSON.parse(input) : input;
     const migrated = this.migrate(raw), saved = v.parse(Saved, migrated);
     if (saved.contract !== this.contract) throw new Error('Incompatible population script continuation');
+    if (saved.v2Input !== undefined && (this.rows.v2 === undefined || saved.v2Input.contract !== this.v2Contract)) throw new Error('Incompatible v2 actor input contract');
     const fields = new Map<string, number>(), channels = new Map<number, number>();
     for (const [actor, id, n] of saved.fields) {
       const field = value(this.rows.fields[id - 1], 'restored field'), key = `${actor}:${id}`; this.fieldBounds(field.id, n);
-      if (!this.rows.slots.some(row => row.handle === actor) || !['x', 'z', ...('spawnGroup' in this.rows.script.binding ? ['value', 'lookHeight', 'lookWeight', 'hidden', 'scripted'] : [])].includes(field.source) || fields.has(key) || Math.abs(n) > 10000) throw new Error('Invalid population site continuation');
+      if (this.observational(actor) || !this.rows.slots.some(row => row.handle === actor) || !['x', 'z', ...('spawnGroup' in this.rows.script.binding ? ['value', 'lookHeight', 'lookWeight', 'hidden', 'scripted'] : [])].includes(field.source) || fields.has(key) || Math.abs(n) > 10000) throw new Error('Invalid population site continuation');
       if (['scripted', 'hidden'].includes(field.source) && n !== 0 && n !== 1) throw new Error('Invalid restored visibility');
       if (field.source === 'lookWeight' && (n < 0 || n > 1)) throw new Error('Invalid restored look weight');
       fields.set(key, n);
@@ -437,30 +507,34 @@ export class SpawnScript {
     for (const [handle, id] of saved.actors) {
       const body = this.bodies.actor(id);
       if (body === null || actors.has(handle) || !this.rows.slots.some(row => row.handle === handle) || [...actors.values()].includes(body)) throw new Error('Invalid population actor continuation');
-      if (!this.compatible(handle, body) || (claimedBodies.get(body) !== undefined && claimedBodies.get(body) !== (this.validatorFor ?? this))) throw new Error('Foreign scripted actor continuation');
+      if (!this.compatible(handle, body) || (!this.observational(handle) && claimedBodies.get(body) !== undefined && claimedBodies.get(body) !== this)) throw new Error('Foreign scripted actor continuation');
       actors.set(handle, body);
     }
     const motions = new Map<number, Motion>();
     for (const motion of saved.moves) {
       const body = value(actors.get(motion.actor), 'restored moving actor'), row = value(this.rows.moves[motion.id - 1], 'restored move');
-      if (motions.has(motion.actor) || (motion.target !== 0 && motion.target !== DECISION_PLAYER_HANDLE) || !['stalk', 'steer', 'relocate'].includes(row.kind)) throw new Error('Invalid population move continuation');
+      if (this.observational(motion.actor) || motions.has(motion.actor) || (motion.target !== 0 && motion.target !== DECISION_PLAYER_HANDLE) || !['stalk', 'steer', 'relocate'].includes(row.kind)) throw new Error('Invalid population move continuation');
       const runner = new ActorMoveRunner(row, body); runner.restore(motion.state); motions.set(motion.actor, { ...motion, runner });
     }
-    const commitStrikes = this.combat.prepareRestore(saved.strikes ?? [], new Set(actors.keys()));
+    const commitStrikes = this.combat.prepareRestore(saved.strikes ?? [], new Set([...actors.keys()].filter(handle => !this.observational(handle))));
     const before = new Map(this.handles), previousFields = new Map(this.fields);
     this.handles.clear(); for (const [id, body] of actors) this.handles.set(id, body);
     this.fields.clear(); for (const [key, n] of fields) this.fields.set(key, n);
-    try { this.host.restore(saved.decision); } catch (error) {
+    let publish: () => void;
+    try {
+      publish = this.v2 === undefined ? this.host.prepareRestore(saved.decision) : this.v2.prepareRestore(saved.decision,saved.v2Input,this.v2Identities());
+    } finally {
       this.handles.clear(); for (const [id, body] of before) this.handles.set(id, body);
-      this.fields.clear(); for (const [key, n] of previousFields) this.fields.set(key, n); throw error;
+      this.fields.clear(); for (const [key, n] of previousFields) this.fields.set(key, n);
     }
-    commitStrikes(); this.tick = this.host.snapshot().tick;
-    if (this.validatorFor === undefined) {
-      for (const [handle, body] of before) if (!actors.has(handle) && claimedBodies.get(body) === this) claimedBodies.delete(body);
-      if ('spawnGroup' in this.rows.script.binding) for (const body of actors.values()) { claimedBodies.set(body, this); this.adoptedBodies.add(body); }
-      for (const [key, n] of fields) { const [actor, id] = key.split(':').map(Number), row = this.rows.fields[(id ?? 0) - 1], body = actors.get(actor ?? 0);
-        if (row?.source === 'hidden' && body !== undefined) { body.hidden = n === 1; this.bodies.show?.(body, n === 0); }
-      }
+    if (validateOnly) return;
+    this.handles.clear();for (const [id,body] of actors) this.handles.set(id,body);
+    this.fields.clear();for (const [key,n] of fields) this.fields.set(key,n);
+    publish();commitStrikes(); this.tick = this.host.snapshot().tick;
+    for (const [handle, body] of before) if (!actors.has(handle) && claimedBodies.get(body) === this) claimedBodies.delete(body);
+    if ('spawnGroup' in this.rows.script.binding) for (const [handle,body] of actors) if (!this.observational(handle)) { claimedBodies.set(body, this); this.adoptedBodies.add(body); }
+    for (const [key, n] of fields) { const [actor, id] = key.split(':').map(Number), row = this.rows.fields[(id ?? 0) - 1], body = actors.get(actor ?? 0);
+      if (row?.source === 'hidden' && body !== undefined && !this.observational(actor ?? 0)) { body.hidden = n === 1; this.bodies.show?.(body, n === 0); }
     }
     this.channels.clear(); for (const [id, n] of channels) this.channels.set(id, n);
     this.motions.clear(); for (const [id, motion] of motions) this.motions.set(id, motion); this.forced = saved.force; this.elapsed = saved.elapsed; this.effects = [];
@@ -494,8 +568,8 @@ export class SpawnScript {
 }
 
 /** Built-in native adapter: row ids resolve the already installed roster; its actor IDs, draw order and save owner stay authoritative. */
-export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock, 'night'>, input: unknown): SpawnScript {
-  const rows = parseSpawnScript(input), runner = SpawnScript.native(host, rows);
+export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock, 'night'>, input: unknown,v2Owners?: SpawnV2Owners): SpawnScript {
+  const rows = parseSpawnScript(input), runner = SpawnScript.native(host, rows,v2Owners);
   // A quiet re-save preserves the validated input wire until the first simulation step.
   let restored: SimValue | undefined;
   host.onStep(rows.step, dt => {
@@ -514,5 +588,8 @@ export async function readSpawnScript(product: ShardProduct, step: string): Prom
   const descriptor = value(outputDescriptor(product.shardfile), 'admitted product');
   const file = value(descriptor.index.files.find(item => item.kind === 'wasm' && item.path === row.script.module), 'catalogue module');
   const bytes = await product.file(value(file.name, 'named catalogue module'));
-  return { ...row, bytes: btoa(String.fromCodePoint(...bytes)) };
+  if (row.v2 === undefined) return { ...row, bytes: btoa(String.fromCodePoint(...bytes)) };
+  const modulePath = `blobs/wasm/${row.v2.artifact.hash}.wasm`, modern = value(descriptor.index.files.find(item => item.kind === 'wasm' && item.path === modulePath && item.hash === row.v2?.artifact.hash), 'v2 catalogue module');
+  const v2Bytes = await product.file(value(modern.name,'named v2 catalogue module'));
+  return { ...row,bytes: btoa(String.fromCodePoint(...bytes)),v2: { ...row.v2,bytes: btoa(String.fromCodePoint(...v2Bytes)) } };
 }
