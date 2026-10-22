@@ -203,6 +203,91 @@ class PreparedProducts(unittest.TestCase):
                 products.unpack(self.root)
             products.pack(self.root)
 
+    def duplicate_payload(self):
+        source, other = 'public/duplicate.bin', 'out/fictional/duplicate.bin'
+        payload = bytes(range(256)) * 512
+        for name in [source, other]:
+            (self.root / name).write_bytes(payload)
+        (self.root / other).chmod(0o755)
+        products.pack(self.root)
+        proof = json.loads((self.root / products.PROOF).read_text())
+        self.assertEqual(len(proof['duplicates']), 1)
+        duplicate, row = next(iter(proof['duplicates'].items()))
+        return payload, duplicate, row, proof
+
+    def test_duplicate_payloads_restore_exact_paths_bytes_and_modes(self):
+        payload, duplicate, row, proof = self.duplicate_payload()
+        source = row['source']
+        with tarfile.open(self.root / products.ARCHIVE) as archive:
+            self.assertNotIn(duplicate, archive.getnames())
+            self.assertEqual(archive.getmember(source).size, len(payload))
+        mode = (self.root / duplicate).stat().st_mode & 0o777
+        (self.root / duplicate).unlink()
+        (self.root / source).unlink()
+        products.unpack(self.root)
+        self.assertEqual((self.root / duplicate).read_bytes(), payload)
+        self.assertEqual((self.root / source).read_bytes(), payload)
+        self.assertEqual((self.root / duplicate).stat().st_mode & 0o777, mode)
+        self.assertNotEqual((self.root / duplicate).stat().st_ino, (self.root / source).stat().st_ino)
+
+    def test_duplicate_tampering_refuses_before_any_writes(self):
+        _, duplicate, row, proof = self.duplicate_payload()
+        (self.root / self.table).unlink()
+        for field, bad in [('source', duplicate), ('source', '../../outside'),
+                           ('size', row['size'] + 1), ('sha256', '0' * 64), ('mode', 0o1000)]:
+            proof['duplicates'][duplicate] = {**row, field: bad}
+            (self.root / products.PROOF).write_text(json.dumps(proof))
+            with self.assertRaisesRegex(ValueError, 'duplicate'):
+                products.unpack(self.root)
+            self.assertFalse((self.root / self.table).exists())
+
+    def test_duplicate_inventory_rejects_overlap_and_symlink_parent(self):
+        _, duplicate, row, proof = self.duplicate_payload()
+        (self.root / self.table).unlink()
+        proof['duplicates'][row['source']] = row
+        (self.root / products.PROOF).write_text(json.dumps(proof))
+        with self.assertRaisesRegex(ValueError, 'overlaps'):
+            products.unpack(self.root)
+        del proof['duplicates'][row['source']]
+        (self.root / products.PROOF).write_text(json.dumps(proof))
+        parent = (self.root / duplicate).parent
+        moved = self.root / 'duplicate-parent'
+        parent.rename(moved)
+        parent.symlink_to(moved, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'Unsafe prepared output'):
+            products.unpack(self.root)
+        self.assertFalse((self.root / self.table).exists())
+
+    def test_required_generated_output_can_be_a_verified_duplicate(self):
+        payload = bytes(range(256)) * 512
+        (self.root / 'public/generated.bin').write_bytes(payload)
+        (self.root / self.table).write_bytes(payload)
+        self.create_phase_receipt()
+        products.pack(self.root, generated=True)
+        proof = json.loads((self.root / products.archive_names(True)[1]).read_text())
+        self.assertIn(self.table, proof['duplicates'])
+        (self.root / self.table).unlink()
+        products.unpack(self.root, generated=True)
+        self.assertEqual((self.root / self.table).read_bytes(), payload)
+        self.assertEqual(self.phase_probe('verify'), 'true')
+
+    def test_legacy_proof_without_duplicates_still_restores(self):
+        proof = json.loads((self.root / products.PROOF).read_text())
+        del proof['duplicates']
+        (self.root / products.PROOF).write_text(json.dumps(proof))
+        (self.root / self.table).unlink()
+        products.unpack(self.root)
+        self.assertTrue((self.root / self.table).is_file())
+
+    def test_duplicate_cannot_use_an_archived_file_as_a_parent(self):
+        _, duplicate, row, proof = self.duplicate_payload()
+        proof['duplicates'] = {row['source'] + '/child': row}
+        (self.root / products.PROOF).write_text(json.dumps(proof))
+        (self.root / self.table).unlink()
+        with self.assertRaisesRegex(ValueError, 'Unsafe prepared output hierarchy'):
+            products.unpack(self.root)
+        self.assertFalse((self.root / self.table).exists())
+
     def test_corrupt_archive_refuses(self):
         with (self.root / products.ARCHIVE).open('ab') as stream:
             stream.write(b'changed')

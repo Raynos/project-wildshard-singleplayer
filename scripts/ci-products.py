@@ -122,6 +122,7 @@ def pack(root, generated=False):
     tracked = tracked_files(root)
     object_format = git(root, 'rev-parse', '--show-object-format').decode().strip()
     retained = {}
+    duplicates, content = {}, {}
     archived = 0
     with tarfile.open(root / archive_name, 'w') as archive:
         for name in files:
@@ -135,12 +136,25 @@ def pack(root, generated=False):
                 if source == (mode, blob):
                     retained[name] = {'size': size, 'sha256': sha256, 'blob': blob, 'mode': mode}
                     continue
+            # Reconstruct repeated large payloads as regular files. Artifact
+            # compression has a bounded window; distant copies of identical
+            # assets otherwise cross the network once for every product.
+            size = path.stat().st_size
+            if size >= 65536:
+                sha256 = digest(path)
+                key = (size, sha256)
+                previous = content.get(key)
+                if previous is not None:
+                    duplicates[name] = {'source': previous, 'size': size,
+                                        'sha256': sha256, 'mode': path.stat().st_mode & 0o777}
+                    continue
+                content[key] = name
             archive.add(path, arcname=name, recursive=False)
             archived += 1
     proof = {'sha': sha, 'run': run, 'sha256': digest(root / archive_name),
-             'files': archived, 'retained': retained}
+             'files': archived, 'retained': retained, 'duplicates': duplicates}
     (root / proof_name).write_text(json.dumps(proof) + '\n')
-    print(f'Published {archived} prepared files and verified {len(retained)} checkout files for {sha} in run {run}')
+    print(f'Published {archived} prepared files, {len(duplicates)} duplicate paths and verified {len(retained)} checkout files for {sha} in run {run}')
 
 
 def unpack(root, generated=False):
@@ -159,7 +173,15 @@ def unpack(root, generated=False):
         retained = proof.get('retained', {})
         if not isinstance(retained, dict) or set(retained).intersection(names):
             raise ValueError('Prepared retained inventory overlaps the archive')
-        inventory = names + list(retained)
+        duplicates = proof.get('duplicates', {})
+        if (not isinstance(duplicates, dict)
+                or set(duplicates).intersection(names + list(retained))):
+            raise ValueError('Prepared duplicate inventory overlaps other outputs')
+        inventory = names + list(retained) + list(duplicates)
+        paths = set(inventory)
+        if any(str(parent) in paths for name in inventory
+               for parent in PurePosixPath(name).parents):
+            raise ValueError('Unsafe prepared output hierarchy')
         _, required = catalogue_outputs(root)
         if not required.issubset(inventory):
             raise ValueError('Prepared catalogue outputs are missing from the archive')
@@ -184,6 +206,30 @@ def unpack(root, generated=False):
             path = target(root, member.name)
             if not member.isfile() or path.exists() and not path.is_file():
                 raise ValueError('Unsafe prepared output: ' + member.name)
+        # Validate every reconstruction target and source before writing any
+        # output. Sources must be real archived members, never links or chains.
+        by_name = {member.name: member for member in members}
+        verified = set()
+        for name, row in duplicates.items():
+            path = target(root, name)
+            if path.exists() and not path.is_file():
+                raise ValueError('Unsafe prepared output: ' + name)
+            if (not isinstance(row, dict) or set(row) != {'source', 'size', 'sha256', 'mode'}
+                    or not isinstance(row['source'], str) or row['source'] not in by_name
+                    or type(row['size']) is not int or row['size'] < 65536
+                    or type(row['mode']) is not int or not 0 <= row['mode'] <= 0o777
+                    or not isinstance(row['sha256'], str)):
+                raise ValueError('Invalid prepared duplicate: ' + name)
+            member = by_name[row['source']]
+            key = (row['source'], row['size'], row['sha256'])
+            if key not in verified:
+                result = hashlib.sha256()
+                with archive.extractfile(member) as stream:
+                    for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                        result.update(chunk)
+                if member.size != row['size'] or result.hexdigest() != row['sha256']:
+                    raise ValueError('Prepared duplicate checksum mismatch: ' + name)
+                verified.add(key)
         for member in members:
             path = root / member.name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -193,7 +239,12 @@ def unpack(root, generated=False):
             with stream, path.open('wb') as destination:
                 shutil.copyfileobj(stream, destination)
             path.chmod(member.mode & 0o777)
-    print(f'Restored {len(members)} prepared files and verified {len(retained)} checkout files for {sha} in run {run}')
+        for name, row in duplicates.items():
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(root / row['source'], path)
+            path.chmod(row['mode'])
+    print(f'Restored {len(members)} prepared files, {len(duplicates)} duplicate paths and verified {len(retained)} checkout files for {sha} in run {run}')
 
 
 if __name__ == '__main__':
