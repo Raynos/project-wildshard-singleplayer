@@ -12,7 +12,10 @@ pass + latch → crossing T1–T6 (G580/G581) → Nine → Nalati → the rest (
 1,597/1,517 vs OFF 1,494/1,414 MB, blocked 0/0, p95 35/34 ms; warm Sky 3.8 s. Cold Pine ~17 s with budget; three
 stage cuts failed the whole-wait gate (3-5 s noise even quiet). G579 (< 5 s) not met.
 
-**Lanes (G596 zero first, hosts later; G590 full steam):** Nine: sp-o1 (D1b spill/bounds, then NA), sp-o5 (view-lane
+**G597 STOP-RULE (Jake 10:25):** Jake picks WASM vs host per Nine/Nalati/C1/C5/C6 item; no new host, reshape or
+HOST-BAR listing lands before his pick; data/AS/generator/bake/dead-code rows continue.
+
+**Lanes (G596 zero first; G590 full steam):** Nine: sp-o1 (D1b spill/bounds, then NA), sp-o5 (view-lane
 uniforms/camera/specimen), sp-x8 ND flip. Nalati: sp-o3 O27/N1b/N5c, sp-o2 LG after crossing default-on, sp-x9 C6
 (N6a/N6b/LF), sp-x1 C5 (N5a/N5b) after the Pine/DW grid-ready latch, sp-x6 N1e then LB. sp-o4 E2 (GLSL memory first).
 N1a open for the next free Opus. HOST-AUDIT (later): G594 ruler/host items; sp-x8: 74ffcac600 posed loader is a real
@@ -23,15 +26,12 @@ second user, 96b965a60f overbroad (Pine figure/socket vs DW kit-figure are diffe
 **Rules:** G492; never herdr wildshard-v; no net-0 moves or relabels (G571); G573; G561.
 
 **For wildshard-v:**
-(G595 candidates for Jake) game/riding/seatedFigure (sp-o3, 487c74c60c): one-user, charged not listed; self-scored
-2 Y, 3 Y, 4 Y, 5 Y (mounted-figure.test ferryman profile), 6 Y.
-(0) G587 part 1 is already live (745567649a): sp-x6 checked live 16a7101baa in a fresh phone context: Developer ON = 6
-real + 4 templates, OFF = 6 real, no open plots. If Jake still sees plots, it's a stale PWA cache, not code.
-(1) G589 pass (sp-x1, 0f9781148f): Pine memory passes (181.5 MB), oneFrameLooks FAILS (max frames 999.9/266.6/
-116.8 ms). DW not latched: harness bug, gridFloorPlans returns outward+return but the driver takes plans[0].
-(2) Ruler: 1aa987d01a stops counting runtime/productSections.generated.d.ts as authored. Re-run on 1aa987d01a+
-before committing a refresh (95b658af85 wrote empty port shares; 6bf8c2a6e5 restored them). Open: a check-slot
-out/ had Nalati/Nine runtime.entry with files [] ('missing output runtime entry'); build mode or 173ec6a6ee, unconfirmed.
-(3) RECOMMEND default-on after Jake's phone check: 'Grid shader warm-up' = budget (cold Sky 12.1 -> 5.5 s, Pine
-30.0 -> 16.9 s) and T1 warm neighbour (+103 MB).
-(4) Round-36 far variants for your board: fc3338f4fd, art/grid/round-36-far-variants/.
+(1) E2 (sp-o4 06673968b0): Nine graph composite renderer +22..31 MB, GPU +22..25 MB, heap flat, 60 fps both, sections
++57.6 KB, so Nine's section ceiling rises ~60 KB in the port commit (G438). Nalati's 117 lines first. Veto -> revert.
+(2) Grid-ready memory latched for Pine 181.5 MB and DW 300.9 MB (495bc1d918); looks miss 200 ms: Pine 316.7 ms
+(activation: uploads ~130, composition ~80, clip ~41, hooks ~34), DW 250.1 ms. Readiness after Nine/Nalati.
+(3) Host picks for Jake (G597): game/riding/seatedFigure (sp-o3 487c74c60c, self-scored 2-6 Y); fd674f4d4b
+timedEncounters (nightView moved, your flagged pattern); sp-x6's N1e terrain-channel host (unlanded, +51).
+(4) G587 part 1 already live (745567649a, checked fresh). Ruler: 1aa987d01a; 6bf8c2a6e5 restored port shares.
+(5) RECOMMEND default-on after Jake's phone check: budget warm-up (cold Sky 12.1 -> 5.5 s) and T1 (+103 MB); sp-o2
+is landing it per G590.
