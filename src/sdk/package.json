@@ -90,6 +90,7 @@
     "./species/clips": "./species/clips.ts",
     "./compileScript": "./bake/compileScript.ts",
     "./compileScriptV2": "./bake/compileScriptV2.ts",
+    "./compileSimV2": "./bake/compileSimV2.ts",
     "./runtime/prompts": "./runtime/prompts.ts",
     "./buildBehaviour": "./buildBehaviour.ts",
     "./scene": "./scene.ts",
@@ -489,6 +490,10 @@
       "./compileScriptV2": {
         "types": "./dist/types/sdk/bake/compileScriptV2.d.ts",
         "default": "./dist/compileScriptV2.js"
+      },
+      "./compileSimV2": {
+        "types": "./dist/types/sdk/bake/compileSimV2.d.ts",
+        "default": "./dist/compileSimV2.js"
       },
       "./runtime/prompts": {
         "types": "./dist/types/sdk/runtime/prompts.d.ts",

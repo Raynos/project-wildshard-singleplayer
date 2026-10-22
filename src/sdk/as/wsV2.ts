@@ -8,6 +8,8 @@ export function v2CoreSource(io: number): string {
   return String.raw`
 const IO:usize=${io};
 let selected:i32=-1;
+@external("env","__v2_fuel") declare function remainingFuel():i32;
+let sliceStart:i32=-1;
 @inline export function io():i32{return i32(IO);}
 @inline function stride(kind:i32):u32{switch(kind){${strides}default:unreachable();}return 0;}
 @inline function directory(kind:i32):usize{
@@ -23,6 +25,13 @@ let selected:i32=-1;
   return IO+load<u32>(d+4)+usize(index)*stride(kind);
 }
 @inline export function select(index:i32):void{row(1,index);selected=index;}
+@inline export function beginBinding(index:i32):bool{
+  select(index);const at=binding();if((load<u32>(at+12)&3)!=3)return false;
+  store<u32>(IO+64,load<u32>(at));sliceStart=remainingFuel();return true;
+}
+@inline export function endBinding():void{
+  const used=sliceStart-remainingFuel();assert(sliceStart>=0&&used>=0&&used<=load<i32>(binding()+56));sliceStart=-1;
+}
 @inline function binding():usize{assert(selected>=0);return row(1,selected);}
 @inline export function handle():i32{return load<i32>(binding());}
 @inline export function self():i32{return load<i32>(binding()+4);}
@@ -32,7 +41,7 @@ let selected:i32=-1;
 @inline export function currentTick():i32{return load<i32>(binding()+52);}
 @inline export function absoluteTick(relative:i32):f64{return load<f64>(IO+104)+f64(relative);}
 @inline export function beginState():void{
-  selected=-1;const n=count(2),d=directory(3);assert(u32(n)<=load<u32>(d+12));
+  selected=-1;sliceStart=-1;store<u32>(IO+64,0);const n=count(2),d=directory(3);assert(u32(n)<=load<u32>(d+12));
   store<u32>(d+16,u32(n));for(let i=0;i<n;i++)store<f64>(row(3,i),load<f64>(row(2,i)));
 }
 @inline function column(kind:i32,index:i32,base:usize):usize{

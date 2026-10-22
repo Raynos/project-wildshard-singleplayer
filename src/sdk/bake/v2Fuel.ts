@@ -37,6 +37,11 @@ export function instrumentV2Fuel(bytes: Uint8Array,options: { readonly lane?: V2
     if (exp?.kind !== 0 || type?.result !== 0x7f || type.params.length !== params.length || type.params.some((value,i) => value !== params[i]) || entries.has(exp.index)) throw new Error('Wrong v2 work entry');
     entries.set(exp.index,image.functions.length+entries.size);
   }
+  const reader = image.exports.get('__v2_fuel');
+  if (reader !== undefined) {
+    const type = image.types[image.functions[reader.index] ?? -1];
+    if (reader.kind !== 0 || type?.params.length !== 0 || type.result !== 0x7f || getters.has(reader.index) || entries.has(reader.index)) throw new Error('Invalid v2 fuel reader intrinsic');
+  }
   // Refuse acyclic entry-to-entry calls too: a source entry implementation is
   // host-only even though the final exported wrapper has a different index.
   const sourceEntries = new Set(Object.keys(V2_ENTRY_SIGNATURES).flatMap(name => { const row = image.exports.get(name); return row?.kind === 0 ? [row.index] : []; }));
@@ -47,9 +52,12 @@ export function instrumentV2Fuel(bytes: Uint8Array,options: { readonly lane?: V2
   // by consuming exactly that unsigned LEB, preserving every initializer byte.
   let globalPrefix = 0; if (globalSection !== undefined) { do { const byte = globalSection.bytes[globalPrefix++]; if (byte === undefined) throw new Error('Missing v2 globals'); if (byte < 128) break; } while (globalPrefix < 5); }
   const globalBytes = [...uint(fuel+1),...(globalSection?.bytes.subarray(globalPrefix) ?? []),0x7f,1,0x41,0,0x0b];
-  const exports = [...image.exports].filter(([name,value]) => value.kind === 0 && (!Object.hasOwn(V2_ENTRY_SIGNATURES,name) || name === 'ws_init' || name === V2_WORK_ENTRIES[lane])).map(([name,value]) => named(name).concat([value.kind],uint(entries.get(value.index) ?? value.index)));
+  const exports = [...image.exports].filter(([name,value]) => name !== '__v2_fuel' && value.kind === 0 && (!Object.hasOwn(V2_ENTRY_SIGNATURES,name) || name === 'ws_init' || name === V2_WORK_ENTRIES[lane])).map(([name,value]) => named(name).concat([value.kind],uint(entries.get(value.index) ?? value.index)));
   for (let i = 0; i < image.globals.length; i++) if (image.globals[i]?.mutable) exports.push([...named(`__state_${i}`),3,...uint(i)]);
-  const bodies = image.bodies.map((body,index) => getters.has(index) ? [...uint(body.bytes.length),...body.bytes] : metered(body,fuel,getters));
+  const bodies = image.bodies.map((body,index) => {
+    if (index === reader?.index) { const plain = [0,...charge(fuel,2),0x23,...uint(fuel),0x0b];return [...uint(plain.length),...plain]; }
+    return getters.has(index) ? [...uint(body.bytes.length),...body.bytes] : metered(body,fuel,getters);
+  });
   for (const target of entries.keys()) { const type = image.types[image.functions[target] ?? -1]; if (type === undefined) throw new Error('Missing v2 entry type'); bodies.push(wrapper(type,target,fuel)); }
   const replacements = new Map([[3,vector(functions.map(value => uint(value)))],[6,globalBytes],[7,vector(exports)],[10,vector(bodies)]]), output = [...bytes.subarray(0,8)];
   const emitted = new Set<number>();

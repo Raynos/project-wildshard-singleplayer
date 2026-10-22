@@ -16,6 +16,13 @@ function localStartAndAbort(bytes: Uint8Array): Uint8Array {
     image.setFeatures(binaryen.Features.MutableGlobals | binaryen.Features.SignExt | binaryen.Features.NontrappingFPToInt);
     const imports = Array.from({ length: image.getNumFunctions() },(_,i) => binaryen.getFunctionInfo(image.getFunctionByIndex(i))).filter(fn => fn.body === 0);
     for (const fn of imports) {
+      if (fn.module === 'env' && fn.base === '__v2_fuel' && fn.results === binaryen.i32 && binaryen.expandType(fn.params).length === 0) {
+        if (Array.from({ length: image.getNumExports() },(_,i) => binaryen.getExportInfo(image.getExportByIndex(i))).some(value => value.name === '__v2_fuel')) throw new Error('Reserved v2 fuel intrinsic export');
+        // The opaque authoring marker survives AS optimization. The meter
+        // replaces this local placeholder with a private-global read and
+        // removes the marker export before executable admission.
+        image.removeFunction(fn.name);image.addFunction(fn.name,fn.params,fn.results,[],image.i32.const(0));image.addFunctionExport(fn.name,'__v2_fuel');continue;
+      }
       if (fn.module !== 'env' || fn.base !== 'abort' || fn.results !== binaryen.none || binaryen.expandType(fn.params).length !== 4 || binaryen.expandType(fn.params).some(type => type !== binaryen.i32)) throw new Error('ABI v2 forbids guest function imports');
       image.removeFunction(fn.name); image.addFunction(fn.name,fn.params,fn.results,[],image.unreachable());
     }
