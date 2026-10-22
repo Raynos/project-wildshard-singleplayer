@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ForestPageSchema, ForestGroundLayoutSchema } from '../src/format/forestPage';
+import { ForestPageSchema, ForestGroundLayoutSchema, forestGroundLayoutSteps } from '../src/format/forestPage';
 import { RangedPageSchema, ForestWeatherObservationSchema } from '../src/format/rangedPage';
 import { ForestRoofMask } from '../src/game/looks/forestRoofMask';
 import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
@@ -69,4 +69,13 @@ test('the admitted quest mill door resolves in all eight living topologies', () 
     const topology = v.parse(v.object({ life: BuildingLifeRowsSchema }), JSON.parse(new TextDecoder().decode(blob.bytes)));
     expect(topology.life.doors.filter(door => door.id === FOREST_STORY.door.id)).toHaveLength(1);
   }
+});
+
+test('the forest ground layout admitted in steps keeps the schema rules and output', () => {
+  const run = (input: unknown): unknown => { const steps = forestGroundLayoutSteps(input); let step = steps.next(); while (step.done !== true) step = steps.next(); return step.value; };
+  const at = (i: number) => ({ x: i, y: 0, z: -i, nx: 0, ny: 1, nz: 0, rot: 0.5, scale: 1, r: 1, g: 1, b: 1, matrix: Array.from({ length: 16 }, (_, k) => k % 5 === 0 ? 1 : 0) });
+  const input = { counts: [3000, 2], layout: { fern: Array.from({ length: 3000 }, (_, i) => at(i)), stone: [at(1), at(2)] } };
+  expect(run(input)).toEqual(v.parse(ForestGroundLayoutSchema, input));
+  expect(() => run({ counts: [1], layout: { orchard: [] } })).toThrow('Invalid forest ground counts');
+  expect(() => run({ ...input, layout: { ...input.layout, stone: [at(1), { ...at(2), scale: 'big' }] } })).toThrow();
 });

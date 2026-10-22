@@ -28,9 +28,27 @@ export const ForestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Forest 
 }));
 export type ForestPageRows = v.InferOutput<typeof ForestPageSchema>;
 /** Layout counts remain independently admitted and bounded across all kinds. */
+const groundCounts = (row: { readonly counts: readonly number[]; readonly layout: Readonly<Record<string, readonly unknown[]>> }): boolean => {
+  const total = Object.values(row.layout).reduce((sum, entries) => sum + entries.length, 0);
+  return total <= 40_000 && row.counts.length === Object.keys(row.layout).length && total === row.counts.reduce((sum, amount) => sum + amount, 0);
+};
 export const ForestGroundLayoutSchema = v.pipe(v.strictObject({ counts: v.array(count), layout: v.record(id, v.pipe(v.array(place), v.maxLength(40_000))) }),
-  v.check(row => Object.values(row.layout).reduce((sum, entries) => sum + entries.length, 0) <= 40_000 && row.counts.length === Object.keys(row.layout).length
-    && Object.values(row.layout).reduce((sum, entries) => sum + entries.length, 0) === row.counts.reduce((sum, amount) => sum + amount, 0), 'Invalid forest ground counts'));
+  v.check(row => groundCounts(row), 'Invalid forest ground counts'));
+export type ForestGroundLayout = v.InferOutput<typeof ForestGroundLayoutSchema>;
+const GroundShellSchema = v.pipe(v.strictObject({ counts: v.array(count), layout: v.record(id, v.pipe(v.array(v.unknown()), v.maxLength(40_000))) }),
+  v.check(row => groundCounts(row), 'Invalid forest ground counts'));
+const GROUND_STEP = 1024, groundPlacements = v.array(place);
+/** `ForestGroundLayoutSchema` in steps of 1024 placements, the same rules and output: Pine's layout (up to 40k
+ *  placements) was one ~90 ms parse in a drawn frame. */
+export function* forestGroundLayoutSteps(input: unknown): Generator<void, ForestGroundLayout> {
+  const shell = v.parse(GroundShellSchema, input), layout: Record<string, GroundPlacement[]> = {};
+  for (const [kind, entries] of Object.entries(shell.layout)) {
+    const placements: GroundPlacement[] = [];
+    for (let at = 0; at < entries.length; at += GROUND_STEP) { placements.push(...v.parse(groundPlacements, entries.slice(at, at + GROUND_STEP))); yield; }
+    layout[kind] = placements;
+  }
+  return { counts: shell.counts, layout };
+}
 export const LivingPageInputSchema = v.object({ graph: WorldSceneWeldSchema, life: BuildingLifeRowsSchema,
   geometry: v.array(v.object({ key: id, id, source: v.object({ library: id, model: id }) })) });
 export const LivingPageSitesSchema = v.strictObject({ buildings: v.array(v.strictObject({ id, index: count, root: id, standalone: v.boolean() })),

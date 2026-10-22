@@ -1,11 +1,11 @@
 /** Client-only forest cover. Geometry and placements come from admitted rows. */
 import { Group, type BufferGeometry, type Vector3 } from 'three';
-import * as v from 'valibot';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { ForestGroundLayoutSchema, type ForestPageRows, type GroundPlacement } from '@wildshard/format/forestPage';
+import { workSlice } from '@wildshard/engine/core/workSlice';
+import { forestGroundLayoutSteps, type ForestPageRows, type GroundPlacement } from '@wildshard/format/forestPage';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 import { readWholeGeometry } from '../plugin/geometry';
 import { productCoverAppearance, type CoverAppearance, type CoverMaterial } from './coverAppearance';
@@ -22,7 +22,11 @@ export class ForestGround {
   static async prepare(ctx: ShardContext, rows: ForestPageRows['ground'], view: Forest, sky: SkyRig): Promise<ForestGround> {
     const source = ctx.product.shardfile, appearance = await productCoverAppearance(ctx.product, rows.appearance);
     const far = plumbingKnob(source.plumbing, buildTier(), rows.far, 'number', TIER_CONFIG), shadow = plumbingKnob(source.plumbing, buildTier(), rows.shadow, 'boolean', TIER_CONFIG);
-    const placements = v.parse(ForestGroundLayoutSchema, await ctx.product.json(rows.layout)), layout = placements.layout;
+    // admitted in steps under the work slice (a drawn frame when a grid cell prepares it in play)
+    const steps = forestGroundLayoutSteps(await ctx.product.json(rows.layout)), slice = workSlice();
+    let admitted = steps.next();
+    while (admitted.done !== true) { if (slice.due()) await slice.yield(); admitted = steps.next(); }
+    const placements = admitted.value, layout = placements.layout;
     if (!rows.kinds.every((row, i) => layout[row.id]?.length === placements.counts[i])) throw new Error('Forest ground kind counts differ');
     const geometry = await readWholeGeometry(ctx.scope, source, rows.sources);
     appearance.set('fade', [far, Math.min(25, far * .3)]); await appearance.prepare(ctx.product); await macrotask();
