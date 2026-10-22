@@ -61,7 +61,6 @@ test('bakes every native solid/swept draw in order with exact channels, bounds a
   }
   expect(restored.inKit.map(({ model, kit, at, box }) => ({ model, kit, at, box: [...box.min, ...box.max] })))
     .toEqual(source.rows.inKit);
-  expect(restored.hooks.map(point => point.toArray())).toEqual(author.hooks.map(point => point.toArray()));
   for (const geometry of [...actual.values(), ...expected.values(), ...restored.alphaKits.values()]) geometry.dispose();
 }, 30_000);
 

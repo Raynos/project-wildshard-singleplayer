@@ -48,8 +48,6 @@ export interface NineDragonWorld {
   readonly root: Group;
   /** the look's shared uniforms (time, the eye, the silk fog, the paint, the light pools) */
   readonly shared: Shared;
-  /** the build's context: its layout records (hooks, the map's floor plan, the crowd) */
-  readonly ctx: { readonly rimZ: number; readonly hooks: readonly Vector3[] };
   /** per frame: time (s) and the camera the frame is drawn from */
   update: (t: number, camera: PerspectiveCamera) => void;
   /**
@@ -260,7 +258,5 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     eye.setFromMatrixPosition(camera.matrixWorld);
     for (const { mesh, far, box } of farMeshes) mesh.visible = box.distanceToPoint(eye) <= far;
   };
-  // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
-  // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  return { root, shared, ctx: { hooks: ctx.hooks, rimZ: worldRows.rim.z0 }, update, cull, entryCaps, lanterns: lanternsAt };
+  return { root, shared, update, cull, entryCaps, lanterns: lanternsAt };
 }
