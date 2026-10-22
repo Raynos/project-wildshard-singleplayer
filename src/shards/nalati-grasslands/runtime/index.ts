@@ -6,7 +6,6 @@ import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
@@ -19,19 +18,19 @@ import { enteredAdventurePersistence } from '@wildshard/game/quest/chapterBindin
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { hasLentLook, lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
-function host(ctx: ShardContext): ShardRuntime {
-  const rt = ctx.game.runtime;
-  if (rt === undefined) throw new Error('Nalati plugin requires its world host');
-  if (rt.world === null || rt.step === null) throw new Error('Nalati plugin requires counted world steps');
-  return rt;
+function host(ctx: ShardContext) {
+  const shell = ctx.game.runtime;
+  if (shell === undefined) throw new Error('Nalati plugin requires its world host');
+  const { world, step } = shell;
+  if (world === null || step === null) throw new Error('Nalati plugin requires counted world steps');
+  return { shell, world, step };
 }
 
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
-    const shell = host(ctx), world = shell.world, step = shell.step;
-    if (world === null || step === null) throw new Error('Nalati world requires counted boot steps');
+    const { shell, world, step } = host(ctx);
     const { game } = world;
     // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials).filter(id=>!hasLentLook(id))));
@@ -54,15 +53,14 @@ export class NalatiPlugin extends ShardPlugin {
   }
 
   override kit(ctx: ShardContext): void {
-    const shell = host(ctx), world = shell.world;
-    if (world === null) throw new Error('Nalati equipment requires a world');
+    host(ctx);
     ctx.rows.species(nalatiSpecies());
     ctx.rows.speciesLook(nalatiLooks());
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const shell = host(ctx), world = shell.world, h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
-    if (world === null || h === null || rt === null || kit === null) throw new Error('Nalati gameplay requires its world, equipment and UI');
+    const { shell } = host(ctx), h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
+    if (h === null || rt === null || kit === null) throw new Error('Nalati gameplay requires its world, equipment and UI');
     const { animals, hud, audio, music, progress } = h;
     const persistence = enteredAdventurePersistence(ctx.scope);
     persistence.bindProgress(progress);
