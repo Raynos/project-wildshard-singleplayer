@@ -430,6 +430,8 @@ class FoldKit extends Kit {
   readonly extra: Kit[] = [];
   // (build.ts builds a kit only when it has vertices: count the folded ones too)
   override get vertexCount(): number { return this.extra.reduce((n, e) => n + e.vertexCount, super.vertexCount); }
+  // a mark taken from vertexCount counts the folded kits too; the bounds read only this kit's own vertices
+  override boundsFrom(from: number, target: Box3): Box3 { return super.boundsFrom(from - this.extra.reduce((n, e) => n + e.vertexCount, 0), target); }
   override build(): BufferGeometry {
     const own = super.vertexCount > 0 ? [super.build()] : [];
     const parts = [...own, ...this.extra.filter((e) => e.vertexCount > 0).map((e) => e.build())];

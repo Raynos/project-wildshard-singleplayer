@@ -1,7 +1,7 @@
 // The towers around Lantern Square and up the street: Kowloon walls with shopfronts and hundreds of neon blade signs,
 // the skybridges, the hanging monorail (a train passes), the Cable Deck whose underside is an LED sky screen playing a
 // painted 青绿 landscape, the Crown's antenna forest against the one strip of real sky, cargo drones.
-import { Color, Matrix4, Quaternion, Vector3 } from 'three';
+import { Box3, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { shopfronts } from './facades';
 import { type DressOptions, dressTower, dressWall, spanStreet } from './facadeGrammar';
@@ -124,8 +124,9 @@ function heroFlat(ctx: Ctx, kit: Kit, text: string, col: number, x: number, y: n
 
 /** a brush-drawn figure standing in kit `k` (props.ts `person`; a model drawn into the kit: models/inKit.ts) */
 function figure(ctx: Ctx, k: Kit, rng: Rng, x: number, y: number, z: number, r: number): void {
+  const v0 = k.vertexCount;
   person(k, rng, x, y, z, r);
-  ctx.inKit.push({ model: 'nine-dragon-stack/ink-figure', kit: k, at: { x, y, z, yaw: r } });
+  ctx.inKit.push({ model: 'nine-dragon-stack/ink-figure', kit: k, at: { x, y, z, yaw: r }, box: k.boundsFrom(v0, new Box3()) });
 }
 
 function skybridge(ctx: Ctx, rng: Rng, x0: number, x1: number, z: number, y: number, width: number, people = 1): void {

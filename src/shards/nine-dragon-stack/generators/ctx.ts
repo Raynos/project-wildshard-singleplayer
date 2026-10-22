@@ -11,7 +11,7 @@ import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import type { AuthoredPlacement } from './contracts/modelPlacement';
 
 interface Emitter { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
-interface DrawnCopy<K> { readonly model: string; readonly kit: K; readonly at: AuthoredPlacement<object>; readonly box?: Box3 }
+interface DrawnCopy<K> { readonly model: string; readonly kit: K; readonly at: AuthoredPlacement<object>; readonly box: Box3 }
 
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;
 

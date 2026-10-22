@@ -146,8 +146,9 @@ export function buildSquare(ctx: Ctx): void {
   // E281: the east market (instanced booths and parasol tables, stalls.ts), on its own random stream
   marketRow(ctx, new Rng(2811));
   for (const [tx0, tz0, tr, n] of tables) {
+    const v0 = props.vertexCount;
     mahjongTable(props, rng, tx0, Y0, tz0, tr);
-    ctx.inKit.push({ model: 'nine-dragon-stack/mahjong-table', kit: props, at: { x: tx0, y: Y0, z: tz0, yaw: tr } });
+    ctx.inKit.push({ model: 'nine-dragon-stack/mahjong-table', kit: props, at: { x: tx0, y: Y0, z: tz0, yaw: tr }, box: props.boundsFrom(v0, new Box3()) });
     for (const st of mahjongSeats(tx0, tz0, tr).slice(0, n)) ctx.sitters.push(standAt(st.x, st.z, st.yaw, 1));
   }
   // the crowd (dome B: the TRELLIS walkers only, the procedural mannequins are gone; the dome-B targets fill the square
@@ -238,8 +239,9 @@ export function buildSquare(ctx: Ctx): void {
     }
   }
   for (const [x, z, r, wash] of [[20.4, 13.5, 0.3, 0x2e5fa3], [20.9, 15.4, 0.2, 0xb8321f], [20.6, -4.5, 1.2, 0x7fbf9a]] as const) {
+    const v0 = props.vertexCount;
     scooter(props, x, Y0, z, r, wash);
-    ctx.inKit.push({ model: 'nine-dragon-stack/scooter', kit: props, at: { x, y: Y0, z, yaw: r, params: { wash } } });
+    ctx.inKit.push({ model: 'nine-dragon-stack/scooter', kit: props, at: { x, y: Y0, z, yaw: r, params: { wash } }, box: props.boundsFrom(v0, new Box3()) });
   }
   // lantern strings (E281: the square's lamp posts are gone — the two along the balustrade stood in the middle of A1·5
   // and A2·4, the east one inside a market booth, the south one in the middle of A1·7; style-A and the targets light

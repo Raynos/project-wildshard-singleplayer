@@ -133,7 +133,8 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
       const kit = kitName.get(c.kit);
       if (kit === undefined) throw new Error(`bake-nine-layout: '${c.model}' is drawn into a kit that is no named kit`);
       const b = c.box;
-      return { model: c.model, kit, at: bakedAt(c.model, c.at), box: b === undefined ? null : [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z] };
+      if (b.isEmpty()) throw new Error(`bake-nine-layout: '${c.model}' measured no drawn vertices in kit ${kit}`);
+      return { model: c.model, kit, at: bakedAt(c.model, c.at), box: [b.min.x + 0, b.min.y + 0, b.min.z + 0, b.max.x + 0, b.max.y + 0, b.max.z + 0] };
     }),
     map: ctx.map.map((m) => ({ ...m })),
     emitters: ctx.emitters.map((e) => ({ at: tuple(e.at), color: [e.color.r, e.color.g, e.color.b], w: e.w, h: e.h, power: e.power, spill: e.spill })),

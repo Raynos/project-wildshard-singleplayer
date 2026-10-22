@@ -40,7 +40,7 @@ export function restoreLayout(r: LayoutProjection, scenes: SceneHandles): Ctx {
   if (r.shell !== null) ctx.shell = geometry(r.shell);
   for (const k of r.inKit) {
     const b = k.box;
-    ctx.inKit.push({ model: k.model, kit: k.kit, at: k.at, ...(b === null ? {} : { box: new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])) }) });
+    ctx.inKit.push({ model: k.model, kit: k.kit, at: k.at, box: new Box3(new Vector3(b[0], b[1], b[2]), new Vector3(b[3], b[4], b[5])) });
   }
   return ctx;
 }

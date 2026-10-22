@@ -145,7 +145,7 @@ export type HookSink = Pick<Ctx, 'hooks' | 'hookMounts' | 'inKit'>;
  * drawn into the kit `k` (models/inKit.ts `brassDragonHook`): its copy is recorded where it hangs.
  */
 export function dragonHook(k: Kit, ctx: HookSink, base: Vector3, out: Vector3, reach = 0.9): Vector3 {
-  const brass: Look = { wash: METAL.gold, line: 1.1, gloss: true, gold: true, accent: true };
+  const brass: Look = { wash: METAL.gold, line: 1.1, gloss: true, gold: true, accent: true }, v0 = k.vertexCount;
   const o = out.clone().setY(0).normalize();
   const side = new Vector3(-o.z, 0, o.x);
   const tip = base.clone().addScaledVector(o, reach);
@@ -171,7 +171,7 @@ export function dragonHook(k: Kit, ctx: HookSink, base: Vector3, out: Vector3, r
   }
   ctx.hooks.push(ringC.clone());
   ctx.hookMounts.push({ ring: ringC.clone(), out: o.clone() });
-  ctx.inKit.push({ model: 'nine-dragon-stack/brass-dragon-hook', kit: k, at: { x: base.x, y: base.y, z: base.z, yaw: Math.atan2(o.x, o.z), params: { reach } } });
+  ctx.inKit.push({ model: 'nine-dragon-stack/brass-dragon-hook', kit: k, at: { x: base.x, y: base.y, z: base.z, yaw: Math.atan2(o.x, o.z), params: { reach } }, box: k.boundsFrom(v0, new Box3()) });
   return ringC;
 }
 

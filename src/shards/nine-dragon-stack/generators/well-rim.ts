@@ -3,7 +3,7 @@
 // towers above the rim on its south and west sides, and the main shaft's galleries from the rim down to SPLIT + 3 m:
 // deep timber verandas on the west, shallower ones under the square's lip on the east, balconies under the ledge on
 // the south, their hero signs and the brass hooks the Fei Zhua bites.
-import { Vector3 } from 'three';
+import { Box3, Vector3 } from 'three';
 import { dressWall } from './facadeGrammar';
 import { K, type Kit } from './kit';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
@@ -147,8 +147,9 @@ function rimShops(plan: WellPlan, rng: Rng): void {
       k.box(tx, Y0, tz, 0.8, 0.66, 0.6, { wash: 0x5a4636, line: 1, surf: SURF.wood });
       for (const [dx, dz] of [[0.65, 0], [-0.65, 0], [0, -0.55]] as const) {
         const lacquer = rng.pick([0x2e5fa3, 0xc23b22, 0x3e5a4a]);
+        const v0 = k.vertexCount;
         stool(k, tx + dx, Y0, tz + dz, lacquer);
-        ctx.inKit.push({ model: 'nine-dragon-stack/stool', kit: k, at: { x: tx + dx, y: Y0, z: tz + dz, params: { wash: lacquer } } });
+        ctx.inKit.push({ model: 'nine-dragon-stack/stool', kit: k, at: { x: tx + dx, y: Y0, z: tz + dz, params: { wash: lacquer } }, box: k.boundsFrom(v0, new Box3()) });
       }
     }
     if (rng.chance(0.5)) ctx.put('plant', new Vector3(rng.chance(0.5) ? x0 + 0.4 : x1 - 0.4, Y0, z - 0.4), n.clone(), new Vector3(1.3, rng.range(1.2, 1.7), 1.3));
