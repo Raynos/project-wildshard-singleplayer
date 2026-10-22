@@ -11501,3 +11501,14 @@ those existing owners. Copied compiled outputs have no TS files and zero
 runtime lines; generated declaration stubs are build inputs only, and an
 executable file under runtime refuses the compiled copy rather than being
 silently omitted.
+
+
+The world.updates client-plan feature carries ordered WorldUpdatesSchema rows
+and installs installWorldUpdates at the entered world-bindings boundary, rank
+-10, before runtime hooks and movers. Each row selects one existing native
+primitive: wind, an awake rope-deck interpolation over the original chain,
+construction-owned toon following, or LivingBuildings.update. Rows declare the
+original system id and before list; authored phases, callbacks and property
+paths refuse. Every original loan and toon/lighting identity preflights before
+registration. The bound construction scope selects the toon book across
+re-entry; entered system ownership does not dispose any borrowed native owner.

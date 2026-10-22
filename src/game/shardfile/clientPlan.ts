@@ -71,6 +71,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installClientAmbientLife } = await import('./clientAmbientLife');
     await installClientAmbientLife(ctx, row);
   } },
+  'world.updates': { phase: 'world-bindings', rank: -10, lifetime: 'entered', sections: ['look/toon'], install: async (ctx, row) => {
+    if (row.kind !== 'world.updates') throw new Error('Invalid world updates feature');
+    const { installWorldUpdates } = await import('./worldUpdates');
+    installWorldUpdates(ctx, row.rows);
+  } },
   'world.runtime-hooks': { phase: 'world-bindings', rank: 0, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'world.runtime-hooks') throw new Error('Invalid runtime hooks feature');
     const { installClientRuntimeHooks } = await import('./clientRuntimeHooks');

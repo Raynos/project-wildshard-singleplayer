@@ -118,6 +118,8 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - G571 compiled page ownership: `game/shard/declaredEntry#declaredClientPlanEntry`, `game/shard/declaredEntry#clientPlanNative`, `game/shardfile/hybrid#ClientPlanRuntime`, `game/shardfile/hybrid#preparePageRuntime`, `format/runtime#ClientPlanRuntimeSchema`. Finite client-plan metadata retains actual measured cost, binds and spawns; no authored TS path or arbitrary import registry. Test 1 waived; tests 2–6 cover exact legacy/compiled wire admission, actual output round trips, executable-copy refusal and real retained construction/entered owners in test/client-runtime-declaration.test.ts and test/hybrid-entry-preparation.test.ts.
 
+- G571 world update ownership: `game/shardfile/worldUpdates#installWorldUpdates`, `format/worldUpdates#WorldUpdatesSchema`. Ordered finite native primitive bindings retain the original wind, awake rope interpolation, toon follow and building update systems. Test 1 waived; tests 2–6 preserve actual construction-selected owners, original system/receiver/order/cadence and retirement/reentry; no authored callback, path, new clock or rewritten view law.
+
 The ruler reads exact module or `module#binding` selectors from the G571
 list entries above. A named binding never approves other declarations in its
 file; shared physical lines stay charged if an unapproved binding occupies

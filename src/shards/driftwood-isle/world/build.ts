@@ -17,8 +17,6 @@ import { sites } from '../models/catalogue';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import manifest from '../discovery.generated';
-import { updateWind } from '@wildshard/engine/world/wind';
-import { followToonLook } from '@wildshard/game/looks/toonLook';
 import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
@@ -26,11 +24,8 @@ import type { Placed } from '@wildshard/engine/models/place';
 /** The mooring lines' look: a graph on every tier (its vertex lift has no classic form), lent before the world builds. */
 export const MOOR_LOOK = 'driftwood-kit-moor';
 
-/** What the world build hands the rest of the level: each part it built. */
-export type DriftwoodWorld = Awaited<ReturnType<typeof build>>;
-
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
-export function buildDriftwoodWorld(...args: Parameters<typeof build>): Promise<DriftwoodWorld> { return build(...args); }
+export function buildDriftwoodWorld(...args: Parameters<typeof build>): Promise<void> { return build(...args); }
 async function build(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>, scope: Scope) {
   // G164: the whole island lowered, the sea at road level; G170: each declared entry landing is the inner end of an asphalt
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
@@ -77,9 +72,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const wreck = { group: entryOwner(scope, 'object', 'wreck'), placed: entryOwner(scope, 'placed', 'wreck'), floorHeightAt: entryOwner(scope, 'floor', 'wreck') };
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
   await stages.next('shrine');
-  const shrineLife = entryOwner(scope, 'buildings', 'shrine');
   const shrine = { group: entryOwner(scope, 'object', 'shrine'), placed: only('shrine'), anchors: entryOwner(scope, 'site', 'shrine'),
-    floorHeightAt: entryOwner(scope, 'floor', 'shrine'), update: shrineLife.update.bind(shrineLife) };
+    floorHeightAt: entryOwner(scope, 'floor', 'shrine') };
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   for (const row of assembly.piers.slice(1)) await stages.next(row.id);
   await slice();
@@ -99,17 +93,15 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const bridge = entryOwner(scope, 'rope-deck', 'bridge');
   // coral, kelp and starfish on the lagoon shelf (what you dive for); its fish school is page life (generators/fishDraw.ts)
   await stages.next('seabed');
-  const reefLook = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);
-  const seabed = { mesh: entryOwner(scope, 'object', 'seabed'), tick: () => { reefLook(); } };
+  const seabed = { mesh: entryOwner(scope, 'object', 'seabed') };
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
   await complete('Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
-  const coveRows = driftwoodRows('custom/fixedLayouts').cove, coveView = coveRows.composition;
   await stages.next('cove'); // its cascade, its piece (rock walls, treads and floors) and its reef rocks (generators/worldEntry.ts)
-  const cove = { group: entryOwner(scope, 'object', 'cove'), placed: entryOwner(scope, 'placed', 'cove'), update: followToonLook(driftwoodProduct(), coveView.look) };
+  const cove = { group: entryOwner(scope, 'object', 'cove'), placed: entryOwner(scope, 'placed', 'cove') };
   await stages.next('palms'); // The registry borrows the compacted batch and its native boxes.
-  const palms = { placed: only('palms'), mesh: entryOwner(scope, 'object', 'palms'), update: updateWind };
+  const palms = { placed: only('palms'), mesh: entryOwner(scope, 'object', 'palms') };
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
   await stages.next('cover');
   const cover = { group: entryOwner(scope, 'object', 'driftwood.cover'), placed: entryOwner(scope, 'placed', 'cover') };
@@ -117,7 +109,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
   // SF30 activation stays held until SF46 parity: keep the legacy model's live terrain, widths and owners exactly.
   await stages.next('bridge.deck');
-  const bridgeDeck = entryOwner(scope, 'chain', 'bridge.deck');
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52), drawn by the client plan's baked tiles (world.baked, G532 (4)):
   // (its declared wear dresses its ground and cover looks there); the monkeys climb its palms
   const island = baked.get('cove'); if (island === undefined) throw new Error('Missing baked cove');
@@ -127,5 +118,4 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, cove, palms, cover, bridgeDeck };
 }

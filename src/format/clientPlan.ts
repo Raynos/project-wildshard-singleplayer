@@ -5,6 +5,7 @@ import { WaterSurfaceSchema } from './water';
 import { ClientCuesSchema } from './clientCues';
 import { ClientTrailsSchema } from './clientTrails';
 import * as v from 'valibot';
+import { WorldUpdatesSchema } from './worldUpdates';
 import { isJsonData } from './json';
 import { LightEmittersSchema } from './lightEmitters';
 import { EasedFieldsSchema } from './easedFields';
@@ -45,6 +46,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('world.ambient-life'), file: label,
     flocks: v.pipe(v.array(v.strictObject({ id, owner: id })), v.maxLength(64),
       v.check(rows => new Set(rows.map(row => row.id)).size === rows.length && new Set(rows.map(row => row.owner)).size === rows.length, 'unique ambient ids and owners')) }),
+  v.strictObject({ kind: v.literal('world.updates'), rows: WorldUpdatesSchema }),
   v.strictObject({ kind: v.literal('world.runtime-hooks'), floor: v.exactOptional(id),
     overhead: v.pipe(v.array(id), v.maxLength(64), v.check(rows => new Set(rows).size === rows.length, 'unique overhead owners')),
     meleeSilent: v.exactOptional(v.boolean()) }),
