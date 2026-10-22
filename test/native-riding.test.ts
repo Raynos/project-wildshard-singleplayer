@@ -309,3 +309,22 @@ test('native herd service keeps both id namespaces and retires with its real gro
   expect(() => fixtureGroup(host, 'orchard.same')).toThrow('Missing native group collection');
   expect(() => nativeHerdCollection(host, 'orchard.same')).toThrow('Missing native herd collection');
 });
+
+
+test('v2 thrown dismount uses the original mounted capsule once, without a second ejection', async () => {
+  const { applyV2WorldActions } = await import('../src/game/shardfile/worldActionsV2');
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const level = { ...SIM_LEVEL, quests: [] }, host = createSimHost(level, { rapier }), direct = createSimHost(level, { rapier });
+  try {
+    const mounted = install(host), original = install(direct);
+    expect(mounted.mount('boar:1')).toBe(true); expect(original.mount('boar:1')).toBe(true);
+    const action = { binding: 'rider', target: 'player.mount', kind: 'dismount' as const, thrown: true };
+    applyV2WorldActions([action,action], [{ binding: 'rider',target: 'player.mount',scope: host.scope,kind: 'mount',owner: mounted }]);
+    original.dismount(true);
+    expect(mounted.mounted).toBe(false);expect(host.modes.current()).toBe('foot');
+    expect(snapshotSimHost(host)).toEqual(snapshotSimHost(direct));
+    expect(host.playerImpulse.toArray()).toEqual(direct.playerImpulse.toArray());
+    const command = { moveX: 0,moveZ: 0,yaw: 0,commandVersion: 1 as const };
+    for (let step = 0; step < 6; step++) { host.step(command);direct.step(command);expect(snapshotSimHost(host)).toEqual(snapshotSimHost(direct)); }
+  } finally { host.dispose();direct.dispose(); }
+});

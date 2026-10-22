@@ -11767,3 +11767,19 @@ concrete entered scope in WorldEntryPorts before any registration and use
 that scope's original GrappleGuard, with an identity transform follower.
 Scope retirement fences every row; the guard closes as its owner retires.
 Tier, variant and authored piece order remain unchanged.
+
+
+ABI-v2 world actions use the existing kind-10 command bank. The AS SDK
+exports dismount(target,thrown), ignite(target,x,z) and impulse(target,x,y,z).
+readV2WorldActions admits the entire ordered bank against declared binding
+and target handles, operation permissions, per-binding quotas and coordinate /
+velocity bounds. Reserved words must be zero. Invalid suffixes publish no
+commands; view lanes cannot issue them. ABI-v0/v1 declarations are unchanged.
+
+applyV2WorldActions borrows explicit scoped native mount, cell-field and
+native/page player owners at the caller's original synchronous apply slot.
+Dismount rechecks the same mount before each effect and adds no extra impulse;
+ignite calls the same CellField.activate. Player impulses use the existing
+SimHost.impulsePlayer or Player.impulse law; embedded hosts cannot claim owned
+player authority. All loans preflight before effects and retirement fences
+each subsequent effect. This API creates no registry, queue, clock or save.

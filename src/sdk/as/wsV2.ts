@@ -79,6 +79,16 @@ let sliceStart:i32=-1;
 @inline export function edgeValue(index:i32,axis:i32):f64{assert(axis>=0&&axis<2);return load<f64>(row(8,index)+16+usize(axis)*8);}
 @inline export function eventWord(index:i32,field:i32):i32{assert(field>=0&&field<6);return load<i32>(row(9,index)+usize(field)*4);}
 @inline export function eventValue(index:i32,field:i32):f64{assert(field>=0&&field<4);return load<f64>(row(9,index)+24+usize(field)*8);}
+@inline function worldAction(op:i32,target:i32,a:f64,b:f64,c:f64):void{
+  assert(target>0);const dir=directory(10),n=load<u32>(dir+16);assert(n<load<u32>(dir+12));
+  store<u32>(dir+16,n+1);const at=row(10,i32(n));
+  store<i32>(at,handle());store<i32>(at+4,op);store<i32>(at+8,target);store<u32>(at+12,0);
+  store<f64>(at+16,a);store<f64>(at+24,b);store<f64>(at+32,c);
+  store<f64>(at+40,0);store<f64>(at+48,0);store<f64>(at+56,0);store<u32>(IO+56,n+1);
+}
+@inline export function dismount(target:i32,thrown:bool=false):void{worldAction(23,target,thrown?1:0,0,0);}
+@inline export function ignite(target:i32,x:f64,z:f64):void{worldAction(24,target,x,z,0);}
+@inline export function impulse(target:i32,x:f64,y:f64,z:f64):void{worldAction(14,target,x,y,z);}
 @inline export function query(op:i32,id:u32,target:i32,a:f64=0,b:f64=0,c:f64=0,d:f64=0,e:f64=0,f:f64=0,g:f64=0):void{
   assert((op==4||op==5||op==8||op==9)&&id>0&&target>=0);const dir=directory(11),n=load<u32>(dir+16);assert(n<load<u32>(dir+12));
   store<u32>(dir+16,n+1);const at=row(11,i32(n));store<i32>(at,handle());store<u32>(at+4,id);store<i32>(at+8,op);store<u32>(at+12,0);store<i32>(at+16,load<i32>(IO+28));store<i32>(at+20,target);
