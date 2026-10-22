@@ -34,6 +34,7 @@
     "./audio/forestPage": "./audio/forestPage.ts",
     "./audio/cueDirector": "./audio/cueDirector.ts",
     "./loadout/rangedPage": "./loadout/rangedPage.ts",
+    "./loadout/declaredMelee": "./loadout/declaredMelee.ts",
     "./shardfile/forestPage": "./shardfile/forestPage.ts",
     "./looks/forestRoofMask": "./looks/forestRoofMask.ts",
     "./looks/forestWeather": "./looks/forestWeather.ts",

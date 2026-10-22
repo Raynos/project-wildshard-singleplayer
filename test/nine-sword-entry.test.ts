@@ -17,7 +17,7 @@ test('Nine kit admits its existing profile without fetching an unused rigid swor
   const ctx = shardContext(level.context, manifest, { shard: manifest, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
   const plugin = new NdPlugin();
   const shell: { world: object; buildEquipment?: NonNullable<ShardContext['game']['runtime']>['buildEquipment'] } = { world: { game: { level: { camera: { portraitFov: 78 } } } } };
-  Object.assign(plugin, { shell });
+  Object.defineProperty(ctx.game, 'runtime', { value: shell });
   try {
     level.openKit();
     await plugin.kit(ctx);

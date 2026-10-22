@@ -2,14 +2,10 @@ import { prepareNinePost } from './look/render';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { declaredRuntimeEntry } from '@wildshard/game/shard/declaredEntry';
-import { Sword } from '@wildshard/game/weapons/Sword';
-import { applyMeleeCombatProfile } from '@wildshard/engine/combat/meleeProfile';
-import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
-import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { installDeclaredMelee, type DeclaredMelee } from '@wildshard/game/loadout/declaredMelee';
 import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { bindRuntimeEquipment, bindRuntimeItems, bindRuntimeLedger, projectRuntimeFacts } from '@wildshard/game/plugin/headless';
 import { Group, type PerspectiveCamera } from 'three';
-import * as v from 'valibot';
 import { GrappleTool } from '@wildshard/game/grapple/tool';
 import grappleProfile from './data/grappleProfile.json' with { type: 'json' };
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -61,32 +57,16 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
   override async kit(ctx: ShardContext): Promise<void> {
+    // the jian: the declared melee primary on the wooden starter blade, at the held row's portrait field of view
     const view = await ctx.product.json<GrappleRows>('weapons/jian-row.json');
-    const item = ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
-    const profile = v.parse(MeleeWeaponProfileSchema, item?.kind === 'weapon' ? item.profile : undefined);
-    this.profile = profile;
-    const row = { ...applyMeleeCombatProfile(SWORD_WOOD, profile), ...new ItemCatalogue(ctx.product.shardfile.items).equipment('weapon.jian'),
-      parent: SWORD_WOOD.id, feel: { ...SWORD_WOOD.feel, portraitFov: view.portraitFov } };
-    ctx.rows.weapon(row);
+    this.melee = installDeclaredMelee(ctx, { item: 'weapon.jian', blade: 'wood', portraitFov: view.portraitFov });
     ctx.rows.tool(new ItemCatalogue(ctx.product.shardfile.items).equipment('tool.fei-zhua'));
-    const shell = this.shell;
-    if (shell === undefined) throw new Error('Nine Dragon equipment requires the game session');
-    shell.buildEquipment = (targets, nolock, viewmodel) => {
-      const world = shell.world;
-      if (world === null) throw new Error('Nine Dragon equipment requires its world');
-      const { ironArms: _ironArms, swim: _swim, ...ownSword } = viewmodel ?? {};
-      if (ownSword.arms === undefined && ownSword.rig === undefined) throw new Error('Nine Dragon needs its declared sword rig');
-      const primary = new Sword(world, targets, { row, profile: row, allowUnlocked: nolock, ...ownSword,
-        ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
-      this.primary = primary;
-      return Promise.resolve({ primary, rifle: null, secondary: null });
-    };
   }
   override async play(ctx: ShardContext): Promise<void> {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
-    const primary = this.primary;
-    if (primary === null) throw new Error('Nine Dragon needs its prebuilt Jian before play');
+    if (this.melee === null) throw new Error('Nine Dragon needs its prebuilt Jian before play');
+    const { primary: built, profile } = this.melee, primary = built();
     // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
     const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, ctx.product.shardfile, ctx.product.slug), this.shell?.play?.progress);
     if (this.ndWorld === null) throw new Error('Grapple needs its constructed world');
@@ -95,7 +75,7 @@ export class NdPlugin extends ShardPlugin {
     this.grapple = grapple;
     const source = ctx.product.shardfile, items = source.items, tool = grapple.row;
     bindRuntimeEquipment(ctx, { ...source, items: { ...items, rows: items.rows.filter(row => row.kind === 'weapon'), loadout: { ...items.loadout, tools: [] } } },
-      [{ id: primary.row.id, weapon: primary, profile: this.profile }]);
+      [{ id: primary.row.id, weapon: primary, profile }]);
     bindRuntimeItems(ctx, source, {
       kit: new Map([['melee', { kind: 'weapon', profiles: ['melee'], create: () => primary }]]),
       families: new Map([['nine-dragon-stack.fei-zhua', { kind: 'tool', presentation: { ui: tool.ui }, create: row => { grapple.row = { ...row, meta: tool.meta }; return grapple; } }]]),
@@ -112,8 +92,7 @@ export class NdPlugin extends ShardPlugin {
   portals: PortalRide | null = null;
   private grapple: GrappleTool | null = null;
   private ndWorld: NineDragonWorld | null = null;
-  private profile: v.InferOutput<typeof MeleeWeaponProfileSchema> | null = null;
-  private primary: InstanceType<typeof Sword> | null = null;
+  private melee: DeclaredMelee | null = null;
   private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {

@@ -50,7 +50,7 @@ test('Nine play admits the complete primary/tool set before installing the nativ
   const primary = new NativeWeapon(new ItemCatalogue(items).equipment('weapon.jian')), equipment = new EquipmentService(primary, { scope });
   app.registerEquipment(equipment, scope);
   const plugin = new NdPlugin();
-  Object.assign(plugin, { primary, ndWorld: { ctx: { hooks: [] } }, profile: source.items.rows.find(row => row.kind === 'weapon')?.profile });
+  Object.assign(plugin, { melee: { primary: () => primary, profile: source.items.rows.find(row => row.kind === 'weapon')?.profile }, ndWorld: { ctx: { hooks: [] } } });
   // Scene/physics installation is covered by the phone boot; keep item admission and loadout installation real.
   const install = vi.spyOn(GrappleTool.prototype, 'install').mockImplementation(() => undefined);
   try {
