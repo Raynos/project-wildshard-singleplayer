@@ -1535,17 +1535,6 @@ HDR and faceted-sky initial environments use this policy; retained day-clock
 refreshes keep their existing synchronous calls. `CompileJob.toneMapping?`
 prepares a captured pass with its own mapping and restores the page value.
 
-**Asynchronous material resources.** `@wildshard/engine/render/materialPreparation`
-defines `registerMaterialPreparation(material, work)` and
-`waitMaterialPreparations(materials, current)`. Register the existing loader's promise
-before preparation starts. Preparation awaits publication before compiling and
-collecting upload samplers; it starts no additional fetch. A loader may resolve after
-its own fallback, or reject to refuse preparation. Cancellation remains the loader's
-responsibility; preparation checks its current owner before and after waits. Settled
-work is removed from the weak material registry. The shared fire effect registers its
-flipbook fetch here, preserving its texture pixels, samplers, shaders and procedural
-failure fallback while avoiding a late first-draw upload.
-
 **Initial layered presentation.** `SkyRig.prepareLayers()` restores prior layer
 slots and applies the current owner weights at zero delta before shader preparation.
 It advances neither backdrop time nor alternating-cascade cadence. The game grid's

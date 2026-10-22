@@ -16,7 +16,6 @@ import { shaderPatchTextures } from './shaderPatches';
 import { uploadCompressedTexture } from './compressedUpload';
 import { linkStandIn } from '../app/sceneOwnership';
 import { offscreenPreparations } from './offscreenPreparation';
-import { waitMaterialPreparations } from './materialPreparation';
 import { prepareSceneResources } from './scenePreparation';
 import { readbackPreparation } from './readbackPreparation';
 import { postTriangle } from './postPreparation';
@@ -889,9 +888,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, sliceMs: number): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
-  const borrowed = new Set<THREE.Material>();
-  for (const job of jobs) job.root.traverse(object => { for (const material of materialsOf(object)) borrowed.add(material); });
-  await waitMaterialPreparations([...borrowed], current);
   for (const texture of collectTextures(jobs, renderer)) watch(texture);
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
