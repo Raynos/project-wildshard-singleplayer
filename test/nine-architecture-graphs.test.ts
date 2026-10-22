@@ -190,7 +190,7 @@ test('held draw rows compile aliased GLB buffers and ribbon channels', () => {
 });
 
 
-test('Nalati grades on the post-graph look: scene pass, desktop bloom, the grade graph and its display', async () => {
+test('Nalati grades on the post-graph look: scene pass, desktop bloom side, the grade graph and its display', async () => {
   const camera = new THREE.PerspectiveCamera(), scene = new THREE.Scene(), render = renderer(), rows = postChainRows();
   await prepareScaledPost(render);
   const grade = rows.postGraph.passes['grade']?.programs['grade']?.graph;
@@ -206,8 +206,12 @@ test('Nalati grades on the post-graph look: scene pass, desktop bloom, the grade
   Reflect.set(app, 'events', new Events());
   const chain = (tier: 'phone' | 'desktop'): string[] => look.compose({ app, scope: levelScope, debug: { expose: () => undefined }, renderer: render, scene, camera, composer: new EffectComposer(), tier }).chain.map(pass => pass.name);
   try {
-    expect(chain('desktop')).toEqual(['RenderPass', 'EffectPass', 'PostGraphInputs', 'GradeV2Graph', 'EffectPass']);
+    expect(chain('desktop')).toEqual(['RenderPass', 'PostGraphBloom', 'PostGraphInputs', 'GradeV2Graph', 'EffectPass']);
     expect(chain('phone')).toEqual(['RenderPass', 'PostGraphInputs', 'GradeV2Graph', 'EffectPass']);
     expect(look.cell?.replaces).toBe('chain');
+    // the grid cell carries the same chain, its desktop bloom included
+    const cell = (tier: 'phone' | 'desktop'): string[] => (look.cell?.build({ root: new THREE.Group(), camera, renderer: render, tier, scope: levelScope }).passes ?? []).map(pass => pass.name);
+    expect(cell('desktop')).toEqual(['PostGraphPoseView', 'PostGraphBloom', 'PostGraphInputs', 'GradeV2Graph']);
+    expect(cell('phone')).toEqual(['PostGraphPoseView', 'PostGraphInputs', 'GradeV2Graph']);
   } finally { levelScope.dispose(); }
 });

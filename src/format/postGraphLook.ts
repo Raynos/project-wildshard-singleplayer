@@ -40,12 +40,17 @@ const pixel = v.variant('of', [
   v.strictObject({ of: v.literal('buffer'), param: name }),
 ]);
 const link = v.union([name, finite]);
+const tiers = v.pipe(v.array(v.picklist(['phone', 'desktop'])), v.minLength(1));
 
 export const PostGraphLookSchema = v.strictObject({
   passes: v.pipe(v.record(name, pass), v.check(rows => Object.keys(rows).length <= 16, 'At most 16 post passes')),
-  /** the side passes in draw order, each on its tiers: `constants` its own links, `params` its pack params (a bag name or a number) */
-  sides: v.pipe(v.array(v.strictObject({ pass: name, tiers: v.pipe(v.array(v.picklist(['phone', 'desktop'])), v.minLength(1)),
-    constants: v.exactOptional(uniforms), params: v.exactOptional(v.record(name, link)) })), v.maxLength(8)),
+  /** the side passes in draw order, each on its tiers: a graph pass (`constants` its own links, `params` its pack params, a bag
+   *  name or a number), or the engine's bloom blur of the scene colour (its blurred light as output `bloom`, which the
+   *  composite blends itself) */
+  sides: v.pipe(v.array(v.union([
+    v.strictObject({ pass: name, tiers, constants: v.exactOptional(uniforms), params: v.exactOptional(v.record(name, link)) }),
+    v.strictObject({ bloom: name, tiers, threshold: finite, smoothing: finite, radius: finite, levels: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))) }),
+  ])), v.maxLength(8)),
   /** the composite pass and the output the chain displays */
   composite: v.strictObject({ pass: name, output: name }),
   /** the side textures the composite reads (black where its side did not draw) and the presence flags they raise */
@@ -64,10 +69,9 @@ export const PostGraphLookSchema = v.strictObject({
   /** the engine's AO at the level's scale per tier, its colour, and the scene fog's near / far */
   ao: v.exactOptional(v.strictObject({ phone: v.record(name, v.union([finite, v.boolean()])), desktop: v.record(name, v.union([finite, v.boolean()])), color: tuple3, fog: tuple2 })),
   sky: v.exactOptional(v.strictObject({ clouds: v.boolean(), planet: v.boolean(), ownSky: v.exactOptional(v.boolean()) })),
-  /** the whole chain in its own composer ('replace': the scene pass, the bloom on its tiers, then the graphs); absent, the
-   *  graphs stand in the engine's chain */
-  scene: v.exactOptional(v.strictObject({ bloom: v.exactOptional(v.strictObject({ tiers: v.pipe(v.array(v.picklist(['phone', 'desktop'])), v.minLength(1)),
-    intensity: finite, threshold: finite, smoothing: finite, radius: finite, levels: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))) })) })),
+  /** the whole chain in its own composer ('replace': the scene pass, then the sides and graphs); absent, the graphs stand in
+   *  the engine's chain */
+  scene: v.exactOptional(v.strictObject({})),
 });
 export type PostGraphLookRow = v.InferOutput<typeof PostGraphLookSchema>;
 export type PostGraphEffect = v.InferOutput<typeof effect>;

@@ -5,10 +5,11 @@
  * flags; the composite draws the frame and the chain's one effect displays it. The same composite runs inside a grid cell,
  * where it is the whole colour chain and shades in the cell root's frame. Every uniform comes from the row's bag: its own
  * rows, the level's lent live set, the LUT, the side textures and the aliases. With a `scene` row it is a 'replace' look:
- * its own composer (the tier's MSAA) holds the scene pass, the bloom on its tiers, the graphs and the displayed frame, and
+ * its own composer (the tier's MSAA) holds the scene pass, the sides (the engine's bloom blur among them), the graphs and
+ * the displayed frame, and
  * its grid cell carries the same composite. Client-only presentation.
  */
-import { Color, type Data3DTexture, DataTexture, Fog, NoColorSpace, Vector2, Vector3, Vector4, type IUniform, type Object3D, type PerspectiveCamera, type Texture } from 'three';
+import { Color, type Data3DTexture, DataTexture, Fog, NoColorSpace, Vector2, Vector3, Vector4, type IUniform, type Object3D, type PerspectiveCamera, type Texture, type WebGLRenderTarget } from 'three';
 import { BlendFunction, BloomEffect, EffectPass, LookupTexture, Pass, RenderPass, TextureEffect } from 'postprocessing';
 import * as v from 'valibot';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
@@ -62,9 +63,26 @@ function put(bag: UniformMap, write: PostGraphWrite, to: number | readonly numbe
   else uniform.value = typeof to === 'number' ? to : to[0] ?? 0;
 }
 
+/** The engine's bloom blur as a side (draw into its own targets, no swap): the scene colour's light over the threshold,
+ *  mip-blurred; its output `bloom` is that light, which the composite blends as the bloom effect would (screen). */
+class BloomSide extends Pass {
+  private readonly bloom: BloomEffect;
+  constructor(row: { readonly threshold: number; readonly smoothing: number; readonly radius: number; readonly levels?: number }) {
+    super('PostGraphBloom');
+    this.needsSwap = false;
+    this.bloom = new BloomEffect({ luminanceThreshold: row.threshold, luminanceSmoothing: row.smoothing, mipmapBlur: true, radius: row.radius, levels: row.levels ?? TIER_CONFIG.bloomLevels });
+  }
+  output(name: string): Texture | null { return name === 'bloom' ? this.bloom.texture : null; }
+  override initialize(renderer: Renderer, alpha: boolean, frameBufferType: number): void { this.bloom.initialize(renderer, alpha, frameBufferType); }
+  override setSize(width: number, height: number): void { this.bloom.setSize(width, height); }
+  override render(renderer: Renderer, input: WebGLRenderTarget | null): void { if (input !== null) this.bloom.update(renderer, input); }
+  override dispose(): void { this.bloom.dispose(); super.dispose(); }
+}
+type Side = ScaledPostPass | BloomSide;
+
 /** (draw-free) the side outputs lent to the composite and its presence flags, after the view is posed */
 class SideInputs extends Pass {
-  constructor(private readonly row: PostGraphLookRow, private readonly sides: ReadonlyMap<string, ScaledPostPass>, private readonly bag: UniformMap, private readonly pose: (() => void) | null) {
+  constructor(private readonly row: PostGraphLookRow, private readonly sides: ReadonlyMap<string, Side>, private readonly bag: UniformMap, private readonly pose: (() => void) | null) {
     super('PostGraphInputs');
     this.needsSwap = false;
   }
@@ -100,7 +118,7 @@ export async function loadPostGraphLut(url: string, name: string): Promise<Data3
   return texture;
 }
 
-interface Built { readonly display: TextureEffect; readonly sides: ReadonlyMap<string, ScaledPostPass>; readonly passes: readonly Pass[]; readonly bag: UniformMap }
+interface Built { readonly display: TextureEffect; readonly sides: ReadonlyMap<string, Side>; readonly passes: readonly Pass[]; readonly bag: UniformMap }
 
 /** Bind a look's declared event edges over its bag and displayed frame: `hold` values come back on `off` and when `scope` ends. */
 export function bindPostGraphEvents(rows: PostGraphLookRow['events'], bag: UniformMap, display: Pick<TextureEffect, 'blendMode'>, events: Pick<Events, 'on'>, scope: Scope): void {
@@ -149,9 +167,10 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
     const bag: UniformMap = { ...uniformsFrom(row.uniforms), ...(row.live === undefined ? {} : lentUniforms(row.live)), ...lut };
     for (const [alias, target] of Object.entries(row.aliases ?? {})) bag[alias] = need(bag, target);
     for (const name of Object.keys(row.inputs)) bag[name] = { value: black };
-    const sides = new Map<string, ScaledPostPass>();
+    const sides = new Map<string, Side>();
     for (const side of row.sides) {
       if (!side.tiers.includes(tier)) continue;
+      if ('bloom' in side) { sides.set(side.bloom, new BloomSide(side)); continue; }
       const params = Object.fromEntries(Object.entries(side.params ?? {}).map(([key, link]) => [key, typeof link === 'number' ? { value: link } : need(bag, link)]));
       sides.set(side.pass, new ScaledPostPass(passRow(row, side.pass), { renderer, camera: view, links: { ...bag, ...uniformsFrom(side.constants ?? {}) }, params }));
     }
@@ -187,14 +206,11 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
     },
     dispose: (): void => { live = null; },
   };
-  const scene = row.scene;
-  // its own composer: the scene pass, the bloom on its tiers, the graphs and the displayed frame (the tier's MSAA is the engine's)
-  if (scene !== undefined) return { ...parts, mode: 'replace', compose: (c) => {
-    const built = build(c.camera, c.tier, c.renderer, null), bloom = scene.bloom;
+  // its own composer: the scene pass, the sides, the graphs and the displayed frame (the tier's MSAA is the engine's)
+  if (row.scene !== undefined) return { ...parts, mode: 'replace', compose: (c) => {
+    const built = build(c.camera, c.tier, c.renderer, null);
     bindPostGraphEvents(row.events, built.bag, built.display, c.app.events, c.scope);
-    const bloomed = bloom?.tiers.includes(c.tier) === true ? [new EffectPass(c.camera, new BloomEffect({ intensity: bloom.intensity, luminanceThreshold: bloom.threshold,
-      luminanceSmoothing: bloom.smoothing, mipmapBlur: true, radius: bloom.radius, levels: bloom.levels ?? TIER_CONFIG.bloomLevels }))] : [];
-    return { chain: [new RenderPass(c.scene, c.camera), ...bloomed, ...built.passes, new EffectPass(c.camera, built.display)] };
+    return { chain: [new RenderPass(c.scene, c.camera), ...built.passes, new EffectPass(c.camera, built.display)] };
   } };
   return {
     ...parts,

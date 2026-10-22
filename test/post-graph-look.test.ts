@@ -55,6 +55,8 @@ test('a post-graph look admits plain rows and refuses executable or unbounded on
   expect(v.safeParse(PostGraphLookSchema, { ...ROW, uniforms: { uHasGlow: Number.NaN } }).success).toBe(false);
   expect(v.safeParse(PostGraphLookSchema, { ...ROW, frame: () => undefined }).success).toBe(false);
   expect(v.safeParse(PostGraphLookSchema, { ...ROW, sides: [{ pass: 'glow', tiers: ['watch'] }] }).success).toBe(false);
+  expect(v.safeParse(PostGraphLookSchema, { ...ROW, sides: [{ bloom: 'bloom', tiers: ['desktop'], threshold: 1, smoothing: 0.1, radius: 0.5 }], scene: {} }).success).toBe(true);
+  expect(v.safeParse(PostGraphLookSchema, { ...ROW, sides: [{ bloom: 'bloom', tiers: ['desktop'], threshold: Number.POSITIVE_INFINITY, smoothing: 0.1, radius: 0.5 }] }).success).toBe(false);
   expect(v.safeParse(PostGraphLookSchema, { ...ROW, lut: { url: 'https://example.com/lut.bin', texture: 'uLut', amount: 'uLutAmt' } }).success).toBe(false);
 });
 

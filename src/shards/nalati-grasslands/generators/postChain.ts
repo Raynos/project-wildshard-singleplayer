@@ -9,13 +9,17 @@ const LUM = [0.2126, 0.7152, 0.0722] as const;
  * The painted grade (look/grade.ts) as a post graph: a gentle filmic shoulder x(1 + x/9)/(1 + x) on 1.12 × exposure, the
  * saturation, the cool-shadow / golden-light split, a mild S-curve and the look's saturation, over the scene colour.
  */
-function gradeGraph(shadow: readonly number[], light: readonly number[], uniforms: { readonly uV2Exposure: number; readonly uV2Sat: number; readonly uV2LookSat: number }): GraphIr {
+function gradeGraph(shadow: readonly number[], light: readonly number[], uniforms: { readonly uV2Exposure: number; readonly uV2Sat: number; readonly uV2LookSat: number }, bloom: number): GraphIr {
   const third = (id: string): readonly [string, string, string] => [id, id, id];
   return { version: 1, kind: 'post', params: {
-    tSrc: { type: 'texture', role: 'lent', value: 'tSrc' }, uV2Exposure: { type: 'float', value: uniforms.uV2Exposure },
+    tSrc: { type: 'texture', role: 'lent', value: 'tSrc' }, tBloom: { type: 'texture', role: 'lent', value: 'tBloom' }, uBloomIntensity: { type: 'float', value: bloom }, uV2Exposure: { type: 'float', value: uniforms.uV2Exposure },
     uV2Sat: { type: 'float', value: uniforms.uV2Sat }, uV2LookSat: { type: 'float', value: uniforms.uV2LookSat } },
   nodes: {
-    uv: { op: 'screenUV' }, src: { op: 'texture', in: ['uv'], param: 'tSrc' }, rgb: { op: 'swizzle', in: ['src'], mask: 'xyz' }, a: { op: 'swizzle', in: ['src'], mask: 'w' },
+    uv: { op: 'screenUV' }, src: { op: 'texture', in: ['uv'], param: 'tSrc' }, scene: { op: 'swizzle', in: ['src'], mask: 'xyz' }, a: { op: 'swizzle', in: ['src'], mask: 'w' },
+    // the desktop bloom's light (black where it does not draw), screen-blended as the bloom effect blends: a + b − min(ab, 1)
+    glow: { op: 'texture', in: ['uv'], param: 'tBloom' }, glowRgb: { op: 'swizzle', in: ['glow'], mask: 'xyz' }, gain: { op: 'param', param: 'uBloomIntensity' },
+    b: { op: 'mul', in: ['glowRgb', 'gain'] }, ab: { op: 'mul', in: ['scene', 'b'] }, abMin: { op: 'min', in: ['ab', [1, 1, 1]] }, sum: { op: 'add', in: ['scene', 'b'] },
+    rgb: { op: 'sub', in: ['sum', 'abMin'] },
     exposure: { op: 'param', param: 'uV2Exposure' }, sat: { op: 'param', param: 'uV2Sat' }, lookSat: { op: 'param', param: 'uV2LookSat' },
     x0: { op: 'max', in: ['rgb', [0, 0, 0]] }, x1: { op: 'mul', in: ['x0', 1.12] }, x: { op: 'mul', in: ['x1', 'exposure'] },
     x9: { op: 'div', in: ['x', 9] }, num: { op: 'mul', in: ['x', 'x9p'] }, x9p: { op: 'add', in: ['x9', [1, 1, 1]] }, den: { op: 'add', in: ['x', [1, 1, 1]] },
@@ -29,17 +33,18 @@ function gradeGraph(shadow: readonly number[], light: readonly number[], uniform
   stages: { post: { colour: 'out', alpha: 'a' } } };
 }
 
-/** Author the painted grade as a post-graph look (G600 L1, game/looks/postGraphLook): the scene pass, the desktop bloom and
- *  the grade over the live grade uniforms the world lends ('nalati-grade'); the client only binds them. */
+/** Author the painted grade as a post-graph look (G600 L1, game/looks/postGraphLook): the scene pass, the desktop bloom blur
+ *  and the grade (which blends that bloom) over the live grade uniforms the world lends ('nalati-grade'); the client only
+ *  binds them. The grid cell carries the same chain, its bloom included. */
 export function postChainRows(): { readonly postGraph: PostGraphLookRow; readonly shadow: readonly number[]; readonly light: readonly number[]; readonly lum: readonly number[]; readonly uniforms: { readonly uV2Exposure: number; readonly uV2Sat: number; readonly uV2LookSat: number }; readonly fogLut: readonly number[] } {
   const shadow = [0.92, 0.96, 1.05], light = [1.07, 0.99, 0.84], lum = [...LUM];
   const uniforms = { uV2Exposure: 1, uV2Sat: 1.05, uV2LookSat: 1 };
-  const postGraph = {
-    passes: { grade: { name: 'GradeV2Graph', programs: { grade: { graph: gradeGraph(shadow, light, uniforms), links: ['uV2Exposure', 'uV2Sat', 'uV2LookSat'] } },
+  const bloom = 0.28, postGraph = {
+    passes: { grade: { name: 'GradeV2Graph', programs: { grade: { graph: gradeGraph(shadow, light, uniforms, bloom), links: ['tBloom', 'uBloomIntensity', 'uV2Exposure', 'uV2Sat', 'uV2LookSat'] } },
       targets: { frame: { name: 'GradeV2.frame', of: 'input', scale: 1, filter: 'nearest' } }, draws: [{ program: 'grade', to: 'frame', textures: { tSrc: 'input' } }],
       settings: {}, outputs: { frame: 'frame' } } },
-    sides: [], composite: { pass: 'grade', output: 'frame' }, inputs: {}, uniforms: {}, live: 'nalati-grade',
-    scene: { bloom: { tiers: ['desktop'], intensity: 0.28, threshold: 0.95, smoothing: 0.3, radius: 0.7 } },
+    sides: [{ bloom: 'bloom', tiers: ['desktop'], threshold: 0.95, smoothing: 0.3, radius: 0.7 }], composite: { pass: 'grade', output: 'frame' },
+    inputs: { tBloom: { side: 'bloom', output: 'bloom' } }, uniforms: { uBloomIntensity: bloom }, live: 'nalati-grade', scene: {},
   } satisfies PostGraphLookRow;
   return { postGraph, shadow, light, lum, uniforms, fogLut: ungradedFog(shadow, light, lum, uniforms.uV2Exposure, uniforms.uV2Sat) };
 }
