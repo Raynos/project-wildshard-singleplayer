@@ -162,6 +162,7 @@
     "./scriptRngV2": "./scriptRngV2.ts",
     "./scriptQueriesV2": "./scriptQueriesV2.ts",
     "./scriptQueryStateV2": "./scriptQueryStateV2.ts",
+    "./scriptInputStateV2": "./scriptInputStateV2.ts",
     "./scriptFuelV2": "./scriptFuelV2.ts",
     "./scriptModuleV2": "./scriptModuleV2.ts",
     "./scriptLimits": "./scriptLimits.ts",
