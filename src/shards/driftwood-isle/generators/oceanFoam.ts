@@ -17,7 +17,7 @@ export interface Box { readonly x: number; readonly z: number; readonly hw: numb
 interface Site { readonly origin: { readonly x: number; readonly y: number; readonly z: number }; readonly colliders: readonly Box[] }
 
 const placedSite = ({ origin, colliders }: Site): Box[] => colliders.map(box => ({ ...box, x: box.x + origin.x, z: box.z + origin.z, yTop: box.yTop + origin.y, yBottom: box.yBottom + origin.y }));
-/** The island span's baked colliders (its key as boot/bridgeFacts.ts `bridgeKey`: the island span has the default width). */
+/** The island span's baked colliders (its key as game/models/ropeDeckSite `key`: the island span has the default width). */
 function islandBridge(): readonly Box[] {
   const key = JSON.stringify([BRIDGE.a, BRIDGE.b, 1.4, BRIDGE.sag]), row = bridges.find(candidate => candidate.key === key);
   if (row === undefined) throw new Error('Missing baked island bridge');

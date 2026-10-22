@@ -4,8 +4,10 @@ import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import type { RopeBridgeSpec, DeckSegment } from '../runtime/models/ropeBridge';
+import type { RopeDeckRest, RopeDeckSpan as RopeBridgeSpec } from '@wildshard/game/models/ropeDeckSite';
 import type { RopeDeckPoses as DeckPoses } from '@wildshard/engine/physics/ropeChain';
+
+type DeckSegment = RopeDeckRest['segments'][number];
 
 const C = { post: new THREE.Color('#6f5638'), plank: new THREE.Color('#a07c53'), plankDark: new THREE.Color('#7d5f3f'), rope: new THREE.Color('#d2bd85') };
 /** a deck segment's length before it is fitted to the span (m), its half thickness, its weight (kg) */

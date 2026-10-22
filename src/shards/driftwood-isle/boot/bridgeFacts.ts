@@ -1,13 +1,11 @@
 import bake from '../data/bridgeBake.json' with { type: 'json' };
-import type { RopeBridgeSpec } from '../runtime/models/ropeBridge';
+import { RopeDeckSite } from '@wildshard/game/models/ropeDeckSite';
+import { ISLAND } from '../runtime/boot/blobAssets';
 
-/** A span's bake key (its ends, width and sag). */
-export function bridgeKey(spec:RopeBridgeSpec): string { return JSON.stringify([spec.a,spec.b,spec.width??1.4,spec.sag??1]); }
-/** Only the authored island span and Explorer specimen have rest facts. Moving deck poses remain live. */
-export function admitBridgeFacts(spec:RopeBridgeSpec,ground:(x:number,z:number)=>number): (typeof bake)[number] {
-  const key=bridgeKey(spec);
-  const row=bake.find(candidate=>candidate.key===key);
-  if(row===undefined)throw new Error('Unbaked rope bridge span');
-  if(row.ground.some(p=>{const y=ground(p.x,p.z);return !Number.isFinite(y)||Math.abs(y-p.y)>1e-6;}))throw new Error('Rope bridge terrain changed; regenerate rest facts');
-  return row;
-}
+/** The rope bridge over the gully on the headland climb (E306 / E315 M1; PHYSICS.md, the rope bridge): a rope deck site
+ *  on its baked rest facts (generators/driftwoodBridge.mjs: the island span, then the Explorer specimen's), its skinned decks drawn from the island library. */
+export const ROPE_BRIDGE = new RopeDeckSite({
+  model: { id: 'driftwood-isle/rope-bridge', name: 'Rope bridge', category: 'buildings', pipeline: 'code', file: 'src/shards/driftwood-isle/boot/bridgeFacts.ts', surface: 'planks' },
+  specimen: 1, loading: [12, 2.5, 2], spans: bake, draws: { specimen: 'bridgeSpecimenDeck', world: 'bridgeDeck' },
+  deck: { width: 1.4, sag: 1, halfY: 0.05, mass: 14, maxSegments: 64, maxColliders: 64, margin: 0.15, owner: { id: 'bridge', name: 'Rope bridge' }, piece: 'bridge' },
+}, ISLAND);

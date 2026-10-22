@@ -26,7 +26,7 @@ import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/forma
 import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { createAmbientFlock } from '@wildshard/game/ambient/ambientFlock';
-import { placeRopeBridge } from './RopeBridge';
+import { ROPE_BRIDGE } from '../boot/bridgeFacts';
 import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
 import { followToonLook } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover } from '@wildshard/game/looks/streamedCover';
@@ -126,7 +126,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // its fence posts, signposts and plank steps are the entry's placements drawn into the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
-  const bridge = await stage('Rope bridge', () => placeRopeBridge(sky, assembly.bridge, registry));
+  const bridge = await stage('Rope bridge', () => ROPE_BRIDGE.place(sky, assembly.bridge, registry));
   // coral, kelp and starfish on the lagoon shelf (what you dive for); its fish school is page life (generators/fishDraw.ts)
   await stages.next('seabed');
   const reefLook = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);

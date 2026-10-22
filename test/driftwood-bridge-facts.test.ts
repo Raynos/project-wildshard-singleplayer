@@ -1,7 +1,7 @@
 import { beforeAll, expect, it } from 'vitest';
 import { BufferAttribute, Mesh, SkinnedMesh, type Object3D } from 'three';
-import { admitBridgeFacts } from '../src/shards/driftwood-isle/boot/bridgeFacts';
-import { ropeBridgeLayout, type RopeBridgeSpec } from '../src/shards/driftwood-isle/runtime/models/ropeBridge';
+import { ROPE_BRIDGE } from '../src/shards/driftwood-isle/boot/bridgeFacts';
+import type { RopeDeckSpan as RopeBridgeSpec } from '../src/game/models/ropeDeckSite';
 import { fakeWorld } from './fake/world';
 import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
@@ -17,7 +17,7 @@ const isSkinned=(o:Object3D):o is SkinnedMesh=>o instanceof SkinnedMesh;
 // The page admits the baked deck before it builds; the author recipe stands in for the fixed-model bytes here.
 beforeAll(async () => { admitDriftwoodFixtureRows(); await fixedDraw('bridgeSpecimenDeck').load(bridgeDeck(span,()=>0)); });
 it('keeps deck owners and the walk floor on the live chain poses', () => {
-  const bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
+  const bridge=ROPE_BRIDGE.layout(fakeWorld().sky,{span,ground:()=>0},false);
   try {
     const chain=bridge.chainSpec(),rest=bridge.floorHeightAt(6,0);
     if(rest===undefined)throw new Error('Bridge floor absent');
@@ -41,12 +41,12 @@ it('keeps deck owners and the walk floor on the live chain poses', () => {
 });
 
 it('refuses an unbaked site', () => {
-  expect(()=>admitBridgeFacts({...span,width:3},()=>0)).toThrow('Unbaked');
-  expect(()=>admitBridgeFacts(span,()=>1)).toThrow('terrain changed');
+  expect(()=>ROPE_BRIDGE.facts({...span,width:3},()=>0)).toThrow('Unbaked');
+  expect(()=>ROPE_BRIDGE.facts(span,()=>1)).toThrow('terrain changed');
 });
 
 it('draws the baked deck skinned to its segments, and refuses to draw before it loads', async () => {
-  const want=bridgeDeck(span,()=>0),bridge=ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0});
+  const want=bridgeDeck(span,()=>0),bridge=ROPE_BRIDGE.layout(fakeWorld().sky,{span,ground:()=>0},true);
   try {
     const deck=bridge.mesh.children.find(isSkinned);
     if(deck===undefined)throw new Error('Bridge deck absent');
@@ -58,7 +58,7 @@ it('draws the baked deck skinned to its segments, and refuses to draw before it 
     bridge.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});bridge.mesh.clear();
   }
   fixedDraw('bridgeSpecimenDeck').take().dispose();
-  expect(()=>ropeBridgeLayout(fakeWorld().sky,{span,ground:()=>0})).toThrow('not loaded');
+  expect(()=>ROPE_BRIDGE.layout(fakeWorld().sky,{span,ground:()=>0},true)).toThrow('not loaded');
   await fixedDraw('bridgeSpecimenDeck').load(bridgeDeck(span,()=>0));
 });
 

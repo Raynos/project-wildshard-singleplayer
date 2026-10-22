@@ -2150,7 +2150,7 @@
     {"id":"trail-fence-posts","name":"Fence post","category":"props","file":"src/shards/driftwood-isle/runtime/models/trailside.ts","colliders":202,"active":true,"surface":"wood"},
     {"id":"trail-signposts","name":"Signpost","category":"props","file":"src/shards/driftwood-isle/runtime/models/trailside.ts","colliders":2,"active":true,"surface":"wood"},
     {"id":"trailside","name":"Trailside","category":"props","file":"src/shards/driftwood-isle/world/Trailside.ts","colliders":263,"active":true,"surface":"wood"},
-    {"id":"bridge","name":"Rope bridge","category":"buildings","file":"src/shards/driftwood-isle/runtime/models/ropeBridge.ts","colliders":14,"active":true,"surface":"planks"},
+    {"id":"bridge","name":"Rope bridge","category":"buildings","file":"src/shards/driftwood-isle/boot/bridgeFacts.ts","colliders":14,"active":true,"surface":"planks"},
     {"id":"cove","name":"Wreck cove","category":"nature","file":"src/shards/driftwood-isle/world/Cove.ts","colliders":14,"active":true,"surface":"rock"},
     {"id":"palms","name":"Coconut palm","category":"nature","file":"src/shards/driftwood-isle/runtime/models/palm.ts","colliders":612,"active":true,"surface":"wood"},
     {"id":"paths","name":"Paths","category":"ground","file":"src/engine/physics/paths.ts","colliders":132,"active":true,"surface":"ground"},
