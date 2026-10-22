@@ -312,6 +312,7 @@ jobs:
         with:
           path: |
             ~/.cache/wildshard/generate
+            ~/.cache/wildshard/compiler-code/1
           key: generation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: generation-v1-${{ runner.os }}-node24-
       - run: node scripts/gen.mjs --parallel
@@ -357,6 +358,7 @@ jobs:
         with:
           path: |
             ~/.cache/wildshard/shardfiles
+            ~/.cache/wildshard/compiler-code/1
           key: products-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: products-v1-${{ runner.os }}-node24-
       - uses: actions/download-artifact@v4
