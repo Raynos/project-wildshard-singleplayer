@@ -7,7 +7,6 @@ import { sceneModelSource } from './sceneSources';
 import { admitSceneBuffers, createSceneBuffers } from './sceneBuffers';
 import type { SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { TIER } from '@wildshard/engine/core/tier';
-import { app } from '@wildshard/engine/app/runtime';
 
 const books = new WeakMap<Scope, WeakMap<ShardProduct, Map<string, BufferGeometry>>>();
 const buffers = new WeakMap<ShardProduct, Map<string, SceneBuffers>>();
@@ -36,7 +35,7 @@ export function drawSceneRows(product: ShardProduct, input: unknown, parent: Obj
       if (row.tier !== undefined && row.tier !== TIER) continue;
       const source = buffers.get(product)?.get(row.file);
       if (source === undefined) throw new Error('Scene draw buffers were not admitted');
-      const group = createSceneBuffers(source, material, scope, product.shardfile.plumbing, { content: product.url(row.file), assets: app.assets });
+      const group = createSceneBuffers(source, material, scope, product.shardfile.plumbing);
       group.scale.setScalar(row.scale); group.position.y = row.y; parent.add(group);
       if (row.order !== undefined) for (const mesh of group.children) mesh.renderOrder = row.order;
     } else {

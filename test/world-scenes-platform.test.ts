@@ -474,7 +474,7 @@ test('native scalar observations gate original contacts without adding a second 
   } finally { context.scope.dispose(); }
 });
 
-test('retired residents reuse decoder storage with fresh roots, materials and collision owners', async () => {
+test('default residents release decoder storage and rebuild private scene owners', async () => {
   const first = fixture(), next = fixture(), assets = first.app.assets;
   Object.assign(next.app, { assets });
   const read = vi.spyOn(next.product, 'file');
@@ -489,11 +489,11 @@ test('retired residents reuse decoder storage with fresh roots, materials and co
     originalPosition.setX(0, 99);
     first.scope.dispose();
     expect(first.app.registry.pieces).toHaveLength(0);
-    expect(assets.retained().map(entry => entry.refs)).toEqual([0]);
+    expect(assets.retained()).toEqual([]);
     const b = await installWorldScenes(next, section());
     const replacement = b.group('harbour.root').children[0];
     if (!(replacement instanceof Mesh)) throw new Error('Missing next scene draw');
-    expect(read.mock.calls.map(([file]) => file)).not.toContain('models/stone.glb');
+    expect(read.mock.calls.map(([file]) => file)).toContain('models/stone.glb');
     expect(b.group('harbour.root')).not.toBe(a.group('harbour.root'));
     expect(replacement.geometry).not.toBe(original.geometry);
     expect(replacement.material).not.toBe(original.material);
