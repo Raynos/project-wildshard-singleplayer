@@ -69,7 +69,7 @@ export interface ProductOptions {
   progress?: (progress: ProductProgress) => void;
   /** Trusted presentation scheduling between complete checks; validation never skips work. */
   pause?: () => Promise<void>;
-  /** Trusted Developer budget experiment: at most four cache requests in flight; durable checks and pins stay. */
+  /** At most four cache requests in flight (the browser loader, G580 T2/G590); durable checks and pins stay. */
   cacheBatch?: boolean;
   /** The bundled page's own first-party index hashes, and its once-only reload when a newer deployment's index arrives. */
   built?: { indexes: ReadonlySet<string>; stale: () => Promise<void> };

@@ -61,10 +61,6 @@ export interface LiveGridPorts {
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
    *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
   prefetchable?: (cell: GridCell) => boolean;
-  /** G580 T1 (the Developer row warmNeighbour): owned worlds overlap. The approached cell builds whole (warm-up included)
-   *  while the traveller is still in the source. A departed source stays until the next build-ahead or cold retirement,
-   *  so a crossing is the retained runtime's re-activation. Absent or false: one owned world at a time. */
-  warmNeighbour?: () => boolean;
   save: (instance: string, snapshot: SimSnapshot) => boolean;
   /** The same save in stages (each `yield` may wait a frame) for {@link LiveGridHost.checkpointSteps}; absent saves in one stage. */
   saveSteps?: (instance: string, snapshot: SimSnapshot) => Generator<undefined, boolean>;
@@ -99,7 +95,7 @@ export interface LiveGridState {
 export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; workMs?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
 interface RetiringRegion { readonly instance: string; readonly resident: Resident; readonly steps: Generator<DisposeStep, void>;
   readonly checkpointMs: number; readonly start: number; count: number; workMs: number; slowestMs: number; slowest: string; done: boolean }
-interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; exclusiveRuntime: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean; outsideSince?: number }
+interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean; outsideSince?: number }
 
 // The motor's 6/10 m frame bands are independent. Residency waits five continuous fixed-step seconds outside
 // a further five seconds of travel distance, so a boulevard U-turn never churns a world at its request threshold.
@@ -181,6 +177,8 @@ export class LiveGridHost {
   private sequence: Promise<void> = Promise.resolve();
   /** G580 T1: the in-flight build-ahead, which a crossing into any other cell abandons (`preempt`). */
   private speculative: { instance: string; controller: AbortController } | null = null;
+  /** G580 T1: the neighbour the in-source build-ahead last chose; only it is kept whole beside the source (`warmAhead`). */
+  private aheadCell: string | null = null;
   private active: string | null;
   private unbind: (() => void) | undefined;
   private disposed = false;
@@ -318,8 +316,6 @@ export class LiveGridHost {
     if (row !== null && row.instance !== destination) row.controller.abort();
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
-  /** G580 T1: owned worlds overlap (the Developer row warmNeighbour). */
-  private warm(): boolean { return this.ports.home.mode === 'owned' && this.ports.warmNeighbour?.() === true; }
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
   private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>, signal?: AbortSignal): Promise<void> {
     const instance = cell.instance;
@@ -331,10 +327,8 @@ export class LiveGridHost {
       admission = admitted;
       this.assertAlive();
       if (this.ports.home.mode === 'owned') {
-        // G580 T1: warm, owned worlds overlap (the resident limit still bounds them); a failed disposal still blocks
-        const warm = this.warm(), failed = [...this.residents.values()].some((row) => row.disposalFailed === true);
-        if (warm ? failed : this.active !== null || [...this.residents.values()].some((row) => row.exclusiveRuntime || row.disposalFailed)
-          || (admitted.exclusiveRuntime === true && this.residents.size > 0)) throw new Error('Exclusive runtime awaits source departure and successful disposal');
+        // G580 T1 (G590 default): owned worlds overlap (the resident limit still bounds them); a failed disposal still blocks
+        if ([...this.residents.values()].some((row) => row.disposalFailed === true)) throw new Error('Exclusive runtime awaits successful disposal');
         this.products.delete(instance);
       }
       if (this.ports.continuations === 'durable' && admitted.reloadsCheckpoint !== true && this.ports.read === undefined) throw new Error('Durable-only live regions require a checkpoint reader before allocation');
@@ -371,14 +365,14 @@ export class LiveGridHost {
         if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
-        this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, exclusiveRuntime: admitted.exclusiveRuntime === true, reservations: 0, evicting: false });
+        this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, reservations: 0, evicting: false });
         this.readiness.complete(ticket, 'colliders'); this.readiness.complete(ticket, 'sim');
         lease.update({ needed: false, distance: this.distance(cell) });
       } catch (error) {
         try { region?.dispose(); }
         catch (cleanup) {
           if (region !== undefined) this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true,
-            exclusiveRuntime: true, reservations: 0, evicting: false, disposalFailed: true });
+            reservations: 0, evicting: false, disposalFailed: true });
           admission = undefined; // The retained world still owns its product and its full claim.
           throw new AggregateError([error, cleanup], 'Live region creation and disposal failed', { cause: cleanup });
         }
@@ -420,13 +414,12 @@ export class LiveGridHost {
    * that source: the traveller may stand anywhere in the source for minutes, so neither the cold dwell nor the allocator
    * may drop it before the crossing. */
   private warmAhead(): string | null {
-    if (!this.warm() || this.active === null) return null;
-    const active = this.assembly.cell(this.active), lastSource = this.lastSource();
-    return [...this.residents.keys()].find(id => {
-      if (id === this.active || id === lastSource) return false;
-      const cell = this.assembly.cell(id);
-      return Math.max(Math.abs(cell.origin.x - active.origin.x), Math.abs(cell.origin.z - active.origin.z)) <= this.assembly.pitch * 1.001;
-    }) ?? null;
+    // the one the build-ahead chose, never any other resident (a small declarative cell nearby once blocked the real
+    // neighbour's build and was itself kept whole: Chromium default-on run)
+    const id = this.aheadCell;
+    if (this.ports.home.mode !== 'owned' || this.active === null || id === null || id === this.active || id === this.lastSource() || !this.residents.has(id)) return null;
+    const active = this.assembly.cell(this.active), cell = this.assembly.cell(id);
+    return Math.max(Math.abs(cell.origin.x - active.origin.x), Math.abs(cell.origin.z - active.origin.z)) <= this.assembly.pitch * 1.001 ? id : null;
   }
   /** The cell most recently left for another (the active one excluded): a road crossing records two transitions,
    * source -> road and road -> destination, so the last transition alone names only the road. */
@@ -441,10 +434,15 @@ export class LiveGridHost {
    * retire() appends sliced disposal to sequence; ensure() must capture that sequence afterwards. */
   private retireWarmSource(destination: string): boolean {
     const source = this.lastSource();
-    if (source === null || source === this.active || source === destination || !this.residents.has(source)) return true;
-    if (this.roadRetirementRefused.has(source)) return false;
-    if (this.retire(source)) return true;
-    this.roadRetirementRefused.add(source); return false;
+    if (source === null || source === this.active || source === destination) return true;
+    return this.releaseKept(source);
+  }
+  /** Retire a kept world before another build-ahead claims memory; a refusal is remembered until `retry`. */
+  private releaseKept(instance: string): boolean {
+    if (!this.residents.has(instance)) return true;
+    if (this.roadRetirementRefused.has(instance)) return false;
+    if (this.retire(instance)) return true;
+    this.roadRetirementRefused.add(instance); return false;
   }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
   retry(instance: string): void {
@@ -484,10 +482,9 @@ export class LiveGridHost {
     // One neighbour at a time beside the source just left: a second build would only queue in front of the crossing.
     // Only real travel asks for it (sp-o5's Simulator reading: a spawn facing Pine built a whole Pine world, and the
     // crossing's destination then queued behind it): standing, turning or a teleport builds nothing.
-    const lastSource = this.lastSource();
-    const ahead = [...this.residents.keys()].some(id => id !== this.active && id !== lastSource);
+    // A turn toward another neighbour retires the stale choice first, so at most one is built ahead.
     const step = previous === undefined ? 0 : Math.hypot(feet.x - previous.x, feet.z - previous.z);
-    if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0 && this.warm() && !ahead
+    if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0
       && previous !== undefined && travelled && step <= WARM_TRAVEL_MAX_METRES) {
       // the neighbour ahead, whatever its readiness reach (inside a source a player can travel for minutes): the nearest by
       // edge distance over the square of how squarely the travel heads at its centre (cells behind never), so a diagonal
@@ -499,7 +496,13 @@ export class LiveGridHost {
       };
       const next = candidates.slice(0, 8).filter(cell => !this.issues.has(cell.instance))
         .map(cell => ({ cell, score: score(cell) })).filter(row => Number.isFinite(row.score)).sort((m, n) => m.score - n.score)[0]?.cell;
-      if (next !== undefined && !this.residents.has(next.instance) && this.retireWarmSource(next.instance)) void background(next.instance, this.ensure(next.instance, true), () => !this.disposed);
+      if (next !== undefined && next.instance !== this.aheadCell) {
+        const stale = this.warmAhead();
+        if (this.residents.has(next.instance)) this.aheadCell = next.instance;
+        else if (this.retireWarmSource(next.instance) && (stale === null || this.releaseKept(stale))) {
+          this.aheadCell = next.instance; void background(next.instance, this.ensure(next.instance, true), () => !this.disposed);
+        }
+      }
     }
     // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
@@ -530,15 +533,9 @@ export class LiveGridHost {
         // Opaque alternatives at an ambiguous junction stay product/module-only until the turn identifies one destination.
         const roadWidth = this.assembly.pitch - 2 * CHUNK_HALF;
         const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
-        if (this.distance(approach, feet) <= reach) {
-          // A turn replaces any speculative world, including a declarative copy, only after durable disposal succeeds.
-          // Never overlap opaque worlds, retry a failed save each tick, or discard an in-flight crossing reservation.
-          // G580 T1: warm, the departed source stays (the cold-dwell rule retires it); the destination may already be resident
-          const warm = this.warm();
-          if (!warm) for (const [instance] of this.residents) if (instance !== approach.instance
-            && !this.roadRetirementRefused.has(instance) && !this.retire(instance)) this.roadRetirementRefused.add(instance); // O20: in steps
-          if (warm ? !this.residents.has(approach.instance) : this.residents.size === 0) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
-        }
+        // G580 T1: a destination already built ahead is entered as it stands; one that still has to build first releases
+        // the kept source (one whole world building beside the road, not two: Sim road pair loading peak 1961 -> under 1.8 GB)
+        if (this.distance(approach, feet) <= reach && !this.residents.has(approach.instance) && this.retireWarmSource(approach.instance)) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
       }
     }
     const walls = this.ports.home.mode !== 'owned' && this.active === this.ports.home.instance ? this.ports.home.walls
@@ -671,17 +668,13 @@ export class LiveGridHost {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
     if (this.ports.home.mode === 'owned' && from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
     if (this.ports.home.mode === 'owned' && from === null && to !== null) {
-      // A speculative approach can still be building when the traveller turns toward another cell.
-      // Retire it after it becomes resident, before the next foundation acquires a claim or allocates.
-      // G580 T1: warm, a destination already parked (built ahead) waits for no other cell's admission
-      // and a build-ahead of any other cell is abandoned rather than waited for. Only this committed crossing pre-empts:
-      // the road approach's guess (right after a leave, the source just left) would abandon a good build (Chromium run)
+      // G580 T1: a destination already parked (built ahead) waits for no other cell's admission, and a build-ahead of
+      // any other cell is abandoned rather than waited for. Only this committed crossing pre-empts: the road approach's
+      // guess (right after a leave, the source just left) would abandon a good build (Chromium run). Other residents stay.
       this.preempt(to);
-      if (!(this.warm() && this.residents.has(to) && this.ready(to))) await this.sequence;
+      if (!(this.residents.has(to) && this.ready(to))) await this.sequence;
       this.assertAlive();
       if (this.current() !== from) throw new Error('Stale live frame preparation');
-      // O20: retired in steps; the destination's admission below waits for them (`sequence`). G580 T1: warm, they stay.
-      if (!this.warm()) for (const instance of this.residents.keys()) if (instance !== to && !this.retire(instance)) throw new Error('Previous region is not durably retired');
     }
     if (to !== null) await this.ensure(to);
     if (this.active !== from || !this.ready(to)) throw new Error('Unready live frame preparation');

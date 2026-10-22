@@ -1,5 +1,4 @@
 import { lendLooks } from './lentLooks';
-import { readShaderWarmChoice } from '../grid/keptPrograms';
 import { recoverStaleClient } from '@wildshard/engine/boot/stuck';
 import { builtIndexHashes } from '@wildshard/format/product';
 import type { Material } from 'three';
@@ -78,7 +77,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     })(), 'file'),
     ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
       (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null }),
-    pause: pauseDescriptor, cacheBatch: readShaderWarmChoice() === 'budget',
+    pause: pauseDescriptor, cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };

@@ -8,7 +8,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { LiveGridHost } from '../src/game/grid/live';
 import { PageResidency } from '../src/game/grid/pageResidency';
 
-// G580 T1 (the Developer row warmNeighbour): owned worlds overlap. The approached cell builds whole while the traveller is
+// G580 T1 (G590: the default): owned worlds overlap. The approached cell builds whole while the traveller is
 // still in the source, the source stays resident through the crossing, and the destination is entered with both resident.
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
@@ -20,7 +20,7 @@ function travel(live: LiveGridHost, at: { x: number; z: number }, dx: number, dz
   at.x += dx; at.z += dz; live.beforeFixed();
 }
 
-async function crossing(warm: boolean) {
+async function crossing() {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assembly = new GridAssembly({ developer: false, devserver: false });
   const home = assembly.cell('driftwood-isle');
@@ -33,7 +33,7 @@ async function crossing(warm: boolean) {
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => warm,
+    bindFrame: () => undefined, gameplayReady: () => true,
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => cell.instance === target.instance,
     // a large world: its readiness reach starts well inside the source
@@ -62,21 +62,13 @@ async function crossing(warm: boolean) {
 }
 
 test('warm: the destination builds while the source is active, and both stay resident through the crossing', async () => {
-  const r = await crossing(true);
+  const r = await crossing();
   expect(r.inSource.current).toBe(r.home);
   expect(r.inSource.created).toEqual([r.home, r.target]);
   expect(r.inSource.residents).toEqual([r.home, r.target].sort());
   expect(r.entered.current).toBe(r.target);
   expect(r.entered.residents).toEqual([r.home, r.target].sort());
   expect(r.entered.disposed).toEqual([]);
-  expect(r.issues).toEqual({});
-});
-
-test('off: nothing builds inside the source, and the source retires before the destination builds', async () => {
-  const r = await crossing(false);
-  expect(r.inSource.created).toEqual([r.home]);
-  expect(r.entered.created).toEqual([r.home, r.target]);
-  expect(r.entered.residents).toEqual([r.target]);
   expect(r.issues).toEqual({});
 });
 
@@ -93,7 +85,7 @@ test('warm: the build-ahead picks the neighbour the traveller heads for', async 
     const live = new LiveGridHost(assembly, {
       home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
       player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-      bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+      bindFrame: () => undefined, gameplayReady: () => true,
       highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
       prefetchable: cell => cell.instance === east.instance || cell.instance === north.instance,
       readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
@@ -128,7 +120,7 @@ test('warm: the neighbour built ahead stays whole however long the traveller sta
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true,
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => cell.instance === east.instance,
     // a quick world: its readiness reach (and the cold-release radius) ends well short of the source's centre
@@ -167,7 +159,7 @@ test('warm: the next neighbour retires the kept source before building', async (
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true,
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => cell.instance === east.instance || cell.instance === beyond.instance,
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
@@ -208,7 +200,7 @@ test('warm: standing, turning or a teleport builds nothing ahead', async () => {
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true,
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => cell.instance === east.instance,
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
@@ -244,7 +236,7 @@ test('warm: crossing into another cell abandons the build-ahead and builds the d
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true,
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => cell.instance === east.instance || cell.instance === north.instance,
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
@@ -294,7 +286,7 @@ async function keptSourceFixture() {
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true,
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => [home.instance, current.instance, next.instance].includes(cell.instance),
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
@@ -386,4 +378,43 @@ test('warm: turning toward the already kept source reuses it without a farther s
     expect(f.events.filter(event => event.startsWith('retire:'))).toEqual([]);
     expect(f.live.state().residents).toEqual([f.home.instance, f.current.instance].sort());
   } finally { f.close(); }
+});
+
+test('warm: a turn toward another neighbour retires the stale build-ahead and builds the new one', async () => {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const home = assembly.cell('driftwood-isle');
+  const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
+  const north = assembly.cells.find(cell => cell.origin.x === 0 && cell.origin.z === -assembly.pitch);
+  if (east === undefined || north === undefined) throw new Error('Missing neighbours');
+  const page = createSimHost(level, { rapier }), residency = new PageResidency(), created: string[] = [], disposed: string[] = [];
+  const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  const live = new LiveGridHost(assembly, {
+    home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
+    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true,
+    highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
+    prefetchable: cell => cell.instance === east.instance || cell.instance === north.instance,
+    readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
+      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
+    admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+      create: () => {
+        created.push(cell.instance);
+        const host = createSimHost(level, { rapier, playerBody: false, ground: false });
+        return Promise.resolve({ host, dispose: () => { disposed.push(cell.instance); host.dispose(); } });
+      } }),
+  });
+  const settle = async (): Promise<void> => {
+    for (let i = 0; i < 40; i++) { live.beforeFixed(); await new Promise(resolve => { setTimeout(resolve, 2); }); }
+  };
+  try {
+    const enterHome = await live.prepare(null, home.instance); enterHome.commit();
+    player.position.x = 0; player.position.z = 0; travel(live, player.position, 1, 0); await settle();
+    expect(live.state().residents).toEqual([home.instance, east.instance].sort());
+    travel(live, player.position, 0, -1); await settle();
+    expect(created).toEqual([home.instance, east.instance, north.instance]);
+    expect(disposed).toEqual([east.instance]);
+    expect(live.state().residents).toEqual([home.instance, north.instance].sort());
+    expect(live.state().issues).toEqual({});
+  } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
 });

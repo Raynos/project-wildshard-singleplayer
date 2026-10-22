@@ -12,7 +12,6 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
 import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
-import * as shaderWarm from '../src/game/grid/keptPrograms';
 
 // A made-up second shard: two steps, cube variants, repeated groups and named handles.
 const recipe = { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['stone'] },
@@ -615,7 +614,7 @@ test('a cold pool card under a retiring cell reads nothing more and publishes no
   } finally { file.mockRestore(); product.mockRestore(); cell.dispose(); context.scope.dispose(); material.dispose(); }
 });
 
-function placementReads(choice: 'off' | 'budget') {
+function placementReads() {
   const context = fixture(), started: number[] = [], geometry: string[] = [];
   const rows = section(), encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
   const draw = { id: 'face', library: 'shapes', model: 'stone', material: 'paint', sphere: [0, 0, 0, 3] };
@@ -630,7 +629,6 @@ function placementReads(choice: 'off' | 'budget') {
     }, fail: (error: Error) => { if (rejectRead === undefined) throw new Error('Missing placement rejecter'); rejectRead(error); } };
   });
   const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
-  vi.spyOn(shaderWarm, 'readShaderWarmChoice').mockReturnValue(choice);
   vi.spyOn(context.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || /^scenes\/p[0-4]\.json$/u.test(name) || has(name));
   vi.spyOn(context.product, 'file').mockImplementation(name => {
     if (name === 'models/catalogue.json') return Promise.resolve(encode(catalogue));
@@ -645,8 +643,8 @@ function placementReads(choice: 'off' | 'budget') {
   return { context, started, geometry, pending, input };
 }
 
-test('budget placement reads overlap only four and retain original scene construction', async () => {
-  const f = placementReads('budget');
+test('placement reads overlap only four and retain original scene construction', async () => {
+  const f = placementReads();
   try {
     const installing = installWorldScenes(f.context, f.input);
     await vi.waitFor(() => { expect(f.started).toEqual([0, 1, 2, 3]); });
@@ -663,21 +661,8 @@ test('budget placement reads overlap only four and retain original scene constru
   } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
 });
 
-test('default placement admission still reads one file at a time', async () => {
-  const f = placementReads('off');
-  try {
-    const installing = installWorldScenes(f.context, f.input);
-    for (let index = 0; index < 5; index++) {
-      await vi.waitFor(() => { expect(f.started).toEqual(Array.from({ length: index + 1 }, (_, at) => at)); });
-      f.pending[index]?.release(index);
-    }
-    const handles = await installing;
-    expect(handles.number('harbour.height')).toBe(7); expect(f.geometry).toEqual(['models/stone.glb']);
-  } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
-});
-
-test('budget drains a failed window and refuses in authored order before geometry or the next window', async () => {
-  const f = placementReads('budget'); let ended = false;
+test('a failed read window drains and refuses in authored order before geometry or the next window', async () => {
+  const f = placementReads(); let ended = false;
   try {
     const installing = installWorldScenes(f.context, f.input);
     const refusal = (async () => { try { await installing; return undefined; } catch (error) { return error; } finally { ended = true; } })();
@@ -690,8 +675,8 @@ test('budget drains a failed window and refuses in authored order before geometr
   } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
 });
 
-test.each(['disposed', 'disposing'] as const)('budget does not allocate after a %s resident finishes held metadata reads', async state => {
-  const f = placementReads('budget');
+test.each(['disposed', 'disposing'] as const)('placement reads do not allocate after a %s resident finishes held metadata reads', async state => {
+  const f = placementReads();
   try {
     const installing = installWorldScenes(f.context, f.input), refusal = (async () => { try { await installing; return undefined; } catch (error) { return error; } })();
     await vi.waitFor(() => { expect(f.started).toHaveLength(4); });

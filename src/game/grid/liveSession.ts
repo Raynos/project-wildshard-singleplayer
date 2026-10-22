@@ -1,5 +1,4 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
 import { crossingLoadingRows } from '../boot/loadingPaths';
 import { loadingUnits } from '@wildshard/engine/boot/waits';
@@ -26,7 +25,6 @@ import { loadingUnits } from '@wildshard/engine/boot/waits';
 import { Vector3, type PerspectiveCamera } from 'three';
 import { createProgramKeeper, retainRendererPrograms, RETAINED_PROGRAM_BYTES, RETAINED_PROGRAM_LIMIT, type ProgramKeeper } from '@wildshard/engine/render/programRetention';
 import { installBootProgramChoice } from './bootPrograms';
-import { installShaderWarmChoice } from './keptPrograms';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
@@ -201,8 +199,6 @@ function regionTransferWalls(host: SimHost, radius: number, restoring = false): 
   return walls;
 }
 /** The live crossing for one grid page; disposed with the level scope. */
-/** G580 T1: the Developer row warmNeighbour (owned worlds overlap; a crossing re-activates the parked destination). */
-const warmNeighbour = (): boolean => setting('warmNeighbour') === 'on';
 
 export class LiveGridSession {
   readonly live: LiveGridHost;
@@ -229,7 +225,6 @@ export class LiveGridSession {
   private activation: Promise<boolean> | undefined;
   private bootPrograms: LiveGridSessionState['bootPrograms'] = null;
   /** G580 T2: the Developer choice, read at construction; the keeper is made at the first retirement */
-  private readonly keepsPrograms: boolean;
   private keeper: ProgramKeeper | null = null;
   readonly bootProgramCell: string | null;
   private checkpointsSuppressed = false;
@@ -251,7 +246,6 @@ export class LiveGridSession {
       const manifest = findShard(cell.slug);
       return manifest === undefined || manifest.trustedRuntime === undefined && manifest.clientPlanRuntime !== true ? [] : [{ instance: cell.instance, label: manifest.name }];
     }));
-    this.keepsPrograms = installShaderWarmChoice(scope) !== 'off';
     const traveller = page.traveller;
     // Register the resident parent before the live host disposer: the traveller returns before native children free.
     this.runtimeScope = scope.child('grid.runtime.residents');
@@ -315,7 +309,6 @@ export class LiveGridSession {
       prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
       pause: () => yieldGridAdmission(scope),
       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
-      warmNeighbour: () => warmNeighbour(),
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
       saveSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
       saveBytesSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
@@ -419,20 +412,13 @@ export class LiveGridSession {
       const leaveStart = diagnosticNow();
       gridCells.leave(); // entered callbacks must finish before their retained native world retires
       this.leaveTiming.push({ instance: from, leaveMs: diagnosticNow() - leaveStart }); if (this.leaveTiming.length > 16) this.leaveTiming.shift();
-      // G580 T1: warm, the source stays resident and parked (re-entry is its re-activation); the cold-dwell rule retires it
-      if (!warmNeighbour()) this.live.retire(from); // O20: in steps over frames; false retains the full source claim and the next materialization fence
+      // G580 T1: the source stays resident and parked (re-entry is its re-activation); the cold-dwell rule retires it
     });
   }
 
   private prepareCrossing(from: string | null, to: string | null): ReturnType<LiveGridHost['prepare']> {
-    if (this.page.ownedHome === true && from === null && to !== null) {
-      // Retry a refused source cleanup before any destination foundation/whole-runtime claim is allocated (G580 T1: warm,
-      // the other residents stay; the resident limit and the cold-dwell rule bound them).
-      if (!warmNeighbour()) for (const instance of this.live.state().residents) {
-        if (instance !== to && !this.live.retire(instance)) throw new Error('Previous region is not durably retired'); // O20: in steps
-      }
-      if (!this.live.state().pending.includes(to)) this.live.retry(to);
-    }
+    // G580 T1: the other residents stay; the resident limit and the cold-dwell rule bound them
+    if (this.page.ownedHome === true && from === null && to !== null && !this.live.state().pending.includes(to)) this.live.retry(to);
     return this.live.prepare(from, to);
   }
 
@@ -570,7 +556,7 @@ export class LiveGridSession {
   /** G580 T2: a retiring cell's compiled programs, kept for the next (Developer row). The keeper and its conservative
    *  residency charge are made at the first retirement, once the page renderer exists; refused, nothing is kept. */
   private keepPrograms(instance: string): void {
-    if (!this.keepsPrograms || this.ports.scope.disposed) return;
+    if (this.ports.scope.disposed) return;
     if (this.keeper === null) {
       const game = this.page.runtimePage?.()?.world.game;
       if (game === undefined) return;
@@ -805,7 +791,7 @@ export class LiveGridSession {
           if (this.page.ownedHome === true && !await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
         } finally { unlisten?.(); }
         if (stopped()) throw new Error('Build-ahead abandoned for another crossing');
-        if (warmNeighbour()) prepared.park?.(); // G580 T1: parked while the traveller is still in the source
+        prepared.park?.(); // G580 T1: parked while the traveller is still in the source
       }
       catch (error) {
         this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
@@ -958,7 +944,7 @@ export class LiveGridSession {
 
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
-    return { bootPrograms: this.bootPrograms, keptPrograms: this.keeper?.size ?? (this.keepsPrograms ? 0 : null), live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
+    return { bootPrograms: this.bootPrograms, keptPrograms: this.keeper?.size ?? 0, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
       hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }

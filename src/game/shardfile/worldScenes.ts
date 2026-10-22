@@ -34,7 +34,6 @@ import { createWorldScene, bindWorldSceneParts } from '../plugin/ui';
 import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { loadingUnits } from '@wildshard/engine/boot/waits';
-import { readShaderWarmChoice } from '../grid/keptPrograms';
 import { timeClientPreparation } from './preparationTiming';
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
@@ -156,25 +155,22 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   }
   const placements: WorldScenePlacementRow[] = [];
   await timeClientPreparation(product.slug, 'scene.placement-admission', async () => {
-    const declarations = section.placements ?? [], parallelReads = readShaderWarmChoice() === 'budget';
+    const declarations = section.placements ?? [];
     let reads: PromiseSettledResult<Uint8Array | undefined>[] = [];
     for (const [index, declared] of declarations.entries()) {
       // Only verified metadata reads overlap; checks, yields and publication keep authored order.
       // Drain every started read before refusing, and never start a later window after a failure.
-      if (parallelReads && index % 4 === 0) {
+      if (index % 4 === 0) {
         reads = await Promise.allSettled(declarations.slice(index, index + 4).map(async entry => {
           if (!('file' in entry)) return undefined;
           requireFile(entry.file); const bytes = await product.file(entry.file); return bytes;
         }));
         if (resident.disposed || resident.disposing) throw new Error('Scene placement owner is disposed');
       }
-      let bytes: Uint8Array | undefined;
-      if (parallelReads) {
-        const result = reads[index % 4];
-        if (result === undefined) throw new Error('Missing scene placement read');
-        if (result.status === 'rejected') throw result.reason;
-        bytes = result.value;
-      } else if ('file' in declared) { requireFile(declared.file); bytes = await product.file(declared.file); }
+      const result = reads[index % 4];
+      if (result === undefined) throw new Error('Missing scene placement read');
+      if (result.status === 'rejected') throw result.reason;
+      const bytes = result.value;
       if ('file' in declared && bytes === undefined) throw new Error('Missing scene placement bytes');
       const row = 'file' in declared ? parseWorldScenePlacement(JSON.parse(decoder.decode(bytes))) : declared;
       if (row.id !== declared.id) throw new Error('Scene placement blob identity differs');
