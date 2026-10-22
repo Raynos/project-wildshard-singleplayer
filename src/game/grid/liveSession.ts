@@ -792,15 +792,26 @@ export class LiveGridSession {
         throw error;
       }
       let disposalFailure: Error | undefined;
+      // Forget this visit once its world is gone, by either path (a newer preparation of the same cell keeps its own rows).
+      // The stepped retirement used to bypass this, so each visited cell kept its last retired runtime (O18, sp-o4).
+      let forgotten = false;
+      const forget = (): void => {
+        if (forgotten) return;
+        forgotten = true;
+        if (this.runtimeRegions.get(cell.instance) === prepared) {
+          this.startedRuntimes.delete(cell.instance);
+          this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
+        }
+        release();
+      };
+      const retireSteps = prepared.region.retire;
       return { ...prepared.region, checkpoint: () => !this.startedRuntimes.has(cell.instance) ? saved.flush()
         : this.hybrid.state().instance === cell.instance && !this.hybrid.state().ready ? false : prepared.checkpoint(), dispose: () => {
         if (disposalFailure !== undefined) throw disposalFailure;
         try { prepared.region.dispose(); saved.unbind(); }
         catch (error) { disposalFailure = error instanceof Error ? error : new Error(String(error)); throw disposalFailure; }
-        this.startedRuntimes.delete(cell.instance);
-        this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
-        release();
-      } };
+        forget();
+      }, ...(retireSteps === undefined ? {} : { *retire(): ReturnType<typeof retireSteps> { yield* retireSteps(); saved.unbind(); forget(); } }) };
     } };
   }
 
