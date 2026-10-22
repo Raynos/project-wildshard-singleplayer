@@ -8,7 +8,6 @@ import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalL
 import { createPortalRide, PortalRideStateSchema, type PortalRideState, type PortalRideLane, type RideRings } from './walkInPortalRide';
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from './portalTraversal';
 import type { ShardContext } from '../plugin/context';
-import { bindRuntimeLedger, projectRuntimeFacts } from '../plugin/headless';
 
 /** the ride's rows: its director (a `directors` id), walk-in volume, fade, veil and the facts a landing reports */
 export interface PortalRideRows {
@@ -128,7 +127,7 @@ export async function installDeclaredPortalRide(ctx: ShardContext, file: string)
 
 async function installPageRide(ctx: Pick<ShardContext, 'game' | 'system' | 'scope'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts | ShardContext): Promise<PortalRide> {
   const declared = typeof facts === 'function' ? null : facts, original = portalOwner(ctx, declared), world = original.world;
-  const [{ declarePanel }, { mountUi, uiScope }] = await Promise.all([import('@wildshard/engine/ui/panel'), import('@wildshard/engine/ui/ownership')]);
+  const [{ declarePanel }, { mountUi, uiScope }, { bindRuntimeLedger, projectRuntimeFacts }] = await Promise.all([import('@wildshard/engine/ui/panel'), import('@wildshard/engine/ui/ownership'), import('../plugin/headless')]);
   original.check();
   // Validate the director, traversal and detached panel before a ledger, mounted veil or system can be allocated.
   const lane = createPortalRide(portalRings(source, rows)), rider = portalRider(world.player, () => world.physics, source);
