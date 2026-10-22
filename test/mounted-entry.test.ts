@@ -28,7 +28,7 @@ function fixture() {
   const weapon = vi.fn<ShardContext['rows']['weapon']>();
   const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>({}), step: null, play: null,
     interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
-  const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime }),
+  const ctx = legacyDouble<ShardContext>({ scope, product, app:legacyDouble<ShardContext['app']>({equipment:null}), game: legacyDouble<ShardContext['game']>({ runtime }),
     rows: legacyDouble<ShardContext['rows']>({ weapon }) });
   return { parent, scope, product, arsenal, weapon, runtime, ctx, read };
 }

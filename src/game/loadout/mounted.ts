@@ -28,6 +28,20 @@ export interface MountedLoadout {
   setMount:(state:Blade['mount'])=>void;
 }
 
+/** Capture the original construction loans; no lookup may follow a replacement
+ * across a native constructor yield or a product read. */
+function constructionOwner(ctx:ShardContext|undefined,world:HeldPolearmWorld):()=>void {
+  if(ctx===undefined)return ()=>undefined;
+  const scope=ctx.scope,product=ctx.product,source=product.shardfile,items=source.items;
+  const game=ctx.game,runtime=game.runtime,app=ctx.app,equipment=app.equipment;
+  return ()=>{
+    if(scope.disposed||scope.disposing)throw new Error('Mounted construction owner has ended');
+    if(ctx.scope!==scope||ctx.product!==product||product.shardfile!==source||source.items!==items
+      ||ctx.game!==game||game.runtime!==runtime||runtime?.world!==world
+      ||ctx.app!==app||app.equipment!==equipment)throw new Error('Mounted construction owner was replaced');
+  };
+}
+
 /** Client-only kit assembly over the native families. No content constructor,
  * selection hook or replacement callback crosses the declaration boundary. */
 export class MountedArsenal {
@@ -46,31 +60,35 @@ export class MountedArsenal {
     if(ctx.scope.disposed||ctx.scope.disposing||runtime===undefined||page===undefined)throw new Error('Mounted page needs its live native equipment declaration');
     const world=runtime.world;if(world===null)throw new Error('Mounted page needs its actual world');
     if(this.pageKits.has(ctx.scope))throw new Error('Mounted page is already installed');
-    const catalogue=new ItemCatalogue(ctx.product.shardfile.items);
+    const scope=ctx.scope,check=constructionOwner(ctx,world),product=ctx.product;check();
+    const catalogue=new ItemCatalogue(product.shardfile.items);
     ctx.rows.weapon([this.rows.bow.item,this.rows.blade.item,this.rows.polearm.item,page.firearm.item].map(id=>catalogue.equipment(id)));
-    this.pageKits.set(ctx.scope,null);
-    ctx.scope.onDispose(()=>{this.pageKits.delete(ctx.scope);});
+    this.pageKits.set(scope,null);
+    scope.onDispose(()=>{this.pageKits.delete(scope);});
     runtime.buildEquipment=async(targets,allowUnlocked)=>{
-      const kit=await this.build(world,targets,allowUnlocked,ctx.product.shardfile.items);await macrotask();
-      const data=await ctx.product.json<{feel:Pick<HeldFirearmProfile,'ads'>;view:HeldFirearmView;rows:HeldFirearmRows}>(page.firearm.file);
+      check();
+      const kit=await this.build(world,targets,allowUnlocked,product.shardfile.items,ctx);check();
+      await macrotask();check();
+      const data=await product.json<{feel:Pick<HeldFirearmProfile,'ads'>;view:HeldFirearmView;rows:HeldFirearmRows}>(page.firearm.file);check();
       const item=ctx.product.shardfile.items.rows.find(row=>row.id===page.firearm.item);
       const profile={...parse(FirearmWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined),...data.feel};
       const rifle=new HeldFirearm(world,targets,{row:catalogue.equipment(page.firearm.item),allowUnlocked,muzzleLight:page.firearm.muzzleLight,
         profile,view:data.view,rows:data.rows,model:{}});
-      if(ctx.scope.disposed)throw new Error('Mounted page left during equipment assembly');
+      check();
       bindRuntimeEquipment(ctx,ctx.product.shardfile,[kit.bow,kit.sabre,kit.spear,rifle].map(weapon=>{
         const source=ctx.product.shardfile.items.rows.find(row=>row.id===weapon.row.id);return {id:weapon.row.id,weapon,profile:source?.kind==='weapon'?source.profile:undefined};
       }));
-      this.pageKits.set(ctx.scope,kit);
+      check();this.pageKits.set(scope,kit);
       return {primary:kit.base,rifle,secondary:null,extras:kit.extras,order:page.order,install:kit.install};
     };
   }
   /** Borrow the exact native kit assembled between kit and play. */
   pageKit(ctx:Pick<ShardContext,'scope'>):MountedLoadout|null{return ctx.scope.disposed||ctx.scope.disposing?null:this.pageKits.get(ctx.scope)??null;}
-  async build(world:HeldPolearmWorld,targets:Targets,allowUnlocked:boolean,items:unknown):Promise<MountedLoadout>{
-    const sabre=new this.blade.Weapon(world,targets,{allowUnlocked});await macrotask();
-    const spear=new this.polearm.Weapon(world,targets,{allowUnlocked});await macrotask();
-    const {profile}=await loadHeldBow(this.rows.bow.file);
+  async build(world:HeldPolearmWorld,targets:Targets,allowUnlocked:boolean,items:unknown,context?:ShardContext):Promise<MountedLoadout>{
+    const check=constructionOwner(context,world);check();
+    const sabre=new this.blade.Weapon(world,targets,{allowUnlocked});await macrotask();check();
+    const spear=new this.polearm.Weapon(world,targets,{allowUnlocked});await macrotask();check();
+    const {profile}=await loadHeldBow(this.rows.bow.file);check();
     const bow=new Bow(world,targets,{row:new ItemCatalogue(items).equipment(this.rows.bow.item),profile,allowUnlocked});
     const kit:MountedLoadout={
       base:sabre,bow,sabre,spear,extras:[bow,spear],

@@ -11345,6 +11345,11 @@ It creates no second weapon family, specimen catalogue or saved owner.
 concrete entered owner. The arsenal lends its exact built kit only within
 its construction scope; an unbuilt, disposing or disposed scope returns
 null. There is no second global kit publication or scope-to-kit book.
+Mounted construction pins its original scope, product/source, game/runtime,
+world, app and equipment identities before construction. Every constructor
+pause and product read rechecks them before the next family or publication;
+a retiring ancestor also refuses. `build` accepts the same optional concrete
+context loan from `installPage`; its four-argument native use is unchanged.
 This transitional capability does not waive the mounted host's sole-user charge.
 
 A transitional native phase selection may also give a finite `features` list,
