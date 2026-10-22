@@ -1,3 +1,4 @@
+import { publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { clientWildlife, type PageWildlife } from '@wildshard/game/population/wildlife';
@@ -101,6 +102,7 @@ async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?:
   const rows = v.parse(v.object({ page: v.unknown() }), await plugin.product.json('world/weather.json')).page;
   const rig = await installForestWeather(plugin, rows), storm = rig?.storm ?? null, painted = rig?.sky ?? null;
   if (rig === null || storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
+  publishEntryOwner(plugin.scope, 'world-weather', 'nalati.weather', rig);
   const weather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
   groups['weather'] = rig.group;
   updates.push(() => undefined); // The weather host owns this frame slot.

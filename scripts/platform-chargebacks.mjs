@@ -12,6 +12,7 @@ const modules = new Map([
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
+  ['src/game/weather/forest.ts', new Map(['clockOwners', 'installWeatherClock'].map(name => [name, 'C9']))],
   ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyWeather', 'C9'], ['installAssemblyArenaScript', 'C9']])],
   ['src/game/systems/npc/figureRows.ts', new Map(['FigureGroupMember', 'FigureGroup', 'memberPose', 'enterFigureGroup'].map(name => [name, 'C9']))],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],

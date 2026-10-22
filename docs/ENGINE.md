@@ -11267,6 +11267,16 @@ all native hooks without a plan. Repeated phases refuse. Hybrid entries keep
 their existing full admitted plan.
 
 
+
+`weather.clock {weather}` runs at entered world-bindings rank -20. It borrows
+the concrete world-weather rig's painted clock, registers that same clock on
+the entered app, applies the saved time pick only when the world's existing
+time parameter is absent, and subscribes to time changes in the retained
+entered service scope. Leaving removes the registration and subscription;
+re-entry replays them against the same clock without resetting it. This does
+not build a sky, create a clock or change its native saved state. The new
+clock wiring remains charged to its sole user.
+
 `held.mounted {arsenal}` runs at entered kit rank -10. It borrows the concrete
 `mounted-arsenal` owner prepared by world and calls that same MountedArsenal's
 installPage; play and boss upgrades borrow the same arsenal and native kit.

@@ -107,6 +107,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       const { enterClientForestPage } = await import('./clientForestPage');
       await enterClientForestPage(ctx, row);
     } } },
+  'weather.clock': { phase: 'world-bindings', rank: -20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'weather.clock') throw new Error('Invalid weather clock feature');
+    const { installWeatherClock } = await import('../weather/forest');
+    installWeatherClock(ctx, row.weather);
+  } },
   'weather.forest': { phase: 'play', rank: 40, lifetime: 'entered', sections: [],
     install: async (ctx, row) => {
       if (row.kind !== 'weather.forest') throw new Error('Invalid forest weather feature');

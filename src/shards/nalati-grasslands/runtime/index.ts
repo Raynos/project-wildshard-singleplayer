@@ -2,14 +2,13 @@ import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOw
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
 
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
 import { arsenal, prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
@@ -53,9 +52,6 @@ export class NalatiPlugin extends ShardPlugin {
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
     // trampling the senses read (the authored physics rows sample it for the renderer-free field's check)
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ grassBase: (x: number, z: number) => grassBaseHeightAt(x, z) }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
-    installEnteredRuntimeService(ctx, (scope) => { ctx.app.registerDayCycle(rt.weather.clock, scope); });
-    if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
-    installEnteredRuntimeService(ctx, (scope) => { scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); })); });
   }
 
   override kit(ctx: ShardContext): void {

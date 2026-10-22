@@ -1,3 +1,4 @@
+import { entryOwner } from '../shardfile/entryOwners';
 /** Client-only weather composition over the page's sky, a phase continuation or a storm's reactions, its drawn parts,
  * native rain presentation and herd shelter. Shards provide rows and resource ids. */
 import { forestWeatherObservations, type ForestWeatherObservations } from '../looks/forestWeather';
@@ -60,6 +61,23 @@ function forestWeatherOwner(ctx: ShardContext): () => void {
       throw new Error('Weather construction owner left or changed');
   };
 }
+
+const clockOwners = new WeakSet<Scope>();
+/** Register an existing painted weather clock and the original retained time
+ * services. No sky, clock, continuation or saved authority is constructed. */
+export function installWeatherClock(ctx: ShardContext, id: string): void {
+  const scope = ctx.scope, world = ctx.game.runtime?.world;
+  if (scope.disposed || scope.disposing || world === undefined || world === null || world.game.levelScope.disposed || world.game.levelScope.disposing) throw new Error('Weather clock requires its live world');
+  const rig = entryOwner(scope, 'world-weather', id), sky = rig.sky;
+  if (sky === null) throw new Error('Weather clock requires its original painted sky');
+  if (clockOwners.has(scope)) throw new Error('Weather clock is already installed');
+  clockOwners.add(scope); scope.onDispose(() => { clockOwners.delete(scope); });
+  const clock = sky.clock;
+  installEnteredRuntimeService(ctx, owner => { ctx.app.registerDayCycle(clock, owner); });
+  if (!world.params.has('time')) clock.setTime(setting('time'));
+  installEnteredRuntimeService(ctx, owner => { owner.onDispose(onSettingChange('time', value => { clock.setTime(value); })); });
+}
+
 type Parts = NonNullable<ForestWeatherRows['parts']>;
 type Storm = NonNullable<ForestWeatherRows['storm']>;
 
