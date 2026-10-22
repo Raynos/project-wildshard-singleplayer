@@ -2,7 +2,7 @@
 // SHARD-PLATFORM M3: the programs and the shared uniforms are rows in runtime/looks/look.ts on the SDK shader family
 // (@wildshard/sdk/looks/shaderFamily); this module makes the family (the splices the data cannot hold), the live shared
 // uniforms and each material.
-import { DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Texture, type IUniform } from 'three';
+import { DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, UnsignedByteType, type Texture } from 'three';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
@@ -10,8 +10,6 @@ import type { LookRows } from '../boot/lookTypes.generated';
 import { lightVolUniforms } from './light';
 import { fogBandWindow } from '../runtime/looks/fogBands';
 import type { SharedUniformRows } from './uniformTypes';
-
-export type Uniforms = Record<string, IUniform>;
 
 /** Restore an exact baked R8 weave, retaining the original sampler and mip generation. */
 export function restoreWeave(data: Uint8Array): DataTexture {

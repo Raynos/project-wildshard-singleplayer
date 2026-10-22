@@ -55,4 +55,3 @@ export function jiehuaMaterial(shared: Uniforms, opt: { shrink?: readonly [numbe
   if (opt.shrink !== undefined) setLentParam(id, 'shrink', opt.shrink);
   return lentLook(id);
 }
-export function windowMaterial(shared: Uniforms): Material { syncLooks(shared); return lentLook('nine-windows'); }

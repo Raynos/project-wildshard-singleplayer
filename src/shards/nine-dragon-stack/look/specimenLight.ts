@@ -16,9 +16,6 @@ import type { Shared } from './style';
  *  key's height (its level part is the side the turntable opens on) */
 export const SPECIMEN_LIGHT = { ambient: 1.45, lift: 0.6, keyUp: 0.8 } as const;
 
-/** what the turntable says (ModelExplorer.ts isolate / unisolate): on or off, and the direction it opens toward */
-export interface Turntable { on: boolean; key?: { x: number; y: number; z: number } }
-
 const WHITE = new Color(1, 1, 1);
 interface SavedLight { ambient: number; shade: Color; light: Vector3; dry: number }
 const savedLights = new WeakMap<Shared, SavedLight>();
