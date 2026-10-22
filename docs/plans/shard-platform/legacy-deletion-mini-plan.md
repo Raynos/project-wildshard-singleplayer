@@ -34,7 +34,7 @@ Deleting the folders today breaks the **pipeline, not the game**. The legacy fol
 
 ## Rows
 
-Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G604).
+Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G604). **Jake's picks (G606):** LD1–LD3 now, behind the zero work; LD4 once per shard as it reaches zero, before his QA; the LEGACY button stays until deletion day; LD6 deletes in pairs: Sky + Signal, Pine + Driftwood, Nalati + Nine.
 
 | Row | What | Size | Done when |
 |---|---|---|---|
