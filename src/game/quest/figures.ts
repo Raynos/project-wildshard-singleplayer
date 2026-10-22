@@ -84,36 +84,51 @@ export interface QuestFigureInstall extends Pick<QuestFigurePorts, 'resources' |
  *  piece (its card the Explorer specimen, its catalogue rows' colliders) with its counter `ahead` metres in front of its
  *  feet on the floor, each figure posed by its row's system before that row's systems. */
 export function installQuestFigures(ctx: ShardContext, input: unknown, ports: QuestFigureInstall): readonly KitFigure[] {
-  const world = ctx.game.runtime?.world;
-  if (world === undefined || world === null) throw new Error('Quest figures require their entered world');
-  const { placement, models, ...lent } = ports;
-  const base: QuestFigurePorts = { ...lent, sky: world.sky, scope: ctx.scope, channels: ctx.product.shardfile.clientChannels, place: at => placement.place(at) };
-  const rows = v.parse(QuestFiguresSchema, input).figures, live = rows.map(row => {
-    if (row.piece === undefined || row.card === undefined) return questFigure(row, base);
-    const { piece, card, name = row.id, counter } = row, feet = placement.place(row.feet), at = { x: 0, y: 0, z: 0, yaw: 0 };
-    const native = models.model(card), context = { ...sharedModelContext(world.sky), specimenScope: ctx.scope };
-    let made: KitFigure | null = null;
-    const model = defineModel<Record<string, unknown>>({ ...native, specimen: native.build, colliders: () => FigureRows.collidersFor(ports.catalogue.rows(row.kit)),
-      build: () => { made = questFigure(row, { ...base, place: () => at }); return made.group; } });
-    return ctx.scope.run(() => {
-      const figure = placeModel(model, [feet], { ctx: context, draw: 'single', registry: world.registry, piece: { id: piece, name } });
-      ownQuestTree(figure.object, ctx.scope);
-      const built: KitFigure | null = made; if (built === null) throw new Error(`Missing placed figure ${row.id}`);
-      if (counter !== undefined) {
-        const x = feet.x + Math.sin(feet.yaw) * counter.ahead, z = feet.z + Math.cos(feet.yaw) * counter.ahead;
-        const placed = placeModel(models.model(counter.model), [{ x, y: placement.floorAt(x, z), z, yaw: feet.yaw }],
-          { ctx: context, draw: 'single', registry: world.registry, piece: { id: counter.piece, name: counter.name, solidFloor: counter.solidFloor } });
-        ownQuestTree(placed.object, ctx.scope); built.companions.push(placed.object);
-      }
-      return built;
-    });
-  });
-  ctx.scope.onDispose(() => { for (const figure of live) figure.dispose(); });
-  rows.forEach((row, i) => {
-    const figure = live[i]; if (figure === undefined) return;
-    ctx.system({ id: row.system.id, phase: 'update', before: [...row.system.before], run: (dt, time) => { figure.update(dt, time, world.player.position); } });
-  });
-  return live;
+  const rows = v.parse(QuestFiguresSchema, input).figures, world = ctx.game.runtime?.world;
+  if (world === undefined || world === null || ctx.scope.disposed || ctx.scope.disposing) throw new Error('Quest figures require their entered world');
+  // Check all placed-model descriptors before the first figure is constructed.
+  const models = new Map(rows.flatMap(row => {
+    const placed = row.card !== undefined || row.piece !== undefined || row.name !== undefined || row.counter !== undefined;
+    if (!placed) return [];
+    if (row.card === undefined || row.piece === undefined || row.name === undefined || row.counter === undefined || row.fire !== undefined)
+      throw new Error('Placed quest figure requires its card, piece, name and counter');
+    return [[row.id, { card: ports.models.model(row.card), counter: ports.models.model(row.counter.model) }] as const];
+  }));
+  const common: QuestFigurePorts = { ...ports, place: at => ports.placement.place(at), sky: world.sky, scope: ctx.scope, channels: ctx.product.shardfile.clientChannels };
+  const figures: { readonly row: QuestFigureRows; readonly figure: KitFigure }[] = [];
+  // Keep the original cleanup order (speaker then trader). FigureRows owns
+  // publications; borrowed looks stay borrowed.
+  const dispose = (): void => { for (const { figure } of figures) figure.dispose(); };
+  try { ctx.scope.run(() => {
+    for (const row of rows) {
+      const cards = models.get(row.id);
+      if (cards === undefined) { figures.push({ row, figure: questFigure(row, common) }); continue; }
+      const counterRow = row.counter;
+      if (counterRow === undefined || row.piece === undefined || row.name === undefined) throw new Error('Missing admitted figure placement');
+      const byGroup = new WeakMap<THREE.Object3D, KitFigure>();
+      const model = defineModel({ ...cards.card, specimen: cards.card.build,
+        build: () => {
+          // placeModel applies feet once. The original trader builder is at its
+          // origin and uses its own publication namespace, unlike the speaker.
+          const figure = questFigure(row, { ...common, resources: new SceneHandles(world.sky), place: () => ({ x: 0, y: 0, z: 0, yaw: 0 }) });
+          byGroup.set(figure.group, figure); return figure.group;
+        }, colliders: () => FigureRows.collidersFor(ports.catalogue.rows(row.kit)) });
+      const feet = ports.placement.place(row.feet), context = { ...sharedModelContext(world.sky), specimenScope: ctx.scope };
+      const placed = placeModel(model, [feet], { ctx: context, draw: 'single', registry: world.registry, piece: { id: row.piece, name: row.name } });
+      const figure = byGroup.get(placed.object);
+      if (figure === undefined) throw new Error('Missing entered quest figure');
+      figures.push({ row, figure });
+      const x = feet.x + Math.sin(feet.yaw) * counterRow.ahead, z = feet.z + Math.cos(feet.yaw) * counterRow.ahead;
+      const counter = placeModel(cards.counter, [{ x, y: ports.placement.floorAt(x, z), z, yaw: feet.yaw }],
+        { ctx: context, draw: 'single', registry: world.registry, piece: { id: counterRow.piece, name: counterRow.name, solidFloor: counterRow.solidFloor } });
+      ownQuestTree(placed.object, ctx.scope); ownQuestTree(counter.object, ctx.scope);
+      figure.companions.push(counter.object);
+    }
+  }); } catch (error) { dispose(); throw error; }
+  ctx.scope.onDispose(dispose);
+  for (const { row, figure } of figures) ctx.system({ id: row.system.id, phase: 'update', before: [...row.system.before],
+    run: (dt, time) => { figure.update(dt, time, world.player.position); } });
+  return figures.map(({ figure }) => figure);
 }
 
 /** What cold Explorer kit cards borrow once their shard's roster has loaded its fixed draws: those draws, its figure
