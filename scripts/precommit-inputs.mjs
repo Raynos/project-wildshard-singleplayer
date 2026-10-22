@@ -2,6 +2,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 
 /** Check only the named commit files. No mirror, generator, build or tests.
@@ -48,7 +49,7 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..'), execu
   if (git(['diff', '--name-only', '--', ...files]).trim() !== '') throw new Error('Commit inputs changed during checks; retry');
 }
 
-if (process.argv[1] !== undefined && resolve(process.argv[1]) === import.meta.filename) {
+if (process.argv[1] !== undefined && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
   try { precommitInputs(); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

@@ -18,7 +18,17 @@ for path in "$@"; do
   [ ! -d "$path" ] || { echo "commit.sh: name files, not directories: $path" >&2; exit 2; }
 done
 common="$(git rev-parse --path-format=absolute --git-common-dir)"
-exec lockf -k -t 120 "$common/commit.lock" bash -c '
+exec python3 -c '
+import fcntl, signal, subprocess, sys
+def timeout(*_):
+    raise SystemExit("commit.sh: commit lock timed out")
+signal.signal(signal.SIGALRM, timeout)
+signal.alarm(120)
+with open(sys.argv[1], "a") as lease:
+    fcntl.flock(lease, fcntl.LOCK_EX)
+    signal.alarm(0)
+    raise SystemExit(subprocess.run(sys.argv[2:]).returncode)
+' "$common/commit.lock" bash -c '
   set -euo pipefail
   message=$1; patch=$2; common=$3; shift 3
   export WS_COMMIT_WRAPPER=1

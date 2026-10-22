@@ -18,6 +18,10 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
         file = root / path
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(text)
+    # Model Linux's absent BSD lockf even when this fixture runs on macOS.
+    put('bin/lockf', '#!/bin/sh\nexit 127\n')
+    (root / 'bin/lockf').chmod(0o755)
+    env['PATH'] = str(root / 'bin') + os.pathsep + env['PATH']
     git('init', '-q', '-b', 'main')
     git('config', 'user.email', 'fixture@example.invalid')
     git('config', 'user.name', 'fixture')
