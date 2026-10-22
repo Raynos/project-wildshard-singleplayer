@@ -12146,3 +12146,14 @@ retained state validate; a changed RNG continuation refuses acceptance. Existing
 `ProjectedState` uses this operation without changing its retain map, event order
 or elapsed ten-Hz gate. Existing ABI1 callers keep their original transport.
 The dual artifact alone never selects a production runtime or migrates saves.
+
+
+ReturnProgram rows may select an optional strict v2 projection while retaining
+the original script/bytes as the dual-port witness. Selection is data-only:
+canonical field/signal/channel maps must match, and malformed v2 never falls
+back to ABI1. The original scope/module cache keys the selected ABI/hash and
+detaches the descriptor before lookup. Selected construction instantiates only
+the v2 module; fire/wind or other legacy rows keep their defining ABI1 path.
+Scope retirement refuses capture and prepared acceptance before state/RNG
+publication. The producer declares the selected ABI2 module and its memory cost;
+this transport changes no native contact, body, target or save authority.

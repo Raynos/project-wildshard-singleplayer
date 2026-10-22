@@ -1,6 +1,7 @@
 // Deterministic static encounter data and geometry; all live fight/pose owners are retained.
 import { fileURLToPath } from 'node:url';
 import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
+import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import * as fight from './stormTitanFight.ts';
 import { titanGeometry, titanBodyRows, titanPoseRows, titanArenaRows, titanFightPoseRows } from './stormTitanGeometry.ts';
@@ -18,9 +19,8 @@ const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'
   reads:['field','random'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals) };
 const authored = readDecisionSources(fileURLToPath(new URL('../', import.meta.url)));
 const row={...source,id:'nalati.titan-combined',source:'behaviour/titanCombined.as'};
-const built=await compileDecisionScripts([row],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,singleSignal:true});
-const script=built.rows.at(0),blob=built.blobs.at(0);if(script===undefined||blob===undefined)throw new Error('Missing Titan decision program');
-const program={script,bytes:Buffer.from(blob.bytes).toString('base64')};
+const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837});
+const program={...dual.legacy,v2:dual.candidate};
 const pastureText=['pastureWind','pasture','titanWind','titanFire'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
 const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
 const pf=names('Field'),pc=names('Channel'),ps=names('Signal');

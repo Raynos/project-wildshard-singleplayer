@@ -8,17 +8,35 @@ import type { Rng,RngState } from '@wildshard/engine/core/rng';
 import { sha256 } from '../plugin/moduleHash';
 import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
 import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 export interface PreparedProjectionV2 { readonly values: Readonly<Record<string,number>>; readonly accept: () => void }
 function sameRng(a: RngState,b: RngState): boolean {
   return a.version === b.version && a.state === b.state && a.initial === b.initial && a.scrambledFork === b.scrambledFork;
+}
+/** Captured observations are native f64 data, including signed zero, rather
+ * than authored JSON. Copy own numeric values without invoking accessors. */
+function snapshotFrame(input: unknown): Readonly<Record<string,number>> {
+  if (typeof input !== 'object' || input === null) throw new Error('Invalid return observation frame');
+  const prototype: unknown = Object.getPrototypeOf(input);
+  if (prototype !== Object.prototype && prototype !== null) throw new Error('Invalid return observation frame');
+  const values: [string,number][] = [];
+  for (const key of Reflect.ownKeys(input)) {
+    const descriptor = Object.getOwnPropertyDescriptor(input,key);
+    if (typeof key !== 'string' || descriptor === undefined || !Object.hasOwn(descriptor,'value')) throw new Error('Invalid return observation frame');
+    const value: unknown = descriptor.value;
+    if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Invalid return observation frame');
+    values.push([key,value]);
+  }
+  return Object.fromEntries(values);
 }
 export class ReturnProjectionV2 {
   private readonly row;
   private readonly layout;
   private readonly module: ScriptModuleV2;
   private busy = false;
-  constructor(input: unknown) {
+  constructor(input: unknown,private readonly owner?: Scope) {
+    this.live();
     this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages);
     const bytes = Uint8Array.from(atob(this.row.bytes),byte => byte.codePointAt(0) ?? 0);
     if (sha256(bytes) !== this.row.artifact.hash) throw new Error('Return projection hash mismatch');
@@ -26,18 +44,23 @@ export class ReturnProjectionV2 {
     if (admitted.initialPages !== this.row.artifact.pages || admitted.io !== this.layout.io) throw new Error('Return projection layout mismatch');
     this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes });
     if (this.module.io !== this.layout.io) throw new Error('Return projection IO mismatch');
+    this.live();
   }
+  private live(): void { if (this.owner?.disposed === true || this.owner?.disposing === true) throw new Error('Return owner disposed'); }
   /** Capture once. No RNG is changed until the caller has validated its retained
    * state as well as every channel. Traps and rejected candidates consume none. */
   prepare(signal: string,observations: Readonly<Record<string,number>>,random?: Rng,candidates: readonly Readonly<Record<string,number>>[] = []): PreparedProjectionV2 {
+    this.live();
     if (this.busy) throw new Error('Reentrant return projection');
     const signalId = this.row.signals.indexOf(signal)+1;
-    if (signalId === 0 || candidates.length > 8 || [observations,...candidates].some(frame => Object.values(frame).some(value => !Number.isFinite(value)))) throw new Error('Invalid return request');
+    if (signalId === 0 || candidates.length > 8) throw new Error('Invalid return request');
+    const frames = [observations,...candidates].map(snapshotFrame);this.live();
     const before = random?.snapshot(), layout = this.layout;
+    this.live();
     const rng = prepareV2Rng(layout,before === undefined ? [] : [{ binding: 1,stream: 1,algorithm: 1,
       state: [before.state,before.initial,Number(before.scrambledFork),0,0,0] }]);
-    const fields = Array.from({ length: 9 },(_,actor) => this.row.fields.map((name,index) => {
-      const frame = actor === 0 ? observations : candidates[actor-1],value = frame?.[name];
+    const fields = Array.from({ length: candidates.length+1 },(_,actor) => this.row.fields.map((name,index) => {
+      const value = frames[actor]?.[name];
       return { name: `${String(actor)}/${name}`,id: actor*this.row.fields.length+index+1,...(value === undefined ? {} : { value }) };
     })).flat();
     const input = prepareV2Observations(layout,0,{ bindings: [{ identity: 'projection',handle: 1,self: 1,player: 0,observed: new Set([1]),enabled: true,due: true,
@@ -64,11 +87,14 @@ export class ReturnProjectionV2 {
         const next = rng.readCandidate(view,actual[21] ?? 0,new Set([1]))[0];
         return { values,next };
       }).value;
+      this.live();
       let accepted = false;
       return { values: Object.freeze(answer.values),accept: () => {
+        this.live();
         if (accepted) throw new Error('Return projection already accepted');
         if (before !== undefined && random !== undefined) {
-          if (!sameRng(before,random.snapshot()) || answer.next === undefined) throw new Error('Changed projection RNG owner');
+          const current = random.snapshot();this.live();
+          if (!sameRng(before,current) || answer.next === undefined) throw new Error('Changed projection RNG owner');
           random.restore({ ...before,state: answer.next.state[0] });
         }
         accepted = true;

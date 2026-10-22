@@ -15,9 +15,9 @@ function originalSpear(s: Record<string, number>, random: Rng): Record<string, n
   return { mode, t, cd, x, z, strike, stuck };
 }
 
-test('v1 Titan spear retains the frozen 10 Hz trace, lock point, strike window and borrowed RNG', () => {
+test('selected Titan spear retains the frozen 10 Hz trace, lock point, strike window and borrowed RNG', () => {
   const author = ReturnProgram.page(program.attack), random = new Rng(496), oracle = new Rng(496);
-  expect(program.attack.script.abi).toBe('1.0'); expect(program.attack.script.tick).toBeNull();
+  expect(program.attack.script.abi).toBe('1.0'); expect(program.attack.script.tick).toBeNull(); expect(program.attack.v2.artifact.lane).toBe('project');
   for (const phase of [0, 2]) {
     const state: Record<string, number> = { dt: .1, phase, mode: 0, t: 0, cd: 2.5, x: 0, z: 0, chain: 0, aim: 1.5, lock: .5, stuck: 3, px: 0, pz: 0 };
     let strikes = 0;

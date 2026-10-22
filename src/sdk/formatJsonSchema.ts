@@ -1,3 +1,4 @@
+import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
 import { ScalarChannelSchema,ScalarLatticeSchema,ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
@@ -18,7 +19,7 @@ import { AchievementCounterDataSchema } from '@wildshard/format/achievementCount
 import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
 import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
 import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
-import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figures';
+import { FigureCatalogueSchema } from '@wildshard/format/figures';
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { WeatherProgramSchema } from '@wildshard/format/weatherProgram';
 import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
@@ -198,7 +199,6 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'panelTemplate.PanelDefinition': PanelDefinitionSchema,
   'heldFinishes.HeldFinishes': HeldFinishesSchema,
   'figures.FigureCatalogue': FigureCatalogueSchema,
-  'figures.FigureGroup': FigureGroupSchema,
   'questStory.QuestStory': QuestStorySchema,
   'weatherProgram.WeatherProgram': WeatherProgramSchema,
   'populationRoster.NativePopulationRows': NativePopulationRowsSchema,
@@ -362,6 +362,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'scalarChannel.ScalarLattice': ScalarLatticeSchema,
   'practiceCourseRows.Controller': PracticeControllerSchema,
   'scalarChannel.ScalarTriplet': ScalarTripletSchema,
+  'returnProjectionV2.ReturnProjectionV2': ReturnProjectionV2Schema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

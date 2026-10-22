@@ -39,7 +39,8 @@ beforeAll(async()=>{
 },60000);
 
 test('Titan dual port retains exact public ABI1 bytes and admits a project-only candidate',()=>{
-  expect(built.legacy).toStrictEqual(programs.attack);
+  expect(built.legacy).toStrictEqual({script:programs.attack.script,bytes:programs.attack.bytes});
+  expect(built.candidate).toStrictEqual(programs.attack.v2);
   expect(parseReturnProjectionV2(built.candidate).artifact.lane).toBe('project');
   expect(()=>new ReturnProjectionV2({...built.candidate,artifact:{...built.candidate.artifact,hash:'0'.repeat(64)}})).toThrow('hash mismatch');
   expect(()=>parseReturnProjectionV2({...built.candidate,fields:[...built.candidate.fields].reverse()})).toThrow();
@@ -58,7 +59,7 @@ test('the full hostile output bank refuses atomically and rewinds for the next c
 });
 
 test('every Titan signal preserves f64 outputs, candidate order and borrowed RNG',()=>{
-  const old=ReturnProgram.page(programs.attack),next=new ReturnProjectionV2(built.candidate),a=new Rng(735),b=new Rng(735);
+  const old=ReturnProgram.page(built.legacy),next=ReturnProgram.page(programs.attack),a=new Rng(735),b=new Rng(735);
   const base=Object.fromEntries(built.candidate.fields.map(name=>[name,0]));
   Object.assign(base,{dt:.1,radius:30,capacity:12,every:.1,fullHp:2600,fullDrawMul:2,share:1,bodyX:20,bodyZ:10,
     spearAim:.8,spearLock:.2,spearRadius:3,respawnDistance:16,rewardDistance:4,count:8,fullDraw:80,victoryT:-1,
@@ -72,8 +73,8 @@ test('every Titan signal preserves f64 outputs, candidate order and borrowed RNG
 });
 
 test('the same ProjectedState keeps lifecycle, retain maps and irregular ten-Hz slots',()=>{
-  const old=new ProjectedState(TITAN_SCRIPT.fight,ReturnProgram.page(programs.rules));
-  const next=new ProjectedState(TITAN_SCRIPT.fight,new ReturnProjectionV2(built.candidate));
+  const old=new ProjectedState(TITAN_SCRIPT.fight,ReturnProgram.page(built.legacy));
+  const next=new ProjectedState(TITAN_SCRIPT.fight,ReturnProgram.page(programs.rules));
   const frame={mode:3,broke:0,px:0,pz:0,cx:0,cz:0,radius:10,mounted:1,fighting:1,engaged:1,storm:1,armed:0,victory:0};
   for(const phase of [0,1,2]){
     expect(next.restart({phase,share:1})).toStrictEqual(old.restart({phase,share:1}));

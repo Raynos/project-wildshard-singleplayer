@@ -9,23 +9,42 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import * as v from 'valibot';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { sha256 } from '../plugin/moduleHash';
+import { isJsonData } from '@wildshard/format/json';
+import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
+import { ReturnProjectionV2 } from './returnProjectionV2';
 
 const scoped = new WeakMap<Scope, Map<string, { declaration: string; program: ReturnProgram }>>();
 
-/** Event-only, stateless v1 projections. The caller retains its queue, phase and
+/** Detach the closed descriptor before consulting a scope's admitted modules.
+ * A declared v2 projection never falls back to legacy bytes on refusal. */
+function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSchema>,'script'> & { script: DecisionScriptRow } {
+  if (!isJsonData(input)) throw new Error('Return program requires JSON data');
+  const row = v.parse(ReturnProgramSchema,input),script = parseDecisionScripts([row.script])[0];
+  if (script === undefined) throw new Error('Missing return script');
+  if (row.v2 !== undefined) {
+    const v2 = parseReturnProjectionV2(row.v2);
+    if (Object.keys(script.params).length > 0 || script.reads.some(read => read !== 'field' && read !== 'random')
+      || (['fields','signals','channels'] as const).some(kind => JSON.stringify(Object.values(script[kind]).sort()) !== JSON.stringify(v2[kind]))) throw new Error('Mismatched return projection declaration');
+  }
+  return {...row,script};
+}
+
+/** Event-only, stateless projections; only explicit v2 rows select ws_project.
+ * The caller retains its queue, phase and
  * continuation; the guest can read numeric observations and publish channels.
  * There is no scheduler, actor mutation, timer or private persistent state. */
 export class ReturnProgram {
-  private readonly module: DecisionModule;
+  private readonly module: DecisionModule | null = null;
   private readonly script: DecisionScriptRow;
   private readonly layout: ReturnType<typeof scriptV1Layout>;
   private observations: Readonly<Record<string, number>> = {};
   private candidates: readonly Readonly<Record<string, number>>[] = [];
   private random: Rng | undefined;
   private active = false;
-  private constructor(input: unknown, private readonly floor: (x: number, z: number) => number) {
-    const row = v.parse(ReturnProgramSchema, input), script = parseDecisionScripts([row.script])[0];
-    if (script?.side !== 'sim' || script.state.length > 0 || script.tick !== null
+  readonly prepare?: NonNullable<NumericProjection['prepare']>;
+  private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope) {
+    const row = readProgram(input),script = row.script;
+    if (script.side !== 'sim' || script.state.length > 0 || script.tick !== null
       || script.timers.length > 0 || script.on.length !== 1 || script.on[0] !== 'signal'
       || script.commands.some(command => command !== 'channel')
       || script.reads.some(read => !['field', 'random', 'groundHeight', 'radial'].includes(read))) throw new Error('Invalid return projection');
@@ -33,8 +52,14 @@ export class ReturnProgram {
     const fields = Object.values(script.fields).sort();
     const bytes = Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
     if (`blobs/wasm/${sha256(bytes)}.wasm` !== script.module) throw new Error('Return module hash mismatch');
+    if (owner?.disposed === true || owner?.disposing === true) throw new Error('Return owner disposed');
     admitScriptContract(bytes, { abi: 1, pages: script.pages });
-    this.module = new DecisionModule(bytes, [0, 0], {
+    if (row.v2 !== undefined) {
+      const projection = new ReturnProjectionV2(row.v2,owner);
+      this.prepare = projection.prepare.bind(projection);
+      return;
+    }
+    const module: DecisionModule = new DecisionModule(bytes, [0, 0], {
       read: (op, a, b) => {
         if (!this.active) throw new Error('Return read outside a request');
         if (op === 12 && script.reads.includes('random') && a === 0 && b === 0 && this.random !== undefined) return this.random.next();
@@ -45,33 +70,34 @@ export class ReturnProgram {
       },
       list: (op, a, b, out, cap) => {
         if (!this.active || !Number.isFinite(a) || !Number.isFinite(b) || !Number.isSafeInteger(out) || out < 0 || out % 8 !== 0
-          || !Number.isSafeInteger(cap) || cap < 0 || cap > 96 || out + cap * 8 > this.module.memory.buffer.byteLength) throw new Error('Invalid return query');
-        const values = op === 3 && script.reads.includes('groundHeight') && Math.abs(a) <= 250 && Math.abs(b) <= 250 ? [this.floor(a, b)]
+          || !Number.isSafeInteger(cap) || cap < 0 || cap > 96 || out + cap * 8 > module.memory.buffer.byteLength) throw new Error('Invalid return query');
+        const values = op === 3 && script.reads.includes('groundHeight') && Math.abs(a) <= 250 && Math.abs(b) <= 250 ? [floor(a, b)]
           : op === 6 && script.reads.includes('radial') && b >= 0 && b <= 10000 ? [Math.sin(a) * b, Math.cos(a) * b] : null;
         if (values === null || values.some(value => !Number.isFinite(value))) throw new Error('Unsupported return query');
         const count = Math.min(cap, values.length);
-        for (let i = 0; i < count; i++) this.module.view.setFloat64(out + i * 8, values[i] ?? 0, true);
+        for (let i = 0; i < count; i++) module.view.setFloat64(out + i * 8, values[i] ?? 0, true);
         return count;
       },
     }, true); // stateless: rewound around every request, so it shares the page's memory for its page count
-    if (this.module.io + this.layout.bytes > this.module.memory.buffer.byteLength) throw new Error('Return IO outside module');
+    this.module = module;
+    if (module.io + this.layout.bytes > module.memory.buffer.byteLength) throw new Error('Return IO outside module');
   }
   private static owned(owner: Scope, input: unknown, floor: (x: number, z: number) => number): ReturnProgram {
-    if (owner.disposed) throw new Error('Return owner disposed');
-    const row = v.parse(ReturnProgramSchema, input), script = parseDecisionScripts([row.script])[0];
-    if (script === undefined) throw new Error('Missing return script');
+    if (owner.disposed || owner.disposing) throw new Error('Return owner disposed');
+    const row = readProgram(input),script = row.script;
     // Alias identity follows sorted names; wire object property order is immaterial.
     const named = Object.fromEntries([...SCRIPT_V1_REFERENCE_KINDS, 'params' as const].map(key =>
       [key, Object.fromEntries(Object.entries(script[key] ?? {}).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
-    const declaration = JSON.stringify({ script: decisionScriptContract({ ...script, ...named }), bytes: row.bytes }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
-    const previous = modules.get(script.module);
+    const declaration = JSON.stringify({ script: decisionScriptContract({ ...script, ...named }), bytes: row.bytes,...(row.v2 === undefined ? {} : {v2:row.v2}) }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
+    const key = row.v2 === undefined ? `1:${script.module}` : `2:${row.v2.artifact.hash}`;
+    const previous = modules.get(key);
     if (previous !== undefined) {
       if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');
       return previous.program;
     }
-    const program = owner.run(() => new ReturnProgram(input, floor));
-    modules.set(script.module, { declaration, program }); scoped.set(owner, modules);
-    owner.onDispose(() => { modules.delete(script.module); });
+    const program = owner.run(() => new ReturnProgram(row, floor,owner));
+    modules.set(key, { declaration, program }); scoped.set(owner, modules);
+    owner.onDispose(() => { modules.delete(key); });
     return program;
   }
   /** Built-in terrain owners share one admitted instance per module and scope. */
@@ -81,11 +107,14 @@ export class ReturnProgram {
   /** A request is atomic with its borrowed stream. Refusals publish no channel
    * and restore the stream, including traps after one or more terrain retries. */
   project(signal: string, observations: Readonly<Record<string, number>>, random?: Rng, candidates: readonly Readonly<Record<string, number>>[] = []): Readonly<Record<string, number>> {
+    if (this.prepare !== undefined) { const result = this.prepare(signal,observations,random,candidates);result.accept();return result.values; }
     if (this.active) throw new Error('Reentrant return request');
     const signalId = Object.values(this.script.signals).sort().indexOf(signal) + 1;
     if (signalId === 0 || Object.values(observations).some(value => !Number.isFinite(value))
       || candidates.length > 8 || candidates.some(candidate => Object.values(candidate).some(value => !Number.isFinite(value)))) throw new Error('Invalid return request');
-    const before = random?.snapshot(), { module, layout } = this, base = module.io;
+    const { module, layout } = this;
+    if (module === null) throw new Error('Missing return transport');
+    const before = random?.snapshot(),base = module.io;
     module.rewind(); module.begin(400000); this.observations = observations; this.candidates = candidates; this.random = random; this.active = true;
     try {
       const set = (slot: number, value: number): void => { module.view.setFloat64(base + slot * 8, value, true); };

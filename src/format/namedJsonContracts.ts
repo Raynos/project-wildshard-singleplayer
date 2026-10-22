@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { ReturnProjectionV2Schema } from './returnProjectionV2';
 
 const finite = v.pipe(v.number(), v.finite()), natural = v.pipe(finite, v.minValue(0));
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
@@ -51,7 +52,7 @@ export const PageReturnRowsSchema = v.strictObject({ step: v.string(), water: fi
   outOfSight: v.pipe(finite, v.minValue(0)), rules: v.record(v.string(), v.strictObject({
     delay: v.strictObject({ min: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) }), night: v.exactOptional(v.boolean()) })) });
 
-export const ReturnProgramSchema = v.strictObject({ script: v.unknown(), bytes: v.string() });
+export const ReturnProgramSchema = v.strictObject({ script: v.unknown(), bytes: v.string(),v2: v.exactOptional(ReturnProjectionV2Schema) });
 const operations = ['$ref', '$call', '$new', '$fn', '$set', '$if', '$or', '$coalesce', '$eq', '$not', '$sequence'];
 /** Draft-07 wire contract for the trusted assembly language. Constants and
  * operands are bounded JSON values; tag names and row/module shapes are closed.
