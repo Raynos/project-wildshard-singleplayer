@@ -26,6 +26,13 @@ export class ClientAssets {
     // Residency rereads may have no format-2 descriptor. Accounting observes
     // those unknown-path reads on completion and never changes cache refusals.
     if (outputDescriptor(this.source) !== undefined) declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
+    // a trusted content-cache read already checked its SHA-256 (ContentCache.get): no page re-hash (~150 ms of a
+    // phone-tier home region); every other read is checked here, off the page where a worker can
+    const verified = await this.options.cache?.verifiedAsset?.(hash);
+    if (verified !== null && verified !== undefined) {
+      if (verified.length !== cap) throw new Error('Resident tile hash or size mismatch');
+      return verified;
+    }
     let bytes = await this.options.cache?.asset(base, hash), downloaded = false;
     if ((bytes === null || bytes === undefined) && outputDescriptor(this.source) !== undefined) {
       bytes = await this.options.cachedResponse?.(outputBlobUrl(this.source, ref, base), hash, cap);
@@ -35,10 +42,16 @@ export class ClientAssets {
       bytes = await boundedResponse(await this.options.fetch(outputBlobUrl(this.source, ref, base)), cap);
       downloaded = true;
     }
-    if (bytes.length !== cap || await this.options.hash(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
+    if (bytes.length !== cap || await this.hashOf(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
     if (downloaded) await this.options.cache?.putAsset(base, hash, bytes);
     else recordCachedDownload(hash, bytes.length);
     return bytes;
+  }
+  /** SHA-256 of `bytes` off the page (an owned copy through `hashOwned`), else on the page. */
+  private async hashOf(bytes: Uint8Array): Promise<string> {
+    const hashOwned = this.options.hashOwned;
+    if (hashOwned !== undefined) { try { return (await hashOwned(Uint8Array.from(bytes))).hash; } catch { /* the page hashes it */ } }
+    return this.options.hash(bytes);
   }
   /** Bind legacy catalogue identities to the admitted library, never to their old network URLs.
    * Each decoder receives an owned exact-length ArrayBuffer; absent bindings retain the caller's existing reader. */

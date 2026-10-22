@@ -1686,7 +1686,10 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
 const WHOLE_ORDINALS_MAX = 1 << 24;
 const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0));
 /** Ordinals as a plain list, or the baker's run-length form `{ runs: [start, length, …] }` (sdk/bake/props `wholePartitionRuns`). */
-const WholeOrdinals = wholeV.union([wholeV.array(WholeOrdinal), wholeV.pipe(wholeV.strictObject({ runs: wholeV.array(WholeOrdinal) }),
+/** A plain ordinal list, checked in one loop with WholeOrdinal's rules (valibot's per-element pipe over whole tiles' lists
+ *  was ~150 ms of a phone-tier home region) */
+const isOrdinals = (list: unknown): list is number[] => Array.isArray(list) && list.every((ordinal: unknown) => typeof ordinal === 'number' && Number.isInteger(ordinal) && ordinal >= 0);
+const WholeOrdinals = wholeV.union([wholeV.custom<number[]>(isOrdinals, 'whole ordinals are non-negative integers'), wholeV.pipe(wholeV.strictObject({ runs: wholeV.array(WholeOrdinal) }),
   wholeV.check(row => row.runs.length % 2 === 0 && row.runs.every((ordinal, i) => i % 2 === 0 || ordinal > 0)
     && row.runs.reduce((sum, ordinal, i) => sum + (i % 2 === 1 ? ordinal : 0), 0) <= WHOLE_ORDINALS_MAX, 'whole ordinal runs are bounded start/length pairs'),
   wholeV.transform(row => { const list: number[] = []; for (let i = 0; i < row.runs.length; i += 2) { const start = row.runs[i] ?? 0, length = row.runs[i + 1] ?? 0; for (let k = 0; k < length; k++) list.push(start + k); } return list; }))]);

@@ -171,6 +171,21 @@ test('regional facade uses admitted bytes and the verified reader after transpor
   assets.clear(); expect(await product.file('models/token.bin')).toEqual(f.blob); expect(f.descriptors()).toBe(1);
 });
 
+test('a resident read the content cache already verified is not hashed again on the page; a raw cache read is', async () => {
+  const f = fixture(); trust(f.receipt);
+  const admitted = await admitProduct(f.index, f.options), hash = vi.fn(f.options.hash);
+  const base: ProductCache = { product: () => Promise.resolve(null), putProduct: () => Promise.resolve(), putAsset: () => Promise.resolve(true),
+    asset: () => Promise.resolve(Uint8Array.from(f.blob)) };
+  const verified = new ClientAssets(admitted.source, new Map(), { ...f.options, hash, cache: { ...base, verifiedAsset: () => Promise.resolve(Uint8Array.from(f.blob)) } });
+  expect(await verified.read(f.ref)).toEqual(f.blob);
+  expect(hash).not.toHaveBeenCalled();
+  const short = new ClientAssets(admitted.source, new Map(), { ...f.options, hash, cache: { ...base, verifiedAsset: () => Promise.resolve(new Uint8Array([1])) } });
+  await expect(short.read(f.ref)).rejects.toThrow('hash or size');
+  const raw = new ClientAssets(admitted.source, new Map(), { ...f.options, hash, cache: base });
+  expect(await raw.read(f.ref)).toEqual(f.blob);
+  expect(hash).toHaveBeenCalledTimes(1);
+});
+
 test('neighbour transport release shrinks the shared claim before readers copy its bytes', async () => {
   const f = fixture(); trust(f.receipt);
   const disk = new Map<string, Uint8Array>(), pins = new Set<string>();
