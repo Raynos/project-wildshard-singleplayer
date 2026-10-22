@@ -1,16 +1,27 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Phase (G533):** 0 live green; 1 DONE: C8, C3, C7 locked at 0; 2 DW/Pine phase A free cuts; 3 C6 items + chargeback cuts; 4 DW/Pine phase B quest host; 5 DW phase C + Template 2 restyle; 6 Nalati/Nine toward 5 % + phase D; Opus lanes in parallel: M2 grid-readiness + 5x5 (SF88a-f); 7 Jake's mobile runs at M2 6/6; 8 wrap-up. M2 6/10 latched + 15/15 plots (21af61480b; GR3 target met: Template 1/2, Pastel, Ink, Signal, Sky); official ruler refresh at 21af running (sp-x1); G561 no readiness on 4 main shards till zero; LOADING PLAN DONE: Phase 1 + O2-O6 accepted (phone 19.5/20.4 s). M2 memory (native, KTX2 pin, of 1200 MB playing / 1800 loading): Sky 990, Signal 899, DW 845, Nine 1177, Pine 879/1023, Nalati 971/1090: ALL SIX PASS. G551 DW/Pine to zero first; phase B finish: Pine C5 748->75, DW C5 227->30; X5 ACCEPTED at e3a7990c5b (sp-x8: QA+QB, 823 tests, native replay byte-identical, both first frames, old saves): C5 Pine 586 -> 161, DW 227 -> 120; totals Pine ~801, DW 992 (sp-o5 Z9 24d00f9c66); G566 barrels 03f391aa59: DW C5 120 -> 142 (+22 DW-only installer); 5x5 (G526): SF88a-e, g done; SF88f M2 count + soak. G548 PASS (folded into BUILD-SPEED).
+**Job (G585):** keep every lane on the top open row, answer lanes within minutes, delete process rather than add it.
+Order: live reds + G578 → Driftwood/Pine zero (G570–G573, G571 correct-way rules, G572 done bar) → grid crossing
+T1–T6 (G580/G581) → Nine → Nalati. Rows: lanes/ready-queue.md (G571 area table, G580, ZH, BS21).
 
-**Live:** 616ea317b (G578 in-world loading not yet live): QA+QB, X5, G566, Pastel 0. Sim sweep 6f78ae7dc2: standalone + plots 60 fps (worst 53 ms); grid corner worst 191 ms (sp-o2); p95 36-51 ms Pine/Nine drive (G561).
+**Ruler (1fce9fa211):** plan 79.6 % (M3 92.6, M2 6/10). Custom: Pine 592, Driftwood 691, Nalati 4,248, Nine 1,797.
 
-**Tooling:** BUILD-SPEED; tools (push 60 s, CI/smoke 300 s, lane watchdog, 15-min sp-x7 wake) run in herdr pane sp-tools (scripts/sp-tools.sh start|stop; G582, no launchd). G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
+**Live:** 616ea317b. 38ebc2777b exact smoke green, releases next; G578 in-world loading (6f0558e460 + e04f9682da)
+ships the release after. Desktop 120 fps; Sim standalone/plots 60 fps; grid misses are late program compiles (T2).
+Crossing re-measure eca095167a: Pine→Sky held 12.7 s, Sky→Pine 56.5 s; under 5 s not met (T1–T3 after zero rows).
 
-**Rules:** lanes/common.md; G569 watchdog nudges idle Opus + Codex lanes (48894c561c; delivery to Claude panes verified 16:38; restarts reset the 3 min clock; sp-x7 exempt 6f78ae7dc2); G551 rows above Z; G570 rows ZA-ZG; G571 every DW/Pine line to data/AS, one-user hosts OK (areas 23d821c360); G572: TRAMPLE_GLSL is LIVE (forestPage.ts:22 via Pine hybrid.ts:29), not legacy-only; its 30 stay charged; WASM-HOST: sp-x9 (H0b done, H1-H6), sp-o4 (H0, H9). G574: Opus = sp-o4, sp-o5, sp-o2; sp-o1/sp-o3 stop after their task.
+**Lanes (G574: 3 Opus):** sp-o2 Pine G571 (landmarks); sp-o4 WASM-HOST H9 users (King/pool/rope/quest views);
+sp-o5 Driftwood creatures (took sp-o3's productCreatures, candidate 387f77ff7d) then world entry kind. Codex:
+sp-x1 tools + D9 commit.sh (BS21); sp-x6 ZH hull numeric input + DW entry migration; sp-x8 QX + runtime entry
+(kit lands after sp-o5's SHA, then quest.world, figures/reference, kit cards); sp-x9 WASM-HOST H5 native query
+adapter; sp-x7 release owner (checks CI/smoke/live every 15 min). sp-o1, sp-o3 closed.
 
-**Lanes:** self-pull Z rows (ready-queue.md); G565 done.
+**Tooling (G582/G585):** only the push loop + lane watchdog, in herdr pane sp-tools (scripts/sp-tools.sh; no
+launchd); CI/smoke watchers being deleted (sp-x1). main CI: one running + newest pending (G582). Commit path:
+scripts/commit.sh replaces the lock/index scripts (D9, landing via sp-x1). No receipts, proof docs or new scripts.
 
-**Zero:** Pastel Plain 732 -> 0 (sp-o1, 2ebb5ed64c). Template 1 1,001 -> 21, Blender 109 -> 0 (sp-x1, 0cb86c21f8), Ink -285, no shard TS left (sp-o3 dc81033ce0).
+**Rules:** G492 no mid-task re-briefs; G569 watchdog nudges idle lanes (sp-x7/o1/o3 exempt); never herdr
+wildshard-v; no net-0 moves or relabels (G571); legacy copies stay (G573); G561 stays until each shard is done.
 
-**For wildshard-v:** CI backlog: sp-x7 owns releases (checks every 15 min, Jake) and cancels superseded push CI on main (wildshard-v). G573 applied: legacy copies stay (patches deleted, G0 dropped); G561 stays until each shard is done; H0 runs now on Mac/Chromium/Sim (sp-o4), never waits on Jake's phone; memory trim becomes a data row (sp-x1); generators and .d.json.ts stubs are not custom runtime TS. G566 AS body ops landed (61473f3bb1). G550 hero: art/grid/round-35-hero-retake/ (5a410d548f); holo fade: sp-o2 captures A-E (850/1200/1600/2200 m/none) into art/grid/round-36-holo-fade/.
-
+**For wildshard-v:** G573 applied (legacy patches deleted, G0 dropped). TRAMPLE_GLSL is live (forestPage.ts via
+Pine hybrid), so its 30 lines stay charged (G572). G550 holo/haze captures wait behind the zero rows (G577).
