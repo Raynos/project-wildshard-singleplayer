@@ -26,6 +26,7 @@
     "./script/simBatchV2": "./script/simBatchV2.ts",
     "./script/queriesV2": "./script/queriesV2.ts",
     "./script/observationsV2": "./script/observationsV2.ts",
+    "./script/observationColumnsV2": "./script/observationColumnsV2.ts",
     "./script/inputInboxV2": "./script/inputInboxV2.ts",
     "./script/liveObservationsV2": "./script/liveObservationsV2.ts",
     "./render/programRetention": "./render/programRetention.ts",

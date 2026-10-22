@@ -159,6 +159,7 @@
     "./scriptAdmissionV2": "./scriptAdmissionV2.ts",
     "./scriptMemoryV2": "./scriptMemoryV2.ts",
     "./scriptWireV2": "./scriptWireV2.ts",
+    "./scriptObservationColumnsV2": "./scriptObservationColumnsV2.ts",
     "./scriptActionsV2": "./scriptActionsV2.ts",
     "./scriptGridV2": "./scriptGridV2.ts",
     "./scriptRngV2": "./scriptRngV2.ts",
