@@ -91,11 +91,16 @@ describe('Driftwood and Pine looks read the product, not shard.config', () => {
           // G571: Pine's look is the keyed-sky render host's, from its declared rows
           : "render: async (product) => (await import('@wildshard/game/looks/keyedSky')).keyedSkyRender(product, ");
       if (slug === 'driftwood-isle') expect(source).not.toContain('import("./runtime/look/render")');
-      if (slug === 'driftwood-isle' || slug === 'pine-hollow') {
+      if (slug === 'driftwood-isle') {
         expect(source).toContain('const callWithProduct = ');
         expect(source).toContain("import type { ShardProduct } from '../../game/shardfile/shardProduct';");
       }
     }
+    const compiled = authoredManifestSource(root, 'pine-hollow');
+    expect(compiled).toContain('declaredClientPlanEntry({"retainHomeRuntime":true,"stagesOwner":"runtime"})');
+    expect(compiled).not.toContain('const callWithProduct = ');
+    expect(compiled).not.toContain('runtimeModule');
+    expect(compiled).not.toContain('import("./roster")');
     expect(authoredManifestSource(root, 'sunscar-dunes')).not.toContain('import("./roster")');
     // d78cef781: Driftwood's roster is a called factory now, so discovery forwards the product to it too
     expect(authoredManifestSource(root, 'driftwood-isle')).toContain('roster: async (product) => callWithProduct((await import("./roster"))["roster"], product)');
