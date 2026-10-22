@@ -1,3 +1,5 @@
+import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
+import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
@@ -49,11 +51,12 @@ export class DriftwoodPlugin extends ShardPlugin {
       });
     }
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
+    WorldAssembly.lend(ctx.product.section('custom/worldStages'), resident ?? ctx.scope, ctx.scope);
     keepDriftwoodWorld(shell, built);
     shell.hooks.meleeSilent = true;
-    const { pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
-    Object.assign(shell.objects, { pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
-    shell.hooks.spawnFloor = (x, z) => pier.floorHeightAt(x, z);
+    const { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
+    Object.assign(shell.objects, { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
+    shell.hooks.spawnFloor = entryOwner(ctx.scope, 'floor', 'piers.world-0');
     shell.overhead.push(gulls.group, built.cover.group);
     shell.hooks.places = () => this.adventure.value?.places?.points ?? [];
     islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)

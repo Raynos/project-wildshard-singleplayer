@@ -69,15 +69,11 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
   // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
   const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete });
-  const loaned = (id: string) => {
-    const [placed] = entryOwner(scope, 'placed', id); if (placed === undefined) throw new Error(`Missing world stage ${id}`);
-    return { placed, group: entryOwner(scope, 'object', id), floorHeightAt: entryOwner(scope, 'floor', id) };
-  };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
-  await stages.next(firstPier.id); const pier = loaned(firstPier.id);
+  await stages.next(firstPier.id);
   // G170: the declared entry landings and the four asphalt road decks over the water carrying them on; each ramp rises from one
   await entry.run('decks');
-  const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
+  const y = entryOwner(scope, 'floor', firstPier.id)(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
@@ -93,9 +89,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // Keep the model's authored copy facts over the finished world draw.
   const rocks = await stage('Shore boulders', async () => { await entry.run('shore'); return { placed: entry.placed('rocks.shore.copies') }; });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-  await stages.next('hut'); const hut = { ...loaned('hut'), anchors: entryOwner(scope, 'site', 'hut') };
+  await stages.next('hut');
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
-  await stages.next('lookout'); const lookout = { ...loaned('lookout'), anchors: entryOwner(scope, 'site', 'lookout') };
+  await stages.next('lookout');
   // the shipwreck with the cove's cargo, drift logs and reef rocks: declared copies drawn into the wreck site's meshes
   // (piece `wreck`: the site's colliders and floors; the Wreck cove set)
   const wreck = await stage('Wreck', async () => { await entry.run('wreck');
@@ -113,8 +109,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
   });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
-  const jetties: ReturnType<typeof loaned>[] = [];
-  for (const row of assembly.piers.slice(1)) { await stages.next(row.id); jetties.push(loaned(row.id)); }
+  for (const row of assembly.piers.slice(1)) await stages.next(row.id);
   await slice();
   if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
   const foliage = fixed.foliage.tiers[game.tier];
@@ -183,10 +178,10 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const smallRocks = scenes.mesh('rocks.small');
   palmSpecs.push(...fixed.foliage.islandPalms);
   await slice(total, total, 'Baked island');
-  gpuOnlyTrees([pier.group, ...jetties.map(jetty => jetty.group), boat.group, boat.ropes, rocks.placed.object, hut.group, lookout.group,
+  gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  return { pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
+  return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }
 
 const built = new WeakMap<object, DriftwoodWorld>();
