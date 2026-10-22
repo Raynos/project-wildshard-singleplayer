@@ -204,6 +204,7 @@ export function enterFigureGroup(w: { scope: Scope; sky: SkyRig; registry: World
   const floorAt = (x: number, z: number): number => { const y = terrainHeight(x, z), deck = w.registry.floorAt(x, z); return deck !== undefined && deck > y && deck < y + 2 ? deck : y; };
   const bones = atlas.joints.map(name => {
     const bone = new THREE.Bone(); bone.name = name; bone.matrixAutoUpdate = false; bone.matrixWorldAutoUpdate = false;
+    group.add(bone);
     resources.publish(name.toLowerCase(), bone); return bone;
   });
   const figures = new Map<string, FigureGroupMember>(), still: ColliderDesc[] = [], pose = memberPose();
@@ -217,7 +218,14 @@ export function enterFigureGroup(w: { scope: Scope; sky: SkyRig; registry: World
     const root = resources.object(`${row.id}.joint.root`), head = resources.object(`${row.id}.joint.head`), arm = resources.object(`${row.id}.joint.arm`);
     head.position.copy(neck); arm.position.fromArray(spec.frame.shoulder);
     const pivots = { neck: head.position, shoulder: arm.position };
-    const write = (): void => { pose(p, neck, (body, h, a) => { root.matrixWorld.copy(body); head.matrixWorld.copy(h); arm.matrixWorld.copy(a); }, pivots); };
+    const write = (): void => {
+      group.updateWorldMatrix(true, false);
+      pose(p, neck, (body, h, a) => {
+        root.matrixWorld.multiplyMatrices(group.matrixWorld, body);
+        head.matrixWorld.multiplyMatrices(group.matrixWorld, h);
+        arm.matrixWorld.multiplyMatrices(group.matrixWorld, a);
+      }, pivots);
+    };
     const anchor = new THREE.Object3D();
     if (spec.moving) {
       anchor.name = rows.pieces.moving.id; anchor.position.copy(feet); anchor.updateMatrixWorld(true); group.add(anchor);
@@ -252,7 +260,9 @@ export function enterFigureGroup(w: { scope: Scope; sky: SkyRig; registry: World
       const prepared = mesh.skeleton.bones[i]; if (prepared === undefined) throw new Error('Missing prepared pivot');
       bone.position.copy(prepared.position);
     }
-    mesh.skeleton.bones = bones; group.add(mesh); for (const view of views) view.write(); return undefined;
+    mesh.skeleton.bones = bones;
+    for (const view of views) view.write();
+    group.add(mesh); return undefined;
   });
   return { group, figures, ready, update: (dt, t, player) => {
     if (Math.hypot(player.x - sleeper.feet.x, player.z - sleeper.feet.z) <= rows.sleep.distance) for (const view of views) view.update(dt, t, player);
