@@ -17,7 +17,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
-import { arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
+import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { productFixedDraws } from '@wildshard/game/models/fixedDraws';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { ExternalElitePage } from '@wildshard/game/quest/elitePage';
@@ -96,7 +96,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
   const kingRows = v.parse(v.object({ king: v.record(v.string(),v.unknown()), arenaRoom: v.unknown(), programs: v.object({ rules: v.unknown() }) }), await plugin.product.json('combat/titan-fight.json'));
-  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },arenaRoomGeometryIds(kingRows.arenaRoom).map(id => [id, shapes.handle(id).copy()] as const),anchors('kurgans', 'entrance')[0] ?? null);
+  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },shapes,anchors('kurgans', 'entrance')[0] ?? null);
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight

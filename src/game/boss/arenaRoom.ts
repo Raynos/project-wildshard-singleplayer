@@ -20,6 +20,7 @@ import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { ShardContext } from '../plugin/context';
+import type { FixedDraws } from '../models/fixedDraws';
 import { bindRuntimeBoss } from '../plugin/headless';
 import { installBossEncounter, type Boss } from '../Boss';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
@@ -630,13 +631,17 @@ export class ArenaRoomEncounter {
 }
 
 /** Immutable resource ids used by the native arena's admitted private scenes. */
-export function arenaRoomGeometryIds(input: unknown): readonly string[] {
+function arenaRoomGeometryIds(input: unknown): readonly string[] {
   const room = v.parse(ArenaRoomSchema,input);
   return [...new Set([parsePrivateScene(room.view.scene),parsePrivateScene(room.view.static)].flatMap(scene => scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : [])))];
 }
-/** The native arena constructs its own resource map and owns build slicing. */
+/** The native arena constructs its own resource map from the world's loaded fixed draws (every admitted geometry id is
+ *  found before any copy is made) and owns build slicing. */
 export function buildArenaRoomEncounter(ctx: ShardContext, room: unknown, encounter: unknown,
-  geometry: readonly (readonly [string,THREE.BufferGeometry])[], entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null): Promise<ArenaRoomEncounter> {
+  draws: Pick<FixedDraws, 'ready' | 'handle'>, entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null): Promise<ArenaRoomEncounter> {
   const world = ctx.game.runtime?.world; if (world === undefined || world === null) throw new Error('Arena build requires its entered world');
-  return new ArenaRoomEncounter(new BossArenaRoom(room,new Map(geometry)),encounter,entrance).buildSliced({ scene: world.game.scene,registry: ctx.app.registry });
+  if (!draws.ready) throw new Error('Arena build requires its loaded fixed draws');
+  const handles = arenaRoomGeometryIds(room).map(id => [id, draws.handle(id)] as const);
+  const geometry = new Map(handles.map(([id, handle]) => [id, handle.copy()]));
+  return new ArenaRoomEncounter(new BossArenaRoom(room,geometry),encounter,entrance).buildSliced({ scene: world.game.scene,registry: ctx.app.registry });
 }
