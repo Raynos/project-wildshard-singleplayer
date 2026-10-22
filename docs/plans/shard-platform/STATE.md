@@ -1,41 +1,27 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Job (G585):** keep lanes on the top open row, delete process rather than add it. Order (G589): Pine/DW grid-ready
-pass + latch → crossing T1–T6 (G580/G581) → Nine → Nalati → the rest (G575/G576). Rows: lanes/ready-queue.md.
+**Order (G596/G598):** live reds → Nine and Nalati to zero (C1/C5/C6, GLSL→graphs, WASM view lane) → Pine/DW
+readiness (oneFrameLooks) + crossing. G597: Jake picks WASM vs host per item; nothing host-shaped lands before.
+G594 host findings are HOST-AUDIT, later. Rows: nine-nalati-zero / c1-c5-c6-zero mini plans.
 
-**Census:** G572 MET (G589; ruler at 6bf8c2a6e5: DW 0, Pine 0, no product failures); _template, ink-cel 0. Nalati
-4,159 (charged 3,131), Nine 1,519 (405); open-plots 19 stays.
+**Census:** Pine, DW, _template, ink-cel 0 (G572). Nalati ~4,030, Nine ~1,500; open-plots 19 stays.
 
-**Live:** 16a7101baa (14:02Z). CI reds fixed: template order 73c6b75110, ruler 1aa987d01a, port shares 6bf8c2a6e5.
+**Live:** 16a7101baa; df1f564b26 releasing. Builds with 0545c34b86 but without cc7adf7232 (Nine load fix) are held.
 
-**Crossing:** T2/T4/T5/T6 default-off (Developer 'Grid shader warm-up'). T1 warm neighbour default-off; quiet Sim ON
-1,597/1,517 vs OFF 1,494/1,414 MB, blocked 0/0, p95 35/34 ms; warm Sky 3.8 s. Cold Pine ~17 s with budget; three
-stage cuts failed the whole-wait gate (3-5 s noise even quiet). G579 (< 5 s) not met.
+**Lanes:** Nine: sp-o1 D1d, sp-o5 Nine dead-code sweep, sp-x8 dead/data. Nalati: sp-x1 C5, sp-x9 C6, sp-x6 sweep,
+sp-o2 crossing default-on then LG. Readiness: sp-o3 Pine 316.7 ms, sp-o4 DW 250 ms (after the spray red); sp-x1
+re-latches. Tonight: E2 Nine done 9070ae4fcb; orphan generators -562 (e814be891e, d49b03598f).
 
-**G597 STOP-RULE (Jake 10:25):** Jake picks WASM vs host per Nine/Nalati/C1/C5/C6 item; no new host, reshape or
-HOST-BAR listing lands before his pick; data/AS/generator/bake/dead-code rows continue.
+**Rules:** G492; never herdr wildshard-v; no net-0 moves or relabels (G571).
 
-**Lanes:** Nine: sp-o1 D1d, sp-o5 Nine look data rows, sp-x8 dead/data. Nalati: sp-x1 C5 data, sp-x9 C6 dead/data
-(+ strict_tuple gen red fix), sp-x6 Nalati dead-code sweep, sp-o2 crossing default-on then LG. sp-o4 E2 GLSL->graphs.
-sp-o3 Pine/DW oneFrameLooks gate (G598); sp-x1 re-latches looks after. Host rows wait on Jake's G597 picks.
-
-**Rules:** G492; never herdr wildshard-v; no net-0 moves or relabels (G571); G573; G561.
-
-**For wildshard-v:**
-(1) E2 (sp-o4 06673968b0): Nine graph composite renderer +22..31 MB, GPU +22..25 MB, heap flat, 60 fps both, sections
-+57.6 KB, so Nine's section ceiling rises ~60 KB in the port commit (G438). Nalati's 117 lines first. Veto -> revert.
-(2) Grid-ready memory latched for Pine 181.5 MB and DW 300.9 MB (495bc1d918); looks miss 200 ms: Pine 316.7 ms
-(activation: uploads ~130, composition ~80, clip ~41, hooks ~34), DW 250.1 ms. Readiness after Nine/Nalati.
-(3) Host picks for Jake (G597): game/riding/seatedFigure (sp-o3 487c74c60c, self-scored 2-6 Y); fd674f4d4b
-timedEncounters (nightView moved, your flagged pattern); sp-x6's N1e terrain-channel host (unlanded, +51); sp-o3's
-O27 picks: Nalati look/* glue, spruceView, species presentation (animate/pose/prepare, kit species/looks);
-sp-o1 D1c bakedKits host (no-host alternative: kits as dressing mesh nodes + drawnInto, 2-kit far cull stays in Nine). sp-o5 Nine per-frame view laws: (A) AS on view lane +
-generic uniform-bank target host ~120 lines (ready, recommended) vs (B) keep TS in Nine. sp-o3 N1d: camp people need an 'atlas-figure' Explorer
-kind (~15 lines, reuses atlasFigureSkin) and the shepherd needs mountedSpecimen listed (recommended) or a seated row. sp-o4 E2 Nalati 4 slices need host code paths: (a) wedge/ghost per-
-instance graph params, (b) grade graph effect in scaledPost postChain, (c) static-capture graph chunk + height-bake. Nine
-E2 done 9070ae4fcb (-297 GLSL, +28 TS, +77 KB sections). sp-x1 C5 (218 left): N5a eliteRosterPage 122 as a strict finite-roster
-owner + concrete loans (draft green, unlanded); N5b carriedProp 73 via a generic view-lane object-transform target + AS
-(unlanded). Landed before G597:
-66e07696e9 WorldAssembly scene-only reshape (for Nine D1a).
-(5) RECOMMEND default-on after Jake's phone check: budget warm-up (cold Sky 12.1 -> 5.5 s) and T1 (+103 MB); sp-o2
-is landing it per G590.
+**For wildshard-v, G597 picks for Jake (WASM/data vs host):**
+- sp-o5 Nine per-frame view laws: (A) AS on view lane + uniform-bank targets ~120 lines (recommended), (B) TS stays.
+- sp-o3: seatedFigure (487c74c60c, 2-6 Y); Nalati look/* glue, spruceView, species presentation; N1d camp people
+  ('atlas-figure' Explorer kind ~15 lines) and shepherd (list mountedSpecimen).
+- fd674f4d4b nightView -> game/boss/timedEncounters (moved-file pattern you flagged).
+- sp-o1 D1c bakedKits host (alt: kits as dressing mesh nodes + drawnInto).
+- sp-x6 N1e terrain-channel host (+51). 66e07696e9 WorldAssembly scene-only reshape (landed before G597).
+- sp-x1 C5 (218): N5a eliteRosterPage 122 as a finite-roster owner; N5b carriedProp 73 via a view-lane object target.
+- sp-o4 E2 Nalati: (a) per-instance graph params (wedge/ghost), (b) grade graph effect, (c) static-capture graph chunk.
+**Also:** E2 Nine graph composite +22..31 MB renderer, +77 KB sections, ceiling raised (G438). Grid-ready memory latched
+Pine 181.5 / DW 300.9 MB (495bc1d918). RECOMMEND budget warm-up + T1 default-on after Jake's phone check (sp-o2 landing).
