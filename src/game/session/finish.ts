@@ -136,6 +136,13 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     game.primeFrame();
   });
   const handle = { ...world, get physics() { return world.physics; }, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: getPlayground, ...boot.runtime.objects };
+  // O18: what came from the world and the runtime's objects reads through, each time: a copy taken at boot kept the home's
+  // first visit (on the grid, its whole world) after that visit retired. The runtime's objects still win, as spread last.
+  const objects = boot.runtime.objects, fixed = new Set(['physics', 'boundary', 'water', 'streams', 'hands', 'props', 'animals', 'interactables', 'crossbow',
+    'hud', 'audio', 'music', 'lockSys', 'lockState', 'weapons', 'arena', 'playground']);
+  const live = (key: string, from: object): void => { Object.defineProperty(handle, key, { get: (): unknown => Reflect.get(from, key), enumerable: true, configurable: true }); };
+  for (const key of Object.keys(world)) if (!fixed.has(key) && !Object.hasOwn(objects, key)) live(key, world);
+  for (const key of Object.keys(objects)) live(key, objects);
   app.audio = audio;
   game.retainKitResources();
   ctx.session.residency?.bindComposer(game, game.engineScope, TIER);
