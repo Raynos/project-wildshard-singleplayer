@@ -35,7 +35,7 @@ export const ND_AUDIO = parseAudioData({ entry: { kit: { wind: false, score: fal
   }, id: 'ambience.nd', smoothSeconds: 1, tickHz: 4, silentSeconds: 0, holdSeconds: 0, levels: {}, wet: {}, zones: [], blendMetres: BLEND,
     rectangles, beds: [{ id: 'bed.nd.market', zone: 'market' }, { id: 'bed.nd.well', zone: 'well' }], positional: { sample: 'hum.lantern', max: 4, reach: 14 } },
   sampledScene: {
-    system: 'shard.nd.audio', tick: 'nd.audio.tick', debug: 'nd.audio', points: 'lanterns', loopTap: 'nd.hum.lantern', countLabel: 'lanterns', eye: 1.68,
+    system: 'shard.nd.audio', tick: 'nd.audio.tick', debug: 'nd.audio', points: { standalone: 'world/placements/nds-lanterns-capped.json', cell: 'world/placements/nds-lanterns-open.json' }, loopTap: 'nd.hum.lantern', countLabel: 'lanterns', eye: 1.68,
     surfaces: { wood: 'planks', planks: 'planks', metal: 'metal' }, fallback: 'rock',
     step: { id: 'nd.step', voices: { planks: 'nd.step.wood', metal: 'nd.step.metal' }, fallback: 'nd.step.stone', count: 4, walkGain: .7, runGain: 1 },
     voices: Object.fromEntries(sampleVoices),

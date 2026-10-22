@@ -7,6 +7,7 @@ import { Vector3 } from 'three';
 import { parse } from 'valibot';
 import { unzlibSync } from 'fflate';
 import { AudioSceneSchema, type AudioScene } from '@wildshard/format/audioScene';
+import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { AudioData } from '@wildshard/format/audio';
 import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';
@@ -147,7 +148,7 @@ function gameplayAudioEnvironment(ctx:ShardContext,row:NonNullable<NonNullable<A
  * Re-entry restores the same subscriptions without any content callback ports. */
 export async function enterClientAudioScene(ctx:ShardContext):Promise<void>{
  const data=runtimeAudio(ctx,ctx.product.shardfile.audio);
- if(data.sampledScene!==undefined){installSampledAudioScene(ctx,data);return;}
+ if(data.sampledScene!==undefined){await installSampledAudioScene(ctx,data);return;}
  if(data.scene===undefined&&data.gameplay!==undefined){
   const runtime=ctx.game.runtime;if(runtime?.world===undefined||runtime.world===null||runtime.play===null)throw new Error('Audio scene requires its native world');
   const {audio,music}=runtime.play,{game,sky,player}=runtime.world;
@@ -167,7 +168,7 @@ export async function enterClientAudioScene(ctx:ShardContext):Promise<void>{
 
 /** Sample strategy of the scene director. Rows own recipes and observations;
  * the native entered scope owns the bank, ray query, clocks and loop sources. */
-function installSampledAudioScene(ctx:ShardContext,data:AudioData):void{
+async function installSampledAudioScene(ctx:ShardContext,data:AudioData):Promise<void>{
  const row=requireAudioProfile(data.sampledScene,'sample scene'),profile=requireAudioProfile(data.zones,'sample zones'),musicProfile=requireAudioProfile(data.music,'sample score');
  const audio=ctx.app.audio;if(audio?.music===null||audio===null)throw new Error('Sample scene requires audio/music');
  const music=audio.music,random=():number=>ctx.app.rng.stream('cosmetic').next(),scope=ctx.scope;
@@ -186,7 +187,8 @@ function installSampledAudioScene(ctx:ShardContext,data:AudioData):void{
  scope.onDispose(()=>{audio.stepSurface=priorSurface;});
  const beds=new SampledAmbience(audio,profile,player,scope);scope.onDispose(()=>{beds.dispose();});
  audio.installBeds(requireAudioProfile(profile.beds,'sample beds').map(bed=>bed.id),scope,()=>beds.audible.length);
- const points=ctx.game.runtime?.objects[row.points];if(!Array.isArray(points)||!points.every((point:unknown)=>point instanceof Vector3))throw new Error('Missing positional audio points');
+ const points=parseWorldScenePlacement(await ctx.product.json(row.points[ctx.cube===null?'standalone':'cell'])).poses.map(({x,y,z})=>new Vector3(x,y,z));
+ if(scope.disposed)throw new Error('Sample scene left while reading its points');
  const positional=requireAudioProfile(profile.positional,'positional profile');
  const loops=new PositionalLoops(audio,scope,points,()=>player.loop(positional.sample),()=>{tap.sound?.(row.loopTap,'ambient');},random,positional.max,positional.reach);
  const eye=new Vector3();let since=0;

@@ -11,7 +11,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Data3DTexture, Group, Mesh, Vector3,
+  Data3DTexture, Group, Mesh,
 } from 'three';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
@@ -26,7 +26,6 @@ import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
-import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
@@ -42,8 +41,6 @@ export interface NineDragonWorld {
   update: (t: number) => void;
   /** G200: whether the decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
   readonly entryCaps?: boolean;
-  /** where each paper lantern hangs (the lanterns' hum, runtime/audio/ambience.ts) */
-  readonly lanterns: readonly Vector3[];
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes; `opts.pause` ends a stretch between phases (the plugin's
@@ -78,10 +75,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
   bindLowPolyMaterial(opts.sky, 'nine-architecture', lentLook('nine-architecture'), opts.scope);
-  // the paper lanterns hung for this deck ending and the layout's air conditioners: world-scene placements of their
-  // catalogue models (generators/worldScenes.ts LAYOUT_PLACEMENTS); the lanterns' hum hangs where each one does
-  const lanternId = `nds-lanterns-${entryCaps ? 'capped' : 'open'}`;
-  const lanternsAt = parseWorldScenePlacement(await product.json(`world/placements/${lanternId}.json`)).poses.map(({ x, y, z }) => new Vector3(x, y, z));
   await opts.pause(); // let the loading panel paint and GC run (in play: a drawn frame)
   progress(0.52, 'canopy');
   // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (the kits' and the crown's neon spill
@@ -162,5 +155,5 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
 
   // the movers on the page clock (the clock, the eye and the fog's band window are the look's channel group)
   const update = (t: number): void => { for (const m of running) m.advance(t); };
-  return { root, shared, update, entryCaps, lanterns: lanternsAt };
+  return { root, shared, update, entryCaps };
 }

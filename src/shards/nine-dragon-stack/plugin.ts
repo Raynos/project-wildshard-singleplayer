@@ -48,7 +48,6 @@ export class NdPlugin extends ShardPlugin {
     const scope = ctx.scope;
     const { world } = await this.build(ctx, ctx.cube === null, () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
-    if (ctx.game.runtime !== undefined) ctx.game.runtime.objects['lanterns'] = world.lanterns;
     lendNineShared(scope, world);
     // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
     await WorldEntry.admit(ctx.product.section('world/scenes').entry, { scope, root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');

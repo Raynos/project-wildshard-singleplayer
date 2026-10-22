@@ -28,9 +28,10 @@ export const AudioSceneSchema=v.strictObject({
 export type AudioScene=v.InferOutput<typeof AudioSceneSchema>;
 
 /** Sample-only scene policy on the same native director: cue recipes, floor
- * material aliases and positional loop loans from the resident object book. */
+ * material aliases and positional loops at the poses of an admitted scene placement file, one per world variant
+ * (standalone or a grid cell). */
 export const SampledAudioSceneSchema=v.strictObject({
- system:id,tick:id,debug:id,points:id,loopTap:id,countLabel:id,eye:n,
+ system:id,tick:id,debug:id,points:v.strictObject({standalone:id,cell:id}),loopTap:id,countLabel:id,eye:n,
  surfaces:v.record(id,v.picklist(['rock','planks','metal','grass','gravel','sand','wetSand','stone','water','litter','mud','wet'])),fallback:v.picklist(['rock','planks','metal','grass','gravel','sand','wetSand','stone','water','litter','mud','wet']),
  step:v.strictObject({id,voices:v.record(id,id),fallback:id,count:v.pipe(n,v.integer(),v.minValue(1),v.maxValue(16)),walkGain:n,runGain:n}),
  voices:v.pipe(v.record(id,v.strictObject({family:id,tap:id,handled:v.optional(v.boolean(),true),sequence:v.optional(v.boolean(),false),pan:v.exactOptional(n)})),v.check(rows=>Object.keys(rows).length<=128)),
