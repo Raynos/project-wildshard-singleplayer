@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-22 04:19 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
+Updated 2026-10-22 06:20 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
 
 LATEST OWNER: At22:49 explicitly requested publishing all nine now, not waiting for browser infrastructure. Delivery is separate from passing every test. Version99 deployment succeeded22:55. Keep unfinished testing disclosed; no fabricated acceptance. Bellback physics expansion approved17:08, off first-prototype critical path. See PROTOTYPE-NINE.md.
 
@@ -8,7 +8,7 @@ LIVE: One Arena runtime/selector exposes original4 plus Bellback, Pitcher, Medus
 
 EVIDENCE: Corrected servedbuild1801; Medusa smoke1804 finite pose/clock,5.158m movement,zero faults,600frames/24s. Independent48-frame visual review confirms movement with clipping/occlusion limitations. Headless lifecycle/Retry6, missing-five brains5, retained-rig poses/products21 tests pass; strict types/lint pass. No quality, phone-performance or full-browser acceptance inferred.
 
-NEXT: Restore supported cloud browser execution, then full9 actual sword/damage/death/loot/player-defeat/Retry/Back/reload cycles and independent review. Normal browser socket denied; execution wrapper fails before elevated command. Restart20:19 did not repair it. Do not block already requested WIP access or relabel tests. Browser compatibility audit found version mismatch and missing project config dir (now created); neither proves root cause fixed.
+NEXT: Existing supported cloud Chromium opens the live nine-entry Arena. Default Start and one reload/retry fail before new Game: WebGL2 getContext returns null, status context unavailable. No creature rendered. See docs/reviews/cloud-arena-startup-20261022/REVIEW.md. No universal WebGL2 absence or asset defect inferred; no browser flags/security changes. Command-line execution remains unrepaired. Full9 combat/Retry/Back/reload testing remains open; published WIP stays available.
 
 RETAINED PITCHER: App3 planned cycle passed23 checks with diagnostic placements. Real-touch app4 stalled6HP; exact diagnosis proved PLAYER overlap37.955mm in body lethal hull before HP commit. Convex XYZ continuation passes59 focused checks/lint/types and independent bounded review. New isolated convex1 builds with136hostfiles; real-touch driver prepared but not run, now off critical path. Smaller unit-player fixture caveat retained. HELD DEATH/NO FOLD only.
 

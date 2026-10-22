@@ -1,0 +1,57 @@
+{
+  "checkedAtUtc": "2026-10-22T06:19:23Z",
+  "environment": "Existing supported OpenAI cloud Chromium through CUA CDP, Linux",
+  "executorLaunchRepaired": false,
+  "requestedUrl": "https://wildshard-enemy-lab.raynos.chatgpt.site/arena.html",
+  "observedUrl": "https://wildshard-enemy-lab.raynos.chatgpt.site/shared-arena/arena",
+  "selectorEntries": [
+    "Splinter Mantis \u00b7 motion 7",
+    "Conch Duelist \u00b7 motion 4",
+    "Tide-root Colossus \u00b7 motion 2",
+    "Brine Puffer \u00b7 V70",
+    "Bellback \u00b7 WIP prototype",
+    "Brine Pitcher Matriarch \u00b7 WIP prototype",
+    "Pearlglass Medusa \u00b7 WIP prototype",
+    "Keelmaw \u00b7 WIP prototype",
+    "Bloomthroat Iguana \u00b7 WIP prototype"
+  ],
+  "observedWarning": "WIP PROTOTYPES \u00b7 QUALITY INCOMPLETE",
+  "actions": [
+    {
+      "action": "Open public arena",
+      "result": "Loaded selector and Start; all nine options visible in accessibility tree"
+    },
+    {
+      "action": "Start default Splinter Mantis",
+      "result": "Loading the shared arena\u2026 then Graphics context did not recover during startup (context unavailable)"
+    },
+    {
+      "action": "One ordinary reload and retry Start",
+      "result": "Same graphics context error; selector and Start re-enabled"
+    },
+    {
+      "action": "Read chrome://gpu diagnostics",
+      "result": "Denied before navigation by browser URL protocol policy: only HTTP/HTTPS allowed. No alternate route attempted."
+    }
+  ],
+  "console": "Only extension metadata errors captured; no app renderer cause established.",
+  "verified": [
+    "Public page reachable in existing cloud browser",
+    "Nine selector entries exist",
+    "Start enters loading",
+    "Startup error recovers selector controls",
+    "Failure repeats after ordinary reload"
+  ],
+  "notVerified": [
+    "Any actual enemy rendered",
+    "Back or in-game Retry",
+    "Combat, death, loot or player defeat",
+    "Other eight enemy startup",
+    "WebGL absence versus app context loss",
+    "Phone performance or quality acceptance"
+  ],
+  "screenshot": "cloud-arena-context-failure-20261022-0618.png (retained original capture outside repository)",
+  "screenshotCaveat": "Unmodified desktop landscape capture, not iPhone evidence",
+  "screenshotSha256": "9dfa098c57a766fc7396ba2edd1dfb6d241590079f62c5a6c629e97965e7f243",
+  "sourceDiagnosis": "Final canvas.getContext(webgl2) returned null. Failure precedes new Game and creature preparation; not proof of universally absent WebGL2 or an enemy asset defect."
+}
