@@ -1,4 +1,3 @@
-import coverFiles from '../data/islandCoverFiles.json' with { type: 'json' };
 import { HORIZON_RADIUS } from '@wildshard/format/contentBounds';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
 import { OCEAN } from './worldSites';
@@ -33,9 +32,6 @@ const {audioBounds: _audioBounds, audioFall: _audioFall, audioCave: _audioCave, 
  *  the toon lighting, whose sea level is the sea's. */
 /** a product file name for an authored asset label (the build's asset index; the runtime reads names only) */
 const named = (label: string): string => { const name = DRIFTWOOD_ASSET_NAMES[label]; if (name === undefined) throw new Error(`Missing named asset: ${label}`); return name; };
-/** E156: the island cover (generators/islandCover.ts) as vertex wear rows: its ground map, then per part aCover (rgba) and aCoverSide */
-const coverWear = ({ url, texture, groundRect, parts }: (typeof coverFiles)['phone']) => ({ file: named(url), texture, rect: groundRect, parts,
-  attributes: [{ name: 'aCover', size: 4 }, { name: 'aCoverSide', size: 1 }] });
 export const OCEAN_WATER_ROW = { id: 'sea',
   surface: { ...OCEAN_SURFACE, params: { level: OCEAN.level, deepDepth: OCEAN.deepDepth, shallow: [...OCEAN.shallowColor], deep: [...OCEAN.deepColor], edgeInset: SHORE_REVETMENT_INNER_FACE, seaEnd: HORIZON_RADIUS } },
   draw: { grid: { phone: { url: OCEAN_FILES.phone }, desktop: { url: OCEAN_FILES.desktop } }, attributes: { _depth: 'aDepth', _seed: 'aSeed' },
@@ -48,5 +44,5 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] =
   {name:'custom/cumulusPuffs', value:cumulusPuffs},
   {name:'custom/gullFlock', value:GULL_FLOCK},
   {name:'custom/worldStages', value:WORLD_STAGES},
-  {name:'custom/fixedLayouts', value:{coverFiles:{phone:coverWear(coverFiles.phone),desktop:coverWear(coverFiles.desktop)},assembly:WORLD_ASSEMBLY,nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS.map(({ slot, channels }) => ({ slot, file: named(`fixed:${slot}`), channels })), shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), foliage:{seed:foliage.seed,tiers:foliage.tiers,islandPalms:islandFacts.extraPalms}, npcScenes, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:{...coveBake,composition:runtimeCoveComposition}, shrine:shrineBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
+  {name:'custom/fixedLayouts', value:{assembly:WORLD_ASSEMBLY,nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS.map(({ slot, channels }) => ({ slot, file: named(`fixed:${slot}`), channels })), shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), foliage:{seed:foliage.seed,tiers:foliage.tiers,islandPalms:islandFacts.extraPalms}, npcScenes, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:{...coveBake,composition:runtimeCoveComposition}, shrine:shrineBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
 ];

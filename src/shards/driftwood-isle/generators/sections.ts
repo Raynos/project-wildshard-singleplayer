@@ -1,5 +1,4 @@
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
-import { VertexWearSchema } from '@wildshard/format/vertexWear';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import * as v from 'valibot';
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
@@ -83,7 +82,6 @@ export const SECTIONS = {
   'custom/cumulusPuffs': v.pipe(v.array(v.pipe(v.array(number), v.length(7))), v.maxLength(1024)),
   /** Entry decks, tiered foliage and fixed models: draw slots, colliders, anchors and floors. */
   'custom/fixedLayouts': v.strictObject({
-    coverFiles: v.strictObject({ phone: VertexWearSchema, desktop: VertexWearSchema }),
     /** Authored native view parameters, read only after product admission. */
     nativeView: v.strictObject({
       BOSS_ENCOUNTER: WakeEncounterSchema,

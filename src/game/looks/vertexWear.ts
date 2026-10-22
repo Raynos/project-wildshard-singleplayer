@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { VertexWearSchema } from '@wildshard/format/vertexWear';
+import { BakedWearSchema } from '@wildshard/format/bakedTiles';
 import type { ShardProduct } from '../shardfile/shardProduct';
+import { setLentParam, setLentTexture } from '../shardfile/lentLooks';
 
 /** A declared vertex wear file, read: its texture (when it carries one), the rect that samples it, and `wear`, which
  *  hands a built geometry its part's attributes (views over the file's bytes, no copy). */
@@ -30,4 +32,18 @@ export async function loadVertexWear(product: Pick<ShardProduct, 'file'>, input:
       offset += count * attribute.size;
     }
   } };
+}
+
+/** G571: a baked tile set's declared wear (format/bakedTiles BakedWearSchema): the tier's file worn by the world's ground
+ *  (part 0, when declared) and then by each tile in order, its ground map, rect and fade lent to each declared look.
+ *  Client-only. */
+export async function wearBakedTiles(product: Pick<ShardProduct, 'file'>, input: unknown, tier: 'phone' | 'desktop',
+  ground: THREE.BufferGeometry | null, tiles: readonly THREE.Mesh[]): Promise<void> {
+  const wear = v.parse(BakedWearSchema, input), loaded = await loadVertexWear(product, wear.files[tier]), first = wear.ground ? 1 : 0, texture = loaded.texture;
+  if (wear.ground) { if (ground === null) throw new Error('Vertex wear needs the world ground'); loaded.wear(ground, 0); }
+  tiles.forEach((tile, i) => { loaded.wear(tile.geometry, i + first); });
+  if (wear.looks.length > 0 && texture === null) throw new Error('Vertex wear looks need its ground map');
+  for (const row of wear.looks) if (texture !== null) {
+    setLentParam(row.look, 'fade', [...row.fade[tier]]); setLentParam(row.look, 'groundRect', [...loaded.rect]); setLentTexture(row.look, 'groundMap', texture);
+  }
 }

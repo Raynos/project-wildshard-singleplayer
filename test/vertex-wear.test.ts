@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { BufferAttribute, BufferGeometry, HalfFloatType } from 'three';
-import { loadVertexWear } from '../src/game/looks/vertexWear';
+import { BufferAttribute, BufferGeometry, HalfFloatType, Mesh } from 'three';
+import { loadVertexWear, wearBakedTiles } from '../src/game/looks/vertexWear';
 import ISLAND_COVER_FILES from '../src/shards/driftwood-isle/data/islandCoverFiles.json' with { type: 'json' };
 
 // G571: a vertex wear file (Driftwood's island cover) worn by geometries the world already built.
@@ -29,4 +29,13 @@ test('a part baked for other geometry, an unknown part or a missing file refuses
 
 test('Driftwood declares its island cover per tier for every baked part', () => {
   for (const tier of ['phone', 'desktop'] as const) expect(ISLAND_COVER_FILES[tier].parts.length).toBeGreaterThan(1);
+});
+
+test('a baked tile set wears its declared file: the ground as part 0, then each tile in order', async () => {
+  const product = { file: () => Promise.resolve(Uint8Array.from({ length: 41 }, (_, i) => i)) };
+  const wear = { files: { phone: row, desktop: row }, ground: true, looks: [] }, ground = geometry(3), tile = new Mesh(geometry(2));
+  await wearBakedTiles(product, wear, 'phone', ground, [tile]);
+  expect(Array.from(ground.getAttribute('aCoverSide').array)).toEqual([28, 29, 30]); expect(Array.from(tile.geometry.getAttribute('aCoverSide').array)).toEqual([39, 40]);
+  await expect(wearBakedTiles(product, wear, 'phone', null, [tile])).rejects.toThrow('world ground');
+  await expect(wearBakedTiles(product, { ...wear, ground: false }, 'phone', null, [new Mesh(geometry(2))])).rejects.toThrow('does not match');
 });

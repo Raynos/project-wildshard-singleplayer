@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { validateDefinedSection } from '../src/sdk/sections';
 import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
+import { BAKED_COVE } from '../src/shards/driftwood-isle/generators/bakedCove';
 
 test('Driftwood fixed draws and island cover files name admitted product blobs (no legacy URL table)', async () => {
   const loaded = await readProjectAssets('src/shards/driftwood-isle'), custom = loaded.output.custom;
@@ -14,7 +15,7 @@ test('Driftwood fixed draws and island cover files name admitted product blobs (
   const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
   validateDefinedSection(schema, value);
   const layouts = v.parse(SECTIONS['custom/fixedLayouts'], value), names = new Set(loaded.output.namedFiles?.map(file => file.name));
-  for (const name of [...layouts.fixedDraws.map(draw => draw.file), layouts.coverFiles.phone.file, layouts.coverFiles.desktop.file]) expect(names.has(name), name).toBe(true);
+  for (const name of [...layouts.fixedDraws.map(draw => draw.file), BAKED_COVE.wear?.files.phone.file, BAKED_COVE.wear?.files.desktop.file]) expect(names.has(name), name).toBe(true);
   const files = loaded.output.namedFiles ?? [];
   expect(new Set(files.map(file => file.hash)).size).toBe(files.length);
 }, 30000);

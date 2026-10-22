@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { VertexWearSchema } from './vertexWear';
 
 /**
  * Baked tiles (G532 (4)): a Blender-built set of terrain tiles drawn with one look, the lightmaps an offline bake lent to
@@ -26,6 +27,11 @@ const model = v.strictObject({
   parts, specimenMaterial: id, lods: v.pipe(v.array(v.strictObject({ from: finite, parts })), v.maxLength(4)),
 });
 /** How a family's copies are culled: casters while the camera or `casters` m-padded shadow cascades see them, or by cells within `far`. */
+/** per-vertex wear baked for a tile set (format/vertexWear, one file a tier): its part 0 worn by the world's ground mesh
+ *  when `ground`, then one part per tile in order; each look row's look takes the wear's ground map and rect, and its
+ *  tier's `fade` param */
+export const BakedWearSchema = v.strictObject({ files: tiers(VertexWearSchema), ground: v.boolean(),
+  looks: v.pipe(v.array(v.strictObject({ look: id, fade: tiers(v.tuple([finite, finite, finite])) })), v.maxLength(4)) });
 const cull = v.union([v.strictObject({ flat: v.boolean(), casters: v.pipe(finite, v.minValue(0)) }),
   v.strictObject({ far: v.pipe(finite, v.minValue(0)), cells: v.strictObject({ size: v.pipe(finite, v.minValue(1)), pad: v.pipe(finite, v.minValue(0)) }) })]);
 
@@ -59,6 +65,8 @@ export const BakedTilesSchema = v.pipe(v.strictObject({
     /** what the collider boxes are made of, and the name of the piece holding boxes no copy claims */
     surface: v.picklist(['wood', 'stone', 'metal']), unclaimed: name,
   })),
+  /** the tiles' declared vertex wear (BakedWearSchema) */
+  wear: v.exactOptional(BakedWearSchema),
 }), v.check(row => row.instances === null || (row.instances.families.every(family => Object.hasOwn(row.instances?.looks ?? {}, family.look))
   && new Set(row.instances.families.map(family => family.key)).size === row.instances.families.length), 'families name declared looks and unique keys'));
 export type BakedTilesRow = v.InferOutput<typeof BakedTilesSchema>;

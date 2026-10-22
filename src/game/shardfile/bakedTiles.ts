@@ -30,10 +30,13 @@ import { followToonLook } from '../looks/toonLook';
 import { lendLooks, lentLook, setLentParam, setLentTexture } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import type { ShardProduct } from './shardProduct';
+import { wearBakedTiles } from '../looks/vertexWear';
 
 /** What a row is drawn into: the product its files resolve against, the live world, and the scope its pieces leave with
  *  (absent: the ambient owner, as a resident world's build). */
-export interface BakedTilesOwner { readonly product: ShardProduct; readonly parent: THREE.Object3D; readonly sky: SkyRig; readonly registry: WorldRegistry; readonly scope?: Scope }
+export interface BakedTilesOwner { readonly product: ShardProduct; readonly parent: THREE.Object3D; readonly sky: SkyRig; readonly registry: WorldRegistry; readonly scope?: Scope;
+  /** the world's ground mesh geometry a row's `wear` declares as its part 0 */
+  readonly ground?: THREE.BufferGeometry }
 /** The drawn set: its group, its tiles in file order, and its once-a-frame bounce update. */
 export interface BakedTiles { readonly group: THREE.Group; readonly tiles: readonly THREE.Mesh[]; readonly update: () => void }
 
@@ -96,6 +99,7 @@ export async function installBakedTiles(owner: BakedTilesOwner, input: BakedTile
     tiles.push(m); group.add(m);
   });
   if (tiles.length === 0) throw new Error(`Baked tiles ${row.id} has no ${TIER} tiles`);
+  if (row.wear !== undefined) await wearBakedTiles(product, row.wear, TIER, owner.ground ?? null, tiles);
   if (instances !== null && table !== null && protos !== null && plan !== null) await placeFamilies(owner, row, instances, new Float32Array(Uint8Array.from(table).buffer), protos, plan, group);
   const sun = row.sun, light = (): THREE.DirectionalLight | undefined => sky.csm.lights[0];
   const update = sun === null ? () => undefined : () => { setLentParam(row.look, sun.param, sunBounce(light(), sky.sunDir.y, sun.referenceY, sun.gain)); };
@@ -179,7 +183,8 @@ async function draw(ctx: ShardContext, rows: readonly BakedTilesRow[], resident:
   await lendBakedLooks(ctx, rows, resident);
   const drawn = new Map<string, BakedTiles>();
   for (const row of rows) {
-    const baked = await installBakedTiles({ product: ctx.product, parent: ctx.root, sky: world.sky, registry, scope: resident }, row);
+    const ground = row.wear?.ground === true ? { ground: world.terrain.mesh.geometry } : {};
+    const baked = await installBakedTiles({ product: ctx.product, parent: ctx.root, sky: world.sky, registry, scope: resident, ...ground }, row);
     drawn.set(row.id, baked); resident.onDispose(() => { baked.group.removeFromParent(); });
   }
   return drawn;

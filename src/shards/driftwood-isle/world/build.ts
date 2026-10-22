@@ -4,7 +4,6 @@ import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
-import { loadVertexWear } from '@wildshard/game/looks/vertexWear';
 import { TIER } from '@wildshard/engine/core/tier';
 import { loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
 /**
@@ -24,7 +23,7 @@ import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
-import { hasLentLook, lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { hasLentLook, lentLook, setLentParam } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { createAmbientFlock } from '@wildshard/game/ambient/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
@@ -49,9 +48,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
   const fixed = driftwoodRows('custom/fixedLayouts');
   const { game, sky, player, registry } = world;
-  const [, islandCover, coverCells] = await Promise.all([loadFixedGeometry(undefined, game.registrationScope),loadVertexWear(driftwoodProduct(), fixed.coverFiles[TIER]),driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
-  islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, generators/islandCover.ts)
-  const coverMap = islandCover.texture; if (coverMap === null) throw new Error('The island cover carries its ground map');
+  // E156: the ground and the baked island wear the cover as the baked cove's declared wear (generators/bakedCove.ts)
+  const [, coverCells] = await Promise.all([loadFixedGeometry(undefined, game.registrationScope), driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]);
   const slice = slicer(30, progress);
   const assembly = fixed.assembly, total = 18 + assembly.piers.length;
   let completed = 0;
@@ -161,14 +159,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const bridgeDeck = new RopeChain(world.physics, bridge.chainSpec());
   game.onFixed('post', () => { bridgeDeck.capture(); }, 'shard.driftwood.bridge.capture');
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52), drawn by the client plan's baked tiles (world.baked, G532 (4)):
-  // here its ground wears the cover it carries, its cover fades into the cover's ground map, the monkeys climb its palms
+  // (its declared wear dresses its ground and cover looks there); the monkeys climb its palms
   await slice(completed + 1, total, 'Bridge physics and paths');
   const island = baked.get('cove'); if (island === undefined) throw new Error('Missing baked cove');
-  const looks = fixed.nativeView.ISLAND_LOOKS, reach = fixed.nativeView.ISLAND_TIERS[TIER];
-  island.tiles.forEach((tile, i) => { islandCover.wear(tile.geometry, i + 1); });
-  for (const [id, c] of [[looks.cover, reach.cover], [looks.coverBig, reach.big]] as const) {
-    setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...islandCover.rect]); setLentTexture(id, 'groundMap', coverMap);
-  }
   await stages.next('smallRocks'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
   const smallRocks = entryOwner(scope, 'object', 'smallRocks');
   palmSpecs.push(...fixed.foliage.islandPalms);
