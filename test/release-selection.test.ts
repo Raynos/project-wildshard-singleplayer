@@ -1,15 +1,17 @@
 import { expect, test } from 'vitest';
-import { newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, releaseReady, releaseSlot } from '../scripts/deploy-pin.mjs';
+import { ciGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
 
 const newer = 'a'.repeat(40), proven = 'b'.repeat(40), oldest = 'c'.repeat(40);
 const completed = '2026-10-21T14:00:00Z', now = Date.parse('2026-10-21T14:01:00Z');
 const success = `boot-smoke\tsuccess\tExact built dist passed\t${completed}`;
 const pending = `boot-smoke\tpending\tExact proof running\t${completed}`;
+const workflows = '.github/workflows/deploy.yml\t123\n.github/workflows/boot-smoke.yml\t456';
 
 function queryFor(candidates: readonly string[], proofs: Readonly<Record<string, string>>): (args: string[]) => string {
   return args => {
     const path = args[0] ?? '';
-    if (path.includes('/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success')) {
+    if (path.endsWith('/actions/workflows?per_page=100')) return workflows;
+    if (path.includes('/actions/workflows/123/runs?branch=main&event=push&status=success')) {
       return candidates.map(sha => `${sha}\t${completed}`).join('\n');
     }
     const sha = /\/commits\/([a-f0-9]{40})\/status$/u.exec(path)?.[1];
@@ -71,7 +73,42 @@ test('terminal failures and unreadable proof queries never supply a release', ()
 });
 
 test('the hourly slot still refuses queued or recent releases', () => {
-  expect(releaseSlot(now, () => `123\tqueued\t${completed}`)).toMatchObject({ free: false });
-  expect(releaseSlot(now, () => `123\tcompleted\t${completed}`)).toMatchObject({ free: false });
-  expect(releaseSlot(now, () => '')).toMatchObject({ free: true });
+  const query = (rows: string) => (args: string[]) => args[0]?.endsWith('/actions/workflows?per_page=100') ? workflows : rows;
+  expect(releaseSlot(now, query(`123\tqueued\t${completed}`))).toMatchObject({ free: false });
+  expect(releaseSlot(now, query(`123\tcompleted\t${completed}`))).toMatchObject({ free: false });
+  expect(releaseSlot(now, query(''))).toMatchObject({ free: true });
+});
+
+test('resolves both workflow paths once and selects numeric runs with exact proofs', () => {
+  const inventory = { workflows: [
+    { path: '.github/workflows/unrelated.yml', id: 777 },
+    { path: '.github/workflows/deploy.yml', id: 901 },
+    { path: '.github/workflows/boot-smoke.yml', id: 902 },
+  ] };
+  const runs = { workflow_runs: [{ head_sha: proven, updated_at: completed }] };
+  const requests: string[] = [];
+  const query = (args: string[]): string => {
+    const path = args[0] ?? '';
+    requests.push(path);
+    if (path.endsWith('/actions/workflows?per_page=100')) {
+      expect(args).toContain('--paginate');
+      return inventory.workflows.map(row => `${row.path}\t${row.id}`).join('\n');
+    }
+    if (path.includes('/actions/workflows/deploy.yml/runs')) return '';
+    if (path.endsWith('/actions/workflows/901/runs?branch=main&event=push&status=success&per_page=100')) {
+      return runs.workflow_runs.map(row => `${row.head_sha}\t${row.updated_at}`).join('\n');
+    }
+    if (path.endsWith(`/actions/workflows/901/runs?branch=main&event=push&status=success&head_sha=${proven}&per_page=1`)) return proven;
+    if (path.endsWith(`/commits/${proven}/status`)) return success;
+    throw new Error(`Unexpected API request: ${path}`);
+  };
+  expect(releaseReady(query, () => undefined, now)).toEqual({ ready: true, sha: proven });
+  expect(ciGreen(proven, query)).toBe(true);
+  expect(workflowRunsPath('boot-smoke.yml', query)).toMatch(/\/902\/runs$/u);
+  expect(requests.filter(path => path.endsWith('/actions/workflows?per_page=100'))).toHaveLength(1);
+});
+
+test('missing or ambiguous workflow identities refuse release selection', () => {
+  expect(() => releaseReady(() => '.github/workflows/deploy.yml\t123', () => undefined, now)).toThrow('Missing workflow: .github/workflows/boot-smoke.yml');
+  expect(() => releaseReady(() => `${workflows}\n.github/workflows/deploy.yml\t789`, () => undefined, now)).toThrow('Invalid workflow identity');
 });

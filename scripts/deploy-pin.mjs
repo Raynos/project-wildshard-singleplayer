@@ -35,12 +35,39 @@ const ok = (fn) => { try { fn(); return true; } catch { return false; } };
  *  a whole release at this step. Four tries, 5 / 15 / 45 s apart. @param {string[]} args @returns {string} */
 function ghApi(args) {
   for (let i = 0; ; i++) {
-    try { return execFileSync('gh', ['api', ...args], { encoding: 'utf8' }); } catch (e) {
+    try { return execFileSync('gh', ['api', '-H', 'Cache-Control: no-cache', ...args], { encoding: 'utf8' }); } catch (e) {
       if (i === 3) throw e;
       console.error(`gh api ${args[0]}: try ${i + 1} failed, retrying`);
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5000 * 3 ** i);
     }
   }
+}
+
+/** @type {WeakMap<(args:string[])=>string, Map<string, string>>} */
+const workflowIds = new WeakMap();
+
+/** Resolve workflow paths once per API client; filename-based run queries can return empty results.
+ * @param {'deploy.yml' | 'boot-smoke.yml'} workflow @param {(args:string[])=>string} [query] */
+export function workflowRunsPath(workflow, query = ghApi) {
+  let ids = workflowIds.get(query);
+  if (ids === undefined) {
+    ids = new Map();
+    const rows = query([`repos/${REPO}/actions/workflows?per_page=100`, '--paginate', '--jq',
+      '.workflows[] | [.path, .id] | @tsv']).trim().split('\n').filter(Boolean);
+    for (const row of rows) {
+      const [path = '', id = ''] = row.split('\t');
+      if (path !== '.github/workflows/deploy.yml' && path !== '.github/workflows/boot-smoke.yml') continue;
+      if (!/^\d+$/.test(id) || ids.has(path)) throw new Error(`Invalid workflow identity: ${row}`);
+      ids.set(path, id);
+    }
+    for (const path of ['.github/workflows/deploy.yml', '.github/workflows/boot-smoke.yml']) {
+      if (!ids.has(path)) throw new Error(`Missing workflow: ${path}`);
+    }
+    workflowIds.set(query, ids);
+  }
+  const id = ids.get(`.github/workflows/${workflow}`);
+  if (id === undefined) throw new Error(`Missing workflow: ${workflow}`);
+  return `repos/${REPO}/actions/workflows/${id}/runs`;
 }
 
 /** @typedef {{ mode: string, sha: string, milestone: string, gate: string, go: string, set: string, by: string }} Pin */
@@ -100,7 +127,7 @@ export function productionLive(sha, query = ghApi) {
   if (statuses(sha, query).get('production-live')?.state === 'success') return true;
   for (const event of ['schedule', 'workflow_dispatch']) {
     for (let page = 1; ; page++) {
-      const runs = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?event=${event}&status=success&per_page=100&page=${page}`,
+      const runs = query([`${workflowRunsPath('deploy.yml', query)}?event=${event}&status=success&per_page=100&page=${page}`,
         '--jq', '.workflow_runs[].id']).trim().split('\n').filter(Boolean);
       if (runs.length === 0) break;
       for (const run of runs) {
@@ -124,7 +151,7 @@ export function productionLive(sha, query = ghApi) {
  * @param {string} sha @param {(args:string[])=>string} [query] @returns {boolean} */
 export function ciGreen(sha, query = ghApi) {
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('push CI requires an exact 40-hex SHA');
-  const runs = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&head_sha=${sha}&per_page=1`,
+  const runs = query([`${workflowRunsPath('deploy.yml', query)}?branch=main&event=push&status=success&head_sha=${sha}&per_page=1`,
     '--jq', '.workflow_runs[].head_sha']).trim().split('\n');
   return runs.includes(sha);
 }
@@ -140,7 +167,7 @@ export class PendingBootSmokeError extends Error {
  * pending smoke can defer selection; unproven/failing boots never become a release pin.
  * @param {(args:string[])=>string} [query] @param {(line: string) => void} [log] @param {number} [now] @returns {string} */
 export function newestCiGreen(query = ghApi, log = (line) => console.error(line), now = Date.now()) {
-  const candidates = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=100`,
+  const candidates = query([`${workflowRunsPath('deploy.yml', query)}?branch=main&event=push&status=success&per_page=100`,
     '--jq', '.workflow_runs[] | [.head_sha, .updated_at] | @tsv']).trim().split('\n');
   const seen = new Set();
   let pending;
@@ -201,7 +228,7 @@ export async function newestCiGreenAfterBoot(query = ghApi, log = (line) => cons
  * @returns {{ free: boolean, why: string }} */
 export function releaseSlot(now = Date.now(), query = ghApi, windowMs = 60 * 60 * 1000) {
   for (const event of ['schedule', 'workflow_dispatch']) {
-    const rows = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?event=${event}&per_page=10`,
+    const rows = query([`${workflowRunsPath('deploy.yml', query)}?event=${event}&per_page=10`,
       '--jq', '.workflow_runs[] | [.id, .status, .created_at] | @tsv']).trim().split('\n').filter(Boolean);
     for (const row of rows) {
       const [id = '', status = '', created = ''] = row.split('\t');
