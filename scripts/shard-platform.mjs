@@ -159,6 +159,21 @@ function shaderText(value, name) {
     || /\b(?:float|int|uint|bool)\s+\w+\s*[=;(]/u.test(value)
     || (/glsl|shader|^vertex|^fragment/iu.test(name) && /[;{}]/u.test(value));
 }
+// G571/G573: JSON module contracts erase completely. The unusual suffix is
+// not enough: executable statements under that name remain custom code.
+function jsonTypeContract(source, path) {
+  if (!path.endsWith('.d.json.ts')) return false;
+  const program = parseSync(path, source).program;
+  const declared = new Set(program.body.flatMap(row => row.type === 'VariableDeclaration' && row.declare
+    ? row.declarations.filter(entry => entry.id.type === 'Identifier' && entry.init === null).map(entry => entry.id.name) : []));
+  return program.body.every(row => {
+    if (row.type === 'ImportDeclaration') return row.importKind === 'type' || row.specifiers.length > 0 && row.specifiers.every(spec => spec.importKind === 'type');
+    if (row.type === 'TSTypeAliasDeclaration' || row.type === 'TSInterfaceDeclaration' || row.type === 'EmptyStatement') return true;
+    if (row.type === 'VariableDeclaration') return row.declare && row.declarations.every(entry => entry.id.type === 'Identifier' && entry.init === null);
+    if (row.type === 'ExportDefaultDeclaration') return row.declaration.type === 'Identifier' && declared.has(row.declaration.name);
+    return row.type === 'TSExportAssignment' && row.expression.type === 'Identifier' && declared.has(row.expression.name);
+  });
+}
 /** G392 call 36: a thin declaration entry is not custom; executable logic is. */
 export function declarationOnlyConfig(source, path = 'shard.config.ts') {
   const program = parseSync(path, source).program;
@@ -938,7 +953,9 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
       const sourceOnlyData = sourceProgress && (top==='generators'&&!runtimeReached.get(slug)?.has(path)
         || local==='manifest.ts'&&declarationOnlyManifest(text(path),path)
-        || local==='shard.config.ts'&&declarationOnlyConfig(text(path),path));
+        || local==='shard.config.ts'&&declarationOnlyConfig(text(path),path)
+        || jsonTypeContract(text(path),path)
+        || generated.has(path)&&sourceData(path)&&declarationOnlyManifest(text(path),path));
       if (RULES.typescript.test(path) && !RULES.tests.test(local) && !sourceOnlyData) {
         shardRuntimeLines += lines;
         if (collectSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines,
