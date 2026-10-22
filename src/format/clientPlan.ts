@@ -13,6 +13,8 @@ import { ClientHeldMeleeSchema, ClientSpeciesProgramSchema, ClientQuestPageSchem
 const finite=v.pipe(v.number(),v.finite()),rgb=v.tuple([finite,finite,finite]);
 const label=v.pipe(v.string(),v.minLength(1),v.maxLength(512));
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]*$/u));
+/** A page-mode texture cap (game/shard/pagePolicy pageModeCap): inputs through `through` are held to `max`. */
+const PageCapSchema = v.strictObject({ through: v.pipe(finite, v.minValue(0)), max: v.pipe(finite, v.minValue(0)) });
 const attribute = v.pipe(v.string(), v.minLength(1), v.maxLength(64), v.regex(/^[_a-zA-Z][_a-zA-Z0-9]*$/u));
 /** O7: a water row's own draw (WaterSurface.draw): its grid per tier (custom attributes renamed for its graph), level,
  *  baked floor, dry rectangles, foam boxes, and params lent from the product's toon lighting uniforms. */
@@ -61,6 +63,12 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({kind:v.literal('bag.finds'),id,quest:id,file:label}),
   v.strictObject({kind:v.literal('look.painterly'),shadeTint:rgb,rimColor:rgb,wind:v.strictObject({x:finite,z:finite,strength:finite})}),
   v.strictObject({ kind: v.literal('audio.scene') }),
+  // G571: a shard's declared forest page (and its cave at the page-mode texture cap), its weather and its ambient life
+  v.strictObject({ kind: v.literal('world.forest-page'), file: label, cave: v.exactOptional(v.strictObject({ file: label,
+    cap: v.strictObject({ shard: v.nullable(PageCapSchema), grid: v.nullable(PageCapSchema) }),
+    spots: v.exactOptional(v.strictObject({ ranged: label, zone: id, fade: finite, max: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256)) })) })) }),
+  v.strictObject({ kind: v.literal('weather.forest'), file: label }),
+  v.strictObject({ kind: v.literal('page.life'), file: label, ranged: label, object: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('held.ranged-page'), file: label, shadowBatch: v.exactOptional(v.strictObject({ shard: v.boolean(), grid: v.boolean() })) }),
   v.strictObject({ kind: v.literal('quest.continuation'), file: label }),
   v.strictObject({ kind: v.literal('quest.world'), file: label, ambient: v.exactOptional(id) }),

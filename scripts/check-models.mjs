@@ -96,7 +96,6 @@ export const DONE = {
     'src/shards/nalati-grasslands-legacy/world/dressing/statics.ts': { why: "the region meshes the dressing's prop models are painted into (placed drawnInto), and the fences' timber layer", counts: { mergeGeometries: 2 } },
     'src/shards/nalati-grasslands-legacy/weapons/recurve.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/nalati-grasslands-legacy/species/sheep.ts': { why: "the sheep rig's fleece merged onto it (a creature, M5)", counts: { mergeGeometries: 1 } },
-    'src/game/weather/forest.ts': { why: 'Weather particles and puddles are effects; the retained instance draw follows the prepared weather rows.', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/world/WeatherFX.ts': { why: 'Frozen rain and snow retain the original effect instance draw.', counts: { InstancedMesh: 1 } },
     'src/shards/nalati-grasslands-legacy/playground/HorsePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
     'src/shards/nalati-grasslands-legacy/weapons/meleeGeo.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
@@ -131,7 +130,6 @@ export const DONE = {
     'src/shards/pine-hollow-legacy/world/trophyWall.ts': { why: "the frozen copy keeps its own trophy wall mounts (a creature's head built from its rig); the primary wall moved to @wildshard/game/compendium/trophyWall", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow-legacy/world/crags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
     'src/shards/pine-hollow-legacy/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
-    'src/shards/pine-hollow/runtime/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders (SHARD-PLATFORM W2a, moved from world/landmarks.ts, whose entry still covers its frozen legacy copy)", counts: { 'registry add with object': 1 } },
     'src/shards/pine-hollow-legacy/world/streams.ts': { why: "the frozen legacy copy's creek, waterfall and plunge foam (the primary moved to runtime/world/streams.ts; this entry covers pine-hollow-legacy)", counts: { InstancedMesh: 1 } },
     'src/shards/pine-hollow-legacy/weapons/longbowView.ts': { why: "the frozen legacy copy's held longbow build (the primary moved to runtime/weapons/longbowView.ts; this entry covers pine-hollow-legacy)", counts: { mergeGeometries: 2 } },
     // 2d0e3fcb7 removed the primary gun builds; immutable hashes remain in legacy-shards.json:391-392.
@@ -148,7 +146,9 @@ export const DONE = {
     'src/game/boss/encounterView.ts': { why: 'Moved from Nalati: a cloud body\'s puffs (one row-sized draw) and an encounter site\'s empty stand-in for a variant no site wears; the sites themselves are placed through place()', counts: { InstancedMesh: 2 } },
     'src/game/practice/course.ts': { why: 'The existing riding and grapple practice rooms share one row-owned registration; no shard world content', counts: { 'registry add with object': 1 } },
     'src/game/weapons/heldPolearm.ts': { why: '90b6eb13ce: the held spear retains its original single thrown-javelin draw; the empty placeholder allocation is retired', counts: { InstancedMesh: 1 } },
-    'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared native batch reserves named models and ordered fixed world instances; bounded rows own capacity and material, never shard drawing callbacks', counts: { BatchedMesh: 1 } },
+    'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared world-scene batch of fixed LOD instances, drawn instanced (E271 / E272: no multi-draw) and registered as one world piece; bounded rows own capacity and material, never shard drawing callbacks', counts: { 'registry add with object': 1 } },
+    'src/game/shardfile/clientForestPage.ts': { why: "G571: a forest page's cave lights (the interior's shaft and drips) added as world, without colliders, as Pine's landmarks did", counts: { 'registry add with object': 1 } },
+    'src/game/weather/forest.ts': { why: 'Weather particles and puddles are effects; the retained instance draw follows the prepared weather rows.', counts: { InstancedMesh: 1 } },
     'src/game/shardfile/worldSceneWeld.ts': { why: 'Frozen Z2 instances hydrate declared capacity and matrix rows as Scope-owned native draws; no procedural shard content', counts: { InstancedMesh: 1 } },
     'src/game/shardfile/worldScenes.ts': { why: 'G483: declared static scene parts own their collider rows through the resident registry; no procedural shard construction', counts: { 'registry add with object': 1 } },
     // 7def4ee68: same Sky chain / Signal rope instance draw, moved to its host.

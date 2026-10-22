@@ -64,6 +64,31 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     sections: ['held/finishes'], install: installClientCatalogue },
   'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', sections: [], install: installClientAdventurePersistence },
   'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: installClientMeadow },
+  // G571: the declared forest page (world 30, after world.scenes; its play stage puts the cave's spots on the ranged page
+  // before the weather (40) and the page's life (65) build, their order when a shard's plugin built them)
+  'world.forest-page': { phase: 'world', rank: 30, lifetime: 'entered', sections: [],
+    install: async (ctx, row) => {
+      if (row.kind !== 'world.forest-page') throw new Error('Invalid forest page feature');
+      const { installClientForestPage } = await import('./clientForestPage');
+      await installClientForestPage(ctx, row);
+    },
+    play: { rank: 35, install: async (ctx, row) => {
+      if (row.kind !== 'world.forest-page') throw new Error('Invalid forest page feature');
+      const { enterClientForestPage } = await import('./clientForestPage');
+      await enterClientForestPage(ctx, row);
+    } } },
+  'weather.forest': { phase: 'play', rank: 40, lifetime: 'entered', sections: [],
+    install: async (ctx, row) => {
+      if (row.kind !== 'weather.forest') throw new Error('Invalid forest weather feature');
+      const { installClientForestWeather } = await import('./clientForestPage');
+      await installClientForestWeather(ctx, row.file);
+    } },
+  'page.life': { phase: 'play', rank: 65, lifetime: 'entered', sections: [],
+    install: async (ctx, row) => {
+      if (row.kind !== 'page.life') throw new Error('Invalid page life feature');
+      const { installClientPageLife } = await import('./clientForestPage');
+      await installClientPageLife(ctx, row);
+    } },
   'held.ranged-page': { phase: 'world', rank: 60, lifetime: 'entered', sections: ['held/finishes'],
     install: async (ctx, row) => {
       if (row.kind !== 'held.ranged-page') throw new Error('Invalid ranged page feature');
@@ -237,6 +262,13 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       if(draw.dry.length>(water.surface.dry?.slots??0))throw new Error('Water clips more dry rectangles than its surface has slots');
     }
     for (const row of plan.features) if (row.kind === 'held.ranged-page' && !product.hasFile(row.file)) throw new Error('Ranged page requires its admitted data file');
+    // G571: a forest page, its cave, weather and life name admitted files; a cave's spots and the life name a declared ranged page
+    for (const row of plan.features) {
+      if ((row.kind === 'world.forest-page' || row.kind === 'weather.forest' || row.kind === 'page.life') && !product.hasFile(row.file)) throw new Error('Forest page features require their admitted data files');
+      if (row.kind === 'world.forest-page' && row.cave !== undefined && !product.hasFile(row.cave.file)) throw new Error('Forest page cave requires its admitted data file');
+      const ranged = row.kind === 'page.life' ? row.ranged : row.kind === 'world.forest-page' ? row.cave?.spots?.ranged : undefined;
+      if (ranged !== undefined && !plan.features.some(feature => feature.kind === 'held.ranged-page')) throw new Error('Forest page ambience requires a ranged page');
+    }
     for (const row of plan.features) if ((row.kind === 'state.adventure' || row.kind === 'world.meadow') && !product.hasFile(row.file)) throw new Error('World services require their admitted data files');
     for (const row of plan.features) if (row.kind === 'riding.session' && (!product.hasFile(row.file) || !plan.features.some(feature => feature.kind === 'population.wildlife'))) throw new Error('Riding requires its admitted session file and wildlife feature');
     for (const row of plan.features) if (row.kind === 'population.wildlife' && [row.file, row.crowd.json, row.crowd.binary].some(file => !product.hasFile(file))) throw new Error('Wildlife requires its admitted population and crowd files');

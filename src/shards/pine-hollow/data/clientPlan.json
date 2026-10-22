@@ -63,6 +63,36 @@
       "quest": "pine.quest-page",
       "animals": "pine.animals",
       "sounds": "pine.quest-sounds"
+    },
+    {
+      "kind": "world.forest-page",
+      "file": "world/forest-page.json",
+      "cave": {
+        "file": "world/cave-interior.json",
+        "cap": {
+          "shard": null,
+          "grid": {
+            "through": 1024,
+            "max": 512
+          }
+        },
+        "spots": {
+          "ranged": "pine.ranged",
+          "zone": "cave",
+          "fade": 3,
+          "max": 256
+        }
+      }
+    },
+    {
+      "kind": "weather.forest",
+      "file": "world/forest-weather.json"
+    },
+    {
+      "kind": "page.life",
+      "file": "actors/page-life.json",
+      "ranged": "pine.ranged",
+      "object": "pineLife"
     }
   ]
 }
