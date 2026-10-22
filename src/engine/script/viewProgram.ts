@@ -26,8 +26,10 @@ export interface ViewSlots { actor: (slot: number) => ViewSlotActor | null }
 /** What a program borrows from its owner. `floor` / `slots` are null for a piece / group the owner lacks. */
 export interface ViewProgramPorts {
   readonly scope: Scope;
-  readonly player: { readonly position: Vector3; readonly velocity: Vector3 };
+  readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number };
   readonly camera: Camera;
+  /** a lent numeric snapshot by id: each named field read once a frame; null for one the owner lacks */
+  readonly values: (source: string) => ((field: string) => number) | null;
   readonly floor: (piece: string) => ((x: number, z: number) => number | undefined) | null;
   readonly slots: (group: string) => ViewSlots | null;
   readonly object: (id: string) => Object3D;
@@ -66,6 +68,10 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
     const floor = ports.floor(row.piece); if (floor === null) return null; floors.set(row.piece, floor);
   }
   for (const row of rows.pools) { const slots = ports.slots(row.group); if (slots === null) return null; pools.set(row.id, { slots, row }); }
+  const sources = new Map<string, (field: string) => number>();
+  for (const row of rows.samples) if (row.kind === 'value' && !sources.has(row.source)) {
+    const read = ports.values(row.source); if (read === null) return null; sources.set(row.source, read);
+  }
   const scope = ports.scope, live = (): boolean => !scope.disposed && !scope.disposing;
   const position = new Vector3(), rotation = new Quaternion(), size = new Vector3();
   /** A target: a lent object is resolved and claimed once; a slot's actor on each write, re-claimed when its identity changes. */
@@ -194,9 +200,14 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
         }
         continue;
       }
+      if (row.kind === 'value') {
+        const value = sources.get(row.source)?.(row.field) ?? Number.NaN;
+        if (!Number.isFinite(value)) throw new Error(`View value ${row.source}.${row.field} is not finite`);
+        put(value, true); continue;
+      }
       const floor = row.kind === 'floor' ? floors.get(row.piece)?.(p.x, p.z) : undefined;
       put(row.kind === 'constant' ? row.value : row.kind === 'floor' ? (row.field === 'present' ? Number(floor !== undefined) : floor ?? 0)
-        : row.field === 'speed' ? Math.hypot(player.velocity.x, player.velocity.z) : p[row.field], true);
+        : row.field === 'speed' ? Math.hypot(player.velocity.x, player.velocity.z) : row.field === 'yaw' ? player.yaw : p[row.field], true);
     }
     tick++;
     lane.frame(dt, 0, tick, [{ previousTick: tick - 1, currentTick: tick, values: columns }], 60, () => performance.now());

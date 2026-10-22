@@ -36,8 +36,8 @@ test('a view program lands its matrices on lent objects, its bank on the camera 
   const module = await compileScriptV2(LANTERN, { lane: 'view', ioBytes: 4096 });
   const scope = new Scope('marsh'), camera = new PerspectiveCamera(), lantern = new Object3D(), looks: [string, string, number][] = [];
   lantern.position.set(5, 1, 0);
-  const player = { position: new Vector3(3, 0, 0), velocity: new Vector3() };
-  const ports = (pieces: Record<string, number>) => ({ scope, player, camera, slots: () => null, object: (id: string) => { if (id !== 'lantern') throw new Error(id); return lantern; },
+  const player = { position: new Vector3(3, 0, 0), velocity: new Vector3(), yaw: 0 };
+  const ports = (pieces: Record<string, number>) => ({ scope, player, camera, slots: () => null, values: () => null, object: (id: string) => { if (id !== 'lantern') throw new Error(id); return lantern; },
     floor: (piece: string) => { const height = pieces[piece]; return height === undefined ? null : () => height; },
     look: (look: string, param: string, value: number) => { looks.push([look, param, value]); } });
   try {
@@ -65,8 +65,8 @@ test('instanced copies, bones, visibility, opacity, uniforms and per-copy attrib
     channels: [{ kind: 'visible', object: 'ghost' }, { kind: 'opacity', object: 'ghost' }, { kind: 'uniform', object: 'ghost', uniform: 'uFade' },
       { kind: 'attribute', object: 'herd', attribute: 'aFade', index: 1, component: 0 }],
     transforms: [{ kind: 'instance', object: 'herd', index: 1 }, { kind: 'bone', object: 'rider', bone: 'arm' }] });
-  const program = viewProgram(module, marsh, { scope, player: { position: new Vector3(4, 0, 0), velocity: new Vector3() }, camera: new PerspectiveCamera(),
-    floor: () => null, slots: () => null, look: () => undefined, object: id => { const found = objects[id]; if (found === undefined) throw new Error(id); return found; } });
+  const program = viewProgram(module, marsh, { scope, player: { position: new Vector3(4, 0, 0), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(),
+    floor: () => null, slots: () => null, values: () => null, look: () => undefined, object: id => { const found = objects[id]; if (found === undefined) throw new Error(id); return found; } });
   if (program === null) throw new Error('Missing program');
   try {
     program.frame(1 / 60);
@@ -89,7 +89,7 @@ test('pool slots sample their actors and address each actor\'s object, re-claime
   const first = actor('a', .3), second = actor('b', 0), slots: (ViewSlotActor | null)[] = [first, second];
   const watch = parse(ViewProgramSchema, { ...rows, pools: [{ id: 'watch', group: 'marsh.watch', count: 2, fields: ['fade'] }], samples: [{ kind: 'pool', pool: 'watch' }],
     channels: [{ kind: 'opacity', object: { pool: 'watch', slot: 0 } }, { kind: 'color', object: { pool: 'watch', slot: 0 }, color: [1, .5, 0] }, { kind: 'field', pool: 'watch', slot: 0, field: 'lift' }], transforms: [{ kind: 'object', object: { pool: 'watch', slot: 1 } }] });
-  const ports = (lent: boolean) => ({ scope, player: { position: new Vector3(), velocity: new Vector3() }, camera: new PerspectiveCamera(), floor: () => null,
+  const ports = (lent: boolean) => ({ scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(), floor: () => null, values: () => null,
     slots: (group: string) => lent && group === 'marsh.watch' ? { actor: (slot: number) => slots[slot] ?? null } : null,
     look: () => undefined, object: (id: string): Object3D => { throw new Error(id); } });
   expect(viewProgram(module, watch, ports(false))).toBeNull();
@@ -108,4 +108,22 @@ test('pool slots sample their actors and address each actor\'s object, re-claime
   } finally { scope.dispose(); }
   expect(opacity(third)).toBe(1);
   expect(() => parse(ViewProgramSchema, { ...watch, transforms: [{ kind: 'object', object: { pool: 'watch', slot: 2 } }] })).toThrow();
+});
+
+test('lent values and the player yaw are sample columns; a missing source installs nothing', async () => {
+  const module = await compileScriptV2(LANTERN, { lane: 'view', ioBytes: 4096 });
+  const scope = new Scope('marsh.carry'), lantern = new Object3D(), law: Record<string, number> = { goal: 3 };
+  const carry = parse(ViewProgramSchema, { ...rows, samples: [{ kind: 'player', field: 'yaw' }, { kind: 'value', source: 'carry', field: 'goal' }],
+    channels: [{ kind: 'look', look: 'marsh-lantern', param: 'goal' }], transforms: [{ kind: 'object', object: 'lantern' }] });
+  const looks: number[] = [];
+  const ports = (lent: boolean) => ({ scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: .5 }, camera: new PerspectiveCamera(), floor: () => null, slots: () => null,
+    values: (source: string) => lent && source === 'carry' ? (field: string) => law[field] ?? Number.NaN : null,
+    look: (_look: string, _param: string, value: number) => { looks.push(value); }, object: () => lantern });
+  try {
+    expect(viewProgram(module, carry, ports(false))).toBeNull();
+    const program = viewProgram(module, carry, ports(true)); if (program === null) throw new Error('Missing program');
+    program.frame(1 / 60);
+    expect(lantern.position.x).toBeCloseTo(.5); expect(looks).toEqual([3]);
+    law['goal'] = Number.NaN; expect(() => { program.frame(1 / 60); }).toThrow('not finite');
+  } finally { scope.dispose(); }
 });
