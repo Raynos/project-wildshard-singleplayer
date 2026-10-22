@@ -79,7 +79,7 @@ import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 import type { ClientSkin } from '../shardfile/clientSkins';
 import { readShaderWarmChoice } from './keptPrograms';
-import { setWarmUpHeld } from '@wildshard/engine/render/precompile';
+import { setParkedMatricesFrozen, setWarmUpHeld } from '@wildshard/engine/render/precompile';
 import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 import { NeighbourPanels } from './neighbourPanels';
 import { copyMarks } from './copyIdentity';
@@ -298,7 +298,8 @@ export class GridSession {
   private readonly cellLoading: CellLoading;
   private cellLoadingPolled = 0;
   /** G580 T2: the Developer shader warm-up choice lets a held warm-up issue more programs a frame */
-  private readonly heldWarmUp = readShaderWarmChoice() === 'held';
+  private readonly heldWarmUp = ['held', 'frozen'].includes(readShaderWarmChoice());
+  private readonly frozenParked = readShaderWarmChoice() === 'frozen';
   /** when each cell's current wait began, so its screen counts only the hooks of this load */
   private readonly loadingSince = new Map<string, number>();
 
@@ -418,7 +419,8 @@ export class GridSession {
       const edge = facingEdge(neighbourEdges(cell, home), centre, world.x - cell.origin.x, world.z - cell.origin.z);
       return edge === undefined ? null : { edge: { instance: waiting, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }, cell: centre, ground: edge.floor };
     });
-    host.scope.onDispose(() => { this.cellLoading.close(); if (this.heldWarmUp) setWarmUpHeld(false); });
+    if (this.frozenParked) setParkedMatricesFrozen(true);
+    host.scope.onDispose(() => { this.cellLoading.close(); if (this.heldWarmUp) setWarmUpHeld(false); if (this.frozenParked) setParkedMatricesFrozen(false); });
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
     let status: CrossingSaveStatus = null, polled = 0;

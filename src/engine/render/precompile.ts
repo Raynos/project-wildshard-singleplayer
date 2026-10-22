@@ -696,6 +696,27 @@ let warmUpHeld = false;
 /** Whether the traveller waits for a live warm-up (a grid cell's loading screen shows); the grid sets it, off by default. */
 export function setWarmUpHeld(held: boolean): void { warmUpHeld = held; }
 const programsPerFrame = (): number => (warmUpHeld ? LIVE_HELD_PROGRAMS_PER_FRAME : LIVE_PROGRAMS_PER_FRAME);
+let parkedFrozen = false;
+/** G580 T2: whether a live warm-up freezes its parked (invisible) future root's matrices (`freezeParkedMatrices`); the grid
+ *  sets it, off by default. */
+export function setParkedMatricesFrozen(frozen: boolean): void { parkedFrozen = frozen; }
+export function parkedMatricesFrozen(): boolean { return parkedFrozen; }
+/**
+ * G580 T2: three recomputes every matrix under an invisible root each frame (`updateMatrixWorld` ignores visibility): a
+ * parked destination world cost Pine's warm-up 8 s of its 27 s. Bring `root`'s subtree up to date once, then skip it while
+ * the root stays invisible (a warm-up draw that shows it updates it as usual). The returned thaw restores the root's own
+ * update and refreshes the subtree.
+ */
+export function freezeParkedMatrices(root: THREE.Object3D): () => void {
+  const update = root.updateMatrixWorld.bind(root);
+  update(true);
+  const frozen = (force?: boolean): void => { if (root.visible) update(force); };
+  root.updateMatrixWorld = frozen;
+  return () => {
+    if (root.updateMatrixWorld === frozen) Reflect.deleteProperty(root, 'updateMatrixWorld');
+    root.updateMatrixWorld(true);
+  };
+}
 /**
  * O14: how long live preparation leaves an unfinished link before it asks again (ms). WebKit answers COMPLETION_STATUS
  * through its GPU process, behind every compile still queued there: ~20 ms a query on the Simulator. Asked once a slice,

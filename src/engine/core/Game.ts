@@ -857,7 +857,11 @@ export class Game {
     };
     const isolateImageUploads = setting('buildPacing') === 'links'
       || navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
+    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS,
+      parkedMatricesFrozen, freezeParkedMatrices } = await import('../render/precompile');
+    // G580 T2 (Developer): the parked destination's static matrices are not recomputed every frame while it waits hidden
+    const thaw = futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && parkedMatricesFrozen() ? freezeParkedMatrices(futureRoot) : undefined;
+    try {
     const pause = (isolateImageUploads || setting('buildPacing') === 'entry') && this.frameCount > 0
       ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
@@ -915,6 +919,7 @@ export class Game {
       (done, total) => { progress(done, total, `${done} / ${total} render passes warmed`); });
     onStage('offscreen-draws', diagnosticNow() - offscreenStart, passes);
     trace.completed = true;
+    } finally { thaw?.(); }
   }
 
   /**
