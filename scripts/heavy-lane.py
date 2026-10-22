@@ -301,7 +301,7 @@ def mirror_first(command, wrapper):
             return [*command[:split + 1], *wrapper, *command[split + 1:]]
         if action == 'sync':
             return command
-    if script in ('batch-check.sh', 'serve-build.sh', 'batch_check.py') and '--inside' not in command:
+    if script == 'serve-build.sh' and '--inside' not in command:
         return command
     return None
 

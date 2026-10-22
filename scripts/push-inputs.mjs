@@ -65,7 +65,7 @@ export function sourceWalker(root, runtimeOnly = false) {
 export function sourceInputs(root, files) { return sourceWalker(root)(files); }
 
 /** Live push tests cannot launch builders, browsers or other external jobs.
- * CI and batch checks retain the full selection and its product edges.
+ * CI retains the full selection and its product edges.
  * @param {string} root @param {readonly string[]} tests @param {Record<string,string[]>} products
  * @returns {string[]} */
 export function liveTests(root, tests, products) {

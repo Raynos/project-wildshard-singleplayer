@@ -124,13 +124,12 @@ class LeaseOrderTests(unittest.TestCase):
     def test_self_managed_checks_delegate_without_an_outer_lease(self):
         order = runpy.run_path(HEAVY)['mirror_first']
         wrapper = [sys.executable, HEAVY, 'build', '--']
-        for script in ('batch-check.sh', 'serve-build.sh', 'batch_check.py'):
+        for script in ('serve-build.sh',):
             command = ['python3' if script.endswith('.py') else 'bash', 'scripts/' + script, '--rev', 'HEAD']
             self.assertEqual(order(command, wrapper), command)
             self.assertEqual(order(command[1:], wrapper), command[1:])
         explicit = ['node', 'scripts/build-mirror.mjs', 'run', 'abc', '--slot', 'check4', '--', 'producer', '--literal']
         self.assertEqual(order(explicit, wrapper), ['node', 'scripts/build-mirror.mjs', 'run', 'abc', '--slot', 'check4', '--', *wrapper, 'producer', '--literal'])
-        self.assertIsNone(order(['python3', 'scripts/batch_check.py', '--inside'], wrapper))
 
 
 if __name__ == '__main__':

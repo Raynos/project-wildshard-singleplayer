@@ -229,7 +229,6 @@
   "test/audio-voice-patches.test.ts": [],
   "test/field-presentation.test.ts": [],
   "test/nalati-flock-view.test.ts": [],
-  "test/batch-check.test.ts": [],
   "test/mover-carry.test.ts": [
     "pine-hollow"
   ]

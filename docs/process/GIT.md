@@ -140,8 +140,8 @@ rewrite still needs Jake's approval.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
   shared working tree and index. Missing generated test inputs follow the explicit cache-miss rule above.
 - **Disk-reading tests declare their products** in `scripts/test-products.json`.
-  The related-test walk retains their author-source edges; CI and batch checks
-  verify/rebuild selected products with `--reuse --shard=…`. The scheduled local
+  The related-test walk retains their author-source edges; CI
+  verifies/rebuilds selected products with `--reuse --shard=…`. The scheduled local
   gate defers these product-reading tests to CI. Cold runtime fixtures read the
   complete outputs rather than hand-listing boot dependencies; unregistered disk scenarios refuse. Mirror sync
   retains admitted producer groups, invalidates incomplete groups for the next

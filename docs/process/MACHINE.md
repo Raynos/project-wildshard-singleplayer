@@ -46,9 +46,12 @@ and app Vite builds refuse an absent or copied lease before workers start. Focus
 unrestricted; `--project`, `--shard` and reporter flags alone are still full runs. Listing tests needs no lease.
 An SDK package build that includes its app clients also runs through the build wrapper.
 
-**Lock order: mirror slot, then heavy lease.** Run batch-check and serve-build directly; they request their build
+**Per slice (G568, G612): types, lint and focused tests.** No batch checks, exact-commit mirror checks or checks
+on unlanded commit objects. Land small source changes; the push gate, CI and exact-SHA boot smoke own the full gate.
+
+**Lock order: mirror slot, then heavy lease.** Run serve-build directly; it requests its build
 leases inside the mirror. The heavy wrapper hoists an explicit mirror command outside its lease and delegates
-self-managed check/serve commands. A nested or unknown shell wrapper that tries to enter a mirror while holding a
+self-managed serve commands. A nested or unknown shell wrapper that tries to enter a mirror while holding a
 heavy lease refuses before joining the slot queue. Release the outer lease and put heavy-lane inside build-mirror
 instead; no build capacity may be held while waiting for a mirror.
 
@@ -67,8 +70,8 @@ full-test lease; request `check` up front when one ordinary command needs both r
 For 24 hours from the first observed build, the wrapper writes queue seconds, build seconds, exit code and start/end
 load averages to one report-only `~/.wildshard-heavy-lanes/build-day.log` (or `WS_HEAVY_ROOT/build-day.log`). Nested
 builds are labelled `inherited`; they take no additional slot. An expired log stops collecting automatically, and
-logging errors never change the build's result. Batch first-frame checks share one preview containing every requested
-shard, while each shard keeps its own muted iPhone check and the preview closes on success or failure.
+logging errors never change the build's result. After a needed capture, close the owned preview immediately;
+previews hold mirror slots for minutes, not hours.
 
 The default owned-command deadline is 30 minutes (`--max <minutes>`); queue time is separate. Signals and deadlines
 stop only the wrapper's own process group. The command inherits the lock descriptors, so killing a wrapper cannot
