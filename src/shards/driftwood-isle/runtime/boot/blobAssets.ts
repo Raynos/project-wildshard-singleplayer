@@ -35,6 +35,11 @@ export function fixedGeometryGroups(): FixedGeometryGroups {
 }
 /** The current owned templates have completed their admitted intake. */
 export function fixedGeometryReady(): boolean { return library?.ready ?? false; }
+/** The loaded fixed-draw library itself (for its entry-owner publication); refuses before its one intake completed. */
+export function fixedDrawLibrary(): FixedDraws {
+  if (library === null || !library.ready) throw new Error('Driftwood fixed draws are not loaded');
+  return library;
+}
 /** Acquire original source draws through the existing assembler, or named blobs for cold Explorer cards. */
 export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readWholeGeometry>[0]): Promise<void> {
   const product = bytes === undefined && owner === undefined ? await loadDriftwoodProduct() : driftwoodProduct();
