@@ -13,7 +13,6 @@ import { Bow } from '../weapons/Bow';
 import { loadHeldBow } from '../weapons/heldLauncher';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import type { ArcWeaponPower } from '../weapons/arcPower';
-import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
@@ -28,7 +27,6 @@ export interface MountedLoadout {
   upgradeSabre:(weapons:EquipmentService,power:ArcWeaponPower)=>void;
   refill:()=>void;
   setMount:(state:Blade['mount'])=>void;
-  melee:(id:WeaponId)=>boolean;
 }
 
 const enteredKits = new WeakMap<Scope, MountedLoadout>();
@@ -101,7 +99,6 @@ export class MountedArsenal {
       },
       refill:()=>{spear.javelins=spear.maxJavelins;kit.bow.addBolts(kit.bow.magazine);},
       setMount:state=>{kit.sabre.mount=state;spear.mount=state;kit.bow.setMount(state);},
-      melee:id=>[kit.sabre,spear,kit.bow].some(weapon=>weapon.id===id&&weapon.row.ui.melee),
     };
     return kit;
   }
