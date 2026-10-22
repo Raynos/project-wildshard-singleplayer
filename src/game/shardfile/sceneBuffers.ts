@@ -1,6 +1,8 @@
 import { BufferAttribute, BufferGeometry, Group, InstancedBufferAttribute, InstancedBufferGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, LOD, Mesh, Object3D, Points, Sphere, Vector3, type Material } from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Scope } from '@wildshard/engine/app/scope';
+import type { App } from '@wildshard/engine/app/app';
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
 import type { PlumbingData } from '@wildshard/format/plumbing';
 import { plumbingKnob } from '../shard/declaredPlumbing';
@@ -44,10 +46,20 @@ function decode(row: SceneBuffers): ReadonlyMap<string, Storage> {
 export function admitSceneBuffers(input: unknown): SceneBuffers {
   const row = parseSceneBuffers(input); decode(row); return row;
 }
-/** Reconstruct baked draws with shared attributes and interleaves. Data alone supplies topology, bounds, counts and LODs. */
-export function createSceneBuffers(input: unknown, material: Material, scope: Scope, plumbing?: PlumbingData | null): Group {
-  const row = parseSceneBuffers(input), storage = decode(row);
-  if (scope.disposed) throw new Error('Scene buffer scope is disposed');
+/** An admitted content URL and its authoritative resource owner, never an entered root or material. */
+export interface SceneBufferReuse {
+  readonly content: string;
+  readonly assets: Pick<App['assets'], 'register' | 'acquireResource' | 'evictCached'>;
+}
+const builds = new WeakMap<SceneBufferReuse['assets'], Map<string, ReadonlyMap<string, BufferGeometry>>>();
+function instanceCounts(row: SceneBuffers, plumbing: PlumbingData | null | undefined): readonly (number | undefined)[] {
+  return row.geometries.map(definition => {
+    const count = definition.instances;
+    return typeof count === 'object' ? plumbingKnob(plumbing, TIER, count.knob, 'number') >= count.threshold ? count.above : count.below : count;
+  });
+}
+function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined)[], own: (geometry: BufferGeometry) => void): ReadonlyMap<string, BufferGeometry> {
+  const storage = decode(row);
   const buffers = new Map<string, InterleavedBuffer>();
   for (const buffer of row.buffers) {
     if (buffer.stride === undefined) continue;
@@ -63,10 +75,10 @@ export function createSceneBuffers(input: unknown, material: Material, scope: Sc
       ? source.instanced ? new InstancedBufferAttribute(values, attribute.size, attribute.normalized) : new BufferAttribute(values, attribute.size, attribute.normalized)
       : new InterleavedBufferAttribute(interleaved, attribute.size, attribute.offset, attribute.normalized));
   }
-  const geometries = new Map<string, BufferGeometry>(), owner = scope.child('buffered-draws');
-  try {
-    for (const definition of row.geometries) {
-      const geometry = owner.own(definition.instances === undefined ? new BufferGeometry() : new InstancedBufferGeometry());
+  const geometries = new Map<string, BufferGeometry>();
+  for (const [geometryIndex, definition] of row.geometries.entries()) {
+    const geometry = definition.instances === undefined ? new BufferGeometry() : new InstancedBufferGeometry();
+    try {
       for (const [name, id] of Object.entries(definition.attributes)) {
         const attribute = attributes.get(id); if (attribute === undefined) throw new Error('Missing admitted scene channel');
         geometry.setAttribute(name, attribute);
@@ -80,15 +92,60 @@ export function createSceneBuffers(input: unknown, material: Material, scope: Sc
         geometry.setIndex(index);
       }
       if (geometry instanceof InstancedBufferGeometry && definition.instances !== undefined) {
-        const count = definition.instances;
-        geometry.instanceCount = typeof count === 'number' ? count : plumbingKnob(plumbing, TIER, count.knob, 'number') >= count.threshold ? count.above : count.below;
+        const count = counts[geometryIndex];
+        if (count === undefined) throw new Error('Missing admitted instance count');
+        geometry.instanceCount = count;
         for (const attribute of Object.values(geometry.attributes)) {
           const instanced = attribute instanceof InstancedBufferAttribute || attribute instanceof InterleavedBufferAttribute && attribute.data instanceof InstancedInterleavedBuffer;
           if (instanced && geometry.instanceCount > attribute.count) throw new Error('Scene instance count exceeds its channel');
         }
       }
       if (definition.sphere !== undefined) geometry.boundingSphere = new Sphere(new Vector3(definition.sphere[0], definition.sphere[1], definition.sphere[2]), definition.sphere[3]);
-      geometries.set(definition.id, geometry);
+      own(geometry); geometries.set(definition.id, geometry);
+    } catch (error) { geometry.dispose(); throw error; }
+  }
+  return geometries;
+}
+/** Fresh draw objects can borrow fixed storage through charged, pressure-evictable assets.
+ * Content identity, tier and every resolved instance count isolate reusable builds. */
+export function createSceneBuffers(input: unknown, material: Material, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse): Group {
+  if (scope.disposed || scope.disposing) throw new Error('Scene buffer scope is disposed or retiring');
+  const row = parseSceneBuffers(input), counts = instanceCounts(row, plumbing), owner = scope.child('buffered-draws');
+  try {
+    let geometries: ReadonlyMap<string, BufferGeometry>;
+    if (reuse === undefined) geometries = buildGeometries(row, counts, geometry => { owner.own(geometry); });
+    else {
+      if (reuse.content.length === 0) throw new Error('Reusable scene buffers need admitted content identity');
+      let memo = builds.get(reuse.assets);
+      if (memo === undefined) { memo = new Map(); builds.set(reuse.assets, memo); }
+      const key = JSON.stringify([reuse.content, TIER, counts]), known = memo.get(key);
+      if (known !== undefined) {
+        geometries = known;
+        for (const geometry of geometries.values()) {
+          const release = reuse.assets.acquireResource(geometry);
+          if (release === null) throw new Error('Reusable scene geometry has retired');
+          owner.onDispose(release);
+        }
+      } else {
+        const registered: string[] = [];
+        try {
+          geometries = buildGeometries(row, counts, geometry => {
+            const asset = `scene:${geometry.uuid}`;
+            reuse.assets.register(asset, geometry, { retain: true, cache: true, reusable: true });
+            registered.push(asset);
+            const release = reuse.assets.acquireResource(geometry);
+            if (release === null) throw new Error('New scene geometry has no owner');
+            owner.onDispose(release);
+          });
+        } catch (error) {
+          owner.dispose();
+          for (const asset of registered) reuse.assets.evictCached(asset);
+          throw error;
+        }
+        const cache = memo, built = geometries;
+        memo.set(key, geometries);
+        cacheUntilDisposed(geometries, () => { if (cache.get(key) === built) cache.delete(key); });
+      }
     }
     const group = new Group(); group.name = row.name;
     const make = (draw: NonNullable<SceneBuffers['draws'][number]['draw']> | undefined): Object3D => {

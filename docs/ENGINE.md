@@ -446,6 +446,10 @@ CPU/GPU claims remain charged and ordinary allocator pressure can evict them in
 least-recently-used order. Resident caches retain their existing retirement rule.
 Every reusable memo invalidates on resource disposal with `cacheUntilDisposed`
 or `memoUntilDisposed`; it never reuses retired buffers or adds a page pin.
+World-scene buffered draws reuse geometry by admitted content URL, tier and every
+resolved instance count. Each entered scope acquires that storage and constructs
+fresh draw objects with its own materials. Unkeyed callers keep scope disposal;
+a retiring scope cannot prepare or acquire a new draw.
 
 **The leak test.** The gate loads your shard, unloads it and checks the census is back to its title-screen value
 (geometries, textures, materials, bodies, listeners, audio nodes, timers). Code-built trees use their explicit scope:
