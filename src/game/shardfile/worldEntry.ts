@@ -3,6 +3,8 @@ import type { Placed } from '@wildshard/engine/models/place';
 import type { Piece } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { floorAtRects } from '@wildshard/engine/physics/box';
+import { cutTerrain } from '@wildshard/engine/physics/terrain';
+import type { Physics } from '@wildshard/engine/physics/Physics';
 import { parseWorldEntry, type WorldEntryRows, type WorldEntryStep } from '@wildshard/format/worldEntry';
 import type { SceneHandles } from './sceneHandles';
 import { lentLook } from './lentLooks';
@@ -17,6 +19,8 @@ export interface WorldEntryPorts {
   readonly variant?: string;
   /** registers a `piece` row's piece (the world registry's add, or the level's own piece registration); required by them */
   readonly piece?: (piece: Piece) => void;
+  /** the physics a `cut` row lowers the ground of; required by them */
+  readonly physics?: Physics;
   /** refuses when the build's owner left: run before and after every row, so nothing more allocates once it retires */
   readonly fence?: () => void;
 }
@@ -73,6 +77,11 @@ export class WorldEntry {
     }
     // plain state keys only (format/worldEntry MaterialStateSchema): assigned as Material.setValues assigns them
     if (row.kind === 'look') { Object.assign(lentLook(row.look), row.state); return; }
+    if (row.kind === 'cut') {
+      const physics = this.ports.physics; if (physics === undefined) throw new Error('World entry cut needs its physics');
+      cutTerrain(physics, row.cuts);
+      return;
+    }
     if (row.kind === 'piece') {
       const register = this.ports.piece; if (register === undefined) throw new Error(`World entry piece ${row.id} needs its registration port`);
       const floors = row.floors, policy = row.floorPolicy;

@@ -61,6 +61,7 @@ export class WorldAssembly {
     } else if (stage.kind === 'entry') {
       const ports = this.ports.entry; if (ports === undefined) throw new Error('World assembly entry needs its entry ports');
       if (ports.piece === undefined && stage.rows.some(row => row.kind === 'piece')) throw new Error(`World assembly entry ${stage.id} needs its piece registration`);
+      if (ports.physics === undefined && stage.rows.some(row => row.kind === 'cut')) throw new Error(`World assembly entry ${stage.id} needs its physics`);
       const entry = WorldEntry.admit({ blocks: { [stage.id]: stage.rows } }, { ...ports, scenes, fence: live });
       await entry.run(stage.id);
       live();

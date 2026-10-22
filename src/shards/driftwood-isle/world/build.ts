@@ -49,7 +49,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
   const fixed = driftwoodRows('custom/fixedLayouts');
   const { game, sky, player, registry } = world;
-  const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadVertexWear(driftwoodProduct(), fixed.coverFiles[TIER]),driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
+  const [, islandCover, coverCells] = await Promise.all([loadFixedGeometry(undefined, game.registrationScope),loadVertexWear(driftwoodProduct(), fixed.coverFiles[TIER]),driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, generators/islandCover.ts)
   const coverMap = islandCover.texture; if (coverMap === null) throw new Error('The island cover carries its ground map');
   const slice = slicer(30, progress);
@@ -67,7 +67,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
   // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
   const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete,
-    entry: { root: game.scene, tier: game.tier, piece: (piece) => { registry.add(piece); } } });
+    entry: { root: game.scene, tier: game.tier, physics: world.physics, piece: (piece) => { registry.add(piece); } } });
   const only = (id: string): Placed => { const [placed] = entryOwner(scope, 'placed', id); if (placed === undefined) throw new Error(`Driftwood ${id} placed nothing`); return placed; };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
   await stages.next(firstPier.id);
@@ -143,7 +143,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await stages.next('cove'); // its cascade, its piece (rock walls, treads and floors) and its reef rocks (generators/worldEntry.ts)
   const cove = { group: entryOwner(scope, 'object', 'cove'), placed: entryOwner(scope, 'placed', 'cove'), crabSites: coveSpec.crabSites,
     anchors: structuredClone(coveRows.native.anchors), update: followToonLook(driftwoodProduct(), coveView.look) };
-  cutTerrain(world.physics, structuredClone(coveRows.native.cuts)); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('palms'); // The registry borrows the compacted batch and its native boxes.
   const palms = { placed: only('palms'), mesh: entryOwner(scope, 'object', 'palms'), update: updateWind };
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk

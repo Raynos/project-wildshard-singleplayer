@@ -8,6 +8,8 @@ import * as v from 'valibot';
  *   place   load a named scene placement (its models, draws, colliders and piece)
  *   look    set a lent look's material state (blend factors, depth and coverage flags, transparency)
  *   piece   register a world piece: colliders, floor rects and the scene object it stands for (G3)
+ *   cut     push the physics ground down to `below` inside yawed rects, where a walk-in space's own colliders are its
+ *           floor (the drawn terrain is untouched)
  * `when` keeps a row to one tier or one world variant (e.g. a deck ending); rows without it always run.
  */
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
@@ -36,7 +38,9 @@ const FloorRectSchema = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite
 const PieceSchema = v.strictObject({ kind: v.literal('piece'), when: v.exactOptional(when), id, name: id, file: id,
   category: v.picklist(['ground', 'nature', 'buildings', 'props']), surface, colliders: v.pipe(v.array(v.unknown()), v.maxLength(2048)),
   floors: v.pipe(v.array(FloorRectSchema), v.maxLength(4096)), floorPolicy: v.picklist(['first', 'highest']), solidFloor: v.boolean(), object: v.exactOptional(v.nullable(id)) });
-export const WorldEntryStepSchema = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema, PieceSchema]);
+const CutSchema = v.strictObject({ kind: v.literal('cut'), when: v.exactOptional(when), cuts: v.pipe(v.array(v.strictObject({ x: finite, z: finite,
+  hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), yaw: finite, below: finite })), v.minLength(1), v.maxLength(64)) });
+export const WorldEntryStepSchema = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema, PieceSchema, CutSchema]);
 export const WorldEntrySchema = v.strictObject({ blocks: v.record(id, v.pipe(v.array(WorldEntryStepSchema), v.maxLength(1024))) });
 export type WorldEntryStep = v.InferOutput<typeof WorldEntryStepSchema>;
 export type WorldEntryRows = v.InferOutput<typeof WorldEntrySchema>;

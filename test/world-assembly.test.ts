@@ -180,3 +180,12 @@ test('an entry attach row with a parent puts its part under that scene group, no
     expect(entryOwner(scope, 'placed', 'cove')).toEqual([]);
   } finally { scope.dispose(); }
 });
+test('an entry stage with a terrain cut and no physics refuses before its first row; a bad cut row refuses at admission', async () => {
+  const scope = new Scope('construction'), place = vi.fn<() => Promise<Placed>>();
+  const cut = { kind: 'cut', cuts: [{ x: 1, z: 2, hw: 3, hd: 4, yaw: 0, below: -5 }] };
+  const ports = { scope, scenes: legacyDouble<SceneHandles>({ place }), context: legacyDouble<ModelContext>({}), registry: null, entry: { root: new Group(), tier: 'phone' as const }, slice: () => Promise.resolve() };
+  const assembly = WorldAssembly.admit({ stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'place', id: 'cove.reef' }, cut] }] }, ports);
+  await expect(assembly.next('cove')).rejects.toThrow('needs its physics'); expect(place).not.toHaveBeenCalled();
+  expect(() => WorldAssembly.admit({ stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'cut', cuts: [] }] }] }, ports)).toThrow();
+  scope.dispose();
+});

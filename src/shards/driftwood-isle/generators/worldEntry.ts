@@ -37,7 +37,8 @@ export function driftwoodWorldEntry(): WorldEntryRows {
     seabed: [{ kind: 'attach', id: 'reef.mesh', as: 'mesh' }],
     smallRocks: [{ kind: 'place', id: 'rocks.small.copies' }, { kind: 'attach', id: 'rocks.small', as: 'mesh', nameAfter: 'rocks.small.copies' }],
     // Wreck Cove: its cascade and plunge pool under its root group, then the cove as one world piece (G3: its rock walls and
-    // treads, its walkable floors in authored order, its root group), then its reef rocks
-    cove: [{ kind: 'attach', id: composition.cascade, as: 'group', parent: composition.root }, { kind: 'piece', ...composition.piece, colliders: cove.native.descs, floors: cove.floors, floorPolicy: 'first', object: composition.root }, { kind: 'place', id: 'cove.reef' }],
+    // treads, its walkable floors in authored order, its root group), then its reef rocks; the drawn terrain pokes up through
+    // the sea cave, so the physics ground is cut below its floor
+    cove: [{ kind: 'attach', id: composition.cascade, as: 'group', parent: composition.root }, { kind: 'piece', ...composition.piece, colliders: cove.native.descs, floors: cove.floors, floorPolicy: 'first', object: composition.root }, { kind: 'place', id: 'cove.reef' }, { kind: 'cut', cuts: cove.native.cuts }],
   } });
 }
