@@ -1,40 +1,30 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Job (G585):** keep every lane on the top open row, answer lanes within minutes, delete process rather than add it.
-Order: live reds + G578 → Driftwood/Pine zero (G570–G573, G571 rules, G572 done bar) → grid crossing T1–T6
-(G580/G581) → Nine → Nalati → the rest (G575/G576 5x5 visuals). Rows: lanes/ready-queue.md.
+**Job (G585):** keep lanes on the top open row, delete process rather than add it. Order (G589): Pine/DW grid-ready
+pass + latch → crossing T1–T6 (G580/G581) → Nine → Nalati → the rest (G575/G576). Rows: lanes/ready-queue.md.
 
-**Census (10-22 ~07:00):** Driftwood, Pine, _template, ink-cel 0. Nalati 4,159 (charged 3,131), Nine 1,519 (405);
-open-plots 19 stays. Tonight: X42 shared course f2990e3008, X45 elite binding 0e6f6067d9, dead-code sweeps (sp-x8 src +
-scripts net -2,480 in 16 families; sp-x9 shard folders -15 counted).
+**Census:** G572 MET (G589; ruler at 6bf8c2a6e5: DW 0, Pine 0, no product failures); _template, ink-cel 0. Nalati
+4,159 (charged 3,131), Nine 1,519 (405); open-plots 19 stays.
 
-**Live:** c201ea5749; 1e24b843b9 releasing (sp-x7). Template cold-order red fixed 73c6b75110.
+**Live:** 16a7101baa (14:02Z). CI reds fixed: template order 73c6b75110, ruler 1aa987d01a, port shares 6bf8c2a6e5.
 
-**Crossing:** T2/T4/T5/T6 done default-off (Developer 'Grid shader warm-up'). T1 warm neighbour default-off;
-with pre-emption (bed6aa9cdc), page scope (58fcd22019) and source retirement (b1bd53db8b) the quiet Sim pair reads ON
-1,597/1,517 vs OFF 1,494/1,414 MB (load/play), blocked 0/0, p95 35/34 ms; warm Sky crossing 3.8 s. T3 retention
-is a net loss (templates evicted), default-off. G579 (< 5 s) not met.
+**Crossing:** T2/T4/T5/T6 default-off (Developer 'Grid shader warm-up'). T1 warm neighbour default-off; quiet Sim ON
+1,597/1,517 vs OFF 1,494/1,414 MB, blocked 0/0, p95 35/34 ms; warm Sky 3.8 s. Cold Pine ~17 s with budget; three
+stage cuts failed the whole-wait gate (3-5 s noise even quiet). G579 (< 5 s) not met.
 
-**Lanes:** Claude AND Codex at 95 % of the week (resets Sun 12:00 / Tue 27th ~01:30). All lanes stopped clean
-except sp-x7 (release) and sp-x1's last quiet prefetch pair; watchdog nudges nobody (a1aacfeeeb). Open when quota
-returns: O27, O28, G576 (Opus); crossing G579 (cold Pine ~17 s with budget; three stage cuts failed the whole-wait gate:
-noise 3-5 s even quiet), Nalati full flip (needs O27 + mounted book), Nine envelope 29.
+**Lanes:** Claude and Codex at ~96 % (resets Sun 12:00 / Tue 27th ~01:30). All lanes stopped except sp-x7 (release);
+watchdog nudges nobody (a1aacfeeeb). sp-x6 cleaned 70 stale DW/Pine tree/index paths (0 genuine work lost).
 
-**Tooling (G582/G585):** push loop + lane watchdog only, in herdr pane sp-tools (scripts/sp-tools.sh). main CI: one
-running + newest pending. Commit: scripts/commit.sh "msg" -- <files>, or --patch <file> for shared files (D9).
-HOST-BAR G571 lines: backticked engine/game/sdk/format paths ARE selectors. One coordinator docs commit an hour.
+**Tooling:** push loop + watchdog in pane sp-tools. Commit: scripts/commit.sh (or --patch for shared files).
 
-**Rules:** G492 no mid-task re-briefs; never herdr wildshard-v; no net-0 moves or relabels (G571);
-G571 credit never erases a reviewed G520 chargeback without real change; legacy copies stay (G573); G561 holds.
+**Rules:** G492; never herdr wildshard-v; no net-0 moves or relabels (G571); G573; G561.
 
-**For wildshard-v:** (G589 pass, sp-x1 at 0f9781148f) Pine grid-ready: memory passes (181.5 MB), oneFrameLooks FAILS
-(max frames 999.9/266.6/116.8 ms); DW not latched: harness bug, gridFloorPlans returns outward+return but the driver
-takes plans[0] (enters template-2, refuses DW leave). Both are rows for the reset. (00) Ruler blocker 'output omits authored runtime files' (DW/Pine) FIXED in 1aa987d01a: no runtime file
-was dropped; the ruler counted the gitignored runtime/productSections.generated.d.ts (bake-section-schemas) as authored.
-Open: the check slot's out/ (built 08:13) has Nalati/Nine runtime.entry=runtime/index.ts with files [] and no runtime/,
-so HEAD's reader says 'missing output runtime entry'; build mode or 173ec6a6ee regression, unconfirmed. Nine 9.9 MB custom sections noted, report-only. Your
-ruler refresh 95b658af85 wrote empty port shares from the failed run (CI red); 6bf8c2a6e5 restores the last valid
-table: re-run the ruler on 1aa987d01a+ before committing a refresh. (0) ZB/ZC/ZD done (DW/Pine 0/0/0); WASM H0b-H6 landed earlier. (1) RECOMMEND default-on, after Jake's phone check, of 'Grid shader warm-up' = budget (sp-x6 cold
-A/B at 886712c946: Sky wait 12.1 -> 5.5 s, Pine 30.0 -> 16.9 s) and T1 warm neighbour (+103 MB; warm Sky 3.8 s). (2) Round-36 far variants for your board: fc3338f4fd,
-art/grid/round-36-far-variants/ (60 labelled JPEGs). Grey = shipped haze; haze off shows the 14 open plots
-as bare ground (holograms not in the far proxy). 60 fps.
+**For wildshard-v:**
+(1) G589 pass (sp-x1, 0f9781148f): Pine memory passes (181.5 MB), oneFrameLooks FAILS (max frames 999.9/266.6/
+116.8 ms). DW not latched: harness bug, gridFloorPlans returns outward+return but the driver takes plans[0].
+(2) Ruler: 1aa987d01a stops counting runtime/productSections.generated.d.ts as authored. Re-run on 1aa987d01a+
+before committing a refresh (95b658af85 wrote empty port shares; 6bf8c2a6e5 restored them). Open: a check-slot
+out/ had Nalati/Nine runtime.entry with files [] ('missing output runtime entry'); build mode or 173ec6a6ee, unconfirmed.
+(3) RECOMMEND default-on after Jake's phone check: 'Grid shader warm-up' = budget (cold Sky 12.1 -> 5.5 s, Pine
+30.0 -> 16.9 s) and T1 warm neighbour (+103 MB).
+(4) Round-36 far variants for your board: fc3338f4fd, art/grid/round-36-far-variants/.
