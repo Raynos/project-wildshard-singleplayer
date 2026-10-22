@@ -741,6 +741,13 @@ algorithm, preserving initial/identity fields. Projections borrow the caller's
 stream and commit its advance only with all channels; refusal rewinds the loan.
 No random stream is reseeded because a transient handle changed.
 
+The memory-only AS SDK `random(stream)` writes candidate continuations in kind
+22, copied from kind 21 at entry. `format/scriptRngV2#prepareV2Rng` snapshots
+the admitted binding/stream/algorithm tuple before entry and checks the complete
+candidate bank against its reported draw counts. Inactive or excluded bindings
+cannot advance. The native owner commits the copied candidates only with its
+validated state/command transaction; refusal or a re-step advances no stream.
+
 Projection requests are synchronous, stateless and channel-only. Independent
 requests may share one call; dependent requests require staged continuations,
 never a reentrant guest callback. A failed batch publishes no channel or RNG
