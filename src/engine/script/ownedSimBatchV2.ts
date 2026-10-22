@@ -2,6 +2,9 @@
  * state, RNG, staged commands and timers; this object owns only the saved input
  * inbox and the disposable Wasm transport. It installs no clock or body owner. */
 import type { ScriptV1Event,ScriptV1Command } from '@wildshard/format/scriptAbiV1';
+import type { V2QueryBinding,V2QueryOperation } from '@wildshard/format/scriptQueriesV2';
+import type { V2QuerySnapshot } from '@wildshard/format/scriptQueryStateV2';
+import { QueryRingV2 } from './queriesV2';
 import type { ScriptInputStateV2 } from '@wildshard/format/scriptInputStateV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
 import type { V2Layout } from '@wildshard/format/scriptWireV2';
@@ -16,7 +19,9 @@ export interface OwnedV2Sample {
   readonly fields: V2BindingInput['fields']; readonly sample: V2BindingInput['sample'];
 }
 export interface OwnedV2Frame { readonly bindings: readonly OwnedV2Sample[]; readonly players: readonly V2PlayerInput[] }
-export interface OwnedV2Input { readonly input: ScriptInputStateV2; readonly failures: number }
+export interface OwnedV2Input { readonly input: ScriptInputStateV2; readonly failures: number; readonly queries?: V2QuerySnapshot }
+/** Admitted per-binding request quota and maximum reserved reply scalars. */
+export interface OwnedV2Queries { readonly pending: number; readonly operations: ReadonlyMap<V2QueryOperation,number> }
 function withoutEvents(native: DecisionSnapshot): DecisionSnapshot {
   const bindings: DecisionSnapshot['bindings'][number][] = [];
   for (const row of native.bindings) bindings.push({ ...row,pending: [] });
@@ -34,25 +39,39 @@ export class OwnedSimBatchV2 {
   private readonly fuel: number;
   private readonly kinds: ReadonlySet<number>;
   private readonly externalCommands: boolean;
+  private readonly queryRights: OwnedV2Queries | undefined;
+  /** Borrowed by the original native afterBodies authority, never a new clock. */
+  readonly queryRing: QueryRingV2 | undefined;
   constructor(bytes: Uint8Array,options: {
     readonly host: DecisionHost; readonly bindings: readonly OwnedV2Binding[]; readonly layout: V2Layout;
     readonly divisor: 2 | 6; readonly fuel: number; readonly initFuel: number;
     readonly seed: readonly [number,number]; readonly eventKinds: ReadonlySet<number>;
-    readonly externalCommands?: boolean;
+    readonly externalCommands?: boolean; readonly queries?: OwnedV2Queries;
   }) {
     this.host = options.host;this.rows = [...options.bindings].sort((a,b) => String(a.binding.id) < String(b.binding.id) ? -1 : String(a.binding.id) > String(b.binding.id) ? 1 : 0);
     this.layout = options.layout;this.divisor = options.divisor;this.seed = options.seed;this.fuel = options.fuel;this.kinds = new Set(options.eventKinds);this.externalCommands = options.externalCommands === true;
+    this.queryRights = options.queries === undefined ? undefined : { pending: options.queries.pending,operations: new Map(options.queries.operations) };
+    this.queryRing = this.queryRights === undefined ? undefined : this.newQueryRing();
     this.inbox = new InputInboxV2(options.layout,{ bindings: new Set(this.rows.map(row => String(row.binding.id))),players: new Set(),actions: new Map(),eventKinds: this.kinds,lagTicks: 0 });
     this.batch = new SimBatchV2(bytes,{ layout: options.layout,ordinal: 0,handle: 1,divisor: options.divisor,
       bindings: this.rows.map(row => ({ identity: String(row.binding.id),handle: row.binding.id })),fuel: options.fuel,initFuel: options.initFuel,seed: options.seed,output: [] });
     this.batch.resumeAt(this.host.snapshot().tick,0);
   }
+  private newQueryRing(): QueryRingV2 {
+    const rights = required(this.queryRights);
+    return new QueryRingV2(this.layout,new Map(this.rows.map(row => [String(row.binding.id),rights])));
+  }
+  private queryObserved(observed: ReadonlyMap<number,string>): ReadonlyMap<string,ReadonlySet<string>> {
+    return new Map(this.rows.map(row => [String(row.binding.id),new Set(observed.values())]));
+  }
   clearInput(restart = false): void {
     this.inbox.restore({ version: 1,sequence: 0,receiptTick: -1,deliveryTick: -1,edges: [],events: [] });
-    this.batch.resumeAt(this.host.snapshot().tick,restart ? 0 : this.batch.failures);
+    const tick = this.host.snapshot().tick,queries = this.queryRing?.snapshot();
+    if (queries !== undefined) this.queryRing?.restore({ phase: queries.phase,highWater: queries.highWater.map(row => ({ binding: row.binding,id: restart ? 0 : row.id })),entries: [] },new Map());
+    this.batch.resumeAt(tick,restart ? 0 : this.batch.failures);
   }
   get failure(): Error | null { return this.batch.disabled ? this.batch.lastRefusal : null; }
-  snapshot(): OwnedV2Input { return { input: this.inbox.snapshot(),failures: this.batch.failures }; }
+  snapshot(): OwnedV2Input { return { input: this.inbox.snapshot(),failures: this.batch.failures,...(this.queryRing === undefined ? {} : { queries: this.queryRing.snapshot() }) }; }
   /** Event subjects are resolved at their original receipt, not at a later
    * frame. Payloads in this actor protocol are scalar recipe/move/signal values. */
   enqueue(tick: number,binding: number,event: ScriptV1Event,observed: ReadonlyMap<number,string>): void {
@@ -81,12 +100,22 @@ export class OwnedSimBatchV2 {
     const failures = saved?.failures ?? 0;
     if (failures === 3 && native.bindings.some(row => row.enabled !== false)) throw new Error('Unfrozen disabled v2 continuation');
     if (!Number.isInteger(failures) || failures < 0 || failures > 3) throw new Error('Invalid native v2 quarantine');
-    return { input: next.snapshot(),failures };
+    if (saved?.queries !== undefined && this.queryRing === undefined) throw new Error('Unexpected restored v2 query authority');
+    const queries = this.queryRing === undefined ? undefined : this.newQueryRing();
+    if (saved?.queries !== undefined) {
+      if (saved.queries.phase > native.tick || saved.queries.entries.some(row => row.request.atTick > native.tick)) throw new Error('Future v2 query continuation');
+      queries?.restore(saved.queries,this.queryObserved(observed));
+    }
+    return { input: next.snapshot(),failures,...(queries === undefined ? {} : { queries: queries.snapshot() }) };
   }
   prepareRestore(native: DecisionSnapshot,saved: OwnedV2Input | undefined,observed: ReadonlyMap<number,string>): () => void {
     const next = this.validateRestore(native,saved,observed);
     const publish = this.host.prepareRestore(withoutEvents(native));
-    return () => { publish.validate();publish();this.inbox.restore(next.input);this.batch.resumeAt(native.tick,next.failures); };
+    const queries = next.queries === undefined ? undefined : this.queryRing?.prepareRestore(next.queries,this.queryObserved(observed));
+    return () => { publish.validate();queries?.validate();publish();queries?.();this.inbox.restore(next.input);this.batch.resumeAt(native.tick,next.failures); };
+  }
+  private queryBindings(input: ReadonlyMap<string,V2InputBinding>): ReadonlyMap<number,V2QueryBinding> {
+    return new Map([...input].map(([identity,row]) => [row.handle,{ identity,handle: row.handle,observed: row.observed,operations: new Set(this.queryRights?.operations.keys()) }]));
   }
   /** Called immediately after native stepExternal. Timers and scheduled tick
    * events retain that native tick; failed guest calls never consume them. */
@@ -102,6 +131,7 @@ export class OwnedSimBatchV2 {
       const publish = this.host.prepareRestore(withoutEvents(native));publish();this.inbox.restore(clone.snapshot());
     }
     const before = this.host.snapshot();
+    let queryDelivery: ReturnType<QueryRingV2['delivery']> | undefined;
     let prepared: { readonly bindings: readonly V2BindingInput[]; readonly inputBindings: ReadonlyMap<string,V2InputBinding>; readonly rng: ReturnType<typeof prepareV2Rng> } | undefined;
     const result = this.batch.advance(tick,() => {
       const pending = this.inbox.snapshot().events;
@@ -121,10 +151,13 @@ export class OwnedSimBatchV2 {
       const rng = prepareV2Rng(this.layout,this.rows.map(({ binding }) => ({ binding: binding.id,stream: 1,algorithm: 2 as const,
         state: [this.seed[0],this.seed[1],required(before.bindings.find(row => row.id === binding.id)).rng,binding.id,binding.instance,0] as const })));
       prepared = { bindings,inputBindings,rng };
-      return { observations: { bindings,players: captured.players,edges: input.edges,events: input.events,actions: new Set(),eventKinds: this.kinds },extra: [{ kind: 21,count: rng.count,bytes: rng.bytes }] };
+      const queryBindings = this.queryBindings(inputBindings);
+      queryDelivery = this.queryRing?.delivery(tick,new Map([...queryBindings.values()].map(row => [row.identity,row])),new Set(bindings.filter(row => row.due).map(row => row.identity)));
+      return { observations: { bindings,players: captured.players,edges: input.edges,events: input.events,actions: new Set(),eventKinds: this.kinds },extra: [{ kind: 21,count: rng.count,bytes: rng.bytes },...(queryDelivery?.banks ?? [])] };
     },candidate => {
       const { bindings,inputBindings,rng } = required(prepared);
-      for (const kind of [11,17,18,20]) if (candidate.counts[kind-1] !== 0) throw new Error('Unsupported native v2 output bank');
+      if (this.queryRing === undefined && candidate.counts[10] !== 0) throw new Error('Undeclared native v2 query output');
+      for (const kind of [17,18,20]) if (candidate.counts[kind-1] !== 0) throw new Error('Unsupported native v2 output bank');
       const due = new Set(bindings.filter(row => row.due && row.handle !== candidate.excluded).map(row => row.handle));
       const random = rng.readCandidate(candidate.view,candidate.counts[21] ?? 0,due), commands = new Map<number,ScriptV1Command[]>(), external = new Map<number,DecisionExternalCommand[]>();
       const commandRegion = required(this.layout.regions[9]), stateRegion = required(this.layout.regions[2]);
@@ -161,7 +194,10 @@ export class OwnedSimBatchV2 {
       const publish = this.host.prepareRestore({ ...before,staged });
       const accepted = new Map([...inputBindings].map(([key,row]) => [key,{ handle: row.handle,observed: row.observed,due: row.due && row.handle !== candidate.excluded }]));
       const input = this.inbox.capture(tick,accepted,new Map());
-      return { accept: () => { publish.validate();input.validate();publish();input.accept(); },commit: () => undefined };
+      const queryBindings = this.queryBindings(accepted),queryRegion = required(this.layout.regions[10]);
+      for (let i = 0; i < (candidate.counts[10] ?? 0); i++) if (!due.has(candidate.view.getUint32(this.layout.io+queryRegion.offset+i*80,true))) throw new Error('Inactive native v2 query binding');
+      const queries = this.queryRing?.prepareFrame(candidate.view,candidate.counts[10] ?? 0,tick,queryBindings,queryDelivery?.consumed ?? [],candidate.excluded);
+      return { accept: () => { publish.validate();input.validate();queries?.validate();publish();input.accept();queries?.(); },commit: () => undefined };
     });
     if (result.status === 'disabled') for (const { binding } of this.rows) this.host.setEnabled(binding.id,false);
     return result;

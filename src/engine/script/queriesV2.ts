@@ -44,7 +44,7 @@ export class QueryRingV2 {
   }
   /** Validate the entire candidate, including replacements for consumed ready
    * replies, before mutation. Accept only after all module candidates pass. */
-  prepareFrame(view: DataView,count: number,atTick: number,bindings: ReadonlyMap<number,V2QueryBinding>,consumed: readonly V2QueryRequest[] = [],excluded = 0): () => void {
+  prepareFrame(view: DataView,count: number,atTick: number,bindings: ReadonlyMap<number,V2QueryBinding>,consumed: readonly V2QueryRequest[] = [],excluded = 0): (() => void) & { readonly validate: () => void } {
     if (this.busy) throw new Error('V2 query phase re-entry');
     tick(atTick);if (atTick <= this.phase) throw new Error('V2 query admitted after its afterBodies phase');
     const revision = this.revision, next = new Map(this.entries), highWater = new Map(this.highWater);
@@ -60,7 +60,8 @@ export class QueryRingV2 {
       highWater.set(request.binding,request.id);next.set(key(request),{ request,reply: null });
     }
     this.capacity(next);
-    return () => { if (this.busy || this.revision !== revision) throw new Error('Stale v2 query preparation');this.entries = next;this.highWater = highWater;this.revision++; };
+    const validate = (): void => { if (this.busy || this.revision !== revision) throw new Error('Stale v2 query preparation'); };
+    return Object.assign(() => { validate();this.entries = next;this.highWater = highWater;this.revision++; },{ validate });
   }
   /** Hold one ring stable while the authority gathers all module requests for
    * one afterBodies physics/navmesh pass. Always release the returned loan. */
@@ -107,8 +108,12 @@ export class QueryRingV2 {
   }
   /** Restore admits stable ids and pending phases without init, re-querying or
    * replaying a result. Native world owners supply the restored observed ids. */
-  restore(input: unknown,observed: ReadonlyMap<string,ReadonlySet<string>>): void {
+  restore(input: unknown,observed: ReadonlyMap<string,ReadonlySet<string>>): void { this.prepareRestore(input,observed)(); }
+  /** Prepare detached native continuation state with a nonmutating lifetime
+   * fence, so its existing owner can publish it with state and input. */
+  prepareRestore(input: unknown,observed: ReadonlyMap<string,ReadonlySet<string>>): (() => void) & { readonly validate: () => void } {
     if (this.busy) throw new Error('V2 query phase re-entry');
+    const revision = this.revision;
     const saved = parseV2QuerySnapshot(input,{ bindings: this.rights.size,requests: this.slots,scalars: this.scalars }), highWater = new Map<string,number>(), entries = new Map<string,Entry>();
     for (const row of saved.highWater) { if (!this.rights.has(row.binding) || highWater.has(row.binding)) throw new Error('Invalid v2 query high-water identity');highWater.set(row.binding,row.id); }
     if (highWater.size !== this.rights.size) throw new Error('Incomplete v2 query high-water registry');
@@ -120,7 +125,9 @@ export class QueryRingV2 {
       if (entry.reply !== null) { if (scalarCount(entry.reply.answer) > limit) throw new Error('Invalid v2 saved query answer');validateV2QueryAnswer(request,entry.reply.answer); }
       entries.set(id,{ request,reply: entry.reply === null ? null : { request,atTick: entry.reply.atTick,answer: entry.reply.answer } });
     }
-    this.capacity(entries);this.entries = entries;this.highWater = highWater;this.phase = saved.phase;this.revision++;
+    this.capacity(entries);
+    const validate = (): void => { if (this.busy || this.revision !== revision) throw new Error('Stale v2 query restore'); };
+    return Object.assign(() => { validate();this.entries = entries;this.highWater = highWater;this.phase = saved.phase;this.revision++; },{ validate });
   }
 }
 

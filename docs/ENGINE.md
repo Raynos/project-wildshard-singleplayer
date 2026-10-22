@@ -11840,6 +11840,25 @@ ids, batches afterBodies and delivers at the next eligible entry with fresh
 observed handles. No contact/urgent reach owner, simulation clock, body or RNG
 is created or replaced; roster codes are stable admitted declarations.
 
+`OwnedSimBatchV2` can borrow explicit per-binding query rights and fixed reply
+reservations through its optional `queries` construction argument. It captures
+ready reply bytes once per eligible entry and validates new requests with the
+same state, command, RNG and input candidate. Only whole-candidate acceptance
+consumes those captured replies and enqueues new work; an excluded binding
+keeps its replies and input. The original native authority borrows `queryRing`
+for `answerV2QueryBatch` at its afterBodies slot. No resolver runs during capture.
+
+The optional query continuation lives inside the same `OwnedV2Input` snapshot;
+default runners add no query key. Pending/ready stable ids restore without a
+guest call or repeated query, and old input-only saves start with an empty
+ring. Interrupt discards pure pending work while preserving its phase and live
+request high-water ids; a full logical restart also resets those ids.
+`QueryRingV2.prepareFrame` and `prepareRestore` return callable commits with a
+nonmutating `validate()` fence. Existing direct callable use remains valid.
+This engine transaction seam does not itself select a product module or
+install a page/native scheduler; each production owner must lend its explicit
+rights/worlds and use its existing afterBodies authority.
+
 
 CellField (game/systems/cellField) owns a bounded numeric grid, ordered delayed
 generations and ten-Hz update/contact sampling. CellFieldSchema declares the
