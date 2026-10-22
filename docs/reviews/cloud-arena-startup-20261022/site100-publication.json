@@ -1,0 +1,40 @@
+{
+  "source": "bf7e78310cf808ae8bbfb2ed56d24e547bc07b0c",
+  "version": {
+    "id": "appgprj_6ad44a5be4e481918df0b174799b5636~appgver_c6c5facea7c481918bfb399b04db8b63",
+    "project_id": "appgprj_6ad44a5be4e481918df0b174799b5636",
+    "version_number": 100,
+    "source": {
+      "commit_sha": "bf7e78310cf808ae8bbfb2ed56d24e547bc07b0c"
+    },
+    "archive_storage": {
+      "archive_format": "tar",
+      "sediment_file_id": "file_0000000038f08230b82cf14bc13b1c31",
+      "content_hash": "sha256:64af9829978b5f77f7ce66d6d2039acb9f20909b874361894bbbbba3bde8863f",
+      "size_bytes": 266383360,
+      "file_count": 2771
+    },
+    "screenshot_url": null,
+    "deployment_id": null
+  },
+  "deployment": {
+    "id": "appgdep_6ad9c6d106548191b7dee3c2bd9a4712",
+    "project_id": "appgprj_6ad44a5be4e481918df0b174799b5636",
+    "title": "Wildshard Enemy Lab",
+    "version_id": "appgprj_6ad44a5be4e481918df0b174799b5636~appgver_c6c5facea7c481918bfb399b04db8b63",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://wildshard-enemy-lab.raynos.chatgpt.site",
+    "has_mcp": false,
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6ad44a5be4e481918df0b174799b5636",
+    "failure_message": null,
+    "env_set_revision": 0,
+    "updated_at": "2026-10-22T08:18:40.166214+00:00"
+  },
+  "staticChecks": {
+    "imageDimensions": 193,
+    "assetChanges": false,
+    "syntax": true
+  }
+}

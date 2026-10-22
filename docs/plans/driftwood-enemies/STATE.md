@@ -1,10 +1,10 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-22 07:28 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
+Updated 2026-10-22 08:26 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
 
 LATEST OWNER: At22:49 explicitly requested publishing all nine now, not waiting for browser infrastructure. Delivery is separate from passing every test. Version99 deployment succeeded22:55. Keep unfinished testing disclosed; no fabricated acceptance. Bellback physics expansion approved17:08, off first-prototype critical path. See PROTOTYPE-NINE.md.
 
-LIVE: One Arena runtime/selector exposes original4 plus Bellback, Pitcher, Medusa, Keelmaw, Iguana. Site source00fc2311a6b3e0de7c43c47ccd5c09d22cc04a37. Native deploy appgdep_6ad942eee5408191946c3c65692832db succeeded. Preserved exact individual4 fallback hosts and prior shared host. Six tabs/history intact. New5 use simple attacks/despawn, not native-corpse admission.
+LIVE: One Arena runtime/selector exposes original4 plus Bellback, Pitcher, Medusa, Keelmaw, Iguana. Site sourcebf7e78310cf808ae8bbfb2ed56d24e547bc07b0c. Native Site100 deploy appgdep_6ad9c6d106548191b7dee3c2bd9a4712 succeeded08:18; dimension reservation only, runtime unchanged. Preserved exact individual4 fallback hosts and prior shared host. Six tabs/history intact. New5 use simple attacks/despawn, not native-corpse admission.
 
 EVIDENCE: Corrected servedbuild1801; Medusa smoke1804 finite pose/clock,5.158m movement,zero faults,600frames/24s. Independent48-frame visual review confirms movement with clipping/occlusion limitations. Headless lifecycle/Retry6, missing-five brains5, retained-rig poses/products21 tests pass; strict types/lint pass. No quality, phone-performance or full-browser acceptance inferred.
 
@@ -20,4 +20,4 @@ PUBLIC/PROTECTION: Game remote57cf1bb exact verified through limited visual revi
 
 REFERENCE PASS: One paired Conch weapon-continuity AI edit completed22Oct. Independent pixel review rejects both candidates for selection: extra pale spikes, rearward shield attachments and unintended blade drift. Prior v3 remains selected. Prompts/provenance/reviews retained under approved-nine-2026-10-19/round-1-conch-weapon-continuity-2026-10-22; raw PNGs preserved locally above Git preview caps. No runtime or Site changes.
 
-GALLERY: Actual cloud desktop check passes six tab activations, all9 hero+18sheet renders,18Details/162links,9In-Game previews/statuses and sticky Arena. Individual angle viewer sampled only; no phone/likeness acceptance. Open UI defect: cold lazy image expansion shifts identity-anchor navigation. See docs/reviews/cloud-arena-startup-20261022/gallery-check.json.
+GALLERY: Actual cloud desktop check passes six tab activations, all9 hero+18sheet renders,18Details/162links,9In-Game previews/statuses and sticky Arena. Individual angle viewer sampled only; no phone/likeness acceptance. Site100 adds correct dimensions to193referenceimages. Bounded live desktop recheck passes middle/last anchors through observed lazy loads,49loaded intrinsic-size matches,Details/framing/stickyArena. No controllednetwork/phone claim. See docs/reviews/cloud-arena-startup-20261022/gallery-check.json.

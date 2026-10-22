@@ -1,0 +1,74 @@
+{
+  "checked_at_utc": "2026-10-22T08:24:12Z",
+  "public_url": "https://wildshard-enemy-lab.raynos.chatgpt.site/",
+  "tested_url": "https://wildshard-enemy-lab.raynos.chatgpt.site/?qa=dimensions-20261022-0818#approved-mockups",
+  "deployment_context": {
+    "site_revision": 100,
+    "source_commit": "bf7e78310cf808ae8bbfb2ed56d24e547bc07b0c",
+    "provenance": "Revision and commit supplied by parent; this check inspected the live rendered site, not repository state."
+  },
+  "method": "Own OpenAI cloud desktop Chromium, supported CUA CDP lane. Fresh QA tab with cache-busting page query in existing browser profile. Read-only DOM measurements, actual screenshots, normal anchor navigation and keyboard Details toggles. Not a controlled cold-cache or delayed-network test.",
+  "outcome": "Dimension reservation and bounded middle/last anchor regression passed under observed desktop conditions.",
+  "dimensions": {
+    "approved_image_elements": 193,
+    "missing_or_nonpositive_width_height_attributes": 0,
+    "loaded_at_final_read": 49,
+    "loaded_intrinsic_attribute_mismatches": 0,
+    "caveat": "Only naturally loaded images were compared to browser naturalWidth/naturalHeight. All 193 attributes were inspected, not all 193 rendered images revisited.",
+    "lazy_reservation": "Initially incomplete main images had reserved nonzero layout boxes before download completion. Main hero boxes included 648x580 and landscape 648x432.90625; sheet boxes included 980.9375x850 and landscape 980.9375x654.625. Collapsed Details were not claimed to have visible boxes."
+  },
+  "navigation": {
+    "middle": {
+      "identity": "Tide-Root Colossus",
+      "initial_card_document_y": 13079.59375,
+      "initial_card_height": 3107.671875,
+      "first_settled_heading_viewport_y": 281.640625,
+      "first_settled_heading_document_y": 13133.640625,
+      "after_remaining_world_image_loaded_card_document_y": 13079.59375,
+      "after_remaining_world_image_loaded_card_height": 3107.671875,
+      "all_three_main_images_loaded": true,
+      "repeat_anchor_heading_viewport_y": 281.84375
+    },
+    "last": {
+      "identity": "Bloomthroat Iguana",
+      "before_three_main_images_loaded_card_document_y": 25149.625,
+      "before_three_main_images_loaded_card_height": 2595.828125,
+      "after_three_main_images_loaded_card_document_y": 25149.625,
+      "after_three_main_images_loaded_card_height": 2595.828125,
+      "first_settled_heading_viewport_y": 281.671875,
+      "first_settled_heading_document_y": 25203.671875,
+      "repeat_anchor_heading_viewport_y": 281.875
+    },
+    "interpretation": "Both anchors settled on the intended identity heading before and after relevant lazy-image completion. Immediate post-click readings occurred during smooth scrolling and were not treated as failed landings.",
+    "measurement_limit": "First lazy-load comparisons retained identical document coordinates and heights. Later full-page captures coincided with reported viewport/card-width changes: card width 980.9375 to 997.9375; final viewport 1188x761 at DPR1. Final middle document Y was 13054.796875; last document Y 25144.828125 and height2615.828125. Therefore this report does not claim globally invariant document coordinates or a controlled CLS measurement across the entire session."
+  },
+  "visual_checks": {
+    "actual_pixels_inspected": [
+      "Colossus hero, whole Model Explorer 3x3 sheet and whole In the world 3x3 sheet",
+      "Iguana hero, whole Model Explorer 3x3 sheet and whole In the world 3x3 sheet",
+      "All nine visible Iguana Explorer Details thumbnails",
+      "All nine visible Iguana World Details thumbnails"
+    ],
+    "framing": "Main sample sheets remained visibly complete 3x3 sheets with their outer framing and no new stretching observed. Initial offscreen Colossus World remained a reserved blank until ordinary focus/scroll triggered loading, then rendered normally.",
+    "details": "Iguana Explorer and World Details each opened and closed with Enter; each contained nine links and nine image elements. Both were closed at completion.",
+    "sticky_arena": "Arena remained visible in genuine desktop screenshots at deep scroll positions. Final link bounding rect top10,bottom56.796875; href arena.html. Not clicked.",
+    "caveats": "AI-reference, intended-angle, inferred-anatomy and separate runtime-acceptance caveats remained present. No identity likeness or canonical camera-direction judgment was made.",
+    "screenshots": "Genuine browser screenshots were inspected in tool output; no separate screenshot files were saved."
+  },
+  "untested": [
+    "Controlled throttled/delayed network",
+    "Guaranteed cold HTTP cache for image resources",
+    "Mobile/phone browser or physical device",
+    "Game launch, WebGL/GPU, combat, movement, collision or runtime quality",
+    "Full rereview of all 193 rendered images",
+    "All six tabs or all eighteen Details controls on Site100; covered in earlier Site99 report, not repeated for this narrow dimension-only check"
+  ],
+  "cleanup": {
+    "created_tab": 14,
+    "created_tab_closed": true,
+    "other_tabs_closed": false,
+    "settings_or_cache_cleared": false,
+    "source_or_assets_edited": false,
+    "published": false
+  }
+}
