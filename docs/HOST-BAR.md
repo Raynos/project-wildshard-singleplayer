@@ -231,3 +231,16 @@ the rest of this document; filenames or a client-only label alone are insufficie
 - G571 compiled island owners: `format/islandLibrary#ResolvedIslandLibrarySchema`, `game/shardfile/islandBook#admittedIslandBook`, `game/shardfile/islandBook#preflightIslandBook` and `game/shardfile/clientWorldAssembly#installClientWorldAssembly` admit one resolved library book per product/id and retain its original construction cache, draws, collection catalogue and scene models. Test 1 waived; tests 2–6 cover strict finite data, whole-plan preflight, original stage/owner order, cold/world identity and one intake, retirement/refusal and unchanged native saves. No authored imports, selectors, factories, extra clock or cold fallback library.
 
 - G571 explicit catalogue registration: `format/catalogueEconomy#CatalogueEconomySchema` , `format/catalogueEconomy#CatalogueEconomyRegistrationSchema`, `format/catalogueEconomy#catalogueEconomyRules` and `game/shardfile/clientCatalogue#installClientCatalogue` consume bounded effects/goods data at the original kit phase. Test 1 waived; tests 2–6 cover strict JSON and reference refusal, real ownership admission before any registration, original effect/shop/skin order and exact producer parity. No selector, callback, extra clock, cache or save owner.
+
+- G520 Explorer dispatch re-score (2026-10-22, eeb30486f1):
+  `game/models/explorerCatalogue#explorerRoster` and
+  `format/explorerCatalogue#ExplorerCatalogueSchema` pass 6/6. Pine Hollow and
+  Driftwood Isle both publish ordered admitted product catalogues without a
+  native roster fallback. Driftwood resolves its gull, castaway, collections
+  and site cards through this dispatcher; its collections and site cards
+  borrow the same pinned island book as construction. The API is client-only,
+  takes finite rows and ids, has no shard branches or authored callbacks, and
+  remains useful if either page disappears. Tests cover both real emitted
+  catalogues, original order, cold/world book identity, refusal and retirement.
+  Retire only the ProductExplorerDispatch receipt; private geometry intake and
+  quest presentation keep their independent charges.

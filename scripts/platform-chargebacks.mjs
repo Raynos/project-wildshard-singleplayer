@@ -41,8 +41,6 @@ const declarations = new Map([
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/populationEnvironment.ts', new Map(['Stream', 'streamProjection', 'streamProfile', 'streamSurface', 'LiveStreamLevels'].map(name => [name, 'C1']))],
   ['src/engine/models/geometrySources.ts', new Map(['registerPackedGeometrySource', 'PackedGeometryImports'].map(name => [name, 'C1']))],
-  ['src/game/models/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
-  ['src/format/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
   ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', 'C5']])],
   ['src/format/questPageComposition.ts', new Map([['QuestPresentation', 'C5']])],
 ]);
@@ -94,12 +92,6 @@ const inline = new Map([
   ['src/engine/models/geometrySources.ts', new Map([['PackedGeometryImports', [
     ["import { GeometryPack }", 1], ["import type { PackedGeometryRows }", 1],
   ]]])],
-  ['src/game/models/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', [
-    ["import { ProductFigureCatalogue }", 7], ["} else if (row.kind === 'figure')", 11],
-  ]]])],
-  ['src/format/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', [
-    ["kind: v.literal('posed'), file: text, source:", 3],
-  ]]])],
   ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', [
     ["import { installQuestHints }", 1], ['if (rows.presentation?.mapPois', 4],
   ]]])],
@@ -111,8 +103,7 @@ function reviewedOwner(path, name) {
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts',
-    'src/engine/models/geometrySources.ts',
-    'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
+    'src/engine/models/geometrySources.ts'].includes(path)) return 'pine-hollow';
   if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts', 'src/game/quest/pageComposition.ts', 'src/format/questPageComposition.ts'].includes(path)) return 'driftwood-isle';
   return 'nalati-grasslands';
 }

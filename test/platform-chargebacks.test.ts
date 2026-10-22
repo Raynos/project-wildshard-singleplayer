@@ -105,6 +105,24 @@ test('the packed geometry loader charges Pine; the product posed loader has a re
   expect(driftwood).toMatch(/kind:'posed',file:'[^']+',source:'product'/u);
 });
 
+
+test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user receipt', () => {
+  const users = new Set(['pine-hollow', 'driftwood-isle']);
+  const paths = ['src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'];
+  const modules = new Map(paths.map(path => [path, users]));
+  const bindings = new Map(paths.map(path => [`${path}\0ProductExplorerDispatch`, users]));
+  chargePlatformUsers(modules, bindings);
+  for (const path of paths) {
+    expect(platformChargeback(path, 'ProductExplorerDispatch')).toBeNull();
+    expect(inlinePlatformPaths()).not.toContain(path);
+    expect(modules.get(path)).toEqual(users);
+    expect(bindings.get(`${path}\0ProductExplorerDispatch`)).toEqual(users);
+  }
+  // Dispatch credit does not waive a private intake or presentation owner.
+  expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBe('C1');
+  expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
+});
+
 test('day-one feature credit cannot erase a G520 chargeback', () => {
   const path = 'src/game/looks/painterlyLook.ts';
   const allowance: PendingPlatformUser = { module: path, documentation: 'docs/HOST-BAR.md',

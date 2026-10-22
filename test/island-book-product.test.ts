@@ -1,3 +1,6 @@
+import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
+import { EXPLORER_CATALOGUE as driftwoodExplorer } from '../src/shards/driftwood-isle/generators/explorerCatalogue';
+import { EXPLORER_CATALOGUE as pineExplorer } from '../src/shards/pine-hollow/generators/explorerCatalogue';
 import { expect,test } from 'vitest';
 import * as v from 'valibot';
 import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
@@ -46,4 +49,22 @@ test('native chapter admission receives the exact original encounter without rea
   expect(wire).toMatchObject({constants:{nativeEncounter:WAKE_ENCOUNTER.encounter}});expect(WAKE_ENCOUNTER.encounter).toEqual(NATIVE_VIEW.BOSS_ENCOUNTER);
   expect(JSON.stringify(headless)).not.toContain('bossView');expect(JSON.stringify(headless)).not.toContain('custom/fixedLayouts');
   expect(JSON.stringify(headless)).toContain('nativeEncounter');
+});
+
+test('both real pages publish ordered product Explorer rows and Driftwood borrows its original book', () => {
+  const emitted = parseExplorerCatalogue(section('explore/catalogue'));
+  expect(emitted).toEqual(driftwoodExplorer);
+  expect(emitted.entries.filter(row => row.kind === 'collection' || row.kind === 'scene-model')).toEqual([
+    { kind: 'collection', library: 'driftwood.island', model: 'chime', copies: 0, drawnAs: 'single' },
+    { kind: 'collection', library: 'driftwood.island', model: 'plaques', copies: 0, drawnAs: 'single' },
+    { kind: 'scene-model', library: 'driftwood.island', model: 'captainHat', copies: 0, drawnAs: 'single' },
+    { kind: 'scene-model', library: 'driftwood.island', model: 'sailclothCape', copies: 0, drawnAs: 'single' },
+  ]);
+  expect(emitted.entries).toContainEqual({ kind: 'kit-figure', file: 'people/cards.json', figure: 'castaway', copies: 1, drawnAs: 'single' });
+  for (const catalogue of [emitted, pineExplorer]) {
+    expect(parseExplorerCatalogue(catalogue)).toEqual(catalogue);
+    expect(catalogue.entries.some(row => row.kind === 'posed' && row.source === 'product')).toBe(true);
+    expect(catalogue.entries.some(row => row.kind === 'library' && row.library === 'native')).toBe(false);
+  }
+  expect(pineExplorer.entries.filter(row => row.kind === 'figure').map(row => row.figure)).toEqual(['ranger', 'miller', 'trader']);
 });
