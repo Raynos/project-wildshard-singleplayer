@@ -3,7 +3,7 @@
 // progress/shard-platform/ruler/ruler.json, refreshed from `node scripts/shard-platform.mjs --json --source-progress` measured in the
 // build mirror on a commit (never the shared working tree). The admin build only reads the committed file.
 //
-//   node scripts/admin-data/ruler.mjs [--rev=HEAD]       measure <rev> in the `check2` mirror slot (WS_RULER_SLOT overrides), rewrite ruler.json
+//   node scripts/admin-data/ruler.mjs [--rev=HEAD]       measure <rev> in the reserved `ruler` mirror slot (WS_RULER_SLOT overrides), rewrite ruler.json
 //   then: git commit -m "chore(admin): refresh the plan ruler" -- progress/shard-platform/ruler/ruler.json \
 //           src/game/shard/portShares.json
 // It also rewrites SHARD SELECT's PORTED table from the new ruler (scripts/gen-port-shares.mjs, E486); pre-commit
