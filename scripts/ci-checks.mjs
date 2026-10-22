@@ -12,17 +12,22 @@ const chain = pkg.scripts['test:checks'];
 if (chain === undefined) throw new Error('package.json has no test:checks');
 const [first, ...checks] = chain.split(' && ').map((command) => command.trim());
 if (first !== 'pnpm gen') throw new Error(`test:checks must start with pnpm gen, not ${first}`);
-const commands = [...checks, ...process.argv.slice(2)];
+const prepared = process.argv.includes('--prepared');
+const commands = [...checks, ...process.argv.slice(2).filter(arg => arg !== '--prepared')];
 
 const t0 = Date.now();
-if (spawnSync('pnpm', ['gen'], { stdio: 'inherit' }).status !== 0) process.exit(1);
-console.log(`ci-checks: gen ${((Date.now() - t0) / 1000).toFixed(0)} s`);
-// Native world checks use the same canonical product URLs as the page. Source
-// generation alone does not publish those files; prepare the shipping products
-// before either their readers or Vite's public-directory copy can start.
-const productsStarted = Date.now();
-if (spawnSync(process.execPath, ['scripts/build-shardfiles.mjs'], { stdio: 'inherit' }).status !== 0) process.exit(1);
-console.log(`ci-checks: products ${((Date.now() - productsStarted) / 1000).toFixed(0)} s; running ${commands.length} in parallel`);
+if (prepared) {
+  // This restores only a matching full SHA/run/checksum/inventory, refusing
+  // missing or foreign artifacts before any checks/build can use their bytes.
+  if (spawnSync('python3', ['scripts/ci-products.py','unpack'], { stdio:'inherit' }).status !== 0) process.exit(1);
+  console.log(`ci-checks: verified same-run preparation ${((Date.now()-t0)/1000).toFixed(0)} s; running ${commands.length} in parallel`);
+} else {
+  if (spawnSync('pnpm', ['gen'], { stdio: 'inherit' }).status !== 0) process.exit(1);
+  console.log(`ci-checks: gen ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+  const productsStarted = Date.now();
+  if (spawnSync(process.execPath, ['scripts/build-shardfiles.mjs'], { stdio: 'inherit' }).status !== 0) process.exit(1);
+  console.log(`ci-checks: products ${((Date.now() - productsStarted) / 1000).toFixed(0)} s; running ${commands.length} in parallel`);
+}
 
 /** @param {string} command @returns {Promise<{ command: string, code: number, sec: number, out: string }>} */
 function run(command) {

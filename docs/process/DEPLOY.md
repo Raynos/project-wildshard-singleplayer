@@ -129,3 +129,11 @@ Strict product reuse checks captured input receipts and reruns current full
 byte/schema/budget/script admission on every hit; a cache is not a test verdict.
 The job still builds all 24 products and publishes a new SHA/run/checksum-bound
 artifact. Parallel generation retains the complete normal output set.
+
+
+G609: push/PR web checks and both web/native static builds consume the products
+job's verified same-run preparation. They do not run a second generation or
+product build. The exact push web dist is still published for boot smoke;
+release pin selection, proof checks, Vercel functions and live verification
+remain unchanged. Every TypeScript project runs once, with all lint partitions
+and all ten complete behaviour partitions retained.

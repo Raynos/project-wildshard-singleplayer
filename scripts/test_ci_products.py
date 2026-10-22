@@ -111,5 +111,48 @@ class PreparedProducts(unittest.TestCase):
         self.assertFalse((self.root / 'public/generated.bin').exists())
 
 
+    def run_prepared_checks(self):
+        repo = Path(__file__).resolve().parents[1]
+        for name in ['ci-checks.mjs', 'ci-products.py']:
+            (self.root / 'scripts' / name).write_bytes((repo / 'scripts' / name).read_bytes())
+        (self.root / 'package.json').write_text(json.dumps({'type': 'module', 'scripts': {
+            'test:checks': 'pnpm gen && node check.mjs'}}))
+        (self.root / 'check.mjs').write_text("""
+          import {readFileSync,writeFileSync} from 'node:fs';
+          if(readFileSync('src/table.generated.ts','utf8')!=='export const value=7;')throw new Error('Missing verified preparation');
+          writeFileSync('checks-ran','once');
+        """)
+        (self.root / 'extra.mjs').write_text("import {writeFileSync} from 'node:fs';writeFileSync('extra-ran','once');")
+        return subprocess.run(['node', 'scripts/ci-checks.mjs', '--prepared', 'node extra.mjs'],
+                              cwd=self.root, text=True, capture_output=True)
+
+    def test_prepared_checks_restore_exact_run_without_generation(self):
+        (self.root / self.table).unlink()
+        result = self.run_prepared_checks()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.root / 'checks-ran').read_text(), 'once')
+        self.assertEqual((self.root / 'extra-ran').read_text(), 'once')
+        self.assertNotIn('ci-checks: gen ', result.stdout)
+        self.assertIn('verified same-run preparation', result.stdout)
+
+    def test_prepared_checks_refuse_a_foreign_run_before_any_checks(self):
+        proof = json.loads((self.root / products.PROOF).read_text())
+        proof['run'] = 'foreign'
+        (self.root / products.PROOF).write_text(json.dumps(proof))
+        result = self.run_prepared_checks()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('different SHA or CI run', result.stderr)
+        self.assertFalse((self.root / 'checks-ran').exists())
+        self.assertFalse((self.root / 'extra-ran').exists())
+
+    def test_prepared_checks_require_the_archive_without_rebuilding(self):
+        (self.root / products.ARCHIVE).unlink()
+        result = self.run_prepared_checks()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn('ci-checks: gen ', result.stdout)
+        self.assertFalse((self.root / 'checks-ran').exists())
+        self.assertFalse((self.root / 'extra-ran').exists())
+
+
 if __name__ == '__main__':
     unittest.main()
