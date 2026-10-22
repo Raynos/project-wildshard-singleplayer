@@ -21,8 +21,9 @@ export interface ViewSlotActor {
   field: (name: string) => number;
   set: (name: string, value: number) => void;
 }
-/** A native group's ordered slots, as its owner binds them (null: the slot is free). */
-export interface ViewSlots { actor: (slot: number) => ViewSlotActor | null }
+/** A native group's ordered slots, as its owner binds them (null: the slot is free); `refresh` (optional) rebinds them once a
+ *  frame, before the program reads any of them. */
+export interface ViewSlots { refresh?: () => void; actor: (slot: number) => ViewSlotActor | null }
 /** What a program borrows from its owner. `floor` / `slots` are null for a piece / group the owner lacks. */
 export interface ViewProgramPorts {
   readonly scope: Scope;
@@ -183,6 +184,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   let tick = 0;
   return { get frozen() { return lane.isFrozen; }, frame: dt => {
     const p = player.position;
+    for (const pool of pools.values()) pool.slots.refresh?.();
     // previous columns are last frame's current ones; a fresh value (a scalar, a new identity in a slot) has no previous
     columns.copyWithin(0, n, 2 * n);
     let k = 0;

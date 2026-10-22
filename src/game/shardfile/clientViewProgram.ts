@@ -6,6 +6,8 @@
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { viewProgram, type ViewSlots } from '@wildshard/engine/script/viewProgram';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { speciesViewSlots } from '../population/speciesViewSlots';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import { entryOwner } from './entryOwners';
@@ -31,9 +33,21 @@ export function installViewProgram(ctx: ShardContext, row: Extract<ClientFeature
   if (world === undefined || world === null) throw new Error('View program requires its entered world');
   const bytes = Uint8Array.from(module);
   admitScriptV2(bytes, { lane: 'view', ioBytes: row.rows.budget.ioBytes });
+  // a pool group `species:<kind>` is every live actor of that kind (game/population/speciesViewSlots), one lender per group
+  const species = new Map<string, ViewSlots>();
+  const speciesPool = (group: string): ViewSlots | null => {
+    if (!group.startsWith('species:')) return null;
+    let slots = species.get(group);
+    if (slots === undefined) {
+      const count = row.rows.pools.find(pool => pool.group === group)?.count ?? 64;
+      slots = speciesViewSlots(() => ctx.game.runtime?.play?.animals.animals ?? null, group.slice('species:'.length), count, terrainHeight);
+      species.set(group, slots);
+    }
+    return slots;
+  };
   const program = viewProgram(bytes, row.rows, { scope: ctx.scope, player: world.player, camera: world.game.camera,
     floor: piece => { const found = world.registry.get(piece); return found === undefined ? null : (x, z) => found.floor?.(x, z); },
-    slots: group => lentSlots.get(ctx.scope)?.get(group) ?? null, values: source => lentValues.get(ctx.scope)?.get(source) ?? null, object: id => entryOwner(ctx.scope, 'object', id), look: (look, param, value) => { setLentParam(look, param, value); } });
+    slots: group => lentSlots.get(ctx.scope)?.get(group) ?? speciesPool(group), values: source => lentValues.get(ctx.scope)?.get(source) ?? null, object: id => entryOwner(ctx.scope, 'object', id), look: (look, param, value) => { setLentParam(look, param, value); } });
   if (program === null) return;
   ctx.system({ id: row.rows.system, phase: 'update', before: [...row.rows.before], run: dt => { program.frame(dt); } });
 }
