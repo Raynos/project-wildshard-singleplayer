@@ -142,7 +142,7 @@ const entryStages = { stages: [{ kind: 'entry', id: 'wreck', label: 'Wreck', obj
   { kind: 'attach', id: 'wreck.root', as: 'group' }] }, { kind: 'entry', id: 'decks', label: 'Decks', rows: [{ kind: 'place', id: 'entry.decks' }] }] };
 function entryFixture(place: (id: string) => Promise<Placed> = id => Promise.resolve(placedNamed(id)), scope = new Scope('construction')) {
   const root = new Group(), wreckRoot = new Group(), placed: string[] = [];
-  const scenes = legacyDouble<SceneHandles>({ place: (id: string) => { placed.push(id); return place(id); }, group: (id: string) => { if (id !== 'wreck.root') throw new Error(id); return wreckRoot; },
+  const scenes = legacyDouble<SceneHandles>({ frozen: () => false, place: (id: string) => { placed.push(id); return place(id); }, group: (id: string) => { if (id !== 'wreck.root') throw new Error(id); return wreckRoot; },
     floorAt: (id: string, x: number) => id === 'wreck.ship' ? x * 2 : undefined });
   const assembly = WorldAssembly.admit(entryStages, { scope, scenes, context: legacyDouble<ModelContext>({}), registry: null, entry: { root, tier: 'phone' }, slice: () => Promise.resolve() });
   return { scope, root, wreckRoot, placed, assembly };
@@ -181,7 +181,7 @@ test('an entry stage with a piece row and no piece authority refuses before its 
   const scope = new Scope('construction'), place = vi.fn<() => Promise<Placed>>();
   const rows = { stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'place', id: 'cove.reef' }, { kind: 'piece', id: 'cove', name: 'Cove', file: 'cove.ts', category: 'nature',
     surface: 'rock', colliders: [], floors: [], floorPolicy: 'first', solidFloor: true, object: null }] }] };
-  const assembly = WorldAssembly.admit(rows, { scope, scenes: legacyDouble<SceneHandles>({ place }), context: legacyDouble<ModelContext>({}), registry: null,
+  const assembly = WorldAssembly.admit(rows, { scope, scenes: legacyDouble<SceneHandles>({ frozen: () => false, place }), context: legacyDouble<ModelContext>({}), registry: null,
     entry: { root: new Group(), tier: 'phone' }, slice: () => Promise.resolve() });
   await expect(assembly.next('cove')).rejects.toThrow('piece registration'); expect(place).not.toHaveBeenCalled(); scope.dispose();
 });
