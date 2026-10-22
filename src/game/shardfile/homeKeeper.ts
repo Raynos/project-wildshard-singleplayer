@@ -520,19 +520,16 @@ export class NativeDeferredRoster {
     }
     return actor;
   }
-  retire(id: string): void {
+  /** Retire permanently or keep the real dormant body with its original group.
+   * Both operations remove the same manager/sight slot without drawing. */
+  release(id: string, mode: 'retire' | 'park'): void {
     const slot = this.intake.byId.get(id), actor = slot?.actor, at = actor === undefined || actor === null ? -1 : this.bodies.indexOf(actor);
-    if (slot === undefined || actor === undefined || actor === null || at === -1) throw new Error('Foreign deferred native actor');
-    this.intake.retire(slot, { membership: 'retain', native: 'before', final: { alive: false, y: this.rows.retiredY } });
-    this.bodies.splice(at, 1); this.sight.splice(at, 1); this.retired.add(id);
-  }
-  /** A living encounter member leaves the manager while its original group
-   * retains the exact dormant body for saved identity and membership checks. */
-  park(id: string): void {
-    const actor = this.intake.byId.get(id)?.actor, at = actor === undefined || actor === null ? -1 : this.bodies.indexOf(actor);
-    if (actor === undefined || actor === null || at === -1 || this.absent.has(actor)) throw new Error('Foreign dormant native actor');
-    Object.assign(actor, { hidden: true }); actor.alive = false; actor.position.y = this.rows.retiredY; actor.motor?.dispose(); actor.motor = null; this.absent.add(actor);
-    const owner = this.intake.identities.identity(id); if (owner !== null) this.intake.identities.own(id, { ...owner, listed: false });
-    this.host.bodyDt(id); this.host.brainDt(id); this.hunt.forget(actor); this.intake.byId.delete(id); this.bodies.splice(at, 1); this.sight.splice(at, 1);
+    if (slot === undefined || actor === undefined || actor === null || at === -1 || (mode === 'park' && this.absent.has(actor))) throw new Error(mode === 'park' ? 'Foreign dormant native actor' : 'Foreign deferred native actor');
+    if (mode === 'park') {
+      Object.assign(actor, { hidden: true }); actor.alive = false; actor.position.y = this.rows.retiredY; actor.motor?.dispose(); actor.motor = null; this.absent.add(actor);
+      const owner = this.intake.identities.identity(id); if (owner !== null) this.intake.identities.own(id, { ...owner, listed: false });
+      this.host.bodyDt(id); this.host.brainDt(id); this.hunt.forget(actor); this.intake.byId.delete(id);
+    } else this.intake.retire(slot, { membership: 'retain', native: 'before', final: { alive: false, y: this.rows.retiredY } });
+    this.bodies.splice(at, 1); this.sight.splice(at, 1); if (mode === 'retire') this.retired.add(id);
   }
 }

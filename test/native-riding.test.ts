@@ -156,12 +156,12 @@ test('orchard deferred actors share allocator, stream and native retirement owne
     const actor = deferred.materialize(saved, sample.spec.kind, -1, true); control.next(); control.next(); control.next();
     expect(random.snapshot()).toEqual(control.snapshot()); expect(bodies).toEqual([actor]); expect(sight).toEqual([false]);
     expect(() => deferred.materialize(saved, sample.spec.kind, -1, true)).toThrow('Invalid');
-    deferred.retire(actor.entityId); expect(host.entities.size).toBe(0); expect(bodies).toEqual([]); expect(retired.has('creature:0')).toBe(true);
+    deferred.release(actor.entityId, 'retire'); expect(host.entities.size).toBe(0); expect(bodies).toEqual([]); expect(retired.has('creature:0')).toBe(true);
     expect(random.snapshot()).toEqual(control.snapshot());
     const next = deferred.roll(sample.spec.kind, sample.spec.variant, 2, 3, 0), parked = deferred.materialize(next, sample.spec.kind, -1, true);
-    expect(parked.entityId).toBe('creature:1'); deferred.park(parked.entityId);
+    expect(parked.entityId).toBe('creature:1'); deferred.release(parked.entityId, 'park');
     expect(host.entities.get(parked.entityId)).toBe(parked); expect(absent.has(parked)).toBe(true); expect(parked.alive).toBe(false);
-    expect(bodies).toEqual([]); expect(sight).toEqual([]); expect(() => deferred.park(parked.entityId)).toThrow();
+    expect(bodies).toEqual([]); expect(sight).toEqual([]); expect(() => deferred.release(parked.entityId, 'park')).toThrow();
   } finally { host.dispose(); }
 });
 

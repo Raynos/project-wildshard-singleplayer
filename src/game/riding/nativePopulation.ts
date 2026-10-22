@@ -241,11 +241,11 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   const retireBondedHorse = (actor: AnimalSim): void => { mountRoster.retire(actor.entityId); };
   const retireElite = (a: AnimalSim): void => {
     if (!cfg.eliteKinds.includes(a.kind)) throw new Error('Invalid native population elite retirement');
-    deferred.retire(a.entityId);
+    deferred.release(a.entityId, 'retire');
     const extra = eliteSpawns.findIndex(row => row.body.id === a.entityId); if (extra !== -1) eliteSpawns.splice(extra, 1);
   };
   const spawnElitePack = (x: number, z: number, variants: readonly string[]): PackBrain<AnimalSim> => spawnPack(x, z, variants, true);
-  const parkWolf = (actor: AnimalSim): void => { if (actor.kind !== cfg.packKind) throw new Error('Foreign native population pack member'); deferred.park(actor.entityId); };
+  const parkWolf = (actor: AnimalSim): void => { if (actor.kind !== cfg.packKind) throw new Error('Foreign native population pack member'); deferred.release(actor.entityId, 'park'); };
   const retirePack = (pack: PackBrain<AnimalSim>): void => {
     if (!elitePacks.some(record => record.bodies.length === pack.members.length && record.bodies.every((row, i) => row.id === pack.members[i]?.entityId))) throw new Error('Foreign native population elite pack');
     // A killed member stays in the manager as its real corpse. Only living members leave, in their shipping order.
