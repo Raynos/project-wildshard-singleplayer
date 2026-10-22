@@ -473,6 +473,15 @@ every call. Output domain/authority validation and the remaining lane
 integration below still belong to their defining hosts. Shipped v0/v1 loaders
 continue to select their original paths.
 
+The native entry owner lends its existing Developer boolean to
+selectDeveloperScriptV2 once at construction. Off returns the existing
+native/v0/v1 path without reading the optional v2 declaration; on snapshots
+strict versioned metadata. Setting changes apply at the next owner entry,
+never by hot swapping writers. This selector grants no execution authority:
+the selected owner verifies and copies bytes, admits that copy with its lane,
+trusted IO size and explicit compiler/admission revisions, compiles the same
+copy, then calls the getters and ws_init. Refusal never instantiates a guest.
+
 The build-only compileDualScriptV2 receives one captured authored closure
 and separate v1/v2 adapters, requires both adapters to reach every authored
 file, and returns independently admitted shadow artifacts with source hashes.
