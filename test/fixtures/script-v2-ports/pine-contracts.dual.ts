@@ -38,7 +38,7 @@ function finite(value: number): number { if (!Number.isFinite(value)) throw new 
 function invoke(instance: WebAssembly.Instance,name: string,...args: number[]): void {
   const method = instance.exports[name];if (!callable(method)) throw new Error('Missing admitted legacy entry');method(...args);
 }
-export default { input,verify: (pair) => {
+export const port = { input,verify: (pair) => {
   const memory = new WebAssembly.Memory({ initial: input.pages,maximum: input.pages });
   let fuel = 0, depth = 0;
   const instance = new WebAssembly.Instance(new WebAssembly.Module(Uint8Array.from(pair.legacy.bytes)),{ env: {

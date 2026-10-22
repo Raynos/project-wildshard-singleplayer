@@ -6,7 +6,7 @@ import { compileDualScriptV2 } from '../src/sdk/bake/compileDualScriptV2';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import type { DualPortFixture } from './fixtures/script-v2-port';
 
-const ports = import.meta.glob<DualPortFixture>('./fixtures/script-v2-ports/*.dual.ts',{ eager: true,import: 'default' });
+const ports = import.meta.glob<DualPortFixture>('./fixtures/script-v2-ports/*.dual.ts',{ eager: true,import: 'port' });
 
 test('the CI port discovery cannot silently become empty',() => { expect(Object.keys(ports).length).toBeGreaterThan(0); });
 for (const [path,port] of Object.entries(ports)) test(`dual-admit real authored closure: ${path}`,async () => {
