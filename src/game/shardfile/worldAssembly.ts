@@ -1,3 +1,8 @@
+import { RopeDeckSite } from '../models/ropeDeckSite';
+import { RopeChain } from '@wildshard/engine/physics/ropeChain';
+import type { Physics } from '@wildshard/engine/physics/Physics';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { FixedDraws } from '../models/fixedDraws';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ModelContext } from '@wildshard/engine/models/model';
@@ -16,6 +21,11 @@ export interface WorldAssemblyPorts {
   readonly sites?: { readonly site: (key: string, choice: string, ctx: ModelContext, registry: WorldRegistry | null) => ModelSite };
   readonly context: ModelContext;
   readonly registry: WorldRegistry | null;
+  /** Original already-loaded templates; no stage creates a second intake. */
+  readonly draws?: FixedDraws;
+  /** Original simulation and fixed-post registration authority for rope chains. */
+  readonly physics?: Physics;
+  readonly fixed?: Pick<Game, 'onFixed'>;
   /** what `entry` stages run their rows against (the world root, tier, variant and piece registration) */
   readonly entry?: Omit<WorldEntryPorts, 'scenes' | 'fence'>;
   /** the build's time slice, after each stage (labelled progress) */
@@ -48,7 +58,22 @@ export class WorldAssembly {
     // a retired or retiring construction (a sliced ancestor retirement) allocates and publishes nothing more
     const live = (): void => { if (scope.disposed || scope.disposing) throw new Error('World assembly owner left'); };
     live(); this.at++;
-    if (stage.kind === 'place') {
+    if (stage.kind === 'rope-deck') {
+      const draws = this.ports.draws, registry = this.ports.registry;
+      if (draws === undefined || !draws.ready) throw new Error('World rope deck needs loaded fixed draws');
+      if (registry === null) throw new Error('World rope deck needs its registry');
+      draws.handle(stage.site.draws.specimen); draws.handle(stage.site.draws.world);
+      const site = new RopeDeckSite(stage.site, { get ready() { return draws.ready; }, draw: slot => draws.handle(slot), load: () => draws.load() });
+      const deck = site.place(this.ports.context.sky, stage.span, registry);
+      publishEntryOwner(scope, 'object', stage.id, deck.placed.object); publishEntryOwner(scope, 'placed', stage.id, [deck.placed]);
+      publishEntryOwner(scope, 'floor', stage.id, deck.floorHeightAt); publishEntryOwner(scope, 'rope-deck', stage.id, deck);
+    } else if (stage.kind === 'rope-chain') {
+      const physics = this.ports.physics, fixed = this.ports.fixed;
+      if (physics === undefined || fixed === undefined) throw new Error('World rope chain needs its physics and fixed-post authority');
+      const deck = entryOwner(scope, 'rope-deck', stage.deck), chain = new RopeChain(physics, deck.chainSpec());
+      fixed.onFixed('post', () => { chain.capture(); }, stage.capture);
+      publishEntryOwner(scope, 'chain', stage.id, chain);
+    } else if (stage.kind === 'place') {
       const placed = await scenes.place(stage.id);
       live();
       publishEntryOwner(scope, 'object', stage.id, placed.object); publishEntryOwner(scope, 'placed', stage.id, [placed]);
@@ -83,16 +108,27 @@ export class WorldAssembly {
 function admitted(input: unknown): readonly WorldAssemblyStage[] {
   const { stages } = v.parse(WorldAssemblySchema, input);
   if (new Set(stages.map(stage => stage.id)).size !== stages.length) throw new Error('Repeated world assembly owner');
-  const placements = stages.flatMap(stage => stage.kind === 'place' ? [stage.id] : stage.kind === 'entry' ? stage.rows.flatMap(row => row.kind === 'place' ? [row.id] : []) : []);
+  const placements = stages.flatMap(stage => stage.kind === 'place' || stage.kind === 'rope-deck' ? [stage.id] : stage.kind === 'entry' ? stage.rows.flatMap(row => row.kind === 'place' ? [row.id] : []) : []);
   if (new Set(placements).size !== placements.length) throw new Error('Repeated world assembly placement');
   for (const stage of stages) if (stage.kind === 'entry' && stage.floor !== undefined && !stage.rows.some(row => row.kind === 'place' && row.id === stage.floor && row.when === undefined)) {
     throw new Error(`World assembly entry ${stage.id} floor needs its unconditional place row`);
+  }
+  const decks = new Set<string>(), chained = new Set<string>(), captures = new Set<string>();
+  for (const stage of stages) {
+    if (stage.kind === 'rope-deck') decks.add(stage.id);
+    if (stage.kind === 'rope-chain') {
+      if (!decks.has(stage.deck)) throw new Error('World rope chain needs an earlier rope-deck stage');
+      if (chained.has(stage.deck) || captures.has(stage.capture)) throw new Error('Repeated world rope chain or capture');
+      chained.add(stage.deck); captures.add(stage.capture);
+    }
   }
   return stages;
 }
 
 /** The loan kinds a stage publishes, from its declaration alone. */
-function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor')[] {
+function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain')[] {
+  if (stage.kind === 'rope-deck') return ['object', 'placed', 'floor', 'rope-deck'];
+  if (stage.kind === 'rope-chain') return ['chain'];
   if (stage.kind === 'site') return ['object', 'placed', 'site', 'floor'];
   if (stage.kind === 'place') return ['object', 'placed', 'floor'];
   if (stage.kind === 'entry') return ['placed', ...stage.object === undefined ? [] : ['object'] as const, ...stage.floor === undefined ? [] : ['floor'] as const];

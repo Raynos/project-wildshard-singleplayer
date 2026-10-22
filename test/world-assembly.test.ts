@@ -1,12 +1,28 @@
+import { App } from '../src/engine/app/app';
+import type { Game } from '../src/engine/core/Game';
+import { Physics } from '../src/engine/physics/Physics';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { RopeChain } from '../src/engine/physics/ropeChain';
+import { addPiece } from '../src/engine/physics/pieces';
+import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+import { WorldRegistry } from '../src/engine/world/registry';
+import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import type { RopeDeckSpan } from '../src/format/ropeDeckSite';
+import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
+import type { FixedDraws } from '../src/game/models/fixedDraws';
+import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/ropeDeckSite';
+import { bridgeDeck } from '../src/shards/driftwood-isle/generators/ropeBridge';
+import { fixtureBytes } from './fixtures/nativeBytes';
+import { fakeWorld } from './fake/world';
 import { expect, test, vi } from 'vitest';
-import { Group, Mesh } from 'three';
+import { Group, Mesh, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import type { ModelSite, Placed } from '../src/engine/models/place';
-import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
+import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import type { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { legacyDouble } from './fake/FakeGame';
-import type { ModelContext } from '../src/engine/models/model';
+import { modelContext, type ModelContext } from '../src/engine/models/model';
 
 // G571: a world build's typed stages run in their declared order and publish concrete entry loans under their ids.
 const stages = { stages: [{ kind: 'place', id: 'piers.world-0', label: 'Pier' }, { kind: 'site', id: 'hut', label: 'Hut', model: 'hut', choice: 'world' },
@@ -188,4 +204,145 @@ test('an entry stage with a terrain cut and no physics refuses before its first 
   await expect(assembly.next('cove')).rejects.toThrow('needs its physics'); expect(place).not.toHaveBeenCalled();
   expect(() => WorldAssembly.admit({ stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'cut', cuts: [] }] }] }, ports)).toThrow();
   scope.dispose();
+});
+
+function ropeMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
+
+// Rope placement stays early; allocation and fixed-post capture stay after cover.
+const ropeSpan = { a: [0, 0], b: [12, 0], sag: 0.9 } satisfies RopeDeckSpan;
+function ropeRows() {
+  return { stages: [
+    { kind: 'rope-deck' as const, id: 'bridge', label: 'Rope bridge', site: driftwoodRopeDeckSite(), span: ropeSpan },
+    { kind: 'rope-chain' as const, id: 'bridge.deck', label: 'Bridge physics and paths', deck: 'bridge', capture: 'shard.driftwood.bridge.capture' },
+  ] } as const;
+}
+async function ropeFixture() {
+  const scope = new Scope('rope-construction'), entered = scope.child('rope-entered'), world = fakeWorld(), app = new App();
+  const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm', import.meta.url))));
+  const physics = new Physics(R, undefined, scope), registry = new WorldRegistry(); registry.scope = scope;
+  registry.onAdd(piece => { addPiece(physics, piece); });
+  const template = createOwnedGeometry('rope-test'); template.adopt(bridgeDeck(ropeSpan, () => 0));
+  const copy = vi.spyOn(template, 'copy'), load = vi.fn<FixedDraws['load']>(() => Promise.reject(new Error('The stage must not load a second library')));
+  const draws: FixedDraws = { ready: true, handle: slot => { if (slot !== 'bridgeDeck' && slot !== 'bridgeSpecimenDeck') throw new Error('Unknown original slot'); return template; }, load };
+  const order: string[] = [], captures: { phase: string; id: string | undefined; scope: Scope }[] = [];
+  const fixed: Pick<Game, 'onFixed'> = { onFixed: (phase, run, id) => {
+    order.push('capture'); captures.push({ phase, id, scope });
+    if (phase !== 'post' || id === undefined) throw new Error('Wrong fixed authority');
+    app.addContentSystem({ id, phase: 'fixed.post', run }, scope);
+  } };
+  const ports: WorldAssemblyPorts = { scope, scenes: legacyDouble<SceneHandles>({}), context: modelContext(world.sky), registry, draws, physics, fixed,
+    slice: label => { order.push(label); return Promise.resolve(); } };
+  const clean = (): void => {
+    for (const piece of registry.pieces) piece.object?.traverse(object => {
+      if (ropeMesh(object)) { object.geometry.dispose(); for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose(); }
+    });
+    scope.dispose(); registry.retire(); physics.dispose(); template.take().dispose();
+  };
+  return { scope, entered, physics, registry, draws, copy, load, order, captures, app, ports, world, clean };
+}
+test('rope stages retain original bodies/handles, rest/posed floors and the late capture order', async () => {
+  const actual = await ropeFixture(), original = await ropeFixture(), rows = ropeRows();
+  setTerrainHeight(() => 0);
+  try {
+    const site = new RopeDeckSite(rows.stages[0].site, { ready: true, draw: slot => original.draws.handle(slot), load: () => original.draws.load() });
+    const oldDeck = site.place(original.world.sky, ropeSpan, original.registry);
+    const assembly = WorldAssembly.admit(rows, actual.ports); await assembly.next('bridge');
+    const deck = entryOwner(actual.scope, 'rope-deck', 'bridge');
+    expect(entryOwner(actual.scope, 'object', 'bridge')).toBe(deck.placed.object);
+    expect(entryOwner(actual.scope, 'placed', 'bridge')).toEqual([deck.placed]);
+    expect(entryOwner(actual.scope, 'floor', 'bridge')).toBe(deck.floorHeightAt);
+    expect(deck.floorHeightAt(6, 0)).toBe(oldDeck.floorHeightAt(6, 0));
+    expect(actual.captures).toEqual([]); expect(() => entryOwner(actual.scope, 'chain', 'bridge.deck')).toThrow('Missing live entry owner');
+    expect(() => WorldAssembly.lend(rows, actual.scope, actual.entered)).toThrow('Missing live entry owner');
+    expect(() => entryOwner(actual.entered, 'object', 'bridge')).toThrow('Missing live entry owner');
+    // A body owned by the intervening cover stage makes allocation order observable in the native handles.
+    actual.order.push('cover');
+    actual.physics.world.createRigidBody(actual.physics.R.RigidBodyDesc.fixed().setTranslation(0, 0, 100));
+    original.physics.world.createRigidBody(original.physics.R.RigidBodyDesc.fixed().setTranslation(0, 0, 100));
+    const oldChain = new RopeChain(original.physics, oldDeck.chainSpec());
+    await assembly.next('bridge.deck');
+    const chain = entryOwner(actual.scope, 'chain', 'bridge.deck');
+    expect(actual.order).toEqual(['Rope bridge', 'cover', 'capture', 'Bridge physics and paths']);
+    expect(actual.captures).toEqual([{ phase: 'post', id: 'shard.driftwood.bridge.capture', scope: actual.scope }]);
+    expect(chain.bodies.map(body => body.handle)).toEqual(oldChain.bodies.map(body => body.handle));
+    expect(chain.spec.segments).toEqual(oldChain.spec.segments); expect(chain.spec.owners?.map(owner => typeof owner==='object'&&owner!==null&&'id' in owner?owner.id:null)).toEqual(oldChain.spec.owners?.map(owner => typeof owner==='object'&&owner!==null&&'id' in owner?owner.id:null));
+    const capture = vi.spyOn(chain, 'capture');
+    for (let frame = 0; frame < 8; frame++) {
+      actual.physics.step(); original.physics.step(); oldChain.capture();
+      for (const system of actual.app.systemsByPhase()['fixed.post']) system.run(1 / 60, frame / 60);
+      deck.setPoses(chain, 0.4); oldDeck.setPoses(oldChain, 0.4);
+      expect(chain.bodies.map(body => [body.translation(), body.rotation()])).toEqual(oldChain.bodies.map(body => [body.translation(), body.rotation()]));
+      expect(deck.floorHeightAt(6, 0)).toBe(oldDeck.floorHeightAt(6, 0));
+    }
+    expect(capture).toHaveBeenCalledTimes(8); expect(actual.load).not.toHaveBeenCalled();
+    expect(Array.from(actual.physics.snapshot())).toEqual(Array.from(original.physics.snapshot()));
+    WorldAssembly.lend(rows, actual.scope, actual.entered);
+    expect(entryOwner(actual.entered, 'rope-deck', 'bridge')).toBe(deck); expect(entryOwner(actual.entered, 'chain', 'bridge.deck')).toBe(chain);
+    actual.entered.dispose(); expect(actual.app.systemsByPhase()['fixed.post']).toHaveLength(1);
+    const count = chain.bodies.length; expect(count).toBeGreaterThan(0);
+    actual.scope.dispose(); expect(actual.app.systemsByPhase()['fixed.post']).toHaveLength(0);
+    expect(actual.physics.world.bodies.len()).toBe(0);
+  } finally { actual.clean(); original.clean(); setTerrainHeight(() => 0); }
+});
+test('rope-chain admission requires an earlier deck and one capture per deck', async () => {
+  const f = await ropeFixture(), rows = ropeRows(), deck = rows.stages[0], chain = rows.stages[1];
+  try {
+    expect(() => WorldAssembly.admit({ stages: [deck, { kind: 'entry', id: 'duplicate-entry', label: 'Duplicate', rows: [{ kind: 'place', id: 'bridge' }] }] }, f.ports)).toThrow('Repeated world assembly placement');
+    expect(() => WorldAssembly.admit({ stages: [chain, deck] }, f.ports)).toThrow('earlier rope-deck');
+    expect(() => WorldAssembly.admit({ stages: [deck, { ...chain, deck: 'absent' }] }, f.ports)).toThrow('earlier rope-deck');
+    expect(() => WorldAssembly.admit({ stages: [deck, chain, { ...chain, id: 'another.chain' }] }, f.ports)).toThrow('Repeated world rope chain');
+    expect(f.copy).not.toHaveBeenCalled(); expect(f.physics.world.bodies.len()).toBe(0);
+  } finally { f.clean(); }
+});
+test('missing or unloaded fixed draws and a missing registry refuse before rope placement', async () => {
+  const f = await ropeFixture();
+  try {
+    const { draws: _draws, ...withoutDraws } = f.ports;
+    await expect(WorldAssembly.admit(ropeRows(), withoutDraws).next('bridge')).rejects.toThrow('loaded fixed draws');
+    await expect(WorldAssembly.admit(ropeRows(), { ...f.ports, draws: { ...f.draws, ready: false } }).next('bridge')).rejects.toThrow('loaded fixed draws');
+    await expect(WorldAssembly.admit(ropeRows(), { ...f.ports, registry: null }).next('bridge')).rejects.toThrow('registry');
+    expect(f.copy).not.toHaveBeenCalled(); expect(f.registry.pieces).toHaveLength(0); expect(f.load).not.toHaveBeenCalled();
+  } finally { f.clean(); }
+});
+test('missing native physics or fixed-post authority refuses before the first rope body', async () => {
+  for (const missing of ['physics', 'fixed'] as const) {
+    const f = await ropeFixture();
+    try {
+      const { [missing]: _missing, ...ports } = f.ports, assembly = WorldAssembly.admit(ropeRows(), ports);
+      await assembly.next('bridge'); const before = f.physics.world.bodies.len();
+      await expect(assembly.next('bridge.deck')).rejects.toThrow('physics and fixed-post');
+      expect(f.physics.world.bodies.len()).toBe(before); expect(f.captures).toEqual([]);
+    } finally { f.clean(); }
+  }
+});
+test('retirement across the placement slice refuses late chain allocation and publication', async () => {
+  const f = await ropeFixture(); let release = (): void => undefined;
+  const slice = new Promise<void>(resolve => { release = resolve; });
+  const assembly = WorldAssembly.admit(ropeRows(), { ...f.ports, slice: () => slice });
+  try {
+    const pending = assembly.next('bridge'); f.scope.dispose(); release();
+    await expect(pending).rejects.toThrow('owner left');
+    await expect(assembly.next('bridge.deck')).rejects.toThrow('owner left'); expect(f.captures).toEqual([]);
+    expect(() => entryOwner(f.scope, 'rope-deck', 'bridge')).toThrow('scope has ended'); expect(f.physics.world.bodies.len()).toBe(0);
+  } finally { f.clean(); }
+});
+test('a retiring construction never copies a rope draw or allocates a chain', async () => {
+  const f = await ropeFixture(), assembly = WorldAssembly.admit(ropeRows(), f.ports);
+  f.scope.onDispose(() => undefined); const steps = f.scope.disposeSteps(); steps.next();
+  try {
+    await expect(assembly.next('bridge')).rejects.toThrow('owner left'); expect(f.copy).not.toHaveBeenCalled(); expect(f.captures).toEqual([]);
+  } finally { for (const step of steps) void step; f.clean(); }
+});
+
+test('retirement across the chain slice removes capture, loans and native bodies', async () => {
+  const f = await ropeFixture(); let release = (): void => undefined;
+  const slice = new Promise<void>(resolve => { release = resolve; });
+  const assembly = WorldAssembly.admit(ropeRows(), { ...f.ports, slice: label => label === 'Bridge physics and paths' ? slice : Promise.resolve() });
+  try {
+    await assembly.next('bridge'); const pending = assembly.next('bridge.deck');
+    expect(f.captures).toHaveLength(1); expect(f.physics.world.bodies.len()).toBeGreaterThan(0);
+    f.scope.dispose(); release(); await expect(pending).rejects.toThrow('owner left');
+    expect(f.app.systemsByPhase()['fixed.post']).toHaveLength(0); expect(f.physics.world.bodies.len()).toBe(0);
+    expect(() => entryOwner(f.scope, 'chain', 'bridge.deck')).toThrow('scope has ended');
+  } finally { f.clean(); }
 });

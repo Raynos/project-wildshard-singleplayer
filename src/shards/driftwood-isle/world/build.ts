@@ -5,7 +5,7 @@ import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOw
 import type { Scope } from '@wildshard/engine/app/scope';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { TIER } from '@wildshard/engine/core/tier';
-import { loadFixedGeometry, fixedDraw, fixedGeometryGroups } from '../runtime/boot/blobAssets';
+import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, fixedDrawLibrary } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -17,7 +17,6 @@ import { sites } from '../models/catalogue';
 import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
-import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import manifest from '../discovery.generated';
 import * as v from 'valibot';
 import { LivingBuildings } from '@wildshard/game/shardfile/livingBuildings';
@@ -26,7 +25,6 @@ import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/forma
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { createAmbientFlock } from '@wildshard/game/ambient/ambientFlock';
-import { ROPE_BRIDGE } from '../boot/bridgeFacts';
 import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
 import { followToonLook } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover } from '@wildshard/game/looks/streamedCover';
@@ -64,7 +62,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
   // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
-  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete,
+  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete, draws: fixedDrawLibrary(), physics: world.physics, fixed: game,
     entry: { root: game.scene, tier: game.tier, physics: world.physics, piece: (piece) => { registry.add(piece); } } });
   const only = (id: string): Placed => { const [placed] = entryOwner(scope, 'placed', id); if (placed === undefined) throw new Error(`Driftwood ${id} placed nothing`); return placed; };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
@@ -125,7 +123,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // its fence posts, signposts and plank steps are the entry's placements drawn into the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
-  const bridge = await stage('Rope bridge', () => ROPE_BRIDGE.place(sky, assembly.bridge, registry));
+  await stages.next('bridge');
+  const bridge = entryOwner(scope, 'rope-deck', 'bridge');
   // coral, kelp and starfish on the lagoon shelf (what you dive for); its fish school is page life (generators/fishDraw.ts)
   await stages.next('seabed');
   const reefLook = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);
@@ -155,11 +154,10 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await macrotask();
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
   // SF30 activation stays held until SF46 parity: keep the legacy model's live terrain, widths and owners exactly.
-  const bridgeDeck = new RopeChain(world.physics, bridge.chainSpec());
-  game.onFixed('post', () => { bridgeDeck.capture(); }, 'shard.driftwood.bridge.capture');
+  await stages.next('bridge.deck');
+  const bridgeDeck = entryOwner(scope, 'chain', 'bridge.deck');
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52), drawn by the client plan's baked tiles (world.baked, G532 (4)):
   // (its declared wear dresses its ground and cover looks there); the monkeys climb its palms
-  await slice(completed + 1, total, 'Bridge physics and paths');
   const island = baked.get('cove'); if (island === undefined) throw new Error('Missing baked cove');
   await stages.next('smallRocks'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
   const smallRocks = entryOwner(scope, 'object', 'smallRocks');
@@ -171,9 +169,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   publishEntryOwner(scope, 'object', 'driftwood.gulls', gulls.group);
   publishEntryOwner(scope, 'ambient-draw', 'driftwood.gulls', gulls);
   publishEntryOwner(scope, 'object', 'driftwood.cover', cover.group);
-  publishEntryOwner(scope, 'floor', 'bridge', bridge.floorHeightAt);
-  publishEntryOwner(scope, 'chain', 'bridge.deck', bridgeDeck);
-  publishEntryOwner(scope, 'placed', 'bridge', [bridge.placed]);
   publishEntryOwner(scope, 'placed', 'cover', cover.placed);
   return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }

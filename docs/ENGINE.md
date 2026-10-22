@@ -11372,3 +11372,25 @@ Every id and resolved draw must be distinct. All loans resolve before the
 read and retain their original identity across admission. The feature creates
 no replacement flock, draw library or cache; inner library/material reads
 fence retiring owners before further allocation.
+
+### Declared rope deck construction
+
+The defining rope-deck rows live in format/ropeDeckSite:
+RopeDeckSiteSchema admits the existing model card, baked rest spans and fixed
+draw slots; RopeDeckSpanSchema admits a span, and RopeDeckRestKeySchema admits
+its baked numeric key. The RopeDeckSite host consumes those same rows.
+
+WorldAssembly adds two ordered construction stages. A `rope-deck` row names
+its inline site and span, borrows the original loaded FixedDraws and registry,
+and publishes object, placed, floor and concrete rope-deck loans on the
+construction scope. A later `rope-chain` row names an earlier deck and its
+capture system id. It uses the original physics and fixed-post authority to
+allocate the RopeChain and capture it at the declared point in the build.
+Moving deck placement does not move chain allocation earlier in that order.
+
+Assembly admission refuses repeated placement ids, forward deck references,
+a second chain for one deck, and duplicate capture ids. Entered lending derives
+its loan kinds from the admitted stages and preflights the complete build
+before lending any owner. Retiring construction scopes cannot allocate or
+publish later stages. No new draw intake, clock or save adapter is created;
+the original entered pose callback remains the pose owner.

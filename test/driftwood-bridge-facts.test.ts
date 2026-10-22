@@ -1,9 +1,11 @@
 import { beforeAll, expect, it } from 'vitest';
 import { BufferAttribute, Mesh, SkinnedMesh, type Object3D } from 'three';
-import { ROPE_BRIDGE } from '../src/shards/driftwood-isle/boot/bridgeFacts';
-import type { RopeDeckSpan as RopeBridgeSpec } from '../src/game/models/ropeDeckSite';
+import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
+import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/ropeDeckSite';
+
+import type { RopeDeckSpan as RopeBridgeSpec } from '../src/format/ropeDeckSite';
 import { fakeWorld } from './fake/world';
-import { fixedDraw } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { fixedDraw, ISLAND } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgeDeck, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
 
@@ -11,6 +13,7 @@ import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { fixtureBytes } from './fixtures/nativeBytes';
 import fixedBlobs from '../src/shards/driftwood-isle/data/fixedBlobs.generated.json' with { type: 'json' };
 
+const ROPE_BRIDGE = new RopeDeckSite(driftwoodRopeDeckSite(), ISLAND);
 const span:RopeBridgeSpec={a:[0,0],b:[12,0],sag:0.9};
 const isMesh=(o:Object3D):o is Mesh=>o instanceof Mesh;
 const isSkinned=(o:Object3D):o is SkinnedMesh=>o instanceof SkinnedMesh;
@@ -78,4 +81,10 @@ it('retains original native bridge units in named GLBs', async () => {
       expect(actual.index?.array.constructor).toBe(expected.index?.array.constructor); expect(actual.index?.array).toEqual(expected.index?.array);
     } finally { actual.dispose(); expected.dispose(); }
   }
+});
+
+it('keeps the original rope card and names its defining producer', () => {
+  expect(ROPE_BRIDGE.rows.model).toEqual({ id: 'driftwood-isle/rope-bridge', name: 'Rope bridge', category: 'buildings', pipeline: 'code', file: 'src/shards/driftwood-isle/generators/ropeDeckSite.ts', surface: 'planks' });
+  expect(ROPE_BRIDGE.rows.draws).toEqual({ specimen: 'bridgeSpecimenDeck', world: 'bridgeDeck' });
+  expect(ROPE_BRIDGE.rows.specimen).toBe(1); expect(ROPE_BRIDGE.model.defaults.span).toEqual(ROPE_BRIDGE.specimen);
 });

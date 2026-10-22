@@ -19,31 +19,11 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { SpecimenModelMetadataSchema } from '@wildshard/format/specimenCatalogue';
+import { RopeDeckSiteSchema, RopeDeckRestKeySchema, type RopeDeckSpan, type RopeDeckRest, type RopeDeckSiteRows } from '@wildshard/format/ropeDeckSite';
 
-const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite());
-const xz = v.tuple([n, n]), point = v.object({ x: n, y: n, z: n });
-const span = v.strictObject({ a: xz, b: xz, sag: v.exactOptional(n), width: v.exactOptional(n) });
-/** a span's baked rest plan (its generator's row; fields the site does not read are ignored) */
-const rest = v.object({ key: id, ground: v.pipe(v.array(point), v.maxLength(256)), origin: point, width: n, len: n, direction: v.object({ x: n, z: n }),
-  segments: v.pipe(v.array(v.object({ x: n, y: n, z: n, hz: n, rot: v.object({ x: n, y: n, z: n, w: n }) })), v.maxLength(256)),
-  ownDescs: v.pipe(v.array(v.unknown()), v.maxLength(256)) });
-export const RopeDeckSiteSchema = v.strictObject({
-  model: v.pick(SpecimenModelMetadataSchema, ['id', 'name', 'file', 'category', 'pipeline', 'surface']),
-  /** which baked span is the Explorer specimen's (flat ground), and the size of its loading stand-in */
-  specimen: v.pipe(v.number(), v.integer(), v.minValue(0)), loading: v.tuple([n, n, n]),
-  spans: v.pipe(v.array(rest), v.minLength(1), v.maxLength(8)),
-  /** the skinned deck's fixed draw slot for the specimen and for every other span */
-  draws: v.strictObject({ specimen: id, world: id }),
-  /** the deck's defaults (width, sag), segment half thickness and weight, bounds, hit owner and margin; its registry piece */
-  deck: v.strictObject({ width: n, sag: n, halfY: n, mass: n, maxSegments: v.pipe(v.number(), v.integer(), v.maxValue(256)),
-    maxColliders: v.pipe(v.number(), v.integer(), v.maxValue(256)), margin: n, owner: v.strictObject({ id, name: id }), piece: id }),
-});
-export type RopeDeckSpan = v.InferOutput<typeof span>;
 export interface RopeDeckSiteParams { readonly span: RopeDeckSpan; readonly ground: (x: number, z: number) => number }
 /** The fixed draws the deck borrows (a shard's island library): their one load, readiness and slot handles. */
 export interface RopeDeckDraws { readonly ready: boolean; readonly draw: (slot: string) => OwnedGeometry; readonly load: () => Promise<void> }
-export type RopeDeckRest = v.InferOutput<typeof rest>;
 
 /** One span's built deck: the drawn group, its own-space colliders, the chain spec, posing and the live floor. */
 export class RopeDeckLayout {
@@ -70,7 +50,7 @@ export class RopeDeckLayout {
 
 /** A shard's rope deck site (see the module note). */
 export class RopeDeckSite {
-  readonly rows: v.InferOutput<typeof RopeDeckSiteSchema>;
+  readonly rows: RopeDeckSiteRows;
   /** the specimen's span, read back from its bake key (its ends, width and sag) */
   readonly specimen: RopeDeckSpan;
   readonly model: ModelDef<RopeDeckSiteParams>;
@@ -81,7 +61,7 @@ export class RopeDeckSite {
     this.rows = v.parse(RopeDeckSiteSchema, input);
     const baked = this.rows.spans[this.rows.specimen];
     if (baked === undefined) throw new Error('Rope deck specimen has no baked span');
-    const [a, b, width, sag] = v.parse(v.tuple([xz, xz, n, n]), JSON.parse(baked.key));
+    const [a, b, width, sag] = v.parse(RopeDeckRestKeySchema, JSON.parse(baked.key));
     const specimen: RopeDeckSpan = { a, b, width, sag }, flat = (): number => 0;
     this.specimen = specimen;
     const { surface, ...card } = this.rows.model;

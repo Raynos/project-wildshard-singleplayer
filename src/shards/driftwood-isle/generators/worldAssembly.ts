@@ -1,6 +1,7 @@
 /** Ordered static build facts; native scene handles carry every rendered owner. */
 import { OCEAN, JETTIES, BRIDGE } from './worldSites';
 import { driftwoodWorldEntry } from './worldEntry';
+import { driftwoodRopeDeckSite } from './ropeDeckSite';
 import cove from '../data/coveComposition.json' with { type: 'json' };
 
 export const WORLD_ASSEMBLY = { ocean: OCEAN, bridge: BRIDGE,
@@ -22,6 +23,8 @@ export const WORLD_STAGES = { stages: [{ kind: 'place', ...pier }, entry('decks'
   entry('wreck', 'Wreck', { object: { as: 'group', part: 'wreck.root' }, floor: 'wreck.ship' }),
   { kind: 'site', id: 'shrine', label: 'Shrine', model: 'shrine', choice: 'world' }, ...jetties.map(({ id, label }) => ({ kind: 'place', id, label })),
   entry('bushes', 'Bushes', { object: { as: 'mesh', part: 'hibiscus.mesh' } }), entry('trail', 'Trailside', { object: { as: 'mesh', part: 'trail.mesh' } }),
+  { kind: 'rope-deck', id: 'bridge', label: 'Rope bridge', site: driftwoodRopeDeckSite(), span: BRIDGE },
   entry('seabed', 'Seabed', { object: { as: 'mesh', part: 'reef.mesh' } }),
   entry('cove', 'Cove', { object: { as: 'group', part: cove.root } }), entry('palms', 'Palms', { object: { as: 'mesh', part: 'palms.mesh' } }),
+  { kind: 'rope-chain', id: 'bridge.deck', label: 'Bridge physics and paths', deck: 'bridge', capture: 'shard.driftwood.bridge.capture' },
   entry('smallRocks', 'Small rocks', { object: { as: 'mesh', part: 'rocks.small' } })] };

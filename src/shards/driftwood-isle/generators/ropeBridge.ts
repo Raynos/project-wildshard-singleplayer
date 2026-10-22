@@ -4,7 +4,7 @@ import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import type { RopeDeckRest, RopeDeckSpan as RopeBridgeSpec } from '@wildshard/game/models/ropeDeckSite';
+import type { RopeDeckRest, RopeDeckSpan as RopeBridgeSpec } from '@wildshard/format/ropeDeckSite';
 import type { RopeDeckPoses as DeckPoses } from '@wildshard/engine/physics/ropeChain';
 
 type DeckSegment = RopeDeckRest['segments'][number];

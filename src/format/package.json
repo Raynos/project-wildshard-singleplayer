@@ -260,7 +260,8 @@
     "./fieldPresentation": "./fieldPresentation.ts",
     "./geometryPack": "./geometryPack.ts",
     "./questContinuation": "./questContinuation.ts",
-    "./questWorld": "./questWorld.ts"
+    "./questWorld": "./questWorld.ts",
+    "./ropeDeckSite": "./ropeDeckSite.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"
