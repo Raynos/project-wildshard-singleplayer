@@ -104,7 +104,7 @@ test('quarry practice rows select the equipped native tool and translate their h
     registry: legacyDouble<PlaygroundHost['registry']>({ add: piece => piece }),
     spawn: { x: 11, z: -9 }, toast: () => undefined,
   });
-  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope}), {kind:'grapple',layout:{ program:PRACTICE_PROGRAM,frame:practiceFrame({...room,pads}),course: { ...room, title: 'Quarry hook run', pads },
+  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope}), {kind:'grapple',layout:{ program:PRACTICE_PROGRAM,sampleEpsilon:1e-9,frame:practiceFrame({...room,pads}),course: { ...room, title: 'Quarry hook run', pads },
     hooks: [{ pad: 'quarry-hook', x: 3, y: 4, z: 5 }],
     presentation: { parts: [], colliders: [], map: { bounds: { x0: -20, x1: 20, z0: -20, z1: 20 }, shapes: [] } } } });
   try {

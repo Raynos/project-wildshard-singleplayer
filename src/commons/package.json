@@ -6,6 +6,7 @@
   "exports": {
     "./catalogue": "./catalogue.ts",
     "./scripts": "./scripts.ts",
+    "./practiceCourse": "./practiceCourse.ts",
     "./bake/portableMath": "./bake/portableMath.ts"
   },
   "dependencies": {

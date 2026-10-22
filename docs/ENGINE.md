@@ -2824,12 +2824,15 @@ Shared species take a plain `{ ...BOAR, variants: [...] }` spread to add a varia
 Native course registration supplies the entered page context and JSON rows:
 `{ kind: 'horse', layout }` borrows the live mount owner; `{ kind: 'grapple',
 layout }` resolves the equipped grapple tool. Both share room visibility,
-registry registration, the map and chip lifetime. The individual mounted and
-grapple controllers retain their individual attribution. Grapple layouts include
-an admitted `program` and a numeric `frame` baked with pad coordinates, the floor
-and checkpoint-facing poses. The stateless AS guest selects footpads, checkpoints,
-start/finish, falls and spawn poses at 10 Hz. Native code applies the existing
-player spawn, clears velocity, interpolates the timer and presents its outputs.
+registry registration, the map and chip lifetime. Their thin mounted and grapple
+body controllers retain individual attribution. Both drive the shared numeric
+presenter and the same commons course AS source through the existing ABI1
+`ReturnProgram`. Finite oval/checkpoint parameters select the law; layouts carry
+`sampleEpsilon` (0 for the original oval cadence, 1e-9 for checkpoints) and an
+admitted program. Checkpoint frames retain their baked pad coordinates and facing.
+Native code keeps the original player spawn and velocity policy, live timer,
+status, notices and body owners. Each room scopes its stateless program separately;
+opening a second room cannot replace another room's admitted parameters.
 
 | Export / field | What it is |
 |---|---|

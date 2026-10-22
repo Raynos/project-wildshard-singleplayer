@@ -1,5 +1,4 @@
 import { chapterSignal } from './chapter';
-import { courseSignal } from './course';
 import { Signal, Field, Channel, Read, Do, Params } from './generated/nalatiKokpar';
 
 @inline function get(field:i32):f64 { return Read.field(0,field); }
@@ -11,7 +10,7 @@ export function onSignal(signal:i32,value:f64,source:i32):void {
     Do.channel(Channel.bowDamage,Math.round(get(Field.bowBaseDamage)*get(Field.bowPierce))*(get(Field.bowCrush)!=0?get(Field.bowCrushScale):1));
     return;
   }
-  if(chapterSignal(signal)||courseSignal(signal))return;
+  if(chapterSignal(signal))return;
   let carrying=get(Field.carrying),left=get(Field.left),slow=get(Field.slow),cheer=get(Field.cheer),warned=get(Field.warned);
   let event:i32=0,pose:i32=0,goal:i32=0,warning:i32=0;
   const dt=get(Field.dt),px=get(Field.playerX),pz=get(Field.playerZ);

@@ -49,7 +49,7 @@ const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash
 // M2 (G518): the ground's baked L0 render tiles (generators/bake-render-tiles.mjs), bound by the runtime: the painted
 // ground draws them in its own material behind the Debug row groundTiles; the files stay out of the sim budgets below
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
-const programs = [heldWeapons.program,stealth.program,speciesData.program,weatherDecision,kokpar.program, admission, pasture, ...Object.values(titanProgram), ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
+const programs = [heldWeapons.program,stealth.program,speciesData.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, ...Object.values(titanProgram), ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
 const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, 0);
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes);
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.

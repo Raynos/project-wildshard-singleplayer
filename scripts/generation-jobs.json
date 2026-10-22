@@ -21,7 +21,10 @@
         "src/shards/nine-dragon-stack/generators/practiceDecision.mjs",
         "src/sdk/decisionScriptBindings.ts",
         "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
+        "src/format/decisionScripts.ts",
+        "src/commons/package.json",
+        "src/commons/practiceCourse.ts",
+        "src/commons/scripts/course.as"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/behaviour/practice.generated.json"
@@ -20662,7 +20665,10 @@
         "src/shards/nalati-grasslands/data/questContent.json",
         "src/sdk/decisionScriptBindings.ts",
         "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
+        "src/format/decisionScripts.ts",
+        "src/commons/package.json",
+        "src/commons/practiceCourse.ts",
+        "src/commons/scripts/course.as"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/kokpar.generated.json"

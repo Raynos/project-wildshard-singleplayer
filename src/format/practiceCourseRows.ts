@@ -50,7 +50,7 @@ export const RidingPracticeSchema = v.strictObject({
   oval: v.strictObject({halfLen:positive,radius:positive,width:positive}), lineX:n,
   title:text, chip:text, piece:v.strictObject({id:text,name:text,file:text}),
   actor:v.strictObject({kind:text,variant:text,name:text}), riderPitch:n, shoulder:n,
-  program:ReturnProgramSchema,
+  program:ReturnProgramSchema, sampleEpsilon:v.picklist([0,1e-9]),
   words:v.strictObject({ready:text,ride:text,lap:text,half:text,last:text,best:text,fell:text,lapNotice:text,halfNotice:text}),
 });
 export type RidingPracticeLayout = v.InferOutput<typeof RidingPracticeSchema>;
@@ -75,5 +75,5 @@ export interface HookPracticeRow {
 }
 /** Offline traversal-room presentation and the run's data. */
 export interface HookPracticeLayout {
-  program: unknown; frame: Readonly<Record<string, number>>; presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
+  program: unknown; sampleEpsilon: number; frame: Readonly<Record<string, number>>; presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
 }

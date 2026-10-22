@@ -171,4 +171,4 @@ function target(row: HookCourseRow, x: number, y: number, z: number, r: number):
   return m;
 }
 
-export function grappleCourseScene(row: HookCourseRow): HookPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(row,origin); return { program: PRACTICE_PROGRAM, frame: practiceFrame(row), presentation: captureCourse(root,colliders,courseMap(row,origin)), hooks: hookCourseHooks(row), course: row }; }
+export function grappleCourseScene(row: HookCourseRow): HookPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(row,origin); return { program: PRACTICE_PROGRAM, sampleEpsilon:1e-9, frame: practiceFrame(row), presentation: captureCourse(root,colliders,courseMap(row,origin)), hooks: hookCourseHooks(row), course: row }; }
