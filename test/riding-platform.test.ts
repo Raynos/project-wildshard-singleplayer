@@ -33,6 +33,7 @@ function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = tr
     relabel: (): (() => void) => () => undefined, verb: (): void => undefined, pin: (): void => undefined,
   } });
   const player = legacyDouble<Player>({ camera, position: new Vector3(), velocity: new Vector3(), keys: new Set<string>(), touchMove: { x: 0, y: 0 }, touchJump: false, moveScale: 1,
+    onGround: true,
     yaw: 0, pitch: 0, crouching: false, hover: false, swimming: false, wading: false, ride: null,
     setHover: (): void => undefined, setBodyEnabled: (): void => undefined });
   const actor = legacyDouble<Animal>({ entityId: 'fixture.mount', kind, variant: 'starter', alive: true, hidden: false, hp: 100, maxHp: 100,
