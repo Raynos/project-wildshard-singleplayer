@@ -83,6 +83,8 @@ export class ResidencyAllocator {
   private accountingRevision = 0;
   private nearCount = 0;
   private readonly coverage = new Map<string, Coverage>();
+  /** Each owner's accounted bytes (page components excluded, covered claims at 0), kept as claims and coverage change. */
+  private readonly owners = new Map<string, number>();
   private readonly evictable = new Set<Entry>();
   private evictionOrder: Entry[] | null = null;
   /** The evictable claims' raw bytes per category (and page calibration credit), kept with the evictable index: the most
@@ -161,11 +163,12 @@ export class ResidencyAllocator {
     for (const entry of this.entries_.values()) if (entry.category !== 'page') bytes.set(entry.owner, (bytes.get(entry.owner) ?? 0) + this.effectiveBytes(entry));
     return bytes;
   }
-  /** One owner's accounted bytes ({@link ownerBytes} for a single owner, without building the whole map). */
-  private ownerTotal(owner: string): number {
-    let bytes = 0;
-    for (const entry of this.entries_.values()) if (entry.owner === owner && entry.category !== 'page') bytes += this.effectiveBytes(entry);
-    return bytes;
+  /** One owner's accounted bytes ({@link ownerBytes} for a single owner): its running total. Re-scanning every claim here
+   *  made an entry's over-budget registrations quadratic (Nine's grid entry: 300-480 ms frames at 4x CPU). */
+  private ownerTotal(owner: string): number { return this.owners.get(owner) ?? 0; }
+  private ownerAdd(owner: string, bytes: number): void {
+    const total = (this.owners.get(owner) ?? 0) + bytes;
+    if (total === 0) this.owners.delete(owner); else this.owners.set(owner, total);
   }
   /** Re-judge the retained resident warnings, each by its owner alone (G556). */
   private syncResidents(): void {
@@ -238,12 +241,14 @@ export class ResidencyAllocator {
   }
   private adjustCoverage(group: Coverage, sign: number): void {
     this.totals.commons += sign * group.commons; this.totals.page += sign * group.page; this.credit += sign * group.credit;
+    for (const child of group.children) if (child.category !== 'page') this.ownerAdd(child.owner, sign * child.bytes);
   }
   private track(entry: Entry, sign: 1 | -1): void {
     this.accountingRevision++;
     if (!this.covered(entry)) {
       this.totals[entry.category] += sign * entry.bytes;
       if (entry.category === 'page') this.credit += sign * entry.baseCredit;
+      else this.ownerAdd(entry.owner, sign * entry.bytes);
     }
     if (entry.category === 'near') this.nearCount += sign;
     const covering = entry.coveredBy;

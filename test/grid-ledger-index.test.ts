@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ResidencyAllocator, type ResidencyClaim } from '../src/game/grid/allocator';
 import { ReferenceResidencyAllocator } from './fixtures/grid/allocator-before';
-import { MemoryAdmission } from '../src/format/product';
+import { MemoryAdmission, type MemoryAdmissionRequest } from '../src/format/product';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import recorded from './fixtures/grid/pine-ledger-sequence.json' with { type: 'json' };
 
@@ -164,4 +164,30 @@ test('evicting a parent also exposes the pending covered allocation', () => {
     ledger.reserve({ id: 'pending', owner: 'parent', category: 'commons', bytes: 300, needed: true, distance: 0, coveredBy: 'parent' });
   }
   same(ledgers); expect(events[1]).toEqual(['abort']); expect(events[1]).toEqual(events[0]);
+});
+
+/** Records every over-budget admission request (its accounted owner bytes included) before judging it as usual. */
+class RecordedAdmission extends MemoryAdmission {
+  readonly requests: MemoryAdmissionRequest[] = [];
+  override accept(request: MemoryAdmissionRequest): boolean { this.requests.push(request); return super.accept(request); }
+}
+
+test('over-budget admissions report the same owner totals as the scanning allocator, across coverage changes', () => {
+  const reference = new RecordedAdmission(() => true), indexed = new RecordedAdmission(() => true);
+  const ledgers = [new ReferenceResidencyAllocator({ playing: 4_000_000, memory: reference }), new ResidencyAllocator({ playing: 4_000_000, memory: indexed })];
+  const run = (claim: ResidencyClaim) => ledgers.map(ledger => ledger.reserve(claim));
+  const parents = run({ id: 'sim:orchard', category: 'sim', owner: 'orchard', bytes: 3_000_000, distance: 0, needed: true });
+  for (const ledger of ledgers) ledger.markMeasuredPage('sim:orchard');
+  const covered = Array.from({ length: 6 }, (_, i) => run({ id: `commons:orchard-${String(i)}`, category: 'commons', owner: 'orchard', bytes: 200_000, distance: 0, needed: true, coveredBy: 'sim:orchard' }));
+  // past the envelope: every needed claim is judged by the owner's running total (covered children at 0)
+  const held = Array.from({ length: 40 }, (_, i) => run({ id: `l0:${i % 2 === 0 ? 'orchard' : 'harbour'}-${String(i)}`, category: 'l0', owner: i % 2 === 0 ? 'orchard' : 'harbour', bytes: 150_000, distance: i, needed: true }));
+  // the measured parent leaves: its children are charged again; then more claims past the envelope
+  for (const lease of parents) lease?.release();
+  held.push(...Array.from({ length: 10 }, (_, i) => run({ id: `l1:orchard-${String(i)}`, category: 'l1', owner: 'orchard', bytes: 90_000, distance: i, needed: true })));
+  for (const lease of covered.flat()) lease?.release();
+  held.push(run({ id: 'l1:orchard-late', category: 'l1', owner: 'orchard', bytes: 90_000, distance: 0, needed: true }));
+  expect(indexed.requests.length).toBeGreaterThan(20);
+  expect(indexed.requests).toEqual(reference.requests);
+  expect(held.map(pairs => pairs.map(lease => lease !== null))).toEqual(held.map(pairs => [pairs[0] !== null, pairs[0] !== null]));
+  same(ledgers);
 });
