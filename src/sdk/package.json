@@ -48,7 +48,6 @@
     "./brains": "./brains.ts",
     "./speciesBrains": "./speciesBrains.ts",
     "./phasedBoss": "./phasedBoss.ts",
-    "./panels": "./panels.ts",
     "./groupBrains": "./groupBrains.ts",
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
@@ -318,10 +317,6 @@
       "./phasedBoss": {
         "types": "./dist/types/sdk/phasedBoss.d.ts",
         "default": "./dist/phasedBoss.js"
-      },
-      "./panels": {
-        "types": "./dist/types/sdk/panels.d.ts",
-        "default": "./dist/panels.js"
       },
       "./groupBrains": {
         "types": "./dist/types/sdk/groupBrains.d.ts",

@@ -7377,7 +7377,7 @@ object and boxes and own no colliders. Bounds views retain the original registra
 follow the source promise. Named places register as the client plan's `world.sets` rows
 (`game/shardfile/clientPlaceSets.ts`), which select their members with `placedWithin`.
 
-**Declared panel lifetime (W2 C5).** `@wildshard/sdk/panels` defines
+**Declared panel lifetime (W2 C5).** `@wildshard/game/ui/panels` defines
 `DeclaredPanel` and `DeclaredPanelPolicy`. Persistent panels mount once and
 retain their DOM across close/open; per-open panels make a fresh child scope
 and content tree, blur before close callbacks and release their scoped layer

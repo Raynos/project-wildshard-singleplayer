@@ -901,7 +901,6 @@
     "src/sdk/looks/canvasAtlas.ts": 8,
     "src/sdk/looks/modelLibrary.ts": 11,
     "src/sdk/looks/shaderFamily.ts": 14,
-    "src/sdk/panels.ts": 5,
     "src/sdk/phasedBoss.ts": 9,
     "src/sdk/runtime/audio/combatCues.ts": 1,
     "src/sdk/runtime/audio/silentScore.ts": 1,
