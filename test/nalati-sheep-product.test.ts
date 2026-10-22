@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare baked channels by their exact bytes.
 import { createHash } from 'node:crypto';
 import type { BufferAttribute, InterleavedBufferAttribute } from 'three';
-import { bakeSheepBody } from '../src/shards/nalati-grasslands/generators/sheepBody';
+import { admittedSheepProduct } from './fake/admittedSheep';
 import { readCrowdBody } from '../src/game/ambient/crowdPage';
 import { FlockBrain } from '../src/engine/ai/flock';
 import { flock } from '../src/sdk/crowds';
@@ -13,15 +13,7 @@ import { ShippingFlock } from './fixtures/flock-oracle/flock';
 
 const readFlockBody = (product: Parameters<typeof readCrowdBody>[0]) => readCrowdBody(product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
 
-const source = () => {
-  const { bytes, ...row } = bakeSheepBody();
-  const metadata = new TextEncoder().encode(JSON.stringify({ species: {}, ...row }));
-  return { bytes, file: (name: string): Promise<Uint8Array> => {
-    if (name === 'actors/sheep.bin') return Promise.resolve(bytes);
-    if (name === 'actors/sheep.json') return Promise.resolve(metadata);
-    throw new Error('Unexpected sheep product file');
-  } };
-};
+const source = admittedSheepProduct;
 
 for (const seed of [0, 3, 8172, 0xffffffff - 101]) it(`keeps flock identities and setup seeds exact at ${String(seed)}`, () => {
   const world = ecology.flocks.world.map(row => flock({ ...row, seed: seed + row.seed }));
@@ -59,7 +51,7 @@ it('keeps every frozen sheep vertex, rig weight, index and animation bound exact
 
 it('refuses truncated product bytes before a flock can build', async () => {
   const product = source();
-  await expect(readFlockBody({ file: name => name === 'actors/sheep.bin' ? Promise.resolve(product.bytes.slice(1)) : product.file(name) })).rejects.toThrow('declared blocks');
+  await expect(readFlockBody({ ...product, file: name => name === 'actors/sheep.bin' ? Promise.resolve(product.bytes.slice(1)) : product.file(name) })).rejects.toThrow('declared blocks');
 });
 
 it('keeps the Explorer sheep setup draws, wool and pose on the declared owner', () => {
@@ -74,4 +66,10 @@ it('keeps the Explorer sheep setup draws, wool and pose on the declared owner', 
     wetAt: () => false, playerCrouched: () => false, grassHeightAt: () => 0, trample, centre }, row);
   original.initialize(); declared.initialize();
   expect(declared.state()).toEqual(original.state());
+});
+
+it('keeps native joint and radius guards after named admission', async () => {
+  for (const product of [source({ parts: [] }), source({ radius: 0 })]) {
+    await expect(readFlockBody(product)).rejects.toThrow('joints or bound');
+  }
 });

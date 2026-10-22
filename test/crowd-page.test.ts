@@ -8,16 +8,14 @@ import { Vector3 } from 'three';
 import { createPageCrowds, readCrowdBody, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { legacyDouble } from './fake/FakeGame';
-import { bakeSheepBody } from '../src/shards/nalati-grasslands/generators/sheepBody';
+import { admittedSheepProduct } from './fake/admittedSheep';
 import view from '../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { wildEnv } from '../src/game/population/pageGroups';
 
 /** The live Nalati sheep body, read through the page crowd's own product reader. */
 function sheepBody(): ReturnType<typeof readCrowdBody> {
-  const { bytes, ...row } = bakeSheepBody(), metadata = new TextEncoder().encode(JSON.stringify({ species: {}, ...row }));
-  return readCrowdBody({ file: name => name === 'actors/sheep.bin' ? Promise.resolve(bytes) : name === 'actors/sheep.json' ? Promise.resolve(metadata) : Promise.reject(new Error('Unexpected sheep product file')) },
-    { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
+  return readCrowdBody(admittedSheepProduct(), { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
 }
 
 test('an unrelated marsh crowd uses its own bounds, identity, material and native cadence', async () => {

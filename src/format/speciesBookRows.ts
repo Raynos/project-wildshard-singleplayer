@@ -48,6 +48,13 @@ const poseConfig=v.object({prefix:v.string(),group:v.string(),scalars:v.array(v.
 const cracks=v.object({attrs:v.array(v.tuple([v.string(),v.picklist(['f32','u16']),v.number(),v.boolean()])),count:v.number(),index:v.literal('u32'),indexCount:v.number(),box:v.boolean()});
 /** The existing named actors file retains its exact body, pose and crack payload. */
 export const SpeciesPresentationSchema=v.object({poses:v.record(v.string(),poseConfig),packedBodies:CompactSpeciesBodiesSchema,guest:CreatureGuestSchema,lookBook:v.pick(book,['slug','rows','program']),cracks});
-export const SpeciesActorsFileSchema=v.looseObject({species:SpeciesPresentationSchema});
+const bodyWhole=v.pipe(number,v.integer(),v.minValue(0));
+export const SpeciesActorsFileSchema=v.strictObject({species:SpeciesPresentationSchema,
+  page:v.strictObject({world:v.unknown(),specimen:v.unknown()}),
+  row:v.strictObject({attrs:v.array(v.tuple([v.string(),v.literal('f32'),bodyWhole,v.boolean()])),count:bodyWhole,
+    index:v.nullable(v.picklist(['u16','u32'])),indexCount:bodyWhole,box:v.boolean()}),
+  pivots:v.pipe(v.array(v.tuple([number,number,number])),v.maxLength(32)),
+  parts:v.pipe(v.array(v.string()),v.maxLength(32)),radius:number,
+});
 export type SpeciesPresentationRows=v.InferOutput<typeof SpeciesPresentationSchema>;
 export type SpeciesActorsFileRows=v.InferOutput<typeof SpeciesActorsFileSchema>;

@@ -6,7 +6,7 @@ import { CrowdPresentationSchema, CrowdGuardSchema } from '@wildshard/format/cro
 import { FlockSchema, parseFlock } from '@wildshard/format/crowds';
 import { app } from '@wildshard/engine/app/runtime';
 import * as v from 'valibot';
-import { readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
+import { readBakedGeometry, bakedGeometryBytes, type BakedGeometryRow } from '../plugin/geometry';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareDeclaredCrowds, type PreparedCrowds, type CrowdObservation, type CrowdTargets } from '@wildshard/game/shardfile/crowdRuntime';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
@@ -19,14 +19,8 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 
 /** Admit the flock's exact static geometry and original seven shader pivots before any view builds. */
-export async function readCrowdBody(product: Pick<ShardProduct, 'file'>, files: { readonly json: string; readonly binary: string }): Promise<FlockBody> {
-  const number = v.pipe(v.number(), v.finite()), whole = v.pipe(number, v.integer(), v.minValue(0));
-  const value = v.parse(v.object({ row: v.strictObject({
-    attrs: v.array(v.tuple([v.string(), v.literal('f32'), whole, v.boolean()])), count: whole,
-    index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean() }),
-    pivots: v.pipe(v.array(v.tuple([number, number, number])), v.maxLength(32)),
-    parts: v.pipe(v.array(v.string()), v.maxLength(32)), radius: number,
-  }), JSON.parse(new TextDecoder().decode(await product.file(files.json))));
+export async function readCrowdBody(product: Pick<ShardProduct, 'file' | 'json'>, files: { readonly json: string; readonly binary: string }): Promise<FlockBody> {
+  const value = await product.json<{ row: BakedGeometryRow; pivots: FlockBody['pivots']; parts: FlockBody['parts']; radius: number }>(files.json);
   if (value.parts.length === 0 || value.parts.length !== value.pivots.length || value.radius <= 0) throw new Error('Invalid crowd body joints or bound');
   const bytes = await product.file(files.binary);
   if (bytes.length !== bakedGeometryBytes(value.row)) throw new Error('Crowd geometry differs from its declared blocks');
