@@ -26,7 +26,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   shared stages. Name literal files, never a directory. A named file's entire working copy is committed: agree
   with its owner if it also contains another lane's hunk. Direct commits and private-index landings are retired.
   Pre-commit runs storage policy and one native oxlint invocation for TypeScript diagnostics and typed lint on
-  changed source, with a five-second checker budget. No mirror, generator, build or test runs at commit.
+  changed source, with a soft five-second budget. Timeout warns and hands those exact staged blobs' typed checks
+  to pre-push; actual errors still refuse. No mirror, generator, build or test runs at commit.
   Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
   60 seconds. Lanes commit their green source; `scripts/push-main.sh` requests one scheduled tick when needed.
@@ -38,7 +39,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   tool environment without version-pinned Codex PATH entries.
   Never run `git push` or start the retired carrier/full local push gate.
 - **The local push gate has a 45-second ceiling and checks committed source only.** It selects related tests
-  and runs them within the budget, without repeating pre-commit types or lint. Foreign working/staged edits
+  and runs them within the budget, plus any typed checks explicitly deferred by pre-commit. Completed type/lint
+  checks are not repeated. Foreign working/staged edits
   never enter the candidate; no generation, build, product or mirror job runs here. A matching verified cache
   supplies generated test inputs; missing inputs defer those tests to CI openly. **CI is the full gate**,
   including complete types, generation, build and tests. sp-x7 remains release owner and checks every 15 minutes.

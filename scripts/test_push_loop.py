@@ -9,6 +9,8 @@ import sys
 import tempfile
 import time
 import unittest
+from contextlib import contextmanager
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 PUSH = runpy.run_path(str(ROOT / 'scripts/push-loop.py'))
@@ -165,6 +167,34 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(key, CACHE['source_key']([*records, b'100644 blob ccc\tdocs/note.md'], ['src']))
         self.assertNotEqual(key, CACHE['source_key']([b'100644 blob ddd\tsrc/author.ts', records[1]], ['src']))
         self.assertNotEqual(key, CACHE['source_key']([*records, b'100644 blob eee\tsrc/new.ts'], ['src']))
+
+    def test_deferred_types_bind_exact_commit_blobs_not_working_edits(self):
+        tip = self.commit('src/good.ts')
+        blob = self.git('rev-parse', tip + ':src/good.ts')
+        self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
+        self.put('src/good.ts', 'foreign WIP')
+        self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), ['src/good.ts'])
+        self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': ['wrong blob']}))
+        self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), [])
+
+    def test_deferred_type_refusal_blocks_the_push_before_related_tests(self):
+        tip = self.commit('src/good.ts')
+        blob = self.git('rev-parse', tip + ':src/good.ts')
+        self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
+        self.put('.push-types.json', '{"available":false}')
+        @contextmanager
+        def prepared(*_):
+            yield self.root, self.root / 'scripts'
+        calls = []
+        def runner(command, *_):
+            calls.append(command)
+            return 1, 'src/good.ts:1:1 error typescript(TS2322)'
+        with patch.dict(PUSH['SOURCE'], committed_source=prepared), patch.dict(LIVE, run=runner):
+            result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'typed-check')
+        self.assertEqual(calls, [['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
+                                 '-c', '.oxlintrc.json', 'src/good.ts']])
 
     def test_generation_phase_cache_rejects_changed_inputs_and_corrupt_outputs(self):
         tip = self.git('rev-parse', 'HEAD')

@@ -15,11 +15,34 @@ SOURCE = runpy.run_path(str(Path(__file__).with_name('push-source.py')))
 git = LIVE['git']
 
 
+def deferred_types(root, base, tip):
+    common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
+    pending = load(common / 'push-deferred-types.json', {})
+    files = []
+    for path in LIVE['changed'](root, base, tip):
+        if path not in pending:
+            continue
+        blob = subprocess.run(['git', 'rev-parse', '--verify', tip + ':' + path], cwd=root,
+                              text=True, capture_output=True)
+        if blob.returncode == 0 and blob.stdout.strip() in pending[path]:
+            files.append(path)
+    return files
+
+
 def check_committed(root, base, tip, deadline):
     try:
         with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), deadline) as (tree, tools):
             available = json.loads((tree / '.push-types.json').read_text())['available']
+            deferred = deferred_types(root, base, tip)
+            if deferred:
+                rc, output = LIVE['run'](['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
+                                         '-c', '.oxlintrc.json', *deferred], tree, deadline)
+                if rc:
+                    return {'ok': False, 'phase': 'typed-check',
+                            'files': LIVE['failure_paths'](output) or deferred, 'output': output}
             result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip), tools=tools, types_available=available)
+            if deferred:
+                result['types'] = 'pre-commit+deferred'
             if not result['ok'] and result['files']:
                 rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
                 result['inputs'] = json.loads(output) if rc == 0 else []

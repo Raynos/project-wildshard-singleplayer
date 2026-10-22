@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the real commit wrapper against owned Git fixtures.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Each test owns its tiny fixture under tmp.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the actual checker and fixture paths.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Foreign Git-local overrides cannot reach fixtures.
@@ -36,3 +36,21 @@ test('the cheap checker actually refuses types and lint without a mirror or gene
     expect(() => precommitInputs(root, executable)).not.toThrow();
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test('time alone defers the exact staged blob to the push gate', () => {
+  const root = mkdtempSync(resolve('tmp/soft-hook-'));
+  const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
+  const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, env, encoding: 'utf8' }).trim();
+  try {
+    git('init', '-q'); git('config', 'user.email', 'fixture@example.invalid'); git('config', 'user.name', 'fixture');
+    git('config', 'core.hooksPath', '/dev/null');
+    writeFileSync(resolve(root, '.oxlintrc.json'), '{}');
+    writeFileSync(resolve(root, 'unit.ts'), 'export const value = 1;\n');
+    git('add', '--', 'unit.ts');
+    const checker = resolve(root, 'slow-check.sh');
+    writeFileSync(checker, '#!/bin/sh\nexec sleep 10\n'); chmodSync(checker, 0o755);
+    expect(() => precommitInputs(root, checker)).not.toThrow();
+    expect(JSON.parse(readFileSync(resolve(root, '.git/push-deferred-types.json'), 'utf8')))
+      .toEqual({ 'unit.ts': [git('rev-parse', ':unit.ts')] });
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}, 15_000);
