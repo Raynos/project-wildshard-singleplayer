@@ -1,5 +1,4 @@
 import { Vector3 } from 'three';
-import { vi } from 'vitest';
 import { App } from '../../src/engine/app/app';
 import { Scope } from '../../src/engine/app/scope';
 import { EquipmentService } from '../../src/engine/combat/EquipmentService';
