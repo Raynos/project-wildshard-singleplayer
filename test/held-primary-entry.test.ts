@@ -33,7 +33,7 @@ function fixture(presentation: unknown = defaultPresentation, pending?: Promise<
   const native=heldSwordWorld();scope.onDispose(native.dispose);
   const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>(native.world), step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
   const tool = vi.fn<ShardContext['rows']['tool']>(), weapon = vi.fn<ShardContext['rows']['weapon']>();
-  const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime }),
+  const ctx = legacyDouble<ShardContext>({ scope, product, app:legacyDouble<ShardContext['app']>({equipment:null}), game: legacyDouble<ShardContext['game']>({ runtime }),
     rows: legacyDouble<ShardContext['rows']>({ tool, weapon }) });
   return { parent, scope, ctx, read, tool, weapon, slug, runtime, native };
 }

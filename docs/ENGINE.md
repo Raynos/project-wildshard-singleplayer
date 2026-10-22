@@ -3405,6 +3405,19 @@ ordered constructions. Omitted phase data retains equipment-time binding
 without task pauses. These rows sit beside the existing held-arm wire until
 its native adapters adopt them; admission alone constructs no weapon, prepares
 no cold card and changes no shipped item or saved state.
+
+HeldClaims.fromSlots(rows) admits these rows without an asset read. blade(id)
+and polearm(id) lend the original metadata sets for explicit preparation;
+installPage(context) preflights every source and destination before registration.
+The existing Toon and declared-primary wires normalize to this same slot factory
+at install; their public wire, native sword recipes and entered grapple API stay
+unchanged. Construction is once per scope, with scope/product/world/equipment
+identity checked after each yield and before publication. A published pageKit
+lends current weapon, blade, bow and polearm identities; declared refill, mount
+and reward operations update those original native owners in row order. Bow
+upgrades retain multiplier, onLoose and mount before applying power; blade
+upgrades carry pass state and replace the current primary. The equipment service
+retains ammunition, selection and save ownership. No slot continuation is added.
 `game/plugin/simulation.bindNativeLoadout` supplies the existing slot/swap law,
 live body and aim readers, and optional step/snapshot registration at the native
 owner's original id and phase. Weapon and ammunition continuations keep their

@@ -9,22 +9,34 @@ import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { applyMeleeCombatProfile, type MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { RosterEntry } from '@wildshard/engine/models/live';
-import { HeldArmsSchema, type HeldArmsRows } from '@wildshard/format/heldArms';
+import { HeldArmsSchema, parseHeldSlots, type HeldSlotsRows, type HeldArmsRows } from '@wildshard/format/heldArms';
 import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { createClientScene } from '../plugin/ui';
-import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile, type RuntimeEquipmentFactory } from '../plugin/headless';
+import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile } from '../plugin/headless';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import { heldArmsGear } from '../models/heldGear';
 import { HeldView } from '../systems/viewmodel/heldView';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
-import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { MeleeWeaponProfileSchema, FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { GrappleTool, grappleGuard } from '../grapple/tool';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { QuestStepRunner, type QuestStepFrame } from '../quest/steps';
+
+import { macrotask } from '@wildshard/engine/boot/plan';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Weapon } from '@wildshard/engine/combat/Weapon';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import { BladeSet } from '../weapons/mountedBlade';
+import { PolearmSet, type HeldPolearmWorld } from '../weapons/heldPolearm';
+import { Bow } from '../weapons/Bow';
+import { loadHeldBow } from '../weapons/heldLauncher';
+import { HeldFirearm, type HeldFirearmProfile, type HeldFirearmView, type HeldFirearmRows } from '../plugin/heldFirearm';
+import type { VariantBowPower } from '../weapons/bowVariant';
+import type { ArcWeaponPower } from '../weapons/arcPower';
 
 type EquipmentBuilder = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
 /** The original built primary and its admitted native combat profile. */
@@ -47,6 +59,38 @@ function heldSword(world: SwordWorld, targets: Targets, allowUnlocked: boolean,
   const { ironArms: _iron, swim: _swim, ...wood } = viewmodel;
   return new Sword(world, targets, { row: profile, profile, allowUnlocked, ...wood,
     ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
+}
+
+type PassBlade = InstanceType<BladeSet['Weapon']>;
+type SlotPolearm = InstanceType<PolearmSet['Weapon']>;
+type SlotBowProfile = Awaited<ReturnType<typeof loadHeldBow>>['profile'];
+type BuiltSlot = {kind:'starter';weapon:Sword}|{kind:'blade';weapon:PassBlade;source:BladeSet}
+  |{kind:'polearm';weapon:SlotPolearm}|{kind:'bow';weapon:Bow;profile:SlotBowProfile}
+  |{kind:'firearm';weapon:HeldFirearm};
+/** Current native weapons, selected by admitted slot identities. Upgrades replace
+ * the slot's weapon; metadata sources and native save owners remain original. */
+export interface HeldSlotKit {
+  weapon:(id:string)=>Weapon;
+  melee:()=>HeldMeleeOwner;
+  blade:(id:string)=>PassBlade;
+  polearm:(id:string)=>SlotPolearm;
+  bow:(id:string)=>Bow;
+  refill:()=>void;
+  setMount:(state:PassBlade['mount'])=>void;
+  upgradeBow:(id:string,equipment:EquipmentService,power:VariantBowPower)=>void;
+  upgradeBlade:(id:string,equipment:EquipmentService,power:ArcWeaponPower)=>void;
+}
+
+/** A construction's concrete owner snapshot; published kit methods keep the
+ * same scope/product/world fences without pinning the pre-install equipment. */
+function heldSlotOwner(ctx:ShardContext,world:HeldPolearmWorld):()=>void {
+  const scope=ctx.scope,product=ctx.product,source=product.shardfile,items=source.items;
+  const game=ctx.game,runtime=game.runtime,app=ctx.app;
+  return ()=>{
+    if(scope.disposed||scope.disposing)throw new Error('Held slot owner has ended');
+    if(ctx.scope!==scope||ctx.product!==product||product.shardfile!==source||source.items!==items
+      ||ctx.game!==game||game.runtime!==runtime||runtime?.world!==world||ctx.app!==app)throw new Error('Held slot owner was replaced');
+  };
 }
 
 type ToonRows = Extract<HeldArmsRows, { readonly look: unknown }>;
@@ -142,21 +186,202 @@ class HeldClaim extends ItemPickup {
 const catalogues = new Map<string, HeldClaims>();
 /** Client-only held melee families, world claims and Explorer cards. The shard supplies rows and platform contexts. */
 export class HeldClaims {
-  readonly rows: HeldArmsRows;
+  private readonly originalRows: HeldArmsRows|null;
+  private slotRows: HeldSlotsRows|null;
+  private readonly blades=new Map<string,BladeSet>();
+  private readonly polearms=new Map<string,PolearmSet>();
+  private readonly kits=new WeakMap<Scope,{context:ShardContext;kit:HeldSlotKit|null;started:boolean;entered:boolean}>();
+  /** Original claim/primary wire; slot owners expose their defining slot rows. */
+  get rows():HeldArmsRows {if(this.originalRows===null)throw new Error('Held slots have no claim wire');return this.originalRows;}
+  get slots():HeldSlotsRows {if(this.slotRows===null)throw new Error('Held claims have no slot wire');return this.slotRows;}
+  private get context():ShardContext {if(this.owner===null)throw new Error('Held slots require their concrete entered context');return this.owner;}
   private readonly arms: HeldView | null;
   private primary: HeldMeleeOwner | null = null;
   private entered = false;
   private portraitFov: number | null = null;
   private readonly geometries = new Map<string, { file: string; source: OwnedGeometry }>();
   private readonly drops = new Map<string, HeldClaim>();
-  private constructor(private readonly context: ShardContext) {
-    this.rows = v.parse(HeldArmsSchema, context.product.section('held/arms'));
+  private constructor(private readonly owner: ShardContext|null,input?:unknown) {
+    if(owner===null){
+      this.originalRows=null;this.slotRows=parseHeldSlots(input);this.arms=null;
+      for(const row of this.slotRows.slots){
+        if(row.kind==='blade'&&row.source.kind==='passes')this.blades.set(row.id,new BladeSet({file:row.source.file,item:`weapon.${row.item.slice(7)}`}));
+        if(row.kind==='polearm')this.polearms.set(row.id,new PolearmSet({file:row.file,item:`weapon.${row.item.slice(7)}`}));
+      }
+      return;
+    }
+    const context=owner;this.slotRows=null;
+    this.originalRows = v.parse(HeldArmsSchema, context.product.section('held/arms'));
     this.arms = 'kind' in this.rows ? null : HeldView.admit({ kind: 'toon', ...this.rows.look });
     if ('kind' in this.rows) return;
     for (const claim of this.rows.claims) for (const [id, file] of Object.entries(claim.geometries)) {
       this.geometries.set(`${claim.id}/${id}`, { file, source: createOwnedGeometry(context.product.url(file)) });
     }
   }
+  /** Admit finite native construction and control rows without preparing any
+   * asset or constructing equipment. Cold metadata never installs a page. */
+  static fromSlots(input:unknown):HeldClaims {return new HeldClaims(null,input);}
+  /** Original metadata owners, prepared explicitly at the caller's existing phase. */
+  blade(id:string):BladeSet {const owner=this.blades.get(id);if(owner===undefined)throw new Error('Unknown held blade source');return owner;}
+  polearm(id:string):PolearmSet {const owner=this.polearms.get(id);if(owner===undefined)throw new Error('Unknown held polearm source');return owner;}
+  /** Borrow only the exact kit built by this owner in the original entered scope. */
+  pageKit(ctx:Pick<ShardContext,'scope'>):HeldSlotKit|null {return ctx.scope.disposed||ctx.scope.disposing?null:this.kits.get(ctx.scope)?.kit??null;}
+  private wireSlots(context:ShardContext):HeldSlotsRows {
+    const rows=this.rows;
+    if('kind' in rows)return parseHeldSlots({version:1,id:'primary',bindAt:'entered',pause:false,
+      slots:[{id:'primary',kind:'blade',item:rows.primary.item,source:{kind:'starter',blade:rows.primary.blade,viewmodel:'declared',framing:rows.primary.file}}],
+      registration:['primary'],equipment:{primary:'primary',extras:[]},selection:{unlock:[]},mount:[],refills:[],upgrades:[]});
+    const policy=context.product.shardfile.items.loadout.runtime;
+    if(policy===undefined)throw new Error('Missing runtime equipment factory policy');
+    const ids=new Map(rows.weapons.map((row,index)=>[row.item,`weapon-${index}`]));
+    const need=(item:string):string=>{const id=ids.get(item);if(id===undefined)throw new Error('Unresolved runtime equipment factory');return id;};
+    const primary=policy.owners.find(row=>row.slot==='primary');if(primary===undefined)throw new Error('Missing native primary');
+    const rifle=policy.owners.find(row=>row.slot==='rifle'),secondary=policy.owners.find(row=>row.slot==='secondary');
+    return parseHeldSlots({version:1,id:'claims',bindAt:'equipment',pause:policy.pause,
+      slots:policy.owners.map(owner=>{const row=rows.weapons.find(entry=>entry.item===owner.item);if(row===undefined)throw new Error('Unresolved runtime equipment factory');
+        return {id:need(row.item),kind:'blade',item:row.item,source:{kind:'starter',blade:row.blade,viewmodel:row.blade}};}),
+      registration:rows.weapons.map(row=>need(row.item)),equipment:{primary:need(primary.item),extras:policy.owners.filter(row=>row.slot==='extra').map(row=>need(row.item)),
+        ...(rifle===undefined?{}:{rifle:need(rifle.item)}),...(secondary===undefined?{}:{secondary:need(secondary.item)})},
+      selection:{unlock:[]},mount:[],refills:[],upgrades:[]});
+  }
+  private starterProfile(context:ShardContext,row:Extract<HeldSlotsRows['slots'][number],{kind:'blade'}>,
+    policy:HeldMeleeOwner['profile'],catalogue:ItemCatalogue,portraitFov:number|null):MeleeProfile {
+    if(row.source.kind!=='starter')throw new Error('Held starter needs its original native source');
+    const blade=row.source.blade==='iron'?SWORD_IRON:SWORD_WOOD;
+    const profile:MeleeProfile=row.source.viewmodel==='declared'
+      ?Object.assign(applyMeleeCombatProfile(blade,policy),catalogue.equipment(row.item),{parent:SWORD_WOOD.id,feel:{...blade.feel,portraitFov:portraitFov??blade.feel.fovHip}})
+      :applyMeleeCombatProfile({...blade,...catalogue.equipment(row.item)},policy);
+    const original=this.originalRows,claim=original!==null&&!('kind' in original)?original.claims.find(entry=>entry.item===row.item):undefined;
+    if(claim!==undefined)profile.pickup={owned:claim.owned,prompt:claim.prompt,toast:claim.toast,create:(at,prompt)=>{
+      if(at!==claim.at)throw new Error('Unknown held claim site');
+      const drop=new HeldClaim(context,claim,this.display(claim.id),prompt);this.drops.set(claim.id,drop);return drop;
+    }};
+    return profile;
+  }
+
+  /** Preflight all item/source references before registering the ordered native
+   * equipment factory. Construction and registration have independent orders. */
+  installPage(ctx:ShardContext):void {
+    const rows=this.slots,runtime=ctx.game.runtime,world=runtime?.world;
+    if(runtime===undefined||world===undefined||world===null)throw new Error('Held slots need their native world');
+    const weaponRows=rows.slots.filter(row=>row.kind!=='tool'),toolRows=rows.slots.filter(row=>row.kind==='tool');
+    if(weaponRows.length>16||toolRows.length>1)throw new Error('Held slots exceed their native binding capacity');
+    if(rows.bindAt==='entered'&&(weaponRows.length!==1||weaponRows[0]?.kind!=='blade'||weaponRows[0].source.kind!=='starter'))throw new Error('Entered held slots require one starter primary');
+    const scope=ctx.scope,active=heldSlotOwner(ctx,world),equipment=ctx.app.equipment;active();
+    if(this.kits.has(scope))throw new Error('Held slots are already installed');
+    const catalogue=new ItemCatalogue(ctx.product.shardfile.items),items=ctx.product.shardfile.items;
+    const sources=new Map(rows.slots.map(row=>[row.id,row]));
+    const policies=new Map<string,HeldMeleeOwner['profile']>(),starterProfiles=new Map<string,MeleeProfile>();
+    let primarySword:Sword|null=null,primaryMelee:HeldMeleeOwner|null=null;
+    const profiles=rows.registration.map(id=>{
+      const row=sources.get(id);if(row===undefined)throw new Error('Missing held registration');
+      const item=items.rows.find(entry=>entry.id===row.item);
+      if(row.kind==='tool'){
+        if(item?.kind!=='tool')throw new Error('Held tool differs from its native item');
+      } else {
+        if(item?.kind!=='weapon')throw new Error('Held slot differs from its native weapon');
+        const family=row.kind==='blade'?'melee':row.kind==='polearm'?'thrown':row.kind;
+        if(item.profile?.family!==family)throw new Error('Held slot differs from its native profile');
+      }
+      if(row.kind==='blade'&&row.source.kind==='passes')this.blade(id).profile();
+      if(row.kind==='polearm')this.polearm(id).profile();
+      if(row.kind==='firearm'&&!ctx.product.hasFile(row.file))throw new Error('Missing held firearm file');
+      if(row.kind==='tool'&&(!ctx.product.hasFile(row.source)||!ctx.product.hasFile(row.presentation)))throw new Error('Missing held tool file');
+      if(row.kind==='blade'&&row.source.kind==='starter'&&row.source.framing!==undefined&&!ctx.product.hasFile(row.source.framing))throw new Error('Missing held primary framing');
+      if(row.kind==='blade'&&row.source.kind==='starter'){
+        const policy=v.parse(MeleeWeaponProfileSchema,item.kind==='weapon'?item.profile:undefined);policies.set(row.id,policy);
+        const profile=this.starterProfile(ctx,row,policy,catalogue,this.portraitFov);starterProfiles.set(row.id,profile);
+        if(row.id===rows.equipment.primary)primaryMelee={profile:policy,primary:()=>{if(primarySword===null)throw new Error('Held primary is not built before play');return primarySword;}};
+        return {row,profile};
+      }
+      return {row,profile:catalogue.equipment(row.item)};
+    });
+    const tools=this.originalRows!==null&&'kind' in this.originalRows?this.originalRows.tools.map(id=>{
+      if(!items.rows.some(row=>row.id===id&&row.kind==='tool'))throw new Error(`Missing declared tool: ${id}`);return catalogue.equipment(id);
+    }):[];
+    const check=():void=>{active();if(ctx.app.equipment!==equipment)throw new Error('Held slot equipment was replaced');};
+    check();
+    if(this.originalRows!==null&&'kind' in this.originalRows){const first=profiles[0];if(first===undefined)throw new Error('Missing held primary factory');ctx.rows.weapon(first.profile);}
+    else if(profiles.every(entry=>entry.row.kind!=='tool'))ctx.rows.weapon(profiles.map(entry=>entry.profile));
+    else for(const {row,profile} of profiles){if(row.kind==='tool')ctx.rows.tool(profile);else ctx.rows.weapon(profile);}
+    for(const tool of tools)ctx.rows.tool(tool);
+    if(this.originalRows!==null&&'kind' in this.originalRows)this.primary=primaryMelee;
+    const record:{context:ShardContext;kit:HeldSlotKit|null;started:boolean;entered:boolean}={context:ctx,kit:null,started:false,entered:false};
+    this.kits.set(scope,record);scope.onDispose(()=>{this.kits.delete(scope);});
+    runtime.buildEquipment=async(targets,allowUnlocked,viewmodel)=>{
+      check();if(record.started)throw new Error('Held slot construction has already started');record.started=true;
+      const built=new Map<string,BuiltSlot>();
+      for(const [index,row] of rows.slots.entries()){
+        if(row.kind==='tool')continue;
+        if(row.kind==='blade'){
+          if(row.source.kind==='passes'){
+            const source=this.blade(row.id);built.set(row.id,{kind:'blade',source,weapon:new source.Weapon(world,targets,{allowUnlocked})});
+          } else {
+            const policy=policies.get(row.id);let profile=starterProfiles.get(row.id);
+            if(policy===undefined||profile===undefined)throw new Error('Missing held starter profile');
+            if(row.source.framing!==undefined&&this.portraitFov===null){const data=await ctx.product.json(row.source.framing);check();profile=this.starterProfile(ctx,row,policy,catalogue,v.parse(PrimaryPresentationSchema,data).portraitFov);}
+            const weapon=heldSword(world,targets,allowUnlocked,viewmodel,profile,row.source.viewmodel);
+            built.set(row.id,{kind:'starter',weapon});
+            if(row.id===rows.equipment.primary)primarySword=weapon;
+          }
+        } else if(row.kind==='polearm')built.set(row.id,{kind:'polearm',weapon:new (this.polearm(row.id).Weapon)(world,targets,{allowUnlocked})});
+        else if(row.kind==='bow'){
+          const {profile}=await loadHeldBow(row.file);check();
+          built.set(row.id,{kind:'bow',profile,weapon:new Bow(world,targets,{row:catalogue.equipment(row.item),profile,allowUnlocked})});
+        } else {
+          const data=await ctx.product.json<{feel:Pick<HeldFirearmProfile,'ads'>;view:HeldFirearmView;rows:HeldFirearmRows}>(row.file);check();
+          const item=items.rows.find(entry=>entry.id===row.item);
+          const profile={...v.parse(FirearmWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined),...data.feel};
+          built.set(row.id,{kind:'firearm',weapon:new HeldFirearm(world,targets,{row:catalogue.equipment(row.item),allowUnlocked,muzzleLight:row.muzzleLight,profile,view:data.view,rows:data.rows,model:{}})});
+        }
+        if(rows.pause&&index+1<rows.slots.length){await macrotask();check();}
+      }
+      check();
+      const need=(id:string):BuiltSlot=>{const slot=built.get(id);if(slot===undefined)throw new Error('Held slot has no built weapon');return slot;};
+      const kit:HeldSlotKit={
+        weapon:id=>{active();return need(id).weapon;},
+        melee:()=>{active();if(primaryMelee===null)throw new Error('Held slot primary is not a starter sword');return primaryMelee;},
+        blade:id=>{active();const slot=need(id);if(slot.kind!=='blade')throw new Error('Held slot is not a pass blade');return slot.weapon;},
+        bow:id=>{active();const slot=need(id);if(slot.kind!=='bow')throw new Error('Held slot is not a bow');return slot.weapon;},
+        polearm:id=>{active();const slot=need(id);if(slot.kind!=='polearm')throw new Error('Held slot is not a polearm');return slot.weapon;},
+        setMount:state=>{active();for(const id of rows.mount){const slot=need(id);if(slot.kind==='bow')slot.weapon.setMount(state);else if(slot.kind==='blade'||slot.kind==='polearm')slot.weapon.mount=state;else throw new Error('Invalid held mount owner');}},
+        refill:()=>{active();for(const row of rows.refills){const slot=need(row.slot);if(slot.kind==='bow'&&row.kind==='add-magazine')slot.weapon.addBolts(slot.weapon.magazine);else if(slot.kind==='polearm'&&row.kind==='fill-capacity')slot.weapon.javelins=slot.weapon.maxJavelins;else throw new Error('Invalid held refill owner');}},
+        upgradeBow:(id,weapons,power)=>{
+          active();const row=rows.upgrades.find(entry=>entry.id===id),slot=row===undefined?undefined:need(row.slot);
+          if(row?.kind!=='bow'||slot?.kind!=='bow')throw new Error('Unknown held bow upgrade');
+          const previous=slot.weapon;if(previous.row.id===row.replacement.item)return;
+          if(weapons.get(previous.id)!==previous)throw new Error('Held upgrade requires its original equipment');
+          const next=new Bow(world,targets,{row:{...previous.row,id:`weapon.${row.replacement.item.slice(7)}`,ui:{...previous.row.ui,name:row.replacement.name,swapName:row.replacement.name},meta:{...previous.meta,name:row.replacement.name}},profile:slot.profile,allowUnlocked});
+          next.damageMultiplier=previous.damageMultiplier;next.onLoose=previous.onLoose;next.carryMountState(previous);
+          weapons.replace(previous.id,next);slot.weapon=next;power.apply(next);
+        },
+        upgradeBlade:(id,weapons,power)=>{
+          active();const row=rows.upgrades.find(entry=>entry.id===id),slot=row===undefined?undefined:need(row.slot);
+          if(row?.kind!=='blade-pass'||slot?.kind!=='blade')throw new Error('Unknown held blade upgrade');
+          const previous=slot.weapon;if(previous.row.id===row.replacement.item)return;
+          if(weapons.get(previous.id)!==previous)throw new Error('Held upgrade requires its original equipment');
+          const base=slot.source.profile(),next=new slot.source.Weapon(world,targets,{allowUnlocked,power,profile:{...base,id:`weapon.${row.replacement.item.slice(7)}`,parent:base.id,ui:{...base.ui,name:row.replacement.name},meta:{...base.meta,name:row.replacement.name}}});
+          next.carryPassState(previous);weapons.replace(previous.id,next);slot.weapon=next;
+        },
+      };
+      if(rows.bindAt==='equipment'){const bound=bindRuntimeEquipment(ctx,ctx.product.shardfile,rows.registration.flatMap(id=>{
+        const slot=built.get(id),row=sources.get(id);if(slot===undefined||row===undefined)return [];
+        const weapon=slot.weapon,source=items.rows.find(entry=>entry.id===row.item);
+        const presentation=items.loadout.runtime?.owners.find(entry=>entry.item===row.item)?.presentation;
+        return [{id:row.item,weapon,profile:source?.kind==='weapon'?source.profile:undefined,...(presentation===undefined?{}:{presentation})}];
+      }));
+        if(this.originalRows!==null&&!('kind' in this.originalRows)&&bound.primary!==need(rows.equipment.primary).weapon)throw new Error('Runtime equipment requires its declared primary first');
+      }
+      check();record.kit=kit;
+      const equipmentRows=rows.equipment;
+      return {primary:need(equipmentRows.primary).weapon,rifle:equipmentRows.rifle===undefined?null:need(equipmentRows.rifle).weapon,
+        secondary:equipmentRows.secondary===undefined?null:need(equipmentRows.secondary).weapon,
+        ...(equipmentRows.extras.length===0&&this.originalRows!==null&&'kind' in this.originalRows?{}:{extras:equipmentRows.extras.map(id=>need(id).weapon)}),
+        ...(equipmentRows.order===undefined?{}:{order:equipmentRows.order.map(id=>need(id).weapon.id)}),
+        ...(rows.selection.unlock.length===0&&rows.selection.initial===undefined?{}:{install:(weapons:EquipmentService)=>{active();for(const id of rows.selection.unlock)weapons.unlock(need(id).weapon.id);if(rows.selection.initial!==undefined)weapons.select(need(rows.selection.initial).weapon.id,true);}})};
+    };
+  }
+
   /** Prepare explicitly during kit installation; publication and retirement follow the context scope. */
   static async prepare(context: ShardContext): Promise<HeldClaims> {
     if (context.scope.disposed || context.scope.disposing) throw new Error('Held preparation scope has ended');
@@ -202,22 +427,38 @@ export class HeldClaims {
     if (group === null) throw new Error('Held claim needs its declared group'); return group;
   }
   /** The original primary owner, available only after its declared kit install. */
-  melee(): HeldMeleeOwner {
+  melee(context?:ShardContext): HeldMeleeOwner {
+    if(this.originalRows===null){if(context===undefined)throw new Error('Held slot melee needs its entered context');const kit=this.pageKit(context);if(kit===null)throw new Error('Held slot primary is not installed');return kit.melee();}
     if (this.context.scope.disposed || this.context.scope.disposing) throw new Error('Held primary owner has ended');
     if (this.primary === null) throw new Error('Declared primary is not installed');
     return this.primary;
   }
-  private requireUnentered(): void { if (this.entered) throw new Error('Held play is already installed'); }
+  private requireUnentered(context:ShardContext): void {
+    if(this.slotRows!==null){const record=this.kits.get(context.scope);if(record===undefined||record.entered)throw new Error('Held play is already installed or missing');}
+    else if(this.entered)throw new Error('Held play is already installed');
+  }
   /** Bind the already-built declared primary and one declared grapple tool at entered play. */
   async enter(context: ShardContext, input: unknown): Promise<void> {
     if (!isJsonData(input)) throw new Error('Held play input must be JSON data');
     requireHeldOwner(context, 'Held play owner has ended');
     const scope = context.scope, product = context.product, app = context.app;
-    if (scope !== this.context.scope || product !== this.context.product) throw new Error('Held play requires its original entered owner');
-    const rows = this.rows;
-    if (!('kind' in rows)) throw new Error('Held play requires a declared primary');
-    this.requireUnentered();
+    const slotRecord=this.slotRows===null?null:this.kits.get(scope);
+    if(slotRecord===null){if(scope!==this.context.scope||product!==this.context.product)throw new Error('Held play requires its original entered owner');}
+    else if(slotRecord===undefined||product!==slotRecord.context.product||context.game!==slotRecord.context.game||app!==slotRecord.context.app)throw new Error('Held play requires its original entered owner');
+    const primarySlot=this.slotRows?.slots.find(row=>row.id===this.slotRows?.equipment.primary);
+    let rows:{primary:{item:string};tools:readonly string[]};
+    const original=this.originalRows;
+    if(original!==null){
+      if(!('kind' in original))throw new Error('Held play requires a declared primary');
+      rows=original;
+    } else {
+      if(primarySlot===undefined)throw new Error('Held play requires a declared primary');
+      rows={primary:{item:primarySlot.item},tools:this.slots.slots.filter(row=>row.kind==='tool').map(row=>row.item)};
+    }
+    if(this.originalRows===null&&this.slotRows!==null&&(this.slotRows.bindAt!=='entered'||primarySlot?.kind!=='blade'||primarySlot.source.kind!=='starter'))throw new Error('Held play requires its declared starter primary');
+    this.requireUnentered(context);
     const { grapple: spec } = v.parse(HeldPlaySchema, input), source = product.shardfile, items = source.items;
+    if(this.originalRows===null&&this.slotRows!==null){const tool=this.slotRows.slots.find(row=>row.kind==='tool'&&row.item===spec.item);if(tool?.kind!=='tool'||tool.source!==spec.source||tool.presentation!==spec.presentation)throw new Error('Held play differs from its admitted tool');}
     if (rows.tools.length !== 1 || rows.tools[0] !== spec.item) throw new Error('Held play requires its one declared grapple');
     const declaration = items.rows.find(row => row.id === spec.item), weapon = items.rows.find(row => row.id === rows.primary.item);
     if (declaration?.kind !== 'tool' || weapon?.kind !== 'weapon') throw new Error('Held play requires its declared primary and tool');
@@ -225,7 +466,7 @@ export class HeldClaims {
     if (![spec.source, spec.presentation].every(file => product.hasFile(file))) throw new Error('Held play requires its admitted grapple files');
     const equipment = app.equipment;
     if (equipment === null) throw new Error('Held play requires its loadout');
-    const melee = this.melee(), { primary: built, profile } = melee, primary = built();
+    const melee = this.melee(context), { primary: built, profile } = melee, primary = built();
     if (primary.row.id !== rows.primary.item || !sameRuntimeProfile(weapon.profile, profile)) throw new Error('Held play primary differs from its original item');
     const equipmentRow = new ItemCatalogue(items).equipment(spec.item);
     const [content, presentation] = await Promise.all([
@@ -236,12 +477,12 @@ export class HeldClaims {
     if (grappleProfile.id !== spec.item) throw new Error('Held play grapple profile and item differ');
     if (context.scope !== scope || scope.disposed || scope.disposing) throw new Error('Held play owner ended during preparation');
     if (context.product !== product || product.shardfile !== source || context.app !== app || app.equipment !== equipment) throw new Error('Held play owner was replaced during preparation');
-    const current = this.melee();
+    const current = this.melee(context);
     if (current !== melee || current.primary() !== primary || current.profile !== profile || !sameRuntimeProfile(weapon.profile, profile)) throw new Error('Held play primary was replaced during preparation');
-    this.requireUnentered();
+    this.requireUnentered(context);
     const grapple = new GrappleTool(context, { equipment: equipmentRow, profile: grappleProfile, presentation, hooks }), tool = grapple.row;
     grappleGuard(scope).bind(grapple);
-    this.entered = true;
+    if(slotRecord===null)this.entered=true;else slotRecord.entered=true;
     bindRuntimeEquipment(context, { ...source, items: { ...items, rows: items.rows.filter(row => row.kind === 'weapon'), loadout: { ...items.loadout, tools: [] } } },
       [{ id: primary.row.id, weapon: primary, profile }]);
     bindRuntimeItems(context, source, {
@@ -252,60 +493,11 @@ export class HeldClaims {
     equipment.add(grapple, { locked: false });
   }
 
-  /** Register native melee rows and factories in the admitted item order, without shard callbacks. */
-  install(): void {
-    const context = this.context, runtime = context.game.runtime, world = runtime?.world;
-    if (runtime === undefined || world === undefined || world === null) throw new Error('Held melee needs its world');
-    if (context.scope.disposed || context.scope.disposing) throw new Error('Held installation owner has ended');
-    const rows = this.rows;
-    const declared = 'kind' in rows;
-    if (declared && this.primary !== null) throw new Error('Declared primary is already installed');
-    if (declared && this.portraitFov === null) throw new Error('Declared primary presentation is not prepared');
-    const catalogue = new ItemCatalogue(context.product.shardfile.items);
-    const tools = declared ? rows.tools.map(id => {
-      if (!context.product.shardfile.items.rows.some(item => item.id === id && item.kind === 'tool')) throw new Error(`Missing declared tool: ${id}`);
-      return catalogue.equipment(id);
-    }) : [];
-    const slots = declared ? [{ ...rows.primary, view: 'declared' as const }]
-      : rows.weapons.map(row => ({ item: row.item, blade: row.blade, view: row.blade }));
-    const built: { weapon: Sword | null; profile: HeldMeleeOwner['profile'] | null } = {weapon:null,profile:null};
-    const items = context.product.shardfile.items, factories = new Map<string, RuntimeEquipmentFactory>();
-    const profiles = slots.map(row => {
-      const item = items.rows.find(entry => entry.id === row.item);
-      if (item?.kind !== 'weapon' || item.profile?.family !== 'melee') throw new Error('Held melee needs its native item profile');
-      const blade = row.blade === 'iron' ? SWORD_IRON : SWORD_WOOD;
-      const policy = v.parse(MeleeWeaponProfileSchema, item.profile);
-      if (declared) built.profile = policy;
-      const profile: MeleeProfile = declared
-        ? Object.assign(applyMeleeCombatProfile(blade, policy), catalogue.equipment(row.item), { parent: SWORD_WOOD.id,
-          feel: { ...blade.feel, portraitFov: this.portraitFov ?? blade.feel.fovHip } })
-        : applyMeleeCombatProfile({ ...blade, ...catalogue.equipment(row.item) }, item.profile);
-      const claim = declared ? undefined : rows.claims.find(entry => entry.item === row.item);
-      if (claim !== undefined) profile.pickup = { owned: claim.owned, prompt: claim.prompt, toast: claim.toast, create: (at, prompt) => {
-        if (at !== claim.at) throw new Error('Unknown held claim site');
-        const drop = new HeldClaim(context, claim, this.display(claim.id), prompt); this.drops.set(claim.id, drop); return drop;
-      } };
-      factories.set(row.item, { create: (_item, targets, allowUnlocked, viewmodel) => {
-        const current = declared ? runtime.world : world;
-        if (current === null) throw new Error('Held primary requires its world');
-        const made = heldSword(current, targets, allowUnlocked, viewmodel, profile, row.view);
-        if (declared) built.weapon = made;
-        return made;
-      } });
-      return profile;
-    });
-    if (declared) {
-      const profile = profiles[0], factory = factories.get(rows.primary.item), item = items.rows.find(row => row.id === rows.primary.item);
-      if (profile === undefined || factory === undefined || item?.kind !== 'weapon' || built.profile === null) throw new Error('Missing held primary factory');
-      context.rows.weapon(profile);
-      this.primary = { profile: built.profile, primary: () => {
-        if (built.weapon === null) throw new Error('Held primary is not built before play'); return built.weapon;
-      } };
-      runtime.buildEquipment = (...args) => Promise.resolve({ primary: factory.create(item, ...args), rifle: null, secondary: null });
-      for (const tool of tools) context.rows.tool(tool);
-    } else {
-      context.rows.weapon(profiles); runtime.buildEquipment = bindRuntimeEquipment(context, context.product.shardfile, { factories });
-    }
+  /** Normalize the retained held wire once, then use the finite native slot
+   * factory. Existing cards, claims, source rows and entered API stay original. */
+  install():void {
+    this.slotRows??=this.wireSlots(this.context);
+    this.installPage(this.context);
   }
   /** Define cold cards from admitted rows; loading and dressing remain inside this host. */
   static gear(input: unknown): readonly RosterEntry[] {
