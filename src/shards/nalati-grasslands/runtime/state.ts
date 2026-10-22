@@ -28,7 +28,7 @@ import { installAssemblyWeather } from '@wildshard/game/shardfile/worldAssembly'
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
-import { NalatiNight } from '../world/nightView';
+import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { creatureGuest } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { wireLookV2 } from '../look/index';
@@ -149,7 +149,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-rider')), captainFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-captain'));
-  const night = await NalatiNight.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
+  const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const nalati = {

@@ -1,4 +1,4 @@
-import type { ShardContext } from '@wildshard/game/shard/context';
+import type { ShardContext } from '../plugin/context';
 import type { TimedEncountersRows } from '@wildshard/format/encounterRows';
 import { Vector3, type BufferGeometry } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
@@ -12,17 +12,19 @@ import type { Player } from '@wildshard/engine/player/Player';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { CueDirector } from '@wildshard/game/audio/cueDirector';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import { wildEnv } from '@wildshard/game/population/pageGroups';
-import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from '@wildshard/game/boss/encounterView';
+import { CueDirector } from '../audio/cueDirector';
+import { ReturnProgram } from '../population/returnProgram';
+import { wildEnv } from '../population/pageGroups';
+import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
 
 interface TimedEncounterContext {
   readonly game: Game; readonly sky: SkyRig; readonly player: Player; readonly forest: Forest;
   readonly sites: EncounterSites | null; readonly clock: DayCycleClock;
 }
-/** Listed Nalati night binding over existing AS and native slot/patrol views. */
-export class NalatiNight {
+/** Encounters on the day clock (format/encounterRows TimedEncounters): a slot encounter waking its sites and a patrol of
+ *  riders, each in its declared day phases, over their AS program and native slot/patrol views; the riders' contact strike
+ *  hits the player through cover. Its owner borrows the declared cue presentation. */
+export class TimedEncounters {
   readonly slots: SlotEncounterView; readonly riders: PatrolEncounterView;
   private readonly rows; private readonly strike;
   private readonly contacts = new StrikeRunner(); private readonly direction = new Vector3();
@@ -38,11 +40,11 @@ export class NalatiNight {
   }
   /** Borrow declared presentation owners while the encounter keeps its clock. */
   static async install(owner: ShardContext, ctx: TimedEncounterContext, file: string,
-    figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram): Promise<NalatiNight> {
+    figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram): Promise<TimedEncounters> {
     const input = await owner.product.json<TimedEncountersRows>(file);
     const presentation = CueDirector.entered(owner,input.presentation);
     if (presentation === undefined) throw new Error('Missing declared encounter presentation');
-    return new NalatiNight(ctx, input, figures, guest, presentation);
+    return new TimedEncounters(ctx, input, figures, guest, presentation);
   }
   update(dt: number, time: number): void {
     const { ctx, rows } = this, player = ctx.player;

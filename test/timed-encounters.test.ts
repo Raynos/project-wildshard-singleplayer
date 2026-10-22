@@ -12,7 +12,7 @@ import { Scope } from '../src/engine/app/scope';
 import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import type { DayCycleClock } from '../src/engine/world/dayCycle';
-import { NalatiNight } from '../src/shards/nalati-grasslands/world/nightView';
+import { TimedEncounters } from '../src/game/boss/timedEncounters';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { legacyDouble } from './fake/FakeGame';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
@@ -29,7 +29,7 @@ test('the listed night binding preserves phases, native identities, figures and 
     contact: { strike: strikes.arrow, tags: ['creature.marsh-watch'], origin: 'actor' } };
   try {
     const clock = legacyDouble<DayCycleClock>({ dayPhase: 'day' });
-    const watch = new NalatiNight({ game, player: legacyDouble<Player>({ position: new Vector3(1, 0, 2) }), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, clock },
+    const watch = new TimedEncounters({ game, player: legacyDouble<Player>({ position: new Vector3(1, 0, 2) }), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, clock },
       parse(TimedEncountersSchema,rows), { rider: figure, captain: figure, storm: figure }, ReturnProgram.page(night.program), new CueDirector(game, night.cues, scope));
     expect(watch.slots).toBeDefined(); expect(watch.riders).toBeDefined();
     expect(watch.target(new Vector3(), new Vector3(0, 0, 1), 10, null)).toBeNull();
@@ -45,7 +45,7 @@ test('night contacts preserve origin, strike range and cover before native playe
   const target=legacyDouble<PlayerHealth>({}),actor=legacyDouble<Animal>({kind:'ghost-rider',label:'Rider',position:new Vector3(1,0,2),scale:1,yaw:0});
   const playerRead=vi.spyOn(app,'player','get').mockReturnValue(target),hit=vi.spyOn(app.combat,'hit').mockReturnValue(null),reach=vi.spyOn(reachQueries,'canReach').mockReturnValue(true);
   try{
-    const create=(origin:'actor'|'player')=>new NalatiNight({game,player:legacyDouble<Player>({position}),sky:legacyDouble({}),forest:legacyDouble({}),sites:null,clock:legacyDouble<DayCycleClock>({dayPhase:'day'})},
+    const create=(origin:'actor'|'player')=>new TimedEncounters({game,player:legacyDouble<Player>({position}),sky:legacyDouble({}),forest:legacyDouble({}),sites:null,clock:legacyDouble<DayCycleClock>({dayPhase:'day'})},
       parse(TimedEncountersSchema,{...night,presentation:'night',contact:{strike:strikes.arrow,tags:['creature.ghost-rider'],origin}}),{rider:figure,captain:figure,storm:figure},ReturnProgram.page(night.program),new CueDirector(game,night.cues,scope));
     const watch=create('actor');vi.spyOn(watch.riders,'update').mockReturnValue([{damage:17,from:actor}]);
     watch.update(.1,.1);expect(hit).toHaveBeenCalledTimes(1);const firstHit=hit.mock.calls[0]?.[0];expect(firstHit?.target).toBe(target);expect(firstHit?.amount).toBe(17);expect(firstHit?.point).toBe(actor.position);expect(firstHit?.cause).toEqual({kind:actor.kind,label:actor.label});
