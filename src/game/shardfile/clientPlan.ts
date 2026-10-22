@@ -351,10 +351,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
         product.section(row.source);
         if (!plan.features.some(owner => owner.kind === 'quest.composition' && owner.id === row.quest && owner.equipment?.animals === row.animals && owner.equipment.sounds === row.sounds)) throw new Error('Quest spawns require their declared composition owners');
       }
-      const required = row.kind === 'content.catalogue' ? [
-        ...(row.finishes || row.effects.includes('finishes') ? CLIENT_FEATURES[row.kind].sections : []),
-        ...(row.economy === true ? ['economy/loot'] as const : []),
-      ] : CLIENT_FEATURES[row.kind].sections;
+      const required = row.kind === 'content.catalogue' && !(row.finishes || row.effects.includes('finishes')) ? [] : CLIENT_FEATURES[row.kind].sections;
       for (const name of required) {
         if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
         product.section(name); // A listed stream section is not an admitted boot dependency.

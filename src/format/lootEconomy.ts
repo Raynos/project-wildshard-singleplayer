@@ -1,3 +1,4 @@
+import { CatalogueEconomyRegistrationSchema, catalogueEconomyRules, EconomyEffectIdSchema as effectId } from './catalogueEconomy';
 import { ExchangeSchema } from './exchange';
 import * as v from 'valibot';
 import { isJsonData } from './json';
@@ -8,9 +9,6 @@ const text = v.pipe(v.string(), v.maxLength(4096));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-10000000), v.maxValue(10000000));
 const count = v.pipe(finite, v.integer(), v.minValue(0));
 const positive = v.pipe(count, v.minValue(1));
-const effectText = v.pipe(v.string(), v.maxLength(512));
-const effectId = v.pipe(effectText, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${string}`>;
-const tag = v.pipe(effectText, v.regex(/\./u)) as v.GenericSchema<`${string}.${string}`>;
 const flags = v.pipe(v.array(key), v.maxLength(256));
 const colour = v.pipe(v.string(), v.regex(/^#[a-fA-F0-9]{6}$/u));
 /** Claimed drops keep their original model/grant owners; only matching, launch and retirement are authored. */
@@ -23,12 +21,6 @@ export const ClaimedPickupSchema = v.strictObject({
     towardPlayer: v.exactOptional(v.strictObject({ distance: v.pipe(finite, v.minValue(0)), epsilon: v.pipe(finite, v.minValue(0)) })) })),
   toast: v.exactOptional(text),
 });
-const modifier = v.strictObject({ attr: key, op: v.picklist(['add', 'mul', 'override']), value: finite });
-const effectSchema = v.strictObject({ id: effectId, kind: v.literal('permanent'), tags: v.pipe(v.array(tag), v.maxLength(32)),
-  modifiers: v.pipe(v.array(modifier), v.maxLength(32)), grants: v.exactOptional(v.pipe(v.array(tag), v.maxLength(32))),
-  stacking: v.union([v.literal('none'), v.strictObject({ max: v.pipe(positive, v.maxValue(1024)) })]),
-  group: v.exactOptional(key), removes: v.exactOptional(v.pipe(v.array(effectId), v.maxLength(32))) });
-const goodSchema = v.strictObject({ id: key, name: text, does: text, icon: v.picklist(['whetstone', 'heart', 'chart', 'cape']), price: count, needs: v.exactOptional(key) });
 const grantSchema = v.strictObject({ id: effectId, key, unless: v.exactOptional(v.pipe(v.array(key), v.maxLength(32))), stacks: v.exactOptional(v.pipe(positive, v.maxValue(1024))) });
 const grants = v.pipe(v.array(grantSchema), v.maxLength(128));
 const sticker = { label: text, icon: v.picklist(['talon', 'tusk', 'hat', 'necklace']), prize: v.exactOptional(v.pipe(v.array(text), v.maxLength(16))) };
@@ -67,7 +59,7 @@ export const LootEconomySchema = v.strictObject({
   progression: v.exactOptional(v.strictObject({ flags,
     states: v.pipe(v.array(v.strictObject({ earned: v.pipe(v.array(v.strictObject({ id: key, text })), v.maxLength(128)), displayCount: count, next: v.nullable(count) })), v.minLength(1), v.maxLength(257)),
     glow: v.strictObject({ owned: key, curve: CurveSchema }) })),
-  effects: v.pipe(v.array(effectSchema), v.maxLength(128)), goods: v.pipe(v.array(goodSchema), v.maxLength(64)),
+  effects: CatalogueEconomyRegistrationSchema.entries.effects, goods: CatalogueEconomyRegistrationSchema.entries.goods,
   grants: v.strictObject({ player: grants, worn: grants, weapons: grants }),
   finds: v.strictObject({ counters: v.pipe(v.array(v.strictObject({ label: text, flags })), v.maxLength(32)),
     sections: v.pipe(v.array(v.strictObject({ title: text, dense: v.exactOptional(v.boolean()), wide: v.exactOptional(v.boolean()),
@@ -79,15 +71,13 @@ export const LootEconomySchema = v.strictObject({
 export type LootEconomy = v.InferOutput<typeof LootEconomySchema>;
 /** Cross-row references are also part of the defining RowsSchema admission. */
 export function lootEconomyRules(row: LootEconomy): string[] {
-  const errors: string[] = [], effects = new Set(row.effects.map(effect => effect.id)), goods = new Set(row.goods.map(good => good.id));
+  const errors: string[] = [], effects = new Set(row.effects.map(effect => effect.id));
   if (row.tables !== undefined) errors.push(...lootTableRules(row.tables));
   const progression = row.progression;
   if (progression !== undefined && (new Set(progression.flags).size !== progression.flags.length || progression.states.length !== progression.flags.length + 1
     || progression.states.some(state => new Set(state.earned.map(reward => reward.id)).size !== state.earned.length))) errors.push('complete unique economy progression');
-  if (effects.size !== row.effects.length || goods.size !== row.goods.length) errors.push('unique economy effects and goods');
-  if (row.goods.some(good => good.needs !== undefined && (!goods.has(good.needs) || good.needs === good.id))) errors.push('economy good prerequisite');
-  if ([...row.grants.player, ...row.grants.worn, ...row.grants.weapons].some(grant => !effects.has(grant.id))
-    || row.effects.some(effect => effect.removes?.some(id => !effects.has(id)) === true)) errors.push('economy effect reference');
+  errors.push(...catalogueEconomyRules(row));
+  if ([...row.grants.player, ...row.grants.worn, ...row.grants.weapons].some(grant => !effects.has(grant.id)) && !errors.includes('economy effect reference')) errors.push('economy effect reference');
   if (row.finds.next !== undefined && row.finds.counters[row.finds.next.counter] === undefined) errors.push('economy finds counter');
   return errors;
 }

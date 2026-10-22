@@ -11629,3 +11629,9 @@ Declared ground retains the admitted structures and paths flags. Only the
 authored `fight.attackers: 'unbounded'` sentinel becomes Infinity when
 defineAuthoredShard builds the native manifest; other fields remain finite
 JSON and do not accept that sentinel.
+
+The content.catalogue row admits economy:{effects,goods} from the defining
+catalogue economy grammar, shared by LootEconomySchema. Its reference and
+real OwnedId preflight completes before any registration; the original kit
+order remains starter/finish effects, economy effects and goods, then skins.
+It reads no economy section and adds no clock, cache or save owner.

@@ -295,7 +295,8 @@ test('catalogues require only the optional sections their rows select', () => {
     expect(() => admitClientPlan(plan(row), f.ctx.product)).not.toThrow();
     expect(() => admitClientPlan(plan({ ...row, finishes: true }), f.ctx.product)).toThrow('held/finishes');
     expect(() => admitClientPlan(plan({ ...row, effects: ['finishes'] }), f.ctx.product)).toThrow('held/finishes');
-    expect(() => admitClientPlan(plan({ ...row, economy: true }), f.ctx.product)).toThrow('economy/loot');
+    expect(() => admitClientPlan(plan({ ...row, economy: { effects: [], goods: [] } }), f.ctx.product)).not.toThrow();
+    expect(() => admitClientPlan(plan({ ...row, economy: true }), f.ctx.product)).toThrow();
     expect(f.strings).not.toHaveBeenCalled(); expect(f.expose).not.toHaveBeenCalled();
   } finally { f.ctx.scope.dispose(); }
 });

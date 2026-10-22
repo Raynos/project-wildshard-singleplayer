@@ -1,3 +1,4 @@
+import { CatalogueEconomySchema } from './catalogueEconomy';
 import { PagePathRampSchema } from './pagePreparation';
 import { DeckCameraSwaySchema } from './deckCameraSway';
 import { BakedSourceSchema, BakedTilesSchema } from './bakedTiles';
@@ -37,7 +38,7 @@ const WaterDrawSchema = v.strictObject({
 export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
   v.strictObject({ kind: v.literal('content.catalogue'), quests: v.boolean(), finishes: v.boolean(),
-    economy: v.exactOptional(v.boolean()),
+    economy: v.exactOptional(CatalogueEconomySchema),
     weapons: v.pipe(v.array(id), v.maxLength(256)), ammunition: v.pipe(v.array(id), v.maxLength(256)),
     effects: v.pipe(v.array(v.picklist(['starter', 'finishes'])), v.maxLength(2)),
     compendiums: v.pipe(v.array(id), v.maxLength(64)),

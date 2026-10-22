@@ -8,7 +8,6 @@
       "kind": "content.catalogue",
       "quests": true,
       "finishes": false,
-      "economy": true,
       "weapons": [],
       "ammunition": [],
       "effects": [],

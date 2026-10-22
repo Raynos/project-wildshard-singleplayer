@@ -1,3 +1,7 @@
+import * as v from 'valibot';
+import { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';
+import { isOwnedId } from '../loot/Owned';
+import { isJsonData } from '@wildshard/format/json';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { HeldFinishes } from '../loadout/finishes';
@@ -5,18 +9,20 @@ import { heldFinishEffect } from '../loadout/effects';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import { STARTER_EFFECTS } from '../plugin/ui';
 import { installQuestCatalogue } from '../quest/chapter';
-import { declaredLootEconomy, declaredProductCompendium } from '../shard/declaredRows';
+import { declaredProductCompendium } from '../shard/declaredRows';
 
 /** Kit-only catalogue registration from admitted ids. Preparation stays with
  * the resident resource owner; this feature registers no frame or save owner. */
 export function installClientCatalogue(ctx: ShardContext, row: ClientFeatureRow): void {
-  if (row.kind !== 'content.catalogue' || ctx.scope.disposed) throw new Error('Invalid content catalogue feature');
+  if (ctx.scope.disposed || ctx.scope.disposing || row.kind !== 'content.catalogue') throw new Error('Invalid content catalogue feature');
+  if (row.economy !== undefined && !isJsonData(row.economy)) throw new Error('JSON-only catalogue economy');
   const items = new ItemCatalogue(ctx.product.section('combat/items').items);
   const weapons = row.weapons.map(id => items.equipment(id));
   const ammunition = row.ammunition.flatMap(id => [...items.ammunition(id).values()].map(ammo => ammo.row));
   const finishes = row.finishes || row.effects.includes('finishes') ? HeldFinishes.current(ctx.product.slug) : null;
   const journals = row.compendiums.map(id => Object.assign(declaredProductCompendium(ctx.product, id), { id }));
-  const economy = row.economy === true ? declaredLootEconomy(ctx.product.section('economy/loot').rows.loot) : undefined;
+  const economy = row.economy === undefined ? undefined : v.parse(CatalogueEconomySchema, row.economy);
+  if (economy?.goods.some(good => !isOwnedId(good.id) || good.needs !== undefined && !isOwnedId(good.needs)) === true) throw new Error('Unknown catalogue economy ownership');
   const effects = row.effects.flatMap(kind => kind === 'starter' ? STARTER_EFFECTS
     : finishes?.cards.map(({ id }) => heldFinishEffect(id, finishes.get(id).weapon)) ?? []);
   if (row.quests) installQuestCatalogue(ctx);
