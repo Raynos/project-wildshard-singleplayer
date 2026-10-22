@@ -431,7 +431,22 @@
       "image": "/assets/nalati-grasslands/map/top.webp"
     },
     "name": "Nalati Grasslands",
-    "navmesh": {},
+    "navmesh": {
+      "ground": {
+        "waterMargin": 0.25,
+        "wet": {
+          "res": 256,
+          "size": 500,
+          "values": {
+            "type": "f32",
+            "count": 65536,
+            "data": "eJzt2FtOg1AYRlFn1ql16D4ZbWOsSYH/wF4r+d7LZQv4wcndb98DWvQPXfqHLv1Dl/6hS//QpX9o0z906R+69A9d+ocu/wOELv1Dl/6hS//Qpn/o8g4AXfqHLv1Dm/6hS//Q5RsAuvQPXfqHNv1Dl3cA6NI/dOkf2vQPXd4BoEv/0KV/aNM/dHkHgC79Q5f+oUv/0KV/6NI/dGkfmjz7oUv/0KV/6NI+NHn2Q5f+oUv/0KV9aPLshzb9Q5f+ocs3AHTpH7r0D136hzb9Q5f+ocs3AHTpH7r0D136hy79Q5f+oUv70OTZD136hy7tQ5NnP3TpH7q0D02e/dD0s339Q4f2oUn70KV9aNI+9Hjnh57n7vUPDbqHHt1Dl+4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4Lzut+MH7Guia38TONqV7rXpBlcZPFv9/ppu5qqjabV7aroDe3WF1lY+9v9Y5T6avsft9VbnnLw2ff9M38O23bWcNn0OVj9H08dvjR1p+lhXPGfTx2L2ta1NH4+Zbbe/TP82MzMzMzMzMzMzMzMzMzMzs6tuK9PHcZW9Y/q325o7wvQxnmkrmD4Htv0m7fV7ps/pWa/HlqbPoz2OR9PXo3pNps/5Fcd+XJfjTHfkOsO69Az8RuMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAeX0CoEUmZQ=="
+          }
+        },
+        "wetThreshold": 0.5,
+        "trailClearance": 3.5
+      }
+    },
     "order": 3,
     "pois": [
       {
@@ -1162,6 +1177,7 @@
       "explore",
       "practice"
     ],
-    "weapon": "sword"
+    "weapon": "sword",
+    "clientPlanRuntime": true
   }
 }

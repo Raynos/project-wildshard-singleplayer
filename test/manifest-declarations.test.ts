@@ -21,6 +21,8 @@ it('retains Nalati discovery, forest, budgets and ordered art from 230be1ccc', (
 });
 
 it('retains Nine discovery, forest, budgets and ordered art from 230be1ccc', () => {
+  expect(nine.clientPlanRuntime).toBe(true);
+  expect(nine.trustedRuntime).toBeUndefined();
   expect(fixedDeclarations(nine)).toEqual(expected['nine-dragon-stack']);
 });
 
