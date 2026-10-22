@@ -136,13 +136,12 @@ class HookCourseController implements CourseController {
   private readonly row: HookCourseRow;
   private readonly course: GrappleCourseRow;
   private readonly frame:Readonly<Record<string,number>>;
-  private readonly law:ProjectedState<{phase:number;started:number;elapsed:number;best:number;checkpoint:number}>;
+  private readonly law:ProjectedState<{phase:number;started:number;elapsed:number;best:number;checkpoint:number;visited:number}>;
   private get state(){return this.law.state;}
-  private readonly reached=new Set<string>();
 
   constructor(host:PlaygroundHost,layout:HookPracticeLayout,program:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
     this.host=host;this.row=layout.course;this.map=map;
-    this.law=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:0}},program);
+    this.law=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:0,visited:0}},program);
     this.frame=layout.frame;
     const o=room.origin;this.hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
     this.course={name:room.title,hooks:this.hooks};
@@ -161,7 +160,7 @@ class HookCourseController implements CourseController {
 
   /** The guest resets its continuation; the native presenter moves the body. */
   restart(): void {
-    this.law.reset({...this.state});this.reached.clear();this.place(this.project('reset'));
+    this.law.reset({...this.state});this.place(this.project('reset'));
     this.room.chip.status(this.row.words.ready);this.room.chip.time(0,this.best);
   }
   private get best():number|null {return this.state.best<0?null:this.state.best;}
@@ -187,12 +186,11 @@ class HookCourseController implements CourseController {
     if(player.hover)player.setHover(false);
     const out=this.project('step',delta),index=out['pad']??-1,pad=index<0?null:this.pad(index);
     if(Object.keys(out).length>0) {
-      const visit=out['visit'];if(visit!==undefined&&visit>=0)this.reached.add(this.pad(visit).id);
       if(out['finish']===1) {
         const time=clock(this.state.elapsed);
         this.room.chip.status(fill(words.finish,{time}),'done');
         this.host.toast(fill(words.done,{time,best:this.best===this.state.elapsed?words.best:''}));
-      } else if(this.state.phase===1) this.room.chip.status(pad!==null?fill(words.running,{pad:pad.label}):fill(words.between,{reached:this.reached.size,goals:row.run.goals}),'go');
+      } else if(this.state.phase===1) this.room.chip.status(pad!==null?fill(words.running,{pad:pad.label}):fill(words.between,{reached:out['reached']??0,goals:row.run.goals}),'go');
       if(out['fell']===1) {
         const checkpoint=this.pad(this.state.checkpoint);
         this.place(out);this.host.toast(fill(words.fell,{pad:checkpoint.label}));

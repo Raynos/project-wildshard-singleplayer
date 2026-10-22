@@ -7,7 +7,7 @@ import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practi
 function scenario(): { sample:(signal:string,values?:Readonly<Record<string,number>>)=>Readonly<Record<string,number>>; snapshot:()=>Record<string,number>; restore:(value:Record<string,number>)=>void } {
   const guest=ReturnProgram.page(program),start=course.pads.findIndex(pad=>pad.id===course.run.from);
   const from=course.pads[start];if(from===undefined)throw new Error('Missing real start pad');
-  const host=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:start}},guest);
+  const host=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:start,visited:0}},guest);
   // The guest now finds the pad from the position, so samples carry the baked course frame and a grounded flag.
   const fixed={...practiceFrame(course),grounded:1};
   return {snapshot:()=>({...host.state}),restore:value=>{host.set(value);},sample:(signal,values={})=>{

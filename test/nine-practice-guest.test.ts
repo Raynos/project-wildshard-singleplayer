@@ -7,7 +7,7 @@ import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' wit
 import program from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with { type: 'json' };
 
 function guest(row: HookPracticeRow = course) {
-  const law = new ProjectedState({ initial: { phase: 0, started: 0, elapsed: 0, best: -1, checkpoint: 0 } }, ReturnProgram.page(program));
+  const law = new ProjectedState({ initial: { phase: 0, started: 0, elapsed: 0, best: -1, checkpoint: 0, visited: 0 } }, ReturnProgram.page(program));
   const frame = practiceFrame(row);
   return { law, event: (signal: string, x: number, y: number, z: number, grounded = true, now = 10) => law.event(signal, { ...frame, x, y, z, grounded: Number(grounded), now }) };
 }
@@ -61,4 +61,35 @@ test('the shipped eleven-pad bound stays within existing fuel and remains plain 
   expect(run.event('reset', 0, 0, 0)['spawnY']).toBe(first.top);
   expect(run.event('step', 1000, 100, 1000)['pad']).toBe(-1);
   expect(() => practiceFrame({ ...row, pads: [...pads, first] })).toThrow('Invalid practice pads');
+});
+
+
+test('AS counts distinct eligible pads, preserves visits across falls and clears them on restart', () => {
+  const run = guest(), reached = new Set<string>();
+  for (const id of ['p1', 'p1', 'p2', course.run.from, 'p1', 'l1', 'l1']) {
+    const pad = course.pads.find(row => row.id === id);
+    if (pad === undefined) throw new Error('Missing original pad');
+    if (pad.kind !== 'start' && pad.kind !== 'range') reached.add(pad.id);
+    expect(run.event('step', pad.x, pad.top, pad.z)['reached']).toBe(reached.size);
+  }
+  const low = Math.min(...course.pads.map(pad => pad.top)) - course.fallY - 1;
+  expect(run.event('step', 0, low, 0, false)).toMatchObject({ fell: 1, reached: reached.size });
+  const resumed = guest(); resumed.law.set({ ...run.law.state });
+  const pad = course.pads.find(row => row.id === 'p2');
+  if (pad === undefined) throw new Error('Missing original checkpoint');
+  expect(resumed.event('step', pad.x, pad.top, pad.z)['reached']).toBe(reached.size);
+  expect(run.event('reset', 0, 0, 0)).toMatchObject({ visited: 0, reached: 0 });
+  expect(run.event('step', pad.x, pad.top, pad.z)['reached']).toBe(1);
+});
+
+
+test('build-time visit masks preserve pad-id deduplication for repeated ids', () => {
+  const first = course.pads.find(pad => pad.id === 'p1');
+  if (first === undefined) throw new Error('Missing original pad');
+  const pads = structuredClone(course.pads);
+  // Keep next links valid after replacing the duplicate pad's id.
+  for (const pad of pads) { if (pad.id === 'p2') pad.id = first.id; if (pad.next === 'p2') pad.next = first.id; }
+  const row = { ...course, pads };
+  const run = guest(row), repeated = row.pads.filter(pad => pad.id === first.id);
+  for (const pad of repeated) expect(run.event('step', pad.x, pad.top, pad.z)['reached']).toBe(1);
 });
