@@ -5,13 +5,12 @@ import { slugRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { MaterialEntry } from '@wildshard/format/materials';
 import type { Shared } from './style';
+import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 
 export type Uniforms = Record<string, IUniform>;
 const tuple2 = [0, 0], tuple3 = [0, 0, 0], tuple4 = [0, 0, 0, 0];
-/** The graphs that read the world's shared uniforms, and the params the eye computes instead. */
-const IDS = ['nine-architecture', 'nine-architecture-cut', 'nine-facade', 'nine-facade-small', 'nine-windows', 'nine-halo',
-  'nine-silk-fog', 'nine-canopy-cards', 'nine-canopy-inner', 'nine-streaks', 'nine-scroll'];
-const COMPUTED = new Set(['datum', 'bandDepth']);
+/** The graphs that read the world's shared uniforms, and the params the eye computes instead (data/lookBindings.json). */
+const rows = metadata.looks.bindings, COMPUTED = new Set(rows.computed);
 interface Binding { readonly id: string; readonly param: string; readonly source: string; readonly key: string }
 const books = new WeakMap<Readonly<Uniforms>, { readonly bindings: readonly Binding[]; readonly textures: Map<string, Texture> }>();
 function isTexture(value: unknown): value is Texture { return value instanceof Texture; }
@@ -25,7 +24,7 @@ export function syncLooks(shared: Readonly<Uniforms>, computed: Readonly<Record<
   if (book === undefined) {
     if (catalogue === undefined) return;
     const bindings: Binding[] = [];
-    for (const id of IDS) {
+    for (const id of rows.graphs) {
       const material = catalogue[id];
       if (material === undefined) continue;
       if (material.family !== 'graph' || !('graph' in material)) throw new Error(`Nine look ${id} is not a graph`);
@@ -48,7 +47,7 @@ export function syncLooks(shared: Readonly<Uniforms>, computed: Readonly<Record<
     else if (isTexture(value) && book.textures.get(key) !== value) { setLentTexture(id, param, value); book.textures.set(key, value); }
   }
 }
-export function facadeUniforms(shared: Shared): Uniforms { return { ...shared.u, uSky: { value: new Color(0xbcc4d2) }, uFacadeWash: { value: new Color(0xe0e3ef) } }; }
+export function facadeUniforms(shared: Shared): Uniforms { return { ...shared.u, uSky: { value: new Color(rows.facade.uSky) }, uFacadeWash: { value: new Color(rows.facade.uFacadeWash) } }; }
 export function jiehuaMaterial(shared: Uniforms, opt: { shrink?: readonly [number, number] } = {}): Material {
   syncLooks(shared);
   const id = opt.shrink === undefined ? 'nine-facade' : 'nine-facade-small';

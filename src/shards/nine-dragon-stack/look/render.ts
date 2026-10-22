@@ -12,7 +12,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import { installRenderEvents } from './renderEvents';
 import { ndRuntime } from '../runtime/state';
 import { glowUniforms, gradeUniforms, light, loadLut } from './light';
-import { composite, PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
+import { composite, looks, PLAZA, STAIR, STREET, WELL, Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import type { CompositeRows } from '../boot/lookTypes.generated';
 import { uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { PostRowEffect, ScaledPostPass as RowRenderPass, prepareScaledPost } from '@wildshard/game/looks/scaledPost';
@@ -45,8 +45,8 @@ export interface NdRenderHandle {
   shared: Shared;
 }
 
-/** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
-const CARD_ON = 0.6;
+/** how much of an on-screen emitter's streak card stays once the reflection mirrors it (data/lookBindings.json) */
+const CARD_ON = looks.bindings.cardOn;
 
 /** Only live texture/camera bindings remain; static shader and tuning rows are author outputs. */
 function jiehuaEffect(view: PerspectiveCamera, shared: Shared, glow: ReturnType<typeof glowUniforms>, grade: ReturnType<typeof gradeUniforms>) {
@@ -146,12 +146,14 @@ export function shardRender(): LookStrategy {
   let lastPr = 0;
   /** (SF63) inside a grid cell (no compose, no handle): the page's renderer, for the line widths and the buffer size */
   let cellBuffer: Buffer | null = null;
-  // line widths are authored at 3× (look/style.ts uDpr). Below 3× a ruled line is thinner in buffer pixels and the
-  // upscale to the screen softens it further: the phone's 2× draws them 20 % heavier, so they read at the clean
-  // room's 3× weight (r12's mockup captures were drawn at 3×); and the drawing buffer's size for the screen-space pieces
+  // line widths are authored at 3× (look/style.ts uDpr; data/lookBindings.json lines). Below 3× a ruled line is thinner
+  // in buffer pixels and the upscale to the screen softens it further: the phone's 2× draws them 20 % heavier, so they
+  // read at the clean room's 3× weight (r12's mockup captures were drawn at 3×); and the drawing buffer's size for the
+  // screen-space pieces
+  const { authored, below, heavier } = looks.bindings.lines;
   const lines = (renderer: Buffer, shared: Shared): void => {
     const pr = renderer.getPixelRatio();
-    if (pr !== lastPr) { lastPr = pr; shared.u.uDpr.value = (pr / 3) * (pr < 2.5 ? 1.2 : 1); }
+    if (pr !== lastPr) { lastPr = pr; shared.u.uDpr.value = (pr / authored) * (pr < below ? heavier : 1); }
     renderer.getDrawingBufferSize(shared.u.uRes.value);
   };
 
