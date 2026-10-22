@@ -130,11 +130,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
   const bridge = await stage('Rope bridge', () => placeRopeBridge(sky, assembly.bridge, registry));
   // coral, kelp and starfish on the lagoon shelf (what you dive for); its fish school is page life (generators/fishDraw.ts)
-  const seabed = await stage('Seabed', () => {
-    const mesh = scenes.mesh('reef.mesh'), update = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);
-    game.scene.add(mesh);
-    return { mesh, tick: () => { update(); } };
-  });
+  await stages.next('seabed');
+  const reefLook = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);
+  const seabed = { mesh: entryOwner(scope, 'object', 'seabed'), tick: () => { reefLook(); } };
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
   const palmSpecs = [...foliage.palms.specs];
   await complete('Palm placement');

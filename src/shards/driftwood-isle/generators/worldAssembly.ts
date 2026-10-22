@@ -13,12 +13,13 @@ const entry = (id: string, label: string, published: { object?: { as: 'group' | 
   return { kind: 'entry', id, label, rows, ...published };
 };
 /** G571: the world build's typed stages, in build order (game/shardfile/worldAssembly): the entry pier and its decks, the
- *  shore boulders, the hut and lookout sites, the wreck, the three jetties, then the bushes, trail, cove, palms and small
- *  rocks; each publishes its loans under its id. */
+ *  shore boulders, the hut and lookout sites, the wreck, the three jetties, then the bushes, trail, seabed, cove, palms and
+ *  small rocks; each publishes its loans under its id. */
 export const WORLD_STAGES = { stages: [{ kind: 'place', ...pier }, entry('decks', 'Entry decks'),
   entry('shore', 'Shore boulders', { object: { as: 'mesh', part: 'rocks.shore' } }),
   { kind: 'site', id: 'hut', label: 'Hut', model: 'hut', choice: 'world' }, { kind: 'site', id: 'lookout', label: 'Lookout', model: 'lookout', choice: 'world' },
   entry('wreck', 'Wreck', { object: { as: 'group', part: 'wreck.root' }, floor: 'wreck.ship' }), ...jetties.map(({ id, label }) => ({ kind: 'place', id, label })),
   entry('bushes', 'Bushes', { object: { as: 'mesh', part: 'hibiscus.mesh' } }), entry('trail', 'Trailside', { object: { as: 'mesh', part: 'trail.mesh' } }),
+  entry('seabed', 'Seabed', { object: { as: 'mesh', part: 'reef.mesh' } }),
   entry('cove', 'Cove'), entry('palms', 'Palms', { object: { as: 'mesh', part: 'palms.mesh' } }),
   entry('smallRocks', 'Small rocks', { object: { as: 'mesh', part: 'rocks.small' } })] };
