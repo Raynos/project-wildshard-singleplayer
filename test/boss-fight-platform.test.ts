@@ -97,9 +97,15 @@ test('invented native encounter adopts its real body and resumes without spawn o
 test('reward rows resolve only registered native inventories and use their own admission law', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))), host = createSimHost(SIM_LEVEL, { rapier });
   try {
-    const pack = new NativeInventory({ kinds: ['reed-token'], slots: 1, counts: { min: 0, max: 99, integer: true, complete: false }, quantity: 'positive-safe-integer', snapshot: 'order', restoreError: 'Bad marsh pack' }, host, 'marsh.pack');
+    const pack = new NativeInventory({ kinds: ['reed-token', 'shell-token'], slots: 1, counts: { min: 0, max: 99, integer: true, complete: false }, quantity: 'positive-safe-integer', snapshot: 'order', restoreError: 'Bad marsh pack' }, host, 'marsh.pack');
     grantNativeInventory(host, 'marsh.pack', [{ item: 'reed-token', count: 3 }]); expect(pack.count('reed-token')).toBe(3);
     expect(() => grantNativeInventory(host, 'absent.pack', [{ item: 'reed-token', count: 3 }])).toThrow('Missing native inventory');
     expect(() => grantNativeInventory(host, 'marsh.pack', [{ item: 'other-token', count: 1 }])).toThrow(); expect(pack.count('reed-token')).toBe(3);
+    expect(() => grantNativeInventory(host, 'absent.pack', [])).toThrow('Missing native inventory');
+    grantNativeInventory(host, 'marsh.pack', []); expect(pack.count('reed-token')).toBe(3);
+    expect(() => grantNativeInventory(host, 'marsh.pack', [{ item: 'shell-token', count: 1 }])).toThrow('Boss reward rejected');
+    expect(pack.snapshot().order).toEqual(['reed-token']);
+    expect(() => grantNativeInventory(host, 'marsh.pack', [{ item: 'reed-token', count: 2 }, { item: 'other-token', count: 1 }])).toThrow();
+    expect(pack.count('reed-token')).toBe(5);
   } finally { host.dispose(); }
 });

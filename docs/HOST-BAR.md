@@ -99,6 +99,8 @@ G571 credit. Imports and dependencies retain their own attribution.
 
 - G571 quest entry prefix: `game/shardfile/clientQuestComposition` prepares the entered ranged and named quest owners from finite client-plan rows; `game/quest/chapterDirector#QuestSpawnCapability`, `game/quest/chapterDirector#QuestSpawnResult` and `game/quest/chapterDirector#installDeclaredQuestSpawns` bind the existing AS spawns to exact quest, animal and sound loans. Client-only; no callback row, selector, extra clock or save. Test 1 waived; tests 2–6 covered by `test/quest-spawn-capability.test.ts`, `test/client-plan-platform.test.ts`, `test/ranged-entry-capability.test.ts` and the original quest product/save suites. Unrelated chapter director and guide declarations remain charged.
 
+- G571 inventory reward rows: `game/inventoryLaw#grantNativeInventory` applies declared item/count rows to an existing native pack through its own admission law. No shard branch or authored callback; renderer-free, no new owner, clock or save. Test 1 waived; tests 2–6 pass: generic inventory operation retained without its first user, data-only input, registered-pack refusal, ordered partial grants and slot admission covered by `test/boss-fight-platform.test.ts`.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they
