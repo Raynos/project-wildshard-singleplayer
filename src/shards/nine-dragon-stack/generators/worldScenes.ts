@@ -19,7 +19,8 @@ import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { MeshBasicMaterial, PlaneGeometry, SphereGeometry } from 'three';
+import { Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, Vector3 } from 'three';
+import { bakedLayoutProjection } from './layoutProjection';
 import explorer from '../data/explorerModels.json' with { type: 'json' };
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
@@ -167,9 +168,31 @@ export const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
     poses: frames.map(frame => { const matrix = Array.from({ length: 16 }, (_, k) => record(frame + k));
       return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(name === 'pavilion' ? { params: { turn: authoredTurn(Math.atan2(matrix[8] ?? 0, matrix[0] ?? 1)) } } : {}) }; }) };
 });
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], placements: SET_PLACEMENTS, libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+const projection = bakedLayoutProjection();
+/** a layout placement's own file (world/build.ts reads the lanterns' poses from theirs) */
+export const layoutPlacementFile = (id: string): string => `world/placements/${id}.json`;
+const frame = (offset: number): number[] => Array.from({ length: 16 }, (_, k) => record(offset + k));
+// plain JSON numbers: a signed zero (three's matrix maths) is written as 0
+const posed = (words: readonly number[]) => { const matrix = words.map(value => value + 0); return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix }; };
+/** a paper lantern hangs its drop below its hanger, upright, at the hanger's scale (the layout's hangers, the capped decks'
+ *  own when played alone, then each portal's) */
+const hungLanterns = (capped: boolean) => [...projection.lanterns, ...capped ? projection.fixed.lanterns : [], ...worldRows.rows.portalLanterns.map(frame)].map(words => {
+  const hanger = new Matrix4().fromArray(words), p = new Vector3(), q = new Quaternion(), s = new Vector3();
+  hanger.decompose(p, q, s); const k = s.x;
+  return posed(new Matrix4().makeScale(k, k, k).setPosition(p.x, p.y - projection.fixed.drop * k, p.z).elements);
+});
+/** the layout's air conditioners and paper lanterns (world/build.ts places them by id; lanterns per deck ending), each its own
+ *  placement file (the section's plain-JSON node budget) */
+export const LAYOUT_PLACEMENTS = [
+  { id: 'nds-inst-ac', model: 'airConBox', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-inst-ac' }, poses: projection.acs.map(posed) },
+  ...(['open', 'capped'] as const).map(ending => ({ id: `nds-lanterns-${ending}`, model: 'paperLantern', draw: 'instanced' as const, cull: { bounds: 'sphere' as const },
+    piece: { id: 'nds-lanterns' }, poses: hungLanterns(ending === 'capped') })),
+];
+export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo')],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
     instanceAttributes: windowStep([0, 1]).instanceAttributes,
     materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1]).publish, ...Object.fromEntries(['crown-core', 'crown-cards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...portalLook.scenes.steps] });
+/** the layout placements' files (LAYOUT_PLACEMENTS) */
+export const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row))));

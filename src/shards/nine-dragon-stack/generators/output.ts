@@ -31,7 +31,7 @@ import { lightVolumeBlobs } from './lightVolumes';
 import lantern from '../data/lantern.json' with { type: 'json' };
 import { spillBlobs } from './spillBlobs';
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
-import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './worldScenes';
+import { LAYOUT_PLACEMENT_BLOBS, NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './worldScenes';
 import { nineWorldEntry } from './worldEntry';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
@@ -45,7 +45,7 @@ const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.strin
 const halo = buildHalo();
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const viewmodel = buildViewmodelParts();
-const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(), spillBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   ...Object.entries(heldDecals).map(([tier, row]) => nameBlob(`looks/jian-decal-${tier}.png`, 'image', Uint8Array.from(atob(row.png), character => character.codePointAt(0) ?? 0))),
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),

@@ -9,8 +9,6 @@ export interface Ctx {
   readonly kits: Map<string, BufferGeometry | null>;
   readonly alphaKits: Map<string, BufferGeometry>;
   readonly farOf: Map<string, number>;
-  readonly lanterns: Matrix4[];
-  readonly acs: Matrix4[];
   readonly hooks: Vector3[];
   readonly hookMounts: { ring: Vector3; out: Vector3 }[];
   readonly inKit: InKit[];

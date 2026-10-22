@@ -12,7 +12,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, type BufferGeometry, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Quaternion, Vector3,
+  Box3, type BufferGeometry, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Vector3,
 } from 'three';
 import type { Piece } from './ctx';
 import { registerSigns } from '../models/signs';
@@ -35,6 +35,7 @@ import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndLook, ndModelContext, need } from './modelLook';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
+import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, prepareLayout, restoreLayout } from './layoutBake';
@@ -123,10 +124,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier
   const entryCaps = opts.caps === true;
   const entries = opts.scenes.geometry(entryCaps ? 'casts.entries-capped' : 'casts.entries-open');
-  const boards = opts.scenes.geometry('casts.facade-signs'), fixed = layout.fixed;
+  const boards = opts.scenes.geometry('casts.facade-signs');
   ctx.kits.set('entries', entries);
-  for (const row of entryCaps ? fixed.lanterns : []) ctx.lanterns.push(new Matrix4().fromArray(row));
-  for (const frame of worldRows.portalLanterns) ctx.lanterns.push(new Matrix4().fromArray(worldData, frame));
   await entry.run('portals');
   progress(0.3, 'signs');
   await opts.pause();
@@ -138,10 +137,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   syncLooks(shared.u);
   const mat = lentLook('nine-architecture'), matA = lentLook('nine-architecture-cut');
   bindLowPolyMaterial(opts.sky, 'nine-architecture', mat, opts.scope);
-  const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
-  // a paper lantern hangs its drop below its hanger, upright, at the hanger's scale
-  const hung = ctx.lanterns.map(m => { m.decompose(tmpP, tmpQ, tmpS); const k = tmpS.x; return at<Record<string, unknown>>(new Matrix4().makeScale(k, k, k).setPosition(tmpP.x, tmpP.y - fixed.drop * k, tmpP.z)); });
-  const lanternsAt = hung.map(({ x, y, z }) => new Vector3(x, y, z));
+  // the paper lanterns hung for this deck ending and the layout's air conditioners: world-scene placements of their
+  // catalogue models (generators/worldScenes.ts LAYOUT_PLACEMENTS); the lanterns' hum hangs where each one does
+  const lanternId = `nds-lanterns-${entryCaps ? 'capped' : 'open'}`;
+  const lanternsAt = parseWorldScenePlacement(await product.json(`world/placements/${lanternId}.json`)).poses.map(({ x, y, z }) => new Vector3(x, y, z));
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
   const kitGeos = [...ctx.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]);
@@ -199,7 +198,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const copies = ctx.inKit.map(c => { const row = catalogueRows.models.find(m => m.id === c.model), { params: _free, ...pose } = c.at;
     return row === undefined || authored.has(`${c.model}:${canonical({ ...row.defaults, ...c.at.params })}`) ? c : { ...c, at: pose }; });
   for (const model of byId.values()) { inKitPlaced.push(...registerDrawnInto(models.ctx, copies, model, meshOfKit, 'nds-')); await slice(); }
-  const lanterns = await placeSliced(models.model('paperLantern'), hung, { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-lanterns' } }, slice.due);
+  const lanterns = await opts.scenes.place(lanternId); root.add(lanterns.object);
   lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
@@ -251,7 +250,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     const members = [...inKitPlaced.filter(copy => region.kits.includes(copy.kit)).map(copy => copy.placed), ...extras.get(region.extra) ?? []];
     if (members.length > 0) placeSet({ id: region.id, name: region.name, place: region.place, file: 'src/shards/nine-dragon-stack/generators/worldRows.ts', members });
   }
-  if (ctx.acs.length > 0) nameDraws(await placeSliced(models.model('airConBox'), ctx.acs.map((m) => at<Record<string, unknown>>(m)), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-inst-ac' } }, slice.due), 'inst:ac');
+  const acs = await opts.scenes.place('nds-inst-ac'); root.add(acs.object); nameDraws(acs, 'inst:ac');
   await slice();
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
