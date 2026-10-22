@@ -1,6 +1,6 @@
 # Plan: WASM-HOST — a fast, batched Wasm host for shard AssemblyScript
 
-**State:** `in progress` (view lane only) 2026-10-21: Jake started **H0, H0b, H1–H6, H9, H13** scoped to Pine Hollow and Driftwood's per-frame view code (SHARD-PLATFORM G570, [dw-pine-zero-mini-plan.md](shard-platform/dw-pine-zero-mini-plan.md) row ZF); every other row stays parked until Jake says. Was: `open`, parked (2026-10-20): design now (two council rounds, H0 numbers); **nothing is built until Jake says
+**State:** `in progress` (view lane only) 2026-10-21: Jake started **H0, H0b, H1–H6, H9, H13** scoped to Pine Hollow and Driftwood's per-frame view code, widened to Nine Dragon and Nalati on 2026-10-22 (G595) (SHARD-PLATFORM G570, [dw-pine-zero-mini-plan.md](shard-platform/dw-pine-zero-mini-plan.md) row ZF); every other row stays parked until Jake says. Was: `open`, parked (2026-10-20): design now (two council rounds, H0 numbers); **nothing is built until Jake says
 so**. Not built by the SHARD-PLATFORM builder or its lanes (G517).
 
 Jake, 2026-10-20 (E489): *"It goes off the shard platform. I don't want to fuck around the builder with changing the
