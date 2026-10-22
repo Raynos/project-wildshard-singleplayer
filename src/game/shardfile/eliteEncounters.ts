@@ -12,8 +12,7 @@ import { EliteCore, EliteCoreContinuationSchema, memoryElitePersistence, type El
 
 const silent = (): void => undefined;
 const finite = v.pipe(v.number(), v.finite());
-const KeeperSave = v.strictObject({ animal: v.nullable(v.string()), phase2: v.boolean(), keeper: v.unknown() });
-const PackSave = v.strictObject({ ...KeeperSave.entries, pack: v.nullable(v.pipe(finite, v.integer(), v.minValue(0))) });
+const PackSave = v.strictObject({ animal: v.nullable(v.string()), phase2: v.boolean(), keeper: v.unknown(), pack: v.nullable(v.pipe(finite, v.integer(), v.minValue(0))) });
 
 /** Manager-owned elite pins and decision bindings; the manager retains its single body-step installer. */
 export interface EliteBindings {
@@ -26,13 +25,6 @@ export function eliteBindings(): EliteBindings { return { pinned: new Set(), abs
 
 interface Herd { readonly stallionState: string; readonly stallion: AnimalSim | null; readonly leadAway: (x: number, z: number) => void }
 type HerdTaming = () => {readonly phase:string;readonly tulpar:AnimalSim|null}|null;
-/** Admitted native stalker tuning and herd guest rows. The installer retains
- * the common controller, native body and reward authority. */
-export interface EliteKeeperBindings {
-  readonly pouncer: PouncerSpec;
-  readonly howler: HowlerSpec;
-  readonly herd: {readonly rows:unknown;readonly program:unknown};
-}
 /** A member's identity, adoption and save key are author data. Pack ordering is checked against the owner's actor IDs. */
 export interface EliteEncounterRow {
   readonly def: EliteCoreDef;
@@ -52,7 +44,7 @@ export interface EliteEncounterPorts {
   readonly herd: () => Herd | null;
   readonly heightAt: (x: number, z: number) => number; readonly ledges: readonly PouncerLedge[];
   readonly environment: HowlerPorts<AnimalSim>['environment'];
-  readonly taming?: HerdTaming; readonly keepers: EliteKeeperBindings;
+  readonly taming?: HerdTaming; readonly keepers: {readonly pouncer:PouncerSpec;readonly howler:HowlerSpec;readonly herd:{readonly rows:unknown;readonly program:unknown}};
   /** Existing authored strike sampler and shove law. No new attack clock is installed. */
   readonly strike: (row: StrikeSpec, a: AnimalSim, target: Vector3, hit: () => void, ports: { reach: () => boolean }) => boolean;
   readonly strikes: { readonly swipe: StrikeSpec; readonly pounce: StrikeSpec; readonly bite: StrikeSpec };
@@ -212,7 +204,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
   const wire = spec.wire;
   const envelope: v.ObjectEntries = { version: v.literal(spec.version), ...EliteCoreContinuationSchema.entries };
   if (wire.detached !== undefined) envelope[wire.detached] = v.exactOptional(v.literal(true));
-  for (const row of rows) envelope[row.snapshot] = row.pack === undefined ? KeeperSave : PackSave;
+  for (const row of rows) envelope[row.snapshot] = row.pack === undefined ? v.omit(PackSave, ['pack']) : PackSave;
   host.onStep(spec.step, dt => { core.update(dt, host.clock.now); }, {
     snapshot: () => {
       const saved: Record<string, SimValue> = { version: spec.version, ...core.snapshot() };
@@ -227,7 +219,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
       const ids = scripts.map(s => s.def.id);
       if (Object.keys(continuation.records).length !== ids.length || ids.some(id => continuation.records[id] === undefined)) throw new Error('Incompatible encounter records');
       const bound = members.map((m, i) => {
-        const s = v.parse(m.row.pack === undefined ? KeeperSave : PackSave, saved[m.row.snapshot]);
+        const s = v.parse(m.row.pack === undefined ? v.omit(PackSave, ['pack']) : PackSave, saved[m.row.snapshot]);
         const a = s.animal === null ? null : host.entities.get(s.animal);
         const detached = wire.detached !== undefined && saved[wire.detached] === true && m.row.onAdopted !== undefined;
         if (a === undefined || (a !== null && (a.kind !== m.row.member.kind || a.variant !== m.row.member.variant))
