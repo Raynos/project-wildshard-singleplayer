@@ -6,7 +6,6 @@ import { shardContext, type ShardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import source from '../src/shards/nine-dragon-stack/shard.config';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
-import { NdPlugin } from '../src/shards/nine-dragon-stack/plugin';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { toLevelSpec } from '../src/game/shard/spec';
 import heldPrimary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };
@@ -21,7 +20,6 @@ test('Nine manifest native load installs its original Jian once', async () => {
   const ctx = shardContext(level.context, native, { shard: native, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
   const shell: { world: object; buildEquipment?: NonNullable<ShardContext['game']['runtime']>['buildEquipment'] } = { world: { game: { level: { camera: { portraitFov: 78 } } } } };
   Object.defineProperty(ctx.game, 'runtime', { value: shell });
-  const world = vi.spyOn(NdPlugin.prototype, 'world').mockResolvedValue(undefined);
   try {
     if (manifest.load === undefined) throw new Error('Missing Nine manifest loader');
     const { default: Entry } = await manifest.load(), plugin = new Entry();
@@ -29,7 +27,8 @@ test('Nine manifest native load installs its original Jian once', async () => {
     await plugin.world?.(ctx);
     level.openKit();
     await plugin.kit?.(ctx);
-    expect(world).toHaveBeenCalledOnce();
+    expect(manifest.clientPlanRuntime).toBe(true);
+    expect(manifest.trustedRuntime).toBeUndefined();
     expect(entryOwner(scope, 'claims', 'held.primary').melee().profile.family).toBe('melee');
     level.closeKit();
     const build = shell.buildEquipment;
@@ -37,5 +36,5 @@ test('Nine manifest native load installs its original Jian once', async () => {
     expect(read).toHaveBeenCalledOnce();
     expect(app.levelRegistrations.list('weapon')).toMatchObject([{ id: 'weapon.jian', parent: 'weapon.sword', feel: { portraitFov: 78 } }]);
     expect(() => build({ raycast: () => null }, true, null)).toThrow('declared sword rig');
-  } finally { world.mockRestore(); scope.dispose(); app.engineScope.dispose(); }
+  } finally { scope.dispose(); app.engineScope.dispose(); }
 });

@@ -1,5 +1,5 @@
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
-import { NINE_CLIENT_CHANNELS } from './clientMotion';
+import { MOVER_REST, MOVER_STAGES } from './moversView';
 import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_BLOBS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
 import signRows from '../data/signView.json' with { type: 'json' };
@@ -150,11 +150,14 @@ models.push({ key: 'sign', id: 'nine-dragon-stack/sign', name: 'Sign (neon, ligh
     return choice(variant.id, signRows.model.calligraphyStyles.some(style => style === p.style)
       ? [signDraw('boards', `${name}-boards`, 'neon-board'), signDraw('tubes', `${name}-tubes`, 'neon-tube', 5)] : [signDraw('main', name, 'neon')], p);
   }) });
-const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models, projections: [
-  { id: 'nds-train', key: 'monorailTrain', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(0, 1) },
-  { id: 'nds-gondola', key: 'cableGondola', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(1, 2) },
-  { id: 'nds-drones', key: 'drone', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(2) },
-] });
+const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models });
+// the movers (the train, the gondola, the drones): one copy each where the movers view module poses it at its first
+// frame (generators/moversView.ts); the world assembly places each and the module moves it
+const MOVER_PLACEMENTS = MOVER_STAGES.map((id, i) => {
+  const pose = MOVER_REST[i]; if (pose === undefined) throw new Error(`Nine mover ${id} has no rest pose`);
+  return { id, model: i === 0 ? 'monorailTrain' : i === 1 ? 'cableGondola' : 'drone', name: 'movers', draw: 'single' as const, piece: { id },
+    poses: [{ x: pose.x, y: pose.y, z: pose.z, yxz: { yaw: pose.yaw, scale: 1 } }] };
+});
 
 // The world's banyan crown (its cards drawn twice: colour, then the depth pass) and the Well's mist.
 /** a dressing draw: its node, source model, material slot, draw order, mesh name, whether it is frustum-culled and its pose */
@@ -371,7 +374,7 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
   materials: [{ kind: 'port', id: 'kit', source: 'kit' }] } });
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('kit-cut', 'nine-architecture-cut'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo'),
     look('neon', 'nine-neon'), look('neon-board', 'nine-neon-board'), look('neon-tube', 'nine-neon-tube')],

@@ -34,6 +34,10 @@ import lantern from '../data/lantern.json' with { type: 'json' };
 import { plainWeaveBytes, silkWeaveBytes } from './silkWeave';
 import { LAYOUT_PLACEMENT_BLOBS, NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './worldScenes';
 import { nineWorldEntry } from './worldEntry';
+import { nineWorldAssembly } from './worldAssembly';
+import { nineMoversView } from './moversView';
+import moversModule from '../behaviour/movers.generated.json' with { type: 'json' };
+import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 
@@ -46,7 +50,10 @@ const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.strin
 const halo = buildHalo();
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const viewmodel = buildViewmodelParts();
-const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+// the movers view module (behaviour/movers.as, bake-movers-view.mjs), run by the client plan's view.program
+const MOVERS_WASM = nameBlob('views/movers.wasm', 'wasm', Uint8Array.from(atob(moversModule.bytes), character => character.codePointAt(0) ?? 0),
+  { critical: true, script: { abi: 2, lane: 'view', pages: 1, ioBytes: 4096, compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission } });
+const emitted = emitNamedBlobs([MOVERS_WASM].concat(NINE_SCENE_BLOBS, LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   ...Object.entries(heldDecals).map(([tier, row]) => nameBlob(`looks/jian-decal-${tier}.png`, 'image', Uint8Array.from(atob(row.png), character => character.codePointAt(0) ?? 0))),
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
@@ -59,4 +66,4 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, l
 ]));
 
 export const output = { blobs: [{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"}], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['client/plan', {version:1,features:[practiceCard, {kind:'strings.register'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['view/modules', [{ id: 'nine.movers', module: MOVERS_WASM.file.path, side: 'view', ...MOVERS_WASM.script }]], ['client/plan', {version:1,features:[practiceCard, {kind:'strings.register'}, {kind:'world.assembly', rows: nineWorldAssembly(), entered: { root: 'nine.root', blocks: ['pieces'] }}, {kind:'view.program', id:'movers', rows: nineMoversView(), module: 'views/movers.wasm'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };

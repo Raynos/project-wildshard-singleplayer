@@ -30,10 +30,13 @@ test('Nine preserves its exact authored boot inventory, modes, art and structure
   const density = MANIFEST.forest?.density;
   if (density === undefined) throw new Error('Nine must keep its constant forest density');
   expect(density(50, -50)).toBe(0);
-  expect(MANIFEST.trustedRuntime?.entry).toBe('runtime/index.ts');
+  expect(MANIFEST.trustedRuntime).toBeUndefined();
+  expect(MANIFEST.clientPlanRuntime).toBe(true);
   const source = authoredManifestSource(resolve(import.meta.dirname, '..'), 'nine-dragon-stack');
-  expect(source).toContain('nativeModule["NdPlugin"]');
-  expect(source).toContain('"nativePlan":{"phases":["world","world-bindings","kit","play"]}');
+  expect(source).toContain('.declaredClientPlanEntry({"retainHomeRuntime":true,"stagesOwner":"declared"})');
+  expect(source).not.toContain('nativeModule');
+  expect(source).not.toContain('./plugin');
+  expect(source).not.toContain('./runtime/index');
   expect(source).toContain('...{"structures":true}');
   expect(source).toContain('HeldView.fromProduct("nine-dragon-stack", "weapons/jian-row.json")).sword()');
 });

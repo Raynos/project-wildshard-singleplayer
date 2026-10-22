@@ -31,11 +31,13 @@ export interface WorldEntryPorts {
 
 /**
  * A shard's declared world entry (format/worldEntry): its rows run block by block, in order, as the world build reaches
- * each block. Every `place` keeps its placement for the build to read by id; a `piece` registers through the build's
- * `piece` port. Users: Driftwood Isle, Nine Dragon Stack.
+ * each block. Every `place` keeps its placement for the build to read by id, or restores a declared frozen graph (its
+ * roots are already published, so it hangs where it was frozen); a `piece` registers through the build's `piece` port.
+ * Users: Driftwood Isle, Nine Dragon Stack.
  */
 export class WorldEntry {
   private readonly placements = new Map<string, Placed>();
+  private readonly restored = new Set<string>();
   private readonly ran = new Set<string>();
   private constructor(private readonly rows: WorldEntryRows, private readonly ports: WorldEntryPorts) {}
 
@@ -68,7 +70,7 @@ export class WorldEntry {
   /** The placements one block's `place` rows loaded, in row order (rows another tier or variant skipped are absent). */
   placedIn(block: string): Placed[] {
     if (!this.ran.has(block)) throw new Error(`World entry block has not run: ${block}`);
-    return (this.rows.blocks[block] ?? []).flatMap(row => row.kind === 'place' && this.applies(row) ? [this.placed(row.id)] : []);
+    return (this.rows.blocks[block] ?? []).flatMap(row => row.kind === 'place' && this.applies(row) && !this.restored.has(row.id) ? [this.placed(row.id)] : []);
   }
 
   private live(): void {
@@ -87,8 +89,10 @@ export class WorldEntry {
       return this.ports.scenes;
     };
     if (row.kind === 'place') {
-      if (this.placements.has(row.id)) throw new Error(`World entry placed ${row.id} twice`);
-      this.placements.set(row.id, await scenes().place(row.id));
+      if (this.placements.has(row.id) || this.restored.has(row.id)) throw new Error(`World entry placed ${row.id} twice`);
+      const handles = scenes();
+      if (handles.frozen(row.id)) { await handles.assemble(row.id); this.restored.add(row.id); return; }
+      this.placements.set(row.id, await handles.place(row.id));
       return;
     }
     // plain state keys only (format/worldEntry MaterialStateSchema): assigned as Material.setValues assigns them

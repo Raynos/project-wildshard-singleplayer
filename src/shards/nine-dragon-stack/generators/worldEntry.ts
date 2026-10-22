@@ -9,13 +9,14 @@ import windowBindings from '../data/windowBindings.json' with { type: 'json' };
 import { LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS } from './worldScenes';
 
 /**
- * Nine Dragon Stack's declared world entry (the world/scenes section's entry, run by @wildshard/game/shardfile/worldEntry in
- * world/build.ts): the portals, the banyan crown's looks and its dressing root, the wet floor's reflection cards for
- * this deck ending (`capped` standalone, `open` in a grid cell) with the streak and halo looks they draw in, the
- * catalogue placements the build reaches in turn (the square's lions and sets, the hung lanterns, the facade's drawn pieces
- * and window bindings, the sign boards, the wall kit and air conditioners, the hook and the crowd), and the square's floors piece for each ending (the plugin runs `pieces` once the world stands).
+ * Nine Dragon Stack's world entry rows (format/worldEntry), per deck ending (`capped` standalone, `open` in a grid cell):
+ * the portals, the banyan crown's looks and its dressing root, the square's lions and sets, the fabric and this ending's
+ * decks and sign boards, the hung lanterns, the facade's drawn pieces, window bindings and sign boards, the wet floor's
+ * reflection cards with the streak and halo looks they draw in, the wall kit and air conditioners, the hook and the crowd
+ * (the world assembly's entry stages, generators/worldAssembly.ts), and the square's stone pieces (`pieces`, the
+ * world/scenes section's entry, run in the entered world once the assembly stands).
  */
-export function nineWorldEntry(): WorldEntryRows {
+function nineEntryBlocks(): WorldEntryRows['blocks'] {
   // the walkable square and stacks as one piece: its stone colliders for the ending, the world's floors then the decks' (first)
   const install = nineWorldInstallRows();
   const floors = (variant: 'capped' | 'open', rows: readonly NinePhysicsPlacement[]) => {
@@ -56,7 +57,8 @@ export function nineWorldEntry(): WorldEntryRows {
     lions: LION_PLACEMENTS.flatMap(row => placed(row.id)),
     sets: SET_PLACEMENTS.flatMap(row => placed(row.id)),
     // each deck ending's entry decks and the facade's sign boards (worldScenes.ts FIXED_STEPS)
-    kits: (['open', 'capped'] as const).map(variant => ({ kind: 'attach', id: `fixed-${variant}.root`, as: 'group', when: { variant } })),
+    // the fabric (restored where it was frozen, under the dressing root), then this ending's decks and sign boards
+    kits: [{ kind: 'place', id: 'fabric' }, ...(['open', 'capped'] as const).map(variant => ({ kind: 'attach', id: `fixed-${variant}.root`, as: 'group', when: { variant } }))],
     lanterns: (['open', 'capped'] as const).flatMap(variant => placed(`nds-lanterns-${variant}`, 'lanterns', variant)),
     facade: [
       ...worldRows.rows.facade.drawn.flatMap(row => [{ kind: 'place', id: `nds-facade-${row.id}` }, facade(`nds-facade-${row.id}.root`)]),
@@ -72,5 +74,18 @@ export function nineWorldEntry(): WorldEntryRows {
       { kind: 'attach', id: 'cards-capped.root', as: 'group', when: { variant: 'capped' } },
       { kind: 'attach', id: 'cards-open.root', as: 'group', when: { variant: 'open' } },
     ],
-  } });
+  } }).blocks;
 }
+
+/** The world/scenes section's entry: the square's stone pieces, run in the entered world once the assembly stands. */
+export function nineWorldEntry(): WorldEntryRows {
+  const pieces = nineEntryBlocks()['pieces']; if (pieces === undefined) throw new Error('Missing Nine pieces block');
+  return parseWorldEntry({ blocks: { pieces } });
+}
+
+/** The world assembly's entry blocks (generators/worldAssembly.ts). */
+export function nineBuildBlocks(): WorldEntryRows['blocks'] {
+  const { pieces: _pieces, ...build } = nineEntryBlocks();
+  return build;
+}
+

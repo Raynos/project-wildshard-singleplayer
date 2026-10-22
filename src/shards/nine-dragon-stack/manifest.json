@@ -388,7 +388,6 @@
     "attackers": "unbounded"
   },
   "slug": "nine-dragon-stack",
-  "runtimeEntry": "runtime/index.ts",
   "ground": {
     "structures": true
   },
@@ -455,20 +454,9 @@
       }
     },
     "entry": {
-      "native": {
-        "module": "./plugin",
-        "export": "NdPlugin"
-      },
+      "platform": "client-plan",
       "retainHomeRuntime": true,
-      "stagesOwner": "declared",
-      "nativePlan": {
-        "phases": [
-          "world",
-          "world-bindings",
-          "kit",
-          "play"
-        ]
-      }
+      "stagesOwner": "declared"
     }
   }
 }

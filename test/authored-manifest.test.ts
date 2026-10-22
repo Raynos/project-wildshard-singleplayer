@@ -81,7 +81,7 @@ describe('authored JSON discovery', () => {
 });
 
 test('declared entries compile literal runtime links without shard plugin wrappers', () => {
-  for (const slug of ['pine-hollow', 'driftwood-isle']) {
+  for (const slug of ['pine-hollow', 'driftwood-isle', 'nine-dragon-stack']) {
     const source = authoredManifestSource(root, slug);
     expect(source).toContain("import('@wildshard/game/shard/declaredEntry')");
     const policy = parseManifestMetadata(metadata(slug)).bindings.entry;

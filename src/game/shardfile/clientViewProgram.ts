@@ -49,5 +49,5 @@ export function installViewProgram(ctx: ShardContext, row: Extract<ClientFeature
     floor: piece => { const found = world.registry.get(piece); return found === undefined ? null : (x, z) => found.floor?.(x, z); },
     slots: group => lentSlots.get(ctx.scope)?.get(group) ?? speciesPool(group), values: source => lentValues.get(ctx.scope)?.get(source) ?? null, object: id => entryOwner(ctx.scope, 'object', id), look: (look, param, value) => { setLentParam(look, param, value); } });
   if (program === null) return;
-  ctx.system({ id: row.rows.system, phase: 'update', before: [...row.rows.before], run: dt => { program.frame(dt); } });
+  ctx.system({ id: row.rows.system, phase: 'update', before: [...row.rows.before], run: (dt, time) => { program.frame(dt, time); } });
 }

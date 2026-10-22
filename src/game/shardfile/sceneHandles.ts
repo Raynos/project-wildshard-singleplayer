@@ -57,6 +57,8 @@ export class SceneHandles {
     if (!this.has(`${id}.root`)) { this.publish(`${id}.root`, placed.object); this.publishColliders(`${id}.colliders`, placed.colliders); }
     return placed;
   }
+  /** Whether `id` names a declared frozen graph (a weld assembly) rather than a placement or part. */
+  frozen(id: string): boolean { return this.values.get(id) instanceof WorldSceneWeldAssembly; }
   /** Restore a declared frozen graph once, after its living roots have been published. */
   assemble(id: string): Promise<Object3D> {
     const value = this.value(id);

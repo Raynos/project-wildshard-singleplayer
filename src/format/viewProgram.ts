@@ -9,7 +9,7 @@ const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.
  * (engine/script/viewProgram). `pools` name a native group's ordered actor slots (group, count, the named finite fields
  * each slot reports); a slot keeps its actor through death and is freed only on despawn, and a new identity in a slot
  * starts without interpolation. `samples` are the one binding's public columns in order: the player's position, yaw or
- * horizontal speed, a named finite value of a numeric snapshot its owner lends (read each frame, never written back), a registry piece's floor under the player (present 0 / 1, its height, 0 when absent), a constant, or
+ * horizontal speed, the page clock (its system's frame time, seconds), a named finite value of a numeric snapshot its owner lends (read each frame, never written back), a registry piece's floor under the player (present 0 / 1, its height, 0 when absent), a constant, or
  * a pool's block (per slot: present, x, y, z, yaw, alive, the ground under it, then its fields). `channels` are the channel bank in order:
  * added to the camera every displayed frame (the last landed bank between scheduled frames), or written on landing to a
  * lent look's parameter, a target's visibility (value > 0.5), its materials' opacity, colour (a base colour times the
@@ -26,6 +26,7 @@ export const ViewProgramSchema = v.pipe(v.strictObject({
     v.strictObject({ kind: v.literal('player'), field: v.picklist(['x', 'y', 'z', 'yaw', 'speed']) }),
     v.strictObject({ kind: v.literal('floor'), piece: id, field: v.picklist(['present', 'height']) }),
     v.strictObject({ kind: v.literal('constant'), value: finite }),
+    v.strictObject({ kind: v.literal('clock') }),
     v.strictObject({ kind: v.literal('pool'), pool: id }),
     v.strictObject({ kind: v.literal('value'), source: id, field: id }),
   ])), v.minLength(1), v.maxLength(64)),

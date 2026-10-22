@@ -11498,7 +11498,9 @@ step runs before named-place binding and continuation, after quest
 preparation. Module reads fence owner retirement before the program installs
 its update system. The rows name the binding's sample columns (player
 position or horizontal speed, a registry piece's floor under the player as
-present / height, constants), the channel bank's targets (an additive camera
+present / height, the page clock (the program system's frame time, so a
+mover keeps its place across entry and parking; `frame(dt, time)` takes it and
+refuses a non-finite one), constants), the channel bank's targets (an additive camera
 offset re-applied every displayed frame from the last landed bank; written on
 landing: a lent look parameter, a lent object's visibility, its materials'
 opacity or a named shader uniform, or one component of one copy's attribute,

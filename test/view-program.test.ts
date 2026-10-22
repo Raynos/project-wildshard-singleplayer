@@ -44,10 +44,10 @@ test('a view program lands its matrices on lent objects, its bank on the camera 
     expect(viewProgram(module, rows, ports({}))).toBeNull();
     const program = viewProgram(module, rows, ports({ jetty: 2 }));
     if (program === null) throw new Error('Missing program');
-    program.frame(1 / 60);
+    program.frame(1 / 60, 0);
     expect(lantern.position.x).toBeCloseTo(3); expect(lantern.matrixAutoUpdate).toBe(false);
     expect(camera.position.y).toBeCloseTo(.25); expect(looks).toEqual([['marsh-lantern', 'glow', 2]]);
-    program.frame(1 / 60);
+    program.frame(1 / 60, 0);
     expect(camera.position.y).toBeCloseTo(.5);
     expect(() => viewProgram(module, rows, ports({ jetty: 2 }))).toThrow('already lent');
   } finally { scope.dispose(); }
@@ -69,7 +69,7 @@ test('instanced copies, bones, visibility, opacity, uniforms and per-copy attrib
     floor: () => null, slots: () => null, values: () => null, look: () => undefined, object: id => { const found = objects[id]; if (found === undefined) throw new Error(id); return found; } });
   if (program === null) throw new Error('Missing program');
   try {
-    program.frame(1 / 60);
+    program.frame(1 / 60, 0);
     const copy = new Matrix4(); herd.getMatrixAt(1, copy);
     expect(new Vector3().setFromMatrixPosition(copy).x).toBeCloseTo(4); expect(arm.position.x).toBeCloseTo(5);
     expect(ghost.visible).toBe(true); expect(ghost.material.opacity).toBeCloseTo(.4); expect(ghost.material.uniforms['uFade']?.value).toBeCloseTo(.7);
@@ -98,12 +98,12 @@ test('pool slots sample their actors and address each actor\'s object, re-claime
   const third = actor('c', .6);
   const opacity = (slot: ViewSlotActor): number => { const mesh = slot.object; if (!(mesh instanceof Mesh) || !(mesh.material instanceof MeshBasicMaterial)) throw new Error('Missing mesh'); return mesh.material.opacity; };
   try {
-    program.frame(1 / 60);
+    program.frame(1 / 60, 0);
     expect(opacity(first)).toBeCloseTo(.3); expect(second.object.position.x).toBeCloseTo(1); expect(lifts['a.lift']).toBe(0);
     const tint = (slot: ViewSlotActor): number => { const mesh = slot.object; if (!(mesh instanceof Mesh) || !(mesh.material instanceof MeshBasicMaterial)) throw new Error('Missing mesh'); return mesh.material.color.getHex(); };
     expect(tint(first)).toBe(0); // the bank's second value is slot 0's y (0): base colour × 0
     slots[0] = third; slots[1] = null;
-    program.frame(1 / 60);
+    program.frame(1 / 60, 0);
     expect(opacity(first)).toBe(1); expect(tint(first)).toBe(0xffffff); expect(opacity(third)).toBeCloseTo(.6); expect(second.object.position.x).toBe(0); expect(second.object.matrixAutoUpdate).toBe(true);
   } finally { scope.dispose(); }
   expect(opacity(third)).toBe(1);
@@ -122,8 +122,33 @@ test('lent values and the player yaw are sample columns; a missing source instal
   try {
     expect(viewProgram(module, carry, ports(false))).toBeNull();
     const program = viewProgram(module, carry, ports(true)); if (program === null) throw new Error('Missing program');
-    program.frame(1 / 60);
+    program.frame(1 / 60, 0);
     expect(lantern.position.x).toBeCloseTo(.5); expect(looks).toEqual([3]);
-    law['goal'] = Number.NaN; expect(() => { program.frame(1 / 60); }).toThrow('not finite');
+    law['goal'] = Number.NaN; expect(() => { program.frame(1 / 60, 0); }).toThrow('not finite');
   } finally { scope.dispose(); }
+});
+
+test('a clock sample is its system\'s frame time, read fresh each frame', async () => {
+  const CLOCK = `
+const IO: i32 = 1024; const HEADER: i32 = 128; const ENTRY: i32 = 24;
+function entry(kind: i32): i32 { return IO + HEADER + (kind - 1) * ENTRY; }
+function region(kind: i32): i32 { return IO + load<i32>(entry(kind) + 4); }
+export function ws_abi(): i32 { return 2; }
+export function ws_io(): i32 { return IO; }
+export function ws_init(lo: i32, hi: i32, fuel: i32): i32 { return fuel; }
+export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
+  store<f64>(region(18), load<f64>(IO + load<i32>(region(15) + 20))); store<i32>(entry(18) + 16, 1); store<i32>(IO + 76, 1);
+  return fuel;
+}`;
+  const module = await compileScriptV2(CLOCK, { lane: 'view', ioBytes: 4096 }), scope = new Scope('clock'), seen: number[] = [];
+  const clock = parse(ViewProgramSchema, { system: 'marsh.clock', before: [], budget: { pages: 1, ioBytes: 4096, fuel: 100_000, targetMs: 5 },
+    samples: [{ kind: 'clock' }], channels: [{ kind: 'look', look: 'marsh-clock', param: 'time' }], transforms: [], bounds: { translation: 0, scale: [1, 1], shear: 0 } });
+  const program = viewProgram(module, clock, { scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(),
+    slots: () => null, values: () => null, floor: () => null, object: () => new Object3D(), look: (_look, _param, value) => { seen.push(value); } });
+  if (program === null) throw new Error('Expected the clock program');
+  try {
+    program.frame(1 / 60, 1234.5); program.frame(600, 1834.5);
+    expect(() => { program.frame(1 / 60, Number.NaN); }).toThrow('View clock is not finite');
+  } finally { scope.dispose(); }
+  expect(seen).toEqual([1234.5, 1834.5]);
 });

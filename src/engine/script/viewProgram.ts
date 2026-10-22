@@ -37,8 +37,8 @@ export interface ViewProgramPorts {
   readonly look: (look: string, param: string, value: number) => void;
 }
 export interface ViewProgram {
-  /** one displayed frame (the presentation delta) */
-  frame: (dt: number) => void;
+  /** one displayed frame: the presentation delta and its system's frame time (the `clock` sample), seconds */
+  frame: (dt: number, time: number) => void;
   readonly frozen: boolean;
 }
 
@@ -182,7 +182,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   });
   const camera = ports.camera, player = ports.player;
   let tick = 0;
-  return { get frozen() { return lane.isFrozen; }, frame: dt => {
+  return { get frozen() { return lane.isFrozen; }, frame: (dt, time) => {
     const p = player.position;
     for (const pool of pools.values()) pool.slots.refresh?.();
     // previous columns are last frame's current ones; a fresh value (a scalar, a new identity in a slot) has no previous
@@ -207,6 +207,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
         if (!Number.isFinite(value)) throw new Error(`View value ${row.source}.${row.field} is not finite`);
         put(value, true); continue;
       }
+      if (row.kind === 'clock') { if (!Number.isFinite(time)) throw new Error('View clock is not finite'); put(time, true); continue; }
       const floor = row.kind === 'floor' ? floors.get(row.piece)?.(p.x, p.z) : undefined;
       put(row.kind === 'constant' ? row.value : row.kind === 'floor' ? (row.field === 'present' ? Number(floor !== undefined) : floor ?? 0)
         : row.field === 'speed' ? Math.hypot(player.velocity.x, player.velocity.z) : row.field === 'yaw' ? player.yaw : p[row.field], true);

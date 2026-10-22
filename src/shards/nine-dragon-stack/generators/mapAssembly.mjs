@@ -4,14 +4,13 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { BufferGeometry, Float32BufferAttribute, Matrix4, PlaneGeometry, Quaternion, TorusGeometry, Vector3 } from 'three';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
-import { createClientChannels } from '@wildshard/game/plugin/channels';
 import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-assembly.mjs';
 import { nineLayoutSource } from './layout.ts';
 import { specimenRecipes } from './specimens.ts';
 import { banyanOut } from './banyanPlan.ts';
 import { worldRows } from './worldRows.ts';
 import { portalPlanRows } from './portalEntries.ts';
-import { NINE_CLIENT_CHANNELS } from './clientMotion.ts';
+import { MOVER_REST, MOVER_STAGES } from './moversView.ts';
 import { tintAbove } from './lods.ts';
 import { NeonText } from './neonGeometry.ts';
 
@@ -84,11 +83,11 @@ export async function nineMapAssembly() {
     .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, y - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, y - 2, -24))).slice(0, 3);
   assembly.add('dragon-hooks', hook, nearest.map(m => new Matrix4().makeTranslation(m.ring.x, m.ring.y, m.ring.z)
     .multiply(new Matrix4().makeRotationY(Math.atan2(m.out.x, m.out.z))).multiply(new Matrix4().makeScale(.62, .62, .62)).multiply(new Matrix4().makeTranslation(.02, -.26, -.73))));
-  for (const [i, program] of NINE_CLIENT_CHANNELS.entries()) {
-    const channel = createClientChannels(program); channel.evaluate({ time: 0, delta: 0, values: [] });
-    const p = channel.frame, matrix = new Matrix4().makeRotationY(p.yaw ?? 0).setPosition(p.x, p.y, p.z);
-    assembly.add(`mover:${program.id}`, specimen(i === 0 ? 'mover:train' : i === 1 ? 'mover:gondola' : 'mover:drone'), [matrix]);
-    if (i > 1) assembly.add(`mover-signs:${program.id}`, atlasGeometry(read('data/signAtlas.generated.json').desktop.geometries.drone), [matrix]);
+  // the movers where their view module poses them at its first frame (generators/moversView.ts)
+  for (const [i, p] of MOVER_REST.entries()) {
+    const id = MOVER_STAGES[i], matrix = new Matrix4().makeRotationY(p.yaw).setPosition(p.x, p.y, p.z);
+    assembly.add(`mover:${id}`, specimen(i === 0 ? 'mover:train' : i === 1 ? 'mover:gondola' : 'mover:drone'), [matrix]);
+    if (i > 1) assembly.add(`mover-signs:${id}`, atlasGeometry(read('data/signAtlas.generated.json').desktop.geometries.drone), [matrix]);
   }
   const portals = portalPlanRows();
   assembly.add('portal-rings', new TorusGeometry(portals.ring.r, portals.ring.tube, 8, 48), [...portals.decks, portals.square].map(p =>

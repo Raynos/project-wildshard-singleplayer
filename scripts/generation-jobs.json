@@ -10659,7 +10659,6 @@
       "inputRoots": [
         "src/shards/nine-dragon-stack/generators/bake-declarations.mjs",
         "src/shards/nine-dragon-stack/generators/audio.ts",
-        "src/shards/nine-dragon-stack/generators/clientMotion.ts",
         "src/shards/nine-dragon-stack/data/audioSamples.json",
         "src/shards/nine-dragon-stack/data/layoutPlan.json",
         "src/shards/nine-dragon-stack/data/worldDressing.json",
@@ -12196,6 +12195,32 @@
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/behaviour/bridgeSway.generated.json"
+      ]
+    },
+    {
+      "id": "nine-movers-view",
+      "shard": "nine-dragon-stack",
+      "entry": "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nine-dragon-stack/behaviour/movers.as",
+        "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs"
+      ],
+      "outputs": [
+        "src/shards/nine-dragon-stack/behaviour/movers.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nine-dragon-stack/behaviour/movers.generated.json"
       ]
     },
     {

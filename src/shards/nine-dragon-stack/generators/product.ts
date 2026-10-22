@@ -1,4 +1,5 @@
 import courseProgram from '../behaviour/practice.generated.json' with { type: 'json' };
+import moversModule from '../behaviour/movers.generated.json' with { type: 'json' };
 import { heldGraphFiles } from './heldGraphFiles';
 import { filamentGraph } from './filamentGraph';
 import { haloGraph } from './haloGraph';
@@ -7,7 +8,6 @@ import { burstGraphs } from './burstGraphs';
 import { streakGraph } from './streakGraph';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import { ND_AUDIO } from './audio';
-import { NINE_CLIENT_CHANNELS } from './clientMotion';
 import NINE_MODES from '../data/modes.json' with { type: 'json' };
 import NINE_DRAGON_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -36,13 +36,15 @@ const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stac
 const library = new Set([...world.shardfile.library, ...heldGraphFiles.library]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files];
 const courseBytes=atob(courseProgram.bytes).length, courseMemory=courseBytes+courseProgram.script.pages*65536*2;
 const navigationResident = navigation.files.reduce((sum, file) => sum + file.decoded, 0);
-const budgets = { ...base.budgets, sim: { resident: navigationResident+courseMemory, compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0)+courseBytes }, library: { compressed: charged.reduce((sum, file) => sum + file.compressed, 0), resident: charged.reduce((sum, file) => sum + file.decoded + file.gpu, 0) } };
+// the movers view module's memory (behaviour/movers.as, its pages twice: the client lane's image and its rewind copy)
+const viewMemory = moversModule.pages * 65536 * 2;
+const budgets = { ...base.budgets, sim: { resident: navigationResident+courseMemory, compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0)+courseBytes }, library: { compressed: charged.reduce((sum, file) => sum + file.compressed, 0), resident: charged.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + viewMemory } };
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navigation, critical: navigation.critical,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigationResident+courseMemory },
   files: [...world.shardfile.files, ...navigation.files, ...heldGraphFiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: world.shardfile.tiles, library: [...library],
-  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, clientChannels: NINE_CLIENT_CHANNELS, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
+  accent: 'iris', runtime: { kind: 'client-plan', binds: ['props', 'items', 'ledger', 'modes'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])), ...heldGraphFiles.materials } },
