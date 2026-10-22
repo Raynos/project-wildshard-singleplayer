@@ -28,6 +28,7 @@ import { HeldEquipment } from '../plugin/heldEquipment';
 import { HeldFinishes } from '../loadout/finishes';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { cloudBodySpecimen } from '../boss/encounterView';
+import { defineMountedSpecimen } from './mountedSpecimen';
 
 /** Resolve declarations before registering any card, so an invalid reference
  * refuses the complete catalogue instead of publishing a partial roster. */
@@ -64,6 +65,8 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
       const cloud = await product.json<unknown>(row.json), id = row.id, name = row.name;
       entries.push(present(defineModel<object>({ id, name, file: row.file ?? row.json, category: row.category ?? 'creatures', pipeline: row.pipeline ?? 'code', defaults: {},
         build: () => cloudBodySpecimen(cloud) }), row));
+    } else if (row.kind === 'mounted') {
+      entries.push(present(defineMountedSpecimen(row.specimen), row));
     } else if (row.kind === 'engine') {
       entries.push(row.model === 'swim-hands' ? present(swimHands, row) : row.model === 'training-dummy' ? present(trainingDummy, row) : present(hoverboard, row));
     } else if (row.kind === 'rigs') {

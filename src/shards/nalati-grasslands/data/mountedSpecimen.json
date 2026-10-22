@@ -7,7 +7,7 @@
       "hunyuan",
       "code"
     ],
-    "file": "src/shards/nalati-grasslands/boot/mountedSpecimen.json",
+    "file": "src/shards/nalati-grasslands/data/mountedSpecimen.json",
     "surface": "flesh",
     "defaults": {}
   },

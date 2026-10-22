@@ -2,13 +2,10 @@ import * as v from 'valibot';
 import type { BufferGeometry, Material, Object3D } from 'three';
 import { creatureFactory } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
-import { MountedSpecimenSeatSchema, type MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
-import { isJsonData } from '@wildshard/format/json';
-import { SpecimenModelMetadataSchema } from '@wildshard/format/specimenCatalogue';
+import { MountedSpecimenSchema, MountedSpecimenSeatSchema, type MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
 import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
 import { seatedFigureView } from '../riding/seatedFigure';
 
-const id = v.pipe(v.string(), v.minLength(1)), number = v.pipe(v.number(), v.finite());
 /** The factory's ports (a test seam; `defineMountedSpecimen` is the real ones): the named product's JSON read, the
  *  species rig (its joints and body) at a fur tint, the seated figure handing each decoded resource to its owner. */
 export interface MountedSpecimenPorts {
@@ -29,8 +26,7 @@ const PORTS: MountedSpecimenPorts = {
 export const defineMountedSpecimen = mountedSpecimens(PORTS);
 /** `defineMountedSpecimen` over the given ports. */
 export function mountedSpecimens(ports: MountedSpecimenPorts): (input: unknown) => ModelDef<object> { return input => {
-  const row = v.parse(v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({ model: SpecimenModelMetadataSchema, slug: id, json: id,
-    species: id, variant: id, tint: v.pipe(number, v.minValue(0), v.maxValue(1)) })), input);
+  const row = v.parse(MountedSpecimenSchema, input);
   let prepared: MountedSpecimenSeatRows | null = null;
   const { surface, variants, seed, specimenYaw, ...metadata } = row.model;
   return defineModel<object>({ ...metadata,

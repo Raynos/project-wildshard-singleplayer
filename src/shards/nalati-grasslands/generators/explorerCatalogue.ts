@@ -3,6 +3,7 @@ import cover from '../data/cover.generated.json' with {type:'json'};
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import PEOPLE from '../data/peopleVariants.json' with {type:'json'};
 import { peopleRows } from './peopleRows.mjs';
+import mountedSpecimen from '../data/mountedSpecimen.json' with {type:'json'};
 
 /** the camp's five, each its own merged atlas (the live camp draws them as one) */
 const campAtlases = Object.fromEntries(PEOPLE.map(person => {
@@ -129,7 +130,12 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
     {kind:'cloud',id:'nalati-grasslands/storm-titan',name:'Jel Ata, the Storm Titan',json:'models/cloud-specimen.json',file:'src/shards/nalati-grasslands/generators/explorerCatalogue.ts',category:'creatures',pipeline:'code',copies:1,drawnAs:'instanced'},
     ...(['butterfly','raptor']as const).map(model=>({kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model,drawnAs:'instanced',tierCopies:model==='raptor'?{phone:cover.raptors,desktop:cover.raptors}:cover.butterflies})),
     {kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model:'reins',copies:1},
-    {kind:'kit-figure',id:'nalati-grasslands/camp-people',name:'Camp people',file:'src/shards/nalati-grasslands/models/people.ts',category:'people',
+    {kind:'kit-figure',id:'nalati-grasslands/camp-people',name:'Camp people',file:'src/shards/nalati-grasslands/generators/explorerCatalogue.ts',category:'people',
       pipeline:['hunyuan','code'],surface:'flesh',copies:PEOPLE.length,drawnAs:'skinned',atlases:campAtlases},
+    // the mounted shepherd: his seated figure on the saddled camp horse's body bone, as the raid seats him (the horse is the
+    // Hunyuan3D-2 saddled hull on the horse's rig, the code horse until it loads; he is code)
+    {kind:'mounted',specimen:mountedSpecimen,copies:1,drawnAs:'skinned'},
+    // the gloved hands in the river (E348)
+    {kind:'engine',model:'swim-hands',copies:1},
   ]
 });
