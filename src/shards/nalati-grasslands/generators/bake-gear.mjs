@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 import { parse } from 'valibot';
-import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
+import { BowVariantSchema, BowSourceMultipliersSchema } from '@wildshard/format/bowVariantRows';
+import { sourceMultiplier } from '@wildshard/engine/combat/effects/types';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
@@ -78,7 +79,15 @@ try {
   writer.put(resolve(import.meta.dirname,'../boot/bowTrail.generated.json'),jsonBytes(JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'))));
   const variant=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowVariant.json'),'utf8'));
   variant.program=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/kokpar.generated.json'),'utf8')).program;
-  variant.multipliers=effects.multipliers;variant.trail=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'));
+  const multipliers=parse(BowSourceMultipliersSchema,effects.multipliers);
+  const kinds=new Set(multipliers.flatMap(row=>row.when.targetTags??[]).filter(tag=>tag.startsWith('creature.')).map(tag=>{
+    if(tag.endsWith('.*'))throw new Error('Bow damage bake requires explicit creature identities');
+    return tag.slice('creature.'.length);
+  }));
+  /** @param {string} kind */
+  const scales=kind=>[false,true].map(sun=>sourceMultiplier(multipliers,{weaponTags:[variant.id],sourceTags:sun?[variant.sourceTag]:[],targetTags:kind===''?[]:[`creature.${kind}`]}));
+  variant.damageScale={base:scales(''),kinds:Object.fromEntries([...kinds].map(kind=>[kind,scales(kind)]))};
+  variant.trail=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'));
   const admittedVariant=parse(BowVariantSchema,variant);
   if(!isDeepStrictEqual(admittedVariant,variant))throw new Error('Bow variant must include its admitted defaults');
   writer.put(resolve(import.meta.dirname,'../boot/bowVariant.generated.json'),jsonBytes(variant));

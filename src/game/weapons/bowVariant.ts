@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import type {BowVariantRows} from '@wildshard/format/bowVariantRows';
-import {sourceMultiplier} from '@wildshard/engine/combat/effects/types';
 import type {TargetAnimal} from '@wildshard/engine/combat/types';
 import {equipmentActorOwner} from '../loadout/actors';
 import {ReturnProgram} from '../population/returnProgram';
@@ -25,7 +24,11 @@ export class VariantBowPower {
     const {rows}=this,owner=equipmentActorOwner(bow.targetSource);this.brain??=ReturnProgram.page(rows.program,owner.scope);
     bow.row={...bow.row,id:rows.id,meta:{...bow.meta,name:rows.name}};if(this.bow===bow)return;
     this.bow=bow;bow.setStyle(rows.style);bow.drawSpeedScale*=rows.drawSpeed;bow.onLoose=power=>{this.loosed(power);};
-    const previous=bow.damageMultiplier;bow.damageMultiplier=hit=>(previous?.(hit)??1)*sourceMultiplier(rows.multipliers,{weaponTags:[rows.id],sourceTags:this.sunShot?[rows.sourceTag]:[],targetTags:[`creature.${hit.animal.kind}`]});
+    const previous=bow.damageMultiplier;
+    bow.damageMultiplier=hit=>{
+      const scales=Object.hasOwn(rows.damageScale.kinds,hit.animal.kind)?rows.damageScale.kinds[hit.animal.kind]:undefined;
+      return (previous?.(hit)??1)*(scales??rows.damageScale.base)[this.sunShot?1:0];
+    };
   }
   private decide(power:number,base=0,crush=false):Readonly<Record<string,number>>{
     const rows=this.rows;if(this.brain===null)throw new Error('Variant has no applied native owner');return this.brain.project(rows.signal,{bowPower:power,bowThreshold:rows.threshold,bowBaseDamage:base,bowPierce:rows.pierce,bowCrush:Number(crush),bowCrushScale:rows.crush});
