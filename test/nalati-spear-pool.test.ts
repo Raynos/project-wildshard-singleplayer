@@ -50,7 +50,5 @@ test('baked spear retains all geometry channels, poses, coefficients and indepen
     left.geometry.dispose();
     for (const [name, pose] of Object.entries(SPEAR_VIEW.poses)) expect(rows.view.poses[name as keyof typeof rows.view.poses]).toEqual({ pos: pose.pos.toArray(), q: pose.q.toArray() });
     expect(rows.view.wrists).toEqual({ left: left.wrist.clone().setY(left.wrist.y + leftHandY).toArray(), right: right.wrist.toArray() });
-    const display = polearm.display('spear-paint', 'spear-metal'), projectile = polearm.display('javelin-paint', 'javelin-metal');
-    for (const geometry of [display.paint, display.metal, projectile.paint, projectile.metal]) geometry.dispose();
   } finally { load.mockRestore(); }
 });

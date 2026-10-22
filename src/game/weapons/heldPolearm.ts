@@ -39,7 +39,6 @@ export interface HeldPolearmProfile extends MeleeProfile {
   readonly lance: { readonly reach: number; readonly cone: number; readonly minSpeed: number; readonly baseDamage: number; readonly speedDamage: number; readonly rehit: number };
 }
 
-export interface HeldPolearmDraws { paint: THREE.BufferGeometry; metal: THREE.BufferGeometry }
 
 export interface HeldPolearmPose { readonly pos: THREE.Vector3; readonly q: THREE.Quaternion }
 
@@ -538,5 +537,4 @@ export class PolearmSet {
  }
  geometry(name:string):THREE.BufferGeometry{const part=this.need().parts.geometry(name);if(part===null)throw new Error(`Missing polearm part ${name}`);return part;}
  profile():HeldPolearmProfile{return this.need().profile;}
- display(paint:string,metal:string):HeldPolearmDraws{return {paint:this.geometry(paint),metal:this.geometry(metal)};}
 }
