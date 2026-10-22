@@ -27,6 +27,9 @@ export interface CellLoadingInput {
   readonly hybrid: boolean;
   /** the traveller is in it; and its gameplay is ready */
   readonly entered: boolean; readonly gameplayReady: boolean;
+  /** Running warm-up of this destination root; absent for a bodyless or not-yet-warming cell. */
+  readonly warm?: { readonly phase: string; readonly completed: boolean;
+    readonly progress: { readonly done: number; readonly total: number; readonly detail: string } | null } | null;
 }
 export type CellLoadingStep = { readonly kind: 'step'; readonly key: string; readonly detail: string }
   | { readonly kind: 'failed'; readonly reason: string } | { readonly kind: 'done' };
@@ -35,6 +38,14 @@ export type CellLoadingStep = { readonly kind: 'step'; readonly key: string; rea
 export function cellLoadingStep(input: CellLoadingInput): CellLoadingStep {
   if (input.refusal !== null) return { kind: 'failed', reason: input.refusal };
   if (input.entered && input.gameplayReady) return { kind: 'done' };
+  if (input.warm !== undefined && input.warm !== null && input.hook === 'afterPlay') {
+    if (input.warm.completed) return { kind: 'step', key: 'warm', detail: 'Entry warm-up complete' };
+    const phases: Readonly<Record<string, string>> = { 'before-warm': 'Prepare scene lighting', 'post-preparation': 'Prepare render effects',
+      'shaders-and-composer': 'Compile shaders', 'shader-links': 'Link shaders', 'texture-uploads': 'Upload textures',
+      'parked-viewmodels': 'Warm held models', 'parked-draws': 'Warm scene draws', 'offscreen-draws': 'Warm render passes' };
+    const phase = phases[input.warm.phase] ?? 'Prepare first frame', work = input.warm.progress;
+    return { kind: 'step', key: 'warm', detail: work === null ? phase : `${phase} · ${work.detail}` };
+  }
   const hooksDone = (last: string): boolean => !input.hybrid || input.hooks.has(last);
   if (!input.product) return { kind: 'step', key: 'admission', detail: input.requested ? 'reading and verifying its product' : 'requested as you approach' };
   const running = input.hook === null ? '' : ` · ${input.hook}`;
@@ -42,7 +53,7 @@ export function cellLoadingStep(input: CellLoadingInput): CellLoadingStep {
   if (!hooksDone('afterKit')) return { kind: 'step', key: 'loadout', detail: `weapons, held items and HUD${running}` };
   if (!hooksDone('afterPlay') || !input.runtime) return { kind: 'step', key: 'gameplay', detail: `saved state and its systems${running}` };
   if (!input.colliders || !input.sim) return { kind: 'step', key: 'colliders', detail: `${input.colliders ? 'colliders ready' : 'colliders'} · ${input.sim ? 'simulation ready' : 'simulation'}` };
-  if (!input.entered) return { kind: 'step', key: 'warm', detail: 'ready: drive in' };
+  if (!input.entered) return { kind: 'step', key: 'enter', detail: 'ready: drive in' };
   return { kind: 'step', key: input.hook === 'activate' ? 'enter' : 'warm', detail: `preparing its first frame${running}` };
 }
 

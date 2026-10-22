@@ -766,6 +766,10 @@ export class LiveGridSession {
     } };
   }
 
+  /** Live scalar warm-up progress for this destination, never the last trace of a different region. */
+  warmPreparation(instance: string): NonNullable<PreparedRegionalRuntime['warmPreparation']> | null {
+    return this.runtimeRegions.get(instance)?.warmPreparation ?? null;
+  }
   /** G555: the entered runtime hooks' timings (the one running and those finished), for the cell loading screen. */
   hookTimings(): ReturnType<HybridRuntimeSession['timings']> { return this.hybrid.timings(); }
   /** Admission opens the strip first; hooks freeze gameplay only after the committed traveller reaches the interior. */

@@ -15,8 +15,8 @@ export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { l
   if (id === 'legacy' || hybrid) return { id, steps: [...early, ...BOOT_STEPS.map(key => ({ key, label: own?.[key]?.label ?? STEP_INFO[key].label, weight: own?.[key]?.weight ?? STEP_INFO[key].weight })), ...shared] };
   // G555: a grid cell entry or re-entry shows the same step-by-step screen as SHARD SELECT, over the region's live admission
   if (id === 'cell') return { id, steps: [step('admission', 'Product admission'), step('world', 'Region world'),
-    step('loadout', 'Equipment and HUD'), step('gameplay', 'Gameplay and saved state'), step('colliders', 'Colliders and simulation'),
-    step('warm', 'Entry warm-up'), step('enter', 'Enter the cell')], ignored: [] };
+    step('loadout', 'Equipment and HUD'), step('gameplay', 'Gameplay and saved state'), step('warm', 'Entry warm-up'),
+    step('colliders', 'Colliders and simulation'), step('enter', 'Enter the cell')], ignored: [] };
   if (id === 'crossing') return { id, steps: [step('prepare', 'Prepare destination'), step('boundary', 'Await transfer boundary'),
     step('checkpoint', 'Save source state'), step('commit', 'Enter destination'), step('activate', 'Activate destination')], ignored: [] };
   const selected = new Set(['renderer', 'weapon', 'menu', 'shaders', 'firstFrame', 'audio', ...(id === 'grid' ? ['assembly'] : [])]);

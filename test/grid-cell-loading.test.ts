@@ -9,14 +9,14 @@ const key = (input: Partial<CellLoadingInput>): string => { const step = cellLoa
 
 test('G555: a cell entry walks the cell path step by step, on its live admission', () => {
   const steps = loadingPath('cell').steps.map(row => row.key);
-  expect(steps).toEqual(['admission', 'world', 'loadout', 'gameplay', 'colliders', 'warm', 'enter']);
+  expect(steps).toEqual(['admission', 'world', 'loadout', 'gameplay', 'warm', 'colliders', 'enter']);
   expect(key({})).toBe('admission');
   expect(key({ product: true, hook: 'world' })).toBe('world');
   expect(key({ product: true, hooks: new Set(['afterWorld']) })).toBe('loadout');
   expect(key({ product: true, hooks: new Set(['afterWorld', 'afterKit']) })).toBe('gameplay');
   const hooked = new Set(['afterWorld', 'afterKit', 'afterPlay']);
   expect(key({ product: true, hooks: hooked, runtime: true })).toBe('colliders');
-  expect(key({ product: true, hooks: hooked, runtime: true, colliders: true, sim: true })).toBe('warm');
+  expect(key({ product: true, hooks: hooked, runtime: true, colliders: true, sim: true })).toBe('enter');
   expect(key({ product: true, hooks: hooked, runtime: true, colliders: true, sim: true, entered: true, hook: 'activate' })).toBe('enter');
   expect(key({ product: true, hooks: hooked, runtime: true, colliders: true, sim: true, entered: true, gameplayReady: true })).toBe('done');
   // a bodyless declared region has no hooks: its world, equipment and gameplay rows pass on its runtime fence
@@ -26,4 +26,16 @@ test('G555: a cell entry walks the cell path step by step, on its live admission
 test('G555: a refused cell shows why on the same screen, never a short-form card', () => {
   const step = cellLoadingStep({ ...base, refusal: 'Too big for this device' });
   expect(step).toEqual({ kind: 'failed', reason: 'Too big for this device' });
+});
+
+test('entered warm-up reports its actual work while afterPlay has not returned', () => {
+  const waiting = { ...base, product: true, hooks: new Set(['afterWorld', 'afterKit']), hook: 'afterPlay' };
+  const warm = { completed: false, phase: 'shader-links', progress: { done: 12, total: 40, detail: '12 / 40 programs linked' } };
+  expect(cellLoadingStep({ ...waiting, warm })).toEqual({ kind: 'step', key: 'warm', detail: 'Link shaders · 12 / 40 programs linked' });
+  expect(cellLoadingStep({ ...waiting, warm: { ...warm, phase: 'parked-draws', progress: { done: 5, total: 18, detail: '5 / 18 scene draws warmed' } } }))
+    .toEqual({ kind: 'step', key: 'warm', detail: 'Warm scene draws · 5 / 18 scene draws warmed' });
+  expect(cellLoadingStep({ ...waiting, warm: { ...warm, completed: true } })).toEqual({ kind: 'step', key: 'warm', detail: 'Entry warm-up complete' });
+  expect(key({ ...waiting, hook: 'world', hooks: new Set(), warm })).toBe('world');
+  expect(key({ ...waiting, warm, refusal: 'Unavailable' })).toBe('failed');
+  expect(key({ ...waiting, warm, entered: true, gameplayReady: true })).toBe('done');
 });

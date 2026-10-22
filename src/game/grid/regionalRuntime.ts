@@ -5,6 +5,7 @@ import { clientHomeBytes } from '../shardfile/clientResidency';
 import { Object3D } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
+import type { Game } from '@wildshard/engine/core/Game';
 import { bindConstructionEnvironment, ownedFacade, ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -107,6 +108,8 @@ export interface PreparedRegionalRuntime {
   readonly region: LiveGridRegion;
   readonly queries: PlayerFrameQueries;
   readonly resident: HybridResident;
+  /** Scalar warm-up progress only when the page trace belongs to this exact destination root. */
+  readonly warmPreparation?: Game['entryPreparation'];
   readonly loadout: GridLoadout;
   /** Flush authored runtime progress and its admitted continuation; false keeps the traveller in the source frame. */
   readonly checkpoint: () => boolean;
@@ -360,7 +363,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             },
           };
         } };
-      return { resident, region: { ...foundation.region, dispose: () => { scope.dispose(); }, retire: () => retireRegion(view.root, scope) }, queries: view.queries, checkpoint,
+      return { resident, get warmPreparation() {
+        const trace = request.page.world.game.entryPreparation;
+        return !scope.disposed && trace?.root === view.root.uuid ? trace : null;
+      }, region: { ...foundation.region, dispose: () => { scope.dispose(); }, retire: () => retireRegion(view.root, scope) }, queries: view.queries, checkpoint,
         aimAnimals: () => localPlay?.animals.animals ?? [],
         interactables: () => localRuntime?.interactables ?? [],
         combatActors: () => new Map((localPlay?.animals.animals ?? []).map(animal => [animal.combatActor(), animal.position])),

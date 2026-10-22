@@ -637,7 +637,8 @@ export class GridSession {
     const hook = timings.current?.instance === id ? timings.current.hook : null;
     return { instance: id, slug: target.slug, name: this.shardName(id), refusal: reason, product: product || stages.runtime || stages.ready,
       claimedMB: claimed / 1e6, requested: stages.requested, runtime: stages.runtime, colliders: stages.colliders, sim: stages.sim,
-      hooks, hook, hybrid: hooks.size > 0 || hook !== null, entered: current === id, gameplayReady: current === id && live.gameplayReady() };
+      hooks, hook, hybrid: hooks.size > 0 || hook !== null, entered: current === id, gameplayReady: current === id && live.gameplayReady(),
+      warm: live.warmPreparation(id) };
   }
   /** At most four times a second: the loading screen reads the allocator and the live session. */
   private stepCellLoading(): void {
