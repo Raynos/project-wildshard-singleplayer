@@ -11029,10 +11029,17 @@ entry capabilities. `EntryOwnerTypes` lists concrete platform values:
 `quest` (QuestPageComposition), `object` (Object3D), `chain` (RopeChain),
 `ambient` (AmbientGroup), `collection` (CollectionCatalogue),
 `animals` (AnimalManager), `sounds` (DeclaredSoundBank) and
-`quest-spawns` (QuestSpawnResult).
+`quest-spawns` (QuestSpawnResult), `placed` (readonly Placed[]),
+`site` (ModelSiteLayout anchors), `floor` (ModelSiteLayout floorHeightAt), and
+`fixed-draws` (FixedDraws).
 These are existing host instances, never
 shard callback objects or property paths. Shard data selects a kind and id;
 only compiled platform installers publish or lend its actual value.
+Site anchors are numeric world-space metadata; their group remains an
+`object` loan. A `floor` is the existing compiled evaluator lent by its
+construction owner, never an authored callback. The fixed-draw loan lends
+the already loaded library, retaining its template handles; borrowers must
+not construct another library or repeat its geometry intake.
 
 `publishEntryOwner(scope, kind, id, value)` publishes a completed owner's
 value once. `entryOwner(scope, kind, id)` requires an exact live publication;

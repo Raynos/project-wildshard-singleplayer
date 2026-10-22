@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
 import { Group } from 'three';
+import type { Placed } from '../src/engine/models/place';
+import { fixedDraws } from '../src/game/models/fixedDraws';
 import { Scope } from '../src/engine/app/scope';
 import { CollectionCatalogue } from '../src/game/models/collectionDisplay';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
@@ -65,5 +67,41 @@ test('a collection loan preserves the actual catalogue and its fixed geometry ow
     expect(entryOwner(entered, 'collection', 'keepsakes')).toBe(catalogue);
     entered.dispose();
     expect(entryOwner(resident, 'collection', 'keepsakes')).toBe(catalogue);
+  } finally { resident.dispose(); }
+});
+
+
+test('world metadata loans retain their original instances through re-entry', () => {
+  const resident = new Scope('world construction');
+  const placed: readonly Placed[] = [];
+  const anchors = { door: { x: 1, y: 2, z: 3, yaw: 0.5 } };
+  const floor = (x: number, z: number): number | undefined => x >= 0 && z >= 0 ? 2 : undefined;
+  const draws = fixedDraws({ slug: 'fixture-harbour', file: () => Promise.reject(new Error('No decode during lending')) },
+    [{ slot: 'figure', file: 'figure.glb', channels: [] }]);
+  publishEntryOwner(resident, 'placed', 'hut', placed);
+  publishEntryOwner(resident, 'site', 'hut', anchors);
+  publishEntryOwner(resident, 'floor', 'hut', floor);
+  publishEntryOwner(resident, 'fixed-draws', 'world.draws', draws);
+  const baseline = resident.census.disposers;
+  try {
+    for (let visit = 0; visit < 2; visit++) {
+      const entered = resident.child('world borrower');
+      for (const kind of ['placed', 'site', 'floor'] as const) lendEntryOwner(entered, resident, kind, 'hut');
+      lendEntryOwner(entered, resident, 'fixed-draws', 'world.draws');
+      expect(entryOwner(entered, 'placed', 'hut')).toBe(placed);
+      expect(entryOwner(entered, 'site', 'hut')).toBe(anchors);
+      expect(entryOwner(entered, 'floor', 'hut')).toBe(floor);
+      expect(entryOwner(entered, 'floor', 'hut')(1, 1)).toBe(2);
+      expect(entryOwner(entered, 'floor', 'hut')(-1, 1)).toBeUndefined();
+      expect(entryOwner(entered, 'fixed-draws', 'world.draws')).toBe(draws);
+      expect(draws.ready).toBe(false);
+      entered.dispose();
+      expect(resident.census.disposers).toBe(baseline);
+      expect(entryOwner(resident, 'fixed-draws', 'world.draws')).toBe(draws);
+    }
+    const entered = resident.child('last borrower');
+    lendEntryOwner(entered, resident, 'site', 'hut');
+    resident.dispose();
+    expect(() => entryOwner(entered, 'site', 'hut')).toThrow('ended');
   } finally { resident.dispose(); }
 });

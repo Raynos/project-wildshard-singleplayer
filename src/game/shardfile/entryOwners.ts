@@ -1,6 +1,8 @@
 /** Client-only concrete loans between compiled entry capabilities. No shard
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D } from 'three';
+import type { ModelSiteLayout, Placed } from '@wildshard/engine/models/place';
+import type { FixedDraws } from '../models/fixedDraws';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { QuestSpawnResult } from '../quest/chapterDirector';
@@ -20,6 +22,10 @@ export interface EntryOwnerTypes {
   cave: CaveInterior;
   quest: QuestPageComposition;
   object: Object3D;
+  placed: readonly Placed[];
+  site: ModelSiteLayout['anchors'];
+  floor: ModelSiteLayout['floorHeightAt'];
+  'fixed-draws': FixedDraws;
   chain: RopeChain;
   ambient: AmbientGroup;
   collection: CollectionCatalogue;
@@ -40,7 +46,7 @@ function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
     value = { scenes: new Map(), forest: new Map(), cave: new Map(), quest: new Map(),
-      object: new Map(), chain: new Map(), ambient: new Map(), collection: new Map(),
+      object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), ambient: new Map(), collection: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
     books.set(scope, value);
   }
