@@ -68,6 +68,20 @@ let selected:i32=-1;
 @inline export function edgeValue(index:i32,axis:i32):f64{assert(axis>=0&&axis<2);return load<f64>(row(8,index)+16+usize(axis)*8);}
 @inline export function eventWord(index:i32,field:i32):i32{assert(field>=0&&field<6);return load<i32>(row(9,index)+usize(field)*4);}
 @inline export function eventValue(index:i32,field:i32):f64{assert(field>=0&&field<4);return load<f64>(row(9,index)+24+usize(field)*8);}
+@inline function grid():usize{
+  assert(count(14)>=64);const at=row(14,0);assert(load<u32>(at+56)==1&&load<u32>(at+44)==0&&load<u32>(at+60)==0);return at;
+}
+@inline export function gridWater():f64{return load<f64>(grid()+48);}
+@inline export function gridHeight(x:f64,z:f64):f64{
+  const at=grid(),cols=load<u32>(at+32),rows=load<u32>(at+36),base=load<u32>(at+40),offset=load<u32>(directory(14)+4),n=u32(count(14));
+  assert(cols>=2&&rows>=2&&base>=offset+64&&base-offset<=n&&cols<=(n-(base-offset))/4/rows);
+  const ox=load<f64>(at),oz=load<f64>(at+8),cx=load<f64>(at+16),cz=load<f64>(at+24);assert(cx>0&&cz>0);
+  const ux=(x-ox)/cx,uz=(z-oz)/cz;assert(ux>=0&&uz>=0&&ux<=f64(cols-1)&&uz<=f64(rows-1));
+  const ix=min(cols-2,u32(Math.floor(ux))),iz=min(rows-2,u32(Math.floor(uz))),fx=ux-f64(ix),fz=uz-f64(iz);
+  const p=IO+base+usize(iz*cols+ix)*4;
+  const h00=f64(load<f32>(p)),h10=f64(load<f32>(p+4)),h01=f64(load<f32>(p+usize(cols)*4)),h11=f64(load<f32>(p+usize(cols+1)*4));
+  const a=h00+(h10-h00)*fx,b=h01+(h11-h01)*fx;return a+(b-a)*fz;
+}
 @inline export function distance(x:f64,z:f64,toX:f64,toZ:f64):f64{return Math.hypot(toX-x,toZ-z);}
 @inline export function bearing(x:f64,z:f64,toX:f64,toZ:f64):f64{return Math.atan2(toX-x,toZ-z);}
 @inline export function radialX(yaw:f64,radius:f64):f64{return Math.sin(yaw)*radius;}

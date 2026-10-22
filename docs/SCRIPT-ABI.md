@@ -605,7 +605,10 @@ Kind 14 has stride 1 and a byte capacity. Its header is
 waterY:f64; validBits,pad:u32`. Cell dimensions must be positive and rows/cols
 at least two. Samples are row-major f32 at the IO-relative samplesOffset, finite
 and inside the same region. Compute `rows*cols*4` with checked arithmetic. Bit 0
-means grid present; all other bits are reserved. Outside-grid reads refuse; they
+means grid present; all other bits are reserved. Samples use bilinear interpolation on the original f32 lattice, with f64
+arithmetic in the native sampler's order: lerp the two x pairs, then z. Both
+boundaries are inclusive, selecting the last cell at its upper edge.
+Outside-grid reads refuse; they
 never consult page terrain implicitly. A sim/projection grid comes only from its
 native world owner. H5 uses asynchronous requests for unavailable queries.
 
