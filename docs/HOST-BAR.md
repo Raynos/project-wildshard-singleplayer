@@ -123,6 +123,8 @@ G571 credit. Imports and dependencies retain their own attribution.
 
 - G571 page boot: `game/shard/pageBoot` `pageModeBoot` and `pageModeKtx2` select fully resolved inventories and lazy GPU tables from strict JSON rows for the current page mode on every call. No shard callback, runtime recipe, selector path, service or clock. Server-safe; test 1 waived; tests 2–6 covered by `test/page-mode-boot.test.ts` and the original-recipe parity in `test/pine-runtime-mirrors.test.ts`.
 
+- G571 entered claims: `game/shardfile/heldClaimsEntry#prepareHeldClaimsEntry` and `game/shardfile/heldClaimsEntry#installHeldClaimsEntry` consume finite kit ids and the concrete entered claims loan. Client-only; no callback, reflected path, extra clock or save. Test 1 waived; tests 2–6 covered by actual native claims/lifetime tests and compiled kit admission/order tests.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they

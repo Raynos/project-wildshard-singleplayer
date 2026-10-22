@@ -92,6 +92,23 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if (!custom(row.source)) throw new Error('Invalid quest spawn source');
     publishEntryOwner(ctx.scope, 'quest-spawns', row.id, await installDeclaredQuestSpawns(ctx, { ...row, source: row.source }));
   } },
+  'held.claims.prepare': { phase: 'kit', rank: -30, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
+    if (row.kind !== 'held.claims.prepare') throw new Error('Invalid claims preparation feature');
+    const { prepareHeldClaimsEntry } = await import('./heldClaimsEntry');
+    await prepareHeldClaimsEntry(ctx, row.id);
+  } },
+  'population.product-creatures': { phase: 'kit', rank: -20, lifetime: 'entered', sections: ['actors/species-programs'], install: async ctx => {
+    const { installProductCreatures } = await import('../population/productCreatures');
+    const { pageDecisionAuthority } = await import('./borrowedDecisions');
+    const authority = await pageDecisionAuthority(ctx);
+    if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Client feature owner is disposed');
+    await installProductCreatures(ctx, authority);
+  } },
+  'held.claims.install': { phase: 'kit', rank: -10, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
+    if (row.kind !== 'held.claims.install') throw new Error('Invalid claims installation feature');
+    const { installHeldClaimsEntry } = await import('./heldClaimsEntry');
+    installHeldClaimsEntry(ctx, row.claims);
+  } },
   'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
@@ -167,6 +184,16 @@ export interface AdmittedClientPlan { readonly features: readonly ClientFeatureR
 export function admitClientPlan(input: unknown, product: ShardProduct): AdmittedClientPlan {
   try {
     const plan = parseClientPlan(input);
+    const prepare = plan.features.find(row => row.kind === 'held.claims.prepare'), install = plan.features.find(row => row.kind === 'held.claims.install');
+    if ((prepare !== undefined || install !== undefined) && (prepare?.kind !== 'held.claims.prepare' || install?.kind !== 'held.claims.install' || prepare.id !== install.claims)) throw new Error('Held claims require one matching preparation and installation');
+    if (plan.features.some(row => row.kind === 'population.product-creatures')) {
+      if (!product.hasFile('actors/creature-install.json')) throw new Error('Product creatures require their admitted install rows');
+      // Compatibility owners already live in the admitted product; they are not new client feature schemas.
+      for (const name of ['economy/loot', 'look/hull-book'] as const) {
+        if (!product.has(name)) throw new Error('Product creatures require their admitted legacy owners');
+        product.section(name);
+      }
+    }
     const sections = new Map(outputDescriptor(product.shardfile)?.sections);
     for (const name of ['world/scenes', 'actors/species-programs', 'sim/runtime-plan', 'sim/scripts', 'look/painted'] as const)
       if (product.has(name)) sections.set(name, product.section(name));

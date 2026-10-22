@@ -3,7 +3,6 @@ import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import { entryOwner, publishEntryOwner, lendEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
-import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
 import { buildDriftwoodWorld, keepDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
@@ -11,8 +10,6 @@ import { islandSystems } from './world/systems';
 import { installPageLife } from '@wildshard/game/population/pageLife';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
-import { installProductCreatures } from '@wildshard/game/population/productCreatures';
-import { HeldClaims } from '@wildshard/game/loadout/claims';
 
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { boundResidentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
@@ -69,16 +66,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
     await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), null, null, new Map([['gulls', gulls]]));
   }
-
-  override async kit(ctx: ShardContext): Promise<void> {
-    const shell = ctx.game.runtime;
-    if (shell === undefined) throw new Error('Driftwood kit requires its world host');
-    if (shell.world === null) throw new Error('Driftwood kit requires its world host');
-    const held = await HeldClaims.prepare(ctx);
-    await installProductCreatures(ctx, await pageDecisionAuthority(ctx));
-    held.install();
-  }
-
 
   override async play(ctx: ShardContext): Promise<void> {
     ctx.scope.expose(this.adventure, 'value', await ctx.scope.run(() => installDriftwoodAdventure(ctx)));

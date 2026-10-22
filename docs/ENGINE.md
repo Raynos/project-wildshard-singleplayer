@@ -11032,7 +11032,7 @@ changes or dynamic rendering quality.
 entry capabilities. `EntryOwnerTypes` lists concrete platform values:
 `scenes` (SceneHandles), `forest` (ForestPage), `cave` (CaveInterior),
 `quest` (QuestPageComposition), `object` (Object3D), `chain` (RopeChain),
-`ambient` (AmbientGroup), `collection` (CollectionCatalogue),
+`ambient` (AmbientGroup), `collection` (CollectionCatalogue), `claims` (HeldClaims),
 `animals` (AnimalManager), `sounds` (DeclaredSoundBank) and
 `quest-spawns` (QuestSpawnResult), `placed` (readonly Placed[]),
 `site` (ModelSiteLayout anchors), `floor` (ModelSiteLayout floorHeightAt), and
@@ -11176,3 +11176,19 @@ each with the existing `phone` and `desktop` GPU URL maps. Image boot bindings
 do not load or register GPU tables. Both hosts are server-safe and install no
 service, clock or save owner. Recipes resolve at build time; unknown binding
 options, executable rows and missing modes refuse admission.
+
+### Declared held claims and creatures (G571)
+
+Entered kit rows run in compiled order: `held.claims.prepare {id}` at -30,
+kind-only `population.product-creatures` at -20, and
+`held.claims.install {claims}` at -10, before ordinary path/catalogue rows.
+Admission requires exactly one matching preparation/installation pair if
+either is present, plus the fixed admitted `actors/creature-install.json`
+for product creatures. Rows cannot supply a file override, rank or callback.
+
+Preparation uses the existing HeldClaims owner and publishes its concrete
+`claims` loan only after the await and owner-retirement check. Installation
+borrows that exact entered instance. The creature capability calls the
+existing product installer and page decision authority, retaining species,
+spawn and loot registration order. The original geometry, equipment and
+save owners retain their resources and disposal.

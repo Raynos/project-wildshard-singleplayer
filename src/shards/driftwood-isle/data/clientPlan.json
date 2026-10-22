@@ -33,6 +33,17 @@
     {
       "kind": "quest.continuation",
       "file": "quests/continuation.json"
+    },
+    {
+      "kind": "held.claims.prepare",
+      "id": "driftwood.claims"
+    },
+    {
+      "kind": "population.product-creatures"
+    },
+    {
+      "kind": "held.claims.install",
+      "claims": "driftwood.claims"
     }
   ]
 }
