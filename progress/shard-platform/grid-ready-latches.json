@@ -118,6 +118,34 @@
       "quiet": false
     },
     {
+      "shard": "driftwood-isle",
+      "criterion": "oneFrameLooks",
+      "source": "a46857779571b2d05fbc117a13213fbbed961bc5",
+      "measurement": {
+        "when": "2026-10-22T18:08:29.082Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-driftwood-isle-road-entry-drive.frames": 1316,
+          "grid-driftwood-isle-road-entry-drive.maxMs": 200,
+          "grid-driftwood-isle-road-entry-drive.p95Ms": 66.69999999999709,
+          "grid-driftwood-isle-road-entry-drive.medianFps": 30.030030030027405,
+          "grid-driftwood-isle-road-entry-drive.skipped": 0,
+          "grid-driftwood-isle-road-entry.frames": 160,
+          "grid-driftwood-isle-road-entry.maxMs": 50.10000000000582,
+          "grid-driftwood-isle-road-entry.p95Ms": 50,
+          "grid-driftwood-isle-road-entry.medianFps": 29.940119760484258,
+          "grid-driftwood-isle-road-entry.skipped": 0,
+          "grid-driftwood-isle-road-entry-travel.frames": 259,
+          "grid-driftwood-isle-road-entry-travel.maxMs": 100,
+          "grid-driftwood-isle-road-entry-travel.p95Ms": 50,
+          "grid-driftwood-isle-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-driftwood-isle-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-22T18:13:10.250Z",
+      "quiet": false
+    },
+    {
       "shard": "far-reach",
       "criterion": "memory",
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
