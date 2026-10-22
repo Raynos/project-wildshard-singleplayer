@@ -208,6 +208,7 @@
     "./physics/heightPatch": "./physics/heightPatch.ts",
     "./physics/paths": "./physics/paths.ts",
     "./physics/query": "./physics/query.ts",
+    "./physics/queryBatchV2": "./physics/queryBatchV2.ts",
     "./physics/ropeChain": "./physics/ropeChain.ts",
     "./physics/surface": "./physics/surface.ts",
     "./physics/terrain": "./physics/terrain.ts",

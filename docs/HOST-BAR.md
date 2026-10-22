@@ -93,7 +93,8 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - G570/G571 versioned script kernels: `engine/script/moduleV2#ScriptModuleV2`,
   `engine/script/simBatchV2#SimBatchV2`, `engine/script/queriesV2#QueryRingV2`
-  and `engine/script/queriesV2#answerV2QueryBatch` consume admitted Wasm and
+  `engine/script/queriesV2#answerV2QueryBatch` and
+  `engine/physics/queryBatchV2#resolvePhysicsQueriesV2` consume admitted Wasm and
   fixed-capacity identity/observation rows. Server-safe; trusted native owner
   ports validate transactions and lend physics/navigation, never shard JS
   callbacks. Test 1 waived; tests 2–6 covered by the script-v2 admission,
