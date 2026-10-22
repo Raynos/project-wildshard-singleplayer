@@ -240,7 +240,7 @@ test('the look channel rows give each lent look its shared params every frame, t
   }
   expect([...writes.keys()]).toContain('nine-silk-fog:fogBaseCol');
   expect([...writes.keys()]).not.toContain('nine-streaks:fogBaseCol');
-  expect(writes.get('nine-architecture:uLpMax')).toBe(0);
+  expect(writes.has('nine-architecture:uLpMax')).toBe(false);
   expect(NINE_LOOK_TEXTURES).toContainEqual({ look: 'nine-architecture', param: 'uSilk', uniform: 'uSilk' });
-  expect(NINE_LOOK_TEXTURES).toContainEqual({ look: 'nine-windows', param: 'uLpVolB', uniform: 'uLpVolB' });
+  expect(NINE_LOOK_TEXTURES).not.toContainEqual({ look: 'nine-windows', param: 'uLpVolB', uniform: 'uLpVolB' });
 });

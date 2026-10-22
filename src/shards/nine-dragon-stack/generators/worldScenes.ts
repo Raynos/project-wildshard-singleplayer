@@ -33,6 +33,7 @@ import profiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { presentationData } from './presentation';
 import { architectureGraphs } from './architectureGraphs';
+import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
 
@@ -199,7 +200,16 @@ export const NINE_SCENE_BLOBS: NamedBlob[] = [...SIGN_ATLAS_BLOBS, ...castBlobs(
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...CARD_BLOBS];
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
-const lent = [...signTextures, { kind: 'layers', looks: painted, param: 'uPaint', base: '/assets/nine-dragon/paint', label: 'Nine Dragon paint array (GPU only)', size: paint.sizes, anisotropy: 8, layers: paint.layers.map(({ name, alpha }) => ({ name, alpha })) },
+// the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
+const lit = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uLpVolA' in graph.params ? [id] : []);
+const volumeOf = (caps: 'capped' | 'open', tier: 'phone' | 'desktop', index: number) => {
+  const row = lightVolumeRows()[`${tier}-${caps}-${index}`]; if (row === undefined) throw new Error(`Nine has no light volume ${tier}-${caps}-${index}`);
+  return { file: row.file, size: [...row.size], min: [...row.min], inv: [...row.inv], maximum: row.maximum };
+};
+const VOLUMES = (['A', 'B'] as const).map((suffix, index) => ({ kind: 'volume', looks: lit, label: 'Nine Dragon light volumes (GPU only)', publish: `light.${suffix}`,
+  params: { texture: `uLpVol${suffix}`, min: `uLpMin${suffix}`, inv: `uLpInv${suffix}`, maximum: 'uLpMax' },
+  files: { standalone: { phone: volumeOf('capped', 'phone', index), desktop: volumeOf('capped', 'desktop', index) }, cell: { phone: volumeOf('open', 'phone', index), desktop: volumeOf('open', 'desktop', index) } } }));
+const lent = [...signTextures, ...VOLUMES, { kind: 'layers', looks: painted, param: 'uPaint', base: '/assets/nine-dragon/paint', label: 'Nine Dragon paint array (GPU only)', size: paint.sizes, anisotropy: 8, layers: paint.layers.map(({ name, alpha }) => ({ name, alpha })) },
   { kind: 'image', looks: ['nine-canopy-cards'], param: 'atlas', sizeParam: 'atlasSize', ...canopy.atlas },
   { kind: 'image', looks: ['nine-scroll'], param: 'scroll', url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: 1001, anisotropy: 4 }];
 // G4: the night market's and the square's balustrade sets as placements of their catalogue models at their baked frames

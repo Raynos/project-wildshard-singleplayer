@@ -1,4 +1,4 @@
-import { DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, LinearSRGBColorSpace, NoColorSpace, RepeatWrapping, RGBAFormat, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
+import { Data3DTexture, DataArrayTexture, LinearFilter, Vector3, LinearMipmapLinearFilter, LinearSRGBColorSpace, NoColorSpace, RepeatWrapping, RGBAFormat, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -6,6 +6,7 @@ import { loadTextureRow } from '@wildshard/engine/core/assets';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { workSlice } from '@wildshard/engine/core/workSlice';
+import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldSceneLentTexture } from '@wildshard/format/worldScenes';
@@ -15,13 +16,15 @@ import type { SceneHandles } from './sceneHandles';
 import type { ShardProduct } from './shardProduct';
 
 /** Client-only: load each declared texture under `owner`, lend it to its compiled looks (they are lent first) and
- * publish a product texture that names a handle. */
-export async function lendWorldSceneTextures(rows: readonly WorldSceneLentTexture[], owner: Scope, product: Pick<ShardProduct, 'file'>, handles: SceneHandles, renderer: Renderer | undefined): Promise<void> {
+ * publish a product texture that names a handle, and a volume with its numbers for the world's variant (`cube`). */
+export async function lendWorldSceneTextures(rows: readonly WorldSceneLentTexture[], owner: Scope, product: Pick<ShardProduct, 'file' | 'url'>, handles: SceneHandles, renderer: Renderer | undefined,
+  cube: 'standalone' | 'cell'): Promise<void> {
   const products = rows.filter(row => row.kind === 'product');
   if (products.length > 0 && renderer === undefined) throw new Error('Product textures need the world renderer');
   const loader = renderer === undefined || products.length === 0 ? null : detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
   try {
     await Promise.all(rows.map(async row => {
+      if (row.kind === 'volume') { await lendVolume(row, row.files[cube][TIER], owner, product, handles); return; }
       const texture = owner.own(row.kind === 'image' ? await loadTextureRow(row) : row.kind === 'layers' ? await loadLayers(row) : await loadProduct(row, product, loader));
       if (owner.disposed) throw new Error('World scene textures unloaded while loading');
       if (row.kind === 'product') {
@@ -36,6 +39,23 @@ export async function lendWorldSceneTextures(rows: readonly WorldSceneLentTextur
       for (const look of row.looks) setLentParam(look, row.sizeParam, [image.width, image.height]);
     }));
   } finally { loader?.dispose(); }
+}
+
+/** A baked volume: its deflated RGBA8 voxels as a linear 3D texture (GPU-only once uploaded), lent with its box to its looks. */
+async function lendVolume(row: Extract<WorldSceneLentTexture, { kind: 'volume' }>, volume: Extract<WorldSceneLentTexture, { kind: 'volume' }>['files']['cell']['phone'],
+  owner: Scope, product: Pick<ShardProduct, 'url'>, handles: SceneHandles): Promise<void> {
+  const bytes = await fetchDeflatedBytes(product.url(volume.file)), [x, y, z] = volume.size;
+  if (owner.disposed) throw new Error('World scene textures unloaded while loading');
+  if (bytes.length !== x * y * z * 4) throw new Error(`Lent volume ${row.label} size differs`);
+  const texture = owner.own(new Data3DTexture(bytes, x, y, z));
+  texture.minFilter = texture.magFilter = LinearFilter; texture.unpackAlignment = 1; texture.name = row.label; texture.needsUpdate = true;
+  gpuOnlyTexture(texture, row.label);
+  const min = new Vector3().fromArray(volume.min), inv = new Vector3().fromArray(volume.inv);
+  for (const look of row.looks) {
+    setLentTexture(look, row.params.texture, texture);
+    setLentParam(look, row.params.min, min.toArray()); setLentParam(look, row.params.inv, inv.toArray()); setLentParam(look, row.params.maximum, volume.maximum);
+  }
+  handles.publish(row.publish, texture); handles.publish(`${row.publish}.min`, min); handles.publish(`${row.publish}.inv`, inv); handles.publish(`${row.publish}.maximum`, volume.maximum);
 }
 
 /** A product's own KTX2 blob for the tier (its encoded orientation, flipY false), sampled by its row; GPU-only once uploaded. */

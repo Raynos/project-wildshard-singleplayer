@@ -56,15 +56,17 @@ function shape(row: Row): { kind: 'number' | 'vector' | 'colour'; size: number }
   for (const key of ['v2', 'v3', 'v4'] as const) if (key in row) return { kind: 'vector', size: Number(key.slice(1)) };
   return null;
 }
+/** the light volumes' box and peak: the world scenes' lent volume rows lend them to their looks (generators/worldScenes.ts VOLUMES) */
+const LENT_VOLUME = new Set(['uLpMinA', 'uLpMinB', 'uLpInvA', 'uLpInvB', 'uLpMax']);
 const SHARED = new Map(Object.entries({ ...sharedUniforms, ...paint.uniforms, ...light.volume, ...light.haloUniforms } satisfies Record<string, Row>)
-  .flatMap(([name, row]) => { const at = shape(row); return at === null ? [] : [[name, at] as const]; }));
+  .flatMap(([name, row]) => { const at = shape(row); return at === null || LENT_VOLUME.has(name) ? [] : [[name, at] as const]; }));
 /** the facade's constant washes, as the linear colours the shared rows make */
 const CONSTANT: Readonly<Record<string, readonly number[]>> = {
   ...Object.fromEntries(Object.entries(bindings.facade).map(([name, hex]) => [name, new Color(hex).toArray()])),
   datum: [layout.Y0],
 };
-/** the textures lent to the looks that declare them, from the shared uniform of the same name */
-const LENT_TEXTURES = new Set(['uSilk', 'uLpVolA', 'uLpVolB']);
+/** the textures lent to the looks that declare them, from the shared uniform of the same name (the light volumes are lent volume rows) */
+const LENT_TEXTURES = new Set(['uSilk']);
 
 function admitted(rows: Readonly<Record<string, unknown>>): Record<string, GraphIr> {
   return Object.fromEntries(Object.entries(rows).map(([id, row]) => {

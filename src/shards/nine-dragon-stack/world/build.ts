@@ -1,5 +1,4 @@
 import type { GeometryBoot } from '../runtime/productSections.generated';
-import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -12,7 +11,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Data3DTexture, LinearFilter, Group, Mesh, Vector3,
+  Data3DTexture, Group, Mesh, Vector3,
 } from 'three';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
@@ -23,7 +22,7 @@ import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
-import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
@@ -51,7 +50,7 @@ export interface NineDragonWorld {
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
 export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; scenes: SceneHandles; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
-  const { world: worldRows, volumes } = await product.json<GeometryBoot>('geometry/layout.json');
+  const { world: worldRows } = await product.json<GeometryBoot>('geometry/layout.json');
   const shared = new Shared(restoreWeave(await product.file('looks/silk-weave.r8')), (await product.json<{ readonly look: { readonly shared: ConstructorParameters<typeof Shared>[1] } }>('weapons/jian-row.json')).look.shared);
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -149,17 +148,13 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the
   // LUT belong to the clean room's post, so they get stand-in uniforms here (the engine's composer draws the frame)
   progress(0.9, 'light volume');
+  // the two baked volumes are the world scenes' lent volumes (generators/worldScenes.ts VOLUMES); the haze pass reads them here
   for (const suffix of ['A', 'B'] as const) {
-    const row = volumes[`${tier}-${entryCaps ? 'capped' : 'open'}-${suffix === 'A' ? 0 : 1}`];
-    if (row === undefined) throw new Error('Missing irradiance volume row');
-    const bytes = await fetchDeflatedBytes(product.url(row.file));
-    if (bytes.length !== row.size[0] * row.size[1] * row.size[2] * 4) throw new Error('Irradiance volume size differs');
-    const texture = opts.scope.own(new Data3DTexture(bytes, ...row.size)); texture.needsUpdate = true;
-    texture.minFilter = texture.magFilter = LinearFilter; texture.unpackAlignment = 1;
-    gpuOnlyTexture(texture, 'Nine Dragon light volumes (GPU only)');
-    shared.u[`uLpVol${suffix}`].value = texture;
-    shared.u[`uLpMin${suffix}`].value.fromArray(row.min); shared.u[`uLpInv${suffix}`].value.fromArray(row.inv);
-    shared.u.uLpMax.value = row.maximum;
+    const at = `light.${suffix}`;
+    const volume = opts.scenes.texture(at); if (!(volume instanceof Data3DTexture)) throw new Error(`Nine light volume ${at} is no 3D texture`);
+    shared.u[`uLpVol${suffix}`].value = volume;
+    shared.u[`uLpMin${suffix}`].value.copy(opts.scenes.vector(`${at}.min`)); shared.u[`uLpInv${suffix}`].value.copy(opts.scenes.vector(`${at}.inv`));
+    shared.u.uLpMax.value = opts.scenes.number(`${at}.maximum`);
   }
   progress(0.95, 'culling');
 

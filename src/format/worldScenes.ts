@@ -77,11 +77,16 @@ const step = v.strictObject({ id, cube: v.exactOptional(v.picklist(['standalone'
 });
 // Textures lent to compiled looks before the world builds: an image (its pixel size optionally lent as a vec2 param),
 // JPEG layers (each with an optional alpha JPEG, else ½) read back into one repeating, mipmapped RGBA8 array, or a
-// product's own KTX2 blob for the tier, sampled by its row, GPU-only once uploaded and optionally published as a handle.
+// product's own KTX2 blob for the tier, sampled by its row, GPU-only once uploaded and optionally published as a handle; or
+// a baked volume (a deflated RGBA8 3D texture per tier and world variant, with its box `min`, inverse extent `inv` and
+// `maximum`) lent to its looks' params with those numbers and published as `<publish>` (texture), `.min`, `.inv`, `.maximum`.
 const wrap = v.exactOptional(v.picklist([1000, 1001, 1002]));
 // the look sampler row (format/materials.ts TextureSamplersSchema): wrap, anisotropy, filter, file or GPU mips
 const sampler = v.strictObject({ wrap: v.exactOptional(v.picklist(['repeat', 'clamp', 'mirror'])), anisotropy: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))),
   filter: v.exactOptional(v.picklist(['linear', 'nearest'])), mips: v.exactOptional(v.picklist(['file', 'gpu'])) });
+const voxels = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(512));
+const volume = v.strictObject({ file: id, size: v.tuple([voxels, voxels, voxels]), min: triple, inv: triple, maximum: finite });
+const tierVolumes = v.strictObject({ phone: volume, desktop: volume });
 const lentTexture = v.variant('kind', [
   v.strictObject({ kind: v.literal('image'), looks: v.pipe(bounded(id, 32), v.minLength(1)), param: id, url: id, srgb: v.exactOptional(v.boolean()), wrapS: wrap, wrapT: wrap,
     anisotropy: v.exactOptional(v.pipe(finite, v.minValue(1), v.maxValue(16))), sizeParam: v.exactOptional(id) }),
@@ -90,6 +95,8 @@ const lentTexture = v.variant('kind', [
     anisotropy: v.pipe(finite, v.minValue(1), v.maxValue(16)), layers: v.pipe(bounded(v.strictObject({ name: id, alpha: v.boolean() }), 64), v.minLength(1)) }),
   v.strictObject({ kind: v.literal('product'), looks: v.optional(bounded(id, 32), []), param: v.exactOptional(id), file: v.strictObject({ phone: id, desktop: id }), label: id,
     colour: v.exactOptional(v.picklist(['srgb', 'linear'])), sampler, publish: v.exactOptional(id) }),
+  v.strictObject({ kind: v.literal('volume'), looks: v.pipe(bounded(id, 32), v.minLength(1)), label: id, publish: id,
+    params: v.strictObject({ texture: id, min: id, inv: id, maximum: id }), files: v.strictObject({ standalone: tierVolumes, cell: tierVolumes }) }),
 ]);
 const unique = (rows: readonly { readonly id: string }[]) => new Set(rows.map(row => row.id)).size === rows.length;
 /** Client-only static assembly. Recipes, slots and named references are bounded plain data. */

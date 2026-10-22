@@ -85,6 +85,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
   for (const row of section.materials) if (row.kind === 'surface') await admitWorldSceneSurface(row, product);
   for (const row of section.lent ?? []) {
     for (const look of row.looks) if (product.shardfile.look.materials[look] === undefined) throw new Error(`Missing lent texture look: ${look}`);
+    if (row.kind === 'volume') for (const variant of [row.files.standalone, row.files.cell]) requireFile(variant[TIER].file);
     if (row.kind === 'product') { requireFile(row.file[TIER]); if ((row.looks.length > 0) !== (row.param !== undefined) || row.looks.length === 0 && row.publish === undefined) throw new Error('A product texture is lent with a param or published'); }
   }
   let catalogue: ReturnType<typeof parseWorldSceneModels> | undefined;
@@ -300,7 +301,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       && !(row.kind === 'look' && row.over === undefined && sceneMaterial(resident, product.slug, row.look) !== undefined) && !hasLentLook(row.look) ? [row.look] : [])
       .concat((section.lent ?? []).flatMap(row => row.looks.filter(look => !hasLentLook(look))));
     if (missing.length > 0) lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, [...new Set(missing)]));
-    await lendWorldSceneTextures(section.lent ?? [], owner, product, handles, section.lent?.some(row => row.kind === 'product') === true ? ctx.game.runtime?.world?.game.renderer : undefined);
+    await lendWorldSceneTextures(section.lent ?? [], owner, product, handles, section.lent?.some(row => row.kind === 'product') === true ? ctx.game.runtime?.world?.game.renderer : undefined,
+      ctx.cube === null ? 'standalone' : 'cell');
     const surfaces = section.materials.filter(row => row.kind === 'surface');
     if (surfaces.length > 0) {
       const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');

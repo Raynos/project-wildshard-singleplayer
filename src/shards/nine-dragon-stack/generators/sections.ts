@@ -97,9 +97,8 @@ export const WorldRowsSchema = v.strictObject({
 });
 export type WorldRows = v.InferOutput<typeof WorldRowsSchema>;
 
-const VolumeRow = v.strictObject({ file: text, size: v.tuple([Offset, Offset, Offset]), min: v.array(finite), inv: v.array(finite), maximum: finite });
 export const GeometryBootSchema = v.strictObject({ rows: LayoutRowsSchema, library: GeometryLibrarySchema,
-  negativeZeros: v.array(v.array(text)), world: WorldRowsSchema, volumes: v.record(text, VolumeRow) });
+  negativeZeros: v.array(v.array(text)), world: WorldRowsSchema });
 
 const Course = v.strictObject({
   id: v.string(), title: v.string(), chip: v.string(),
