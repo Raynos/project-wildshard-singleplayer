@@ -27,13 +27,28 @@ const command = v.variant('kind',[
   v.strictObject({kind:v.literal('frame')}),
   v.strictObject({kind:v.literal('log'),on:id,off:id,detail:v.exactOptional(reference),precision:v.exactOptional(v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(8))),ok:v.exactOptional(v.boolean())}),
 ]);
-const gameplay = v.strictObject({
+const entryLoan = v.pipe(id, v.regex(/^[A-Za-z][A-Za-z0-9_.:-]*$/u));
+const entryBounds = v.pipe(v.strictObject({ x:finite, z:finite, r:v.pipe(finite,v.minValue(Number.MIN_VALUE)), yMin:finite, yMax:finite }),
+  v.check(row=>row.yMin<=row.yMax,'Ordered audio bounds'));
+const entryPoints = v.pipe(v.array(v.strictObject({x:finite,z:finite})),v.maxLength(2048));
+/** Finite construction owner ids and detached spatial facts for the entered audio phase.
+ * Floors preserve ordered gaps. No callback, object path or replacement owner is admitted. */
+export const AudioEntryEnvironmentSchema = v.strictObject({
+  floors:v.pipe(v.record(id,v.pipe(v.array(v.nullable(entryLoan)),v.maxLength(32))),v.check(rows=>Object.keys(rows).length<=16)),
+  bounds:v.pipe(v.record(id,v.nullable(entryBounds)),v.check(rows=>Object.keys(rows).length<=32)),
+  near:v.pipe(v.record(id,v.strictObject({phone:entryPoints,desktop:entryPoints})),v.check(rows=>Object.keys(rows).length<=32)),
+  dusk:entryLoan,emitter:v.strictObject({id,profile:id,point:entryLoan,height:finite}),
+  publish:v.pipe(v.strictObject({id,hum:id,bank:id,surfaces:id,ambience:id}),
+    v.check(row=>new Set([row.hum,row.bank,row.surfaces,row.ambience]).size===4,'Distinct audio handle names')),
+});
+const gameplay = v.pipe(v.strictObject({
   constants:v.exactOptional(v.pipe(v.record(id,v.unknown()),v.check(rows=>isJsonData(rows)))),
   entered:v.boolean(),score:v.boolean(),activate:v.boolean(),restoreShade:v.boolean(),
   inputs:references,writers:v.pipe(v.record(id,v.variant('kind',[
     v.strictObject({kind:v.literal('night')}),v.strictObject({kind:v.literal('dusk')})
   ])),v.check(rows=>Object.keys(rows).length<=32)),entities:references,
   commands:v.pipe(v.record(id,command),v.check(rows=>Object.keys(rows).length<=32)),
+  entryEnvironment:v.exactOptional(AudioEntryEnvironmentSchema),
   environment:v.exactOptional(v.strictObject({
     objects:references,near:references,floors:v.pipe(v.record(id,v.pipe(v.array(reference),v.maxLength(32))),v.check(rows=>Object.keys(rows).length<=16)),
     dusk:reference,emitter:v.strictObject({id,profile:id,point:reference,height:finite}),
@@ -42,7 +57,7 @@ const gameplay = v.strictObject({
   cues:v.exactOptional(v.strictObject({underwater:v.boolean(),melee:v.strictObject({fire:id,hitPrefix:id,materials:v.pipe(v.record(id,id),v.check(rows=>Object.keys(rows).length<=32)),fallback:id,death:id,deathGain:finite,clangPrefix:id})})),
   doors:v.exactOptional(v.strictObject({open:id,close:id})),
   diagnostic:v.exactOptional(v.strictObject({name:id,system:id,state:id})),
-});
+}),v.check(row=>row.environment===undefined||row.entryEnvironment===undefined,'Exclusive gameplay audio environment'));
 /** Declared gameplay owner bindings for the existing observation and entered phases. */
 export type AudioGameplay = v.InferOutput<typeof gameplay>;
 const rawAudioSchema = v.pipe(v.strictObject({ cues: v.pipe(v.array(v.strictObject({ id, voice: id })), v.maxLength(64), v.check((rows) => new Set(rows.map((row) => row.id)).size === rows.length, 'unique cue ids')),

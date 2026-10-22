@@ -9366,6 +9366,13 @@ those probes. Borrowing these inputs does not own or dispose their world
 resources. Existing cue order, phase registration and teardown stay in the
 original gameplay audio host.
 
+`AudioGameplay.entryEnvironment` admits finite floor/object/building loan ids,
+ordered null floor gaps, numeric probe bounds and separate phone/desktop near
+point arrays. It is mutually exclusive with the legacy environment. The strict
+schema refuses callbacks, object paths, unknown fields, invalid bounds,
+repeated handle names and point inventories above 2,048 entries per tier.
+The existing entered audio phase resolves the original owners before effects.
+
 The retained native-method crossings stay visible to the G454 inventory and
 within their original per-file ceilings; no cast or guard increase hides them.
 
