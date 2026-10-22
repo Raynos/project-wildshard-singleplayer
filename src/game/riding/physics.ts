@@ -152,8 +152,7 @@ const reinsReinsState = v.strictObject({ version: v.literal(1), steed: v.pipe(re
   galloping: v.boolean(), drawing: v.boolean(), jumpWas: v.boolean(), jumpQueued: v.boolean(), cruise: reinsNum, gallopWas: v.boolean(), tapQueued: v.boolean(),
   clock: reinsNum, lastPhase: reinsNum, strideHz: reinsNum, sectorWas: v.picklist([-1, 0, 1, 2]), skidT: reinsNum, panicT: reinsNum, panicRear: reinsNum, panicYaw: reinsNum, jolt: reinsNum,
   onRoad: v.boolean(), beat: v.boolean(), spurFlash: v.pipe(reinsNum, v.integer(), v.minValue(0)), turnLead: reinsNum,
-  spur: v.strictObject({ version: v.literal(1), streak: v.pipe(reinsNum, v.integer(), v.minValue(0), v.maxValue(3)), latchT: v.pipe(reinsNum, v.minValue(0)),
-    good: v.pipe(reinsNum, v.integer(), v.minValue(0)), lastTap: reinsNum }) });
+  spur: roadSpurState });
 /** Complete reins continuation, including held inputs and rhythm. */
 export type MountedReinsState = v.InferOutput<typeof reinsReinsState>;
 /** The shipping reins decision law, without input devices, renderer, global app or native resource allocation. */
