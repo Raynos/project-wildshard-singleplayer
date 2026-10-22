@@ -7,6 +7,7 @@ import { bindSceneSourceLooks } from './sceneSources';
 import { bindPaintedMaterialMaps } from '../looks/paintedLook';
 import { installCompletion } from '../complete/declared';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
+import { installPageItemContexts } from './pageItems';
 import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
@@ -311,7 +312,9 @@ export class ShardfileClient {
       return { ...target, aimPoint: target.position.clone().add(new Vector3(0, body === undefined ? 0.9 : body.dims.bodyY * body.scale, 0)) };
     };
     runtime.buildEquipment = () => {
-      const items = installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, bindings: ctx.app.input.bindings, observation: { get mode() { const actorPlayer = ctx.game.runtime?.world?.player; return actorPlayer === undefined ? 'foot' : playerModes(actorPlayer).current(); }, get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return runtime.hooks.questFlags?.() ?? []; } }, families: this.bindings.items, models: this.itemModels, icon: this.bindings.icon,
+      // a retained (grid) runtime's item input contexts are entered-only (installPageItemContexts), so copies never collide
+      const retained = retainsRuntimeServices(ctx); if (retained) installPageItemContexts(ctx, source);
+      const items = installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, bindings: ctx.app.input.bindings, ...(retained ? { contexts: 'runtime' as const } : {}), observation: { get mode() { const actorPlayer = ctx.game.runtime?.world?.player; return actorPlayer === undefined ? 'foot' : playerModes(actorPlayer).current(); }, get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return runtime.hooks.questFlags?.() ?? []; } }, families: this.bindings.items, models: this.itemModels, icon: this.bindings.icon,
         aim: () => ({ origin: world.game.camera.getWorldPosition(new Vector3()), direction: world.game.camera.getWorldDirection(new Vector3()) }),
         runtime: (row) => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play' && !world.freeCamera,
           targets: () => ctx.app.combat.targets().map(aimTarget),
