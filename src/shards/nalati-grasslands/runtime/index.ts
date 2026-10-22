@@ -28,7 +28,6 @@ function host(ctx: ShardContext): ShardRuntime {
 
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
-  private runtime(): Nalati { if (this.rt === null) throw new Error('Nalati world hook has not run'); return this.rt; }
 
   override async world(ctx: ShardContext): Promise<void> {
     const shell = host(ctx), world = shell.world, step = shell.step;
@@ -62,8 +61,8 @@ export class NalatiPlugin extends ShardPlugin {
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), mounted = entryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
-    if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
+    const shell = host(ctx), world = shell.world, h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
+    if (world === null || h === null || rt === null || kit === null) throw new Error('Nalati gameplay requires its world, equipment and UI');
     const { animals, hud, audio, music, progress } = h;
     const persistence = enteredAdventurePersistence(ctx.scope);
     persistence.bindProgress(progress);
