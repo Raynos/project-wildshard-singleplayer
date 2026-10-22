@@ -6,7 +6,6 @@ import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
-import { Group, Mesh } from 'three';
 import * as v from 'valibot';
 import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import { wind } from '@wildshard/engine/world/steppeWind';
@@ -20,9 +19,8 @@ import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { productFixedDraws } from '@wildshard/game/models/fixedDraws';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
-import type { ExternalElitePage } from '@wildshard/game/quest/elitePage';
+import { eliteDropModels, type ExternalElitePage } from '@wildshard/game/quest/elitePage';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
@@ -79,8 +77,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
   const { constants: { pageElites: eliteInput } } = await plugin.product.json<{ constants: { pageElites: unknown } }>('sim/headless-assembly.json');
   const eliteRows = parseEliteEntryPageRows(eliteInput);
-  const dropMaterial = painterlyMaterial(sky, { rim: .6 });
-  const drops = new Map(eliteRows.entry.entries.map(row => { const model = new Group(); model.add(new Mesh(shapes.handle(`trophy:${row.id}`).copy(), dropMaterial)); return [row.id, model] as const; }));
+  const drops = eliteDropModels(eliteRows, shapes, sky);
   const eliteLedges = anchors('crags', 'ledges');
   const elites = new DeclaredEliteEntry<ExternalElitePage>(eliteRows.entry, game.levelScope);
   updates.push((dt, t) => {

@@ -75,5 +75,7 @@ export function buildEliteEntryPageRows(): EliteEntryPageRows {
       sting: { banner: .8, phase2: 1, kill: 'chunk' },
     }])), strikes: [{ amount: 14, strike: strike(strikes.swipe) }, { amount: 35, strike: strike(strikes.pounce) },
       { amount: 22, strike: strike(strikes.bite) }, { amount: 30, strike: strike(strikes.stoop) }],
-    fallbackStrike: strike(strikes.captain), prewarm: roster.prewarm, debug: roster.debug });
+    fallbackStrike: strike(strikes.captain), prewarm: roster.prewarm, debug: roster.debug,
+    // each lair's trophy: its shape-book draw in one painterly material
+    drop: { rim: .6, draws: entry.entries.map(row => ({ id: row.id, draw: `trophy:${row.id}` })) } });
 }
