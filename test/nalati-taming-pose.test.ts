@@ -5,7 +5,7 @@ import { NativeCreaturePose } from '../src/game/plugin/animation';
 import { tamingPoses, NALATI_BODY_ROWS } from '../src/shards/nalati-grasslands/generators/bodies';
 import { bodyKey } from '../src/shards/nalati-grasslands/generators/bodyKey';
 import { bodySpecies } from '../src/shards/nalati-grasslands/generators/speciesRows';
-import { speciesLookBook } from '../src/shards/nalati-grasslands/species/presentation';
+import { nalatiPackedLooks } from '../src/shards/nalati-grasslands/species/presentation';
 import { NalatiTamingHorsePose } from './fixtures/nalati-taming-pose';
 
 const HORSE_SPECIES = bodySpecies('horse');
@@ -34,7 +34,7 @@ test('numeric horse rows draw finite rear, buck, mane and wind overlays on nativ
     body.mem['rear'] = tick < 30 ? .8 : 0; body.mem['buck'] = tick >= 30 && tick < 60 ? .9 : 0;
     body.mem['turnLead'] = -.7; if (tick === 60) body.mem['kick'] = 1;
     pose.sampleTerrain(); pose.advance(1 / 60, tick / 60, true);
-    speciesLookBook().pose('horse', pose.context); pose.publish(); pose.headWorld(head);
+    nalatiPackedLooks().pose('horse', pose.context); pose.publish(); pose.headWorld(head);
     expect([head.x, head.y, head.z].every(Number.isFinite)).toBe(true);
     expect(head.distanceTo(body.position)).toBeLessThan(10);
     changed ||= Math.abs((pose.context.bones['body']?.rotation.x ?? 0) - baseline) > .1;

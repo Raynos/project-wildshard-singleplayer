@@ -1,6 +1,7 @@
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
+import { productHullBook } from '@wildshard/game/looks/speciesBook';
 
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
@@ -37,7 +38,7 @@ export class NalatiPlugin extends ShardPlugin {
     await step('cabins', () => undefined);
     if (ctx.product.shardfile.clientChannels === undefined) throw new Error('Missing Golden King pose rows');
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
-    await prepareNalatiSpecies(actorRows.species, ctx.product.shardfile.clientChannels ?? [], await ctx.product.file('actors/balbal-cracks.bin'));
+    await prepareNalatiSpecies(actorRows.species, productHullBook(ctx.product), await ctx.product.json('actors/species-looks.json'), await ctx.product.file('actors/balbal-cracks.bin'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     await arsenal.blade.prepare(ctx.product);

@@ -93,7 +93,17 @@ const guest=v.parse(CreatureGuestSchema,{...speciesRows.balbalGuest,program,stri
 const presentation={packedBodies:compactBodies,poses:poseConfigs,cracks:crackRow,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS,program:wireProgram(admission)}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL(`../../../../public${file}`,import.meta.url)),compressed);
-writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,crackBytes:Array.from(crackBytes),program}));
+// G600 L8: the looks are the hull book's packed looks (game/looks/speciesBook HullLookBook.packedLooks): the compact bodies
+// as the book's section, each row its bodies, coats, painterly material, rigged hull skins and post-pose programmes
+const hullBook={slug:'nalati-grasslands',compactBody:compactBodies,definitions:{},derived:{},rows:[]};
+const looks={poses:SPECIES_POSES,rows:SPECIES_LOOK_ROWS.map(row=>({id:row.id,species:row.metadata.id,kind:row.metadata.kind,family:row.family,
+  skeleton:row.rigContract.skeleton,sockets:row.rigContract.sockets,clips:row.rigContract.clips,
+  variants:Object.fromEntries(Object.entries(row.variants).map(([id,variant])=>[id,{body:variant.body,...(variant.tint===undefined?{}:{tint:variant.tint}),...(variant.traits===undefined?{}:{traits:variant.traits})}])),
+  material:{family:'painterly',rim:row.material.rim,bands:row.material.bands},hulls:true,
+  ...(row.rig===undefined?{}:{rig:row.rig}),...(row.pose===undefined?{}:{stance:row.pose}),...(row.gait===undefined?{}:{gait:row.gait}),
+  ...(row.eyeGlow===undefined?{}:{eyeGlow:row.eyeGlow}),...(row.eyeGlowIntensity===undefined?{}:{eyeGlowIntensity:row.eyeGlowIntensity}),
+  ...(row.postPose===undefined?{}:{postPose:row.postPose})}))};
+writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,hullBook,looks,crackBytes:Array.from(crackBytes),program}));
 const {balbal,king,slam,kingFrame,kingPoseDefaults}=speciesRows;
 writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes({balbal:{kind:balbal.kind},king:{kind:king.kind},slam,kingFrame,kingPoseDefaults}));
 writer.finish();

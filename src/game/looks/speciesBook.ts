@@ -3,7 +3,7 @@ import { eliteAct, eliteDamageMul, eliteThink } from '../quest/elitePage';
 import { DirectedSpecies } from '../population/directedSpecies';
 import { groupSpecies } from '../population/groupSpecies';
 import { numericCreaturePose } from '../plugin/channelPrograms';
-import { poseRidingEnvelopes, type RidingPresentationRows } from '../riding/presentation';
+import { poseRidingEnvelopes } from '../riding/presentation';
 import { wildEnv } from '../population/pageGroups';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';
@@ -12,6 +12,7 @@ import { productRiggedHulls } from './riggedHulls';
 import { HullLookBookSchema, PackedCreatureLooksSchema, type CompactSpeciesBodiesRows } from '@wildshard/format/speciesLooks';
 import type { NativeSpeciesLookBookRows } from '@wildshard/format/speciesBookRows';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { roamingBossDamage } from '../boss/roamingProjection';
@@ -137,50 +138,12 @@ function expandCompactBodies(data:CompactSpeciesBodiesRows):unknown{
   return {file:data.file,bytes:data.bytes,bodies:data.rows.map(body=>{const skeleton=data.skeletons[body.skeleton];if(skeleton===undefined)throw new Error('Missing packed skeleton');
     return {kind:body.kind,variant:body.variant,bones:skeleton.bones,dims:skeleton.dims,fur:parts(body.fur),hard:parts(body.hard),eye:parts(body.eye)};})};
 }
-/** Client-only look catalogue over native packed bodies and the single hull
- * cache. Data names all variants, resources and material measurements; local
- * gameplay/pose callbacks never enter this owner. */
-export class SpeciesLookBook {
-  private readonly poses = new Map<string, ReturnType<typeof numericCreaturePose>>();
-  private readonly envelopes = new Map<string, RidingPresentationRows>();
-  readonly rows;
-  readonly looks:readonly SpeciesLook[];
-  private readonly bodies;
-  private readonly hulls;
-  constructor(book:NativeSpeciesLookBookRows){
-    this.bodies=packedCreatureBodies(expandCompactBodies(book.body));this.hulls=productRiggedHulls(book.slug);
-    for (const [id, pose] of Object.entries(book.poses ?? {})) this.poses.set(id, numericCreaturePose(pose));
-    for (const row of book.rows) if (row.postPose !== undefined) {
-      if (!this.poses.has(row.postPose.alive) || row.postPose.dead !== undefined && !this.poses.has(row.postPose.dead)) throw new Error('Missing species pose programme');
-      if (row.postPose.envelopes !== undefined) this.envelopes.set(row.postPose.alive, row.postPose.envelopes);
-    }
-    this.rows=book.rows.map(row=>({...row.metadata,...(row.group === undefined ? {} : groupSpecies(row.group)),...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),...(row.guard === true ? { think: thinkCrowdGuard } : {}),...(row.elite === true ? { think: eliteThink, act: eliteAct } : {})}));
-    const base = this.bodies.looks({ poses: {}, rows: book.rows.map(row => ({ id: row.id, species: row.metadata.id, kind: row.metadata.kind,
-      family: row.family, variants: Object.fromEntries(Object.entries(row.variants).map(([id, variant]) => [id, variant.body])),
-      skeleton: row.rigContract.skeleton, sockets: row.rigContract.sockets, clips: row.rigContract.clips })) });
-    this.looks=book.rows.map(row=>{const look=Object.assign<SpeciesLook,Partial<SpeciesLook>>(base.get(row.metadata.kind),{
-      variants:Object.fromEntries(Object.entries(row.variants).map(([id,source])=>{
-        const variant:Pick<VariantDef,'tint'|'traits'>={};if(source.tint!==undefined)variant.tint=source.tint;if(source.traits!==undefined)variant.traits=source.traits;return [id,variant];
-      })),
-      material:(sky,glow,intensity=1)=>{const material=painterlyMaterial(sky,row.material);if(glow!==undefined){material.emissive.setRGB(...glow);material.emissiveIntensity=intensity;}return material;},
-      preload:()=>this.preload(),hasSkin:variant=>this.hulls.hullOf(row.metadata.kind,variant.id)!==null,
-      loadSkin:async variant=>{const name=this.hulls.hullOf(row.metadata.kind,variant.id);if(name!==null)await this.hulls.load(name);},
-      skin:(variant,bones)=>{const hull=this.hulls.skin(row.metadata.kind,variant.id,bones);return hull===null?null:{...hull,normalMap:null,overgrown:false};},
-    });
-    if (row.postPose !== undefined) { const pose = row.postPose; look.postPose = context => { this.pose(context.alive ? pose.alive : pose.dead ?? pose.alive, context); }; }
-    if(row.rig!==undefined)look.rig=row.rig;if(row.pose!==undefined)look.pose=row.pose;if(row.gait!==undefined)look.gait=row.gait;
-    if(row.elite===true)look.damageMul=eliteDamageMul;if(row.eyeGlow!==undefined)look.eyeGlow=row.eyeGlow;if(row.eyeGlowIntensity!==undefined)look.eyeGlowIntensity=row.eyeGlowIntensity;return look;});
-  }
-  /** Apply admitted numeric joints and optional mount envelopes over a borrowed rig. */
-  pose(id: string, context: AnimalRigContext): void {
-    const pose = this.poses.get(id); if (pose === undefined) throw new Error('Missing species pose programme');
-    const envelopes = this.envelopes.get(id); if (envelopes !== undefined) poseRidingEnvelopes(context, envelopes, wildEnv.wind);
-    pose(context);
-  }
-  /** Cold specimens and page factories share the same immutable sources. */
-  async preload():Promise<void>{await Promise.all([this.bodies.preload(),this.hulls.preload()]);}
-  /** Body-only intake for consumers that already own hull preparation. */
-  async preloadBodies():Promise<void>{await this.bodies.preload();}
-  /** Own a fresh body copy, selected only by its admitted data identity. */
-  copy(family:string,key:string):ReturnType<typeof this.bodies.copy>{return this.bodies.copy(family,key);}
+/** G600 L8: the species rows' behaviour hooks (group, directed, crowd guard and the elites' think / act / damage), kept
+ *  outside the look book until L4 (the engine elite feature) and L5 (the wildlife group sims) absorb them; the looks are
+ *  the hull book's packed looks. */
+export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): { readonly rows: readonly SpeciesRow[]; look: (look: SpeciesLook) => SpeciesLook } {
+  const rows = book.rows.map(row => ({ ...row.metadata, ...(row.group === undefined ? {} : groupSpecies(row.group)), ...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),
+    ...(row.guard === true ? { think: thinkCrowdGuard } : {}), ...(row.elite === true ? { think: eliteThink, act: eliteAct } : {}) }));
+  const elites = new Set(book.rows.flatMap(row => row.elite === true ? [row.metadata.kind] : []));
+  return { rows, look: look => elites.has(look.kind) ? { ...look, damageMul: eliteDamageMul } : look };
 }

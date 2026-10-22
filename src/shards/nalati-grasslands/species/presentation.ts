@@ -4,30 +4,31 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' };
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
-import { SpeciesLookBook } from '@wildshard/game/looks/speciesBook';
+import { speciesBehaviour, type HullLookBook } from '@wildshard/game/looks/speciesBook';
 import type * as THREE from 'three';
 import type { CreatureGuestRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
 
 let crackGeometry: THREE.BufferGeometry | null = null;
-let book:SpeciesLookBook|null=null;
+let book:HullLookBook|null=null,looks:ReturnType<HullLookBook['packedLooks']>|null=null,behaviour:ReturnType<typeof speciesBehaviour>|null=null;
 let speciesData: SpeciesPresentationRows | null = null;
-/** Product JSON is admitted before the first creature build or frame. */
-export async function prepareNalatiSpecies(data: SpeciesPresentationRows, programs: readonly { readonly id: string }[], bytes: Uint8Array): Promise<void> {
-  const poses = Object.entries(data.poses).map(([key, { prefix, ...row }]) => [key, { ...row, programs: programs.filter(program => program.id.startsWith(prefix)) }] as const);
+/** Product JSON is admitted before the first creature build or frame: the looks are the hull book's packed looks. */
+export async function prepareNalatiSpecies(data: SpeciesPresentationRows, hull: HullLookBook, lookRows: unknown, bytes: Uint8Array): Promise<void> {
   const row=data.cracks;
   const { readBakedGeometry } = await import('@wildshard/game/plugin/geometry');
   const geometry = readBakedGeometry(bytes, 0, row);
   if (crackGeometry === null) crackGeometry = geometry; else geometry.dispose();
   speciesData = data;
-  book ??= new SpeciesLookBook({...data.lookBook,body:data.packedBodies,poses:Object.fromEntries(poses)});
+  book ??= hull; looks ??= hull.packedLooks(lookRows); behaviour ??= speciesBehaviour(data.lookBook);
 }
 /** Borrow a species' admitted channels over its existing quadruped or custom joints. */
 export function poseNalatiCreature(kind: string, c: AnimalRigContext): void {
-  speciesLookBook().pose(kind, c);
+  nalatiPackedLooks().pose(kind, c);
 }
 /** The page and specimens share the same data-owned packed body cache. */
-export function speciesLookBook():SpeciesLookBook{if(book===null)throw new Error('Species look book is not prepared');return book;}
-export async function preloadNalatiBodies():Promise<void>{await speciesLookBook().preloadBodies();}
+export function nalatiPackedLooks():ReturnType<HullLookBook['packedLooks']>{if(looks===null)throw new Error('Species looks are not prepared');return looks;}
+/** The species rows' behaviour hooks (outside the look book until L4 / L5). */
+export function nalatiBehaviour():ReturnType<typeof speciesBehaviour>{if(behaviour===null)throw new Error('Species behaviour is not prepared');return behaviour;}
+export async function preloadNalatiBodies():Promise<void>{if(book===null)throw new Error('Species looks are not prepared');await book.packed.preload();}
 
 /** The crack mesh is generated once against the original skeleton at build time. */
 export function balbalCrackGeometry(): THREE.BufferGeometry { if (crackGeometry === null) throw new Error('Missing balbal crack geometry'); return crackGeometry; }

@@ -1,4 +1,3 @@
-import { parseClientChannels } from '@wildshard/format/clientChannels';
 import { parse as parseSpeciesAdmission } from 'valibot';
 import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
@@ -73,7 +72,8 @@ const { prepareNalatiSpecies,prepareGoldenKing } = await import('../src/shards/n
 const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/catalogue');
 prepareGoldenKing((await import('../src/shards/nalati-grasslands/data/goldenKingPose.generated.json')).default.programs);
 const speciesPresentation = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default;
-await prepareNalatiSpecies(parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation), Object.values(speciesPresentation.poses).flatMap(pose => parseClientChannels(pose.programs)), Uint8Array.from(speciesPresentation.crackBytes));
+const { HullLookBook: NalatiHullBook } = await import('../src/game/looks/speciesBook');
+await prepareNalatiSpecies(parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation), new NalatiHullBook(speciesPresentation.hullBook), speciesPresentation.looks, Uint8Array.from(speciesPresentation.crackBytes));
 installNalatiSpeciesForTests();
 // Production uses the packed-body host; preload its exact binary through its normal fetch port.
 const { preloadNalatiBodies } = await import('../src/shards/nalati-grasslands/species/presentation');

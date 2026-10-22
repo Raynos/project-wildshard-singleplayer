@@ -7,7 +7,7 @@ import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { Rng } from '../src/engine/core/rng';
 import { nalatiLooks } from '../src/shards/nalati-grasslands/species/catalogue';
-import { animateGoldenKing, speciesLookBook } from '../src/shards/nalati-grasslands/species/presentation';
+import { animateGoldenKing, nalatiBehaviour } from '../src/shards/nalati-grasslands/species/presentation';
 import { animateKing } from './fixtures/nalati-king-pose';
 
 const names = ['body', 'spine', 'chest', 'head', 'crown', 'cape', ...['L', 'R'].flatMap(side =>
@@ -92,7 +92,7 @@ test('balbal decisions rise, strike once, return and sink on the bounded guest t
 
 test('packed species bodies lend owned indexed geometry for every family', () => {
   for (const look of nalatiLooks()) {
-    const row = speciesLookBook().rows.find(candidate => candidate.kind === look.kind), variant = row?.variants[0], build = look.build;
+    const row = nalatiBehaviour().rows.find(candidate => candidate.kind === look.kind), variant = row?.variants[0], build = look.build;
     if (variant === undefined) throw new Error('Missing species variant');
     const first = build(variant, new Rng(1)), second = build(variant, new Rng(1));
     expect(first.bones.length).toBeGreaterThan(0);
