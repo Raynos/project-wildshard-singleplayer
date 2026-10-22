@@ -25,9 +25,13 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   and serializes Git's shared files with one short lock. Git commits only the named files and preserves unrelated
   shared stages. Name literal files, never a directory. A named file's entire working copy is committed: agree
   with its owner if it also contains another lane's hunk. Direct commits and private-index landings are retired.
+  For shared files use `scripts/commit.sh --patch <file.patch> "message" -- <files...>`: an exact patch applies
+  to HEAD under the same lock, rejects undeclared paths, and leaves both working files and the shared index
+  untouched. Stale patches refuse. Patched source differing from the working copy is checked at pre-push.
   Pre-commit runs storage policy and one native oxlint invocation for TypeScript diagnostics and typed lint on
   changed source, with a soft five-second budget. Timeout warns and hands those exact staged blobs' typed checks
-  to pre-push; actual errors still refuse. No mirror, generator, build or test runs at commit.
+  to pre-push; actual errors still refuse. Missing verified generated inputs defer typed checks to full CI
+  explicitly. No mirror, generator, build or test runs at commit.
   Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
   60 seconds. Lanes commit their green source; `scripts/push-main.sh` requests one scheduled tick when needed.

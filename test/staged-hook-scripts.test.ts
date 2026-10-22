@@ -34,6 +34,11 @@ test('the cheap checker actually refuses types and lint without a mirror or gene
     expect(() => precommitInputs(root, executable)).toThrow();
     writeFileSync(file, 'export const value: number = 2;\n'); git('add', '--', 'unit.ts');
     expect(() => precommitInputs(root, executable)).not.toThrow();
+    // --patch mode's staged source must not lint a foreign working version.
+    writeFileSync(file, 'export const value: number = "foreign";\n');
+    expect(() => precommitInputs(root, executable)).not.toThrow();
+    expect(JSON.parse(readFileSync(resolve(root, '.git/push-deferred-types.json'), 'utf8')))
+      .toEqual({ 'unit.ts': [execFileSync('git', ['rev-parse', ':unit.ts'], { cwd: root, env, encoding: 'utf8' }).trim()] });
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

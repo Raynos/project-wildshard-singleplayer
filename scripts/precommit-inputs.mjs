@@ -19,12 +19,7 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..'), execu
     return !pattern.slice(0, -1).includes('/') && path.includes(`/${pattern}`);
   }));
   if (files.length === 0) return;
-  const result = spawnSync(executable, ['--type-check', '--type-aware', '-c', '.oxlintrc.json', ...files],
-    { cwd: root, encoding: 'utf8', timeout: 5_000 });
-  const output = (result.stdout ?? '') + (result.stderr ?? '');
-  if (output !== '') console.error(output.trimEnd());
-  if (result.error !== undefined && 'code' in result.error && result.error.code === 'ETIMEDOUT'
-    && !/\berror (?:[a-z]+\(|[a-z]+\/)/u.test(output)) {
+  const defer = () => {
     const common = git(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim();
     const path = resolve(common, 'push-deferred-types.json');
     const pending = existsSync(path) ? v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(path, 'utf8'))) : {};
@@ -35,6 +30,19 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..'), execu
     }
     const temporary = `${path}.${process.pid}`;
     writeFileSync(temporary, JSON.stringify(pending)); renameSync(temporary, path);
+  };
+  if (git(['diff', '--name-only', '--', ...files]).trim() !== '') {
+    defer();
+    console.warn('pre-commit: patched source differs from working files; exact staged typed checks run at pre-push');
+    return;
+  }
+  const result = spawnSync(executable, ['--type-check', '--type-aware', '-c', '.oxlintrc.json', ...files],
+    { cwd: root, encoding: 'utf8', timeout: 5_000 });
+  const output = (result.stdout ?? '') + (result.stderr ?? '');
+  if (output !== '') console.error(output.trimEnd());
+  if (result.error !== undefined && 'code' in result.error && result.error.code === 'ETIMEDOUT'
+    && !/\berror (?:[a-z]+\(|[a-z]+\/)/u.test(output)) {
+    defer();
     console.warn('pre-commit: typed check exceeded the soft 5 s budget; these exact files must pass at pre-push');
   } else if (result.status !== 0) throw result.error ?? new Error('Commit type/lint check refused');
   if (git(['diff', '--name-only', '--', ...files]).trim() !== '') throw new Error('Commit inputs changed during checks; retry');

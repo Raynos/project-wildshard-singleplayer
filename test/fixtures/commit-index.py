@@ -48,6 +48,31 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     b = subprocess.Popen(['scripts/commit.sh', 'fixture B', '--', 'b.txt'], cwd=root, env=env)
     assert a.wait(timeout=10) == 0 and b.wait(timeout=10) == 0
     assert set(git('log', '-2', '--format=%s').splitlines()) == {'fixture A', 'fixture B'}
+    # A patch commits only our lines from HEAD; both peer stages and the
+    # same file's other working hunks remain byte-identical.
+    put('shared.txt', 'own=base\npeer=base\n')
+    subprocess.run(['scripts/commit.sh', 'fixture shared base', '--', 'shared.txt'], cwd=root, env=env, check=True)
+    put('shared.txt', 'own=ours\npeer=base\n')
+    patch = root / 'own.patch'
+    patch.write_text(git('diff', '--', 'shared.txt') + '\n')
+    put('shared.txt', 'own=ours\npeer=foreign\n')
+    index = (root / '.git/index').read_bytes()
+    working = (root / 'shared.txt').read_bytes()
+    head = git('rev-parse', 'HEAD')
+    refused = subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture wrong scope', '--', 'peer.txt'],
+                             cwd=root, env=env, capture_output=True)
+    assert refused.returncode != 0 and git('rev-parse', 'HEAD') == head
+    subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture patch', '--', 'shared.txt'], cwd=root, env=env, check=True)
+    assert git('show', 'HEAD:shared.txt') == 'own=ours\npeer=base'
+    assert (root / '.git/index').read_bytes() == index
+    assert (root / 'shared.txt').read_bytes() == working
+    head = git('rev-parse', 'HEAD')
+    stale = subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture stale', '--', 'shared.txt'],
+                           cwd=root, env=env, capture_output=True)
+    assert stale.returncode != 0 and git('rev-parse', 'HEAD') == head
+    assert (root / '.git/index').read_bytes() == index
+    assert (root / 'shared.txt').read_bytes() == working
+    assert list((root / '.git').glob('commit-patch.*')) == []
     # The storage check still reads this pathspec's staged object and refuses it.
     shutil.copy2(source / 'scripts/repo-size.mjs', root / 'scripts/repo-size.mjs')
     put('scripts/storage-policy.json', json.dumps({'schemaVersion': 1, 'maxBlobBytes': 1000000,
@@ -62,5 +87,5 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     refused = subprocess.run(['scripts/commit.sh', 'fixture oversize', '--', 'oversized.txt'],
                               cwd=root, env=env, text=True, capture_output=True)
     assert refused.returncode != 0 and '1.00 MB blob cap' in refused.stderr + refused.stdout, refused
-    print(json.dumps({'pathspec': 'passed', 'concurrent': 'passed', 'storageRefusal': 'passed',
+    print(json.dumps({'pathspec': 'passed', 'patchIsolation': 'passed', 'concurrent': 'passed', 'storageRefusal': 'passed',
                       'commitSeconds': round(first_seconds, 3)}))
