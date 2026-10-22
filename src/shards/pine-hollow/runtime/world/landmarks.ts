@@ -19,8 +19,11 @@ import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { installPageLife } from '@wildshard/game/population/pageLife';
 import { installForestWeather } from '@wildshard/game/weather/forest';
 import { pageModeCap } from '@wildshard/game/shard/pagePolicy';
-import pagePolicy from '../../data/pagePolicy.json' with { type: 'json' };
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
+
+/** The cave's page-mode texture cap (data/pagePolicy.json setCap; runtime code never imports shard data files). Moves to
+ * the world.forest-page client feature's inline cap rows with the rest of this file (G571). */
+const CAVE_CAP = { shard: null, grid: { through: 1024, max: 512 } } as const;
 
 export class PineLandmarks {
   readonly group = new THREE.Group();
@@ -33,7 +36,7 @@ export class PineLandmarks {
   async build(): Promise<this> {
     const product = await loadFirstPartyProduct('pine-hollow');
     // the cave, its textures and its roof patch
-    this.crags = { cave: await CaveInterior.load(await product.json('world/cave-interior.json'), pageModeCap(pagePolicy.setCap, TIER_CONFIG.maxTexture)) };
+    this.crags = { cave: await CaveInterior.load(await product.json('world/cave-interior.json'), pageModeCap(CAVE_CAP, TIER_CONFIG.maxTexture)) };
     const cragFx = new THREE.Group(); cragFx.name = 'pine-crags';
     this.crags.cave.buildFx(); cragFx.add(...this.crags.cave.fx); this.group.add(cragFx);
     return this;
