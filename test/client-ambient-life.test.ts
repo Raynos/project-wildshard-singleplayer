@@ -93,3 +93,16 @@ test('retiring during the inner fish library read stops before preload or a seco
     expect(f.read.mock.calls.map(call => call[0])).toEqual(['fixture', 'library']);
   } finally { f.dispose(); }
 });
+
+
+test('two owner ids cannot make the same real draw tick twice', async () => {
+  const f = fixture(); f.publish();
+  publishEntryOwner(f.owner, 'ambient-draw', 'same.gulls', f.draw);
+  lendEntryOwner(f.scope, f.owner, 'ambient-draw', 'same.gulls');
+  try {
+    await expect(installClientAmbientLife(f.ctx, { ...bindings, flocks: [
+      ...bindings.flocks, { id: 'second', owner: 'same.gulls' },
+    ] })).rejects.toThrow('Duplicate borrowed ambient draw');
+    expect(f.read).not.toHaveBeenCalled(); expect(f.system).not.toHaveBeenCalled();
+  } finally { f.dispose(); }
+});

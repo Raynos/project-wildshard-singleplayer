@@ -18,6 +18,7 @@ export async function installClientAmbientLife(ctx: ShardContext, rows: AmbientL
   const ids = new Set(rows.flocks.map(row => row.id));
   if (ids.size !== rows.flocks.length) throw new Error('Duplicate borrowed ambient id');
   const loans = rows.flocks.map(row => ({ ...row, draw: entryOwner(ctx.scope, 'ambient-draw', row.owner) }));
+  if (new Set(loans.map(row => row.draw)).size !== loans.length) throw new Error('Duplicate borrowed ambient draw');
   const current = (): void => {
     live();
     for (const row of loans) if (entryOwner(ctx.scope, 'ambient-draw', row.owner) !== row.draw) throw new Error('Ambient draw owner changed during entry');
