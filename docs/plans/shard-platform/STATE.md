@@ -1,30 +1,26 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Order (G596/G598):** live reds → Nine and Nalati to zero (C1/C5/C6, GLSL→graphs, WASM view lane) → Pine/DW
-readiness (oneFrameLooks) + crossing. G597: Jake picks WASM vs host per item; nothing host-shaped lands before.
-G594 host findings are HOST-AUDIT, later. Rows: nine-nalati-zero / c1-c5-c6-zero mini plans.
+**Order (G596/G598):** live reds → Nine and Nalati to zero → Pine/DW readiness (oneFrameLooks) + crossing. Every
+Nine/Nalati/C1/C5/C6 item is picked (G599 Nine, G600 Nalati, G601 C1/C5/C6); G597 hold lifted. Only Jake-picked hosts
+get HOST-BAR lines, citing their pick. G594 host findings are HOST-AUDIT, later.
 
-**Census:** Pine, DW, _template, ink-cel 0 (G572). Nalati ~4,038 (charged 3,197), Nine ~1,390; open-plots 19.
+**Census:** Pine, DW, _template, ink-cel 0 (G572). Nalati ~4,030 (charged ~3,197), Nine ~1,390; open-plots 19.
 
 **Live:** df1f564b26 (15:53Z). Builds with 0545c34b86 but without cc7adf7232 (Nine load fix) are held.
 
-**Lanes:** Nine: sp-o4 N1 post-graph, sp-o5 N2/N3 + Nine sweep, sp-x8 dead tools then ND. Nalati: sp-x1 C5 data,
-sp-x9 C6 dead/data, sp-x6 boot/geography data, sp-o2 LH figure rows. Readiness: sp-o3 Pine 316.7 ms, sp-o1 DW 250 ms;
-sp-x1 re-latches. Crossing default-on landed dce1dd8ca2 (Sim peak 1,771 MB, 29 MB under 1.8 GB; blocked 157 -> 0).
+**Rows by lane (critical path first: H4 observations + dismount/ignite/impulse commands, the L7 view-target adapter):**
+- sp-x9: H4 obs + commands → C9 HeldClaims slot rows (delete declaredMelee, mounted.ts, Nine branch) → L5 wildlife AS.
+- sp-o3: L7 generic engine view-target adapter (DW sway + Nalati) + Nalati views + reins card; L7b ProjectedTrail.
+- sp-x1: L4 + C7 ENGINE elite feature (eliteRosterPage dissolves) → C8 carry-to-goal host → L9 taming AS.
+- sp-x8: L3 generic cell-field host → C11 course merge → ND Nine flip (after N1-N3) → LB Nalati entry LAST.
+- sp-x6: C3 terrain data + thin channel reader, HeightPatch, river row → L2 Titan WASM → L6 grass senses host.
+- sp-o1: C1 Nine world build baked to multi-user hosts (no one-user stages; lions = placements) + C2 volume textures.
+- sp-o4: N1 post-graph platform → L1 Nalati painterly + grade on it.
+- sp-o5: N2 channel rows + N3 facade/specimen data → C10 held-view host (graphArms + toonArms).
+- sp-o2: L8 species data/WASM (shapeBook→fixedDraws, SpeciesLookBook→Pine hull book) → C5 spruce + camp people.
+- Kept as Jake-approved one-user hosts: C4 sceneDressing, C6 timedEncounters. sp-x7: release.
 
 **Rules:** G492; never herdr wildshard-v; no net-0 moves or relabels (G571).
 
-**For wildshard-v, G597 picks for Jake (WASM/data vs host):**
-- DECIDED G599 (Nine): N1 (needs Nalati grade too), N2, N3, N4 (done 4154bf8d5a), then ND.
-- sp-o3: seatedFigure (487c74c60c, 2-6 Y); Nalati look/* glue, spruceView, species presentation; N1d camp people
-  ('atlas-figure' Explorer kind ~15 lines), shepherd (list mountedSpecimen).
-- fd674f4d4b nightView -> game/boss/timedEncounters (moved-file pattern you flagged).
-- sp-o1 Nine world/build rest (Nine -113 today): kit meshes + far cull (bakedKits drafted), facade copies + shell as
-  section draws, light volumes + Shared uniforms, movers projection advance, named-place sets.
-- sp-x6 N1e terrain-channel host (+51). 66e07696e9 WorldAssembly scene-only reshape (landed before G597).
-- sp-x1 C5 (~200): N5a eliteRosterPage 122 finite-roster owner; N5b carriedProp 73 via a view-lane object target.
-- sp-x9 C6: N6a declared-loadout host, N6b course merge.
-- sp-o2: LG folded: Slot/PatrolEncounterView (~300), elitePage controllers, crowdPage bridge go with LE1/LE2/LF picks;
-  ribbons (reins, clientTrails, ProjectedTrail ~110): new clientChannels ribbon kernel vs TS view adapter.
-- sp-o4 E2 Nalati: (a) per-instance graph params (wedge/ghost), (b) grade graph effect, (c) static-capture graph chunk.
-**Open (priority 3):** a neighbour build inside active Pine ~99 s (Pine->DW 7 s, DW->Pine 17 s); readiness looks.
+**Open (priority 3, unowned):** Pine 316.7 ms / DW 250 ms oneFrameLooks (sp-o1's notes); in-Pine neighbour build
+~99 s (sp-o2's notes). Crossing default-on landed dce1dd8ca2 (Sim peak 1,771 MB, 29 MB under 1.8 GB; Jake's phone check).
