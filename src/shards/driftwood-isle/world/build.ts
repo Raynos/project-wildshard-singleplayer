@@ -79,12 +79,11 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
   // SF46 (G164): lowered with everything else, it stays moored by the pier
   // its mooring lines: one static mesh whose cleat ends rise with the hull's heave less each cleat's z times sin(pitch) (its look)
-  const boatPlaced = await scenes.place('harbour.boat'), ropes = scenes.mesh('moorings.mesh'), [bowZ, sternZ] = fixed.boat.cleats, lift: [number, number] = [0, 0];
-  const boat = { placed: boatPlaced, group: boatPlaced.object, ropes, floorHeightAt: (x: number, z: number) => scenes.floorAt('harbour.boat', x, z),
+  await stages.next('boat');
+  const boatPlaced = only('boat'), ropes = scenes.mesh('moorings.mesh'), [bowZ, sternZ] = fixed.boat.cleats, lift: [number, number] = [0, 0];
+  const boat = { placed: boatPlaced, group: boatPlaced.object, ropes, floorHeightAt: entryOwner(scope, 'floor', 'boat'),
     refreshPose: () => { const heave = boatPlaced.object.position.y - fixed.boat.spec.waterY, pitch = Math.sin(boatPlaced.object.rotation.x);
       lift[0] = heave - bowZ * pitch; lift[1] = heave - sternZ * pitch; setLentParam(MOOR_LOOK, 'moor', lift); } };
-  game.scene.add(ropes);
-  await complete('Boat');
   // faceted shore boulders along the beach
   // Keep the model's authored copy facts over the finished world draw.
   await stages.next('shore');
@@ -98,9 +97,10 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await stages.next('wreck');
   const wreck = { group: entryOwner(scope, 'object', 'wreck'), placed: entryOwner(scope, 'placed', 'wreck'), anchors: structuredClone(wreckBake.anchors), holdBounds: { ...wreckBake.holdBounds }, floorHeightAt: entryOwner(scope, 'floor', 'wreck') };
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
-  const shrine = await stage('Shrine', async () => {
-    const ctx = sharedModelContext(sky, game), { baseY, terrace } = fixed.shrine.world;
-    const placed = sites.site('shrine', 'world', ctx, registry);
+  await stages.next('shrine');
+  const shrine = await (async () => {
+    const { baseY, terrace } = fixed.shrine.world, placed = { group: entryOwner(scope, 'object', 'shrine'), placed: only('shrine'),
+      anchors: entryOwner(scope, 'site', 'shrine'), floorHeightAt: entryOwner(scope, 'floor', 'shrine') };
     const resources = scenes, graph = driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, lit = hasLentLook(graph);
     resources.publish('shrine.root', placed.group);
     placed.group.add(createBuildingCloud(resources, { geometry: resources.lend(fixedDraw('shrineFireflies').copy()), material: lit ? resources.lend(lentLook(graph)) : null,
@@ -108,7 +108,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await driftwoodProduct().file('world/building-life.json'))));
     const life = new LivingBuildings(resources, data.look); life.add(data.life); life.setDusk(data.initialDusk); life.update(0);
     return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
-  });
+  })();
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   for (const row of assembly.piers.slice(1)) await stages.next(row.id);
   await slice();
@@ -179,8 +179,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  publishEntryOwner(scope, 'placed', 'boat', [boat.placed]);
-  publishEntryOwner(scope, 'placed', 'shrine', [shrine.placed]);
   publishEntryOwner(scope, 'placed', 'bridge', [bridge.placed]);
   publishEntryOwner(scope, 'placed', 'cover', cover.placed);
   return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };

@@ -58,8 +58,8 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     WorldAssembly.lend(ctx.product.section('custom/worldStages'), resident ?? ctx.scope, ctx.scope);
     if (resident !== undefined) {
-      for (const id of ['boat', 'shrine', 'bridge', 'cover']) entryOwner(resident, 'placed', id);
-      for (const id of ['boat', 'shrine', 'bridge', 'cover']) lendEntryOwner(ctx.scope, resident, 'placed', id);
+      for (const id of ['bridge', 'cover']) entryOwner(resident, 'placed', id);
+      for (const id of ['bridge', 'cover']) lendEntryOwner(ctx.scope, resident, 'placed', id);
     }
     if (resident !== undefined) {
       lendEntryOwner(ctx.scope, resident, 'ambient', 'driftwood.gulls');

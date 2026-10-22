@@ -23,6 +23,8 @@ export function driftwoodWorldEntry(): WorldEntryRows {
     palms: foliage('palms', 'palms.mesh', () => undefined),
     // the wreck and its cargo, drift logs and reef rocks (generators/worldPlacements.ts), then its root into the world
     wreck: [...['wreck.ship', 'wreck.barrels', 'wreck.crates', 'wreck.coils', 'wreck.logs', 'wreck.reef'].map(id => ({ kind: 'place', id })), { kind: 'attach', id: 'wreck.root', as: 'group' }],
+    // the sailboat moored by the pier and its mooring lines (their look lifts the cleat ends with the hull, world/build.ts)
+    boat: [{ kind: 'place', id: 'harbour.boat' }, { kind: 'attach', id: 'moorings.mesh', as: 'mesh' }],
     shore: [{ kind: 'place', id: 'rocks.shore.copies' }, { kind: 'attach', id: 'rocks.shore', as: 'mesh', nameAfter: 'rocks.shore.copies' }],
     // the declared entry landings (the shardfile's socket-landing proof, as declared: solid stone at road height), then the
     // road decks that carry each on over the water (generators/worldPlacements.ts)
