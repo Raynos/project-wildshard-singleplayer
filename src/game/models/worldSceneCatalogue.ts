@@ -82,7 +82,8 @@ const tierNumber = (value: NonNullable<Draw['until']>, source: Sources | undefin
 const tierFlag = (value: Draw['castShadow'], source: Sources | undefined): boolean => typeof value === 'boolean' ? value
   : 'knob' in value ? plumbingKnob(source?.plumbing, buildTier(), value.knob, 'boolean', TIER_CONFIG) : value[buildTier()];
 const surfaces = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] as const;
-const requireLive = (owner: Scope): void => { if (owner.disposed) throw new Error('Scene model owner is not live'); };
+// a retiring owner (or one under a retiring ancestor) is teardown too: no read or publication after it
+const requireLive = (owner: Scope): void => { if (owner.disposed || owner.disposing) throw new Error('Scene model owner is not live'); };
 const colliders = (rows: readonly unknown[]) => readColliderRows(rows, { kinds: ['box', 'treads', 'capsule', 'ball', 'hull', 'trimesh'], surfaces });
 const same = (a: unknown, b: unknown): boolean => {
   if (a === b) return true;

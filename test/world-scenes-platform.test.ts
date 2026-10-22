@@ -571,3 +571,45 @@ test('a cold card reads a pool part from its declared file only, exactly as the 
     warm.dispose();
   } finally { file.mockRestore(); product.mockRestore(); owner.dispose(); context.scope.dispose(); material.dispose(); }
 });
+
+test('a cold pool card under a retiring cell reads nothing more and publishes no geometry once its preload returns', async () => {
+  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { CAST_BLOBS, CAST_SOURCES }] = await Promise.all([
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
+    import('../src/format/worldSceneModels'), import('../src/shards/nine-dragon-stack/generators/castSources'),
+  ]);
+  const context = fixture(), cell = new Scope('cell'), owner = cell.child('pool-card'), ctx = modelContext(null), base = section();
+  const pool = CAST_SOURCES.find(row => row.files.some(entry => entry.parts.includes('lion')));
+  const lionFile = pool?.files.find(entry => entry.parts.includes('lion'))?.file;
+  if (pool === undefined || typeof lionFile !== 'string') throw new Error('Missing the lion cast pool');
+  const blobs = new Map(CAST_BLOBS.map(row => [row.file.name, row.bytes]));
+  const rows = parseWorldScenes({ ...base, libraries: [...base.libraries, pool], catalogue: 'models/catalogue.json' });
+  const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'lion', id: 'fixture-harbour/lion', name: 'Lion', category: 'props', pipeline: 'trellis', file: 'casts.json', defaults: {},
+    assembly: 'parts', choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'main', library: pool.id, model: 'lion', material: 'paint' }] }] }] };
+  // the lion's pool file arrives only after its cell starts retiring
+  let release = (): void => undefined;
+  const held = new Promise<void>(resolve => { release = resolve; }), reads: string[] = [], oldFile = context.product.file.bind(context.product);
+  const file = vi.spyOn(context.product, 'file').mockImplementation(async name => {
+    reads.push(name);
+    if (name === 'models/catalogue.json') return new TextEncoder().encode(JSON.stringify(catalogueRows));
+    if (name === lionFile) await held;
+    return blobs.get(name) ?? oldFile(name);
+  });
+  Object.assign(context.product, { section: () => rows });
+  const product = vi.spyOn(runtimeProducts, 'loadFirstPartyProduct').mockResolvedValue(context.product);
+  const material = new MeshStandardMaterial();
+  bindWorldSceneModelSources(ctx, 'fixture-harbour', { catalogue: parseWorldSceneModels(catalogueRows), geometries: new Map(), materials: new Map([['paint', material]]) }, context.scope);
+  try {
+    const built = withOwner(owner, () => defineWorldSceneCatalogue(catalogueRows).model('lion').build(ctx, {}, new Rng(1)));
+    if (!(built instanceof Group)) throw new Error('Missing loading specimen');
+    await vi.waitFor(() => { expect(reads).toContain(lionFile); });
+    cell.onDispose(() => undefined);
+    const steps = cell.disposeSteps(); steps.next();
+    expect(owner.disposing).toBe(true);
+    const before = reads.length;
+    release();
+    await new Promise<void>(resolve => { setTimeout(resolve, 50); });
+    expect(reads).toHaveLength(before); expect(built.children.some(child => child instanceof Group)).toBe(false);
+    for (let step = steps.next(); step.done !== true; step = steps.next()) { /* finish the retirement */ }
+    expect(built.children.some(child => child instanceof Group)).toBe(false);
+  } finally { file.mockRestore(); product.mockRestore(); cell.dispose(); context.scope.dispose(); material.dispose(); }
+});
