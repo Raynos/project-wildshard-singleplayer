@@ -23,8 +23,9 @@ import { loadingUnits } from '@wildshard/engine/boot/waits';
  *   walls until M3.
  */
 import { Vector3, type PerspectiveCamera } from 'three';
-import { retainRendererPrograms, RETAINED_PROGRAM_BYTES, RETAINED_PROGRAM_LIMIT } from '@wildshard/engine/render/programRetention';
+import { createProgramKeeper, retainRendererPrograms, RETAINED_PROGRAM_BYTES, RETAINED_PROGRAM_LIMIT, type ProgramKeeper } from '@wildshard/engine/render/programRetention';
 import { installBootProgramChoice } from './bootPrograms';
+import { installShaderWarmChoice } from './keptPrograms';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -135,6 +136,8 @@ export interface LiveGridSessionPorts {
 /** The readout: the live host's crossing telemetry, the crossing coordinator and the safe-zone state. */
 export interface LiveGridSessionState {
   readonly bootPrograms: { readonly instance: string; readonly graphs: number; readonly programs: number; readonly elapsedMs: number; readonly chargedBytes: number } | null;
+  /** G580 T2: the distinct compiled programs kept across retired cells (null: the Developer row is off) */
+  readonly keptPrograms: number | null;
   readonly live: LiveGridState; readonly crossing: GridCrossingState; readonly stowed: boolean; readonly renderOrigin: { x: number; z: number };
   /** Entered hook intervals in the same performance clock as browser long tasks. */
   readonly runtimeTiming: ReturnType<HybridRuntimeSession['timings']>;
@@ -208,6 +211,9 @@ export class LiveGridSession {
   private readonly startedRuntimes = new Set<string>();
   private activation: Promise<boolean> | undefined;
   private bootPrograms: LiveGridSessionState['bootPrograms'] = null;
+  /** G580 T2: the Developer choice, read at construction; the keeper is made at the first retirement */
+  private readonly keepsPrograms: boolean;
+  private keeper: ProgramKeeper | null = null;
   readonly bootProgramCell: string | null;
   private checkpointsSuppressed = false;
   /** The periodic autosave in flight: one stage a frame, superseded by any direct checkpoint (rt3-freeze). */
@@ -228,6 +234,7 @@ export class LiveGridSession {
       const manifest = findShard(cell.slug);
       return manifest?.trustedRuntime === undefined ? [] : [{ instance: cell.instance, label: manifest.name }];
     }));
+    this.keepsPrograms = installShaderWarmChoice(scope) !== 'off';
     const traveller = page.traveller;
     // Register the resident parent before the live host disposer: the traveller returns before native children free.
     this.runtimeScope = scope.child('grid.runtime.residents');
@@ -266,6 +273,7 @@ export class LiveGridSession {
       + assembly.cells.length * TRANSFER_WALL_BYTES;
     try { this.live = new LiveGridHost(assembly, {
       continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
+      keepPrograms: instance => { this.keepPrograms(instance); },
       home: page.ownedHome === true ? { mode: 'owned', instance: home.instance, bytes: ports.residency.bytes, residency: ports.residency }
         : { instance: home.instance, physics: ports.physics, bytes: ports.residency.bytes, residency: ports.residency, checkpoint: () => this.checkpointHome(), walls: ports.walls },
       player, allocator: ports.allocator,
@@ -537,6 +545,22 @@ export class LiveGridSession {
     if (failures.length > 0) { owner.dispose(); throw new AggregateError(failures, 'Loading program preparation failed'); }
     this.bootPrograms = { ...selected, programs, elapsedMs: diagnosticNow() - start, chargedBytes: RETAINED_PROGRAM_LIMIT * RETAINED_PROGRAM_BYTES };
     console.info(`[grid loading programs] ${JSON.stringify(this.bootPrograms)}`);
+  }
+
+  /** G580 T2: a retiring cell's compiled programs, kept for the next (Developer row). The keeper and its conservative
+   *  residency charge are made at the first retirement, once the page renderer exists; refused, nothing is kept. */
+  private keepPrograms(instance: string): void {
+    if (!this.keepsPrograms || this.ports.scope.disposed) return;
+    if (this.keeper === null) {
+      const game = this.page.runtimePage?.()?.world.game;
+      if (game === undefined) return;
+      const claim = this.ports.allocator.reserve({ id: 'page:kept-programs', category: 'page', owner: 'platform',
+        bytes: RETAINED_PROGRAM_LIMIT * RETAINED_PROGRAM_BYTES, distance: 0, needed: true });
+      if (claim === null) return;
+      const owner = this.ports.scope.child('grid.kept-programs'); owner.onDispose(() => { claim.release(); });
+      this.keeper = createProgramKeeper(game.renderer, owner, game.camera, game.rootScene);
+    }
+    this.keeper.keep(instance);
   }
 
   /** Initial staging only: admit the owned home after the page play host exists and before its first fixed tick. */
@@ -888,7 +912,7 @@ export class LiveGridSession {
 
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
-    return { bootPrograms: this.bootPrograms, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
+    return { bootPrograms: this.bootPrograms, keptPrograms: this.keeper?.size ?? (this.keepsPrograms ? 0 : null), live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
       hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }

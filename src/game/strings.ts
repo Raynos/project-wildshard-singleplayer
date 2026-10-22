@@ -84,6 +84,10 @@ export const GAME_STRINGS = {
       label: 'Grid programs during loading', off: 'Off',
       note: 'G451 · E435: warm one admitted cell before play. Longer loading; programs stay until page exit. Default off pending a device reading and quiet frame floor; reloads',
     },
+    shaderWarm: {
+      label: 'Grid shader warm-up', off: 'Off', keep: 'Keep programs', held: 'Keep + faster while held',
+      note: 'G580 T2: Keep: a cell leaving keeps its compiled programs (up to 512, oldest cells released first), so a revisit or a shared material links nothing again. Faster while held: also up to 4 programs a frame on Safari while you wait at the wall. Default off pending a device reading; reloads',
+    },
     ended: 'Infinite Wildshard ended unexpectedly last time.',
     waiting: (name: string): string => `${name} · NOT READY FOR GRID`,
     waitingSelect: 'ENTER THROUGH SHARD SELECT',

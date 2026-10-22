@@ -72,6 +72,9 @@ export interface LiveGridPorts {
   maxResidents?: number;
   /** Durable-only factories retain no packed snapshots; admission refuses a factory without a durable read capability. */
   continuations?: 'memory' | 'durable';
+  /** G580 T2: told once before a resident's retirement or unload disposes its world, so its compiled programs can be kept
+   *  for the next world; never refuses a retirement. Absent keeps nothing. */
+  keepPrograms?: (instance: string) => void;
 }
 /** Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. */
 export interface LiveGridState {
@@ -507,6 +510,7 @@ export class LiveGridHost {
     resident.evicting = true; let closed = false;
     return { abort: () => { if (closed) return; closed = true; resident.evicting = false; }, commit: () => {
       if (closed) return; closed = true;
+      this.ports.keepPrograms?.(instance);
       const disposeStart = diagnosticNow();
       try { resident.region.dispose(); this.noteRetirement({ instance, checkpointMs, disposeMs: diagnosticNow() - disposeStart }); }
       catch (error) {
@@ -532,6 +536,7 @@ export class LiveGridHost {
     const checkpointStart = diagnosticNow();
     try { if (!this.checkpoint(instance)) return false; } catch { return false; }
     const checkpointMs = diagnosticNow() - checkpointStart;
+    this.ports.keepPrograms?.(instance);
     resident.evicting = true; this.residents.delete(instance); this.readiness.invalidate(instance);
     const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, workMs: 0, slowestMs: 0, slowest: '', done: false };
     this.retiring.set(instance, record);
