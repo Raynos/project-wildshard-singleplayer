@@ -8,9 +8,9 @@
  * `CellLoading` owns the one scoped screen: it opens on the cell the traveller waits at (or has entered before it is
  * gameplay-ready), steps it at most a few times a second, and fades it out when the cell is ready or left.
  */
-import { Loading } from '@wildshard/engine/ui/Loading';
+import type { CellScreen, CellScreenView } from './cellScreens';
+import type { SoftWallEdge } from './softWallLook';
 import { loadingPath } from '../boot/loadingPaths';
-import { gridPrefetchStatus } from './prefetch';
 
 /** One waiting cell's live admission, read through the grid session's read-only port. */
 export interface CellLoadingInput {
@@ -46,33 +46,33 @@ export function cellLoadingStep(input: CellLoadingInput): CellLoadingStep {
   return { kind: 'step', key: input.hook === 'activate' ? 'enter' : 'warm', detail: `preparing its first frame${running}` };
 }
 
-/** The one scoped loading screen over the cell the traveller waits at. */
+/** Where the waiting cell's screen stands: the edge the traveller meets, the cell's centre and the ground there (home frame). */
+export interface CellScreenPlace { readonly edge: SoftWallEdge; readonly cell: { readonly x: number; readonly z: number }; readonly ground: number }
+/** G578: the waiting cell's steps on its in-world screen (`CellScreen`); the 3D world, the road and the other cells stay live. */
 export class CellLoading {
-  private loading: Loading | null = null;
   private instance: string | null = null;
-  private failed = false;
-  /** the furthest step reached: a region learns it has hooks only when they start, so a row never goes back */
+  /** the step shown: a running hook's own step, else the furthest reached (a region learns it has hooks only when they
+   *  start, so between hooks a row never goes back) */
   private reached = -1;
-  /** Open, step or close the screen from this cell's live state (null: no cell is waiting). */
+  constructor(private readonly screen: Pick<CellScreen, 'show' | 'hide'>, private readonly place: (instance: string) => CellScreenPlace | null) {}
+  /** Show, step or hide the screen from this cell's live state (null: no cell is waiting). */
   step(input: CellLoadingInput | null): void {
     if (input === null || input.instance !== this.instance) this.close();
     if (input === null) return;
-    const step = cellLoadingStep(input);
-    if (step.kind === 'done') { this.close(); return; }
-    if (this.loading === null) {
-      this.loading = new Loading({ id: input.slug, name: input.name }, { scoped: true });
-      this.loading.setPrefetchSource(gridPrefetchStatus);
-      this.loading.setPath(loadingPath('cell')); this.instance = input.instance; this.failed = false; this.reached = -1;
+    const step = cellLoadingStep(input), at = this.place(input.instance);
+    if (step.kind === 'done' || at === null) { this.close(); return; }
+    this.instance = input.instance;
+    const path = loadingPath('cell').steps;
+    if (step.kind === 'step') {
+      const index = path.findIndex(row => row.key === step.key);
+      this.reached = input.hook === null ? Math.max(this.reached, index) : index;
     }
-    if (step.kind === 'failed') { if (!this.failed) { this.loading.scopedFail(step.reason); this.failed = true; } return; }
-    const keys = loadingPath('cell').steps.map(row => row.key), index = keys.indexOf(step.key);
-    if (index >= this.reached) { this.reached = index; this.loading.scopedStep(step.key, step.detail); }
+    const rows = path.map((row, i): CellScreenView['rows'][number] => ({ label: row.label, state: i < this.reached ? 'done' : i === this.reached ? 'now' : 'next' }));
+    const detail = step.kind === 'step' ? step.detail : '';
+    this.screen.show(at.edge, at.cell, at.ground, { name: input.name, rows, detail, failed: step.kind === 'failed' ? step.reason : null });
   }
-  /** The screen's cell (null: none open). */
+  /** The screen's cell (null: none shown). */
   get open(): string | null { return this.instance; }
-  /** Fade the open screen out (it disposes itself when gone). */
-  close(): void {
-    const loading = this.loading; this.loading = null; this.instance = null; this.failed = false;
-    if (loading !== null) void loading.done();
-  }
+  /** Hide the screen. */
+  close(): void { this.instance = null; this.reached = -1; this.screen.hide(); }
 }

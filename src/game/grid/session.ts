@@ -87,6 +87,7 @@ import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type ShardRefusal } from './refusal';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
+import { CellScreen, facingEdge } from './cellScreens';
 import { horizonFade } from './horizonFade';
 
 declare const __GRID_SEAM_PLANS__: readonly (readonly [string, readonly number[][]])[];
@@ -293,7 +294,7 @@ export class GridSession {
   /** each slug's shown name */
   private readonly names = new Map<string, string>();
   /** G555: the one step-by-step loading screen over a cell entry or re-entry that waits */
-  private readonly cellLoading = new CellLoading();
+  private readonly cellLoading: CellLoading;
   private cellLoadingPolled = 0;
   /** when each cell's current wait began, so its screen counts only the hooks of this load */
   private readonly loadingSince = new Map<string, number>();
@@ -411,6 +412,14 @@ export class GridSession {
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
       ports: { closed: (id) => this.live === null || !this.live.live.ready(id) } });
+    // G578: a waiting cell's loading steps on an in-world screen at the edge the traveller faces; the world stays live
+    const screen = new CellScreen(host.scene, host.scope);
+    this.cellLoading = new CellLoading(screen, (waiting) => {
+      const cell = this.neighbours.find(row => row.instance === waiting); if (cell === undefined) return null;
+      const centre = { x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z }, world = this.world();
+      const edge = facingEdge(neighbourEdges(cell, home), centre, world.x - cell.origin.x, world.z - cell.origin.z);
+      return edge === undefined ? null : { edge: { instance: waiting, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }, cell: centre, ground: edge.floor };
+    });
     host.scope.onDispose(() => { this.cellLoading.close(); });
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
