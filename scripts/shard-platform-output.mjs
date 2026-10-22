@@ -42,7 +42,7 @@ function readOutputRuntime(root,slug,products,readSections) {
   if(index.runtime!==null&&'entry' in index.runtime&&!listed.has(index.runtime.entry))throw new Error(`${slug}: missing output runtime entry`);
   const actual=files(resolve(folder,'runtime')).map(file=>relative(folder,file).replaceAll('\\','/'));
   if(actual.length!==listed.size||actual.some(file=>!listed.has(file)))throw new Error(`${slug}: unlisted output runtime file`);
-  const authoredRuntime=files(resolve(root,'src/shards',slug,'runtime')).filter(file=>file.endsWith('.ts')).map(file=>relative(resolve(root,'src/shards',slug),file).replaceAll('\\','/'));
+  const authoredRuntime=files(resolve(root,'src/shards',slug,'runtime')).filter(file=>file.endsWith('.ts')&&!file.includes('.generated.')).map(file=>relative(resolve(root,'src/shards',slug),file).replaceAll('\\','/'));
   if(authoredRuntime.some(file=>!listed.has(file)))throw new Error(`${slug}: output omits authored runtime files`);
 
   return {index,runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
