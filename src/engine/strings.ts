@@ -22,7 +22,7 @@ export const ENGINE_STRINGS = {
   "s_warm_neighbour": "Warm neighbour cell",
   "s_warm_neighbour_off": "Off · one world at a time",
   "s_warm_neighbour_on": "On · build ahead, keep the last",
-  "s_warm_neighbour_note": "G580 T1 · on the grid the approached cell builds whole (its warm-up too) while you are still in the cell you are leaving, and the cell you left stays loaded until you are well away, so crossing between shards is an instant switch. Two shard worlds can be loaded at once (each within its own memory budget)",
+  "s_warm_neighbour_note": "G580 T1 · on the grid the approached cell builds whole (its warm-up too) while you are still in the cell you are leaving, and the cell you left stays loaded until you are well away, so a crossing is an instant switch. Two worlds can be loaded at once (each within its own memory budget)",
   "s_graph_uniforms": "Graph material uniforms",
   "s_graph_uniforms_plain": "Plain uniforms",
   "s_graph_uniforms_blocks": "Uniform blocks · as before",
