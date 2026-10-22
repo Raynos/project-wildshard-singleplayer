@@ -39,7 +39,7 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..'), execu
   }
   const result = spawnSync(executable, ['--type-check', '--type-aware', '-c', '.oxlintrc.json', ...files],
     { cwd: root, encoding: 'utf8', timeout: 5_000 });
-  const output = (result.stdout ?? '') + (result.stderr ?? '');
+  const output = result.stdout + result.stderr;
   if (output !== '') console.error(output.trimEnd());
   if (result.error !== undefined && 'code' in result.error && result.error.code === 'ETIMEDOUT'
     && !/\berror (?:[a-z]+\(|[a-z]+\/)/u.test(output)) {
