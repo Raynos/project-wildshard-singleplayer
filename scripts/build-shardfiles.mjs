@@ -52,15 +52,22 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const runtimeIssues = project => {
     const previous=runtimeChecks.get(project);if(previous!==undefined)return previous;
     const issues = [];
+    /** @type {Set<string>} */
+    const executable = new Set();
     const walk = directory => {
       if (!existsSync(directory)) return;
       for (const file of readdirSync(directory, { withFileTypes: true })) {
         const path = resolve(directory, file.name);
         if (file.isDirectory()) walk(path);
-        else if (file.name.endsWith('.ts')) for (const issue of shardfileBoundaryViolations(root, path.slice(root.length + 1), readFileSync(path, 'utf8')).filter(row => row.rule === 'runtime-standalone')) issues.push({ file: path.slice(project.length + 1), message: issue.message });
+        else if (file.name.endsWith('.ts')) {
+          if (!file.name.endsWith('.d.ts')) executable.add(path);
+          for (const issue of shardfileBoundaryViolations(root, path.slice(root.length + 1), readFileSync(path, 'utf8')).filter(row => row.rule === 'runtime-standalone')) issues.push({ file: path.slice(project.length + 1), message: issue.message });
+        }
       }
     };
-    walk(resolve(project, 'runtime'));runtimeChecks.set(project,issues);return issues;
+    walk(resolve(project, 'runtime'));
+    if (executable.size > 0 && !existsSync(resolve(project, 'runtime/index.ts'))) issues.push({ file: 'runtime/index.ts', message: 'Closed runtime requires its compiled index entry' });
+    runtimeChecks.set(project,issues);return issues;
   };
   const folders = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort((a, b) => a.localeCompare(b));
   // SF88g: a folder with declared outputs (scripts/shard-outputs.mjs) builds one product per output, each to out/<slug>

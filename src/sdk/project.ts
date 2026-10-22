@@ -159,14 +159,15 @@ export async function buildProject(project: string, output?: string, options: { 
   // The decision rows travel with the moves they bind, so a headless admission resolves the same registries as the build.
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard), outputPlatformPayloads(loaded.output.platform));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
-  if (options.copyRuntime === true) {
+  const clientPlan = shard.runtime !== null && !('entry' in shard.runtime);
+  if (options.copyRuntime === true || clientPlan) {
     const root = realpathSync(project), target = resolve(destination);
     if (target === root || target.startsWith(`${root}${sep}`) || root.startsWith(`${target}${sep}`)) throw new Error('Runtime output must be separate from its author project');
   }
   clearOutputProduct(destination);
   let descriptor: ReturnType<typeof writeOutputProduct>;
   try {
-    const runtime = options.copyRuntime === true ? writeRuntimeFiles(project, destination, { check: options.runtimeCheck ?? (() => []), clientPlan: shard.runtime !== null && !('entry' in shard.runtime) }) : undefined;
+    const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination, { check: options.runtimeCheck ?? (() => []), clientPlan }) : undefined;
     if (runtime !== undefined && (shard.runtime === null || !('entry' in shard.runtime)) !== (runtime.entry === undefined)) throw new Error('Copied runtime and trusted runtime declaration must agree');
     descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }) });
     if (runtime !== undefined) await proveRuntimeData(destination, descriptor, loaded.mirrors);
