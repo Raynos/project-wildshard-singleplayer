@@ -1,11 +1,7 @@
 import { StalkerBrain, type PouncerPorts, type HowlerPorts } from '@wildshard/engine/ai/stalker';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import type { SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 
-export function argymaqDefinition(horse: SpeciesDef, base: VariantDef): SpeciesDef {
-  return { ...horse, kind: ecology.argymaq, label: 'Argymaq', variants: [{ ...base, id: 'stallion', label: 'Argymaq the Unbroken', weight: 1, rarity: 'legendary', scale: [1.3, 1.3], hp: 750, traits: { ...base.traits, mane: 2.2, scar: 1 } }] };
-}
 class NativeStalkerKeeper<A extends AnimalSim> {
   constructor(protected readonly policy: StalkerBrain<A>) {}
   tick(a: A | null, dt: number, t: number, engaged: boolean, leashing: boolean): void { this.policy.advance(a, dt, t, engaged, leashing); }
