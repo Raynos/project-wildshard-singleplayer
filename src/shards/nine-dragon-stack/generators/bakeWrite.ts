@@ -17,7 +17,7 @@ function bakedType(attr: BufferAttribute, what: string): BakedType {
   if (a instanceof Uint16Array) return 'u16';
   if (a instanceof Int8Array) return 'i8';
   if (a instanceof Uint8Array) return 'u8';
-  throw new Error(`${what}: an attribute type the bake does not store`);
+  throw new Error(`${what}: unsupported vertex storage`);
 }
 
 /** a geometry writer: `add` appends a geometry's blocks and returns its row; `blocks` are the bytes in order */

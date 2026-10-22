@@ -26,7 +26,7 @@ function parameters(profile) {
 const writer = byteWriter(process.argv.includes('--check'), 'nine-client-rows');
 /** @param {string} path @param {string | Uint8Array} bytes */
 const put = (path, bytes) => { writer.put(fileURLToPath(new URL(`../data/${path}`, import.meta.url)), bytes); };
-put('signView.d.json.ts', `import type { SignModelParams, SignStyle } from './signTypes';\nexport type SignParams = SignModelParams<SignStyle>;\ndeclare const rows: ${shape(draw)};\nexport default rows;\n`);
+put('signView.d.json.ts', `declare const rows: ${shape(draw)};\nexport default rows;\n`);
 const fields = Object.entries(profiles).map(([key, value]) => `readonly ${JSON.stringify(key)}:${'defaults' in value && 'variants' in value ? `SpecimenProfile<${parameters(value)}>` : shape(value)}`);
 put('specimenProfiles.d.json.ts', `import type { SpecimenProfile } from './specimenTypes';\ndeclare const rows: {${fields.join(';')}};\nexport default rows;\n`);
 writer.finish();
