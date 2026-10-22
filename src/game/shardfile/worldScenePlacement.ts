@@ -1,4 +1,4 @@
-import { Matrix4, type Material, Color } from 'three';
+import { Matrix4, type Material, Color, InstancedMesh } from 'three';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -71,6 +71,11 @@ export class WorldScenePlacement {
           ...(row.piece?.follows === undefined ? {} : { follows: row.piece.follows }),
           ...(row.piece?.floors === undefined ? {} : { floor: this.floorAt.bind(this) }),
           ...(row.piece?.split === undefined ? {} : { split: { every: row.piece.split, yieldTask: () => buildYield(this.owner) } }) } }) }));
+    if (row.name !== undefined) {
+      placed.object.name = row.name;
+      const base = placed.object instanceof InstancedMesh ? placed.object : placed.object.children.find(child => child instanceof InstancedMesh);
+      if (base !== undefined) base.name = row.name;
+    }
     await placed.registered;
     await buildYield(this.owner);
     return placed;

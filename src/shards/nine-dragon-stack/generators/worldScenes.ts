@@ -188,7 +188,7 @@ const authoredTurn = (turn: number): number => {
 };
 export const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
   const model = SET_MODELS[name]; if (model === undefined) throw new Error(`Nine set ${name} has no catalogue model`);
-  return { id: `nds-set-${name}`, model, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-set-${name}` },
+  return { id: `nds-set-${name}`, model, name: `set:${name}`, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-set-${name}` },
     poses: frames.map(frame => { const matrix = Array.from({ length: 16 }, (_, k) => record(frame + k));
       return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(name === 'pavilion' ? { params: { turn: authoredTurn(Math.atan2(matrix[8] ?? 0, matrix[0] ?? 1)) } } : {}) }; }) };
 });
@@ -225,28 +225,28 @@ function hungHooks() {
 /** the layout's air conditioners and paper lanterns (world/build.ts places them by id; lanterns per deck ending), each its own
  *  placement file (the section's plain-JSON node budget) */
 export const LAYOUT_PLACEMENTS = [
-  { id: 'nds-inst-ac', model: 'airConBox', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-inst-ac' }, poses: projection.acs.map(words => posed(words)) },
+  { id: 'nds-inst-ac', model: 'airConBox', name: 'inst:ac', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-inst-ac' }, poses: projection.acs.map(words => posed(words)) },
   ...(['open', 'capped'] as const).map(ending => ({ id: `nds-lanterns-${ending}`, model: 'paperLantern', draw: 'instanced' as const, cull: { bounds: 'sphere' as const },
     piece: { id: 'nds-lanterns' }, poses: hungLanterns(ending === 'capped') })),
   // the wall kit: one instanced placement per piece and region, its copies in their own colours
   ...projection.inst.map(([key, copies]) => {
     const piece = key.slice(0, key.indexOf('@')), model = WALL_KIT[piece]; if (model === undefined) throw new Error(`Nine wall kit has no model for ${piece}`);
-    return { id: `nds-inst-${key}`, model, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-inst-${key}` },
+    return { id: `nds-inst-${key}`, model, name: `inst:${key}`, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-inst-${key}` },
       poses: copies.map(copy => posed(copy.matrix, copy.color)) };
   }),
   // the guardian lions at their frames, and the crowd: walkers and mahjong sitters in their colourways, culled from the
   // origin by the far cutoff
-  { id: 'nds-lions', model: 'guardianLion', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-lions' }, poses: worldRows.rows.lions.map(at => posed(frame(at))) },
+  { id: 'nds-lions', model: 'guardianLion', name: 'glb:lion', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-lions' }, poses: worldRows.rows.lions.map(at => posed(frame(at))) },
   // the hook hung on the three Well hooks nearest the square: its ring on the mount's ring, turned out from the wall (the
   // brackets and collision-free ring anchors stay the world's; the grapple aims at the ring)
-  { id: 'nds-fei-zhua-hooks', model: 'feiZhuaHook', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-fei-zhua-hooks' }, poses: hungHooks() },
+  { id: 'nds-fei-zhua-hooks', model: 'feiZhuaHook', name: 'glb:dragon-hook', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-fei-zhua-hooks' }, poses: hungHooks() },
   ...([['walkers', 'umbrellaWalker'], ['sitters', 'mahjongSitter']] as const).map(([group, model]) => ({ id: `nds-crowd-${group}`, model, draw: 'instanced' as const,
     cull: { bounds: 'sphere' as const, from: 'origin' as const, far: lodRows.LOD_FAR }, piece: { id: `nds-crowd-${group}` },
     poses: worldRows.rows.crowd[group].map(row => ({ ...posed(frame(row.matrix)), variant: row.variant })) })),
   // the facade's drawn pieces (the baked shell's are drawn into it): one instanced placement each, small ones within 85 m
   ...worldRows.rows.facade.drawn.map(row => {
     const model = `facade:${row.id}`, name = catalogueName.get(model); if (name === undefined) throw new Error(`Nine facade ${row.id} has no catalogue model`);
-    return { id: `nds-facade-${row.id}`, model, draw: 'instanced' as const, cull: { bounds: 'sphere' as const, ...(row.small ? { far: 85 } : {}) },
+    return { id: `nds-facade-${row.id}`, model, name: `facade-${row.id}`, draw: 'instanced' as const, cull: { bounds: 'sphere' as const, ...(row.small ? { far: 85 } : {}) },
       piece: { id: `nds-facade-${row.id}`, name }, poses: facadePoses(row.poses, row.count) };
   }),
 ];

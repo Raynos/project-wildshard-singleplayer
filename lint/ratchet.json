@@ -1344,7 +1344,6 @@
     "src/shards/nine-dragon-stack/runtime/audio/files.ts": 11,
     "src/shards/nine-dragon-stack/runtime/cull/figureCrowd.ts": 1,
     "src/shards/nine-dragon-stack/runtime/cull/handedBatches.ts": 1,
-    "src/shards/nine-dragon-stack/runtime/cull/placedDraws.ts": 1,
     "src/shards/nine-dragon-stack/runtime/grapple.ts": 2,
     "src/shards/nine-dragon-stack/runtime/items.ts": 4,
     "src/shards/nine-dragon-stack/runtime/jian.ts": 2,

@@ -17,6 +17,9 @@ const cull = v.strictObject({ far: v.exactOptional(tierNumber), keepNear: v.exac
   radiusBias: v.exactOptional(finite), step: v.exactOptional(v.pipe(finite, v.minValue(0))) });
 /** Deferred named placements use the same model/LOD/cull owner as ordinary placed models. */
 export const WorldScenePlacementSchema = v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), model: id, batch: v.exactOptional(id), draw: v.picklist(['single', 'instanced', 'batched', 'merged']),
+  // the drawn name (the budget ruler's lanes, the GPU ruler's groups, the instance culler's LOD names): the placed object's
+  // and its level-0 instanced mesh's
+  name: v.exactOptional(id),
   drawnInto: v.exactOptional(v.strictObject({ part: id, boxes: v.pipe(v.array(finite), v.maxLength(49152), v.check(rows => rows.length % 6 === 0)) })),
   poses: v.pipe(v.array(pose), v.maxLength(8192)), cull: v.exactOptional(cull), sortObjects: v.exactOptional(v.boolean()),
   colliders: v.exactOptional(v.pipe(v.array(v.pipe(v.unknown(), v.check(isJsonData, 'Placement colliders require plain JSON'))), v.maxLength(32768))),
