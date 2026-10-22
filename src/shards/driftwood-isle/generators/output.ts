@@ -27,7 +27,7 @@ import authoredSpots from '../data/spotsRows.json' with { type: 'json' };
 import { CHAPTER_DIRECTOR } from './chapterDirector';
 import { PAGE_LIFE } from './pageLife';
 import { parse } from 'valibot';
-import { CoverCompositionSchema } from './sections';
+import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import coverComposition from '../data/coverComposition.json' with { type: 'json' };
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };

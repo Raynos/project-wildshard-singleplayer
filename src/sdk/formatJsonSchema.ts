@@ -1,3 +1,4 @@
+import { StreamedCoverSchema } from '@wildshard/format/streamedCover';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { SpeciesActorsFileSchema } from '@wildshard/format/speciesBookRows';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
@@ -156,6 +157,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'streamedCover.StreamedCover': StreamedCoverSchema,
   'practiceCourseRows.PracticeScene':PracticeSceneSchema,
   'practiceCourseRows.RidingPractice':RidingPracticeSchema,
   'mountedSpecimenRows.MountedSpecimenSeat': MountedSpecimenSeatSchema,

@@ -1,3 +1,4 @@
+import { StreamedCoverSchema } from './streamedCover';
 import { AmbientFlockSchema } from './ambientLife';
 import * as v from 'valibot';
 import { BuildingCloudPoseSchema } from './buildings';
@@ -18,12 +19,16 @@ const label = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
  * (a scene part) and its `floor` (the compiled floor of one of its unconditional place rows).
  * `rope-deck` borrows loaded fixed draws to place a site and publish object/placed/floor/rope-deck loans;
  * `rope-chain` allocates from an earlier deck at its later stage, registers only fixed-post capture and publishes a
- * chain loan. An ambient-flock stage borrows loaded draws and clones the original lent material to construct
+ * chain loan. A streamed-cover stage keeps original pre-read cells and native update/viewer authority,
+ * reads its existing composition before one placement, and publishes object/placed loans without a second intake.
+ * An ambient-flock stage borrows loaded draws and clones the original lent material to construct
  * one flock draw, publishing object/ambient-draw/ambient loans without installing an updater. A site life descriptor runs after that site's existing slice, creating its cloud before reading
  * the existing building-life file and publishing its concrete buildings loan. It adds no progress step. Per-frame interpolation stays with its existing entered owner. No row selects a phase or callback.
  */
 export const WorldAssemblyStageSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('place'), id, label }),
+  v.strictObject({ kind: v.literal('streamed-cover'), id, label, rows: StreamedCoverSchema, file: v.pipe(id, v.regex(/\.json$/)), placement: id,
+    draws: v.pipe(v.record(id, id), v.maxEntries(64)), object: id, system: id }),
   v.strictObject({ kind: v.literal('ambient-flock'), id, label, rows: AmbientFlockSchema,
     draw: v.strictObject({ slot: id, look: id, castShadow: v.boolean() }), perches: v.pipe(v.array(v.strictObject({ x: finite, y: finite, z: finite })), v.maxLength(4096)) }),
   v.strictObject({ kind: v.literal('rope-deck'), id, label, site: RopeDeckSiteSchema, span: RopeDeckSpanSchema }),

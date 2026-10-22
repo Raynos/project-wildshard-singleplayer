@@ -1,8 +1,12 @@
+import type { Vector3 } from 'three';
+import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
+import { createStreamedCover } from '../looks/streamedCover';
+import { toonLightingOf } from '../looks/toonLighting';
 import { createAmbientFlock } from '../ambient/ambientFlock';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { LivingBuildings } from './livingBuildings';
 import { createBuildingCloud } from './buildingCloud';
-import { hasLentLook, lentLook } from './lentLooks';
+import { hasLentLook, lentLook, lentToon } from './lentLooks';
 import type { ShardProduct } from './shardProduct';
 import { RopeDeckSite } from '../models/ropeDeckSite';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
@@ -31,6 +35,8 @@ export interface WorldAssemblyPorts {
   readonly draws?: FixedDraws;
   /** The original admitted product reader; site life never creates an intake. */
   readonly product?: Pick<ShardProduct, 'file'>;
+  /** The original early-read cells, native viewer and Game registration receiver. */
+  readonly cover?: { readonly cells: Uint8Array; readonly viewer: () => Vector3; readonly updates: Pick<Game, 'onUpdate'> };
   /** Original simulation and fixed-post registration authority for rope chains. */
   readonly physics?: Physics;
   readonly fixed?: Pick<Game, 'onFixed'>;
@@ -52,7 +58,7 @@ export class WorldAssembly {
   static lend(input: unknown, construction: Scope, entered: Scope): void {
     const stages = admitted(input);
     if (entered !== construction && !entered.belongsTo(construction)) throw new Error('World assembly needs its construction ancestor');
-    const loans = stages.flatMap(stage => loanKinds(stage).map(kind => ({ kind, id: stage.id })));
+    const loans = stages.flatMap(stage => loanKinds(stage).map(kind => ({ kind, id: stage.kind === 'streamed-cover' && kind === 'object' ? stage.object : stage.id })));
     // Refuse an incomplete build before publishing even its first entered loan.
     for (const { kind, id } of loans) entryOwner(construction, kind, id);
     if (entered !== construction) for (const { kind, id } of loans) lendEntryOwner(entered, construction, kind, id);
@@ -75,7 +81,37 @@ export class WorldAssembly {
       return { draws, draw, product, read: product.file, material };
     })();
     this.at++;
-    if (stage.kind === 'ambient-flock') {
+    if (stage.kind === 'streamed-cover') {
+      const cover = this.ports.cover, draws = this.ports.draws, product = this.ports.product, root = this.ports.entry?.root;
+      if (cover === undefined || draws === undefined || !draws.ready || product === undefined || root === undefined) throw new Error('World cover needs its cells, draws, product and native authority');
+      if (typeof cover.viewer !== 'function' || typeof cover.updates.onUpdate !== 'function' || typeof product.file !== 'function') throw new Error('World cover needs its native reader, update and viewer');
+      const read = product.file, viewer = cover.viewer, updates = cover.updates, onUpdate = updates.onUpdate, cells = cover.cells;
+      const needed = new Set(stage.rows.kinds.flatMap(kind => [kind.geometry, ...kind.far === undefined ? [] : [kind.far.geometry]]));
+      if (needed.size !== Object.keys(stage.draws).length || [...needed].some(key => !Object.hasOwn(stage.draws, key))) throw new Error('World cover needs its exact geometry bindings');
+      const handles = Object.entries(stage.draws).map(([name, slot]) => {
+        if (scenes.has(name)) throw new Error('World cover geometry is already published');
+        return { name, slot, handle: draws.handle(slot) };
+      });
+      const looks = stage.rows.kinds.flatMap(kind => [ ...kind.far === undefined ? [] : [`${stage.rows.look}-${kind.name}-far`], `${stage.rows.look}-${kind.name}` ]).map(lookId => ({ id: lookId, material: lentLook(lookId), toon: lentToon(lookId) }));
+      const lighting = toonLightingOf(stage.rows.lighting);
+      const unchanged = (): void => {
+        live();
+        if (this.ports.scenes !== scenes || this.ports.cover !== cover || cover.viewer !== viewer || cover.updates !== updates || updates.onUpdate !== onUpdate || cover.cells !== cells
+          || this.ports.draws !== draws || !draws.ready || this.ports.product !== product || product.file !== read || this.ports.entry?.root !== root
+          || toonLightingOf(stage.rows.lighting) !== lighting || handles.some(row => draws.handle(row.slot) !== row.handle)
+          || looks.some(row => lentLook(row.id) !== row.material || lentToon(row.id) !== row.toon)) throw new Error('World cover owners changed');
+      };
+      const bytes = await product.file(stage.file); unchanged();
+      const composition = v.parse(CoverCompositionSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+      if (composition.placement !== stage.placement) throw new Error('World cover placement differs from its binding');
+      const placed = await scenes.place(stage.placement); unchanged();
+      if (!scenes.has(composition.mesh)) throw new Error('World cover companion is missing');
+      for (const { name, handle } of handles) scenes.publish(name, handle.copy());
+      const field = createStreamedCover(scenes, stage.rows, cells); field.group.name = composition.name;
+      const logs = scenes.mesh(composition.mesh); Object.assign(logs.userData, composition.userData); field.group.add(logs);
+      unchanged(); root.add(field.group); updates.onUpdate(dt => { field.update(dt, viewer()); }, stage.system);
+      unchanged(); publishEntryOwner(scope, 'object', stage.object, field.group); publishEntryOwner(scope, 'placed', stage.id, [placed]);
+    } else if (stage.kind === 'ambient-flock') {
       const draws = this.ports.draws, root = this.ports.entry?.root;
       if (draws === undefined || !draws.ready || root === undefined) throw new Error('World ambient flock needs loaded draws and its root');
       const draw = draws.handle(stage.draw.slot), material = lentLook(stage.draw.look);
@@ -153,11 +189,13 @@ export class WorldAssembly {
 function admitted(input: unknown): readonly WorldAssemblyStage[] {
   const { stages } = v.parse(WorldAssemblySchema, input);
   if (new Set(stages.map(stage => stage.id)).size !== stages.length) throw new Error('Repeated world assembly owner');
-  const placements = stages.flatMap(stage => stage.kind === 'place' || stage.kind === 'rope-deck' ? [stage.id] : stage.kind === 'entry' ? stage.rows.flatMap(row => row.kind === 'place' ? [row.id] : []) : []);
+  const placements = stages.flatMap(stage => stage.kind === 'streamed-cover' ? [stage.placement] : stage.kind === 'place' || stage.kind === 'rope-deck' ? [stage.id] : stage.kind === 'entry' ? stage.rows.flatMap(row => row.kind === 'place' ? [row.id] : []) : []);
   if (new Set(placements).size !== placements.length) throw new Error('Repeated world assembly placement');
   for (const stage of stages) if (stage.kind === 'entry' && stage.floor !== undefined && !stage.rows.some(row => row.kind === 'place' && row.id === stage.floor && row.when === undefined)) {
     throw new Error(`World assembly entry ${stage.id} floor needs its unconditional place row`);
   }
+  const objectIds = stages.flatMap(stage => loanKinds(stage).includes('object') ? [stage.kind === 'streamed-cover' ? stage.object : stage.id] : []);
+  if (new Set(objectIds).size !== objectIds.length) throw new Error('Repeated world assembly object');
   const decks = new Set<string>(), chained = new Set<string>(), captures = new Set<string>();
   for (const stage of stages) {
     if (stage.kind === 'rope-deck') decks.add(stage.id);
@@ -172,6 +210,7 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 
 /** The loan kinds a stage publishes, from its declaration alone. */
 function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient')[] {
+  if (stage.kind === 'streamed-cover') return ['object', 'placed'];
   if (stage.kind === 'ambient-flock') return ['object', 'ambient-draw', 'ambient'];
   if (stage.kind === 'rope-deck') return ['object', 'placed', 'floor', 'rope-deck'];
   if (stage.kind === 'rope-chain') return ['chain'];

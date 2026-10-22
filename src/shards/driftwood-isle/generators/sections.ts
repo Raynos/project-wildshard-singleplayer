@@ -157,6 +157,4 @@ export const SECTIONS = {
 const bridgeSpan = v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number });
 export const FILE_SCHEMAS = { 'data/bridgeRows.json': v.strictObject({ world: bridgeSpan, specimen: bridgeSpan }) };
 
-/** Named world blobs share their build validator and generated runtime type. */
-export const CoverCompositionSchema = v.strictObject({ name: text, placement: text, mesh: text, userData: v.record(text, v.boolean()) });
 

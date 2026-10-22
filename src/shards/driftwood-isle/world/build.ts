@@ -1,11 +1,11 @@
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
-import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { TIER } from '@wildshard/engine/core/tier';
-import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, fixedDrawLibrary } from '../runtime/boot/blobAssets';
+import { loadFixedGeometry, fixedDrawLibrary } from '../runtime/boot/blobAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -19,10 +19,7 @@ import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/pla
 import type { World } from '@wildshard/engine/core/bootstrap';
 import manifest from '../discovery.generated';
 import { updateWind } from '@wildshard/engine/world/wind';
-import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
 import { followToonLook } from '@wildshard/game/looks/toonLook';
-import { createStreamedCover } from '@wildshard/game/looks/streamedCover';
-import authoredCover from '../data/groundCover.json' with { type: 'json' };
 import type { BakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import type { Placed } from '@wildshard/engine/models/place';
@@ -51,7 +48,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
   // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
-  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete, product: driftwoodProduct(), draws: fixedDrawLibrary(), physics: world.physics, fixed: game,
+  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete, product: driftwoodProduct(), draws: fixedDrawLibrary(), physics: world.physics, fixed: game, cover: { cells: coverCells, viewer, updates: game },
     entry: { root: game.scene, tier: game.tier, physics: world.physics, piece: (piece) => { registry.add(piece); } } });
   const only = (id: string): Placed => { const [placed] = entryOwner(scope, 'placed', id); if (placed === undefined) throw new Error(`Driftwood ${id} placed nothing`); return placed; };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
@@ -119,15 +116,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await stages.next('palms'); // The registry borrows the compacted batch and its native boxes.
   const palms = { placed: only('palms'), mesh: entryOwner(scope, 'object', 'palms'), update: updateWind };
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const coverComposition = await driftwoodProduct().json<CoverComposition>('world/cover-composition.json');
-  const coverPlaced = await scenes.place(coverComposition.placement);
-  for (const [kind, slot] of Object.entries(fixedGeometryGroups().cover)) scenes.publish(kind, fixedDraw(slot).copy());
-  const cover = Object.assign(createStreamedCover(scenes, authoredCover.GROUND_COVER, coverCells), { placed: [coverPlaced] });
-  cover.group.name = coverComposition.name;
-  const coverLogs = scenes.mesh(coverComposition.mesh);
-  Object.assign(coverLogs.userData, coverComposition.userData); cover.group.add(coverLogs);
-  game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover');
-  await complete('Ground cover');
+  await stages.next('cover');
+  const cover = { group: entryOwner(scope, 'object', 'driftwood.cover'), placed: entryOwner(scope, 'placed', 'cover') };
   await macrotask();
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
   // SF30 activation stays held until SF46 parity: keep the legacy model's live terrain, widths and owners exactly.
@@ -143,7 +133,5 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  publishEntryOwner(scope, 'object', 'driftwood.cover', cover.group);
-  publishEntryOwner(scope, 'placed', 'cover', cover.placed);
   return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }

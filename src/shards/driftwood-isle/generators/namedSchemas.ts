@@ -1,3 +1,4 @@
+import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
@@ -21,7 +22,7 @@ import { QuestStepRowsSchema, QuestHintRowsSchema, QuestServiceActionsSchema } f
 import { QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
-import { EnemyPlacementsSchema, FixedGeometryGroupsSchema, CoverCompositionSchema } from './sections';
+import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/format/populationKeeper';
 
 const text = v.string(), number = v.number();

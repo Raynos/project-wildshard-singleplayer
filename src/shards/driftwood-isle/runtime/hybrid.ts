@@ -1,6 +1,6 @@
 import { COLLECTIONS, fixedDrawLibrary } from './boot/blobAssets';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
-import { entryOwner, publishEntryOwner, lendEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { publishEntryOwner, lendEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
@@ -50,11 +50,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     }
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     WorldAssembly.lend(ctx.product.section('custom/worldStages'), resident ?? ctx.scope, ctx.scope);
-    if (resident !== undefined) {
-      for (const id of ['cover']) entryOwner(resident, 'placed', id);
-      for (const id of ['cover']) lendEntryOwner(ctx.scope, resident, 'placed', id);
-      lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.cover');
-    }
     if (resident !== undefined) {
       lendEntryOwner(ctx.scope, resident, 'fixed-draws', 'driftwood.fixed-draws');
     }

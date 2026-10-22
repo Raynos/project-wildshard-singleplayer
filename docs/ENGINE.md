@@ -11460,3 +11460,24 @@ the existing socket owner. The original HullLookBook species, looks, spawn
 tables and HeldEquipment sequence stays intact, with scope retirement fences
 after each await and before installation. No rig, shader, pose or native save
 contract changes at this entry boundary.
+
+### Streamed cover construction
+
+A WorldAssembly streamed-cover stage carries id, label, rows, file,
+placement, draws, object and system. StreamedCoverSchema remains the
+defining cover grammar; CoverCompositionSchema now lives beside it in
+format/streamedCover. The existing named file supplies the cover root,
+log companion and user data. Its placement must equal the explicit stage
+binding. Assembly admission refuses cross-kind duplicate placements and
+duplicate object publications before any stage runs.
+
+The stage borrows the original early-read cell bytes, loaded fixed draws,
+scene handles, product reader, scene root, native viewer and Game update
+receiver. It preflights the exact geometry bindings and lent look identities
+before reading, then fences retirement and changed authorities after the
+read and placement, and before registration and publication. Construction
+calls the existing createStreamedCover once and keeps the original update
+system and labelled slice. Object lending uses the declared object id;
+placed lending uses the stage id. The later bridge-chain allocation stays
+after cover and its existing macrotask. No second cell read, intake, cache,
+renderer, updater, section or authored callback is added.

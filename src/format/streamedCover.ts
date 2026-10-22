@@ -22,3 +22,7 @@ export const StreamedCoverSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Cove
   }), v.check(row => row.nearLag < row.refill && row.kinds.every(kind => (Math.max(kind.cap, (kind.far?.cap ?? 0) * (kind.far?.keep ?? 1))) * Math.max(row.capK.phone, row.capK.desktop) <= 1e6)));
 export type StreamedCoverRow = v.InferOutput<typeof StreamedCoverSchema>;
 export function parseStreamedCover(input: unknown): StreamedCoverRow { return v.parse(StreamedCoverSchema, input); }
+
+/** The original placed log companion and cover root metadata, validated as one named blob. */
+const text = v.pipe(v.string(), v.maxLength(512));
+export const CoverCompositionSchema = v.strictObject({ name: text, placement: text, mesh: text, userData: v.record(text, v.boolean()) });
