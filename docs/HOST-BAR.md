@@ -69,6 +69,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 ## Dated exceptions
 
+- G586 (Jake, 2026-10-21): the Blender island loader (from Driftwood's `blobAssets.ts`) is a native engine host with one user.
 - G571 (Jake, 2026-10-21): hosts added to convert Pine Hollow's and Driftwood Isle's remaining custom code into data or AssemblyScript count as platform from day one (test 1 waived) when they pass tests 2–6; each is listed here by name when it lands. `game/shardfile/entryOwners` holds concrete construction/entered loans by finite owner kind and data id (client-only; tests 2–6 pass); it accepts no shard callbacks or reflected paths.
 - G571 quest continuation: `game/quest/continuation` consumes `format/questContinuation` rows and concrete entered quest/collection loans, binds the native item effects and keepsakes before loot, and keeps each original save and specimen owner. Client-only; no shard factory or reflected path. Test 1 waived; tests 2–6 covered by `test/quest-continuation.test.ts`, including leaving during both awaited reads.
 - G571 page-mode policy: `game/shard/pagePolicy` `pageModeValue` and `pageModeCap` read two declared JSON rows at the existing page-mode boundary, with no callback, selector path, clock or side effect. Pine boot and keyed sky use standalone/grid rows; caps retain the authored input ceiling. Test 1 waived; tests 2–6 covered by `test/page-mode-policy.test.ts`.
@@ -87,6 +88,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
   they are removed from the shared water surface and count to Pine C2.
 
 - G571 ranged page preparation: `game/loadout/rangedPage#prepareRangedPage` consumes admitted finish/collection source ids and ranged-page rows in the entered world phase. Existing equipment, inventory, geometry and menu owners stay authoritative. Client-only; tests 2–6 covered by `test/ranged-entry-capability.test.ts`; test 1 waived.
+- G571 creature install: `game/population/productCreatures#installProductCreatures` and `game/population/productCreatures#lentGraphLook` install a product's creatures from its declared install rows (actors/creature-install.json: perch poses, practice spawn, packed and hull-book look kinds, lent graph bodies, projection) and wear each look on its lent graph body. No shard callback or selector; client-only. Test 1 waived; tests 2–6 covered by test/driftwood-creature-look.test.ts.
 - G571 vertex wear: `game/looks/vertexWear#loadVertexWear`, `format/vertexWear#VertexWearSchema`. Client-only.
 - G571 fixed draws: `game/models/fixedDraws#fixedDraws`, `game/models/fixedDraws#FixedDrawRowsSchema`. Client-only.
 - G571 world assembly: `game/shardfile/worldAssembly#WorldAssembly`, `game/shardfile/worldAssembly#WorldAssemblyPorts`, `format/worldAssembly#WorldAssemblySchema`, `format/worldAssembly#WorldAssemblyStageSchema`. Client-only.
@@ -100,6 +102,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
   callbacks. Test 1 waived; tests 2–6 covered by the script-v2 admission,
   reset, observation, batch and query suites. Shipped v0/v1 paths remain
   separate until H13; no shard policy gains credit from this listing.
+- G571 derived species: `game/looks/speciesBook#HullLookBook` `registerDerived` registers each `derived` row of an admitted hull look book (`format/speciesLooks` `HullLookBookSchema`): a book definition's fields under the row's own fields, coat and custom limb rig (rest bones, hit volumes, limb rig / blend / clip rows), with the named game rules think `external` (an owning fight drives it) and damage `roamingBoss`. Pine's Antler King is the first row.
 
 The ruler reads exact module or `module#binding` selectors from the G571
 list entries above. A named binding never approves other declarations in its
