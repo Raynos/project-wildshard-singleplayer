@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { PopulationEnvironmentSchema, PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
-import { unzlibSync } from 'fflate';
+import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
@@ -76,13 +76,7 @@ export class NativePopulationField {
   constructor(grid: BakedGrid, input: unknown, treeRows: readonly (readonly [number,number,number])[], tops: readonly number[]) {
     const rows = v.parse(PopulationFieldSchema,input), sample = bakedSamplers(grid), world = rows.world;
     if (grid.size !== world.size || grid.seed !== rows.seed || tops.length !== treeRows.length) throw new Error('Incompatible native population field');
-    const channel = (encoded: string): ((x: number,z: number) => number) => {
-      const bytes = unzlibSync(Uint8Array.from(atob(encoded),value => value.codePointAt(0) ?? 0));
-      if (bytes.byteLength !== world.res*world.res*4) throw new Error('Invalid population field raster');
-      const values = new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);
-      if (values.some(value => !Number.isFinite(value))) throw new Error('Invalid population field sample');
-      return bakedSamplers({ ...grid,res: world.res,size: world.size,heights: values }).heightAt;
-    };
+    const channel = (data: string): ((x: number,z: number) => number) => readScalarLattice({ res: world.res,size: world.size,values: { type: 'f32',count: world.res*world.res,data } });
     const pond = channel(world.pond), wet = channel(world.wet), meta = buildTerrainMetadata(rows.seed,{ trails: rows.trails,cabinSites: [] },() => world.water);
     treeRows.forEach(([x,z,r],index) => { const top = tops[index]; if (top === undefined || ![x,z,r,top].every(Number.isFinite)) throw new Error('Invalid population tree'); this.trees.add({ x,z,r,top }); });
     this.queries = { normalY: (x,z) => sample.normalAt(x,z)[1],surfaceAt: (x,z) => pond(x,z) > 0 ? world.water : null,
