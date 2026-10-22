@@ -4,11 +4,11 @@ import { BufferGeometry, Material, Mesh, MeshStandardMaterial, Object3D } from '
 import { Rng } from '@wildshard/engine/core/rng';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { live } from '@wildshard/engine/models/live';
-import { modelContext, specimenReady, seedOf, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
+import { defineModel, modelContext, specimenReady, seedOf, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import * as lowPolyKit from '@wildshard/engine/world/lowpolyKit';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import { loadFixedGeometry, fixedGeometryReady, fixedDraw, fixedGeometryGroups, COLLECTIONS } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { loadFixedGeometry, fixedGeometryReady, fixedDraw, fixedGeometryGroups, COLLECTIONS, FIGURES, fixedDrawLibrary } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { sites, captainHat, sailclothCape, tradeCounter, trader as traderCard } from '../src/shards/driftwood-isle/models/catalogue';
 import { bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
@@ -17,10 +17,21 @@ import { Scope } from '../src/engine/app/scope';
 import native from '../src/shards/driftwood-isle/data/nativeSpecimens.generated.json' with { type: 'json' };
 import cargo from '../src/shards/driftwood-isle/data/cargoScenes.generated.json' with { type: 'json' };
 import boot from '../src/shards/driftwood-isle/boot/modelCatalogue.generated.json' with { type: 'json' };
-import { castaway } from '../src/shards/driftwood-isle/runtime/models/people';
-import { enteredTrader } from '../src/shards/driftwood-isle/runtime/models/trader';
+import { kitFigureCards, questFigure } from '../src/game/quest/figures';
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { driftwoodProduct } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
+import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 
-const trader = enteredTrader(traderCard);
+const card = kitFigureCards(driftwoodKitFigureCards(), { get draws() { return fixedDrawLibrary(); }, catalogue: FIGURES,
+  get channels() { return driftwoodProduct().shardfile.clientChannels; } })('castaway');
+/** the roster's card, its fixed draws loaded first as the roster does */
+const castaway = defineModel<object>({ ...card, prepare: loadFixedGeometry });
+const traderRow = driftwoodQuestFigures().figures.find(row => row.kit === 'trader');
+if (traderRow === undefined) throw new Error('Missing trader figure row');
+/** the live trader figure in its own space (the page places it through installQuestFigures) */
+const trader = defineModel<Record<string, unknown>>({ ...traderCard, prepare: loadFixedGeometry, build: ctx => questFigure(traderRow, { sky: ctx.sky,
+  resources: new SceneHandles(ctx.sky), draws: fixedDrawLibrary(), catalogue: FIGURES, channels: driftwoodProduct().shardfile.clientChannels, place: () => ({ x: 0, y: 0, z: 0, yaw: 0 }) }).group });
 const barrel = sites.model('barrel'), crate = sites.model('crate'), ropeCoil = sites.model('ropeCoil');
 const entries = [live(castaway), live(trader)];
 

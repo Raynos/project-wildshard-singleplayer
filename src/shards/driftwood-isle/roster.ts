@@ -5,13 +5,17 @@
  * the island keeps spawning and drawing every copy as before.
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
-import { castaway } from './runtime/models/people';
-import { COLLECTIONS } from './runtime/boot/blobAssets';
+import { kitFigureCards } from '@wildshard/game/quest/figures';
+import { COLLECTIONS, FIGURES, fixedDrawLibrary } from './runtime/boot/blobAssets';
+import { driftwoodProduct } from './runtime/boot/rows';
 import { captainHat, sailclothCape } from './models/catalogue';
 
 export async function roster(): Promise<readonly RosterEntry[]> {
   await COLLECTIONS.prepare();
   const seaGlassChime = COLLECTIONS.model('chime'), trophyPlaques = COLLECTIONS.model('plaques');
+  // Wendell's Explorer card: his live kit figure in its own space (generators/kitFigureCards.ts), on the fixed draws loaded above
+  const product = driftwoodProduct(), castaway = kitFigureCards(await product.json('people/cards.json'),
+    { draws: fixedDrawLibrary(), catalogue: FIGURES, channels: product.shardfile.clientChannels })('castaway');
   return [
   // people
   live(castaway, { copies: 1, drawnAs: 'single' }),

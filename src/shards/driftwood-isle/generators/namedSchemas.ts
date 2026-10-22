@@ -15,6 +15,7 @@ import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { PageLifeSchema } from '@wildshard/format/pageLife';
 import { BuildingLifeRowsSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { FigureCatalogueSchema } from '@wildshard/format/figures';
+import { KitFigureCardsSchema, QuestFiguresSchema } from '@wildshard/format/questFigures';
 import { ChapterDirectorSchema, ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { DirectorSchema } from '@wildshard/format/director';
 import { DirectorStagesSchema } from '@wildshard/format/directorStages';
@@ -34,6 +35,8 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'actors/page-life.json': PageLifeSchema,
   'world/cover-composition.json': CoverCompositionSchema,
   'people/catalogue.json': FigureCatalogueSchema,
+  'people/cards.json': KitFigureCardsSchema,
+  'quests/figures.json': QuestFiguresSchema,
   'sim/returns.json': PageReturnRowsSchema,
   'models/world-scenes.json': WorldSceneModelsSchema,
   'world/building-life.json': v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: number }),

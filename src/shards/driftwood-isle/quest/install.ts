@@ -3,16 +3,13 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { driftwoodWorld } from '../world/build';
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import { prepareQuestPageComposition, installQuestPageComposition, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
+import { registerQuestPageWorld } from '@wildshard/game/quest/pageResources';
 import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
-import { castawayFigure } from '../runtime/models/people';
-import { enteredTrader, traderOf } from '../runtime/models/trader';
-import { sharedModelContext } from '@wildshard/engine/models/model';
-import { place as placeModel } from '@wildshard/engine/models/place';
-import { ownQuestTree } from '@wildshard/game/quest/chapter';
-import { parseQuestTrader } from '@wildshard/game/quest/trader';
-import { tradeCounter, trader as traderCard } from '../models/catalogue';
+import { installQuestFigures } from '@wildshard/game/quest/figures';
+import { FIGURES, fixedDrawLibrary } from '../runtime/boot/blobAssets';
+import { sites } from '../models/catalogue';
 import { productHullBook } from '@wildshard/game/looks/speciesBook';
 
 /** Prewarm the real hulls before the entered chapter can restore a saved altar. */
@@ -23,25 +20,13 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   // Saved used:altar restores the boss synchronously in Finale; resolve the hull before any quest restore/spawn.
   await productHullBook(ctx.product).packed.preload();
   if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
-  const { player } = world;
   const d = driftwoodWorld(shell);
   const rows = await ctx.product.json<QuestPageCompositionRows>('quests/page-composition.json');
+  registerQuestPageWorld(ctx.scope, rows.world, { pois: { hut: { anchors: entryOwner(ctx.scope, 'site', 'hut') }, lookout: { anchors: entryOwner(ctx.scope, 'site', 'lookout') },
+    wreck: { anchors: d.wreck.anchors }, shrine: { anchors: d.shrine.anchors }, cave: { anchors: d.cove.anchors } }, flock: d.gulls.flock });
   const placement = await prepareQuestPageComposition(ctx, rows);
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
-  const npc = castawayFigure(world.sky, placement.place(rows.speaker.feet), placement.place(rows.speaker.fire), scenes, ctx.scope);
-  const stallPlacement = parseQuestTrader(await ctx.product.json(rows.files.stall)).placement;
-  if (stallPlacement === undefined) throw new Error('Missing declared trader placement');
-  const feet = placement.place(stallPlacement.feet), fx = Math.sin(feet.yaw), fz = Math.cos(feet.yaw), cx = feet.x + fx * stallPlacement.counterAhead, cz = feet.z + fz * stallPlacement.counterAhead;
-  const rig = ctx.scope.run(() => {
-    const context = { ...sharedModelContext(world.sky), specimenScope: ctx.scope };
-    const figure = placeModel(enteredTrader(traderCard), [feet], { ctx: context, draw: 'single', registry: world.registry, piece: { id: rows.trader.figure, name: 'The trader' } });
-    const counter = placeModel(tradeCounter, [{ x: cx, y: placement.floorAt(cx, cz), z: cz, yaw: feet.yaw }], { ctx: context, draw: 'single', registry: world.registry, piece: { id: rows.trader.counter, name: "The trader's counter", solidFloor: false } });
-    ownQuestTree(figure.object, ctx.scope); ownQuestTree(counter.object, ctx.scope);
-    const made = traderOf(figure.object); if (made === null) throw new Error('Missing entered trader figure'); made.companions.push(counter.object); return made;
-  });
-  ctx.scope.onDispose(() => { npc.dispose(); rig.dispose(); });
-  ctx.system({ id: rows.systems.speakerPose, phase: 'update', before: [rows.systems.talks], run: (dt, time) => { npc.update(dt, time, player.position); } });
-  ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
+  installQuestFigures(ctx, await ctx.product.json('quests/figures.json'), { placement, resources: scenes, draws: fixedDrawLibrary(), catalogue: FIGURES, models: sites });
   const adventure = await installQuestPageComposition(ctx, rows);
   publishEntryOwner(ctx.scope, 'quest', rows.id, adventure);
   installBridgeSway(ctx, { ...rows.sway, system: rows.systems.sway, before: rows.systems.before });

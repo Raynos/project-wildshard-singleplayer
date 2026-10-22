@@ -1,5 +1,5 @@
 // SHARD-PLATFORM M3 (look-family rows), W2 C2 baked: Wendell the castaway as authored rows the fixed-models job bakes
-// (generators/npcKits.ts, kitParts.ts → the `npc-castaway-*` templates runtime/models/people.ts lends its kit figure): his low-poly kit meshes
+// (generators/npcKits.ts, kitParts.ts → the `npc-castaway-*` templates the quest figure rows (generators/questFigures.ts) lend their kit figure): his low-poly kit meshes
 // (body, campfire, code head, waving arm, flames); the smoke over his campfire
 // is data/smokeLook.ts's CASTAWAY_SMOKE. The palette:
 // skin '#c98d62', beard '#cfcac0', straw hat '#d8b867', striped shirt '#e9e3d4' / '#3d6fae', canvas trousers '#b59f77'.

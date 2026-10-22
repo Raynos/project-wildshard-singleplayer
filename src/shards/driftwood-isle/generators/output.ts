@@ -36,6 +36,8 @@ import { parseWorldScene } from '@wildshard/format/clientChannels';
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import { FIGURE_CATALOGUE } from './figureCatalogue';
+import { driftwoodQuestFigures } from './questFigures';
+import { driftwoodKitFigureCards } from './kitFigureCards';
 import { QUEST_SERVICES } from './questServiceEffects';
 import { TOON_LOOK } from './toonPresentation';
 import { RETURN_PROGRAM, RETURN_WASM } from './returnProgram';
@@ -142,6 +144,8 @@ const placements = emitNamedBlobs([nameBlob('quests/world.json', 'json', new Tex
   nameBlob('actors/creature-install.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CREATURE_INSTALL))),
   nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ clips: monkeyClips, program: RETURN_PROGRAM, perch: mixedPopulation.perch }))),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
+  nameBlob('quests/figures.json', 'json', new TextEncoder().encode(encodeCanonicalJson(driftwoodQuestFigures()))),
+  nameBlob('people/cards.json', 'json', new TextEncoder().encode(encodeCanonicalJson(driftwoodKitFigureCards()))),
   nameBlob('quests/trader.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(TRADER_PAGE)))),
   nameBlob('quests/steps.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestStepRows(questSteps)))),
   nameBlob('quests/hints.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestHintRows(questHints)))),

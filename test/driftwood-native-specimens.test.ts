@@ -11,20 +11,31 @@ import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../src/ga
 import { collectionCosmetic } from '../src/game/models/collectionDisplay';
 import { nativeSpecimenCatalogue } from '../src/shards/driftwood-isle/generators/nativeSpecimens';
 import { captainHat, sailclothCape, trader, tradeCounter, traderOf as originalTraderOf } from './fixtures/driftwoodNativeFactories';
-import { enteredTrader, traderOf } from '../src/shards/driftwood-isle/runtime/models/trader';
-import { trader as traderCard } from '../src/shards/driftwood-isle/models/catalogue';
+import { kitFigureCards, questFigure, type QuestFigurePorts } from '@wildshard/game/quest/figures';
+import type { QuestFigureRows } from '@wildshard/format/questFigures';
+import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
+import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { ownQuestTree } from '@wildshard/game/quest/chapter';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseFamilyMaterial } from '../src/format/materialFamilies';
-import { castaway, castawayFigure } from '../src/shards/driftwood-isle/runtime/models/people';
-import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { driftwoodProduct, driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
-import { loadFixedGeometry } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { FIGURES, fixedDrawLibrary, loadFixedGeometry } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
 import { DRIFTWOOD_ASSET_NAMES } from '../src/shards/driftwood-isle/generators/assets';
 import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
+
+interface Place { readonly x: number; readonly y: number; readonly z: number; readonly yaw?: number }
+/** The live figure of a kit's row, its feet and fire at these places (the page's composition places). */
+function figure(kit: string, sky: SkyRig, scope: Scope, feet: Place, fire: Place = feet): ReturnType<typeof questFigure> {
+  const row = driftwoodQuestFigures().figures.find(candidate => candidate.kit === kit);
+  if (row === undefined) throw new Error(`Missing figure row ${kit}`);
+  const at = (place: Place): ReturnType<QuestFigurePorts['place']> => ({ ...place, yaw: place.yaw ?? 0 });
+  return questFigure(row, { sky, scope, resources: new SceneHandles(sky), draws: fixedDrawLibrary(),
+    catalogue: FIGURES, channels: driftwoodProduct().shardfile.clientChannels, place: (p: QuestFigureRows['feet']) => at(p === row.feet ? feet : fire) });
+}
 
 function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
 function isMaterial(value: unknown): value is Material { return value instanceof Material; }
@@ -100,14 +111,12 @@ test('native card rows preserve the actual factories, pivots, colliders and shad
     await compare('captainHat', captainHat); await compare('sailclothCape', sailclothCape);
     await compare('tradeCounter', tradeCounter); await compare('trader', trader);
     // The native card must not replace the entered gesture/offer owner.
-    const liveTrader = enteredTrader(traderCard);
     const oldScope = owner.child('original-live-trader'), liveScope = owner.child('entered-live-trader');
     const oldBody = oldScope.run(() => group(trader.build(ctx, trader.defaults, new Rng(0))));
-    const liveBody = liveScope.run(() => group(liveTrader.build(ctx, liveTrader.defaults, new Rng(0))));
-    const oldRig = originalTraderOf(oldBody), liveRig = traderOf(liveBody);
-    if (oldRig === null || liveRig === null) throw new Error('Missing actual live trader owner');
+    const liveRig = liveScope.run(() => figure('trader', sky, liveScope, { x: 0, y: 0, z: 0 })), liveBody = liveRig.group;
+    const oldRig = originalTraderOf(oldBody);
+    if (oldRig === null) throw new Error('Missing actual live trader owner');
     expect(FigureRows.entered(liveScope, 'trader')).toBe(liveRig.presentation);
-    expect(liveTrader.specimen).toBe(traderCard.build);
     const oldCounter = new Group(), liveCounter = new Group();
     oldRig.companions.push(oldCounter); liveRig.companions.push(liveCounter);
     for (const [time, distance, talking] of [[0, 100, false], [1, 14, false], [4, 3, true], [7, 100, false]] as const) {
@@ -135,8 +144,9 @@ test('native card rows preserve the actual factories, pivots, colliders and shad
     // The real card is the entered rigid figure at its card pose. Its smoke is a
     // Mesh, hidden before a look is lent and borrowing that exact look afterward.
     const smokeRows = driftwoodRows('custom/fixedLayouts').nativeView;
+    const castaway = kitFigureCards(driftwoodKitFigureCards(), { draws: fixedDrawLibrary(), catalogue: FIGURES, channels: driftwoodProduct().shardfile.clientChannels })('castaway');
     const compareCastaway = (visible: boolean, material?: Material): void => {
-      const before = owner.run(() => castawayFigure(sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(sky), owner).group);
+      const before = owner.run(() => figure('castaway', sky, owner, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).group);
       const after = owner.run(() => group(castaway.build(ctx, castaway.defaults, new Rng(0))));
       expect(snapshot(after)).toEqual(snapshot(before));
       const smoke = after.getObjectByName(smokeRows.CASTAWAY_SMOKE.name);
@@ -159,8 +169,8 @@ test('native card rows preserve the actual factories, pivots, colliders and shad
     compareCastaway(true, smokeLook);
     const disposedLook = vi.spyOn(smokeLook, 'dispose'), borrower = entered.child('castaway-borrower');
     borrower.run(() => {
-      const figure = castawayFigure(sky, { x: 12, y: 3, z: -9, yaw: 1 }, { x: 10, y: 3, z: -8 }, new SceneHandles(sky), borrower);
-      ownQuestTree(figure.group, borrower);
+      const live = figure('castaway', sky, borrower, { x: 12, y: 3, z: -9, yaw: 1 }, { x: 10, y: 3, z: -8 });
+      ownQuestTree(live.group, borrower);
     });
     borrower.dispose(); expect(disposedLook).not.toHaveBeenCalled();
     entered.dispose();

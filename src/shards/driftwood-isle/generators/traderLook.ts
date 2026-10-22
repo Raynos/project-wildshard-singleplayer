@@ -1,5 +1,5 @@
 // SHARD-PLATFORM M3 (look-family rows), W2 C2 baked: the travelling trader as authored rows the fixed-models job bakes
-// (generators/npcKits.ts → the `npc-trader-*` templates runtime/models/trader.ts lends its kit figure): her low-poly kit meshes
+// (generators/npcKits.ts → the `npc-trader-*` templates the quest figure rows (generators/questFigures.ts) lend their kit figure): her low-poly kit meshes
 // (body, head, upper arm, forearm), Wendell's proportions and scale. The palette: skin
 // '#a86e48', teal headscarf '#2f9490' with gold trim '#e2bf62', orange tunic '#dd7a2e', cream shirt '#eee6d6', red sash
 // '#7a3a34', brown trousers '#6f5a45', travel boots '#5a3d27', leather satchel '#7a5234', gold '#d8a93c'.
