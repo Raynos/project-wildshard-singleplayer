@@ -260,7 +260,7 @@ test('optional chapter dispatch preserves the carried and merged-figure owners',
 
 
 test('optional chapter imports retain all native dependency owners', () => {
-  const rows: readonly (readonly [string, readonly string[] | null])[] = [["src/engine/physics/heightPatch.ts", null], ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]], ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner"]],  ["src/game/shardfile/clientTrails.ts", ["ProjectedTrail"]], ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]], ["src/game/weapons/heldLauncher.ts", ["names", "PoolSchema", "HeldBowFileSchema", "bowLoads", "loadHeldBow"]]];
+  const rows: readonly (readonly [string, readonly string[] | null])[] = [["src/engine/physics/heightPatch.ts", null], ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]], ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner"]], ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]], ["src/game/weapons/heldLauncher.ts", ["names", "PoolSchema", "HeldBowFileSchema", "bowLoads", "loadHeldBow"]]];
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const modules = new Map(rows.map(([path]) => [path, shared]));
   const bindings = new Map(rows.flatMap(([path, names]) => [...(names ?? []), 'unrelatedShared'].map(name => [`${path}\0${name}`, shared])));

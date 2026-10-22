@@ -51,7 +51,6 @@ const chapterViewNativeOwners = new Map([
   ["src/engine/physics/heightPatch.ts", null],
   ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
   ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner"]],
-  ["src/game/shardfile/clientTrails.ts", ["ProjectedTrail"]],
   ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]],
   ["src/game/weapons/heldLauncher.ts", ["names", "PoolSchema", "HeldBowFileSchema", "bowLoads", "loadHeldBow"]],
 ]);

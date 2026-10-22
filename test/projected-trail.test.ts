@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import * as THREE from 'three';
-import {ProjectedTrail} from '../src/game/shardfile/clientTrails';
+import {ProjectedTrail} from '../src/engine/combat/view/projectedTrail';
 import nalati from '../src/shards/nalati-grasslands/data/bowTrail.json' with {type:'json'};
 
 test('an unrelated prediction ribbon pads its endpoint and follows its own fade row',()=>{

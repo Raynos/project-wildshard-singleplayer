@@ -3,7 +3,7 @@ import type {BowVariantRows} from '@wildshard/format/bowVariantRows';
 import type {TargetAnimal} from '@wildshard/engine/combat/types';
 import {equipmentActorOwner} from '../loadout/actors';
 import {ReturnProgram} from '../population/returnProgram';
-import {ProjectedTrail} from '../shardfile/clientTrails';
+import {ProjectedTrail} from '@wildshard/engine/combat/view/projectedTrail';
 import type {Bow} from './Bow';
 
 /** Client-only held variant. The existing bow and its native actor owner keep

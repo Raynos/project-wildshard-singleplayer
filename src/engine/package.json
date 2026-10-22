@@ -138,6 +138,7 @@
     "./combat/view/ranged": "./combat/view/ranged.ts",
     "./combat/view/rangedFeel": "./combat/view/rangedFeel.ts",
     "./combat/view/slashTrail": "./combat/view/slashTrail.ts",
+    "./combat/view/projectedTrail": "./combat/view/projectedTrail.ts",
     "./core/Game": "./core/Game.ts",
     "./core/GpuRecovery": "./core/GpuRecovery.ts",
     "./core/Grade": "./core/Grade.ts",
