@@ -115,6 +115,13 @@ test.each([
   '- G603 Jake-approved host: `game/approved`, conditional approval.',
   '- G6020 Jake-approved host: `game/approved`.',
   '- G603 core host: `game/approved`.',
+  '- G614 host: `game/approved`.',
+  '- G614 Jake-approved host `game/approved`.',
+  '- G614 L3 Jake-approved host: `game/approved`.',
+  '- G614 Jake-approved host: `game/approved` if another user joins.',
+  '- G614 Jake-approved host: `game/approved`, conditional approval.',
+  '- G6140 Jake-approved host: `game/approved`.',
+  '- G615 Jake-approved host: `game/approved`.',
 ])('unapproved or conditional prose stays fully charged: %s', prose => {
   const root = fixture(), before = row(root);
   put(root, 'docs/HOST-BAR.md', prose);
@@ -128,4 +135,14 @@ test('picked approvals retain overlap and missing-binding refusal', () => {
   expect(() => g571HostApprovals(root)).toThrow('Overlapping');
   put(root, 'docs/HOST-BAR.md', '- G600 L3 Jake-approved host: `game/approved#missing`.');
   expect(() => row(root)).toThrow('Missing G571 binding');
+});
+
+test('G614 credits the exact tagged binding without approving sibling declarations', () => {
+  const root = fixture('export const approved = 1;\nconst law = 2;\nexport const helper = law;'), before = row(root);
+  put(root, 'docs/HOST-BAR.md', '- G614 Jake-approved host: `game/approved#approved`.');
+  const approvals = g571HostApprovals(root), after = row(root);
+  expect(approvals.get('src/game/approved.ts')).toEqual(new Set(['approved']));
+  expect(approvals.has('src/game/unnamed.ts')).toBe(false);
+  expect(after.conversion.customRuntimeLines).toBe(before.conversion.customRuntimeLines - 1);
+  expect(after.conversion.gameSystemAttribution.modules).toContainEqual({ path: 'src/game/approved.ts', lines: 2, excludedLines: [1] });
 });

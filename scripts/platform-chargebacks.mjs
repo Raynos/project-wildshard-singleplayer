@@ -10,8 +10,6 @@ const modules = new Map([
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
-  ['src/game/shardfile/clientRuntimeHooks.ts', new Map(['runtimeLevelBounds', 'RuntimeBoundsRows'].map(name => [name, 'C9']))],
-  ['src/format/clientPlan.ts', new Map([['RuntimeBoundsSchema', 'C9']])],
   ['src/game/weather/forest.ts', new Map(['clockOwners', 'installWeatherClock'].map(name => [name, 'C9']))],
   ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyWeather', 'C9'], ['installAssemblyArenaScript', 'C9']])],
   ['src/game/systems/npc/figureRows.ts', new Map(['FigureGroupMember', 'FigureGroup', 'memberPose', 'enterFigureGroup'].map(name => [name, 'C9']))],
@@ -82,8 +80,6 @@ const inline = new Map([
 
 /** @param {string} path @param {string} [name] */
 function reviewedOwner(path, name) {
-  if ((path === 'src/game/shardfile/clientRuntimeHooks.ts' && ['runtimeLevelBounds', 'RuntimeBoundsRows'].includes(name ?? ''))
-    || (path === 'src/format/clientPlan.ts' && name === 'RuntimeBoundsSchema')) return 'nine-dragon-stack';
   if(path === 'src/game/practice/course.ts' && ['GrappleCourseEntry','GrappleEntryRows'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
   return 'nalati-grasslands';

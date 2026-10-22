@@ -62,13 +62,13 @@ test('closing counts shrink, require the lock to follow cuts, and close at zero'
 });
 
 
-test('Nine rejects regrowth in every zero component while retaining its charged bounds', () => {
+test('Nine rejects regrowth in all nine zero components after G614', () => {
   const locked = ratchetPolicy.closedComponents['nine-dragon-stack'];
-  expect(locked).toEqual(['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8']);
+  expect(locked).toEqual(['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']);
   const inventory = (counts: Record<string, number>) => ({ 'nine-dragon-stack': { components: {
     ...componentInventory('', 'nine-dragon-stack', [], 0), counts,
   } } });
-  const counts = { C1: 0, C2: 0, C3: 0, C4: 0, C5: 0, C6: 0, C7: 0, C8: 0, C9: 18 };
+  const counts = { C1: 0, C2: 0, C3: 0, C4: 0, C5: 0, C6: 0, C7: 0, C8: 0, C9: 0 };
   const nine = { 'nine-dragon-stack': locked };
   expect(closedComponentFailures(inventory(counts), nine)).toEqual([]);
   for (const id of locked) {

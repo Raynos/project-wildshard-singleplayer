@@ -311,15 +311,20 @@ test('ordered arena script construction retains its actual Nalati-only C9 owner'
   expect(bindings.get(`${path}\0WorldAssembly`)).toEqual(both);
 });
 
-test('the sole-user bounds policy charges Nine without approving the existing shared installer', () => {
+test('G614 approves exactly the bounds trio and removes only its Nine chargeback', () => {
   const runtime = 'src/game/shardfile/clientRuntimeHooks.ts', format = 'src/format/clientPlan.ts';
-  const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nine-dragon-stack', []], ['nalati-grasslands', []]]);
-  for (const [path, name] of [[runtime, 'runtimeLevelBounds'], [runtime, 'RuntimeBoundsRows'], [format, 'RuntimeBoundsSchema']] as const) {
-    expect(platformChargeback(path, name)).toBe('C9');
-    expect(recordPrivateCharge(charges, 'nalati-grasslands', { path, name, lines: 1 })).toBe(true);
+  const selectors = [[runtime, 'runtimeLevelBounds'], [runtime, 'RuntimeBoundsRows'], [format, 'RuntimeBoundsSchema']] as const;
+  const both = new Set(['nine-dragon-stack', 'nalati-grasslands']);
+  const bindings = new Map(selectors.map(([path, name]) => [`${path}\0${name}`, both]));
+  chargePlatformUsers(new Map(), bindings);
+  const approvals = g571HostApprovals('.');
+  for (const [path, name] of selectors) {
+    expect(platformChargeback(path, name)).toBeNull();
+    expect(bindings.get(`${path}\0${name}`)).toBe(both);
+    expect(approvedG571Host(approvals, path, name)).toBe(true);
   }
-  expect(charges.get('nine-dragon-stack')).toHaveLength(3);
-  expect(charges.get('nalati-grasslands')).toEqual([]);
+  expect(approvedG571Host(approvals, runtime)).toBe(false);
+  expect(approvedG571Host(approvals, format, 'ClientFeatureSchema')).toBe(false);
   expect(platformChargeback(runtime, 'installClientRuntimeHooks')).toBeNull();
 });
 
