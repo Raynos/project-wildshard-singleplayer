@@ -40,14 +40,14 @@ the splash and lens clocks and the lens's wetness through the numeric channel gr
 (`@wildshard/game/looks/graphDaySky#graphParamRoots`); G441's W3 match is Nalati `world/WeatherFX.ts` `update`'s
 curtain block.
 
-`@wildshard/sdk/looks/rainPresentation` (`RainPresentation.install(ctx, rows)`, G474 weather presentation, client-only)
+`@wildshard/game/weather/rainPresentation` (`RainPresentation.install(ctx, rows)`, G474 weather presentation, client-only)
 draws a level's whole rain from one `@wildshard/format/rainPresentation` row set: the curtain with a cover map (baked
 crowns, the page's roof decks plus yaw-frame roof polygons), an optional hood box, the baked puddles in a named water
 surface, the splashes at the feet and the lens drops, its three look.materials graphs turned by one client channel
 group. `update(dt, { rain, wet }, wind, camera)` reads the weather; `coverAt(x, z)` answers the crowns' shelter.
 Pine Hollow is the first user; an orchard fixture drives the same rows in `test/rain-presentation.test.ts`.
 
-`@wildshard/sdk/looks/forestWeather` (`installForestWeather(ctx, rows)`, G474, client-only) is a page's whole weather
+`@wildshard/game/weather/forest` (`installForestWeather(ctx, rows)`, G474, client-only) is a page's whole weather
 from one `@wildshard/format/forestWeather` row set, each block optional: a phase `program` on its own page system (Settings
 ▸ Weather when `mode` is `setting`), or a `storm` whose reactions step it (`game/weather/reactions`: the bundle file's
 weather and reactions, sheltered by and hurting through the renderer-free host's own assembly rows (`native`), struck at
@@ -6358,7 +6358,7 @@ actor classes refuse. `apply(frame)` writes the evaluated numbers;
 body, scene object or state grant is created. Pine weather and Signal well
 transforms use this binding.
 
-Pine's former ambient-life runtime is deleted. `sdk/looks/pageLife` owns
+Pine's former ambient-life runtime is deleted. `game/population/pageLife` owns
 its client presentation alongside Driftwood's actual gull draw. Forest rules
 live in `behaviour/life.as`; model, flock, forager and timed-tool rows are
 emitted as `actors/page-life.json`. The real journal, sound bank, actor
@@ -6385,7 +6385,7 @@ native clocks, seeded streams, body ownership and material/shader posing.
 
 ### Ambient flocks (G466 H6)
 
-`@wildshard/sdk/looks/ambientFlock` is the ambient-flock host: one row
+`@wildshard/game/ambient/ambientFlock` is the ambient-flock host: one row
 (`@wildshard/format/ambientLife#AmbientFlockSchema`) drives a flock's
 perched, wheeling, flushed and guiding flyers, and the platform owns the
 frame. `createAmbientFlock(row, look, perches)` validates the row and
@@ -9389,7 +9389,7 @@ preserved. No shard callback enters this host.
 Pine publishes its previous wind boost through the post-cadence `step` action. Nalati declares
 its phase-entry resets, wind ramps/targets and bolt cadence as actions; strike
 targeting, GET LOW and damage are its AssemblyScript reactions on the page weather
-host (`sdk/looks/forestWeather`). There is no storm subclass or phase subscription.
+host (`game/weather/forest`). There is no storm subclass or phase subscription.
 Nalati's combined snapshot adapter preserves the old flat storm save, including
 register values, while Pine's v1 envelope retains weather, wind, cadence and boost.
 Silent restore draws no RNG, emits no event and preserves the gust publication.
@@ -9895,7 +9895,7 @@ grouped placement, training refills and perches over the real manager; it change
 neither body AI nor existing herd membership. All three owners are the approved
 G474/G475 actor-spawn feature and have independent salt-marsh fixture coverage.
 
-`sdk/looks/pageLife.installPageLife` is a client-only ambient presenter.
+`game/population/pageLife.installPageLife` is a client-only ambient presenter.
 `format/pageLife` rows select actual flock draws or a packed model library,
 forager populations, journal guidance, corpse ownership and timed tools.
 The API accepts the trusted context, rows and concrete platform journal,

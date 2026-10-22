@@ -2846,7 +2846,7 @@
       }
     },
     {
-      "module": "src/sdk/looks/rainPresentation.ts",
+      "module": "src/game/weather/rainPresentation.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "weather reactions + keyed sky",

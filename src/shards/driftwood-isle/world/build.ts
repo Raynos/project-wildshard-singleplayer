@@ -27,7 +27,7 @@ import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { hasLentLook, lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
-import { createAmbientFlock } from '@wildshard/sdk/looks/ambientFlock';
+import { createAmbientFlock } from '@wildshard/game/ambient/ambientFlock';
 import { placeRopeBridge } from './RopeBridge';
 import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
 import { followToonLook } from '@wildshard/game/looks/toonLook';

@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    "./looks/forestWeather": "./looks/forestWeather.ts",
     "./npc/figures": "./npc/figures.ts",
     "./kit/specimenSchemas": "./kit/specimenSchemas.ts",
     "./headlessAssembly": "./headlessAssembly.ts",
@@ -119,9 +118,7 @@
     "./projectMap": "./projectMap.ts",
     "./random": "./random.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
-    "./looks/ambientFlock": "./looks/ambientFlock.ts",
     "./looks/lentLooks": "./looks/lentLooks.ts",
-    "./looks/rainPresentation": "./looks/rainPresentation.ts",
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",
@@ -133,7 +130,6 @@
     "./buildDecisionScripts": "./buildDecisionScripts.ts",
     "./projectDecisions": "./projectDecisions.ts",
     "./models/geometrySources": "./models/geometrySources.ts",
-    "./looks/pageLife": "./looks/pageLife.ts",
     "./bake/practiceCourse": "./bake/practiceCourse.ts"
   },
   "bin": {

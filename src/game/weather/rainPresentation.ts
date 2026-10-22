@@ -8,16 +8,17 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { pondMask, streamAt } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { WaterSurface } from '@wildshard/game/systems/looks/waterSurface';
-import { ForestRoofMask } from '@wildshard/game/looks/forestRoofMask';
-import { forestPage } from '@wildshard/game/shardfile/forestPage';
-import type { ShardContext } from '@wildshard/game/plugin/context';
-import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
-import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
-import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
+import { WaterSurface } from '../systems/looks/waterSurface';
+import { ForestRoofMask } from '../looks/forestRoofMask';
+import { forestPage } from '../shardfile/forestPage';
+import type { ShardContext } from '../plugin/context';
+import { rainCurtainGeometry } from '../systems/looks/rainCurtain';
+import { installChannelPrograms } from '../plugin/channelPrograms';
+import { graphParamRoots } from '../looks/graphDaySky';
 import { RainPresentationSchema, type RainPresentationRows } from '@wildshard/format/rainPresentation';
-import { fetchLaneBake, GeometryPack } from '../kit/geometryPack';
-import { lentLook, pushLentParams, setLentParam, setLentTexture } from './lentLooks';
+import { GeometryPack } from '@wildshard/engine/models/geometryPack';
+import { fetchLaneBake } from '../plugin/geometry';
+import { lentLook, pushLentParams, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 
 /**
  * A level's rain as rows (G474 weather presentation, `format/rainPresentation`; client-only): the rain round the camera

@@ -24,7 +24,7 @@ import { shapeBook } from '@wildshard/game/models/shapeBook';
 import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
+import { installForestWeather } from '@wildshard/game/weather/forest';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';

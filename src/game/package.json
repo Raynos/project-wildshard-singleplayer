@@ -3,6 +3,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./weather/forest": "./weather/forest.ts",
+    "./population/pageLife": "./population/pageLife.ts",
+    "./weather/rainPresentation": "./weather/rainPresentation.ts",
+    "./ambient/ambientFlock": "./ambient/ambientFlock.ts",
     "./shardfile/bakedTiles": "./shardfile/bakedTiles.ts",
     "./quest/chapterBindings": "./quest/chapterBindings.ts",
     "./ui/panels": "./ui/panels.ts",

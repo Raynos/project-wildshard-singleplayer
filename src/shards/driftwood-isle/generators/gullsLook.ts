@@ -1,4 +1,4 @@
-// SHARD-PLATFORM M3 (look-family rows): Driftwood's herring gull palette and its flock row (@wildshard/sdk/looks/ambientFlock).
+// SHARD-PLATFORM M3 (look-family rows): Driftwood's herring gull palette and its flock row (@wildshard/game/ambient/ambientFlock).
 export const GULL_PALETTE = {
   white: '#f3f3ef',
   belly: '#ffffff',
@@ -12,7 +12,7 @@ export const GULL_PALETTE = {
 /** the beach perches keep off the pier corridors: |x| < `half` beyond |z| > `beyond`, and the same across */
 export const GULL_CORRIDORS = { half: 8, beyond: 150 };
 
-/** The gull flock row (G466 H6, @wildshard/sdk/looks/ambientFlock): perched on the pier, boat, rocks and sand, wheeling in three
+/** The gull flock row (G466 H6, @wildshard/game/ambient/ambientFlock): perched on the pier, boat, rocks and sand, wheeling in three
  *  loose loops over the lagoon, flushed within ~4 m, and the place guide's V (E309 B); the rig is (flap, head, fold, legs). */
 export const GULL_FLOCK={seed:0xcfb0,count:36,scale:1.3,foot:0.221,wingbeat:'gull',
   flight:{wave:0,amplitude:0,pitch:0.7,pitchRate:4,bank:0.9,bankLimit:0.75,bankRate:2.5,directionEpsilon:1e-4},

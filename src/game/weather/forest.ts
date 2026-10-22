@@ -1,10 +1,10 @@
 /** Client-only weather composition over the page's sky, a phase continuation or a storm's reactions, its drawn parts,
  * native rain presentation and herd shelter. Shards provide rows and resource ids. */
-import { forestWeatherObservations, type ForestWeatherObservations } from '@wildshard/game/looks/forestWeather';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { forestWeatherObservations, type ForestWeatherObservations } from '../looks/forestWeather';
+import { ReturnProgram } from '../population/returnProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installChannelPrograms } from '../plugin/channelPrograms';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -15,23 +15,23 @@ import * as v from 'valibot';
 import { ForestWeatherSchema, type ForestWeatherRows } from '@wildshard/format/forestWeather';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
-import { paintedSky, skyFaceOf, type PaintedSky, type SkyFace } from '@wildshard/game/looks/keyedSky';
-import { installWeatherContinuation } from '@wildshard/game/weather/continuation';
-import { bindPageWeatherHit, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from '@wildshard/game/weather/reactions';
+import { paintedSky, skyFaceOf, type PaintedSky, type SkyFace } from '../looks/keyedSky';
+import { installWeatherContinuation } from './continuation';
+import { bindPageWeatherHit, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from './reactions';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, WeatherWorldSchema } from '@wildshard/format/weatherProgram';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import { wetFlight } from '@wildshard/engine/combat/ammo';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { panFromYaw } from '@wildshard/engine/audio/util';
-import { audioVoicePatches } from '@wildshard/game/audio/voicePatches';
-import { wildEnv } from '@wildshard/game/population/pageGroups';
-import { clientWildlife } from '@wildshard/game/population/wildlife';
-import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
-import { graphParamRoots } from '@wildshard/game/looks/graphDaySky';
+import { audioVoicePatches } from '../audio/voicePatches';
+import { wildEnv } from '../population/pageGroups';
+import { clientWildlife } from '../population/wildlife';
+import { rainCurtainGeometry } from '../systems/looks/rainCurtain';
+import { graphParamRoots } from '../looks/graphDaySky';
 import { RainPresentation } from './rainPresentation';
-import { lentLook, pushLentParams, setLentParam, setLentTexture } from './lentLooks';
-import { HerdShelter } from '@wildshard/game/population/shelter';
+import { lentLook, pushLentParams, setLentParam, setLentTexture } from '../shardfile/lentLooks';
+import { HerdShelter } from '../population/shelter';
 import { parsePopulationShelter } from '@wildshard/format/herdShelter';
 
 declare module '@wildshard/engine/events/maps' {

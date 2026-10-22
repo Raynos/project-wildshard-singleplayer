@@ -9,7 +9,7 @@ import { AmbientGroup } from '../src/game/ambient/flock';
 import { createHash } from 'node:crypto';
 import poses from './fixtures/ambient-poses.json';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial } from 'three';
-import { AmbientFlockDraw } from '../src/sdk/looks/ambientFlock';
+import { AmbientFlockDraw } from '../src/game/ambient/ambientFlock';
 import { withPortableMath } from './fake/portableMath';
 
 beforeEach(() => { setTerrainHeight(() => 0); });

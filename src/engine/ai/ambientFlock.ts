@@ -1,7 +1,7 @@
 /**
  * The ambient flock (G466 H6): perched, wheeling, flushed and guiding flyers driven from one row
  * (`@wildshard/format/ambientLife#AmbientFlockSchema`). Render-free and server-safe: the caller draws `birds`
- * (`@wildshard/sdk/looks/ambientFlock` packs them into one posed draw) and voices `calls`.
+ * (`@wildshard/game/ambient/ambientFlock` packs them into one posed draw) and voices `calls`.
  *
  * States: perched (head turns, the odd hop) → flushed by the player (a takeoff curve away from them, into a loop)
  * → wheeling on harmonic loops (`CirclingFlyer.wheel`) → landing on a free perch → perched. A row with no

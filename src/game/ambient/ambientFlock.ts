@@ -12,10 +12,10 @@
  */
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { AmbientGroup, type AmbientVisitorPlayer } from '@wildshard/game/ambient/flock';
+import { AmbientGroup, type AmbientVisitorPlayer } from './flock';
 import { parseAmbientFlock, type AmbientFlockData } from '@wildshard/format/ambientLife';
-import type { ShardContext } from '@wildshard/game/plugin/context';
-import { PosedDraw } from './posedInstances';
+import type { ShardContext } from '../plugin/context';
+import { PosedDraw } from '../looks/posedInstances';
 
 interface Point { x: number; y: number; z: number }
 /** the flock's look: the authored bird and the posed material (its vertex stage reads `attributes`) */

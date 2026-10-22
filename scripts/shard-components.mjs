@@ -91,7 +91,7 @@ const reviewedW2Owners = new Map([
   ['src/sdk/bake/rig.ts', 'C2'],
   // Weather and visual fight effects.
   // C3 review: private ambient orchestration and weather remain counted custom.
-  ['src/sdk/looks/forestWeather.ts', 'C3'],
+  ['src/game/weather/forest.ts', 'C3'],
   ...['src/game/weather/continuation.ts', 'src/game/weather/reactions.ts', 'src/game/shardfile/weatherFields.ts'].map(path => [path, 'C3']),
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],

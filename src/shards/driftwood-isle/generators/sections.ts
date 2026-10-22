@@ -151,7 +151,7 @@ export const SECTIONS = {
     lookout: v.strictObject({ ...fixedSite, descs, zipTo: v.strictObject({ x: number, z: number }) }),
   }),
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
-  /** the gull flock (data/gullsLook.ts GULL_FLOCK, @wildshard/sdk/looks/ambientFlock) */
+  /** the gull flock (data/gullsLook.ts GULL_FLOCK, @wildshard/game/ambient/ambientFlock) */
   'custom/gullFlock': AmbientFlockSchema,
   'custom/worldStages': WorldAssemblySchema,
 } as const;

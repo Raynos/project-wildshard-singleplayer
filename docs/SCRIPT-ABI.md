@@ -413,7 +413,7 @@ See [spawn owner](../src/game/population/spawnScript.ts),
 
 ### Client ambient projections
 
-The client-only `sdk/looks/pageLife` presenter also uses `ReturnProgram`:
+The client-only `game/population/pageLife` presenter also uses `ReturnProgram`:
 `arrival`, `carcass` and `guide` requests supply finite observations and receive
 validated channels. Carcass/guide decisions run at most 10 Hz; object lifetime,
 flock pose packing and timed-tool interpolation remain native. Pine's

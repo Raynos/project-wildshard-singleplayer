@@ -8,7 +8,7 @@ import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/p
 
 import { buildDriftwoodWorld, keepDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
 import { islandSystems } from './world/systems';
-import { installPageLife } from '@wildshard/sdk/looks/pageLife';
+import { installPageLife } from '@wildshard/game/population/pageLife';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
 import { installProductCreatures } from '@wildshard/game/population/productCreatures';

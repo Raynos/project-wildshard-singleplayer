@@ -2,7 +2,7 @@
 // by the wind, and its world-anchored offset wrapped into the box round the eye), its streak length and alpha, the splashes'
 // clock and alpha, and the lens drops' clock (three times as fast under a roof) and smoothed wetness, read from the frame's
 // reading the rain fills (`rain`: on, rain, dry, cover, lookY, room, radius, slots, windX, windZ). The CPU splashes, the
-// cover map and the draw range stay in sdk/looks/rainPresentation.ts.
+// cover map and the draw range stay in game/weather/rainPresentation.ts.
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import weather from '../data/weatherLook.json' with { type: 'json' };
 
