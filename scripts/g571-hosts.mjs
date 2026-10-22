@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-/** Read exact selectors from G571 entries or unconditional G599-G601 entries
+/** Read exact selectors from G571 entries or unconditional G599-G603 entries
  * tagged "Jake-approved host:" (optionally preceded by their row id).
  * Missing documentation, ordinary prose and conditional approval grant no credit.
  * A binding never approves its module; imports retain their own attribution.
@@ -14,7 +14,7 @@ export function g571HostApprovals(root) {
   if (!existsSync(file)) return result;
   for (const line of readFileSync(file, 'utf8').split('\n')) {
     const legacy = /^- G571\b/u.test(line);
-    const picked = /^- G(?:599|600|601)(?: [A-Z]\d+[a-z]?)? Jake-approved host:/u.test(line);
+    const picked = /^- G(?:599|600|601|602|603)(?: [A-Z]\d+[a-z]?)? Jake-approved host:/u.test(line);
     if (!legacy && (!picked || /\b(?:conditional(?:ly)?|condition|until|unless|if)\b/iu.test(line))) continue;
     for (const match of line.matchAll(/`((?:engine|game|sdk|format)\/[A-Za-z0-9_./-]+)(?:#([A-Za-z_$][\w$]*))?`/gu)) {
       /** @type {readonly (string|undefined)[]} */

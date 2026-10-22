@@ -81,7 +81,7 @@ test('ordinary prose and other decisions grant no approval; overlapping or missi
 });
 
 
-test.each(['G599', 'G600', 'G601'])('%s explicitly tagged Jake approvals credit only the named module', decision => {
+test.each(['G599', 'G600', 'G601', 'G602', 'G603'])('%s explicitly tagged Jake approvals credit only the named module', decision => {
   const root = fixture(), before = row(root);
   put(root, 'docs/HOST-BAR.md', `- ${decision} L3 Jake-approved host: \`game/approved\` passes tests 2-6.`);
   const after = row(root);
@@ -90,7 +90,7 @@ test.each(['G599', 'G600', 'G601'])('%s explicitly tagged Jake approvals credit 
   expect(after.conversion.gameSystemAttribution.modules).toEqual([{ path: 'src/game/unnamed.ts', lines: 1 }]);
 });
 
-test.each(['G599', 'G600', 'G601'])('%s binding approval preserves every other declaration', decision => {
+test.each(['G599', 'G600', 'G601', 'G602', 'G603'])('%s binding approval preserves every other declaration', decision => {
   const root = fixture('export const approved = 1;\nconst law = 2;\nexport const helper = law;'), before = row(root);
   put(root, 'docs/HOST-BAR.md', `- ${decision} Jake-approved host: \`game/approved#approved\`.`);
   const after = row(root);
@@ -110,7 +110,11 @@ test.each([
   '- G601 C11 Jake-approved host: `game/approved` unless the review refuses.',
   '- G475 L3 Jake-approved host: `game/approved`.',
   '- G6000 L3 Jake-approved host: `game/approved`.',
-  '- G602 L3 Jake-approved host: `game/approved`.',
+  '- G604 L3 Jake-approved host: `game/approved`.',
+  '- G602 CORE Jake-approved host: `game/approved` if another user joins.',
+  '- G603 Jake-approved host: `game/approved`, conditional approval.',
+  '- G6020 Jake-approved host: `game/approved`.',
+  '- G603 core host: `game/approved`.',
 ])('unapproved or conditional prose stays fully charged: %s', prose => {
   const root = fixture(), before = row(root);
   put(root, 'docs/HOST-BAR.md', prose);
