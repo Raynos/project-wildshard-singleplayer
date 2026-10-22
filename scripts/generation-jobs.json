@@ -434,7 +434,7 @@
         "src/shards/nalati-grasslands/generators/panoramaData.ts",
         "src/shards/nalati-grasslands/generators/bootInventory.ts",
         "src/shards/nalati-grasslands/generators/manifestRows.ts",
-        "src/shards/nalati-grasslands/generators/budgets.ts",
+        "src/shards/nalati-grasslands/data/budgetInputs.json",
         "src/shards/nalati-grasslands/generators/horizon.ts",
         "src/shards/nalati-grasslands/generators/bootFiles.ts",
         "src/shards/nalati-grasslands/data/bootSteps.json",

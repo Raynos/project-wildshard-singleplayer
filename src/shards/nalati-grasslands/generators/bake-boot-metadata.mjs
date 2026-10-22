@@ -5,7 +5,8 @@ import paintedTextures from '../data/paintedTextures.json' with { type: 'json' }
 import discovery from '../data/discovery.json' with { type: 'json' };
 import { NALATI_MAP, SNOW_LINE, GLACIER } from './layout.ts';
 import { NALATI_MANIFEST_ROWS } from './manifestRows.ts';
-import { NALATI_BUDGET_INPUTS } from './budgets.ts';
+import budgetInputs from '../data/budgetInputs.json' with { type: 'json' };
+import ceilings from '../data/budgetCeilings.json' with { type: 'json' };
 import { NALATI_HORIZON_V2 } from './horizon.ts';
 import runtimeCost from '../data/runtimeCost.json' with { type: 'json' };
 // Boot metadata exists before product admission; author recipes never enter the client bundle.
@@ -15,6 +16,9 @@ import { resolve } from 'node:path';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { nalatiBootInventory } from './bootInventory.ts';
 import * as v from 'valibot';
+
+/** @type {import('@wildshard/engine/level/spec').LevelSpec['budgets']} */
+const NALATI_BUDGET_INPUTS = { ceilings, ...budgetInputs };
 
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
 /** Only these authored public trees affect recipe presence and phone fallbacks. */
