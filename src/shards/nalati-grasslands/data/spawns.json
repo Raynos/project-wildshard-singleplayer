@@ -1,0 +1,15 @@
+{
+  "homes": [],
+  "bosses": [
+    {
+      "id": "nalati.golden-king",
+      "kind": "golden-king",
+      "look": "king",
+      "at": [
+        -40,
+        -95.6
+      ],
+      "yaw": 0
+    }
+  ]
+}

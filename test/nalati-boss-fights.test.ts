@@ -8,7 +8,7 @@ import type { ShardWorld } from '../src/game/shard/world';
 import type { HUD } from '../src/engine/ui/HUD';
 import { parseRuntimeSpawns } from '../src/format/runtimeSpawns';
 import { arenaRoomFight } from '../src/game/boss/arenaRoom';
-import { NALATI_RUNTIME_SPAWNS } from '../src/shards/nalati-grasslands/generators/spawns';
+import NALATI_RUNTIME_SPAWNS from '../src/shards/nalati-grasslands/data/spawns.json' with { type: 'json' };
 import { expect, test,vi } from 'vitest';
 import { parse } from 'valibot';
 import { PatrolViewSchema } from '../src/format/encounterRows';

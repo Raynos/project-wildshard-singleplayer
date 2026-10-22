@@ -23,7 +23,7 @@ import NALATI_LEDGER from '../data/ledger.json' with { type: 'json' };
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import NALATI_STATE from '../data/state.json' with { type: 'json' };
 import items from '../data/items.json' with { type: 'json' };
-import { NALATI_RUNTIME_SPAWNS } from './spawns';
+import NALATI_RUNTIME_SPAWNS from '../data/spawns.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import queryTerrain from '../data/terrain.generated.json' with { type: 'json' };
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
