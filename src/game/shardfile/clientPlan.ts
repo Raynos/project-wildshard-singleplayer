@@ -193,6 +193,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installHeldClaimsEntry } = await import('./heldClaimsEntry');
     installHeldClaimsEntry(ctx, row.claims);
   } },
+  'held.mounted': { phase: 'kit', rank: -10, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'held.mounted') throw new Error('Invalid mounted arsenal feature');
+    const { entryOwner } = await import('./entryOwners');
+    entryOwner(ctx.scope, 'mounted-arsenal', row.arsenal).installPage(ctx);
+  } },
   'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
@@ -268,6 +273,7 @@ export interface AdmittedClientPlan { readonly features: readonly ClientFeatureR
 export function admitClientPlan(input: unknown, product: ShardProduct): AdmittedClientPlan {
   try {
     const plan = parseClientPlan(input);
+    if (plan.features.some(row => row.kind === 'held.mounted') && plan.features.some(row => row.kind === 'held.claims.prepare' || row.kind === 'held.melee' || row.kind === 'held.ranged-page')) throw new Error('Mounted arsenal requires its sole native equipment builder');
     for (const row of plan.features) if (row.kind === 'world.assembly') preflightIslandBook(product, row);
     if (plan.features.some(row => row.kind === 'population.hull-book')) {
       if (plan.features.some(row => row.kind === 'population.product-creatures')) throw new Error('Hull book kit cannot duplicate product creatures');

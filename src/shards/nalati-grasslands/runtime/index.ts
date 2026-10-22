@@ -1,3 +1,4 @@
+import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
 
@@ -45,6 +46,7 @@ export class NalatiPlugin extends ShardPlugin {
     await arsenal.blade.prepare(ctx.product);
     await arsenal.polearm.prepare(ctx.product);
     await prepareWeaponCatalogue();
+    publishEntryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal', arsenal);
     const rt = this.rt;
     shell.objects['nalati'] = rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
@@ -61,11 +63,10 @@ export class NalatiPlugin extends ShardPlugin {
     if (world === null) throw new Error('Nalati equipment requires a world');
     ctx.rows.species(nalatiSpecies());
     ctx.rows.speciesLook(nalatiLooks());
-    arsenal.installPage(ctx);
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), kit = arsenal.pageKit(ctx);
+    const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), mounted = entryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
     if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
     const { animals, hud, audio, music, progress } = h;
     const persistence = enteredAdventurePersistence(ctx.scope);
@@ -89,7 +90,7 @@ export class NalatiPlugin extends ShardPlugin {
     await part();
     ctx.scope.run(() => rt.elites.bind({ persistence, animals, wildlife, taming: ride?.taming ?? null, interactables: shell.interactables, hud, audio, music }));
     await part();
-    ctx.scope.run(() => rt.titan.bind(ctx,kit,arsenal,weaponCatalogue.model('naizagai'),rt.skins));
+    ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted,weaponCatalogue.model('naizagai'),rt.skins));
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize();
     await part();

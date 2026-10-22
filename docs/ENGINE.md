@@ -11266,6 +11266,19 @@ world/kit/play hooks; omitted or true still runs every phase, and false keeps
 all native hooks without a plan. Repeated phases refuse. Hybrid entries keep
 their existing full admitted plan.
 
+
+`held.mounted {arsenal}` runs at entered kit rank -10. It borrows the concrete
+`mounted-arsenal` owner prepared by world and calls that same MountedArsenal's
+installPage; play and boss upgrades borrow the same arsenal and native kit.
+It creates no second weapon family, specimen catalogue or saved owner. This
+transitional capability does not waive the mounted host's sole-user charge.
+
+A transitional native phase selection may also give a finite `features` list,
+for example `{phases: ['kit'], features: ['held.mounted']}`. The adapter admits
+the whole plan, refuses repeated or missing selected kinds, then runs only the
+selected rows inside the selected phases. Unrelated native kit/world/play
+owners remain under their existing hooks; the hybrid still runs its full plan.
+
 The strict declared-primary branch of held/arms names one original melee
 item/blade/presentation file plus ordered tool ids. HeldClaims.prepare reads
 its portrait framing without loading another rig; install preflights its tools

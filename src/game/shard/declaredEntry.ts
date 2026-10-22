@@ -1,3 +1,4 @@
+import type { ClientFeatureKind } from '@wildshard/format/clientPlan';
 import { standaloneHybridEntry, ShardPlugin, type ShardContext } from '../plugin/context';
 import { prepareStandaloneHybrid, shardfileEntry } from './runtimeVariant';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from '../shardfile/clientPlan';
@@ -7,10 +8,11 @@ import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type Clie
  * A finite `nativePlan.phases` selection adds only migrated phases to native hooks.
  * This is transitional runtime scaffolding; client features themselves take only JSON rows. */
 export function declaredRuntimeEntry(Runtime: new () => ShardPlugin, Native: new () => ShardPlugin,
-  policy: { readonly entry: string; readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime'; readonly nativePlan?: boolean | { readonly phases: readonly ClientPhase[] } }): {
+  policy: { readonly entry: string; readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime'; readonly nativePlan?: boolean | { readonly phases: readonly ClientPhase[]; readonly features?: readonly ClientFeatureKind[] } }): {
     default: ReturnType<typeof standaloneHybridEntry>; resolveTrustedRuntime: (entry: string) => new () => ShardPlugin;
   } {
-  const NativeEntry = clientPlanNative(Native, typeof policy.nativePlan === 'object' ? policy.nativePlan.phases : undefined);
+  const selection = typeof policy.nativePlan === 'object' ? policy.nativePlan : undefined;
+  const NativeEntry = clientPlanNative(Native, selection?.phases, selection?.features);
   const Entry = standaloneHybridEntry(policy.nativePlan === false ? Native : NativeEntry, ctx => {
     if (!ctx.product.has('client/plan')) throw new Error('Declared runtime entry requires client/plan');
     return prepareStandaloneHybrid(ctx, { name: 'declared runtime', ...policy,
@@ -34,14 +36,20 @@ export function declaredClientPlanEntry(policy: { readonly retainHomeRuntime: bo
   }, shardfileEntry, 'client-plan runtime') };
 }
 
-function clientPlanNative(Native: new () => ShardPlugin, phases?: readonly ClientPhase[]): new () => ShardPlugin {
+function clientPlanNative(Native: new () => ShardPlugin, phases?: readonly ClientPhase[], features?: readonly ClientFeatureKind[]): new () => ShardPlugin {
   const selected = phases === undefined ? undefined : new Set(phases);
   if (phases !== undefined && selected?.size !== phases.length) throw new Error('Duplicate native client phase');
+  const kinds = features === undefined ? undefined : new Set(features);
+  if (features !== undefined && (features.length === 0 || kinds?.size !== features.length)) throw new Error('Invalid native client feature selection');
   return class extends Native {
     private plan: AdmittedClientPlan | undefined;
     private async phase(ctx: ShardContext, phase: ClientPhase): Promise<void> {
       if (selected !== undefined && !selected.has(phase)) return;
-      this.plan ??= admitClientPlan(ctx.product.section('client/plan'), ctx.product);
+      if (this.plan === undefined) {
+        const plan = admitClientPlan(ctx.product.section('client/plan'), ctx.product);
+        if (kinds !== undefined && [...kinds].some(kind => !plan.features.some(row => row.kind === kind))) throw new Error('Missing selected native client feature');
+        this.plan = kinds === undefined ? plan : { features: plan.features.filter(row => kinds.has(row.kind)) };
+      }
       await installClientPhase(ctx, this.plan, phase, ctx.scope);
     }
     override async world(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'world'); await super.world?.(ctx); await this.phase(ctx, 'world-bindings'); }

@@ -78,6 +78,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('population.product-creatures') }),
   v.strictObject({ kind: v.literal('population.hull-book') }),
   v.strictObject({ kind: v.literal('held.claims.install'), claims: id }),
+  v.strictObject({ kind: v.literal('held.mounted'), arsenal: id }),
   v.strictObject({ kind: v.literal('held.cosmetics') }),
   v.strictObject({ kind: v.literal('held.ranged-feel') }),
   v.strictObject({kind:v.literal('bag.finds'),id,quest:id,file:label}),
