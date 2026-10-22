@@ -61,6 +61,7 @@ Claude 50 % and Codex 54 % of the week used at day 1.9 and 1.3; `scripts/` 33 �
 | D6 | **The push gate and the ruler keep normal priority:** Phase 1.2's `taskpolicy -c utility` wraps lane jobs only; `heavy-lane.py gate` (the push gate and everything under its lease) and the ruler's measurement build (`scripts/admin-data/ruler.mjs`) run at default QoS, as G548 B5 set (Jake, 10-21 ~10:35 Cancun, on the plan agent's review of Wave 1: *"exempt the push gate and the ruler approved"*; SHARD-PLATFORM G562). | decided (10-21); amends 1.2 |
 | D7 | **One Simulator device, no new ones:** `scripts/sim-lane.sh` stops creating a device for every new name; it uses one named Wildshard device (`wildshard-iphone`, an iPhone 17 Pro on the newest runtime) by default, accepts only existing device names, and refuses to create others. The 44 one-off lane devices (~103 GB) were deleted by the plan agent on Jake's word (10-21: 73 → 29 devices, 184 → 81 GB); the three in use, Apple's stock devices and other projects' (rockhop, trials) were kept (Jake, 10-21 ~10:50 Cancun: *"Delete + fix the tool"*; SHARD-PLATFORM G563). | decided (10-21) |
 | D8 | **Push now, eject what's red** (Jake, 10-21 ~14:30 Cancun, on the plan agent's 3-hour lane audit: 15 gate runs, 11 red, main stuck since 11:45 with 94 commits queued): Phases 2.3 A and 2.4 A are approved now, ahead of the rest of Wave 2; on a red pre-push the loop finds the offending commit(s) (bisect the range, or the commits touching the failing test's files), leaves them local, pushes everything before them and pings their lane; the rest of the range never waits on one red (SHARD-PLATFORM G568). | decided (10-21) |
+| D9 | **Commit path (Jake, 10-21 ~20:05):** 2.1 A, `scripts/commit.sh` is the one way to commit (intent-to-add, ~1 s lock, pathspec commit; the private-index procedure and the add-all guard go). **Pre-commit does the cheap checks, up to ~5 s:** types and oxlint on the changed files plus the storage policy (2.2 A vetoed); only the index/lock scripts that commit.sh makes redundant are deleted (commit-message-lock, check-commit-index, index-hygiene, commit-sweep-ledger). Per D1, the 45 s pre-push then drops types/oxlint (pre-commit owns them) and runs only the related tests. **2.5 vetoed:** sp-x7 stays the release owner. (SHARD-PLATFORM G584.) | decided (10-21) |
 
 ## Wave 1: stop the bleeding (nothing deleted, every step reversible in minutes)
 
@@ -175,7 +176,7 @@ shared one. The two files git still touches, `index.lock` and `COMMIT_EDITMSG`, 
 - **Risk:** medium; every lane changes how it commits, at a boundary. **Effort:** 0.5 day.
 - **Verify:** one day of lane commits with zero `index.lock` or stale-staged-tree errors; commit wall time under 2 s
   average (today 12.2 s). **Rollback:** lanes return to `git commit -- <paths>`.
-- **Jake:** ☐ A ☐ B ☐ veto
+- **Jake:** ☑ A (10-21 ~20:05: *"A but if the pre commit hook takes 5s that's fine too"*; D9)
 
 ### Phase 2.2 The pre-commit diet
 
@@ -189,7 +190,7 @@ message convention and the storage policy on the staged blobs.
   `boot-temp-warn.sh`, `commit-sweep-ledger.py`, `check-lock.mjs`, and their hook lines.
 - **Risk:** medium (hooks change for everyone). **Effort:** 0.5 day.
 - **Verify:** commit time; `repo-size` still refuses a 2 MB blob (one test commit, then reset). **Rollback:** revert.
-- **Jake:** ☐ A ☐ veto
+- **Jake:** ☒ A vetoed, re-planned (10-21 ~20:05: *"the pre commit is supposed to do all the cheap lints and type checks"*; D9)
 
 ### Phase 2.3 Push loop and CI watcher
 
@@ -238,7 +239,7 @@ pre-commit.
 - **Approach A:** `sp-x7` ends at its current task boundary and is not restarted; GIT.md and AGENTS.md say "done =
   pushed and CI green, fix-forward; commit with `commit.sh`"; the gate and leave-local paragraphs go.
 - **Deletes:** one Codex lane's purpose; about 60 lines of GIT.md. **Effort:** 1 h.
-- **Jake:** ☐ A ☐ veto
+- **Jake:** ☒ veto (10-21 ~20:05): sp-x7 stays the release owner (checks CI, smoke and live every 15 min; G582); D9
 
 **Wave 2 Verify:** commit under 2 s; commit-to-origin under 2 min median; red-main under 2 h/day; zero index errors;
 one lane freed.
