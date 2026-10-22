@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-22 06:20 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
+Updated 2026-10-22 07:28 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
 
 LATEST OWNER: At22:49 explicitly requested publishing all nine now, not waiting for browser infrastructure. Delivery is separate from passing every test. Version99 deployment succeeded22:55. Keep unfinished testing disclosed; no fabricated acceptance. Bellback physics expansion approved17:08, off first-prototype critical path. See PROTOTYPE-NINE.md.
 
@@ -19,3 +19,5 @@ OTHER RETAINED: Keelmaw rigid-held fails unchanged floor gate in4phases; no tuni
 PUBLIC/PROTECTION: Game remote57cf1bb exact verified through limited visual review; native Site source and archive99 saved/deployed. Original references and18 approximate sheets remain noncanonical; other16 concepts rejected. No production-game deployment or persistent-world rewards.
 
 REFERENCE PASS: One paired Conch weapon-continuity AI edit completed22Oct. Independent pixel review rejects both candidates for selection: extra pale spikes, rearward shield attachments and unintended blade drift. Prior v3 remains selected. Prompts/provenance/reviews retained under approved-nine-2026-10-19/round-1-conch-weapon-continuity-2026-10-22; raw PNGs preserved locally above Git preview caps. No runtime or Site changes.
+
+GALLERY: Actual cloud desktop check passes six tab activations, all9 hero+18sheet renders,18Details/162links,9In-Game previews/statuses and sticky Arena. Individual angle viewer sampled only; no phone/likeness acceptance. Open UI defect: cold lazy image expansion shifts identity-anchor navigation. See docs/reviews/cloud-arena-startup-20261022/gallery-check.json.

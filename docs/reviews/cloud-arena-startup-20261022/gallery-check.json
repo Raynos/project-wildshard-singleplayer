@@ -1,0 +1,79 @@
+{
+  "url": "https://wildshard-enemy-lab.raynos.chatgpt.site/",
+  "site": 99,
+  "checked_at_utc": "2026-10-22T07:26:24Z",
+  "environment": "Own OpenAI cloud Chromium through supported mcp__cua_repl CDP, Linux desktop. Not a phone or user Mac.",
+  "scope": "Bounded read-only public non-GPU UI verification. No source edits, publication or Git changes.",
+  "source_context_supplied_by_parent": {
+    "head": "00fc2311a6b3e0de7c43c47ccd5c09d22cc04a37",
+    "locally_reverified": false
+  },
+  "checks": {
+    "six_tabs": {
+      "result": "pass",
+      "tested": [
+        "Overview",
+        "Review / Audit / Research",
+        "Mockup Catalog",
+        "Approved Mockups",
+        "In-Game Footage",
+        "Devlog"
+      ],
+      "observed": "Each tab selected and showed its corresponding section. Overview and Approved were revisited successfully."
+    },
+    "approved_main_scroll": {
+      "result": "pass_after_lazy_load",
+      "identities": [
+        "Brine Puffer",
+        "Conch Duelist",
+        "Splinter Mantis",
+        "Bellback",
+        "Tide-Root Colossus",
+        "Brine Pitcher Matriarch",
+        "Pearlglass Medusa",
+        "Keelmaw",
+        "Bloomthroat Iguana"
+      ],
+      "hero_images_visually_inspected": 9,
+      "full_3_by_3_sheets_visually_inspected": 18,
+      "contexts": [
+        "Model Explorer",
+        "In the world"
+      ],
+      "observed": "Actual rendered pixels inspected in genuine desktop page screenshots for every hero and both full sheets per identity, not merely labels or DOM counts. No broken main-scroll image remained after loading.",
+      "caveats_visible": "AI reference, not game capture; approximate cameras and inconsistent inferred anatomy; original heroes authoritative. Four fresh heroes explicitly say separate owner review pending."
+    },
+    "details": {
+      "result": "pass_bounded_accessibility_check",
+      "keyboard_open_and_close_controls": 18,
+      "links_and_images_per_control": 9,
+      "total_angle_links_exposed": 162,
+      "visual_sample": "Iguana Explorer individual thumbnails rendered. The Front link's actual reference-angle viewer loaded and displayed its intended image crop with explicit intended-camera and inferred-anatomy caveats.",
+      "limit": "Did not individually open and visually audit all 162 angle URLs."
+    },
+    "in_game_cards": {
+      "result": "pass",
+      "current_cards": 9,
+      "capture_images_visually_inspected": 9,
+      "observed_statuses": "All Available WIP prototype. Original four clearly labelled retained earlier evidence. Bellback, Pitcher, Keelmaw and Iguana clearly labelled earlier-build smoke captures. Medusa clearly labelled corrected-build mounted smoke, with full combat playtesting incomplete. No quality completion claimed.",
+      "limit": "Checked visible status honesty and consistency, not independent capture provenance or combat success."
+    },
+    "sticky_arena": {
+      "result": "pass_visibility",
+      "observed": "Arena access banner and button stayed visible at the viewport top through deep Approved and In-Game scrolling; href points to arena.html.",
+      "limit": "Did not launch Arena or retry WebGL2."
+    }
+  },
+  "observations": [
+    "Cold lazy-loaded sheets initially occupy almost no vertical space and expand after loading. Rapid identity-anchor navigation can shift the viewport away from the named section. This was observed during the first pass; focusing the intended image again after load reached it. No final missing image was found.",
+    "Screenshots are genuine desktop browser captures emitted in tool output. Tall full-card captures include the sticky banner at the capture scroll position. No screenshot is represented as a physical-phone test."
+  ],
+  "not_tested": [
+    "Arena launch, combat cycles, GPU/WebGL diagnosis or fixes",
+    "Actual physical-phone layout, touch interaction or performance",
+    "Independent likeness, canonical camera direction or anatomy acceptance",
+    "All reference-angle viewer URLs individually",
+    "Complete Review, Catalog and Devlog content or filter functionality"
+  ],
+  "cleanup": "Only worker-created gallery tab 12 and angle-viewer tab 13 are closed. Other tabs untouched."
+}
