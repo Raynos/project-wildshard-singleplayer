@@ -43,14 +43,16 @@ export function nalatiTamingPilot(host: SimHost, stallionId: string, previousBal
 export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<string, Uint8Array>, replay: boolean): Promise<object> {
   const actor = nalatiBake().actors.find(a => a.kind === 'horse' && a.variant === 'stallion');
   if (actor === undefined) throw new Error('Missing authored wild stallion');
-  const spawn = nalatiBake().spawns.find(a => a.id === actor.id);
+  const spawn = physics.spawns.find(a => a.id === actor.id);
   if (spawn === undefined) throw new Error('Missing authored wild stallion placement');
+  const [spawnX, , spawnZ] = spawn.at;
+  if (spawnX === undefined || spawnZ === undefined) throw new Error('Missing authored wild stallion coordinates');
   const product = await loadHeadlessProduct('out/nalati-grasslands');
   const originalPlan = await prepareHeadlessRuntime({ shard: source, assets, rapier, product });
   const heightAt = originalPlan.ports?.heightAt; if (heightAt === undefined) throw new Error('Missing actual terrain');
   // Declared assembly reads the product's shardfile, including its spawn.
   // Keep every shipped section/blob; replace only this documented fixture start.
-  const x = spawn.at[0] + 2, z = spawn.at[2], fixture = { ...product.shardfile, spawn: { x, y: heightAt(x, z) + 0.1, z, yaw: 0 } };
+  const x = spawnX + 2, z = spawnZ, fixture = { ...product.shardfile, spawn: { x, y: heightAt(x, z) + 0.1, z, yaw: 0 } };
   const preparation = { shard: fixture, assets, rapier, product: { ...product, shardfile: fixture } }, entry = { module: MODULE };
   const first = await createTrustedHeadlessResident(preparation, entry);
   let restored: Awaited<ReturnType<typeof createTrustedHeadlessResident>> | undefined;

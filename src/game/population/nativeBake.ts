@@ -169,13 +169,9 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
   };
 }
 
-const finite=v.pipe(v.number(),v.finite()),triple=v.tuple([finite,finite,finite]);
+const finite=v.pipe(v.number(),v.finite());
 const populationMetadata=v.object({
   trees:v.array(v.tuple([finite,finite,v.pipe(finite,v.minValue(0))])),tops:v.array(finite),
-  yurts:v.array(v.tuple([finite,finite,v.pipe(finite,v.minValue(0))])),grass:v.array(triple),
-  spawns:v.array(v.strictObject({id:v.string(),at:triple,yaw:finite,mem:v.record(v.string(),v.nullable(finite))})),
-  groups:v.array(v.strictObject({kind:v.picklist(['pack','herd']),members:v.array(v.string()),state:v.string()})),
-  flocks:v.array(v.strictObject({n:v.pipe(finite,v.integer(),v.minValue(0),v.maxValue(256)),cx:finite,cz:finite,members:v.array(v.strictObject({at:triple,yaw:finite}))})),
   ledges:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(6)),
   marmots:ForagerContinuation,
 });
@@ -189,16 +185,13 @@ export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeRea
   const row=v.parse(nativeIntake,rows);return nativeBakeReader(input,{...row,spec:nativeBodySpecSchema(row.rig),solid:nativeColliderSchema(row.shapes,row.provenance),extra:v.object({})});
 }
 /** Data-only population-world intake over the same native decoder. Admit the
- * complete roster join before publishing poses or translating null hit times.
+ * actor and herd joins before publishing poses.
  * The runtime plan retains this result; no module-global world cache exists. */
-export type PopulationBake=NativePhysicsBake & Omit<v.InferOutput<typeof populationMetadata>,'spawns'> & {spawns:{id:string;at:[number,number,number];yaw:number;mem:Record<string,number>}[]};
+export type PopulationBake=NativePhysicsBake & v.InferOutput<typeof populationMetadata>;
 export function readPopulationBake(input:unknown,rows:unknown):PopulationBake{
   const row=v.parse(populationIntake,rows),bake=nativeBakeReader(input,{...row,parked:false,spec:nativeBodySpecSchema('segments'),solid:nativeColliderSchema([1,2,6,9],'piece'),extra:populationMetadata}).read();
   const ids=new Set(bake.actors.map(actor=>actor.id));
-  if(ids.size!==bake.actors.length||!bake.herds.every(herd=>herd.members.every(id=>ids.has(id)))
-    ||bake.spawns.length!==bake.actors.length||bake.spawns.some((spawn,index)=>spawn.id!==bake.actors[index]?.id)
-    ||!bake.groups.every(group=>group.members.every(id=>ids.has(id))))throw new Error('Baked population roster is not one id per body');
-  if(bake.flocks.some(flock=>flock.members.length!==flock.n))throw new Error('Baked population flock is not one pose per body');
+  if(ids.size!==bake.actors.length||!bake.herds.every(herd=>herd.members.every(id=>ids.has(id))))throw new Error('Baked population roster is not one id per body');
   if(bake.tops.length!==bake.trees.length)throw new Error('Baked population trees and tops differ in count');
-  return {...bake,spawns:bake.spawns.map(spawn=>({id:spawn.id,at:spawn.at,yaw:spawn.yaw,mem:Object.fromEntries(Object.entries(spawn.mem).map(([key,value])=>[key,value??-Infinity]))}))};
+  return bake;
 }

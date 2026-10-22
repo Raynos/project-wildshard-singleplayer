@@ -18,22 +18,19 @@ function input(){
     flocks:[{n:1,cx:2,cz:3,members:[{at:[2,0,3],yaw:0}]}],ledges:[],marmots:foragers.snapshot()};
 }
 
-test('orchard bake admission joins native identities and owns decoded buffers and hit memory',()=>{
+test('orchard bake admission joins native identities and owns decoded terrain buffers',()=>{
   const source=input(),bake=readPopulationBake(source,rows),other=readPopulationBake(source,rows);
-  expect(bake.spawns[0]?.mem['hit']).toBe(-Infinity);expect(bake.spawns[0]?.mem['age']).toBe(1);
   expect(source.spawns[0]?.mem.hit).toBeNull();expect(bake.ground.heights).toEqual(new Float32Array([0,1,2,3]));
   bake.ground.heights[0]=9;expect(other.ground.heights[0]).toBe(0);
-  expect(bake.actors.map(row=>row.id)).toEqual(bake.spawns.map(row=>row.id));expect(bake.marmots).toEqual(source.marmots);
-  expect(bake.yurts).toEqual(source.yurts);expect(bake.grass).toEqual(source.grass);
+  expect(bake.actors.map(row=>row.id)).toEqual(source.actors.map(row=>row.id));expect(bake.marmots).toEqual(source.marmots);
+  expect(bake.trees).toEqual(source.trees);expect(bake.tops).toEqual(source.tops);expect(bake.ledges).toEqual(source.ledges);expect(bake.herds).toEqual(source.herds);
 });
 
-test('population intake refuses broken rosters, pose counts and executable metadata',()=>{
+test('population intake refuses broken native rosters, canopy counts and executable metadata',()=>{
   const source=input();
   expect(()=>readPopulationBake({...source,actors:[...source.actors,...source.actors]},rows)).toThrow('one id per body');
-  expect(()=>readPopulationBake({...source,spawns:[]},rows)).toThrow('one id per body');
-  expect(()=>readPopulationBake({...source,groups:[{kind:'pack',members:['missing'],state:'hunt'}]},rows)).toThrow('one id per body');
+  expect(()=>readPopulationBake({...source,herds:[{kind:'herd',members:['missing']}]},rows)).toThrow('one id per body');
   expect(()=>readPopulationBake({...source,tops:[]},rows)).toThrow('trees and tops');
-  expect(()=>readPopulationBake({...source,flocks:[{n:2,cx:2,cz:3,members:[]}]},rows)).toThrow('one pose per body');
   expect(()=>readPopulationBake(source,{...rows,check:()=>true})).toThrow();
-  expect(()=>readPopulationBake({...source,spawns:[{id:'bad',at:[0,0,0],yaw:0,mem:{hit:()=>3}}]},rows)).toThrow();
+  expect(()=>readPopulationBake({...source,trees:[[2,3,()=>3]]},rows)).toThrow();
 });
