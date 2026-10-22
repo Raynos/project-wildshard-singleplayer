@@ -86,8 +86,9 @@ export class WorldEntry {
       const register = this.ports.piece; if (register === undefined) throw new Error(`World entry piece ${row.id} needs its registration port`);
       const floors = row.floors, policy = row.floorPolicy;
       register({ id: row.id, name: row.name, file: row.file, category: row.category, surface: row.surface, solidFloor: row.solidFloor,
+        ...(row.colliderOwner === undefined ? {} : { colliderOwner: row.colliderOwner }),
         ...(row.object === null ? {} : { object: row.object === undefined ? root : scenes().object(row.object) }),
-        colliders: readColliderRows(row.colliders, { kinds: ['box', 'treads'], surfaces: [row.surface], requireSurface: true }),
+        colliders: readColliderRows(row.colliders, { kinds: ['box', 'treads'], surfaces: row.surfaces ?? [row.surface], requireSurface: true }),
         ...(floors.length === 0 ? {} : { floor: (x: number, z: number) => floorAtRects(floors, x, z, policy) }) });
       return;
     }

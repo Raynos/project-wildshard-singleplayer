@@ -5,7 +5,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { RopeChain } from '../src/engine/physics/ropeChain';
 import { addPiece } from '../src/engine/physics/pieces';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { type Piece, WorldRegistry } from '../src/engine/world/registry';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import type { RopeDeckSpan } from '../src/format/ropeDeckSite';
 import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
@@ -345,4 +345,17 @@ test('retirement across the chain slice removes capture, loans and native bodies
     expect(f.app.systemsByPhase()['fixed.post']).toHaveLength(0); expect(f.physics.world.bodies.len()).toBe(0);
     expect(() => entryOwner(f.scope, 'chain', 'bridge.deck')).toThrow('scope has ended');
   } finally { f.clean(); }
+});
+test('an entry piece row registers its collider owner, its declared collider surfaces and no scene object when it names none', async () => {
+  const scope = new Scope('construction'), pieces: Piece[] = [];
+  const rows = { stages: [{ kind: 'entry', id: 'decks', label: 'Decks', rows: [{ kind: 'piece', id: 'nds-deck.north', name: 'North deck', file: 'deck.ts', category: 'buildings',
+    surface: 'stone', surfaces: ['stone', 'wood'], colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1, surface: 'stone' }, { kind: 'box', x: 2, y: 0, z: 0, hx: 1, hy: 1, hz: 1, surface: 'wood' }],
+    floors: [], floorPolicy: 'first', solidFloor: false, object: null, colliderOwner: 'deck.north' }] }] };
+  const assembly = WorldAssembly.admit(rows, { scope, scenes: legacyDouble<SceneHandles>({}), context: legacyDouble<ModelContext>({}), registry: null,
+    entry: { root: new Group(), tier: 'phone', piece: piece => { pieces.push(piece); } }, slice: () => Promise.resolve() });
+  try {
+    await assembly.next('decks');
+    expect(pieces).toHaveLength(1); expect(pieces[0]?.colliderOwner).toBe('deck.north'); expect(pieces[0]?.object).toBeUndefined();
+    expect(pieces[0]?.colliders).toHaveLength(2);
+  } finally { scope.dispose(); }
 });

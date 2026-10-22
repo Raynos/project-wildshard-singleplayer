@@ -12,7 +12,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import worldInstall from './world/install.generated.json' with { type: 'json' };
-import type { GeometryBoot } from './runtime/productSections.generated';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -111,20 +110,17 @@ export class NdPlugin extends ShardPlugin {
       get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
     const { world, camera } = await this.build(ctx, ctx.cube === null, () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
-    const { world: worldRows } = await ctx.product.json<GeometryBoot>('geometry/layout.json');
     this.ndWorld = world;
     if (ctx.game.runtime !== undefined) ctx.game.runtime.objects['lanterns'] = world.lanterns;
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(scope, rt);
     // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
     await WorldEntry.admit(ctx.product.section('world/scenes').entry, { root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
-    for (const { id, name, file, colliderOwner, colliders } of (world.entryCaps === true ? worldInstall.standalone : worldInstall.cell).filter(row => row.id !== 'nds-floors')) {
-      ctx.piece({ id, name, file, ...(colliderOwner === undefined ? {} : { colliderOwner }), category: 'buildings', surface: 'stone',
-        colliders: readColliderRows(colliders, { kinds: ['box', 'treads'], surfaces: ['stone'], requireSurface: true }),
-        ...(id === 'nds-grapple-guard' ? { follows: new Group(), active: () => this.grapple?.guardOpen !== true } : {}),
-      });
+    // the grapple guard: its gate's live state decides when it collides (the ending's other pieces are the entry's)
+    for (const { id, name, file, colliders } of (world.entryCaps === true ? worldInstall.standalone : worldInstall.cell).filter(row => row.id === 'nds-grapple-guard')) {
+      ctx.piece({ id, name, file, category: 'buildings', surface: 'stone', colliders: readColliderRows(colliders, { kinds: ['box', 'treads'], surfaces: ['stone'], requireSurface: true }),
+        follows: new Group(), active: () => this.grapple?.guardOpen !== true });
     }
-    ctx.piece({ ...worldInstall.crossings, category: 'buildings', surface: 'stone', colliders: [...worldRows.crossings] });
     ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t, rt.camera); } });
     installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   }
