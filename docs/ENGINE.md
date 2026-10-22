@@ -11356,7 +11356,11 @@ owners remain under their existing hooks; the hybrid still runs its full plan.
 The strict declared-primary branch of held/arms names one original melee
 item/blade/presentation file plus ordered tool ids. HeldClaims.prepare reads
 its portrait framing without loading another rig; install preflights its tools
-then calls the existing melee installer and registers tools in authored order.
+then uses the same native sword factory as the Toon rows, registering tools
+in authored order. The factory borrows the declared, wood or iron rig directly;
+it preserves each row/profile merge and build phase. HeldMeleeOwner is the
+installed native profile and lazy primary loan. The separate declared-melee
+installer is retired.
 HeldClaims.melee() lends the exact installed primary and profile to play, and
 refuses before install or after its owner retires. The original Toon branch
 and its Explorer cards retain their existing wire and rig owners.

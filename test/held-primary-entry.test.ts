@@ -3,13 +3,12 @@ import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import type { Sword } from '../src/game/weapons/Sword';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { ShardPlugin } from '../src/game/shard/plugin';
 import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import { Vector3 } from 'three';
-import * as melee from '../src/game/loadout/declaredMelee';
+import { heldSwordWorld } from './fixtures/heldNativeSword';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../src/game/shardfile/heldClaimsEntry';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -31,36 +30,38 @@ function fixture(presentation: unknown = defaultPresentation, pending?: Promise<
   const read = vi.fn(() => pending ?? Promise.resolve(new TextEncoder().encode(JSON.stringify(presentation))));
   const product = createShardProduct({ slug, revision: 1, shardfile: source, sections: new Map<string, unknown>([['held/arms', input], ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'primary.claims' }, { kind: 'held.claims.install', claims: 'primary.claims' }] }]]),
     files: new Map([[rows.primary.file, { hash: 'a'.repeat(64), url: '/fixture/presentation.json' }]]), read });
-  const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>({}), step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
-  const tool = vi.fn<ShardContext['rows']['tool']>();
+  const native=heldSwordWorld();scope.onDispose(native.dispose);
+  const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>(native.world), step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
+  const tool = vi.fn<ShardContext['rows']['tool']>(), weapon = vi.fn<ShardContext['rows']['weapon']>();
   const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime }),
-    rows: legacyDouble<ShardContext['rows']>({ tool }) });
-  return { parent, scope, ctx, read, tool, slug, runtime };
+    rows: legacyDouble<ShardContext['rows']>({ tool, weapon }) });
+  return { parent, scope, ctx, read, tool, weapon, slug, runtime, native };
 }
 
-test('declared primary phases lend the original installed melee owner without preparing another rig', async () => {
-  const f = fixture(), sword = legacyDouble<Sword>({}), primary = () => sword;
-  const item = f.ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
-  if (item?.kind !== 'weapon') throw new Error('Missing fixture weapon');
-  const installed = { profile: v.parse(MeleeWeaponProfileSchema, item.profile), primary };
-  const install = vi.spyOn(melee, 'installDeclaredMelee').mockReturnValue(installed);
+test('declared primary phases lend the real installed melee owner without preparing another rig', async () => {
+  const f = fixture();
   try {
     await prepareHeldClaimsEntry(f.ctx, 'primary.claims');
     const claims = entryOwner(f.scope, 'claims', 'primary.claims');
     expect(claims).toBe(HeldClaims.current(f.slug));
     expect(() => claims.melee()).toThrow('not installed');
-    expect(install).not.toHaveBeenCalled(); expect(f.tool).not.toHaveBeenCalled(); expect(f.read).toHaveBeenCalledOnce();
+    expect(f.weapon).not.toHaveBeenCalled();expect(f.tool).not.toHaveBeenCalled();expect(f.read).toHaveBeenCalledOnce();
     installHeldClaimsEntry(f.ctx, 'primary.claims');
-    expect(install).toHaveBeenCalledOnce();
-    expect(install.mock.calls[0]?.[0] === f.ctx).toBe(true);
-    expect(install.mock.calls[0]?.[1]).toEqual({ item: 'weapon.jian', blade: 'wood', portraitFov: 78 });
-    expect(claims.melee()).toBe(installed); expect(claims.melee().primary() === sword).toBe(true);
-    expect(f.tool).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ id: 'tool.fei-zhua' }));
-    expect(() => installHeldClaimsEntry(f.ctx, 'primary.claims')).toThrow('already installed');
-    expect(() => claims.display('anything')).toThrow('no Toon claim display');
-    f.scope.dispose(); expect(() => claims.melee()).toThrow('ended');
-    expect(() => HeldClaims.current(f.slug)).toThrow('not prepared');
-  } finally { install.mockRestore(); f.parent.dispose(); }
+    const installed=claims.melee(), build=f.runtime.buildEquipment;
+    if(build===undefined)throw new Error('Missing native sword factory');
+    expect(()=>installed.primary()).toThrow('not built');
+    const built=await build({raycast:()=>null},false,{arms:f.native.arms});
+    expect(built.primary).toBe(installed.primary());expect(built.rifle).toBeNull();expect(built.secondary).toBeNull();
+    expect(f.weapon).toHaveBeenCalledOnce();
+    expect(f.weapon.mock.calls[0]?.[0]).toMatchObject({id:'weapon.jian',parent:'weapon.sword',feel:{portraitFov:78}});
+    const item=f.ctx.product.shardfile.items.rows.find(row=>row.id==='weapon.jian');
+    if(item?.kind!=='weapon')throw new Error('Missing original weapon');
+    expect(installed.profile).toEqual(v.parse(MeleeWeaponProfileSchema,item.profile));
+    expect(f.tool).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({id:'tool.fei-zhua'}));
+    expect(()=>installHeldClaimsEntry(f.ctx,'primary.claims')).toThrow('already installed');
+    expect(()=>claims.display('anything')).toThrow('no Toon claim display');
+    f.scope.dispose();expect(()=>claims.melee()).toThrow('ended');expect(()=>HeldClaims.current(f.slug)).toThrow('not prepared');
+  } finally { f.parent.dispose(); }
 });
 
 test.each([{}, { portraitFov: 0 }, { portraitFov: 180 }, { portraitFov: '78' }])('primary preparation refuses invalid presentation %j', async presentation => {
@@ -96,11 +97,11 @@ test('primary rows reject callbacks, unknown fields and repeated tools before re
 test('the actual native entry runs the primary kit once between its original world and play', async () => {
   const f = fixture(), order: string[] = [], item = f.ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
   if (item?.kind !== 'weapon') throw new Error('Missing fixture weapon');
-  const installed = { profile: v.parse(MeleeWeaponProfileSchema, item.profile), primary: () => legacyDouble<Sword>({}) };
-  const install = vi.spyOn(melee, 'installDeclaredMelee').mockImplementation(() => { order.push('kit'); return installed; });
+  const expected=v.parse(MeleeWeaponProfileSchema,item.profile);
+  const install=f.weapon;install.mockImplementation(()=>{order.push('kit');});
   class Native extends ShardPlugin {
     override world(): void { order.push('world'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', 'primary.claims').melee()).toBe(installed); order.push('play'); }
+    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', 'primary.claims').melee().profile).toEqual(expected); order.push('play'); }
   }
   const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'] } }).default;
   const plugin = new Entry(undefined, undefined, () => false);
@@ -108,30 +109,29 @@ test('the actual native entry runs the primary kit once between its original wor
     await plugin.world(f.ctx); expect(install).not.toHaveBeenCalled();
     await plugin.kit(f.ctx); await plugin.play(f.ctx);
     expect(order).toEqual(['world', 'kit', 'play']); expect(install).toHaveBeenCalledOnce(); expect(f.tool).toHaveBeenCalledOnce();
-  } finally { install.mockRestore(); f.parent.dispose(); }
+  } finally { f.parent.dispose(); }
 });
 
 
 test.each(['tool.absent', 'weapon.jian'])('a later invalid tool %s refuses before primary or tool effects', async bad => {
   const f = fixture({ portraitFov: 78 }, undefined, { ...rows, tools: ['tool.fei-zhua', bad] });
-  const install = vi.spyOn(melee, 'installDeclaredMelee');
   try {
     await prepareHeldClaimsEntry(f.ctx, 'primary.claims');
     expect(() => installHeldClaimsEntry(f.ctx, 'primary.claims')).toThrow();
-    expect(install).not.toHaveBeenCalled(); expect(f.tool).not.toHaveBeenCalled();
+    expect(f.weapon).not.toHaveBeenCalled(); expect(f.tool).not.toHaveBeenCalled();
     expect(() => entryOwner(f.scope, 'claims', 'primary.claims').melee()).toThrow('not installed');
-  } finally { install.mockRestore(); f.parent.dispose(); }
+  } finally { f.parent.dispose(); }
 });
 
 
 test('the regional hybrid borrows one declared primary through its original kit boundary', async () => {
   const f = fixture(), order: string[] = [], item = f.ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
   if (item?.kind !== 'weapon') throw new Error('Missing fixture weapon');
-  const installed = { profile: v.parse(MeleeWeaponProfileSchema, item.profile), primary: () => legacyDouble<Sword>({}) };
-  const install = vi.spyOn(melee, 'installDeclaredMelee').mockImplementation(() => { order.push('kit'); return installed; });
+  const expected=v.parse(MeleeWeaponProfileSchema,item.profile);
+  const install=f.weapon;install.mockImplementation(()=>{order.push('kit');});
   class Native extends ShardPlugin {
     override world(): void { order.push('world'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', 'primary.claims').melee()).toBe(installed); order.push('play'); }
+    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', 'primary.claims').melee().profile).toEqual(expected); order.push('play'); }
   }
   const resident: HybridResident = { instance: 'primary', slug: f.slug, declaration: { entry: 'runtime/index.ts', binds: [] },
     firstParty: true, scope: f.scope, runtime: f.runtime, context: (scope, runtime) => ({
@@ -141,7 +141,7 @@ test('the regional hybrid borrows one declared primary through its original kit 
   try {
     await session.prepare('primary'); await session.enter({ instance: 'primary', slug: f.slug }); session.leave();
     expect(order).toEqual(['world', 'kit', 'play']); expect(install).toHaveBeenCalledOnce(); expect(f.tool).toHaveBeenCalledOnce();
-  } finally { install.mockRestore(); f.parent.dispose(); }
+  } finally { f.parent.dispose(); }
 });
 
 

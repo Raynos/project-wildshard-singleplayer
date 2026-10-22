@@ -1,37 +1,23 @@
-import { Group, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { vi } from 'vitest';
-import * as v from 'valibot';
 import { App } from '../../src/engine/app/app';
 import { Scope } from '../../src/engine/app/scope';
-import { Weapon } from '../../src/engine/combat/Weapon';
 import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { createLevelInstallation } from '../../src/engine/level/installation';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { shardContext } from '../../src/game/plugin/context';
 import { createShardProduct } from '../../src/game/shardfile/shardProduct';
-import { ItemCatalogue } from '../../src/game/plugin/nativeItems';
 import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../../src/game/shardfile/heldClaimsEntry';
 import { entryOwner } from '../../src/game/shardfile/entryOwners';
-import * as melee from '../../src/game/loadout/declaredMelee';
-import type { Sword } from '../../src/game/weapons/Sword';
+import { heldSwordWorld } from './heldNativeSword';
+import type { HeldMeleeOwner } from '../../src/game/loadout/claims';
 import type { ShardRuntime } from '../../src/game/shard/runtime';
-import { MeleeWeaponProfileSchema } from '../../src/format/weaponProfiles';
 import source from '../../src/shards/nine-dragon-stack/shard.config';
 import manifest from '../../src/shards/nine-dragon-stack/discovery.generated';
-import items from '../../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import aim from '../../src/shards/nine-dragon-stack/data/grapple.json' with { type: 'json' };
 import bursts from '../../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
 import { headlessConstants } from '../../src/shards/nine-dragon-stack/generators/headless';
 import { legacyDouble } from '../fake/FakeGame';
-
-export class NativeWeapon extends Weapon {
-  readonly model = new Group();
-  readonly state = { ammo: 0, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
-  adsHeld = false; aimInfo = null; enabled = true; holster = 0;
-  override get charge(): number { return 0; }
-  tryFire(): void { /* Native melee clock stays owned. */ }
-  update(): void { /* The real controller is adopted. */ }
-}
 
 export const enteredRows = { grapple: { item: 'tool.fei-zhua', source: 'sim/headless-constants.json', presentation: 'weapons/jian-row.json' } };
 export async function heldEntry(prepare = true) {
@@ -47,17 +33,19 @@ export async function heldEntry(prepare = true) {
       ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'held.primary' }, { kind: 'held.claims.install', claims: 'held.primary' }, { kind: 'held.claims.enter', claims: 'held.primary', ...enteredRows }] }]]),
     files: new Map([[enteredRows.grapple.presentation, { hash: '0'.repeat(64), url: '/jian-row.json' }], [enteredRows.grapple.source, { hash: '1'.repeat(64), url: '/constants.json' }]]),
     read: hash => hash === '1'.repeat(64) ? pending ?? Promise.resolve(bytes) : Promise.resolve(presentation) });
-  const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>({}), step: null, play: null,
+  const native=heldSwordWorld();scope.onDispose(native.dispose);
+  const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>(native.world), step: null, play: null,
     interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
   const ctx = shardContext(level.context, manifest, { shard: manifest, runtime, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
-  const primary = legacyDouble<Sword>(new NativeWeapon(new ItemCatalogue(items).equipment('weapon.jian'))), equipment = new EquipmentService(primary, { scope });
-  app.registerEquipment(equipment, scope);
-  const profile = v.parse(MeleeWeaponProfileSchema, source.items.rows.find(row => row.kind === 'weapon')?.profile);
-  const installed = { primary: () => primary, profile };
-  const install = vi.spyOn(melee, 'installDeclaredMelee').mockReturnValue(installed);
-  try {
-    if (prepare) { level.openKit(); await prepareHeldClaimsEntry(ctx, 'held.primary'); installHeldClaimsEntry(ctx, 'held.primary'); level.closeKit(); }
-  } finally { install.mockRestore(); }
-  return { app, parent, scope, ctx, primary, equipment, installed, bytes, level, get held() { return entryOwner(scope, 'claims', 'held.primary'); },
+  let equipment: EquipmentService | null = null, installed: HeldMeleeOwner | null = null;
+  const build = async ():Promise<void> => {
+    const factory=runtime.buildEquipment;if(factory===undefined)throw new Error('Missing native builder');
+    installed=entryOwner(scope,'claims','held.primary').melee();
+    const result=await factory({raycast:()=>null},false,{arms:native.arms});
+    equipment=new EquipmentService(result.primary,{scope});app.registerEquipment(equipment,scope);
+  };
+  if(prepare){level.openKit();await prepareHeldClaimsEntry(ctx,'held.primary');installHeldClaimsEntry(ctx,'held.primary');level.closeKit();await build();}
+  return { app, parent, scope, ctx, build, bytes, level, get primary(){return entryOwner(scope,'claims','held.primary').melee().primary();},
+    get installed(){if(installed===null)throw new Error('Primary not installed');return installed;},get equipment(){if(equipment===null)throw new Error('Equipment not built');return equipment;},get held() { return entryOwner(scope, 'claims', 'held.primary'); },
     pause: (read: Promise<Uint8Array>) => { pending = read; }, dispose: () => { parent.dispose(); app.engineScope.dispose(); } };
 }

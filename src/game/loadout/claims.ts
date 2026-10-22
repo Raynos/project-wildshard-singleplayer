@@ -19,10 +19,35 @@ import { heldArmsGear } from '../models/heldGear';
 import { HeldView } from '../systems/viewmodel/heldView';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
-import { installDeclaredMelee, type DeclaredMelee } from './declaredMelee';
+import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
+import type { Targets } from '@wildshard/engine/combat/types';
 import { GrappleTool, grappleGuard } from '../grapple/tool';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { QuestStepRunner, type QuestStepFrame } from '../quest/steps';
+
+type EquipmentBuilder = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
+/** The original built primary and its admitted native combat profile. */
+export interface HeldMeleeOwner {
+  readonly profile: v.InferOutput<typeof MeleeWeaponProfileSchema>;
+  readonly primary: () => Sword;
+}
+
+/** The same native sword recipe over the declared view loan. */
+function heldSword(world: SwordWorld, targets: Targets, allowUnlocked: boolean,
+  viewmodel: Parameters<EquipmentBuilder>[2], profile: MeleeProfile, view: 'wood' | 'iron' | 'declared'): Sword {
+  if (view === 'declared') {
+    const { ironArms: _iron, swim: _swim, ...own } = viewmodel ?? {};
+    if (own.arms === undefined && own.rig === undefined) throw new Error('Held primary needs its declared sword rig');
+    return new Sword(world, targets, { row: profile, profile, allowUnlocked, ...own,
+      ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
+  }
+  if (viewmodel?.arms === undefined || viewmodel.ironArms === undefined) throw new Error('Held melee requires both native arm rigs');
+  if (view === 'iron') return new Sword(world, targets, { row: profile, profile, allowUnlocked, blade: 'iron', arms: viewmodel.ironArms });
+  const { ironArms: _iron, swim: _swim, ...wood } = viewmodel;
+  return new Sword(world, targets, { row: profile, profile, allowUnlocked, ...wood,
+    ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
+}
 
 type ToonRows = Extract<HeldArmsRows, { readonly look: unknown }>;
 type Claim = ToonRows['claims'][number];
@@ -119,7 +144,7 @@ const catalogues = new Map<string, HeldClaims>();
 export class HeldClaims {
   readonly rows: HeldArmsRows;
   private readonly arms: HeldView | null;
-  private primary: DeclaredMelee | null = null;
+  private primary: HeldMeleeOwner | null = null;
   private entered = false;
   private portraitFov: number | null = null;
   private readonly geometries = new Map<string, { file: string; source: OwnedGeometry }>();
@@ -177,7 +202,7 @@ export class HeldClaims {
     if (group === null) throw new Error('Held claim needs its declared group'); return group;
   }
   /** The original primary owner, available only after its declared kit install. */
-  melee(): DeclaredMelee {
+  melee(): HeldMeleeOwner {
     if (this.context.scope.disposed || this.context.scope.disposing) throw new Error('Held primary owner has ended');
     if (this.primary === null) throw new Error('Declared primary is not installed');
     return this.primary;
@@ -233,38 +258,54 @@ export class HeldClaims {
     if (runtime === undefined || world === undefined || world === null) throw new Error('Held melee needs its world');
     if (context.scope.disposed || context.scope.disposing) throw new Error('Held installation owner has ended');
     const rows = this.rows;
-    if ('kind' in rows) {
-      if (this.primary !== null) throw new Error('Declared primary is already installed');
-      if (this.portraitFov === null) throw new Error('Declared primary presentation is not prepared');
-      const items = context.product.shardfile.items, catalogue = new ItemCatalogue(items);
-      const tools = rows.tools.map(id => {
-        if (!items.rows.some(item => item.id === id && item.kind === 'tool')) throw new Error(`Missing declared tool: ${id}`);
-        return catalogue.equipment(id);
-      });
-      this.primary = installDeclaredMelee(context, { item: rows.primary.item, blade: rows.primary.blade, portraitFov: this.portraitFov });
-      for (const tool of tools) context.rows.tool(tool);
-      return;
-    }
+    const declared = 'kind' in rows;
+    if (declared && this.primary !== null) throw new Error('Declared primary is already installed');
+    if (declared && this.portraitFov === null) throw new Error('Declared primary presentation is not prepared');
+    const catalogue = new ItemCatalogue(context.product.shardfile.items);
+    const tools = declared ? rows.tools.map(id => {
+      if (!context.product.shardfile.items.rows.some(item => item.id === id && item.kind === 'tool')) throw new Error(`Missing declared tool: ${id}`);
+      return catalogue.equipment(id);
+    }) : [];
+    const slots = declared ? [{ ...rows.primary, view: 'declared' as const }]
+      : rows.weapons.map(row => ({ item: row.item, blade: row.blade, view: row.blade }));
+    const built: { weapon: Sword | null; profile: HeldMeleeOwner['profile'] | null } = {weapon:null,profile:null};
     const items = context.product.shardfile.items, factories = new Map<string, RuntimeEquipmentFactory>();
-    const profiles = rows.weapons.map(row => {
+    const profiles = slots.map(row => {
       const item = items.rows.find(entry => entry.id === row.item);
       if (item?.kind !== 'weapon' || item.profile?.family !== 'melee') throw new Error('Held melee needs its native item profile');
-      const profile: MeleeProfile = applyMeleeCombatProfile({ ...(row.blade === 'iron' ? SWORD_IRON : SWORD_WOOD), ...new ItemCatalogue(items).equipment(row.item) }, item.profile);
-      const claim = rows.claims.find(entry => entry.item === row.item);
+      const blade = row.blade === 'iron' ? SWORD_IRON : SWORD_WOOD;
+      const policy = v.parse(MeleeWeaponProfileSchema, item.profile);
+      if (declared) built.profile = policy;
+      const profile: MeleeProfile = declared
+        ? Object.assign(applyMeleeCombatProfile(blade, policy), catalogue.equipment(row.item), { parent: SWORD_WOOD.id,
+          feel: { ...blade.feel, portraitFov: this.portraitFov ?? blade.feel.fovHip } })
+        : applyMeleeCombatProfile({ ...blade, ...catalogue.equipment(row.item) }, item.profile);
+      const claim = declared ? undefined : rows.claims.find(entry => entry.item === row.item);
       if (claim !== undefined) profile.pickup = { owned: claim.owned, prompt: claim.prompt, toast: claim.toast, create: (at, prompt) => {
         if (at !== claim.at) throw new Error('Unknown held claim site');
         const drop = new HeldClaim(context, claim, this.display(claim.id), prompt); this.drops.set(claim.id, drop); return drop;
       } };
       factories.set(row.item, { create: (_item, targets, allowUnlocked, viewmodel) => {
-        if (viewmodel?.arms === undefined || viewmodel.ironArms === undefined) throw new Error('Held melee requires both native arm rigs');
-        if (row.blade === 'iron') return new Sword(world, targets, { row: profile, profile, allowUnlocked, blade: 'iron', arms: viewmodel.ironArms });
-        const { ironArms: _iron, swim: _swim, ...wood } = viewmodel;
-        return new Sword(world, targets, { row: profile, profile, allowUnlocked, ...wood,
-          ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
+        const current = declared ? runtime.world : world;
+        if (current === null) throw new Error('Held primary requires its world');
+        const made = heldSword(current, targets, allowUnlocked, viewmodel, profile, row.view);
+        if (declared) built.weapon = made;
+        return made;
       } });
       return profile;
     });
-    context.rows.weapon(profiles); runtime.buildEquipment = bindRuntimeEquipment(context, context.product.shardfile, { factories });
+    if (declared) {
+      const profile = profiles[0], factory = factories.get(rows.primary.item), item = items.rows.find(row => row.id === rows.primary.item);
+      if (profile === undefined || factory === undefined || item?.kind !== 'weapon' || built.profile === null) throw new Error('Missing held primary factory');
+      context.rows.weapon(profile);
+      this.primary = { profile: built.profile, primary: () => {
+        if (built.weapon === null) throw new Error('Held primary is not built before play'); return built.weapon;
+      } };
+      runtime.buildEquipment = (...args) => Promise.resolve({ primary: factory.create(item, ...args), rifle: null, secondary: null });
+      for (const tool of tools) context.rows.tool(tool);
+    } else {
+      context.rows.weapon(profiles); runtime.buildEquipment = bindRuntimeEquipment(context, context.product.shardfile, { factories });
+    }
   }
   /** Define cold cards from admitted rows; loading and dressing remain inside this host. */
   static gear(input: unknown): readonly RosterEntry[] {

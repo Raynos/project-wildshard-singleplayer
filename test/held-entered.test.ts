@@ -5,7 +5,6 @@ import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clien
 import { bakedLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import type { PlatformDataSectionName } from '../src/format/platformDataSections';
-import * as melee from '../src/game/loadout/declaredMelee';
 import { ShardPlugin } from '../src/game/shard/plugin';
 import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
 import { App } from '../src/engine/app/app';
@@ -76,7 +75,7 @@ test('concurrent entered reads can bind and register only one concrete tool', as
 
 test('native kit and play selection keep the original world once and install the same primary before the grapple', async () => {
   const f = await heldEntry(false), order: string[] = [];
-  const install = vi.spyOn(melee, 'installDeclaredMelee').mockImplementation(() => { order.push('primary'); return f.installed; });
+  const install=vi.spyOn(f.ctx.rows,'weapon');
   const tool = vi.spyOn(GrappleTool.prototype, 'install').mockImplementation(() => { order.push('grapple'); });
   class Native extends ShardPlugin {
     override world(): void { order.push('world'); }
@@ -86,7 +85,7 @@ test('native kit and play selection keep the original world once and install the
   const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit', 'play'] } }).default;
   const plugin = new Entry(undefined, undefined, () => false);
   try {
-    await plugin.world(f.ctx); f.level.openKit(); await plugin.kit(f.ctx); f.level.closeKit(); await plugin.play(f.ctx);
+    await plugin.world(f.ctx); f.level.openKit(); await plugin.kit(f.ctx);expect(install).toHaveBeenCalledOnce();order.push('primary');f.level.closeKit();await f.build(); await plugin.play(f.ctx);
     expect(order).toEqual(['world', 'native-kit', 'primary', 'native-play', 'grapple']);
     expect(install).toHaveBeenCalledOnce(); expect(tool).toHaveBeenCalledOnce(); expect(f.equipment.current === f.primary).toBe(true); expect(f.equipment.tools).toHaveLength(1);
   } finally { install.mockRestore(); tool.mockRestore(); f.dispose(); }
