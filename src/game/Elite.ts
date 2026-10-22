@@ -250,9 +250,10 @@ export class Elites {
 /** Wedge-specific shader parameters are authored by the caller; geometry/draping is shared. */
 export interface GroundTellWedgeStyle {
   cone: number;
-  material: THREE.ShaderMaterial;
-  fill: THREE.IUniform<number>;
-  alpha: THREE.IUniform<number>;
+  material: THREE.Material;
+  /** the fill (0 at the feet .. 1 at the tip) and opacity the material reads: a uniform, or a port onto a look's params */
+  fill: { value: number };
+  alpha: { value: number };
 }
 
 export class GroundTell {

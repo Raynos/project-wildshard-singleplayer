@@ -36,30 +36,6 @@ export function ghostArrowKind(): {geometry: THREE.BufferGeometry;material: THRE
 }
 
 
-export function wedgeMaterial(): THREE.ShaderMaterial {
-  const fill = { value: 0 }, alpha = { value: 0 };
-    const mat = new THREE.ShaderMaterial({
-      uniforms: { uFill: fill, uAlpha: alpha, uColor: { value: new THREE.Color(2.2, 0.95, 0.2) } },
-      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      // the rim + the edges always; the body fills from the balbal's feet toward the tip as the wind-up runs; a crackle of noise
-      fragmentShader: `varying vec2 vUv; uniform float uFill; uniform float uAlpha; uniform vec3 uColor;
-        float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-        void main(){
-          float r = vUv.y, e = min(vUv.x, 1.0 - vUv.x);
-          float rim = smoothstep(0.93, 1.0, r) + smoothstep(0.035, 0.0, e) * 0.8;
-          float fill = smoothstep(uFill + 0.02, uFill - 0.04, r) * (0.22 + 0.25 * r);
-          float front = smoothstep(0.05, 0.0, abs(r - uFill)) * 0.7;
-          float n = h(floor(vUv * vec2(26.0, 14.0)));
-          float a = (rim * 0.75 + fill * (0.7 + 0.3 * n) + front) * uAlpha * smoothstep(0.0, 0.12, r);
-          if (a < 0.004) discard;
-          gl_FragColor = vec4(uColor * a, a);
-        }`,
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
-      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
-    });
-  mat.name = 'balbal-telegraph';
-  return mat;
-}
 
 export function ghostStyles(): Record<'rider' | 'captain' | 'storm', { key: string; common: string; fragment: string }> {
   const style = (core: string, rim: string, key: string) => ({ key,

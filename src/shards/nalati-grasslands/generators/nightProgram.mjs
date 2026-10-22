@@ -2,7 +2,7 @@ import bindings from '../data/nightBindings.json' with { type: 'json' };
 import { weatherDecision } from './weatherDecision.mjs';
 import { BOWL } from './layout.ts';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import { ghostArrowKind, wedgeMaterial, ghostStyles, nightCues } from './nightGeometry.ts';
+import { ghostArrowKind, ghostStyles, nightCues } from './nightGeometry.ts';
 
 export async function nightProgram() {
   const ridge = Array.from({length:16}, (_,i) => {
@@ -17,15 +17,13 @@ export async function nightProgram() {
   const program = await weatherDecision();
   const {geometry,material,...arrow}=ghostArrowKind();
   const shape={data:geometry.toJSON().data};geometry.dispose();material.dispose();
-  const wedge = wedgeMaterial();
   const view = {cycle:{wake:"spawn",dawn:"dissolve"},states:{broken:"broken",retire:"retire",home:"statue"},
     cues:{wake:"cue.balbal.wake",hit:"cue.balbal.chip",weak:"cue.balbal.crack",hard:{cue:"cue.balbal.chip.hard",drop:40},broken:"cue.balbal.broken",strike:"cue.balbal.slam"},
     lift:{wake:.1,hit:1.2,broken:1,strike:.1},strike:{field:"slamT",ahead:.75},every:.05,
     // soil pours off a balbal moving through the ground (dust now and then); a clod falls from one walking
     trails:[{cue:"cue.balbal.soil",field:"rise",min:1e-6,max:1,chance:1,at:"ground",lift:.05},{cue:"cue.balbal.dust",field:"rise",min:1e-6,max:1,chance:.35,at:"ground",lift:.1},
       {cue:"cue.balbal.clod",field:"rise",min:1,max:2,chance:.18,at:"body",lift:0}],
-    tell:{pool:6,hold:.08,alpha:[.6,.4,1.4],colour:[2.2,.95,.2],vertexShader:wedge.vertexShader,fragmentShader:wedge.fragmentShader}};
-  wedge.dispose();
+    tell:{pool:6,hold:.08,alpha:[.6,.4,1.4],look:"nalati-tell"}};
   // a ghost rider: the fresnel ghost looks (the Titan's storm riders the quiet one, 1.6x), the hooded figure on the body
   // bone, its torso and hood as targets, its mist, and the glowing arrow
   const ride = {looks:ghostStyles(),quietLook:"storm",quietScale:1.6,figure:{bone:"body"},seat:[0,.36,.28],states:{fade:"fade",dying:"dying",dead:"dead"},

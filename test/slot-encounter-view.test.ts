@@ -1,6 +1,7 @@
 import { EncounterSlotsSchema, SlotViewSchema } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
-import { Scene, Vector3 } from 'three';
+import { MeshBasicMaterial, Scene, Vector3 } from 'three';
+import { lendLooks } from '../src/game/shardfile/lentLooks';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
@@ -21,7 +22,7 @@ const view = v.parse(SlotViewSchema, { cycle: { wake: 'spawn', dawn: 'dissolve' 
   cues: { wake: 'cue.orchard.wake', hit: 'cue.orchard.chip', weak: 'cue.orchard.weak', hard: { cue: 'cue.orchard.hard', drop: 20 }, broken: 'cue.orchard.break', strike: 'cue.orchard.stomp' },
   lift: { wake: 0.5, hit: 1, broken: 2, strike: 0 }, strike: { field: 'stompT', ahead: 0.5 }, every: 0.1,
   trails: [{ cue: 'cue.orchard.petal', field: 'rising', min: 0.2, max: 0.8, chance: 1, at: 'body', lift: 1 }],
-  tell: { pool: 2, cone: 0.5, reach: 2, wind: 1, strike: 1.2, hold: 0.1, alpha: [0.5, 0.5, 2], colour: [1, 0.2, 0.6], vertexShader: 'void main(){}', fragmentShader: 'void main(){}' } });
+  tell: { pool: 2, cone: 0.5, reach: 2, wind: 1, strike: 1.2, hold: 0.1, alpha: [0.5, 0.5, 2], look: 'orchard-tell' } });
 
 function body(id: string, x: number, z: number, yaw: number, variant: string) {
   return { entityId: id, position: { x, y: 4, z }, yaw, variant, herd: 0, alive: true, hidden: false, scale: 2, yOffset: 0, hp: 100, attackPhase: -1, mem: {} as Record<string, number> };
@@ -31,9 +32,14 @@ type Body = ReturnType<typeof body>;
 let restore = (): void => undefined;
 afterEach(() => { restore(); vi.restoreAllMocks(); });
 
+/** each pooled wedge's own look copy: the params it was given */
+const copies: Map<string, unknown>[] = [];
 function orchard(): { view: SlotEncounterView<Body>; heard: { id: string; at: number[] }[]; bodies: Body[]; retired:Body[]; scene: Scene; weak: { on: boolean } } {
   restore = overrideTerrain({ heightAt: () => 3 });
   const scope = new Scope('orchard'), scene = new Scene(), game = {} as Game;
+  copies.length = 0;
+  lendLooks(scope, { materials: new Map([['orchard-tell', new MeshBasicMaterial()]]), setParam: () => undefined, setTexture: () => undefined,
+    bindMeshMap: () => new MeshBasicMaterial(), instance: () => { const params = new Map<string, unknown>(); copies.push(params); return { material: new MeshBasicMaterial(), setParam: (name, value) => { params.set(name, value); } }; } });
   Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: scene } });
   const cues = new CueDirector(game, { version: 1, fields: [], rows: ids.map(cue) }), heard: { id: string; at: number[] }[] = [], bodies: Body[] = [], retired:Body[]=[], weak = { on: false };
   vi.spyOn(cues, 'cue').mockImplementation((id, at) => { heard.push({ id, at: at.toArray() }); });
@@ -71,6 +77,8 @@ test('hits, weak points, heavy blows, trails and the blow play their rows; the w
   heard.length = 0; first.mem['rising'] = 1; first.attackPhase = 0.5; slotView.update(0.05, { kind: 1 });
   const wedge = scene.children.find(child => child.visible && child.type === 'Mesh');
   expect(wedge).toBeDefined(); expect(mine()).toEqual([]);
+  // one look copy per pooled wedge; the shown one alone took the wind-up's fill and alpha
+  expect(copies).toHaveLength(2); expect(copies.filter(params => params.get('fill') === 0.5 && params.get('alpha') === 0.75)).toHaveLength(1);
   first.mem['stompT'] = 1; slotView.update(0.05, { kind: 1 });
   expect(mine().map(row => row.id)).toEqual(['cue.orchard.stomp']); expect(first.mem['stompT']).toBe(2);
   const at = new Vector3(...mine()[0]?.at ?? []);

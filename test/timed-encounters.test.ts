@@ -21,8 +21,11 @@ import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generat
 
 /** The night's two spray looks (data/lookGraphs.json), lent as the runtime lends every look before the world builds. */
 function lendSprays(scope: Scope): void {
-  lendLooks(scope, { materials: new Map(['nalati-spray-debris', 'nalati-spray-mist'].map(id => [id, new MeshBasicMaterial()])), setParam: () => undefined,
-    setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped looks in the night'); } });
+  // the sprays, and the tell's and ghosts' looks that each pooled wedge and rider material takes a copy of
+  const looks = ['nalati-spray-debris', 'nalati-spray-mist', 'nalati-tell', 'nalati-ghost', 'nalati-ghost-captain', 'nalati-ghost-storm'];
+  lendLooks(scope, { materials: new Map(looks.map(id => [id, new MeshBasicMaterial()])), setParam: () => undefined,
+    setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped looks in the night'); },
+    instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
 }
 
 test('the listed night binding preserves phases, native identities, figures and contact rows', () => {

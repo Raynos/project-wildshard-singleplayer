@@ -29,6 +29,13 @@ export interface LentLooks {
   readonly bindMeshMap: (id: string, map: Texture | Material) => Material;
   /** the pass's live toon family, when it compiled toon looks (a shard's day clock turns it, once a frame) */
   readonly toon?: ToonLook;
+  /** a further compile of graph look `id` with its own params (a pooled effect's copy that moves alone) */
+  readonly instance?: (id: string) => LookInstance;
+}
+/** One compiled copy of a graph look: its own material and its own param writer (checked as the look's are). */
+export interface LookInstance {
+  readonly material: Material;
+  readonly setParam: (name: string, value: GraphLiteral) => void;
 }
 
 const lends: { readonly looks: LentLooks; readonly scope: Scope | null }[] = [];
@@ -93,6 +100,14 @@ export function setLentParam(id: string, name: string, value: GraphLiteral): voi
 
 /** Lend a look's `role: 'lent'` texture param a texture the runtime made (no program change); throws when none is lent. */
 export function setLentTexture(id: string, name: string, texture: Texture): void { lentLooksOf(id).setTexture(id, name, texture); }
+
+/** A further copy of lent graph look `id` (its own material and params, owned by the lend's scope); throws when none is
+ *  lent or the lend compiles no copies. */
+export function lentLookInstance(id: string): LookInstance {
+  const lend = lentLooksOf(id);
+  if (lend.instance === undefined) throw new Error(`Lent look ${id} has no instances`);
+  return lend.instance(id);
+}
 
 /** The live toon look of the lend that compiled `id`; throws when none is lent. */
 export function lentToon(id: string): ToonLook {

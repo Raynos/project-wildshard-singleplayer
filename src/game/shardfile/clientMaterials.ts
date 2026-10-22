@@ -18,6 +18,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
+import type { LookInstance } from './lentLooks';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { installMeasurePlainRow, offersMeasurePlain } from './measurePlain';
@@ -113,6 +114,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   /** lend a compiled graph's `role: 'lent'` texture param its texture, by catalogue id (no program change) */
   setTexture: (id: string, name: string, texture: Texture) => void;
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture | Material) => Material; tick: (dt: number) => void;
+  /** a further compile of graph catalogue entry `id`, scope-owned, with its own param writer */
+  instance?: (id: string) => LookInstance;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
   // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
@@ -198,6 +201,13 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     return ownMaterial(bindGraphMeshMap(material, map, scope));
   };
+  const instance = (id: string): LookInstance => {
+    if (scope.disposed) throw new Error('Material scope unloaded');
+    const entry = shard.look.materials[id];
+    if (entry === undefined || !isGraphEntry(entry)) throw new Error(`No graph catalogue material ${id} to copy`);
+    const material = compile(entry);
+    return { material, setParam: (name, value) => { graphs.setParam(material, name, value); } };
+  };
   const standardSurface = (id: string, material: Material): material is MeshStandardMaterial => {
     const entry = shard.look.materials[id]; return entry !== undefined && !isGraphEntry(entry) && material instanceof MeshStandardMaterial;
   };
@@ -214,6 +224,6 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     if (standardSurface(id, material)) { bindStandardLightmap(material, name, texture); return; }
     graphs.setTexture(material, name, texture);
-  }, materials, textures, compile, bindMeshMap, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
+  }, materials, textures, compile, bindMeshMap, instance, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
     graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
 }

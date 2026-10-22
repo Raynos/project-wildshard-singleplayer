@@ -24,7 +24,7 @@ import { LightningStrip } from '../weapons/arcPower';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
-import { lentLook, setLentParam } from '../shardfile/lentLooks';
+import { lentLook, lentLookInstance, setLentParam, type LookInstance } from '../shardfile/lentLooks';
 import { EncounterSitesSchema, type EncounterSlotsRows, type EncounterPatrolRows, type EncounterScheduleRows, type SlotViewRows, type PatrolViewRows, type CloudBodyRows, type ArenaSceneRows, type EncounterMaterialRows } from '@wildshard/format/encounterRows';
 
 /**
@@ -32,9 +32,14 @@ import { EncounterSitesSchema, type EncounterSlotsRows, type EncounterPatrolRows
  * actor wakes, on a hit (`weak` where the guest finds a weak point, `hard` past `drop` hp), on the member's `broken` flag
  * and as the actor's `strike` memory field turns 1 (then 2), `ahead` × the tell's reach in front; `trails` every `every` s
  * while a memory field is in [min, max), with `chance`; `lift` raises each point (the body's × the actor's scale). The
- * `tell` wedge (its own shaders: uniforms uFill, uAlpha, uColor) fills through the attack's `wind` and shows until
+ * `tell` wedge (a copy of its lent graph look per pooled wedge: params `fill` and `alpha`) fills through the attack's `wind` and shows until
  * `strike` + `hold`, alpha `alpha[0] + alpha[1] × fill`, then `alpha[2]` on the blow.
  */
+/** a `{ value }` port onto one look copy's float param (the ground tell writes its fill and alpha through it) */
+function lookParam(look: LookInstance, name: string): { value: number } {
+  let held = 0;
+  return { get value(): number { return held; }, set value(to: number) { if (to !== held) { held = to; look.setParam(name, to); } } };
+}
 /** A slot actor as drawn: where it stands and faces, its health and its attack's phase (−1 between attacks). */
 export interface SlotViewActor extends PatrolActor { readonly scale:number; yOffset:number; readonly position: { readonly x: number; readonly y: number; readonly z: number }; readonly yaw: number; readonly hp: number; readonly attackPhase: number }
 const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -113,11 +118,8 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
     this.cycle=new ProjectedState({...slots.cycle,signals:{step:slots.cycle.signal}},program);this.rows=view;
     const tell = this.rows.tell;
     for (let i = 0; i < tell.pool; i++) {
-      const fill = { value: 0 }, alpha = { value: 0 };
-      const material = new THREE.ShaderMaterial({ vertexShader: tell.vertexShader, fragmentShader: tell.fragmentShader,
-        uniforms: { uFill: fill, uAlpha: alpha, uColor: { value: new THREE.Color(...tell.colour) } }, transparent: true, depthWrite: false,
-        blending: THREE.AdditiveBlending, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
-      this.wedges.push(new GroundTell(ports.scene, 'wedge', 0, { cone: tell.cone, material, fill, alpha }));
+      const look = lentLookInstance(tell.look);
+      this.wedges.push(new GroundTell(ports.scene, 'wedge', 0, { cone: tell.cone, material: look.material, fill: lookParam(look, 'fill'), alpha: lookParam(look, 'alpha') }));
     }
   }
   attachActors(roster:PatrolActorRoster<A>):void {

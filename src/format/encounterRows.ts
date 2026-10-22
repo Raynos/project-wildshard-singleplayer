@@ -61,6 +61,8 @@ export const ArenaWhirlsSchema = v.strictObject({
 
 const cue=v.pipe(v.string(),v.regex(/^cue\.[a-zA-Z0-9.-]+$/u)),name=v.pipe(v.string(),v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u));
 const shader=v.pipe(v.string(),v.maxLength(4096)),vector=v.tuple([finite,finite,finite]);
+// a lent graph look's catalogue id (format/materialGraph's id pattern)
+const lookId=v.pipe(v.string(),v.regex(/^[a-z][a-z0-9.-]{0,127}$/u));
 const look=v.strictObject({key:v.pipe(v.string(),v.maxLength(64)),common:shader,fragment:shader});
 const poolCount=v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(65536));
 
@@ -72,7 +74,9 @@ export const SlotViewSchema = v.strictObject({
   trails: v.pipe(v.array(v.strictObject({ cue, field: name, min: finite, max: finite, chance: v.pipe(finite, v.minValue(0), v.maxValue(1)),
     at: v.picklist(['ground', 'body']), lift: finite })), v.maxLength(8)),
   tell: v.strictObject({ pool: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8)), cone: finite, reach: finite, wind: finite, strike: finite, hold: finite,
-    alpha: v.tuple([finite, finite, finite]), colour: v.tuple([finite, finite, finite]), vertexShader: shader, fragmentShader: shader }),
+    alpha: v.tuple([finite, finite, finite]),
+    // the wedge's look: a lent graph look (float params `fill` and `alpha`), one copy per pooled wedge
+    look: lookId }),
 });
 export const PatrolViewSchema = v.strictObject({
   looks: v.record(name, look), quietLook: name, quietScale: v.pipe(finite, v.minValue(0.1)), figure: v.strictObject({ bone: name }), seat: vector,
