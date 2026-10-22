@@ -94,6 +94,31 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(len(checks), 1)
         self.assertEqual(len(uploads), 1)
 
+    def test_quiet_ends_at_ten_minutes_or_owner_death(self):
+        path = self.root / '.git/quiet'
+        self.put('.git/quiet', json.dumps({'owner': 'fixture-sample', 'pid': os.getpid()}))
+        started = path.stat().st_mtime
+        self.assertTrue(PUSH['quiet_active'](path, started + 599.9))
+        self.assertFalse(PUSH['quiet_active'](path, started + 600))
+        with subprocess.Popen([sys.executable, '-c', 'pass']) as owner:
+            owner.wait(timeout=3)
+        self.put('.git/quiet', json.dumps({'owner': 'fixture-sample', 'pid': owner.pid}))
+        self.assertFalse(PUSH['quiet_active'](path))
+        tip = self.commit('src/after-dead-owner.ts')
+        result = PUSH['tick'](self.root, checker=lambda *_: {'ok': True, 'output': ''}, uploader=lambda *_: 0)
+        self.assertEqual(result['status'], 'pushed')
+        self.assertEqual(result['tip'], tip)
+        # Never remove or rewrite a marker owned by another process.
+        self.assertEqual(json.loads(path.read_text())['pid'], owner.pid)
+
+    def test_stale_legacy_quiet_no_longer_stops_pushes(self):
+        self.commit('src/after-stale-owner.ts')
+        self.put('.git/quiet', '{"owner":"fixture-sample"}')
+        path = self.root / '.git/quiet'
+        os.utime(path, (time.time() - 601, time.time() - 601))
+        result = PUSH['tick'](self.root, checker=lambda *_: {'ok': True, 'output': ''}, uploader=lambda *_: 0)
+        self.assertEqual(result['status'], 'pushed')
+
     def test_pre_push_runs_only_related_tests(self):
         tip = self.commit('src/good.ts')
         commands = []
