@@ -21,7 +21,8 @@ async function crossing(warm: boolean) {
   const target = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
   if (target === undefined) throw new Error('Missing east destination');
   const page = createSimHost(level, { rapier }), residency = new PageResidency();
-  const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  // facing east, toward the destination (the build-ahead picks the neighbour ahead)
+  const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
   const created: string[] = [], disposed: string[] = [];
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
@@ -71,4 +72,41 @@ test('off: nothing builds inside the source, and the source retires before the d
   expect(r.entered.created).toEqual([r.home, r.target]);
   expect(r.entered.residents).toEqual([r.target]);
   expect(r.issues).toEqual({});
+});
+
+test('warm: the build-ahead picks the neighbour the traveller faces', async () => {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const home = assembly.cell('driftwood-isle');
+  const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
+  const north = assembly.cells.find(cell => cell.origin.x === 0 && cell.origin.z === -assembly.pitch);
+  if (east === undefined || north === undefined) throw new Error('Missing neighbours');
+  const built = async (yaw: number): Promise<string[]> => {
+    const page = createSimHost(level, { rapier }), residency = new PageResidency(), created: string[] = [];
+    const player = { position: page.player.position, yaw, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+    const live = new LiveGridHost(assembly, {
+      home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
+      player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+      bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+      highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
+      prefetchable: cell => cell.instance === east.instance || cell.instance === north.instance,
+      readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
+        bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
+      admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+        create: () => {
+          created.push(cell.instance);
+          const host = createSimHost(level, { rapier, playerBody: false, ground: false });
+          return Promise.resolve({ host, dispose: () => { host.dispose(); } });
+        } }),
+    });
+    try {
+      const enterHome = await live.prepare(null, home.instance); enterHome.commit();
+      // near the north-east corner, a little closer to the east edge
+      player.position.x = CHUNK_HALF - 30; player.position.z = -(CHUNK_HALF - 40); live.beforeFixed();
+      for (let i = 0; i < 20 && live.state().pending.length > 0; i++) await new Promise(resolve => { setTimeout(resolve, 5); });
+      return created.filter(id => id !== home.instance);
+    } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
+  };
+  expect(await built(0)).toEqual([north.instance]); // facing -z: north
+  expect(await built(-Math.PI / 2)).toEqual([east.instance]); // facing +x: east
 });

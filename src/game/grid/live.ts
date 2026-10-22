@@ -427,8 +427,16 @@ export class LiveGridHost {
     const lastSource = this.transitions.at(-1)?.from ?? null;
     const ahead = [...this.residents.keys()].some(id => id !== this.active && id !== lastSource);
     if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0 && this.warm() && !ahead) {
-      // the nearest neighbour, whatever its readiness reach: inside a source a player can stand for minutes
-      const next = nearby.find(cell => !this.residents.has(cell.instance) && !this.issues.has(cell.instance));
+      // the neighbour ahead, whatever its readiness reach (inside a source a player can stand for minutes): the nearest by
+      // edge distance over the square of how squarely the traveller faces its centre (cells behind never), so a diagonal
+      // neighbour the traveller faces wins over a nearer one to the side
+      const yaw = this.ports.player.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+      const score = (cell: GridCell): number => {
+        const dx = cell.origin.x - feet.x, dz = cell.origin.z - feet.z, facing = (dx * fx + dz * fz) / Math.max(1e-6, Math.hypot(dx, dz));
+        return facing <= 0 ? Infinity : this.distance(cell, feet) / (facing * facing);
+      };
+      const next = candidates.slice(0, 8).filter(cell => !this.residents.has(cell.instance) && !this.issues.has(cell.instance))
+        .map(cell => ({ cell, score: score(cell) })).filter(row => Number.isFinite(row.score)).sort((m, n) => m.score - n.score)[0]?.cell;
       if (next !== undefined) void background(next.instance, this.ensure(next.instance), () => !this.disposed);
     }
     // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
