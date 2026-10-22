@@ -16,3 +16,13 @@ test('controller admission refuses executable and incomplete suffixes before ent
  for(const input of [{...rows,entry:{kind:'mount',actor:{kind:'mule',variant:'cart',name:'Juniper'},start:{x:0,z:0,yaw:0},road:[[0,0,7],[1,1]]}},{...rows,entry:{...rows.entry,update:()=>0}},{...rows,center:{kind:'fixed',x:Infinity,z:0}},{...rows,piece:{...rows.piece,surface:'unknown'}},{...rows,view:{kind:'checkpoints',pads:[],goals:1,words:{}}}])expect(()=>parsePracticeController(input)).toThrow();
  let reads=0;const input={...rows,get entry(){reads++;return rows.entry;}};expect(()=>parsePracticeController(input)).toThrow('JSON');expect(reads).toBe(0);
 });
+
+
+test('grapple entry rows admit unrelated hook courses and detach their bounded coordinates', () => {
+ const base=grappleCourseScene(course).controller,hooks=[{x:-7,y:12,z:9},{x:20,y:4,z:-8}];
+ const rows=parsePracticeController({...base,title:'Quarry swing',entry:{kind:'grapple',hooks}});
+ if(rows.entry.kind!=='grapple')throw new Error('Missing independent grapple entry');
+ expect(rows.title).toBe('Quarry swing');expect(rows.entry.hooks[0]?.x).toBe(-7);
+ const first=hooks[0];if(first===undefined)throw new Error('Missing independent hook');first.y=99;expect(rows.entry.hooks[0]?.y).toBe(12);
+ for(const entry of [{kind:'grapple',hooks:[{x:-0,y:1,z:0}]},{kind:'grapple',hooks:[{x:0,y:Infinity,z:0}]},{kind:'grapple',hooks:Array.from({length:257},()=>({x:0,y:0,z:0}))},{kind:'grapple',hooks,tool:()=>undefined}])expect(()=>parsePracticeController({...base,entry})).toThrow();
+});

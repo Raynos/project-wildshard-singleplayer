@@ -353,3 +353,19 @@ test('the hardened CORE scene host credits all fourteen inline lines without cha
   expect(before).toBe(14); expect(chargedBefore).toBe(9); expect(after).toBe(0);
   expect(paths.every(path => approvals.get(path) === null)).toBe(true);
 });
+
+
+test('C11 credits the admitted grapple entry while native mounted authority remains charged', () => {
+  const approvals=g571HostApprovals('.'),path='src/game/practice/course.ts';
+  expect(approvedG571Host(approvals,path,'GrappleCourseEntry')).toBe(true);
+  expect(approvedG571Host(approvals,path,'GrappleEntryRows')).toBe(true);
+  expect(approvedG571Host(approvals,path,'MountedCourseEntry')).toBe(false);
+  expect(platformChargeback(path,'GrappleCourseEntry')).toBe('C6');
+});
+
+
+test('the completed G599 N1 second user grants the explicit post-graph host approval', () => {
+  const approvals=g571HostApprovals('.');
+  expect(approvedG571Host(approvals,'src/game/looks/postGraphLook.ts','postGraphLook')).toBe(true);
+  expect(approvedG571Host(approvals,'src/format/postGraphLook.ts')).toBe(true);
+});
