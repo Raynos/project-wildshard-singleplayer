@@ -1,16 +1,12 @@
 // Root-owned policy emission; the SDK consumes only the portable generated number.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { legacyInventory } from './legacy-shards.mjs';
-import { decisionLegacyLines } from './decision-legacy-lines.mjs';
+import { shardLineBaselines } from './decision-legacy-lines.mjs';
 
-/** The same sealed inventory/exclusions used by the CLI and ruler, never a per-test override. */
+/** Emit each shard's pinned budget without depending on frozen folders or their inventory. */
 export function genDecisionPolicies(root, check = false, initializeMissing = false) {
-  const frozen = legacyInventory(root);
-  for (const row of Object.values(frozen.shards)) {
-    const count = decisionLegacyLines(root, row.primary);
-    if (count === undefined) throw new Error('Missing sealed decision denominator');
-    const path = resolve(root, 'src/shards', row.primary, '.wildshard/build-policy.json');
+  for (const [slug, { lines: count }] of shardLineBaselines(root)) {
+    const path = resolve(root, 'src/shards', slug, '.wildshard/build-policy.json');
     const source = `${JSON.stringify({ version: 1, decisionLegacyLines: count })}\n`, exists = existsSync(path), same = exists && readFileSync(path, 'utf8') === source;
     const initialize = initializeMissing && !exists;
     if (check && !same && !initialize) throw new Error(`gen-shards: stale ${path}`);

@@ -1,5 +1,5 @@
 // Repo-only build policy: the SDK receives a number and never reads lint or frozen source inventories.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { legacyInventory } from './legacy-shards.mjs';
@@ -25,14 +25,17 @@ export function legacyGeneratedPaths(root, frozen = legacyInventory(root)) {
   }
   return generated;
 }
-/** Same sealed denominator for the official build adapter and P4 ruler; no build or output measurement recursion. */
+/** Shard-owned historical counts survive retirement of the frozen folder list.
+ * The checked-in basis declares both the unchanged AS denominator and provenance. */
+export function shardLineBaselines(root) {
+  if (!existsSync(resolve(root, 'lint/legacy-line-basis.json'))) return new Map();
+  return new Map(Object.entries(lineBasis(root).shards).map(([slug, pinned]) => {
+    const lines = Object.values(pinned.files).reduce((total, amount) => total + amount, 0);
+    if (lines <= 0) throw new Error(`${slug}: pinned basis has no authored TypeScript lines`);
+    return [slug, { source: pinned.source, lines }];
+  }));
+}
+/** Same pinned denominator for the official build adapter and P4 ruler; no inventory lookup. */
 export function decisionLegacyLines(root, slug) {
-  const frozen = legacyInventory(root), pair = Object.entries(frozen.shards).find(([, row]) => row.primary === slug);
-  if (pair === undefined) return undefined;
-  if (!frozen.sealed) throw new Error('Decision budget requires a sealed legacy inventory');
-  const pinned = new Map(Object.entries(lineBasis(root).shards)).get(slug);
-  if (pinned?.source !== pair[1].source) throw new Error(`${slug}: missing matching frozen line basis`);
-  const lines = Object.values(pinned.files).reduce((total, amount) => total + amount, 0);
-  if (lines <= 0) throw new Error(`${slug}: frozen legacy has no authored TypeScript lines`);
-  return lines;
+  return shardLineBaselines(root).get(slug)?.lines;
 }

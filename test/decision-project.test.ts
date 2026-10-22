@@ -36,7 +36,7 @@ test('the project intake compiles declared decisions without reading obsolete pr
   await expect(prepareProjectOutput(root, input, { source, options: projectDecisionOptions(undefined) })).rejects.toThrow('buildOptions.asLineCeiling');
   await expect(prepareProjectOutput(root, input, { source, options: projectDecisionOptions({ asLineCeiling: 999 }, 19) })).rejects.toThrow('2 > 1');
 });
-test('root build budgets and the ruler use the same sealed denominator and exact generated exclusions', () => {
+test('root build budgets retain pinned counts independently of frozen inventory changes', () => {
   const root = project(), folder = resolve(root, 'src/shards/example-legacy'); mkdirSync(folder, { recursive: true });
   mkdirSync(resolve(root, 'lint')); mkdirSync(resolve(root, 'scripts'));
   const files: Record<string, string> = { 'manifest.ts': 'export const a=1; // tail\n', 'plugin.ts': '// comment\nexport const b="// kept";\nexport const c=2;\n',
@@ -62,7 +62,10 @@ test('root build budgets and the ruler use the same sealed denominator and exact
   expect(legacyGeneratedPaths(root)).toEqual(generated);
   const inventory = { version: 1, sealed: true, shards: { 'example-legacy': { primary: 'example', source: 'c'.repeat(40), files: { 'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'b'.repeat(64) } } } };
   writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify(inventory));
-  expect(() => decisionLegacyLines(root, 'example')).toThrow('missing matching frozen line basis');
+  expect(decisionLegacyLines(root, 'example')).toBe(old);
+  expect(() => legacyGeneratedPaths(root)).toThrow('missing matching frozen line basis');
+  writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify({ version: 1, sealed: true, shards: {} }));
+  expect(decisionLegacyLines(root, 'example')).toBe(old);
 });
 
 
