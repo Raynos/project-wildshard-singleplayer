@@ -8,7 +8,7 @@ const point = v.strictObject({ x: finite, z: finite });
 const line = v.strictObject({ from: finite, to: finite, start: finite, offset: finite, span: v.pipe(finite, v.minValue(Number.MIN_VALUE)) });
 const profile = v.strictObject({ pieces: v.pipe(v.array(v.strictObject({ until: finite, line })), v.maxLength(64)), last: line });
 const value = v.strictObject({ profile, add: finite, level: v.exactOptional(key) });
-/** A projected centreline's segments (`streamProjection` reads them): each start, its run, squared length and arc start. */
+/** A projected centreline's segments: each start, its run, squared length and arc start. */
 export const StreamLinesSchema = v.pipe(v.array(v.strictObject({ ...point.entries, vx: finite, vz: finite, l2: v.pipe(finite, v.minValue(0)), arc: finite, length: finite })), v.minLength(1), v.maxLength(1024));
 /** A projected water corridor selects an ordered surface band along its centreline (a generator's creek law,
  * `streamSurface`). Profiles retain their original arithmetic order; ties retain the first segment. */
@@ -29,16 +29,6 @@ export const PopulationEnvironmentSchema = v.strictObject({
 });
 export type PopulationEnvironmentRows = v.InferOutput<typeof PopulationEnvironmentSchema>;
 type Stream = v.InferOutput<typeof StreamCorridorSchema>;
-/** Nearest admitted centreline segment; equal distances retain declaration order. */
-export function streamProjection(lines: Stream['lines'], x: number, z: number): { d: number; s: number } {
-  let d = Infinity, s = 0;
-  for (const row of lines) {
-    const t = row.l2 > 0 ? Math.min(1, Math.max(0, ((x-row.x)*row.vx+(z-row.z)*row.vz)/row.l2)) : 0;
-    const distance = Math.hypot(x-row.x-row.vx*t,z-row.z-row.vz*t);
-    if (distance < d) { d = distance; s = row.arc+t*row.length; }
-  }
-  return { d, s };
-}
 /** Evaluate the original ordered piecewise profile without changing operation order. */
 export function streamProfile(source: Stream['last'][number]['profile'], along: number): number {
   const row = source.pieces.find(piece => along <= piece.until)?.line ?? source.last;

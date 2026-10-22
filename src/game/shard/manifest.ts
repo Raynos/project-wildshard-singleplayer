@@ -22,8 +22,7 @@ import { flatTerrainField, terrainFieldFor } from '@wildshard/engine/world/groun
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
-import { ForestRowsSchema, GroundRowsSchema, StreamClipSchema } from '@wildshard/format/terrain';
-import { streamProjection } from '@wildshard/format/populationEnvironment';
+import { ForestRowsSchema, GroundRowsSchema, PondClipSchema } from '@wildshard/format/terrain';
 import { currentPageMode } from '../grid/pageMode';
 import * as v from 'valibot';
 
@@ -712,10 +711,11 @@ export function declaredForestQueries(input: unknown): Required<Pick<ChunkForest
   return { density: (x, z) => row(x, z).density, scale: (x, z) => row(x, z).scale, species: (x, z) => row(x, z).species };
 }
 
-/** A declared clip (`StreamClipSchema`, G4): the cells strictly within `within` of its centreline between arcs `from`, `to`. */
-export function declaredStreamClip(input: unknown): (x: number, z: number) => boolean {
-  const rows = v.parse(StreamClipSchema, input);
-  return (x, z) => { const n = streamProjection(rows.lines, x, z); return n.d < rows.within && n.s >= rows.from && n.s <= rows.to; };
+/** A declared clip (`PondClipSchema`, G4): whether the pond grid cell holding (x, z) is one of the rows' listed cells. */
+export function declaredPondClip(input: unknown): (x: number, z: number) => boolean {
+  const rows = v.parse(PondClipSchema, input), cells = new Set(rows.cells);
+  return (x, z) => { const i = Math.floor((x - rows.x0) / rows.cell), j = Math.floor((z - rows.z0) / rows.cell);
+    return i >= 0 && j >= 0 && i < rows.segs && j < rows.segs && cells.has(j * rows.segs + i); };
 }
 
 /** Authored terrain, or the analytic placement floor for a structures-only manifest (y = -1000 m). */

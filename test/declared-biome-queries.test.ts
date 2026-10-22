@@ -1,12 +1,11 @@
 import { expect, test } from 'vitest';
-import { declaredForestQueries, declaredStreamClip } from '../src/game/shard/manifest';
+import { declaredForestQueries, declaredPondClip } from '../src/game/shard/manifest';
 
 const forest = { forest: [
   { x: 1.25, z: -3.5, density: .6, scale: 1.2, species: { spruce: .75, birch: .25 } },
   { x: -8, z: 2, density: .1, scale: .8, species: { willow: 1 } },
 ] };
-const line = { x: 0, z: 0, vx: 10, vz: 0, l2: 100, arc: 0, length: 10 };
-const clip = { lines: [line], within: 2, from: 3, to: 7 };
+const clip = { x0: -2, z0: 4, cell: 0.5, segs: 4, cells: [1, 6] };
 
 test('declared forest queries preserve independent candidate answers from data', () => {
   const query = declaredForestQueries(forest);
@@ -33,27 +32,23 @@ test('forest admission refuses non-finite answers and row callbacks', () => {
   expect(() => declaredForestQueries({ forest: [{ ...sample, custom: () => 1 }] })).toThrow();
 });
 
-test('declared clips retain strict width and inclusive arc endpoints', () => {
-  const accepts = declaredStreamClip(clip);
-  expect(accepts(3, 0)).toBe(true);
-  expect(accepts(7, 0)).toBe(true);
-  expect(accepts(5, 1.999)).toBe(true);
-  expect(accepts(5, -1.999)).toBe(true);
-  expect(accepts(5, 2)).toBe(false);
-  expect(accepts(5, -2)).toBe(false);
-  expect(accepts(2.999, 0)).toBe(false);
-  expect(accepts(7.001, 0)).toBe(false);
+test('a declared clip answers by the grid cell a point falls in, listed cells only', () => {
+  const accepts = declaredPondClip(clip);
+  expect(accepts(-1.25, 4.25)).toBe(true); // cell 1: i 1, j 0
+  expect(accepts(-1.5, 4)).toBe(true); // its corner belongs to it
+  expect(accepts(-1.001, 4.499)).toBe(true);
+  expect(accepts(-1, 4.25)).toBe(false); // cell 2
+  expect(accepts(-0.75, 4.75)).toBe(true); // cell 6: i 2, j 1
+  expect(accepts(-1.75, 4.25)).toBe(false); // cell 0
+  expect(accepts(-2.25, 4.25)).toBe(false); // off the grid's west edge
+  expect(accepts(-1.25, 6.25)).toBe(false); // off its north edge
 });
 
-test('equidistant clip segments retain the first declared arc', () => {
-  const later = { ...line, arc: 100 };
-  expect(declaredStreamClip({ ...clip, lines: [line, later] })(5, 0)).toBe(true);
-  expect(declaredStreamClip({ ...clip, lines: [later, line] })(5, 0)).toBe(false);
-});
-
-test('clip admission refuses missing geometry and non-data extensions', () => {
-  expect(() => declaredStreamClip({ ...clip, lines: [] })).toThrow();
-  expect(() => declaredStreamClip({ ...clip, within: -1 })).toThrow();
-  expect(() => declaredStreamClip({ ...clip, lines: [{ ...line, vx: Infinity }] })).toThrow();
-  expect(() => declaredStreamClip({ ...clip, query: () => true })).toThrow();
+test('clip admission refuses fractional cells, an empty grid and non-data extensions', () => {
+  expect(() => declaredPondClip({ ...clip, cells: [1.5] })).toThrow();
+  expect(() => declaredPondClip({ ...clip, cells: [-1] })).toThrow();
+  expect(() => declaredPondClip({ ...clip, segs: 0 })).toThrow();
+  expect(() => declaredPondClip({ ...clip, cell: 0 })).toThrow();
+  expect(() => declaredPondClip({ ...clip, x0: Infinity })).toThrow();
+  expect(() => declaredPondClip({ ...clip, query: () => true })).toThrow();
 });

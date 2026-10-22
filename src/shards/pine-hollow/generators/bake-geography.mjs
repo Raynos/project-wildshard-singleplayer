@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { PineSeedStream } from './seedStream.ts';
 import { forestDensity, oldGrowthMask, speciesMix } from './forestGeography.ts';
-import { creekSpan } from './geography.ts';
+import { creekSpan, inBeaverPool } from './geography.ts';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import { streamSurface } from '@wildshard/format/populationEnvironment';
@@ -48,10 +48,15 @@ export function pineGeography() {
   return { forest, stream, creek: { lines, dam, riffle: p.riffle, lead, crest, depth, halfWidth, run, bed } };
 }
 
-/** G4: the beaver pool's reach as a declared clip (game `declaredStreamClip`): within 12 m of the creek, riffle to dam face */
-export function pondClip(geography = pineGeography()) {
-  const { lines, riffle, dam, lead } = geography.creek;
-  return { lines, within: 12, from: riffle, to: dam - lead };
+/** G4: the beaver pool's reach as a declared clip (game `declaredPondClip`): the pond grid's cells whose centre (where the
+ * pond surface asks) lies in the beaver pool (within 12 m of the creek, riffle to dam face); the pool draws them instead.
+ * The grid is the engine's pond tessellation (`engine/world/pondGrid`; test/fixed-boot-layout-data.test.ts pins it). */
+export function pondClip() {
+  const half = LAYOUT.POND.r + 15, segs = 128, cell = (half * 2) / segs, x0 = LAYOUT.POND.x - half, z0 = LAYOUT.POND.z - half, cells = [];
+  for (let j = 0; j < segs; j++) for (let i = 0; i < segs; i++) {
+    if (inBeaverPool(LAYOUT.POND.x - half + (i + 0.5) * cell, LAYOUT.POND.z - half + (j + 0.5) * cell)) cells.push(j * segs + i);
+  }
+  return { x0, z0, cell, segs, cells };
 }
 
 /** the beaver pool's live water level (world/beaverPool.ts publishes it) */
@@ -108,6 +113,6 @@ if (import.meta.main) {
   const writer = byteWriter(process.argv.includes('--check'), 'pine-geography'), geography = pineGeography();
   writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes(geography, 0));
   writer.put(fileURLToPath(new URL('../data/ground.generated.json', import.meta.url)), jsonBytes(pineGround(geography), 0));
-  writer.put(fileURLToPath(new URL('../data/pondClip.generated.json', import.meta.url)), jsonBytes(pondClip(geography), 0));
+  writer.put(fileURLToPath(new URL('../data/pondClip.generated.json', import.meta.url)), jsonBytes(pondClip(), 0));
   writer.finish();
 }

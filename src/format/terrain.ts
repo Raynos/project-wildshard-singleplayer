@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW } from './contentBounds';
 import { WaterSchema } from './water';
-import { StreamLinesSchema } from './populationEnvironment';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(7));
@@ -65,5 +64,7 @@ const finite = v.pipe(v.number(), v.finite());
  *  and species mix, read from a generated geography file's `forest` rows (its other rows are not read). */
 export const ForestRowsSchema = v.object({ forest: v.pipe(v.array(v.strictObject({ x: finite, z: finite, density: finite,
   scale: finite, species: v.record(v.pipe(v.string(), v.minLength(1), v.maxLength(64)), finite) })), v.maxLength(65536)) });
-/** A declared clip (the manifest's `pondClip`, G4): the cells strictly within `within` of a centreline, between arcs. */
-export const StreamClipSchema = v.strictObject({ lines: StreamLinesSchema, within: v.pipe(finite, v.minValue(0)), from: finite, to: finite });
+/** A declared clip (the manifest's `pondClip`, G4): the pond surface's grid (`segs` cells a side of `cell` m from its corner
+ *  `x0`, `z0`) and the row-major indices of the cells another water body draws instead. */
+export const PondClipSchema = v.strictObject({ x0: finite, z0: finite, cell: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
+  segs: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1024)), cells: v.pipe(v.array(v.pipe(v.number(), v.integer(), v.minValue(0))), v.maxLength(65536)) });

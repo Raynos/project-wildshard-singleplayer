@@ -5,7 +5,8 @@ import pine from '../src/shards/pine-hollow/data/layout.generated.json' with { t
 import clipRows from '../src/shards/pine-hollow/data/pondClip.generated.json' with { type: 'json' };
 import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
 import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };
-import { declaredForestQueries, declaredGround, declaredStreamClip } from '../src/game/shard/manifest';
+import { declaredForestQueries, declaredGround, declaredPondClip } from '../src/game/shard/manifest';
+import { pondGrid } from '../src/engine/world/pondGrid';
 import { setLiveWaterLevel } from '../src/engine/world/water/declared';
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';
 import geography from '../src/shards/pine-hollow/data/geography.generated.json' with { type: 'json' };
@@ -23,7 +24,7 @@ it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {
 });
 
 const creek = declaredGround(groundRows).water?.find(body => body.id === 'creek');
-const FOREST_QUERIES = declaredForestQueries(geography), inBeaverPool = declaredStreamClip(clipRows);
+const FOREST_QUERIES = declaredForestQueries(geography), inBeaverPool = declaredPondClip(clipRows);
 const POOL = 'pine-hollow.beaver-pool';
 
 it('keeps the declared creek under the live beaver pool level', () => {
@@ -61,9 +62,12 @@ it('retains the creek profile and pool clip at full, partial and drained levels'
         if (expected !== null && actual !== null) expect(Math.abs(actual - expected)).toBeLessThan(0.08);
       }
     }
+    // the pond surface asks the clip at each of its grid cells' centres
     let clipped = 0;
-    for (let x = -240; x < -90; x += 1.25) for (let z = -245; z < 120; z += 1.25) {
-      const actual = inBeaverPool(x, z);
+    const { half, segs, cell, x0, z0 } = pondGrid(pine.POND);
+    expect({ x0: clipRows.x0, z0: clipRows.z0, cell: clipRows.cell, segs: clipRows.segs }).toEqual({ x0, z0, cell, segs });
+    for (let j = 0; j < segs; j++) for (let i = 0; i < segs; i++) {
+      const x = pine.POND.x - half + (i + 0.5) * cell, z = pine.POND.z - half + (j + 0.5) * cell, actual = inBeaverPool(x, z);
       expect(actual).toBe(originalPool(x, z));
       if (actual) clipped++;
     }

@@ -73,7 +73,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     : value(b.budgets);
   const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${budget}`];
   // G4: declared rows are built by the game from the shard's generated file, with no shard module
-  const DECLARED = { ground: 'declaredGround', forestQueries: 'declaredForestQueries', pondClip: 'declaredStreamClip' };
+  const DECLARED = { ground: 'declaredGround', forestQueries: 'declaredForestQueries', pondClip: 'declaredPondClip' };
   const declared = Object.keys(DECLARED).filter(key => b[key]?.platform === 'declared');
   const built = (key) => `${DECLARED[key]}(${value(b[key].rows)})`;
   for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'pondClip']) if (b[key]) {
