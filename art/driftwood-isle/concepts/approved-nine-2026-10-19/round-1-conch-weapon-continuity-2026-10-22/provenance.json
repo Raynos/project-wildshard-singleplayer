@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "date_utc": "2026-10-22",
+  "scope": "One bounded two-context Conch Duelist AI target-mockup correction attempt; intended panels 02/03/07/08 only.",
+  "generation_tool": "built-in image_gen.imagegen",
+  "generation_calls": 2,
+  "underlying_model": "not exposed by the tool result",
+  "cli_fallback_used": false,
+  "python_image_editing_used": false,
+  "reconstructed_model_render_used": false,
+  "branch_observed_read_only": "gamedev-dot",
+  "tool_output_route": "Tool returned explicit existing local PNG paths; verified and copied without altering raw bytes.",
+  "inputs": [
+    {
+      "path": "art/driftwood-isle/concepts/lowpoly-revision-2026-10-18/conch-duelist-lowpoly.webp",
+      "sha256": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb",
+      "bytes": 209288,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "authoritative_original",
+      "sha256_before": "90073e7f4eae70b1e135c87740325d6a7a7da94c67cf761b03c5184c507a65cb",
+      "unchanged_after_generation": true
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/corrections/conchExplorerCorrectedGen-v3.png",
+      "sha256": "0aaf74433585637939ca7c3bf5de9dc35016f2acf8eeec10f01fcfccf674c39f",
+      "bytes": 1861666,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "explorer_edit_target",
+      "sha256_before": "0aaf74433585637939ca7c3bf5de9dc35016f2acf8eeec10f01fcfccf674c39f",
+      "unchanged_after_generation": true
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/corrections/conchWorldCorrectedGen-v3.png",
+      "sha256": "1bd83467b6fcaf1a7ee204db106307702b426984e6e20934b7e2c0b3c250e472",
+      "bytes": 2278439,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "world_edit_target",
+      "sha256_before": "1bd83467b6fcaf1a7ee204db106307702b426984e6e20934b7e2c0b3c250e472",
+      "unchanged_after_generation": true
+    },
+    {
+      "path": "native-site/dist/assets/approved-nine/conchExplorerGen.webp",
+      "sha256": "3828746276be5527b905efc831ec989cec77eaca5886661716d4808492f68f84",
+      "bytes": 134426,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "current_site_explorer_read_only",
+      "sha256_before": "3828746276be5527b905efc831ec989cec77eaca5886661716d4808492f68f84",
+      "unchanged_after_generation": true
+    },
+    {
+      "path": "native-site/dist/assets/approved-nine/conchWorldGen.webp",
+      "sha256": "facbd912c0c9f270d2084e15a9ea30255d6c82ddff0b6c046a6dbd1ecc90c36a",
+      "bytes": 201670,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "current_site_world_read_only",
+      "sha256_before": "facbd912c0c9f270d2084e15a9ea30255d6c82ddff0b6c046a6dbd1ecc90c36a",
+      "unchanged_after_generation": true
+    }
+  ],
+  "outputs": [
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/round-1-conch-weapon-continuity-2026-10-22/conchExplorerWeaponContinuity-candidate-v1.png",
+      "sha256": "7c8dc9b03d4c394f9317bebfef3da1ac100feba9503584d4ee0b34c3909c6c3a",
+      "bytes": 1842893,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "context": "Model Explorer",
+      "status": "candidate_not_selected",
+      "tool_reported_original_path": "generated-images/exec-2ec2b901-4902-4995-9a39-d840768e23cc.png",
+      "copy_matches_tool_output": true,
+      "prompt_file": "explorer-prompt.txt",
+      "prompt_sha256": "7c444e09806d314437c0a288c88e8a30260d68cc49b0bbeb6a82b60b51d9c574",
+      "generation_attempt": 1
+    },
+    {
+      "path": "art/driftwood-isle/concepts/approved-nine-2026-10-19/round-1-conch-weapon-continuity-2026-10-22/conchWorldWeaponContinuity-candidate-v1.png",
+      "sha256": "dec52704e54f156116e49a57aeb711a422417180567d1d14bde4778ddef0367f",
+      "bytes": 2268741,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "context": "World",
+      "status": "candidate_not_selected",
+      "tool_reported_original_path": "generated-images/exec-4021fe34-6716-4a50-a5d2-fb98f7eaa40f.png",
+      "copy_matches_tool_output": true,
+      "prompt_file": "world-prompt.txt",
+      "prompt_sha256": "942c6a04e2ab39bd2c537b12fbe1278bb29d4051b9e244267e9e40f5620b082e",
+      "generation_attempt": 1
+    }
+  ],
+  "attachment_inference": "Original frontal broad shield screen-left is interpreted as anatomical right forelimb; narrow blade screen-right as anatomical left forelimb. Left-facing02/07 shield side is near camera; right-facing03/08 blade side is near camera. Hidden geometry remains inference.",
+  "self_review_status": "partial_improvement_not_recommended_for_canonical_selection",
+  "independent_review_pending": false,
+  "canonical_completion_claimed": false,
+  "preservation": "Original approved concept, selected v3, previous failed sheets and current Site assets preserved. No Site, manifest, STATE or Git mutation. No storage pins or runtime relocation.",
+  "raw_pngs_exceed_repository_preview_caps": true,
+  "raw_pngs_committed": false,
+  "review": "visual-review.md",
+  "read_only_pixel_analysis": "pixel-comparison.json",
+  "independent_review_verdict": "retain_selected_v3_both_contexts"
+}

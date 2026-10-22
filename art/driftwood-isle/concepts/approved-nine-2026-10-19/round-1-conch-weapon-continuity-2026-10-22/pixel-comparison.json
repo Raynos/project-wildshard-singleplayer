@@ -1,0 +1,239 @@
+{
+  "method": "Read-only pixel comparison with PIL/numpy, no image edits or output raster created. Inner panel RGB absolute differences; not an anatomy or camera test.",
+  "contexts": {
+    "Explorer": {
+      "shape": [
+        1536,
+        1024,
+        3
+      ],
+      "panels": [
+        {
+          "panel": "01",
+          "rect": [
+            12,
+            112,
+            341,
+            507
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 2.978,
+          "percent_pixels_max_channel_delta_gt_10": 10.355
+        },
+        {
+          "panel": "02",
+          "rect": [
+            354,
+            112,
+            673,
+            507
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 16.59,
+          "percent_pixels_max_channel_delta_gt_10": 25.648
+        },
+        {
+          "panel": "03",
+          "rect": [
+            685,
+            112,
+            1014,
+            507
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 9.407,
+          "percent_pixels_max_channel_delta_gt_10": 16.868
+        },
+        {
+          "panel": "04",
+          "rect": [
+            12,
+            560,
+            341,
+            954
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 2.651,
+          "percent_pixels_max_channel_delta_gt_10": 7.967
+        },
+        {
+          "panel": "05",
+          "rect": [
+            354,
+            560,
+            673,
+            954
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 3.725,
+          "percent_pixels_max_channel_delta_gt_10": 11.958
+        },
+        {
+          "panel": "06",
+          "rect": [
+            685,
+            560,
+            1014,
+            954
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 3.074,
+          "percent_pixels_max_channel_delta_gt_10": 9.997
+        },
+        {
+          "panel": "07",
+          "rect": [
+            12,
+            1010,
+            341,
+            1459
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 13.687,
+          "percent_pixels_max_channel_delta_gt_10": 22.815
+        },
+        {
+          "panel": "08",
+          "rect": [
+            354,
+            1010,
+            673,
+            1459
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 11.739,
+          "percent_pixels_max_channel_delta_gt_10": 21.348
+        },
+        {
+          "panel": "09",
+          "rect": [
+            685,
+            1010,
+            1014,
+            1459
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 2.656,
+          "percent_pixels_max_channel_delta_gt_10": 7.375
+        }
+      ]
+    },
+    "World": {
+      "shape": [
+        1536,
+        1024,
+        3
+      ],
+      "panels": [
+        {
+          "panel": "01",
+          "rect": [
+            0,
+            50,
+            340,
+            449
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 4.474,
+          "percent_pixels_max_channel_delta_gt_10": 19.086
+        },
+        {
+          "panel": "02",
+          "rect": [
+            347,
+            50,
+            681,
+            449
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 10.542,
+          "percent_pixels_max_channel_delta_gt_10": 35.198
+        },
+        {
+          "panel": "03",
+          "rect": [
+            688,
+            50,
+            1024,
+            449
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 8.556,
+          "percent_pixels_max_channel_delta_gt_10": 31.609
+        },
+        {
+          "panel": "04",
+          "rect": [
+            0,
+            494,
+            340,
+            900
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 4.299,
+          "percent_pixels_max_channel_delta_gt_10": 17.525
+        },
+        {
+          "panel": "05",
+          "rect": [
+            347,
+            494,
+            681,
+            900
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 3.936,
+          "percent_pixels_max_channel_delta_gt_10": 12.955
+        },
+        {
+          "panel": "06",
+          "rect": [
+            688,
+            494,
+            1024,
+            900
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 4.6,
+          "percent_pixels_max_channel_delta_gt_10": 19.548
+        },
+        {
+          "panel": "07",
+          "rect": [
+            0,
+            946,
+            340,
+            1415
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 11.162,
+          "percent_pixels_max_channel_delta_gt_10": 29.503
+        },
+        {
+          "panel": "08",
+          "rect": [
+            347,
+            946,
+            681,
+            1415
+          ],
+          "intended_edit": true,
+          "mean_abs_channel_delta_255": 8.559,
+          "percent_pixels_max_channel_delta_gt_10": 29.29
+        },
+        {
+          "panel": "09",
+          "rect": [
+            688,
+            946,
+            1024,
+            1415
+          ],
+          "intended_edit": false,
+          "mean_abs_channel_delta_255": 3.494,
+          "percent_pixels_max_channel_delta_gt_10": 10.066
+        }
+      ]
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # DRIFTWOOD-ENEMIES — State
 
-Updated 2026-10-21 22:56 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
+Updated 2026-10-22 04:19 UTC. Public: 9/9 AVAILABLE WIP prototypes; 0/9 quality-complete. Complete current-host combat verification remains open.
 
 LATEST OWNER: At22:49 explicitly requested publishing all nine now, not waiting for browser infrastructure. Delivery is separate from passing every test. Version99 deployment succeeded22:55. Keep unfinished testing disclosed; no fabricated acceptance. Bellback physics expansion approved17:08, off first-prototype critical path. See PROTOTYPE-NINE.md.
 
@@ -17,3 +17,5 @@ RETAINED SHARED: Current-four1553 smoke passes all4. Conch QA2 passes33 function
 OTHER RETAINED: Keelmaw rigid-held fails unchanged floor gate in4phases; no tuning. Iguana mesh hits/current bounds and10tests retained; Medusa flight/brain/pose44+8tests retained. Old custom-corpse gaps are not prototype prerequisites. Bellback negative studies preserved.
 
 PUBLIC/PROTECTION: Game remote57cf1bb exact verified through limited visual review; native Site source and archive99 saved/deployed. Original references and18 approximate sheets remain noncanonical; other16 concepts rejected. No production-game deployment or persistent-world rewards.
+
+REFERENCE PASS: One paired Conch weapon-continuity AI edit completed22Oct. Independent pixel review rejects both candidates for selection: extra pale spikes, rearward shield attachments and unintended blade drift. Prior v3 remains selected. Prompts/provenance/reviews retained under approved-nine-2026-10-19/round-1-conch-weapon-continuity-2026-10-22; raw PNGs preserved locally above Git preview caps. No runtime or Site changes.
