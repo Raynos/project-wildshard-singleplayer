@@ -233,11 +233,11 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Restore verified generated inputs once prepared; partition only lint files.
+    # Run complete types beside four lint partitions, each from verified inputs.
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [types, 1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -263,10 +263,10 @@ jobs:
       - name: Verify and restore exact-run generated inputs
         run: python3 scripts/ci-products.py unpack-generated
       - name: Typecheck
-        # Run all projects once; the other workers only partition lint files.
-        if: matrix.shard == 1
+        # Run all projects once, independently of every lint partition.
+        if: matrix.shard == 'types'
         # Same complete checks as pnpm typecheck; inputs came from this run's
-        # verified products job, so do not regenerate them in every shard.
+        # verified generation job, so do not regenerate them in every shard.
         run: |
           pnpm exec tsc --noEmit
           pnpm exec tsc -b tsconfig.layers.json
@@ -277,6 +277,7 @@ jobs:
           pnpm exec tsc --noEmit -p admin
           pnpm exec tsc --noEmit -p admin/tools
       - name: Lint
+        if: matrix.shard != 'types'
         # Fresh plugin workers bound AST retention on the verified exact tree.
         run: node scripts/lint-all.mjs --shard=${{ matrix.shard }}/4
 

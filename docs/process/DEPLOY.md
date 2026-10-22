@@ -151,3 +151,8 @@ size, SHA-256, Git blob and mode, and must match the exact checked-out commit.
 Archive and retained paths are disjoint. Missing, modified or symlinked files
 refuse before any restore write; no generator repairs an incomplete checkout.
 The same-run SHA/checksum proof and the full-product requirement stay active.
+
+G609: the complete TypeScript project check has its own matrix worker beside
+the four lint partitions. It no longer serializes one lint partition after
+all types. Coverage, generated-input proof and the existing deadlines remain
+unchanged; no running push CI is cancelled.
