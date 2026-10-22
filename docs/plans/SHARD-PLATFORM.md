@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `in progress`, worked in **waves** (G403–G408). **Now: W1 = Sky Reach + Signal Dunes to 90/10 each, grid-ready. Components closed: 0 of 9.** Custom on clean HEAD, 2026-10-13 ~14:00Z: Sky 47.6 %, Signal 44.3 % (bar 10 %). Shards at 80/20: 1 of 7 (the template). The live status, per-component lines and lanes are [STATE.md](shard-platform/STATE.md) (the coordinator's, ≤ 3 KB, G275); the full State history is [history.md](shard-platform/history.md). Lanes (G432): 5 Opus (visual only), 5 Codex + the pusher, no Fable.
+**State:** `in progress`, worked in **waves** (G403–G408). **Every shard goes to zero custom TypeScript (G604): Sky, Signal, Pine and Driftwood are at 0; Nine and Nalati are the last (W3).** Progress is reported only toward zero (G567, G604). Then every shard grid-ready, then Jake's full phone QA of all six shards in SHARD SELECT on a stable finished build; the `<slug>-legacy/` folders are deleted only on Jake's word after that (G604). The live status, per-component lines and lanes are [STATE.md](shard-platform/STATE.md) (the coordinator's, ≤ 3 KB, G275); the full State history is [history.md](shard-platform/history.md). Lanes (G432): 5 Opus (visual only), 5 Codex + the pusher, no Fable.
 
 **Reviews:** [Wildshard MMO Review](../reviews/wildshard-mmo-review.md) (the clean-room audits, E435); [SHARD-PLATFORM mockups](../reviews/shard-platform-mockups.md) (Jake's E438 picks G72–G107, boards in `art/`).
 
@@ -12,8 +12,8 @@ Jake, 2026-10-13: *"Rather than refocusing one sprint at a time, we refocus perm
 | Wave | Shards | Done when (G404, G406) | Starts |
 |---|---|---|---|
 | **W1** | Sky Reach, Signal Dunes | **0 % custom** and grid-ready (done: both 0, latched) | done |
-| **W2** | Pine Hollow, Driftwood Isle (G413) | **0 % custom** (G567, was 80/20), then grid-ready (G561) | now (G551) |
-| **W3** | Nalati Grasslands, Nine Dragon Stack (G413) | **0 % custom** (G567, was 80/20), then grid-ready; M2 and M3 close here | after W2 |
+| **W2** | Pine Hollow, Driftwood Isle (G413) | **0 custom lines** (done, G589), then grid-ready (G598: oneFrameLooks left) | zero done; grid-ready now |
+| **W3** | Nalati Grasslands, Nine Dragon Stack (G413) | **0 custom lines** (G604; the old 20 % targets ≤ 5,674 / ≤ 4,222 are retired), then grid-ready; M2 and M3 close here | now (G592) |
 
 **Progress is measured toward zero (G567, Jake 2026-10-21):** M3 = lines cut ÷ every shard's original custom lines (no 10 % / 20 % goal, no cap above 100 %); plan % = 60 % × M3 + 40 % × M2. At dc788d5d6: 89,880 of 98,854 cut, M3 90.9 %, M2 6/10, plan 78.5 % (the old 20 %-goal ruler read 84 %).
 
@@ -98,7 +98,7 @@ table supersedes the older rows it lists. Read it before any row it touches; the
   brains, quests, rigs, the UI kit, audio, toys, crowds … (the kit package dissolves into the SDK, G135).
 - **The commons:** one `@wildshard/commons` package of build-time packs that emit shared, hash-named content (models,
   clips, sounds, WASM, rows), cached once across shards; no commons code runs in the game (G137, G138).
-- **③ Custom runtime:** a first-party shard's trusted TypeScript in `runtime/`, at most 20 % of its lines. It is **not
+- **③ Custom runtime:** a first-party shard's trusted TypeScript in `runtime/`; **the target for every shard is zero (G604)**, so it exists only until a shard finishes. It is **not
   part of the shardfile**: in our singleplayer game it ships as a separate trusted chunk next to the shardfile (the
   hybrid loader, SF46), and it never goes to the MMO. Transition only; 90/10 and later plans shrink it to zero (G136,
   G146).
@@ -115,13 +115,7 @@ table supersedes the older rows it lists. Read it before any row it touches; the
 
 `scripts/shard-platform.mjs` prints them per shard; generated and baked output never counts (G291).
 
-- **80/20 (G291):** a shard passes when its **custom runtime TypeScript is ≤ 20 % of its frozen `<slug>-legacy/`
-  folder's TypeScript** (Jake: *"the 80/20 number should never be between the raw files and the shard file. Should
-  always be … between the SDK and the custom runtime"*). Custom = the shard folder's shipped TypeScript, **plus** every
-  game / SDK / engine module or export only that shard uses (G294: a system counts as shared only once two real shards
-  use it; the template doesn't count, G312), **plus** raw GLSL beyond its runtime TypeScript (G306: raw GLSL is trusted
-  custom code). The template and other shards with no legacy folder keep the old public-share check (the
-  `legacy-share` column, secondary). 20 % stays the bar for 80/20 done (G373).
+- **Zero (G604, replaces 80/20 G291/G373):** a shard passes only when its **custom runtime TypeScript is 0 lines** — the shard folder's shipped TypeScript, **plus** every game / SDK / engine module or export only that shard uses (G294: shared only once two real shards use it; the template doesn't count, G312; Jake-approved one-user hosts per G595/G599–G603 are platform), **plus** raw GLSL (G306). Generated output, generators and `shard.config.ts` never count (G573). The frozen `<slug>-legacy/` size is kept only as the denominator of the historical share column. Percent done means percent of the way to zero (G567): M3 = lines cut ÷ every shard's original custom lines. `scripts/shard-platform.mjs` passes a shard at zero only (04ab7cd967).
 - **M3's scope (G265):** the `<slug>/` shardfile folders; `<slug>-legacy/` folders are excluded and frozen (G263).
 - **AssemblyScript (G315):** no cap; its own report-only column per shard.
 - **The content gate beside 80/20 (G304, SF77):** a ported shard ships its terrain, static geometry and colliders as
@@ -140,7 +134,8 @@ The pre-G291 measure (public ÷ (public + custom) inside the shard folder) is ke
 The rules binding today, one line each; Jake's words are in [decisions.md](shard-platform/decisions.md) under each G-number.
 
 **The goal and the measure**
-- 80/20 = custom runtime ≤ 20 % of the frozen legacy size; generated data never counts (G291); 20 % stays the bar (G373).
+- **Every shard's target is zero custom lines (G604)**; generated data never counts (G291); percent done is toward zero (G567). The 80/20 bar (G291/G373) is retired.
+- **Legacy folders stay until Jake says so (G604):** all shards at zero → every shard grid-ready → a stable finished build → Jake's full phone QA of all six shards in SHARD SELECT → he says when the `<slug>-legacy/` folders are deleted. Nobody deletes them before.
 - A game / SDK system is shared only once 2+ real shards use it; the template is not a second user (G294, G312).
 - The content gate: tiles, no shard-private binaries, `transitional` while trusted code runs the sim (G304).
 - Raw GLSL is trusted custom code; SF59 shader graphs are the only public material path (G306).
@@ -483,7 +478,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G603+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G604+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.

@@ -144,6 +144,16 @@ And two capability gaps:
 Order: D1 (design) → on Jake's word: H0 → H0b → H1–H6b built alongside v1 behind Developer → H7 → H8, H9 → H13
 cutover → H17 → H14; H10/H11 only on profile evidence; H12 with each landing.
 
+## Zero blockers: first in the builder's queue (G604)
+
+Jake, 2026-10-22: *"anything from the Wasm host plan that's a blocker to go into zero, that has to be prioritized."* Nine and Nalati reach zero through these (G600/G603 picks); they jump the order below, and each lands with the first real user that needs it:
+
+- **H4** observation block: Nalati wildlife sims (L5), taming (L9), the Storm Titan (L2).
+- **H5** request ring: nearest-of-kind and line-of-sight queries for the wildlife sims (L5).
+- **View-target adapter** (H9 extension, G600 L7): row-declared instanced figures, bones and look channels any shard's `ws_view` can drive; Driftwood's bridge sway and Nalati's views are its users.
+- **New commands** dismount, ignite, impulse: the Storm Titan (L2) and the cell field (L3).
+- Whatever of **H0b–H3 / H6** these stand on, and nothing else ahead of them.
+
 ## Ties to SHARD-PLATFORM
 
 SHARD-PLATFORM keeps its G515/G516 host routes (held-melee host for the Jian combo, blade-sampling rows, weather
