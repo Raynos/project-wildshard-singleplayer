@@ -788,6 +788,23 @@ candidate bank against its reported draw counts. Inactive or excluded bindings
 cannot advance. The native owner commits the copied candidates only with its
 validated state/command transaction; refusal or a re-step advances no stream.
 
+For explicit SpawnScript v2 effect declarations, kind-10 op25 is a finite
+page output: target is the declared action id, a..d are its exact f64 operands,
+and request/e/f are positive zero. The declared action grammar fixes arity;
+unused operands are positive zero. World op14/23/24 use their existing concrete
+player/mount/cell-field rights. All branches of a mixed bank validate before
+any native operation; unknown ops or malformed suffixes refuse the whole bank.
+The production actor owner stages commands in nondecreasing binding order,
+retaining each binding's emitted order and the existing 32/128 quotas.
+
+Only explicitly external/v2 staged records carry bounded six-word command
+records inside the same native continuation. V1 staged/save bytes remain
+unchanged. Native commit prepares the page bank for the original entered
+post-update drain; it does not execute those page effects early. Actor pointers
+are transient original declared-slot references, never saved or resolved again
+mid-bank. In-memory f64 values preserve signed zero; JSON persistence retains
+its existing numeric zero canonicalization.
+
 Projection requests are synchronous, stateless and channel-only. Independent
 requests may share one call; dependent requests require staged continuations,
 never a reentrant guest callback. A failed batch publishes no channel or RNG

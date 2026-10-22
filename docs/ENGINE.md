@@ -10654,6 +10654,21 @@ Both preserve named variants and resolve main/rival identities through the
 concrete body authority. Restores validate every binding and strike before
 commit; a quiet re-save preserves the validated historical wire.
 
+The original Elites entered binding accepts optional finite action rows and
+concrete native service loans through
+`bindEnteredPresentation(owners, rows, {actions, loans})`. `v2OutputActions`
+returns that same admitted immutable table only while the original entered,
+controller and service owners remain live. `prepareV2Outputs(bank, actors)`
+accepts transient original emitted Animal pointers indexed by the declared
+SpawnScript slot array, preserving holes and refusing missing referenced
+actors before effects. `drainEnteredOutputs()` validates complete native and
+forwarded page banks, then applies them in original controller/event order at
+the existing post-Elites.update drain. Native stage commit only forwards the
+page bank; native Stalker/Diver effects retain that same drain timing. Original
+body, reward, persistence and clock owners remain authoritative. There is no
+new saved outbox or registry, and this optional seam does not activate a law
+migration or replace the original installer.
+
 The internal `game/quest/eliteDecisions` adapter maps row-named observations
 and saved fields to the owned guest. `game/quest/eliteStreams` derives each
 independent random stream from the declared seed, prefix and encounter id.
@@ -11901,9 +11916,28 @@ as migration fallback, and v2 input/quarantine round-trips without module instan
 authority:'observe' borrows an existing actor but refuses body-changing commands and lifecycle allocation;
 interrupt, restore and scope retirement leave its native motion/brain/herd untouched. The initial executor
 supports original actor ops1..7/12/13, with complete state/command/RNG/input validation before publication and
-original next-native-tick command commit. Queries, view outputs and world-action banks refuse until their
-explicit owner integrations land. No implicit elite action dispatcher is provided; op25 ordered detached actions
-remain a follow-on with the original elitePage drain slot.
+original next-native-tick command commit. Queries and view outputs still refuse in this actor runner.
+
+Optional rows.v2.effects.world declares exact targets, rights14/23/24, quotas
+and bounds; page/native construction lends the concrete world-action owners.
+Optional effects.elites requires observe-only actor slots and the original
+entered Elites instance in SpawnScript.page's fifth argument; world loans are
+its sixth argument (native's fourth). The runner decodes the complete mixed
+actor/world/op25 bank and preflights every loan before any effects. Original
+slot-array actor references are captured once, including holes. Prepared
+operations preserve emitted order and fence scope retirement per operation
+without retargeting after earlier adoption. Page/elite mode admits original
+flag7/channel13 plus declared world/elite operations; physical ops and cue12
+refuse rather than acquire a later apply slot. Native physical commands retain
+their original phase.
+
+A page bank is forwarded in SpawnScript's existing transient effect stream and
+drained by the surviving entered Elites binding after its original update.
+Bounded external command words persist only while staged, inside the same
+DecisionHost/SpawnScript envelope. Saving between stage and commit restores
+that bank exactly once without a guest call or a second owner. In-memory f64
+signed zero is retained; JSON saves preserve existing numeric canonicalization.
+Default v1 staged records never acquire this optional external key.
 
 ScalarTripletSchema declares exactly three native scalar lattices, in component
 order. declaredGroundColour admits all three and compiles the existing ground
