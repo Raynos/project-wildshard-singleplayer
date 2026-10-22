@@ -121,18 +121,16 @@ class MountedCourseController implements CourseController {
 
 class HookCourseController implements CourseController {
   readonly map:RoomMap;
-  readonly hooks: THREE.Vector3[];
   private readonly host: PlaygroundHost;
   private readonly row: HookCourseRow;
   private readonly course: GrappleCourseRow;
   private readonly run:NumericCourse;
-  private get state(){return this.run.state;}
 
   constructor(host:PlaygroundHost,layout:HookPracticeLayout,program:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
     this.host=host;this.row=layout.course;this.map=map;
     this.run=new NumericCourse(host,room.origin,layout,program);
-    const o=room.origin;this.hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
-    this.course={name:room.title,hooks:this.hooks};
+    const o=room.origin,hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
+    this.course={name:room.title,hooks};
   }
 
   private tool(): GrappleTool {
@@ -149,9 +147,8 @@ class HookCourseController implements CourseController {
   /** The guest resets its continuation; the native presenter moves the body. */
   restart(): void {
     this.run.reset();
-    this.room.chip.status(this.row.words.ready);this.room.chip.time(0,this.best);
+    this.room.chip.status(this.row.words.ready);this.room.chip.time(0,this.run.best);
   }
-  private get best():number|null {return this.run.best;}
   private pad(index:number):HookCoursePad {
     const pad=this.row.pads[index];if(pad===undefined)throw new Error('Invalid practice checkpoint');return pad;
   }
@@ -162,17 +159,17 @@ class HookCourseController implements CourseController {
     const out=this.run.step(delta),index=out['pad']??-1,pad=index<0?null:this.pad(index);
     if(Object.keys(out).length>0) {
       if(out['finish']===1) {
-        const time=clock(this.state.elapsed);
+        const time=clock(this.run.state.elapsed);
         this.room.chip.status(fill(words.finish,{time}),'done');
-        this.host.toast(fill(words.done,{time,best:this.best===this.state.elapsed?words.best:''}));
-      } else if(this.state.phase===1) this.room.chip.status(pad!==null?fill(words.running,{pad:pad.label}):fill(words.between,{reached:out['reached']??0,goals:row.run.goals}),'go');
+        this.host.toast(fill(words.done,{time,best:this.run.best===this.run.state.elapsed?words.best:''}));
+      } else if(this.run.state.phase===1) this.room.chip.status(pad!==null?fill(words.running,{pad:pad.label}):fill(words.between,{reached:out['reached']??0,goals:row.run.goals}),'go');
       if(out['fell']===1) {
-        const checkpoint=this.pad(this.state.checkpoint);
+        const checkpoint=this.pad(this.run.state.checkpoint);
         this.run.place(out);this.host.toast(fill(words.fell,{pad:checkpoint.label}));
       }
     }
-    const elapsed=this.run.time(this.state.phase===1?performance.now()/1000:0);
-    this.room.chip.time(elapsed,this.best);
+    const elapsed=this.run.time(this.run.state.phase===1?performance.now()/1000:0);
+    this.room.chip.time(elapsed,this.run.best);
   }
 }
 
