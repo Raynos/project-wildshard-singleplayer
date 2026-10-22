@@ -1,5 +1,4 @@
-import type { PageKtx2Rows } from '@wildshard/game/shard/pageBoot';
-
 /** Separate payload loaded only by the lazy KTX2 binding. */
-declare const rows: PageKtx2Rows;
+type Gpu = Readonly<Record<'phone' | 'desktop', Readonly<Record<string, string>>>>;
+declare const rows: { readonly shard: Gpu; readonly grid: Gpu };
 export = rows;
