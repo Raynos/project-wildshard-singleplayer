@@ -6,6 +6,9 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext, type BagVerbs } from '../src/game/plugin/context';
 import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { legacyDouble } from './fake/FakeGame';
+import { MeshBasicMaterial } from 'three';
+import { withOwner } from '../src/engine/app/ownership';
+import { lendLooks, setLentParam, type LentLooks } from '../src/game/shardfile/lentLooks';
 import { enteredFullMap } from '../src/game/grid/mapFrame';
 import type { FullMap, MapPoi, MapQuest, MapZone } from '../src/engine/ui/Map';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
@@ -99,5 +102,20 @@ test('two copies of one product define and push one input context id at construc
     copy.deactivate(); home.activate(); expect(app.input.top).toBe('plot.kit');
     home.context.app.input.pop('plot.kit'); expect(app.input.top).not.toBe('plot.kit');
     home.deactivate(); home.activate(); expect(app.input.top).not.toBe('plot.kit');
+  } finally { page.dispose(); }
+});
+
+test('two copies lend the same look id: a caller owned by one copy writes its own, an unowned one the newest', () => {
+  const page = new Scope('looks'), home = page.child('home'), copy = page.child('copy'), writes: string[] = [];
+  const lend = (name: string): LentLooks => legacyDouble<LentLooks>({ materials: new Map([['pool', new MeshBasicMaterial()]]),
+    setParam: (_id: string, param: string) => { writes.push(`${name}.${param}`); } });
+  try {
+    lendLooks(home, lend('home')); lendLooks(copy, lend('copy'));
+    withOwner(home.child('entered'), () => { setLentParam('pool', 'level', 1); });
+    withOwner(copy, () => { setLentParam('pool', 'level', 1); });
+    setLentParam('pool', 'fade', 1);
+    expect(writes).toEqual(['home.level', 'copy.level', 'copy.fade']);
+    copy.dispose(); withOwner(home, () => { setLentParam('pool', 'level', 0); }); setLentParam('pool', 'fade', 0);
+    expect(writes.slice(-2)).toEqual(['home.level', 'home.fade']);
   } finally { page.dispose(); }
 });

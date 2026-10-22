@@ -2,12 +2,15 @@ import type { Material, Texture } from 'three';
 import type { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { enteredOwner } from '@wildshard/engine/app/ownership';
 
 /**
  * Lent looks (SHARD-PLATFORM W2 C2): a shard's runtime compiles its look.materials graphs (`runtimeLookMaterials`) and
  * lends them here for the scope that owns them; the world's modules read a compiled look, its params and its lent textures
  * by catalogue id instead of each keeping a setter of its own. Several lends may be live at once (a second compile pass,
- * an entered world): a look id resolves to the newest lend that compiled it. A read before the lend refuses, so a module
+ * an entered world): a look id resolves to the newest lend that compiled it, preferring one whose scope owns the caller
+ * (G580 T1: two live copies of one product lend the same ids, and each copy's systems run under its own scope). A read
+ * before the lend refuses, so a module
  * built before its look was compiled fails loudly; a param write before it is a no-op.
  *
  *   lendLooks(scope, await runtimeLookMaterials(ctx, source, true, ids));   // the runtime, before the world
@@ -28,7 +31,7 @@ export interface LentLooks {
   readonly toon?: ToonLook;
 }
 
-const lends: LentLooks[] = [];
+const lends: { readonly looks: LentLooks; readonly scope: Scope | null }[] = [];
 const sceneMaterials = new WeakMap<Scope, Map<string, ReadonlyMap<string, Material>>>();
 
 /** Internal terrain loan, isolated to its resident and product identity. Scene
@@ -48,14 +51,21 @@ export function sceneMaterial(scope: Scope, slug: string, id: string): Material 
 
 /** Lend a compile pass's looks until `scope` ends. */
 export function lendLooks(scope: { onDispose: (run: () => void) => unknown }, looks: LentLooks): void {
-  lends.push(looks);
-  scope.onDispose(() => { const at = lends.indexOf(looks); if (at !== -1) lends.splice(at, 1); });
+  const lend = { looks, scope: 'belongsTo' in scope && typeof scope.belongsTo === 'function' ? scope as Scope : null };
+  lends.push(lend);
+  scope.onDispose(() => { const at = lends.indexOf(lend); if (at !== -1) lends.splice(at, 1); });
 }
 
-/** the newest lend that compiled `id`, or null */
+/** the newest lend that compiled `id` within the caller's owner, else the newest that compiled it, or null */
 function holder(id: string): LentLooks | null {
-  for (let i = lends.length - 1; i >= 0; i--) { const lend = lends[i]; if (lend?.materials.has(id)) return lend; }
-  return null;
+  const owner = enteredOwner();
+  let newest: LentLooks | null = null;
+  for (let i = lends.length - 1; i >= 0; i--) {
+    const lend = lends[i]; if (lend === undefined || !lend.looks.materials.has(id)) continue;
+    if (owner === null || (lend.scope !== null && owner.belongsTo(lend.scope))) return lend.looks;
+    newest ??= lend.looks;
+  }
+  return newest;
 }
 
 /** The lend that compiled `id`; throws when none did (the runtime lends its looks before the world builds). */
