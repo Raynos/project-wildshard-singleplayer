@@ -12,11 +12,20 @@ import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
 
+// These immutable author fixtures are shared by five assertions. Compile each
+// project once; emittedSections still decodes a fresh map for every product.
+const projects = new Map<string, ReturnType<typeof readProjectAssets>>();
+const projectOf = (slug: string): ReturnType<typeof readProjectAssets> => {
+  let loaded = projects.get(slug);
+  if (loaded === undefined) { loaded = readProjectAssets(`src/shards/${slug}`); projects.set(slug, loaded); }
+  return loaded;
+};
+
 // progress/shard-platform/product-in-look-o272: the game binds the shard's loaded product into the look and roster loaders
 // it hands the engine; the engine's LevelSpec keeps plain zero-argument loaders.
 // Both platform look rows and custom rows come from the shard's emitted output.
 const emittedSections = async (slug: string): Promise<Map<string, unknown>> => {
-  const output = (await readProjectAssets(`src/shards/${slug}`)).output;
+  const output = (await projectOf(slug)).output;
   const sections = new Map<string, unknown>();
   for (const group of [output.custom, output.platform]) for (const row of group?.sections ?? []) {
     const bytes = group?.files.get(row.path);
@@ -37,7 +46,7 @@ test.each([
   ['driftwood-isle', 'custom/enemyPlacements', 'sim/enemy-placement.json'],
   ['pine-hollow', 'custom/cabinAmbience', 'world/ambience.json'],
 ])('%s %s retains the original named payload exactly', async (slug, section, name) => {
-  const loaded = await readProjectAssets(`src/shards/${slug}`);
+  const loaded = await projectOf(slug);
   const entry = loaded.output.custom?.sections.find(row => row.name === section);
   const named = loaded.output.namedFiles?.find(row => row.name === name);
   const sectionBytes = entry === undefined ? undefined : loaded.output.custom?.files.get(entry.path);
