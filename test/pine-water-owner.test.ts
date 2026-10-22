@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Scene, Texture } from 'three';
 import { bindPageWater } from '../src/game/shardfile/pageWater';
 import type { ShardContext } from '../src/game/plugin/context';
-import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
+import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { type: 'json' };
 import { waterTexture } from '@wildshard/engine/world/water/ripples';
 

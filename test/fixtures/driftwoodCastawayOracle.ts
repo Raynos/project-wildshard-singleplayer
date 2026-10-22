@@ -12,7 +12,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
-import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
+import { hasLentLook, lentLook } from '@wildshard/game/shardfile/lentLooks';
 import { driftwoodRows, driftwoodProduct } from './driftwoodLegacyRows';
 import { fixedDraw, fixedGeometryGroups, fixedGeometryReady, FIGURES } from './driftwoodLegacyAssets';
 

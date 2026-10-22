@@ -214,7 +214,7 @@ export class ShaderFamily<P extends string = string> {
  * (`SkyBackdropContext.renderer`), read here and never by the shard, which passes its whole context. `setParam` writes a
  * compiled graph's uniform by catalogue id after checking its declared shape (no program change); `setTexture` lends a
  * `role: 'lent'` texture param a texture the look made (a decoded sky key); the materials leave with `scope`. The whole
- * compile pass comes back, so a runtime can lend it (`@wildshard/sdk/looks/lentLooks`). Users: Pine Hollow's forest looks,
+ * compile pass comes back, so a runtime can lend it (game/shardfile/lentLooks). Users: Pine Hollow's forest looks,
  * Nalati's camp smoke and water.
  */
 export async function lookGraphMaterials(scope: Scope, backdrop: Pick<SkyBackdropContext, 'renderer'>, source: Shardfile, ids: readonly string[]): ReturnType<typeof runtimeLookMaterials> {

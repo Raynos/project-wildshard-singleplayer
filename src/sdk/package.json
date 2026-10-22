@@ -118,7 +118,6 @@
     "./projectMap": "./projectMap.ts",
     "./random": "./random.ts",
     "./looks/posedInstances": "./looks/posedInstances.ts",
-    "./looks/lentLooks": "./looks/lentLooks.ts",
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",

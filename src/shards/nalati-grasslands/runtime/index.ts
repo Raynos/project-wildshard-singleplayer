@@ -22,8 +22,6 @@ import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' }
 import { installQuestPageComposition } from '@wildshard/game/quest/pageComposition';
 import people from '../boot/peopleFrames.generated.json' with { type: 'json' };
 import { enteredAdventurePersistence } from '@wildshard/game/quest/chapterBindings';
-import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
-import { hasLentLook, lendLooks } from '@wildshard/sdk/looks/lentLooks';
 
 function host(ctx: ShardContext) {
   const shell = ctx.game.runtime;
@@ -38,9 +36,6 @@ export class NalatiPlugin extends ShardPlugin {
 
   override async world(ctx: ShardContext): Promise<void> {
     const { shell, world, step } = host(ctx);
-    const { game } = world;
-    // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
-    lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials).filter(id=>!hasLentLook(id))));
     await step('cabins', () => undefined);
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
     prepareNalatiSpecies(productSpeciesCatalogue(ctx.product, actorRows.species, await ctx.product.json('actors/species-looks.json'), NALATI_DEFINITIONS));
