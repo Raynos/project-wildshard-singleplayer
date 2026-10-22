@@ -5,7 +5,7 @@ import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/plugin/context';
 
-import { buildDriftwoodWorld, keepDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
+import { buildDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
 import { islandSystems } from './world/systems';
 import { installPageLife } from '@wildshard/game/population/pageLife';
 import { installDriftwoodAdventure } from '../quest/install';
@@ -67,7 +67,6 @@ export class DriftwoodPlugin extends ShardPlugin {
       lendEntryOwner(ctx.scope, resident, 'fixed-draws', 'driftwood.fixed-draws');
     }
     if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'collection', 'driftwood.collections');
-    keepDriftwoodWorld(shell, built);
     const { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
     Object.assign(shell.objects, { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
     islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)

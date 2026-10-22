@@ -174,9 +174,3 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   publishEntryOwner(scope, 'placed', 'cover', cover.placed);
   return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }
-
-const built = new WeakMap<object, DriftwoodWorld>();
-/** The plugin hands its world to the staged shell (keyed by the build's `ShardRuntime`). */
-export function keepDriftwoodWorld(runtime: object, world: DriftwoodWorld): void { built.set(runtime, world); }
-/** The adventure's read of the world its plugin built. */
-export function driftwoodWorld(runtime: object): DriftwoodWorld { const world = built.get(runtime); if (world === undefined) throw new Error('Driftwood world is not built'); return world; }
