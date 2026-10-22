@@ -88,3 +88,8 @@ it('admits immutable built schemas without shipping a registry and still checks 
   expect(() => validateRuntimeData(sections, undefined, [], undefined, new Map())).toThrow('no built schema');
   expect(() => validateRuntimeData(sections, undefined, [defineMirror('COUNT', 2)], { COUNT: 3 }, schemas)).toThrow('COUNT');
 });
+
+it('admits the compiled Driftwood source without copying retired runtime data', () => {
+  const { output } = fixture();
+  expect(writeRuntimeFiles(resolve('src/shards/driftwood-isle'), output, { check, clientPlan: true })).toEqual({ files: [], lines: 0 });
+});
