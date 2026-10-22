@@ -28,9 +28,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
   wrong at that spot.
 - **One checkout, one git index, one local `main`, up to ~10 agents.** Parallel Claude sessions (herdr panes) and
   their subagents all edit this tree on `main`, no worktrees. Other agents leave files **staged** in the shared
-  index (28 foreign files swept into one commit on 2026-09-22), so nothing you do may snapshot that index. Hooks
-  enforce it: `.claude/hooks/guard-git-add-all.sh` blocks `git add -A` / `.` / `-u`, `git add <tracked file>`,
-  `git commit -a` and any `git commit` without `-- <paths>`; `.claude/hooks/guard-bash-safety.sh` blocks a bare
+  index (28 foreign files swept into one commit on 2026-09-22), so nothing you do may snapshot that index. Commit
+  only with `scripts/commit.sh "msg" -- <paths>` (D9); `.claude/hooks/guard-bash-safety.sh` blocks a bare
   `git push` and tree-wide `restore .` / `checkout .` / bare `stash` / `reset --hard` / `clean -f`; `dcg` blocks
   `>` onto computed paths; `guard-rm.py` blocks `rm -r` of `/`, `~`, `~/projects`, system dirs and shallow paths.
   A plain `rm -rf <literal path>` is allowed (2026-10-02).
