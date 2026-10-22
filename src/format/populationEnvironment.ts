@@ -5,18 +5,6 @@ import { StreamWaterSchema } from './water';
 const finite = v.pipe(v.number(), v.finite());
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const point = v.strictObject({ x: finite, z: finite });
-const line = v.strictObject({ from: finite, to: finite, start: finite, offset: finite, span: v.pipe(finite, v.minValue(Number.MIN_VALUE)) });
-const profile = v.strictObject({ pieces: v.pipe(v.array(v.strictObject({ until: finite, line })), v.maxLength(64)), last: line });
-const value = v.strictObject({ profile, add: finite, level: v.exactOptional(key) });
-/** A projected centreline's segments: each start, its run, squared length and arc start. */
-export const StreamLinesSchema = v.pipe(v.array(v.strictObject({ ...point.entries, vx: finite, vz: finite, l2: v.pipe(finite, v.minValue(0)), arc: finite, length: finite })), v.minLength(1), v.maxLength(1024));
-/** A projected water corridor selects an ordered surface band along its centreline (a generator's creek law,
- * `streamSurface`). Profiles retain their original arithmetic order; ties retain the first segment. */
-export const StreamCorridorSchema = v.strictObject({ halfWidth: v.pipe(finite, v.minValue(0)),
-  lines: StreamLinesSchema,
-  bands: v.pipe(v.array(v.strictObject({ until: finite, inclusive: v.boolean(), values: v.pipe(v.array(value), v.minLength(1), v.maxLength(8)) })), v.maxLength(64)),
-  last: v.pipe(v.array(value), v.minLength(1), v.maxLength(8)),
-});
 /** Native habitat observations are immutable data; the host owns every query. */
 export const PopulationEnvironmentSchema = v.strictObject({
   id: key, seed: finite, chunkHalf: v.pipe(finite, v.minValue(1)), normalEpsilon: v.pipe(finite, v.minValue(.001), v.maxValue(4)),
@@ -28,24 +16,6 @@ export const PopulationEnvironmentSchema = v.strictObject({
   stream: v.nullable(StreamWaterSchema),
 });
 export type PopulationEnvironmentRows = v.InferOutput<typeof PopulationEnvironmentSchema>;
-type Stream = v.InferOutput<typeof StreamCorridorSchema>;
-/** Evaluate the original ordered piecewise profile without changing operation order. */
-export function streamProfile(source: Stream['last'][number]['profile'], along: number): number {
-  const row = source.pieces.find(piece => along <= piece.until)?.line ?? source.last;
-  return row.from+(row.to-row.from)*((along-row.start-row.offset)/row.span);
-}
-/** A corridor's surface along its arc, shared by page and native observations. */
-export function streamSurface(source: Stream, along: number, levels: Readonly<Record<string, number>> = {}): number {
-  const values = source.bands.find(row => row.inclusive ? along <= row.until : along < row.until)?.values ?? source.last;
-  let result = -Infinity;
-  for (const entry of values) {
-    const live = entry.level === undefined ? undefined : levels[entry.level];
-    if (live !== undefined && !Number.isFinite(live)) throw new Error('Invalid live water level');
-    result = Math.max(result, (live ?? streamProfile(entry.profile, along))+entry.add);
-  }
-  return result;
-}
-
 const zone = v.strictObject({ ...point.entries, r: finite, h: finite });
 /** Native field geography uses admitted rasters and uniform cross-section rows,
  * never content-owned terrain or grass query functions. */

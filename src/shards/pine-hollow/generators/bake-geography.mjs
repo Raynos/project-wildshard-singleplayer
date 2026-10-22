@@ -6,11 +6,27 @@ import { forestDensity, oldGrowthMask, speciesMix } from './forestGeography.ts';
 import { creekSpan, inBeaverPool } from './geography.ts';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
-import { streamSurface } from '@wildshard/format/populationEnvironment';
 import { Noise2D } from './floorNoise.ts';
 
 const manifest = JSON.parse(readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'));
 const speciesIds = manifest.forest.speciesTraits.map(row => row.id);
+
+/** The creek's ordered piecewise profile at `along` (its first piece that reaches there, else the last). */
+function streamProfile(source, along) {
+  const row = source.pieces.find(piece => along <= piece.until)?.line ?? source.last;
+  return row.from + (row.to - row.from) * ((along - row.start - row.offset) / row.span);
+}
+/** The creek's surface along its arc: the highest of its band's values, a value naming a live `level` reading that one. */
+function streamSurface(source, along, levels = {}) {
+  const values = source.bands.find(row => row.inclusive ? along <= row.until : along < row.until)?.values ?? source.last;
+  let result = -Infinity;
+  for (const entry of values) {
+    const live = entry.level === undefined ? undefined : levels[entry.level];
+    if (live !== undefined && !Number.isFinite(live)) throw new Error('Invalid live water level');
+    result = Math.max(result, (live ?? streamProfile(entry.profile, along)) + entry.add);
+  }
+  return result;
+}
 
 /** Sample the exact jittered candidate lattice, retaining every double. */
 export function pineGeography() {
