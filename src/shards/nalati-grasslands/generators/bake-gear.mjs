@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 import { parse } from 'valibot';
 import { BowVariantSchema, BowSourceMultipliersSchema } from '@wildshard/format/bowVariantRows';
-import { sourceMultiplier } from '@wildshard/engine/combat/effects/types';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
@@ -84,8 +83,18 @@ try {
     if(tag.endsWith('.*'))throw new Error('Bow damage bake requires explicit creature identities');
     return tag.slice('creature.'.length);
   }));
-  /** @param {string} kind */
-  const scales=kind=>[false,true].map(sun=>sourceMultiplier(multipliers,{weaponTags:[variant.id],sourceTags:sun?[variant.sourceTag]:[],targetTags:kind===''?[]:[`creature.${kind}`]}));
+  /** @param {readonly string[]} tags @param {readonly string[] | undefined} patterns */
+  const matches=(tags,patterns)=>patterns===undefined||patterns.some(pattern=>pattern.endsWith('.*')
+    ?tags.some(tag=>tag.startsWith(pattern.slice(0,-1))):tags.includes(pattern));
+  /** Original source law, evaluated only while baking these damage columns.
+   * @param {string} kind */
+  const scales=kind=>[false,true].map(sun=>{
+    let scale=1;
+    for(const row of multipliers)if(matches(sun?[variant.sourceTag]:[],row.when.sourceTags)
+      &&matches(kind===''?[]:[`creature.${kind}`],row.when.targetTags)
+      &&matches([variant.id],row.when.weaponTags)&&matches([],row.when.targetState))scale*=row.mul;
+    return scale;
+  });
   variant.damageScale={base:scales(''),kinds:Object.fromEntries([...kinds].map(kind=>[kind,scales(kind)]))};
   variant.trail=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'));
   const admittedVariant=parse(BowVariantSchema,variant);
