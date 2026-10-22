@@ -1,6 +1,6 @@
 /** Grid-only XZ containment. Admit each draw once; recheck its bounds after a pose or geometry change.
  * Only an edge-crossing draw gains a shader patch. Platform road, floor and sky live outside these roots. */
-import { BatchedMesh, Bone, Box3, BufferAttribute, InstancedMesh, Line, Color, Material, Matrix4, Mesh, Points, RawShaderMaterial, ShaderMaterial, SkinnedMesh, Sprite, Vector3, Vector4, type BufferGeometry, type Camera, Object3D } from 'three';
+import { BatchedMesh, Bone, Box3, BufferAttribute, InstancedMesh, Line, Color, Material, Matrix4, Mesh, Points, RawShaderMaterial, ShaderMaterial, SkinnedMesh, Sprite, Vector3, Vector4, BufferGeometry, Sphere, type Camera, Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { PATCH_ORDER, copyShaderPatches, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
@@ -59,6 +59,24 @@ void main() {
 }`;
   }, { key: prior => `${prior}|grid-cell-clip`, scope });
   material.needsUpdate = true;
+}
+
+/** A conservative local box over an instanced draw's copies: each copy's geometry sphere, moved and scaled by its matrix. */
+function copySpheres(sphere: Sphere, m: ArrayLike<number>, count: number, target: Box3): Box3 {
+  target.makeEmpty();
+  if (sphere.radius < 0) return target;
+  const cx = sphere.center.x, cy = sphere.center.y, cz = sphere.center.z, r = sphere.radius;
+  let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+  for (let i = 0, o = 0; i < count; i++, o += 16) {
+    const a0 = m[o] ?? 0, a1 = m[o + 1] ?? 0, a2 = m[o + 2] ?? 0, a4 = m[o + 4] ?? 0, a5 = m[o + 5] ?? 0, a6 = m[o + 6] ?? 0;
+    const a8 = m[o + 8] ?? 0, a9 = m[o + 9] ?? 0, a10 = m[o + 10] ?? 0;
+    const k = r * Math.sqrt(Math.max(a0 * a0 + a1 * a1 + a2 * a2, a4 * a4 + a5 * a5 + a6 * a6, a8 * a8 + a9 * a9 + a10 * a10));
+    const x = a0 * cx + a4 * cy + a8 * cz + (m[o + 12] ?? 0), y = a1 * cx + a5 * cy + a9 * cz + (m[o + 13] ?? 0), z = a2 * cx + a6 * cy + a10 * cz + (m[o + 14] ?? 0);
+    minX = Math.min(minX, x - k); minY = Math.min(minY, y - k); minZ = Math.min(minZ, z - k);
+    maxX = Math.max(maxX, x + k); maxY = Math.max(maxY, y + k); maxZ = Math.max(maxZ, z + k);
+  }
+  target.min.set(minX, minY, minZ); target.max.set(maxX, maxY, maxZ);
+  return target;
 }
 
 /** Exact affine XZ projection of an AABB. Height contributes through rotated
@@ -133,6 +151,10 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     drawVariants.delete(node);
     if (clipped.delete(node)) meshes--;
   };
+  const within = (bounds: Box3): boolean => {
+    const rounding = Number.EPSILON * Math.max(half, Math.abs(origin.x), Math.abs(origin.z)) * 32;
+    return bounds.min.x >= cell.value.x - rounding && bounds.max.x <= cell.value.z + rounding && bounds.min.z >= cell.value.y - rounding && bounds.max.z <= cell.value.w + rounding;
+  };
   const check = (node: Draw, submitted = false, view?: Camera): void => {
     checked++; if (!submitted) node.updateWorldMatrix(true, false);
     const held = drawVariants.get(node);
@@ -165,14 +187,22 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     } else if (node instanceof InstancedMesh && node.count === 0) {
       return;
     } else if (node instanceof InstancedMesh || node instanceof BatchedMesh) {
-      const walked = node instanceof InstancedMesh ? instanceWalks.get(node) : undefined;
-      if (node.boundingBox === null || !(node instanceof InstancedMesh) || walked === undefined || walked.geometry !== node.geometry
-        || walked.version !== node.instanceMatrix.version || walked.count !== node.count) {
-        node.computeBoundingBox();
-        if (node instanceof InstancedMesh) instanceWalks.set(node, { geometry: node.geometry, version: node.instanceMatrix.version, count: node.count });
+      // Most copies lie well inside the cell: their spheres, moved by their matrices, settle it without the exact walk over
+      // eight corners of every copy (25 ms of Pine's entry frames at 4x CPU, where its copies had just moved).
+      const shape: unknown = node.geometry;
+      if (shape instanceof BufferGeometry && shape.boundingSphere === null) shape.computeBoundingSphere();
+      const sphere: unknown = shape instanceof BufferGeometry ? shape.boundingSphere : null;
+      if (!(node instanceof InstancedMesh) || !(sphere instanceof Sphere)
+        || !within(projectBounds(copySpheres(sphere, node.instanceMatrix.array, node.count, alternate), node.matrixWorld, box))) {
+        const walked = node instanceof InstancedMesh ? instanceWalks.get(node) : undefined;
+        if (node.boundingBox === null || !(node instanceof InstancedMesh) || walked === undefined || walked.geometry !== node.geometry
+          || walked.version !== node.instanceMatrix.version || walked.count !== node.count) {
+          node.computeBoundingBox();
+          if (node instanceof InstancedMesh) instanceWalks.set(node, { geometry: node.geometry, version: node.instanceMatrix.version, count: node.count });
+        }
+        if (node.boundingBox === null) throw new Error('Cell draw has no instance bounds');
+        projectBounds(node.boundingBox, node.matrixWorld, box);
       }
-      if (node.boundingBox === null) throw new Error('Cell draw has no instance bounds');
-      projectBounds(node.boundingBox, node.matrixWorld, box);
     } else {
       if (node.geometry.boundingBox === null) for (const _step of geometryBoundsSteps(node.geometry, 'box')) { /* exact admission scan */ }
       if (node.geometry.boundingBox === null) throw new Error('Cell draw has no geometry bounds');
@@ -180,8 +210,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     }
     if (!Number.isFinite(box.min.x) || !Number.isFinite(box.min.y) || !Number.isFinite(box.min.z)
       || !Number.isFinite(box.max.x) || !Number.isFinite(box.max.y) || !Number.isFinite(box.max.z)) throw new Error('Cell draw has nonfinite bounds');
-    const rounding = Number.EPSILON * Math.max(half, Math.abs(origin.x), Math.abs(origin.z)) * 32;
-    if (box.min.x >= cell.value.x - rounding && box.max.x <= cell.value.z + rounding && box.min.z >= cell.value.y - rounding && box.max.z <= cell.value.w + rounding) {
+    if (within(box)) {
       const visible = refused.get(node);
       if (visible !== undefined) { node.visible = visible; refused.delete(node); }
       if (clipped.has(node)) unclip(node);
