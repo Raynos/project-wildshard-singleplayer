@@ -10,7 +10,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { QuestState } from '../src/engine/quest/core';
 import { Flags } from '../src/engine/world/interact/flags';
-import { beforeAll, expect, it } from 'vitest';
+import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { parseShardfile } from '../src/format/shardSchema';
 import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { HeadlessSimulation } from '../src/sdk/headless';
@@ -34,6 +34,11 @@ const cases = [
   ['sunscar-dunes', signal, false], ['far-reach', sky, false],
 ] as const;
 
+// Each simulation owns a separate native worker. Overlap two independent
+// starts/tick tapes without multiplying the file's peak native residency by five.
+vi.setConfig({ maxConcurrency: 2 });
+afterAll(() => { vi.resetConfig(); });
+
 const trustedEntries: Partial<Record<string, string>> = {
   'pine-hollow': 'test/fixtures/pine-headless.ts',
 };
@@ -46,7 +51,7 @@ beforeAll(() => {
 }, 120_000);
 
 // Compatibility means a living headless shard, never a historical fingerprint or replay suffix.
-for (const [slug, _input, trusted] of cases) it(`${slug}: boots and advances a living headless simulation`, async () => {
+for (const [slug, _input, trusted] of cases) it.concurrent(`${slug}: boots and advances a living headless simulation`, async () => {
   const product = await loadHeadlessProduct(`out/${slug}`), source = product.shardfile;
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
