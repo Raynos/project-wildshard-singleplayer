@@ -1,0 +1,91 @@
+{
+  "date_utc": "2026-10-22",
+  "status": "retained_nonselected_after_independent_review",
+  "method": "built-in image_gen precise-object-edit; exactly one call; no CLI/API fallback",
+  "edit_target": "originals/iguanaExplorerGen.png",
+  "identity_reference": "originals/bloomthroat-iguana-hero.png",
+  "supporting_inferred_reference": "originals/iguanaWorldGen.png",
+  "prompt_file": "prompt.txt",
+  "generation_source_path": "generated_images/exec-70ef0c33-a9d7-4b21-98c3-98430b16645c.png (cloud workspace-relative, local only)",
+  "candidate_file": "iguana-explorer-tail-candidate-01.png",
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "originals_viewed_before_edit": true,
+  "candidate_viewed_after_edit": true,
+  "authority_note": "Original approved hero remains authoritative. Rear tail side is inferred from AI sheet continuity, not established by hero. No canonical completion or selection claimed.",
+  "pre_edit_observation": "Explorer 04 rear tail curls screen-right; Explorer 09 elevated rear tail curls screen-left. World 04 and 09 rear tails curl screen-right.",
+  "post_edit_observation": "Candidate 09 tail now curls screen-right from pelvis with one broad gold/teal leaf end. The body and feet in 09 appear shifted/recomposed as well; possible whole-body mirroring or camera drift requires independent assessment. Other eight preserve broad scene and creature composition but are not pixel-identical.",
+  "preservation": "Original files and prior candidates untouched. Three source copies saved losslessly. Candidate retained regardless of reviewer verdict. No World generation, runtime/model/Site changes, Git mutations, builds, or selection.",
+  "files": {
+    "originals/bloomthroat-iguana-hero.png": {
+      "sha256": "11d3253bc8c57660e7f3a034957376af91638b9ff7b9673da861b78fb51dd9d4",
+      "bytes": 1768041
+    },
+    "originals/iguanaExplorerGen.png": {
+      "sha256": "91745cf6c99876dca8d7091fa50df1c843edc78ac90701e6a05b33a37abf6426",
+      "bytes": 2131831
+    },
+    "originals/iguanaWorldGen.png": {
+      "sha256": "16efec40da515672a1755ac942aebe1d35aab57ecfc3e161425400f70953c695",
+      "bytes": 2541089
+    },
+    "iguana-explorer-tail-candidate-01.png": {
+      "sha256": "de8cb9912c72dbf13b06406c530e25f62386956168d34b8a38adb5dffc7a1b9e",
+      "bytes": 2104354
+    },
+    "prompt.txt": {
+      "sha256": "b313f96e79db669c1c1d0ba2a4b02ec74deecd4c0f7c27bc0994cdb7e6f84d99",
+      "bytes": 2153
+    }
+  },
+  "panel_pixel_comparison": [
+    {
+      "panel": 1,
+      "mean_absolute_rgb_difference_0_255": 4.042586453975653,
+      "pixel_identical": false
+    },
+    {
+      "panel": 2,
+      "mean_absolute_rgb_difference_0_255": 4.443438106657531,
+      "pixel_identical": false
+    },
+    {
+      "panel": 3,
+      "mean_absolute_rgb_difference_0_255": 4.320158418719569,
+      "pixel_identical": false
+    },
+    {
+      "panel": 4,
+      "mean_absolute_rgb_difference_0_255": 4.162112535351972,
+      "pixel_identical": false
+    },
+    {
+      "panel": 5,
+      "mean_absolute_rgb_difference_0_255": 4.563792688792689,
+      "pixel_identical": false
+    },
+    {
+      "panel": 6,
+      "mean_absolute_rgb_difference_0_255": 4.275651621106166,
+      "pixel_identical": false
+    },
+    {
+      "panel": 7,
+      "mean_absolute_rgb_difference_0_255": 4.402425200832257,
+      "pixel_identical": false
+    },
+    {
+      "panel": 8,
+      "mean_absolute_rgb_difference_0_255": 4.399363135385499,
+      "pixel_identical": false
+    },
+    {
+      "panel": 9,
+      "mean_absolute_rgb_difference_0_255": 44.090446531341094,
+      "pixel_identical": false
+    }
+  ],
+  "storage_note": "Raw PNG and unchanged input copies retained locally. This text checkpoint does not claim binary protection."
+}
