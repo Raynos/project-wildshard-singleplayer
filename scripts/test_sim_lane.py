@@ -143,6 +143,41 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertEqual((self.root / 'attempts').read_text(), '1')
         self.assertEqual(sum(row[1] == 'bootstatus' for row in self.calls()), 2)
 
+    def test_full_lane_fails_and_does_not_boot_or_handover(self):
+        started = time.monotonic()
+        result = self.lane(SIM_LANES='0', SIM_LANE_WAIT_SECONDS='1')
+        self.assertEqual(result.returncode, 75, result.stderr)
+        self.assertIn('admission timed out after 1s', result.stderr)
+        self.assertIn('simulators:', result.stderr)
+        self.assertLess(time.monotonic() - started, 5)
+        self.assert_not_handed_over()
+        self.assertFalse(any(row[1] == 'boot' for row in self.calls()))
+
+    def test_legacy_live_owner_wait_is_bounded_without_removing_lease(self):
+        lane = self.root / 'lane'
+        lane.mkdir()
+        lease = lane / f'{UDID}.lease'
+        original = f'{int(time.time()) + 100} {os.getpid()}\n'
+        lease.write_text(original)
+        result = self.lane(SIM_LANE_WAIT_SECONDS='1')
+        self.assertEqual(result.returncode, 75, result.stderr)
+        self.assertIn(str(os.getpid()), result.stderr)
+        self.assertEqual(lease.read_text(), original)
+        self.assertFalse((self.root / 'child-ran').exists())
+
+    def test_lock_failure_names_holders_and_uses_five_minute_cap(self):
+        self.command('lockf', "import sys\nprint('lock-args '+repr(sys.argv[1:]),file=sys.stderr)\nsys.exit(75)\n")
+        result = self.lane()
+        self.assertEqual(result.returncode, 75, result.stderr)
+        self.assertIn("'-t', '300'", result.stderr)
+        self.assertIn('lock/lease holders:', result.stderr)
+        self.assert_not_handed_over()
+
+    def test_wait_limit_cannot_be_extended(self):
+        result = self.lane(SIM_LANE_WAIT_SECONDS='301')
+        self.assertEqual(result.returncode, 64, result.stderr)
+        self.assert_not_handed_over()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -36,6 +36,9 @@ set -uo pipefail
 LOCK_JSON="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.github/lock.json"
 if [ -z "${BROWSER_LANES:-}" ] && grep -q '"locked": true' "$LOCK_JSON" 2>/dev/null; then BROWSER_LANES=8; fi
 LANES="${BROWSER_LANES:-4}"
+WAIT_SECONDS="${BROWSER_LANE_WAIT_SECONDS:-300}"
+case "$WAIT_SECONDS" in ''|*[!0-9]*) echo "browser-lane: wait must be 1..300 seconds" >&2; exit 64;; esac
+[ "$WAIT_SECONDS" -gt 0 ] && [ "$WAIT_SECONDS" -le 300 ] || { echo "browser-lane: wait must be 1..300 seconds" >&2; exit 64; }
 DIR="$HOME/.browser-lane"
 mkdir -p "$DIR"
 MAX_AGE_MIN="${BROWSER_MAX_AGE_MIN:-90}"
@@ -168,6 +171,7 @@ reap() {
 
 status() {
   echo "lane: $(used) / $LANES used ($(held_slots) lane runs, $(outside_lane) browsers outside the lane)"
+  ps -Ao pid=,etime=,command= | awk '/browser-lane[.]sh _slot [0-9]+ / && !/awk/ { print "  holder " $0 }'
   while read -r pid ppid; do
     [ -z "$pid" ] && continue
     local tag="outside"; in_lane "$pid" && tag="lane"
@@ -177,12 +181,15 @@ status() {
 }
 
 wait_room() {
-  local said=0
+  local said=0 deadline=$((SECONDS + WAIT_SECONDS)) remaining
   while [ "$(used)" -ge "$LANES" ]; do
     reap >/dev/null
     [ "$(used)" -lt "$LANES" ] && break
     [ $said -eq 0 ] && { echo "browser-lane: all $LANES slots in use, waiting … (scripts/browser-lane.sh status)" >&2; said=1; }
-    sleep 10
+    remaining=$((deadline - SECONDS))
+    [ "$remaining" -gt 0 ] || { echo "browser-lane: admission timed out after ${WAIT_SECONDS}s" >&2; status >&2; return 75; }
+    [ "$remaining" -lt 10 ] || remaining=10
+    sleep "$remaining"
   done
 }
 
@@ -191,7 +198,7 @@ case "${1:-}" in
   capacity) n=$(used); free=$((LANES - n)); [ "$free" -lt 0 ] && free=0; printf '%s %s\n' "$LANES" "$free"; exit 0;;
   reap) reap "${2:-}"; exit 0;;
   free) [ "$(used)" -lt "$LANES" ]; exit $?;;
-  wait) wait_room; exit 0;;
+  wait) wait_room; exit $?;;
   ''|-h|--help) sed -n '2,30p' "$SELF"; exit 0;;
   _slot)
     # the slot's shell, run under lockf holding slot N: re-check the cap (a browser may have opened outside the lane
@@ -228,7 +235,9 @@ if [ "${BROWSER_LANE_PRIORITY:-0}" = 1 ] && node --input-type=module -e \
   slots="gate $slots"
 fi
 said=0
+deadline=$((SECONDS + WAIT_SECONDS))
 while :; do
+  [ "$SECONDS" -lt "$deadline" ] || { echo "browser-lane: admission timed out after ${WAIT_SECONDS}s" >&2; status >&2; exit 75; }
   reap >/dev/null
   for i in $slots; do
     marker="$DIR/got.$$.$i"; rm -f "$marker"
@@ -239,5 +248,9 @@ while :; do
   [ $said -eq 0 ] && { echo "browser-lane: all $LANES slots in use, waiting … (scripts/browser-lane.sh status)" >&2; said=1; }
   # the serialized push gate polls every second (BROWSER_LANE_PRIORITY=1): with ten lanes re-taking freed slots on a 10 s poll,
   # the gate's WebKit smoke starved for minutes while it held the heavy lane every suite waits on
-  if [ "${BROWSER_LANE_PRIORITY:-0}" = 1 ]; then sleep 1; else sleep 10; fi
+  remaining=$((deadline - SECONDS))
+  [ "$remaining" -gt 0 ] || continue
+  interval=10; [ "${BROWSER_LANE_PRIORITY:-0}" = 1 ] && interval=1
+  [ "$remaining" -lt "$interval" ] || remaining="$interval"
+  sleep "$remaining"
 done

@@ -26,6 +26,10 @@
 set -uo pipefail
 
 LANES="${SIM_LANES:-1}"
+WAIT_SECONDS="${SIM_LANE_WAIT_SECONDS:-300}"
+case "$WAIT_SECONDS" in ''|*[!0-9]*) echo "sim-lane: wait must be 1..300 seconds" >&2; exit 64;; esac
+[ "$WAIT_SECONDS" -gt 0 ] && [ "$WAIT_SECONDS" -le 300 ] || { echo "sim-lane: wait must be 1..300 seconds" >&2; exit 64; }
+WAIT_DEADLINE=$((SECONDS + WAIT_SECONDS))
 IDLE_MIN="${SIM_IDLE_MIN:-30}"
 DIR="${SIM_LANE_DIR:-$HOME/.sim-lane}"
 mkdir -p "$DIR"
@@ -93,18 +97,22 @@ resolve() {  # name or UDID of one of $DEVICES → UDID (only the default is cre
 # admission are atomic machine-wide; the device lock lasts through command completion and shutdown (SF0d).
 locked_resolve() (
   exec 9>"$DIR/admission.lock"
-  lockf -s 9 || exit "$?"
+  remaining=$(wait_remaining) || exit "$?"
+  lockf -s -t "$remaining" 9 || { wait_failed; exit 75; }
   resolve "$1"
 )
 lock_device() {
   exec 8>"$DIR/$1.drive.lock"
-  lockf -s 8 || return "$?"
+  local remaining
+  remaining=$(wait_remaining) || return "$?"
+  lockf -s -t "$remaining" 8 || { wait_failed; return 75; }
   # A wrapper started before SF0d has no drive lock. Let its live owner finish before adopting the device.
   local f exp pid
   f="$(lease_file "$1")"
   while [ -f "$f" ]; do
     read -r exp pid < "$f" || break
     [ "${pid:-0}" != "0" ] && [ "$pid" != "$$" ] && kill -0 "$pid" 2>/dev/null || break
+    wait_remaining >/dev/null || return "$?"
     sleep 1
   done
 }
@@ -175,24 +183,26 @@ status() {
 }
 
 wait_room() {  # $1 = a UDID that may already be booted (it doesn't need a new slot)
-  local said=0
+  local said=0 remaining
   while :; do
     [ -n "${1:-}" ] && is_booted "$1" && return 0
     [ "$(booted_count)" -lt "$LANES" ] && return 0
     bash "$SELF" reap 8>&- 9>&- >/dev/null
     [ "$(booted_count)" -lt "$LANES" ] && return 0
     [ $said -eq 0 ] && { echo "sim-lane: $LANES simulator(s) already booted, waiting … (scripts/sim-lane.sh status)" >&2; said=1; }
-    sleep 15
+    remaining=$(wait_remaining) || return "$?"
+    [ "$remaining" -lt 15 ] || remaining=15
+    sleep "$remaining"
   done
 }
 
 boot() {
   local started=0 rc
   if ! is_booted "$1"; then
-    xcrun simctl boot "$1" >/dev/null || return "$?"
+    startup xcrun simctl boot "$1" >/dev/null || return "$?"
     started=1
   fi
-  xcrun simctl bootstatus "$1" -b >/dev/null
+  startup xcrun simctl bootstatus "$1" -b >/dev/null
   rc=$?
   if [ "$rc" -eq 0 ]; then
     python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1"
@@ -204,16 +214,46 @@ boot() {
 }
 
 boot_in_lane() {
-  local rc
+  local rc remaining
   while :; do
-    wait_room "$1"
+    wait_room "$1" || return "$?"
     exec 9>"$DIR/admission.lock"
-    lockf -s 9 || return "$?"
+    remaining=$(wait_remaining) || { exec 9>&-; return 75; }
+    lockf -s -t "$remaining" 9 || { exec 9>&-; wait_failed; return 75; }
     if is_booted "$1" || [ "$(booted_count)" -lt "$LANES" ]; then
       boot "$1"; rc=$?; exec 9>&-; return "$rc"
     fi
     exec 9>&- # someone admitted another device between the capacity check and the lock
   done
+}
+
+wait_failed() {
+  echo "sim-lane: admission timed out after ${WAIT_SECONDS}s; lock/lease holders:" >&2
+  status >&2
+  for f in "$DIR"/*.lease; do [ -f "$f" ] && { printf '  %s ' "$f" >&2; cat "$f" >&2; }; done
+  ps -Ao pid=,etime=,command= | awk '/sim-lane[.]sh (run|lease|release)/ && !/awk/ { print "  holder " $0 }' >&2
+  return 75
+}
+
+wait_remaining() {
+  local remaining=$((WAIT_DEADLINE - SECONDS))
+  [ "$remaining" -gt 0 ] || { wait_failed; return 75; }
+  echo "$remaining"
+}
+
+startup() {
+  local remaining rc
+  remaining=$(wait_remaining) || return "$?"
+  python3 -c 'import subprocess,sys
+try:
+    result=subprocess.run(sys.argv[2:],timeout=int(sys.argv[1]),check=False)
+    sys.exit(result.returncode if result.returncode >= 0 else 128-result.returncode)
+except subprocess.TimeoutExpired:
+    sys.exit(75)
+' "$remaining" "$@"
+  rc=$?
+  [ "$rc" -ne 75 ] || wait_failed
+  return "$rc"
 }
 
 case "${1:-}" in
@@ -226,7 +266,7 @@ case "${1:-}" in
     lock_device "$udid" || exit "$?"
     if is_booted "$udid" && lease_valid "$udid"; then
       # Renewing a live manual lease must not navigate its Safari page away.
-      xcrun simctl bootstatus "$udid" -b >/dev/null || exit "$?"
+      startup xcrun simctl bootstatus "$udid" -b >/dev/null || exit "$?"
     else
       boot_in_lane "$udid" || exit "$?"
     fi
