@@ -7,8 +7,6 @@
  *   const m = new Modes(sr, [[180, 0.08, 1], [420, 0.05, 0.6]]); m.strike(1); y = m.run();      // modal resonator bank
  *   const g = new Glottis(sr, rand); g.run(f0, tenseness);   // a band-limited glottal pulse train with jitter (vocals)
  *   normalize(buf, 0.9); fade(buf, sr, 0.002, 0.03)
- *
- * Analysis helpers (the tests and the in-browser checks use them): `bandEnergy`, `centroid`, `rt60`.
  */
 
 export type FilterType = 'lowpass' | 'highpass' | 'bandpass' | 'peaking' | 'notch';
@@ -164,27 +162,3 @@ export function saturate(buf: Float32Array, drive = 1.5): Float32Array {
 }
 /** attack-then-exponential-decay envelope value at t (s) */
 export const ad = (t: number, attack: number, decay: number): number => (t < 0 ? 0 : t < attack ? t / attack : Math.exp(-(t - attack) / decay));
-
-// ─────────────── analysis (tests, in-browser checks) ───────────────
-/** energy (mean square) of `buf` inside [lo, hi] Hz, by a 4th-order band filter */
-export function bandEnergy(buf: Float32Array, sr: number, lo: number, hi: number): number {
-  const c = Math.sqrt(lo * hi), q = c / Math.max(1, hi - lo);
-  const f1 = new Biquad('bandpass', c, q, sr), f2 = new Biquad('bandpass', c, q, sr);
-  let e = 0; for (let i = 0; i < buf.length; i++) { const y = f2.run(f1.run(buf[i] ?? 0)); e += y * y; }
-  return e / buf.length;
-}
-/** spectral centroid (Hz) from octave-band energies 63 Hz … 16 kHz */
-export function centroid(buf: Float32Array, sr: number): number {
-  let num = 0, den = 0;
-  for (let f = 63; f <= Math.min(16000, sr * 0.45); f *= 2) { const e = bandEnergy(buf, sr, f / 1.414, f * 1.414); num += e * f; den += e; }
-  return den > 0 ? num / den : 0;
-}
-/** RT60 (s) from Schroeder backward integration, fitted on the −5 … −25 dB range (T20 × 3) */
-export function rt60(ir: Float32Array, sr: number): number {
-  const n = ir.length, edc = new Float64Array(n);
-  let acc = 0; for (let i = n - 1; i >= 0; i--) { const v = ir[i] ?? 0; acc += v * v; edc[i] = acc; }
-  const e0 = edc[0] ?? 1; let i5 = -1, i25 = -1;
-  for (let i = 0; i < n; i++) { const db = 10 * Math.log10(Math.max(1e-30, (edc[i] ?? 0) / e0)); if (i5 < 0 && db <= -5) i5 = i; if (db <= -25) { i25 = i; break; } }
-  if (i5 < 0 || i25 < 0) return (n / sr);
-  return ((i25 - i5) / sr) * 3;
-}
