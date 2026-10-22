@@ -11786,3 +11786,11 @@ ignite calls the same CellField.activate. Player impulses use the existing
 SimHost.impulsePlayer or Player.impulse law; embedded hosts cannot claim owned
 player authority. All loans preflight before effects and retirement fences
 each subsequent effect. This API creates no registry, queue, clock or save.
+
+ABI-v2 deferred query ops 10 and 11 add nearest actors from native ordered
+roster capabilities and point-to-point WORLD sight. queryBatchV2 borrows real
+actors and the existing physics owner; strict horizontal/live/source-order
+selection and lineOfSight retain their original laws. QueryRingV2 saves stable
+ids, batches afterBodies and delivers at the next eligible entry with fresh
+observed handles. No contact/urgent reach owner, simulation clock, body or RNG
+is created or replaced; roster codes are stable admitted declarations.

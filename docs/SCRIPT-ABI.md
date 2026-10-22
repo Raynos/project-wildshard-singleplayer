@@ -663,10 +663,10 @@ binding table even when the guest writes those positions.
 
 ### Query operation and reply records
 
-Query ids 4 and 5 retain the v1 list ids; 8 and 9 are new v2 query ids.
+Query ids 4 and 5 retain the v1 list ids; 8 through 11 are v2 query ids.
 Flags are zero and a request's atTick equals its issuing entry tick. A
 nonzero target is an observed body to exclude, resolved to its stable identity
-before queuing. Navigation requests use target zero. The a..g fields are:
+before queuing. Navigation, nearest-roster and point-sight requests use target zero. The a..g fields are:
 
 | Op | Request | Successful reply |
 |---|---|---|
@@ -674,6 +674,19 @@ before queuing. Navigation requests use target zero. The a..g fields are:
 | 5 path | fromX,fromY,fromZ,toX,toY,toZ,radius; radius >= 0 | inline pointCount,0,0,0,0; data is flat xyz triples |
 | 8 ray | origin xyz, unit direction xyz, maxDistance >= 0 | inline hit (0/1), point xyz, distance; hit data is normal xyz then body handle (0 absent); a miss is all zero with no data |
 | 9 overlap | center xyz,radius > 0,0,0,0 | inline bodyCount,0,0,0,0; data is unique observed body handles |
+| 10 nearest | origin xyz,radius >= 0,declaredRosterCode,0,0 | inline body handle, point xyz, horizontal distance; no match is five zeroes; no data |
+| 11 sight | from xyz,to xyz,slack >= 0 | inline visible (0/1),0,0,0,0; no data |
+
+Roster codes are positive signed-i32 stable declaration values, not transient
+entity handles. Each binding's native capability supplies an ordered array of
+its actual actors. Nearest skips dead actors, compares Math.hypot(dx,dz) with
+strict distance < radius and retains the first source-order tie. It has no
+implicit self exclusion. The result copies that actor's current position and
+stable identity at afterBodies, then remaps the identity at delivery. Unknown
+roster capabilities refuse; no species name or global actor book is inferred.
+Point sight uses the existing WORLD-only lineOfSight segment/slack law,
+excluding sensors. It is delayed advisory information. Original urgent reach,
+eye/chest targeting, cover and 60 Hz contact remain with their native owners.
 
 The reply's count is its scalar data length; dataBase is a record index into
 kind 13, not a byte address. Unavailable/refused replies have zero inline and

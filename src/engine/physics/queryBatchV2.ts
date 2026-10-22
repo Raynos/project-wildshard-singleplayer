@@ -4,6 +4,8 @@
 import type { Collider,Ball,Ray } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
 import type { Navmesh } from './navmesh';
+import type { AnimalSim } from '../entities/AnimalSim';
+import { lineOfSight } from './query';
 import { queryGroups,type GroupName } from './groups';
 import { validateV2QueryRequest,type V2QueryRequest,type V2QueryAnswer } from '@wildshard/format/scriptQueriesV2';
 
@@ -14,6 +16,9 @@ export interface V2QueryWorld {
   readonly bodies: ReadonlyMap<string,readonly Collider[]>;
   readonly sees: readonly GroupName[];
   readonly as: GroupName;
+  /** Stable declared roster codes, not transient body handles. Arrays borrow
+   * actual actors in original source order; no implicit self exclusion. */
+  readonly rosters?: ReadonlyMap<number,readonly Pick<AnimalSim,'entityId' | 'alive' | 'position'>[]>;
 }
 const scratch = new WeakMap<Physics,{ readonly ray: Ray; readonly ball: Ball }>();
 
@@ -32,6 +37,26 @@ export function resolvePhysicsQueriesV2(requests: readonly { readonly module: st
       }
       const points = navmesh.findPath(from,{ x: values[3],y: values[4],z: values[5] },values[6]);
       return points === null ? { status: 2 } : { status: 1,kind: 'path',points: points.map(point => [point.x,point.y,point.z]) };
+    }
+    if (request.op === 10) {
+      const roster = world.rosters?.get(values[4]);if (roster === undefined) return { status: 3 };
+      // The native capability, not a guessed species/global registry, selects
+      // the ordered roster. Read live actors at this afterBodies slot.
+      if (roster.length > 256 || new Set(roster.map(actor => actor.entityId)).size !== roster.length) throw new Error('Invalid v2 native query roster');
+      let selected: Extract<V2QueryAnswer,{ kind: 'nearest' }>['actor'] = null, distance = values[3];
+      for (const actor of roster) {
+        if (actor.entityId.length === 0) throw new Error('Empty v2 native roster identity');
+        if (!actor.alive) continue;
+        const point = actor.position;if (![point.x,point.y,point.z].every(Number.isFinite)) throw new Error('Invalid v2 native roster position');
+        const next = Math.hypot(point.x-values[0],point.z-values[2]);
+        if (next < distance) { distance = next;selected = { id: actor.entityId,point: [point.x,point.y,point.z],distance }; }
+      }
+      return { status: 1,kind: 'nearest',actor: selected };
+    }
+    if (request.op === 11) {
+      const distance = Math.hypot(values[3]-values[0],values[4]-values[1],values[5]-values[2]);
+      if (!values.every(value => Number.isFinite(Math.fround(value))) || !Number.isFinite(Math.fround(distance))) return { status: 3 };
+      return { status: 1,kind: 'sight',visible: lineOfSight(physics,{ x: values[0],y: values[1],z: values[2] },{ x: values[3],y: values[4],z: values[5] },values[6]) };
     }
     // Rapier consumes f32. A finite f64 must not become infinity inside its
     // native API, nor may a positive overlap radius underflow to zero.

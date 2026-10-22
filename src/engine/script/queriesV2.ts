@@ -10,7 +10,7 @@ const key = (request: V2QueryRequest): string => JSON.stringify([request.binding
 function tick(value: number): void { if (!Number.isSafeInteger(value) || value < 0) throw new Error('Invalid v2 query phase tick'); }
 function scalarCount(answer: V2QueryAnswer): number {
   if (answer.status !== 1) return 0;
-  switch (answer.kind) { case 'path': return answer.points.length*3;case 'overlap': return answer.bodies.length;case 'ray': return answer.hit === null ? 0 : 4;case 'walkable': return 0;default: throw new Error('Unknown v2 query answer'); }
+  switch (answer.kind) { case 'path': return answer.points.length*3;case 'overlap': return answer.bodies.length;case 'ray': return answer.hit === null ? 0 : 4;case 'walkable': case 'nearest': case 'sight': return 0;default: throw new Error('Unknown v2 query answer'); }
 }
 function order(a: V2QueryRequest,b: V2QueryRequest): number { return a.binding < b.binding ? -1 : a.binding > b.binding ? 1 : a.id-b.id; }
 
@@ -29,7 +29,7 @@ export class QueryRingV2 {
     this.layout = layout;this.slots = records.capacity;this.scalars = data.capacity;
     this.rights = new Map([...rights].map(([identity,row]) => {
       if (identity.length === 0 || !Number.isInteger(row.pending) || row.pending < 0 || row.pending > this.slots) throw new Error('Invalid v2 query binding quota');
-      for (const [op,count] of row.operations) if (![4,5,8,9].includes(op) || !Number.isInteger(count) || count < 0 || count > this.scalars || (op === 8 && count < 4)) throw new Error('Invalid v2 query data reservation');
+      for (const [op,count] of row.operations) if (![4,5,8,9,10,11].includes(op) || !Number.isInteger(count) || count < 0 || count > this.scalars || (op === 8 && count < 4)) throw new Error('Invalid v2 query data reservation');
       this.highWater.set(identity,0);return [identity,{ pending: row.pending,operations: new Map(row.operations) }];
     }));
   }

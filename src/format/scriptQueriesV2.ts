@@ -3,7 +3,7 @@
 import { SCRIPT_V1_LISTS } from './scriptAbiV1';
 import { relativeTickV2,type V2Layout } from './scriptWireV2';
 
-export const V2_QUERY_OPS = Object.freeze({ walkable: SCRIPT_V1_LISTS.nearestWalkable,path: SCRIPT_V1_LISTS.path,ray: 8,overlap: 9 });
+export const V2_QUERY_OPS = Object.freeze({ walkable: SCRIPT_V1_LISTS.nearestWalkable,path: SCRIPT_V1_LISTS.path,ray: 8,overlap: 9,nearest: 10,sight: 11 });
 export type V2QueryOperation = typeof V2_QUERY_OPS[keyof typeof V2_QUERY_OPS];
 type Vec3 = readonly [number,number,number];
 type Values = readonly [number,number,number,number,number,number,number];
@@ -19,10 +19,12 @@ export type V2QueryAnswer = { readonly status: 2 | 3 } | { readonly status: 1 } 
   { readonly kind: 'walkable'; readonly point: Vec3 }
   | { readonly kind: 'path'; readonly points: readonly Vec3[] }
   | { readonly kind: 'overlap'; readonly bodies: readonly string[] }
+  | { readonly kind: 'nearest'; readonly actor: null | { readonly id: string; readonly point: Vec3; readonly distance: number } }
+  | { readonly kind: 'sight'; readonly visible: boolean }
   | { readonly kind: 'ray'; readonly hit: null | { readonly point: Vec3; readonly normal: Vec3; readonly distance: number; readonly body: string | null } }
 );
 export interface V2QueryReply { readonly request: V2QueryRequest; readonly atTick: number; readonly answer: V2QueryAnswer }
-function operation(value: number): value is V2QueryOperation { return value === 4 || value === 5 || value === 8 || value === 9; }
+function operation(value: number): value is V2QueryOperation { return value === 4 || value === 5 || value === 8 || value === 9 || value === 10 || value === 11; }
 function finite(value: number): number { if (!Number.isFinite(value)) throw new Error('Non-finite v2 query value');return value; }
 function uint(value: number): number { if (!Number.isInteger(value) || value < 1 || value > 0xffffffff) throw new Error('Invalid v2 request id');return value; }
 function bindingHandle(binding: V2QueryBinding): number { uint(binding.handle);if (binding.handle > 0x7fffffff || binding.identity.length === 0) throw new Error('Invalid v2 query binding');return binding.handle; }
@@ -35,13 +37,20 @@ export function validateV2QueryRequest(request: V2QueryRequest): void {
   if ((op === 4 && (target !== null || values[3] < 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))
     || (op === 5 && (target !== null || values[6] < 0))
     || (op === 8 && (values[6] < 0 || Math.abs(Math.hypot(values[3],values[4],values[5])-1) > 1e-6))
-    || (op === 9 && (values[3] <= 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))) throw new Error('Invalid v2 query arguments');
+    || (op === 9 && (values[3] <= 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))
+    || (op === 10 && (target !== null || values[3] < 0 || !Number.isInteger(values[4]) || values[4] < 1 || values[4] > 0x7fffffff || values[5] !== 0 || values[6] !== 0))
+    || (op === 11 && (target !== null || values[6] < 0))) throw new Error('Invalid v2 query arguments');
 }
 export function validateV2QueryAnswer(request: V2QueryRequest,answer: V2QueryAnswer): void {
   if (answer.status !== 1) { if (![2,3].includes(answer.status)) throw new Error('Unknown v2 query status');return; }
   if (V2_QUERY_OPS[answer.kind] !== request.op) throw new Error('Mismatched v2 query answer');
   switch (answer.kind) {
     case 'walkable': pose(answer.point);break;
+    case 'sight': if (typeof answer.visible !== 'boolean') throw new Error('Invalid v2 sight answer');break;
+    case 'nearest': if (answer.actor !== null) {
+      pose(answer.actor.point);finite(answer.actor.distance);
+      if (answer.actor.id.length === 0 || answer.actor.distance < 0 || answer.actor.distance >= request.values[3]) throw new Error('Invalid v2 nearest answer');
+    }break;
     case 'path': answer.points.forEach(point => { pose(point); });break;
     case 'overlap': if (new Set(answer.bodies).size !== answer.bodies.length || answer.bodies.some(id => id.length === 0)) throw new Error('Invalid v2 overlap identities');break;
     case 'ray': if (answer.hit !== null) {
@@ -79,6 +88,7 @@ export function prepareV2QueryReplies(layout: V2Layout,tick: number,replies: rea
   for (const reply of replies) {
     const request = reply.request, binding = bindings.get(request.binding), answer = reply.answer, key = JSON.stringify([request.binding,request.id]);
     if (binding === undefined || !binding.operations.has(request.op) || seen.has(key) || reply.atTick < request.atTick || reply.atTick >= tick) throw new Error('Invalid v2 reply identity or delivery tick');seen.add(key);uint(request.id);
+    if (request.op === 10 || request.op === 11) { validateV2QueryRequest(request);validateV2QueryAnswer(request,answer); }
     const body = (identity: string | null): number => {
       if (identity === null) return 0;
       const matches = [...binding.observed].filter(([,value]) => value === identity);const value = matches[0]?.[0];
@@ -89,6 +99,8 @@ export function prepareV2QueryReplies(layout: V2Layout,tick: number,replies: rea
       if (V2_QUERY_OPS[answer.kind] !== request.op) throw new Error('Mismatched v2 query answer');
       switch (answer.kind) {
         case 'walkable': values = [...pose(answer.point),0,0];break;
+        case 'sight': values = [Number(answer.visible),0,0,0,0];break;
+        case 'nearest': if (answer.actor !== null) values = [body(answer.actor.id),...pose(answer.actor.point),answer.actor.distance];break;
         case 'path':
           if (answer.points.length > Math.floor((scalars.capacity-dataCount)/3)) throw new Error('V2 reply data ring full');
           values = [answer.points.length,0,0,0,0];data = answer.points.flatMap(value => [...pose(value)]);break;
