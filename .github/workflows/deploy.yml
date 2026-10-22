@@ -292,6 +292,9 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Repeated producer children share V8 parsing within this isolated job.
+    env:
+      NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
     steps:
       - uses: actions/checkout@v4
         with:
@@ -343,6 +346,9 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Product children and their headless workers still run every admission.
+    env:
+      NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
     steps:
       - uses: actions/checkout@v4
         with:
