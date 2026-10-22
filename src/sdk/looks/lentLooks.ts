@@ -11,3 +11,4 @@ export const setLentParam: typeof platform.setLentParam = platform.setLentParam;
 export const setLentTexture: typeof platform.setLentTexture = platform.setLentTexture;
 export const lentToon: typeof platform.lentToon = platform.lentToon;
 export const pushLentParams: typeof platform.pushLentParams = platform.pushLentParams;
+export const lendUniforms: typeof platform.lendUniforms = platform.lendUniforms;

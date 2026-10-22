@@ -252,6 +252,7 @@
     "./clientCues": "./clientCues.ts",
     "./practiceCourseRows": "./practiceCourseRows.ts",
     "./riding": "./riding.ts",
+    "./postGraphLook": "./postGraphLook.ts",
     "./scaledPost": "./scaledPost.ts",
     "./grapple": "./grapple.ts",
     "./stealth": "./stealth.ts",

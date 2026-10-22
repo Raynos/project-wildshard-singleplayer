@@ -29,6 +29,8 @@ function sharedUniforms(silk: Texture, rows: SharedUniformRows) {
     // the painted surfaces' strengths (merged from lab P5; their texture array is a lent world-scene texture)
     ...uniformsFrom((metadata.looks.paint as LookRows['paint']).uniforms),
     ...lightVolUniforms(),
+    // the silk fog's band depth against its authored depth (a capture that clears the bands scales it), written each frame
+    bandDepth: { value: 1 },
   };
 }
 

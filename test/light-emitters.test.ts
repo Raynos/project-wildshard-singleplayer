@@ -8,7 +8,7 @@ import { parseGroundLayer } from '../src/format/materialFamilies';
 import { parseLightEmitters } from '../src/format/lightEmitters';
 import { lightPoolRows } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { loadLut, gradeUniforms } from '../src/shards/nine-dragon-stack/look/light';
+import { loadPostGraphLut, neutralLut } from '../src/game/looks/postGraphLook';
 import SEALED from './fixtures/legacy-oracles/nine-light.json' with { type: 'json' };
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
@@ -99,23 +99,23 @@ test('Signal generator admits every original fire graph and keeps the four pool 
 
 
 test('Nine uses the engine LUT with the sealed bytes and sampler', async () => {
-  const identity = gradeUniforms();
-  const a = identity.uLut.value.image.data;
+  // the post-graph look reads the identity grade, mixed in by 0, until the learned LUT loads
+  const identity = neutralLut(), a = identity.image.data;
   if (!(a instanceof Uint8Array)) throw new Error('Missing identity LUT');
   expect(hashImmutableBytes(a)).toBe(SEALED.identityLut.hash);
-  expect(identity.uLutAmt.value).toBe(SEALED.identityLut.amount);
-  identity.uLut.value.dispose();
+  expect(SEALED.identityLut.amount).toBe(0);
+  identity.dispose();
   const bytes = Uint8Array.from({ length: 33 ** 3 * 4 }, (_, i) => i & 255);
   vi.stubGlobal('fetch', () => Promise.resolve(new Response(bytes)));
   try {
-    const actual = await loadLut('/grade.bin'), data = actual.image.data;
+    const actual = await loadPostGraphLut('/grade.bin', 'nine-grade'), data = actual.image.data;
     if (!(data instanceof Uint8Array)) throw new Error('Missing LUT bytes');
     expect(hashImmutableBytes(data)).toBe(SEALED.loadedLut.hash);
     for (const field of ['type', 'format', 'colorSpace', 'minFilter', 'magFilter', 'wrapS', 'wrapT', 'wrapR', 'unpackAlignment'] as const) expect(actual[field]).toBe(SEALED.loadedLut[field]);
     expect([actual.image.width, actual.image.height, actual.image.depth]).toEqual([33, 33, 33]);
     actual.dispose();
     vi.stubGlobal('fetch', () => Promise.resolve(new Response('', { status: 404 })));
-    await expect(loadLut('/missing.bin')).rejects.toThrow('Missing Nine grade LUT');
+    await expect(loadPostGraphLut('/missing.bin', 'nine-grade')).rejects.toThrow('Missing post-graph LUT');
   } finally { vi.unstubAllGlobals(); }
 });
 

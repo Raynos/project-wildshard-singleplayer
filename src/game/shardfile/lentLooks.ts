@@ -1,4 +1,4 @@
-import type { Material, Texture } from 'three';
+import type { IUniform, Material, Texture } from 'three';
 import type { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -104,3 +104,24 @@ export function lentToon(id: string): ToonLook {
 const lentParams = { setParam: setLentParam };
 /** Push a channel group's graph params (`graphParamRoots(...)`) into the lent looks. */
 export function pushLentParams(params: { readonly push: (looks: typeof lentParams) => void }): void { params.push(lentParams); }
+
+const uniformLends: { readonly id: string; readonly uniforms: Readonly<Record<string, IUniform>>; readonly scope: Scope }[] = [];
+/** Lend a live uniform set (one `{ value }` object per name, the same objects its programs read) as `id` until `scope` ends. */
+export function lendUniforms(scope: Scope, id: string, uniforms: Readonly<Record<string, IUniform>>): void {
+  if (scope.disposed) throw new Error('Uniform loan needs a live scope');
+  const lend = { id, uniforms, scope };
+  uniformLends.push(lend);
+  scope.onDispose(() => { const at = uniformLends.indexOf(lend); if (at !== -1) uniformLends.splice(at, 1); });
+}
+/** The newest lent uniform set `id` within the caller's owner, else the newest; throws when none is lent. */
+export function lentUniforms(id: string): Readonly<Record<string, IUniform>> {
+  const owner = enteredOwner();
+  let newest: Readonly<Record<string, IUniform>> | null = null;
+  for (let i = uniformLends.length - 1; i >= 0; i--) {
+    const lend = uniformLends[i]; if (lend?.id !== id) continue;
+    if (owner === null || owner.belongsTo(lend.scope)) return lend.uniforms;
+    newest ??= lend.uniforms;
+  }
+  if (newest === null) throw new Error(`No lent uniforms ${id}: the world lends them before its look composes`);
+  return newest;
+}
