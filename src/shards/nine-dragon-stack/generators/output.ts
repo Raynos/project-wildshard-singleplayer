@@ -8,6 +8,8 @@ import { heldView } from './heldView';
 import heldDecals from '../data/heldDecals.generated.json' with { type: 'json' };
 import { parseFixedRows,FixedPracticeFileSchema } from './sections';
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
+import layoutPlan from '../data/layoutPlan.json' with { type: 'json' };
+import { SHAFT } from './wellBounds';
 import { postRows } from './postGraphs';
 import { postGraphRow } from './composite';
 import { NINE_FRAME_CHANNELS, NINE_FRAME_GROUP, NINE_LOOK_TEXTURES } from './frameChannels';
@@ -40,6 +42,11 @@ import type { PlatformDataSectionName } from '@wildshard/format/platformDataSect
 
 const burstSchema = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
 const effectRows = v.parse(v.strictObject({ muzzle: burstSchema, bite: burstSchema, dock: burstSchema, sparks: burstSchema }), bursts);
+// the shared rows at the square's datum: the ground, and the Well's silk mist in dome C's SHAFT box (the main shaft and
+// its run north) under the rim
+const [shaftK0 = 0, , shaftK2 = 0, shaftK3 = 0] = sharedUniforms.uShaftK.v4;
+const sharedRows = { ...sharedUniforms, uGroundY: layoutPlan.Y0, uShaft: { v4: [SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1] },
+  uShaftK: { v4: [shaftK0, layoutPlan.Y0, shaftK2, shaftK3] } };
 const equipmentRows = { portraitFov: 78, aim: { ...aim, ribbon: filamentGeometry(aim.ropePoints), filament: filamentRows, filamentState: lightRows.haloState }, bursts: effectRows } satisfies GrappleRows;
 
 // JSON numbers erase -0; the numeric reviver restores its original float32 sign bit.
@@ -55,7 +62,7 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, l
   nameBlob('weapons/jian-cloth.json', 'json', json(Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])))),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json({ ...headlessConstants, entryProof })),
-  nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, view: heldView(), look: { shared: sharedUniforms, vm: viewmodelUniforms, post: { ...postGraphRow(postRows()), channels: { group: NINE_FRAME_GROUP, programs: NINE_FRAME_CHANNELS }, textures: NINE_LOOK_TEXTURES } } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look', 'view'], additionalProperties: false, properties: { view: namedJsonSchema(GraphArmsSchema), look: { type: 'object', required: ['shared', 'vm', 'post'], additionalProperties: false, properties: { shared: { type: 'object' }, vm: { type: 'object' }, post: { type: 'object', required: ['passes', 'sides', 'composite', 'inputs', 'uniforms', 'sky'] } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
+  nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, view: heldView(), look: { shared: sharedRows, vm: viewmodelUniforms, post: { ...postGraphRow(postRows()), channels: { group: NINE_FRAME_GROUP, programs: NINE_FRAME_CHANNELS }, textures: NINE_LOOK_TEXTURES } } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look', 'view'], additionalProperties: false, properties: { view: namedJsonSchema(GraphArmsSchema), look: { type: 'object', required: ['shared', 'vm', 'post'], additionalProperties: false, properties: { shared: { type: 'object' }, vm: { type: 'object' }, post: { type: 'object', required: ['passes', 'sides', 'composite', 'inputs', 'uniforms', 'sky'] } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
   nameBlob('weapons/jian-halo.json', 'json', json({ geometry: { ...halo.geo.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000001' }, material: { ...halo.mat.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000002' } })),
 ]));
 

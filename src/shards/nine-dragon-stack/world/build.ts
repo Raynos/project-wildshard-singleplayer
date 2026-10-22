@@ -18,7 +18,7 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
-import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
+import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
@@ -52,7 +52,6 @@ export interface NineDragonWorld {
 export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; scenes: SceneHandles; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
   const { world: worldRows, volumes } = await product.json<GeometryBoot>('geometry/layout.json');
-  const { shaft: SHAFT } = worldRows;
   const shared = new Shared(restoreWeave(await product.file('looks/silk-weave.r8')), (await product.json<{ readonly look: { readonly shared: ConstructorParameters<typeof Shared>[1] } }>('weapons/jian-row.json')).look.shared);
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -67,10 +66,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
-  shared.u.uGroundY.value = Y0;
-  // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
-  shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
-  shared.u.uShaftK.value.y = Y0;
   // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts): its kits, the facade's
   // shell, what is drawn into them and the named places are the fabric weld (generators/worldScenes.ts FABRIC)
   progress(0.2, 'layout: baked');
@@ -166,9 +161,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     shared.u[`uLpMin${suffix}`].value.fromArray(row.min); shared.u[`uLpInv${suffix}`].value.fromArray(row.inv);
     shared.u.uLpMax.value = row.maximum;
   }
-  const defaults = metadata.looks.light.defaults;
-  shared.u.uLpGain.value.set(defaults.poolGain, defaults.sheen, shared.u.uLpGain.value.z, defaults.pools);
-  shared.u.uLpSky.value = defaults.wetSky; shared.u.uLpAmb.value = defaults.ambient;
   progress(0.95, 'culling');
 
   progress(1, 'world ready');

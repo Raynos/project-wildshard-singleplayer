@@ -32,13 +32,13 @@
     "uLpGain": {
       "v4": [
         1,
-        0.5,
+        0.55,
         0.35,
         1
       ]
     },
-    "uLpSky": 0,
-    "uLpAmb": 1,
+    "uLpSky": 0.15,
+    "uLpAmb": 0.9,
     "uLpSpec": {
       "v4": [
         1,
@@ -143,18 +143,13 @@
     "uHaloProjection": 1
   },
   "defaults": {
-    "pools": 1,
-    "poolGain": 1,
-    "sheen": 0.55,
     "glow": 1,
     "halo": 0.6,
     "veil": 0.15,
     "glowThr": 0.22,
     "glowNear": 6,
     "glowFar": 40,
-    "grade": 1,
-    "wetSky": 0.15,
-    "ambient": 0.9
+    "grade": 1
   },
   "lut": "/assets/nine-dragon/grade-lut-cleanroom.bin",
   "haloState": {
