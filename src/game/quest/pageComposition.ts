@@ -132,8 +132,16 @@ async function preparePage(ctx: ShardContext, rows: QuestPageRows, lent: Readonl
   return { entry, rows, product, shell, world, h, scope, d, update, ironDrop, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit,
     ui, scenes, pages, panel };
 }
+/** The public guard names only the concrete owners retained by preparation.
+ * Its type never exposes private implementation members of prepared views. */
+export interface PreparedQuestPageOwners {
+  readonly scope: Scope; readonly product: ShardContext['product'];
+  readonly shell: NonNullable<ShardContext['game']['runtime']>;
+  readonly world: NonNullable<PreparedQuestPageOwners['shell']['world']>;
+  readonly h: NonNullable<PreparedQuestPageOwners['shell']['play']>;
+}
 /** Refuse stale concrete preparation owners before late presentation publication. */
-export function requireQuestPageOwners(ctx: ShardContext, page: Pick<Awaited<ReturnType<typeof preparePage>>, 'product' | 'shell' | 'world' | 'h' | 'scope'>): void {
+export function requireQuestPageOwners(ctx: ShardContext, page: PreparedQuestPageOwners): void {
   if (page.scope.disposed || page.scope.disposing || ctx.scope !== page.scope || ctx.product !== page.product || ctx.game.runtime !== page.shell
     || page.shell.world !== page.world || page.shell.play !== page.h) throw new Error('Quest page owners left or changed before presentation');
 }
