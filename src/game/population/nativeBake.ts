@@ -73,13 +73,14 @@ export interface NativeCollisionSolid {
 /** Install the declared native lattice then its ordered solids under the actual
  * host scope. Optional record provenance preserves shared identities across
  * every collider and rebinds snapshot copies after native restore. */
-export function installNativeCollision<S extends NativeCollisionSolid>(host:SimHost,bake:Omit<NativeCollisionBake,'solids'> & {readonly solids:readonly S[]},
-  options:{readonly resolution:number;readonly skip?:(solid:S)=>boolean;
+export function installNativeCollision(host:Pick<SimHost,'physics'|'scope'|'onStep'>,bake:NativeCollisionBake,
+  options:{readonly resolution:number;readonly omit?:readonly Material[];
     readonly provenance?:{readonly field:string;readonly step:string;readonly fallback:Material}}):ReadonlyMap<string,object|string> {
-  const owners=new Map<string,object|string>(),policy=options.provenance;
+  const owners=new Map<string,object|string>(),policy=options.provenance,omit=new Set(options.omit);
+  const omitted=(solid:NativeCollisionSolid):boolean=>solid.material!==undefined&&omit.has(solid.material);
   if(policy!==undefined){
     if(!/^[a-z][a-zA-Z0-9]{0,63}$/u.test(policy.field))throw new Error('Invalid native owner field');
-    bake.solids.forEach(solid=>{const id=solid.ownerId;if(options.skip?.(solid)===true||id===undefined||owners.has(id))return;
+    bake.solids.forEach(solid=>{const id=solid.ownerId;if(omitted(solid)||id===undefined||owners.has(id))return;
       if(!/^(?:piece|declared):[^\r\n]{1,256}$/u.test(id))throw new Error('Invalid baked world owner');
       owners.set(id,id.startsWith('piece:')?Object.freeze({[policy.field]:id}):id.slice('declared:'.length));});
   }
@@ -88,7 +89,7 @@ export function installNativeCollision<S extends NativeCollisionSolid>(host:SimH
     const ground=world.createCollider(R.ColliderDesc.heightfield(n,n,g.heights,g.scale).setTranslation(g.at.x,g.at.y,g.at.z).setCollisionGroups(g.groups).setFriction(g.friction));
     tagCollider(ground,'ground');
     for(const solid of bake.solids){
-      if(options.skip?.(solid)===true)continue;
+      if(omitted(solid))continue;
       const desc=solid.shape===1&&solid.half!==undefined?R.ColliderDesc.cuboid(solid.half[0],solid.half[1],solid.half[2])
         :solid.shape===2&&solid.halfHeight!==undefined&&solid.radius!==undefined?R.ColliderDesc.capsule(solid.halfHeight,solid.radius)
         :solid.shape===6&&solid.points!==undefined&&solid.indices!==undefined?R.ColliderDesc.trimesh(solid.points,solid.indices)

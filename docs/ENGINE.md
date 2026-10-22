@@ -5988,9 +5988,10 @@ copies admitted state without pickups, flags, facts or writes.
 profile: socket-to-deck run, height, per-edge half-widths, stride and look
 ahead. It walks the real capsule through all four admitted water sockets,
 following the flare and checking grounded support, lane, floor and stalls.
-The default remains the ground-height walk. `engine/physics/terrain` defines
-`isStandaloneEdgeWall` beside `addEdgeWalls` for grid admission of native
-bakes without the standalone rim slabs. Neither API changes collision.
+The default remains the ground-height walk. `population/nativeBake`
+`installNativeCollision` takes `omit`, a list of surface materials whose
+baked solids it leaves out (`edge` drops the standalone rim slabs a grid
+admission does not want); the standalone install keeps them.
 
 The game/achievements AchievementCounterRows declares matching, saturation,
 fact prefixes and historical total/write policy. createAchievementCounters
