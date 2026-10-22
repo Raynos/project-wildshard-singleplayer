@@ -16,6 +16,12 @@
  * --round=5x5 (G536): grid5x5HeroPlan, the whole 5 × 5 at the phone-1x square lens on the PHONE tier at render scale 2
  *   (720 × 720 CSS at DSF 2: a 1440 × 1440 canvas, the portrait band's size); every cell on its shipped tier, no pin
  *   (pinning every cell near reads the same: from 1.5–3 km the engine's distance fog, not the tier, pales the cells).
+ * --round=far (G575 / G576 round 36): farVariantPlan (the shipped hero SQ-NE-b, the 5 × 5 overview A, one outer road) on
+ *   iPhone 16 Pro portrait and 1920×1080 desktop, shipped tiers, one variant per run: --variant=<label> names the files,
+ *   --haze=off|light|current pins the grid far haze (the capture-only harness `farHaze`; a build reads it only where a
+ *   local variant patch says so) and --everything pins every cell near (`nearEvery`) with a 6 km far plane. Each shot
+ *   records the frame rate over 4 s, the JS heap and the renderer + GPU processes' footprint (Chromium) for its label.
+ *   --url=<preview> captures an already served build (a local variant build in a mirror slot) instead of building HEAD.
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
  *   with the near tier (B, shipped); the square round's sizes and lenses.
  *   --enter stands the player in the cell under the eye first (enterOver); --only=<ids> / --sessions=<keys> narrow a re-shoot.
@@ -40,8 +46,36 @@ const flag = (name, fallback) => args.find(value => value.startsWith(`--${name}=
 const out = resolvePath(flag('out', join(tmpdir(), `main-menu-hero-${process.pid}`)));
 const script = import.meta.filename;
 const round = flag('round', '1');
-if (!['1', 'aerial', 'landscape', 'square', 'near', '4', '5', '6', '5x5'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape, square, near, 4, 5, 6 or 5x5');
+if (!['1', 'aerial', 'landscape', 'square', 'near', '4', '5', '6', '5x5', 'far'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape, square, near, 4, 5, 6, 5x5 or far');
+// G575 round 36: the far haze rows a variant pins (current = GRID_FAR_HAZE)
+const FAR_HAZE = { off: { near: 450, far: 2600, max: 0 }, light: { near: 900, far: 3600, max: 0.3 }, current: { near: 450, far: 2600, max: 0.55 } };
 const serveOwner = process.env.SERVE_OWNER ?? 'sp-x2-g332';
+
+/** G575 round 36: the footprint (MB) of the browser's renderer and GPU processes (libproc phys_footprint, macOS). */
+const FOOTPRINT_PY = String.raw`
+import ctypes, json, sys
+class R(ctypes.Structure):
+    _fields_ = [('uuid', ctypes.c_ubyte * 16)] + [(n, ctypes.c_uint64) for n in ('user_time','system_time','pkg_idle_wkups','interrupt_wkups','pageins','wired_size','resident_size','phys_footprint')]
+lib = ctypes.CDLL('/usr/lib/libproc.dylib'); out = {}
+for p in sys.argv[1:]:
+    u = R()
+    out[p] = u.phys_footprint if lib.proc_pid_rusage(int(p), 0, ctypes.byref(u)) == 0 else None
+print(json.dumps(out))
+`;
+async function farMetrics(browser, page) {
+  const fps = await page.evaluate(() => new Promise(resolve => {
+    let frames = 0; const start = performance.now();
+    const tick = () => { frames++; if (performance.now() - start < 4000) requestAnimationFrame(tick); else resolve(frames * 1000 / (performance.now() - start)); };
+    requestAnimationFrame(tick);
+  }));
+  const heap = await page.evaluate(() => performance.memory?.usedJSHeapSize ?? null);
+  const info = await (await browser.newBrowserCDPSession()).send('SystemInfo.getProcessInfo');
+  const pids = info.processInfo.filter(row => row.type === 'renderer' || row.type === 'GPU');
+  const sizes = JSON.parse(await command('python3', ['-c', FOOTPRINT_PY, ...pids.map(row => String(row.id))], root));
+  const mb = bytes => bytes === null || bytes === undefined ? null : Math.round(bytes / 1048576);
+  const of = type => pids.filter(row => row.type === type).reduce((sum, row) => sum + (sizes[String(row.id)] ?? 0), 0);
+  return { fps: Math.round(fps * 10) / 10, heapMB: mb(heap), rendererMB: mb(of('renderer')), gpuMB: mb(of('GPU')) };
+}
 
 function requireNoQuiet() {
   const quiet = join(root, '.git/quiet');
@@ -230,6 +264,8 @@ async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
     ['--experimental-transform-types', '--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? '6' : round], root));
+  // G575 round 36: --everything also opens every pose's far plane to 6 km (the capture camera's only)
+  if (args.includes('--everything')) plan.poses = plan.poses.map(p => ({ ...p, farMetres: Math.max(p.farMetres ?? 0, 6000) }));
   // --only=<pose id,…> and --sessions=<key,…> (e.g. 2048x2048) narrow a re-shoot; sessions left with no pose are skipped
   const only = flag('only', ''), keys = flag('sessions', '');
   // --enter (round 4): stand the player in the cell under the eye first (its runtime draws at full quality; the
@@ -237,7 +273,9 @@ async function captureAerial(base) {
   const enter = args.includes('--enter');
   if (only !== '') plan.poses = plan.poses.filter(p => only.split(',').includes(p.id));
   // G343 round 4: the square round's sessions over round4HeroPlan, with the near-placeholder tier on (G342)
-  const near = round === 'near', grid5x5 = round === '5x5', round4 = round === '4' || round === '5' || round === '6', square = round === 'square' || round4, landscape = round === 'landscape' || square || near || grid5x5;
+  const far = round === 'far', variant = flag('variant', 'current'), everything = args.includes('--everything'), haze = flag('haze', 'current');
+  if (far && !Object.hasOwn(FAR_HAZE, haze)) throw new Error('--haze must be off, light or current');
+  const near = round === 'near' || far, grid5x5 = round === '5x5', round4 = round === '4' || round === '5' || round === '6', square = round === 'square' || round4, landscape = round === 'landscape' || square || near || grid5x5;
   // Aerial: one phone context per Debug time pick. Landscape: one desktop context per resolution, desktop tier, DSF 1.
   // Square (G344): the same desktop contexts, square resolutions for the square poses and 16:9 for the landscape ones.
   const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
@@ -247,6 +285,7 @@ async function captureAerial(base) {
   const centre0 = plan.road ?? plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
   ...plan.poses.filter(p => p.id === 'SQ-NE-b')];
+  if (far) nearPoses.splice(0, nearPoses.length, ...plan.poses);
   // --pose=<id>:<eye x,y,z>:<target x,y,z> (grid metres, the player still on the roundabout) shoots that one view instead
   const custom = flag('pose', '').split(':'), [eyeX, eyeY, eyeZ] = (custom[1] ?? '').split(',').map(Number), [toX, toY, toZ] = (custom[2] ?? '').split(',').map(Number);
   // and a fourth field <x,z> stands the player there instead (a road point: the rings and the near plan rank from the player)
@@ -256,7 +295,7 @@ async function captureAerial(base) {
     ? [{ key: 'phone-1440', poses: plan.poses, context: { ...devices['Desktop Chrome'], viewport: { width: 720, height: 720 }, deviceScaleFactor: 2 },
       settings: { tier: 'phone', fps: 'auto', volume: 0 }, gfx: { dpr: '2', aa: 'auto' } }]
     : near
-    ? ['B', 'C'].flatMap(mode => [
+    ? (far ? [everything ? 'C' : 'B'] : ['B', 'C']).flatMap(mode => [
       { key: `${mode}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] }, nearEvery: mode === 'C',
         settings: { tier: 'phone', fps: 'auto', volume: 0 }, gfx: { dpr: '2', aa: 'auto' } },
       { key: `${mode}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 }, nearEvery: mode === 'C',
@@ -278,7 +317,7 @@ async function captureAerial(base) {
     noViewmodel: true, junction: plan.junction, surrounding: plan.surrounding,
     roadLighting: 'Shipping ROAD_SKY is fixed low dawn; requested Debug time picks do not rewrite that look', shots: [] };
   const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
-  const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+  const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
   try {
     for (const session of sessions) {
       requireNoQuiet();
@@ -288,7 +327,8 @@ async function captureAerial(base) {
         await saveFixture(context, { scope: 'global', key: 'settings', merge: true, data: session.settings });
         await saveFixture(context, { scope: 'global', key: 'gfx', data: session.gfx });
         // G385: C (every cell near) is this pin alone, set before the page loads; B is the shipped game
-        await context.addInitScript(nearEvery => { window.__wildshardHarness = { seed: 357, capture: null, ...(nearEvery ? { nearEvery: true } : {}) }; }, session.nearEvery === true);
+        await context.addInitScript(({ nearEvery, farHaze }) => { window.__wildshardHarness = { seed: 357, capture: null, ...(nearEvery ? { nearEvery: true } : {}), ...(farHaze === null ? {} : { farHaze }) }; },
+          { nearEvery: session.nearEvery === true, farHaze: far ? FAR_HAZE[haze] : null });
         await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
         const page = await context.newPage(), errors = [], consoleErrors = [];
         page.setDefaultTimeout(180000);
@@ -354,6 +394,15 @@ async function captureAerial(base) {
               console.log(`entered ${shot.over.slug} for ${session.key}: ${JSON.stringify(entered.tiles)}`);
             }
             if (enterHere) row.entered = entered;
+            // G575 round 36: a pose that names where the player waits (the outer road) stands there first, then the rest go back
+            const standAt = far ? shot.stand ?? centre : null;
+            if (standAt !== null) {
+              await page.evaluate(async p => {
+                const api = window.__wildshard, w = api.requireWorld(), live = api.shard.grid.state().live.live;
+                await api.pose({ x: p.x - (live.worldFeet.x - w.player.position.x), z: p.z - (live.worldFeet.z - w.player.position.z), y: 0, yaw: 0, pitch: 0 });
+              }, standAt);
+              await page.waitForTimeout(8000);
+            }
             await page.evaluate(p => { window.__heroAerialPose = p; }, shot);
             await page.waitForTimeout(3500);
             const current = await page.evaluate(gridFloorDocumentIdentity);
@@ -375,7 +424,8 @@ async function captureAerial(base) {
             // a road view is named for the shard it looks at (Jake: every neighbour obvious, e.g. A-road-nalati-iphone)
             const facing = shot.id.startsWith('road-') ? row.frame.cells.find(cell => Math.abs(cell.cell[0] * 555 - shot.target.x) < 277.5 && Math.abs(cell.cell[1] * 555 - shot.target.z) < 277.5) : undefined;
             const name = facing === undefined ? shot.id : `road-${facing.slug.replace(/^_/u, '').split('-')[0]}`;
-            row.file = near ? `${session.key.slice(0, 1)}-${name}-${session.key.slice(2)}.png` : landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
+            row.file = far ? `${variant}-${shot.id}-${session.key.slice(2)}.png` : near ? `${session.key.slice(0, 1)}-${name}-${session.key.slice(2)}.png` : landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
+            if (far) row.metrics = { variant, haze, everything, ...(await farMetrics(browser, page)) };
             await page.locator('canvas[data-hero-canvas]').screenshot({ path: join(out, row.file) });
             row.consoleErrors = [...consoleErrors]; row.complete = true;
           } catch (error) { row.errors.push(String(error)); }
@@ -391,20 +441,21 @@ async function captureAerial(base) {
 mkdirSync(out, { recursive: true });
 if (args.includes('--worker')) {
   if (process.env.HERO_CAPTURE_LANE !== '1') throw new Error('Run through this command’s browser-lane launcher');
-  await (round === 'aerial' || round === 'landscape' || round === 'square' || round === 'near' || round === '4' || round === '5' || round === '6' || round === '5x5' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
+  await (round === 'aerial' || round === 'landscape' || round === 'square' || round === 'near' || round === '4' || round === '5' || round === '6' || round === '5x5' || round === 'far' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
 } else {
   requireNoQuiet();
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });
   let base;
   try {
-    base = (await command(join(root, 'scripts/serve-build.sh'), [...(args.includes('--tree') ? [] : flag('rev', '') !== '' ? ['--rev', flag('rev', '')] : ['--head']), '--name', 'main-menu-hero', '--hours', '1'], scratch,
+    const served = flag('url', '');
+    base = served !== '' ? served : (await command(join(root, 'scripts/serve-build.sh'), [...(args.includes('--tree') ? [] : flag('rev', '') !== '' ? ['--rev', flag('rev', '')] : ['--head']), '--name', 'main-menu-hero', '--hours', '1'], scratch,
       { ...process.env, SERVE_OWNER: serveOwner })).split('\n').at(-1);
     requireNoQuiet();
     await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`,
-      ...args.filter(value => /^--(?:only=|sessions=|pose=|enter$)/u.test(value))], root,
+      ...args.filter(value => /^--(?:only=|sessions=|pose=|enter$|variant=|haze=|everything$)/u.test(value))], root,
       { ...process.env, HERO_CAPTURE_LANE: '1' });
     console.log(`Canvas candidates and pinned capture.json: ${out}`);
   } finally {
-    if (base) await command(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port], root, { ...process.env, SERVE_OWNER: serveOwner });
+    if (base && flag('url', '') === '') await command(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port], root, { ...process.env, SERVE_OWNER: serveOwner });
   }
 }

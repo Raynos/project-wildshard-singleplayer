@@ -80,6 +80,8 @@ export interface LandscapeHeroPose {
   readonly over?: { readonly instance: string; readonly slug: string; readonly stand: { readonly x: number; readonly z: number } };
   /** G536: a capture-time far plane for this shot only (the whole 5 × 5 lies farther than the game's own); absent = the game's */
   readonly farMetres?: number;
+  /** G575 round 36: where the player waits for this shot (grid metres); absent = the session's road point */
+  readonly stand?: { readonly x: number; readonly y: number; readonly z: number };
 }
 
 /** One shot aimed exactly at `target` from `headingDegrees` round it, `distance` metres away on the ground, `height` up. */
@@ -246,6 +248,22 @@ export function round6HeroPlan(): ReturnType<typeof round5HeroPlan> {
     }
   }
   return { ...round5, poses };
+}
+
+/**
+ * G575 / G576 round 36 (far variants): the three views the far haze and hologram fade are judged from: round 6's shipped
+ * hero (SQ-NE-b), the whole 5 × 5 overview (grid5x5HeroPlan's A) and one outer road, the eye 22 m over the road between
+ * the first and second rings east of Driftwood, looking north along it past the outer band's plots. A pose's `stand` is
+ * where the player waits (the rings and the near plan rank from the player); the others keep round 5's roundabout.
+ */
+export function farVariantPlan(): ReturnType<typeof round5HeroPlan> {
+  const round6 = round6HeroPlan(), overview = grid5x5HeroPlan(), grid = new GridAssembly({ developer: true, devserver: false });
+  const driftwood = grid.cells.find(c => c.slug === 'driftwood-isle'), hero = round6.poses.find(p => p.id === 'SQ-NE-b'), whole = overview.poses.find(p => p.id === 'A');
+  if (driftwood === undefined || hero === undefined || whole === undefined) throw new Error('Round 36 needs Driftwood, SQ-NE-b and the 5 × 5 pose A');
+  const x = driftwood.origin.x + 1.5 * grid.pitch, z = driftwood.origin.z, target = { x, y: 0, z: z + 2 * grid.pitch };
+  const road = aimedPose(target, grid.cells, { id: 'OUTER-ROAD', name: 'The outer road east of Driftwood, looking north past the outer band',
+    headingDegrees: 180, height: 22, distance: 2 * grid.pitch, aspect: 'square', fovDegrees: HERO_1X_FOV.square });
+  return { ...round6, poses: [hero, { ...whole, id: '5x5-A' }, { ...road, stand: { x, y: 0, z }, farMetres: Math.ceil(3 * grid.pitch) }] };
 }
 
 /**
