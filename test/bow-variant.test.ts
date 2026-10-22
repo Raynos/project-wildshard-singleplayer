@@ -2,7 +2,7 @@ import {expect,test,vi} from 'vitest';
 import * as THREE from 'three';
 import {Bow} from '../src/game/weapons/Bow';
 import {VariantBowPower} from '../src/game/weapons/bowVariant';
-import {bindEquipmentActors,equipmentAnimals} from '../src/game/loadout/actors';
+import {bindEquipmentActors,equipmentActorOwner} from '../src/game/loadout/actors';
 import {AnimalManager} from '../src/engine/entities/AnimalManager';
 import {Animal} from '../src/engine/entities/AnimalView';
 import {Scope} from '../src/engine/app/scope';
@@ -46,9 +46,9 @@ test('independent kit owners and an orchard charged variant do not share actors 
   const hurt=vi.spyOn(second,'applyDamage');
   const ray=vi.spyOn(one.animals,'raycast').mockReturnValueOnce({animal:first,point:new THREE.Vector3(),distance:1,headshot:false,damage:5}).mockReturnValueOnce({animal:second,point:new THREE.Vector3(),distance:1,headshot:false,damage:5}).mockReturnValue(null);
   try{
-    expect(equipmentAnimals(one.targets)).toBe(one.animals);expect(equipmentAnimals(two.targets)).toBe(two.animals);
+    expect(equipmentActorOwner(one.targets).animals).toBe(one.animals);expect(equipmentActorOwner(two.targets).animals).toBe(two.animals);
     const power=new VariantBowPower(new THREE.Scene(),new THREE.PerspectiveCamera(),{...rows,id:'weapon.orchard-bow',name:'Harvest bow',style:'recurve',threshold:.5,pierce:2,crush:4,crushKinds:['log'],multipliers:[]});
     power.apply(weapon);weapon.onLoose?.(.6);expect(ray).toHaveBeenCalledTimes(2);power.update(1);expect(hurt).toHaveBeenCalledWith(40,expect.any(THREE.Vector3),expect.any(THREE.Vector3));
-    a.dispose();expect(()=>equipmentAnimals(one.targets)).toThrow('no native actor owner');expect(equipmentAnimals(two.targets)).toBe(two.animals);
+    a.dispose();expect(()=>equipmentActorOwner(one.targets).animals).toThrow('no native actor owner');expect(equipmentActorOwner(two.targets).animals).toBe(two.animals);
   }finally{a.dispose();b.dispose();vi.restoreAllMocks();}
 });

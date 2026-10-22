@@ -13,4 +13,3 @@ export function bindEquipmentActors(targets:Targets,animals:AnimalManager,scope:
 export function equipmentActorOwner(targets:Targets|undefined):EquipmentActorOwner{
   const owner=targets===undefined?undefined:owners.get(targets);if(owner===undefined)throw new Error('Equipment target source has no native actor owner');return owner;
 }
-export function equipmentAnimals(targets:Targets|undefined):AnimalManager{return equipmentActorOwner(targets).animals;}

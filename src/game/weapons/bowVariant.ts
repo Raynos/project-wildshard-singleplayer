@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type {BowVariantRows} from '@wildshard/format/bowVariantRows';
 import {sourceMultiplier} from '@wildshard/engine/combat/effects/types';
 import type {TargetAnimal} from '@wildshard/engine/combat/types';
-import {equipmentAnimals,equipmentActorOwner} from '../loadout/actors';
+import {equipmentActorOwner} from '../loadout/actors';
 import {ReturnProgram} from '../population/returnProgram';
 import {ProjectedTrail} from '../shardfile/clientTrails';
 import type {Bow} from './Bow';
@@ -32,7 +32,7 @@ export class VariantBowPower {
   }
   private loosed(power:number):void{
     const bow=this.bow;this.sunShot=this.decide(power)['bowSun']===1;if(bow===null||!this.sunShot)return;
-    const {flight}=this.rows,animals=equipmentAnimals(bow.targetSource),o=this.origin,d=this.direction,v=this.velocity,a=this.at,b=this.segment;
+    const {flight}=this.rows,animals=equipmentActorOwner(bow.targetSource).animals,o=this.origin,d=this.direction,v=this.velocity,a=this.at,b=this.segment;
     this.camera.getWorldDirection(d);o.setFromMatrixPosition(this.camera.matrixWorld).addScaledVector(d,flight.offset);v.copy(d).multiplyScalar(flight.base+flight.draw*power).add(bow.carrierVelocity);
     const n=bow.arrows.predict(o,v,this.trail.points,this.rows.trail.points,flight.step,flight.from);this.trail.show(n);
     let first:TargetAnimal|null=null,travelled=0,ax=o.x,ay=o.y,az=o.z;

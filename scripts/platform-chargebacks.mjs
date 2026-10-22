@@ -50,7 +50,7 @@ const declarations = new Map([
 const chapterViewNativeOwners = new Map([
   ["src/engine/physics/heightPatch.ts", null],
   ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
-  ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner", "equipmentAnimals"]],
+  ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner"]],
   ["src/game/quest/chapter.ts", ["installChapterStory"]],
   ["src/game/shardfile/clientTrails.ts", ["ProjectedTrail"]],
   ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]],
