@@ -229,7 +229,7 @@ jobs:
 
   # SF74 W16: typecheck and lint beside build-and-deploy (they were ~1.5 min of its serial critical path).
   typecheck-lint:
-    needs: products
+    needs: generated-inputs
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -259,9 +259,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
         with:
-          name: test-products
-      - name: Verify and restore exact-run generated inputs and products
-        run: python3 scripts/ci-products.py unpack
+          name: generated-inputs
+      - name: Verify and restore exact-run generated inputs
+        run: python3 scripts/ci-products.py unpack-generated
       - name: Typecheck
         # Run all projects once; the other workers only partition lint files.
         if: matrix.shard == 1
@@ -280,9 +280,9 @@ jobs:
         # Fresh plugin workers bound AST retention on the verified exact tree.
         run: node scripts/lint-all.mjs --shard=${{ matrix.shard }}/4
 
-  # All behaviour shards consume one exact-run preparation. Cold generation
-  # and 24 product builds otherwise consume most of every 20-minute test job.
-  products:
+  # Types and lint need generated inputs, while behaviour and web builds also
+  # need products. Publish the first dependency before compiling all products.
+  generated-inputs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -311,10 +311,59 @@ jobs:
         with:
           path: |
             ~/.cache/wildshard/generate
+          key: generation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
+          restore-keys: generation-v1-${{ runner.os }}-node24-
+      - run: node scripts/gen.mjs --parallel
+      - name: Pack exact-run generated inputs
+        run: python3 scripts/ci-products.py pack-generated
+      - uses: actions/upload-artifact@v4
+        with:
+          name: generated-inputs
+          path: |
+            generated-inputs.tar
+            generated-inputs-proof.json
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
+
+  products:
+    needs: generated-inputs
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - name: Bind cache snapshot to source inputs
+        id: inputs
+        run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+      # Snapshots contain content-addressed entries, not CI proof artifacts.
+      # Every restored entry rechecks its input hashes; strict product hits run
+      # current byte/schema/budget/script admission before this run publishes proof.
+      - uses: actions/cache@v4
+        with:
+          path: |
             ~/.cache/wildshard/shardfiles
-          key: preparation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: preparation-v1-${{ runner.os }}-node24-
-      - run: node scripts/gen.mjs --parallel && node scripts/build-shardfiles.mjs --reuse
+          key: products-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
+          restore-keys: products-v1-${{ runner.os }}-node24-
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-inputs
+      - name: Verify and restore exact-run generated inputs
+        run: python3 scripts/ci-products.py unpack-generated
+      - run: node scripts/build-shardfiles.mjs --reuse
       - name: Pack exact-run generated inputs and products
         run: python3 scripts/ci-products.py pack
       - uses: actions/upload-artifact@v4

@@ -154,5 +154,41 @@ class PreparedProducts(unittest.TestCase):
         self.assertFalse((self.root / 'extra-ran').exists())
 
 
+    def test_generated_inputs_transfer_without_granting_product_proof(self):
+        products.pack(self.root, generated=True)
+        archive_name, proof_name = products.archive_names(True)
+        with tarfile.open(self.root / archive_name, 'r') as archive:
+            self.assertFalse(any(member.name.startswith('out/') for member in archive.getmembers()))
+        (self.root / self.table).unlink()
+        (self.root / 'out/fictional/shard.json').unlink()
+        products.unpack(self.root, generated=True)
+        self.assertTrue((self.root / self.table).is_file())
+        self.assertFalse((self.root / 'out/fictional/shard.json').exists())
+        # Renaming generated-only evidence cannot satisfy a full consumer.
+        (self.root / products.ARCHIVE).write_bytes((self.root / archive_name).read_bytes())
+        (self.root / products.PROOF).write_bytes((self.root / proof_name).read_bytes())
+        with self.assertRaisesRegex(ValueError, 'products are missing'):
+            products.unpack(self.root)
+
+    def test_generated_inputs_refuse_foreign_run_and_product_members_before_writing(self):
+        products.pack(self.root, generated=True)
+        archive_name, proof_name = products.archive_names(True)
+        proof = json.loads((self.root / proof_name).read_text())
+        proof['run'] = 'foreign'
+        (self.root / proof_name).write_text(json.dumps(proof))
+        with self.assertRaisesRegex(ValueError, 'different SHA or CI run'):
+            products.unpack(self.root, generated=True)
+        products.pack(self.root, generated=True)
+        with tarfile.open(self.root / archive_name, 'a') as archive:
+            archive.add(self.root / 'out/fictional/shard.json', arcname='out/fictional/shard.json')
+        proof = json.loads((self.root / proof_name).read_text())
+        proof.update(sha256=products.digest(self.root / archive_name), files=proof['files'] + 1)
+        (self.root / proof_name).write_text(json.dumps(proof))
+        (self.root / self.table).unlink()
+        with self.assertRaisesRegex(ValueError, 'cannot contain products'):
+            products.unpack(self.root, generated=True)
+        self.assertFalse((self.root / self.table).exists())
+
+
 if __name__ == '__main__':
     unittest.main()

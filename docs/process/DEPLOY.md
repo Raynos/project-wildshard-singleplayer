@@ -137,3 +137,10 @@ product build. The exact push web dist is still published for boot smoke;
 release pin selection, proof checks, Vercel functions and live verification
 remain unchanged. Every TypeScript project runs once, with all lint partitions
 and all ten complete behaviour partitions retained.
+
+
+G609: generation publishes a separate SHA/run/checksum-bound generated-inputs
+artifact. Typecheck/lint jobs need only that artifact and start while the
+products job builds all 24 outputs. Full web/test consumers still require the
+complete test-products artifact. Generated-only evidence cannot satisfy full
+product restoration, and it refuses any embedded product before writing.

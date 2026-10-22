@@ -54,7 +54,12 @@ def catalogue_outputs(root):
     return declared, required
 
 
-def pack(root):
+def archive_names(generated):
+    return ('generated-inputs.tar', 'generated-inputs-proof.json') if generated else (ARCHIVE, PROOF)
+
+
+def pack(root, generated=False):
+    archive_name, proof_name = archive_names(generated)
     sha, run = identity(root)
     declared, required = catalogue_outputs(root)
     missing = sorted(name for name in required if not (root / admitted_path(name)).is_file())
@@ -69,27 +74,30 @@ def pack(root):
     files = sorted({name for name in declared if (root / admitted_path(name)).is_file()}
                    | {os.fsdecode(name) for name in (ignored + untracked + modified).split(b'\0') if name})
     files = [name for name in files if not any(part in EXCLUDED for part in PurePosixPath(name).parts)]
-    if not any(name.startswith('out/') and name.endswith('/shard.json') for name in files):
+    if generated:
+        files = [name for name in files if not name.startswith('out/')]
+    if not generated and not any(name.startswith('out/') and name.endswith('/shard.json') for name in files):
         raise ValueError('No prepared products to publish')
-    with tarfile.open(root / ARCHIVE, 'w') as archive:
+    with tarfile.open(root / archive_name, 'w') as archive:
         for name in files:
             path = root / admitted_path(name)
             if not path.is_file() or path.is_symlink():
                 raise ValueError('Prepared output is not a regular file: ' + name)
             archive.add(path, arcname=name, recursive=False)
-    proof = {'sha': sha, 'run': run, 'sha256': digest(root / ARCHIVE), 'files': len(files)}
-    (root / PROOF).write_text(json.dumps(proof) + '\n')
+    proof = {'sha': sha, 'run': run, 'sha256': digest(root / archive_name), 'files': len(files)}
+    (root / proof_name).write_text(json.dumps(proof) + '\n')
     print(f'Published {len(files)} prepared files for {sha} in run {run}')
 
 
-def unpack(root):
+def unpack(root, generated=False):
+    archive_name, proof_name = archive_names(generated)
     sha, run = identity(root)
-    proof = json.loads((root / PROOF).read_text())
+    proof = json.loads((root / proof_name).read_text())
     if proof['sha'] != sha or proof['run'] != run:
         raise ValueError('Prepared products belong to a different SHA or CI run')
-    if proof['sha256'] != digest(root / ARCHIVE):
+    if proof['sha256'] != digest(root / archive_name):
         raise ValueError('Prepared products checksum mismatch')
-    with tarfile.open(root / ARCHIVE, 'r') as archive:
+    with tarfile.open(root / archive_name, 'r') as archive:
         members = archive.getmembers()
         names = [member.name for member in members]
         if len(names) != proof['files'] or len(set(names)) != len(names):
@@ -97,7 +105,9 @@ def unpack(root):
         _, required = catalogue_outputs(root)
         if not required.issubset(names):
             raise ValueError('Prepared catalogue outputs are missing from the archive')
-        if not any(name.startswith('out/') and name.endswith('/shard.json') for name in names):
+        if generated and any(name.startswith('out/') for name in names):
+            raise ValueError('Generated-only preparation cannot contain products')
+        if not generated and not any(name.startswith('out/') and name.endswith('/shard.json') for name in names):
             raise ValueError('Prepared products are missing')
         # Validate the entire inventory before writing any file. Never follow a
         # workspace symlink, even when the archive itself has no link members.
@@ -118,4 +128,7 @@ def unpack(root):
 
 
 if __name__ == '__main__':
-    {'pack': pack, 'unpack': unpack}[sys.argv[1]](Path.cwd())
+    command = sys.argv[1]
+    {'pack': pack, 'unpack': unpack,
+     'pack-generated': lambda root: pack(root, generated=True),
+     'unpack-generated': lambda root: unpack(root, generated=True)}[command](Path.cwd())
