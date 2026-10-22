@@ -2269,6 +2269,8 @@ contract for ordinary callers. Listener disposal and re-entry remain scope-owned
 
 ## 19. Creatures and AI
 
+`AnimalManager(scene, sky, forest, {physics})` retains the supplied native Physics for spawn-floor queries, lazy creature bodies and blood-floor queries. Regional worlds pass their own host physics, so retiring the previously entered world cannot redirect those queries. Omitting the option preserves the existing active-page physics lookup.
+
 `AnimalManager.replace(retired, x, z, yaw, variant?, placement?)` rebuilds one of that manager’s retired creatures with fresh rig and state, the same species and logical identity, and ordinary spawn RNG draws. It refuses foreign, live, already-replaced and simulation-bound views, or a live duplicate of the identity, before construction. This supports an authored home’s respawn after a portable logical checkpoint; it does not restore its former AI memory or reuse an authoritative simulation identity. Ordinary `spawn` is unchanged.
 
 Import `AnimalSim` from `@wildshard/engine/entities/AnimalSim` for creature state, motion, attack clocks, geometric perception and damage without a rig. Its `AnimalSimSpec` supplies authored dimensions and multipliers; `AnimalSimPorts` supplies height, floor, time, random and damage services, and `AnimalMotor` supplies collision displacement. `step(dt)` advances the body and attack clock. Every instance has a stable `entityId`.

@@ -9,6 +9,7 @@ import { TickScheduler, type InterruptReason, type TickRate } from '../app/sched
 import { dodgeFx } from '../player/dodge';
 import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
+import type { Physics } from '../physics/Physics';
 import type { CharacterMotor } from '../physics/CharacterMotor';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { spawnRolls, fallbackSound, ATTACK_TURN, HURT_ARC, type HuntGround, type HuntHerd } from '../ai/hunt';
@@ -186,7 +187,9 @@ class BloodFX {
   private decalNext = 0;
   private active = 0;
 
-  constructor(sky: Sky) {
+  private readonly physics: Physics | undefined;
+  constructor(sky: Sky, physics?: Physics) {
+    this.physics = physics;
     const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.09, 0.004, 0.003), size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false, map: makeDropTexture(), alphaTest: 0.3 });
     this.pool = new ParticlePool({ capacity: MAX_P, material: mat, renderOrder: 5, attributes: {}, parkY: -1000 }); // PointsMaterial draws every slot: the free ones wait far below
     this.group.add(this.pool.points);
@@ -205,7 +208,7 @@ class BloodFX {
 
   burst(at: THREE.Vector3, dir: THREE.Vector3, strength = 1): void {
     const n = Math.round(22 * strength);
-    const physics = worldPhysics();
+    const physics = this.physics ?? worldPhysics();
     const fl = (physics ? floorBelow(physics, at.x, at.z, at.y + 0.3, BLOOD_DROP) : undefined) ?? heightAt(at.x, at.z);
     const { vel, life } = this.pool;
     for (let i = 0; i < n; i++) {
@@ -337,11 +340,14 @@ export class AnimalManager {
   private readonly scene: THREE.Scene;
   private readonly sky: Sky;
   private readonly forest: Forest;
+  /** Regional construction retains its own physics; omitted preserves the active-page legacy path. */
+  private readonly physics: Physics | undefined;
   /** `opts.style` forces the render style (dev harness); production reads `ShardManifest.style` ('pbr' | 'lowpoly') */
-  constructor(scene: THREE.Scene, sky: Sky, forest: Forest, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
+  constructor(scene: THREE.Scene, sky: Sky, forest: Forest, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined; physics?: Physics } = {}) {
     this.scene = scene;
     this.sky = sky;
     this.forest = forest;
+    this.physics = opts.physics;
     // the hunting brain's world: the live Heightfield (its exports are live bindings: read at call time), the forest, the app
     const ground: HuntGround = {
       heightAt: (x, z) => heightAt(x, z), normalY: (x, z) => normalAt(x, z)[1], trailDistance: (x, z) => trailDistance(x, z),
@@ -381,7 +387,7 @@ export class AnimalManager {
   get alive(): number { let n = 0; for (const a of this.animals) if (a.alive) n++; return n; }
 
   build(): this {
-    this.blood = new BloodFX(this.sky);
+    this.blood = new BloodFX(this.sky, this.physics);
     this.group.add(this.blood.group);
     for (const _herd of this.spawnHerds()) { /* all herds in one go */ }
     return this.finish();
@@ -396,7 +402,7 @@ export class AnimalManager {
    */
   async buildAsync(pause: () => Promise<void>, frame?: LevelFrameBinding): Promise<this> {
     const start = (): void => {
-      this.blood = new BloodFX(this.sky);
+      this.blood = new BloodFX(this.sky, this.physics);
       this.group.add(this.blood.group);
     };
     if (frame === undefined) start();
@@ -481,7 +487,7 @@ export class AnimalManager {
     const rig = this.factory.instantiate(model, rigSeed);
     const a = new Animal(rig, model, seed, scale, identity ?? this.entityIds.allocate(placement?.entityId));
     a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
-    const physics = worldPhysics();
+    const physics = this.physics ?? worldPhysics();
     const fromY = placement?.fromY ?? Math.max(activeLevel().spawn.y ?? heightAt(x, z), heightAt(x, z)) + 1;
     const floor = creatureFloor(physics, x, z, fromY);
     const flight = model.species.flight;
@@ -757,7 +763,7 @@ export class AnimalManager {
   private bodies: CreatureBodies<Animal> | null = null;
   /** the physics side of the herds (src/engine/physics/creatures.ts), made once the shard's world exists */
   private bodiesFor(): CreatureBodies<Animal> | null {
-    if (this.bodies === null) { const p = app.physics; if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
+    if (this.bodies === null) { const p = this.physics ?? app.physics; if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
     return this.bodies;
   }
   /** how many animals have a physics body (the near LOD) — the bench reads it */

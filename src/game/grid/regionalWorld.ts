@@ -441,7 +441,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         },
         afterKit: async () => {
           if (resident.disposed) throw new Error('Regional world left before its creatures');
-          const animals = frame.run(app, () => new AnimalManager(scene, sky, forest));
+          const animals = frame.run(app, () => new AnimalManager(scene, sky, forest, { physics: host.physics }));
           await animals.buildAsync(ports.pause, frame);
           if (left()) throw new Error('Regional world left while building creatures');
           return { animals, wearSkin: (equipment: EquipmentService, skin: SkinDef): void => {

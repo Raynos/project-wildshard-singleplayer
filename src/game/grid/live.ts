@@ -62,7 +62,7 @@ export interface LiveGridPorts {
    *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
   prefetchable?: (cell: GridCell) => boolean;
   /** G580 T1 (the Developer row warmNeighbour): owned worlds overlap. The approached cell builds whole (warm-up included)
-   *  while the traveller is still in the source, and a departed source stays resident until the cold-dwell rule retires it,
+   *  while the traveller is still in the source. A departed source stays until the next build-ahead or cold retirement,
    *  so a crossing is the retained runtime's re-activation. Absent or false: one owned world at a time. */
   warmNeighbour?: () => boolean;
   save: (instance: string, snapshot: SimSnapshot) => boolean;
@@ -437,6 +437,15 @@ export class LiveGridHost {
     }
     return null;
   }
+  /** Keep an immediate return cheap, but release the frozen source before allocating another neighbour.
+   * retire() appends sliced disposal to sequence; ensure() must capture that sequence afterwards. */
+  private retireWarmSource(destination: string): boolean {
+    const source = this.lastSource();
+    if (source === null || source === this.active || source === destination || !this.residents.has(source)) return true;
+    if (this.roadRetirementRefused.has(source)) return false;
+    if (this.retire(source)) return true;
+    this.roadRetirementRefused.add(source); return false;
+  }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
   retry(instance: string): void {
     if (this.requests.has(instance) || this.productRequests.has(instance)) throw new Error('Live admission is still pending');
@@ -488,9 +497,9 @@ export class LiveGridHost {
         const dx = cell.origin.x - feet.x, dz = cell.origin.z - feet.z, facing = (dx * fx + dz * fz) / Math.max(1e-6, Math.hypot(dx, dz));
         return facing <= 0 ? Infinity : this.distance(cell, feet) / (facing * facing);
       };
-      const next = candidates.slice(0, 8).filter(cell => !this.residents.has(cell.instance) && !this.issues.has(cell.instance))
+      const next = candidates.slice(0, 8).filter(cell => !this.issues.has(cell.instance))
         .map(cell => ({ cell, score: score(cell) })).filter(row => Number.isFinite(row.score)).sort((m, n) => m.score - n.score)[0]?.cell;
-      if (next !== undefined) void background(next.instance, this.ensure(next.instance, true), () => !this.disposed);
+      if (next !== undefined && !this.residents.has(next.instance) && this.retireWarmSource(next.instance)) void background(next.instance, this.ensure(next.instance, true), () => !this.disposed);
     }
     // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the

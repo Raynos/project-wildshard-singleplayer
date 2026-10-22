@@ -155,7 +155,7 @@ test('warm: the neighbour built ahead stays whole however long the traveller sta
   } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
 });
 
-test('warm: after a road crossing, the next neighbour builds ahead beside the kept source', async () => {
+test('warm: the next neighbour retires the kept source before building', async () => {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assembly = new GridAssembly({ developer: false, devserver: false });
   const home = assembly.cell('driftwood-isle');
@@ -192,7 +192,7 @@ test('warm: after a road crossing, the next neighbour builds ahead beside the ke
     player.position.x = CHUNK_HALF - 20; player.position.z = 0; travel(live, player.position, 1, 0); await settle();
     expect(live.state().transitions.slice(-2)).toEqual([{ from: home.instance, to: null }, { from: null, to: east.instance }]);
     expect(created).toEqual([home.instance, east.instance, beyond.instance]);
-    expect(live.state().residents).toEqual([home.instance, east.instance, beyond.instance].sort());
+    expect(live.state().residents).toEqual([east.instance, beyond.instance].sort());
     expect(live.state().issues).toEqual({});
   } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
 });
@@ -280,4 +280,110 @@ test('warm: crossing into another cell abandons the build-ahead and builds the d
     // no issue: the abandoned cell builds again when the traveller heads for it
     expect(live.state().issues).toEqual({});
   } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
+});
+
+async function keptSourceFixture() {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
+  const current = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
+  const next = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === assembly.pitch);
+  if (current === undefined || next === undefined) throw new Error('Missing warm route');
+  const page = createSimHost(level, { rapier }), residency = new PageResidency(), events: string[] = [];
+  const allocated: { instance: string; owners: string[] }[] = [], control = { save: true, dispose: true, checkpoints: 0 };
+  const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  const live = new LiveGridHost(assembly, {
+    home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
+    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
+    prefetchable: cell => [home.instance, current.instance, next.instance].includes(cell.instance),
+    readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
+      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
+    admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+      create: () => {
+        allocated.push({ instance: cell.instance, owners: [...residency.allocator.claims()].map(row => row.owner) });
+        events.push(`create:${cell.instance}`);
+        const host = createSimHost(level, { rapier, playerBody: false, ground: false });
+        return Promise.resolve({ host, checkpoint: () => {
+          if (cell.instance !== home.instance) return true;
+          control.checkpoints++; return control.save;
+        }, dispose: () => { host.dispose(); }, *retire() {
+          events.push(`retire:${cell.instance}`);
+          yield { scope: cell.instance, kind: 'disposers' } as const;
+          if (cell.instance === home.instance && !control.dispose) throw new Error('kept disposal refused');
+          host.dispose(); events.push(`disposed:${cell.instance}`);
+        } });
+      } }),
+  });
+  const enterHome = await live.prepare(null, home.instance); enterHome.commit();
+  const leaveHome = await live.prepare(home.instance, null); leaveHome.commit();
+  const enterCurrent = await live.prepare(null, current.instance); enterCurrent.commit();
+  const move = (): void => {
+    player.position.x = 0; player.position.z = CHUNK_HALF - 20;
+    travel(live, player.position, 0, 1);
+  };
+  const enterNext = async (): Promise<void> => {
+    const leave = await live.prepare(current.instance, null); leave.commit();
+    const enter = await live.prepare(null, next.instance); enter.commit();
+  };
+  return { live, home, current, next, events, allocated, control, move, enterNext,
+    close: () => { control.save = true; control.dispose = true; live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); },
+    claims: () => [...residency.allocator.claims()],
+    turnBack: () => { player.position.x = -CHUNK_HALF + 20; player.position.z = 0; travel(live, player.position, -1, 0); },
+  };
+}
+
+test('warm: the next build retires the kept source and releases its claim before allocating', async () => {
+  const f = await keptSourceFixture();
+  try {
+    expect(f.live.state().residents).toEqual([f.home.instance, f.current.instance].sort());
+    f.move();
+    expect(f.live.current()).toBe(f.current.instance);
+    await f.enterNext();
+    expect(f.live.state().residents).toEqual([f.current.instance, f.next.instance].sort());
+    expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.next.instance}`));
+    const next = f.allocated.find(row => row.instance === f.next.instance);
+    expect(next?.owners).toContain(f.current.instance);
+    expect(next?.owners).not.toContain(f.home.instance);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.close(); }
+});
+
+test('warm: a refused source checkpoint blocks speculation without repeated saves until retry', async () => {
+  const f = await keptSourceFixture();
+  try {
+    f.control.save = false; f.move(); f.move();
+    expect(f.control.checkpoints).toBe(1);
+    expect(f.allocated.map(row => row.instance)).toEqual([f.home.instance, f.current.instance]);
+    expect(f.claims().some(row => row.owner === f.home.instance && row.bytes === 1000)).toBe(true);
+    expect(f.live.state().issues).toEqual({});
+    f.control.save = true; f.live.retry(f.home.instance); f.move();
+    await f.enterNext();
+    expect(f.allocated.map(row => row.instance)).toEqual([f.home.instance, f.current.instance, f.next.instance]);
+  } finally { f.close(); }
+});
+
+test('warm: throwing kept-source disposal stays fully charged and prevents a new allocation', async () => {
+  const f = await keptSourceFixture();
+  try {
+    f.control.dispose = false; f.move();
+    await expect(f.enterNext()).rejects.toThrow('successful disposal');
+    expect(f.allocated.map(row => row.instance)).toEqual([f.home.instance, f.current.instance]);
+    expect(f.claims().some(row => row.owner === f.home.instance && row.bytes === 1000)).toBe(true);
+    expect(f.claims().some(row => row.owner === f.next.instance)).toBe(false);
+    expect(f.live.state().issues[`cleanup:${f.home.instance}`]).toContain('kept disposal refused');
+  } finally { f.close(); }
+});
+
+test('warm: turning toward the already kept source reuses it without a farther speculative build', async () => {
+  const f = await keptSourceFixture();
+  try {
+    f.turnBack();
+    expect(f.control.checkpoints).toBe(0);
+    const leave = await f.live.prepare(f.current.instance, null); leave.commit();
+    const enter = await f.live.prepare(null, f.home.instance); enter.commit();
+    expect(f.allocated.map(row => row.instance)).toEqual([f.home.instance, f.current.instance]);
+    expect(f.events.filter(event => event.startsWith('retire:'))).toEqual([]);
+    expect(f.live.state().residents).toEqual([f.home.instance, f.current.instance].sort());
+  } finally { f.close(); }
 });
