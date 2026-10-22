@@ -388,6 +388,7 @@
         "src/shards/nalati-grasslands/behaviour/balbal.as",
         "src/shards/nalati-grasslands/data/bodies.json",
         "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
+        "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
         "public/assets/nalati/baked/bodies.bin",
         "src/sdk",
         "src/format",

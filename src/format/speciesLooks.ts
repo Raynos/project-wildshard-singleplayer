@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { isJsonData } from './json';
 import { SpeciesSchema } from './speciesPrograms';
 import { SkinClipNameSchema } from './skinData';
-import { NumericPoseSchema } from './clientChannels';
+import { ClientChannelsSchema, NumericPoseSchema } from './clientChannels';
 import { RidingPresentationSchema } from './riding';
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(4096)),number=v.pipe(v.number(),v.finite()),rgb=v.tuple([number,number,number]);
@@ -48,9 +48,15 @@ export const HullLookBookSchema = v.pipe(v.unknown(), v.check(isJsonData), v.str
   })), v.maxLength(256)) }));
 /** An admitted hull look book (the `look/hull-book` section). */
 export type HullLookBookRows = v.InferOutput<typeof HullLookBookSchema>;
+/** G600 L8: a look's channel frame: its `observe` and `surface` programme groups write only private memory (the surface
+ *  group also the body's lift) over a per-animal copy of the rig holding `memory`, the smoothed inputs, the death floor
+ *  and the head's look angles ([eye height, max yaw, max pitch]); its `pose` group then poses the joints. */
+export const LookFrameSchema = v.strictObject({ programs: ClientChannelsSchema, surface: text, observe: text, pose: text,
+  look: v.tuple([number, number, number]), smooth: v.pipe(v.array(v.strictObject({ input: text, output: text, initial: v.nullable(number) })), v.maxLength(16)),
+  floor: v.strictObject({ lift: text, death: text }), memory: v.record(text, number) });
 /** Client-only rest looks over an admitted packed body and numeric joint poses. */
 export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
-  poses: v.record(text, NumericPoseSchema),
+  poses: v.record(text, NumericPoseSchema), frames: v.optional(v.record(text, LookFrameSchema), {}),
   rows: v.pipe(v.array(v.strictObject({ id: text, species: text, kind: text, skeleton: text,
     sockets: v.array(text), clips: v.array(SkinClipNameSchema), pose: v.exactOptional(text),
     rig: v.exactOptional(v.picklist(['quadruped', 'custom'])), family: v.exactOptional(text),
@@ -73,6 +79,8 @@ export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData)
     // the look's own frame: a `poses` programme run as its animate, wearing its attachments (skinned meshes on its body,
     // each a baked geometry of its product in a self-lit colour, named for the views that address it)
     animate: v.exactOptional(text),
+    // or a `frames` channel frame run as its animate (never both)
+    frame: v.exactOptional(text),
     attachments: v.exactOptional(v.pipe(v.array(v.strictObject({ name: text, file: text, colour: rgb, geometry: v.strictObject({
       attrs: v.pipe(v.array(v.tuple([text, v.picklist(['f32', 'u16']), v.pipe(number, v.integer(), v.minValue(1), v.maxValue(4)), v.boolean()])), v.minLength(1), v.maxLength(8)),
       count: v.pipe(number, v.integer(), v.minValue(1)), index: v.literal('u32'), indexCount: v.pipe(number, v.integer(), v.minValue(3)), box: v.boolean() }) })), v.minLength(1), v.maxLength(4))),

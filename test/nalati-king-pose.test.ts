@@ -7,12 +7,15 @@ import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { Rng } from '../src/engine/core/rng';
 import { nalatiLooks } from '../src/shards/nalati-grasslands/species/catalogue';
-import { animateGoldenKing, nalatiBehaviour } from '../src/shards/nalati-grasslands/species/presentation';
+import { nalatiBehaviour } from '../src/shards/nalati-grasslands/species/presentation';
 import { animateKing } from './fixtures/nalati-king-pose';
+import { legacyDouble } from './fake/FakeGame';
+import type { Animal } from '../src/engine/entities/AnimalView';
+import type { RigAnimCtx } from '../src/engine/entities/species/registry';
 
 const names = ['body', 'spine', 'chest', 'head', 'crown', 'cape', ...['L', 'R'].flatMap(side =>
   ['sh', 'el', 'hand'].map(joint => `arm${side}_${joint}`).concat(['hip', 'knee', 'foot'].map(joint => `leg${side}_${joint}`)))];
-function context(): AnimalRigContext {
+function context(): AnimalRigContext & { bones: Record<string, Bone> } {
   const mem: Record<string, number> = {}, position = new Vector3(3, 140, 8);
   return { bones: Object.fromEntries(names.map(name => [name, new Bone()])), dims: { bodyY: 1, bodyHalfLen: 1, bodyRadius: .4, headRadius: .3, legLen: 1, feet: [], halfWidth: .4 },
     dt: 1 / 30, t: 1, seed: .7, scale: 1, speed: .4, strafe: .2, phase: .3, state: 'alert', alive: true,
@@ -23,6 +26,9 @@ function transforms(c: AnimalRigContext): number[] { return Object.values(c.bone
 
 test('King pose rows retain every joint through the full fight and its reset', () => {
   setTerrainHeight(() => 0);
+  // the King's frame is his packed look's channel frame
+  const animateGoldenKing = nalatiLooks().find(look => look.kind === 'golden-king')?.animate;
+  if (animateGoldenKing === undefined) throw new Error('Missing Golden King frame');
   const actual = context(), expected = context();
   for (const pose of [0, 1, 2]) for (const act of [0, 1, 2, 3, 4]) for (const strike of [0, 1, 2, 3])
     for (const attack of [-1, 0, .2, .55, .62, .72, .78, .88, 1]) for (const deathT of [-1, 0, .4, 1]) {
@@ -32,7 +38,7 @@ test('King pose rows retain every joint through the full fight and its reset', (
         c.attack = attack; c.deathT = deathT; c.alive = deathT < 0;
         c.t += .037; c.phase = (c.phase + .117) % 1; c.speed = Math.sin(c.t) * 2.4;
       }
-      animateKing(expected); animateGoldenKing(actual);
+      animateKing(expected); animateGoldenKing(legacyDouble<RigAnimCtx>({ ...actual, animal: legacyDouble<Animal>(actual.animal) }));
       const wanted = transforms(expected);
       transforms(actual).forEach((value, i) => expect(value, `${pose}/${act}/${strike}/${attack}/${deathT} scalar ${i}`).toBeCloseTo(wanted[i] ?? Number.NaN, 12));
       expect(actual.animal.yOffset).toBe(expected.animal.yOffset);

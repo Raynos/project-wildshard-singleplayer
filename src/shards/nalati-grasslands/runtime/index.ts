@@ -1,6 +1,6 @@
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
-import { prepareNalatiSpecies,prepareGoldenKing } from '../species/presentation';
+import { prepareNalatiSpecies } from '../species/presentation';
 import { productHullBook } from '@wildshard/game/looks/speciesBook';
 
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -36,10 +36,8 @@ export class NalatiPlugin extends ShardPlugin {
     // the look.materials graphs (data/lookGraphs.json: the camp smoke), compiled and lent before the places draw on them
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials).filter(id=>!hasLentLook(id))));
     await step('cabins', () => undefined);
-    if (ctx.product.shardfile.clientChannels === undefined) throw new Error('Missing Golden King pose rows');
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
     prepareNalatiSpecies(actorRows.species, productHullBook(ctx.product), await ctx.product.json('actors/species-looks.json'));
-    prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     await arsenal.blade.prepare(ctx.product);
     await arsenal.polearm.prepare(ctx.product);

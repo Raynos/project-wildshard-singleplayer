@@ -4,6 +4,7 @@ import speciesRows from '../data/speciesRows.json' with {type:'json'};
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 import SPECIES_LOOK_ROWS from '../data/speciesLooks.json' with { type: 'json' };
 import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
+import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
 import { inflateSync, deflateSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -110,11 +111,16 @@ const lookRow=row=>{
   // G600 L8: the balbal's and the eagle's frames are their pose programmes; the balbal wears its glowing cracks (the
   // creature view module colours the 'balbal-cracks' part)
   if(row.metadata.kind==='balbal'||row.metadata.kind==='eagle')look.animate=row.metadata.kind;
+  if(row.metadata.kind===speciesRows.king.kind)look.frame='king';
   if(row.metadata.kind==='balbal')look.attachments=[{name:'balbal-cracks',file:'actors/balbal-cracks.bin',colour:[1,.46,.1],geometry:crackRow}];
   return look;
 };
-const looks={poses:SPECIES_POSES,rows:SPECIES_LOOK_ROWS.map(lookRow)};
+// the Golden King's frame: his surface, observation and pose programmes (bake-kurgan) over his frame rows
+const {kingFrame,kingPoseDefaults}=speciesRows;
+const frames={king:{programs:kingPose.programs,surface:'king.surface',observe:kingFrame.group,pose:kingPose.group,look:kingFrame.look,
+  smooth:kingFrame.smooth.map(({input,output,initial})=>({input,output,initial})),floor:{lift:kingFrame.floor.lift,death:kingFrame.floor.death},memory:kingPoseDefaults}};
+const looks={poses:SPECIES_POSES,frames,rows:SPECIES_LOOK_ROWS.map(lookRow)};
 writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,hullBook,looks,crackBytes:Array.from(crackBytes),program}));
-const {balbal,king,slam,kingFrame,kingPoseDefaults}=speciesRows;
-writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes({balbal:{kind:balbal.kind},king:{kind:king.kind},slam,kingFrame,kingPoseDefaults}));
+const {balbal,king,slam}=speciesRows;
+writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes({balbal:{kind:balbal.kind},king:{kind:king.kind},slam}));
 writer.finish();

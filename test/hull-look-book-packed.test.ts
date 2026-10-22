@@ -69,3 +69,14 @@ test("a packed look's frame programme wears its attachments once read, one mesh 
   expect(() => worn.packedLooks({ poses: {}, rows: [row] })).toThrow('Missing species pose programme');
   expect(() => book().packedLooks({ poses: { still }, rows: [row] })).toThrow('need the product files');
 });
+
+test('a channel frame refuses a programme writing a public field, an unknown frame, and an animate beside it', () => {
+  const surface = numericChannelPrograms('lift', 'k.surface', [{ target: 'joint.body', path: ['rotation', 'y'], expr: b => b.constant(1) }]);
+  const pose = numericChannelPrograms('still.pose', 'creature.pose', [{ target: 'joint.body', path: ['rotation', 'x'], expr: b => b.constant(0.25) }]);
+  const frame = { programs: [...surface, ...pose], surface: 'k.surface', observe: 'k.surface', pose: 'creature.pose', look: [1, 1, 0.5], smooth: [], floor: { lift: 'lift', death: 'dead' }, memory: {} };
+  const row = { ...look, family: 'stone', variants: { plain: 'plain' }, frame: 'still' };
+  expect(() => book().packedLooks({ poses: {}, frames: { still: frame }, rows: [row] })).toThrow('must target private visual fields');
+  const still = creaturePoseRows({ group: 'creature.pose', states: [], programs: pose });
+  expect(() => book().packedLooks({ poses: { still }, rows: [row] })).toThrow('runs one known frame');
+  expect(() => book().packedLooks({ poses: { still }, frames: {}, rows: [{ ...row, animate: 'still' }] })).toThrow('runs one known frame');
+});
