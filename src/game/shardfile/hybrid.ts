@@ -438,7 +438,10 @@ export class HybridRuntimeSession {
     const { slug: identity } = resident, { slug: cellIdentity } = cell;
     if (identity !== cellIdentity) throw new Error('Hybrid cell must match its catalogue instance and shard');
     if (this.active?.resident === resident) return this.active.ready;
-    if (preparing && (this.active !== undefined || resident.retainRuntime !== true)) throw new Error('Road preparation requires an inactive retained resident');
+    // G580 T1: warm, the destination builds while the source is still active (never itself), and a leave (the source's,
+    // bumping the generation) does not abort it: only its own scope or the resident's ends it
+    const warm = preparing && setting('warmNeighbour') === 'on';
+    if (preparing && ((this.active !== undefined && (!warm || this.active.resident === resident)) || resident.retainRuntime !== true)) throw new Error('Road preparation requires an inactive retained resident');
     if (!preparing) this.leave();
     const generation = this.generation;
     let construction: (() => void) | undefined, preparingScope: Scope | undefined;
@@ -458,7 +461,7 @@ export class HybridRuntimeSession {
         }
       }
       const Plugin = await this.prepare(cell.instance);
-      if (generation !== this.generation || resident.scope.disposed) return false;
+      if ((!warm && generation !== this.generation) || resident.scope.disposed) return false;
       const scope = resident.scope.child(`runtime:${cell.instance}`), active: ActiveRuntime = { resident, scope, ready: false };
       if (preparing) preparingScope = scope; else this.active = active;
       scope.onDispose(() => { if (this.active === active) this.active = undefined; if (this.retained.get(cell.instance) === active) this.retained.delete(cell.instance); });
@@ -470,7 +473,8 @@ export class HybridRuntimeSession {
       const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context, { deferActivation: preparing || parkedEntry });
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
       const context = hooks?.context ?? installation.context;
-      const live = (): boolean => !scope.disposed && (preparing ? this.active === undefined : this.active === active) && generation === this.generation;
+      const live = (): boolean => !scope.disposed && (preparing ? (warm ? this.active?.resident !== resident : this.active === undefined) : this.active === active)
+        && (warm || generation === this.generation);
       if (preparing || parkedEntry) {
         if (installation.prepareConstruction === undefined) throw new Error('Road preparation requires isolated construction bindings');
         construction = installation.prepareConstruction(context);

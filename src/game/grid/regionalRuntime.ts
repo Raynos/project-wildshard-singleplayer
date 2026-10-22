@@ -1,4 +1,5 @@
 import {bindEquipmentActors} from '../loadout/actors';
+import { freezeParkedMatrices } from '@wildshard/engine/render/precompile';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientHomeBytes } from '../shardfile/clientResidency';
@@ -118,6 +119,9 @@ export interface PreparedRegionalRuntime {
   /** Its own scoped runtime's interact prompts (frame-local; emptied on entry, ended with the runtime); callers scan them
    *  only while this runtime is ready and entered (`enteredRuntime`). Empty before the runtime's context exists. */
   readonly interactables: () => readonly ShardRuntime['interactables'][number][];
+  /** G580 T1: a neighbour built ahead stays parked (invisible) while the traveller is still in its source: stop its subtree's
+   *  per-frame matrix updates while it is hidden (they resume whenever it shows; sp-o5's freezeParkedMatrices). Once. */
+  readonly park?: () => void;
   /** Actual actor-object provenance in the retained region; repeated IDs in parked neighbours grant no permission. */
   readonly combatActors: () => ReadonlyMap<ReturnType<AnimalManager['animals'][number]['combatActor']>, Readonly<{ x: number; y: number; z: number }>>;
 }
@@ -364,12 +368,14 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             },
           };
         } };
+      let parked = false;
       return { resident, get warmPreparation() {
         const trace = request.page.world.game.entryPreparation;
         return !scope.disposed && trace?.root === view.root.uuid ? trace : null;
       }, region: { ...foundation.region, dispose: () => { scope.dispose(); }, retire: () => retireRegion(view.root, scope) }, queries: view.queries, checkpoint,
         aimAnimals: () => localPlay?.animals.animals ?? [],
         interactables: () => localRuntime?.interactables ?? [],
+        park: () => { if (!parked) { parked = true; freezeParkedMatrices(view.root); } },
         combatActors: () => new Map((localPlay?.animals.animals ?? []).map(animal => [animal.combatActor(), animal.position])),
         loadout: { checkpoint, stow: () => {
           stowed = true;

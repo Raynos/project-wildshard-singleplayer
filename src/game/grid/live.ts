@@ -58,6 +58,10 @@ export interface LiveGridPorts {
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
    *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
   prefetchable?: (cell: GridCell) => boolean;
+  /** G580 T1 (the Developer row warmNeighbour): owned worlds overlap. The approached cell builds whole (warm-up included)
+   *  while the traveller is still in the source, and a departed source stays resident until the cold-dwell rule retires it,
+   *  so a crossing is the retained runtime's re-activation. Absent or false: one owned world at a time. */
+  warmNeighbour?: () => boolean;
   save: (instance: string, snapshot: SimSnapshot) => boolean;
   /** The same save in stages (each `yield` may wait a frame) for {@link LiveGridHost.checkpointSteps}; absent saves in one stage. */
   saveSteps?: (instance: string, snapshot: SimSnapshot) => Generator<undefined, boolean>;
@@ -291,6 +295,8 @@ export class LiveGridHost {
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
+  /** G580 T1: owned worlds overlap (the Developer row warmNeighbour). */
+  private warm(): boolean { return this.ports.home.mode === 'owned' && this.ports.warmNeighbour?.() === true; }
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
   private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>): Promise<void> {
     const instance = cell.instance;
@@ -301,7 +307,9 @@ export class LiveGridHost {
       admission = admitted;
       this.assertAlive();
       if (this.ports.home.mode === 'owned') {
-        if (this.active !== null || [...this.residents.values()].some((row) => row.exclusiveRuntime || row.disposalFailed)
+        // G580 T1: warm, owned worlds overlap (the resident limit still bounds them); a failed disposal still blocks
+        const warm = this.warm(), failed = [...this.residents.values()].some((row) => row.disposalFailed === true);
+        if (warm ? failed : this.active !== null || [...this.residents.values()].some((row) => row.exclusiveRuntime || row.disposalFailed)
           || (admitted.exclusiveRuntime === true && this.residents.size > 0)) throw new Error('Exclusive runtime awaits source departure and successful disposal');
         this.products.delete(instance);
       }
@@ -413,6 +421,16 @@ export class LiveGridHost {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
       if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
+    // G580 T1: still inside the source, the nearest neighbour builds whole now (one at a time), so the wall is
+    // open and its runtime parked by the time the traveller reaches it (the crossing re-activates it).
+    // One neighbour at a time beside the source just left: a second build would only queue in front of the crossing.
+    const lastSource = this.transitions.at(-1)?.from ?? null;
+    const ahead = [...this.residents.keys()].some(id => id !== this.active && id !== lastSource);
+    if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0 && this.warm() && !ahead) {
+      // the nearest neighbour, whatever its readiness reach: inside a source a player can stand for minutes
+      const next = nearby.find(cell => !this.residents.has(cell.instance) && !this.issues.has(cell.instance));
+      if (next !== undefined) void background(next.instance, this.ensure(next.instance), () => !this.disposed);
+    }
     // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
@@ -445,9 +463,11 @@ export class LiveGridHost {
         if (this.distance(approach, feet) <= reach) {
           // A turn replaces any speculative world, including a declarative copy, only after durable disposal succeeds.
           // Never overlap opaque worlds, retry a failed save each tick, or discard an in-flight crossing reservation.
-          for (const [instance] of this.residents) if (instance !== approach.instance
+          // G580 T1: warm, the departed source stays (the cold-dwell rule retires it); the destination may already be resident
+          const warm = this.warm();
+          if (!warm) for (const [instance] of this.residents) if (instance !== approach.instance
             && !this.roadRetirementRefused.has(instance) && !this.retire(instance)) this.roadRetirementRefused.add(instance); // O20: in steps
-          if (this.residents.size === 0) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
+          if (warm ? !this.residents.has(approach.instance) : this.residents.size === 0) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
         }
       }
     }
@@ -583,11 +603,12 @@ export class LiveGridHost {
     if (this.ports.home.mode === 'owned' && from === null && to !== null) {
       // A speculative approach can still be building when the traveller turns toward another cell.
       // Retire it after it becomes resident, before the next foundation acquires a claim or allocates.
-      await this.sequence;
+      // G580 T1: warm, a destination already parked (built ahead) waits for no other cell's admission
+      if (!(this.warm() && this.residents.has(to) && this.ready(to))) await this.sequence;
       this.assertAlive();
       if (this.current() !== from) throw new Error('Stale live frame preparation');
-      // O20: retired in steps; the destination's admission below waits for them (`sequence`)
-      for (const instance of this.residents.keys()) if (instance !== to && !this.retire(instance)) throw new Error('Previous region is not durably retired');
+      // O20: retired in steps; the destination's admission below waits for them (`sequence`). G580 T1: warm, they stay.
+      if (!this.warm()) for (const instance of this.residents.keys()) if (instance !== to && !this.retire(instance)) throw new Error('Previous region is not durably retired');
     }
     if (to !== null) await this.ensure(to);
     if (this.active !== from || !this.ready(to)) throw new Error('Unready live frame preparation');
