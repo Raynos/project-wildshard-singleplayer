@@ -96,7 +96,9 @@ export interface AdmittedProduct {
 
 // Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
 function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): NonNullable<AdmittedProduct['releaseTransport']> {
-  const bound = new Set([...runtimeBoundWorldFiles(source), ...runtimeOnlyProductFiles(source), ...neighbourProductFiles(source)]), files = new Map(source.files.map(file => [file.hash, file]));
+  // The releasable set walks the whole product (~60 ms at 4x CPU): built on the first release, not on every admission.
+  let bound: ReadonlySet<string> | undefined;
+  const files = new Map(source.files.map(file => [file.hash, file]));
   const base = new URL('.', options.base).href, cache = options.cache, hash = options.hash;
   return async (refs, reread) => {
     const requested = [...new Set(refs)];
@@ -106,6 +108,7 @@ function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, op
     // Do not pin the whole grid in the bounded disk cache; offline owners still require durable bytes.
     const canFetch = reread === 'cache-or-fetch' && !options.offline;
     if (cache === undefined && !canFetch) return released;
+    bound ??= new Set([...runtimeBoundWorldFiles(source), ...runtimeOnlyProductFiles(source), ...neighbourProductFiles(source)]);
     for (const ref of requested) {
       if (!bound.has(ref)) continue;
       const file = files.get(ref);
