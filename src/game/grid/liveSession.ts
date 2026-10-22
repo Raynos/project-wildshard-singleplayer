@@ -28,6 +28,7 @@ import { createProgramKeeper, retainRendererPrograms, RETAINED_PROGRAM_BYTES, RE
 import { installBootProgramChoice } from './bootPrograms';
 import { installShaderWarmChoice } from './keptPrograms';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
@@ -161,6 +162,18 @@ const PLATFORM_LEVEL: SimLevel = { version: SIM_API_VERSION, id: 'platform.highw
   weapon: { id: 'platform.hands', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
 /** The home cell's G68 loadout: stow silently to hands at the border, restore the shard's weapon on re-entry. */
+/** G598: a build-ahead abandoned for another crossing frees its half-built region as a crossing's retirement does (O20):
+ *  its stepped disposal under the loading slice, never one long frame (Driftwood's entry drive held 206 ms here). */
+async function disposeInSteps(region: PreparedRegionalRuntime['region']): Promise<void> {
+  const retire = region.retire;
+  if (retire === undefined) { region.dispose(); return; }
+  const slice = workSlice(), steps = retire();
+  let stretch = diagnosticNow();
+  for (let step = steps.next(); step.done !== true; step = steps.next()) {
+    if (diagnosticNow() - stretch >= WORK_SLICE_MS) { await slice.yield(); stretch = diagnosticNow(); }
+  }
+}
+
 function homeLoadout(equipment: EquipmentService, scope: Scope, checkpoint: () => boolean, stowMount: () => void): GridLoadout {
   let before: { stowed: boolean; tools: readonly { tool: EquipmentService['tools'][number]; enabled: boolean }[] } | undefined;
   return {
@@ -796,7 +809,7 @@ export class LiveGridSession {
       }
       catch (error) {
         this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
-        try { prepared.region.dispose(); } finally { saved.unbind(); }
+        try { await disposeInSteps(prepared.region); } finally { saved.unbind(); }
         throw error;
       }
       let disposalFailure: Error | undefined;
