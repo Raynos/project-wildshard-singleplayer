@@ -47,7 +47,7 @@ export class NalatiPlugin extends ShardPlugin {
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     await arsenal.blade.prepare(ctx.product);
     await arsenal.polearm.prepare(ctx.product);
-    await prepareWeaponCatalogue();
+    await prepareWeaponCatalogue(ctx.product);
     publishEntryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal', arsenal);
     shell.objects['nalati'] = this.rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)

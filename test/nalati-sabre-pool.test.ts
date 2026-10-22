@@ -56,8 +56,7 @@ test('Nalati gear rows decode all eight cards and independent bow paints', async
   const { SkyRig } = await import('../src/engine/world/skyRig');
   const { Rng } = await import('../src/engine/core/rng');
   const { Object3D, Mesh, Vector3, BufferGeometry, BufferAttribute } = await import('three');
-  const { default: gear } = await import('../src/shards/nalati-grasslands/boot/gear.generated.json');
-  expect(gear.loadout).toEqual(loadout);
+  const { default: gear } = await import('../src/shards/nalati-grasslands/data/gear.generated.json');
   const bake = parse(PackedSpecimenSchema, gear.packed);
   const bytes = unshuffleLanes(new Uint8Array(inflateSync(readFileSync(`public${gear.packed.bin}`))));
   expect(bytes.length).toBe(gear.packed.bytes);

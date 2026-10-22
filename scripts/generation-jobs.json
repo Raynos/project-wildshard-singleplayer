@@ -20892,7 +20892,7 @@
       ],
       "outputs": [
         "public/assets/nalati/baked/gear-specimens.bin",
-        "src/shards/nalati-grasslands/boot/gear.generated.json",
+        "src/shards/nalati-grasslands/data/gear.generated.json",
         "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json",
         "src/shards/nalati-grasslands/boot/bowTrail.generated.json",
         "src/shards/nalati-grasslands/boot/bowVariant.generated.json",
@@ -20900,7 +20900,7 @@
       ],
       "buildTimeOutputs": [
         "public/assets/nalati/baked/gear-specimens.bin",
-        "src/shards/nalati-grasslands/boot/gear.generated.json",
+        "src/shards/nalati-grasslands/data/gear.generated.json",
         "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json",
         "src/shards/nalati-grasslands/boot/bowTrail.generated.json",
         "src/shards/nalati-grasslands/boot/bowVariant.generated.json",

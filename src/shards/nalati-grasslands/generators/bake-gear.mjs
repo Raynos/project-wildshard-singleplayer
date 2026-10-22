@@ -72,7 +72,8 @@ try {
   writer.put(resolve(root, 'public/assets/nalati/baked/gear-specimens.bin'), deflateSync(lanes, { level: 9 }));
   const loadout=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/loadout.json'),'utf8')),variants=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/legendaryWeapons.json'),'utf8'));
   loadout.variants=Object.fromEntries([['bow','goldenBow'],['blade','naizagai']].map(([name,key])=>[name,{id:`weapon.${variants[key].id}`,name:variants[key].name}]));
-  writer.put(resolve(import.meta.dirname, '../boot/gear.generated.json'), jsonBytes({ catalogue, materials, loadout, variants: JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/legendaryWeapons.json'), 'utf8')),
+  // build-time data (generators read it; play code reads the product's models/gear-book.json); the loadout is its own file
+  writer.put(resolve(import.meta.dirname, '../data/gear.generated.json'), jsonBytes({ catalogue, materials, variants: JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/legendaryWeapons.json'), 'utf8')),
     packed: { bin: '/assets/nalati/baked/gear-specimens.bin', bytes: bytes.length, rows } }));
   writer.put(resolve(import.meta.dirname,'../boot/mountedLoadout.generated.json'),jsonBytes(loadout));
   writer.put(resolve(import.meta.dirname,'../boot/bowTrail.generated.json'),jsonBytes(JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'))));

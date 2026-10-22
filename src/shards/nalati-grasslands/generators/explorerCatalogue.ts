@@ -4,6 +4,7 @@ import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import PEOPLE from '../data/peopleVariants.json' with {type:'json'};
 import { peopleRows } from './peopleRows.mjs';
 import mountedSpecimen from '../data/mountedSpecimen.json' with {type:'json'};
+import gear from '../data/gear.generated.json' with {type:'json'};
 
 /** the camp's five, each its own merged atlas (the live camp draws them as one) */
 const campAtlases = Object.fromEntries(PEOPLE.map(person => {
@@ -137,5 +138,9 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
     {kind:'mounted',specimen:mountedSpecimen,copies:1,drawnAs:'skinned'},
     // the gloved hands in the river (E348)
     {kind:'engine',model:'swim-hands',copies:1},
+    // the gear its player holds (bow and its arrows · sabre · spear and its javelins, the Golden Bow and the Naizagai once
+    // won, the AR-15): the product's gear book
+    ...gear.catalogue.map(row=>{const card={kind:'specimen',books:{phone:'models/gear-book.json',desktop:'models/gear-book.json'},model:row.key,copies:row.copies};
+      return row.drawnAs==='instanced'?Object.assign(card,{drawnAs:'instanced'}):card;}),
   ]
 });

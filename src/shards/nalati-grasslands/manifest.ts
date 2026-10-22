@@ -24,7 +24,6 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
   ktx2: () => import('./ktx2.generated'),
   render: async () => (await import('./look/render')).shardRender(),
-  roster: async () => (await import('./roster')).ROSTER,
 };
 // oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
 export default NALATI_GRASSLANDS;

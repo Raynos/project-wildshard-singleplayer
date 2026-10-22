@@ -4,7 +4,7 @@ import { MountedLoadoutSchema } from '../src/format/loadout';
 import { Scope } from '../src/engine/app/scope';
 import { MountedArsenal } from '../src/game/loadout/mounted';
 import nalati from '../src/shards/nalati-grasslands/boot/mountedLoadout.generated.json' with {type:'json'};
-import gear from '../src/shards/nalati-grasslands/boot/gear.generated.json' with {type:'json'};
+import gear from '../src/shards/nalati-grasslands/data/gear.generated.json' with {type:'json'};
 
 test('the entered kit retains its authored native slots and reward identities',()=>{
   const arsenal=new MountedArsenal(nalati);
