@@ -9,9 +9,7 @@ import paintedTextures from '../boot/paintedTextures.generated.json' with { type
 import captureRows from '../boot/staticCapture.generated.json' with { type: 'json' };
 import metadata from '../bootMetadata.generated.json' with { type: 'json' };
 import { gradeUniforms } from './grade';
-import { fogLut, tint } from './render';
-import { grassProfile } from './field';
-import { bakeUniforms } from './capture';
+import { paintedWorldOf } from '@wildshard/game/looks/paintedWorld';
 
 export interface LookV2Ctx {
   game: Game; sky: Sky; weather: NalatiWeather;
@@ -25,7 +23,7 @@ export interface LookV2Ctx {
 /** Nalati's painterly world (game/looks/painterlyLook): the panorama, the painter's key, the static capture and the grass's mood,
  *  from the boot rows, hearing the grade and the live re-grade (render.ts `tint`) and following the weather's hour and storm. */
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
-  const { game, sky, weather } = ctx, rows = paintedTextures;
+  const { game, sky, weather } = ctx, rows = paintedTextures, { fogLut, tint, grass: grassProfile, bake: bakeUniforms } = paintedWorldOf('nalati-grasslands');
   // the grade graph's live uniforms (look/grade.ts), lent to the post-graph look before it composes
   lendUniforms(game.levelScope, 'nalati-grade', gradeUniforms);
   const uniforms = Object.fromEntries(Object.entries({ ...gradeUniforms, uV2KeyTint: tint.key, uV2Moon: tint.moon, uV2Light: tint.light, uV2Veil: tint.veil, uV2VeilCol: tint.veilColour, uV2Flash: tint.flash }).filter(([key]) => key !== 'uV2LookSat'));

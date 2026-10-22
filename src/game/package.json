@@ -275,6 +275,7 @@
     "./riding/mount": "./riding/mount.ts",
     "./boss/arenaRoom": "./boss/arenaRoom.ts",
     "./boss/arenaScript": "./boss/arenaScript.ts",
+    "./looks/paintedWorld": "./looks/paintedWorld.ts",
     "./looks/postGraphLook": "./looks/postGraphLook.ts",
     "./looks/scaledPost": "./looks/scaledPost.ts",
     "./grapple/tool": "./grapple/tool.ts",

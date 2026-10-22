@@ -31,7 +31,7 @@ import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { creatureGuest } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { wireLookV2 } from '../look/index';
-import { reseedGrassV2 } from '../look/field';
+import { paintedWorldOf } from '@wildshard/game/looks/paintedWorld';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
 import type { CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
@@ -86,7 +86,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
-  reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
+  paintedWorldOf('nalati-grasslands').grass.reseed(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
   await bindClientPlaceSets(plugin,dressing.placedGroups(),dressing.placed);
   groups['dressing'] = dressing.group;
   await slice(++completed, total, 'Dressing');
