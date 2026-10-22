@@ -2,7 +2,6 @@ import { expect, test } from 'vitest';
 import { parseUiStrings } from '../src/format/uiStrings';
 import { parseWorldPhysics } from '../src/format/worldPhysics';
 import { emitPlatformSections, worldPhysicsSection } from '../src/sdk/platformSections';
-import { nativeBodySpecSchema, nativeColliderSchema, nativeGroundSchema } from '../src/game/population/nativeBake';
 import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '../src/format/nativePhysics';
 import * as v from 'valibot';
 import pine from '../src/shards/pine-hollow/data/physics.generated.json';
@@ -45,14 +44,14 @@ test('native physics emission preserves both worlds without retaining owner meta
   expect('habitat' in driftwood).toBe(true);
 });
 
-test('SDK native intake facades retain the defining format verdicts and provenance refusals', () => {
+test('native format intake retains original body, collider and lattice facts and provenance refusals', () => {
   const actor = pine.actors[0];
   const rawSolid: unknown = pine.solids[0];
   const solid = v.parse(nativeColliderRecordSchema([1, 2, 6, 9], 'piece'), rawSolid);
   if (actor === undefined) throw new Error('Missing native fixture');
-  expect(v.parse(nativeBodySpecSchema('segments'), actor.spec)).toEqual(v.parse(nativeBodySchema('segments'), actor.spec));
-  expect(v.parse(nativeColliderSchema([1, 2, 6, 9], 'piece'), solid)).toEqual(v.parse(nativeColliderRecordSchema([1, 2, 6, 9], 'piece'), solid));
-  expect(v.parse(nativeGroundSchema(256), pine.ground)).toEqual(v.parse(nativeGroundRecordSchema(256), pine.ground));
-  expect(() => v.parse(nativeColliderSchema([1, 2, 6, 9], 'piece'), { ...solid, owner: 'foreign' })).toThrow();
-  expect(() => v.parse(nativeGroundSchema(128), pine.ground)).toThrow();
+  expect(v.parse(nativeBodySchema('segments'), actor.spec)).toEqual(actor.spec);
+  expect(solid).toEqual(rawSolid);
+  expect(v.parse(nativeGroundRecordSchema(256), pine.ground)).toEqual(pine.ground);
+  expect(() => v.parse(nativeColliderRecordSchema([1, 2, 6, 9], 'piece'), { ...solid, owner: 'foreign' })).toThrow();
+  expect(() => v.parse(nativeGroundRecordSchema(128), pine.ground)).toThrow();
 });

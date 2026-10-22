@@ -1,6 +1,7 @@
+import { nativeColliderRecordSchema } from '../src/format/nativePhysics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createNativeBakeReader, nativeColliderSchema, nativeBakeBytes, nativeBakeFloats, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, nativeBakeBytes, nativeBakeFloats, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
 import { prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -79,7 +80,7 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
   expect(value.solids).toHaveLength(baked.solids.length);
   baked.solids.forEach((row, i) => {
     const solid = value.solids[i]; if (solid === undefined) throw new Error('Missing captured solid');
-    const capturedSolid = v.parse(nativeColliderSchema([1,2,6,9],'piece'), row);
+    const capturedSolid = v.parse(nativeColliderRecordSchema([1,2,6,9],'piece'), row);
     expect(solid).toEqual(reader.solid(row));
     expect(solid.at).toEqual(capturedSolid.at); expect(solid.rot).toEqual(capturedSolid.rot);
   });

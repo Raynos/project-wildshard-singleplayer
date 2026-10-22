@@ -6,11 +6,6 @@ import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/sur
 import type { SimHost } from '@wildshard/engine/sim';
 import { ForagerContinuation } from '@wildshard/format/ambientLife';
 
-/** Strict body recipes shared by trusted native bake readers. The declared rig
- * shape retains each producer's field admission; no renderer or body is built. */
-export function nativeBodySpecSchema(rig: 'segments' | 'axis'): v.GenericSchema<unknown, AnimalSimSpec> {
-  return nativeBodySchema(rig);
-}
 /** Decode an owned copy of one native base64 buffer; typed views never share
  * caller storage. Malformed data is refused by atob or its typed-array reader. */
 export function nativeBakeBytes(text: string): Uint8Array<ArrayBuffer> {
@@ -31,10 +26,6 @@ export interface NativeGroundRecord {
   readonly scale: { x: number; y: number; z: number };
   readonly at: { x: number; y: number; z: number };
 }
-/** Admit the original native lattice metadata without renderer allocation. */
-export function nativeGroundSchema(resolution: number): v.GenericSchema<unknown, NativeGroundRecord> {
-  return nativeGroundRecordSchema(resolution);
-}
 /** Decode an owned native heightfield, refusing a different lattice or world scale. */
 export function nativeBakeGround(row: NativeGroundRecord, resolution: number, size: number, label: string): NativeCollisionBake['ground'] {
   const heights = nativeBakeFloats(row.heights);
@@ -48,12 +39,6 @@ export function nativeBakeActors<T extends { readonly id: string; readonly kind:
     if (row.spec.kind !== row.kind || row.spec.variant !== row.variant) throw new Error(`Divergent baked ${label} spec ${row.id}`);
   }
   return rows;
-}
-
-/** Strict raw Rapier bake records. The owner declaration chooses the original
- * provenance namespace and exact admitted collider shapes before decoding. */
-export function nativeColliderSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(shapes: S, owner: 'piece' | 'tagged'): v.GenericSchema<unknown, NativeColliderRecord<S[number]>> {
-  return nativeColliderRecordSchema(shapes, owner);
 }
 
 /** Native collision payload after strict admission and owned typed-buffer decode. */
@@ -144,7 +129,7 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
 }): NativeBakeReader<E> {
   const finite = v.pipe(v.number(), v.finite());
   const body = { id: v.string(), kind: v.string(), variant: v.string(), spec: options.spec, seed: finite, scale: finite };
-  const schema = v.object({ version: v.literal(1), ground: nativeGroundSchema(options.resolution), solids: v.array(options.solid),
+  const schema = v.object({ version: v.literal(1), ground: nativeGroundRecordSchema(options.resolution), solids: v.array(options.solid),
     actors: v.array(v.strictObject({ id: body.id, kind: body.kind, variant: body.variant, herd: finite, spec: body.spec, seed: finite, scale: finite, scripted: v.boolean() })),
     parked: v.exactOptional(v.array(v.strictObject(body))),
     herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
@@ -182,14 +167,14 @@ const nativeIntake=v.strictObject({...lattice,parked:v.boolean(),rig:v.picklist(
 /** Public native admission accepts only stock data profiles, never a validator
  * or owner-check callback. Metadata profiles are compiled into this module. */
 export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeReader<object>{
-  const row=v.parse(nativeIntake,rows);return nativeBakeReader(input,{...row,spec:nativeBodySpecSchema(row.rig),solid:nativeColliderSchema(row.shapes,row.provenance),extra:v.object({})});
+  const row=v.parse(nativeIntake,rows);return nativeBakeReader(input,{...row,spec:nativeBodySchema(row.rig),solid:nativeColliderRecordSchema(row.shapes,row.provenance),extra:v.object({})});
 }
 /** Data-only population-world intake over the same native decoder. Admit the
  * actor and herd joins before publishing poses.
  * The runtime plan retains this result; no module-global world cache exists. */
 export type PopulationBake=NativePhysicsBake & v.InferOutput<typeof populationMetadata>;
 export function readPopulationBake(input:unknown,rows:unknown):PopulationBake{
-  const row=v.parse(populationIntake,rows),bake=nativeBakeReader(input,{...row,parked:false,spec:nativeBodySpecSchema('segments'),solid:nativeColliderSchema([1,2,6,9],'piece'),extra:populationMetadata}).read();
+  const row=v.parse(populationIntake,rows),bake=nativeBakeReader(input,{...row,parked:false,spec:nativeBodySchema('segments'),solid:nativeColliderRecordSchema([1,2,6,9],'piece'),extra:populationMetadata}).read();
   const ids=new Set(bake.actors.map(actor=>actor.id));
   if(ids.size!==bake.actors.length||!bake.herds.every(herd=>herd.members.every(id=>ids.has(id))))throw new Error('Baked population roster is not one id per body');
   if(bake.tops.length!==bake.trees.length)throw new Error('Baked population trees and tops differ in count');
