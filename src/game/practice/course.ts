@@ -35,7 +35,7 @@ class MountedCourseEntry implements CourseEntry {
   private horse: Animal | null = null;
   private readonly rows: MountEntryRows;
   private readonly mount: ReturnType<typeof pageRidingMount>;
-  
+
 
   constructor(private readonly host:PlaygroundHost,rows:MountEntryRows,
     mount:ReturnType<typeof pageRidingMount>,private readonly room:PracticeCourse,map:RoomMap) {
