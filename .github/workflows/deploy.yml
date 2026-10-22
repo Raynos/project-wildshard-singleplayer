@@ -321,6 +321,9 @@ jobs:
           key: generation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: generation-v1-${{ runner.os }}-node24-
       - run: node scripts/gen.mjs --parallel
+      # Keep this isolated runner's newest reusable version of each producer.
+      # The shared Mac keeps its ordinary retention and live-reader protection.
+      - run: node scripts/generation-cache-prune.mjs --keep=1
       - name: Pack exact-run generated inputs
         run: |
           python3 scripts/ci-products.py pack-generated
