@@ -1,4 +1,5 @@
 import type { ShardContext } from '../plugin/context';
+import { installEnteredLevelService } from '../shard/retainedHooks';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { DataPanel } from '../ui/dataPanels';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
@@ -258,6 +259,8 @@ export function createPageRiding(ctx: LevelContext, player: Player, animals: Ani
 /** Client-only native action routing over the entered mount and HUD. */
 function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingOwner, hud: RideHUD, rows: RidingControls): void {
   const input=ctx.app.input, keys=rows.keys;
+  // the page's input contexts are one per id: a retained (grid) runtime defines and pushes its own only while entered
+  installEnteredLevelService(ctx,scope=>{
   ctx.inputContext({id:rows.foot,actions:['ride.whistle','ride.offer'],keys:{'ride.whistle':keys['ride.whistle'],'ride.offer':keys['ride.offer']},touch:{relabel:{},verbs:hud.inputVerbs()}});
   ctx.inputContext({id:rows.mounted,actions:['move.forward','move.back','move.left','move.right','ride.gallop','ride.horseTab','use'],
     keys:{'move.forward':keys['move.forward'],'move.back':keys['move.back'],'move.left':keys['move.left'],'move.right':keys['move.right'],'ride.gallop':keys['ride.gallop']},
@@ -267,7 +270,9 @@ function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingO
     const saved=input.bindings.keys(rows.movement)[move];
     if(saved!==undefined && saved.join('\0')!==input.bindings.keys(rows.breaking)[lean]?.join('\0'))input.bindings.assign(rows.breaking,lean,saved);
   }
-  input.bindings.describe({rows:rows.describe??[]},ctx.scope);input.push(rows.foot,ctx.scope);mount.input=input;taming.setInput(input);
+  input.bindings.describe({rows:rows.describe??[]},scope);input.push(rows.foot,scope);
+  });
+  mount.input=input;taming.setInput(input);
   let mounted=mount.mounted;
   ctx.system({id:'game.riding.input',phase:'input',before:['engine.player.input'],run:()=>{
     if(mounted!==mount.mounted){mounted=mount.mounted;if(mounted)input.push(rows.mounted,ctx.scope);else{input.pop(rows.breaking);input.pop(rows.mounted);if(ctx.app.equipment!==null)ctx.app.equipment.stowed=false;}}

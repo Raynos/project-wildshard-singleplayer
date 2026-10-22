@@ -5,7 +5,7 @@ import { bindPlayerEffects } from '@wildshard/engine/combat/effects/EffectServic
 import type { Vector3 } from 'three';
 
 const ownerBelongsTo = (owner: Scope | null, entered: Scope): boolean => owner?.belongsTo(entered) === true;
-const enteredServices = new WeakMap<ShardContext, (install: (scope: Scope) => void) => void>();
+const enteredServices = new WeakMap<object, (install: (scope: Scope) => void) => void>();
 type InputDefinition = Parameters<ShardContext['inputContext']>[0];
 const residentInputs = new WeakMap<ShardContext, (definition: InputDefinition) => void>();
 const playerBindings = new WeakSet<ShardContext>();
@@ -31,7 +31,9 @@ export function installRetainedPlayerEffects(context: ShardContext, player: {
 }
 
 /** Install a transient service for each home entry; ordinary staged contexts keep their original level scope. */
-export function installEnteredRuntimeService(context: ShardContext, install: (scope: Scope) => void): void {
+export function installEnteredRuntimeService(context: ShardContext, install: (scope: Scope) => void): void { installEnteredLevelService(context, install); }
+/** The same for a level-facing host that holds the trusted context as its LevelContext (riding, page owners). */
+export function installEnteredLevelService(context: { readonly scope: Scope }, install: (scope: Scope) => void): void {
   if (context.scope.disposed) throw new Error('Trusted runtime is disposed');
   const entered = enteredServices.get(context);
   if (entered === undefined) install(context.scope); else entered(install);
@@ -123,6 +125,9 @@ export class RetainedRuntimeHooks {
       answer: (name, fn, options) => { register((scope) => { base.app.events.answer(name, fn, scope, options); }); },
       inputContext: definition => { input(definition, (def, scope) => { base.inputContext(def, scope); }); },
       debug: { expose: (name, value) => { register((scope) => { scope.onDispose(base.app.debug.scopedExpose(name, value)); }); } },
+      // the page's Bag is one per page: a retained runtime's tabs and fragments show only while it is entered
+      bag: { tab: (spec) => { register((scope) => { scope.onDispose(base.game.bag.tab(spec)); }); },
+        fragment: (tab, fragment) => { register((scope) => { scope.onDispose(base.game.bag.fragment(tab, fragment)); }); } },
     };
     enteredServices.set(this.context, register);
     // The entered-input helper historically owns its InputService registration directly, without a level adapter.
