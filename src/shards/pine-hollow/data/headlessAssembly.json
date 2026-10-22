@@ -2,7 +2,6 @@
   "version": 1,
   "modules": {
     "@wildshard/game/population/spawnScript": ["installNativeSpawnScript", "readSpawnScript"],
-    "src/shards/pine-hollow/runtime/baked": ["PINE_GROUND_RES", "pineBake"],
     "@wildshard/engine/physics/navmesh": ["readNavmesh"],
     "@wildshard/engine/world/BakedTerrain": ["bakedSamplers", "parseBakedTerrain"],
     "@wildshard/format/weaponProfiles": ["parseNativeFirearmProfile", "parseWeaponProfile"],
@@ -14,7 +13,7 @@
     "@wildshard/format/lootEconomy": ["parseBarterEconomy"],
     "@wildshard/format/weatherProgram": ["parseWeatherProgram"],
     "@wildshard/sdk/headlessRuntime": ["bindHeadlessCommands"],
-    "@wildshard/game/population/nativeBake": ["installNativeCollision"],
+    "@wildshard/game/population/nativeBake": ["installNativeCollision", "createNativeBakeReader"],
     "@wildshard/game/shardfile/borrowedDecisions": ["nativeDecisionAuthority"],
     "@wildshard/game/population/roster": ["installPopulationRoster"],
     "@wildshard/game/population/environment": ["installPopulationEnvironment"],
@@ -215,16 +214,14 @@
     {"name": "nightRows", "value": {"$call": [{"$ref": ["@wildshard/game/population/spawnScript", "readSpawnScript"]}, {"$ref": ["product"]}, "pine.night"]}},
     { "name": "shelterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/shelter.json"] } },
     { "name": "rosterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/roster.json"] } },
-    {
-      "name": "bake",
-      "value": {
-        "$call": [
-          {
-            "$ref": ["src/shards/pine-hollow/runtime/baked", "pineBake"]
-          }
-        ]
-      }
-    },
+    { "name": "physicsRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "data/physics.generated.json"] } },
+    { "name": "bakeReader", "value": { "$call": [{ "$ref": ["@wildshard/game/population/nativeBake", "createNativeBakeReader"] }, { "$ref": ["physicsRows"] }, {
+      "label": "Pine", "resolution": { "$ref": ["constants", "terrain", "res"] }, "size": { "$ref": ["constants", "terrain", "size"] },
+      "parked": true, "rig": "segments", "shapes": [1, 2, 6, 9], "provenance": "piece"
+    }] } },
+    { "name": "bake", "value": { "$call": [{ "$ref": ["assembly", "merge"] }, {
+      "kingHit": { "$ref": ["physicsRows", "kingHit"] }, "shelterTrees": { "$ref": ["physicsRows", "shelterTrees"] }
+    }, { "$call": [{ "$ref": ["bakeReader", "read"] }] }] } },
     {
       "name": "grid",
       "value": {
@@ -446,7 +443,7 @@
           },
           {
             "resolution": {
-              "$ref": ["src/shards/pine-hollow/runtime/baked", "PINE_GROUND_RES"]
+              "$ref": ["constants", "terrain", "res"]
             },
             "provenance": {
               "field": "pineWorldOwner",
@@ -1211,7 +1208,7 @@
               },
               {
                 "resolution": {
-                  "$ref": ["src/shards/pine-hollow/runtime/baked", "PINE_GROUND_RES"]
+                  "$ref": ["constants", "terrain", "res"]
                 },
                 "provenance": {
                   "field": "pineWorldOwner",
