@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { chargePlatformUsers, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
 import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
 import { componentInventory } from '../scripts/shard-components.mjs';
+import { g571HostApprovals,approvedG571Host } from '../scripts/g571-hosts.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
   const arena = 'src/game/boss/arenaScript.ts', phase = 'src/game/plugin/bossPhase.ts';
@@ -319,4 +320,19 @@ test('the sole-user bounds policy charges Nine without approving the existing sh
   expect(charges.get('nine-dragon-stack')).toHaveLength(3);
   expect(charges.get('nalati-grasslands')).toEqual([]);
   expect(platformChargeback(runtime, 'installClientRuntimeHooks')).toBeNull();
+});
+
+
+test('C3 approvals select exactly the picked ground and engine primitives', () => {
+  const approvals = g571HostApprovals('.');
+  for (const [path,name] of [
+    ['src/engine/physics/heightPatch.ts','HeightPatch'],['src/engine/physics/heightPatch.ts','HeightPatchOpts'],
+    ['src/engine/core/gpuOnly.ts','rebakes'],['src/engine/core/gpuOnly.ts','onGpuRestored'],
+    ['src/engine/world/water/body.ts','basinBody'],['src/game/shard/manifest.ts','declaredGround'],
+    ['src/format/terrain.ts','GroundRowsSchema'],
+  ]) {
+    if (path === undefined || name === undefined) throw new Error('Incomplete C3 selector');
+    expect(approvedG571Host(approvals,path,name)).toBe(true);
+    expect(approvedG571Host(approvals,path,'unreviewedBinding')).toBe(false);
+  }
 });

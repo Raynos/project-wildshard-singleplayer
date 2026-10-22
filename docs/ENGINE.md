@@ -11852,3 +11852,10 @@ bakedSamplers law owns clamping and interpolation. A ground-only terrain-basin
 body resolves against that same terrain, preserving basinBody's unbounded
 clamped mask and live water-level reads. Ordinary water rows retain their
 order and first-stream metadata. No renderer, cache or collider is installed.
+
+The existing HeightPatch engine primitive replaces the supplied native world's
+heightfield from row-major heights, with its declared translation, size,
+material and owner. A flat grid removes only that patch's collider. It installs
+no clock or terrain policy. The existing onGpuRestored event retains each
+callback only for its resource scope; retirement removes that registration.
+G601 C3 recognizes these engine features without changing either runtime law.
