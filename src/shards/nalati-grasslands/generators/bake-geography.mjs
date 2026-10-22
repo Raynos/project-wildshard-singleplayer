@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { zlibSync } from 'fflate';
 import { Rng } from '@wildshard/engine/core/rng';
 import { NALATI_GRASS_LAYOUT } from './grassFieldLayout.ts';
-import { SEED, TERRAIN, RIVER, BRIDGE, SPAWN, groundColor, surfaceAt, zoneAt, riverMask, brookMask, loneSpruceMask, inSpruceClearing, edgeBermAt } from './terrainRecipe.ts';
+import { SEED, TERRAIN, RIVER, SPAWN, groundColor, surfaceAt, zoneAt, riverMask, brookMask, loneSpruceMask, inSpruceClearing, edgeBermAt } from './terrainRecipe.ts';
 import { edgeSpruceMask } from './edgeRecipe.ts';
 import { nalatiWetAt } from './wetRecipe.ts';
 import { NALATI_MINIMAP } from './minimapRecipe.ts';
@@ -30,7 +30,7 @@ for (let x = -247; x < 247; x += 4.2) for (let z = -247; z < 247; z += 4.2) {
   marks.push({ kind: 'dot', x: cx + .8, z: cz + .8, r, fill: 'rgba(14, 26, 18, 0.45)' }, { kind: 'dot', x: cx, z: cz, r, fill });
 }
 const profile = Array.from({ length: 501 }, (_, i) => [RIVER.z(i - 250), RIVER.half(i - 250)]);
-const data = { res, size, seed: SEED, spawn: SPAWN, bridge: BRIDGE, river: { level: RIVER.level, profile },
+const data = { res, size, seed: SEED, spawn: SPAWN, river: { level: RIVER.level },
   channels: Object.fromEntries(Object.entries(arrays).map(([key, values]) => [key, encode(values)])),
   map: { ground: { base: [92, 128, 58], layers: [] }, segments: [],
     trails: [{ width: 6, style: 'rgba(70, 54, 36, 0.8)' }, { width: 3.5, style: '#b89c70' }], marks, pois: NALATI_MINIMAP.pois() } };
