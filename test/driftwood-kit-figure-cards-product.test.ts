@@ -6,8 +6,8 @@ import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/q
 import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 
 test('the cold kit card keeps the live bindings but its original Explorer origin and fire', () => {
-  const rows = driftwoodKitFigureCards(), card = rows.cards.castaway, live = driftwoodQuestFigures().figures[0];
-  if (live === undefined) throw new Error('Missing live castaway');
+  const rows = driftwoodKitFigureCards(), card = rows.cards['castaway'], live = driftwoodQuestFigures().figures[0];
+  if (live === undefined || card === undefined) throw new Error('Missing castaway card');
   expect(rows.catalogue).toBe('people/catalogue.json'); expect(rows.draws).toBe('custom/fixedLayouts');
   expect(card.model).toEqual({ id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code',
     file: 'src/shards/driftwood-isle/generators/kitFigureCards.ts', surface: 'flesh', defaults: {} });
