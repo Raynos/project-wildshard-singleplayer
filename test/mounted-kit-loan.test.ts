@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import type { Targets } from '../src/engine/combat/types';
