@@ -281,3 +281,20 @@ test('optional chapter imports retain all native dependency owners', () => {
     expect(bindings.get(`${path}\0unrelatedShared`)).toEqual(shared);
   }
 });
+
+test('an optional specimen dispatcher grants no second crowd-body reader user', () => {
+  const path = 'src/game/ambient/crowdPage.ts', broad = new Set(['nalati-grasslands', 'pine-hollow', 'driftwood-isle']);
+  const modules = new Map([[path, broad]]), bindings = new Map([
+    [`${path}\0readCrowdBody`, broad], [`${path}\0createPageCrowds`, broad],
+  ]);
+  chargePlatformUsers(modules, bindings);
+  expect(bindings.get(`${path}\0readCrowdBody`)).toEqual(new Set(['nalati-grasslands']));
+  expect(platformChargeback(path, 'readCrowdBody')).toBe('C4');
+  expect(bindings.get(`${path}\0createPageCrowds`)).toEqual(broad);
+  expect(platformChargeback(path, 'createPageCrowds')).toBeNull();
+  expect(modules.get(path)).toEqual(broad);
+  const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nalati-grasslands', []]]);
+  const row = { path, name: 'readCrowdBody', lines: 7 };
+  expect(recordPrivateCharge(charges, 'fixture-only-user', row)).toBe(true);
+  expect(charges.get('nalati-grasslands')).toEqual([row]);
+});

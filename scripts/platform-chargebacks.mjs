@@ -24,6 +24,7 @@ const declarations = new Map([
     'renderedPacks', 'renderedHerds', 'renderedDamage', 'renderedPackOf',
     'renderedHerdOf', 'observeHerdDamage', 'PageGroups',
   ].map(name => [name, 'C4']))],
+  ['src/game/ambient/crowdPage.ts', new Map([['readCrowdBody', 'C4']])],
   ['src/game/shardfile/crowdRuntime.ts', new Map([
     'CrowdPrey', 'CrowdTargets', 'CrowdRoster', 'CrowdWeaponTarget',
   ].map(name => [name, 'C4']))],
