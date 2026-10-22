@@ -6,6 +6,7 @@ import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bindSceneSourceLooks } from './sceneSources';
 import { bindPaintedMaterialMaps } from '../looks/paintedLook';
 import { installCompletion } from '../complete/declared';
+import { retainsRuntimeServices } from '../shard/retainedHooks';
 import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
@@ -370,9 +371,10 @@ export class ShardfileClient {
       player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: enteredLootPresentation(ctx,lootRow.id),
     });
     if (source.rows.compendiums.length > 0) {
-      const journal = installCompendium({ chunkId: ctx.manifest.slug, game: world.game, camera: world.game.camera, hud: play.hud, menu: play.menu,
+      const journal = installCompendium({ context: ctx, chunkId: ctx.manifest.slug, game: world.game, camera: world.game.camera, hud: play.hud, menu: play.menu,
         animals: play.animals, cabins: null, interactables: runtime.interactables, weapons: play.weapons, touchUi: play.touchUi, nolock: play.nolock });
-      if (journal !== null) ctx.scope.onDispose(() => { journal.journal.scope.dispose(); });
+      // a retained (grid) context's journal lives in its entered scope (installRetainedCompendium)
+      if (journal !== null && !retainsRuntimeServices(ctx)) ctx.scope.onDispose(() => { journal.journal.scope.dispose(); });
     }
     const ledger = new Ledger(ctx.app.saves, [{ id: identity.instance, shard: identity.shard }], [{ shard: identity.shard, revision: identity.revision, rules: source.ledger }], this.bindings.catalogue);
     const emitters = new Map<string, LedgerEmitter>();

@@ -182,7 +182,8 @@ export function installHeldLoadout(context: ShardContext, input: unknown): HeldL
         if (moved || (weapons.current.id === row.launcher.slot && (dirty || quiver.selected !== base))) save(); }
     },
   };
-  h.scope.onDispose(app.debug.scopedExpose(row.debug.loadout, api)); h.scope.onDispose(app.debug.scopedExpose(row.debug.firearm, rifle)); h.scope.onDispose(app.debug.scopedExpose(row.debug.bow, longbow));
+  // the page's debug names are one per page: a retained (grid) context exposes them only while entered
+  context.debug.expose(row.debug.loadout, api); context.debug.expose(row.debug.firearm, rifle); context.debug.expose(row.debug.bow, longbow);
   const book = enteredLoadouts.get(context.scope) ?? new Map<string, HeldLoadout>();
   if (book.has(row.persistence.state)) throw new Error('Duplicate entered held loadout');
   book.set(row.persistence.state, api); enteredLoadouts.set(context.scope, book); context.scope.onDispose(() => { book.delete(row.persistence.state); });
