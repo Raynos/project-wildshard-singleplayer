@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { nearbyContentCost, worstContentCost } from '../src/format/budget';
+import { nearbyContentCost, worstContentCost, worstContentCostSteps } from '../src/format/budget';
 import { emptyShardfile } from '../src/sdk/author';
 
 const MB = 1_000_000;
@@ -27,4 +27,12 @@ test('the worst-disc scan finds the highest location cost on its grid (O14 preco
     const [x, z] = worst.location;
     expect(nearbyContentCost(source, x, z, 3 * MB).playing).toBe(worst.playing);
   }
+});
+
+test('the worst-disc scan in steps pauses between rows and finds the same location', () => {
+  const source = shard(48, 7), steps = worstContentCostSteps(source, 2 * MB);
+  let pauses = 0, step = steps.next();
+  while (step.done !== true) { pauses++; step = steps.next(); }
+  expect(pauses).toBeGreaterThan(1);
+  expect(worstContentCost(source, 2 * MB)).toEqual(step.value);
 });

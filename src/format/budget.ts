@@ -92,6 +92,13 @@ const worstCache = new Map<string, LocationCost>();
 
 /** Worst disc with three synthetic neighbours at the platform targets; grid padding covers unsampled gaps. */
 export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
+  const steps = worstContentCostSteps(shard, commons);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+
+/** `worstContentCost` in steps, one per scanned row: a live admission paints between them (Pine's activation spent
+ *  ~90 ms of a frame in this scan at 4x CPU). */
+export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator<void, LocationCost> {
   const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, (tile.drawBounds ?? tile.bounds).min[0], (tile.drawBounds ?? tile.bounds).min[2], (tile.drawBounds ?? tile.bounds).max[0], (tile.drawBounds ?? tile.bounds).max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
     shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident]);
   const cached = worstCache.get(key);
@@ -137,6 +144,7 @@ export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
       const cost = model.cost(steps[xi] ?? 0, steps[zi] ?? 0);
       if (cost.playing > worst.playing) { worst = cost; worstAccounted = accounted; }
     }
+    yield;
   }
   if (worstCache.size >= 8) { const oldest = worstCache.keys().next().value; if (oldest !== undefined) worstCache.delete(oldest); }
   worstCache.set(key, worst);

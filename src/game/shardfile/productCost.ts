@@ -1,6 +1,9 @@
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
+import type { worstContentCost } from '@wildshard/format/budget';
+import { deviceLibraryCostSteps } from '@wildshard/format/assetAdmission';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
@@ -26,18 +29,27 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
   return result.value;
 }
 
+/** Run `steps` to its result, pausing after each 8 ms of them (a live admission paints in between). */
+async function paced<T>(steps: Generator<void, T>, pause: () => Promise<void>): Promise<T> {
+  let started = performance.now(), result = steps.next();
+  while (result.done !== true) {
+    if (performance.now() - started >= 8) { await pause(); started = performance.now(); }
+    result = steps.next();
+  }
+  return result.value;
+}
+
+/** This device's worst-disc cost of `source` (`deviceLibraryCostSteps`), paced like the specimen projection. */
+export function deviceLibraryCostPaced(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support: TextureTranscodeSupport,
+  pause: (() => Promise<void>) | undefined): Promise<ReturnType<typeof worstContentCost>> {
+  return paced(deviceLibraryCostSteps(source, assets, support), pause ?? (() => Promise.resolve()));
+}
+
 /** Same complete cost projection, allowing live admission to paint between catalogue choices. */
 export async function scopedSpecimenLibrarySourcePaced(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, quality: SpecimenQuality | undefined, pause: (() => Promise<void>) | undefined): Promise<Shardfile> {
   if (pause === undefined) return scopedSpecimenLibrarySource(source, assets, quality);
   await pause();
-  const costs = specimenCosts(source, assets, quality);
-  let started = performance.now();
-  let result = costs.next();
-  while (!result.done) {
-    if (performance.now() - started >= 8) { await pause(); started = performance.now(); }
-    result = costs.next();
-  }
-  return result.value;
+  return paced(specimenCosts(source, assets, quality), pause);
 }
 
 function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, quality?: SpecimenQuality): Generator<void, Shardfile> {

@@ -8,7 +8,7 @@ import { builtValidationReceipt, readValidationReceipt, validationRevision, vali
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputIndex';
 
-import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets, deviceLibraryCost } from '@wildshard/format/assetAdmission';
+import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
 import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
@@ -17,7 +17,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { neighbourProductFiles, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySourcePaced } from './productCost';
+import { neighbourProductFiles, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
@@ -340,7 +340,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     const scopedSource = await scopedSpecimenLibrarySourcePaced(imageSource, assets,
       options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }, options.pause);
     await options.pause?.();
-    acceptValidatedCost(source, deviceLibraryCost(scopedSource, assets, options.textures), options.memory);
+    acceptValidatedCost(source, await deviceLibraryCostPaced(scopedSource, assets, options.textures, options.pause), options.memory);
     await options.pause?.();
   }
   if (!options.offline && options.cache !== undefined) {

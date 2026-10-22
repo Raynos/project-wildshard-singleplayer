@@ -3,7 +3,7 @@ import type { TextureTranscodeSupport } from './contentBounds';
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
-import { worstContentCost } from '@wildshard/format/budget';
+import { worstContentCost, worstContentCostSteps } from '@wildshard/format/budget';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { assetCost, parseKtx2, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
 
@@ -250,7 +250,7 @@ export function textureLibrarySource(source: Shardfile, assets: ReadonlyMap<stri
 }
 
 /** Trusted device's exact library projection, with all existing conservative neighbour and fallback ceilings retained. */
-export function deviceLibraryCost(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support?: TextureTranscodeSupport): ReturnType<typeof worstContentCost> {
+export function* deviceLibraryCostSteps(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support?: TextureTranscodeSupport): Generator<void, ReturnType<typeof worstContentCost>> {
   const commons = Object.values(source.requires.commonsCosts).reduce((sum, row) => sum + row.decoded + row.gpu, 0);
-  return worstContentCost(textureLibrarySource(source, assets, support), commons);
+  return yield* worstContentCostSteps(textureLibrarySource(source, assets, support), commons);
 }
