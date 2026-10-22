@@ -34,7 +34,7 @@ def check_committed(root, base, tip, deadline):
         with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), deadline) as (tree, tools):
             available = json.loads((tree / '.push-types.json').read_text())['available']
             deferred = deferred_types(root, base, tip)
-            if deferred:
+            if deferred and available:
                 rc, output = LIVE['run'](['node', str(tree / 'scripts/gen-shard-words.mjs')], tree, deadline)
                 if rc:
                     return {'ok': False, 'phase': 'lint-tables',
@@ -46,7 +46,9 @@ def check_committed(root, base, tip, deadline):
                             'files': LIVE['failure_paths'](output) or deferred, 'output': output}
             result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip), tools=tools, types_available=available)
             if deferred:
-                result['types'] = 'pre-commit+deferred'
+                result['types'] = 'pre-commit+deferred' if available else 'ci-cache-miss'
+                if not available:
+                    result['output'] += '\nDeferred typed checks lack verified generated inputs; full CI owns: ' + ', '.join(deferred)
             if not result['ok'] and result['files']:
                 rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
                 result['inputs'] = json.loads(output) if rc == 0 else []

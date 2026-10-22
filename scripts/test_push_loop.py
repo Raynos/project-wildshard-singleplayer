@@ -181,7 +181,7 @@ class PushLoop(unittest.TestCase):
         tip = self.commit('src/good.ts')
         blob = self.git('rev-parse', tip + ':src/good.ts')
         self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
-        self.put('.push-types.json', '{"available":false}')
+        self.put('.push-types.json', '{"available":true}')
         @contextmanager
         def prepared(*_):
             yield self.root, self.root / 'scripts'
@@ -198,6 +198,23 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(calls, [['node', str(self.root / 'scripts/gen-shard-words.mjs')],
                                 ['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
                                  '-c', '.oxlintrc.json', 'src/good.ts']])
+
+    def test_deferred_types_with_missing_generated_inputs_stay_with_ci(self):
+        tip = self.commit('src/good.ts')
+        blob = self.git('rev-parse', tip + ':src/good.ts')
+        self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
+        self.put('.push-types.json', '{"available":false}')
+        @contextmanager
+        def prepared(*_):
+            yield self.root, self.root / 'scripts'
+        calls = []
+        with patch.dict(PUSH['SOURCE'], committed_source=prepared), \
+             patch.dict(LIVE, run=lambda *args: calls.append(args) or (0, '')):
+            result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+        self.assertTrue(result['ok'])
+        self.assertEqual(result['types'], 'ci-cache-miss')
+        self.assertIn('full CI owns: src/good.ts', result['output'])
+        self.assertEqual(calls, [])
 
     def test_generation_phase_cache_rejects_changed_inputs_and_corrupt_outputs(self):
         tip = self.git('rev-parse', 'HEAD')
