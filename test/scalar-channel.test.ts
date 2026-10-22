@@ -7,7 +7,7 @@ import { declaredForestQueries } from '../src/game/shard/manifest';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
-import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from '../src/shards/nalati-grasslands/world/geography';
+import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from './fixtures/nalati-terrain';
 
 const TERRAIN = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);
 

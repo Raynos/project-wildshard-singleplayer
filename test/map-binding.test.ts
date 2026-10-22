@@ -4,7 +4,7 @@ import { declaredMapColour } from '../src/game/shard/manifest';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { mapPalette } from '../src/format/minimap';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
-import { NALATI_MINIMAP } from '../src/shards/nalati-grasslands/world/geography';
+import { NALATI_MINIMAP } from './fixtures/nalati-terrain';
 
 const encode = (values: Float32Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));
 const raster = (value: number) => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: encode(new Float32Array(4).fill(value)) } });

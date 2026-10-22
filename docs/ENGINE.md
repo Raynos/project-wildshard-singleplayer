@@ -12025,3 +12025,16 @@ level first, then the wet sample and live trail distance only when needed; the
 water comparison is inclusive and both mask/trail comparisons are strict.
 Legacy excludeGroundAt remains supported, but cannot coexist with ground.
 No runtime query, collider, service, clock, payload or cache is installed.
+
+defineShard accepts optional groundRows, groundColourSamples, surfaceSamples,
+forestMaskSamples and mapGroundSamples. These are explicit GroundRows, scalar
+triplets and one forest lattice, using the existing defining schemas/readers.
+Mixed native/recipe forms refuse before decoding; all sample metadata admits
+first, then the original forest, pigment, surface, ground and map order runs.
+Recipe fields are stripped from the native manifest. No channel-name lookup,
+aggregate terrain owner, cache, clock or second intake is added. Legacy native
+fields, fixed RGB and method owners retain their original behavior; map samples
+require an existing palette. Ground, navmesh and capture poses use one field.
+The boot producer also exposes callback-free ROWS over its existing metadata;
+audio.catalogue and trees.factory=declared resolve the existing product loaders
+inside defineShard. Explicit native audio/boot callbacks retain precedence.

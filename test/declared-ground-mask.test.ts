@@ -10,7 +10,7 @@ import { basinBody } from '../src/engine/world/water/body';
 import { readScalarChannel } from '../src/engine/world/scalarChannel';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
-import { GROUND } from '../src/shards/nalati-grasslands/world/geography';
+import { GROUND } from './fixtures/nalati-terrain';
 import nalati from '../src/shards/nalati-grasslands/manifest';
 
 const encode = (values: Float32Array | Float64Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));

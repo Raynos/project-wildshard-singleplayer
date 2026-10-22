@@ -5,7 +5,7 @@ import { ScalarTripletSchema } from '../src/format/scalarChannel';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
-import { groundColor,surfaceAt,GROUND } from '../src/shards/nalati-grasslands/world/geography';
+import { groundColor,surfaceAt,GROUND } from './fixtures/nalati-terrain';
 
 const TERRAIN = GROUND.terrain;
 

@@ -1,5 +1,5 @@
 import { readScalarChannel,readScalarLattice } from '@wildshard/engine/world/scalarChannel';
-import { ScalarTripletSchema } from '@wildshard/format/scalarChannel';
+import { ScalarLatticeSchema,ScalarTripletSchema,type ScalarLatticeRows,type ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
 import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/context";
@@ -25,7 +25,7 @@ import { flatTerrainField, terrainFieldFor } from '@wildshard/engine/world/groun
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
-import { ForestRowsSchema, GroundRowsSchema, PondClipSchema } from '@wildshard/format/terrain';
+import { ForestRowsSchema, GroundRowsSchema, PondClipSchema,type GroundRows } from '@wildshard/format/terrain';
 import { currentPageMode } from '../grid/pageMode';
 import * as v from 'valibot';
 
@@ -664,8 +664,10 @@ export interface ChunkMapDef {
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }
 
 /** Data for first-party discovery and boot; native module loaders stay explicit bindings. */
-export type ShardManifestRows = Omit<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'trustedRuntime' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap'> & {
+export type ShardManifestRows = Omit<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'trustedRuntime' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap' | 'trees' | 'audio'> & {
   readonly spawns: readonly ShardManifest['spawns'][number][];
+  readonly trees: ChunkTrees | (Omit<ChunkTrees,'factory'> & { factory: 'declared' });
+  readonly audio?: NonNullable<ShardManifest['audio']> & { catalogue?: boolean };
   readonly minimap?: Omit<ChunkMapDef, 'palette'> & { readonly palette?: MapPaletteRow };
   readonly ground?: ShardManifest['ground'];
   readonly horizon?: { readonly rings: readonly HorizonRing[]; readonly cloudSea: boolean };
@@ -673,17 +675,56 @@ export type ShardManifestRows = Omit<ShardManifest, 'load' | 'render' | 'roster'
   readonly runtimeEntry?: TrustedRuntimeEntry['entry'];
   readonly poses?: Awaited<ReturnType<NonNullable<ShardManifest['dev']>['poses']>>;
   readonly groundColour?: readonly [number, number, number];
+  /** Explicit finite recipes; all admit before the original ordered decodes. */
+  readonly groundRows?: GroundRows;
+  readonly groundColourSamples?: ScalarTripletRows;
+  readonly surfaceSamples?: ScalarTripletRows;
+  readonly forestMaskSamples?: ScalarLatticeRows;
+  readonly mapGroundSamples?: ScalarTripletRows;
 };
-/** Resolve copied boot poses, fixed ground colours and native entry metadata from rows.
- * Terrain-dependent native pose callbacks may remain explicit bindings. */
+/** Resolve admitted raster recipes in their original order, copied boot poses and entry metadata.
+ * Native callbacks remain explicit bindings; declared tree/audio choices use existing product loaders. */
 export function defineShard(rows: ShardManifestRows,
   bindings: Pick<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev'> & { readonly ground?: ShardManifest['ground'] }): ShardManifest {
-  const { runtimeEntry, poses, groundColour, horizon, pois, minimap, ...data } = rows;
-  const ground = bindings.ground ?? data.ground;
+  for (const key of ['groundRows','groundColourSamples','surfaceSamples','forestMaskSamples','mapGroundSamples']) {
+    const descriptor = Object.getOwnPropertyDescriptor(rows,key);
+    if (key in rows && (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor))) throw new Error('Manifest samples require own data fields');
+  }
+  const { runtimeEntry,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,...data } = rows;
+  const nativeGround = bindings.ground ?? data.ground,{ palette,...mapFields } = minimap ?? {};
+  if (groundRows !== undefined && nativeGround !== undefined || groundColourSamples !== undefined && groundColour !== undefined
+    || surfaceSamples !== undefined && data.surfaceAt !== undefined || forestMaskSamples !== undefined && (data.forest === undefined || 'mask' in data.forest)
+    || mapGroundSamples !== undefined && palette === undefined) throw new Error('Conflicting manifest sample bindings');
+  if (nativeGround === undefined && groundRows === undefined) throw new Error('Shard boot needs its declared ground owner');
+  const groundData = groundRows === undefined ? undefined : v.parse(GroundRowsSchema,groundRows),
+    pigmentData = groundColourSamples === undefined ? undefined : v.parse(ScalarTripletSchema,groundColourSamples),
+    surfaceData = surfaceSamples === undefined ? undefined : v.parse(ScalarTripletSchema,surfaceSamples),
+    forestData = forestMaskSamples === undefined ? undefined : v.parse(ScalarLatticeSchema,forestMaskSamples),
+    mapData = mapGroundSamples === undefined ? undefined : v.parse(ScalarTripletSchema,mapGroundSamples);
+  let audio = data.audio,boot = data.boot;
+  if (audio?.catalogue !== undefined) {
+    const { catalogue,...audioData } = audio,preload = audio.preload ?? (catalogue ? async () => {
+      const { productAudioCatalogue } = await import('../shardfile/audioCatalogue');return productAudioCatalogue(data.slug);
+    } : undefined);
+    audio = { ...audioData,...(preload === undefined ? {} : { preload }) };
+    if (catalogue && boot !== undefined && boot.audio === undefined) boot = { ...boot,audio: async () => {
+      const { productAudioFiles } = await import('../shardfile/audioCatalogue');return productAudioFiles(data.slug);
+    } };
+  }
+  const trees: ChunkTrees = data.trees.factory === 'declared' ? { ...data.trees,factory: declaredTreeSet(data.slug) } : data.trees;
+  // Retain the original binding order after every referenced shape/count admits.
+  const forestMask = forestData === undefined ? undefined : readScalarLattice(forestData),
+    sampledColour = pigmentData === undefined ? undefined : declaredGroundColour(pigmentData),
+    sampledSurface = surfaceData === undefined ? undefined : declaredSurface(surfaceData),
+    ground = groundData === undefined ? nativeGround : declaredGround(groundData),
+    sampledMap = mapData === undefined ? undefined : declaredMapColour(mapData);
   if (ground === undefined) throw new Error('Shard boot needs its declared ground owner');
-  const { palette, ...mapFields } = minimap ?? {};
-  const map = minimap === undefined ? undefined : { ...mapFields, ...(palette === undefined ? {} : { palette: mapPalette(palette) }) };
+  const map = minimap === undefined ? undefined : { ...mapFields,...(palette === undefined ? {} : { palette: sampledMap === undefined ? mapPalette(palette) : { ...mapPalette(palette),ground: sampledMap } }) };
   const manifest: ShardManifest = { ...data, ...bindings, ground, spawns: [...data.spawns],
+    trees,...(audio === undefined ? {} : { audio }),...(boot === undefined ? {} : { boot }),
+    ...(forestMask === undefined || data.forest === undefined ? {} : { forest: { ...data.forest,mask: forestMask } }),
+    ...(sampledColour === undefined ? {} : { groundColor: sampledColour }),
+    ...(sampledSurface === undefined ? {} : { surfaceAt: sampledSurface }),
     ...(map === undefined ? {} : { minimap: map }),
     ...(horizon === undefined ? {} : { horizon: { ...horizon, rings: [...horizon.rings] } }),
     ...(pois === undefined ? {} : { pois: [...pois] }),
@@ -769,12 +810,6 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
   };
   const { mapPalette: palette, audioBindings, bootBindings, forestQueries, poses, ...bindings } = rows;
   const { catalogue, ...audio } = data.audio;
-  const preload=audioBindings?.preload??(catalogue===true?async()=>{
-    const {productAudioCatalogue}=await import('../shardfile/audioCatalogue');return productAudioCatalogue(slug);
-  }:undefined);
-  const audioFiles=bootBindings?.audio??(catalogue===true?async()=>{
-    const {productAudioFiles}=await import('../shardfile/audioCatalogue');return productAudioFiles(slug);
-  }:undefined);
   const compare = data.explore.compare?.map(row => ({...row, live: image(row.live), image: image(row.image)}));
   // a declared tree set (its product's rows file) builds on the game's tree set factory
   const factory: ChunkTrees['factory'] | undefined = data.trees.treeSet === undefined ? data.trees.factory : declaredTreeSet(slug);
@@ -800,8 +835,8 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     ...(poses === undefined ? {} : { poses: parseCapturePoses(poses) }),
     ...(data.forest === undefined ? {} : {forest: {...data.forest, ...forestQueries}}),
     ...(tiers === undefined ? {} : {tiers}),
-    audio: {...audio, ...audioBindings, ...(preload===undefined?{}:{preload})},
-    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, ...(audioFiles===undefined?{}:{audio:audioFiles}), explore: { art: bootBindings.explore === undefined ? [...Object.values(data.explore.art).map(image), ...(compare?.flatMap(({live, image: target}) => [live, target]) ?? [])] : bootBindings.explore.art.map(image) } } }),
+    audio: {...audio, ...audioBindings, ...(catalogue===undefined?{}:{catalogue})},
+    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, explore: { art: bootBindings.explore === undefined ? [...Object.values(data.explore.art).map(image), ...(compare?.flatMap(({live, image: target}) => [live, target]) ?? [])] : bootBindings.explore.art.map(image) } } }),
     card: { thumb: image(data.card.thumb), portrait: image(data.card.portrait), landscape: image(data.card.landscape) },
     sky: { ...data.sky, ...(data.sky.hdri === undefined ? {} : { hdri: image(data.sky.hdri) }) },
     minimap: { ...data.minimap, image: image(data.minimap.image), ...(palette === undefined ? {} : { palette }) },

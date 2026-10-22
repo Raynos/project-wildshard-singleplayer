@@ -22,7 +22,7 @@ import { TERRAIN, snowValleyX, snowValleyHalf, snowValleyFloor, inPoiClearing, i
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
-import { GROUND,forestMask } from '../src/shards/nalati-grasslands/world/geography';
+import { GROUND,forestMask } from './fixtures/nalati-terrain';
 import { readScalarLattice } from '../src/engine/world/scalarChannel';
 
 const bound = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);

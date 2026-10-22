@@ -34,5 +34,6 @@ import type { ShardManifest${poses === undefined ? '' : ', ShardManifestRows'} }
 ${catalogue ? `const fixed = ${literal} satisfies ${shape};` : ''}
 ${[...images].map(([path, name]) => `import ${name} from ${JSON.stringify(`./${relative(folder, resolve(root, path.slice(1)))}`)};`).join('\n')}
 export const DECLARATION = ${declaration} satisfies ${shape};
+export const ROWS = ${catalogue ? '{...fixed,audio:{...fixed.audio,catalogue:true}}' : 'DECLARATION'};
 ${capturePoses}`;
 }

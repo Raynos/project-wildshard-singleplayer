@@ -4,7 +4,7 @@ import { navmeshGroundExclusion } from '../scripts/bake/navmeshGround';
 import { NavmeshGroundSchema } from '../src/format/navigation';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
-import { GROUND } from '../src/shards/nalati-grasslands/world/geography';
+import { GROUND } from './fixtures/nalati-terrain';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
 import nalati from '../src/shards/nalati-grasslands/manifest';
 
