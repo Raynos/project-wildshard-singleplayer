@@ -69,12 +69,6 @@ try {
   for (let b = 0; b < 4; b++) for (let i = 0; i < words; i++) lanes[b * words + i] = bytes[i * 4 + b];
   const writer = byteWriter(process.argv.includes('--check'), 'nalati-gear');
   const effects = JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/weaponEffects.json'), 'utf8'));
-  const ecology = JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/ecology.json'), 'utf8'));
-  effects.skinEffects = effects.skins.map(skin => ({ id: `effect.skin.${skin.id}`, kind: 'permanent', tags: ['effect.cosmetic'], stacking: 'none', modifiers: [], grants: [`cosmetic.skin.${skin.id}`], group: `skin.${skin.slot}` }));
-  effects.skinGrants = effects.skins.map(skin => ({ id: `effect.skin.${skin.id}`, key: skin.id }));
-  const icons = { sabre: 'sword', bow: 'longbow', arrows: 'bolt', mount: 'horse' };
-  effects.cards = effects.skins.map(skin => { const source = Object.values(ecology.elites).find(elite => elite.drop.skin === skin.id)?.name ?? 'Jel Ata, the Storm Titan'; return { id: skin.id, name: skin.name, blurb: skin.blurb, icon: icons[skin.slot], lockedBlurb: `${source} drops it` }; });
-  writer.put(resolve(import.meta.dirname, '../boot/weaponEffects.generated.ts'), `// Generated from data/weaponEffects.json; edit its retained rows.\nexport const weaponEffects = ${JSON.stringify(effects)} as const;\n`);
   writer.put(resolve(root, 'public/assets/nalati/baked/gear-specimens.bin'), deflateSync(lanes, { level: 9 }));
   const loadout=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/loadout.json'),'utf8')),variants=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/legendaryWeapons.json'),'utf8'));
   loadout.variants=Object.fromEntries([['bow','goldenBow'],['blade','naizagai']].map(([name,key])=>[name,{id:`weapon.${variants[key].id}`,name:variants[key].name}]));
