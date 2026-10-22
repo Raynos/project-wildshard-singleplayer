@@ -69,7 +69,10 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
         if (wsCoarseHidden > 0.5) discard;
         #include <clipping_planes_fragment>
       `);
-    }, { scope });
+      // G587: its own program. Under a family's explicit key (the open plots' survey floor: family.pbr.measure.v1) the
+      // masked variant kept the unmasked tiles' key, so the fine tiles drew with this program and never uploaded the mask:
+      // they kept the last coarse tile's, which hides exactly their quadrants, and the floor vanished by view direction.
+    }, { scope, key: prior => `${prior}|engine.coarse-tile-mask` });
   }
   return (excluded) => {
     for (const quadrant of excluded) if (!Number.isInteger(quadrant) || quadrant < 0 || quadrant > 3) throw new Error('coarse tile mask: a quadrant is 0..3');
