@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
-# G416: compile/lint the staged source. Build and playable boot run at push/CI.
+# D9: cheap types/lint on changed files and storage. CI owns complete checks.
 set -euo pipefail
-python3 scripts/commit-message-lock.py "$PPID"
-finish() { local rc=$?; python3 scripts/commit-message-lock.py --record "$PPID" "$rc"; exit "$rc"; }
-trap finish EXIT
-node scripts/index-hygiene.mjs
-python3 scripts/check-commit-index.py "$PPID"
+[ "${WS_COMMIT_WRAPPER:-}" = 1 ] || { echo 'Use scripts/commit.sh "message" -- <files...>' >&2; exit 1; }
 # Storage policy (docs/process/STORAGE.md): the staged objects of this commit's own index (GIT_INDEX_FILE), plus the
 # unpushed and rolling-week budgets. Restores the progress-image / .blend / raw-archive guards removed in 819a36b8d.
 node scripts/repo-size.mjs --index
 node scripts/precommit-inputs.mjs
-# Warns (never refuses) when the folders macOS empties at boot pass 500k files or build-mirror grows extra slots.
-scripts/boot-temp-warn.sh

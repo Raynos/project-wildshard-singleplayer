@@ -13,7 +13,6 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 PUSH = runpy.run_path(str(ROOT / 'scripts/push-loop.py'))
 LIVE = PUSH['LIVE']
-WATCH = runpy.run_path(str(ROOT / 'scripts/ci-watch.py'))
 CACHE = runpy.run_path(str(ROOT / 'scripts/push_input_cache.py'))
 TOOLS = runpy.run_path(str(ROOT / 'scripts/sp-tools.py'))
 
@@ -59,45 +58,25 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(cleaned['HERDR_SOCKET_PATH'], '/fixture/herdr.sock')
         self.assertEqual(context['PATH'].split(':')[0], '/Users/me/.codex/packages/standalone/releases/old/codex-path')
 
-    def test_green_checks_only_live_types_lint_and_budgeted_tests(self):
+    def test_pre_push_runs_only_related_tests(self):
         tip = self.commit('src/good.ts')
-        commands, deadlines = [], []
-
-        def runner(command, root, deadline, env):
+        commands = []
+        def runner(command, *_):
             commands.append(command)
-            deadlines.append(deadline)
             return 0, '["test/unit.test.ts"]' if '--live' in command else ''
-
         result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)
         self.assertTrue(result['ok'])
-        self.assertEqual([command[0] for command in commands], ['node', 'pnpm', 'node', 'pnpm'])
-        self.assertEqual(len(set(deadlines)), 1)
-        forbidden = {'heavy-lane.py', 'build-shardfiles.mjs', 'build-mirror.mjs', 'gen.mjs'}
-        self.assertTrue(all(not forbidden.intersection(Path(arg).name for arg in command) for command in commands))
-        self.assertTrue(all(command[:2] != ['pnpm', 'gen'] for command in commands))
+        self.assertEqual([command[0] for command in commands], ['node', 'pnpm'])
+        self.assertIn('vitest', commands[1])
+        self.assertFalse(any('oxlint' in command or 'types' in command for command in commands))
+        self.assertEqual(result['types'], 'pre-commit')
 
-    def test_type_failure_never_runs_lint_or_tests(self):
-        tip = self.commit('src/bad.ts')
-        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
-                               lambda *_: (1, 'src/bad.ts(2,3): error TS2322'))
-        self.assertFalse(result['ok'])
-        self.assertEqual(result['files'], ['src/bad.ts'])
-
-    def test_partial_edit_and_racing_edit_cannot_earn_a_pass(self):
+    def test_edit_during_tests_cannot_earn_a_pass(self):
         tip = self.commit('src/good.ts')
-        self.put('src/good.ts', 'half edit')
-        refused = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
-                                lambda *_: (1, 'src/good.ts(1,1): error TS1109'))
-        self.assertEqual(refused['phase'], 'types')
-        self.assertEqual(PUSH['offender'](self.root, self.base, tip, refused['files'], time.monotonic() + 5), tip)
-        self.put('src/good.ts', 'export const value = 1;\n')
-
-        def racing(command, *_):
-            if 'types' in command:
-                self.put('src/good.ts', 'another edit')
+        def runner(command, *_):
+            self.put('src/good.ts', 'half written')
             return 0, '[]'
-
-        self.assertFalse(LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, racing)['ok'])
+        self.assertFalse(LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)['ok'])
 
     def test_deadline_reaps_owned_process(self):
         start = time.monotonic()
@@ -180,66 +159,6 @@ class PushLoop(unittest.TestCase):
         self.assertNotEqual(PUSH['refusal_signature'](first), PUSH['refusal_signature'](first.replace('entry.ts', 'other.ts')))
         self.assertEqual(LIVE['failure_paths']('file:///repo/tmp/push-source-abcd/src/entry.ts:2:1'), ['src/entry.ts'])
 
-    def test_ci_failure_notifies_once_and_names_the_job(self):
-        tip = self.commit('src/good.ts')
-        notices = []
-        def command(args, **_):
-            if 'list' in args:
-                return json.dumps([{'headSha': tip, 'conclusion': 'failure', 'databaseId': 8},
-                                   {'headSha': self.base, 'conclusion': 'success', 'databaseId': 7}])
-            return '{"jobs":[{"name":"typed-check","conclusion":"failure"}]}'
-        for _ in range(2):
-            WATCH['watch'](self.root, command=command, notify=lambda *args: notices.append(args) or True)
-        self.assertEqual(len(notices), 1)
-        self.assertIn('typed-check', notices[0][2])
-
-    def test_ci_failure_notifies_the_changed_file_owner(self):
-        self.commit('src/unrelated.ts')
-        bad = self.commit('src/bad.ts')
-        tip = self.commit('src/later.ts')
-        notices = []
-        def command(args, **_):
-            if 'list' in args:
-                return json.dumps([{'headSha': tip, 'conclusion': 'failure', 'databaseId': 9},
-                                   {'headSha': self.base, 'conclusion': 'success', 'databaseId': 8}])
-            if '--log-failed' in args:
-                return 'src/bad.ts(2,1): error TS2322'
-            return '{"jobs":[{"name":"typed-check","conclusion":"failure"}]}'
-        WATCH['watch'](self.root, command=command, notify=lambda *args: notices.append(args) or True)
-        self.assertEqual(notices[0][1], [bad])
-        self.assertIn(bad, notices[0][2])
-
-    def test_ci_unchanged_test_uses_committed_dependency_owner(self):
-        self.put('scripts/push-inputs.mjs', (ROOT / 'scripts/push-inputs.mjs').read_text())
-        self.put('scripts/link-node-modules.mjs', '// fixture resolves dependencies from the containing repo\n')
-        self.put('src/bad.ts', 'export const value = 1;\n')
-        self.put('test/unit.test.ts', "import { value } from '../src/bad';\nexport { value };\n")
-        self.git('add', '--', 'scripts', 'src/bad.ts', 'test')
-        self.git('commit', '-qm', 'fixture source graph')
-        green = self.git('rev-parse', 'HEAD')
-        self.commit('src/unrelated.ts')
-        self.put('src/bad.ts', 'export const value = 2;\n')
-        self.git('add', '--', 'src/bad.ts')
-        self.git('commit', '-qm', 'broken dependency')
-        bad = self.git('rev-parse', 'HEAD')
-        tip = self.commit('src/later.ts')
-        # A foreign edit must not alter attribution of the failed revision.
-        self.put('test/unit.test.ts', "import '../src/unrelated';\n")
-        index = (self.root / '.git/index').read_bytes()
-        notices = []
-        def command(args, **_):
-            if 'list' in args:
-                return json.dumps([{'headSha': tip, 'conclusion': 'failure', 'databaseId': 10},
-                                   {'headSha': green, 'conclusion': 'success', 'databaseId': 9}])
-            if '--log-failed' in args:
-                return 'FAIL test/unit.test.ts > dependency changed'
-            return '{"jobs":[{"name":"behaviour 7","conclusion":"failure"}]}'
-        WATCH['watch'](self.root, command=command, notify=lambda *args: notices.append(args) or True)
-        self.assertEqual(notices[0][1], [bad])
-        self.assertIn(bad, notices[0][2])
-        self.assertEqual((self.root / 'test/unit.test.ts').read_text(), "import '../src/unrelated';\n")
-        self.assertEqual((self.root / '.git/index').read_bytes(), index)
-
     def test_source_type_cache_binds_contents_and_inventory(self):
         records = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/data.json']
         key = CACHE['source_key'](records, ['src'])
@@ -281,56 +200,15 @@ class PushLoop(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'source differs'):
             CACHE['publish'](self.root, tip, generated)
 
-    def test_cache_miss_defers_generated_checks_but_keeps_lint(self):
+    def test_missing_generated_test_inputs_defer_without_repeating_lint(self):
         tip = self.commit('src/good.ts')
         commands = []
-        def runner(command, *_):
-            commands.append(command)
-            return 0, '[]' if '--live' in command else ''
         result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
-                               runner, types_available=False)
+                               lambda *args: commands.append(args) or (0, ''), types_available=False)
         self.assertTrue(result['ok'])
-        self.assertEqual(result['types'], 'ci-cache-miss')
-        self.assertIn('full CI gate', result['output'])
-        self.assertEqual(commands[0][0], 'node')
-        self.assertEqual(Path(commands[0][1]).name, 'push-lint-config.mjs')
-        self.assertEqual(commands[1][:3], ['pnpm', 'exec', 'oxlint'])
-        self.assertTrue(all('types' not in command and '--type-aware' not in command for command in commands))
-        self.assertEqual(len(commands), 2)
-        self.assertTrue(all('vitest' not in command and '--live' not in command for command in commands))
+        self.assertEqual(result['types'], 'pre-commit')
         self.assertIn('related tests defer', result['output'])
-
-    def test_cache_miss_keeps_ordinary_source_refusals_attributable(self):
-        tip = self.commit('src/bad.ts')
-        def runner(command, *_):
-            return (1, 'src/bad.ts:1:1 no-eval') if 'oxlint' in command else (0, '')
-        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
-                               runner, types_available=False)
-        self.assertFalse(result['ok'])
-        self.assertEqual(result['phase'], 'lint')
-        self.assertEqual(result['files'], ['src/bad.ts'])
-
-    def test_real_cache_miss_config_defers_typed_rules_only(self):
-        self.put('.oxlintrc.json', json.dumps({'plugins': ['typescript'], 'options': {
-                 'typeAware': True, 'reportUnusedDisableDirectives': 'error'},
-                 'rules': {'typescript/no-unsafe-assignment': 'error', 'no-eval': 'error'}}))
-        self.put('tsconfig.json', '{"compilerOptions":{"strict":true,"target":"esnext"},"include":["src"]}')
-        self.put('src/unsafe.ts', "export const value = JSON.parse('{}');")
-        executable = str(ROOT / 'node_modules/.bin/oxlint')
-        original = subprocess.run([executable, '-c', '.oxlintrc.json', 'src/unsafe.ts'], cwd=self.root, capture_output=True)
-        self.assertNotEqual(original.returncode, 0)
-        subprocess.run(['node', str(ROOT / 'scripts/push-lint-config.mjs')], cwd=self.root, check=True)
-        ordinary = [executable, '-c', '.push-untyped.oxlint.json', 'src/unsafe.ts']
-        self.assertEqual(subprocess.run(ordinary, cwd=self.root, capture_output=True).returncode, 0)
-        self.put('src/unsafe.ts', '// oxlint-disable-next-line typescript/no-unsafe-assignment -- Deliberate fixture boundary\n'
-                 "export const value = JSON.parse('{}');")
-        self.assertEqual(subprocess.run([executable, '-c', '.oxlintrc.json', 'src/unsafe.ts'],
-                                       cwd=self.root, capture_output=True).returncode, 0)
-        self.assertEqual(subprocess.run(ordinary, cwd=self.root, capture_output=True).returncode, 0)
-        self.put('src/unsafe.ts', "eval('1');")
-        refusal = subprocess.run(ordinary, cwd=self.root, capture_output=True, text=True)
-        self.assertNotEqual(refusal.returncode, 0)
-        self.assertIn('no-eval', refusal.stdout)
+        self.assertEqual(commands, [])
 
 
 if __name__ == '__main__':

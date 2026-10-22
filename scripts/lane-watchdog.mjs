@@ -33,6 +33,7 @@ const commitSchema = v.object({ sha: v.pipe(v.string(), v.regex(/^[a-f0-9]{40}$/
 /** @type {Map<string, Observation>} */
 const observations = new Map();
 const stop = new AbortController();
+let releaseCheckedAt = Date.now();
 
 /** @param {string} history */
 function gitCommits(history) {
@@ -127,6 +128,10 @@ function execute(executable, args, complete) {
 }
 const command = promisify(execute);
 
+/** sp-x7 is exempt from idle/commit nags, but actively checks releases every 15 min.
+ * @param {number} now @param {number} last */
+export function releaseCheckDue(now, last) { return now - last >= 15 * 60_000; }
+
 async function poll() {
   const [listed, history, ledger] = await Promise.all([
     command('herdr', ['agent', 'list']),
@@ -163,6 +168,14 @@ async function poll() {
   }
   const EXEMPT = new Set(['sp-x7', 'sp-o1', 'sp-o3']);
   const now = Date.now(), live = new Set();
+  if (releaseCheckDue(now, releaseCheckedAt) && agents.some(agent => agent.name === 'sp-x7')) {
+    try {
+      await command('bash', ['scripts/herdr-prompt.sh', 'sp-x7',
+        '[watchdog release check] Check CI, smoke and live now; fix or route reds and report the verdict.']);
+      releaseCheckedAt = now;
+    } catch { /* The question guard refused; retry on the next observation. */ }
+  }
+
   for (const agent of agents) {
     const name = agent.name;
     // sp-x7 is the release watcher (G485) and idles between events by design; sp-o1 and sp-o3 stopped

@@ -13,7 +13,7 @@ import time
 TEXT = {'.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json', '.jsonc',
         '.yaml', '.yml', '.css', '.glsl', '.frag', '.vert', '.wgsl', '.as', '.py', '.sh', '.md', '.html'}
 ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', 'budgets', '.githooks'}
-TOOLS = ['local-gate-checks.mjs', 'gate-related-tests.mjs', 'push-inputs.mjs', 'test-products.json', 'push-tables.mjs', 'authored-manifest.mjs', 'manifest-budget.mjs', 'manifest-spawns.mjs', 'push-lint-config.mjs']
+TOOLS = ['gate-related-tests.mjs', 'push-inputs.mjs', 'test-products.json']
 
 
 def source_file(name):
@@ -76,7 +76,7 @@ def outputs(repo, tree, records, deadline, assets=()):
 
 
 @contextlib.contextmanager
-def committed_source(repo, revision, tooling_revision, deadline, source_only=False):
+def committed_source(repo, revision, tooling_revision, deadline):
     folder = repo / 'tmp'
     folder.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='push-source-', dir=folder) as temporary:
@@ -101,37 +101,7 @@ def committed_source(repo, revision, tooling_revision, deadline, source_only=Fal
             target.write_bytes(data)
             if header[0] == b'100755':
                 target.chmod(0o755)
-        if source_only:
-            # CI ownership needs static imports, never generated type inputs,
-            # public assets or a cached product from a different revision.
-            tools = tree / '.push-tools'
-            tools.mkdir()
-            for name in ('push-inputs.mjs', 'link-node-modules.mjs'):
-                data = command(repo, ['git', 'show', tooling_revision + ':scripts/' + name], deadline,
-                               capture_output=True).stdout
-                (tools / name).write_bytes(data)
-            command(tree, ['node', str(tools / 'link-node-modules.mjs'), str(repo), str(tree)], deadline)
-            yield tree, tools
-            return
-        # Discovery validates the images its committed manifests name. Fetch
-        # only those tracked blobs, never the public asset tree or loose WIP.
         assets = set()
-        def images(value):
-            if isinstance(value, str) and value.startswith(('/src/', '/assets/')):
-                path = value[1:] if value.startswith('/src/') else 'public' + value
-                path = path.split('?', 1)[0]
-                if not PurePosixPath(path).is_absolute() and '..' not in PurePosixPath(path).parts:
-                    assets.add(path)
-            elif isinstance(value, dict):
-                for child in value.values():
-                    images(child)
-            elif isinstance(value, list):
-                for child in value:
-                    images(child)
-        for manifest in (tree / 'src/shards').glob('*/manifest.json'):
-            images(json.loads(manifest.read_text()))
-        for manifest in (tree / 'src/shards').glob('*/outputs.json'):
-            images(json.loads(manifest.read_text()))
         # Fixtures import only a small set of literal public JSON tables.
         for _, name in entries:
             if not re.search(r'\.[cm]?[jt]sx?$', name):

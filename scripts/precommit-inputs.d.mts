@@ -1,1 +1,1 @@
-export function precommitInputs(root?: string): void;
+export function precommitInputs(root?: string, executable?: string): void;

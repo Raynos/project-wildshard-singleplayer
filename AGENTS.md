@@ -89,8 +89,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   on via `git config core.hooksPath .githooks`.
 - ~10 agents share **one working tree, one index and one `main`**. Never stash, checkout, restore or rm what you didn't
   author; kill only your own processes, by PID.
-- **Commit with a pathspec** (`git commit -m "…" -- <paths>`; `git add` only new files). A file with someone else's
-  uncommitted hunk: wait, or commit your hunks through a private index.
+- **Commit only with `scripts/commit.sh "message" -- <files...>`** (D9): intent-to-add, one short lock, pathspec commit.
+  Agree same-file hunks with their owner; direct commits and private-index landings are retired.
 - **The scheduled push loop pushes commits (G568)**; `scripts/push-main.sh` requests a tick. Its ≤ 45 s committed-only
   gate ejects reds to the owning lane; CI is the full gate. See GIT.md for ejection notices. Never `git push`.
 - **Strict means strict**: no `any`, no `!`, no `@ts-ignore`, no `as unknown as`, no blanket `oxlint-disable`. Fix the

@@ -8,3 +8,4 @@ export function laneTurnMarkers(history: string, text: string, name: string, coo
 export interface TurnObservation { since: number; alerted: boolean; seen: ReadonlySet<string> }
 /** Reset for a new report only; unchanged visible text keeps the existing clock. */
 export function observeLaneTurn(turn: TurnObservation, markers: readonly string[], now: number): TurnObservation;
+export function releaseCheckDue(now: number, last: number): boolean;

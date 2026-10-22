@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""G582: temporary, pane-owned push/CI/smoke cadence and lane watchdog."""
+"""G582: temporary, pane-owned push cadence and lane watchdog."""
 import argparse
 import asyncio
 import fcntl
@@ -14,8 +14,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-TICKS = [('push', 'push-loop.py', 60), ('ci', 'ci-watch.py', 300),
-         ('smoke', 'smoke-watch.py', 300), ('release-wake', 'sp-tools.py', 900)]
+TICKS = [('push', 'push-loop.py', 60)]
 
 
 def environment(source):
@@ -46,16 +45,10 @@ def owner(state):
         return None
 
 
-async def cadence(root, label, argv, interval, stop, env, delay=0):
+async def cadence(root, label, argv, interval, stop, env):
     """Never overlap ticks; stopping drains an active upload/check naturally."""
     log = root / 'tmp/sp-tools' / (label + '.log')
     log.parent.mkdir(parents=True, exist_ok=True)
-    if delay:
-        try:
-            await asyncio.wait_for(stop.wait(), delay)
-            return
-        except asyncio.TimeoutError:
-            pass
     while not stop.is_set():
         started = time.monotonic()
         try:
@@ -79,20 +72,18 @@ async def supervise(root, state):
     for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
         loop.add_signal_handler(sig, stop.set)
     env = environment(os.environ)
-    for tool in ('node', 'gh', 'herdr'):
+    for tool in ('node', 'herdr'):
         if shutil.which(tool, path=env['PATH']) is None:
             raise RuntimeError(tool + ' is required in the pane PATH')
-    # launchd used the same state files; no duplicate CI or smoke notices on move.
     jobs = [asyncio.create_task(cadence(root, label,
-            [sys.executable, str(root / 'scripts' / script)] + (['wake'] if label == 'release-wake' else []),
-            interval, stop, env, delay=interval if label == 'release-wake' else 0))
+            [sys.executable, str(root / 'scripts' / script)], interval, stop, env))
             for label, script, interval in TICKS]
     watchdog = await asyncio.create_subprocess_exec('node', str(root / 'scripts/lane-watchdog.mjs'),
                 cwd=root, env=env)
     row = {'pid': os.getpid(), 'identity': identity(os.getpid()),
            'pane': os.environ.get('HERDR_PANE_ID'), 'watchdog': watchdog.pid}
     state.write_text(json.dumps(row))
-    print('sp-tools: ready; push 60s, CI/smoke 300s, sp-x7 wake 900s, watchdog; stop: scripts/sp-tools.sh stop', flush=True)
+    print('sp-tools: ready; push 60s and lane watchdog (sp-x7 wake 900s); stop: scripts/sp-tools.sh stop', flush=True)
     # A dead watchdog ends the group visibly instead of leaving a half-alive owner.
     ended = asyncio.create_task(watchdog.wait())
     requested = asyncio.create_task(stop.wait())
@@ -128,7 +119,7 @@ def start(root, state):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['start', 'run', 'stop', 'status', 'wake'], nargs='?', default='start')
+    parser.add_argument('action', choices=['start', 'run', 'stop', 'status'], nargs='?', default='start')
     args = parser.parse_args()
     state = common(ROOT) / 'sp-tools.json'
     if args.action == 'stop':
@@ -144,11 +135,6 @@ def main():
         return
     if os.environ.get('HERDR_ENV') != '1':
         raise SystemExit('sp-tools requires a Herdr-managed pane')
-    if args.action == 'wake':
-        message = ('[sp-tools release wake] 15-minute active check: inspect current CI, exact smoke and live '
-                   'version/status now; fix or route actionable reds and report the verdict. '
-                   'Passive watcher notices do not replace your check.')
-        raise SystemExit(subprocess.run(['scripts/herdr-prompt.sh', 'sp-x7', message], cwd=ROOT).returncode)
     if args.action == 'start':
         start(ROOT, state)
         return

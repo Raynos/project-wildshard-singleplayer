@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D8: live changed-root checks in one 45-second budget; CI owns builds."""
+"""D9: related tests in one 45-second budget; CI owns complete checks."""
 import hashlib
 import json
 import os
@@ -12,7 +12,6 @@ import tempfile
 import time
 
 LIMIT = 45
-SOURCE = re.compile(r'\.(?:[cm]?[jt]sx?)$')
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 
 
@@ -53,15 +52,6 @@ def run(command, root, deadline, env=None):
             return 124, output + '\npre-push budget exhausted'
 
 
-def lint_sources(root, files):
-    config = (root / '.oxlintrc.json').read_text()
-    listing = re.search(r'"ignorePatterns"\s*:\s*\[([^\]]*)\]', config)
-    ignored = re.findall(r'"([^"]+)"', listing.group(1)) if listing else []
-    return [name for name in files if SOURCE.search(name) and (root / name).is_file()
-            and not any(name.startswith(p) if '/' in p[:-1]
-                        else name.startswith(p) or '/' + p in name for p in ignored)]
-
-
 def failure_paths(output):
     plain = ANSI.sub('', output)
     # TS, oxlint and Vitest diagnostics. Unknown errors never guess a prefix.
@@ -72,26 +62,15 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
     files = changed(root, base, tip) if files is None else files
     tools = root / 'scripts' if tools is None else tools
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
-    result['types'] = 'checked' if types_available else 'ci-cache-miss'
+    result['types'] = 'pre-commit'
     if not types_available:
-        result['output'] = 'No matching verified generation cache: TypeScript, type-aware lint and related tests defer to the full CI gate; ordinary oxlint remains local.'
+        result['output'] = 'No matching generated test inputs: related tests defer to the full CI gate.'
     before = snapshot(root, files)
     (root / 'tmp').mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='live-prepush-', dir=root / 'tmp') as temporary:
         listing = Path(temporary) / 'changed.json'
         listing.write_text(json.dumps(files))
-        lintable = lint_sources(root, files)
-        commands = [('types', ['node', str(tools / 'local-gate-checks.mjs'), 'types', str(listing)])] if types_available else []
-        if lintable:
-            if not types_available:
-                commands.append(('lint-config', ['node', str(tools / 'push-lint-config.mjs')]))
-            commands.append(('lint', ['pnpm', 'exec', 'oxlint', *(['--type-aware'] if types_available else []), '-c', '.oxlintrc.json' if types_available else '.push-untyped.oxlint.json', *lintable]))
         env = dict(os.environ, WS_VITEST_MAX_WORKERS='4', WS_LIVE_PREPUSH='1', NO_COLOR='1')
-        for phase, command in commands:
-            rc, output = runner(command, root, deadline, env)
-            if rc:
-                result.update(phase=phase, output=output, files=failure_paths(output))
-                return result
         # Vitest setup imports generated boot/species rows, even for pure tests.
         # A cache miss cannot run that setup or attribute its missing files to a
         # source commit. The full CI gate prepares and checks those inputs.

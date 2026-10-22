@@ -21,65 +21,34 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Never mutate what you didn't author.** No `git stash`, `checkout`, `restore` or `git rm` on others' files; leave
   everyone's uncommitted WIP alone. Verify before you claim: `git status`, `git log origin/main..main` (empty =
   shipped), and `version.json`.
-- **Commit with a pathspec, never from the shared index.** `.claude/hooks/guard-git-add-all.sh` enforces it:
-  - an edit to a tracked file is never staged; commit it directly with `git commit -m "…" -- path/a path/b`;
-  - `git add` only a **new** file, then the same pathspec commit;
-  - blocked: `git add -A` / `.` / `-u`, `git add <tracked file>`, `git commit -a`, and any `git commit` without
-    `-- <paths>`. Rare escape: `SKIP_SWEEPGUARD=1`; every use lands in `project/sweepguard-ledger.md`.
-  - **Private-index recognition (G498):** the sweep guard accepts tracked-file
-    staging and index-only commits with an inherited `GIT_INDEX_FILE` or a
-    per-command literal absolute `GIT_INDEX_FILE=/path/lane.index`. It checks
-    symlinks and hard links against the shared index. Shell substitutions and
-    earlier shell statements cannot prove isolation: use a literal on each Git
-    invocation. Bulk staging (`-A`, `.`, `-u`) and `commit -a` stay blocked.
-    Recognized private indexes need no bypass ledger; all Git hooks still run.
-  - A pathspec commit takes the **whole file**. If the file also carries another agent's uncommitted hunk, wait for
-    them, or commit only your hunks through a private index (`.claude/skills/prepare-to-exit/SKILL.md` step 1).
-  - **Preferred lane path:** validate a private message with `python3 .githooks/commit-msg-conventions <file>`, run
-    the actual pre-commit and commit-msg hooks with the private index, then `commit-tree` and compare-and-swap
-    `update-ref`. Run post-commit after landing. Each process owns its message file; no shared `COMMIT_EDITMSG`.
-    Ordinary `git commit`, including with a private index, serializes message handling through the pre-commit
-    kernel lock until that Git process exits. A waiter prints the holder PID and known lane/pane; it refuses after
-    120 seconds by default (`WS_COMMIT_LOCK_TIMEOUT`, positive and at most 600 seconds), so retry or use the preferred
-    private-message path. It never removes another process's lock. Pre-commit prints its wall time under the lock
-    and records `.git/commit-hook-times.jsonl`; queue waiting is excluded. Darwin kqueue / Linux pidfd releases
-    the lock on success, refusal or process death, with no polling guardian.
-    The post-hook defers a dirty sweep ledger until the committing parent exits; its follow-up clears inherited
-    Git-local state, runs the real hooks with a private index/message and lands by CAS. It never nests a Git commit
-    under its parent's message lock or overwrites a foreign staged path. Quiet defers it to the next post-hook;
-    failures leave the ledger bytes and report in `.git/sweep-ledger.log`. Attribution follows the source commit.
-  - **A stale private index cannot undo another lane's landing.** Both pre-commit and commit-msg refuse staged bytes or modes
-    that restore an ancestor's state, including deletion of a newly landed file. Rebuild from current HEAD, apply
-    only your paths and use the preferred commit-tree/CAS path. A deliberate rollback, or a producer that may return
-    to an earlier output, declares `WS_COMMIT_INTENT` as JSON with `base` (the full parent SHA) and `paths` (unique
-    literal repository-relative paths). The hooks refuse a moved parent and every staged path outside that list;
-    the declaration does not skip any source, attribution, generation or push check. Recompute it on every CAS retry.
-    Native pathspec commits use Git's own PID-named `next-index` and ref CAS: unrelated shared stages do not become
-    the commit, and a parent moving during the hooks refuses the ref update. The ancestor heuristic applies to
-    caller-owned indexes, not Git's validated temporary pathspec index; every other hook still checks that index.
+- **Commit only with `scripts/commit.sh "message" -- <files...>` (D9/G584).** It marks new files intent-to-add
+  and serializes Git's shared files with one short lock. Git commits only the named files and preserves unrelated
+  shared stages. Name literal files, never a directory. A named file's entire working copy is committed: agree
+  with its owner if it also contains another lane's hunk. Direct commits and private-index landings are retired.
+  Pre-commit runs storage policy and one native oxlint invocation for TypeScript diagnostics and typed lint on
+  changed source, with a five-second checker budget. No mirror, generator, build or test runs at commit.
+  Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
   60 seconds. Lanes commit their green source; `scripts/push-main.sh` requests one scheduled tick when needed.
   These are temporary coordinator processes, never launchd services (G582). `scripts/sp-tools.sh start` opens
-  one Herdr pane named `sp-tools` with push, CI, smoke and lane-watchdog processes plus a 15-minute active-check
-  wake for sp-x7. `scripts/sp-tools.sh stop` stops scheduling and drains active ticks; `status` identifies its owner.
+  one Herdr pane named `sp-tools` with only push and lane-watchdog processes. The watchdog nudges sp-x7 every
+  15 minutes to actively check CI, smoke and live (G585); there are no CI or smoke watchers.
+  `scripts/sp-tools.sh stop` stops scheduling and drains active ticks; `status` identifies its owner.
   Tool source lives in `scripts/`; disposable tool logs live in `tmp/sp-tools/`. The pane inherits the current
   tool environment without version-pinned Codex PATH entries.
   Never run `git push` or start the retired carrier/full local push gate.
-- **The local push gate has a 45-second ceiling and checks committed source only.** It checks changed roots' types,
-  oxlint on changed files, then related tests within the remaining budget. Foreign working or staged edits never
-  enter the candidate. No full generation, build, products or mirror job runs in this gate; only the small source
-  tables needed for checks are prepared. A matching, verified generation cache supplies type inputs. On a cache miss,
-  types, type-dependent lint and related tests defer to CI (the test setup also reads generated rows);
-  ordinary and architecture lint stay local. Each result says
-  `types: checked` or `types: ci-cache-miss`. **CI is the full gate**, including full types, generation, build and tests;
-  CI reds are fixed forward through the owning lane. The CI watcher runs every five minutes.
+- **The local push gate has a 45-second ceiling and checks committed source only.** It selects related tests
+  and runs them within the budget, without repeating pre-commit types or lint. Foreign working/staged edits
+  never enter the candidate; no generation, build, product or mirror job runs here. A matching verified cache
+  supplies generated test inputs; missing inputs defer those tests to CI openly. **CI is the full gate**,
+  including complete types, generation, build and tests. sp-x7 remains release owner and checks every 15 minutes.
 - **A red commit is ejected back to its lane; the checked green prefix can still push.** The loop attributes the
   refusal, checks the prefix within the same budget, pushes that prefix and sends the owner a Herdr message beginning
   `[push-loop]`, naming the phase, offending SHA and `tmp/push-loop/current.log`. The offending commit and its suffix
   stay on local `main`; no commit, ref or history is rewritten. Fix forward and commit; the next tick retries.
   Inspect the last result in `tmp/push-loop/current.log` or `.git/push.log`: `bad` names the attributed commit and
   `tip` names the checked/pushed revision. `git log origin/main..main` shows what remains local. Repeated unknown
-  refusals produce a Herdr notice after three matching failures. CI notices begin `[ci-watch]` with the SHA and job.
+  refusals produce a Herdr notice after three matching failures. sp-x7 reports CI failures with the SHA and job.
   Pending binary still counts toward the storage policy's 10 MB per-push budget.
 
 G568 replaces the former carrier, push lock, prefix retry and full local push execution described by the older tooling
@@ -160,11 +129,9 @@ rewrite still needs Jake's approval.
   `.git/push-gate-steps.jsonl`; a passed SHA is stamped in `.git/build-gate-g416/`. Required exact-SHA
   boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
   selects only a CI-green and smoke-green commit.
-- **Source checks use the tree being checked.** The checkout supplies mirror transport; pre-commit runs the staged
-  tree's checker and imported policies under the `commit` lock, retaining the original private index for comparisons.
+- **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
-  shared working tree and index. Missing generated type inputs follow the explicit cache-miss rule above; a missing
-  checker or registry refuses.
+  shared working tree and index. Missing generated test inputs follow the explicit cache-miss rule above.
 - **Disk-reading tests declare their products** in `scripts/test-products.json`.
   The related-test walk retains their author-source edges; CI and batch checks
   verify/rebuild selected products with `--reuse --shard=…`. The scheduled local
@@ -205,10 +172,6 @@ rewrite still needs Jake's approval.
 - **`pnpm add`** dies with `ERR_PNPM_UNEXPECTED_VIRTUAL_STORE`. Don't reinstall (everyone shares `node_modules`): use
   `pnpm add <pkg> --config.enable-global-virtual-store=false`, then pathspec-commit `package.json` + `pnpm-lock.yaml`
   after checking `git diff HEAD` shows only your lines.
-- **After a private-index commit** (`GIT_INDEX_FILE=… read-tree` → `commit-tree` → `update-ref`), the shared index still
-  holds the old blobs and reads as a staged revert. For each committed path not staged by someone else:
-  `git update-index --cacheinfo 100644,$(git rev-parse HEAD:<path>),<path>`. Then write HEAD's copy of each path
-  you landed, so a stale disk copy can't revert it in someone's later pathspec commit.
 - **No worktrees, feature branches or landings by default** (Jake, 2026-10-15). Everyone, subagents included, commits
   to `main` in this checkout. A worktree is only for an exceptional case Jake approves: under `./tmp`, removed when
   done, never pushed. Exact-commit checks use the build mirror (`node scripts/build-mirror.mjs run <rev> -- <cmd>`).

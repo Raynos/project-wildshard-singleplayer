@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { laneTurnMarkers, latestLaneCommit, observeLaneTurn, type TurnObservation } from '../scripts/lane-watchdog.mjs';
+import { laneTurnMarkers, latestLaneCommit, observeLaneTurn, releaseCheckDue, type TurnObservation } from '../scripts/lane-watchdog.mjs';
 
 const older = '1111111aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const newer = '2222222bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -64,4 +64,10 @@ it('resets a continuously working turn once for landing, ending or coordinator s
   expect(laneTurnMarkers(history, '', 'sp-x4', '[from sp-x4] Own paths clean; ending turn.')).toHaveLength(1);
   expect(laneTurnMarkers(history, `› [from sp-x6] Ending turn\n> Ending turn\n• The report says "ending turn"\n[from sp-x6] Go: next task`, 'sp-x4')).toEqual([]);
   expect(laneTurnMarkers(history, '', 'sp-x4', `[from sp-x6] LANDED ${other}\n[from sp-x4] LANDED deadbeef`)).toEqual([]);
+});
+
+it('wakes the release owner every fifteen minutes independent of idle status', () => {
+  expect(releaseCheckDue(899_999, 0)).toBe(false);
+  expect(releaseCheckDue(900_000, 0)).toBe(true);
+  expect(releaseCheckDue(900_001, 900_000)).toBe(false);
 });

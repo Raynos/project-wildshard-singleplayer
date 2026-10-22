@@ -1,29 +1,9 @@
 #!/usr/bin/env bash
-# post-commit: auto-commit a dirty sweep-guard ledger.
-#
-# guard-git-add-all.sh appends a line to project/sweepguard-ledger.md on
-# every SKIP_SWEEPGUARD=1 use. Pathspec commits (this repo's mandatory shape)
-# build their temp index from HEAD + the NAMED paths only, so a pre-commit hook
-# cannot fold the ledger into the same commit — instead this hook sweeps a
-# dirty ledger into a detached follow-up after the owning commit exits.
-# Redirect the whole detached launcher so its shell cannot retain a captured caller pipe.
-# Never nest a Git commit under its parent's message lock. Recursion is cut by LEDGER_AUTOCOMMIT.
-
+# Attribute committed revisions to lanes; no background commit or watcher.
 set -uo pipefail
+common="$(git rev-parse --path-format=absolute --git-common-dir)"
 
-repo="$(git rev-parse --show-toplevel 2>/dev/null || exit 0)"
-ledger="project/sweepguard-ledger.md"
-common="$(git -C "$repo" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
-
-if [ "${LEDGER_AUTOCOMMIT:-0}" != 1 ] && ! git -C "$repo" diff --quiet HEAD -- "$ledger" 2>/dev/null; then
-  source="$(git -C "$repo" rev-parse HEAD)"
-  (cd "$repo" && exec python3 -c 'import os, sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
-    python3 scripts/commit-sweep-ledger.py "$PPID" "$source") \
-    < /dev/null >> "$common/sweep-ledger.log" 2>&1 &
-  echo "  - dirty sweep ledger deferred until parent PID $PPID exits" >&2
-fi
-
-# D8's CI watcher maps each committed revision to its actual lane/pane.
+# Release owner attribution, independent of author identity.
 python3 - "$common/commit-lanes.jsonl" <<'LEDGER'
 import json, os, subprocess, sys, time
 sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
@@ -33,5 +13,5 @@ with open(sys.argv[1], 'a') as stream:
     stream.write(json.dumps(row, separators=(',', ':')) + '\n')
 LEDGER
 
-# launchd owns push cadence; commits never wait for an upload.
+# The temporary push loop owns uploads.
 exit 0

@@ -21,6 +21,16 @@ B='(^|[;&|])[[:space:]]*'
 # must not smuggle a destructive git op past the anchor.
 BE='(^|[;&|])[[:space:]]*([A-Za-z_][A-Za-z_0-9]*=[^[:space:]]*[[:space:]]+)*'
 
+# D9: direct commits/private plumbing and whole-tree staging are retired.
+if has "${BE}git[[:space:]]+(commit|commit-tree|update-ref)([[:space:]]|$)"; then
+  echo 'Use scripts/commit.sh "message" -- <files...>; direct commit plumbing is retired.' >&2
+  exit 2
+fi
+if has "${BE}git[[:space:]]+add[[:space:]]+([^;&|]*[[:space:]])?(--all|--update|-[A-Za-z]*[Au][A-Za-z]*|\.|:/)([[:space:]]|$)"; then
+  echo 'Whole-tree staging is forbidden; use scripts/commit.sh with literal files.' >&2
+  exit 2
+fi
+
 # ── EXEMPT: isolated git worktrees ───────────────────────────────────────────
 # A linked worktree is a private tree — mutations there can't hit a co-agent.
 # git-dir differs from git-common-dir only in a linked worktree.

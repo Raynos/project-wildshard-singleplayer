@@ -1,130 +1,66 @@
-"""Reproduce a stale private-index commit against actual concurrent landings."""
+"""D9: real pathspec commits preserve foreign stages and serialize messages."""
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
-guard = Path(sys.argv[1]).resolve()
-env = dict(os.environ)
-for key in subprocess.check_output(['git', 'rev-parse', '--local-env-vars'],
-                                   text=True).splitlines():
-    env.pop(key, None)
-env.pop('WS_COMMIT_INTENT', None)
-
-with tempfile.TemporaryDirectory(prefix='commit-index-fixture-') as directory:
-    root = Path(directory)
-
-    def git(*args, active=env, check=True):
-        return subprocess.run(['git', *args], cwd=root, env=active,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              text=True, check=check)
-
-    def blob(text):
-        return subprocess.check_output(['git', 'hash-object', '-w', '--stdin'],
-                                       cwd=root, env=env, text=True, input=text).strip()
-
-    def put(active, path, text):
-        git('update-index', '--add', '--cacheinfo', '100644', blob(text), path,
-            active=active)
-
-    def private(name, base):
-        active = dict(env, GIT_INDEX_FILE=str(root / name))
-        git('read-tree', base, active=active)
-        return active
-
+source = Path(sys.argv[1]).resolve()
+env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as temp:
+    root = Path(temp)
+    def git(*args):
+        return subprocess.check_output(['git', *args], cwd=root, env=env, text=True).strip()
+    def put(path, text):
+        file = root / path
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text(text)
     git('init', '-q', '-b', 'main')
-    git('config', 'user.name', 'Fixture')
     git('config', 'user.email', 'fixture@example.invalid')
-    (root / 'foreign.txt').write_text('old\n')
-    git('add', 'foreign.txt')
+    git('config', 'user.name', 'fixture')
+    git('config', 'core.hooksPath', '/dev/null')
+    for name in ['own.txt', 'peer.txt', 'gone.txt']:
+        put(name, 'base\n')
+    git('add', '--', 'own.txt', 'peer.txt', 'gone.txt')
     git('commit', '-qm', 'base')
-    base = git('rev-parse', 'HEAD').stdout.strip()
-    lane_a = private('a.index', base)
-    put(lane_a, 'own.txt', 'lane A\n')
-    lane_b = private('b.index', base)
-    put(lane_b, 'foreign.txt', 'lane B\n')
-    put(lane_b, 'new foreign.txt', 'new lane B\n')
-    git('commit', '-qm', 'concurrent B', active=lane_b)
-    landed = git('rev-parse', 'HEAD').stdout.strip()
-    hooks = root / 'hooks'
-    hooks.mkdir()
-    for name in ('pre-commit', 'commit-msg'):
-        hook = hooks / name
-        hook.write_text(f'#!/bin/sh\nexec python3 "{guard}"\n')
-        hook.chmod(0o755)
-    git('config', 'core.hooksPath', str(hooks))
-    refused = git('commit', '-qm', 'stale A', active=lane_a, check=False)
-    assert refused.returncode != 0, refused
-    assert 'foreign.txt' in refused.stderr and 'new foreign.txt' in refused.stderr
-    assert git('rev-parse', 'HEAD').stdout.strip() == landed
-    assert git('show', 'HEAD:foreign.txt').stdout == 'lane B\n'
-    assert git('show', 'HEAD:new foreign.txt').stdout == 'new lane B\n'
-
-    fresh = private('fresh.index', landed)
-    put(fresh, 'own.txt', 'lane A\n')
-    git('commit', '-qm', 'fresh A', active=fresh)
-    assert git('show', 'HEAD:foreign.txt').stdout == 'lane B\n'
-    assert git('show', 'HEAD:new foreign.txt').stdout == 'new lane B\n'
-    current = git('rev-parse', 'HEAD').stdout.strip()
-
-    rollback = private('rollback.index', current)
-    put(rollback, 'foreign.txt', 'old\n')
-    rollback['WS_COMMIT_INTENT'] = json.dumps({'base': current, 'paths': ['foreign.txt']})
-    git('commit', '-qm', 'explicit rollback', active=rollback)
-    current = git('rev-parse', 'HEAD').stdout.strip()
-    assert git('show', 'HEAD:new foreign.txt').stdout == 'new lane B\n'
-
-    mixed = private('mixed.index', current)
-    put(mixed, 'own.txt', 'next A\n')
-    put(mixed, ':foreign name.txt', 'unrelated fresh bytes\n')
-    mixed['WS_COMMIT_INTENT'] = json.dumps({'base': current, 'paths': ['own.txt']})
-    refused = git('commit', '-qm', 'foreign intent', active=mixed, check=False)
-    assert refused.returncode != 0 and 'outside declared' in refused.stderr
-
-    stale_intent = private('stale-intent.index', current)
-    put(stale_intent, 'own.txt', 'next A\n')
-    stale_intent['WS_COMMIT_INTENT'] = json.dumps({'base': current, 'paths': ['own.txt']})
-    next_lane = private('next.index', current)
-    put(next_lane, 'new foreign.txt', 'next B\n')
-    git('commit', '-qm', 'next B', active=next_lane)
-    refused = git('commit', '-qm', 'stale declared A', active=stale_intent, check=False)
-    assert refused.returncode != 0 and 'parent moved' in refused.stderr
-
-    # Detect HEAD movement between the two real hooks as well.
-    current = git('rev-parse', 'HEAD').stdout.strip()
-    delayed = private('delayed.index', current)
-    put(delayed, 'own.txt', 'next A\n')
-    delayed['WS_COMMIT_INTENT'] = json.dumps({'base': current, 'paths': ['own.txt']})
-    tip = private('tip.index', current)
-    put(tip, 'new foreign.txt', 'third B\n')
-    tree = git('write-tree', active=tip).stdout.strip()
-    commit = git('commit-tree', tree, '-p', current, '-m', 'third B').stdout.strip()
-    (hooks / 'pre-commit').write_text(f'#!/bin/sh\npython3 "{guard}" || exit $?\ngit update-ref refs/heads/main {commit} {current}\n')
-    refused = git('commit', '-qm', 'moved during hook', active=delayed, check=False)
-    assert refused.returncode != 0 and 'parent moved' in refused.stderr
-    assert git('rev-parse', 'HEAD').stdout.strip() == commit
-    # A literal pathspec must ignore stale entries in the shared index.
-    (hooks / 'pre-commit').write_text(f'#!/bin/sh\nexec python3 "{guard}"\n')
-    (root / 'own.txt').write_text('pathspec A\n')
-    git('commit', '-qm', 'pathspec A', '--', 'own.txt')
-    assert git('show', 'HEAD:new foreign.txt').stdout == 'third B\n'
-    assert git('show', 'HEAD:own.txt').stdout == 'pathspec A\n'
-    # If HEAD moves after Git built next-index, its native CAS must refuse.
-    current = git('rev-parse', 'HEAD').stdout.strip()
-    tip = private('pathspec-tip.index', current)
-    put(tip, 'new foreign.txt', 'fourth B\n')
-    tree = git('write-tree', active=tip).stdout.strip()
-    commit = git('commit-tree', tree, '-p', current, '-m', 'fourth B').stdout.strip()
-    (hooks / 'pre-commit').write_text(f'#!/bin/sh\npython3 "{guard}" "$PPID" || exit $?\ngit update-ref refs/heads/main {commit} {current}\n')
-    (root / 'own.txt').write_text('later pathspec A\n')
-    refused = git('commit', '-qm', 'racing pathspec A', '--', 'own.txt', check=False)
-    assert refused.returncode != 0 and 'cannot lock ref' in refused.stderr
-    assert git('rev-parse', 'HEAD').stdout.strip() == commit
-    assert git('show', 'HEAD:new foreign.txt').stdout == 'fourth B\n'
-    assert git('show', 'HEAD:own.txt').stdout == 'pathspec A\n'
-    print(json.dumps({'race': 'refused', 'fresh': 'passed', 'rollback': 'scoped',
-                      'foreign_intent': 'refused', 'moved_parent': 'refused',
-                      'between_hooks': 'refused', 'pathspec': 'passed',
-                      'pathspec_cas': 'refused'}))
+    (root / 'scripts').mkdir()
+    shutil.copy2(source / 'scripts/commit.sh', root / 'scripts/commit.sh')
+    put('peer.txt', 'staged peer\n')
+    git('add', '--', 'peer.txt')
+    peer = git('rev-parse', ':peer.txt')
+    put('peer.txt', 'working peer\n')
+    put('own.txt', 'own change\n')
+    put('new file.txt', 'new file\n')
+    (root / 'gone.txt').rename(root / 'renamed.txt')
+    started = time.monotonic()
+    subprocess.run(['scripts/commit.sh', 'fixture own', '--', 'own.txt', 'new file.txt', 'gone.txt'], cwd=root, env=env, check=True)
+    assert git('show', 'HEAD:peer.txt') == 'base'
+    assert git('rev-parse', ':peer.txt') == peer
+    assert (root / 'peer.txt').read_text() == 'working peer\n'
+    assert git('show', 'HEAD:new file.txt') == 'new file'
+    assert 'gone.txt' not in git('ls-tree', '--name-only', 'HEAD').splitlines()
+    first_seconds = time.monotonic() - started
+    put('a.txt', 'a\n'); put('b.txt', 'b\n')
+    a = subprocess.Popen(['scripts/commit.sh', 'fixture A', '--', 'a.txt'], cwd=root, env=env)
+    b = subprocess.Popen(['scripts/commit.sh', 'fixture B', '--', 'b.txt'], cwd=root, env=env)
+    assert a.wait(timeout=10) == 0 and b.wait(timeout=10) == 0
+    assert set(git('log', '-2', '--format=%s').splitlines()) == {'fixture A', 'fixture B'}
+    # The storage check still reads this pathspec's staged object and refuses it.
+    shutil.copy2(source / 'scripts/repo-size.mjs', root / 'scripts/repo-size.mjs')
+    put('scripts/storage-policy.json', json.dumps({'schemaVersion': 1, 'maxBlobBytes': 1000000,
+        'maxPreviewBytes': 250000, 'maxBoardBytes': 500000, 'maxPushBytes': 10000000,
+        'maxWeeklyBytes': 100000000, 'pins': []}))
+    subprocess.run(['scripts/commit.sh', 'fixture storage policy', '--', 'scripts/storage-policy.json'],
+                   cwd=root, env=env, check=True)
+    put('.githooks/pre-commit', '#!/bin/sh\nnode scripts/repo-size.mjs --index\n')
+    (root / '.githooks/pre-commit').chmod(0o755)
+    git('config', 'core.hooksPath', '.githooks')
+    put('oversized.txt', 'x' * 2000000)
+    refused = subprocess.run(['scripts/commit.sh', 'fixture oversize', '--', 'oversized.txt'],
+                              cwd=root, env=env, text=True, capture_output=True)
+    assert refused.returncode != 0 and '1.00 MB blob cap' in refused.stderr + refused.stdout, refused
+    print(json.dumps({'pathspec': 'passed', 'concurrent': 'passed', 'storageRefusal': 'passed',
+                      'commitSeconds': round(first_seconds, 3)}))
