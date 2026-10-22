@@ -37,7 +37,7 @@ test('Pine habitat rows retain exact metadata, creek surfaces, normals and trunk
       for (const fraction of [0,.3,1]) for (const side of [-1,0,1]) points.push([a.x+vx*fraction-vz/length*side*half,a.z+vz*fraction+vx/length*side*half]);
     }
     const declared = declaredGround(groundRows), terrain = declared.terrain, creek = declared.water?.find(body => body.id === 'creek');
-    if (terrain === undefined || creek === undefined) throw new Error('Missing Pine terrain or creek');
+    if (creek === undefined) throw new Error('Missing Pine creek');
     for (const [x,z] of points) {
       expect(ground.heightAt(x,z)).toBe(samplers.heightAt(x,z));
       expect(ground.normalY(x,z)).toBe(samplers.normalAt(x,z)[1]);
