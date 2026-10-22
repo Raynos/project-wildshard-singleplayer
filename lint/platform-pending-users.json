@@ -1641,26 +1641,6 @@
       }
     },
     {
-      "module": "src/engine/models/geometrySources.ts",
-      "shard": "driftwood-isle",
-      "plan": {
-        "path": "docs/plans/shard-platform/decisions.md",
-        "row": "G475"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
-      "module": "src/sdk/models/geometrySources.ts",
-      "shard": "driftwood-isle",
-      "plan": {
-        "path": "docs/plans/shard-platform/decisions.md",
-        "row": "G475"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
       "module": "src/engine/models/slots.ts",
       "shard": "nalati-grasslands",
       "plan": {

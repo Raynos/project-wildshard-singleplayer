@@ -1,5 +1,8 @@
 import { Scope } from '../src/engine/app/scope';
-import { installGeometrySource } from '../src/engine/models/geometrySources';
+import { mockPackedFetch } from './fake/packedGeometry';
+import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
+import { zlibSync } from 'fflate';
+import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { BoxGeometry, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial } from 'three';
 import { HeldFinishes } from '../src/game/loadout/finishes';
@@ -25,11 +28,12 @@ test('harbour finishes loan geometry and bind the first available row material',
   const rows = { order: ['sea-bone'], rows: { 'sea-bone': { id: 'sea-bone', weapon: 'crossbow', name: 'Sea bone', blurb: 'Coral fittings', mats: { coral: { color: 0xabcdee } } } },
     cards: [{ id: 'sea-bone', name: 'Sea bone', blurb: 'Harpoon', lockedBlurb: 'Find coral', icon: 'crossbow' }],
     extras: { 'sea-bone': [{ name: 'harbour-coral', geometry: 23, materials: ['missing', 'coral'] }] } };
-  const requested: number[][] = [], original = new BoxGeometry(1, 2, 3);
+  const original = new BoxGeometry(1, 2, 3), writer = new GeometryPackWriter('harbour finishes');
+  for (let i = 0; i < 24; i++) writer.add(original);
+  const source = { url: '/fixture/harbour.bin', rows: writer.rows() }, fetcher = mockPackedFetch(source.url, zlibSync(writer.bytes()));
   const scope = new Scope('harbour-finishes');
-  installGeometrySource(scope, 'fixture-pack', { geometries: indices => { requested.push([...indices]); return Promise.resolve(indices.map(() => original)); } });
-  const host = await HeldFinishes.prepare(product('fixture-harbour', rows), scope, 'fixture-pack');
-  expect(requested).toEqual([[23]]);
+  const host = await HeldFinishes.prepare(product('fixture-harbour', { ...rows, source }), scope);
+  expect(fetcher).toHaveBeenCalledWith(source.url);
   const root = new Group(), material = new MeshBasicMaterial();
   const extra = host.get('sea-bone').extras?.(root, name => name === 'coral' ? material : undefined)[0];
   if (!(extra instanceof Mesh)) throw new Error('Missing declarative harbour extra');
@@ -62,8 +66,8 @@ test('harbour tool and cold gear cards contain no shard callbacks', () => {
 test('existing Pine v1 skin ownership and worn slots continue through the row host', async () => {
   const rows = outputPlatformPayloads(output.platform, ['held/finishes']).get('held/finishes');
   const scope = new Scope('legacy-skin-save');
-  installGeometrySource(scope, 'fixture-pack', { geometries: indices => Promise.resolve(indices.map(() => new BoxGeometry())) });
-  const host = await HeldFinishes.prepare(product('pine-hollow', rows), scope, 'fixture-pack');
+  mockPackedFetch(packed.url);
+  const host = await HeldFinishes.prepare(product('pine-hollow', rows), scope);
   const imported = saves.importAll(JSON.stringify({ format: appIdentity().saveFormat, version: 2, docs: { 'pine-hollow': { keys: { skins: { v: 1,
     data: { owned: ['ghost-stag', 'ironhide'], worn: { crossbow: 'ghost-stag', rifle: 'ironhide' } } } } } } }));
   expect(imported.imported).toContain('pine-hollow/skins');

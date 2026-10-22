@@ -1,5 +1,5 @@
 import { Scope } from '../src/engine/app/scope';
-import { installGeometrySource } from '../src/engine/models/geometrySources';
+import { mockPackedFetch } from './fake/packedGeometry';
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
@@ -28,9 +28,9 @@ test('finish admission preserves orders/materials/drops and exact extra buffers,
   expect(() => HeldFinishes.current(shardfile.identity.slug)).toThrow('not admitted');
   const rows = v.parse(HeldFinishesSchema, outputPlatformPayloads(output.platform, ['held/finishes']).get('held/finishes'));
   const pack = new GeometryPack(inflateSync(readFileSync(`public${packed.url}`)), packedRows(packed.rows), 'finish parity');
-  const source = { geometries: (indices: readonly number[]) => Promise.resolve(indices.map(index => pack.geometry(index))) };
-  const scope = new Scope('finish-parity'); installGeometrySource(scope, 'fixture-pack', source);
-  const host = await HeldFinishes.prepare(product(rows), scope, 'fixture-pack');
+  const fetcher = mockPackedFetch(packed.url), scope = new Scope('finish-parity');
+  const host = await HeldFinishes.prepare(product(rows), scope);
+  expect(fetcher).toHaveBeenCalledWith(packed.url);
   expect(host.list().map(row => row.id)).toEqual(Object.keys(WEAPON_FINISHES));
   expect(HELD_GEAR.variantOrder.map(id => { const row = host.get(id); return { id, name: row.name, weapon: row.weapon }; }))
     .toEqual(Object.values(WEAPON_FINISHES).map(({ id, name, weapon }) => ({ id, name, weapon })));
@@ -49,7 +49,7 @@ test('finish admission preserves orders/materials/drops and exact extra buffers,
   }
   expect(extraGeometry.index?.array).toEqual(original.index?.array); expect(extraGeometry.groups).toEqual(original.groups);
   extraGeometry.dispose(); original.dispose(); material.dispose();
-  await expect(HeldFinishes.prepare(product({ ...rows, rows: { ...rows.rows, extra: true } }), scope, 'fixture-pack')).rejects.toThrow();
-  await expect(HeldFinishes.prepare(product({ ...rows, rows: { ...rows.rows, ironhide: { ...rows.rows['ironhide'], id: 'warden' } } }), scope, 'fixture-pack')).rejects.toThrow('identity');
+  await expect(HeldFinishes.prepare(product({ ...rows, rows: { ...rows.rows, extra: true } }), scope)).rejects.toThrow();
+  await expect(HeldFinishes.prepare(product({ ...rows, rows: { ...rows.rows, ironhide: { ...rows.rows['ironhide'], id: 'warden' } } }), scope)).rejects.toThrow('identity');
   expect(HeldFinishes.current(shardfile.identity.slug)).toBe(host);
 });

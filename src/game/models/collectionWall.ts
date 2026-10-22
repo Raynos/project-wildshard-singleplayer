@@ -1,4 +1,6 @@
-import { readGeometrySource } from '@wildshard/engine/models/geometrySources';
+import { GeometryPack } from '@wildshard/engine/models/geometryPack';
+import { packedRows } from '@wildshard/format/geometryPack';
+import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
@@ -209,7 +211,7 @@ export class TrophyWall {
 }
 
 /** Install the existing compendium and save owner with a product-backed display wall. */
-export function installCollectionCompendium(owners: ReadonlyMap<string, CompendiumHost>, rows: { mounts: string; scope: Scope; product: ShardProduct; pack: CollectionMountPack; chalk: CollectionChalk; texture: { url: string; srgb: boolean; repeat: boolean } }): ReturnType<typeof installCompendium> {
+export function installCollectionCompendium(owners: ReadonlyMap<string, CompendiumHost>, rows: { scope: Scope; product: ShardProduct; pack: CollectionMountPack; chalk: CollectionChalk; texture: { url: string; srgb: boolean; repeat: boolean } }): ReturnType<typeof installCompendium> {
   const host = owners.get('compendium');
   if (host === undefined) throw new Error('Missing compendium owners');
   return installCompendium({ ...host, wall: (state, journal) => {
@@ -218,7 +220,12 @@ export function installCollectionCompendium(owners: ReadonlyMap<string, Compendi
     const anchor = new THREE.Object3D(); anchor.position.set(...place.at); anchor.rotation.y = place.yaw;
     root.add(anchor); anchor.updateMatrixWorld(true);
     const wall = new TrophyWall({ pack: rows.pack, chalk: rows.chalk,
-      loadMounts: indices => readGeometrySource(rows.scope, rows.mounts, indices),
+      loadMounts: async indices => {
+        if (rows.scope.disposed) throw new Error('Collection owner is disposed');
+        const bytes = await fetchDeflatedBytes(rows.product.url(rows.pack.url));
+        const pack = new GeometryPack(bytes, packedRows(rows.pack.rows), 'trophy-wall');
+        return indices.map(index => pack.geometry(index));
+      },
       loadChalk: () => {
         const url = rows.product.url(rows.texture.url);
         return wallTextures.load(url, () => loadTexture(url, rows.texture.srgb, 1, undefined, texture => { if (!rows.texture.repeat) texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; }));

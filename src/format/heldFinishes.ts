@@ -48,5 +48,5 @@ export const HeldFinishesSchema = v.strictObject({
   extras: v.record(text, v.pipe(v.array(v.strictObject({ name: text, geometry: natural,
     materials: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)) })), v.maxLength(16))),
 });
-/** Data-only finish catalogue; the host resolves a scoped geometry source id, never a shard-built extra. */
+/** Data-only finish catalogue; the host decodes its admitted pack directly, never a shard-built extra. */
 export type HeldFinishesRows = v.InferOutput<typeof HeldFinishesSchema>;

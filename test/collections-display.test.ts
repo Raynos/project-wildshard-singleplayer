@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { zlibSync } from 'fflate';
-import { Scope } from '../src/engine/app/scope';
-import { readGeometrySource } from '../src/engine/models/geometrySources';
-import { registerPackedGeometrySource } from '../src/sdk/models/geometrySources';
+import { GeometryPack } from '../src/engine/models/geometryPack';
+import { packedRows } from '../src/format/geometryPack';
+import { fetchDeflatedBytes } from '../src/engine/core/deflate';
 import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, MeshStandardMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
@@ -114,17 +114,16 @@ test('a second-shard wall restores old journal slots and its examine prompt with
   expect(saved['moon-fox']?.t).toBe(1); expect(restored.state('moon-fox')).toBe('taken'); expect(restored.stats('moon-fox').best).toBe(4);
 });
 
-test('packed collection geometry is borrowed by id, copied and retired with its owner', async () => {
+test('packed collection geometry decodes exact bytes into independent arrays', async () => {
   const writer = new GeometryPackWriter('fixture-moon-mount'); writer.add(geometry(3));
   const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(Uint8Array.from(zlibSync(writer.bytes()))));
-  const scope = new Scope('fixture-gallery');
   try {
-    registerPackedGeometrySource(scope, 'moon-mounts', { url: '/moon.pack', rows: writer.rows(), label: 'moon mounts' });
-    const first = await readGeometrySource(scope, 'moon-mounts', [0, 0]);
+    const bytes = await fetchDeflatedBytes('/moon.pack');
+    expect(bytes).toEqual(writer.bytes());
+    const pack = new GeometryPack(bytes, packedRows(writer.rows()), 'moon mounts'), first = [pack.geometry(0), pack.geometry(0)];
     expect(first[0]?.getAttribute('position').array).toEqual(first[1]?.getAttribute('position').array);
     expect(first[0]?.getAttribute('position').array).not.toBe(first[1]?.getAttribute('position').array);
     expect(fetcher).toHaveBeenCalledWith('/moon.pack');
-    scope.dispose();
-    expect(() => readGeometrySource(scope, 'moon-mounts', [0])).toThrow('Missing geometry source');
-  } finally { scope.dispose(); fetcher.mockRestore(); }
+    for (const part of first) part.dispose();
+  } finally { fetcher.mockRestore(); }
 });

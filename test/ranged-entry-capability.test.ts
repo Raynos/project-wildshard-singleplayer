@@ -3,7 +3,6 @@ import { expect, test, vi } from 'vitest';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
-import * as geometry from '../src/engine/models/geometrySources';
 import { HeldFinishes } from '../src/game/loadout/finishes';
 import * as rangedHost from '../src/game/loadout/rangedPage';
 import { installEntryRangedPage } from '../src/game/shardfile/clientQuestComposition';
@@ -38,28 +37,21 @@ function fixture(finish = true, file = true) {
   return { ctx, pack, name };
 }
 
-test('declared preparation preserves both packed sources before finish admission and releases them on leave', async () => {
-  const f = fixture(), register = vi.spyOn(geometry, 'registerPackedGeometrySource');
-  const prepare = vi.spyOn(HeldFinishes, 'prepare').mockRejectedValue(new Error('finish admission boundary'));
+test('declared preparation passes the entered product directly to finish admission', async () => {
+  const f = fixture(), prepare = vi.spyOn(HeldFinishes, 'prepare').mockRejectedValue(new Error('finish admission boundary'));
   try {
     await expect(prepareRangedPage(f.ctx, RANGED_PAGE)).rejects.toThrow('finish admission boundary');
-    expect(register.mock.calls).toEqual([
-      [f.ctx.scope, RANGED_PAGE.finishSource, { ...f.pack, label: 'held finishes' }],
-      [f.ctx.scope, RANGED_PAGE.collection.source, { url: 'https://example.invalid/collection.bin', rows: RANGED_PAGE.collection.pack.rows, label: 'trophy-wall' }],
-    ]);
-    expect(register.mock.invocationCallOrder[1]).toBeLessThan(prepare.mock.invocationCallOrder[0] ?? 0);
-    f.ctx.scope.dispose();
-    expect(() => geometry.readGeometrySource(f.ctx.scope, RANGED_PAGE.finishSource, [])).toThrow('Missing geometry source');
-    expect(() => geometry.readGeometrySource(f.ctx.scope, RANGED_PAGE.collection.source, [])).toThrow('Missing geometry source');
-  } finally { register.mockRestore(); prepare.mockRestore(); f.ctx.scope.dispose(); }
+    expect(prepare).toHaveBeenCalledOnce();
+    expect(prepare).toHaveBeenCalledWith(f.ctx.product, f.ctx.scope);
+  } finally { prepare.mockRestore(); f.ctx.scope.dispose(); }
 });
 
-test('a missing finish source refuses before either geometry registration', async () => {
-  const f = fixture(false), register = vi.spyOn(geometry, 'registerPackedGeometrySource');
+test('a missing finish source refuses before finish admission', async () => {
+  const f = fixture(false), prepare = vi.spyOn(HeldFinishes, 'prepare');
   try {
     await expect(prepareRangedPage(f.ctx, RANGED_PAGE)).rejects.toThrow('Missing declared finish geometry');
-    expect(register).not.toHaveBeenCalled();
-  } finally { register.mockRestore(); f.ctx.scope.dispose(); }
+    expect(prepare).not.toHaveBeenCalled();
+  } finally { prepare.mockRestore(); f.ctx.scope.dispose(); }
 });
 
 test('the finite capability requires its admitted file and runs only in the entered world phase', async () => {

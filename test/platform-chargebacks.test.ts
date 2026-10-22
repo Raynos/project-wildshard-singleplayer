@@ -83,23 +83,20 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   expect(platformChargeback('src/engine/models/geometryPack.ts', 'GeometryPack')).toBeNull();
 });
 
-test('the packed geometry loader charges Pine; the product posed loader has a real second user', () => {
-  const geometry = 'src/engine/models/geometrySources.ts', posed = 'src/game/looks/posedInstances.ts';
+test('the product posed loader has a real second user', () => {
+  const posed = 'src/game/looks/posedInstances.ts';
   const both = new Set(['pine-hollow', 'nalati-grasslands']);
   const bindings = new Map([
-    [`${geometry}\0registerPackedGeometrySource`, both], [`${geometry}\0readGeometrySource`, both],
     [`${posed}\0PosedLibrary`, both], [`${posed}\0PosedDraw`, both], [`${posed}\0PosedInstances`, both],
   ]);
-  const modules = new Map([[geometry, both], [posed, both]]);
+  const modules = new Map([[posed, both]]);
   chargePlatformUsers(modules, bindings);
-  expect([...bindings.get(`${geometry}\0registerPackedGeometrySource`) ?? []]).toEqual(['pine-hollow']);
-  expect(platformChargeback(geometry, 'registerPackedGeometrySource')).toBe('C1');
   // G520 re-score (625514ff80): Driftwood's Explorer gull card is a product posed library row read by the same loader
-  for (const [path, name] of [[geometry, 'readGeometrySource'], [posed, 'PosedLibrary'], [posed, 'ProductPosedLibrary'], [posed, 'PosedDraw'], [posed, 'PosedInstances']] as const) {
+  for (const [path, name] of [[posed, 'PosedLibrary'], [posed, 'ProductPosedLibrary'], [posed, 'PosedDraw'], [posed, 'PosedInstances']] as const) {
     if (bindings.has(`${path}\0${name}`)) expect(bindings.get(`${path}\0${name}`)).toEqual(both);
     expect(platformChargeback(path, name)).toBeNull();
   }
-  expect(modules.get(geometry)).toEqual(both); expect(modules.get(posed)).toEqual(both);
+  expect(modules.get(posed)).toEqual(both);
   expect(inlinePlatformPaths()).not.toContain(posed);
   const driftwood = readFileSync('src/shards/driftwood-isle/generators/explorerCatalogue.ts', 'utf8');
   expect(driftwood).toMatch(/kind:'posed',file:'[^']+',source:'product'/u);
@@ -119,7 +116,7 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
     expect(bindings.get(`${path}\0ProductExplorerDispatch`)).toEqual(users);
   }
   // Dispatch credit does not waive a private intake or presentation owner.
-  expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBe('C1');
+  expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBeNull();
   expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
 });
 

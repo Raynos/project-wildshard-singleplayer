@@ -1,10 +1,10 @@
 import { Scope } from '../src/engine/app/scope';
-import { installGeometrySource } from '../src/engine/models/geometrySources';
+import { mockPackedFetch } from './fake/packedGeometry';
+import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/cosmetics/locker';
 import { HeldFinishes } from '../src/game/loadout/finishes';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { BufferGeometry } from 'three';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -14,10 +14,10 @@ test('Pine finish cards retain authored order, ownership and slot-exclusive wear
   const shardfile = emptyShardfile({ slug: 'pine-hollow', name: 'Pine', author: 'Wildshard', revision: 1, seed: 1 });
   const rows = outputPlatformPayloads(output.platform, ['held/finishes']).get('held/finishes');
   const scope = new Scope('cosmetic-cards');
-  installGeometrySource(scope, 'fixture-pack', { geometries: indices => Promise.resolve(indices.map(() => new BufferGeometry())) });
+  mockPackedFetch(packed.url);
   const finishes = await HeldFinishes.prepare(createShardProduct({ slug: 'pine-hollow', revision: 1, shardfile,
     sections: new Map([['held/finishes', rows]]), files: new Map(), read: () => Promise.reject(new Error('No finish files')), check: true }),
-    scope, 'fixture-pack');
+    scope);
   const PINE_FINISHES = finishes.list();
   const locker = new SkinLocker('pine-hollow', PINE_FINISHES);
   const ids = ['hollow-ash', 'ghost-stag', 'blackpaw', 'imperial', 'warden', 'ironhide', 'scarback-furnace'];

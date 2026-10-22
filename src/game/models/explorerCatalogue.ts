@@ -27,7 +27,6 @@ import { heldGear } from './heldGear';
 import { HeldEquipment } from '../plugin/heldEquipment';
 import { HeldFinishes } from '../loadout/finishes';
 import { resourceScope } from '@wildshard/engine/app/resources';
-import { registerPackedGeometrySource } from '@wildshard/engine/models/geometrySources';
 
 /** Resolve declarations before registering any card, so an invalid reference
  * refuses the complete catalogue instead of publishing a partial roster. */
@@ -111,8 +110,7 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
     } else if (row.kind === 'equipment') {
       const scope = resourceScope().child('held-finish-roster'), source = product.section('held/finishes').source;
       if (source === undefined) throw refusal(product, row, 'Held finishes require their declared geometry source');
-      registerPackedGeometrySource(scope, 'held-finishes', { ...source, label: 'held finishes' });
-      await Promise.all([HeldFinishes.prepare(product, scope, 'held-finishes'), HeldEquipment.prepare(product)]);
+      await Promise.all([HeldFinishes.prepare(product, scope), HeldEquipment.prepare(product)]);
       entries.push(...heldGear(product.section('held/gear')));
     } else if (row.kind === 'posed' && row.source === 'product') {
       entries.push(...(await PosedDraw.library(product, row.file)).models);

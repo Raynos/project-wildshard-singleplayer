@@ -39,7 +39,6 @@ const declarations = new Map([
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
-  ['src/engine/models/geometrySources.ts', new Map(['registerPackedGeometrySource', 'PackedGeometryImports'].map(name => [name, 'C1']))],
 ]);
 
 /** Concrete dependencies of the optional chapter facet retain their original
@@ -78,16 +77,12 @@ const inline = new Map([
       [": entry.kind === 'pool' ? { ...entry, files: entry.files.filter(active) }", 1],
     ]],
   ])],
-  ['src/engine/models/geometrySources.ts', new Map([['PackedGeometryImports', [
-    ["import { GeometryPack }", 1], ["import type { PackedGeometryRows }", 1],
-  ]]])],
 ]);
 
 /** @param {string} path @param {string} [name] */
 function reviewedOwner(path, name) {
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
-  if (path === 'src/engine/models/geometrySources.ts') return 'pine-hollow';
   return 'nalati-grasslands';
 }
 

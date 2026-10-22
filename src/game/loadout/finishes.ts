@@ -3,7 +3,9 @@ import * as v from 'valibot';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import { HeldFinishesSchema, type HeldFinishesRows } from '@wildshard/format/heldFinishes';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { readGeometrySource } from '@wildshard/engine/models/geometrySources';
+import { GeometryPack } from '@wildshard/engine/models/geometryPack';
+import { packedRows } from '@wildshard/format/geometryPack';
+import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import type { ShardProduct } from '../shardfile/shardProduct';
 
 const admitted = new Map<string, HeldFinishes>();
@@ -26,7 +28,7 @@ export class HeldFinishes {
     }
   }
   /** Admit atomically: malformed identities or a failed geometry loan leave the previous catalogue intact. */
-  static async prepare(product: ShardProduct, scope: Scope, source: string): Promise<HeldFinishes> {
+  static async prepare(product: ShardProduct, scope: Scope): Promise<HeldFinishes> {
     const ready = admitted.get(product.slug); if (ready?.product === product) return ready;
     const rows = v.parse(HeldFinishesSchema, product.section('held/finishes'));
     for (const [id, row] of Object.entries(rows.rows)) if (id !== row.id) throw new Error('Held finish key differs from its identity');
@@ -39,8 +41,11 @@ export class HeldFinishes {
     if (rows.order.length !== cards.size || rows.order.some(id => !cards.has(id))) throw new Error('Held finish order differs from its cards');
     for (const id of Object.keys(rows.extras)) if (rows.rows[id] === undefined) throw new Error('Held finish extra has an invalid identity');
     const indices = [...new Set(Object.values(rows.extras).flatMap(extras => extras.map(extra => extra.geometry)))];
-    const parts = await readGeometrySource(scope, source, indices);
-    if (parts.length !== indices.length) throw new Error('Held finish geometry loan differs from its rows');
+    const source = rows.source;
+    if (source === undefined) throw new Error('Missing declared finish geometry');
+    if (scope.disposed) throw new Error('Held finish owner is disposed');
+    const bytes = await fetchDeflatedBytes(source.url);
+    const pack = new GeometryPack(bytes, packedRows(source.rows), 'held finishes'), parts = indices.map(index => pack.geometry(index));
     const geometry = new Map(indices.map((index, at) => { const part = parts[at]; if (part === undefined) throw new Error('Missing held finish geometry'); return [index, part] as const; }));
     const host = new HeldFinishes(product, rows, geometry); admitted.set(product.slug, host); return host;
   }

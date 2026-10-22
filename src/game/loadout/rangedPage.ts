@@ -5,7 +5,6 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { isDev } from '@wildshard/engine/core/devMode';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { registerPackedGeometrySource } from '@wildshard/engine/models/geometrySources';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
 import { applySkin, clearSkin, type SkinId } from '@wildshard/engine/player/Skins';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -43,9 +42,7 @@ export async function prepareRangedPage(ctx: ShardContext, input: unknown): Prom
   if (runtime === undefined) throw new Error('Ranged page requires its runtime');
   const finish = ctx.product.section('held/finishes').source;
   if (finish === undefined) throw new Error('Missing declared finish geometry');
-  registerPackedGeometrySource(ctx.scope, rows.finishSource, { ...finish, label: 'held finishes' });
-  registerPackedGeometrySource(ctx.scope, rows.collection.source, { url: ctx.product.url(rows.collection.pack.url), rows: rows.collection.pack.rows, label: 'trophy-wall' });
-  await HeldFinishes.prepare(ctx.product, ctx.scope, rows.finishSource);
+  await HeldFinishes.prepare(ctx.product, ctx.scope);
   const kinds = new ItemCatalogue(ctx.product.shardfile.items).inventory.kinds;
   runtime.menu = { skins: () => runtime.play ? runtime.play.skins.cardRows(HeldFinishes.current(ctx.manifest.slug).cards) : [],
     onWearSkin: id => { runtime.hooks.wearFinish?.(id); }, skinsTitle: rows.menu.title,
@@ -92,7 +89,7 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
   installItemEffects(ctx); await ctx.scope.run(() => animals.factory.prepareModels(rows.prewarm));
   const fights = await installRoamingCombat(ctx, await ctx.product.json(rows.combat)), row = rows.collection;
   const compendium = ctx.scope.run(() => installCollectionCompendium(new Map([['compendium', { context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins: floor.cabins, interactables: runtime.interactables, weapons, touchUi, nolock }]]),
-    { mounts: row.source, scope: ctx.scope, product: ctx.product, pack: row.pack, chalk: row.chalk, texture: row.texture }));
+    { scope: ctx.scope, product: ctx.product, pack: row.pack, chalk: row.chalk, texture: row.texture }));
   const page = { rows, loadout, fights, compendium, ambience: await finishForestPageAudio(ctx, { rows, loadout, fights }) }, book = pages.get(ctx.scope) ?? new Map<string, RangedPage>();
   installDebugLap(ctx, page);
   book.set(rows.id, page); pages.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.id); }); return page;

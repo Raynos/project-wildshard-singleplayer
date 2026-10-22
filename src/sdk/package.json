@@ -130,7 +130,6 @@
     "./decisionSource": "./decisionSource.ts",
     "./buildDecisionScripts": "./buildDecisionScripts.ts",
     "./projectDecisions": "./projectDecisions.ts",
-    "./models/geometrySources": "./models/geometrySources.ts",
     "./bake/practiceCourse": "./bake/practiceCourse.ts"
   },
   "bin": {
