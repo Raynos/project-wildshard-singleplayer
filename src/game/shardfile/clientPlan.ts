@@ -111,7 +111,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       const { installEntryRangedPage } = await import('./clientQuestComposition');
       await installEntryRangedPage(ctx, row);
     } } },
-  'view.deck-camera-sway': { phase: 'play', rank: -20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+  'view.deck-camera-sway': { phase: 'play', rank: -20, lifetime: 'entered', sections: ['view/modules'], install: async (ctx, row) => {
     if (row.kind !== 'view.deck-camera-sway') throw new Error('Invalid deck camera sway feature');
     const { installDeckCameraSway } = await import('../systems/looks/deckCameraSway');
     const live = (): void => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Deck view owner has ended'); };

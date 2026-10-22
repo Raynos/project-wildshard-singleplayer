@@ -18,6 +18,7 @@ import fixed from '../data/fixedTiles.generated.json' with { type: 'json' };
 import lookGraphs from '../data/lookMaterials.generated.json' with { type: 'json' };
 import skyChannels from '../data/skyChannels.generated.json' with { type: 'json' };
 import captainCoat from '../data/captainCoat.json' with { type: 'json' };
+import bridgeSwayModule from '../behaviour/bridgeSway.generated.json' with { type: 'json' };
 
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
@@ -41,6 +42,8 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (generators/bake-captain-coat.mjs)
 const coat = captainCoat.file;
+// The fixed view guest retains live and rewind memory under the existing client limits.
+const viewMemory = bridgeSwayModule.pages * 65536 * 2;
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...base,state:{...base.state,shared:CAPTAIN_FIELDS}, rows: { ...base.rows, loot: [LOOT] },
@@ -48,7 +51,7 @@ export default parseShardfile({
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files, coat], critical: [...navigation.critical, ...fixed.critical],
   tiles: fixed.tiles, terrain: fixed.terrain, library: [...fixed.library, coat.hash],
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 6*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
-  budgets: { ...base.budgets, library: { resident: fixed.libraryCost.resident + coat.decoded + coat.gpu, compressed: fixed.libraryCost.compressed + coat.compressed }, sim: { resident: 6*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
+  budgets: { ...base.budgets, library: { resident: fixed.libraryCost.resident + coat.decoded + coat.gpu + viewMemory, compressed: fixed.libraryCost.compressed + coat.compressed }, sim: { resident: 6*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools, the gulls, the creatures, the baked cove's terrain and props;

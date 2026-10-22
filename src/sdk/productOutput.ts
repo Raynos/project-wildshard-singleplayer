@@ -2,7 +2,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The caller supplies its owned output directory.
 import { resolve } from 'node:path';
-import type { DecisionScripts } from '@wildshard/format/decisionScripts';
+import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
@@ -22,7 +22,7 @@ export function assertProductTargets(source: Shardfile, policy: 'warn' | 'refuse
 }
 
 /** Admit declared costs and actual immutable bytes through the browser's defining contracts, without a config loader. */
-export function admitProduct(input: unknown, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse' = 'refuse', scripts: readonly DecisionScripts[number][] = []): Shardfile {
+export function admitProduct(input: unknown, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse' = 'refuse', scripts: ScriptAdmissionRows = []): Shardfile {
   const source = parseShardfile(input);
   preflightDeclaredCosts(source, offlineMemoryAdmission(policy));
   assertProductTargets(source, policy);

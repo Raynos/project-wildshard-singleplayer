@@ -25,6 +25,7 @@ import { UiStringsSchema, type UiStrings } from './uiStrings';
 import { WorldPhysicsSchema, type WorldPhysics } from './worldPhysics';
 import { WorldTargetsSchema, type WorldTargets } from './worldTargets';
 import { WorldMoversSchema } from './movers';
+import { ViewModulesSchema, type ViewModuleRow } from './scriptContract';
 import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRuntimePlan';
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
@@ -38,6 +39,7 @@ export interface PlatformDataSections {
   'look/colour-functions': ColourFunctionBook;
   'look/keyed-sky': KeyedSkyStyle;
   'client/plan': ClientPlan;
+  'view/modules': ViewModuleRow[];
   'held/arms': HeldArmsRows;
   'held/gear': HeldGearRows;
   'held/finishes': HeldFinishesRows;
@@ -69,6 +71,7 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
   'look/colour-functions': { schema: ColourFunctionBookSchema },
   'look/keyed-sky': { schema: KEYED_SKY },
   'client/plan': { schema: ClientPlanSchema },
+  'view/modules': { schema: ViewModulesSchema },
   'held/arms': { schema: HeldArmsSchema },
   'held/gear': { schema: HeldGearSchema },
   'held/finishes': { schema: HeldFinishesSchema },
@@ -106,6 +109,7 @@ export function parsePlatformDataSection(name: 'look/painted', value: unknown): 
 export function parsePlatformDataSection(name: 'look/colour-functions', value: unknown): ColourFunctionBook;
 export function parsePlatformDataSection(name: 'look/keyed-sky', value: unknown): KeyedSkyStyle;
 export function parsePlatformDataSection(name: 'client/plan', value: unknown): ClientPlan;
+export function parsePlatformDataSection(name: 'view/modules', value: unknown): ViewModuleRow[];
 export function parsePlatformDataSection(name: 'held/arms', value: unknown): HeldArmsRows;
 export function parsePlatformDataSection(name: 'held/loadout', value: unknown): LoadoutRows;
 export function parsePlatformDataSection(name: 'held/finishes', value: unknown): HeldFinishesRows;

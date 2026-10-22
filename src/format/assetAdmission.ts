@@ -1,8 +1,7 @@
-import { admitScriptContract, decisionModuleContracts } from './scriptContract';
-import type { DecisionScripts } from './decisionScripts';
+import { admitScriptContract, decisionModuleContracts, type ScriptAdmissionRows } from './scriptContract';
 import type { TextureTranscodeSupport } from './contentBounds';
 import { CONTENT_CAPS as C } from '@wildshard/format/contentBounds';
-import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
+import { admitScript } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { worstContentCost } from '@wildshard/format/budget';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
@@ -79,7 +78,7 @@ export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmissi
 }
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
-export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string, memory?: MemoryAdmission, textures?: TextureTranscodeSupport, scripts: readonly DecisionScripts[number][] = []): Shardfile {
+export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string, memory?: MemoryAdmission, textures?: TextureTranscodeSupport, scripts: ScriptAdmissionRows = []): Shardfile {
   preflightShardfile(input);
   const s = parseShardfile(input), files = new Map(s.files.map((f) => [f.hash, f]));
   const contracts = decisionModuleContracts(scripts, s.files);
@@ -105,7 +104,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     return { resident, compressed, triangles, draws };
   };
   let commons = 0;
-  const commonsCosts = new Map<string, ReturnType<typeof assetCost>>(), admissions = new Map<string, ScriptAdmission>();
+  const commonsCosts = new Map<string, ReturnType<typeof assetCost>>(), admissions = new Map<string, ReturnType<typeof admitScriptContract>>();
   const propMaterials = s.props?.materials;
   const propModels = new Set([...s.props?.tiles ?? [], ...s.props?.panels ?? [], ...s.props?.models ?? []].map(row => row.file));
   if (s.props?.far !== undefined && s.props.far !== null) propModels.add(s.props.far);
@@ -193,7 +192,9 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
       if (!critical.has(hash) || library.has(hash)) throw new Error('Decision sim module must be critical, outside the render library');
       decisionSim += contract.pages * 65536 * 2;
     } else {
-      if (!library.has(hash) || critical.has(hash)) throw new Error('Decision view module must be in the render library only');
+      if (contract.abi === 2) {
+        if (!critical.has(hash) || library.has(hash)) throw new Error('Declared ABI2 view module must be critical only');
+      } else if (!library.has(hash) || critical.has(hash)) throw new Error('Decision view module must be in the render library only');
       decisionView += contract.pages * 65536 * 2;
     }
   }

@@ -423,6 +423,7 @@ test('mover owner rows admit only finite fixed-pose mooring and typed targets', 
 
 test.each(['live', 'retiring'] as const)('declared deck view installs only for a %s owner after its module read', async state => {
   const f = context(), row = { kind: 'view.deck-camera-sway', module: 'view.wasm', rows: { piece: 'deck', system: 'deck.view', before: ['camera'], parameters: [1, 2, 3, 4, 5, 6, 7, 8, 9] } };
+  f.sections.set('view/modules', []);
   f.files.set('view.wasm', { hash: 'view', url: 'https://example.invalid/view.wasm' });
   const plan = admitClientPlan({ version: 1, features: [row] }, f.ctx.product), bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
   const install = vi.spyOn(deckCameraViews, 'installDeckCameraSway').mockImplementation(() => undefined);

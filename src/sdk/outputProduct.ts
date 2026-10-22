@@ -5,7 +5,7 @@ import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } 
 // oxlint-disable-next-line import/no-nodejs-modules -- Product paths are validated relative paths, never URLs.
 import { dirname, resolve } from 'node:path';
 import { assembleOutputShardfile, outputSectionPayloads, OUTPUT_SECTIONS, parseOutputIndex, parseOutputSection, validateOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
-import { decisionModuleContracts, decisionScriptsFromSections, scriptAdmissionRows, type ScriptContract } from '@wildshard/format/scriptContract';
+import { decisionModuleContracts, decisionScriptsFromSections, scriptAdmissionRows, type ScriptAdmissionRows, type ScriptContract } from '@wildshard/format/scriptContract';
 import type { DecisionScripts } from '@wildshard/format/decisionScripts';
 import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -83,8 +83,8 @@ export function outputDecisionScripts(platform?: EmittedSections): DecisionScrip
   return decisionScriptsFromSections(outputPlatformPayloads(platform, ['sim/scripts']));
 }
 /** Exact contracts for both generic actor decisions and population-owned directors. */
-export function outputScriptAdmissionRows(platform?: EmittedSections): DecisionScripts {
-  return scriptAdmissionRows(outputPlatformPayloads(platform, ['sim/scripts', 'actors/spawn-scripts', 'actors/return-scripts']));
+export function outputScriptAdmissionRows(platform?: EmittedSections): ScriptAdmissionRows {
+  return scriptAdmissionRows(outputPlatformPayloads(platform, ['sim/scripts', 'actors/spawn-scripts', 'actors/return-scripts', 'view/modules']));
 }
 function checkWorldTargets(source: Shardfile, input: unknown): void {
   if (input === undefined) return;

@@ -25,7 +25,7 @@ import { compileBehaviourSource } from './behaviourSource';
 import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, type ProjectMap } from './projectMap';
 import { projectPlaceholders } from './bake/placeholders';
-import type { DecisionScripts } from '@wildshard/format/decisionScripts';
+import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { outputScriptAdmissionRows, outputPlatformPayloads, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
 import type { RuntimeMirror } from './runtimeMirrors';
@@ -40,7 +40,7 @@ export function canonicalJson(value: unknown): string { return encodeCanonicalJs
 export function contentHash(bytes: Uint8Array): string { return hashImmutableBytes(bytes); }
 
 /** Validate graph closure costs and actual bytes through the same admission used by the browser loader. */
-export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint8Array>, project?: string, scripts: readonly DecisionScripts[number][] = []): Shardfile {
+export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint8Array>, project?: string, scripts: ScriptAdmissionRows = []): Shardfile {
   const source = parseShardfile(input);
   return admitProduct(source, assets, projectPerformancePolicy(project, source), scripts);
 }

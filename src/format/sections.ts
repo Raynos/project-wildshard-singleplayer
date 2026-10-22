@@ -8,6 +8,7 @@ import type { ToonLookRow } from './toonLook';
 import type { KeyedSkyStyle } from './keyedSky';
 import type { SpawnScriptRows } from './spawnScripts';
 import type { ClientPlan } from './clientPlan';
+import type { ViewModuleRow } from './scriptContract';
 import type { WorldScenesSection } from './worldScenes';
 import type { HeldArmsRows } from './heldArms';
 import type { HeldGearRows } from './heldGear';
@@ -41,6 +42,7 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  */
 export interface PlatformSections {
   'player/stealth':StealthRows;
+  'view/modules': ViewModuleRow[];
   /** Client-only ordered model references, ignored by simulation. */
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;

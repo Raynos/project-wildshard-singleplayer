@@ -11313,3 +11313,16 @@ The critical Wasm uses an explicit ABI2 view contract: fixed pages, I/O bytes
 and compiler/admission revisions. Product admission validates those bytes
 before instantiation and accounts the fixed memory. The host retains the
 original registry piece, system order and authored camera tuning.
+
+### ABI2 module admission transport
+
+`view/modules` carries strict ABI2 view module declarations: id, exact
+content-addressed Wasm path, view lane, fixed pages, I/O bytes and pinned
+compiler/admission revisions. These defining rows travel through named blob
+reconstruction, product writing, disk/browser admission and native worker
+validation. The ABI is never inferred from bytes or an unverified filename.
+
+A view module remains a critical boot asset, outside the render library.
+Its fixed runtime memory counts toward the existing client script limits and
+library memory budget. Legacy ABI0/1 contracts and their accounting remain
+unchanged. Missing, mismatched or conflicting declarations refuse admission.
