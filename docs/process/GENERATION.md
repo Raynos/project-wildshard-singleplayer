@@ -279,3 +279,11 @@ produced or rewritten by this component.
 The cache output has pinned SHA-256 `a8e29b1476aed0e84a45e139a7492fc30603349845ee6c828a918d2b67fe9297` and no retained seed.
 Full physics/navmesh and whole-product clean rooms remain separate gates;
 this component grants no output deletion.
+
+G609: CI transfers only the fixed `.cache/generation-phase.json` receipt beside
+its same-run generated inputs. The next product preparation independently
+rechecks its recipe, source bytes, negative source inventory and output hashes;
+the artifact is not permission to skip that verification. Derived discovery
+modules written after the producer phase do not enter broad source roots, as
+on a clean producer run. An explicitly declared discovery input remains live.
+Other cache files cannot enter the preparation archive.

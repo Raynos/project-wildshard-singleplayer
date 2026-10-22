@@ -11,6 +11,7 @@ import tarfile
 
 ARCHIVE = 'test-products.tar'
 PROOF = 'test-products-proof.json'
+PHASE = '.cache/generation-phase.json'
 GENERATED_ROOTS = ['src', 'public', 'out', 'docs/api', 'lint']
 EXCLUDED = {'.git', 'node_modules', '.cache', '__pycache__'}
 
@@ -28,6 +29,8 @@ def identity(root):
 
 def admitted_path(name):
     path = PurePosixPath(name)
+    if name == PHASE:
+        return path
     if (not name or path.is_absolute() or '..' in path.parts
             or any(part in EXCLUDED or part.startswith('.env') for part in path.parts)
             or path.parts[0] not in {'src', 'public', 'out', 'docs', 'lint', 'scripts', 'test', 'api', 'admin', 'drafts'}):
@@ -110,6 +113,10 @@ def pack(root, generated=False):
     files = [name for name in files if not any(part in EXCLUDED for part in PurePosixPath(name).parts)]
     if generated:
         files = [name for name in files if not name.startswith('out/')]
+    if (root / PHASE).is_file():
+        files.append(PHASE)
+    if generated and PHASE not in files:
+        raise ValueError('Generated preparation is missing its verified phase receipt')
     if not generated and not any(name.startswith('out/') and name.endswith('/shard.json') for name in files):
         raise ValueError('No prepared products to publish')
     tracked = tracked_files(root)
@@ -156,6 +163,8 @@ def unpack(root, generated=False):
         _, required = catalogue_outputs(root)
         if not required.issubset(inventory):
             raise ValueError('Prepared catalogue outputs are missing from the archive')
+        if generated and PHASE not in names:
+            raise ValueError('Generated preparation is missing its verified phase receipt')
         if generated and any(name.startswith('out/') for name in inventory):
             raise ValueError('Generated-only preparation cannot contain products')
         if not generated and not any(name.startswith('out/') and name.endswith('/shard.json') for name in names):

@@ -37,7 +37,12 @@ function postGenerationTable(root,catalog,file) {
     try {
       // Retained source outputs (for example mover rows) exist before jobs run.
       const source=v.parse(v.object({producers:v.record(path,v.array(path))}),JSON.parse(readFileSync(resolve(root,'scripts/source-generation-outputs.json'),'utf8')));
-      registeredOutputs.set(at,new Set([...discoverGeneration(root,catalog).jobs.flatMap(job=>job.outputs),...Object.values(source.producers).flat()]));
+      const jobs=discoverGeneration(root,catalog).jobs;
+      // Discovery is refreshed again after this phase. A clean producer never
+      // sees those derived modules; their later creation cannot invalidate its
+      // negative input inventory. Explicit file roots still remain live inputs.
+      const before=Object.entries(source.producers).filter(([producer])=>producer!=='scripts/gen-shards.mjs').flatMap(([,files])=>files);
+      registeredOutputs.set(at,new Set([...jobs.flatMap(job=>job.outputs.concat(job.inputRoots)),...before]));
     }
     catch {registeredOutputs.set(at,null);} // no readable catalogue: exclude nothing
   }

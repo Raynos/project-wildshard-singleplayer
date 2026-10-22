@@ -44,7 +44,46 @@ class PreparedProducts(unittest.TestCase):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
+        self.create_phase_receipt()
         products.pack(self.root)
+
+    def phase_probe(self, action):
+        repo = Path(__file__).resolve().parents[1]
+        probe = f"""
+          import {{InputHashMemo}} from '{(repo/'scripts/bake-input-hashes.mjs').as_uri()}';
+          import {{generationSnapshotIdentity,publishGenerationSnapshot,verifiedGenerationSnapshot}} from '{(repo/'scripts/generation-snapshot.mjs').as_uri()}';
+          const root=process.argv[1], action=process.argv[2], memo=new InputHashMemo(root);
+          memo.enableSnapshot(file=>file==='public/generated.bin');
+          const path=root+'/.cache/generation-phase.json', identity=generationSnapshotIdentity('CI fixture');
+          if(action==='create'){{memo.hash('src/table.generated.ts');publishGenerationSnapshot(path,identity,memo,{{'public/generated.bin':memo.hash('public/generated.bin',true)}});}}
+          else console.log(verifiedGenerationSnapshot(path,identity,memo,['public/generated.bin']));
+        """
+        return subprocess.run(['node','--input-type=module','-e',probe,str(self.root),action],
+                              text=True,capture_output=True,check=True).stdout.strip()
+
+    def create_phase_receipt(self):
+        self.phase_probe('create')
+
+    def test_phase_receipt_transfers_and_rechecks_real_inputs_and_outputs(self):
+        products.pack(self.root, generated=True)
+        (self.root / products.PHASE).unlink()
+        (self.root / self.table).unlink()
+        products.unpack(self.root, generated=True)
+        self.assertEqual(self.phase_probe('verify'), 'true')
+        (self.root / 'public/generated.bin').write_bytes(b'changed output')
+        self.assertEqual(self.phase_probe('verify'), 'false')
+        (self.root / 'public/generated.bin').write_bytes(b'\0\x01')
+        (self.root / self.table).write_text('changed input')
+        self.assertEqual(self.phase_probe('verify'), 'false')
+
+    def test_only_the_fixed_phase_cache_path_is_admitted(self):
+        self.assertEqual(str(products.admitted_path(products.PHASE)), products.PHASE)
+        with self.assertRaisesRegex(ValueError, 'Unexpected prepared output path'):
+            products.admitted_path('.cache/other.json')
+        (self.root / products.PHASE).unlink()
+        with self.assertRaisesRegex(ValueError, 'missing its verified phase receipt'):
+            products.pack(self.root, generated=True)
+
 
     def test_round_trip_restores_inputs_and_products(self):
         declared, required = products.catalogue_outputs(self.root)
