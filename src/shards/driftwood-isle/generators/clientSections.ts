@@ -3,7 +3,7 @@ import { HORIZON_RADIUS } from '@wildshard/format/contentBounds';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
 import { OCEAN } from './worldSites';
 import coveComposition from '../data/coveComposition.json' with { type: 'json' };
-import { WORLD_ASSEMBLY } from './worldAssembly';
+import { WORLD_ASSEMBLY, WORLD_STAGES } from './worldAssembly';
 import { collectionRows } from './collections';
 import { STATIC_BOAT, WORLD_GULL_PERCHES, SHORE_BOULDERS } from './staticWorld';
 import { NATIVE_VIEW } from './nativeView';
@@ -47,5 +47,6 @@ export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] =
   {name:'custom/collections',value:collectionRows()},
   {name:'custom/cumulusPuffs', value:cumulusPuffs},
   {name:'custom/gullFlock', value:GULL_FLOCK},
+  {name:'custom/worldStages', value:WORLD_STAGES},
   {name:'custom/fixedLayouts', value:{coverFiles:{phone:coverWear(coverFiles.phone),desktop:coverWear(coverFiles.desktop)},assembly:WORLD_ASSEMBLY,nativeView:NATIVE_VIEW, fixedDraws:FIXED_DRAW_ROWS.map(({ slot, channels }) => ({ slot, file: named(`fixed:${slot}`), channels })), shadowTiers:Object.fromEntries(Object.entries(ISLAND_KNOBS).map(([tier,row])=>[tier,{bush:row.bushShadows,boulder:row.boulderShadows}])), foliage:{seed:foliage.seed,tiers:foliage.tiers,islandPalms:islandFacts.extraPalms}, npcScenes, gullPerches:WORLD_GULL_PERCHES, boat:STATIC_BOAT, shoreBoulders:SHORE_BOULDERS, cove:{...coveBake,composition:runtimeCoveComposition}, shrine:shrineBake, hut, lookout, piers:piers.map(({paramKey,colliders})=>({paramKey,colliders}))}},
 ];

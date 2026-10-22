@@ -1,0 +1,19 @@
+import * as v from 'valibot';
+
+const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
+const label = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
+
+/**
+ * G571: a shard world's build as an ordered list of typed stages (game/shardfile/worldAssembly). Each stage loads one
+ * admitted scene owner and publishes it as concrete entry-owner loans under its id: `place` an admitted scene placement
+ * (its object, its Placed and its compiled floor), `site` a catalogue model site (its group, anchors, floor and Placed),
+ * `mesh` / `group` an admitted scene part.
+ */
+export const WorldAssemblyStageSchema = v.variant('kind', [
+  v.strictObject({ kind: v.literal('place'), id, label }),
+  v.strictObject({ kind: v.literal('site'), id, label, model: id, choice: id }),
+  v.strictObject({ kind: v.literal('mesh'), id, label, part: id }),
+  v.strictObject({ kind: v.literal('group'), id, label, part: id }),
+]);
+export const WorldAssemblySchema = v.strictObject({ stages: v.pipe(v.array(WorldAssemblyStageSchema), v.minLength(1), v.maxLength(64)) });
+export type WorldAssemblyStage = v.InferOutput<typeof WorldAssemblyStageSchema>;

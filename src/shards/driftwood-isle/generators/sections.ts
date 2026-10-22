@@ -1,5 +1,6 @@
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { VertexWearSchema } from '@wildshard/format/vertexWear';
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import * as v from 'valibot';
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
@@ -152,6 +153,7 @@ export const SECTIONS = {
   /** the bag items, feats, owned perks and trader goods the kit registers (data/questInventory.ts, data/economy.ts) */
   /** the gull flock (data/gullsLook.ts GULL_FLOCK, @wildshard/sdk/looks/ambientFlock) */
   'custom/gullFlock': AmbientFlockSchema,
+  'custom/worldStages': WorldAssemblySchema,
 } as const;
 
 const bridgeSpan = v.strictObject({ a: v.tuple([number, number]), b: v.tuple([number, number]), sag: number });

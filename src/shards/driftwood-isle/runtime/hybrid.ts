@@ -32,7 +32,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     let built: DriftwoodWorld;
     if (resident === undefined) {
       lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [MOOR_LOOK]));
-      built = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes')), await residentBakedTiles(ctx, ctx.scope));
+      built = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes')), await residentBakedTiles(ctx, ctx.scope), ctx.scope);
     } else {
       admitDriftwoodRows(ctx.product);
       let construction = residents.get(ctx.product);
@@ -45,7 +45,7 @@ export class DriftwoodPlugin extends ShardPlugin {
       }
       built = await construction.load(ctx, async owner => {
         lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, ctx.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS), MOOR_LOOK]));
-        return buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), await residentBakedTiles(ctx, owner));
+        return buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), await residentBakedTiles(ctx, owner), owner);
       });
     }
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');

@@ -1,6 +1,9 @@
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
+import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
+import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { loadVertexWear } from '@wildshard/game/looks/vertexWear';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -42,7 +45,7 @@ export type DriftwoodWorld = Awaited<ReturnType<typeof build>>;
 
 /** main.ts:366-467's Driftwood builders, lowered as one by G164 (`sea` is the lowered sea at road level). */
 export function buildDriftwoodWorld(...args: Parameters<typeof build>): Promise<DriftwoodWorld> { return build(...args); }
-async function build(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>) {
+async function build(world: World, viewer: () => THREE.Vector3, progress: StepProgress | undefined, scenes: SceneHandles, baked: ReadonlyMap<string, BakedTiles>, scope: Scope) {
   // G164: the whole island lowered, the sea at road level; G170: each declared entry landing is the inner end of an asphalt
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
   const fixed = driftwoodRows('custom/fixedLayouts');
@@ -52,7 +55,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, generators/islandCover.ts)
   const coverMap = islandCover.texture; if (coverMap === null) throw new Error('The island cover carries its ground map');
   const slice = slicer(30, progress);
-  const assembly = fixed.assembly, total = 15 + assembly.piers.length;
+  const assembly = fixed.assembly, total = 16 + assembly.piers.length;
   let completed = 0;
   const complete = async (detail: string): Promise<void> => { await slice(++completed, total, detail); };
   const stage = async <T>(detail: string, work: () => T | Promise<T>): Promise<T> => {
@@ -64,12 +67,14 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
-  const placePier = async (id: string) => {
-    const placed = await scenes.place(id);
-    return { placed, group: placed.object, floorHeightAt: (x: number, z: number) => scenes.floorAt(id, x, z) };
+  // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
+  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete });
+  const loaned = (id: string) => {
+    const [placed] = entryOwner(scope, 'placed', id); if (placed === undefined) throw new Error(`Missing world stage ${id}`);
+    return { placed, group: entryOwner(scope, 'object', id), floorHeightAt: entryOwner(scope, 'floor', id) };
   };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
-  const pier = await placePier(firstPier.id);
+  await stages.next(firstPier.id); const pier = loaned(firstPier.id);
   // G170: the declared entry landings and the four asphalt road decks over the water carrying them on; each ramp rises from one
   await entry.run('decks');
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
@@ -83,14 +88,14 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     refreshPose: () => { const heave = boatPlaced.object.position.y - fixed.boat.spec.waterY, pitch = Math.sin(boatPlaced.object.rotation.x);
       lift[0] = heave - bowZ * pitch; lift[1] = heave - sternZ * pitch; setLentParam(MOOR_LOOK, 'moor', lift); } };
   game.scene.add(ropes);
-  await complete('Pier and boat');
+  await complete('Boat');
   // faceted shore boulders along the beach
   // Keep the model's authored copy facts over the finished world draw.
   const rocks = await stage('Shore boulders', async () => { await entry.run('shore'); return { placed: entry.placed('rocks.shore.copies') }; });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-  const hut = await stage('Hut', () => sites.site('hut', 'world', sharedModelContext(sky, game), registry));
+  await stages.next('hut'); const hut = { ...loaned('hut'), anchors: entryOwner(scope, 'site', 'hut') };
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
-  const lookout = await stage('Lookout', () => sites.site('lookout', 'world', sharedModelContext(sky, game), registry));
+  await stages.next('lookout'); const lookout = { ...loaned('lookout'), anchors: entryOwner(scope, 'site', 'lookout') };
   // the shipwreck with the cove's cargo, drift logs and reef rocks: declared copies drawn into the wreck site's meshes
   // (piece `wreck`: the site's colliders and floors; the Wreck cove set)
   const wreck = await stage('Wreck', async () => { await entry.run('wreck');
@@ -108,10 +113,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
   });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
-  const jetties: Awaited<ReturnType<typeof placePier>>[] = [];
-  for (const row of assembly.piers.slice(1)) {
-    const jetty = await placePier(row.id); jetties.push(jetty); await complete(row.label);
-  }
+  const jetties: ReturnType<typeof loaned>[] = [];
+  for (const row of assembly.piers.slice(1)) { await stages.next(row.id); jetties.push(loaned(row.id)); }
   await slice();
   if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
   const foliage = fixed.foliage.tiers[game.tier];
