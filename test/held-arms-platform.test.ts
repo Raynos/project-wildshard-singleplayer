@@ -13,6 +13,7 @@ import { parseToonArmsLook } from '../src/format/heldArms';
 import { HeldView } from '../src/game/systems/viewmodel/heldView';
 import { parseHeldView } from '../src/format/heldView';
 import { toonLighting } from '../src/game/looks/toonLighting';
+import { heldArmsGear } from '../src/game/models/heldGear';
 import { RigArms } from '../src/game/systems/viewmodel/rigArms';
 import { ARM_CLIPS, armClipNames } from '../src/game/systems/viewmodel/armClips';
 
@@ -153,4 +154,13 @@ test('shared rig player preserves the multi-mesh Jian and held grapple clips', a
   expect(second.move).toBeNull();
   first.play('light'); first.update(.1, state);
   expect(first.move).toBe('light');
+});
+
+test('graph held arms list finite Explorer cards from rows and refuse malformed ones', () => {
+  const card = { id: 'harbour/fp-arms', name: 'Harbour arms', file: 'src/shards/harbour/data/heldCards.json', size: [0.9, 0.6, 0.9],
+    pipeline: ['blender', 'code'], clips: ['idle', 'walk'], settleFrames: 12, copies: 1 };
+  const rows = { kind: 'graph', slug: 'harbour', file: 'weapons/arms.json', cards: [card] };
+  expect(heldArmsGear(rows).map(entry => entry.id)).toEqual(['harbour/fp-arms']);
+  for (const bad of [{ ...rows, cards: [] }, { ...rows, cards: [{ ...card, pipeline: ['magic'] }] }, { ...rows, cards: [{ ...card, settleFrames: -1 }] },
+    { ...rows, surprise: 1 }, { ...rows, kind: 'clay' }, { ...rows, cards: [{ ...card, build: () => null }] }]) expect(() => heldArmsGear(bad)).toThrow();
 });

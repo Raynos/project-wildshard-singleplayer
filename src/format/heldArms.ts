@@ -55,6 +55,14 @@ const DeclaredPrimarySchema = v.strictObject({ kind: v.literal('declared-primary
   tools: v.pipe(v.array(name), v.maxLength(16), v.check(rows => new Set(rows).size === rows.length)),
 });
 export const HeldArmsSchema = v.union([ToonHeldArmsSchema, DeclaredPrimarySchema]);
+/** G601 C10: a graph held view's cold Explorer cards. Each card is the product file's graph held view
+ * (`HeldView.fromProduct(slug, file)`), settled for its frames inside a loading box of its size. */
+export const HeldGraphCardsSchema = v.strictObject({ kind: v.literal('graph'), slug: name, file: name,
+  cards: v.pipe(v.array(v.strictObject({ id: name, name, file: name, size: vector,
+    pipeline: v.pipe(v.array(v.picklist(['code', 'blender', 'trellis', 'hunyuan', 'cc0'])), v.minLength(1), v.maxLength(5)),
+    clips: v.pipe(v.array(name), v.maxLength(64)), settleFrames: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(600)),
+    copies: v.pipe(finite, v.integer(), v.minValue(0)) })), v.minLength(1), v.maxLength(16)),
+});
 /** Admitted catalogue shared by entered equipment and cold Explorer cards. */
 export type HeldArmsRows = v.InferOutput<typeof HeldArmsSchema>;
 

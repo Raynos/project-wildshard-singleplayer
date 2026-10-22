@@ -19150,7 +19150,6 @@
         "src/shards/nine-dragon-stack/generators/hookGeometry.ts",
         "src/sdk",
         "src/shards/nine-dragon-stack/data/crowdModels.json",
-        "src/shards/nine-dragon-stack/data/gearSpecimen.json",
         "src/shards/nine-dragon-stack/data/hookSpecimen.json"
       ],
       "outputs": [

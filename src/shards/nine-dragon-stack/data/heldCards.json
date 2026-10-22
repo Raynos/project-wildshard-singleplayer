@@ -1,0 +1,42 @@
+{
+  "kind": "graph",
+  "slug": "nine-dragon-stack",
+  "file": "weapons/jian-row.json",
+  "cards": [
+    {
+      "id": "nine-dragon-stack/fp-arms",
+      "name": "Arms: Neon Jian & Fei Zhua",
+      "file": "src/shards/nine-dragon-stack/data/heldCards.json",
+      "size": [
+        0.9,
+        0.6,
+        0.9
+      ],
+      "pipeline": [
+        "blender",
+        "trellis",
+        "code"
+      ],
+      "clips": [
+        "idle",
+        "walk",
+        "light",
+        "light2",
+        "light3",
+        "charge",
+        "heavy",
+        "parry",
+        "sheathe",
+        "draw",
+        "sheathed",
+        "idleL",
+        "walkL",
+        "grapple_aim",
+        "grapple_fire",
+        "grapple_hold"
+      ],
+      "settleFrames": 45,
+      "copies": 1
+    }
+  ]
+}

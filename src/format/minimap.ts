@@ -232,7 +232,9 @@ const bindings = v.strictObject({
     // G599: a post-graph look read from a product file's row (game looks/postGraphLook `postGraphLook`): the file and the
     // field path to its row
     v.strictObject({ platform: v.literal('post'), file: text, field: v.pipe(v.array(text), v.minLength(1), v.maxLength(8)) })])), load: v.exactOptional(moduleBinding),
-  ktx2: v.exactOptional(v.union([pageBoot, moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
+  ktx2: v.exactOptional(v.union([pageBoot, moduleBinding, binding])), roster: v.exactOptional(v.union([v.strictObject({...binding.entries, call: v.boolean()}),
+    // G601 C10: held arms' Explorer cards from a data file (game models/heldGear `heldArmsGear`)
+    v.strictObject({ platform: v.literal('held'), rows: bindingModule })])),
 });
 const tier = v.objectWithRest({aa: v.exactOptional(v.picklist(['fxaa', 'smaa', 'off'])),
   slices: v.exactOptional(v.boolean()), skipRaysOffscreen: v.exactOptional(v.boolean()), envSteps: v.exactOptional(v.boolean()), pointLightSkip: v.exactOptional(v.boolean()), godRays: v.exactOptional(v.boolean()), ao: v.exactOptional(v.boolean()),

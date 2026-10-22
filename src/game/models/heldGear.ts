@@ -1,7 +1,7 @@
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel } from '@wildshard/engine/models/model';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
-import { HeldArmsSchema } from '@wildshard/format/heldArms';
+import { HeldArmsSchema, HeldGraphCardsSchema } from '@wildshard/format/heldArms';
 import { HeldView } from '../systems/viewmodel/heldView';
 import { HeldGearSchema } from '@wildshard/format/heldGear';
 import * as v from 'valibot';
@@ -56,10 +56,18 @@ export function heldGear(input: unknown): readonly RosterEntry[] {
   });
 }
 
-/** Client-only Explorer cards for admitted melee arms; preparation retains the row's original look and size. */
+/** Client-only Explorer cards for admitted melee arms (a toon catalogue's blades, or a graph held view's cards);
+ *  preparation retains the row's original look and size. */
 export function heldArmsGear(input: unknown): readonly RosterEntry[] {
-  const rows = v.parse(HeldArmsSchema, input);
-  if ('kind' in rows) throw new Error('Declared primary cards use their original graph catalogue');
+  const rows = v.parse(v.union([HeldArmsSchema, HeldGraphCardsSchema]), input);
+  if ('kind' in rows) {
+    if (rows.kind !== 'graph') throw new Error('Declared primary cards use their original graph catalogue');
+    const { slug, file } = rows;
+    return rows.cards.map(row => live(defineModel<object>({ id: row.id, name: row.name, category: 'gear', pipeline: row.pipeline, file: row.file,
+      defaults: {}, rig: { clips: row.clips },
+      build: context => loadingSpecimen(row.id, row.size, async () => (await HeldView.fromProduct(slug, file)).specimen({ settleFrames: row.settleFrames, renderer: context.renderer })) }),
+    { copies: row.copies }));
+  }
   const arms = HeldView.admit({ kind: 'toon', ...rows.look });
   return rows.cards.map(row => live(defineModel<object>({ id: row.id, name: row.name, category: 'gear', pipeline: ['blender','code'], file: row.file, defaults: {},
     build: context => loadingSpecimen(row.id, row.size, async () => {
