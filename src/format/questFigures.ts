@@ -45,6 +45,6 @@ export const KitFigureCardsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Kit
   cards: v.pipe(v.record(id, v.strictObject({
     model: v.strictObject({ ...v.pick(SpecimenModelMetadataSchema, ['id', 'name', 'file', 'category', 'pipeline', 'surface']).entries, defaults: v.strictObject({}) }),
     figure: QuestFigureSchema,
-  })), v.minEntries(1), v.maxEntries(64)),
+  })), v.maxEntries(64), v.check(rows => Object.keys(rows).length > 0, 'at least one kit figure card')),
 }));
 export type KitFigureCardsRows = v.InferOutput<typeof KitFigureCardsSchema>;
