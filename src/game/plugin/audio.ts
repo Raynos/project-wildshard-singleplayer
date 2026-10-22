@@ -143,17 +143,22 @@ function audioDusk(value:unknown):value is NonNullable<DeclaredGameplayPorts['du
 function audioPoints(value:unknown):value is readonly {x:number;z:number}[]{return Array.isArray(value)&&value.length<=2048&&value.every((point:unknown)=>typeof point==='object'&&point!==null&&'x' in point&&typeof point.x==='number'&&'z' in point&&typeof point.z==='number');}
 /** Install admitted gameplay bindings using native owner loans, with no shard callbacks. */
 export async function installRuntimeGameplayAudio(context:ShardContext,borrowed:RuntimeGameplayAudioPorts):Promise<void> {
+  const live=():void=>{if(context.scope.disposed||context.scope.disposing)throw new Error('Gameplay audio owner has ended');};
+  live();
   const rows=runtimeAudio(context,context.product.shardfile.audio),policy=rows.gameplay;
   if(policy===undefined)throw new Error('Missing audio gameplay bindings');
   const environment=policy.environment;
   let ambience=borrowed.ambience,bank=borrowed.bank,dusk=borrowed.dusk,emitters=borrowed.emitters;
   let surfaces:AudioSurfaceMap<GroundSurface>|undefined,releaseEnvironment:(()=>void)|undefined;
   if(environment!==undefined){
-    const {trailDistance}=await import('@wildshard/engine/world/Heightfield');
+    const {trailDistance}=await import('@wildshard/engine/world/Heightfield');live();
     const sea=context.product.shardfile.water.find(body=>body.kind==='sea');if(sea?.kind!=='sea')throw new Error('Missing audio sea');
     const read=(ref:{owner:string;path:readonly string[]}):unknown=>audioOwner(borrowed.owners,ref);
     const nativeDusk=read(environment.dusk);if(nativeDusk!==undefined&&nativeDusk!==null&&!audioDusk(nativeDusk))throw new Error('Invalid audio dusk owner');
     dusk=nativeDusk??null;
+    const floors=Object.fromEntries(Object.entries(environment.floors).map(([id,refs])=>[id,refs.flatMap(ref=>{const raw=read(ref),values:readonly unknown[]=Array.isArray(raw)?raw:[raw];if(values.length>512||!values.every(value=>value===null||value===undefined||audioFloor(value)))throw new Error('Invalid audio floor owners');return values;})]));
+    const objects=Object.fromEntries(Object.entries(environment.objects).map(([id,ref])=>{const object=read(ref);if(object!==null&&object!==undefined&&typeof object!=='object')throw new Error('Invalid ambience object');return [id,object];}));
+    const near:DeclaredAmbiencePorts['near']=Object.fromEntries(Object.entries(environment.near).map(([id,ref])=>{const points=read(ref);if(points!==undefined&&!audioPoints(points))throw new Error('Invalid ambience points');return [id,points];}));
     const point=read(environment.emitter.point);let hum:ReturnType<Audio['loopEmitter']>|null=null;
     if(point!==undefined&&point!==null){
       if(typeof point!=='object'||!('x' in point)||!('z' in point)||typeof point.x!=='number'||typeof point.z!=='number')throw new Error('Invalid audio emitter point');
@@ -161,10 +166,7 @@ export async function installRuntimeGameplayAudio(context:ShardContext,borrowed:
     }
     emitters={[environment.emitter.id]:hum};
     bank=installDeclaredAudio(context.product.shardfile.audio,{audio:borrowed.audio,scope:context.scope},'voices');
-    const floors=Object.fromEntries(Object.entries(environment.floors).map(([id,refs])=>[id,refs.flatMap(ref=>{const raw=read(ref),values:readonly unknown[]=Array.isArray(raw)?raw:[raw];if(values.length>512||!values.every(value=>value===null||value===undefined||audioFloor(value)))throw new Error('Invalid audio floor owners');return values;})]));
     surfaces=borrowed.audio.surfaceMap(requireAudioProfile(rows.surfaces,'audio surfaces'),GROUND_SURFACES,{sea:sea.level,heightAt:terrainHeight,values:{trail:trailDistance},floors});
-    const objects=Object.fromEntries(Object.entries(environment.objects).map(([id,ref])=>{const object=read(ref);if(object!==null&&object!==undefined&&typeof object!=='object')throw new Error('Invalid ambience object');return [id,object];}));
-    const near:DeclaredAmbiencePorts['near']=Object.fromEntries(Object.entries(environment.near).map(([id,ref])=>{const points=read(ref);if(points!==undefined&&!audioPoints(points))throw new Error('Invalid ambience points');return [id,points];}));
     const active=installDeclaredAudio(rows,{audio:borrowed.audio,sea:sea.level,objects,near,owners:borrowed.owners},'ambience');ambience=active;
     context.answer('player.stepSurface',request=>({...request,surface:surfaces?.surfaceAt(request.x,request.z,request.y)??request.surface}));
     releaseEnvironment=()=>{hum?.dispose();active.dispose();};

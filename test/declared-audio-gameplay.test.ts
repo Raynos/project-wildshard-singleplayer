@@ -150,3 +150,24 @@ it('binds native melee/water events, original spatial owners and teardown withou
     under.mockClear();f.audio.setUnderwater(false);expect(under).not.toHaveBeenCalled();expect(water).toHaveBeenLastCalledWith(false);
   }finally{scope.dispose();Object.assign(swordEvents,saved);setTerrainHeight(()=>0);}
 });
+
+it.each(['leave','floors','near'] as const)('preflights %s before allocating gameplay audio',async mode=>{
+  const f=fixture(),scope=new Scope('audio-preflight'),app=new App(),objects:Record<string,unknown>={};
+  const level=createLevelInstallation(app,scope,{},()=>({set:()=>undefined,detail:()=>undefined}));
+  const source=emptyShardfile({slug:'template',name:'Audio refusal',author:'Test',revision:1,seed:1});
+  source.audio=island;source.water=[{id:'sea',kind:'sea',level:0,waves:true}];
+  const product=createShardProduct({slug:'template',revision:1,shardfile:source,sections:new Map([['audio/audio',{audio:island}]]),files:new Map(),read:()=>Promise.reject(new Error('Unexpected bytes'))});
+  const context=shardContext(level.context,TEMPLATE,{shard:TEMPLATE,rows:new Map(),declaredAudio:island,bag:{tab:()=>()=>undefined,fragment:()=>()=>undefined}},product);
+  const world={pier:mode==='floors'?{}:null,jetties:[],boat:null,hut:null,lookout:null,bridge:null,wreck:null,
+    shrine:{group:{position:{x:-98,y:0,z:108}},floorHeightAt:()=>5,setDusk:()=>undefined},palmSpecs:mode==='near'?'invalid':[{x:1,z:2}]};
+  const hum=vi.spyOn(f.audio,'loopEmitter'),surfaces=vi.spyOn(f.audio,'surfaceMap'),voices=vi.spyOn(f.audio.voices,'playback');
+  const previous={...swordEvents};
+  try{
+    const pending=installRuntimeGameplayAudio(context,{audio:f.audio,music:f.music,camera:f.ports.camera,listener:{position:{x:0,y:0,z:0},yaw:0},objects,
+      owners:{world,sky:f.sky,cove:{fall:{foot:[127.5,18]},cave:{x:16,z:22,yaw:.7,depth:9}},wind:{uTime:{value:0},uWindStrength:{value:0}}}});
+    if(mode==='leave')scope.dispose();
+    await expect(pending).rejects.toThrow(mode==='leave'?'owner has ended':mode==='floors'?'Invalid audio floor owners':'Invalid ambience points');
+    expect(hum).not.toHaveBeenCalled();expect(surfaces).not.toHaveBeenCalled();expect(voices).not.toHaveBeenCalled();
+    expect(objects).toEqual({});expect(swordEvents).toEqual(previous);
+  }finally{hum.mockRestore();surfaces.mockRestore();voices.mockRestore();scope.dispose();}
+});
