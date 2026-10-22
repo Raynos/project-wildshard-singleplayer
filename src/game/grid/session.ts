@@ -56,6 +56,8 @@ import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSect
 import { bindCellCover, cellCoverPort } from './cellCover';
 import { FAR_RING, type FarLookRuntime } from './farProxy';
 import { bakedNearFiles, NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
+import { PHONE_NEAR_CELLS } from './nearPlaceholderPlan';
+import { TIER } from '@wildshard/engine/core/tier';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
@@ -479,9 +481,11 @@ export class GridSession {
     } };
     // the drawn far views, for the cell screen's far-view row; G342: each one's mask is mirrored onto its near view
     const drawnFar = new Map<string, { view: FarProxyView; excluded: ReadonlySet<number> }>();
-    // G607 (Jake's round-36 D): every neighbour draws its near view, whatever its distance
+    // G607 (Jake's round-36 D): every neighbour draws its near view, whatever its distance; round 39: the phone tier only
+    // its nearest PHONE_NEAR_CELLS (the rest on their far proxies, still unhazed)
     const near = new NearPlaceholders({
       allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
+      ...(TIER === 'phone' ? { limit: PHONE_NEAR_CELLS } : {}),
       load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
       cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
       mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),

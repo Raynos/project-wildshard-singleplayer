@@ -26,6 +26,8 @@ export interface NearPlaceholderHost {
   readonly allocator: ResidencyAllocator;
   readonly cells: readonly GridCell[];
   readonly pitch: number;
+  /** at most this many cells near, the nearest (absent: every cell; the phone tier's `PHONE_NEAR_CELLS`) */
+  readonly limit?: number;
   /** the cell's render root (absent: not a neighbour of this session) */
   root: (instance: string) => Object3D | undefined;
   /** fetch and parse the cell's near placeholder; rejects when its shard has none (the far proxy stays). `owns`: the bake
@@ -63,7 +65,8 @@ export class NearPlaceholders {
     if (this.disposed) return;
     const skip = new Set(this.missing);
     for (const cell of this.host.cells) if (this.host.root(cell.instance) === undefined) skip.add(cell.instance);
-    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip });
+    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip,
+      ...(this.host.limit === undefined ? {} : { limit: this.host.limit }) });
     this.eye = { x: Math.round(eye.x * 10) / 10, z: Math.round(eye.z * 10) / 10 };
     const wanted = new Map(plan.cells.map(c => [c.instance, c.distance]));
     this.distances.clear();
