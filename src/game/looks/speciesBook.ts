@@ -13,8 +13,9 @@ import { HullLookBookSchema } from '@wildshard/format/speciesLooks';
 import type { CompactSpeciesBodiesRows, NativeSpeciesLookBookRows } from '@wildshard/format/speciesBookRows';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { speciesDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
-
+import { hasSpecies, registerSpecies, speciesDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+import { roamingBossDamage } from '../boss/roamingProjection';
+import { limbAnimation } from '../animation/limbView';
 import { BOAR_LOOK } from '../systems/species/view/boar';
 import { BEAR_LOOK } from '../systems/species/view/bear';
 
@@ -39,6 +40,18 @@ export class HullLookBook {
     const source = this.book.definitions[kind]; if (source === undefined) throw new Error('Missing hull species definition');
     const { body, id: _id, ...definition } = source;
     return { ...definition, build: () => structuredClone(body) };
+  }
+  /** G571: register each declared derived species once, on its own custom limb rig; its think is external (its owning
+   *  fight drives it) and its damage the roaming boss's rule. */
+  registerDerived(): void {
+    for (const [kind, row] of Object.entries(this.book.derived)) {
+      if (hasSpecies(kind)) continue;
+      const rig = row.rig, coat: VariantDef = row.coat;
+      registerSpecies({ ...this.definition(row.from), ...row.fields, kind, label: row.label, variants: [coat],
+        think: () => undefined, damageMul: (actor, req) => roamingBossDamage(actor, req),
+        rigContract: { skeleton: rig.skeleton, clips: [], sockets: rig.sockets }, rig: 'custom', animate: limbAnimation(rig.spec, rig.blend, rig.clips),
+        build: () => ({ bones: structuredClone(rig.bones), furParts: [], hardParts: [], eyeParts: [], dims: structuredClone(rig.dims) }) });
+    }
   }
   /** Resolve registered rigs only when requested, after their native owner installs them. */
   look(kind: string): SpeciesLook {
