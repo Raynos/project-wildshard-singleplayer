@@ -334,8 +334,8 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
 }
 
 async function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
-  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean): Promise<{ jobs: CompileJob[]; materials: number }> {
-  const steps = sceneJobSteps(scene, rt, per, roots, excluded), slice = workSlice();
+  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope): Promise<{ jobs: CompileJob[]; materials: number }> {
+  const steps = sceneJobSteps(scene, rt, per, roots, excluded), slice = workSlice(undefined, owner);
   for (;;) {
     if (!current()) throw new Error('Shader preparation owner left');
     const step = steps.next(); if (step.done) return step.value;
@@ -353,7 +353,7 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   uploadBudget?: UploadBudget): Promise<void> {
   await prepareSceneResources(roots, camera, current);
   const { jobs, materials } = setting('buildPacing') === 'entry'
-    ? await pacedSceneJobs(scene, target, 1, roots, undefined, current) : sceneJobs(scene, target, 1, roots);
+    ? await pacedSceneJobs(scene, target, 1, roots, undefined, current, pageScope) : sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);
   if (setting('buildPacing') === 'links' && pause !== undefined) {
@@ -1157,7 +1157,11 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const rt = game.composer.inputBuffer;
     // A live warm-up builds its jobs in work slices too (its compile slices start only in runPrecompile): the setup below
     // was one 190-220 ms task when a crossing prepared a resident (Driftwood and Pine drives on the phone at 4x)
-    const live = options.sliceMs !== undefined, setup = workSlice();
+    // its owner taken now, and its setup's yields on the page's scope: after an await the ambient owner can be any
+    // task's, even a retired cell's closed scope, whose timers never fire (a setup yield on one stalled Driftwood's
+    // warm-up for 9,103 frames); `current` ends an abandoned warm-up at its next step
+    const owner = options.owner ?? resourceScope();
+    const live = options.sliceMs !== undefined, setup = workSlice(undefined, pageScope);
     const pace = async (): Promise<void> => {
       if (!live || !setup.due()) return;
       await setup.yield();
@@ -1171,7 +1175,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
-      : live || setting('buildPacing') === 'entry' ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true))
+      : live || setting('buildPacing') === 'entry' ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope)
       : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();
@@ -1197,7 +1201,6 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     jobs.push(...previousShadows);
     if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving)));
     await pace();
-    const owner = options.owner ?? resourceScope();
     if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     let completed = 0, total = 0;
