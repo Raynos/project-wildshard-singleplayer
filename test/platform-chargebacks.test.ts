@@ -385,3 +385,12 @@ test('the approved riding specimen module contains its factory boundary and reta
   expect(platformChargeback(path)).toBe('C1');
   expect(approvedG571Host(approvals, 'src/game/models/unreviewedSpecimen.ts')).toBe(false);
 });
+
+test('G615 credits only timed encounters and its selected slot and patrol views', () => {
+  const approvals = g571HostApprovals('.'), path = 'src/game/boss/encounterView.ts';
+  expect(approvedG571Host(approvals, 'src/game/boss/timedEncounters.ts')).toBe(true);
+  for (const name of ['SlotEncounterView', 'PatrolEncounterView']) expect(approvedG571Host(approvals, path, name)).toBe(true);
+  expect(approvedG571Host(approvals, path)).toBe(false);
+  for (const name of ['CloudBody', 'ArenaSceneView', 'EncounterSites', 'PatrolActor', 'SlotViewActor']) expect(approvedG571Host(approvals, path, name)).toBe(false);
+  expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
+});
