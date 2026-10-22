@@ -406,7 +406,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const before = (material: THREE.Material, object: THREE.Object3D): void => { this.beforeDraw(material, object); };
     const disposed = (material: THREE.Material): void => { this.disposeMaterial(material); };
     self.onBeforeRenderCallback = function onBeforeRenderCallback(this: THREE.Material, _renderer, _scene, _camera, _geometry, object): void { before(this, object); };
-    self.onDisposeMaterialCallback = function onDisposeMaterialCallback(this: THREE.Material): void { disposed(this); };
+    const onDisposeMaterialCallback = function onDisposeMaterialCallback(this: THREE.Material): void { disposed(this); };
+    self.onDisposeMaterialCallback = onDisposeMaterialCallback; this.disposeListener = onDisposeMaterialCallback;
     // Only new bindings need the stock handler's geometry refresh. A rebind
     // keeps uploaded-only buffers and live memos; it is not a retirement.
     self.updateGeometryAttributes = function updateGeometryAttributes(builder: unknown, geometry: THREE.BufferGeometry): void {
@@ -705,6 +706,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const t0 = diagnosticNow();
     if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
     else super.build(material, object, parameters);
+    this.disposeFirst(material);
     parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object, parameters.extensionMultiDraw);
     // Three's classic node builder hardcodes GL_POINTS to one pixel. A compiler-owned
     // size property replaces only that epilogue; content still supplies no shader code.
@@ -892,6 +894,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** Warm draws borrow the paired program view without rebuilding block lists.
    * Renderer version/layout checks and custom node dispatch remain live. */
+  /** the handler's own dispose callback (O18: it goes first among a material's dispose listeners) */
+  private disposeListener: ((this: THREE.Material) => void) | null = null;
+
   private beforeDraw(material: THREE.Material, object: THREE.Object3D): void {
     const self = internals(this), frame = this.frame;
     frame.material = material;
@@ -932,7 +937,27 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   }
 
   /** a node material was disposed (three's onDisposeMaterialCallback): its uniform groups and block buffers go */
+  /**
+   * O18: three's renderer files a node material's shader stages in its custom shader cache (WebGLShaderCache, through
+   * WebGLPrograms.getParameters, as for a ShaderMaterial) but releases them on dispose only for a ShaderMaterial, so every
+   * disposed node material (its node graph and what its closures hold: a retired world) stayed in that cache for the
+   * page's life. The handler's dispose callback goes first among the material's dispose listeners (three files its own
+   * before the build), and marks the node material a shader material for that one dispatch, so three's own dispose
+   * releases its stages; the mark is gone before the next frame.
+   */
+  private disposeFirst(material: THREE.Material): void {
+    const callback = this.disposeListener, listeners: unknown = Reflect.get(material, '_listeners');
+    const list: unknown = typeof listeners === 'object' && listeners !== null ? Reflect.get(listeners, 'dispose') : undefined;
+    if (!Array.isArray(list)) return;
+    const at = list.indexOf(callback);
+    if (at > 0) { list.splice(at, 1); list.unshift(callback); }
+  }
+
   private disposeMaterial(material: THREE.Material): void {
+    if (material instanceof NodeMaterial && Reflect.get(material, 'isShaderMaterial') !== true) {
+      Reflect.defineProperty(material, 'isShaderMaterial', { value: true, configurable: true });
+      queueMicrotask(() => { Reflect.deleteProperty(material, 'isShaderMaterial'); });
+    }
     this.pendingBuilds.delete(material); this.objectVariants.forget(material); this.drawEntries.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;
