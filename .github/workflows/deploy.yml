@@ -426,6 +426,19 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
+      # Cache native checkpoint bytes only. Every consumer still checks its
+      # source/host key, all payload hashes and the normal recorded outcome.
+      - name: Restore content-addressed native witnesses
+        uses: actions/cache@v4
+        with:
+          # Complete key directories; never transfer live lock/reader owners.
+          path: |
+            ~/.cache/wildshard/generate/witness-*/[0-9a-f]*
+            !~/.cache/wildshard/generate/witness-*/*.lock
+            !~/.cache/wildshard/generate/witness-*/*.readers
+            !~/.cache/wildshard/generate/witness-*/evicting-*
+          key: native-witness-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-${{ github.sha }}
+          restore-keys: native-witness-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-
       - uses: actions/download-artifact@v4
         with:
           name: test-products
