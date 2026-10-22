@@ -153,15 +153,12 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // the square's lions and its queued sets; the named places' Sets share them (Lantern Square's panels and lions, the
   // stair-street's and the Well rim's lions), the booths, parasol tables and pavilions are the night market
   const squareSets = { square: [] as Placed[], stair: [] as Placed[], rim: [] as Placed[] }, market: Placed[] = [];
-  if (worldRows.lions.length > 0) {
-    const lions = await opts.scenes.place('nds-lions'); root.add(lions.object);
-    for (const [k, idx] of [['square', worldRows.shares.plaza], ['stair', worldRows.shares.street], ['rim', worldRows.shares.rim]] as const) { const share = copiesAt(lions, idx); if (share !== null) squareSets[k].push(share); }
-  }
-  // each set is a world-scene placement of its catalogue model at its baked frames (generators/worldScenes.ts SET_PLACEMENTS)
-  for (const { name } of worldRows.sets) {
-    const placed = await opts.scenes.place(`nds-set-${name}`); root.add(placed.object);
-    (name === 'balustrade-panel' ? squareSets.square : market).push(placed);
-  }
+  // the lions and each set are world-scene placements of their catalogue models at their baked frames (generators/
+  // worldScenes.ts SET_PLACEMENTS), put under the root by the world entry's `lions` and `sets` rows
+  await entry.run('lions');
+  for (const lions of entry.placedIn('lions')) for (const [k, idx] of [['square', worldRows.shares.plaza], ['stair', worldRows.shares.street], ['rim', worldRows.shares.rim]] as const) { const share = copiesAt(lions, idx); if (share !== null) squareSets[k].push(share); }
+  await entry.run('sets');
+  for (const { name } of worldRows.sets) (name === 'balustrade-panel' ? squareSets.square : market).push(entry.placed(`nds-set-${name}`));
   if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });
   await slice();
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below; E264: the kits are ~100 MB of
@@ -181,8 +178,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const copies = ctx.inKit.map(c => { const row = catalogueRows.models.find(m => m.id === c.model), { params: _free, ...pose } = c.at;
     return row === undefined || authored.has(`${c.model}:${canonical({ ...row.defaults, ...c.at.params })}`) ? c : { ...c, at: pose }; });
   for (const model of byId.values()) { inKitPlaced.push(...registerDrawnInto(models.ctx, copies, model, meshOfKit, 'nds-')); await slice(); }
-  const lanterns = await opts.scenes.place(lanternId); root.add(lanterns.object);
-  lanterns.object.name = 'lanterns';
+  await entry.run('lanterns');
   progress(0.56, 'facade batches');
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
@@ -217,11 +213,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await slice();
 
   // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)
-  const wellKit: Placed[] = [];
-  for (const [key] of layout.inst) {
-    const placed = await opts.scenes.place(`nds-inst-${key}`); root.add(placed.object);
-    if (!key.endsWith('@town')) wellKit.push(placed);
-  }
+  await entry.run('wall');
+  const wellKit = layout.inst.flatMap(([key]) => key.endsWith('@town') ? [] : [entry.placed(`nds-inst-${key}`)]);
   // the fragment's named places as Sets (../places.ts, world/sets.ts): what each region's kits carry
   const extras = new Map<string, readonly Placed[]>(Object.entries({ ...squareSets, well: wellKit }));
   for (const region of worldRows.regions) {
@@ -252,13 +245,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
 
   // the lab's cast-brass dragon hung at three close Well hooks: a world-scene placement of its catalogue model (one
   // instanced draw; the procedural brackets and collision-free ring anchors stay)
-  root.add((await opts.scenes.place('nds-fei-zhua-hooks')).object);
-  // Crowd LODs are declared on the models; placement owns their frustum and range.
-  // the TRELLIS crowd in its colourways: world-scene placements of its catalogue models (generators/worldScenes.ts)
-  for (const group of ['walkers', 'sitters'] as const) {
-    if (worldRows.crowd[group].length === 0) continue;
-    const crowd = await opts.scenes.place(`nds-crowd-${group}`); crowd.object.name = 'crowd'; root.add(crowd.object);
-  }
+  // and the TRELLIS crowd in its colourways (its LODs declared on the models; placement owns their frustum and range): the
+  // world entry's `figures` rows
+  await entry.run('figures');
   await slice();
 
   // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the
