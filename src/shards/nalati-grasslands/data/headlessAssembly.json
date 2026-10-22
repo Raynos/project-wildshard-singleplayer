@@ -7,12 +7,6 @@
     "@wildshard/engine/physics/navmesh": [
       "readNavmesh"
     ],
-    "src/shards/nalati-grasslands/wet": [
-      "nalatiWetAt"
-    ],
-    "src/shards/nalati-grasslands/world/geography": [
-      "TERRAIN"
-    ],
     "@wildshard/engine/core/noise": [
       "clamp"
     ],
