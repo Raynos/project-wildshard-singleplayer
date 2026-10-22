@@ -10,6 +10,10 @@
   "lattice": 4,
   "gain": 1.8,
   "playerRadius": 0.55,
+  "trail": {
+    "speedLimit": 30,
+    "strength": 1
+  },
   "cardsHeight": 6,
   "ringHeight": 0.9,
   "gainFalloff": [

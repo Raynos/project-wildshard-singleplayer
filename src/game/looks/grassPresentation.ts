@@ -93,13 +93,14 @@ export class GrassPresentation {
   private rings: Ring[] = [];
   private flowers: Ring | null = null;
   private cards: { readonly geo: THREE.InstancedBufferGeometry; readonly tiles: number; readonly origin: THREE.Vector2 } | null = null;
-  private readonly trail = new TrampleTrail(trample, 30);
+  private readonly trail: TrampleTrail;
   private baking = 0;
   /** live tunables */
   readonly params = { playerRadius: 0 };
 
   constructor(private readonly profile: GrassPresentationProfile, private readonly sky: Sky, private readonly forest: Forest, private readonly bakeUniforms: StaticCaptureUniforms, private readonly atlas: Parameters<typeof loadSpecimenTexture>[0]) {
     this.params.playerRadius = profile.input.view.playerRadius;
+    this.trail = new TrampleTrail(trample, profile.input.view.trail.speedLimit);
     const grassRows = profile.input, { heightSize: HN, lattice: LAT, half: CHUNK_HALF } = grassRows.view, LN = Math.ceil(CHUNK_HALF * 2 / LAT) + 1;
     profile.track(this);
     const tHeight = profile.heightTexture();
@@ -182,7 +183,7 @@ export class GrassPresentation {
   update(dt: number, playerPos: THREE.Vector3): void {
     const LOOKS = this.profile.input.view.looks, [BLADES,HEADS,CLUMPS] = LOOKS;
     // the player parts the grass and leaves a trail; the wind and the trample advance
-    this.trail.push(dt, playerPos, this.params.playerRadius);
+    this.trail.push(dt, playerPos, this.params.playerRadius, this.profile.input.view.trail.strength);
     wind.update(dt);
     painterlyUniforms.uPWind.value.set(wind.dirX, wind.dirZ, wind.speed / 5);
     trample.update(dt, playerPos);

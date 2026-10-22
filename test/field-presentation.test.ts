@@ -26,6 +26,9 @@ it('gives an unrelated orchard its own field, mood and texture lifetime',()=>{
   const meadow=new GrassPresentationProfile({...orchard(),view});meadow.mood(1,0,0);expect(meadow.uniforms.uGrassGain.value).toBe(.9);
 });
 it('refuses unbounded field draws and invalid capture bounds before allocating',()=>{
+  // the trail on the shared trample field is a row: admitted as declared, a zero speed limit refused
+  expect(parse(GrassPresentationSchema,orchard()).view.trail).toEqual({speedLimit:30,strength:1});
+  expect(()=>parse(GrassPresentationSchema,{...orchard(),view:{...orchard().view,trail:{speedLimit:0,strength:1}}})).toThrow();
   const row=orchard();row.phone.rings[0]={T:2,G:100};expect(()=>parse(GrassPresentationSchema,row)).toThrow();
   expect(()=>parse(StaticCaptureSchema,{...capture,half:Infinity})).toThrow();
 });

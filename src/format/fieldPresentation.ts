@@ -13,6 +13,8 @@ const tier = v.object({ rings: v.pipe(v.array(grid),v.minLength(1),v.maxLength(8
 export const GrassPresentationSchema = v.object({ height: text, mask: text, field: text, ground: text, phone: tier, desktop: tier,
   view: v.object({ looks: v.tuple([text,text,text]), half: positive, heightSize: count, heightOrigin: number, lattice: positive,
     gain: positive, playerRadius: positive, cardsHeight: positive, ringHeight: positive,
+    /** the player's trail on the shared trample field: pushes faster than `speedLimit` (m/s, a teleport) are dropped */
+    trail: v.object({ speedLimit: positive, strength: positive }),
     gainFalloff: tuple, saturationFalloff: tuple, tintNight: tuple, tintStorm: tuple }) });
 export type GrassPresentationRows = v.InferOutput<typeof GrassPresentationSchema>;
 /** Static capture programs are trusted authored presentation data. */
