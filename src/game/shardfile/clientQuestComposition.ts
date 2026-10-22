@@ -78,3 +78,10 @@ export async function installEntryQuestViews(ctx: ShardContext, row: Extract<Cli
   const { QuestPageViews } = await import('../quest/questPageViews'); live();
   await QuestPageViews.install(ctx, input);
 }
+
+/** Chapter presentation borrows the original entered arenas and riding owner. */
+export async function installEntryChapterView(ctx: ShardContext, row: Extract<ClientFeatureRow, { kind: 'quest.chapter-view' }>): Promise<void> {
+  const arena = entryOwner(ctx.scope, 'arena-room', row.arena), fight = entryOwner(ctx.scope, 'arena-script', row.fight);
+  const taming = row.taming === undefined ? null : entryOwner(ctx.scope, 'taming', row.taming);
+  await installQuestPageComposition(ctx, { chapterView: row.chapterView, story: row.story }, { arena, fight, taming });
+}

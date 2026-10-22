@@ -496,3 +496,44 @@ test('the phone frame contract reads authored handles from the public probe and 
   expect(() => eliteEntryProbeFrame({ ...probe, shard: { slug: probe.shard.slug } })).toThrow('authored elite exposure');
   expect(() => eliteEntryProbeFrame({ ...probe, world: undefined })).toThrow('entered play');
 });
+
+
+test('admitted borrowed rows construct the original controller inside the existing entered binding', () => {
+  const { f, elites, rows, owners } = originalOwnerFixture();
+  const source = ecology.externalElites.find(row => row.mode === 'herd');
+  if (source === undefined) throw new Error('Missing original herd law');
+  const borrowed = parseExternalElite({ ...source, def: { ...source.def, rule: 'always' } });
+  const row = { ...rows, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
+    { id: borrowed.def.id, condition: 'always', controller: { kind: 'borrowed' as const, controller: borrowed.def.id } }] },
+    presentation: { ...rows.presentation, [borrowed.def.id]: { prompt: 'Take', toast: 'Taken', hum: false, sting: { banner: 0, phase2: 0, kill: 'pickup' as const } } } };
+  const entry = new DeclaredEliteEntry<ExternalElitePage>(row.entry, f.construction), model = new Group();
+  f.entered.expose(owners, 'controllers', undefined);
+  f.entered.expose(owners, 'models', new Map([...owners.models, [borrowed.def.id, model]]));
+  try {
+    f.entered.run(() => elites.bindDeclaredEntry(entry, row, owners));
+    const controller = entry.scripts[1];
+    expect(controller).toBeInstanceOf(ExternalElitePage);
+    if (!(controller instanceof ExternalElitePage)) throw new Error('Missing original borrowed controller');
+    expect(controller.row).toEqual(borrowed); expect(controller.def.id).toBe(borrowed.def.id);
+    expect(controller.dropModel()).not.toBe(model); expect(elites.entries[1]?.script === controller).toBe(true);
+    expect(f.spawn).not.toHaveBeenCalled();
+    f.entered.dispose(); expect(f.scene.children).toHaveLength(0);
+  } finally { f.root.dispose(); }
+});
+
+test('missing final borrowed model refuses before any native kernel or tell is published', () => {
+  const { f, elites, rows, owners } = originalOwnerFixture();
+  const source = ecology.externalElites.find(row => row.mode === 'herd');
+  if (source === undefined) throw new Error('Missing original herd law');
+  const borrowed = parseExternalElite({ ...source, def: { ...source.def, rule: 'always' } });
+  const row = { ...rows, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
+    { id: borrowed.def.id, condition: 'always', controller: { kind: 'borrowed' as const, controller: borrowed.def.id } }] },
+    presentation: { ...rows.presentation, [borrowed.def.id]: { prompt: 'Take', toast: 'Taken', hum: false, sting: { banner: 0, phase2: 0, kill: 'pickup' as const } } } };
+  const entry = new DeclaredEliteEntry<ExternalElitePage>(row.entry, f.construction);
+  f.entered.expose(owners, 'controllers', undefined);
+  try {
+    expect(() => f.entered.run(() => elites.bindDeclaredEntry(entry, row, owners))).toThrow('borrowed elite model');
+    expect(f.scene.children).toHaveLength(0); expect(elites.entries).toHaveLength(0); expect(f.spawn).not.toHaveBeenCalled();
+    expect(app.encounters.runtime(f.def.id)).toBeUndefined();
+  } finally { f.root.dispose(); }
+});

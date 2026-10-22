@@ -151,6 +151,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { bindEnteredClientPlaceSets } = await import('./clientPlaceSets');
     await bindEnteredClientPlaceSets(ctx, row);
   } },
+  'quest.chapter-view': { phase: 'play', rank: 110, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'quest.chapter-view') throw new Error('Invalid chapter view feature');
+    const { installEntryChapterView } = await import('./clientQuestComposition');
+    await installEntryChapterView(ctx, row);
+  } },
   'quest.continuation': { phase: 'play', rank: 0, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.continuation') throw new Error('Invalid quest continuation feature');
     const { installQuestContinuationFile } = await import('../quest/continuation');
@@ -369,6 +374,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
     for(const row of plan.features)if(row.kind==='bag.finds'&&(!product.hasFile(row.file)||!product.shardfile.quests.quests.some(quest=>quest.id===row.quest)))throw new Error('Finds require their admitted file and quest');
     for (const row of plan.features) {
+      if (row.kind === 'quest.chapter-view' && (!product.hasFile(row.chapterView) || !product.hasFile(row.story))) throw new Error('Chapter view requires its admitted content and story files');
       if (row.kind === 'quest.continuation' && !product.hasFile(row.file)) throw new Error('Quest continuation requires its admitted data file');
       if ((row.kind === 'quest.world' || row.kind === 'quest.composition' || row.kind === 'held.ranged-page') && !product.hasFile(row.file)) throw new Error('Entry preparation requires its admitted data file');
       if (row.kind === 'quest.composition') {

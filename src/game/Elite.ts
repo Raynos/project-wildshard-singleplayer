@@ -4,6 +4,7 @@ import type { DeclaredEliteEntry, EliteEntryLoans } from '@wildshard/engine/ai/v
 import { ObservationColumnsV2, type V2EnvironmentColumns } from '@wildshard/engine/script/observationColumnsV2';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import type { ReturnProgram } from './population/returnProgram';
+import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
 import type { PatrolEncounterView } from './boss/encounterView';
@@ -179,14 +180,22 @@ export class Elites {
    * engine; this owner retains presentation, native effects and persistence. */
   bindDeclaredEntry<T extends CrowdTargets>(entry: DeclaredEliteEntry<ExternalElitePage>, input: unknown,
     owners: EliteDeclaredEntryOwners<T>): void {
-    const rows = parseEliteEntryPageRows(input), { construction, entered, game, player, animals, models, program, controllers } = owners;
+    const rows = parseEliteEntryPageRows(input), { construction, entered, game, player, animals, models, program } = owners;
     if (this.entered !== null || entered.scope.disposed || entered.scope.disposing || construction.disposed || construction.disposing
       || game.levelScope !== construction || this.host.player !== player || this.host.scene !== game.scene || this.host.camera !== game.camera
-      || this.persistence !== owners.persistence.elites || JSON.stringify(rows.entry) !== JSON.stringify(entry.rows) || new Set(controllers.map(row => row.def.id)).size !== controllers.length
-      || controllers.some(row => !(row instanceof ExternalElitePage)) || !this.scope.belongsTo(entered.scope)
+      || this.persistence !== owners.persistence.elites || JSON.stringify(rows.entry) !== JSON.stringify(entry.rows) || !this.scope.belongsTo(entered.scope)
       || Object.keys(rows.presentation).length !== rows.entry.entries.length || rows.entry.entries.some(row => !Object.hasOwn(rows.presentation, row.id))) throw new Error('Foreign declared elite entry owner');
     preflightEliteEffectServices(rows.actions, { game, player, animals, environment: owners.environment, hud: entered.hud, audio: entered.audio,
       persistence: owners.persistence, contacts: owners.contacts, patrol: owners.patrol, wildlife: owners.wildlife });
+    const selected = owners.controllers === undefined ? rows.borrowed.map(row => {
+      const model = models.get(row.def.id);
+      if (model === undefined || (row.mode === 'script' && owners.fight === undefined)) throw new Error('Missing declared borrowed elite model or fight');
+      return { row, model };
+    }) : [];
+    const controllers = owners.controllers ?? selected.map(({ row, model }) => new ExternalElitePage(row,
+      { game, player, animals, elites: this }, program.value, model, row.mode === 'script' ? owners.fight : undefined, true));
+    if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof ExternalElitePage)
+      || controller.def.id !== rows.borrowed[index]?.def.id) || new Set(controllers).size !== controllers.length) throw new Error('Foreign declared borrowed elite controller');
     const emptyActors = new Map<number, Animal>();
     const observations = rows.observations.map(row => ({ id: row.id, columns: new ObservationColumnsV2(row.rows, entered.scope), owners: {
       scope: entered.scope, self: { group: rows.entry.id, slot: 0, identity: '', actor: null }, player, observed: emptyActors, t: 0, dt: 0,
@@ -442,7 +451,8 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
   readonly game: Game; readonly player: Player; readonly body: string; readonly animals: AnimalManager;
   readonly models: ReadonlyMap<string, THREE.Object3D>;
   readonly program: { readonly id: string; readonly scope: Scope; readonly value: ReturnProgram };
-  readonly controllers: readonly ExternalElitePage[];
+  readonly controllers?: readonly ExternalElitePage[];
+  readonly fight?: SpawnScriptRows;
   readonly environment: PageWildEnvironment & V2EnvironmentColumns;
   readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };
   readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };

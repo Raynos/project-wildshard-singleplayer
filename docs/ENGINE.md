@@ -11481,6 +11481,24 @@ or null, ArenaRoomEncounter, ArenaScriptEncounter and admitted figure rows.
 The defining `format/questPageComposition.ChapterViewSchema` supplies finite
 mounted/arena observations, update-system order, cadence and guest signal
 ids; the admitted guest retains the story decisions.
+The `quest.chapter-view` entry row names the admitted chapter and story files
+and concrete `arena-room`, `arena-script` and optional `taming` entry loans.
+It runs after native play, which retains its existing yields; the entry runner
+then performs its standard post-feature yield. Chapter content may carry the
+original FigureGroup rows in `figures`, or the legacy caller may supply
+`owners.figures`; supplying both or neither refuses before figure construction.
+The figure payload is admitted once and never taken from dialogue rows.
+
+
+The optional `state.adventure.id` publishes its original AdventurePersistence
+under that concrete entered-service id. A live scope and unchanged product and
+world are required across admission; no second persistence owner is created.
+`Elites.bindDeclaredEntry` may omit explicit `controllers`: its admitted
+`borrowed` rows then select the original ExternalElitePage constructors using
+the supplied models, decision program and optional fight loan. All required
+models and fight loans are checked before construction; presentation remains
+deferred to the engine's original ordered entered transaction. Explicit legacy
+controller loans retain their original identity and order.
 
 The installer captures its concrete owners and entered runtime/world/play
 before reads, and rejects a replaced, disposed or retiring entry after

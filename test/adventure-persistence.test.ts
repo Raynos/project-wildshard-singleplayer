@@ -1,9 +1,15 @@
 import { expect, test,vi } from 'vitest';
+import { entryOwner } from '../src/game/shardfile/entryOwners';
+import { enteredAdventurePersistence } from '../src/game/quest/chapterBindings';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardRuntime } from '../src/game/shard/runtime';
+import { legacyDouble } from './fake/FakeGame';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { bossesSave, elitesSave, progressSave } from '../src/game/saves';
 import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/quest/legacyRecords';
-import { bindAdventurePersistence } from '../src/game/quest/persistence';
+import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/quest/persistence';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import rows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
 
@@ -53,4 +59,32 @@ test('Nalati adopts old saves, replays stable feat identities and reloads only d
     reads.mockRestore();scope.dispose(); next.dispose();
     bossesSave.write(previous.bosses, slug); elitesSave.write(previous.elites, slug); progressSave.write(previous.progress, slug);
   }
+});
+
+
+test('the declared persistence id lends the same saved owner and retires with its entered scope', async () => {
+  const scope = new Scope('adventure-row'), world = legacyDouble<NonNullable<ShardRuntime['world']>>({ chunk: legacyDouble<NonNullable<ShardRuntime['world']>['chunk']>({ slug: 'nalati-grasslands' }) });
+  const runtime = legacyDouble<ShardRuntime>({ world });
+  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('No fixture byte read')) });
+  const read = vi.spyOn(product, 'json').mockResolvedValue(rows);
+  const ctx = legacyDouble<ShardContext>({ scope, app, product, game: legacyDouble<ShardContext['game']>({ runtime }) });
+  try {
+    await installClientAdventurePersistence(ctx, { kind: 'state.adventure', file: 'quests/persistence.json', id: 'saved' });
+    expect(entryOwner(scope, 'adventure', 'saved')).toBe(enteredAdventurePersistence(scope));
+    expect(read).toHaveBeenCalledExactlyOnceWith('quests/persistence.json');
+    scope.dispose(); expect(() => entryOwner(scope, 'adventure', 'saved')).toThrow();
+  } finally { read.mockRestore(); scope.dispose(); }
+});
+
+test('replacing the persistence world during admission publishes no saved owner', async () => {
+  const scope = new Scope('adventure-row-replaced'), world = legacyDouble<NonNullable<ShardRuntime['world']>>({ chunk: legacyDouble<NonNullable<ShardRuntime['world']>['chunk']>({ slug: 'nalati-grasslands' }) });
+  const runtime = legacyDouble<ShardRuntime>({ world });
+  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('No fixture byte read')) });
+  const read = vi.spyOn(product, 'json').mockImplementation(() => { runtime.world = null; return Promise.resolve(rows); });
+  const ctx = legacyDouble<ShardContext>({ scope, app, product, game: legacyDouble<ShardContext['game']>({ runtime }) });
+  try {
+    await expect(installClientAdventurePersistence(ctx, { kind: 'state.adventure', file: 'quests/persistence.json', id: 'saved' })).rejects.toThrow('changed during admission');
+    expect(() => entryOwner(scope, 'adventure', 'saved')).toThrow();
+    expect(() => enteredAdventurePersistence(scope)).toThrow('not entered');
+  } finally { read.mockRestore(); scope.dispose(); }
 });

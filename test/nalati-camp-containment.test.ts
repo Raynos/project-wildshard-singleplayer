@@ -10,7 +10,7 @@ import { uploadedSkinBounds } from '../src/game/grid/skinEnvelope';
 import { enterFigureGroup } from '../src/game/systems/npc/figureRows';
 import * as skins from '../src/game/systems/npc/figureSkins';
 import channels from '../src/shards/nalati-grasslands/data/peopleChannels.generated.json' with { type: 'json' };
-import population from '../src/shards/nalati-grasslands/boot/peopleFrames.generated.json' with { type: 'json' };
+import population from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
 
 afterEach(() => { vi.restoreAllMocks(); });
 function isSkin(value: unknown): value is SkinnedMesh { return value instanceof SkinnedMesh; }

@@ -52,7 +52,7 @@ export async function bakePeople(keys, phone) {
 
 if (import.meta.main) {
   const writer = byteWriter(process.argv.includes('--check'), 'nalati-people');
-  writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/peopleFrames.generated.json'), jsonBytes(peopleRows));
+  writer.put(resolve(root, 'src/shards/nalati-grasslands/data/peopleFrames.generated.json'), jsonBytes(peopleRows));
   writer.put(resolve(root, 'src/shards/nalati-grasslands/data/peopleChannels.generated.json'), jsonBytes({ clientChannels: Object.values(peoplePrograms).flat() }));
   for (const phone of [false, true]) for (const keys of [Object.keys(frames), ...Object.keys(frames).map(key => [key])]) {
     writer.put(resolve(root, `public/assets/nalati/baked/people/${keys.length === 1 ? keys[0] : 'camp'}${phone ? '.phone' : ''}.glb`), await bakePeople(keys, phone));

@@ -9,6 +9,7 @@ import { bindRuntimeJsonRecord, bindRuntimeLedger, bindRuntimeState, projectRunt
 import { bossesSave, elitesSave, progressSave } from '../saves';
 import type { Progress } from '../Progress';
 import { publishBoundPersistence } from './chapterBindings';
+import { publishEntryOwner } from '../shardfile/entryOwners';
 
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.minValue(0));
@@ -104,9 +105,13 @@ export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'
 
 /** Install the existing saved-record owner from its admitted client-plan row. */
 export async function installClientAdventurePersistence(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
-  if (feature.kind !== 'state.adventure' || ctx.scope.disposed) throw new Error('Invalid adventure persistence feature');
+  const scope = ctx.scope, ended = (): boolean => scope.disposed || scope.disposing;
+  if (feature.kind !== 'state.adventure' || ended()) throw new Error('Invalid adventure persistence feature');
   const world = ctx.game.runtime?.world;
   if (world === undefined || world === null) throw new Error('Adventure persistence requires its world identity');
-  const input = await ctx.product.json<unknown>(feature.file);
-  bindAdventurePersistence(ctx, ctx.product.shardfile, input, world.chunk.slug);
+  const product = ctx.product, runtime = ctx.game.runtime;
+  const input = await product.json<unknown>(feature.file);
+  if (ctx.scope !== scope || ended() || ctx.product !== product || ctx.game.runtime !== runtime || runtime?.world !== world) throw new Error('Adventure persistence owner changed during admission');
+  const owner = bindAdventurePersistence(ctx, product.shardfile, input, world.chunk.slug);
+  if (feature.id !== undefined) publishEntryOwner(ctx.scope, 'adventure', feature.id, owner);
 }

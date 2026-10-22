@@ -37,6 +37,11 @@ import type { PageTamingOwner } from '../src/game/riding/client';
 import { ChapterViewSchema, type ChapterViewRows } from '../src/format/questPageComposition';
 import { installQuestPageComposition } from '../src/game/quest/pageComposition';
 import { legacyDouble } from './fake/FakeGame';
+import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { installEntryChapterView } from '../src/game/shardfile/clientQuestComposition';
+import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import peopleRows from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import guest from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };
@@ -171,5 +176,57 @@ test('native actor death commits the original persistence fact before the chapte
     f.kill.mockClear(); f.projection.mockClear();
     f.events.emit('actor.died', { actor: legacyDouble<Actor>({}), req }); f.events.flush('update');
     expect(f.kill).not.toHaveBeenCalled(); expect(f.projection).not.toHaveBeenCalled();
+  } finally { f.scope.dispose(); }
+});
+
+
+test('embedded original figures use the same admission and concrete entered loans', async () => {
+  const f = fixture();
+  const input = { ...f.rows, figures: peopleRows };
+  v.parse(ChapterViewSchema, input);
+  f.json.mockReset().mockResolvedValueOnce({}).mockResolvedValueOnce(input).mockResolvedValueOnce(carriedQuestRows);
+  publishEntryOwner(f.scope, 'arena-room', 'chapter.arena', f.owners.arena);
+  publishEntryOwner(f.scope, 'arena-script', 'chapter.fight', f.owners.fight);
+  publishEntryOwner(f.scope, 'taming', 'chapter.taming', f.owners.taming);
+  try {
+    await installEntryChapterView(f.ctx, { kind: 'quest.chapter-view', chapterView: 'quests/content.json', story: 'quests/chapters.json',
+      arena: 'chapter.arena', fight: 'chapter.fight', taming: 'chapter.taming' });
+    expect(f.enter).toHaveBeenCalledOnce();
+    const call = f.enter.mock.calls[0]; if (call === undefined) throw new Error('Missing figure admission');
+    expect(call[0].scope === f.scope).toBe(true); expect(call[0].sky === f.world.sky).toBe(true);
+    expect(call[0].registry === f.world.registry).toBe(true); expect(call[1] === input.figures).toBe(true);
+    expect(f.projection.mock.calls[0]).toEqual(['quest', { now: 0, bonded: 1, argymaq: 1, inside: 0, tied: 0 }]);
+    expect(input.figures).toEqual(peopleRows);
+  } finally { f.scope.dispose(); }
+});
+
+test.each([false, true])('missing or dual figure sources refuse before figure and chapter effects: embedded=%s', async embedded => {
+  const f = fixture();
+  const rows = embedded ? v.parse(ChapterViewSchema, { ...f.rows, figures: peopleRows }) : f.rows;
+  f.json.mockReset().mockResolvedValueOnce({}).mockResolvedValueOnce(rows);
+  const owners = embedded ? f.owners : { taming: f.owners.taming, arena: f.owners.arena, fight: f.owners.fight };
+  try {
+    await expect(installQuestPageComposition(f.ctx, { chapterView: 'quests/content.json', story: 'quests/chapters.json' }, owners)).rejects.toThrow('exactly one figure source');
+    expect(f.enter).not.toHaveBeenCalled(); expect(f.system).not.toHaveBeenCalled(); expect(f.projection).not.toHaveBeenCalled();
+  } finally { f.scope.dispose(); }
+});
+
+test('missing chapter loans refuse before any file read', async () => {
+  const f = fixture();
+  try {
+    await expect(installEntryChapterView(f.ctx, { kind: 'quest.chapter-view', chapterView: 'quests/content.json', story: 'quests/chapters.json', arena: 'missing', fight: 'missing' })).rejects.toThrow('Missing live entry owner');
+    expect(f.json).not.toHaveBeenCalled(); expect(f.enter).not.toHaveBeenCalled();
+  } finally { f.scope.dispose(); }
+});
+
+test('chapter figures cross the exact named schema bridge without changing the original payload', () => {
+  const f = fixture();
+  try {
+    const rows = { ...f.rows, figures: peopleRows }, schema = namedJsonSchema(ChapterViewSchema), bytes = new TextEncoder().encode(JSON.stringify(rows));
+    expect(validateNamedJsonSchema(schema, bytes)).toEqual(rows);
+    expect(() => v.parse(ChapterViewSchema, { ...rows, figures: { ...peopleRows, callback: 'ignored' } })).toThrow();
+    const getter = vi.fn(() => peopleRows);
+    expect(() => v.parse(ChapterViewSchema, Object.defineProperty({ ...f.rows }, 'figures', { enumerable: true, get: getter }))).toThrow();
+    expect(getter).not.toHaveBeenCalled();
   } finally { f.scope.dispose(); }
 });

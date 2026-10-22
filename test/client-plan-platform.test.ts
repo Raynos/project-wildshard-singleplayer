@@ -15,6 +15,7 @@ import type { AdventurePersistence } from '../src/game/quest/persistence';
 import type { CosmeticState } from '../src/game/cosmetics/locker';
 import { clientSceneHandles } from '../src/game/shardfile/clientSceneHandles';
 import { expect, test, vi } from 'vitest';
+import * as workSlices from '../src/engine/core/workSlice';
 import fixture from './fixtures/client-plan.json' with { type: 'json' };
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
@@ -536,4 +537,34 @@ test('runtime bound rows dispatch after the original native build and before its
     await plugin.world(f.ctx); await plugin.play(f.ctx);
     expect(order).toEqual(['build', 'bounds', 'capture']); expect(install).toHaveBeenCalledOnce();
   } finally { install.mockRestore(); f.ctx.scope.dispose(); }
+});
+
+
+test('native chapter view runs after all six original play yields and adds the standard post-feature yield', async () => {
+  const f = context(), order: string[] = [];
+  f.sections.set('client/plan', { version: 1, features: [{ kind: 'quest.chapter-view', chapterView: 'quests/content.json', story: 'quests/chapters.json', arena: 'chapter.arena', fight: 'chapter.fight' }] });
+  for (const file of ['quests/content.json', 'quests/chapters.json']) f.files.set(file, { hash: 'a'.repeat(64), url: `/fixture/${file}` });
+  const yieldStep = vi.spyOn(workSlices, 'buildYield').mockImplementation(() => { order.push('yield'); return Promise.resolve(); });
+  const install = vi.spyOn(questPreparation, 'installEntryChapterView').mockImplementation(() => { order.push('chapter'); return Promise.resolve(); });
+  class Native extends ShardPlugin {
+    override async play(): Promise<void> { for (let n = 1; n <= 6; n++) { await Promise.resolve(); order.push(`part${n}`); } }
+  }
+  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['play'], features: ['quest.chapter-view'] } }).default;
+  try {
+    const plugin = new Entry(undefined, undefined, () => false);
+    await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
+    expect(order).toEqual(['part1', 'part2', 'part3', 'part4', 'part5', 'part6', 'chapter', 'yield']);
+    expect(install).toHaveBeenCalledOnce();
+    expect(clientPhases.CLIENT_FEATURES['quest.chapter-view']).toMatchObject({ phase: 'play', rank: 110, lifetime: 'entered', sections: [] });
+    expect(yieldStep).toHaveBeenCalledOnce();
+  } finally { yieldStep.mockRestore(); install.mockRestore(); f.ctx.scope.dispose(); }
+});
+
+test.each(['quests/content.json', 'quests/chapters.json'])('chapter view requires admitted file %s before any phase', file => {
+  const f = context();
+  f.sections.set('client/plan', { version: 1, features: [{ kind: 'quest.chapter-view', chapterView: 'quests/content.json', story: 'quests/chapters.json', arena: 'chapter.arena', fight: 'chapter.fight' }] });
+  const other = file === 'quests/content.json' ? 'quests/chapters.json' : 'quests/content.json';
+  f.files.set(other, { hash: 'a'.repeat(64), url: `/fixture/${other}` });
+  try { expect(() => admitClientPlan(f.ctx.product.section('client/plan'), f.ctx.product)).toThrow('Chapter view requires'); }
+  finally { f.ctx.scope.dispose(); }
 });

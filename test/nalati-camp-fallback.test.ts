@@ -8,7 +8,7 @@ import { FigureSkins } from '../src/game/systems/npc/figureSkins';
 import { enterFigureGroup } from '../src/game/systems/npc/figureRows';
 import * as rigLoader from '../src/engine/anim/rig';
 import channels from '../src/shards/nalati-grasslands/data/peopleChannels.generated.json' with { type: 'json' };
-import population from '../src/shards/nalati-grasslands/boot/peopleFrames.generated.json' with { type: 'json' };
+import population from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
 
 afterEach(() => { vi.restoreAllMocks(); });
 

@@ -159,7 +159,7 @@ export async function prepareQuestPageComposition(ctx: ShardContext, input: Ques
  * callbacks, runtime object paths or a second saved-state book. */
 export interface ChapterViewOwners {
   readonly taming: PageTamingOwner | null; readonly arena: ArenaRoomEncounter;
-  readonly fight: ArenaScriptEncounter; readonly figures: unknown;
+  readonly fight: ArenaScriptEncounter; readonly figures?: unknown;
 }
 export function installQuestPageComposition(ctx: ShardContext, input: { readonly chapterView: string; readonly story: string }, owners: ChapterViewOwners): Promise<Flags>;
 export function installQuestPageComposition(ctx: ShardContext, input: QuestPageRows): Promise<QuestPageComposition>;
@@ -169,16 +169,17 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null || owners === undefined
       || !(owners.arena instanceof ArenaRoomEncounter) || !(owners.fight instanceof ArenaScriptEncounter)) throw new Error('Chapter view requires its concrete entered owners');
-    const ports = owners, { taming, arena, fight, figures } = ports;
+    const product = ctx.product, ports = owners, { taming, arena, fight, figures } = ports;
     const live = (): void => { if (ports.taming !== taming || ports.arena !== arena || ports.fight !== fight || ports.figures !== figures
-      || ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime
+      || ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product || ctx.game.runtime !== runtime
       || runtime.world !== world || runtime.play !== play) throw new Error('Chapter view left during admission'); };
     live();
     const [story, content] = await Promise.all([ctx.product.json<unknown>(input.story), ctx.product.json<ChapterViewRows>(input.chapterView)]);
     live();
     const rows = content.view;
     if (rows.story !== input.story) throw new Error('Chapter view story differs from its admitted entry');
-    const people = enterFigureGroup({ scope: ctx.scope, sky: world.sky, registry: world.registry, channels: ctx.product.shardfile.clientChannels }, figures);
+    if ((figures === undefined) === (content.figures === undefined)) throw new Error('Chapter view requires exactly one figure source');
+    const people = enterFigureGroup({ scope: ctx.scope, sky: world.sky, registry: world.registry, channels: product.shardfile.clientChannels }, figures === undefined ? content.figures : figures);
     const chapter = buildQuestChapter(ctx, story, { content, program: content.program }), { chip, markers, places, line } = chapter;
     if (places === null || line === null) throw new Error('Chapter view requires its discovery and quest line');
     const carriedRows = await ctx.product.json<unknown>(rows.carried);

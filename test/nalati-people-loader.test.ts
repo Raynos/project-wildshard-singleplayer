@@ -7,7 +7,7 @@ import { SkyRig } from '../src/engine/world/skyRig';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { atlasFigureSkin } from '../src/game/systems/npc/figureSkins';
 import { Scope } from '../src/engine/app/scope';
-import population from '../src/shards/nalati-grasslands/boot/peopleFrames.generated.json' with { type: 'json' };
+import population from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
 import frames from '../src/shards/nalati-grasslands/data/peopleFrames.json' with { type: 'json' };
 
 const documentBefore = Object.getOwnPropertyDescriptor(globalThis, 'document');

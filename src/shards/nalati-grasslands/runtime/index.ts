@@ -1,5 +1,4 @@
 import { Elites } from '@wildshard/game/Elite';
-import { ExternalElitePage } from '@wildshard/game/quest/elitePage';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
@@ -19,9 +18,6 @@ import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
 import { arsenal, prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
 import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
-import { installQuestPageComposition } from '@wildshard/game/quest/pageComposition';
-import people from '../boot/peopleFrames.generated.json' with { type: 'json' };
-import { enteredAdventurePersistence } from '@wildshard/game/quest/chapterBindings';
 
 function host(ctx: ShardContext) {
   const shell = ctx.game.runtime;
@@ -60,7 +56,7 @@ export class NalatiPlugin extends ShardPlugin {
     const { shell, world } = host(ctx), h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
     if (h === null || rt === null || kit === null) throw new Error('Nalati gameplay requires its world, equipment and UI');
     const { animals, hud, audio, music, progress } = h;
-    const persistence = enteredAdventurePersistence(ctx.scope);
+    const persistence = entryOwner(ctx.scope, 'adventure', 'progress');
     persistence.bindProgress(progress);
     // SF67: the play installation a part a task (the ride, the bosses, the elites, the camp people were one ~290 ms task at
     // 4x CPU). What ran before the first yield (the King's binding, the ride, the ride's director) runs under the owner the
@@ -73,33 +69,30 @@ export class NalatiPlugin extends ShardPlugin {
     owned(() => { rt.bindPlay(kit); });
     await part();
     const ride = rt.ride;
-    if (ride !== null) shell.interactables.push(ride.interactable);
+    if (ride !== null) { shell.interactables.push(ride.interactable); publishEntryOwner(ctx.scope, 'taming', 'riding', ride.taming); }
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
     await part();
     ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
+    publishEntryOwner(ctx.scope, 'arena-room', 'arena', rt.boss);
     await part();
     const eliteScope = ctx.scope.child('Elites.bind');
     try { eliteScope.run(() => {
       const game = world.game, player = world.player, bar = new EliteBar();
       const owner = new Elites({ scene: game.scene, camera: game.camera, player,
         condition: rule => rt.elites.holds(rule), ownSkin: skin => { rt.elites.skins.add(skin); } }, bar, game.level.id, persistence.elites);
-      const controllers = rt.eliteRows.borrowed.map(row => {
-        const model = rt.eliteDrops.get(row.def.id); if (model === undefined) throw new Error('Missing elite drop model');
-        return new ExternalElitePage(row, { game, player, animals, elites: owner }, rt.eliteProgram, model, row.mode === 'script' ? rt.eliteCharge : undefined, true);
-      });
       owner.bindDeclaredEntry(rt.elites, rt.eliteRows, { construction: game.levelScope,
         entered: { scope: eliteScope, interactables: shell.interactables, hud, audio, music }, game, player, body: 'animals', animals,
-        models: rt.eliteDrops, program: { id: 'elite.rules', scope: game.levelScope, value: rt.eliteProgram }, controllers,
+        models: rt.eliteDrops, program: { id: 'elite.rules', scope: game.levelScope, value: rt.eliteProgram }, fight: rt.eliteCharge,
         environment: wildEnv, clock: rt.weather.clock, weather: rt.weather.weather, ledges: rt.eliteLedges, rock: poiLayout.EAGLE_ROCK,
         patrol: rt.elitePatrol, wildlife, persistence, contacts: new StrikeRunner() });
     }); } catch (error) { eliteScope.dispose(); throw error; }
     await part();
     ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted,weaponCatalogue.model('naizagai'),rt.skins));
+    publishEntryOwner(ctx.scope, 'arena-script', 'fight', rt.titan);
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize(rt.eliteFrame());
     await part();
-    await installQuestPageComposition(ctx, { chapterView: 'quests/content.json', story: 'quests/chapters.json' }, { taming: rt.ride?.taming ?? null, arena: rt.boss, fight: rt.titan, figures: people });
   }
 }
 

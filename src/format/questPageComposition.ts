@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { FigureGroupSchema } from './figures';
 import { isJsonData } from './json';
 import { QuestWorldSchema } from './questWorld';
 import { QuestFiguresSchema } from './questFigures';
@@ -75,6 +76,7 @@ export const QuestPageCompositionSchema = QuestPageSchema;
 /** Optional chapter-only view facet: concrete mounted/arena owners are sampled
  * by a finite vocabulary; the admitted guest owns all story decisions. */
 export const ChapterViewSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Chapter view requires JSON rows'), v.strictObject({
+  figures: v.exactOptional(FigureGroupSchema),
   npcs: v.record(id, NpcDialogueRowSchema),
   places: v.pipe(v.array(v.strictObject({ id, label: id, x: n, z: n,
     r: v.pipe(n, v.minValue(0)), quiet: v.exactOptional(v.boolean()) })), v.maxLength(64)),
