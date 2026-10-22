@@ -25,7 +25,7 @@ export function preflightIslandBook(product: ShardProduct, row: AssemblyRow): vo
   if (new Set(book.draws.map(draw => draw.slot)).size !== book.draws.length) throw new Error('Repeated island fixed draw slot');
   const slots = new Set(book.draws.map(draw => draw.slot));
   if (Object.values(book.collections).some(slot => !slots.has(slot))) throw new Error('Island collection names an undeclared draw');
-  for (const name of [book.groups, book.figures, row.catalogue, ...book.draws.map(draw => draw.file)]) {
+  for (const name of [book.groups, book.figures, row.catalogue, ...book.draws.flatMap(draw => 'file' in draw ? [draw.file] : [])]) {
     if (!product.hasFile(name)) throw new Error(`Island book names no product file: ${name}`);
   }
   for (const look of [...construction.looks.unbound, ...construction.looks.bound]) {

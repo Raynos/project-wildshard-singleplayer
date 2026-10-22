@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
-import { coldFixedDraws, fixedDraws } from '../src/game/models/fixedDraws';
+import { zlibSync } from 'fflate';
+import { coldFixedDraws, fixedDraws, inlineFixedDraw } from '../src/game/models/fixedDraws';
 import { Scope } from '../src/engine/app/scope';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 
@@ -126,4 +127,34 @@ test('a baked row refuses a wrong byte count, a missing channel or geometry inst
   const read = { slug: 'fixture', file: () => Promise.resolve(block(1)) };
   await expect(fixedDraws(read, [{ ...stoneRow, channels: [['aMissing', 'x']] }]).load()).rejects.toThrow('missing aMissing: stone');
   await expect(fixedDraws(product, [stoneRow]).load(new Map([['shapes/stone.bin', tri(1)]]))).rejects.toThrow('needs its file bytes: stone');
+});
+
+// G602: a baked block may sit in a lane bake (one read per url) or inline in its row (Nalati's prepared shapes)
+const joined = (a: Uint8Array, b: Uint8Array): Uint8Array => { const out = new Uint8Array(a.length + b.length); out.set(a); out.set(b, a.length); return out; };
+const base64 = (data: Uint8Array): string => btoa(String.fromCodePoint(...data));
+test('lane rows read their blocks at their offsets from one read of the bake; inline rows decode at once', async () => {
+  const bake = joined(block(1), block(2)), reads: string[] = [];
+  const reader = (url: string): Promise<Uint8Array> => { reads.push(url); return Promise.resolve(bake); };
+  const laneRows = [{ slot: 'first', lane: { url: '/assets/fixture.bin', offset: 0 }, channels: [], baked },
+    { slot: 'second', lane: { url: '/assets/fixture.bin', offset: 52 }, channels: [], baked },
+    { slot: 'inline', inline: base64(zlibSync(block(3))), channels: [], baked: { ...baked, expand: true } }];
+  const draws = fixedDraws(product, laneRows, undefined, reader);
+  await draws.load();
+  expect(reads).toEqual(['/assets/fixture.bin']);
+  expect(draws.handle('first').copy().getAttribute('position').getX(0)).toBe(1);
+  expect(draws.handle('second').copy().getAttribute('position').getX(0)).toBe(2);
+  expect(draws.handle('inline').copy().getIndex()).toBeNull();
+  const now = inlineFixedDraw(laneRows[2]); expect(now.getAttribute('position').getX(0)).toBe(3);
+  // supplied bytes stand in for the bake under its url
+  const given = fixedDraws(product, laneRows.slice(0, 2), undefined, () => Promise.reject(new Error('fetched')));
+  await given.load(new Map([['/assets/fixture.bin', bake]]));
+  expect(given.handle('second').copy().getAttribute('position').getX(0)).toBe(2);
+});
+
+test('a lane block past its bake, two sources or a lane without its baked layout refuse', async () => {
+  const reader = (): Promise<Uint8Array> => Promise.resolve(block(1));
+  await expect(fixedDraws(product, [{ slot: 'past', lane: { url: '/b.bin', offset: 8 }, channels: [], baked }], undefined, reader).load()).rejects.toThrow('exceeds its lane bake: past');
+  expect(() => fixedDraws(product, [{ slot: 'two', file: 'a.glb', lane: { url: '/b.bin', offset: 0 }, channels: [], baked }])).toThrow();
+  expect(() => fixedDraws(product, [{ slot: 'raw', lane: { url: '/b.bin', offset: 0 }, channels: [] }])).toThrow();
+  expect(() => inlineFixedDraw({ slot: 'file', file: 'a.bin', channels: [], baked })).toThrow('inline baked row');
 });
