@@ -1326,7 +1326,7 @@
         "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
         "src/shards/nalati-grasslands/data/persistence.json",
         "src/shards/nalati-grasslands/data/feats.json",
-        "src/shards/nalati-grasslands/generators/ledger.ts",
+        "src/shards/nalati-grasslands/data/chapterFeats.json",
         "src/sdk/ledger.ts",
         "src/format",
         "scripts/bake-output.mjs",

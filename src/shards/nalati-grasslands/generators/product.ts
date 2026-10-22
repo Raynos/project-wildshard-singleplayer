@@ -19,7 +19,8 @@ import audio from '../data/audio.generated.json' with {type:'json'};
 import { NALATI_EDGES } from './edges';
 import NALATI_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import questContent from '../data/questContent.json' with { type: 'json' };
-import { NALATI_LEDGER } from './ledger';
+import NALATI_LEDGER from '../data/ledger.json' with { type: 'json' };
+import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import { NALATI_STATE } from './state';
 import items from '../data/items.json' with { type: 'json' };
 import { NALATI_RUNTIME_SPAWNS } from './spawns';
@@ -61,5 +62,5 @@ export default parseShardfile({ ...base,
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
-  modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: NALATI_LEDGER, state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
+  modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: parseLedgerRules(NALATI_LEDGER), state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });
