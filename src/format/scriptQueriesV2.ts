@@ -27,6 +27,30 @@ function finite(value: number): number { if (!Number.isFinite(value)) throw new 
 function uint(value: number): number { if (!Number.isInteger(value) || value < 1 || value > 0xffffffff) throw new Error('Invalid v2 request id');return value; }
 function bindingHandle(binding: V2QueryBinding): number { uint(binding.handle);if (binding.handle > 0x7fffffff || binding.identity.length === 0) throw new Error('Invalid v2 query binding');return binding.handle; }
 function pose(values: Vec3): Vec3 { return [finite(values[0]),finite(values[1]),finite(values[2])]; }
+/** Shared by wire intake and continuation restore; saved input cannot bypass
+ * the same argument/operation/clock law by avoiding guest memory. */
+export function validateV2QueryRequest(request: V2QueryRequest): void {
+  const { op,target,values,atTick } = request;uint(request.id);relativeTickV2(atTick,atTick);
+  if (!operation(op) || request.binding.length === 0 || target?.length === 0) throw new Error('Invalid v2 stable query identity');values.forEach(value => { finite(value); });
+  if ((op === 4 && (target !== null || values[3] < 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))
+    || (op === 5 && (target !== null || values[6] < 0))
+    || (op === 8 && (values[6] < 0 || Math.abs(Math.hypot(values[3],values[4],values[5])-1) > 1e-6))
+    || (op === 9 && (values[3] <= 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))) throw new Error('Invalid v2 query arguments');
+}
+export function validateV2QueryAnswer(request: V2QueryRequest,answer: V2QueryAnswer): void {
+  if (answer.status !== 1) { if (![2,3].includes(answer.status)) throw new Error('Unknown v2 query status');return; }
+  if (V2_QUERY_OPS[answer.kind] !== request.op) throw new Error('Mismatched v2 query answer');
+  switch (answer.kind) {
+    case 'walkable': pose(answer.point);break;
+    case 'path': answer.points.forEach(point => { pose(point); });break;
+    case 'overlap': if (new Set(answer.bodies).size !== answer.bodies.length || answer.bodies.some(id => id.length === 0)) throw new Error('Invalid v2 overlap identities');break;
+    case 'ray': if (answer.hit !== null) {
+      pose(answer.hit.point);pose(answer.hit.normal);finite(answer.hit.distance);
+      if (answer.hit.distance < 0 || answer.hit.distance > request.values[6] || answer.hit.body?.length === 0) throw new Error('Invalid v2 ray answer');
+    }break;
+    default: throw new Error('Unknown v2 query answer');
+  }
+}
 /** Call after whole-frame validation. Metadata and the authoritative tick come
  * from the host, never from guest-written descriptors or a guest clock. */
 export function readV2QueryRequests(view: DataView,layout: V2Layout,count: number,tick: number,bindings: ReadonlyMap<number,V2QueryBinding>): readonly V2QueryRequest[] {
@@ -39,12 +63,8 @@ export function readV2QueryRequests(view: DataView,layout: V2Layout,count: numbe
     const stable = target === 0 ? null : binding.observed.get(target);if (stable === undefined || stable?.length === 0) throw new Error('Stale v2 query target');
     const value = (j: number): number => finite(view.getFloat64(at+24+j*8,true));
     const values: Values = [value(0),value(1),value(2),value(3),value(4),value(5),value(6)];
-    if ((op === 4 && (target !== 0 || values[3] < 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))
-      || (op === 5 && (target !== 0 || values[6] < 0))
-      || (op === 8 && (values[6] < 0 || Math.abs(Math.hypot(values[3],values[4],values[5])-1) > 1e-6))
-      || (op === 9 && (values[3] <= 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))) throw new Error('Invalid v2 query arguments');
     const key = JSON.stringify([binding.identity,id]);if (seen.has(key)) throw new Error('Duplicate v2 request id');seen.add(key);
-    rows.push(Object.freeze({ binding: binding.identity,id,op,target: stable,atTick: tick,values: Object.freeze(values) }));
+    const request = Object.freeze({ binding: binding.identity,id,op,target: stable,atTick: tick,values: Object.freeze(values) });validateV2QueryRequest(request);rows.push(request);
   }
   return Object.freeze(rows);
 }

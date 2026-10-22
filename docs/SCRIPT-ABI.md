@@ -656,6 +656,20 @@ Pending request targets and answer bodies retain stable identities. Local
 binding/body handles are resolved afresh when marshalling a reply; stale bodies
 refuse the complete batch. Capacity failures never publish a partial prefix.
 
+Request ids increase monotonically per stable binding; the u32 high-water mark
+survives delivery and save/restore. Zero, reuse and wrap refuse. Each admitted
+operation reserves its worst-case scalar reply capacity while pending or ready;
+all reservations must fit the fixed bank. An oversized native answer returns
+explicit status refused with no partial data.
+
+After all module candidates validate, acceptance atomically consumes the
+eligible delivered replies and queues new pure query work. World commands and
+columns still commit at the next fixed step. One afterBodies resolver receives
+all modules' requests in stable module/binding/id order; all reply batches
+validate before any ring publishes. Excluded/inactive bindings retain their
+undelivered replies. Query continuations retain pending/ready phases and ids;
+restore validates them without querying the world or replaying an answer.
+
 ### Tick, ordering and overflow rules
 
 The authoritative simulation remains 60 Hz. Wire ticks and sample/event stamps

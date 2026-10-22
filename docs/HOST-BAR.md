@@ -91,6 +91,15 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G571 fixed draws: `game/models/fixedDraws#fixedDraws`, `game/models/fixedDraws#FixedDrawRowsSchema`. Client-only.
 - G571 world assembly: `game/shardfile/worldAssembly#WorldAssembly`, `game/shardfile/worldAssembly#WorldAssemblyPorts`, `format/worldAssembly#WorldAssemblySchema`, `format/worldAssembly#WorldAssemblyStageSchema`. Client-only.
 
+- G570/G571 versioned script kernels: `engine/script/moduleV2#ScriptModuleV2`,
+  `engine/script/simBatchV2#SimBatchV2`, `engine/script/queriesV2#QueryRingV2`
+  and `engine/script/queriesV2#answerV2QueryBatch` consume admitted Wasm and
+  fixed-capacity identity/observation rows. Server-safe; trusted native owner
+  ports validate transactions and lend physics/navigation, never shard JS
+  callbacks. Test 1 waived; tests 2–6 covered by the script-v2 admission,
+  reset, observation, batch and query suites. Shipped v0/v1 paths remain
+  separate until H13; no shard policy gains credit from this listing.
+
 The ruler reads exact module or `module#binding` selectors from the G571
 list entries above. A named binding never approves other declarations in its
 file; shared physical lines stay charged if an unapproved binding occupies

@@ -2,6 +2,7 @@ import { expect,test } from 'vitest';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import { scriptSource } from './script/fixture';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { validateV2FloatColumns } from '../src/format/scriptMemoryV2';
 
@@ -58,5 +59,6 @@ test('a v2 compile cannot change either existing compiler version in the same pr
   const v1 = 'export function ws_abi():i32{return 1;} export function ws_init(lo:i32,hi:i32):void{} export function ws_io():i32{return 16384;} export function ws_handle():i32{return 0;}';
   const before0 = await compileScript(scriptSource()), before1 = await compileScript(v1,{ abi: 1 });
   await compileScriptV2(source,{ lane: 'sim' });
+  await compileSimV2(`import * as ws from './sdk/as/wsV2';export function onBinding():void{ws.setState(0,ws.distance(ws.state(0),ws.parameter(0),0,0));}`,{ io: 1024,ioBytes: 4096 });
   expect(await compileScript(scriptSource())).toEqual(before0); expect(await compileScript(v1,{ abi: 1 })).toEqual(before1);
 });

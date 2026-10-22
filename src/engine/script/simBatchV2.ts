@@ -13,6 +13,9 @@ export interface V2BatchCapture {
   readonly extra?: readonly { readonly kind: number; readonly count: number; readonly bytes: Uint8Array }[];
 }
 export interface V2PreparedTransaction {
+  /** After every candidate validates, atomically consume delivered input and
+   * enqueue pure query work for this tick's afterBodies phase. Non-throwing. */
+  readonly accept?: () => void;
   /** All domain/ownership/quota checks have already passed. Commit is an atomic,
    * non-throwing operation of the existing owner, at the next fixed step. */
   readonly commit: () => void;
@@ -100,7 +103,7 @@ export class SimBatchV2 {
             if (call.authority === undefined) throw new Error('Missing v2 frame authority');
             return prepare({ view,counts: validateV2Frame(view,this.layout,call.authority),tick,bindings: observations.bindings,excluded });
           });
-          this.pending = result.value;return { status: 'staged',attempts: attempt,remaining: result.remaining,excluded };
+          result.value.accept?.();this.pending = result.value;return { status: 'staged',attempts: attempt,remaining: result.remaining,excluded };
         } catch (error) {
           if (!call.entered) throw error;
           this.refusal = error instanceof Error ? error : new Error('V2 candidate refused');
