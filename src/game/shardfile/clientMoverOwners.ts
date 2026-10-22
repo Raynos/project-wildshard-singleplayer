@@ -4,9 +4,11 @@ import type { ShardContext } from '../plugin/context';
 import { installDeclaredMovers, type MoverRuntime, type MoverView } from '../plugin/mover';
 import { entryOwner } from './entryOwners';
 import { outputDescriptor } from './outputDescriptor';
+import { hasLentLook, lentLooksOf, setLentParam, type LentLooks } from './lentLooks';
 
+export interface MoverMoorRows {readonly look:string;readonly water:number;readonly cleats:readonly [number,number]}
 export type MoverOwnerBinding =
-  | {readonly id:string;readonly kind:'object';readonly owner:string;readonly order?:'XYZ'|'YXZ';readonly visibility?:'enabled'}
+  | {readonly id:string;readonly kind:'object';readonly owner:string;readonly order?:'XYZ'|'YXZ';readonly visibility?:'enabled';readonly moor?:MoverMoorRows}
   | {readonly id:string;readonly kind:'chain';readonly owner:string};
 export interface MoverOwnerRows {readonly system:string;readonly bindings:readonly MoverOwnerBinding[]}
 const installed=new WeakSet<Scope>();
@@ -14,8 +16,9 @@ const installed=new WeakSet<Scope>();
 /** Every mover id and original target is admitted before effects. The existing
  * native mover host owns tick, collider, script and save identities. No authored
  * callback, object path or second native body enters through these bindings.
- * A separate real view rule must replace any legacy after-pose work before a
- * product activates this capability; there is deliberately no callback adapter. */
+ * Declared mooring cleats update their vec2 look immediately after each native
+ * pose, at the original fixed-step cadence; no display-rate view lane or
+ * callback adapter changes that order. */
 export async function installClientMoverOwners(ctx:ShardContext,rows:MoverOwnerRows):Promise<MoverRuntime>{
   const world=ctx.game.runtime?.world,scope=ctx.scope;
   const live=():void=>{if(scope.disposed||scope.disposing)throw new Error('Mover entry owner has ended');};
@@ -28,8 +31,16 @@ export async function installClientMoverOwners(ctx:ShardContext,rows:MoverOwnerR
     if(declared===undefined||(declared.kind==='chain')!==(row.kind==='chain'))throw new Error('Mover owner kind differs from its admitted primitive');
     return row.kind==='chain'?{row,value:entryOwner(scope,'chain',row.owner)}:{row,value:entryOwner(scope,'object',row.owner)};
   });
+  const moors=new Map<string,[number,number]>(),looks=new Map<string,LentLooks>();
+  for(const row of rows.bindings)if(row.kind==='object'&&row.moor!==undefined){
+    const moor=row.moor,look=ctx.product.shardfile.look.materials[moor.look];
+    if(!Number.isFinite(moor.water)||moor.cleats.some(value=>!Number.isFinite(value)))throw new Error('Mooring requires finite water and two cleats');
+    if(look?.family!=='graph'||!('graph' in look)||look.graph.params?.['moor']?.type!=='vec2'||!hasLentLook(moor.look))throw new Error('Mooring requires its declared lent vec2 look');
+    moors.set(row.id,[0,0]);looks.set(moor.look,lentLooksOf(moor.look));
+  }
   const current=():void=>{
     live();
+    for(const [id,look] of looks)if(!hasLentLook(id)||lentLooksOf(id)!==look)throw new Error('Mover look owner changed during admission');
     for(const loan of loans){
       const value=loan.row.kind==='chain'?entryOwner(scope,'chain',loan.row.owner):entryOwner(scope,'object',loan.row.owner);
       if(value!==loan.value)throw new Error('Mover entry owner changed during admission');
@@ -41,10 +52,16 @@ export async function installClientMoverOwners(ctx:ShardContext,rows:MoverOwnerR
   for(const row of rows.bindings){
     if(row.kind==='chain'){views.set(row.id,{chain:entryOwner(scope,'chain',row.owner),pose:()=>undefined});continue;}
     const group=entryOwner(scope,'object',row.owner);
+    const moor=row.moor,lift=moors.get(row.id);
     views.set(row.id,{pose:pose=>{
       if(row.visibility==='enabled')group.visible=pose.enabled;
       group.position.set(pose.position.x,pose.position.y,pose.position.z);
       group.rotation.set(pose.euler.x,pose.euler.y,pose.euler.z,row.order??'YXZ');
+      if(moor!==undefined&&lift!==undefined){
+        const heave=pose.position.y-moor.water,pitch=Math.sin(pose.euler.x);
+        lift[0]=heave-moor.cleats[0]*pitch;lift[1]=heave-moor.cleats[1]*pitch;
+        setLentParam(moor.look,'moor',lift);
+      }
     }});
   }
   current();installed.add(scope);scope.onDispose(()=>{installed.delete(scope);});

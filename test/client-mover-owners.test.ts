@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the existing native chain with its shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect,test,vi } from 'vitest';
-import { Group,Vector3 } from 'three';
+import { Group,MeshBasicMaterial,Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import type { World } from '../src/engine/core/bootstrap';
 import { Physics } from '../src/engine/physics/Physics';
@@ -14,6 +14,8 @@ import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseMovers } from '../src/format/movers';
+import { validateGraph } from '../src/format/materialGraph';
+import { lendLooks, type LentLooks } from '../src/game/shardfile/lentLooks';
 import island from '../src/shards/driftwood-isle/data/movers.generated.json' with {type:'json'};
 import { legacyDouble } from './fake/FakeGame';
 
@@ -30,7 +32,7 @@ function fixture(rows=admitted){
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map([['world/movers',{movers:rows}]]),files:new Map(),read:()=>Promise.reject(new Error('No guest bytes expected'))});
   const world=legacyDouble<NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>>({});
   const ctx=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world})})});
-  return {ctx,scope};
+  return {ctx,scope,source};
 }
 
 test('typed scene loans preserve native pose order, visibility and the original system id',async()=>{
@@ -97,4 +99,68 @@ test('the native installer refuses an ancestor retirement before reading or allo
     await expect(movers.installDeclaredMovers({...ctx,scope:entered},world,{data:[platform],modules:new Map(),systemId:'retiring.movers',shared:{host,tick:()=>0}})).rejects.toThrow('scope left during admission');
     expect(readPhysics).not.toHaveBeenCalled();
   }finally{for(const step of retiring)void step;scope.dispose();construction.dispose();}
+});
+
+function moorLook(type:'vec2'|'float'='vec2'){
+  const checked=validateGraph({version:1,kind:'material',model:'toon',params:{moor:{type,value:type==='vec2'?[0,0]:0}},
+    nodes:{paint:{op:'const',type:'vec3',value:[1,1,1]}},stages:{surface:{colour:'paint'}}});
+  if(!checked.ok)throw new Error(checked.errors.join('; '));
+  return {family:'graph' as const,graph:checked.graph};
+}
+
+test('mooring follows original fixed-pose order, one reusable lift buffer, rest and unchanged restore',async()=>{
+  const {ctx,scope,source}=fixture([platform]),group=new Group(),material=new MeshBasicMaterial(),write=vi.fn<LentLooks['setParam']>();
+  const R=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),physics=new Physics(R);
+  const moor={look:'fixture-moor',water:.375,cleats:[-2.9,2.9] as const};
+  source.look.materials[moor.look]=moorLook();publishEntryOwner(scope,'object','boat',group);
+  let host:Awaited<ReturnType<typeof movers.createMoverHost>>|undefined;
+  const install=vi.spyOn(movers,'installDeclaredMovers').mockImplementation(async(_ctx,_world,options)=>{
+    host=await movers.createMoverHost(options.data,new Map(),()=>[]);
+    const native=new movers.MoverRuntime(options.data,{scope,host,physics});
+    const view=new movers.MoverRuntime(options.data,{scope,host,physics,adopt:id=>options.views?.get(id)});
+    view.restoreBodies(native.snapshotBodies());return view;
+  });
+  lendLooks(scope,{materials:new Map([[moor.look,material]]),setParam:(id,name,value)=>{
+    const heave=group.position.y-moor.water,pitch=Math.sin(group.rotation.x);
+    expect(value).toEqual([heave-moor.cleats[0]*pitch,heave-moor.cleats[1]*pitch]);
+    write(id,name,value);
+  },setTexture:()=>undefined,bindMeshMap:()=>material});
+  try{
+    const runtime=await installClientMoverOwners(ctx,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat',moor}]});
+    expect(write).not.toHaveBeenCalled(); // admission must not add a rest/initial update
+    runtime.showRest();expect(write).toHaveBeenCalledTimes(1);const buffer=write.mock.calls[0]?.[2];
+    for(let tick=1;tick<=180;tick++){
+      if(host===undefined)throw new Error('Missing native host');host.beginTick(tick);runtime.step(tick);
+      const pose=runtime.pose(platform.id),call=write.mock.calls.at(-1);
+      expect(group.position).toEqual(new Vector3(pose.position.x,pose.position.y,pose.position.z));
+      expect(group.rotation.x).toBe(pose.euler.x);expect(call?.[0]).toBe(moor.look);expect(call?.[1]).toBe('moor');expect(call?.[2]).toBe(buffer);
+    }
+    const saved=runtime.snapshotState(),writes=write.mock.calls.length;
+    runtime.restoreState(saved);expect(runtime.snapshotState()).toBe(saved);expect(write).toHaveBeenCalledTimes(writes);
+    runtime.showRest();expect(write).toHaveBeenCalledTimes(writes+1);expect(write.mock.calls.at(-1)?.[2]).toBe(buffer);
+  }finally{install.mockRestore();scope.dispose();material.dispose();physics.dispose();}
+});
+
+test.each(['missing','not-lent','wrong-param'] as const)('a %s mooring look refuses before any native or scene effect',async mode=>{
+  const {ctx,scope,source}=fixture([platform]),group=new Group(),material=new MeshBasicMaterial(),write=vi.fn<LentLooks['setParam']>(),install=vi.spyOn(movers,'installDeclaredMovers');
+  const moor={look:'fixture-moor',water:0,cleats:[-2,2] as const};publishEntryOwner(scope,'object','boat',group);
+  if(mode!=='missing')source.look.materials[moor.look]=moorLook(mode==='wrong-param'?'float':'vec2');
+  if(mode!=='not-lent')lendLooks(scope,{materials:new Map([[moor.look,material]]),setParam:write,setTexture:()=>undefined,bindMeshMap:()=>material});
+  try{
+    await expect(installClientMoverOwners(ctx,{system:'movers',bindings:[{id:platform.id,kind:'object',owner:'boat',moor}]})).rejects.toThrow('declared lent vec2');
+    expect(install).not.toHaveBeenCalled();expect(group.userData).toEqual({});expect(write).not.toHaveBeenCalled();
+  }finally{install.mockRestore();scope.dispose();material.dispose();}
+});
+
+test('a replaced mooring look across native admission refuses completion',async()=>{
+  const {ctx,scope,source}=fixture([platform]),group=new Group(),material=new MeshBasicMaterial(),replacement=new Scope('replacement-look');
+  const moor={look:'fixture-moor',water:0,cleats:[-2,2] as const};source.look.materials[moor.look]=moorLook();publishEntryOwner(scope,'object','boat',group);
+  const lend=(owner:Scope):void=>{lendLooks(owner,{materials:new Map([[moor.look,material]]),setParam:()=>undefined,setTexture:()=>undefined,bindMeshMap:()=>material});};
+  lend(scope);const result=await fixtureRuntime(scope);let resume:((runtime:movers.MoverRuntime)=>void)|undefined;
+  const install=vi.spyOn(movers,'installDeclaredMovers').mockReturnValue(new Promise(resolve=>{resume=resolve;}));
+  try{
+    const running=installClientMoverOwners(ctx,{system:'movers',bindings:[{id:platform.id,kind:'object',owner:'boat',moor}]});
+    lend(replacement);if(resume===undefined)throw new Error('Missing installer resolver');resume(result);
+    await expect(running).rejects.toThrow('look owner changed');
+  }finally{install.mockRestore();replacement.dispose();scope.dispose();material.dispose();}
 });
