@@ -2,13 +2,14 @@ import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { NINE_CLIENT_CHANNELS } from './clientMotion';
 import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_BLOBS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
+import signRows from '../data/signView.json' with { type: 'json' };
 import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS, castLibrary } from './castSources';
 import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
 import hookBounds from '../data/hookBounds.json' with { type: 'json' };
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { LayoutRowsSchema } from './sections';
+import { LayoutRowsSchema, SignAtlasSchema } from './sections';
 import { portalLookRows } from './portalLook';
 // Nine Dragon's models on the shared world-scene host (G465): the Explorer catalogue (data/explorerModels.json) plus the
 // code-built specimens the page placed itself (the brush figures, the banyan and what stands at its foot, the paper
@@ -41,6 +42,16 @@ type Draw = Choice['draws'][number];
 const FILE = 'src/shards/nine-dragon-stack/generators/worldScenes.ts';
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
+// The sign atlas (generators/signAtlasOutput.ts): its parts' pool libraries, its prepared sign keys and its copies (one
+// atlas per tier; both tiers hang the same signs and name the same parts)
+const signAtlas = v.parse(SignAtlasSchema, JSON.parse(new TextDecoder().decode(SIGN_ATLAS_BLOBS.find(row => row.file.name === 'signs/atlas-phone.json')?.bytes),
+  (_key, value: unknown) => value === '-0' ? -0 : value));
+const signLibrary = new Map(SIGN_POOL_LIBRARIES.flatMap(row => (row.files[0]?.parts ?? []).map(part => [part, row.id] as const)));
+/** a draw of one sign-atlas part on a lent neon look */
+function signDraw(id: string, part: string, material: string, renderOrder = 0) {
+  const library = signLibrary.get(part); if (library === undefined) throw new Error(`Nine sign atlas has no part ${part}`);
+  return { id, library, model: part, material, castShadow: false, receiveShadow: false, renderOrder };
+}
 // Which tiles hold each whole partition, and whether the page loads them at boot (generators/bake-declarations.mjs).
 const wholeTiles = v.parse(v.record(v.string(), v.strictObject({ files: v.array(v.string()), resident: v.boolean() })), worldRows.wholeTiles);
 const tiles = new Map(Object.entries(wholeTiles).map(([id, row]) => [id, row.files])), resident = new Set(Object.entries(wholeTiles).flatMap(([id, row]) => row.resident ? [id] : []));
@@ -103,7 +114,8 @@ models.push(
     choices: [choice('0', [draw('main', 'lantern:near', 'lantern')], {}, [], [{ from: 35, draws: [draw('main', 'lantern:far', 'lantern')] }, { from: 80, draws: [draw('main', 'lantern:dot', 'lantern')] }])] },
   one('monorailTrain', 'monorail-train', 'Monorail train (four cars)', 'props', [draw('main', 'mover:train', 'kit')]),
   one('cableGondola', 'cable-gondola', 'Cable gondola', 'props', [draw('main', 'mover:gondola', 'kit')]),
-  one('drone', 'drone', 'Surveillance drone', 'props', [draw('main', 'mover:drone', 'kit')]),
+  // a drone carries its navigation lights (red, white, cyan): neon quads in the sign atlas
+  one('drone', 'drone', 'Surveillance drone', 'props', [draw('main', 'mover:drone', 'kit'), signDraw('lights', 'drone', 'neon')]),
 );
 // the guardian lion and the TRELLIS crowd from their casts (castSources.ts): each middle level a simplified index over the
 // full cast's attributes, the crowd's clustered far copy its own, and nothing past the crowd's far cutoff
@@ -125,6 +137,19 @@ for (const [key, row] of Object.entries(crowdRows)) {
       return choice(variant.id, [cast(full)], variant.params, [], [...lodRows.MID_FROM.map(from => ({ from, draws: [sharing(`${full}-mid${String(from)}`, full)] })),
         { from: lodRows.LOD_NEAR, draws: [cast(`${full}-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]); }) });
 }
+// the sign (E306 / E315): every shop sign, plaque, paper strip and banner the fragment hangs, one model, its variants the
+// styles; a variant draws its prepared atlas cells (hand-bent neon calligraphy: a dark plank board under its tubes; a
+// lightbox, plaque, strip or banner: one quad on the 'nine-neon' look). Hung copies are drawn into the world's sign and
+// neon-board meshes (SIGN_PLACEMENTS) and register on their style's variant.
+const signParams = (variant: (typeof signRows.variants)[number]) => ({ ...signRows.defaults, ...variant.params });
+models.push({ key: 'sign', id: 'nine-dragon-stack/sign', name: 'Sign (neon, lightbox, plaque, paper strip, banner)', category: 'props', pipeline: 'code', file: FILE,
+  defaults: signRows.defaults, variants: signRows.variants, assembly: 'parts', specimenYaw: Math.PI, choices: signRows.variants.map(variant => {
+    const p = signParams(variant), ink = 'ink' in p && typeof p.ink === 'string' ? p.ink : '';
+    const name = signAtlas.keys[`${signRows.model.key}:${p.style}:${p.text}:${p.color}:${ink}:${String(p.vertical)}:${p.size}:${String(p.blade)}`];
+    if (name === undefined) throw new Error(`Nine sign variant ${variant.id} has no prepared atlas cell`);
+    return choice(variant.id, signRows.model.calligraphyStyles.some(style => style === p.style)
+      ? [signDraw('boards', `${name}-boards`, 'neon-board'), signDraw('tubes', `${name}-tubes`, 'neon-tube', 5)] : [signDraw('main', name, 'neon')], p);
+  }) });
 const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models, projections: [
   { id: 'nds-train', key: 'monorailTrain', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(0, 1) },
   { id: 'nds-gondola', key: 'cableGondola', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(1, 2) },
@@ -146,6 +171,9 @@ if (tiles.has('canopy:core')) dressing.push(dress('crown-core', 'canopy:core', '
 if (tiles.has('mist:sheets')) dressing.push(dress('sheets', 'mist:sheets', 'mist-sheet', 2, 'sheets'));
 dressing.push(dress('steam', 'mist:steam', 'steam', 3, 'steam', false));
 for (const { model } of dressing) if (!shapes.some(([id]) => id === model)) alias(model, model);
+// the hung signs: the sign atlas's lightboxes, lights and beacons on the 'nine-neon' look and the neon calligraphy's boards
+// and tubes (their copies are drawn into these, SIGN_PLACEMENTS)
+dressing.push(dress('signs', 'world', 'neon', 0, 'signs'), dress('neon-boards', 'neon-world-boards', 'neon-board', 0, 'neon'), dress('neon-tubes', 'neon-world-tubes', 'neon-tube', 5, 'neon'));
 const recipe = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [],
   nodes: [{ kind: 'group', id: 'root', children: dressing.map(row => row.id) },
     ...dressing.map(row => ({ kind: 'mesh', id: row.id, geometry: row.model, material: row.material, missing: 'omit', name: row.name, renderOrder: row.order, frustumCulled: row.culled, ...row.pose }))],
@@ -224,7 +252,13 @@ function hungHooks() {
 }
 /** the layout's air conditioners and paper lanterns (world/build.ts places them by id; lanterns per deck ending), each its own
  *  placement file (the section's plain-JSON node budget) */
+/** every sign hung, a copy of the sign model drawn into the sign or neon-board mesh, registered on its style's variant */
+const SIGN_PLACEMENTS = signAtlas.copies.map(({ neon, boxes, poses: hung }) => ({ id: neon ? signRows.model.pieces.neon : signRows.model.pieces.atlas, model: 'sign', draw: 'merged' as const,
+  drawnInto: { part: neon ? 'dressing.neon-boards' : 'dressing.signs', boxes }, piece: { id: neon ? signRows.model.pieces.neon : signRows.model.pieces.atlas },
+  poses: hung.map(({ x, y, z, yaw, variant }) => { const row = signRows.variants.find(entry => entry.id === variant); if (row === undefined) throw new Error(`Nine sign variant ${variant} differs`);
+    return { x, y, z, yxz: { yaw, scale: 1 }, variant, params: signParams(row) }; }) }));
 export const LAYOUT_PLACEMENTS = [
+  ...SIGN_PLACEMENTS,
   { id: 'nds-inst-ac', model: 'airConBox', name: 'inst:ac', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-inst-ac' }, poses: projection.acs.map(words => posed(words)) },
   ...(['open', 'capped'] as const).map(ending => ({ id: `nds-lanterns-${ending}`, model: 'paperLantern', draw: 'instanced' as const, cull: { bounds: 'sphere' as const },
     piece: { id: 'nds-lanterns' }, poses: hungLanterns(ending === 'capped') })),
@@ -252,9 +286,10 @@ export const LAYOUT_PLACEMENTS = [
 ];
 export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
-    look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo')],
-  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
+    look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo'),
+    look('neon', 'nine-neon'), look('neon-board', 'nine-neon-board'), look('neon-tube', 'nine-neon-tube')],
+  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
     instanceAttributes: windowStep([0, 1]).instanceAttributes,
-    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1]).publish, ...Object.fromEntries(['crown-core', 'crown-cards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...portalLook.scenes.steps] });
+    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1]).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...portalLook.scenes.steps] });
 /** the layout placements' files (LAYOUT_PLACEMENTS) */
 export const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row))));

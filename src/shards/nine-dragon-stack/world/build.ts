@@ -12,9 +12,8 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Vector3,
+  Box3, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type PerspectiveCamera, Vector3,
 } from 'three';
-import { registerSigns } from '../models/signs';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { placeSet } from '@wildshard/engine/models/sets';
@@ -25,17 +24,15 @@ import { jiehuaMaterial as facadeMaterial, facadeUniforms, syncLooks } from '../
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
+import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { type Placed, copiesAt, place } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { ndModelContext, need } from './modelLook';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { loadLayoutBake, prepareLayout, restoreLayout } from './layoutBake';
-import { loadSignAtlas } from './casts';
 
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
@@ -89,17 +86,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
-  const atlas = await loadSignAtlas(tier, opts.scenes);
-  const signs = atlas;
-  // the neon calligraphy: the 'nine-neon-board' and 'nine-neon-tube' looks (data/lookGraphs.json), fogged by the silk
-  const { fontPx, spread, skeletonSpread } = atlas.glyphLayout;
-  setLentParam('nine-neon-tube', 'spread', [spread / fontPx, skeletonSpread / fontPx]);
   shared.u.uGroundY.value = Y0;
   // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
   shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
-  // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
-  const nd = ndModelContext(renderer, opts.sky);
   // G285: the layout (the square, the towers, the Well) is an offline bake (../generators/layout.ts, world/layoutBake.ts):
   // the page restores it and has no live builders to fall back on
   const layout = await layoutReady;
@@ -128,8 +118,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // catalogue models (generators/worldScenes.ts LAYOUT_PLACEMENTS); the lanterns' hum hangs where each one does
   const lanternId = `nds-lanterns-${entryCaps ? 'capped' : 'open'}`;
   const lanternsAt = parseWorldScenePlacement(await product.json(`world/placements/${lanternId}.json`)).poses.map(({ x, y, z }) => new Vector3(x, y, z));
-  // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
-  const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
   const kitGeos = [...ctx.kits].flatMap(([name, geometry]) => geometry === null ? [] : [[name, geometry] as const]);
   const alphaGeos = [...ctx.alphaKits];
   ctx.kits.clear();
@@ -166,7 +154,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // registered on their kits' meshes
   const meshOfKit = (name: string): Mesh | undefined => kits.byName.get(name);
   const byId = new Map<string, ModelDef<Record<string, unknown>>>();
-  for (const id of new Set(ctx.inKit.map(c => c.model))) byId.set(id, models.model(need(keys.get(id), `the drawn-in model ${id}`)));
+  for (const id of new Set(ctx.inKit.map(c => c.model))) { const key = keys.get(id); if (key === undefined) throw new Error(`Nine drawn-in model ${id} is no catalogue row`); byId.set(id, models.model(key)); }
   await slice();
   const inKitPlaced: InKitPlaced[] = [];
   // a copy registers on its authored card; one drawn with free params (a laundry line's span and rise) on the default one
@@ -199,10 +187,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   facade.add(...metadata.windowBindings[entryCaps ? 'capped' : 'open'].map(id => opts.scenes.object(id)));
   root.add(facade);
   await slice();
-  const neonMeshes = { boards: new Mesh(signs.geometry('neon-world-boards'), lentLook('nine-neon-board')), tubes: new Mesh(signs.geometry('neon-world-tubes'), lentLook('nine-neon-tube')) };
-  neonMeshes.tubes.renderOrder = 5;
-  root.add(named(neonMeshes.boards, 'neon'), named(neonMeshes.tubes, 'neon'));
-  await slice();
   progress(0.6, 'streaks + dressing');
 
   // the wet floor's reflection cards and the lanterns' halos: the catalogue's cards step for this deck ending
@@ -221,19 +205,12 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   root.add((await opts.scenes.place('nds-inst-ac')).object);
   await slice();
 
-  // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
-  // the sign atlas's lightboxes, lights and beacons: the 'nine-neon' look (data/lookGraphs.json), fogged by the silk
-  const neon = lentLook('nine-neon');
-  nd.look.neon = { mat: neon, atlas };
+  // movers: the train, the gondola, the drones (each with its navigation lights), placed where the update puts them at t = 0
   const drones = models.project('nds-drones', models.ctx, root);
-  // a drone carries its navigation lights (red, white, cyan): neon quads in the sign atlas
-  for (const { body } of drones) body.add(new Mesh(atlas.geometry('drone'), neon));
   const running = [...models.project('nds-train', models.ctx, root), ...models.project('nds-gondola', models.ctx, root), ...drones];
   await slice();
-  const signsMesh = named(new Mesh(signs.geometry('world'), neon), 'signs');
-  root.add(signsMesh);
-  // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
-  registerSigns(nd.ctx, signs, { atlas: signsMesh, neon: neonMeshes.boards });
+  // every sign hung is a copy of the sign model drawn into the dressing's sign and neon-board meshes (generators/worldScenes.ts)
+  for (const id of ['nds-signs', 'nds-signs-neon']) await opts.scenes.place(id);
   await slice();
 
   // the painted sky is the dressing step's (generators/worldScenes.ts); its silk is the shared weave
