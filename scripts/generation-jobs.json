@@ -18590,9 +18590,7 @@
         "public/assets/nalati/baked/people/herderRail.glb",
         "public/assets/nalati/baked/people/herderRail.phone.glb",
         "src/shards/nalati-grasslands/boot/peopleFrames.generated.json",
-        "src/shards/nalati-grasslands/data/peopleChannels.generated.json",
-        "src/shards/nalati-grasslands/boot/peopleVariants.generated.json",
-        "src/shards/nalati-grasslands/boot/peopleVariants.generated.d.json.ts"
+        "src/shards/nalati-grasslands/data/peopleChannels.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
@@ -18609,9 +18607,7 @@
         "public/assets/nalati/baked/people/herderRail.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
         "public/assets/nalati/baked/people/herderRail.phone.glb": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
         "src/shards/nalati-grasslands/boot/peopleFrames.generated.json": "7846b3acfa4008721cdc82580b350c470267c325fe6f0f7c00b96204ed48a62e",
-        "src/shards/nalati-grasslands/data/peopleChannels.generated.json": "b1fd0a886784f8c68d6bcce6637c4acfe913b16c2b4047ce21be4fe81d6ab8ec",
-        "src/shards/nalati-grasslands/boot/peopleVariants.generated.json": "c0106c30db911e3e44cafa3bff6bd8407f18ac0d53cf00e81679e7536ee5b880",
-        "src/shards/nalati-grasslands/boot/peopleVariants.generated.d.json.ts": "ea3e679bb26a1119b33db6b390b7eefa6b2a586b2f73d7eff2be30cdb1d56197"
+        "src/shards/nalati-grasslands/data/peopleChannels.generated.json": "b1fd0a886784f8c68d6bcce6637c4acfe913b16c2b4047ce21be4fe81d6ab8ec"
       }
     },
     {
