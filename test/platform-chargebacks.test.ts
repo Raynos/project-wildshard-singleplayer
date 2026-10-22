@@ -235,3 +235,31 @@ test('coin-enabled users do not lend Driftwood a second rich Bag user',()=>{
  expect(selected.join('\n')).toContain('health.attributes.maxHealth');expect(selected.join('\n')).toContain('cosmetics.map');
  expect(selected.join('\n')).not.toContain('const basic=');expect(selected.join('\n')).not.toContain('export function enteredLootPresentation');
 });
+
+
+test('optional chapter dispatch preserves the carried and merged-figure owners', () => {
+  const carried = 'src/game/quest/carriedProp.ts', figures = 'src/game/systems/npc/figureRows.ts';
+  const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
+  const moduleUsers = new Map([[carried, shared], [figures, shared]]);
+  const names = ['FigureGroupMember', 'FigureGroup', 'memberPose', 'enterFigureGroup'];
+  const bindings = new Map([...names, 'FigureRows'].map(name => [`${figures}\0${name}`, shared]));
+  chargePlatformUsers(moduleUsers, bindings);
+  expect([...moduleUsers.get(carried) ?? []]).toEqual(['nalati-grasslands']);
+  expect(moduleUsers.get(figures)).toEqual(shared);
+  for (const name of names) expect([...bindings.get(`${figures}\0${name}`) ?? []]).toEqual(['nalati-grasslands']);
+  expect(bindings.get(`${figures}\0FigureRows`)).toEqual(shared);
+});
+
+
+test('optional chapter imports retain all native dependency owners', () => {
+  const rows: readonly (readonly [string, readonly string[] | null])[] = [["src/engine/physics/heightPatch.ts", null], ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]], ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner", "equipmentAnimals"]], ["src/game/quest/chapter.ts", ["installChapterStory"]], ["src/game/shardfile/clientTrails.ts", ["ProjectedTrail"]], ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]], ["src/game/weapons/heldLauncher.ts", ["names", "PoolSchema", "HeldBowFileSchema", "bowLoads", "loadHeldBow"]]];
+  const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
+  const modules = new Map(rows.map(([path]) => [path, shared]));
+  const bindings = new Map(rows.flatMap(([path, names]) => [...(names ?? []), 'unrelatedShared'].map(name => [`${path}\0${name}`, shared])));
+  chargePlatformUsers(modules, bindings);
+  for (const [path, names] of rows) {
+    expect(modules.get(path)).toEqual(names === null ? new Set(['nalati-grasslands']) : shared);
+    for (const name of names ?? []) expect(bindings.get(`${path}\0${name}`)).toEqual(new Set(['nalati-grasslands']));
+    expect(bindings.get(`${path}\0unrelatedShared`)).toEqual(shared);
+  }
+});

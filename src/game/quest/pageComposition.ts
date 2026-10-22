@@ -1,6 +1,12 @@
 /** Client-only entered quest presentation over existing native owners. */
 import * as THREE from 'three';
-import type { QuestPageRows } from '@wildshard/format/questPageComposition';
+import type { QuestPageRows, ChapterViewRows } from '@wildshard/format/questPageComposition';
+import type { PageTamingOwner } from '../riding/client';
+import { ArenaRoomEncounter } from '../boss/arenaRoom';
+import { ArenaScriptEncounter } from '../boss/arenaScript';
+import { enterFigureGroup } from '../systems/npc/figureRows';
+import { CarriedQuestProp } from './carriedProp';
+import { enteredAdventurePersistence } from './chapterBindings';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import { installQuestHints } from './hints';
@@ -22,7 +28,7 @@ import { QuestViews, bindQuestPageInteractions, type QuestPageInteractions } fro
 import type { MoverRuntime } from '../plugin/mover';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { prepareQuestEntry, type QuestCableView, type QuestChapter } from './chapter';
+import { prepareQuestEntry, installChapterStory, type QuestCableView, type QuestChapter } from './chapter';
 import { bindRuntimeQuest } from '../plugin/headless';
 import { installQuestShop, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
@@ -136,8 +142,63 @@ export async function prepareQuestPageComposition(ctx: ShardContext, input: Ques
   if (book.has(page.rows.id)) throw new Error('Duplicate quest page preparation');
   book.set(page.rows.id, page); preparations.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(page.rows.id); }); return page;
 }
-/** Complete a prepared page from declared native resource identities. */
-export async function installQuestPageComposition(ctx: ShardContext, input: QuestPageRows): Promise<QuestPageComposition> {
+/** The chapter-only facet borrows the actual entered owners, never policy
+ * callbacks, runtime object paths or a second saved-state book. */
+export interface ChapterViewOwners {
+  readonly taming: PageTamingOwner | null; readonly arena: ArenaRoomEncounter;
+  readonly fight: ArenaScriptEncounter; readonly figures: unknown;
+}
+export function installQuestPageComposition(ctx: ShardContext, input: { readonly chapterView: string; readonly story: string }, owners: ChapterViewOwners): Promise<Flags>;
+export function installQuestPageComposition(ctx: ShardContext, input: QuestPageRows): Promise<QuestPageComposition>;
+/** Complete a prepared page, or its optional finite chapter-view facet. */
+export async function installQuestPageComposition(ctx: ShardContext, input: QuestPageRows | { readonly chapterView: string; readonly story: string }, owners?: ChapterViewOwners): Promise<QuestPageComposition | Flags> {
+  if ('chapterView' in input) {
+    const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
+    if (runtime === undefined || world === undefined || world === null || play === undefined || play === null || owners === undefined
+      || !(owners.arena instanceof ArenaRoomEncounter) || !(owners.fight instanceof ArenaScriptEncounter)) throw new Error('Chapter view requires its concrete entered owners');
+    const ports = owners, { taming, arena, fight, figures } = ports;
+    const live = (): void => { if (ports.taming !== taming || ports.arena !== arena || ports.fight !== fight || ports.figures !== figures
+      || ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime
+      || runtime.world !== world || runtime.play !== play) throw new Error('Chapter view left during admission'); };
+    live();
+    const [story, content] = await Promise.all([ctx.product.json<unknown>(input.story), ctx.product.json<ChapterViewRows>(input.chapterView)]);
+    live();
+    const rows = content.view;
+    if (rows.story !== input.story) throw new Error('Chapter view story differs from its admitted entry');
+    const people = enterFigureGroup({ scope: ctx.scope, sky: world.sky, registry: world.registry, channels: ctx.product.shardfile.clientChannels }, figures);
+    const chapter = installChapterStory(ctx, story, { content, program: content.program }), { chip, markers, places, line } = chapter;
+    if (places === null || line === null) throw new Error('Chapter view requires its discovery and quest line');
+    const carriedRows = await ctx.product.json<unknown>(rows.carried);
+    live();
+    const carried = new CarriedQuestProp(ctx, carriedRows), persistence = enteredAdventurePersistence(ctx.scope);
+    world.game.scene.add(carried.object);
+    let now = 0, slowT = 0, pulseT = -1e9;
+    const project = (signal: string): void => { chapter.project(signal, { [rows.timeField]: now }); };
+    const poll = (): void => {
+      const observed = { 'taming.bonded': Number(taming?.phase === 'bonded'), 'taming.upgraded': Number(taming?.upgraded === true),
+        'arena.inside': Number(arena.inside), 'arena.tied': Number(fight.fight.tied) };
+      chapter.project(rows.signal, { [rows.timeField]: now, ...Object.fromEntries(Object.entries(rows.observations).map(([field, source]) => [field, observed[source]])) });
+      if (now - pulseT > rows.pulse.interval) { pulseT = now; project(rows.pulse.signal); }
+    };
+    poll();
+    const death = (): void => { project(rows.death.signal); };
+    ctx.on('actor.died', ({ actor }) => {
+      const body = play.animals.animals.find(candidate => candidate.combatActor() === actor);
+      if (body !== undefined) { persistence.kill(body.kind, body.variant); if (body.kind === rows.death.kind) death(); }
+    });
+    chapter.installFeats();
+    ctx.system({ ...rows.system, phase: 'update', run: (dt, t) => {
+      now = t; const pp = world.player.position;
+      chapter.update(dt, pp); people.update(dt, t, pp); carried.update(dt); chip.update(t, world.player);
+      if (t - slowT > rows.interval) { slowT = t; poll(); places.update(pp.x, pp.z); }
+    } });
+    const debug = rows.debug;
+    ctx.debug.expose(debug.id, { flags: chapter.quest.flags, line, people, [debug.prop]: carried, places, chip, markers,
+      get dialogue() { return chapter.dialogueBox(); }, [debug.goals]: carried.goals, [rows.death.signal]: death, talk: chapter.talk });
+    await people.ready;
+    live();
+    return chapter.quest.flags;
+  }
   const page = preparations.get(ctx.scope)?.get(input.id);
   if (page === undefined || ctx.scope.disposed) throw new Error('Quest page is not prepared');
   preparations.get(ctx.scope)?.delete(input.id);

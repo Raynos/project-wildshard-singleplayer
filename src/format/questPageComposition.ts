@@ -3,7 +3,8 @@ import { isJsonData } from './json';
 import { QuestWorldSchema } from './questWorld';
 import { QuestFiguresSchema } from './questFigures';
 import { QuestContinuationSchema } from './questContinuation';
-import { QuestPageTalksSchema } from './npcs';
+import { QuestPageTalksSchema, NpcDialogueRowSchema } from './npcs';
+import { ReturnProgramSchema } from './namedJsonContracts';
 import { ContractBoardPageSchema } from './contracts';
 import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from './questPageFacets';
 
@@ -71,3 +72,21 @@ export type QuestPageCompositionRows = Present<QuestPageRows, 'world' | 'speaker
 };
 /** The admitted schema both shards' composition files are published under. */
 export const QuestPageCompositionSchema = QuestPageSchema;
+
+/** Optional chapter-only view facet: concrete mounted/arena owners are sampled
+ * by a finite vocabulary; the admitted guest owns all story decisions. */
+export const ChapterViewSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Chapter view requires JSON rows'), v.strictObject({
+  npcs: v.record(id, NpcDialogueRowSchema),
+  places: v.pipe(v.array(v.strictObject({ id, label: id, x: n, z: n,
+    r: v.pipe(n, v.minValue(0)), quiet: v.exactOptional(v.boolean()) })), v.maxLength(64)),
+  program: ReturnProgramSchema,
+  view: v.strictObject({ story: id, carried: id,
+    system: v.strictObject({ id, before: ids, after: ids }),
+    timeField: id, signal: id, interval: v.pipe(n, v.minValue(Number.MIN_VALUE)),
+    observations: v.pipe(v.record(id, v.picklist(['taming.bonded', 'taming.upgraded', 'arena.inside', 'arena.tied'])), v.maxEntries(16)),
+    pulse: v.strictObject({ signal: id, interval: v.pipe(n, v.minValue(Number.MIN_VALUE)) }),
+    death: v.strictObject({ kind: id, signal: id }),
+    debug: v.strictObject({ id, prop: id, goals: id }),
+  }),
+}));
+export type ChapterViewRows = v.InferOutput<typeof ChapterViewSchema>;

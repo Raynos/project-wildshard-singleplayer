@@ -2,6 +2,8 @@
 // not an allowance or a budget. A real second shard needs a reviewed re-score.
 /** @type {Map<string,import('./shard-components.mjs').Component>} */
 const modules = new Map([
+  // Optional chapter dispatch does not give carried-prop ownership to its other pages.
+  ['src/game/quest/carriedProp.ts', 'C5'],
   ...['game/boss/arenaScript', 'game/boss/arenaField'].map(path => [`src/${path}.ts`, 'C4']),
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
   ['src/game/models/mountedSpecimen.ts', 'C1'],
@@ -10,6 +12,7 @@ const modules = new Map([
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
+  ['src/game/systems/npc/figureRows.ts', new Map(['FigureGroupMember', 'FigureGroup', 'memberPose', 'enterFigureGroup'].map(name => [name, 'C9']))],
   ['src/game/loot/runtime.ts',new Map([['LootBagProjection','C6']])],
   ['src/format/lootEconomy.ts',new Map([['LootBagProjection','C6']])],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
@@ -43,6 +46,19 @@ const declarations = new Map([
   ['src/format/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
   ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', 'C5']])],
   ['src/format/questPageComposition.ts', new Map([['QuestPresentation', 'C5']])],
+]);
+
+/** Concrete dependencies of the optional chapter facet retain their original
+ * users and mixed component attribution; a dispatcher is not another owner.
+ * @type {Map<string,readonly string[]|null>} */
+const chapterViewNativeOwners = new Map([
+  ["src/engine/physics/heightPatch.ts", null],
+  ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
+  ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner", "equipmentAnimals"]],
+  ["src/game/quest/chapter.ts", ["installChapterStory"]],
+  ["src/game/shardfile/clientTrails.ts", ["ProjectedTrail"]],
+  ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]],
+  ["src/game/weapons/heldLauncher.ts", ["names", "PoolSchema", "HeldBowFileSchema", "bowLoads", "loadHeldBow"]],
 ]);
 
 // Single-shard branches inside otherwise shared declarations. These spans select
@@ -162,6 +178,10 @@ export function recordPrivateCharge(charges, owner, row, report = console.error)
  * @param {Map<string,Set<string>>} moduleUsers
  * @param {Map<string,Set<string>>} bindingUsers */
 export function chargePlatformUsers(moduleUsers, bindingUsers) {
+  for (const [path, names] of chapterViewNativeOwners) {
+    if (names === null) { if (moduleUsers.has(path)) moduleUsers.set(path, new Set(['nalati-grasslands'])); }
+    else for (const name of names) { const key = `${path}\0${name}`; if (bindingUsers.has(key)) bindingUsers.set(key, new Set(['nalati-grasslands'])); }
+  }
   for (const path of modules.keys()) if (moduleUsers.has(path)) {
     const shard = reviewedOwner(path);
     moduleUsers.set(path, new Set([shard]));

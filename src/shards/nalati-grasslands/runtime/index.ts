@@ -13,7 +13,8 @@ import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
 import { arsenal, prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
 import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
-import { installNalatiQuestView } from '../quest/kokpar';
+import { installQuestPageComposition } from '@wildshard/game/quest/pageComposition';
+import people from '../boot/peopleFrames.generated.json' with { type: 'json' };
 import { enteredAdventurePersistence } from '@wildshard/game/quest/chapterBindings';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { hasLentLook, lendLooks } from '@wildshard/sdk/looks/lentLooks';
@@ -92,7 +93,7 @@ export class NalatiPlugin extends ShardPlugin {
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize();
     await part();
-    await installNalatiQuestView(ctx, rt, persistence);
+    await installQuestPageComposition(ctx, { chapterView: 'quests/content.json', story: 'quests/chapters.json' }, { taming: rt.ride?.taming ?? null, arena: rt.boss, fight: rt.titan, figures: people });
   }
 }
 

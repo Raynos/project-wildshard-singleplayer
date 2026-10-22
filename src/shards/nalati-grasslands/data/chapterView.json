@@ -1,0 +1,39 @@
+{
+  "story": "quests/chapters.json",
+  "carried": "quests/carried.json",
+  "system": {
+    "id": "shard.nalati.quest",
+    "after": [
+      "main.6"
+    ],
+    "before": [
+      "hud.combat",
+      "shard.nalati-grasslands.bind",
+      "first hints",
+      "main.world",
+      "main.frame"
+    ]
+  },
+  "timeField": "now",
+  "signal": "quest",
+  "interval": 0.5,
+  "observations": {
+    "bonded": "taming.bonded",
+    "argymaq": "taming.upgraded",
+    "inside": "arena.inside",
+    "tied": "arena.tied"
+  },
+  "pulse": {
+    "signal": "feathers",
+    "interval": 2
+  },
+  "death": {
+    "kind": "balbal",
+    "signal": "carving"
+  },
+  "debug": {
+    "id": "nalati.quest",
+    "prop": "kokpar",
+    "goals": "kokparGoals"
+  }
+}

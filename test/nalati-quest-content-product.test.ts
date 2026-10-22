@@ -8,6 +8,7 @@ import content from '../src/shards/nalati-grasslands/data/questContent.json' wit
 import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
 import source from '../src/shards/nalati-grasslands/shard.config';
 import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
+import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };
 
 test('Nalati compiles its chapters, camp dialogues, placements and discovery into its product', async () => {
   const { achievements, ...quests } = source.quests;
@@ -22,7 +23,7 @@ test('Nalati compiles its chapters, camp dialogues, placements and discovery int
   const file = loaded.output.namedFiles?.find(row => row.name === 'quests/content.json');
   const bytes = file === undefined ? undefined : loaded.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing compiled Nalati quest content');
-  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({ npcs: content.npcs, places: content.places, kokpar });
+  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({ npcs: content.npcs, places: content.places, program: kokpar.program, view });
   const module = loaded.output.namedFiles?.find(row => row.name === 'behaviour/nalati.kokpar.wasm');
   expect(module?.hash).toBe(kokpar.program.script.module.split('/').at(-1)?.slice(0, -5));
   expect(module?.critical).toBe(true);
