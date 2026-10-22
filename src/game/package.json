@@ -13,6 +13,7 @@
     "./models/mountedSpecimen": "./models/mountedSpecimen.ts",
     "./models/runtimeSpecimens": "./models/runtimeSpecimens.ts",
     "./population/perchBody": "./population/perchBody.ts",
+    "./population/productCreatures": "./population/productCreatures.ts",
     "./quest/legacyRecords": "./quest/legacyRecords.ts",
     "./shardfile/pageWater": "./shardfile/pageWater.ts",
     "./shardfile/pagePreparation": "./shardfile/pagePreparation.ts",

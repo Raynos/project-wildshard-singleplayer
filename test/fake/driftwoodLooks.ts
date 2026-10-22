@@ -1,6 +1,5 @@
 import { HullLookBook } from '../../src/game/looks/speciesBook';
 import bake from '../../src/shards/driftwood-isle/data/creatureBodies.generated.json' with { type: 'json' };
-import { crabShell } from '../../src/shards/driftwood-isle/species/crab';
 import rows from '../../src/shards/driftwood-isle/data/creatureLookRows.json' with { type: 'json' };
 import sailor from '../../src/shards/driftwood-isle/data/sailorClips.generated.json' with { type: 'json' };
 import crab from '../../src/shards/driftwood-isle/data/crabClips.generated.json' with { type: 'json' };
@@ -12,5 +11,5 @@ const { fauna, ...body } = bake;
 export const DRIFTWOOD_BOOK = new HullLookBook({ ...fauna, body });
 const looks = DRIFTWOOD_BOOK.packed.looks({ rows, poses: { sailor, crab, captain } });
 export const MONKEY_LOOK = looks.get('monkey'), SAILOR_LOOK = looks.get('sailor'), CAPTAIN_LOOK = looks.get('captain');
-export const CRAB_LOOK = { ...looks.get('crab'), damageMul: crabShell };
+export const CRAB_LOOK = looks.get('crab');
 export const DRIFTWOOD_LOOKS = [CRAB_LOOK, MONKEY_LOOK, SAILOR_LOOK, CAPTAIN_LOOK];

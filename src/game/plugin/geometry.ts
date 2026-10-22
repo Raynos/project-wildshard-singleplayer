@@ -1321,6 +1321,11 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         if (row.standMem !== undefined) look.standMem = row.standMem;
         if (row.eyeGlow !== undefined) look.eyeGlow = row.eyeGlow;
         if (row.eyeGlowIntensity !== undefined) look.eyeGlowIntensity = row.eyeGlowIntensity;
+        if (row.hitArc !== undefined) {
+          // the blow travels against the heading when it lands from the front
+          const front = Math.cos(row.hitArc.arc * Math.PI / 180), scale = row.hitArc.scale;
+          look.damageMul = (a, _hit, dir) => Math.sin(a.yaw) * dir.x + Math.cos(a.yaw) * dir.z < -front ? scale : 1;
+        }
         if (pose !== undefined || row.lift !== undefined) look.animate = context => {
             if (row.lift !== undefined) stepCreatureLift(context.animal, context.dt, ...row.lift);
             pose?.(context);

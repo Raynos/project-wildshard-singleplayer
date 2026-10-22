@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { validateGraph } from '../src/format/materialGraph';
-import { CREATURE_LOOKS } from '../src/shards/driftwood-isle/generators/creatureLook';
+import { CREATURE_INSTALL, CREATURE_LOOKS } from '../src/shards/driftwood-isle/generators/creatureLook';
 import lookGraphs from '../src/shards/driftwood-isle/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';
 import source from '../src/shards/driftwood-isle/shard.config';
-import { graphCreatureLook } from '../src/shards/driftwood-isle/runtime/looks/creatureLooks';
+import { lentGraphLook } from '../src/game/population/productCreatures';
+import * as THREE from 'three';
+import type { Animal } from '../src/engine/entities/AnimalView';
+import { legacyDouble } from './fake/FakeGame';
 import { CRAB_LOOK } from './fake/driftwoodLooks';
 
 const CREATURE_GRAPHS = authoredGraphs(lookGraphs.looks);
@@ -24,8 +27,15 @@ describe('Driftwood creature graph looks', () => {
   });
 
   it('keeps a species look faceted on the graph body', () => {
-    const look = graphCreatureLook(CRAB_LOOK);
+    const look = lentGraphLook(CRAB_LOOK, CREATURE_INSTALL.lent);
     expect(look.faceted).toBe(true);
     expect(look.kind).toBe(CRAB_LOOK.kind);
+  });
+
+  it('halves a blow on the crab shell from the front, not from the flank', () => {
+    const crab = legacyDouble<Animal>({ yaw: 0 }), hit = new THREE.Vector3(), damage = CRAB_LOOK.damageMul;
+    expect(damage?.(crab, hit, new THREE.Vector3(0, 0, -1))).toBe(0.5);
+    expect(damage?.(crab, hit, new THREE.Vector3(-1, 0, 0))).toBe(1);
+    expect(damage?.(crab, hit, new THREE.Vector3(0, 0, 1))).toBe(1);
   });
 });

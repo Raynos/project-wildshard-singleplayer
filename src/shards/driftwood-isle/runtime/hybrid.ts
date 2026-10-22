@@ -11,7 +11,7 @@ import { islandSystems } from './world/systems';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
-import { installDriftwoodCreatures } from '../creatures/install';
+import { installProductCreatures } from '@wildshard/game/population/productCreatures';
 import { HeldClaims } from '@wildshard/game/loadout/claims';
 
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
@@ -75,7 +75,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (shell === undefined) throw new Error('Driftwood kit requires its world host');
     if (shell.world === null) throw new Error('Driftwood kit requires its world host');
     const held = await HeldClaims.prepare(ctx);
-    await installDriftwoodCreatures(ctx,await pageDecisionAuthority(ctx));
+    await installProductCreatures(ctx, await pageDecisionAuthority(ctx));
     held.install();
   }
 

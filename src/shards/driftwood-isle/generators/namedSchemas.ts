@@ -1,4 +1,4 @@
-import { PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
+import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
@@ -40,6 +40,7 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/wake-boss.json': ChapterWakeSchema,
   'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
   'look/creature-looks.json': PackedCreatureLooksSchema,
+  'actors/creature-install.json': CreatureInstallSchema,
   'look/gull-draw.json': PosedLibrarySchema,
   'look/fish-draw.json': PosedLibrarySchema,
   'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch }),

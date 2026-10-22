@@ -10,7 +10,11 @@
       "head"
     ],
     "clips": [],
-    "pose": "crab"
+    "pose": "crab",
+    "hitArc": {
+      "arc": 60,
+      "scale": 0.5
+    }
   },
   {
     "id": "driftwood.look.monkey",
