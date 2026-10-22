@@ -1,6 +1,6 @@
 /** CI discovers every enrolled port. A port supplies real raw AS, identical
  * authored inputs and two ABI adapters; the compiler enforces reachability.
- * Legacy families still awaiting adapters are not claimed as dual-admitted. */
+ * Retained v0 originals stay hash-pinned execution oracles until cutover. */
 import { expect,test } from 'vitest';
 import { compileDualScriptV2 } from '../src/sdk/bake/compileDualScriptV2';
 import { compileScript } from '../src/sdk/bake/compileScript';
@@ -19,17 +19,20 @@ const families = [
 ] as const;
 
 test('scoped AS inventory refuses silently unenrolled or stale sources',() => {
-  const pending = Object.entries(scopedSources).filter(([path,source]) => {
+  const inventory = Object.entries(scopedSources).map(([path,source]) => {
     const family = families.find(([root]) => path.startsWith(root));
     if (family === undefined) throw new Error('Unrecognized scoped AS source');
     const [root,prefix] = family;
     const virtualPath = path.slice(root.length).replace(/^behaviour\//u,'').replace(/\.as$/u,'.ts');
-    return !Object.entries(ports).some(([fixture,port]) => fixture.startsWith(prefix) && port.input.authored.get(virtualPath) === source);
-  }).map(([path]) => path).sort();
-  // These are unfinished ports, not admitted sources: the two v0 directors
-  // retain an env.query import and private continuation globals.
-  // Enrolling one requires removing its pending entry; additions fail CI.
-  expect(pending).toEqual([
+    const matching = Object.entries(ports).filter(([fixture]) => fixture.startsWith(prefix)).map(([,port]) => port);
+    return { path,dual: matching.some(port => port.input.authored.get(virtualPath) === source),
+      retained: matching.some(port => port.retainedV0?.path === virtualPath && port.retainedV0.source === source) };
+  });
+  expect(inventory.filter(row => !row.dual && !row.retained).map(row => row.path).sort()).toEqual([]);
+  // Only the two shipping v0 originals survive beside their pure-AS ports.
+  // Their fixtures must capture the exact source and verify the pinned v0
+  // bytes and execution, rather than silently granting an untested exception.
+  expect(inventory.filter(row => row.retained).map(row => row.path).sort()).toEqual([
     '../src/shards/driftwood-isle/behaviour/director.as',
     '../src/shards/pine-hollow/behaviour/director.as',
   ]);

@@ -36,7 +36,7 @@ export namespace Do{export function event(type:i32,value:f64=0):void{const n=i32
   const legacy = `${imports}export function ws_abi():i32{return 1;}export function ws_io():i32{return 16384;}export function ws_init(lo:i32,hi:i32):void{}export function ws_handle():i32{begin(16384,i32(load<f64>(16392)));onTick();return 0;}`;
   const candidate = `${imports}export function ws_abi():i32{return 2;}export function ws_io():i32{return 1024;}export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return 0;}export function ws_step(tick:i32,fuel:i32):i32{begin(1024,tick);onTick();return 0;}`;
   const input = { authored: new Map([['directorV2.ts',options.source]]),legacy: { source: legacy,sources },candidate: { source: candidate,sources,lane: 'sim',ioBytes: 4096 },pages: 1 } satisfies DualPortFixture['input'];
-  return { input,verify: async pair => {
+  return { input,retainedV0: { path: 'director.ts',source: options.original },verify: async pair => {
     // Keep the shipping compiler path and the actual embedded v0 artifact
     // hash-pinned; the port is not a regeneration or save migration.
     const pinned = embeddedDirectorBytes(data,options.embedded);
