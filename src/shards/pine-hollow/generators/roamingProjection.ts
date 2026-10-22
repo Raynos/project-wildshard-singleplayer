@@ -3,6 +3,7 @@ import { Color } from 'three';
 import * as v from 'valibot';
 import { RoamingBossProjectionSchema } from '@wildshard/format/roamingBossProjection';
 import { NATIVE_VIEW } from './nativeView';
+import bossCollision from '../data/kingCollision.generated.json' with { type: 'json' };
 import { PINE_OUTPUT } from './outputInputs';
 import look from '../data/antlerKingLook.json' with { type: 'json' };
 
@@ -12,7 +13,7 @@ const material = (id: string, gain: number) => ({ id, colour: new Color(D.glowMa
 const hazardMeshes = [{ geometry: 'king-lantern-frame', material: 'frame' }, { geometry: 'king-lantern-glass', material: 'glass' }];
 export const ROAMING_PROJECTION = v.parse(RoamingBossProjectionSchema, {
   id: 'pine.king.projection', session: 'pine.combat', spawn: 'pine.antler-king', spawnStream: 'pine.spawn.thrall', variant: 'warden',
-  socketRig: { id: 'pine.king.rig', pool: source.pool, collision: { joints: NATIVE_VIEW.QUADRUPED.collision.joints, volumes: NATIVE_VIEW.QUADRUPED.collision.volumes },
+  socketRig: { id: 'pine.king.rig', pool: source.pool, collision: { joints: bossCollision.joints, volumes: bossCollision.volumes },
     materials: [{ id: 'frame', colour: new Color(D.frameMat.color).toArray(), emissive: [0, 0, 0], gain: 1,
       roughness: D.frameMat.roughness, metalness: D.frameMat.metalness, lit: true, fog: true },
     material('glass', D.glow.glass), material('ribs', D.glow.ribs), material('core', D.glow.core)],
