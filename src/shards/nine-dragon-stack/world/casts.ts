@@ -1,7 +1,6 @@
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { type BufferGeometry, type Texture, Color, Float32BufferAttribute, Vector3 } from 'three';
+import { type BufferGeometry, type Texture, Float32BufferAttribute } from 'three';
 import type { SignAtlas } from '../runtime/productSections.generated';
-import type { Emitter } from '../runtime/looks/emitterCards';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { layoutReviver } from './layoutBake';
 
@@ -25,8 +24,6 @@ export async function loadSpill(meshes: readonly (readonly [string, BufferGeomet
 
 export interface BakedSigns {
   readonly keys: Readonly<Record<string, string>>;
-  readonly lights: readonly Emitter[];
-  readonly neonLights: readonly Emitter[];
   readonly copies: SignAtlas['copies'];
   readonly glyphLayout: SignAtlas['glyphLayout'];
   readonly textures: { readonly mono: Texture; readonly colour: Texture; readonly sdf: Texture };
@@ -40,8 +37,6 @@ export async function loadSignAtlas(tier: 'phone' | 'desktop', scenes: SceneHand
   const textures = { mono: scenes.texture('signs.mono'), colour: scenes.texture('signs.colour'), sdf: scenes.texture('signs.sdf') };
   return { keys: rows.keys, glyphLayout: rows.glyphLayout, textures,
     copies: rows.copies,
-    neonLights: rows.neonLights.map(({ at, color, ...rest }) => Object.assign(rest, { at: new Vector3(...at), color: new Color(...color) })),
-    lights: rows.lights.map(({ at, color, ...rest }) => Object.assign(rest, { at: new Vector3(...at), color: new Color(...color) })),
     geometry: name => { const geometry = scenes.geometry(`signs.${name}`); return name === 'world' ? geometry : geometry.clone(); },
   };
 }
