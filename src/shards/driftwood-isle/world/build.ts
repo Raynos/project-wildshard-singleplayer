@@ -18,9 +18,7 @@ import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import manifest from '../discovery.generated';
-import { lentLook } from '@wildshard/sdk/looks/lentLooks';
 import { updateWind } from '@wildshard/engine/world/wind';
-import { createAmbientFlock } from '@wildshard/game/ambient/ambientFlock';
 import type { CoverComposition } from '../runtime/productSections.generated.d.ts';
 import { followToonLook } from '@wildshard/game/looks/toonLook';
 import { createStreamedCover } from '@wildshard/game/looks/streamedCover';
@@ -48,11 +46,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const assembly = fixed.assembly, total = 18 + assembly.piers.length;
   let completed = 0;
   const complete = async (detail: string): Promise<void> => { await slice(++completed, total, detail); };
-  const stage = async <T>(detail: string, work: () => T | Promise<T>): Promise<T> => {
-    const value = await work();
-    await complete(detail);
-    return value;
-  };
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
@@ -99,11 +92,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await stages.next('bushes');
   const bushes = { placed: only('bushes'), mesh: entryOwner(scope, 'object', 'bushes') };
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-  const gulls = await stage('Gulls', () => {
-    const flock = createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches);
-    game.scene.add(flock.group);
-    return flock;
-  });
+  await stages.next('driftwood.gulls');
+  const gulls = entryOwner(scope, 'ambient-draw', 'driftwood.gulls');
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
   await stages.next('trail');
   const trailside = { mesh: entryOwner(scope, 'object', 'trail'), placed: entryOwner(scope, 'placed', 'trail') };
@@ -153,8 +143,6 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  publishEntryOwner(scope, 'object', 'driftwood.gulls', gulls.group);
-  publishEntryOwner(scope, 'ambient-draw', 'driftwood.gulls', gulls);
   publishEntryOwner(scope, 'object', 'driftwood.cover', cover.group);
   publishEntryOwner(scope, 'placed', 'cover', cover.placed);
   return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };

@@ -31,7 +31,6 @@ export class DriftwoodPlugin extends ShardPlugin {
       built = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes')), await residentBakedTiles(ctx, ctx.scope), ctx.scope);
       if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Driftwood entry ended during build');
       publishEntryOwner(ctx.scope, 'collection', 'driftwood.collections', COLLECTIONS);
-      publishEntryOwner(ctx.scope, 'ambient', 'driftwood.gulls', built.gulls.flock);
       publishEntryOwner(ctx.scope, 'fixed-draws', 'driftwood.fixed-draws', fixedDrawLibrary());
     } else {
       admitDriftwoodRows(ctx.product);
@@ -45,7 +44,6 @@ export class DriftwoodPlugin extends ShardPlugin {
         const made = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), await residentBakedTiles(ctx, owner), owner);
         if (owner.disposed || owner.disposing) throw new Error('Driftwood construction ended during build');
         publishEntryOwner(owner, 'collection', 'driftwood.collections', COLLECTIONS);
-        publishEntryOwner(owner, 'ambient', 'driftwood.gulls', made.gulls.flock);
         publishEntryOwner(owner, 'fixed-draws', 'driftwood.fixed-draws', fixedDrawLibrary());
         return made;
       });
@@ -55,12 +53,9 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (resident !== undefined) {
       for (const id of ['cover']) entryOwner(resident, 'placed', id);
       for (const id of ['cover']) lendEntryOwner(ctx.scope, resident, 'placed', id);
-      lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.gulls');
       lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.cover');
     }
     if (resident !== undefined) {
-      lendEntryOwner(ctx.scope, resident, 'ambient', 'driftwood.gulls');
-      lendEntryOwner(ctx.scope, resident, 'ambient-draw', 'driftwood.gulls');
       lendEntryOwner(ctx.scope, resident, 'fixed-draws', 'driftwood.fixed-draws');
     }
     if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'collection', 'driftwood.collections');

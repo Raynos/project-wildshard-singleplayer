@@ -1,3 +1,6 @@
+import { WORLD_GULL_PERCHES } from './staticWorld';
+import { GULL_FLOCK } from './gullsLook';
+import { GULL_GRAPH_LOOK } from './gullGraphLook';
 import shrineBake from '../data/shrineBake.json' with { type: 'json' };
 import { FIREFLY_LOOK } from './fireflyLook';
 /** Ordered static build facts; native scene handles carry every rendered owner. */
@@ -27,7 +30,9 @@ export const WORLD_STAGES = { stages: [{ kind: 'place', ...pier }, entry('decks'
     file: 'world/building-life.json', root: 'shrine.root', cloud: { draw: 'shrineFireflies', look: FIREFLY_LOOK,
       pose: { seeds: false, name: 'shrine-fireflies', at: { point: 'shrine.root', offset: [0, shrineBake.world.baseY, 0] }, parent: 'shrine.root',
         center: [0, shrineBake.world.terrace - shrineBake.world.baseY, 0], radius: 18, order: 4 } } } }, ...jetties.map(({ id, label }) => ({ kind: 'place', id, label })),
-  entry('bushes', 'Bushes', { object: { as: 'mesh', part: 'hibiscus.mesh' } }), entry('trail', 'Trailside', { object: { as: 'mesh', part: 'trail.mesh' } }),
+  entry('bushes', 'Bushes', { object: { as: 'mesh', part: 'hibiscus.mesh' } }), 
+  { kind: 'ambient-flock', id: 'driftwood.gulls', label: 'Gulls', rows: GULL_FLOCK, draw: { slot: 'gull', look: GULL_GRAPH_LOOK, castShadow: true }, perches: WORLD_GULL_PERCHES },
+  entry('trail', 'Trailside', { object: { as: 'mesh', part: 'trail.mesh' } }),
   { kind: 'rope-deck', id: 'bridge', label: 'Rope bridge', site: driftwoodRopeDeckSite(), span: BRIDGE },
   entry('seabed', 'Seabed', { object: { as: 'mesh', part: 'reef.mesh' } }),
   entry('cove', 'Cove', { object: { as: 'group', part: cove.root } }), entry('palms', 'Palms', { object: { as: 'mesh', part: 'palms.mesh' } }),

@@ -1,3 +1,4 @@
+import { createAmbientFlock } from '../ambient/ambientFlock';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { LivingBuildings } from './livingBuildings';
 import { createBuildingCloud } from './buildingCloud';
@@ -74,7 +75,14 @@ export class WorldAssembly {
       return { draws, draw, product, read: product.file, material };
     })();
     this.at++;
-    if (stage.kind === 'rope-deck') {
+    if (stage.kind === 'ambient-flock') {
+      const draws = this.ports.draws, root = this.ports.entry?.root;
+      if (draws === undefined || !draws.ready || root === undefined) throw new Error('World ambient flock needs loaded draws and its root');
+      const draw = draws.handle(stage.draw.slot), material = lentLook(stage.draw.look);
+      const flock = createAmbientFlock(stage.rows, { name: stage.draw.look, geometry: draw.copy(), material: material.clone(), castShadow: stage.draw.castShadow }, stage.perches);
+      root.add(flock.group);
+      publishEntryOwner(scope, 'object', stage.id, flock.group); publishEntryOwner(scope, 'ambient-draw', stage.id, flock); publishEntryOwner(scope, 'ambient', stage.id, flock.flock);
+    } else if (stage.kind === 'rope-deck') {
       const draws = this.ports.draws, registry = this.ports.registry;
       if (draws === undefined || !draws.ready) throw new Error('World rope deck needs loaded fixed draws');
       if (registry === null) throw new Error('World rope deck needs its registry');
@@ -163,7 +171,8 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 }
 
 /** The loan kinds a stage publishes, from its declaration alone. */
-function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings')[] {
+function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient')[] {
+  if (stage.kind === 'ambient-flock') return ['object', 'ambient-draw', 'ambient'];
   if (stage.kind === 'rope-deck') return ['object', 'placed', 'floor', 'rope-deck'];
   if (stage.kind === 'rope-chain') return ['chain'];
   if (stage.kind === 'site') return ['object', 'placed', 'site', 'floor', ...stage.life === undefined ? [] : ['buildings'] as const];
