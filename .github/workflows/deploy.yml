@@ -367,6 +367,9 @@ jobs:
       - name: Verify and restore exact-run generated inputs
         run: python3 scripts/ci-products.py unpack-generated
       - run: node scripts/build-shardfiles.mjs --reuse
+      # A runner is isolated: save current reusable products rather than six
+      # historical payload generations. Keep every input receipt for validation.
+      - run: node scripts/ci-product-cache.mjs
       - name: Pack exact-run generated inputs and products
         run: python3 scripts/ci-products.py pack
       - uses: actions/upload-artifact@v4
