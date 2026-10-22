@@ -7,14 +7,16 @@ import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import type { ShardProduct } from './shardProduct';
 
-interface PlaceSets { readonly rows:Extract<ClientFeatureRow,{kind:'world.sets'}>['rows']; readonly owned:RegisteredSet[]; bound:boolean }
+const ended=(scope:Scope):boolean=>scope.disposed||scope.disposing;
+
+interface PlaceSets { readonly rows:Extract<ClientFeatureRow,{kind:'world.sets'}>['rows']; readonly owned:RegisteredSet[]; bound:boolean; completed:boolean }
 const owners=new WeakMap<Scope,WeakMap<ShardProduct,PlaceSets>>();
 /** Z1 admits named-place membership before native model bindings arrive. */
 export function installClientPlaceSets(ctx:ShardContext,row:ClientFeatureRow):void{
   if(row.kind!=='world.sets'||ctx.scope.disposed)throw new Error('Invalid named-place feature');
   let products=owners.get(ctx.scope);if(products===undefined){products=new WeakMap();owners.set(ctx.scope,products);}
   if(products.has(ctx.product))throw new Error('Named places are already installed');
-  const book:PlaceSets={rows:row.rows,owned:[],bound:false};products.set(ctx.product,book);const installed=products;
+  const book:PlaceSets={rows:row.rows,owned:[],bound:false,completed:false};products.set(ctx.product,book);const installed=products;
   ctx.scope.onDispose(()=>{installed.delete(ctx.product);for(const set of book.owned){const index=ctx.app.registry.sets.indexOf(set);if(index!==-1)ctx.app.registry.sets.splice(index,1);}});
 }
 /** Bind actual model placements; admitted rows select whole groups and spatial copy views (by copy centre, or by copy
@@ -26,5 +28,14 @@ export async function bindClientPlaceSets(ctx:ShardContext,groups:ReadonlyMap<st
     const members=[...row.pois.flatMap(name=>groups.get(name)??[]),...spatial.flatMap(placed=>{const view=placedWithin(placed,row.x,row.z,row.r,row.mode??'centre');return view===null?[]:[view];})];
     if(members.length>0)book.owned.push(placeSet({...row,members,registry:ctx.app.registry}));
     await buildYield(ctx.scope);
+    if(ended(ctx.scope))throw new Error('Named-place owner ended during binding');
   }
+  book.completed=true;
+}
+
+/** Require completion of the actual placement bind, including every sliced
+ * registration. Merely installing world.sets or starting its bind is not ready. */
+export function requireClientPlaceSetsBound(ctx:Pick<ShardContext,'scope'|'product'>):void {
+  if(ctx.scope.disposed||ctx.scope.disposing||owners.get(ctx.scope)?.get(ctx.product)?.completed!==true)
+    throw new Error('Named places have not finished binding');
 }
