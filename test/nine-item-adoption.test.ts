@@ -18,6 +18,12 @@ import source from '../src/shards/nine-dragon-stack/shard.config';
 import manifest from '../src/shards/nine-dragon-stack/manifest';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { GrappleTool } from '../src/game/grapple/tool';
+import * as v from 'valibot';
+import type { Sword } from '../src/game/weapons/Sword';
+import type { HeldClaims } from '../src/game/loadout/claims';
+import { MeleeWeaponProfileSchema } from '../src/format/weaponProfiles';
+import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { legacyDouble } from './fake/FakeGame';
 import { NdPlugin } from '../src/shards/nine-dragon-stack/plugin';
 import baseline from './fixtures/nine-item-equipment.json' with { type: 'json' };
 
@@ -47,10 +53,12 @@ test('Nine play admits the complete primary/tool set before installing the nativ
   const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source,
     sections: new Map(), files: new Map([['weapons/jian-row.json', { hash: '0'.repeat(64), url: '/jian-row.json' }]]), read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({ portraitFov: 78, aim, bursts }))) });
   const ctx = shardContext(level.context, manifest, { shard: manifest, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
-  const primary = new NativeWeapon(new ItemCatalogue(items).equipment('weapon.jian')), equipment = new EquipmentService(primary, { scope });
+  const primary = legacyDouble<Sword>(new NativeWeapon(new ItemCatalogue(items).equipment('weapon.jian'))), equipment = new EquipmentService(primary, { scope });
   app.registerEquipment(equipment, scope);
   const plugin = new NdPlugin();
-  Object.assign(plugin, { melee: { primary: () => primary, profile: source.items.rows.find(row => row.kind === 'weapon')?.profile }, ndWorld: { ctx: { hooks: [] } } });
+  const profile = v.parse(MeleeWeaponProfileSchema, source.items.rows.find(row => row.kind === 'weapon')?.profile);
+  publishEntryOwner(scope, 'claims', 'held.primary', legacyDouble<HeldClaims>({ melee: () => ({ primary: () => primary, profile }) }));
+  Object.assign(plugin, { ndWorld: { ctx: { hooks: [] } } });
   // Scene/physics installation is covered by the phone boot; keep item admission and loadout installation real.
   const install = vi.spyOn(GrappleTool.prototype, 'install').mockImplementation(() => undefined);
   try {
