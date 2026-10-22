@@ -52,10 +52,10 @@ export function writeCatalogFromOutputs(destination: string, placements: readonl
       return `${folder}/${file.path}`;
     };
     if(placement.runtime==='source'&&(index.runtime===null||index.runtime.files.length>0))throw new Error(`Source runtime requires an unclosed native product: ${folder}`);
-    if(placement.runtime!=='source'&&index.runtime!==null&&!index.runtime.files.some(file=>file.path==='runtime/index.ts'))throw new Error(`Catalog requires its copied page runtime: ${folder}`);
+    if(placement.runtime!=='source'&&index.runtime!==null&&'entry' in index.runtime&&!index.runtime.files.some(file=>file.path==='runtime/index.ts'))throw new Error(`Catalog requires its copied page runtime: ${folder}`);
     entries.push({slug:folder,identity:{slug:index.identity.slug,revision:index.identity.revision},index:indexBytes,
       card:{name:manifest.name,label:manifest.label,biome:manifest.biome,blurb:manifest.blurb,order:manifest.order,status:manifest.status,thumb:image(manifest.card.thumb),portrait:image(manifest.card.portrait),landscape:image(manifest.card.landscape),accent},
-      placement:placement.placement,runtime:placement.runtime==='source'?'source':index.runtime===null?null:{entry:'runtime/index.ts',files:index.runtime.files}});
+      placement:placement.placement,runtime:placement.runtime==='source'?'source':index.runtime===null||!('entry' in index.runtime)?null:{entry:'runtime/index.ts',files:index.runtime.files}});
   }
   for(const row of declared)if(!used.has(row.slug))throw new Error(`Catalog requires every declared output: ${row.slug}`);
   return writeOutputCatalog(destination,entries);

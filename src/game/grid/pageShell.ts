@@ -11,7 +11,7 @@ import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 
 /** G226/G258: every admitted grid runtime owns its region so leaving it releases the whole world before the next loads. */
 export function useOwnedGridHome(mode: PageMode, _developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
-  return mode === 'grid' && (manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined || source !== undefined && hasDeclaredClientPage(source));
+  return mode === 'grid' && (manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined || source !== undefined && (hasDeclaredClientPage(source) || source.runtime !== undefined && source.runtime !== null && !('entry' in source.runtime)));
 }
 
 /**

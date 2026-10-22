@@ -27,7 +27,7 @@ import * as deckCameraViews from '../src/game/systems/looks/deckCameraSway';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
+import { declaredRuntimeEntry, declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
 import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
 import { parseClientPlan } from '../src/format/clientPlan';
 import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
@@ -440,4 +440,15 @@ test.each(['live', 'retiring'] as const)('declared deck view installs only for a
     expect(() => admitClientPlan({ version: 1, features: [{ ...row, module: 'missing.wasm' }] }, f.ctx.product)).toThrow('admitted module');
     expect(() => parseClientPlan({ version: 1, features: [{ ...row, rows: { ...row.rows, parameters: [1, 2] } }] })).toThrow();
   } finally { read.mockRestore(); install.mockRestore(); f.ctx.scope.dispose(); }
+});
+
+
+test('the compiled standalone native entry installs finite phases with no TS constructor registry',async()=>{
+  const f=context(),order:string[]=[];
+  f.sections.set('client/plan',{version:1,features:[{kind:'strings.register'},{kind:'debug.expose',name:'compiled'}]});
+  f.strings.mockImplementation(()=>{order.push('world');});f.expose.mockImplementation(()=>{order.push('play');});
+  const Entry=declaredClientPlanEntry({retainHomeRuntime:true,stagesOwner:'runtime'}).default;
+  const plugin=new Entry(undefined,undefined,()=>false);
+  try{await plugin.world(f.ctx);expect(order).toEqual(['world']);await plugin.kit(f.ctx);await plugin.play(f.ctx);expect(order).toEqual(['world','play']);}
+  finally{f.ctx.scope.dispose();}
 });

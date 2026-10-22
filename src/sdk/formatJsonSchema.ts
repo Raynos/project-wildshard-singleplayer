@@ -100,7 +100,7 @@ import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, W
 import { ForestLifeSchema } from '@wildshard/format/ambientLife';
 
 import { MemoryMeasurementSchema, RuntimeCostSchema, RegionalSimCostSchema } from '@wildshard/format/runtimeCost';
-import { RuntimeSchema } from '@wildshard/format/runtime';
+import { RuntimeSchema, LegacyRuntimeSchema, ClientPlanRuntimeSchema } from '@wildshard/format/runtime';
 import { ClientCheckpointSchema, ItemCheckpointStatesSchema, LogicalClientCheckpointSchema } from '@wildshard/format/clientState';
 import { LiftRiderSchema } from '@wildshard/format/liftRider';
 import { ScriptSpeciesSchema } from '@wildshard/format/speciesScripts';
@@ -313,6 +313,8 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'runtimeCost.RuntimeCost': RuntimeCostSchema,
   'runtimeCost.RegionalSimCost': RegionalSimCostSchema,
   'runtime.Runtime': RuntimeSchema,
+  'runtime.Legacy': LegacyRuntimeSchema,
+  'runtime.ClientPlan': ClientPlanRuntimeSchema,
   'clientState.ClientCheckpoint': ClientCheckpointSchema,
   'clientState.ItemCheckpointStates': ItemCheckpointStatesSchema,
   'clientState.LogicalClientCheckpoint': LogicalClientCheckpointSchema,

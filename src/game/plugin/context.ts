@@ -198,6 +198,7 @@ export async function prepareTrustedRuntime(declaration: RuntimeDeclaration, slu
   entries: readonly TrustedRuntimeEntry[]): Promise<new () => ShardPlugin> {
   const parsed = v.parse(RuntimeSchema, declaration);
   if (!firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
+  if (!('entry' in parsed)) throw new Error('Client-plan runtime requires its admitted product, not a trusted module');
   const registered = new Map<string, TrustedRuntimeEntry[]>();
   for (const entry of entries) { const group = registered.get(entry.slug) ?? []; group.push(entry); registered.set(entry.slug, group); }
   const matches = (registered.get(slug) ?? []).filter((entry) => entry.entry === parsed.entry);

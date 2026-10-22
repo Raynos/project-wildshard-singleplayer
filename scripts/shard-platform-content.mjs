@@ -37,7 +37,7 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
     || (present(source.terrain) && (!record(source.terrain) || (source.terrain.form !== 'query' && typeof source.terrain.collider !== 'string') || !rows(source.terrain.tiles)
       || source.terrain.tiles.some(tile => typeof tile.file !== 'string')))
     || (present(source.nativeGround) && (!record(source.nativeGround) || typeof source.nativeGround.file !== 'string'))
-    || (present(source.runtime) && (!record(source.runtime) || typeof source.runtime.entry !== 'string'))) return absent('invalid');
+    || (present(source.runtime) && (!record(source.runtime) || typeof source.runtime.entry !== 'string' && source.runtime.kind !== 'client-plan'))) return absent('invalid');
   if (source.terrain?.form === 'query') {
     if (!record(source.terrain.sampling) || source.terrain.tiles.length > 0 || !Array.isArray(source.runtime?.binds)
       || !source.runtime.binds.includes('terrain')) return absent('invalid');

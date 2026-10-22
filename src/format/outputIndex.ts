@@ -2,7 +2,7 @@
 import * as v from 'valibot';
 import { assertCellBounds } from './cellBounds';
 import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSchema';
-import { RuntimeSchema } from './runtime';
+import { LegacyRuntimeSchema, ClientPlanRuntimeSchema } from './runtime';
 import { RuntimeSpawnsSchema } from './runtimeSpawns';
 import { RowsSchema } from './rows';
 import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema } from './shardSections';
@@ -19,7 +19,10 @@ const measuredFile = { path, hash: ShardHashSchema, bytes: ShardNaturalSchema };
 const section = v.strictObject({ ...measuredFile, name: sectionName, schema: v.pipe(v.string(), v.maxLength(240)) });
 const costs = v.omit(FilesSchema.pipe[0].item, ['kind']).entries;
 const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), commons: v.exactOptional(v.literal(true)), jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())) });
-const runtime = v.strictObject({ ...v.omit(RuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), lines: ShardNaturalSchema });
+const runtime = v.union([
+  v.strictObject({ ...v.omit(LegacyRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), lines: ShardNaturalSchema }),
+  v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.pipe(v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), v.maxLength(0)), lines: v.literal(0) }),
+]);
 /** Format 2 inventories every emitted byte except its index and validation receipt. */
 export const OutputIndexSchema = v.strictObject({
   format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2), sdk: v.literal('0.2'), version: v.literal(SHARDFILE_VERSION),
@@ -147,7 +150,7 @@ export function parseOutputSection(name: string, input: unknown): Record<string,
  * validation receipt may bypass section parsing; untrusted readers use the
  * checked wrapper below, which also parses the complete host model. */
 export function assembleOutputFields(index: OutputIndex, sections: ReadonlyMap<string, unknown>, checkSections = true): Record<string, unknown> {
-  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,commons: _commons,jsonSchema: _schema,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {entry:index.runtime.entry,...(index.runtime.cost === undefined ? {} : {cost:index.runtime.cost}),...(index.runtime.binds === undefined ? {} : {binds:index.runtime.binds})}};
+  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,commons: _commons,jsonSchema: _schema,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {...('entry' in index.runtime ? {entry:index.runtime.entry} : {kind:index.runtime.kind}),...(index.runtime.cost === undefined ? {} : {cost:index.runtime.cost}),...(index.runtime.binds === undefined ? {} : {binds:index.runtime.binds})}};
   if (sections.size !== index.sections.length || index.sections.some(entry => !sections.has(entry.name))) throw new Error('Missing or surplus output section');
   const rows: Record<string, unknown> = {};
   for (const entry of index.sections) {

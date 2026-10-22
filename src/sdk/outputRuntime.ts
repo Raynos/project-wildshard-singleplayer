@@ -20,6 +20,8 @@ export interface RuntimeCopy { readonly files: readonly RuntimeCopyFile[]; reado
  * to check are relative to the author project, including the runtime/ prefix. */
 export interface RuntimeCopyOptions {
   readonly check: (path: string, source: string) => readonly { readonly message: string }[];
+  /** Compiled finite features ship no authored runtime TypeScript. */
+  readonly clientPlan?: boolean;
 }
 
 function syncSchema(input: unknown): input is v.GenericSchema {
@@ -127,6 +129,10 @@ export function writeRuntimeFiles(project: string, destination: string, options:
       if (item.isSymbolicLink()) throw new Error(`Runtime cannot contain symlinks: ${path}`);
       if (item.isDirectory()) { walk(file); continue; }
       if (!item.isFile() || !/^(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.ts$/u.test(path)) throw new Error(`Runtime accepts TypeScript files only: ${path}`);
+      if (options.clientPlan === true) {
+        if (!path.endsWith('.d.ts')) throw new Error(`Client-plan runtime cannot contain executable source: ${path}`);
+        continue;
+      }
       const bytes = readBoundedFile(file, limits.sourceBytes), source = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
       const issues = options.check(path, source);
       if (issues.length > 0) throw new Error(issues.map(issue => `${path}: ${issue.message}`).join('\n'));

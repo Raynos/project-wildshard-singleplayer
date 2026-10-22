@@ -114,19 +114,25 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   }
   if (b.entry) {
     if (b.load) throw new Error(`${file}: entry and load are mutually exclusive`);
-    const entry = data.runtimeEntry;
-    if (!['runtime/index.ts', 'runtime/hybrid.ts'].includes(entry)) throw new Error(`${file}: missing declared runtime entry`);
-    const runtime = modulePath(`./${entry.slice(0, -3)}`), legacy = modulePath(b.entry.legacy);
-    if (!legacy.startsWith('./runtime/')) throw new Error(`${file}: legacy constructor must belong to runtime/`);
+    const compiled = b.entry.platform === 'client-plan';
+    if (compiled && (data.runtimeEntry !== undefined || b.entry.legacy !== undefined)) throw new Error(`${file}: client-plan entry names no runtime module`);
+    if (!compiled && !['runtime/index.ts', 'runtime/hybrid.ts'].includes(data.runtimeEntry)) throw new Error(`${file}: missing declared runtime entry`);
     if (typeof b.entry.retainHomeRuntime !== 'boolean' || !['declared', 'runtime'].includes(b.entry.stagesOwner)) throw new Error(`${file}: invalid entry ownership`);
-    const policy = JSON.stringify({ entry, retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
     const styles = b.entry.styles ?? [];
     if (!Array.isArray(styles) || styles.length > 8 || new Set(styles).size !== styles.length) throw new Error(`${file}: invalid entry styles`);
     const styleImports = styles.map(style => { const path = modulePath(style); if (!path.endsWith('.css')) throw new Error(`${file}: entry style must be CSS`); return `import(${JSON.stringify(path)})`; });
     const prepareStyles = styleImports.length === 0 ? '' : `await Promise.all([${styleImports.join(', ')}]); `;
     // Runtime and native entries share a linked module graph. Finish each namespace
     // before reading its constructor; never snapshot exports from concurrent loads.
-    native.push(`load: async () => { ${prepareStyles}const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default, ${policy}); }`);
+    if (compiled) {
+      const policy = JSON.stringify({ retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
+      native.push(`load: async () => { ${prepareStyles}return (await import('@wildshard/game/shard/declaredEntry')).declaredClientPlanEntry(${policy}); }`);
+    } else {
+      const entry = data.runtimeEntry, runtime = modulePath(`./${entry.slice(0, -3)}`), legacy = modulePath(b.entry.legacy);
+      if (!legacy.startsWith('./runtime/')) throw new Error(`${file}: legacy constructor must belong to runtime/`);
+      const policy = JSON.stringify({ entry, retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
+      native.push(`load: async () => { ${prepareStyles}const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default, ${policy}); }`);
+    }
   }
   for (const key of ['load', 'ktx2']) if (b[key]) {
     if (key === 'ktx2' && b[key].platform === 'page-mode') {

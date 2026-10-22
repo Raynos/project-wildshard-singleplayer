@@ -31,6 +31,16 @@ async function runtimeClientPhase(ctx: ShardContext, phase: ClientPhase, residen
   await installClientPhase(ctx, plan, phase, resident, lifetime);
 }
 
+/** A finite data runtime has no source entry or hooks of its own. */
+class ClientPlanRuntime extends ShardPlugin {}
+function preparePageRuntime(declaration: RuntimeDeclaration | null, product: ShardProduct | undefined,
+  slug: string, firstParty: boolean, entries: readonly TrustedRuntimeEntry[]): Promise<new () => ShardPlugin> {
+  if (declaration !== null && 'entry' in declaration) return prepareTrustedRuntime(declaration, slug, firstParty, entries);
+  if (!firstParty || product === undefined || !product.has('client/plan')) return Promise.reject(new Error('Data resident requires its admitted client plan'));
+  admitClientPlan(product.section('client/plan'), product);
+  return Promise.resolve(ClientPlanRuntime);
+}
+
 /** A resident's data world stays alive when its independently scoped trusted play hooks leave. */
 export interface HybridResident {
   readonly instance: string;
@@ -311,7 +321,7 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
     const adapters = debug.context;
     adapters.debugRow({ ...debug.row, change: (value) => { choice.hybrid = value === 'on'; } });
     if (!choice.hybrid) {
-      const Runtime = await prepareTrustedRuntime(source.runtime, source.identity.slug, options.firstParty, entries);
+      const Runtime = await preparePageRuntime(source.runtime, product, source.identity.slug, options.firstParty, entries);
       return new Runtime();
     }
   }
@@ -337,7 +347,7 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
     .then(data => ({ load: data.load, mapImage: data.minimap?.image }));
   if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
   const [installed, Runtime] = await Promise.all([load().then(({ default: Data }) => new Data()),
-    prepareTrustedRuntime(declaration, source.identity.slug, productOptions.firstParty, entries)]);
+    preparePageRuntime(declaration, product, source.identity.slug, productOptions.firstParty, entries)]);
   const mapped: ShardPlugin = source.map === undefined ? installed : {
     async world(ctx) {
       const allocator = clientBindings.residency?.allocator ?? clientBindings.allocator;
@@ -379,13 +389,7 @@ export class HybridRuntimeSession {
     const resident = this.residents.get(instance);
     if (resident === undefined) return Promise.reject(new Error('Missing hybrid resident'));
     const prior = this.prepared.get(instance); if (prior !== undefined) return prior;
-    const prepared = resident.declaration === null ? Promise.resolve().then(() => {
-      const product = resident.product;
-      if (product === undefined || !product.has('client/plan')) throw new Error('Data resident requires its admitted client plan');
-      admitClientPlan(product.section('client/plan'), product);
-      // The lifecycle remains staged, but every authored operation is a compiled data feature.
-      return class extends ShardPlugin {};
-    }) : prepareTrustedRuntime(resident.declaration, resident.slug, resident.firstParty, this.entries);
+    const prepared = preparePageRuntime(resident.declaration, resident.product, resident.slug, resident.firstParty, this.entries);
     this.prepared.set(instance, prepared);
     void prepared.catch(() => { if (this.prepared.get(instance) === prepared) this.prepared.delete(instance); });
     return prepared;

@@ -27,12 +27,12 @@ export function shardfileEntry(context: Pick<ShardContext, 'manifest'>): boolean
 
 /** Explicit first-party bundled entry, with the original home/stage
  * ownership policy. The caller supplies loaders, never a shard-name lookup. */
-export interface StandaloneHybridRows {
+interface StandaloneHybridPolicy {
   readonly name:string;
-  readonly runtime:Pick<TrustedRuntimeEntry,'entry'|'load'>;
   readonly retainHomeRuntime?:boolean;
   readonly stagesOwner?:'declared'|'runtime';
 }
+export type StandaloneHybridRows = StandaloneHybridPolicy & ({ readonly runtime: Pick<TrustedRuntimeEntry, 'entry' | 'load'> } | { readonly platform: 'client-plan' });
 /** Admit the same native/data composite used by standalone constructors. An
  * injected preparation port preserves trusted fixture/host admission checks. */
 export async function prepareStandaloneHybrid(ctx:ShardContext,rows:StandaloneHybridRows,
@@ -43,5 +43,5 @@ export async function prepareStandaloneHybrid(ctx:ShardContext,rows:StandaloneHy
     ...(rows.stagesOwner===undefined?{}:{stagesOwner:rows.stagesOwner}),
     catalogue:[],items:new Map(),recipes:new Map(),voices:()=>new Map(),
     icon:()=>{throw new Error(`Transitional ${rows.name} has no declared item icon`);},
-  },[{slug:ctx.product.slug,...rows.runtime}]);
+  },'runtime' in rows ? [{slug:ctx.product.slug,...rows.runtime}] : []);
 }

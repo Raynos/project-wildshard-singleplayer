@@ -97,3 +97,28 @@ test.each(['on', 'links'] as const)('cold entered services publish after prepara
     expect(visible).toBe(false); expect(runtime.objects['built']).toBeUndefined();
   }
 });
+
+
+test('a compiled data owner parks and restores its actual finite hooks without any TS loader', async () => {
+  const scope=new Scope('compiled-page'),app=new App(),manifest={...TEMPLATE,slug:parseShardSlug('compiled-owner')};
+  const source=emptyShardfile({slug:manifest.slug,name:'Compiled owner',author:'Fixture',revision:1,seed:7});
+  const cost={webContentMB:500,glMB:100,engineBaseMB:300,rev:'abcdef1234',device:'Fixture',evidence:'progress/memory/fixture.json'};
+  source.runtime={kind:'client-plan',cost,binds:[]};
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map([['client/plan',{version:1,features:[{kind:'world.runtime-hooks',overhead:[],meleeSilent:true}]}]]),files:new Map(),read:()=>Promise.reject(new Error('No fixture file'))});
+  const runtime:ShardRuntime={world:null,step:null,play:null,interactables:[],overhead:[],objects:{},hooks:{},viewer:()=>new Vector3(),horizonVeil:null};
+  let entered:Scope|undefined;let warm=0;
+  const resident:HybridResident={instance:'compiled',slug:manifest.slug,declaration:source.runtime,product,firstParty:true,retainRuntime:true,scope,runtime,context:(owner,local)=>{
+    entered=owner;
+    const level=createLevelInstallation(app,owner,{},()=>({set:()=>undefined,detail:()=>undefined}));
+    const context=shardContext(level.context,manifest,{shard:manifest,runtime:local,rows:new Map(),bag:{tab:()=>()=>undefined,fragment:()=>()=>undefined}},product);
+    return {...level,context,prepareConstruction:()=>()=>undefined,afterPlay:()=>{warm++;}};
+  }};
+  const session=new HybridRuntimeSession(new Map([['compiled',resident]]),[],scope);
+  try{
+    await session.prepare('compiled');expect(runtime.hooks.meleeSilent).toBeUndefined();
+    expect(await session.enter({instance:'compiled',slug:manifest.slug})).toBe(true);expect(runtime.hooks.meleeSilent).toBe(true);
+    const first=entered;session.leave();expect(runtime.hooks.meleeSilent).toBeUndefined();expect(first?.disposed).toBe(false);
+    expect(await session.enter({instance:'compiled',slug:manifest.slug})).toBe(true);expect(entered).toBe(first);expect(runtime.hooks.meleeSilent).toBe(true);expect(warm).toBe(1);
+    scope.dispose();expect(runtime.hooks.meleeSilent).toBeUndefined();expect(first?.disposed).toBe(true);
+  }finally{scope.dispose();}
+});

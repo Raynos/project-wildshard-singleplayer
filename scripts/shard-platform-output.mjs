@@ -39,7 +39,7 @@ function readOutputRuntime(root,slug,products,readSections) {
     if(issues.length>0)throw new Error(`${slug}: output runtime is not standalone: ${entry.path}: ${issues[0].message}`);
     runtime.push(relative(root,file).replaceAll('\\','/'));
   }
-  if(index.runtime!==null&&!listed.has(index.runtime.entry))throw new Error(`${slug}: missing output runtime entry`);
+  if(index.runtime!==null&&'entry' in index.runtime&&!listed.has(index.runtime.entry))throw new Error(`${slug}: missing output runtime entry`);
   const actual=files(resolve(folder,'runtime')).map(file=>relative(folder,file).replaceAll('\\','/'));
   if(actual.length!==listed.size||actual.some(file=>!listed.has(file)))throw new Error(`${slug}: unlisted output runtime file`);
   const authoredRuntime=files(resolve(root,'src/shards',slug,'runtime')).filter(file=>file.endsWith('.ts')).map(file=>relative(resolve(root,'src/shards',slug),file).replaceAll('\\','/'));

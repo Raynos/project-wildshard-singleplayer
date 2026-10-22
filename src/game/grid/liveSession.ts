@@ -733,12 +733,12 @@ export class LiveGridSession {
   private async admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>): Promise<LiveGridAdmission> {
     const manifest = findShard(cell.slug), declaration = retained.admitted.source.runtime;
     const dataPage = hasDeclaredClientPage(retained.admitted.source);
-    if (manifest === undefined || !dataPage && (declaration === null || manifest.trustedRuntime === undefined)) throw new GridCellWaitingError('Missing declared regional page owner');
+    if (manifest === undefined || !dataPage && (declaration === null || 'entry' in declaration && manifest.trustedRuntime === undefined)) throw new GridCellWaitingError('Missing declared regional page owner');
     const page = this.page.runtimePage?.();
     if (page === undefined || page === null) throw new GridCellWaitingError('Regional page services are not ready');
     const textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
     const prepareEntry = async (): Promise<void> => {
-      if (declaration === null) return;
+      if (declaration === null || !('entry' in declaration)) return;
       if (manifest.load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
       const entry = manifestRuntimeEntry(manifest);
       await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);

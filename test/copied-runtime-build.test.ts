@@ -36,7 +36,7 @@ it('builds copied runtime against emitted JSON and config mirrors without evalua
   const { project, destination } = fixture();
   await buildProject(project, destination, { client: null, copyRuntime: true, runtimeCheck: check });
   const { index } = validateOutputProduct(destination);
-  expect(index.runtime?.entry).toBe('runtime/hybrid.ts');
+  expect(index.runtime).toMatchObject({entry:'runtime/hybrid.ts'});
   expect(index.runtime?.files.map(file => file.path)).toEqual(['runtime/const.ts', 'runtime/hybrid.ts', 'runtime/index.ts', 'runtime/sections.ts']);
   for (const file of index.runtime?.files ?? []) expect(readFileSync(resolve(destination, file.path))).toEqual(readFileSync(resolve(project, file.path)));
   // The proof must keep using the copy, even if the author file has since changed.

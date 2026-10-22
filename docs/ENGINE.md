@@ -11481,3 +11481,23 @@ system and labelled slice. Object lending uses the declared object id;
 placed lending uses the stage id. The later bridge-chain allocation stays
 after cover and its existing macrotask. No second cell read, intake, cache,
 renderer, updater, section or authored callback is added.
+
+
+### Compiled client-plan runtime ownership
+
+A runtime declaration with kind `client-plan` retains its explicit binds,
+spawns and measured cost without naming a TypeScript entry. Its matching
+manifest entry policy has platform `client-plan`, retainHomeRuntime and
+stagesOwner, plus the existing optional CSS styles. The generated loader
+calls declaredClientPlanEntry in game/shard/declaredEntry; it imports no
+shard constructor and exposes no trusted-module resolver. Legacy entry
+metadata and declaredRuntimeEntry keep their existing wire and lifecycle.
+
+The compiled constructor admits the product's client/plan before entering
+the same standalone or regional world, world-bindings, kit, prepare-play
+and play phases. Construction and entered scopes, retained home services,
+simulation authority filters and measured residency charges stay with
+those existing owners. Copied compiled outputs have no TS files and zero
+runtime lines; generated declaration stubs are build inputs only, and an
+executable file under runtime refuses the compiled copy rather than being
+silently omitted.

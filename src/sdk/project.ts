@@ -166,8 +166,8 @@ export async function buildProject(project: string, output?: string, options: { 
   clearOutputProduct(destination);
   let descriptor: ReturnType<typeof writeOutputProduct>;
   try {
-    const runtime = options.copyRuntime === true ? writeRuntimeFiles(project, destination, { check: options.runtimeCheck ?? (() => []) }) : undefined;
-    if (runtime !== undefined && (shard.runtime === null) !== (runtime.entry === undefined)) throw new Error('Copied runtime and trusted runtime declaration must agree');
+    const runtime = options.copyRuntime === true ? writeRuntimeFiles(project, destination, { check: options.runtimeCheck ?? (() => []), clientPlan: shard.runtime !== null && !('entry' in shard.runtime) }) : undefined;
+    if (runtime !== undefined && (shard.runtime === null || !('entry' in shard.runtime)) !== (runtime.entry === undefined)) throw new Error('Copied runtime and trusted runtime declaration must agree');
     descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }) });
     if (runtime !== undefined) await proveRuntimeData(destination, descriptor, loaded.mirrors);
   } catch (error) { clearOutputProduct(destination); throw error; }
