@@ -49,6 +49,20 @@
       "kind": "quest.world",
       "file": "quests/world.json",
       "ambient": "driftwood.gulls"
+    },
+    {
+      "kind": "quest.reference",
+      "id": "driftwood.quest-reference"
+    },
+    {
+      "kind": "quest.composition",
+      "id": "driftwood.adventure",
+      "file": "quests/page-composition.json",
+      "reference": "driftwood.quest-reference",
+      "figures": {
+        "file": "quests/figures.json",
+        "draws": "driftwood.fixed-draws"
+      }
     }
   ]
 }

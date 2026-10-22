@@ -12,6 +12,7 @@ import type { AmbientGroup } from '../ambient/flock';
 import type { CollectionCatalogue } from '../models/collectionDisplay';
 import type { HeldClaims } from '../loadout/claims';
 import type { QuestPageComposition } from '../quest/pageComposition';
+import type { QuestPageReference } from '../quest/pageReference';
 import type { CaveInterior } from './caveInterior';
 import type { ForestPage } from './forestPage';
 import type { SceneHandles } from './sceneHandles';
@@ -22,6 +23,7 @@ export interface EntryOwnerTypes {
   forest: ForestPage;
   cave: CaveInterior;
   quest: QuestPageComposition;
+  'quest-reference': QuestPageReference;
   object: Object3D;
   placed: readonly Placed[];
   site: ModelSiteLayout['anchors'];
@@ -47,7 +49,7 @@ function check(scope: Scope, id: string): void {
 function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
-    value = { scenes: new Map(), forest: new Map(), cave: new Map(), quest: new Map(),
+    value = { scenes: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), ambient: new Map(), collection: new Map(), claims: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
     books.set(scope, value);

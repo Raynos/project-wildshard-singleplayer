@@ -50,9 +50,11 @@
       "kind": "quest.composition",
       "id": "pine.quest-page",
       "file": "quests/page-composition.json",
-      "ranged": "pine.ranged",
-      "animals": "pine.animals",
-      "sounds": "pine.quest-sounds"
+      "equipment": {
+        "ranged": "pine.ranged",
+        "animals": "pine.animals",
+        "sounds": "pine.quest-sounds"
+      }
     },
     {
       "kind": "quest.spawns",

@@ -11230,3 +11230,22 @@ their original owners. Closing the card releases only its own resources.
 method capture that explicit source owner before reads; omitted owners use
 the current resource scope. Retiring sources refuse before publishing a
 catalogue, and successful catalogue cache entries end with that owner.
+
+### Entered quest figures and reference (G571)
+
+`quest.reference {id}` publishes a typed entered reference during world
+rank 55. Its places reader has one stable identity before composition;
+it returns the completed quest's actual points after publication and an
+empty list during retirement. Captured session readers keep that identity.
+`quest.composition` accepts optional strict `equipment` ids, optional
+`figures {file,draws}` and an optional declared `reference`. Equipment is
+all-or-none; a shard without it creates no ranged or animal owner.
+
+The compiled composition resolves its original fixed-draw and reference
+loans before reads, checks their identities after awaits, and runs exactly
+one prepare, numeric figure construction, then composition install. The
+figure step borrows the resident SceneHandles and loaded fixed library;
+it installs the original placed trader, counter, colliders, live pose
+systems and ordered cleanup. The completed quest publishes once into its
+entered loan and optional reference. Rows remain finite data without
+authored callbacks or a second geometry intake.

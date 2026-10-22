@@ -84,6 +84,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { prepareQuestWorldEntry } = await import('./questWorld');
     await prepareQuestWorldEntry(ctx, row.file, row.ambient);
   } },
+  'quest.reference': { phase: 'world', rank: 55, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'quest.reference') throw new Error('Invalid quest reference feature');
+    const { installEntryQuestReference } = await import('./clientQuestComposition');
+    installEntryQuestReference(ctx, row.id);
+  } },
   'quest.composition': { phase: 'prepare-play', rank: 20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.composition') throw new Error('Invalid quest composition feature');
     const { installEntryQuestComposition } = await import('./clientQuestComposition');
@@ -233,12 +238,17 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     for (const row of plan.features) {
       if (row.kind === 'quest.continuation' && !product.hasFile(row.file)) throw new Error('Quest continuation requires its admitted data file');
       if ((row.kind === 'quest.world' || row.kind === 'quest.composition' || row.kind === 'held.ranged-page') && !product.hasFile(row.file)) throw new Error('Entry preparation requires its admitted data file');
+      if (row.kind === 'quest.composition') {
+        if (row.figures !== undefined && [row.figures.file, 'people/catalogue.json', 'models/world-scenes.json'].some(file => !product.hasFile(file))) throw new Error('Quest figures require their admitted data and catalogues');
+        if (row.reference !== undefined && !plan.features.some(feature => feature.kind === 'quest.reference' && feature.id === row.reference)) throw new Error('Quest composition requires its declared reference');
+      }
+      if (row.kind === 'quest.reference' && !plan.features.some(feature => feature.kind === 'quest.composition' && feature.reference === row.id)) throw new Error('Quest reference requires its declared composition');
       if (row.kind === 'quest.spawns') {
         const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');
         if (!custom(row.source)) throw new Error('Invalid quest spawn source');
         if (!product.has(row.source)) throw new Error('Quest spawns require their admitted source section');
         product.section(row.source);
-        if (!plan.features.some(owner => owner.kind === 'quest.composition' && owner.id === row.quest && owner.animals === row.animals && owner.sounds === row.sounds)) throw new Error('Quest spawns require their declared composition owners');
+        if (!plan.features.some(owner => owner.kind === 'quest.composition' && owner.id === row.quest && owner.equipment?.animals === row.animals && owner.equipment.sounds === row.sounds)) throw new Error('Quest spawns require their declared composition owners');
       }
       const required = row.kind === 'content.catalogue' ? [
         ...(row.finishes || row.effects.includes('finishes') ? CLIENT_FEATURES[row.kind].sections : []),

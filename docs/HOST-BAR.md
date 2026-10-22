@@ -130,6 +130,8 @@ G571 credit. Imports and dependencies retain their own attribution.
 
 - G571 cold kit card: `game/models/kitFigureCard#kitFigureCard` consumes strict named numeric figure/card rows and an explicit view owner, reusing the fixed-draw loader and existing KitFigure. Test 1 waived; tests 2–6 covered by original castaway geometry snapshots, actual product intake, card retirement and missing-owner refusal. No clock, save or authored callback.
 
+- G571 entered quest figures: `game/quest/pageReference#QuestPageReference` provides the stable entered reader before publication. Test 1 waived; tests 2–6 covered by original live geometry, poses, collisions, resident material lifetime and captured-reader tests. No extra clock/save/author callbacks.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they

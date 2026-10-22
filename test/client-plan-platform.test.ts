@@ -301,7 +301,7 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
   const f = context(), order: string[] = [];
   f.sections.set('client/plan', { version: 1, features: [
     { kind: 'quest.spawns', id: 'orchard.spawns', source: 'custom/questRuntime', quest: 'orchard.quest', animals: 'orchard.animals', sounds: 'orchard.sounds' },
-    { kind: 'quest.composition', id: 'orchard.quest', file: 'quest.json', ranged: 'orchard.ranged', animals: 'orchard.animals', sounds: 'orchard.sounds' },
+    { kind: 'quest.composition', id: 'orchard.quest', file: 'quest.json', equipment: { ranged: 'orchard.ranged', animals: 'orchard.animals', sounds: 'orchard.sounds' } },
     { kind: 'held.ranged-page', file: 'ranged.json' },
     { kind: 'quest.world', file: 'world.json' },
   ] });

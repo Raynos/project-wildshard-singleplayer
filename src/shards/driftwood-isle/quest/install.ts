@@ -1,31 +1,18 @@
-import { publishEntryOwner, entryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { driftwoodWorld } from '../world/build';
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
-import { prepareQuestPageComposition, installQuestPageComposition, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
+import type { QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
 import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
-import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
-import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
-import { installQuestFigures } from '@wildshard/game/quest/figures';
-import { FIGURES, fixedDrawLibrary } from '../runtime/boot/blobAssets';
-import { sites } from '../models/catalogue';
-import { productHullBook } from '@wildshard/game/looks/speciesBook';
 
-/** Prewarm the real hulls before the entered chapter can restore a saved altar. */
+/** Finish the entered quest after its compiled composition has published. */
 export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adventure> {
   const shell = ctx.game.runtime;
   const world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Driftwood adventure requires the play host');
-  // Saved used:altar restores the boss synchronously in Finale; resolve the hull before any quest restore/spawn.
-  await productHullBook(ctx.product).packed.preload();
-  if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
   const d = driftwoodWorld(shell);
   const rows = await ctx.product.json<QuestPageCompositionRows>('quests/page-composition.json');
-  const placement = await prepareQuestPageComposition(ctx, rows);
-  const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
-  installQuestFigures(ctx, await ctx.product.json('quests/figures.json'), { placement, resources: scenes, draws: fixedDrawLibrary(), catalogue: FIGURES, models: sites });
-  const adventure = await installQuestPageComposition(ctx, rows);
-  publishEntryOwner(ctx.scope, 'quest', rows.id, adventure);
+  const adventure = entryOwner(ctx.scope, 'quest', rows.id);
   installBridgeSway(ctx, { ...rows.sway, system: rows.systems.sway, before: rows.systems.before });
   const placed = [...entryOwner(ctx.scope, 'placed', 'piers.world-0'), d.boat.placed,
     ...['piers.world-1', 'piers.world-2', 'piers.world-3'].flatMap(id => entryOwner(ctx.scope, 'placed', id)), ...entryOwner(ctx.scope, 'placed', 'hut'), ...entryOwner(ctx.scope, 'placed', 'lookout'), d.shrine.placed, d.bushes.placed, d.palms.placed, d.rocks.placed, d.bridge.placed,
