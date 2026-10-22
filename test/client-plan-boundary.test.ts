@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The architecture guard reads small isolated source fixtures.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture files stay under the repository's ignored tmp directory.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -36,5 +36,15 @@ test('borrowed-owner types and executable dependency lists cannot hide a schema 
     nested('export const Schema={name:"safe"};');
     writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), 'export const FEATURES={view:{sections:getSections()}};');
     expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('literal section names')]);
+  });
+});
+
+test('creature pose dependencies admit finite inputs while legacy channel owner paths remain fenced', () => {
+  fixture((root, nested) => {
+    writeFileSync(resolve(root, 'src/format/clientChannels.ts'), readFileSync(resolve('src/format/clientChannels.ts'), 'utf8'));
+    nested("import { NumericPoseSchema } from './clientChannels'; export const Schema=NumericPoseSchema;");
+    expect(clientPlanSchemaViolations(root)).toEqual([]);
+    nested("import { ClientChannelsSchema } from './clientChannels'; export const Schema=ClientChannelsSchema;");
+    expect(clientPlanSchemaViolations(root)).toEqual(expect.arrayContaining([expect.stringContaining('reflected {owner,path}')]));
   });
 });

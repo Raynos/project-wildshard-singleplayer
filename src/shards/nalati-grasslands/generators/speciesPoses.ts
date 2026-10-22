@@ -1,4 +1,4 @@
-import { numericChannelPrograms, type NumericChannelOutput, type ClientChannels } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type NumericChannelOutput, type ClientChannels } from '@wildshard/sdk/clientChannels';
 // Build-time scalar algebra. Only bounded numeric DAG rows ship to the pose owner.
 type E = number | { read: string; path: readonly string[] } | { unary: 'sin' | 'cos' | 'abs'; a: E }
   | { binary: 'add' | 'sub' | 'mul' | 'div' | 'min' | 'max' | 'gt'; a: E; b: E } | { test: E; yes: E; no: E };
@@ -45,7 +45,7 @@ function pose(id: string, build: (set: (bone: string, channel: string, e: E, add
     target: `joint.${row.bone.replaceAll('_', '.')}`, path: row.channel.split('.') as [string, string],
     expr: (b, read) => compile(b, read, row.value, new Map()),
   }]));
-  return { group: 'creature.pose', programs, scalars, ...options };
+  return creaturePoseRows({ group: 'creature.pose', programs, scalars, ...options });
 }
 export const SPECIES_POSES = {
   horse: pose('horse', (set, m) => {

@@ -1,3 +1,4 @@
+import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChannels';
 import { SAILOR_CLIPS, CAPTAIN_CLIPS } from '../src/shards/driftwood-isle/generators/humanoidClips';
 import { animateSailor as shippingSailorPose } from './fixtures/animal-pose/sailorPoseShipping';
 import { animateCaptain as shippingCaptainPose } from './fixtures/animal-pose/captainPoseShipping';
@@ -106,4 +107,80 @@ test('predecessor native sailor saves resume on numeric joints without changing 
     expect(resumed.snapshot()).toBe(oldPose.snapshot());
     expect(newActor.mem).toEqual(oldActor.mem); expect(newActor.yOffset).toBe(oldActor.yOffset);
   }
+});
+
+test('typed creature inputs keep node order and snapshot all reads before outputs', () => {
+  const programs = numericChannelPrograms('typed.pose', 'creature.pose', [
+    { target: 'joint.body', path: ['rotation', 'x'], expr: (b, read) => b.binary('add', read('frame', ['mem', 'offset']), read('read.joint.body', ['rotation', 'y'])) },
+    { target: 'joint.body', path: ['rotation', 'y'], expr: (b, read) => b.binary('add', read('read.joint.body', ['rotation', 'x']), b.constant(3)) },
+    { target: 'joint.body', path: ['rotation', 'z'], expr: (_b, read) => read('frame', ['stateIndex']) },
+  ]);
+  const recipe = creaturePoseRows({ group: 'creature.pose', states: ['attack', 'alert'], programs });
+  expect(recipe.programs.map(({ nodes, reads, channels }) => ({ nodes, reads, channels })))
+    .toEqual(programs.map(({ nodes, reads, channels }) => ({ nodes, reads, channels })));
+  expect(recipe.programs.flatMap(row => row.numeric.inputs.map(value => value.kind))).toEqual(['scalar', 'joint', 'joint', 'frame']);
+  const c = context(['body']), body = c.bones['body'];
+  if (body === undefined) throw new Error('Missing body');
+  c.mem['offset'] = 2; body.rotation.set(1, 2, 0);
+  const before = { ...c.mem }, animate = numericCreaturePose(recipe);
+  animate(c);
+  expect(body.rotation.toArray().slice(0, 3)).toEqual([4, 4, 1]);
+  expect(c.mem).toEqual(before);
+  // A source on an absent optional target was never read by the old adapter.
+  expect(() => animate(context([]))).not.toThrow();
+  c.mem['offset'] = Number.NaN;
+  const retained = transforms(c);
+  expect(() => animate(c)).toThrow('Invalid numeric input');
+  expect(transforms(c)).toEqual(retained);
+});
+
+test('creature admission refuses legacy owner paths and nonnumeric frame fields', () => {
+  const first = CRAB_CLIPS.programs[0];
+  if (first === undefined) throw new Error('Missing pose');
+  for (const input of [
+    { input: first.reads[0], owner: 'frame', path: ['t'] },
+    { input: first.reads[0], kind: 'frame', field: 'animal' },
+    { input: first.reads[0], kind: 'scalar', record: { owner: 'frame', path: ['mem'] }, name: 'attack' },
+  ]) expect(() => numericCreaturePose({ ...CRAB_CLIPS, programs: [{ ...first, numeric: { ...first.numeric, inputs: [input] } }] })).toThrow();
+});
+
+test('pose dimensions include optional bodyPitch and retain its absent-field fallback', () => {
+  const programs = numericChannelPrograms('typed.dimensions', 'creature.pose', [
+    { target: 'joint.body', path: ['rotation', 'x'], expr: (_b, read) => read('scalars', ['pitch']) },
+  ]);
+  const recipe = creaturePoseRows({ group: 'creature.pose', programs,
+    scalars: [{ name: 'pitch', path: ['dims', 'bodyPitch'], fallback: 0.125 }] });
+  const c = context(['body']), body = c.bones['body'];
+  if (body === undefined) throw new Error('Missing body');
+  const animate = numericCreaturePose(recipe);
+  animate(c); expect(body.rotation.x).toBe(0.125);
+  c.dims.bodyPitch = 0.375; animate(c); expect(body.rotation.x).toBe(0.375);
+  const direct = numericChannelPrograms('typed.dimension-direct', 'creature.pose', [
+    { target: 'joint.body', path: ['rotation', 'x'], expr: (_b, read) => read('frame', ['dims', 'bodyPitch']) },
+  ]);
+  const fromDimension = numericCreaturePose(creaturePoseRows({ group: 'creature.pose', programs: direct }));
+  fromDimension(c); expect(body.rotation.x).toBe(0.375);
+  delete c.dims.bodyPitch;
+  expect(() => fromDimension(c)).toThrow('Invalid numeric input');
+  expect(body.rotation.x).toBe(0.375);
+  expect(() => creaturePoseRows({ group: 'creature.pose', programs,
+    scalars: [{ name: 'pitch', path: ['dims', 'feet'], fallback: 0 }] })).toThrow();
+  const unsupported = numericChannelPrograms('typed.dimension-invalid', 'creature.pose', [
+    { target: 'joint.body', path: ['rotation', 'x'], expr: (_b, read) => read('frame', ['dims', 'unknown']) },
+  ]);
+  expect(() => creaturePoseRows({ group: 'creature.pose', programs: unsupported })).toThrow();
+});
+
+test('copied pose memory refuses accessors without invoking them', () => {
+  const programs = numericChannelPrograms('typed.memory', 'creature.pose', [
+    { target: 'joint.body', path: ['rotation', 'x'], expr: (_b, read) => read('frame', ['mem', 'offset']) },
+  ]);
+  const animate = numericCreaturePose(creaturePoseRows({ group: 'creature.pose', programs }));
+  const c = context(['body']);
+  let calls = 0;
+  Object.defineProperty(c.mem, 'offset', { get: () => { calls++; return 1; } });
+  const before = transforms(c);
+  expect(() => animate(c)).toThrow('numeric record');
+  expect(calls).toBe(0); expect(transforms(c)).toEqual(before);
+  expect(() => animate(context([]))).not.toThrow();
 });

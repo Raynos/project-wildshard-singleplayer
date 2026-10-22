@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import speciesFrameRows from '../data/speciesRows.json' with {type:'json'};
-import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import type { ClipChannel, ClipFactor, ClipTerm, ClipWhen } from '@wildshard/game/plugin/animation';
 
 // Ordered scalar rows retain the original procedural pose's arithmetic. The
@@ -224,5 +224,5 @@ const surfaceOutputs:NumericChannelOutput[]=[...surfaceValues.entries(),[floor.d
 }}));
 surfaceOutputs.push({target:'visual',path:['yOffset'],expr:(b,read)=>{let cache=surfaceCache.get(b);if(cache===undefined){cache=new Map();surfaceCache.set(b,cache);}return compile(b,read,yOffset,cache);}});
 const surfacePrograms=numericChannelPrograms('king.surface','king.surface',surfaceOutputs);
-export const GOLDEN_KING_POSE = { group: 'creature.pose', programs: [...programs,...observationPrograms,...surfacePrograms] };
+export const GOLDEN_KING_POSE = { group: 'creature.pose', programs: [...creaturePoseRows({ group: 'creature.pose', programs }).programs,...observationPrograms,...surfacePrograms] };
 

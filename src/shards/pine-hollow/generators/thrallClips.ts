@@ -1,4 +1,4 @@
-import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 
 const outputs: NumericChannelOutput[] = [];
 for (const name of ['FL_carpus', 'FR_carpus', 'FL_fetlock', 'FR_fetlock', 'BL_stifle', 'BR_stifle', 'BL_hock', 'BR_hock']) {
@@ -19,5 +19,5 @@ outputs.push({ target: 'body', path: ['rotation', 'z'], expr: (b, read) => {
   const wave = b.unary('sin', b.binary('mul', b.binary('mul', read('frame', ['phase']), b.constant(Math.PI)), b.constant(2)));
   return b.binary('add', read('body', ['rotation', 'z']), b.binary('mul', b.binary('mul', b.constant(.05), moving), wave));
 } });
-export const THRALL_CLIPS = { group: 'creature.pose', variant: 'thrall', alive: true, scalars: ['t', 'seed', 'speed', 'phase'].map(key => ({ name: key, path: [key] })),
-  programs: outputs.flatMap((row, i) => numericChannelPrograms(`thrall.${i}`, 'creature.pose', [{ ...row, target: `joint.${row.target.replaceAll('_', '.')}`, expr: (b, read) => row.expr(b, (owner, path) => read(owner === 'frame' ? 'scalars' : `read.joint.${owner.replaceAll('_', '.')}`, path)) }])) };
+export const THRALL_CLIPS = creaturePoseRows({ group: 'creature.pose', variant: 'thrall', alive: true, scalars: ['t', 'seed', 'speed', 'phase'].map(key => ({ name: key, path: [key] })),
+  programs: outputs.flatMap((row, i) => numericChannelPrograms(`thrall.${i}`, 'creature.pose', [{ ...row, target: `joint.${row.target.replaceAll('_', '.')}`, expr: (b, read) => row.expr(b, (owner, path) => read(owner === 'frame' ? 'scalars' : `read.joint.${owner.replaceAll('_', '.')}`, path)) }])) });

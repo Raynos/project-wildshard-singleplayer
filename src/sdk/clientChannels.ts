@@ -1,4 +1,5 @@
-import { parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import * as v from 'valibot';
+import { NumericPoseSchema, NumericPoseInputSchema, ClientChannelsSchema, parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 
 type Node = ClientChannelProgram['nodes'][number];
 type Unary = Extract<Node, { a: number }>['op'];
@@ -111,4 +112,31 @@ export function numericChannelPrograms(prefix: string, group: string, outputs: r
     programs.push(program);
   }
   return programs;
+}
+
+/** Compile creature-only borrowed observations into finite pose inputs. The
+ * authoring paths never cross the admitted wire; the original node and read
+ * order, numeric names and output arithmetic stay byte-for-byte unchanged. */
+export function creaturePoseRows(input: unknown): v.InferOutput<typeof NumericPoseSchema> {
+  const source = v.parse(v.looseObject({ programs: ClientChannelsSchema, scalars: NumericPoseSchema.entries.scalars }), input);
+  const programs = source.programs.map(program => {
+    const numeric = program.numeric;
+    if (numeric === undefined) throw new Error('Creature authoring requires numeric inputs');
+    const inputs = parseClientChannelInputs(numeric.inputs).map(row => {
+      const [first, second] = row.path;
+      let value: unknown;
+      if (row.owner === 'frame' && row.path.length === 1) value = { kind: 'frame', field: first };
+      else if (row.owner === 'frame' && row.path.length === 2 && (first === 'mem' || first === 'dims') && typeof second === 'string')
+        value = { kind: 'scalar', record: first === 'mem' ? 'memory' : 'dimensions', name: second };
+      else if (row.owner === 'scalars' && row.path.length === 1) value = { kind: 'scalar', record: 'declared', name: first };
+      else if (row.owner === 'look' && row.path.length === 1) value = { kind: 'look', axis: first };
+      else if ((row.owner.startsWith('joint.') || row.owner.startsWith('read.joint.')) && row.path.length === 2)
+        value = { kind: 'joint', joint: row.owner.slice(row.owner.startsWith('read.') ? 11 : 6), transform: first, axis: second };
+      else throw new Error(`Unsupported creature input: ${row.owner}`);
+      if (typeof value !== 'object' || value === null) throw new Error('Missing creature input');
+      return v.parse(NumericPoseInputSchema, { ...value, input: row.input });
+    });
+    return { ...program, numeric: { ...numeric, inputs } };
+  });
+  return v.parse(NumericPoseSchema, { ...source, programs });
 }

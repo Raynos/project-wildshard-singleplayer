@@ -1,4 +1,4 @@
-import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 
 type Read = Parameters<NumericChannelOutput['expr']>[1];
 type Triple = readonly [number, number, number];
@@ -89,10 +89,10 @@ function compile(captain: boolean) {
   }
   const groups = new Map<string, NumericChannelOutput[]>();
   for (const row of rows) { const key = `${row.target}.${row.path[0]}`, group = groups.get(key) ?? []; group.push(row); groups.set(key, group); }
-  return { group: 'creature.pose', look: [1.6, .9, .5], ...(captain ? {} : { squash: 'body' }),
+  return creaturePoseRows({ group: 'creature.pose', look: [1.6, .9, .5], ...(captain ? {} : { squash: 'body' }),
     scalars: [...['t', 'seed', 'speed', 'phase', 'attack', 'brace', 'flinch', 'deathT'].map(key => ({ name: key, path: [key] })),
       { name: 'bodyY', path: ['dims', 'bodyY'] }, ...['init', 'rise', ...(captain ? ['phase'] : [])].map(key => ({ name: key === 'phase' ? 'ragePhase' : key, path: ['mem', key], fallback: 0 }))],
-    programs: [...groups.values()].flatMap((outputs, i) => numericChannelPrograms(`${captain ? 'captain' : 'sailor'}.${i}`, 'creature.pose', outputs.map(out => ({ ...out, target: `joint.${out.target.replaceAll('_', '.')}` })))) };
+    programs: [...groups.values()].flatMap((outputs, i) => numericChannelPrograms(`${captain ? 'captain' : 'sailor'}.${i}`, 'creature.pose', outputs.map(out => ({ ...out, target: `joint.${out.target.replaceAll('_', '.')}` })))) });
 }
 export const SAILOR_CLIPS = compile(false);
 export const CAPTAIN_CLIPS = compile(true);

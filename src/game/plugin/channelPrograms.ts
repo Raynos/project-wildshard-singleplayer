@@ -1,5 +1,5 @@
 import * as poseSchema from 'valibot';
-import { NumericPoseSchema, parseClientChannels } from '@wildshard/format/clientChannels';
+import { NumericPoseSchema, type NumericPoseInputSchema, parseClientChannels } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
 import {createClientChannels,bindClientChannelInputs} from './channels';
@@ -7,6 +7,15 @@ import {createClientChannels,bindClientChannelInputs} from './channels';
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
 export interface ChannelProgramObservation {readonly time:number;readonly delta:number;readonly values:readonly number[]|Readonly<Record<string,number>>}
 function vector(value:ChannelProgramObservation['values']):value is readonly number[]{return Array.isArray(value);}
+/** Pose memory is a numeric record, never an accessor on an authored owner. */
+function poseMemory(memory: Readonly<Record<string, number>>, name: string): number | undefined {
+  const descriptor = Object.getOwnPropertyDescriptor(memory, name);
+  if (descriptor === undefined) return undefined;
+  if (!Object.hasOwn(descriptor, 'value')) throw new Error('Creature pose memory must be a numeric record');
+  const value: unknown = descriptor.value;
+  if (typeof value !== 'number') throw new Error('Creature pose memory must be numeric');
+  return value;
+}
 /** One bounded group of the existing visual DAG owner; supplied owners expose only explicitly declared numeric fields. */
 export function installChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>):{
  evaluate:(observation:ChannelProgramObservation)=>void;capture:()=>()=>void;readonly ids:readonly string[]
@@ -42,13 +51,13 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
 
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
-export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => void {
-  const row = poseSchema.parse(NumericPoseSchema, input);
+export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) => void {
+  const row = poseSchema.parse(NumericPoseSchema, poseData);
   if (new Set(row.scalars.map(scalar => scalar.name)).size !== row.scalars.length
     || row.scalars.some(scalar => [scalar.name, ...scalar.path].some(key => ['constructor', 'prototype', '__proto__'].includes(key)))) throw new Error('Invalid creature pose scalar');
   if (row.programs.length === 0 || row.programs.some(program => {
     const binding = program.numeric;
-    return binding === undefined || binding.group !== row.group || binding.restoreOnly.length > 0
+    return binding.group !== row.group || binding.restoreOnly.length > 0
       || program.locals !== undefined || program.geometry !== undefined || program.connectors !== undefined
       || program.prompt !== undefined || program.bindings !== undefined || program.mover !== undefined
       || binding.outputs.some(output => !output.target.startsWith('joint.') || output.path.length !== 2
@@ -56,27 +65,28 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
       || new Set(binding.outputs.map(output => output.target)).size !== 1;
   })) throw new Error('Invalid creature pose programme');
   const rigs = new WeakMap<AnimalRigContext['bones'], {
-    frame: Record<string, unknown>; look: { yaw: number; pitch: number }; scalars: Record<string, number>;
-    copies: { source: AnimalRigJoint; rotation: { x: number; y: number; z: number } }[];
+    look: { yaw: number; pitch: number }; scalars: Record<string, number>;
+    inputs: readonly poseSchema.InferOutput<typeof NumericPoseInputSchema>[]; joints: ReadonlyMap<string, AnimalRigJoint>;
+    memory: Record<string, number | undefined>;
     observation: { time: number; delta: number; values: Record<string, number> };
     lane: ReturnType<typeof installChannelPrograms> | null;
   }>();
   return c => {
     if ((row.alive !== undefined && row.alive !== c.alive)
-      || (row.variant !== undefined && Reflect.get(c.animal, 'variant') !== row.variant)) return;
+      || (row.variant !== undefined && (!('variant' in c.animal) || c.animal.variant !== row.variant))) return;
     // Detached observations only: missing old-save memory can supply an authored default without a write.
     const scalarValues = row.scalars.map(scalar => {
       const [key, field] = scalar.path;
-      const owner: unknown = Reflect.get(c, key);
-      const value: unknown = field === undefined ? owner : typeof owner === 'object' && owner !== null && Object.hasOwn(owner, field) ? Reflect.get(owner, field) : undefined;
+      const dimensions: Readonly<Record<string, number | undefined>> = { bodyY: c.dims.bodyY, bodyHalfLen: c.dims.bodyHalfLen,
+        bodyRadius: c.dims.bodyRadius, headRadius: c.dims.headRadius, legLen: c.dims.legLen, halfWidth: c.dims.halfWidth, bodyPitch: c.dims.bodyPitch };
+      const value = key === 'mem' ? poseMemory(c.mem, field)
+        : key === 'dims' ? !Object.hasOwn(dimensions, field) ? undefined : dimensions[field] : c[key];
       const number = value ?? scalar.fallback;
       if (typeof number !== 'number' || !Number.isFinite(number)) throw new Error('Invalid creature pose scalar observation');
       return number;
     });
     let rig = rigs.get(c.bones);
     if (rig === undefined) {
-      const frame: Record<string, unknown> = { ...c };
-      frame['stateIndex'] = row.states.indexOf(c.state);
       const fields = (source: { x: number; y: number; z: number }) => ({
         get x() { return source.x; }, set x(value: number) { source.x = value; },
         get y() { return source.y; }, set y(value: number) { source.y = value; },
@@ -86,28 +96,44 @@ export function numericCreaturePose(input: unknown): (ctx: AnimalRigContext) => 
         `joint.${name.replaceAll('_', '.')}`, { position: fields(bone.position), rotation: fields(bone.rotation), scale: fields(bone.scale) },
       ]));
       const scalars: Record<string, number> = Object.fromEntries(row.scalars.map((scalar, i) => [scalar.name, scalarValues[i] ?? Number.NaN]));
-      owners.set('frame', frame); owners.set('look', look); owners.set('scalars', scalars);
-      const copies = Object.entries(c.bones).map(([name, source]) => {
-        const rotation = { x: source.rotation.x, y: source.rotation.y, z: source.rotation.z };
-        owners.set(`read.joint.${name.replaceAll('_', '.')}`, { rotation });
-        return { source, rotation };
-      });
+      const joints = new Map(Object.entries(c.bones).map(([name, joint]) => [name.replaceAll('_', '.'), joint]));
       // Every program targets one optional bone; refuse mixed owners rather than silently dropping a partial program.
       const programs = row.programs.filter(program => {
-        const targets = new Set(program.numeric?.outputs.map(output => output.target));
-        if (targets.size !== 1 || program.numeric?.group !== row.group) throw new Error('Invalid creature pose target');
+        const targets = new Set(program.numeric.outputs.map(output => output.target));
+        if (targets.size !== 1 || program.numeric.group !== row.group) throw new Error('Invalid creature pose target');
         return [...targets].every(target => owners.has(target));
       });
-      rig = { frame, look, scalars, copies, observation: { time: c.t, delta: c.dt, values: {} },
-        lane: programs.length === 0 ? null : installChannelPrograms(programs, row.group, owners) };
+      const inputs = new Map<string, poseSchema.InferOutput<typeof NumericPoseInputSchema>>();
+      const detached: ReturnType<typeof parseClientChannels> = [];
+      for (const program of programs) {
+      for (const input of program.numeric.inputs) {
+        const prior = inputs.get(input.input);
+        if (prior !== undefined && JSON.stringify(prior) !== JSON.stringify(input)) throw new Error('Ambiguous creature pose input');
+        inputs.set(input.input, input);
+      }
+      detached.push({ ...program, numeric: { ...program.numeric, inputs: [] } });
+      }
+      rig = { look, scalars, joints, memory: {}, inputs: [...inputs.values()], observation: { time: c.t, delta: c.dt, values: {} },
+        lane: programs.length === 0 ? null : installChannelPrograms(detached, row.group, owners) };
       rigs.set(c.bones, rig);
     }
-    Object.assign(rig.frame, c);
     row.scalars.forEach((scalar, i) => { rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN; });
-    rig.frame['stateIndex'] = row.states.indexOf(c.state);
     if (row.look !== undefined) Object.assign(rig.look, lookAngles(c, ...row.look));
-    for (const copy of rig.copies) {
-      copy.rotation.x = copy.source.rotation.x; copy.rotation.y = copy.source.rotation.y; copy.rotation.z = copy.source.rotation.z;
+    const frame = { t: c.t, dt: c.dt, seed: c.seed, scale: c.scale, speed: c.speed, strafe: c.strafe,
+      phase: c.phase, attack: c.attack, brace: c.brace, flinch: c.flinch, deathT: c.deathT,
+      stateIndex: row.states.indexOf(c.state), yaw: c.yaw, lookWeight: c.lookWeight };
+    const dimensions: Readonly<Record<string, number | undefined>> = { bodyY: c.dims.bodyY, bodyHalfLen: c.dims.bodyHalfLen,
+      bodyRadius: c.dims.bodyRadius, headRadius: c.dims.headRadius, legLen: c.dims.legLen, halfWidth: c.dims.halfWidth, bodyPitch: c.dims.bodyPitch };
+    for (const input of rig.inputs) if (input.kind === 'scalar' && input.record === 'memory')
+      rig.memory[input.name] = poseMemory(c.mem, input.name);
+    for (const input of rig.inputs) {
+      const joint = input.kind === 'joint' ? rig.joints.get(input.joint) : undefined;
+      const record = input.kind === 'scalar' ? input.record === 'declared' ? rig.scalars : input.record === 'memory' ? rig.memory : dimensions : undefined;
+      const value = input.kind === 'frame' ? frame[input.field] : input.kind === 'scalar'
+        ? record !== undefined && Object.hasOwn(record, input.name) ? record[input.name] : undefined : input.kind === 'look' ? rig.look[input.axis]
+        : joint?.[input.transform][input.axis];
+      if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error(`Invalid numeric input ${input.input}`);
+      rig.observation.values[input.input] = value;
     }
     rig.observation.time = c.t; rig.observation.delta = c.dt;
     rig.lane?.evaluate(rig.observation);

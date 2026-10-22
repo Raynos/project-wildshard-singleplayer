@@ -1,3 +1,4 @@
+import { parseClientChannels } from '@wildshard/format/clientChannels';
 import NALATI_FEATS from '../data/feats.json' with {type:'json'};
 import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'json' };
 import heldWeapons from '../data/heldWeapons.generated.json' with {type:'json'};
@@ -59,6 +60,6 @@ export default parseShardfile({ ...base,
   budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
-  clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => pose.programs),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
+  clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
   modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: NALATI_LEDGER, state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

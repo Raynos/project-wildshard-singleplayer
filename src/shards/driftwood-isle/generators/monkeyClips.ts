@@ -1,4 +1,4 @@
-import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 
 type Read = Parameters<NumericChannelOutput['expr']>[1];
 type Builder = Pick<ClientChannels, 'constant' | 'binary' | 'unary' | 'select'>;
@@ -150,11 +150,11 @@ const recipe = { group: 'creature.pose', states: ['perch', 'attack'], look: [.75
 function compileRecipe(outputs: NumericChannelOutput[], pass: number) {
   const groups = new Map<string, NumericChannelOutput[]>();
   for (const row of outputs) { const key = `${row.target}.${row.path[0]}`, group = groups.get(key) ?? []; group.push(row); groups.set(key, group); }
-  return { ...recipe, ...(pass === 0 ? { squash: 'body' } : {}),
+  return creaturePoseRows({ ...recipe, ...(pass === 0 ? { squash: 'body' } : {}),
     programs: [...groups.values()].flatMap((group, i) => {
       const bound = group.map(output => ({ ...output, target: `joint.${output.target.replaceAll('_', '.')}` }));
       return numericChannelPrograms(`monkey.${pass}.${i}`, 'creature.pose', bound);
-    }) };
+    }) });
 
 }
 export const MONKEY_CLIPS = [compileRecipe(rows, 0), compileRecipe(overlays, 1)];

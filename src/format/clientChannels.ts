@@ -73,12 +73,26 @@ const numericInputs = v.pipe(v.array(v.strictObject({ input: name, owner: v.pipe
 /** Explicit private visual fields, shared by numeric DAG groups and their restore phase. */
 const numericPort=v.strictObject({property:ClientChannelPropertySchema,target:name,
  path:v.pipe(v.array(inputPathKey),v.minLength(1),v.maxLength(2)),restore:v.exactOptional(v.boolean()),nullable:v.exactOptional(v.boolean())});
+const poseScalarName = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u),
+  v.check(key => !['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(key), 'safe numeric record key'));
+const poseDimension = v.picklist(['bodyY', 'bodyHalfLen', 'bodyRadius', 'headRadius', 'legLen', 'halfWidth', 'bodyPitch']);
+/** Creature observations are finite typed values, never a path through an owner. */
+export const NumericPoseInputSchema = v.variant('kind', [
+  v.strictObject({ input: name, kind: v.literal('frame'), field: v.picklist([
+    't', 'dt', 'seed', 'scale', 'speed', 'strafe', 'phase', 'attack', 'brace', 'flinch', 'deathT', 'stateIndex', 'yaw', 'lookWeight',
+  ]) }),
+  v.pipe(v.strictObject({ input: name, kind: v.literal('scalar'), record: v.picklist(['declared', 'memory', 'dimensions']), name: poseScalarName }),
+    v.check(row => row.record !== 'dimensions' || v.safeParse(poseDimension, row.name).success, 'supported numeric pose dimension')),
+  v.strictObject({ input: name, kind: v.literal('look'), axis: v.picklist(['yaw', 'pitch']) }),
+  v.strictObject({ input: name, kind: v.literal('joint'), joint: v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9.:-]*$/u), v.maxLength(96)),
+    transform: v.picklist(['position', 'rotation', 'scale']), axis: v.picklist(['x', 'y', 'z']) }),
+]);
+const typedPoseInputs = v.pipe(v.array(NumericPoseInputSchema), v.maxLength(128),
+  v.check(rows => new Set(rows.map(row => row.input)).size === rows.length, 'unique typed pose inputs'));
 const numericProgram=v.pipe(v.strictObject({group:name,outputs:v.pipe(v.array(numericPort),v.minLength(1),v.maxLength(32)),
- inputs:v.optional(numericInputs,[]),restoreOnly:v.optional(v.pipe(v.array(numericPort),v.maxLength(32)),[]),
+ inputs:v.optional(v.union([numericInputs, typedPoseInputs]),[]),restoreOnly:v.optional(v.pipe(v.array(numericPort),v.maxLength(32)),[]),
 }),v.check(row=>row.outputs.length+row.restoreOnly.length<=32,'bounded numeric field loans'));
-const program = v.strictObject({
-  id: name,
-  numeric:v.exactOptional(numericProgram),
+const programFields = {
   geometry: v.exactOptional(geometry),
   connectors: v.exactOptional(v.pipe(v.array(connector), v.minLength(1), v.maxLength(32))),
   prompt: v.exactOptional(prompt),
@@ -88,11 +102,13 @@ const program = v.strictObject({
   locals: v.exactOptional(v.pipe(v.array(v.strictObject({ initial, next: index })), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.locals))),
   nodes: v.pipe(v.array(node), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.nodes)),
   channels: v.pipe(v.array(v.strictObject({ property: ClientChannelPropertySchema, value: index })), v.minLength(0), v.maxLength(CLIENT_CHANNEL_LIMITS.channels)),
-});
+};
+const baseProgram = v.strictObject({ id: name, ...programFields });
+const program = v.strictObject({ id: name, numeric: v.exactOptional(numericProgram), ...programFields });
 /** Data-only client programme, with selected copied observations and visual outputs. */
 export type ClientChannelProgram = v.InferOutput<typeof program>;
 /** Each connector owns a complete private transform or a disjoint interval of instance slots. */
-function uniqueConnectorSlots(rows: readonly ClientChannelProgram[]): boolean {
+function uniqueConnectorSlots(rows: readonly v.InferOutput<typeof baseProgram>[]): boolean {
   const targets = new Map<string, [number, number][]>(), bound = new Set(rows.flatMap(row => (row.bindings ?? []).map(item => item.target)));
   for (const row of rows) for (const pose of row.connectors ?? []) {
     if (bound.has(pose.target)) return false;
@@ -107,11 +123,10 @@ function uniqueConnectorSlots(rows: readonly ClientChannelProgram[]): boolean {
   return true;
 }
 /** A straight-line DAG: every reference names an earlier node, never a loop, call or recursive expression. */
-export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program, v.check(row => (row.channels.length > 0 || row.geometry !== undefined || row.connectors !== undefined)
+const structureProgram = v.pipe(baseProgram, v.check(row => (row.channels.length > 0 || row.geometry !== undefined || row.connectors !== undefined)
   && (row.geometry === undefined || [...row.geometry.from, ...row.geometry.to, row.geometry.extent, row.geometry.wave].every(value => value < row.nodes.length))
   && (row.connectors ?? []).every(pose => [...pose.from, ...pose.to, ...(pose.at ?? []), ...pose.scale,
     pose.enabled, ...(pose.cache === undefined ? [] : [pose.cache])].every(value => value < row.nodes.length))
-  && (row.numeric===undefined||row.numeric.outputs.every(output=>row.channels.some(channel=>channel.property===output.property))&&row.numeric.inputs.every(input=>row.reads.includes(input.input)))
   && uniqueConnectorSlots([row])
   && new Set(row.reads).size === row.reads.length
   && new Set(row.channels.map(channel => channel.property)).size === row.channels.length
@@ -127,6 +142,14 @@ export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof pro
     if (value.op === 'select') return value.test < at && value.yes < at && value.no < at;
     return (!('c' in value) || value.c < at) && (!('a' in value) || value.a < at) && (!('b' in value) || value.b < at);
   }), 'unique visual channels and reads; backward-only nodes and bounded private slots'));
+/** Preserve the generic channel wire, including its existing private owner loans. */
+export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program,
+  v.check(row => {
+    const { numeric, ...base } = row;
+    return v.safeParse(structureProgram, base).success && (numeric === undefined
+      || numeric.outputs.every(output => row.channels.some(channel => channel.property === output.property))
+      && numeric.inputs.every(input => row.reads.includes(input.input)));
+  }, 'unique visual channels and reads; backward-only nodes and bounded private slots'));
 /** Admitted visual programs; aggregate caps apply before any expression storage is allocated. */
 export const ClientChannelsSchema: v.GenericSchema<v.InferInput<typeof ClientChannelProgramSchema>[], ClientChannelProgram[]> = v.pipe(v.array(ClientChannelProgramSchema), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
@@ -346,9 +369,30 @@ export const WorldSceneBindingsSchema = v.pipe(v.record(name,worldBinding),v.che
 /** Refuse functions, unknown fields and unbounded anchor values before binding native parts. */
 export function parseWorldSceneBindings(input:unknown):v.InferOutput<typeof WorldSceneBindingsSchema>{return v.parse(WorldSceneBindingsSchema,input);}
 
+const poseNumeric = v.strictObject({ group: name, outputs: v.pipe(v.array(numericPort), v.minLength(1), v.maxLength(32)),
+  inputs: v.optional(typedPoseInputs, []),
+  restoreOnly: v.optional(v.pipe(v.array(numericPort), v.maxLength(0)), []),
+});
+const poseProgram = v.pipe(v.strictObject({ id: name, ...programFields, numeric: poseNumeric }), v.check(row => {
+  const { numeric, ...base } = row;
+  return v.safeParse(structureProgram, base).success
+    && numeric.outputs.every(output => row.channels.some(channel => channel.property === output.property))
+    && numeric.inputs.length === row.reads.length && numeric.inputs.every(input => row.reads.includes(input.input));
+}, 'bounded typed creature pose program'));
+/** Same DAG and aggregate admission, with no legacy owner-path input dependency. */
+export const NumericPoseProgramsSchema = v.pipe(v.array(poseProgram), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
+v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
+    && new Set(rows.flatMap(row => row.prompt === undefined ? [] : [row.prompt.id])).size === rows.filter(row => row.prompt !== undefined).length
+    && uniqueConnectorSlots(rows)
+    && rows.filter(row => row.prompt !== undefined).length <= CLIENT_CHANNEL_LIMITS.prompts
+    && rows.reduce((sum, row) => sum + (row.connectors ?? []).reduce((total, pose) => total + (pose.instances?.capacity ?? 1), 0), 0) <= 8192
+    && rows.reduce((sum, row) => sum + row.nodes.length, 0) <= CLIENT_CHANNEL_LIMITS.totalNodes
+    && rows.reduce((sum, row) => sum + (row.locals?.length ?? 0), 0) <= CLIENT_CHANNEL_LIMITS.totalLocals
+    && rows.reduce((sum, row) => sum + row.channels.length, 0) <= CLIENT_CHANNEL_LIMITS.totalChannels, 'unique bounded client channel programs'));
+
 /** Numeric creature-pose wire rows; the game retains joint evaluation and scalar admission. */
 export const NumericPoseSchema = v.strictObject({
-  programs: ClientChannelsSchema,
+  programs: NumericPoseProgramsSchema,
   group: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
   states: v.optional(v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(64)), []),
   look: v.exactOptional(v.tuple([v.pipe(v.number(), v.finite()), v.pipe(v.number(), v.finite(), v.minValue(0)), v.pipe(v.number(), v.finite(), v.minValue(0))])),
@@ -358,7 +402,7 @@ export const NumericPoseSchema = v.strictObject({
   scalars: v.optional(v.pipe(v.array(v.strictObject({
     name: v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u)),
     path: v.union([v.tuple([v.picklist(['t', 'seed', 'speed', 'strafe', 'phase', 'attack', 'brace', 'flinch', 'deathT'])]),
-      v.tuple([v.picklist(['mem', 'dims']), v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9.-]{0,63}$/u))])]),
+      v.tuple([v.literal('mem'), poseScalarName]), v.tuple([v.literal('dims'), poseDimension])]),
     fallback: v.exactOptional(v.pipe(v.number(), v.finite())),
   })), v.maxLength(64)), []),
 });
