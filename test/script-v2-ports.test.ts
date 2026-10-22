@@ -27,10 +27,9 @@ test('scoped AS inventory refuses silently unenrolled or stale sources',() => {
     return !Object.entries(ports).some(([fixture,port]) => fixture.startsWith(prefix) && port.input.authored.get(virtualPath) === source);
   }).map(([path]) => path).sort();
   // These are unfinished ports, not admitted sources: the two v0 directors
-  // retain an env.query import, and H9 owns the live ABI2 bridge view module.
+  // retain an env.query import and private continuation globals.
   // Enrolling one requires removing its pending entry; additions fail CI.
   expect(pending).toEqual([
-    '../src/shards/driftwood-isle/behaviour/bridgeSway.as',
     '../src/shards/driftwood-isle/behaviour/director.as',
     '../src/shards/pine-hollow/behaviour/director.as',
   ]);
