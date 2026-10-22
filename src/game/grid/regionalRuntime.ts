@@ -188,9 +188,12 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       scope.onDispose(foundation.region.dispose);
       const host = foundation.region.host;
       if (host.embedded || host.hasPlayerMotor || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
-      const app = request.page.context.app, parent = request.page.context.game.runtime, pageScope = app.levelScope;
+      // The page's own level scope owns its player services (loadout registers the equipment host there). Not
+      // app.levelScope: with G580 T1 a build-ahead starts while another world is entered, whose scope that is, and its
+      // services leave with it, so a construction lending from it lost the equipment host mid-build when the traveller
+      // left the source (Sky Reach's held melee then refused its play stage).
+      const app = request.page.context.app, parent = request.page.context.game.runtime, pageScope = request.page.world.game.levelScope;
       if (parent === undefined) throw new Error('Regional factory requires the page runtime');
-      if (pageScope === null) throw new Error('Regional factory requires the page level scope');
       app.cpu.bind(scope, request.cell.instance);
       const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.rootScene,
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
