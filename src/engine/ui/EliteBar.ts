@@ -178,8 +178,8 @@ export class EliteBar {
       this.scope.onDispose(() => { resize.disconnect(); });
     }
     const layer = this.skullLayer;
+    if (this.skullR < 0) return; // drawn from the observer's first size report: reading it here forced a page layout
     while (this.skullEls.length < list.length) { const e = document.createElement('i'); e.className = 'ws-elite-mapskull'; e.innerHTML = SKULL; layer.append(e); this.skullEls.push(e); }
-    if (this.skullR < 0) this.skullR = layer.clientWidth / 2; // before the observer's first report: measured once
     const r = this.skullR;
     for (let i = 0; i < list.length; i++) {
       const s = list[i], e = this.skullEls[i];

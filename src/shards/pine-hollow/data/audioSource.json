@@ -1491,7 +1491,8 @@
         "near": [],
         "prewarm": [
           "ir-cabin",
-          "ir-bowl"
+          "ir-bowl",
+          "ir-oldgrowth"
         ],
         "probeFinite": [
           "x",
