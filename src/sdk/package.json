@@ -89,6 +89,7 @@
     "./species/clips": "./species/clips.ts",
     "./compileScript": "./bake/compileScript.ts",
     "./compileScriptV2": "./bake/compileScriptV2.ts",
+    "./compileDualScriptV2": "./bake/compileDualScriptV2.ts",
     "./compileSimV2": "./bake/compileSimV2.ts",
     "./runtime/prompts": "./runtime/prompts.ts",
     "./buildBehaviour": "./buildBehaviour.ts",
@@ -486,6 +487,10 @@
       "./compileScriptV2": {
         "types": "./dist/types/sdk/bake/compileScriptV2.d.ts",
         "default": "./dist/compileScriptV2.js"
+      },
+      "./compileDualScriptV2": {
+        "types": "./dist/types/sdk/bake/compileDualScriptV2.d.ts",
+        "default": "./dist/compileDualScriptV2.js"
       },
       "./compileSimV2": {
         "types": "./dist/types/sdk/bake/compileSimV2.d.ts",
