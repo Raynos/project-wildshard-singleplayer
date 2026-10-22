@@ -820,9 +820,3 @@ export function declaredSurface(input: unknown): NonNullable<ShardManifest['surf
   const rows = v.parse(ScalarTripletSchema,input),first = readScalarLattice(rows[0]),second = readScalarLattice(rows[1]),third = readScalarLattice(rows[2]);
   return (x,z,_height,_slope) => [first(x,z),second(x,z),third(x,z)];
 }
-
-/** Ordered scalar rasters as the existing map callback; writes the supplied output and returns void. */
-export function declaredMapColour(input: unknown): MinimapPalette['ground'] {
-  const rows = v.parse(ScalarTripletSchema,input),first = readScalarLattice(rows[0]),second = readScalarLattice(rows[1]),third = readScalarLattice(rows[2]);
-  return (x,z,_height,_slope,_forest,out) => { out[0] = first(x,z);out[1] = second(x,z);out[2] = third(x,z); };
-}

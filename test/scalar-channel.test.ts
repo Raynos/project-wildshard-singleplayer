@@ -46,7 +46,7 @@ test('actual Nalati channels and every existing sampler retain exact boundary, s
     const bytes = unzlibSync(Uint8Array.from(atob(data),value => value.codePointAt(0) ?? 0));
     return bakedSamplers({ res: geography.res,size: geography.size,seed: geography.seed,landscapeHash: 0,heights: new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4),splat: new Uint8Array(0),undergrowth: null }).heightAt;
   };
-  const channels = { ...geography.channels,red: geography.pigment[0],green: geography.pigment[1],blue: geography.pigment[2],gravel: geography.surface[0],rock: geography.surface[1],ice: geography.surface[2],mapRed: geography.mapPigment[0],mapGreen: geography.mapPigment[1],mapBlue: geography.mapPigment[2] };
+  const channels = { ...geography.channels,red: geography.pigment[0],green: geography.pigment[1],blue: geography.pigment[2],gravel: geography.surface[0],rock: geography.surface[1],ice: geography.surface[2] };
   const samplers = Object.fromEntries(Object.entries(channels).map(([name,data]) => [name,old(data.values.data)]));
   for (const x of [-251,-250,-0,0,1,249.999,250,251]) for (const z of [-251,-250,-0,0,1,249.999,250,251]) {
     expect(Object.is(wetMask(x,z),samplers['wet']?.(x,z))).toBe(true);expect(Object.is(forestMask(x,z),samplers['forest']?.(x,z))).toBe(true);
