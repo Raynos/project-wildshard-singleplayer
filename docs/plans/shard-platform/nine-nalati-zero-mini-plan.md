@@ -61,6 +61,6 @@ Nalati 476).
 
 - **E1:** extend G571's one-user-host terms to Nine and Nalati (existing G474/G478 hosts reshaped to pass tests 2–6, each scored
   by the host audit before listing). Governs ~1,625 lines.
-- **E2:** the 414 lines of hand-written GLSL: port to look-graph nodes (Z2 measured +64 KB sections, +40–115 MB memory on Nine), or
-  rule that GLSL emitted by a build-time generator is data.
+- **E2 (decided G595):** the 414 lines of hand-written GLSL port to look-graph nodes, memory measured first. Raw GLSL is never data in
+  a shardfile (G306), whatever produces it.
 - **E3:** widen WASM-HOST's view lane (H9/H13) from Pine/Driftwood to Nine and Nalati.
