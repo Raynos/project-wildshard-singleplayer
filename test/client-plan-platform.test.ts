@@ -61,7 +61,8 @@ test('entered world looks precede plan effects and release with their owner', as
     tick: () => undefined, outline: () => [], surfaces: null,
     graphs: { bind: () => undefined, readout: { compiled: 0, fallback: 0, reasons: [] } },
   });
-  const plan = admitClientPlan({ version: 1, features: [{ kind: 'strings.register' }] }, f.ctx.product);
+  const plan = admitClientPlan({ version: 1, features: [{ kind: 'strings.register' }, { kind: 'world.sets', rows: [] }] }, f.ctx.product);
+  const sets = vi.spyOn(clientPhases.CLIENT_FEATURES['world.sets'], 'install').mockImplementation(() => undefined);
   f.strings.mockImplementation(() => { expect(lentLook('orchard-leaves')).toBe(material); });
   try {
     await installClientPhase(f.ctx, plan, 'world', f.ctx.scope, 'resident');
@@ -71,7 +72,7 @@ test('entered world looks precede plan effects and release with their owner', as
     expect(compile).toHaveBeenCalledOnce();
     expect(compile).toHaveBeenCalledWith(f.ctx, f.source, true, ['orchard-leaves']);
     expect(f.strings).toHaveBeenCalledTimes(2);
-  } finally { compile.mockRestore(); f.ctx.scope.dispose(); material.dispose(); }
+  } finally { compile.mockRestore(); sets.mockRestore(); f.ctx.scope.dispose(); material.dispose(); }
   expect(hasLentLook('orchard-leaves')).toBe(false);
 });
 
@@ -477,4 +478,22 @@ test('a finite native kit selection retains its world and play owners without re
     expect(() => declaredRuntimeEntry(Native, Native, { ...policy, nativePlan: { phases: ['kit', 'kit'] } })).toThrow('Duplicate native client phase');
   } finally { install.mockRestore(); f.ctx.scope.dispose(); }
   expect(release).toHaveBeenCalledOnce();
+});
+
+
+test('native metadata registration leaves the original world as the only look constructor', async () => {
+  const f = context(), order: string[] = [];
+  f.source.look.materials['orchard-leaves'] = parseFamilyMaterial({ family: 'pbr' });
+  f.sections.set('client/plan', { version: 1, features: [{ kind: 'strings.register' }] });
+  f.strings.mockImplementation(() => { order.push('strings'); });
+  const compile = vi.spyOn(lookCompiler, 'runtimeLookMaterials').mockRejectedValue(new Error('Metadata cannot prepare visual looks'));
+  class Native extends ShardPlugin {
+    override world(): void { order.push('native-world'); expect(compile).not.toHaveBeenCalled(); }
+  }
+  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared',
+    nativePlan: { phases: ['world'], features: ['strings.register'] } }).default;
+  try {
+    await new Entry(undefined, undefined, () => false).world(f.ctx);
+    expect(order).toEqual(['strings', 'native-world']); expect(compile).not.toHaveBeenCalled();
+  } finally { compile.mockRestore(); f.ctx.scope.dispose(); }
 });

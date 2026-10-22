@@ -54,6 +54,8 @@ interface ClientFeature {
   readonly rank: number;
   readonly lifetime: 'resident' | 'entered';
   readonly sections: readonly PlatformSectionName[];
+  /** Native metadata can precede the original visual constructor without loading its looks. */
+  readonly needsWorldLooks?: false;
   readonly install: (ctx: ShardContext, row: ClientFeatureRow, resident: Scope) => Promise<void> | void;
   readonly play?: { readonly rank: number; readonly install: ClientFeature['install'] };
   readonly preparePlay?: { readonly rank: number; readonly install: ClientFeature['install'] };
@@ -213,7 +215,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     ctx.system({id:'client.painterly',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>{updatePainterly(dt);painterlyUniforms.uPWind.value.set(wind.dirX,wind.dirZ,windUniforms.uWindStrength.value);}});
   }},
   'world.sets': {phase:'world',rank:47,lifetime:'entered',sections:[],install:installClientPlaceSets},
-  'strings.register': { phase: 'world', rank: 0, lifetime: 'entered', sections: ['ui/strings'],
+  'strings.register': { phase: 'world', rank: 0, lifetime: 'entered', sections: ['ui/strings'], needsWorldLooks: false,
     install: ctx => {
       const rows = ctx.product.section('ui/strings');
       if (!retainsRuntimeServices(ctx)) { ctx.strings(rows); return; }
@@ -376,8 +378,9 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
       ...(phase === 'prepare-play' && feature.preparePlay !== undefined ? [{ row, ...feature.preparePlay }] : [])];
   }).sort((a, b) => a.rank - b.rank || (a.row.kind === 'debug.expose' ? a.row.name : a.row.kind).localeCompare(b.row.kind === 'debug.expose' ? b.row.name : b.row.kind));
   // The platform's look phase precedes every entered world step, including
-  // trusted runtimes whose data client intentionally skips presentation.
-  if (phase === 'world' && lifetime !== 'resident' && rows.length > 0) {
+  // trusted runtimes whose data client intentionally skips presentation. A
+  // metadata-only phase leaves look construction to its original native owner.
+  if (phase === 'world' && lifetime !== 'resident' && rows.some(({ row }) => CLIENT_FEATURES[row.kind].needsWorldLooks !== false)) {
     if (ctx.scope.disposed || ctx.scope.disposing || resident.disposed || resident.disposing) throw new Error('Client feature owner is disposed');
     const missing = Object.keys(ctx.product.shardfile.look.materials).filter(id => !hasLentLook(id));
     if (missing.length > 0) await timeClientPreparation(ctx.product.slug, 'world.looks', async () => {
