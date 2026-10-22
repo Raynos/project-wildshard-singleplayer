@@ -11468,11 +11468,14 @@ preparation. Module reads fence owner retirement before the program installs
 its update system. The rows name the binding's sample columns (player
 position or horizontal speed, a registry piece's floor under the player as
 present / height, constants), the channel bank's targets (an additive camera
-offset re-applied every displayed frame from the last landed bank, or a lent
-look parameter written on landing), the transform positions (entered objects
-lent by id: local matrices, the object's transform restored when the owner
-ends; a rendered pose is never an authority position), the lane budget and
-the matrix bounds. A program sampling a piece the registry lacks installs
+offset re-applied every displayed frame from the last landed bank; written on
+landing: a lent look parameter, a lent object's visibility, its materials'
+opacity or a named shader uniform, or one component of one copy's attribute,
+a per-instance look value), the transform positions (a lent object's local
+matrix, a named bone under it, or one copy of a lent instanced draw), the lane
+budget and the matrix bounds. Every target is claimed once for the owner's
+life and restored when it ends; a rendered pose is never an authority
+position. A program sampling a piece the registry lacks installs
 nothing. `engine/script/viewProgram` owns the lane; the game install only
 lends the world, entry-owner objects and lent looks.
 

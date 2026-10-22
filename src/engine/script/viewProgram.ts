@@ -1,15 +1,15 @@
 /**
  * G600 L7: one view module and its rows (format/viewProgram) as a view-lane owner (SCRIPT-ABI v2, lane 3; WASM-HOST H9).
  * Each displayed frame it samples its binding's columns (the player, a registry piece's floor under the player,
- * constants), runs the lane, adds the last landed channel bank to the camera and writes the look channels, and puts each
- * validated matrix on the object its owner lent for that position. Lent objects are claimed for the owner's life and
- * their local transform restored when it ends; a rendered pose is a visual only and never an authority position.
- * Client-only; nothing reaches the sim or a save.
+ * constants), runs the lane, re-adds the last landed bank's camera channels and, on landing, writes its look, visibility,
+ * opacity, uniform and instanced-attribute channels and puts each validated matrix on its target: a lent object's local
+ * matrix, a bone under it, or one copy of a lent instanced draw. Every target is claimed for the owner's life and
+ * restored when it ends; a rendered pose is a visual only and never an authority position. Client-only.
  */
-import { Matrix4, Quaternion, Vector3, type Camera, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedMesh, InterleavedBufferAttribute, Material, Matrix4, Quaternion, ShaderMaterial, Vector3, type Camera, type Object3D } from 'three';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
 import type { Scope } from '../app/scope';
-import { ViewLane, type ViewTargets } from './viewLane';
+import { ViewLane } from './viewLane';
 
 /** What a program borrows from its owner. `floor` is null for a piece the registry lacks. */
 export interface ViewProgramPorts {
@@ -26,40 +26,19 @@ export interface ViewProgram {
   readonly frozen: boolean;
 }
 
-const claims = new WeakMap<Object3D, symbol>();
-/** Matrix targets over lent objects: local matrices, restored with their transform flags when the owner ends. */
-function objectTargets(scope: Scope, objects: readonly Object3D[]): Pick<ViewTargets, 'write' | 'upload'> {
-  const token = Symbol('view transforms');
-  if (new Set(objects).size !== objects.length || objects.some(object => claims.has(object))) throw new Error('View transform object is already lent');
-  const saved = objects.map(object => ({ matrix: object.matrix.clone(), position: object.position.clone(), quaternion: object.quaternion.clone(),
-    scale: object.scale.clone(), auto: object.matrixAutoUpdate }));
-  const staged = objects.map(() => new Matrix4()), dirty = new Set<number>();
-  const position = new Vector3(), rotation = new Quaternion(), scale = new Vector3();
-  for (const object of objects) claims.set(object, token);
-  scope.onDispose(() => {
-    dirty.clear();
-    for (const [i, object] of objects.entries()) {
-      const row = saved[i];
-      if (row === undefined || claims.get(object) !== token) continue;
-      object.matrix.copy(row.matrix); object.position.copy(row.position); object.quaternion.copy(row.quaternion); object.scale.copy(row.scale);
-      object.matrixAutoUpdate = row.auto; object.matrixWorldNeedsUpdate = true; claims.delete(object);
-    }
-  });
-  const live = (): boolean => !scope.disposed && !scope.disposing;
-  return {
-    write: (index, matrix) => { const target = staged[index]; if (target === undefined) throw new Error('Unknown view transform'); if (live()) { target.fromArray(matrix); dirty.add(index); } },
-    upload: () => {
-      if (live()) for (const index of dirty) {
-        const object = objects[index], matrix = staged[index];
-        if (object === undefined || matrix === undefined) throw new Error('Unknown view transform');
-        matrix.decompose(position, rotation, scale);
-        object.position.copy(position); object.quaternion.copy(rotation); object.scale.copy(scale);
-        object.matrix.copy(matrix); object.matrixAutoUpdate = false; object.matrixWorldNeedsUpdate = true;
-      }
-      dirty.clear();
-    },
-  };
+/** Every claimed target of every live program: an object's transform or channel, or one instanced copy. */
+const claims = new WeakMap<object, Set<string>>();
+function claim(scope: Scope, target: object, key: string, restore: () => void): void {
+  let held = claims.get(target); if (held === undefined) { held = new Set(); claims.set(target, held); }
+  if (held.has(key)) throw new Error(`View target is already lent: ${key}`);
+  held.add(key);
+  scope.onDispose(() => { held.delete(key); restore(); });
 }
+const numberCell = (cell: unknown): cell is { value: number } => typeof cell === 'object' && cell !== null && 'value' in cell && typeof cell.value === 'number';
+const materials = (object: Object3D): Material[] => {
+  const value: unknown = Reflect.get(object, 'material'), list: readonly unknown[] = Array.isArray(value) ? value : [value];
+  return list.filter((row): row is Material => row instanceof Material);
+};
 
 /** Install a program over its admitted module bytes, or null when a sampled piece is absent (nothing installs). */
 export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: ViewProgramPorts): ViewProgram | null {
@@ -67,14 +46,75 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   for (const row of rows.samples) if (row.kind === 'floor' && !floors.has(row.piece)) {
     const floor = ports.floor(row.piece); if (floor === null) return null; floors.set(row.piece, floor);
   }
-  const transforms = objectTargets(ports.scope, rows.transforms.map(row => ports.object(row.object)));
+  const scope = ports.scope, live = (): boolean => !scope.disposed && !scope.disposing;
+  // transforms: each position's setter over its claimed target
+  const position = new Vector3(), rotation = new Quaternion(), size = new Vector3();
+  const setters = rows.transforms.map((row): (matrix: Matrix4) => void => {
+    const owner = ports.object(row.object);
+    if (row.kind === 'instance') {
+      if (!(owner instanceof InstancedMesh) || row.index >= owner.count) throw new Error(`View instance ${row.object}#${String(row.index)} is not a lent copy`);
+      const saved = new Matrix4(), mesh = owner; mesh.getMatrixAt(row.index, saved);
+      claim(scope, mesh, `instance:${String(row.index)}`, () => { mesh.setMatrixAt(row.index, saved); mesh.instanceMatrix.needsUpdate = true; });
+      return matrix => { mesh.setMatrixAt(row.index, matrix); mesh.instanceMatrix.needsUpdate = true; };
+    }
+    const object = row.kind === 'bone' ? owner.getObjectByName(row.bone) : owner;
+    if (object === undefined) throw new Error(`View bone ${row.object}/${row.kind === 'bone' ? row.bone : ''} is missing`);
+    const saved = { position: object.position.clone(), quaternion: object.quaternion.clone(), scale: object.scale.clone(), matrix: object.matrix.clone(), auto: object.matrixAutoUpdate };
+    claim(scope, object, 'transform', () => {
+      object.position.copy(saved.position); object.quaternion.copy(saved.quaternion); object.scale.copy(saved.scale); object.matrix.copy(saved.matrix);
+      object.matrixAutoUpdate = saved.auto; object.matrixWorldNeedsUpdate = true;
+    });
+    return matrix => {
+      matrix.decompose(position, rotation, size);
+      object.position.copy(position); object.quaternion.copy(rotation); object.scale.copy(size);
+      object.matrix.copy(matrix); object.matrixAutoUpdate = false; object.matrixWorldNeedsUpdate = true;
+    };
+  });
+  // channels landed on landing; camera channels are re-added every displayed frame
+  const writers = rows.channels.map((row): ((value: number) => void) | null => {
+    if (row.kind === 'camera') return null;
+    if (row.kind === 'look') return value => { ports.look(row.look, row.param, value); };
+    const object = ports.object(row.object);
+    if (row.kind === 'visible') {
+      const saved = object.visible; claim(scope, object, 'visible', () => { object.visible = saved; });
+      return value => { object.visible = value > .5; };
+    }
+    if (row.kind === 'opacity') {
+      const list = materials(object), saved = list.map(material => material.opacity);
+      if (list.length === 0) throw new Error(`View opacity ${row.object} has no material`);
+      claim(scope, object, 'opacity', () => { for (const [i, material] of list.entries()) material.opacity = saved[i] ?? material.opacity; });
+      return value => { for (const material of list) material.opacity = value; };
+    }
+    if (row.kind === 'uniform') {
+      const cells = materials(object).flatMap(material => { const cell: unknown = material instanceof ShaderMaterial ? material.uniforms[row.uniform] : undefined; return numberCell(cell) ? [cell] : []; });
+      if (cells.length === 0) throw new Error(`View uniform ${row.object}.${row.uniform} is not a number`);
+      const saved = cells.map(cell => cell.value);
+      claim(scope, object, `uniform:${row.uniform}`, () => { for (const [i, cell] of cells.entries()) cell.value = saved[i] ?? cell.value; });
+      return value => { for (const cell of cells) cell.value = value; };
+    }
+    const geometry: unknown = Reflect.get(object, 'geometry');
+    const cell: unknown = geometry instanceof BufferGeometry && geometry.hasAttribute(row.attribute) ? geometry.getAttribute(row.attribute) : undefined;
+    if (!(cell instanceof BufferAttribute || cell instanceof InterleavedBufferAttribute) || row.index >= cell.count) throw new Error(`View attribute ${row.object}.${row.attribute} is missing`);
+    const saved = cell.getComponent(row.index, row.component);
+    const touch = (): void => { if (cell instanceof InterleavedBufferAttribute) cell.data.needsUpdate = true; else cell.needsUpdate = true; };
+    claim(scope, cell, `${String(row.index)}:${String(row.component)}`, () => { cell.setComponent(row.index, row.component, saved); touch(); });
+    return value => { cell.setComponent(row.index, row.component, value); touch(); };
+  });
+  const staged = rows.transforms.map(() => new Matrix4()), dirty = new Set<number>();
   const landed = new Float64Array(rows.channels.length), n = rows.samples.length, columns = new Float64Array(2 * n);
   const lane = new ViewLane(bytes, rows.budget.pages, { bindings: [{ handle: 1, columns: n }],
     transforms: rows.transforms.map((_, output) => ({ binding: 0, output, element: 0 })), channels: rows.channels.length,
-    bounds: rows.bounds, targetMs: rows.budget.targetMs, fuel: rows.budget.fuel }, { ...transforms, channels: values => {
-    landed.set(values.subarray(0, landed.length));
-    for (const [i, row] of rows.channels.entries()) if (row.kind === 'look') ports.look(row.look, row.param, landed[i] ?? 0);
-  } });
+    bounds: rows.bounds, targetMs: rows.budget.targetMs, fuel: rows.budget.fuel }, {
+    write: (index, matrix) => { const target = staged[index]; if (target === undefined) throw new Error('Unknown view transform'); if (live()) { target.fromArray(matrix); dirty.add(index); } },
+    channels: values => {
+      landed.set(values.subarray(0, landed.length));
+      if (live()) for (const [i, write] of writers.entries()) write?.(landed[i] ?? 0);
+    },
+    upload: () => {
+      if (live()) for (const index of dirty) { const matrix = staged[index]; if (matrix !== undefined) setters[index]?.(matrix); }
+      dirty.clear();
+    },
+  });
   const camera = ports.camera, player = ports.player;
   let tick = 0;
   return { get frozen() { return lane.isFrozen; }, frame: dt => {
