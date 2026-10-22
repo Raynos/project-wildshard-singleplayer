@@ -1,5 +1,5 @@
 import type { GeometryBoot } from '../runtime/productSections.generated';
-import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
+import { loadLightVolume } from '@wildshard/game/looks/lightVolume';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -12,7 +12,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, type BufferGeometry, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Vector3,
+  Box3, type BufferGeometry, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Vector3,
 } from 'three';
 import { registerSigns } from '../models/signs';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -28,7 +28,7 @@ import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
-import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { type Placed, copiesAt, place, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -288,16 +288,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // LUT belong to the clean room's post, so they get stand-in uniforms here (the engine's composer draws the frame)
   progress(0.9, 'light volume');
   for (const suffix of ['A', 'B'] as const) {
-    const row = volumes[`${tier}-${entryCaps ? 'capped' : 'open'}-${suffix === 'A' ? 0 : 1}`];
-    if (row === undefined) throw new Error('Missing irradiance volume row');
-    const bytes = await fetchDeflatedBytes(product.url(row.file));
-    if (bytes.length !== row.size[0] * row.size[1] * row.size[2] * 4) throw new Error('Irradiance volume size differs');
-    const texture = opts.scope.own(new Data3DTexture(bytes, ...row.size)); texture.needsUpdate = true;
-    texture.minFilter = texture.magFilter = LinearFilter; texture.unpackAlignment = 1;
-    gpuOnlyTexture(texture, 'Nine Dragon light volumes (GPU only)');
-    shared.u[`uLpVol${suffix}`].value = texture;
-    shared.u[`uLpMin${suffix}`].value.fromArray(row.min); shared.u[`uLpInv${suffix}`].value.fromArray(row.inv);
-    shared.u.uLpMax.value = row.maximum;
+    const volume = await loadLightVolume(product, volumes[`${tier}-${entryCaps ? 'capped' : 'open'}-${suffix === 'A' ? 0 : 1}`], opts.scope);
+    shared.u[`uLpVol${suffix}`].value = volume.texture;
+    shared.u[`uLpMin${suffix}`].value.fromArray(volume.min); shared.u[`uLpInv${suffix}`].value.fromArray(volume.inv);
+    shared.u.uLpMax.value = volume.maximum;
   }
   const defaults = metadata.looks.light.defaults;
   shared.u.uLpGain.value.set(defaults.poolGain, defaults.sheen, shared.u.uLpGain.value.z, defaults.pools);

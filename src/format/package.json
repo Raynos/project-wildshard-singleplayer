@@ -6,6 +6,7 @@
   "exports": {
     "./arenaScriptRows": "./arenaScriptRows.ts",
     "./vertexWear": "./vertexWear.ts",
+    "./lightVolume": "./lightVolume.ts",
     "./worldAssembly": "./worldAssembly.ts",
     "./encounterRows": "./encounterRows.ts",
     "./speciesBookRows": "./speciesBookRows.ts",
