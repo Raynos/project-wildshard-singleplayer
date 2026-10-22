@@ -1,5 +1,8 @@
+import type { Object3D } from 'three';
+import type { LivingBuildings } from '../shardfile/livingBuildings';
+import type { AudioProbeBounds } from '@wildshard/engine/audio/ambience';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { GROUND_SURFACES, type AudioSurfaceMap, type GroundSurface, type AudioSurfacePorts } from '@wildshard/engine/audio/surface';
+import { GROUND_SURFACES, type AudioSurfaceMap, type GroundSurface, type AudioSurfacePorts, type AudioFloorQuery } from '@wildshard/engine/audio/surface';
 import type { DeclaredAmbiencePorts } from '@wildshard/engine/audio/declaredAmbience';
 import { swordEvents } from '../weapons/Sword';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
@@ -134,6 +137,29 @@ export type RuntimeGameplayAudioPorts=Omit<DeclaredGameplayPorts,'ambience'>&{
   audio:Audio;ambience?:DeclaredGameplayPorts['ambience'];bank?:DeclaredSoundBank;
   listener?:object;objects?:Record<string,unknown>;
 };
+/** Concrete construction loans and detached spatial facts for gameplay audio.
+ * The caller lends the original building controller and shrine object. Floor
+ * groups contain compiled queries (including intentional gaps), never site
+ * wrappers. Bounds use probe ids; no world object or property path is read.
+ * The admitted legacy environment must be absent when these bindings are used. */
+export interface RuntimeGameplayAudioEnvironment {
+  readonly scope: Scope;
+  readonly floors: Readonly<Record<string,readonly (AudioFloorQuery|null|undefined)[]>>;
+  readonly bounds: Readonly<Record<string,AudioProbeBounds|undefined>>;
+  readonly near: NonNullable<DeclaredAmbiencePorts['near']>;
+  readonly dusk: LivingBuildings;
+  readonly emitter: {readonly id:string;readonly profile:string;readonly point:Object3D;readonly height:number};
+  readonly publish: {readonly id:string;readonly hum:string;readonly bank:string;readonly surfaces:string;readonly ambience:string};
+}
+function checkGameplayEnvironment(input:RuntimeGameplayAudioEnvironment):void {
+  if(input.scope.disposed||input.scope.disposing)throw new Error('Gameplay audio construction has ended');
+  if(Object.values(input.floors).some(group=>group.length>512||group.some(floor=>floor!==null&&floor!==undefined&&typeof floor!=='function')))throw new Error('Invalid audio floor queries');
+  for(const bounds of Object.values(input.bounds))if(bounds!==undefined&&(![bounds.x,bounds.z,bounds.r,bounds.yMin,bounds.yMax].every(Number.isFinite)||bounds.r<=0||bounds.yMax<bounds.yMin))throw new Error('Invalid audio probe bounds');
+  for(const points of Object.values(input.near))if(points!==undefined&&(!audioPoints(points)||points.some(point=>!Number.isFinite(point.x)||!Number.isFinite(point.z))))throw new Error('Invalid ambience points');
+  if(![input.emitter.point.position.x,input.emitter.point.position.z,input.emitter.height].every(Number.isFinite))throw new Error('Invalid audio emitter point');
+  const names=[input.publish.hum,input.publish.bank,input.publish.surfaces,input.publish.ambience];
+  if(new Set(names).size!==names.length)throw new Error('Duplicate gameplay audio publication');
+}
 function audioOwner(owners:Readonly<Record<string,object|null|undefined>>,ref:{owner:string;path:readonly string[]}):unknown {
   if(!Object.hasOwn(owners,ref.owner))throw new Error(`Missing audio owner: ${ref.owner}`);
   let value:unknown=owners[ref.owner];for(const key of ref.path){if(value===null||value===undefined)return undefined;if(typeof value!=='object')throw new Error('Invalid audio owner path');value=Reflect.get(value,key);}return value;
@@ -142,32 +168,59 @@ function audioFloor(value:unknown):value is NonNullable<AudioSurfacePorts['floor
 function audioDusk(value:unknown):value is NonNullable<DeclaredGameplayPorts['dusk']>{return typeof value==='object'&&value!==null&&'setDusk' in value&&typeof value.setDusk==='function';}
 function audioPoints(value:unknown):value is readonly {x:number;z:number}[]{return Array.isArray(value)&&value.length<=2048&&value.every((point:unknown)=>typeof point==='object'&&point!==null&&'x' in point&&typeof point.x==='number'&&'z' in point&&typeof point.z==='number');}
 /** Install admitted gameplay bindings using native owner loans, with no shard callbacks. */
-export async function installRuntimeGameplayAudio(context:ShardContext,borrowed:RuntimeGameplayAudioPorts):Promise<void> {
-  const live=():void=>{if(context.scope.disposed||context.scope.disposing)throw new Error('Gameplay audio owner has ended');};
-  live();
+export async function installRuntimeGameplayAudio(context:ShardContext,borrowed:RuntimeGameplayAudioPorts,native?:RuntimeGameplayAudioEnvironment):Promise<void> {
+  const live=():void=>{
+    if(context.scope.disposed||context.scope.disposing)throw new Error('Gameplay audio owner has ended');
+    if(native!==undefined&&!context.scope.belongsTo(native.scope))throw new Error('Gameplay audio requires its construction ancestor');
+  };
+  live();if(native!==undefined)checkGameplayEnvironment(native);
   const rows=runtimeAudio(context,context.product.shardfile.audio),policy=rows.gameplay;
   if(policy===undefined)throw new Error('Missing audio gameplay bindings');
   const environment=policy.environment;
+  if(native!==undefined&&environment!==undefined)throw new Error('Conflicting gameplay audio environments');
+  if((native!==undefined||environment!==undefined)&&borrowed.objects===undefined)throw new Error('Missing gameplay object registry');
+  if(native!==undefined){
+    for(const rule of rows.surfaces?.rules??[])if(rule.kind==='floor'&&!Object.hasOwn(native.floors,rule.source))throw new Error('Missing audio floor queries');
+    const spatial=rows.zones?.routing;
+    for(const probe of [...(spatial?.bounds??[]).map(row=>({kind:'bounds' as const,id:row.id})),...(spatial?.near??[]).map(row=>({kind:'near' as const,id:row.id})),...(spatial?.probes??[])]){
+      if(probe.kind==='bounds'&&!Object.hasOwn(native.bounds,probe.id))throw new Error('Missing audio probe bounds');
+      if(probe.kind==='near'&&!Object.hasOwn(native.near,probe.id))throw new Error('Missing ambience points');
+    }
+  }
   let ambience=borrowed.ambience,bank=borrowed.bank,dusk=borrowed.dusk,emitters=borrowed.emitters;
   let surfaces:AudioSurfaceMap<GroundSurface>|undefined,releaseEnvironment:(()=>void)|undefined;
-  if(environment!==undefined){
-    const {trailDistance}=await import('@wildshard/engine/world/Heightfield');live();
+  if(environment!==undefined||native!==undefined){
+    const {trailDistance}=await import('@wildshard/engine/world/Heightfield');live();if(native!==undefined)checkGameplayEnvironment(native);
     const sea=context.product.shardfile.water.find(body=>body.kind==='sea');if(sea?.kind!=='sea')throw new Error('Missing audio sea');
-    const read=(ref:{owner:string;path:readonly string[]}):unknown=>audioOwner(borrowed.owners,ref);
-    const nativeDusk=read(environment.dusk);if(nativeDusk!==undefined&&nativeDusk!==null&&!audioDusk(nativeDusk))throw new Error('Invalid audio dusk owner');
-    dusk=nativeDusk??null;
-    const floors=Object.fromEntries(Object.entries(environment.floors).map(([id,refs])=>[id,refs.flatMap(ref=>{const raw=read(ref),values:readonly unknown[]=Array.isArray(raw)?raw:[raw];if(values.length>512||!values.every(value=>value===null||value===undefined||audioFloor(value)))throw new Error('Invalid audio floor owners');return values;})]));
-    const objects=Object.fromEntries(Object.entries(environment.objects).map(([id,ref])=>{const object=read(ref);if(object!==null&&object!==undefined&&typeof object!=='object')throw new Error('Invalid ambience object');return [id,object];}));
-    const near:DeclaredAmbiencePorts['near']=Object.fromEntries(Object.entries(environment.near).map(([id,ref])=>{const points=read(ref);if(points!==undefined&&!audioPoints(points))throw new Error('Invalid ambience points');return [id,points];}));
-    const point=read(environment.emitter.point);let hum:ReturnType<Audio['loopEmitter']>|null=null;
-    if(point!==undefined&&point!==null){
-      if(typeof point!=='object'||!('x' in point)||!('z' in point)||typeof point.x!=='number'||typeof point.z!=='number')throw new Error('Invalid audio emitter point');
-      hum=borrowed.audio.loopEmitter(requireAudioProfile(rows.emitters?.[environment.emitter.profile],'audio emitter'),requireAudioProfile(rows.loopGraphs,'audio graphs'),{position:{x:point.x,y:terrainHeight(point.x,point.z)+environment.emitter.height,z:point.z},duck:gain=>{borrowed.music.duck(gain);}});
+    let floors:AudioSurfacePorts['floors'],objects:DeclaredAmbiencePorts['objects'],near:DeclaredAmbiencePorts['near'],bounds:DeclaredAmbiencePorts['bounds'];
+    let point:{x:number;z:number}|null|undefined;
+    const emitter=native?.emitter??environment?.emitter;
+    if(emitter===undefined)throw new Error('Missing gameplay audio emitter');
+    if(native!==undefined){
+      floors=native.floors;bounds=native.bounds;near=native.near;point=native.emitter.point.position;dusk=native.dusk;
+    }else{
+      if(environment===undefined)throw new Error('Missing gameplay audio environment');
+      const read=(ref:{owner:string;path:readonly string[]}):unknown=>audioOwner(borrowed.owners,ref);
+      const nativeDusk=read(environment.dusk);if(nativeDusk!==undefined&&nativeDusk!==null&&!audioDusk(nativeDusk))throw new Error('Invalid audio dusk owner');
+      dusk=nativeDusk??null;
+      floors=Object.fromEntries(Object.entries(environment.floors).map(([id,refs])=>[id,refs.flatMap(ref=>{const raw=read(ref),values:readonly unknown[]=Array.isArray(raw)?raw:[raw];if(values.length>512||!values.every(value=>value===null||value===undefined||audioFloor(value)))throw new Error('Invalid audio floor owners');return values;})]));
+      objects=Object.fromEntries(Object.entries(environment.objects).map(([id,ref])=>{const object=read(ref);if(object!==null&&object!==undefined&&typeof object!=='object')throw new Error('Invalid ambience object');return [id,object];}));
+      near=Object.fromEntries(Object.entries(environment.near).map(([id,ref])=>{const points=read(ref);if(points!==undefined&&!audioPoints(points))throw new Error('Invalid ambience points');return [id,points];}));
+      const raw=read(environment.emitter.point);
+      if(raw===undefined||raw===null)point=raw;
+      else {
+        if(typeof raw!=='object'||!('x' in raw)||!('z' in raw)||typeof raw.x!=='number'||typeof raw.z!=='number')throw new Error('Invalid audio emitter point');
+        point={x:raw.x,z:raw.z};
+      }
     }
-    emitters={[environment.emitter.id]:hum};
+    let hum:ReturnType<Audio['loopEmitter']>|null=null;
+    if(point!==undefined&&point!==null){
+      hum=borrowed.audio.loopEmitter(requireAudioProfile(rows.emitters?.[emitter.profile],'audio emitter'),requireAudioProfile(rows.loopGraphs,'audio graphs'),{position:{x:point.x,y:terrainHeight(point.x,point.z)+emitter.height,z:point.z},duck:gain=>{borrowed.music.duck(gain);}});
+    }
+    emitters={[emitter.id]:hum};
     bank=installDeclaredAudio(context.product.shardfile.audio,{audio:borrowed.audio,scope:context.scope},'voices');
     surfaces=borrowed.audio.surfaceMap(requireAudioProfile(rows.surfaces,'audio surfaces'),GROUND_SURFACES,{sea:sea.level,heightAt:terrainHeight,values:{trail:trailDistance},floors});
-    const active=installDeclaredAudio(rows,{audio:borrowed.audio,sea:sea.level,objects,near,owners:borrowed.owners},'ambience');ambience=active;
+    const active=installDeclaredAudio(rows,{audio:borrowed.audio,sea:sea.level,...(objects===undefined?{}:{objects}),...(bounds===undefined?{}:{bounds}),near,owners:borrowed.owners},'ambience');ambience=active;
     context.answer('player.stepSurface',request=>({...request,surface:surfaces?.surfaceAt(request.x,request.z,request.y)??request.surface}));
     releaseEnvironment=()=>{hum?.dispose();active.dispose();};
   }
@@ -196,11 +249,17 @@ export async function installRuntimeGameplayAudio(context:ShardContext,borrowed:
   }
   let handles:Record<string,unknown>|undefined;
   const objects=ports.objects;
-  if(environment!==undefined){
+  if(environment!==undefined||native!==undefined){
     if(objects===undefined)throw new Error('Missing gameplay object registry');
-    const owners={...ports.owners,bank,surfaces,ambience,emitters};
-    handles=Object.fromEntries(Object.entries(environment.publish.values).map(([id,ref])=>[id,audioOwner(owners,ref)]));
-    Object.assign(objects,handles);context.debug.expose(environment.publish.id,handles);
+    if(native!==undefined){
+      handles={[native.publish.hum]:emitters?.[native.emitter.id],[native.publish.bank]:bank,[native.publish.surfaces]:surfaces,[native.publish.ambience]:ambience};
+    }else{
+      if(environment===undefined)throw new Error('Missing gameplay audio publication');
+      const owners={...ports.owners,bank,surfaces,ambience,emitters};
+      handles=Object.fromEntries(Object.entries(environment.publish.values).map(([id,ref])=>[id,audioOwner(owners,ref)]));
+    }
+    const publication=native?.publish??environment?.publish;if(publication===undefined)throw new Error('Missing gameplay audio publication');
+    Object.assign(objects,handles);context.debug.expose(publication.id,handles);
   }
   context.scope.onDispose(()=>{restoreEvents?.();releaseEnvironment?.();if(objects!==undefined)for(const [key,value] of Object.entries(handles??{}))if(objects[key]===value)delete objects[key];});
 }

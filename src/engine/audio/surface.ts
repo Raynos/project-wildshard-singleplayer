@@ -20,11 +20,13 @@ declare module '../events/maps' {
   }
 }
 
+/** The original compiled floor query; borrowing it neither creates nor owns a site. */
+export type AudioFloorQuery = (x:number,z:number)=>number|undefined;
 /** Native floor and point loans, read only when their ordered rule is reached. */
 export interface AudioSurfacePorts {
   heightAt:(x:number,z:number)=>number;
   sea?:number;
-  floors:Readonly<Record<string,readonly ({floorHeightAt:(x:number,z:number)=>number|undefined}|null|undefined)[]>>;
+  floors:Readonly<Record<string,readonly (AudioFloorQuery|{floorHeightAt:AudioFloorQuery}|null|undefined)[]>>;
   values?:Readonly<Record<string,(x:number,z:number)=>number>>;
   circles?:Readonly<Record<string,()=>{x:number;z:number;r:number}|undefined>>;
 }
@@ -51,7 +53,7 @@ export class AudioSurfaceMap<T extends string> {
     for(const rule of this.recipe.rules){
       let hit=false;
       if(rule.kind==='floor'){
-        for(const floor of this.ports.floors[rule.source]??[]){const level=floor?.floorHeightAt(x,z);if(level!==undefined&&Math.abs(y-level)<rule.tolerance){hit=true;break;}}
+        for(const floor of this.ports.floors[rule.source]??[]){const level=typeof floor==='function'?floor(x,z):floor?.floorHeightAt(x,z);if(level!==undefined&&Math.abs(y-level)<rule.tolerance){hit=true;break;}}
       }else if(rule.kind==='circle'){
         const circle=this.ports.circles?.[rule.source]?.();hit=circle!==undefined&&Math.hypot(x-circle.x,z-circle.z)<circle.r+rule.padding;
       }else{

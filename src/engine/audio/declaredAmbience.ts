@@ -15,7 +15,7 @@ import { audioRandom } from './util';
 /** Audio content required by the native ambience phase. */
 export type DeclaredAmbienceData=Pick<AudioData,'bank'|'playback'|'pcm'|'synth'|'ambience'|'surfaces'>&{zones?:AudioZoneProfile|undefined};
 /** Native spatial capabilities; content, numeric reads and lifetime policy remain in the audio section. */
-export interface DeclaredAmbiencePorts extends Pick<AmbienceMixPorts,'sea'|'sites'|'objects'|'near'|'points'> {
+export interface DeclaredAmbiencePorts extends Pick<AmbienceMixPorts,'sea'|'sites'|'objects'|'bounds'|'near'|'points'> {
   audio:Audio;scope?:Scope;
   /** Defaults to the native active terrain query; tests can lend an isolated terrain fixture. */
   heightAt?:AmbienceMixPorts['heightAt'];

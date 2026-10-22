@@ -90,6 +90,9 @@ export class AmbienceZones {
 /** A point port. */
 export interface MixPoint { readonly x: number; readonly y?: number; readonly z: number }
 
+/** Detached numeric spatial bounds, keyed by the admitted bounds probe id. */
+export interface AudioProbeBounds {readonly x:number;readonly z:number;readonly r:number;readonly yMin:number;readonly yMax:number}
+
 /** What the profile hands the mix: its random stream (the synth pool and the one-shots draw from it), its scope's name,
  *  the ground and the sea, objects bounds ports read, point lists for nearness, fixed points and scalar readers. */
 export interface AmbienceMixPorts {
@@ -114,6 +117,7 @@ export interface AmbienceMixPorts {
   readonly heightAt: (x: number, z: number) => number;
   readonly sea: number;
   readonly objects?: Readonly<Record<string, object | null | undefined>>;
+  readonly bounds?: Readonly<Record<string, AudioProbeBounds | undefined>>;
   readonly near?: Readonly<Record<string, readonly { x: number; z: number }[] | undefined>>;
   readonly points?: Readonly<Record<string, MixPoint>>;
   readonly inputs?: Readonly<Record<string, () => number>>;
@@ -388,7 +392,7 @@ export class AmbienceMix {
     const V=this.values,smooth=(outer:number,inner:number,distance:number):number=>{const t=Math.max(0,Math.min(1,(distance-outer)/(inner-outer)));return t*t*(3-2*t);};
     for(const row of this.probeRows){
       switch(row.kind){
-        case 'bounds':{const box=boundsOf(this.ports.objects?.[row.from],row.key);V.set(row.id,box?1:0);if(box)for(const key of BOUNDS_KEYS)V.set(`${row.id}.${key}`,box[key]);break;}
+        case 'bounds':{const box=this.ports.bounds===undefined?boundsOf(this.ports.objects?.[row.from],row.key):this.ports.bounds[row.id];V.set(row.id,box?1:0);if(box)for(const key of BOUNDS_KEYS)V.set(`${row.id}.${key}`,box[key]);break;}
         case 'near':{
           let sum=0,dxSum=0,dzSum=0;const r2=row.radius*row.radius;
           for(const point of this.ports.near?.[row.id]??[]){const dx=point.x-x,dz=point.z-z,dd=dx*dx+dz*dz;if(dd<r2){const weight=1-Math.sqrt(dd)/row.radius;sum+=weight;dxSum+=dx*weight;dzSum+=dz*weight;}}

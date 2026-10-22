@@ -1,4 +1,6 @@
 // @vitest-environment happy-dom
+import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
+import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { swordEvents } from '@wildshard/game/weapons/Sword';
 import { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
@@ -10,11 +12,11 @@ import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { shardContext } from '../src/game/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { installRuntimeAudioEntry,installRuntimeGameplayAudio } from '../src/game/plugin/audio';
+import { installRuntimeAudioEntry,installRuntimeGameplayAudio,type RuntimeGameplayAudioEnvironment } from '../src/game/plugin/audio';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { expect,it,vi } from 'vitest';
-import { PerspectiveCamera,Vector3 } from 'three';
+import { Group,PerspectiveCamera,Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { Audio } from '@wildshard/engine/audio/Audio';
 import { Music } from '@wildshard/engine/audio/Music';
@@ -170,4 +172,61 @@ it.each(['leave','floors','near'] as const)('preflights %s before allocating gam
     expect(hum).not.toHaveBeenCalled();expect(surfaces).not.toHaveBeenCalled();expect(voices).not.toHaveBeenCalled();
     expect(objects).toEqual({});expect(swordEvents).toEqual(previous);
   }finally{hum.mockRestore();surfaces.mockRestore();voices.mockRestore();scope.dispose();}
+});
+
+function concreteAudioFixture(legacy=false){
+  const f=fixture(),construction=new Scope('audio.construction'),scope=construction.child('audio.entry'),app=new App(),objects:Record<string,unknown>={};
+  const level=createLevelInstallation(app,scope,{},()=>({set:()=>undefined,detail:()=>undefined}));
+  const source=emptyShardfile({slug:'template',name:'Concrete audio',author:'Test',revision:1,seed:1});
+  const data=structuredClone(island);if(data.gameplay===undefined)throw new Error('Missing gameplay');if(!legacy)delete data.gameplay.environment;
+  source.audio=data;source.water=[{id:'sea',kind:'sea',level:0,waves:true}];
+  const product=createShardProduct({slug:'template',revision:1,shardfile:source,sections:new Map([['audio/audio',{audio:data}]]),files:new Map(),read:()=>Promise.reject(new Error('Unexpected bytes'))});
+  const context=shardContext(level.context,TEMPLATE,{shard:TEMPLATE,rows:new Map(),declaredAudio:data,bag:{tab:()=>()=>undefined,fragment:()=>()=>undefined}},product);
+  const shrine=new Group();shrine.position.set(-98,100,108);
+  const life=new LivingBuildings(new SceneHandles(),{wheel:0,door:{seconds:1,angle:1},fire:[0,1],lamp:[0,1],glass:[0,1],flicker:{depth:0,waves:[]},swing:{z:[],x:[0,0]}});
+  const boat=vi.fn((x:number)=>x===0?3:undefined),bridge=vi.fn((x:number)=>x===1?4:undefined),wreck=vi.fn((x:number)=>x===2?6:undefined),stone=vi.fn((x:number)=>x===3?5:undefined);
+  const bounds={holdBox:{x:10,z:20,r:3,yMin:-1,yMax:4},caveBox:{x:20,z:30,r:5,yMin:-2,yMax:6}},palms=[{x:1,z:2},{x:3,z:4}];
+  const environment:RuntimeGameplayAudioEnvironment={scope:construction,
+    floors:{decks:[undefined,undefined,boat,undefined,undefined,bridge,wreck],stone:[stone]},bounds,near:{palms},dusk:life,
+    emitter:{id:'hum',profile:'shrine',point:shrine,height:2.5},publish:{id:'driftwood.audio',hum:'shrineHum',bank:'islandSfx',surfaces:'surfaces',ambience:'ambience'}};
+  const borrowed={audio:f.audio,music:f.music,camera:f.ports.camera,listener:{position:{x:0,y:0,z:0},yaw:0},objects,
+    owners:{sky:f.sky,cove:{fall:{foot:[127.5,18]},cave:{x:16,z:22,yaw:.7,depth:9}},wind:{uTime:{value:0},uWindStrength:{value:0}}}};
+  return {f,construction,scope,context,objects,environment,borrowed,life,boat,bridge,wreck,bounds,palms};
+}
+it('uses original floor queries and building controller without a world-shaped audio owner',async()=>{
+  const h=concreteAudioFixture(),saved={...swordEvents};
+  const emitter=vi.spyOn(h.f.audio,'loopEmitter'),ambiencePorts=vi.spyOn(DeclaredAmbience.prototype,'frame').mockImplementation(()=>undefined);
+  const dusk=vi.spyOn(h.life,'setDusk'),systems=vi.spyOn(h.context,'system');
+  await import('@wildshard/engine/world/Heightfield');setTerrainHeight(()=>7);
+  try{
+    await installRuntimeGameplayAudio(h.context,h.borrowed,h.environment);
+    const surface=h.objects['surfaces'],ambience=h.objects['ambience'],hum=h.objects['shrineHum'];
+    if(!(surface instanceof AudioSurfaceMap)||!(ambience instanceof DeclaredAmbience)||!(hum instanceof LoopEmitter))throw new Error('Missing concrete audio');
+    expect(emitter.mock.calls[0]?.[2]?.position).toEqual({x:-98,y:9.5,z:108});
+    for(const [x,y,expected] of [[0,3,'planks'],[1,4,'planks'],[2,6,'planks'],[3,5,'stone']] as const)expect(surface.surfaceAt(x,0,y)).toBe(expected);
+    expect(surface.surfaceAt(100,0,3)).not.toBe('planks'); // Missing legacy pier/hut/lookout remain missing.
+    const humFrame=vi.spyOn(hum,'update').mockImplementation(()=>undefined),order:string[]=[];
+    dusk.mockImplementation(()=>{order.push('dusk');});humFrame.mockImplementation(()=>{order.push('hum');});ambiencePorts.mockImplementation(()=>{order.push('ambience');});
+    h.f.sky.dayNight.dusk=.35;h.f.sky.dayNight.night=.7;
+    expect(systems.mock.calls.map(([system])=>system.id)).toEqual(island.observations?.map(row=>row.id));
+    for(const [system] of systems.mock.calls)system.run(.1,1);
+    expect(order).toEqual(['dusk','hum','ambience']);expect(dusk).toHaveBeenCalledExactlyOnceWith(.35);expect(ambience.night).toBe(.7);
+    const dispose=vi.spyOn(hum,'dispose');h.scope.dispose();expect(dispose).toHaveBeenCalledOnce();expect(h.objects).toEqual({});
+    expect(h.construction.disposed).toBe(false);expect(swordEvents).toEqual(saved);
+  }finally{ambiencePorts.mockRestore();emitter.mockRestore();h.construction.dispose();Object.assign(swordEvents,saved);setTerrainHeight(()=>0);}
+});
+it.each(['retire','foreign','bounds','points','duplicate','conflict'] as const)('refuses concrete %s before allocating sound resources',async mode=>{
+  const h=concreteAudioFixture(mode==='conflict'),saved={...swordEvents},foreign=new Scope('unrelated-audio');
+  const hum=vi.spyOn(h.f.audio,'loopEmitter'),surfaces=vi.spyOn(h.f.audio,'surfaceMap'),voices=vi.spyOn(h.f.audio.voices,'playback');
+  try{
+    let environment=h.environment;
+    if(mode==='foreign')environment={...environment,scope:foreign};
+    if(mode==='bounds')environment={...environment,bounds:{holdBox:{...h.bounds.holdBox,r:-1}}};
+    if(mode==='points')environment={...environment,near:{palms:[{x:Number.NaN,z:0}]}};
+    if(mode==='duplicate')environment={...environment,publish:{...environment.publish,bank:environment.publish.hum}};
+    const pending=installRuntimeGameplayAudio(h.context,h.borrowed,environment);
+    if(mode==='retire')h.construction.dispose();
+    await expect(pending).rejects.toThrow(mode==='retire'?'has ended':mode==='foreign'?'construction ancestor':mode==='bounds'?'probe bounds':mode==='points'?'ambience points':mode==='duplicate'?'Duplicate':'Conflicting');
+    expect(hum).not.toHaveBeenCalled();expect(surfaces).not.toHaveBeenCalled();expect(voices).not.toHaveBeenCalled();expect(swordEvents).toEqual(saved);expect(h.objects).toEqual({});
+  }finally{hum.mockRestore();surfaces.mockRestore();voices.mockRestore();h.construction.dispose();foreign.dispose();}
 });

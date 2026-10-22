@@ -89,3 +89,12 @@ it('reads the same pond, fire pits and wheel boundary from their native owners',
   terrain.POND.r=0;expect(mix.circles?.['pond']?.()).toBeUndefined();
  }finally{scope.dispose();}
 });
+
+it('lends detached probe bounds and ordered palm points without world object lookup',()=>{
+ const audio=new Audio(),scope=new Scope('numeric.island');
+ const bounds={holdBox:{x:12,z:-4,r:8,yMin:-3,yMax:6},caveBox:{x:20,z:25,r:5,yMin:0,yMax:10}},palms=[{x:1,z:2},{x:-4,z:6}];
+ const ambience=new DeclaredAmbience(island,{audio,scope,heightAt:()=>0,sea:0,bounds,near:{palms},owners:{wind:{uTime:{value:0},uWindStrength:{value:0}},cove:{fall:{foot:[127.5,18]},cave:{x:16,z:22,yaw:.7,depth:9}}}},ObservedMix);
+ try{
+  const mix=ports();expect(mix.objects).toBeUndefined();expect(mix.bounds).toBe(bounds);expect(mix.bounds?.['holdBox']).toBe(bounds.holdBox);expect(mix.near?.['palms']).toBe(palms);
+ }finally{ambience.dispose();scope.dispose();}
+});
