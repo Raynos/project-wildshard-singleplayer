@@ -16,6 +16,9 @@ export const ScriptContractSchema = v.variant('abi', [
 export type ScriptContract = v.InferOutput<typeof ScriptContractSchema>;
 /** Admit the declared ABI, including instrumentation; v1 and v2 fixed memory must match its row exactly. A v2 module is
  *  admitted (admitScriptV2, its declared lane, I/O and revisions) on a copy of its bytes, before anything instantiates it. */
+export function admitScriptContract(bytes: Uint8Array, input: Extract<ScriptContract, { abi: 0 | 1 }>): ScriptAdmission;
+export function admitScriptContract(bytes: Uint8Array, input: Extract<ScriptContract, { abi: 2 }>): ScriptAdmissionV2;
+export function admitScriptContract(bytes: Uint8Array, input: ScriptContract): ScriptAdmission | ScriptAdmissionV2;
 export function admitScriptContract(bytes: Uint8Array, input: ScriptContract): ScriptAdmission | ScriptAdmissionV2 {
   const contract = v.parse(ScriptContractSchema, input);
   if (contract.abi === 2) {
