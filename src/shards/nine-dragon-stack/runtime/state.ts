@@ -19,14 +19,9 @@ export class NdRuntime {
     this.page = camera;
     this.frame = new FrameCamera(world.root);
   }
-  /**
-   * The camera in the world's own frame, where its programs shade and its cullers measure (the page's camera standalone).
-   * Reading it also writes the root's place in the page to the programs' `uRootAt` (data/look.ts SHARED_UNIFORMS).
-   */
-  get camera(): PerspectiveCamera {
-    this.world.shared.u.uRootAt.value.setFromMatrixPosition(this.world.root.matrixWorld);
-    return this.frame.of(this.page);
-  }
+  /** The camera in the world's own frame, where its cullers measure (the page's camera standalone); the programs' root
+   *  place (`uRootAt`) is the look's 'nine.frame' channel group's. */
+  get camera(): PerspectiveCamera { return this.frame.of(this.page); }
   cull(camera: PerspectiveCamera = this.camera): void {
     if (!this.disposed) this.world.cull(camera);
   }

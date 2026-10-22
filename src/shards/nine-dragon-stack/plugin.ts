@@ -54,7 +54,7 @@ export class NdPlugin extends ShardPlugin {
     ownNdRuntime(scope, rt);
     // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
     await WorldEntry.admit(ctx.product.section('world/scenes').entry, { scope, root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
-    ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t, rt.camera); } });
+    ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t); } });
     installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }

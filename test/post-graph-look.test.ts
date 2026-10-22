@@ -2,7 +2,8 @@ import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { TextureEffect } from 'postprocessing';
 import * as v from 'valibot';
-import { bindPostGraphEvents, postGraphLook } from '../src/game/looks/postGraphLook';
+import { bindPostGraphEvents, postGraphLook, postGraphLookOf } from '../src/game/looks/postGraphLook';
+import { numericChannelPrograms } from '../src/sdk/clientChannels';
 import { PostGraphLookSchema, type PostGraphLookRow } from '../src/format/postGraphLook';
 import type { ScaledPostRow } from '../src/format/scaledPost';
 import { lendUniforms } from '../src/game/shardfile/lentLooks';
@@ -110,4 +111,28 @@ test('a look that names no lent uniforms or an unknown alias refuses at build', 
   const render = renderer(3);
   await prepareScaledPost(render);
   expect(() => look.cell?.build({ root: new THREE.Group(), camera: new THREE.PerspectiveCamera(), renderer: render, tier: 'phone', scope: new Scope('x') })).toThrow('No lent uniforms nobody');
+});
+
+test('a declared channel group writes the bag each frame from the camera seen from the cell root, and refuses an unlent owner', async () => {
+  // the orchard's mist from its eye seen from the cell root (y + 100 x), its clock from the frame's time and the root's place
+  const programs = numericChannelPrograms('orchard.frame', 'orchard.frame', [
+    { target: 'bag', path: ['uMist'], expr: (b, read) => b.binary('add', read('view', ['eyeY']), b.binary('mul', read('view', ['eyeX']), b.constant(100))) },
+    { target: 'bag', path: ['uClock'], expr: (b, read) => b.binary('add', b.clock('time'), read('view', ['rootX'])) },
+  ]);
+  const look = postGraphLookOf('orchard', { ...ROW, channels: { group: 'orchard.frame', programs } });
+  const scope = new Scope('orchard-frame'), live = air(), root = new THREE.Group(), camera = new THREE.PerspectiveCamera();
+  lendUniforms(scope, 'orchard-air', live);
+  root.position.set(10, 0, 0); root.updateMatrixWorld(); camera.position.set(14, 3, 0); camera.updateMatrixWorld();
+  const render = renderer(2);
+  await prepareScaledPost(render);
+  try {
+    look.cell?.build({ root, camera, renderer: render, tier: 'phone', scope });
+    look.frame?.(0.016, 7);
+    expect(live.uMist.value).toBeCloseTo(403, 9);
+    expect(live.uClock.value).toBe(17);
+    const reader = numericChannelPrograms('orchard.player', 'orchard.player', [{ target: 'bag', path: ['uMist'], expr: (_b, read) => read('player', ['x']) }]);
+    const refused = postGraphLookOf('orchard', { ...ROW, channels: { group: 'orchard.player', programs: reader } });
+    expect(() => refused.cell?.build({ root, camera, renderer: render, tier: 'phone', scope })).toThrow();
+    expect(() => postGraphLookOf('orchard', { ...ROW, channels: { group: 'orchard.frame', programs: [{ id: 'x', nodes: [], channels: [], reads: [], run: () => 0 }] } })).toThrow();
+  } finally { scope.dispose(); }
 });

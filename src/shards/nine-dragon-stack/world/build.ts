@@ -41,7 +41,7 @@ export interface NineDragonWorld {
   /** the look's shared uniforms (time, the eye, the silk fog, the paint, the light pools) */
   readonly shared: Shared;
   /** per frame: time (s) and the camera the frame is drawn from */
-  update: (t: number, camera: PerspectiveCamera) => void;
+  update: (t: number) => void;
   /** per frame, with the camera as drawn: nothing left to cull here (the kits' draw distances are the fabric's weld
    *  culls, model placement owns instance culling); goes with its last caller */
   cull: (camera: PerspectiveCamera) => void;
@@ -179,12 +179,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
 
   progress(1, 'world ready');
 
-  const update = (t: number, camera: PerspectiveCamera): void => {
-    shared.u.uTime.value = t;
-    shared.u.uNear.value = camera.near;
-    shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
-    shared.bandWindow();
-    for (const m of running) m.advance(t);
-  };
+  // the movers on the page clock (the clock, the eye and the fog's band window are the look's channel group)
+  const update = (t: number): void => { for (const m of running) m.advance(t); };
   return { root, shared, update, cull: () => undefined, entryCaps, lanterns: lanternsAt };
 }

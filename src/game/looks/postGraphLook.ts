@@ -25,6 +25,8 @@ import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { uniformsFrom, type UniformMap } from '../plugin/shaderFamily';
 import { ScaledPostPass, prepareScaledPost } from './scaledPost';
 import { lentUniforms, setLentParam } from '../shardfile/lentLooks';
+import { installChannelPrograms } from '../plugin/channelPrograms';
+import { graphParamRoots } from './graphDaySky';
 
 /** a side target no pass drew reads as black */
 const black = new DataTexture(new Uint8Array(4), 1, 1);
@@ -142,6 +144,29 @@ export function bindPostGraphEvents(rows: PostGraphLookRow['events'], bag: Unifo
   }
 }
 
+/** the camera facts a look's channel group reads as its 'view' owner */
+interface FrameView { eyeX: number; eyeY: number; eyeZ: number; near: number; p00: number; p11: number; rootX: number; rootY: number; rootZ: number }
+const point = new Vector3();
+/** A look's declared channel group over a bag: the view it reads, then its outputs pushed into the bag's uniforms (a
+ *  number, or a vector's components) and the lent graph looks' params it names. */
+function frameChannels(rows: NonNullable<PostGraphLookRow['channels']>, bag: UniformMap): (camera: PerspectiveCamera, root: Object3D | null, time: number, delta: number) => void {
+  const looks = [...new Set(rows.programs.flatMap(program => program.numeric?.group === rows.group ? program.numeric.outputs.map(out => out.target) : []))].filter(target => target !== 'bag');
+  const lent = graphParamRoots(rows.programs, rows.group, looks), own = graphParamRoots(rows.programs, rows.group, ['bag']);
+  const view: FrameView = { eyeX: 0, eyeY: 0, eyeZ: 0, near: 0, p00: 0, p11: 0, rootX: 0, rootY: 0, rootZ: 0 };
+  const lane = installChannelPrograms(rows.programs, rows.group, new Map<string, unknown>([['view', view], ...lent.roots, ...own.roots]));
+  const uniforms = { setParam: (_bag: string, name: string, value: number | number[]): void => {
+    if (typeof value === 'number') { need(bag, name).value = value; return; }
+    value.forEach((part, index) => { setComponent(need(bag, name).value, index, part); });
+  } };
+  return (camera, root, time, delta) => {
+    point.setFromMatrixPosition(camera.matrixWorld); view.eyeX = point.x; view.eyeY = point.y; view.eyeZ = point.z;
+    view.near = camera.near; view.p00 = camera.projectionMatrix.elements[0]; view.p11 = camera.projectionMatrix.elements[5];
+    if (root === null) point.set(0, 0, 0); else point.setFromMatrixPosition(root.matrixWorld);
+    view.rootX = point.x; view.rootY = point.y; view.rootZ = point.z;
+    lane.evaluate({ time, delta, values: {} }); own.push(uniforms); lent.push({ setParam: setLentParam });
+  };
+}
+
 /** Read a level's post-graph look from its product file (`field` the path to its row) and make its strategy. */
 export async function postGraphLook(product: { readonly slug: string; readonly json: (name: string) => Promise<unknown> }, source: { readonly file: string; readonly field: readonly string[] }): Promise<LookStrategy> {
   let at: unknown = await product.json(source.file);
@@ -157,8 +182,9 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
     const { url, texture, amount } = row.lut;
     void (async (): Promise<void> => { need(lut, texture).value = await loadPostGraphLut(url, `${slug}-lut`); need(lut, amount).value = 1; })();
   }
-  /** the latest build's bag and renderer, for the frame's pixel terms */
-  let live: { readonly bag: UniformMap; readonly renderer: Renderer } | null = null;
+  /** the latest build's bag and renderer, for the frame's channels and pixel terms, and its view seen from its root */
+  let live: { readonly bag: UniformMap; readonly renderer: Renderer; readonly view: () => PerspectiveCamera; readonly root: Object3D | null;
+    readonly channels: ReturnType<typeof frameChannels> | null } | null = null;
   const size = new Vector2();
 
   const build = (camera: PerspectiveCamera, tier: Tier, renderer: Renderer, root: Object3D | null): Built => {
@@ -179,7 +205,7 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
     const show = display.update.bind(display);
     display.update = (r, target, dt): void => { display.texture = frame.output(row.composite.output) ?? black; show(r, target, dt); };
     for (const lent of row.lent ?? []) setLentParam(lent.look, lent.param, sides.has(lent.side) ? lent.drawn : lent.absent);
-    live = { bag, renderer };
+    live = { bag, renderer, view: () => framed?.pose(camera) ?? camera, root, channels: row.channels === undefined ? null : frameChannels(row.channels, bag) };
     return { display, sides, bag, passes: [...(pose === null ? [] : [new PoseView(pose)]), ...sides.values(), new SideInputs(row, sides, bag, pose), frame] };
   };
 
@@ -194,10 +220,11 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
         return { display: built.display, passes: built.passes };
       },
     } satisfies LookCellComposite,
-    /** the drawing buffer's pixel terms, before the frame draws */
-    frame: (): void => {
+    /** the declared channel group, then the drawing buffer's pixel terms, before the frame draws */
+    frame: (dt: number, t: number): void => {
       if (live === null) return;
       const { bag, renderer } = live, pr = renderer.getPixelRatio();
+      live.channels?.(live.view(), live.root, t, dt);
       for (const term of row.pixel ?? []) {
         if (term.of === 'buffer') { renderer.getDrawingBufferSize(size); const value: unknown = need(bag, term.param).value; if (value instanceof Vector2) value.copy(size); continue; }
         const value = term.of === 'step' ? (pr < term.at ? term.below : term.above) : pr * (term.scale ?? 1) * (term.below !== undefined && pr < term.below.at ? term.below.times : 1);

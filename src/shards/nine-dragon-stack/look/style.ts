@@ -8,7 +8,6 @@ import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import type { LookRows } from '../boot/lookTypes.generated';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { lightVolUniforms } from './light';
-import { fogBandWindow } from '../runtime/looks/fogBands';
 import type { SharedUniformRows } from './uniformTypes';
 
 /** Restore an exact baked R8 weave, retaining the original sampler and mip generation. */
@@ -39,14 +38,4 @@ export class Shared {
   readonly u;
   readonly baseBandDepth: number;
   constructor(silk: Texture, rows: SharedUniformRows) { this.u = sharedUniforms(silk, rows); this.baseBandDepth = rows.uBands.v4s[0]?.[2] ?? 1; }
-
-  /**
-   * (E283) the silk fog's band window for the eye at uCam (call it after every uCam write): the bands run top to bottom,
-   * each reaching 3 widths either side of its height, so a ray going down from the eye can reach no band before the
-   * first whose bottom is at or under the eye, and a ray going up none after the last whose top is at or over it — and
-   * past the first band the ray's far end cannot reach, no later one either. silkFog then walks only those bands, in the
-   * same order, with the same test on each: the same fog, bit for bit. Off (z 0) if the bands ever stop running top to
-   * bottom (@wildshard/sdk/looks/fogBands).
-   */
-  bandWindow(): void { fogBandWindow(this.u.uBands.value, this.u.uCam.value.y, this.u.uBandWin.value); }
 }

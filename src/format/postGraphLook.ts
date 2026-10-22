@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import type { ScaledPostRow } from './scaledPost';
+import { ClientChannelsSchema } from './clientChannels';
 
 /**
  * A post-graph look (G599 N1): a level's whole colour chain as scaled post graph passes (format/scaledPost rows), declared
@@ -72,6 +73,11 @@ export const PostGraphLookSchema = v.strictObject({
   /** the whole chain in its own composer ('replace': the scene pass, then the sides and graphs); absent, the graphs stand in
    *  the engine's chain */
   scene: v.exactOptional(v.strictObject({})),
+  /** a numeric client-channel group (format/clientChannels programs) the look evaluates each frame before its pixel terms:
+   *  its reads name the 'view' owner (the drawn camera seen from the frame root: eyeX, eyeY, eyeZ, near, the projection's
+   *  p00 and p11, the root's place rootX, rootY, rootZ) and the clock; its outputs write the bag's uniforms (target 'bag',
+   *  path [uniform] or [uniform, axis]) and lent graph looks' params (target the look id, path [param] or [param, axis]) */
+  channels: v.exactOptional(v.strictObject({ group: id, programs: ClientChannelsSchema })),
 });
 export type PostGraphLookRow = v.InferOutput<typeof PostGraphLookSchema>;
 export type PostGraphEffect = v.InferOutput<typeof effect>;
