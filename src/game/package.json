@@ -26,6 +26,7 @@
     "./looks/speciesBook": "./looks/speciesBook.ts",
     "./looks/vertexWear": "./looks/vertexWear.ts",
     "./models/fixedDraws": "./models/fixedDraws.ts",
+    "./models/islandLibrary": "./models/islandLibrary.ts",
     "./shardfile/worldAssembly": "./shardfile/worldAssembly.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./audio/forestPage": "./audio/forestPage.ts",

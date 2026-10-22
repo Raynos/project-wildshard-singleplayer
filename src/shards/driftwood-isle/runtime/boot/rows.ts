@@ -1,18 +1,15 @@
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import type { CustomSections } from '../productSections.generated.d.ts';
+import { ISLAND } from './blobAssets';
 
 type RowSection = keyof CustomSections;
-let admitted: ShardProduct | null = null;
 
 /** The island's admitted product, for the model hooks that hold no product (Explorer cards, colliders, slot geometry):
  *  the resident world loader and the cold Explorer product load admit it before any of those builds. */
-export function admitDriftwoodRows(product: ShardProduct): void { admitted = product; }
+export function admitDriftwoodRows(product: ShardProduct): void { ISLAND.admit(product); }
 
 /** A client row section of the admitted product (build-validated sections); throws before the product is admitted. */
 export function driftwoodRows<K extends RowSection>(name: K): CustomSections[K] { return driftwoodProduct().section<CustomSections[K]>(name); }
 
 /** Native boot consumers borrow the same session-admitted named bytes as their sections. */
-export function driftwoodProduct(): ShardProduct {
-  if (admitted === null) throw new Error('Driftwood reads its product before its product is admitted');
-  return admitted;
-}
+export function driftwoodProduct(): ShardProduct { return ISLAND.product; }
