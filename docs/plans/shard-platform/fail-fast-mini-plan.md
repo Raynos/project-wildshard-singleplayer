@@ -3,6 +3,8 @@
 Jake, 2026-10-22 ~15:05: *"Something is completely broken. We need to fail fast. Whatever was waiting, whatever's
 waiting elsewhere, needs to have a timeout of 5 minutes."* Audit by the plan agent's subagent (read-only), ~15:10.
 
+**Jake's picks (G612):** D1 delete batch-check · D2 five pooled check slots + ruler · D3 fail at 5 min naming the holder, no retry · D4 quiet window ends at 10 min or dead owner · D5 no checks before landing · D6 build-lease wait 5 min.
+
 ## Diagnosis
 
 1. **Per-slice batch checks are still told to lanes.** `docs/plans/shard-platform/lanes/common.md:11` (the rule every
