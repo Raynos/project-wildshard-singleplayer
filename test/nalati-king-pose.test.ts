@@ -6,8 +6,7 @@ import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { Rng } from '../src/engine/core/rng';
-import { nalatiLooks } from '../src/shards/nalati-grasslands/species/catalogue';
-import { nalatiBehaviour } from '../src/shards/nalati-grasslands/species/presentation';
+import { nalatiSpeciesCatalogue } from '../src/shards/nalati-grasslands/species/presentation';
 import { animateKing } from './fixtures/nalati-king-pose';
 import { legacyDouble } from './fake/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -27,7 +26,7 @@ function transforms(c: AnimalRigContext): number[] { return Object.values(c.bone
 test('King pose rows retain every joint through the full fight and its reset', () => {
   setTerrainHeight(() => 0);
   // the King's frame is his packed look's channel frame
-  const animateGoldenKing = nalatiLooks().find(look => look.kind === 'golden-king')?.animate;
+  const animateGoldenKing = nalatiSpeciesCatalogue().looks.find(look => look.kind === 'golden-king')?.animate;
   if (animateGoldenKing === undefined) throw new Error('Missing Golden King frame');
   const actual = context(), expected = context();
   for (const pose of [0, 1, 2]) for (const act of [0, 1, 2, 3, 4]) for (const strike of [0, 1, 2, 3])
@@ -97,8 +96,8 @@ test('balbal decisions rise, strike once, return and sink on the bounded guest t
 });
 
 test('packed species bodies lend owned indexed geometry for every family', () => {
-  for (const look of nalatiLooks()) {
-    const row = nalatiBehaviour().rows.find(candidate => candidate.kind === look.kind), variant = row?.variants[0], build = look.build;
+  for (const look of nalatiSpeciesCatalogue().looks) {
+    const row = nalatiSpeciesCatalogue().rows.find(candidate => candidate.kind === look.kind), variant = row?.variants[0], build = look.build;
     if (variant === undefined) throw new Error('Missing species variant');
     const first = build(variant, new Rng(1)), second = build(variant, new Rng(1));
     expect(first.bones.length).toBeGreaterThan(0);

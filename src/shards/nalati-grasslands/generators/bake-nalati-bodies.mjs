@@ -3,7 +3,7 @@
 // (src/shards/nalati-grasslands/generators/bodies.ts) runs here only and writes every body's attribute and index bytes, its
 // 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/nalati/baked/bodies.bin and its rows (the binary's
 // hash and size, each body's bones, dims and geometry layout) to src/shards/nalati-grasslands/data/bodies.json, which the
-// page reads (src/shards/nalati-grasslands/species/bodies.ts `preloadNalatiBodies`).
+// page reads (the hull book's packed bodies, game/looks/speciesBook `SpeciesCatalogue.preload`).
 // The stale gate: `--check` (bake-check.mjs's node baker `nalati-bodies`, cached on its inputs at the push gate) rebakes
 // every body and fails on any byte that differs from the committed rows and binary. The lofts' Math.sin / hypot are
 // byte-exact where the bake was made (macOS), so elsewhere --check says so and passes. test/shards/nalati-grasslands/

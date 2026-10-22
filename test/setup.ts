@@ -68,21 +68,20 @@ for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
 }
-const { prepareNalatiSpecies } = await import('../src/shards/nalati-grasslands/species/presentation');
-const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/catalogue');
+const { nalatiSpeciesCatalogue, prepareNalatiSpecies } = await import('../src/shards/nalati-grasslands/species/presentation');
+const { NALATI_DEFINITIONS } = await import('../src/shards/nalati-grasslands/species/definitions');
 const speciesPresentation = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default;
 const { HullLookBook: NalatiHullBook } = await import('../src/game/looks/speciesBook');
-prepareNalatiSpecies(parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation), new NalatiHullBook(speciesPresentation.hullBook,
-  { file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) }), speciesPresentation.looks);
-installNalatiSpeciesForTests();
+prepareNalatiSpecies(new NalatiHullBook(speciesPresentation.hullBook,
+  { file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) }).speciesCatalogue(parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation), speciesPresentation.looks, NALATI_DEFINITIONS));
+nalatiSpeciesCatalogue().register();
 // Production uses the packed-body host; preload its exact binary through its normal fetch port.
-const { preloadNalatiBodies } = await import('../src/shards/nalati-grasslands/species/presentation');
 const speciesBodies = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default.packedBodies;
 const bodyFetch = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
   if (input !== speciesBodies.file) throw new Error('Unexpected packed-body preload');
   return Promise.resolve(new Response(new Uint8Array(readFileSync(`public${speciesBodies.file}`))));
 });
-try { await preloadNalatiBodies(); } finally { bodyFetch.mockRestore(); }
+try { await nalatiSpeciesCatalogue().preload(); } finally { bodyFetch.mockRestore(); }
 const { unshuffleLanes: unshuffleBodyLanes } = await import('../src/engine/core/deflate');
 // and its camps' and bridge's places bake (world/placeBake.ts)
 const { loadShapes } = await import('../src/shards/nalati-grasslands/models/shapes');

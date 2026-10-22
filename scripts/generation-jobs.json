@@ -310,7 +310,6 @@
         "src/shards/nalati-grasslands/species/definitions.ts",
         "src/shards/nalati-grasslands/species/balbal.ts",
         "src/shards/nalati-grasslands/species/goldenKing.ts",
-        "src/shards/nalati-grasslands/species/catalogue.ts",
         "src/shards/nalati-grasslands/data/crowdGuard.json",
         "src/shards/nalati-grasslands/data/wolfPalette.json",
         "src/engine",

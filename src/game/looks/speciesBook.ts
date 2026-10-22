@@ -13,8 +13,9 @@ import { packedCreatureBodies,readBakedGeometry,type BakedGeometryRow } from '..
 import { Color, MeshBasicMaterial, SkinnedMesh, type BufferGeometry } from 'three';
 import { productRiggedHulls } from './riggedHulls';
 import { HullLookBookSchema, PackedCreatureLooksSchema, type CompactSpeciesBodiesRows, type LookFrameSchema } from '@wildshard/format/speciesLooks';
-import type { NativeSpeciesLookBookRows } from '@wildshard/format/speciesBookRows';
-import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { CreatureGuestRows, NativeSpeciesLookBookRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
+import { speciesWithLook, type SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { EngineRows } from '@wildshard/engine/level/context';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
@@ -80,6 +81,28 @@ export class HullLookBook {
   }
   /** Authored order is shared by page installation and cold specimen preparation. */
   get looks(): readonly SpeciesLook[] { return this.book.rows.map(row => this.look(row.kind)); }
+  /** G600 L8: a product's species catalogue over this book's packed looks (`packedLooks` of `lookRows`): the actors
+   *  file's behaviour rows (`speciesBehaviour`) with each kind's page controls (think and act on its row, damage on its
+   *  look), each packed look under the behaviour's look rules, and its guest rows. A control for a kind the rows lack
+   *  refuses. */
+  speciesCatalogue(data: SpeciesPresentationRows, lookRows: unknown, controls: readonly SpeciesControl[]): SpeciesCatalogue {
+    const rules = speciesBehaviour(data.lookBook), packed = this.packedLooks(lookRows), bodies = this.packed;
+    const owned = new Map(controls.map(control => [control.kind, control] as const));
+    if (owned.size !== controls.length || controls.some(control => !rules.rows.some(row => row.kind === control.kind))) throw new Error('Unknown species control');
+    const rows = rules.rows.map((row): SpeciesRow => {
+      const control = owned.get(row.kind); if (control === undefined) return row;
+      return { ...row, ...(control.think === undefined ? {} : { think: control.think }), ...(control.act === undefined ? {} : { act: control.act }) };
+    });
+    const looks = packed.all.map((look): SpeciesLook => {
+      const ruled = rules.look(look), damageMul = owned.get(look.kind)?.damageMul;
+      return damageMul === undefined ? ruled : { ...ruled, damageMul };
+    });
+    return { rows, looks, packed, guest: data.guest, preload: () => bodies.preload(),
+      install: target => { target.species(rows); target.speciesLook(looks); },
+      register: () => {
+        for (const row of rows) { const look = looks.find(candidate => candidate.kind === row.kind); if (look === undefined) throw new Error('Missing species look'); registerSpecies(speciesWithLook(row, look)); }
+      } };
+  }
   /** G600 L8 / G602: the packed bodies' looks (`PackedCreatureLooksSchema` rows) with each row's optional coat tints and
    *  traits, painterly material, rigged hull skins (the book's slug), alive / dead post-pose programmes (riding envelopes
    *  on the alive one), stance, gait, and its own frame: an animate programme or a channel frame (`frames`, see
@@ -214,6 +237,20 @@ export function productHullBook(product: { readonly section: (name: 'look/hull-b
   const row = product.section('look/hull-book'), cached = productBooks.get(row.slug);
   if (cached !== undefined) return cached;
   const book = new HullLookBook(row, product); productBooks.set(row.slug, book); return book;
+}
+
+/** A product's species catalogue (its hull book's `speciesCatalogue`). */
+export function productSpeciesCatalogue(product: Parameters<typeof productHullBook>[0], data: SpeciesPresentationRows, lookRows: unknown, controls: readonly SpeciesControl[]): SpeciesCatalogue {
+  return productHullBook(product).speciesCatalogue(data, lookRows, controls);
+}
+/** A shard's page controls for one kind: its gameplay bindings until its guest rows (G600 L4 / L5). */
+export type SpeciesControl = Pick<SpeciesDef, 'kind' | 'think' | 'act' | 'damageMul'>;
+/** A product's species: its rows and looks (installed on the level's rows, or registered by test fixtures), the packed
+ *  looks' poses, the creature guest rows and the packed bodies' preload. */
+export interface SpeciesCatalogue {
+  readonly rows: readonly SpeciesRow[]; readonly looks: readonly SpeciesLook[]; readonly guest: CreatureGuestRows;
+  readonly packed: ReturnType<HullLookBook['packedLooks']>;
+  preload: () => Promise<void>; install: (target: Pick<EngineRows, 'species' | 'speciesLook'>) => void; register: () => void;
 }
 
 /** Expand compact byte addressing only; the native packed owner admits every

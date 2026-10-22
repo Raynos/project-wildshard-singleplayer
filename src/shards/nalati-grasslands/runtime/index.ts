@@ -1,10 +1,10 @@
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
-import { prepareNalatiSpecies } from '../species/presentation';
-import { productHullBook } from '@wildshard/game/looks/speciesBook';
+import { nalatiSpeciesCatalogue, prepareNalatiSpecies } from '../species/presentation';
+import { productSpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
 
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { nalatiSpecies,nalatiLooks } from '../species/catalogue';
+import { NALATI_DEFINITIONS } from '../species/definitions';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
@@ -37,7 +37,7 @@ export class NalatiPlugin extends ShardPlugin {
     lendLooks(ctx.scope, await lookGraphMaterials(ctx.scope, game, ctx.product.shardfile, Object.keys(ctx.product.shardfile.look.materials).filter(id=>!hasLentLook(id))));
     await step('cabins', () => undefined);
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
-    prepareNalatiSpecies(actorRows.species, productHullBook(ctx.product), await ctx.product.json('actors/species-looks.json'));
+    prepareNalatiSpecies(productSpeciesCatalogue(ctx.product, actorRows.species, await ctx.product.json('actors/species-looks.json'), NALATI_DEFINITIONS));
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     await arsenal.blade.prepare(ctx.product);
     await arsenal.polearm.prepare(ctx.product);
@@ -52,8 +52,7 @@ export class NalatiPlugin extends ShardPlugin {
 
   override kit(ctx: ShardContext): void {
     host(ctx);
-    ctx.rows.species(nalatiSpecies());
-    ctx.rows.speciesLook(nalatiLooks());
+    nalatiSpeciesCatalogue().install(ctx.rows);
   }
 
   override async play(ctx: ShardContext): Promise<void> {
