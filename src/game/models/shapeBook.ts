@@ -11,7 +11,7 @@ const whole = v.pipe(n, v.integer(), v.minValue(0));
 const geometry = v.strictObject({ attrs: v.array(v.tuple([id, v.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), whole, v.boolean()])),
   count: whole, index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean(), expand: v.boolean() });
 const schema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
-  binary: v.strictObject({ url: id, bytes: whole }),
+  binary: v.exactOptional(v.strictObject({ url: id, bytes: whole })),
   shapes: v.pipe(v.array(v.strictObject({ key: id, offset: whole, geometry })), v.maxLength(4096)),
   inline: v.pipe(v.array(v.strictObject({ key: id, data: id, geometry })), v.maxLength(4096)),
   labels: v.pipe(v.array(v.strictObject({ key: id, shape: id, name: id, width: whole, height: whole, data: id, rim: n })), v.maxLength(64)),
@@ -29,14 +29,15 @@ class ShapeBook {
     this.rows = v.parse(schema, input);
     const keys = [...this.rows.shapes, ...this.rows.inline].map(row => row.key);
     if (new Set(keys).size !== keys.length) throw new Error('Duplicate prepared shape');
-    for (const row of this.rows.shapes) if (row.offset + bakedGeometryBytes(row.geometry) > this.rows.binary.bytes) throw new Error('Shape exceeds its binary');
+    for (const row of this.rows.shapes) if (row.offset + bakedGeometryBytes(row.geometry) > (this.rows.binary?.bytes ?? 0)) throw new Error('Shape exceeds its binary');
   }
   use(bytes: Uint8Array): void {
-    if (bytes.length !== this.rows.binary.bytes) throw new Error('Shape binary byte count differs');
+    if (bytes.length !== this.rows.binary?.bytes) throw new Error('Shape binary byte count differs');
     this.bytes = bytes; this.pending = Promise.resolve();
   }
   load(): Promise<void> {
-    this.pending ??= this.rows.shapes.length === 0 ? Promise.resolve() : fetchLaneBake(this.rows.binary.url).then(bytes => {
+    const binary = this.rows.binary;
+    this.pending ??= binary === undefined || this.rows.shapes.length === 0 ? Promise.resolve() : fetchLaneBake(binary.url).then(bytes => {
       this.use(bytes); return undefined;
     });
     return this.pending;

@@ -1,18 +1,20 @@
 import { parse } from 'valibot';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { expect, test } from 'vitest';
-import { Bone, BoxGeometry, Skeleton } from 'three';
-import { ShepherdRider as MountedFigure } from '../src/shards/nalati-grasslands/runtime/looks/rider';
+import { Bone, Skeleton } from 'three';
+import { Scope } from '../src/engine/app/scope';
+import { SeatedFigure } from '../src/game/riding/seatedFigure';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { legacyDouble } from './fake/FakeGame';
-import rows from '../src/shards/nalati-grasslands/data/mountedFigure.json' with { type: 'json' };
+import { MOUNTED_FIGURE as rows } from '../src/shards/nalati-grasslands/generators/mountedFigure';
 
 test('a marsh ferryman binds different joints and cue clocks without another channel program', () => {
-  const geometry = new BoxGeometry();
+  const scope = new Scope('ferryman'), oar = rows.shapes.find(shape => shape.key === 'shepherd-arm');
+  if (oar === undefined) throw new Error('Missing arm shape');
   const profile = { ...rows, mount: 'waist', figure: { ...rows.figure, root: 'ferryman', nodes: [
     { kind: 'group', id: 'ferryman', children: ['oar'] }, { kind: 'mesh', id: 'oar', geometry: 'oar', material: 'rider', missing: 'empty' },
-  ] }, gestures: [{ cue: 'rowing', clock: 'strokeT', duration: .45 }], clips: JSON.parse(JSON.stringify(rows.clips).replaceAll('"rider"', '"ferryman"').replaceAll('"arm"', '"oar"').replaceAll('crackT', 'strokeT')) as unknown };
-  const figure = new MountedFigure(parse(MountedSpecimenSeatSchema,profile), new Map([['oar', geometry]]));
+  ] }, shapes: [{ ...oar, key: 'oar' }], gestures: [{ cue: 'rowing', clock: 'strokeT', duration: .45 }], clips: JSON.parse(JSON.stringify(rows.clips).replaceAll('"rider"', '"ferryman"').replaceAll('"arm"', '"oar"').replaceAll('crackT', 'strokeT')) as unknown };
+  const figure = new SeatedFigure(parse(MountedSpecimenSeatSchema,profile), scope);
   const joint = new Bone(); joint.name = 'waist';
   figure.attach(legacyDouble<Animal>({ mesh: legacyDouble<Animal['mesh']>({ skeleton: new Skeleton([joint]) }) }));
   expect(joint.children).toContain(figure.root);
@@ -27,5 +29,5 @@ test('a marsh ferryman binds different joints and cue clocks without another cha
   }
   figure.update(.01, [], 0); expect(arm.rotation.x).toBe(-.2);
   expect(() => figure.attach(legacyDouble<Animal>({ mesh: legacyDouble<Animal['mesh']>({ skeleton: new Skeleton() }) }))).toThrow('joint');
-  geometry.dispose();
+  scope.dispose();
 });

@@ -1,12 +1,10 @@
-import { parse } from 'valibot';
-import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import { shapeBook } from '../src/game/models/shapeBook';
 import shapeRows from '../src/shards/nalati-grasslands/boot/shapeBook.generated.json' with { type: 'json' };
-import { ShepherdRider } from '../src/shards/nalati-grasslands/runtime/looks/rider';
-import riderRows from '../src/shards/nalati-grasslands/data/mountedFigure.json' with { type: 'json' };
+import { seatedFigureView } from '../src/game/riding/seatedFigure';
+import { MOUNTED_FIGURE } from '../src/shards/nalati-grasslands/generators/mountedFigure';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { Mesh, BufferGeometry, BufferAttribute, Material, MeshLambertMaterial, DataTexture, Vector3, SRGBColorSpace, LinearFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping } from 'three';
 import oracle from './fixtures/nalati-poi-paint.json';
@@ -60,7 +58,7 @@ describe('Nalati fixed POI paint', () => {
   });
 
   it('keeps the two shepherd material slots and independent animated arm', () => {
-    const rider = new ShepherdRider(parse(MountedSpecimenSeatSchema,riderRows), new Map(shapeBook(shapeRows).geometries(['shepherd-body','shepherd-arm']))).root, body = rider.children[0], arm = rider.children[1];
+    const rider = seatedFigureView(MOUNTED_FIGURE).root, body = rider.children[0], arm = rider.children[1];
     if (!(arm instanceof Mesh)) throw new Error('Shepherd arm must remain a mesh');
     if (!(body instanceof Mesh)) throw new Error('Shepherd body must remain a mesh');
     expect(rider.children).toEqual([body, arm]);

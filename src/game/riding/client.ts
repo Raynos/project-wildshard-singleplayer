@@ -25,6 +25,8 @@ import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
 import { Mount, enteredMount } from './mount';
 import { RidingControlsSchema, PageTamingBindingSchema, ClientRidingSessionSchema, cleanMountName, type RidingControls, type MountProfile } from '@wildshard/format/riding';
+import { MountedSpecimenSeatSchema, type MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
+import { SeatedFigure } from './seatedFigure';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
@@ -280,19 +282,18 @@ function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingO
 export interface PageRidingView {
   readonly mount: Mount; readonly taming: PageTamingOwner; readonly hud: RideHUD; readonly interactable: Interactable;
   readonly mounted: boolean; readonly reins: MountedReins; readonly raid: PagePastureRaid<CrowdDraw>;
-  /** this frame's pasture raid signals (its cue kinds), for the shard's own view code (a rider's gestures) */
-  readonly signals: readonly string[];
   update: (dt: number) => void; late: (dt: number) => void; noteShot: (x: number, z: number) => void;
 }
-const clientSessions = new WeakMap<Scope, { readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; view: PageRidingView | null }>();
+const clientSessions = new WeakMap<Scope, { readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; view: PageRidingView | null }>();
 /** Admit the client session before world wiring; body and equipment authorities
  * arrive through their native stages, never through authored callbacks. */
 export async function installClientRiding(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
   if (feature.kind !== 'riding.session' || ctx.scope.disposed || clientSessions.has(ctx.scope)) throw new Error('Invalid riding feature owner');
   const active = (): void => { if (ctx.scope.disposed) throw new Error('Riding owner left during admission'); };
   const rows = v.parse(ClientRidingSessionSchema, await ctx.product.json(feature.file));
+  const figure = rows.figure === undefined ? null : v.parse(MountedSpecimenSeatSchema, await ctx.product.json(rows.figure));
   active();
-  clientSessions.set(ctx.scope, { rows, view: null });
+  clientSessions.set(ctx.scope, { rows, figure, view: null });
   ctx.scope.onDispose(() => { clientSessions.delete(ctx.scope); });
 }
 /** Enter after native animals and equipment exist. The plan supplies all labels,
@@ -321,8 +322,11 @@ export function enterClientRiding(ctx: ShardContext): PageRidingView {
   }]]);
   ctx.scope.onDispose(() => { namer.close(); });
   const weaponMount = { speed: 0, yaw: 0 }, signals: string[] = [];
+  // the raid's seated figure (its shepherd), gesturing on this frame's cue kinds
+  const figure = owner.figure === null ? null : new SeatedFigure(owner.figure, ctx.scope);
+  if (figure !== null && raid.shepherd !== null) figure.attach(raid.shepherd);
   const view: PageRidingView = {
-    mount, taming, hud, interactable, reins, raid, signals, get mounted() { return mount.mounted; },
+    mount, taming, hud, interactable, reins, raid, get mounted() { return mount.mounted; },
     noteShot: (x, z) => { taming.noteShot(x, z); },
     update: dt => {
       session.update(dt, wildEnv.wetAt(mount.feet.x, mount.feet.z), false, namer.isOpen); wildEnv.playerMounted = mount.mounted;
@@ -332,7 +336,7 @@ export function enterClientRiding(ctx: ShardContext): PageRidingView {
         else if (event.kind === 'bonded') persistence.feat(rows.naming.bondedFeat);
         else if (event.kind === 'name') { namingActor = event.actor; nameValues.current = event.current; namer.open(nameValues, actions); }
       }
-      // the raid's declared cues: a toast, a sound at its actor, and this frame's kinds for the shard's view code
+      // the raid's declared cues: a toast, a sound at its actor, and this frame's kinds for the seated figure
       raid.update(dt, world.player.position, population.predators, app.clock.now, practiceRoom.open); signals.length = 0;
       for (let i = 0; i < 8; i++) {
         const cue = raid.nextCue(); if (cue === undefined) break;
@@ -341,6 +345,7 @@ export function enterClientRiding(ctx: ShardContext): PageRidingView {
         const actor = play.animals.animals.find(body => body.entityId === cue.actor);
         if (cue.sound !== null && actor !== undefined) play.animals.onSound?.(cue.sound, actor.position);
       }
+      figure?.update(dt, signals);
     },
     late: dt => {
       weaponMount.speed = mount.speed; weaponMount.yaw = mount.heading - Math.PI; kit.setMount(mount.mounted ? weaponMount : null);

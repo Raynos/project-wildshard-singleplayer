@@ -15,9 +15,5 @@
   "json": "riding/mounted-figure.json",
   "species": "horse",
   "variant": "camp-bay",
-  "scale": 0.5,
-  "geometry": [
-    "shepherd-body",
-    "shepherd-arm"
-  ]
+  "scale": 0.5
 }

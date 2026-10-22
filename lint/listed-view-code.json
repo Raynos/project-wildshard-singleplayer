@@ -12,7 +12,6 @@
       { "path": "src/shards/driftwood-isle/runtime/models/trader.ts", "reason": "The entered trader's rig, specimen and pose ownership retain their actual view lifetime.", "decision": "G565" }
     ],
     "nalati-grasslands": [
-      { "path": "src/shards/nalati-grasslands/runtime/looks/rider.ts", "reason": "The shepherd's mounted meshes, eased clips and whip cue project the existing riding signals.", "decision": "G530" },
       { "path": "src/shards/nalati-grasslands/look/index.ts", "reason": "The painterly panorama, key and grass projection follow their declared world and weather owners.", "decision": "G478" },
       { "path": "src/shards/nalati-grasslands/look/render.ts", "reason": "The private painterly render strategy retains its fog, terrain and grade projection.", "decision": "G478" }
     ],

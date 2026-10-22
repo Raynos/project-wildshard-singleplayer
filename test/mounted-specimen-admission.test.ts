@@ -4,7 +4,7 @@ import {namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import {nameBlob} from '@wildshard/sdk/blobs';
 import {emptyShardfile} from '@wildshard/sdk/author';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
-import source from '../src/shards/nalati-grasslands/data/mountedFigure.json' with {type:'json'};
+import {MOUNTED_FIGURE as source} from '../src/shards/nalati-grasslands/generators/mountedFigure';
 
 const encode=(input:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(input));
 test('the actual mounted figure keeps every clip and rejects invalid seats before native construction',async()=>{

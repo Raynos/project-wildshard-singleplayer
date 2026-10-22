@@ -102,4 +102,6 @@ export const ClientRidingSessionSchema = v.pipe(v.unknown(), v.check(isJsonData)
   roads: v.array(v.array(v.tuple([v.number(), v.number()]))), rest: v.strictObject({ ...point.entries, face: point }),
   taming: v.strictObject({ binding: PageTamingBindingSchema, rail: point }),
   naming: v.strictObject({ panel: PanelDefinitionSchema, action: v.string(), maximum: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(128)), notice: v.string(), bondedFeat: v.string() }),
+  /** the product file of a figure seated on the pasture raid's mount (format/mountedSpecimenRows), gesturing on its cues */
+  figure: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(256))),
 }));

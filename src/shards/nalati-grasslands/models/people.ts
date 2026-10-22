@@ -6,7 +6,6 @@ import { TIER } from '@wildshard/engine/core/tier';
 import population from '../boot/peopleFrames.generated.json' with { type: 'json' };
 import { defineMountedSpecimen } from '@wildshard/game/models/mountedSpecimen';
 import mountedSpecimen from '../boot/mountedSpecimen.json' with { type: 'json' };
-import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 
 type PersonId = keyof typeof population.figures;
 
@@ -45,4 +44,4 @@ export const campPeople: ModelDef<CampPersonParams> = defineModel<CampPersonPara
 
 /** the mounted shepherd: his seated figure on the saddled camp horse's body bone, as the raid seats him (the horse is the
  *  Hunyuan3D-2 saddled hull on the horse's rig, the code horse until it loads; he is code) */
-export const shepherd = defineMountedSpecimen(mountedSpecimen, shapeRows);
+export const shepherd = defineMountedSpecimen(mountedSpecimen);

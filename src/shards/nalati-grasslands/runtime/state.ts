@@ -35,7 +35,6 @@ import { StealthController, type StealthController as Stealth, type StealthThrea
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/field';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
-import { loadShepherdRider } from './looks/rider';
 import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
 import type { CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
@@ -148,8 +147,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   let wildlife: PageWildlife<Flock> | null = null;
   let playKit: NalatiLoadout | null = null;
   let ride: Ride | null = null;
-  // the shepherd's rider (./looks/rider.ts): listed view code on the raid's horse and cues
-  const rider = await loadShepherdRider(plugin.product, shapeRows, geometry => { game.levelScope.own(geometry); });
   updates.push(() => undefined); // The declared population owns this frame slot.
 
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
@@ -173,7 +170,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
       stealth = new StealthController(plugin,player,stealthRows);
       if (wildlife === null) throw new Error('Nalati creatures have not been built');
       ride = enterClientRiding(plugin);
-      if (ride.raid.shepherd !== null) rider.attach(ride.raid.shepherd);
       plugin.debug.expose('nalati.ride',ride);
 
       const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
@@ -195,7 +191,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   elites.ghosts = night.riders;   // B12: Qara Batyr rides B11's captain rig at the head of a line
   titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
   updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
-  updates.push(dt => { if (ride === null) return; ride.update(dt); rider.update(dt, ride.signals); });
+  updates.push(dt => { ride?.update(dt); });
   // ── wearable skins (B15; src/shards/nalati-grasslands/weapons/nalatiSkins.ts): the elites' drops (mirrored from elites.skins once a second) and the
   //    Titan's saddle, painted on the kit and on the horse you ride / your bonded horse ──
 
