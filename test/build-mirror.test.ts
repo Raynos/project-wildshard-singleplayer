@@ -16,8 +16,13 @@ it('caps live slot and FIFO waits at five minutes, names holders and removes its
   const { repo, env } = fixture();
   const root = env['WILDSHARD_BUILD_MIRROR'] ?? '';
   const lock = join(root, 'check.lock');
-  const queue = join(root, 'check.queue');
-  mkdirSync(lock, { recursive: true });
+  const queue = join(root, 'checks.queue');
+  for (const slot of ['check', 'check2', 'check3', 'check4', 'check5']) {
+    const held = join(root, `${slot}.lock`);
+    mkdirSync(held, { recursive: true });
+    writeFileSync(join(held, 'owner'), String(pid));
+    writeFileSync(join(held, 'owner.json'), JSON.stringify({ pid, command: 'node owned-build.mjs', startedAt: '2026-10-22T15:00:00Z' }));
+  }
   mkdirSync(queue, { recursive: true });
   writeFileSync(join(lock, 'owner'), String(pid));
   const details = JSON.stringify({ pid, command: 'node owned-build.mjs', startedAt: '2026-10-22T15:00:00Z' });
@@ -29,7 +34,7 @@ it('caps live slot and FIFO waits at five minutes, names holders and removes its
     const clock = vi.spyOn(Date, 'now').mockReturnValueOnce(now).mockReturnValueOnce(now).mockReturnValue(now + 300_000);
     try {
       expect(() => openMirror('HEAD', { repo, env })).toThrow(
-        new RegExp(`after 5 min.*slot=check pid=${pid} command="node owned-build.mjs" start=2026-10-22T15:00:00Z${queued ? '.*queue head' : ''}`, 'u'),
+        new RegExp(`after 5 min.*slot=check pid=${pid} command="node owned-build.mjs" start=2026-10-22T15:00:00Z.*slot=check2.*slot=check3.*slot=check4.*slot=check5${queued ? '.*queue head' : ''}`, 'u'),
       );
       expect(readdirSync(queue)).toEqual(queued ? [first] : []);
       expect(readFileSync(join(lock, 'owner'), 'utf8')).toBe(String(pid));
@@ -106,7 +111,7 @@ it('links workspace packages to the mirror sources, takes over a dead lock and q
   const lock = join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'check.lock');
   mkdirSync(lock, { recursive: true });
   writeFileSync(join(lock, 'owner'), '999999\n');
-  const queue = join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'check.queue');
+  const queue = join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'checks.queue');
   mkdirSync(queue, { recursive: true });
   writeFileSync(join(queue, '000000000000001-999999'), '');
   const mirror = openMirror(sha, { repo, env });
@@ -117,9 +122,26 @@ it('links workspace packages to the mirror sources, takes over a dead lock and q
   expect(() => openMirror(sha, { repo, env, slot: '../escape' })).toThrow(/invalid slot/u);
   expect(() => openMirror(sha, { repo, env, slot: 'check6' })).toThrow(/invalid slot/u);
   expect(() => openMirror(sha, { repo, env, slot: 'lane-x6' })).toThrow(/invalid slot/u);
-  for (const slot of ['gate', 'commit', 'check', 'check2', 'check3', 'check4', 'check5']) {
+  expect(() => openMirror(sha, { repo, env, slot: 'gate' })).toThrow(/invalid slot/u);
+  expect(() => openMirror(sha, { repo, env, slot: 'commit' })).toThrow(/invalid slot/u);
+  for (const slot of ['ruler', 'check', 'check2', 'check3', 'check4', 'check5']) {
     const admitted = openMirror(sha, { repo, env, slot }); admitted.release();
   }
+});
+
+it('spreads check names across five slots and keeps ruler independent', () => {
+  const { repo, commit, env } = fixture();
+  const sha = commit({ 'source.txt': 'fixture' });
+  const held = ['check5', 'check4', 'check', 'check2', 'check3'].map(slot => openMirror(sha, { repo, env, slot }));
+  const ruler = openMirror(sha, { repo, env, slot: 'ruler' });
+  try {
+    expect(held.map(mirror => dirname(mirror.dir).split('/').at(-1))).toEqual(['check', 'check2', 'check3', 'check4', 'check5']);
+    expect(dirname(ruler.dir).split('/').at(-1)).toBe('ruler');
+    held[2]?.release();
+    const next = openMirror(sha, { repo, env, slot: 'check5' });
+    expect(next.dir).toBe(held[2]?.dir);
+    next.release();
+  } finally { for (const mirror of held) mirror.release(); ruler.release(); }
 });
 
 it('keeps whole generated jobs, invalidates partial jobs and prunes retired outputs', () => {

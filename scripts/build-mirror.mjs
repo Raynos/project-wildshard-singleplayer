@@ -9,14 +9,14 @@
 // The mirror is a work tree with its own index (GIT_INDEX_FILE), so `read-tree -u` rewrites only the files that differ
 // from the commit it last held: a sync to a nearby commit writes kilobytes, never a fresh 23k-file export. It holds the
 // commit minus art/, progress/ and sources/ (what the exports always excluded; --full keeps them). There is one mirror
-// per slot under git-ignored ./tmp/build-mirror (G547: gate, commit, check and check2..check5;
-// seven shared slots, never per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
+// per slot under git-ignored ./tmp/build-mirror (G612: five pooled check slots and ruler;
+// six shared slots, never per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
 // at boot, before login, and the piled-up exports stalled the boot for hours on 2026-10-15), and `du -sh tmp` shows
 // what this repo holds. A lock serializes users of a slot: the mirror cannot change under a running build.
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 
@@ -55,41 +55,42 @@ function holder(path, pid, slot) {
   return `slot=${slot} pid=${pid === 0 ? 'unavailable' : pid} command=${JSON.stringify(details?.command ?? (pid ? inspect('command') : 'unavailable'))} start=${details?.startedAt ?? (pid ? inspect('lstart') : 'unavailable')}`;
 }
 
-function acquire(lockDir) {
+function acquire(root, slots) {
   const deadline = Date.now() + LOCK_WAIT_MS;
-  const slot = basename(lockDir, '.lock');
-  const queueDir = lockDir.replace(/\.lock$/, '.queue');
+  const queueDir = join(root, `${slots.length > 1 ? 'checks' : slots[0]}.queue`);
   mkdirSync(queueDir, { recursive: true });
   const ticket = `${String(Date.now()).padStart(15, '0')}-${process.pid}`;
   const details = { pid: process.pid, command: process.argv.join(' '), startedAt: new Date().toISOString() };
   writeFileSync(join(queueDir, ticket), JSON.stringify(details));
-  const leave = () => rmSync(join(queueDir, ticket), { force: true });
+  const leave = () => { rmSync(join(queueDir, ticket), { force: true }); process.removeListener('exit', leave); };
   process.once('exit', leave);
-  for (;;) {
+  try { for (;;) {
     const first = tickets(queueDir)[0];
     const head = first === ticket;
-    if (head) {
-      try {
-        mkdirSync(lockDir);
-        writeFileSync(join(lockDir, 'owner'), `${process.pid}\n`);
-        writeFileSync(join(lockDir, 'owner.json'), JSON.stringify(details));
-        leave();
-        return () => rmSync(lockDir, { recursive: true, force: true });
-      } catch (error) {
-        if (error.code !== 'EEXIST') { leave(); throw error; }
+    const holders = [];
+    for (const slot of slots) {
+      const lockDir = join(root, `${slot}.lock`);
+      let owner = 0;
+      try { owner = Number(readFileSync(join(lockDir, 'owner'), 'utf8')); } catch { /* Not published yet, or free. */ }
+      if (owner && !alive(owner)) rmSync(lockDir, { recursive: true, force: true });
+      if (head) {
+        try {
+          mkdirSync(lockDir);
+          writeFileSync(join(lockDir, 'owner'), `${process.pid}\n`);
+          writeFileSync(join(lockDir, 'owner.json'), JSON.stringify(details));
+          leave();
+          return { slot, unlock: () => rmSync(lockDir, { recursive: true, force: true }) };
+        } catch (error) { if (error.code !== 'EEXIST') throw error; }
       }
+      holders.push(holder(join(lockDir, 'owner.json'), owner, slot));
     }
-    let owner = 0;
-    try { owner = Number(readFileSync(join(lockDir, 'owner'), 'utf8')); } catch { /* owner not written yet, or no lock */ }
-    if (owner && !alive(owner)) { rmSync(lockDir, { recursive: true, force: true }); continue; }
     const remaining = deadline - Date.now();
     if (remaining <= 0) {
-      leave();
-      const queued = !head && first ? `; queue head ${holder(join(queueDir, first), Number(first.slice(first.lastIndexOf('-') + 1)), slot)}` : '';
-      throw new Error(`build-mirror: timed out after 5 min waiting for ${lockDir}; holder ${holder(join(lockDir, 'owner.json'), owner, slot)}${queued}`);
+      const queued = !head && first ? `; queue head ${holder(join(queueDir, first), Number(first.slice(first.lastIndexOf('-') + 1)), slots.join(','))}` : '';
+      throw new Error(`build-mirror: timed out after 5 min waiting for ${slots.join(',')}; holders: ${holders.join('; ')}${queued}`);
     }
     sleep(Math.min(head ? 250 : 2000, remaining));
-  }
+  } } finally { leave(); }
 }
 
 /** The commit's tree, or (unless full) a tree object of its top level without the excluded folders. */
@@ -115,15 +116,16 @@ function generatedGroups(dir) {
 }
 
 /** Lock the slot, bring its tree to `rev`, return { dir, sha, release }. The lock also releases at process exit. */
-/** The slot when none is named: `WILDSHARD_MIRROR_SLOT` (a lane's assigned check2 / check3 while W2 runs, G435), else `check`. */
+/** Any check name requests the shared five-slot pool. Only ruler is reserved. */
 export function defaultSlot(env = process.env) {
   return env.WILDSHARD_MIRROR_SLOT ?? 'check';
 }
 
-const MIRROR_SLOTS = new Set(['gate', 'commit', 'check', 'check2', 'check3', 'check4', 'check5']);
+const CHECK_SLOTS = ['check', 'check2', 'check3', 'check4', 'check5'];
+const MIRROR_SLOTS = new Set(['ruler', ...CHECK_SLOTS]);
 
 export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
-  if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use gate, commit or check..check5`);
+  if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use ruler or pooled check..check5`);
   // Unknown shell wrappers cannot be hoisted by heavy-lane. Refuse before queueing,
   // so an owner never waits for a mirror while consuming capacity its preview needs.
   if (env.WS_HEAVY_TOKEN) {
@@ -135,17 +137,18 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
       if (held) throw new Error('build-mirror: acquire the mirror slot before the heavy lease; run heavy-lane inside build-mirror');
     }
   }
-  const root = join(mirrorRoot(env, repo), slot);
+  const admitted = acquire(mirrorRoot(env, repo), slot === 'ruler' ? ['ruler'] : CHECK_SLOTS);
+  const root = join(mirrorRoot(env, repo), admitted.slot);
   const dir = join(root, 'tree');
-  mkdirSync(dir, { recursive: true });
   // ./tmp ignores itself, so scratch there never shows up in `git status` or a commit.
   const scratchIgnore = join(repo, 'tmp', '.gitignore');
   if (existsSync(join(repo, 'tmp')) && !existsSync(scratchIgnore)) writeFileSync(scratchIgnore, '*\n');
-  const unlock = acquire(`${root}.lock`);
+  const unlock = admitted.unlock;
   let released = false;
-  const release = () => { if (!released) { released = true; unlock(); } };
+  const release = () => { if (!released) { released = true; unlock(); process.removeListener('exit', release); } };
   process.once('exit', release);
   try {
+    mkdirSync(dir, { recursive: true });
     // A commit, or a bare tree (the pre-commit check syncs `git write-tree` of the staged index).
     const commit = spawnSync('git', ['rev-parse', '--verify', '--quiet', `${rev}^{commit}`], { cwd: repo, encoding: 'utf8' });
     const sha = commit.status === 0 ? commit.stdout.trim()

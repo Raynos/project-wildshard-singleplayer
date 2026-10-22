@@ -38,8 +38,9 @@ class LeaseOrderTests(unittest.TestCase):
         self.mirror.write_text("import {openMirror} from " + json.dumps((ROOT / 'scripts/build-mirror.mjs').as_uri()) + ";\n"
             "import {existsSync,writeFileSync} from 'node:fs';import{join}from'node:path';import{spawnSync}from'node:child_process';\n"
             "const args=process.argv.slice(2),root=process.env.FIXTURE_ROOT;\n"
-            "const mirror=openMirror(args[1],{repo:join(root,'repo'),linkModules:false});\n"
+            "const mirror=openMirror(args[1],{repo:join(root,'repo'),slot:process.env.FIXTURE_SLOT??'ruler',linkModules:false});\n"
             "try{if(process.env.ROLE==='preview'){writeFileSync(join(root,'preview.locked'),'');const until=Date.now()+12000;while(!existsSync(join(root,'preview.go'))){if(Date.now()>until)throw Error('preview timed out');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,10);}}\n"
+            "if(process.env.ROLE==='pool'){writeFileSync(join(root,'pool-'+process.pid+'.locked'),mirror.dir);const until=Date.now()+12000;while(!existsSync(join(root,'pool.go'))){if(Date.now()>until)throw Error('pool timed out');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,10);}}\n"
             "const split=args.indexOf('--'),cmd=args.slice(split+1);const child=spawnSync(cmd[0],cmd.slice(1),{cwd:mirror.dir,env:process.env,stdio:'inherit'});process.exitCode=child.status??1;}finally{mirror.release();}\n")
 
     def stop(self):
@@ -71,7 +72,7 @@ class LeaseOrderTests(unittest.TestCase):
         self.wait_for(lambda: (self.root / 'preview.locked').exists())
         checks = [self.start([sys.executable, HEAVY, 'build', '--',
             *self.mirror_command([sys.executable, str(self.worker), name])]) for name in ('check-a', 'check-b')]
-        queue = self.root / 'mirrors/check.queue'
+        queue = self.root / 'mirrors/ruler.queue'
         self.wait_for(lambda: queue.exists() and len(list(queue.iterdir())) == 2)
         state = json.loads(subprocess.check_output([sys.executable, HEAVY, 'status'], env=self.env))
         self.assertEqual(state['active'], [])
@@ -81,7 +82,7 @@ class LeaseOrderTests(unittest.TestCase):
             self.assertEqual(process.returncode, 0, out + err)
         self.assertTrue(all((self.root / (name + '.built')).exists() for name in ('preview', 'check-a', 'check-b')))
         self.assertEqual(list(queue.iterdir()), [])
-        self.assertFalse((self.root / 'mirrors/check.lock').exists())
+        self.assertFalse((self.root / 'mirrors/ruler.lock').exists())
 
     def test_unknown_shell_wrapper_refuses_before_waiting_with_a_lease(self):
         preview = self.start(self.mirror_command([sys.executable, HEAVY, 'build', '--',
@@ -96,6 +97,29 @@ class LeaseOrderTests(unittest.TestCase):
         (self.root / 'preview.go').touch()
         out, err = preview.communicate(timeout=10)
         self.assertEqual(preview.returncode, 0, out + err)
+
+    def test_five_parallel_check_requests_spread_and_sixth_fails_naming_every_holder(self):
+        commands = [self.start(self.mirror_command([sys.executable, '-c', 'pass']),
+                               ROLE='pool', FIXTURE_SLOT='check5') for _ in range(5)]
+        self.wait_for(lambda: len(list(self.root.glob('pool-*.locked'))) == 5)
+        self.assertEqual({Path(path.read_text()).parent.name for path in self.root.glob('pool-*.locked')},
+                         {'check', 'check2', 'check3', 'check4', 'check5'})
+        # Simulate five elapsed minutes in the actual sixth process. It must
+        # neither sync source nor steal one of the five live owners' locks.
+        script = "import {openMirror} from " + json.dumps((ROOT / 'scripts/build-mirror.mjs').as_uri()) + ";" + \
+                 "const now=Date.now();let calls=0;Date.now=()=>now+(calls++<2?0:300000);openMirror('HEAD',{repo:process.env.FIXTURE_ROOT+'/repo',slot:'check'});"
+        sixth = self.start(['node', '--input-type=module', '-e', script])
+        out, err = sixth.communicate(timeout=5)
+        self.assertNotEqual(sixth.returncode, 0, out + err)
+        self.assertIn('timed out after 5 min', err)
+        for slot in ('check', 'check2', 'check3', 'check4', 'check5'):
+            self.assertIn('slot=' + slot + ' pid=', err)
+        for process in commands:
+            self.assertIn('pid=' + str(process.pid), err)
+        (self.root / 'pool.go').touch()
+        for process in commands:
+            out, err = process.communicate(timeout=5)
+            self.assertEqual(process.returncode, 0, out + err)
 
     def test_self_managed_checks_delegate_without_an_outer_lease(self):
         order = runpy.run_path(HEAVY)['mirror_first']

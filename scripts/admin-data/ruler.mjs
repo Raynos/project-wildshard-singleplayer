@@ -247,7 +247,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   // Take the mirror first, then the build lease. The CLI prepares all ten
   // verified products (including _template) before reading section inventory.
   // G562: this child-only marker preserves ruler QoS without changing ordinary lane builds.
-  const out = execFileSync(process.execPath, [resolve(repo, 'scripts/build-mirror.mjs'), 'run', revision, '--slot', process.env.WS_RULER_SLOT ?? 'check2', '--', 'python3', 'scripts/heavy-lane.py', 'build', '--', ...RULER_COMMAND.split(' ')],
+  const out = execFileSync(process.execPath, [resolve(repo, 'scripts/build-mirror.mjs'), 'run', revision, '--slot', process.env.WS_RULER_SLOT ?? 'ruler', '--', 'python3', 'scripts/heavy-lane.py', 'build', '--', ...RULER_COMMAND.split(' ')],
     { cwd: repo, env: { ...process.env, WS_HEAVY_RULER: '1' }, maxBuffer: 256 << 20, stdio: ['ignore', 'pipe', 'inherit'] }).toString('utf8');
   const start = out.search(/^\{/mu);
   if (start === -1) throw new Error(`Ruler: ${RULER_COMMAND} printed no JSON`);
