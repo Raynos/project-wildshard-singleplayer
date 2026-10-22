@@ -16,7 +16,8 @@ export interface V2Module {
 const numeric = new Set([0x7f,0x7e,0x7d,0x7c]);
 class Reader {
   pos = 0;
-  constructor(readonly bytes: Uint8Array) {}
+  readonly bytes: Uint8Array;
+  constructor(bytes: Uint8Array) { this.bytes = bytes; }
   byte(): number { const value = this.bytes[this.pos++]; if (value === undefined) throw new Error('Truncated v2 module'); return value; }
   take(length: number): Uint8Array {
     if (!Number.isSafeInteger(length) || length < 0 || length > this.bytes.length-this.pos) throw new Error('Truncated v2 section');
