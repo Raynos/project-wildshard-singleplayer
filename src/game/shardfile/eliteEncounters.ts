@@ -6,7 +6,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
-import type { PouncerContext, PouncerLedge, PouncerPorts, HowlerPorts } from '@wildshard/engine/ai/stalker';
+import { StalkerBrain, type PouncerContext, type PouncerLedge, type PouncerSpec, type HowlerSpec, type HowlerPorts } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import { EliteCore, EliteCoreContinuationSchema, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
 
@@ -24,22 +24,14 @@ export interface EliteBindings {
 /** Allocate per simulation, never at module import. */
 export function eliteBindings(): EliteBindings { return { pinned: new Set(), absent: new Set(), brains: new Map() }; }
 
-interface Keeper {
-  tick: (a: AnimalSim | null, dt: number, t: number, engaged: boolean, leashing: boolean) => void;
-  think: (a: AnimalSim, c: PouncerContext<AnimalSim>) => void;
-  act: (a: AnimalSim) => void; damage: (a: AnimalSim, p: Vector3) => number;
-  enterPhase2?: (a: AnimalSim | null) => void;
-  spawned: (a: AnimalSim) => void; reset: (a: AnimalSim | null) => void; disposeTell: () => void;
-  snapshot: () => SimValue; restore: (value: unknown) => void;
-}
-interface Howler extends Keeper { enterPhase2: (a: AnimalSim | null) => void }
+type Keeper = StalkerBrain<AnimalSim>;
 interface Herd { readonly stallionState: string; readonly stallion: AnimalSim | null; readonly leadAway: (x: number, z: number) => void }
 type HerdTaming = () => {readonly phase:string;readonly tulpar:AnimalSim|null}|null;
-/** Native stalker bindings and admitted herd guest rows. The installer retains
- * the common native body and reward authority. */
+/** Admitted native stalker tuning and herd guest rows. The installer retains
+ * the common controller, native body and reward authority. */
 export interface EliteKeeperBindings {
-  readonly pouncer: new (ports: PouncerPorts<AnimalSim> & { feed: typeof silent; sound: typeof silent }) => Keeper;
-  readonly howler: new (ports: HowlerPorts<AnimalSim> & { feed: typeof silent; sound: typeof silent }) => Howler;
+  readonly pouncer: PouncerSpec;
+  readonly howler: HowlerSpec;
   readonly herd: {readonly rows:unknown;readonly program:unknown};
 }
 /** A member's identity, adoption and save key are author data. Pack ordering is checked against the owner's actor IDs. */
@@ -156,8 +148,8 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
     const howlerPorts = { ...common, pack: () => live.pack, environment: ports.environment, random: () => host.rng.stream('ai').next(), rings: tells,
       hurt, regrouped: silent, interrupted: silent, closed: silent, howl: silent };
     const create = (): Keeper | HerdEliteProjection => {
-      if (row.keeper === 'pouncer') { const Pouncer = ports.keepers.pouncer; return new Pouncer(pouncerPorts); }
-      if (row.keeper === 'howler') { const Howler = ports.keepers.howler; return new Howler(howlerPorts); }
+      if (row.keeper === 'pouncer') return new StalkerBrain({ pattern: 'pouncer',spec: ports.keepers.pouncer,ports: pouncerPorts });
+      if (row.keeper === 'howler') return new StalkerBrain({ pattern: 'howler',spec: ports.keepers.howler,ports: howlerPorts });
       const herd=ports.keepers.herd;return new HerdEliteProjection(herd.rows,ReturnProgram.native(host,herd.program));
     };
     const controller = create();
@@ -165,7 +157,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
     members.push(member);
     const bind = (a: AnimalSim): void => {
       if (!('think' in controller)) return;
-      ports.bindings.brains.set(a, { think: (body, c) => { controller.think(body, c); }, act: body => { controller.act(body); } });
+      ports.bindings.brains.set(a, { think: (body, c) => { if (row.keeper === 'pouncer') controller.decidePouncer(body,c); else controller.decideHowler(body,c); }, act: body => { controller.act(body); } });
       a.combatActor().damageMul = req => controller.damage(a, req.point);
     };
     const script: EliteCoreScript<AnimalSim> = {
@@ -193,12 +185,12 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
         if (a !== null) { ports.bindings.brains.delete(a); ports.retire(a); } member.animal = null;
       },
       reset: () => { member.phase2 = false; if ('reset' in controller) controller.reset(member.animal); },
-      enterPhase2: () => { member.phase2 = true; if (row.keeper === 'howler' && 'think' in controller) controller.enterPhase2?.(member.animal); },
+      enterPhase2: () => { member.phase2 = true; if (row.keeper === 'howler' && 'think' in controller) controller.enterPhase2(member.animal); },
       trophy: silent,
       ...(row.brokenState === undefined ? {} : { broken: () => ports.herd()?.stallionState === row.brokenState }),
       tick: (dt, t, engaged, leashing) => {
         pin(member.animal, engaged);
-        if ('think' in controller) controller.tick(member.animal, dt, t, engaged, leashing);
+        if ('think' in controller) controller.advance(member.animal, dt, t, engaged, leashing);
         else {
           const animal=member.animal,herd=member.detached?null:ports.herd();if(animal===null||herd===null)return;
           const taming=ports.taming?.(),at=animal.position,player=host.player.position;

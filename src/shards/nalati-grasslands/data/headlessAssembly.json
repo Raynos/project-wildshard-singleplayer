@@ -23,10 +23,6 @@
       "eliteBindings",
       "installEliteEncounters"
     ],
-    "src/shards/nalati-grasslands/combat/eliteRoster": [
-      "NativePouncerKeeper",
-      "NativeHowlerKeeper"
-    ],
     "@wildshard/game/riding/native": [
       "installMountedPlayer"
     ],
@@ -1321,14 +1317,20 @@
               "keepers": {
                 "pouncer": {
                   "$ref": [
-                    "src/shards/nalati-grasslands/combat/eliteRoster",
-                    "NativePouncerKeeper"
+                    "constants",
+                    "pageElites",
+                    "keepers",
+                    0,
+                    "spec"
                   ]
                 },
                 "howler": {
                   "$ref": [
-                    "src/shards/nalati-grasslands/combat/eliteRoster",
-                    "NativeHowlerKeeper"
+                    "constants",
+                    "pageElites",
+                    "keepers",
+                    1,
+                    "spec"
                   ]
                 },
                 "herd": {

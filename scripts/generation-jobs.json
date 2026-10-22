@@ -284,7 +284,6 @@
         "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs"
       ],
       "inputRoots": [
-        "src/shards/nalati-grasslands/combat/eliteRoster.ts",
         "src/shards/nalati-grasslands/data/horsePresentation.json",
         "src/shards/nalati-grasslands/data/bodies.json",
         "src/shards/nalati-grasslands/data/brains.json",

@@ -9,6 +9,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { nalatiNativeAssets } from './proof/nalati-grasslands/nativeAssets';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import { NALATI_STRIKES, sampleStrike } from './fixtures/nalati-strikes';
+import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 
 test('Nalati admitted elite contacts retain every original shape and cover refusal', async () => {
   const capture = vi.spyOn(encounters, 'installEliteEncounters');
@@ -22,6 +23,8 @@ test('Nalati admitted elite contacts retain every original shape and cover refus
     const installed = capture.mock.calls.find(([owner]) => owner === host)?.[1].ports;
     const actor = [...host.entities.values()][0];
     if (installed === undefined || actor === undefined) throw new Error('Missing actual native elite contact ports');
+    expect(installed.keepers.pouncer).toEqual(ecology.profiles.aqbars.spec);
+    expect(installed.keepers.howler).toEqual(ecology.profiles.kokbori.spec);
     let accepted = 0, refused = 0;
     for (const name of ['swipe', 'pounce', 'bite'] as const) {
       const actual = installed.strikes[name], expected = NALATI_STRIKES[name];
