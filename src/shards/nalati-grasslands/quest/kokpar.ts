@@ -16,10 +16,8 @@ export async function installNalatiQuestView(ctx: ShardContext, rt: Pick<Nalati,
   const world = ctx.game.runtime?.world, play = ctx.game.runtime?.play;
   if (world === undefined || world === null || play === undefined || play === null) throw new Error('Quest view requires its entered world and play');
   const { game, sky, player, registry } = world, { animals } = play, ride = rt.ride;
-  const [storyBytes, contentBytes] = await Promise.all([ctx.product.file('quests/chapters.json'), ctx.product.file('quests/content.json')]);
+  const [story, content] = await Promise.all([ctx.product.json<unknown>('quests/chapters.json'), ctx.product.json<unknown>('quests/content.json')]);
   if (!alive()) throw new Error('The adventure left during story admission');
-  const story: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(storyBytes));
-  const content: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(contentBytes));
   const people = enterFigureGroup({ scope: ctx.scope, sky, registry, channels: ctx.product.shardfile.clientChannels }, population);
   const kokparRows = v.parse(v.object({ kokpar:v.object({program:v.unknown()}) }), content).kokpar;
   const chapter = installChapterStory(ctx, story, { content, program: kokparRows.program }), { chip, markers, places, line } = chapter;
