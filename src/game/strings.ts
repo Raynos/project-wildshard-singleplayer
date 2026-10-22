@@ -85,8 +85,8 @@ export const GAME_STRINGS = {
       note: 'G451 · E435: warm one admitted cell before play. Longer loading; programs stay until page exit. Default off pending a device reading and quiet frame floor; reloads',
     },
     shaderWarm: {
-      label: 'Grid shader warm-up', off: 'Off', keep: 'Keep programs', held: 'Keep + faster while held', frozen: 'Keep + held + frozen parked world',
-      note: 'G580 T2: Keep: a cell leaving keeps its compiled programs (up to 512, oldest cells released first), so a revisit or a shared material links nothing again. Faster while held: also up to 4 programs a frame on Safari while you wait at the wall. Frozen: also skips matrix updates of the hidden destination world during its warm-up. Default off pending a device reading; reloads',
+      label: 'Grid shader warm-up', off: 'Off', keep: 'Keep programs', held: 'Keep + faster while held', frozen: 'Keep + held + frozen parked world', budget: 'All + bigger build budget while held',
+      note: 'G580 T2: Keep: a cell leaving keeps its compiled programs (up to 512, oldest cells released first), so a revisit or a shared material links nothing again. Faster while held: also up to 4 programs a frame on Safari while you wait at the wall. Frozen: also skips matrix updates of the hidden destination world during its warm-up. Bigger budget: also lets its builds run 24 ms a frame while you wait. Default off pending a device reading; reloads',
     },
     ended: 'Infinite Wildshard ended unexpectedly last time.',
     waiting: (name: string): string => `${name} · NOT READY FOR GRID`,

@@ -32,6 +32,14 @@ let lastVsyncAt = Number.NEGATIVE_INFINITY;
 let enabled = false;
 /** Declared capped cadence, or the fastest observed uncapped cadence; legacy completion-only calls smooth it. */
 let interval = 1000 / 60;
+/** G580 T5: while the traveller waits at a grid cell's wall for its build (`setBuildHeld`), a build stretch may run this
+ *  long past the last drawn frame, and a due frame no longer ends it: the slower waiting frames cost no movement (ms). */
+export const HELD_BUILD_MS = 24;
+let held = false;
+/** Whether the traveller waits for the build (a grid cell's loading screen shows); the grid sets it, off by default. */
+export function setBuildHeld(on: boolean): void { held = on; }
+/** A build stretch's budget: `budgetMs`, or HELD_BUILD_MS while the traveller is held. */
+export function heldBudget(budgetMs: number): number { return held ? Math.max(budgetMs, HELD_BUILD_MS) : budgetMs; }
 
 /** Report completion and, when available, its rAF timestamp and active fps cap (0 = uncapped).
  * Build deadlines start at the vsync, not after the frame's work; missed vsyncs never relax an uncapped deadline.
@@ -65,6 +73,7 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
+  if (held) return presenting(now) && now - lastDrawn >= heldBudget(budgetMs);
   return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || frameDue(now));
 }
 
@@ -95,5 +104,5 @@ export function nextDrawnFrame(owner?: Scope): Promise<void> {
  */
 export function paceYield(plain: () => Promise<void>, owner?: Scope, budgetMs?: number): Promise<void> {
   const now = diagnosticNow();
-  return frameDue(now) || (budgetMs !== undefined && frameBudgetSpent(budgetMs, now)) ? nextDrawnFrame(owner) : plain();
+  return !held && frameDue(now) || (budgetMs !== undefined && frameBudgetSpent(budgetMs, now)) ? nextDrawnFrame(owner) : plain();
 }

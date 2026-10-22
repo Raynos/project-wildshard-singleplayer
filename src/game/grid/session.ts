@@ -80,6 +80,7 @@ import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews'
 import type { ClientSkin } from '../shardfile/clientSkins';
 import { readShaderWarmChoice } from './keptPrograms';
 import { setParkedMatricesFrozen, setWarmUpHeld } from '@wildshard/engine/render/precompile';
+import { setBuildHeld } from '@wildshard/engine/core/framePacing';
 import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 import { NeighbourPanels } from './neighbourPanels';
 import { copyMarks } from './copyIdentity';
@@ -298,8 +299,10 @@ export class GridSession {
   private readonly cellLoading: CellLoading;
   private cellLoadingPolled = 0;
   /** G580 T2: the Developer shader warm-up choice lets a held warm-up issue more programs a frame */
-  private readonly heldWarmUp = ['held', 'frozen'].includes(readShaderWarmChoice());
-  private readonly frozenParked = readShaderWarmChoice() === 'frozen';
+  private readonly heldWarmUp = ['held', 'frozen', 'budget'].includes(readShaderWarmChoice());
+  private readonly frozenParked = ['frozen', 'budget'].includes(readShaderWarmChoice());
+  /** G580 T5: a held traveller's builds run a bigger per-frame budget */
+  private readonly heldBuilds = readShaderWarmChoice() === 'budget';
   /** when each cell's current wait began, so its screen counts only the hooks of this load */
   private readonly loadingSince = new Map<string, number>();
 
@@ -420,7 +423,7 @@ export class GridSession {
       return edge === undefined ? null : { edge: { instance: waiting, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }, cell: centre, ground: edge.floor };
     });
     if (this.frozenParked) setParkedMatricesFrozen(true);
-    host.scope.onDispose(() => { this.cellLoading.close(); if (this.heldWarmUp) setWarmUpHeld(false); if (this.frozenParked) setParkedMatricesFrozen(false); });
+    host.scope.onDispose(() => { this.cellLoading.close(); if (this.heldWarmUp) setWarmUpHeld(false); if (this.frozenParked) setParkedMatricesFrozen(false); if (this.heldBuilds) setBuildHeld(false); });
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
     let status: CrossingSaveStatus = null, polled = 0;
@@ -641,6 +644,7 @@ export class GridSession {
     this.cellLoadingPolled = now; this.cellLoading.step(this.cellLoadingInput());
     // G580 T2 (Developer): the traveller waits at the wall while its screen shows, so its warm-up may issue more a frame
     if (this.heldWarmUp) setWarmUpHeld(this.cellLoading.open !== null);
+    if (this.heldBuilds) setBuildHeld(this.cellLoading.open !== null);
   }
   private refusal(instance: string): ShardRefusal | null {
     const live = this.live?.refusal(instance);
