@@ -122,5 +122,6 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
     },
     {kind:'library',library:'native',model:'nalati-grasslands/storm-titan'},
     ...(['butterfly','raptor']as const).map(model=>({kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model,drawnAs:'instanced',tierCopies:model==='raptor'?{phone:cover.raptors,desktop:cover.raptors}:cover.butterflies})),
+    {kind:'specimen',books:{phone:'models/reins.json',desktop:'models/reins.json'},model:'reins',copies:1},
   ]
 });

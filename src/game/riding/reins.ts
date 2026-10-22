@@ -1,11 +1,10 @@
-/** Client-only riding straps and Explorer projection; never imported by simulation poses. */
+/** Client-only riding straps; never imported by simulation poses. The Explorer's reins card is baked from the same ribbon. */
 import * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { ReinPresentationSchema, type ReinPresentationRows, type ReinRibbonRows, type ReinRibbonFrame } from '@wildshard/format/riding';
-import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { object, parse } from 'valibot';
+import { parse } from 'valibot';
 
 function rgb(value: readonly number[]): [number, number, number] {
   const [r, g, b] = value;
@@ -123,38 +122,6 @@ export class ReinRibbon {
     }
     this.posAttr.needsUpdate = true;
   }
-}
-
-/** Client-only Explorer presentation using the same admitted strap rows as a rider. */
-export function reinSpecimen(rows: { id: string; name: string; file: string; product: { slug: string; path: string };
-  crest: readonly [number, number, number]; head: readonly [number, number, number]; muzzle: readonly [number, number, number];
-  fov: number; aspect: number }): ModelDef<object> {
-  let profile: ReinPresentationRows | null = null;
-  return defineModel<object>({ id: rows.id, name: rows.name, file: rows.file, category: 'gear', pipeline: 'code', defaults: {},
-    prepare: async () => {
-      const { loadFirstPartyProduct } = await import('../shardfile/runtimeProduct');
-      const product = await loadFirstPartyProduct(rows.product.slug);
-      profile = parse(object({ reins: ReinPresentationSchema }), await product.json(rows.product.path)).reins;
-    },
-    build: () => {
-      if (profile === null) throw new Error('Rein specimen rows are not prepared');
-      const { mesh, pos } = buildReinsRibbon(profile), tan = Math.tan(THREE.MathUtils.degToRad(rows.fov) / 2);
-      const crest = new THREE.Vector3(...rows.crest), head = new THREE.Vector3(...rows.head), muzzle = new THREE.Vector3(...rows.muzzle);
-      const left = new THREE.Vector3(-1, 0, 0), up = new THREE.Vector3(0, 1, 0);
-      for (let r = 0; r < 2; r++) {
-        const side = r === 0 ? 1 : -1;
-        const bit = muzzle.clone().lerp(head, profile.bit.back).addScaledVector(left, side * profile.bit.out);
-        const hand = new THREE.Vector3(-side * profile.hand.x * profile.hand.depth * tan * rows.aspect, profile.hand.y * profile.hand.depth * tan, -profile.hand.depth);
-        const neck = crest.clone().addScaledVector(up, -profile.neck.down).addScaledVector(left, side * profile.neck.out);
-        const jowl = head.clone().addScaledVector(up, -profile.jowl.down).addScaledVector(left, side * profile.jowl.out);
-        fillRein(pos, r, [hand.clone().multiplyScalar(2).sub(neck), hand, neck, jowl, bit, bit.clone().multiplyScalar(2).sub(jowl)], profile);
-      }
-      mesh.geometry.computeBoundingBox(); mesh.geometry.computeBoundingSphere(); mesh.castShadow = true;
-      const box = mesh.geometry.boundingBox ?? new THREE.Box3();
-      mesh.position.set(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2);
-      const holder = new THREE.Group(); holder.name = 'reins'; holder.add(mesh); return holder;
-    },
-  });
 }
 
 const _anchorMatrix = new THREE.Matrix4(), _anchorPoint = new THREE.Vector3();

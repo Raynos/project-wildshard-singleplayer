@@ -41,7 +41,9 @@ export class ForagerDraw {
 export async function prepareForagerDraw(ctx:ShardContext,input:unknown):Promise<{create:(owner:ForagerPopulation)=>ForagerDraw}>{
   const row=v.parse(WildlifePopulationSchema,input).foragers?.view,world=ctx.game.runtime?.world;
   if(row===undefined||world===undefined||world===null)throw new Error('Missing native forager presentation');
-  const book=v.parse(SpecimenBookSchema,await ctx.product.json(row.books[TIER])),packed=createPackedSpecimens(book.packed);
+  const book=v.parse(SpecimenBookSchema,await ctx.product.json(row.books[TIER]));
+  if(book.packed===undefined)throw new Error('Forager specimen book is not packed');
+  const packed=createPackedSpecimens(book.packed);
   await packed.load();
   const part=packed.parts(row.model,modelContext(world.sky),book.materials)?.[0];
   if(part===undefined)throw new Error('Missing prepared forager geometry');

@@ -13,7 +13,6 @@ import runtimeSpecimens from './boot/runtimeSpecimens.json' with { type: 'json' 
 import { campPeople, shepherd } from './models/people';
 import gear from './boot/gear.generated.json' with { type: 'json' };
 import { weaponCatalogue } from './weapons/loadout';
-import { reins } from './models/reins';
 
 const creatureSpecimens = defineRuntimeSpecimens(runtimeSpecimens);
 
@@ -29,7 +28,7 @@ export const ROSTER: readonly RosterEntry[] = [
   // people: the camp's five (one skinned mesh) and the mounted shepherd (src/shards/nalati-grasslands/sheepRaid.ts)
   live(campPeople, { copies: Object.keys(content.people).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
   // the gear its player holds (bow and its arrows · sabre · spear and its javelins, the Golden Bow and the Naizagai once
-  // won, the AR-15), the reins in the saddle (src/shards/nalati-grasslands/ride/ride.ts) and the gloved hands in the river (E348)
+  // won, the AR-15) and the gloved hands in the river (E348); the reins card is a baked Explorer specimen (models/reins.json)
   ...gear.catalogue.map(row => live(weaponCatalogue.model(row.key), { copies: row.copies, ...(row.drawnAs === 'instanced' ? { drawnAs: 'instanced' as const } : {}) })),
-  live(reins, { copies: 1 }), live(swimHands, { copies: 1 }),
+  live(swimHands, { copies: 1 }),
 ];
