@@ -61,3 +61,26 @@ test('O20 a cleanup in parts runs whole in dispose() and part by part in dispose
   for (let step = steps.next(); step.done !== true; step = steps.next()) { /* drained */ }
   expect(stepped).toEqual(['a', 'b', 'c']);
 });
+
+test('G598 a captured scope another owner parents ends whole on dispose() and in steps when its owner retires in steps', () => {
+  const run = (sliced: boolean): { log: string[]; steps: string[] } => {
+    const log: string[] = [], parent = new Scope('parent'), owner = new Scope('owner'), piece = parent.child('piece');
+    piece.onDispose(() => { log.push('piece:a'); }); piece.onDispose(() => { log.push('piece:b'); });
+    owner.onDispose(() => { log.push('owner:first'); });
+    const forget = owner.captureScope(piece);
+    piece.onDispose(forget);
+    const steps = sliced ? [...owner.disposeSteps()].map(step => step.scope) : (owner.dispose(), []);
+    expect(piece.disposed).toBe(true);
+    parent.dispose();
+    return { log, steps };
+  };
+  const whole = run(false), stepped = run(true);
+  expect(stepped.log).toEqual(whole.log);
+  expect(stepped.steps).toEqual(['piece', 'piece', 'piece', 'owner']);
+  // a captured scope that ends first leaves its owner nothing to end
+  const owner = new Scope('owner'), piece = new Scope('piece'), log: string[] = [];
+  piece.onDispose(() => { log.push('piece'); });
+  piece.onDispose(owner.captureScope(piece));
+  piece.dispose(); owner.dispose();
+  expect(log).toEqual(['piece']);
+});

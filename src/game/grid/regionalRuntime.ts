@@ -185,7 +185,11 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       if (declaration !== null) coverRuntimeAssets(request.allocator, scope, request.claim);
       const foundation = await timeClientPreparation(request.cell.slug, 'native.foundation', () => prepare({ ...request, scope }));
       if (scope.disposed) { foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }
-      scope.onDispose(foundation.region.dispose);
+      // G598: the region's world is the runtime's heaviest cleanup (Driftwood's whole resident scope, 22-28 ms in one step of
+      // the Pine entry's retirement); a sliced retirement steps through its own cleanups in the same place
+      const retireWorld = foundation.region.retire;
+      if (retireWorld === undefined) scope.onDispose(foundation.region.dispose);
+      else scope.onDisposeSteps(function* retireRegionWorld() { const steps = retireWorld(); while (steps.next().done !== true) yield; });
       const host = foundation.region.host;
       if (host.embedded || host.hasPlayerMotor || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
       // The page's own level scope owns its player services (loadout registers the equipment host there). Not

@@ -235,3 +235,26 @@ test('a late stand-in compile keeps its retired source owner instead of adopting
   expect(sceneResourceOwner(texture)).toBe(source);
   page.dispose(); expect(dispose).toHaveBeenCalledTimes(1);
 });
+
+test('G598 a stepped owner frees its scene tree 16 resources a step, a whole dispose at once, each resource once', () => {
+  const build = (): { root: Group; geometries: BufferGeometry[]; disposed: () => number } => {
+    const root = new Group(), geometries = Array.from({ length: 40 }, () => new BufferGeometry()), material = new MeshBasicMaterial();
+    for (const geometry of geometries) root.add(new Mesh(geometry, material));
+    let count = 0;
+    for (const geometry of geometries) geometry.addEventListener('dispose', () => { count++; });
+    return { root, geometries, disposed: () => count };
+  };
+  const whole = build(), wholeOwner = new Scope('whole');
+  ownSceneTree(whole.root, wholeOwner, { isAcquired: () => false });
+  wholeOwner.dispose();
+  expect(whole.disposed()).toBe(40);
+  const stepped = build(), owner = new Scope('stepped');
+  ownSceneTree(stepped.root, owner, { isAcquired: () => false });
+  const steps = owner.disposeSteps();
+  steps.next(); steps.next();
+  expect(stepped.disposed()).toBeLessThanOrEqual(16);
+  let count = 2; while (steps.next().done !== true) count++;
+  expect(count).toBeGreaterThanOrEqual(4);
+  expect(stepped.disposed()).toBe(40);
+  expect(stepped.root.children).toHaveLength(0);
+});

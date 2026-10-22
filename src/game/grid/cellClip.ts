@@ -330,15 +330,15 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
       else validate(draw, false);
     }
   };
-  const unwatch = (node: Object3D): void => {
+  const unwatchNode = (node: Object3D): void => {
     watched.get(node)?.(); watched.delete(node); dirty.delete(node); forced.delete(node); samePose.delete(node);
     if (isDraw(node)) {
       gates.get(node)?.(); gates.delete(node); pending.delete(node);
       const visible = refused.get(node); if (visible !== undefined) node.visible = visible; refused.delete(node);
       unclip(node);
     }
-    for (const child of node.children) unwatch(child);
   };
+  const unwatch = (node: Object3D): void => { unwatchNode(node); for (const child of node.children) unwatch(child); };
   const watch = (node: Object3D): void => {
     if (watched.has(node)) return;
     const undo: (() => void)[] = [];
@@ -480,9 +480,15 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     }
     for (const child of node.children) watch(child);
   };
-  scope.onDispose(() => {
-    checking = true;
-    try { unwatch(root); } finally { checking = false; }
+  // G598: a retiring cell's whole tree is unwatched 64 nodes a step (Driftwood's root held one 14 ms step); `dispose()` runs
+  // it whole
+  scope.onDisposeSteps(function* releaseClip() {
+    const nodes: Object3D[] = []; root.traverse(node => { nodes.push(node); });
+    for (let at = 0; at < nodes.length; at += 64) {
+      checking = true;
+      try { for (const node of nodes.slice(at, at + 64)) unwatchNode(node); } finally { checking = false; }
+      yield;
+    }
     watched.clear(); dirty.clear(); forced.clear(); samePose.clear(); descendants.clear(); dependents.clear(); gates.clear(); pending.clear();
     patched.clear(); variantScopes.clear(); users.clear(); refused.clear();
   });

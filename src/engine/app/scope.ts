@@ -147,6 +147,9 @@ export class Scope {
   }
   /** Bridge for legacy registrations; forget when a one-shot ends or a handle is removed early. */
   capture(kind: Kind, cleanup: () => void): () => void { return this.track(kind, cleanup); }
+  /** G598: end `child` (a scope another owner parents) with this one: `dispose()` ends it whole, a sliced `disposeSteps()`
+   *  steps into its cleanups in its place, as for an own child. Forget when it ends first. */
+  captureScope(child: Scope): () => void { return this.track('disposers', () => { child.dispose(); }, child); }
 
   private ownHandle(resource: object, kind: Kind, dispose: () => void): (() => void) | undefined {
     if (this.owned.has(resource)) return undefined;

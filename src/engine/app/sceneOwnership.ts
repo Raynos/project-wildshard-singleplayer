@@ -133,8 +133,17 @@ export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetSer
     for (const child of delegated) if (!scope.sharesTeardown(child.scope)) child.capture();
   };
   delegatedScenes.set(root, { scope, capture });
-  scope.onDispose(() => {
-    capture(); root.removeFromParent(); root.clear(); delegatedScenes.delete(root);
+  // G598: a sliced retirement frees the subtree's resources 16 a step after one walk (Driftwood's world held one 9 ms
+  // step); `dispose()` runs it whole, in the same order. A stepped owner hides its tree first (a retiring region's root)
+  scope.onDisposeSteps(function* releaseSceneTree() {
+    const delegated: DelegatedScene[] = [], resources = [...collectSceneResources(root, scope, delegated)];
+    yield;
+    for (let at = 0; at < resources.length; at += 16) {
+      for (const resource of resources.slice(at, at + 16)) if (!assets.isAcquired(resource)) ownSceneResource(resource, scope);
+      yield;
+    }
+    for (const child of delegated) if (!scope.sharesTeardown(child.scope)) child.capture();
+    root.removeFromParent(); root.clear(); delegatedScenes.delete(root);
   });
 }
 function captureDelegatedScenes(root: Object3D): void {

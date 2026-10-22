@@ -126,7 +126,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
       // Each piece owns its native handles in a child of the view; its registering owner can release it earlier.
       const pieceScope = scope.child(`grid.piece:${piece.id}`), owner = enteredOwner();
       if (owner !== null && owner !== scope && !owner.disposed) {
-        const forget = owner.capture('disposers', () => { pieceScope.dispose(); });
+        const forget = owner.captureScope(pieceScope); // G598: in steps when its owner retires in steps
         pieceScope.onDispose(forget);
       }
       withOwner(pieceScope, () => {
