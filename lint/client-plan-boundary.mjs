@@ -79,11 +79,18 @@ export function clientPlanSchemaViolations(root) {
     };
     required(module(registry).source);
     const platform = resolve(root, 'src/format/platformDataSections.ts'), loaded = module(platform);
-    const table = loaded.declarations.get('PLATFORM_DATA_SECTIONS')?.initializer;
-    const rows = table && ts.isAsExpression(table) ? table.expression : table;
-    if (!rows || !ts.isObjectLiteralExpression(rows)) failures.push(`${platform}: client section schema table is not static`);
-    else for (const name of names) {
-      const row = rows.properties.find(property => text(property.name) === name);
+    const tables = [];
+    for (const name of ['PLATFORM_DATA_SECTIONS', 'CLIENT_ENVELOPE_SECTIONS']) {
+      const table = loaded.declarations.get(name)?.initializer;
+      if (table === undefined && name === 'CLIENT_ENVELOPE_SECTIONS') continue;
+      const rows = table && ts.isAsExpression(table) ? table.expression : table;
+      if (!rows || !ts.isObjectLiteralExpression(rows)) failures.push(`${platform}: client section schema table is not static`);
+      else tables.push(rows);
+    }
+    for (const name of names) {
+      const matches = tables.flatMap(rows => rows.properties.filter(property => text(property.name) === name));
+      if (matches.length > 1) { failures.push(`${platform}: duplicate client section schema ${name}`); continue; }
+      const row = matches[0];
       const schema = row && ts.isPropertyAssignment(row) && ts.isObjectLiteralExpression(row.initializer)
         ? row.initializer.properties.find(property => text(property.name) === 'schema') : null;
       if (!schema || !ts.isPropertyAssignment(schema) || !ts.isIdentifier(schema.initializer)) failures.push(`${platform}: missing client section schema ${name}`);

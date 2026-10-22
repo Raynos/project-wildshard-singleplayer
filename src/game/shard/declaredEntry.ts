@@ -15,7 +15,7 @@ export function declaredRuntimeEntry(Runtime: new () => ShardPlugin, Native: new
       this.plan ??= admitClientPlan(ctx.product.section('client/plan'), ctx.product);
       await installClientPhase(ctx, this.plan, phase, ctx.scope);
     }
-    override async world(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'world'); await super.world?.(ctx); }
+    override async world(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'world'); await super.world?.(ctx); await this.phase(ctx, 'world-bindings'); }
     override async kit(ctx: ShardContext): Promise<void> { await super.kit?.(ctx); await this.phase(ctx, 'kit'); }
     override async play(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'prepare-play'); await super.play?.(ctx); await this.phase(ctx, 'play'); }
   }

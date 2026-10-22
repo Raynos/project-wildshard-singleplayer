@@ -227,6 +227,7 @@ export class HybridShardPlugin extends ShardPlugin {
       this.binding?.readiness?.(false);
       await this.enteredPlan(installation.context, 'world');
       await withOwner(scope, () => plugin.world?.(installation.context));
+      await this.enteredPlan(installation.context, 'world-bindings');
       if (scope.disposed) throw new Error('Hybrid runtime left during world installation');
     } catch (error) {
       try { scope.dispose(); }
@@ -475,6 +476,7 @@ export class HybridRuntimeSession {
       if (!live()) return false;
       await this.stage(scope, cell.instance, 'world', () => ownerTask(scope, async () => {
         await runtimeClientPhase(context, 'world', resident.scope); await plugin.world?.(context);
+        await runtimeClientPhase(context, 'world-bindings', resident.scope);
       })); if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterWorld', () => ownerTask(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
       installation.openKit();

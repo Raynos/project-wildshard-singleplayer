@@ -21,7 +21,8 @@ import * as questWorldPreparation from '../src/game/shardfile/questWorld';
 import * as rangedPreparation from '../src/game/loadout/rangedPage';
 import * as spawnPreparation from '../src/game/quest/chapterDirector';
 import type { QuestSpawnResult } from '../src/game/quest/chapterDirector';
-import { entryOwner } from '../src/game/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import * as runtimeHookBindings from '../src/game/shardfile/clientRuntimeHooks';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
@@ -359,4 +360,61 @@ test.each(['entered', 'resident'] as const)('retiring %s owners refuse phase eff
     for (const _step of retirement) { /* Finish the actual ancestor retirement. */ }
     f.ctx.scope.dispose();
   }
+});
+
+
+test.each(['native', 'regional', 'data'] as const)('world bindings follow construction before the %s shell captures its floor', async surface => {
+  const f = context(), order: string[] = [], floor = (): number => 4;
+  const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
+  const ctx: ShardContext = { ...f.ctx, game: { ...f.ctx.game, runtime } };
+  f.sections.set('client/plan', { version: 1, features: [{ kind: 'world.runtime-hooks', floor: 'orchard.floor', overhead: [], meleeSilent: true }] });
+  const install = runtimeHookBindings.installClientRuntimeHooks;
+  const bound = vi.spyOn(runtimeHookBindings, 'installClientRuntimeHooks').mockImplementation((entered, row) => {
+    expect(order).toEqual(['constructed']); install(entered, row); order.push('bound');
+  });
+  class Runtime extends ShardPlugin {
+    override world(entered: ShardContext): void { publishEntryOwner(entered.scope, 'floor', 'orchard.floor', floor); order.push('constructed'); }
+    override kit(entered: ShardContext): void { expect(entered.game.runtime?.hooks.spawnFloor).toBe(floor); order.push('kit'); }
+  }
+  try {
+    if (surface === 'native') {
+      const Entry = declaredRuntimeEntry(Runtime, Runtime, { entry: 'runtime/index.ts', retainHomeRuntime: false, stagesOwner: 'runtime' }).default;
+      const plugin = new Entry(undefined, undefined, () => false);
+      await plugin.world(ctx); await plugin.kit(ctx);
+    } else if (surface === 'regional') {
+      const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: { entry: 'runtime/index.ts', binds: [] }, firstParty: true, scope: ctx.scope, runtime,
+        context: (scope, localRuntime) => ({ context: { ...ctx, scope, game: { ...ctx.game, runtime: localRuntime } }, openKit: () => undefined, closeKit: () => undefined,
+          afterWorld: entered => { expect(entered.game.runtime?.hooks.spawnFloor).toBe(floor); order.push('captured'); } }) };
+      const session = new HybridRuntimeSession(new Map([['orchard', resident]]), [{ slug: resident.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) }], ctx.scope);
+      await session.enter({ instance: 'orchard', slug: f.source.identity.slug }); session.leave();
+    } else {
+      const assets = new ClientAssets(f.source, new Map(), browserShardfileOptions('https://example.invalid/'));
+      const client = new ShardfileClient(f.source, assets, { instance: 'orchard', trustedRuntime: true, runtimeStagesOnly: true,
+        recipes: new Map(), items: new Map(), catalogue: [], voices: () => new Map(), icon: () => { throw new Error('No fixture item'); } });
+      publishEntryOwner(ctx.scope, 'floor', 'orchard.floor', floor); order.push('constructed');
+      await client.world(ctx); expect(runtime.hooks.spawnFloor).toBe(floor); await client.kit(ctx); order.push('kit');
+    }
+    expect(order).toEqual(surface === 'regional' ? ['constructed', 'bound', 'captured', 'kit'] : ['constructed', 'bound', 'kit']);
+    expect(bound).toHaveBeenCalledOnce();
+  } finally { bound.mockRestore(); ctx.scope.dispose(); }
+});
+
+test('mover owner rows admit only finite fixed-pose mooring and typed targets', () => {
+  const row = { kind: 'world.movers', system: 'orchard.movers', bindings: [
+    { kind: 'object', id: 'orchard.boat', owner: 'boat', moor: { look: 'moor', water: 0.2, cleats: [-1.1, 2.3] } },
+    { kind: 'chain', id: 'orchard.deck', owner: 'deck' },
+  ] };
+  const plan = (feature: unknown) => ({ version: 1, features: [feature] });
+  expect(parseClientPlan(plan(row)).features).toEqual([row]);
+  for (const invalid of [
+    { ...row, rank: 1 }, { ...row, phase: 'kit' },
+    { ...row, bindings: [{ kind: 'chain', id: 'deck', owner: 'deck', moor: { look: 'moor', water: 0, cleats: [0, 1] } }] },
+    { ...row, bindings: [{ kind: 'object', id: 'boat', owner: 'boat', target: ['boat', 'group'] }] },
+    { ...row, bindings: [{ kind: 'object', id: 'boat', owner: 'boat', moor: { look: 'moor', water: Infinity, cleats: [0, 1] } }] },
+    { ...row, bindings: [{ kind: 'object', id: 'boat', owner: 'boat', moor: { look: 'moor', water: Number.NaN, cleats: [0, 1] } }] },
+    { ...row, bindings: [{ kind: 'object', id: 'boat', owner: 'boat', moor: { look: 'moor', water: 0, cleats: [0] } }] },
+    { ...row, bindings: [{ kind: 'object', id: 'boat', owner: 'boat', moor: { look: 'moor', water: 0, cleats: [0, 1], afterPose: 'refresh' } }] },
+  ]) expect(() => parseClientPlan(plan(invalid))).toThrow();
+  const f = context();
+  try { expect(() => admitClientPlan(plan(row), f.ctx.product)).toThrow('world/movers'); } finally { f.ctx.scope.dispose(); }
 });

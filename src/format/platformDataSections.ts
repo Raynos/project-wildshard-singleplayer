@@ -24,6 +24,7 @@ import { DecisionScriptsSchema, type DecisionScripts } from './decisionScripts';
 import { UiStringsSchema, type UiStrings } from './uiStrings';
 import { WorldPhysicsSchema, type WorldPhysics } from './worldPhysics';
 import { WorldTargetsSchema, type WorldTargets } from './worldTargets';
+import { WorldMoversSchema } from './movers';
 import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRuntimePlan';
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
@@ -87,6 +88,10 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
   'world/targets': { schema: WorldTargetsSchema },
   'world/scenes': { schema: WorldScenesSchema },
 } as const;
+
+/** Client feature inputs that remain legacy root envelopes. These defining
+ * schemas do not become independent platform sections or leave root assembly. */
+export const CLIENT_ENVELOPE_SECTIONS = { 'world/movers': { schema: WorldMoversSchema } } as const;
 
 /** An explicitly declared new platform-section name; no shard-private name is inferred. */
 export type PlatformDataSectionName = keyof PlatformDataSections;

@@ -203,6 +203,7 @@ export class ShardfileClient {
     this.plan = admitClientPlan(ctx.product.has('client/plan') ? ctx.product.section('client/plan') : { version: 1, features: [] }, ctx.product);
     await timeClientPreparation(ctx.product.slug, 'world.data', () => this.worldData(ctx));
     await this.phase(ctx, 'world');
+    await this.phase(ctx, 'world-bindings');
   }
 
   private async worldData(ctx: ShardContext): Promise<void> {

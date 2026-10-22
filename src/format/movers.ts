@@ -14,6 +14,8 @@ const chain = v.strictObject({ segments: v.pipe(v.array(v.strictObject({ x: coor
 export const MoversSchema = v.pipe(v.array(v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), entity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), execution: v.exactOptional(v.literal('native')), kind: v.picklist(['platform', 'chain', 'static', 'channel']), at: vector, euler, enabled: v.boolean(), boxes: v.pipe(v.array(box), v.maxLength(128)), chain: v.exactOptional(chain), track: v.exactOptional(MoverTrackSchema), trigger: v.exactOptional(MoverTriggerSchema), driver: v.exactOptional(MoverDriverSchema), carry: v.exactOptional(MoverCarrySchema), atEnd: v.exactOptional(MoverAtEndSchema), restoreFrom: v.exactOptional(MoverRestoreFromSchema), input: v.pipe(v.array(v.pipe(finite, v.minValue(-10000), v.maxValue(10000))), v.maxLength(96)) })), v.maxLength(32));
 /** Validated mover declarations; no render object, collision callback or authored TypeScript occurs in the format. */
 export type MoverData = v.InferOutput<typeof MoversSchema>;
+/** Existing root envelope, also traversed by client feature schema admission. */
+export const WorldMoversSchema = v.strictObject({ movers: MoversSchema });
 /** Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything. */
 export function parseMovers(input: unknown): MoverData {
   const data = v.parse(MoversSchema, input);

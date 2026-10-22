@@ -11271,3 +11271,20 @@ The existing finite world/composition/continuation readers accept either
 standalone rows or their one compiled field in this page document. They
 accept no authored selector, owner path or callback. Sharing a document
 retains preparation order and original owners; it creates no named file.
+
+### Declared world owner bindings
+
+Client plans may declare `world.runtime-hooks` with an optional floor loan,
+overhead object loans and an optional `meleeSilent` value, and `world.movers`
+with a system id and object/chain owner bindings. These entered bindings run
+after declared world construction and the transitional plugin's world hook,
+before the regional shell's `afterWorld` and before kit. Rows cannot select
+the phase or its order: hooks precede movers. Construction loans must already
+exist; all targets are preflighted before installation.
+
+An object mover may declare `moor: { look, water, cleats: [z0, z1] }`. Its
+actual lent graph must expose the fixed vec2 moor parameter. The existing
+fixed-step mover publishes the object's pose first, then writes each component
+as pose.y minus water minus cleat-z times sin(pose.pitch). Admission performs
+no initial write, and module reads retain original loan/look identities.
+The original mover runtime still owns physics, ticking and saved handles.

@@ -48,3 +48,17 @@ test('creature pose dependencies admit finite inputs while legacy channel owner 
     expect(clientPlanSchemaViolations(root)).toEqual(expect.arrayContaining([expect.stringContaining('reflected {owner,path}')]));
   });
 });
+
+
+test('legacy root envelopes retain the same schema traversal and refuse reflected inputs', () => {
+  fixture((root, nested) => {
+    writeFileSync(resolve(root, 'src/format/platformDataSections.ts'), "import { Schema } from './nested'; export const PLATFORM_DATA_SECTIONS={} as const; export const CLIENT_ENVELOPE_SECTIONS={'fixture/rows':{schema:Schema}} as const;");
+    nested('export const Schema={movers:[]};');
+    expect(clientPlanSchemaViolations(root)).toEqual([]);
+    nested('export const Schema={movers:{owner:"runtime",path:[]}};');
+    expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('reflected {owner,path}')]);
+    nested('export const Schema={movers:[]};');
+    writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), "export const FEATURES={view:{sections:['unknown/rows']}};");
+    expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('missing client section schema unknown/rows')]);
+  });
+});

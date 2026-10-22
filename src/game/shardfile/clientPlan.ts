@@ -47,7 +47,7 @@ import { installWorldScenes } from './worldScenes';
 import { clientSceneHandles, publishClientSceneHandles } from './clientSceneHandles';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 
-export type ClientPhase = 'world' | 'kit' | 'prepare-play' | 'play';
+export type ClientPhase = 'world' | 'world-bindings' | 'kit' | 'prepare-play' | 'play';
 interface ClientFeature {
   readonly phase: ClientPhase;
   readonly rank: number;
@@ -64,6 +64,18 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     sections: ['held/finishes'], install: installClientCatalogue },
   'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', sections: [], install: installClientAdventurePersistence },
   'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: installClientMeadow },
+  // Construction and entered lending finish before these fixed owner bindings.
+  // Rows cannot choose this boundary or move it after the shell captures hooks.
+  'world.runtime-hooks': { phase: 'world-bindings', rank: 0, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'world.runtime-hooks') throw new Error('Invalid runtime hooks feature');
+    const { installClientRuntimeHooks } = await import('./clientRuntimeHooks');
+    installClientRuntimeHooks(ctx, row);
+  } },
+  'world.movers': { phase: 'world-bindings', rank: 10, lifetime: 'entered', sections: ['world/movers'], install: async (ctx, row) => {
+    if (row.kind !== 'world.movers') throw new Error('Invalid mover owners feature');
+    const { installClientMoverOwners } = await import('./clientMoverOwners');
+    await installClientMoverOwners(ctx, row);
+  } },
   // G571: the declared forest page (world 30, after world.scenes; its play stage puts the cave's spots on the ranged page
   // before the weather (40) and the page's life (65) build, their order when a shard's plugin built them)
   'world.forest-page': { phase: 'world', rank: 30, lifetime: 'entered', sections: [],
