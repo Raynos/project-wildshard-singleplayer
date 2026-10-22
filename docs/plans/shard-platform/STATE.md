@@ -27,10 +27,14 @@ HOST-BAR G571 lines: backticked engine/game/sdk/format paths ARE selectors. One 
 **Rules:** G492 no mid-task re-briefs; never herdr wildshard-v; no net-0 moves or relabels (G571);
 G571 credit never erases a reviewed G520 chargeback without real change; legacy copies stay (G573); G561 holds.
 
-**For wildshard-v:** (00) Ruler blocker 'output omits authored runtime files' (DW/Pine) FIXED in 1aa987d01a: no runtime file
+**For wildshard-v:** (G589 pass, sp-x1 at 0f9781148f) Pine grid-ready: memory passes (181.5 MB), oneFrameLooks FAILS
+(max frames 999.9/266.6/116.8 ms); DW not latched: harness bug, gridFloorPlans returns outward+return but the driver
+takes plans[0] (enters template-2, refuses DW leave). Both are rows for the reset. (00) Ruler blocker 'output omits authored runtime files' (DW/Pine) FIXED in 1aa987d01a: no runtime file
 was dropped; the ruler counted the gitignored runtime/productSections.generated.d.ts (bake-section-schemas) as authored.
-On the check slot's built out/, Nalati/Nine read 'missing output runtime entry' with HEAD's reader too (likely a stale
-out/; rebuild before measuring). Nine 9.9 MB custom sections noted, report-only. (0) ZB/ZC/ZD done (DW/Pine 0/0/0); WASM H0b-H6 landed earlier. (1) RECOMMEND default-on, after Jake's phone check, of 'Grid shader warm-up' = budget (sp-x6 cold
+Open: the check slot's out/ (built 08:13) has Nalati/Nine runtime.entry=runtime/index.ts with files [] and no runtime/,
+so HEAD's reader says 'missing output runtime entry'; build mode or 173ec6a6ee regression, unconfirmed. Nine 9.9 MB custom sections noted, report-only. Your
+ruler refresh 95b658af85 wrote empty port shares from the failed run (CI red); 6bf8c2a6e5 restores the last valid
+table: re-run the ruler on 1aa987d01a+ before committing a refresh. (0) ZB/ZC/ZD done (DW/Pine 0/0/0); WASM H0b-H6 landed earlier. (1) RECOMMEND default-on, after Jake's phone check, of 'Grid shader warm-up' = budget (sp-x6 cold
 A/B at 886712c946: Sky wait 12.1 -> 5.5 s, Pine 30.0 -> 16.9 s) and T1 warm neighbour (+103 MB; warm Sky 3.8 s). (2) Round-36 far variants for your board: fc3338f4fd,
 art/grid/round-36-far-variants/ (60 labelled JPEGs). Grey = shipped haze; haze off shows the 14 open plots
 as bare ground (holograms not in the far proxy). 60 fps.
