@@ -19,6 +19,9 @@ export interface DecisionBinding { id: number; script: string; self: number; act
 export interface DecisionContext { tick: number; binding: DecisionBinding; script: DecisionScript; observed: ReadonlySet<number> }
 /** Validation is read-only; commit cannot fail and is invoked only after the complete call validates. */
 export interface DecisionCommit { commit: () => void }
+/** Bounded ABI2 command words carried by the SAME native staged transaction.
+ * The original concrete world validates operation capabilities and operands. */
+export type DecisionExternalCommand = readonly [number,number,number,number,number,number];
 /** Engine adapters only. Shard-authored callbacks never cross this boundary. */
 export interface DecisionWorld {
   /** Trusted observed player for bindings granted requested movement; never an owned actor. */
@@ -26,6 +29,8 @@ export interface DecisionWorld {
   read: (op: number, a: number, b: number, context: DecisionContext) => number;
   list: (op: number, a: number, b: number, output: Float64Array, context: DecisionContext) => number;
   prepare: (commands: readonly ScriptV1Command[], context: DecisionContext) => DecisionCommit;
+  /** Explicit external/v2 mode only; all mixed command families preflight here. */
+  prepareExternal?: (commands: readonly DecisionExternalCommand[], context: DecisionContext) => DecisionCommit;
   failed: (mode: DecisionScript['onFail'], context: DecisionContext, reason: string) => void;
 }
 /** Complete logical continuation; restoring it must not enter Wasm, including ws_init. */
@@ -34,6 +39,7 @@ export interface DecisionSnapshot {
   /** Validated at a decision tick, applied only by the next fixed step. Restore re-prepares without Wasm. */
   staged: readonly {
     binding: number; tick: number; observed: readonly number[]; commands: readonly ScriptV1Command[];
+    external?: readonly DecisionExternalCommand[];
     slots: Readonly<Record<string, number | boolean>>; timers: Readonly<Record<string, number>>; rng: number; lastCall: number;
   }[];
   bindings: readonly {
@@ -71,6 +77,14 @@ const playerCommands = new Set([7, 10, 11, 14]);
 function check(ok: boolean, reason: string): asserts ok { if (!ok) throw new Error(`Decision ${reason}`); }
 function integer(value: number, min = 0, max = Number.MAX_SAFE_INTEGER): boolean { return Number.isSafeInteger(value) && value >= min && value <= max; }
 function width(values: readonly number[], expected: number): boolean { return values.length === expected; }
+function externalCommand(input: unknown): input is DecisionExternalCommand {
+  if (!Array.isArray(input) || input.length !== 6 || !input.every((word: unknown) => typeof word === 'number' && Number.isFinite(word))) return false;
+  const op: unknown = input[0], target: unknown = input[1];
+  return typeof op === 'number' && integer(op,1,65535) && typeof target === 'number' && integer(target,0,0x7fffffff);
+}
+function externalCommands(input: unknown): input is readonly DecisionExternalCommand[] {
+  return Array.isArray(input) && input.length <= 32 && input.every(externalCommand);
+}
 function name(value: string): boolean { return /^[a-zA-Z_][a-zA-Z0-9_.-]*$/u.test(value) && !['__proto__', 'constructor', 'prototype'].includes(value); }
 function mix(input: number): number { let value = Math.imul(input ^ (input >>> 16), 0x7feb352d); value = Math.imul(value ^ (value >>> 15), 0x846ca68b); return (value ^ (value >>> 16)) >>> 0; }
 function slotNumber(slot: DecisionStateSlot, value: number | boolean): number {
@@ -109,7 +123,7 @@ interface BindingState {
   values: Float64Array; next: Float64Array; timers: Float64Array; nextTimers: Float64Array;
   io: Float64Array; layout: ReturnType<typeof scriptV1Layout>; params: number[];
   queue: EventQueue; observed: Set<number>; players: Set<number>; owners: Set<number>;
-  pool: Command[]; commands: Command[]; staged: DecisionCommit | null;
+  pool: Command[]; commands: Command[]; external: DecisionExternalCommand[] | null; staged: DecisionCommit | null;
   rng: number; nextRng: number; lastCall: number | null; nextLastCall: number;
   failures: number; disabled: boolean; enabled?: boolean; metric: DecisionMetrics;
 }
@@ -197,7 +211,7 @@ export class DecisionHost {
         timers: new Float64Array(timerIds.length), nextTimers: new Float64Array(timerIds.length),
         io: new Float64Array(module.memory.buffer, module.io, layout.bytes / 8), layout, params,
         queue: new EventQueue(), observed, players: new Set(), owners,
-        pool: Array.from({ length: 32 }, () => [0, 0, 0, 0, 0]), commands: [], staged: null,
+        pool: Array.from({ length: 32 }, () => [0, 0, 0, 0, 0]), commands: [], external: null, staged: null,
         rng: 0, nextRng: 0, lastCall: null, nextLastCall: 0, failures: 0, disabled: false,
         metric: { binding: binding.id, calls: 0, fuel: 0, maxFuel: 0, commands: 0, refusals: 0, carried: 0, disabled: false },
       };
@@ -222,7 +236,7 @@ export class DecisionHost {
     this.revision++; row.enabled = false; row.staged = null; row.queue.clear(); row.timers.fill(0); row.nextTimers.fill(0);
     row.rng = 0; row.nextRng = 0; row.lastCall = null; row.failures = 0; row.disabled = false;
     for (const [index, slot] of row.script.state.entries()) row.values[index] = slotNumber(slot, slot.default);
-    row.next.set(row.values); row.commands.length = 0; row.observed.clear(); row.players.clear();
+    row.next.set(row.values); row.commands.length = 0; row.external = null; row.observed.clear(); row.players.clear();
   }
   enqueue(binding: number, event: ScriptV1Event): void {
     check(!this.busy || this.committing, 'reentrant enqueue');
@@ -446,9 +460,13 @@ export class DecisionHost {
       bindings: this.rows.map(row => ({ id: row.binding.id, script: row.script.id, stateVersion: row.script.stateVersion,
         slots: this.named(row, row.values), timers: this.savedTimers(row, row.timers), rng: row.rng, failures: row.failures,
         disabled: row.disabled, pending: row.queue.saved(), lastCall: row.lastCall, ...(row.enabled === undefined ? {} : { enabled: row.enabled }) })),
-      staged: this.rows.filter(row => row.staged !== null).map(row => ({ binding: row.binding.id, tick: this.tick,
-        observed: [...row.observed], commands: row.commands.map(command => [...command]), slots: this.named(row, row.next),
-        timers: this.savedTimers(row, row.nextTimers), rng: row.nextRng, lastCall: row.nextLastCall })),
+      staged: this.rows.filter(row => row.staged !== null).map(row => {
+        const saved: DecisionSnapshot['staged'][number] = { binding: row.binding.id, tick: this.tick,
+          observed: [...row.observed], commands: row.commands.map(command => [...command]), slots: this.named(row, row.next),
+          timers: this.savedTimers(row, row.nextTimers), rng: row.nextRng, lastCall: row.nextLastCall };
+        if (row.external !== null) saved.external = row.external.map(command => [...command]);
+        return saved;
+      }),
     };
   }
   restore(input: DecisionSnapshot): void { this.prepareRestore(input)(); }
@@ -462,7 +480,7 @@ export class DecisionHost {
     check(integer(snapshot.version, 1, 1) && integer(snapshot.tick) && snapshot.bindings.length === this.rows.length, 'snapshot identity');
     const staged = new Map<number, DecisionSnapshot['staged'][number]>();
     let commands = 0;
-    for (const value of snapshot.staged) { check(!staged.has(value.binding) && this.bindings.has(value.binding), 'staged binding'); staged.set(value.binding, value); commands += value.commands.length; }
+    for (const value of snapshot.staged) { check(!staged.has(value.binding) && this.bindings.has(value.binding), 'staged binding'); staged.set(value.binding, value); commands += value.commands.length + (value.external?.length ?? 0); }
     check(staged.size <= 64 && commands <= 128, 'snapshot quotas');
     const prepared = this.rows.map(row => {
       const saved = snapshot.bindings.find(value => value.id === row.binding.id);
@@ -497,8 +515,25 @@ export class DecisionHost {
         }
         check(spawns <= 4 && timerCount <= 8, 'snapshot spawn/timer quotas');
         const context: DecisionContext = { tick: snapshot.tick, script: row.script, binding: row.binding, observed };
-        // The authoritative world revalidates ownership, row bounds and quotas without mutating anything.
-        transaction = this.options.world.prepare(pending.commands, context);
+        // The authoritative world revalidates the entire mixed bank before any
+        // branch can publish. V1 retains its exact command tuple and save wire.
+        if (pending.external === undefined) transaction = this.options.world.prepare(pending.commands, context);
+        else {
+          const prepare = this.options.world.prepareExternal;
+          check(this.options.externalDivisor !== undefined && prepare !== undefined && pending.commands.length === 0
+            && externalCommands(pending.external), 'external command authority');
+          let externalSpawns = 0, externalTimers = 0;
+          for (const command of pending.external) {
+            if (command[0] <= 13) {
+              check(Object.is(command[5],0), 'external native command padding');
+              this.validateCommand(validation,[command[0],command[1],command[2],command[3],command[4]]);
+              if (command[0] === 5) externalSpawns++;
+              if (command[0] === 8) externalTimers++;
+            }
+          }
+          check(externalSpawns <= 4 && externalTimers <= 8, 'external spawn/timer quotas');
+          transaction = prepare(pending.external,context);
+        }
       }
       return { row, saved, values, timers, queue, pending, transaction, next, nextTimers };
     });
@@ -516,6 +551,7 @@ export class DecisionHost {
       if (saved.enabled === undefined) delete row.enabled; else row.enabled = saved.enabled;
       row.next.set(value.next); row.nextTimers.set(value.nextTimers); row.staged = value.transaction;
       row.nextRng = pending?.rng ?? saved.rng; row.nextLastCall = pending?.lastCall ?? 0; row.commands.length = 0;
+      row.external = pending?.external?.map(command => [...command]) ?? null;
       row.observed.clear(); for (const actor of pending?.observed ?? []) row.observed.add(actor);
       for (const command of pending?.commands ?? []) row.commands.push([...command]);
       row.context.tick = snapshot.tick;
