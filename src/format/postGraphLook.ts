@@ -43,6 +43,26 @@ const pixel = v.variant('of', [
 const link = v.union([name, finite]);
 const tiers = v.pipe(v.array(v.picklist(['phone', 'desktop'])), v.minLength(1));
 
+const triple = v.tuple([finite, finite, finite]), quad = v.tuple([finite, finite, finite, finite]);
+/** G615: a painterly level's painted world (the post-graph look's optional `painted` row); each part's own host admits its
+ *  row (air, ground, tiles, capture, grass rows, the painterly world's rows, panorama and key). */
+export const PaintedWorldSchema = v.strictObject({
+  /** the ramp from `start` to `end` metres toward `haze`, the panorama's aerial / edge haze, its fog slot, and the heading
+   *  LUT (sRGB triples round the azimuth, un-graded at build time so the level's grade maps them back onto the painting) */
+  fog: v.strictObject({ start: finite, end: finite, haze: triple, aerial: quad, edge: quad, order: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1000)),
+    lut: v.pipe(v.array(finite), v.minLength(3), v.maxLength(3 * 4096), v.check(rows => rows.length % 3 === 0, 'RGB triples')) }),
+  air: v.unknown(), ground: v.unknown(), tiles: v.unknown(), capture: v.unknown(),
+  /** the grass rows and its cards' atlas (a phone and a full size) */
+  /** the painterly world's rows, its panorama's and key light's (null: none), the panorama's ridge; the grade's uniforms
+   *  (lent as `lend` for the level's post-graph look; every one but the key's `saturation` reaches the panorama) and the
+   *  panorama's names for the engine's panorama tint */
+  world: v.exactOptional(v.strictObject({ rows: v.unknown(), panorama: v.unknown(), key: v.unknown(), ridge: v.pipe(v.array(finite), v.maxLength(8192)),
+    grade: v.strictObject({ lend: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), uniforms: v.record(v.pipe(v.string(), v.regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/u)), finite), saturation: v.string() }),
+    tint: v.record(v.pipe(v.string(), v.regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/u)), v.picklist(['key', 'moon', 'light', 'veil', 'veilColour', 'flash'])) })),
+  grass: v.strictObject({ rows: v.unknown(), cards: v.strictObject({ url: v.pipe(v.string(), v.regex(/^\/[A-Za-z0-9/_.-]+$/u)), phoneUrl: v.pipe(v.string(), v.regex(/^\/[A-Za-z0-9/_.-]+$/u)), name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)) }) }),
+});
+/** An admitted painted world row. */
+export type PaintedWorldRow = v.InferOutput<typeof PaintedWorldSchema>;
 export const PostGraphLookSchema = v.strictObject({
   passes: v.pipe(v.record(name, pass), v.check(rows => Object.keys(rows).length <= 16, 'At most 16 post passes')),
   /** the side passes in draw order, each on its tiers: a graph pass (`constants` its own links, `params` its pack params, a bag
@@ -73,9 +93,9 @@ export const PostGraphLookSchema = v.strictObject({
   /** the whole chain in its own composer ('replace': the scene pass, then the sides and graphs); absent, the graphs stand in
    *  the engine's chain */
   scene: v.exactOptional(v.strictObject({})),
-  /** a painterly level's painted world beside its graphs (game/looks/paintedWorld rows: fog, air, ground, grass, sky, world),
-   *  admitted by that host; read by `postGraphLook` from a product file */
-  painted: v.exactOptional(v.unknown()),
+  /** a painterly level's painted world beside its graphs (PaintedWorldSchema: fog, air, ground, tiles, capture, grass and
+   *  its painterly world), built by `postGraphLook` with the look */
+  painted: v.exactOptional(PaintedWorldSchema),
   /** a numeric client-channel group (format/clientChannels programs) the look evaluates each frame after its pixel terms:
    *  its reads name the 'view' owner (the drawn camera seen from the frame root: eyeX, eyeY, eyeZ, near, the projection's
    *  p00 and p11, the root's place rootX, rootY, rootZ), the 'uniforms' owner (the bag's numbers: [uniform, 'value'], a

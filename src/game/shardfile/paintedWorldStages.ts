@@ -3,14 +3,14 @@
  * stages):
  * - `fixed-draws`: the world's original fixed-draw library (WorldAssemblyPorts `draws`, never a second book) loaded once a
  *   page, then lent as the `fixed-draws` entry owner `id` for the stages and consumers after it
- * - `painted-reseed`: the painted world's grass bakes its fine mask again (game/looks/paintedWorld `world`, the slug its
+ * - `painted-reseed`: the painted world's grass bakes its fine mask again (game/looks/postGraphLook `world`, the slug its
  *   look built it under), before the dressing regrows around what landed
  * Both refuse a world that has left or is leaving, before any work; no stage slices or yields (the construction's own
  * checkpoints do). Client-only presentation.
  */
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { FixedDraws } from '../models/fixedDraws';
-import { paintedWorldOf } from '../looks/paintedWorld';
+import { paintedWorldOf } from '../looks/postGraphLook';
 import { publishEntryOwner } from './entryOwners';
 
 /** one load a page per library, as a level's own loader kept (a re-entered world reuses it; a failed load stays failed) */

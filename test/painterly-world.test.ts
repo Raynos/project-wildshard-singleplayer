@@ -3,7 +3,8 @@ import { Color, DataTexture, Group, HemisphereLight, Mesh, Scene, Vector3 } from
 import { Scope } from '../src/engine/app/scope';
 import type { Renderer } from '../src/engine/render/renderer';
 import type { SkyRig } from '../src/engine/world/skyRig';
-import { PaintedPanorama, PainterlyWorld } from '../src/game/looks/painterlyLook';
+import { PaintedPanorama } from '../src/game/looks/painterlyLook';
+import { PainterlyWorld } from '../src/game/looks/postGraphLook';
 import type { GrassPresentationProfile } from '../src/game/looks/grassPresentation';
 
 // The static capture renders on the GPU: the fixture lends one that records what the world asks of it.

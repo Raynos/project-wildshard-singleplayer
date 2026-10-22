@@ -3,7 +3,7 @@ import { Scope } from '../src/engine/app/scope';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { installFixedDrawsStage, installPaintedReseedStage } from '../src/game/shardfile/paintedWorldStages';
-import { paintedWorld } from '../src/game/looks/paintedWorld';
+import { paintedWorld } from '../src/game/looks/postGraphLook';
 import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
 import grassRows from '../src/shards/nalati-grasslands/data/grass.generated.json' with { type: 'json' };

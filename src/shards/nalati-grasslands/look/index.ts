@@ -3,7 +3,7 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { NalatiWeather } from '../runtime/state';
-import { paintedWorldOf } from '@wildshard/game/looks/paintedWorld';
+import { paintedWorldOf } from '@wildshard/game/looks/postGraphLook';
 
 export interface LookV2Ctx {
   game: Game; sky: Sky; weather: NalatiWeather;
@@ -14,7 +14,7 @@ export interface LookV2Ctx {
   forest: Forest;
 }
 
-/** Nalati's painterly world (game/looks/paintedWorld `wire`, the look's `world` rows): the panorama, the painter's key, the
+/** Nalati's painterly world (game/looks/postGraphLook `wire`, the look's `world` rows): the panorama, the painter's key, the
  *  static capture and the grass's mood, hearing the grade and the live re-grade and following the weather's hour and storm. */
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const { game, sky, weather } = ctx;

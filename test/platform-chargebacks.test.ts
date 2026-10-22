@@ -122,15 +122,15 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
-  const path = 'src/game/looks/painterlyLook.ts';
+  const path = 'src/game/quest/elitePage.ts';
   const allowance: PendingPlatformUser = { module: path, documentation: 'docs/HOST-BAR.md',
     approvedFeature: { name: 'painterly look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G478' } } };
-  const painterly = { path, name: 'PainterlyWorld', exported: true, lines: 40 };
+  const painterly = { path, name: 'eliteThink', exported: true, lines: 40 };
   const rows = [painterly,
-    { path, name: 'PaintedPanorama', exported: true, lines: 80 }];
+    { path, name: 'ElitePageRows', exported: true, lines: 80 }];
   const result = partitionPendingPlatformUsers('nalati-grasslands', [], rows, [allowance]);
   expect(result.exports).toEqual([rows[0]]);
-  expect(result.pending.map(row => row.name)).toEqual(['PaintedPanorama']);
+  expect(result.pending.map(row => row.name)).toEqual(['ElitePageRows']);
   const single = partitionPendingPlatformUsers('nalati-grasslands', [{ path, lines: 200 }], [painterly], [allowance]);
   expect(single.exports).toEqual([rows[0]]);
   expect(single.pending.map(row => row.lines)).toEqual([160]);
@@ -142,12 +142,12 @@ test('day-one feature credit cannot erase a G520 chargeback', () => {
 test('chargebacks retain their exact component after guest admission', () => {
   const sources = [
     { path: 'src/game/models/mountedSpecimen.ts', kind: 'sole-module', lines: 27 },
-    { path: 'src/game/looks/painterlyLook.ts', name: 'PainterlyWorld', kind: 'sole-export', lines: 40 },
+    { path: 'src/game/quest/elitePage.ts', name: 'eliteThink', kind: 'sole-export', lines: 40 },
   ] as const;
   const inventory = componentInventory('.', 'nalati-grasslands', [...sources], 67);
-  expect(inventory.counts.C4).toBe(0);
+  expect(inventory.counts.C2).toBe(0);
   expect(inventory.counts.C1).toBe(27); expect(inventory.counts.C7).toBe(0);
-  expect(inventory.counts.C2).toBe(40);
+  expect(inventory.counts.C4).toBe(40);
   expect(inventory.unknown).toEqual([]);
 });
 

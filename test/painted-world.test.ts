@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { afterEach, expect, test } from 'vitest';
 import * as v from 'valibot';
-import { PaintedWorldSchema, paintedWorld, paintedWorldOf } from '../src/game/looks/paintedWorld';
+import { paintedWorld, paintedWorldOf } from '../src/game/looks/postGraphLook';
+import { PaintedWorldSchema } from '../src/format/postGraphLook';
 import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
 import grassRows from '../src/shards/nalati-grasslands/data/grass.generated.json' with { type: 'json' };

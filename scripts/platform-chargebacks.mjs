@@ -32,9 +32,6 @@ const declarations = new Map([
     'KeeperEliteEffect', 'KeeperEliteServices', 'KeeperElitePage',
     'ExternalEliteRow', 'ExternalEliteEffect', 'EncounterHerd', 'ExternalElitePage',
   ].map(name => [name, 'C4']))],
-  ['src/game/looks/painterlyLook.ts', new Map([
-    'PainterlyWorldSchema', 'PainterlyFrame', 'PainterlyCapture', 'PainterlyWorld',
-  ].map(name => [name, 'C2']))],
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],

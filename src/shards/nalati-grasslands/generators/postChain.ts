@@ -46,11 +46,11 @@ export function postChainRows(): { readonly postGraph: PostGraphLookRow; readonl
     sides: [{ bloom: 'bloom', tiers: ['desktop'], threshold: 0.95, smoothing: 0.3, radius: 0.7 }], composite: { pass: 'grade', output: 'frame' },
     inputs: { tBloom: { side: 'bloom', output: 'bloom' } }, uniforms: { uBloomIntensity: bloom }, live: 'nalati-grade', scene: {},
   } satisfies PostGraphLookRow;
-  // the painted world's grade (game/looks/paintedWorld `world.grade`, lent for the grade graph) and the panorama's names for
+  // the painted world's grade (game/looks/postGraphLook `world.grade`, lent for the grade graph) and the panorama's names for
   // the engine's panorama tint
   const world = { grade: { lend: 'nalati-grade', uniforms, saturation: 'uV2LookSat' },
     tint: { uV2KeyTint: 'key', uV2Moon: 'moon', uV2Light: 'light', uV2Veil: 'veil', uV2VeilCol: 'veilColour', uV2Flash: 'flash' } };
-  // the panorama fog's near / zenith haze and its fog slot (game/looks/paintedWorld `fog`)
+  // the panorama fog's near / zenith haze and its fog slot (game/looks/postGraphLook `fog`)
   const paintedFog = { haze: [0.2, 0.21, 0.26], order: 300 };
   return { postGraph, world, paintedFog, shadow, light, lum, uniforms, fogLut: ungradedFog(shadow, light, lum, uniforms.uV2Exposure, uniforms.uV2Sat) };
 }

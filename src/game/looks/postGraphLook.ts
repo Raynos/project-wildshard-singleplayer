@@ -9,22 +9,30 @@
  * the displayed frame, and
  * its grid cell carries the same composite. Client-only presentation.
  */
-import { Color, type Data3DTexture, DataTexture, Fog, NoColorSpace, Vector2, Vector3, Vector4, type IUniform, type Object3D, type PerspectiveCamera, Texture, type WebGLRenderTarget } from 'three';
+import { Color, type Data3DTexture, DataTexture, Fog, NoColorSpace, Vector2, Vector3, Vector4, type IUniform, type Object3D, type PerspectiveCamera, Texture, type WebGLRenderTarget, type Scene } from 'three';
 import { BlendFunction, BloomEffect, EffectPass, LookupTexture, Pass, RenderPass, TextureEffect } from 'postprocessing';
 import * as v from 'valibot';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { loadCarriedLUT } from '@wildshard/engine/boot/bakedApi';
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
-import type { LookCellComposite, LookStrategy, WorldLookContext } from '@wildshard/engine/render/look';
+import type { FogModel, GrassDriver, LookCellComposite, LookStrategy, SkyDressing, TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { headingTexture } from '@wildshard/engine/render/dataLook';
+import { ColourRampFog, panoramaTint } from '@wildshard/engine/world/Atmosphere';
+import { smoothstep } from '@wildshard/engine/core/noise';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { PostGraphLookSchema, type PostGraphEffect, type PostGraphLookRow, type PostGraphWrite } from '@wildshard/format/postGraphLook';
+import { PaintedWorldSchema, PostGraphLookSchema, type PostGraphEffect, type PostGraphLookRow, type PostGraphWrite } from '@wildshard/format/postGraphLook';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { uniformsFrom, type UniformMap } from '../plugin/shaderFamily';
 import { ScaledPostPass, prepareScaledPost } from './scaledPost';
-import { hasLentLook, lentUniforms, setLentParam, setLentTexture } from '../shardfile/lentLooks';
+import { hasLentLook, lendUniforms, lentUniforms, setLentParam, setLentTexture } from '../shardfile/lentLooks';
+import { paintedAir } from './paintedLook';
+import { PaintedPanorama, PainterKeyLight, paintedGroundPainter, type PainterSkyLook } from './painterlyLook';
+import { GrassPresentation, GrassPresentationProfile } from './grassPresentation';
+import { StaticCapture, staticCaptureUniforms, type StaticCaptureUniforms } from './staticCapture';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { graphParamRoots } from './graphDaySky';
 
@@ -195,10 +203,8 @@ export async function postGraphLook(product: { readonly slug: string; readonly j
   let at: unknown = await product.json(source.file);
   for (const key of source.field) at = typeof at === 'object' && at !== null ? Reflect.get(at, key) : undefined;
   const look = postGraphLookOf(product.slug, at), painted = v.parse(PostGraphLookSchema, at).painted;
-  if (painted === undefined) return look;
-  // a painterly level's painted world (fog, ground, grass, sky): loaded only by a level that declares one
-  const { paintedWorld } = await import('./paintedWorld');
-  return { ...look, ...paintedWorld(product.slug, painted).look };
+  // a painterly level's painted world (fog, ground, grass, sky) beside its graphs
+  return painted === undefined ? look : { ...look, ...paintedWorld(product.slug, painted).look };
 }
 
 /** A level's post-graph look from its admitted row (`slug` names its LUT): an engine-chain look, or with `scene` its own. */
@@ -283,3 +289,121 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
     },
   };
 }
+
+// G615 (Jake): the painted world of a painterly level, the post-graph look's optional `painted` row: the static capture's
+// shade, the panorama fog (a colour ramp to its haze over the painted heading LUT, re-tinted live by the engine's panorama
+// tint), the painted air (cloud shadows), the painted ground and the grass, all shaded by the one capture; built once per
+// page per level slug, read by the level's world wiring by its slug (`paintedWorldOf`), which `wire`s its painterly world
+// (the panorama dome, the painter's key light, the static capture, the grass's mood) from the optional `world` rows,
+// lending the grade's live uniforms the post-graph look reads.
+const real = v.pipe(v.number(), v.finite()), shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
+/**
+ * A painterly world (the painterly look host, G478): the panorama and the painter's key over a static capture of the
+ * level's `casters` (its groups by name and the caller's extra roots), swept every `sweep` s for streamed-in casters; on a
+ * tier whose capture rows take statics off the realtime map, that map shrinks to `liveMap` texels. Each frame the key
+ * swings, the capture re-keys from it, the panorama fades to night, the grass faces the sun and darkens with the hour
+ * (dusk over `dusk` [from, to] degrees of sun) and the storm, the rig's night sky shows only at night, and the rig's sun
+ * disc stays only as the moon.
+ */
+export const PainterlyWorldSchema = v.strictObject({ casters: v.pipe(v.array(shapeId), v.maxLength(16)), sweep: v.pipe(real, v.minValue(0.1)),
+  liveMap: v.pipe(real, v.integer(), v.minValue(64), v.maxValue(4096)), dusk: v.tuple([real, real]) });
+/** What the world reads each frame: the hour's look, the sun's elevation (degrees) and the storm's overcast. */
+export interface PainterlyFrame { readonly look: PainterSkyLook; readonly sunElevation: number; readonly overcast: number }
+/** The static capture as the world drives it (a `StaticCapture` from the level's capture rows, unless one is lent). */
+export interface PainterlyCapture { readonly staticOffCsm: boolean; add: (root: Object3D) => void; sweep: () => void; update: (keyDir: Vector3) => void }
+export class PainterlyWorld {
+  private sweepT = 0;
+  private constructor(private readonly rows: v.InferOutput<typeof PainterlyWorldSchema>, private readonly sky: SkyRig, private readonly capture: PainterlyCapture,
+    readonly panorama: PaintedPanorama, private readonly key: PainterKeyLight, private readonly grass: GrassPresentationProfile, private readonly stars: Object3D) {}
+  static async build(input: unknown, ports: { readonly renderer: Renderer; readonly scene: Scene; readonly scope: Scope; readonly sky: SkyRig; readonly stars: Object3D;
+    readonly groups: Readonly<Record<string, Object3D>>; readonly casters: readonly Object3D[]; readonly grass: GrassPresentationProfile;
+    readonly capture: { readonly rows: unknown; readonly uniforms: StaticCaptureUniforms } | { readonly lent: PainterlyCapture }; readonly panorama: { readonly rows: unknown } & Parameters<typeof PaintedPanorama.build>[4];
+    readonly key: { readonly rows: unknown; readonly daySaturation: number; readonly saturation: IUniform<number> } }): Promise<PainterlyWorld | null> {
+    const rows = v.parse(PainterlyWorldSchema, input), { renderer, scene, scope, sky } = ports;
+    const panorama = await PaintedPanorama.build(scene, Math.min(8, renderer.capabilities.getMaxAnisotropy()), scope, ports.panorama.rows, ports.panorama);
+    if (panorama === null) return null;
+    const key = new PainterKeyLight(ports.key.rows, sky, ports.key.daySaturation, ports.key.saturation);
+    const capture = 'lent' in ports.capture ? ports.capture.lent : await StaticCapture.create(renderer, scene, ports.grass.heightTexture(), scope, ports.capture.rows, ports.capture.uniforms);
+    for (const name of rows.casters) { const group = ports.groups[name]; if (group !== undefined) capture.add(group); }
+    for (const root of ports.casters) capture.add(root);
+    if (capture.staticOffCsm) {
+      sky.csm.shadowMapSize = rows.liveMap;
+      for (const light of sky.csm.lights) { light.shadow.mapSize.set(rows.liveMap, rows.liveMap); light.shadow.map?.dispose(); light.shadow.map = null; }
+    }
+    return new PainterlyWorld(rows, sky, capture, panorama, key, ports.grass, ports.stars);
+  }
+  update(dt: number, frame: PainterlyFrame): void {
+    const look = frame.look;
+    this.sweepT -= dt;
+    if (this.sweepT <= 0) { this.sweepT = this.rows.sweep; this.capture.sweep(); }   // streamed-in casters join the capture
+    this.key.apply(look);
+    this.capture.update(this.sky.sunDir);   // after the key, so the captured shadows fall from it
+    const night = this.panorama.update(look.sunDir, frame.sunElevation);
+    this.grass.uniforms.uSunView.value.copy(look.sunDir);
+    this.grass.mood(night, smoothstep(this.rows.dusk[0], this.rows.dusk[1], frame.sunElevation) * (1 - night), frame.overcast);
+    this.stars.visible = night > 0.001;
+    if (look.moon <= 0) this.sky.sunDisc.visible = false;   // the sun is painted; the disc stays only as the moon
+  }
+}
+
+/** What a painted world lends its level: the parts its world wiring shares, and the look's parts. */
+export interface PaintedWorldParts {
+  readonly bake: StaticCaptureUniforms;
+  /** the fog's heading LUT (scene-linear, half float, repeating round the azimuth), shared with the panorama dome */
+  readonly fogLut: DataTexture;
+  readonly tint: typeof panoramaTint;
+  readonly grass: GrassPresentationProfile;
+  readonly look: { readonly fog: FogModel; readonly terrainPainter: TerrainPainter; readonly grass: GrassDriver; readonly sky: SkyDressing };
+  /** the level's world (its world wiring): lend the grade, build the painterly world (null: no world rows, or none built) */
+  readonly wire: (ports: PaintedWorldPorts) => Promise<PainterlyWorld | null>;
+}
+/** The world-stage owners a painterly world draws into and follows. */
+export interface PaintedWorldPorts {
+  readonly renderer: Renderer; readonly scene: Scene; readonly scope: Scope; readonly sky: SkyRig; readonly stars: Object3D;
+  readonly groups: Readonly<Record<string, Object3D>>; readonly casters: readonly Object3D[];
+  /** the level's daytime saturation the key light eases from */
+  readonly daySaturation: number;
+}
+
+const paintedWorlds = new Map<string, PaintedWorldParts>();
+
+/** The painted world of the level `slug` from its rows (the post-graph look's `painted` row), built on the first call of
+ *  the page. */
+export function paintedWorld(slug: string, input: unknown): PaintedWorldParts {
+  const had = paintedWorlds.get(slug);
+  if (had !== undefined) return had;
+  const row = v.parse(PaintedWorldSchema, input), { fog } = row;
+  const bake = staticCaptureUniforms(row.capture), grass = new GrassPresentationProfile(row.grass.rows), air = paintedAir(row.air);
+  const fogLut = headingTexture({ samples: fog.lut, stride: 3, half: true, name: `${slug}-fog-lut` });
+  const ramp = new ColourRampFog({ start: fog.start, end: fog.end, near: fog.haze, zenith: fog.haze, panorama: { lut: { value: fogLut },
+    aerial: { value: v4Of(fog.aerial) }, edge: { value: v4Of(fog.edge) }, tint: panoramaTint } }).model(fog.order);
+  const cards = row.grass.cards, world = row.world, grade: Record<string, IUniform<number>> = world === undefined ? {} : uniformsFrom(world.grade.uniforms);
+  const wire = (ports: PaintedWorldPorts): Promise<PainterlyWorld | null> => {
+    if (world === undefined) return Promise.resolve(null);
+    lendUniforms(ports.scope, world.grade.lend, grade);
+    const saturation = grade[world.grade.saturation];
+    if (saturation === undefined) throw new Error(`Painted world grade has no ${world.grade.saturation}`);
+    const uniforms = { ...Object.fromEntries(Object.entries(grade).filter(([name]) => name !== world.grade.saturation)),
+      ...Object.fromEntries(Object.entries(world.tint).map(([name, part]) => [name, panoramaTint[part]])) };
+    return PainterlyWorld.build(world.rows, { ...ports, grass, capture: { rows: row.capture, uniforms: bake },
+      panorama: { rows: world.panorama, ridge: world.ridge, lut: fogLut, uniforms }, key: { rows: world.key, daySaturation: ports.daySaturation, saturation } });
+  };
+  const parts: PaintedWorldParts = { bake, fogLut, tint: panoramaTint, grass, wire, look: {
+    // the cloud shadows first, then the panorama fog: every fogged material fades into the painted haze behind it
+    fog: { ...ramp, install: () => { air.install(); ramp.install(); } },
+    terrainPainter: paintedGroundPainter(slug, row.ground, row.tiles, bake),
+    grass: { build: (sky, forest) => new GrassPresentation(grass, sky, forest, bake, cards).build() },
+    sky: air.sky,
+  } };
+  paintedWorlds.set(slug, parts);
+  return parts;
+}
+
+/** The painted world the level `slug`'s look built; throws before it has. */
+export function paintedWorldOf(slug: string): PaintedWorldParts {
+  const parts = paintedWorlds.get(slug);
+  if (parts === undefined) throw new Error(`No painted world for ${slug}: its look builds it before its world wiring`);
+  return parts;
+}
+
+function v4Of(row: readonly [number, number, number, number]): Vector4 { return new Vector4(...row); }
