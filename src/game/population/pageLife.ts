@@ -44,11 +44,13 @@ function beatEnvelope(t:number,beat:NonNullable<PageLifeRows['harvest']>):number
  * the optional loans are platform instances, never per-content callbacks. */
 export async function installPageLife(ctx: ShardContext, input: unknown, journal: CompendiumState | null = null,
   sounds: DeclaredSoundBank | null = null, borrowed: ReadonlyMap<string, AmbientFlockDraw> = new Map()): Promise<PageLife> {
+  const live = (): void => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Ambient page owner has ended'); };
+  live();
   const data = parsePageLife(input), runtime = ctx.game.runtime, world = runtime?.world;
   if (runtime === undefined || world === undefined || world === null) throw new Error('Ambient page needs its world');
   const { game, sky, player } = world, cam = game.camera, hooks = runtime.hooks;
-  const library = data.draw === null ? null : await PosedDraw.library(ctx.product, data.draw.library);
-  await library?.preload();
+  const library = data.draw === null ? null : await PosedDraw.library(ctx.product, data.draw.library); live();
+  await library?.preload(); live();
   const retained = retainsRuntimeServices(ctx);
   let lifeTime = app.clock.now;
   const now = (): number => retained ? lifeTime : app.clock.now;
@@ -66,9 +68,10 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
       if (wild === null) throw new Error('Packed ambient group needs its draw');
       const group = new AmbientGroup(entry.row, entry.perches); groups.set(entry.id, group); packed.push(group);
     } else if (entry.library !== undefined) {
-      const own = await PosedDraw.library(ctx.product, entry.library); await own.preload();
+      const own = await PosedDraw.library(ctx.product, entry.library); live(); await own.preload(); live();
       // as a graph on every tier (a boot pass with graph materials off lends its classic fallback)
-      lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [own.name]));
+      const looks = await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [own.name]); live();
+      lendLooks(ctx.scope, looks);
       const draw = createAmbientFlock(entry.row, own.look(), entry.perches), tint = new THREE.Color();
       for (const [i, hex] of (entry.tints ?? []).entries()) draw.mesh.setColorAt(i, tint.setHex(hex));
       game.scene.add(draw.group); installAmbientFlock(ctx, draw, entry.anchor === undefined ? player : { position: entry.anchor }); groups.set(entry.id, draw.flock);

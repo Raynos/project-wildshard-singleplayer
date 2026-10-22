@@ -9,6 +9,7 @@ import type { QuestSpawnResult } from '../quest/chapterDirector';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import type { AmbientGroup } from '../ambient/flock';
+import type { AmbientFlockDraw } from '../ambient/ambientFlock';
 import type { CollectionCatalogue } from '../models/collectionDisplay';
 import type { HeldClaims } from '../loadout/claims';
 import type { QuestPageComposition } from '../quest/pageComposition';
@@ -31,6 +32,7 @@ export interface EntryOwnerTypes {
   'fixed-draws': FixedDraws;
   chain: RopeChain;
   ambient: AmbientGroup;
+  'ambient-draw': AmbientFlockDraw;
   collection: CollectionCatalogue;
   claims: HeldClaims;
   animals: AnimalManager;
@@ -50,7 +52,7 @@ function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
     value = { scenes: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
-      object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), ambient: new Map(), collection: new Map(), claims: new Map(),
+      object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
     books.set(scope, value);
   }

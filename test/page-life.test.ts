@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
+import { Scope } from '../src/engine/app/scope';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parsePageLife } from '../src/format/pageLife';
 import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
@@ -75,9 +76,9 @@ test('page owner preserves the real coast flock and an independent marsh draw', 
       const row = rows.flocks[0]; if (row === undefined) throw new Error('Missing group');
       const draw = new AmbientFlockDraw(row.row, { name: row.id, geometry, material }, []);
       const control = new AmbientFlockDraw(row.row, { name: 'control', geometry, material }, []);
-      const systems: SystemSpec[] = [], hooks = {};
+      const systems: SystemSpec[] = [], hooks = {}, scope = new Scope('ambient-page');
       const ctx = legacyDouble<ShardContext>({
-        game: legacyDouble<GameServices>({ runtime: legacyDouble<ShardRuntime>({ hooks, play: null,
+        scope, game: legacyDouble<GameServices>({ runtime: legacyDouble<ShardRuntime>({ hooks, play: null,
           world: legacyDouble<ShardWorld>({ game: legacyDouble<Game>({ camera: new PerspectiveCamera() }),
             sky: legacyDouble<SkyRig>({ dayNight: null }), player: legacyDouble<Player>({ position: at }) }) }) }),
         system: spec => { systems.push(spec); },
@@ -93,7 +94,7 @@ test('page owner preserves the real coast flock and an independent marsh draw', 
         expect(draw.flock.birds).toEqual(control.flock.birds);
         expect(draw.mesh.count).toBe(control.mesh.count);
         expect(draw.mesh.instanceMatrix.array).toEqual(control.mesh.instanceMatrix.array);
-      } finally { draw.mesh.geometry.dispose(); control.mesh.geometry.dispose(); }
+      } finally { scope.dispose(); draw.mesh.geometry.dispose(); control.mesh.geometry.dispose(); }
     }
     expect(PAGE_LIFE.carcasses?.group).toBe('scavengers');
     const guide = PAGE_LIFE.guide;
@@ -112,7 +113,7 @@ test('independent marsh tool rows hold the real reward until the final frame', a
     setEnabled: value => { equipment.enabled = value; } });
   const player = legacyDouble<Player>({ position: new Vector3(0, 1.7, 0), swimming: false });
   const ctx = legacyDouble<ShardContext>({
-    manifest: legacyDouble<ShardManifest>({ slug: 'pastel-plain' }),
+    scope: fake.playerScope, manifest: legacyDouble<ShardManifest>({ slug: 'pastel-plain' }),
     game: legacyDouble<GameServices>({ runtime: legacyDouble<ShardRuntime>({ hooks,
       play: legacyDouble<NonNullable<ShardRuntime['play']>>({ animals: legacyDouble<AnimalManager>({ animals: [] }),
         weapons: equipment, audio: legacyDouble<Audio>({ footstep: () => undefined }) }),
