@@ -45,8 +45,7 @@ export class MountedArsenal {
   readonly blade:BladeSet;
   readonly polearm:PolearmSet;
   readonly rows:MountedLoadoutRows;
-  private readonly pageKits=new WeakMap<Scope,MountedLoadout>();
-  private readonly pageOwners=new WeakSet<Scope>();
+  private readonly pageKits=new WeakMap<Scope,MountedLoadout|null>();
   constructor(input:unknown){
     this.rows=parse(MountedLoadoutSchema,input);
     this.blade=new BladeSet(this.rows.blade);this.polearm=new PolearmSet(this.rows.polearm);
@@ -57,11 +56,11 @@ export class MountedArsenal {
     const runtime=ctx.game.runtime,page=this.rows.page;
     if(ctx.scope.disposed||ctx.scope.disposing||runtime===undefined||page===undefined)throw new Error('Mounted page needs its live native equipment declaration');
     const world=runtime.world;if(world===null)throw new Error('Mounted page needs its actual world');
-    if(this.pageOwners.has(ctx.scope))throw new Error('Mounted page is already installed');
+    if(this.pageKits.has(ctx.scope))throw new Error('Mounted page is already installed');
     const catalogue=new ItemCatalogue(ctx.product.shardfile.items);
     ctx.rows.weapon([this.rows.bow.item,this.rows.blade.item,this.rows.polearm.item,page.firearm.item].map(id=>catalogue.equipment(id)));
-    this.pageOwners.add(ctx.scope);
-    ctx.scope.onDispose(()=>{this.pageKits.delete(ctx.scope);this.pageOwners.delete(ctx.scope);});
+    this.pageKits.set(ctx.scope,null);
+    ctx.scope.onDispose(()=>{this.pageKits.delete(ctx.scope);});
     runtime.buildEquipment=async(targets,allowUnlocked)=>{
       const kit=await this.build(world,targets,allowUnlocked,ctx.product.shardfile.items);await macrotask();
       const data=await ctx.product.json<{feel:Pick<HeldFirearmProfile,'ads'>;view:HeldFirearmView;rows:HeldFirearmRows}>(page.firearm.file);

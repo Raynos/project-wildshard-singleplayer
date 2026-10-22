@@ -52,6 +52,7 @@ test('mounted kit borrows the original prepared arsenal before ordinary kit cons
     ]);
     expect(typeof f.runtime.buildEquipment).toBe('function');
     expect(f.arsenal.pageKit(f.ctx)).toBeNull();
+    expect(() => f.arsenal.installPage(f.ctx)).toThrow('already installed');
     expect(f.read).not.toHaveBeenCalled();
     await expect(installClientPhase(f.ctx, plan, 'kit', f.parent, 'entered')).rejects.toThrow('already installed');
     expect(f.weapon).toHaveBeenCalledOnce();
