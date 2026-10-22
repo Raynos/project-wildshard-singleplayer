@@ -11315,6 +11315,21 @@ standalone rows or their one compiled field in this page document. They
 accept no authored selector, owner path or callback. Sharing a document
 retains preparation order and original owners; it creates no named file.
 
+### Chapter-only quest page views
+
+`game/quest/pageComposition.installQuestPageComposition(ctx,
+{chapterView, story}, owners)` reads the named admitted documents and returns
+the existing Flags. `ChapterViewOwners` borrows a concrete PageTamingOwner
+or null, ArenaRoomEncounter, ArenaScriptEncounter and admitted figure rows.
+The defining `format/questPageComposition.ChapterViewSchema` supplies finite
+mounted/arena observations, update-system order, cadence and guest signal
+ids; the admitted guest retains the story decisions.
+
+The installer captures its concrete owners and entered runtime/world/play
+before reads, and rejects a replaced, disposed or retiring entry after
+awaits. Native AdventurePersistence retains the saved facts. The original
+QuestPageRows overload, composition result and wire remain unchanged.
+
 ### Declared world owner bindings
 
 Client plans may declare `world.runtime-hooks` with an optional floor loan,
