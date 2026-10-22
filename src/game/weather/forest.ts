@@ -49,6 +49,17 @@ export interface ForestWeatherRig {
   group: THREE.Group;
   setMode: (mode: string, at?: number) => void;
 }
+/** Keep the actual construction owners across every asynchronous intake. */
+function forestWeatherOwner(ctx: ShardContext): () => void {
+  const scope = ctx.scope, product = ctx.product, runtime = ctx.game.runtime, world = runtime?.world;
+  if (runtime === undefined || world === undefined || world === null) throw new Error('Weather requires its world');
+  const game = world.game, sky = world.sky, root = game.scene, owner = game.levelScope, file = product.file, json = product.json;
+  return (): void => {
+    if (scope.disposed || scope.disposing || owner.disposed || owner.disposing || ctx.scope !== scope || ctx.product !== product || product.file !== file || product.json !== json
+      || ctx.game.runtime !== runtime || runtime.world !== world || world.game !== game || world.sky !== sky || game.scene !== root || game.levelScope !== owner)
+      throw new Error('Weather construction owner left or changed');
+  };
+}
 type Parts = NonNullable<ForestWeatherRows['parts']>;
 type Storm = NonNullable<ForestWeatherRows['storm']>;
 
@@ -56,13 +67,17 @@ type Storm = NonNullable<ForestWeatherRows['storm']>;
 export async function installForestWeather(ctx: ShardContext, input: unknown): Promise<ForestWeatherRig | null> {
   const policy = v.parse(ForestWeatherSchema, input), runtime = ctx.game.runtime, world = runtime?.world;
   if (runtime === undefined || world === undefined || world === null) throw new Error('Weather requires its world');
-  const painted = policy.sky === undefined ? null : await paintedSky(ctx.product, world.game, world.sky, policy.sky, ctx.app.params, world.chunk.grade.brightness);
+  const live = forestWeatherOwner(ctx), product = ctx.product;
+  live();
+  const json = async (file: string): Promise<unknown> => { live(); const value = await product.json(file); live(); return value; };
+  const painted = policy.sky === undefined ? null : await paintedSky(product, world.game, world.sky, policy.sky, ctx.app.params, world.chunk.grade.brightness, ctx);
+  live();
   const sky = painted ?? skyFaceOf(world.sky);
   if (sky === null) return null; // the fixed sky: no clock, no weather
-  const read = async (file: string): Promise<unknown> => JSON.parse(new TextDecoder().decode(await ctx.product.file(file)));
+  const read = async (file: string): Promise<unknown> => { live(); const bytes = await product.file(file); live(); return JSON.parse(new TextDecoder().decode(bytes)); };
   const forest = policy.files.observations === undefined || policy.files.rain === undefined || policy.files.shelter === undefined ? null : {
-    h: forestWeatherObservations(ctx, await ctx.product.json(policy.files.observations)),
-    fx: await RainPresentation.install(ctx, await ctx.product.json(policy.files.rain)),
+    h: forestWeatherObservations(ctx, await json(policy.files.observations)),
+    fx: await RainPresentation.install(ctx, await json(policy.files.rain)),
     shelter: parsePopulationShelter(await read(policy.files.shelter)),
   };
   const dev = { paused: false };
@@ -80,6 +95,7 @@ export async function installForestWeather(ctx: ShardContext, input: unknown): P
   }
   if (policy.mode === 'setting') weather.setMode(setting('weather'), policy.heldPhase);
   const parts = policy.parts === undefined ? null : await weatherParts(ctx, world, policy.parts, sky);
+  live();
   return installWeatherPresentation(ctx, world, { face: sky, painted }, weather, storm, forest, parts, policy, dev, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
@@ -217,7 +233,9 @@ function numeric(value: unknown): value is Record<string, number> {
 /** The rows' drawn parts: the baked shapes in their lent looks, the sprites, the rain round the eye, posed by one lane over
  *  the weather's numbers, the reactions' event records, the sky's owners, the wind and the camera. */
 async function weatherParts(ctx: ShardContext, world: ShardWorld, rows: Parts, sky: SkyFace) {
-  const file = v.parse(v.objectWithRest({ shapes: v.record(v.string(), v.unknown()) }, v.unknown()), await ctx.product.json(rows.file));
+  const live = forestWeatherOwner(ctx); live();
+  const input = await ctx.product.json(rows.file); live();
+  const file = v.parse(v.objectWithRest({ shapes: v.record(v.string(), v.unknown()) }, v.unknown()), input);
   const table = (id: string): number[] => v.parse(v.array(v.number()), file[id]);
   const channels = ctx.product.shardfile.clientChannels, loader = new THREE.BufferGeometryLoader(), game = world.game;
   const group = new THREE.Group(), meshes = new Map<string, THREE.Object3D>(), owned: { dispose: () => void }[] = [];

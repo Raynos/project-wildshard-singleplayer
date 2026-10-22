@@ -85,9 +85,18 @@ export class RainPresentation {
 
   /** Admit rain rows and their page's roof decks, fetch the tier's bake and build the cover map and the four meshes. */
   static async install(ctx: ShardContext, input: unknown): Promise<RainPresentation> {
+    const scope = ctx.scope, product = ctx.product, runtime = ctx.game.runtime, world = runtime?.world;
+    const game = world?.game, sky = world?.sky, root = game?.scene, owner = game?.levelScope;
+    const live = (): void => {
+      if (scope.disposed || scope.disposing || owner?.disposed === true || owner?.disposing === true || ctx.scope !== scope || ctx.product !== product || ctx.game.runtime !== runtime || runtime?.world !== world
+        || world?.game !== game || world?.sky !== sky || game?.scene !== root || game?.levelScope !== owner)
+        throw new Error('Rain construction owner left or changed');
+    };
+    live();
     const rows = v.parse(RainPresentationSchema, input), bake = TIER === 'phone' ? rows.bake.phone : rows.bake.desktop;
     const roofs = new ForestRoofMask({ floors: forestPage(ctx.scope, rows.cover.page).rows.buildings.floors, roofs: rows.cover.roofs });
-    return new RainPresentation(rows, roofs, new GeometryPack(await fetchLaneBake(bake.url), bake.rows, rows.name), ctx.product.shardfile.clientChannels).build();
+    const bytes = await fetchLaneBake(bake.url); live();
+    return new RainPresentation(rows, roofs, new GeometryPack(bytes, bake.rows, rows.name), product.shardfile.clientChannels).build();
   }
 
   private build(): this {

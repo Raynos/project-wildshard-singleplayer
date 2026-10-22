@@ -26,6 +26,8 @@ const label = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
  * the existing building-life file and publishing its concrete buildings loan. It adds no progress step. Per-frame interpolation stays with its existing entered owner. No row selects a phase or callback.
  */
 export const WorldAssemblyStageSchema = v.variant('kind', [
+  /** The weather occupies its exact ordered boundary without an extra progress slice. */
+  v.strictObject({ kind: v.literal('weather'), id, file: id }),
   v.strictObject({ kind: v.literal('place'), id, label }),
   v.strictObject({ kind: v.literal('streamed-cover'), id, label, rows: StreamedCoverSchema, file: v.pipe(id, v.regex(/\.json$/)), placement: id,
     draws: v.pipe(v.record(id, id), v.maxEntries(64)), object: id, system: id }),

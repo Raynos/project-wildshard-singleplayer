@@ -64,7 +64,7 @@ function fixture() {
   const release=vi.spyOn(gpu,'gpuOnlyTrees').mockImplementation((roots,label,keep)=>{events.push(['gpu',roots.map(value=>value.name),label,keep]);return 0;});
   const admit=vi.spyOn(WorldAssembly,'admit').mockImplementation((_input,ports:WorldAssemblyPorts)=>legacyDouble<WorldAssembly>({next:async id=>{
     const row=stageRows.find(value=>value.id===id);if(row===undefined)throw new Error('Unknown stage');
-    events.push(['stage',id]);afterStage(id);await ports.slice(row.label);
+    events.push(['stage',id]);afterStage(id);if(row.kind!=='weather')await ports.slice(row.label);
   }}));
   const progress:boot.StepProgress={set:(...args)=>{events.push(['progress',...args]);},detail:()=>undefined};
   const ports={runtime,product,scope,library:ISLAND,scenes,baked,sites,progress};

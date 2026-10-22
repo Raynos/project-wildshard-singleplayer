@@ -1,3 +1,4 @@
+import type { ShardContext } from '../plugin/context';
 import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { loadBakedSky, skyHorizonColor } from '@wildshard/engine/boot/bakedApi';
 import type { LookStrategy, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
@@ -428,11 +429,20 @@ export interface PaintedSky extends SkyFace {
  * hemisphere, the environment and the fog, the cloud and planet light, the disc and its corona (a moon smaller and
  * cooler) — the dome kept on the camera and the panorama's re-grade (`panoramaTint`). Uniforms, colours and intensities only.
  */
-export async function paintedSky(product: ShardProduct, game: Game, sky: SkyRig, rows: PaintedSkyRows, params: URLSearchParams, brightness: number): Promise<PaintedSky> {
+export async function paintedSky(product: ShardProduct, game: Game, sky: SkyRig, rows: PaintedSkyRows, params: URLSearchParams, brightness: number, source?: ShardContext): Promise<PaintedSky> {
+  const scope = source?.scope, runtime = source?.game.runtime, world = runtime?.world;
+  const scene = game.scene, owner = game.levelScope, read = product.json;
+  const live = (): void => {
+    if (source !== undefined && (scope === undefined || scope.disposed || scope.disposing || owner.disposed || owner.disposing || source.scope !== scope || source.product !== product
+      || source.game.runtime !== runtime || runtime?.world !== world || world?.game !== game || world.sky !== sky
+      || game.scene !== scene || game.levelScope !== owner || product.json !== read)) throw new Error('Painted weather owner left or changed');
+  };
+  live();
   const clock = new DayCycle(rows.clock), time = params.get('time');
   if (time !== null) { const hour = Number.parseFloat(time); if (Number.isFinite(hour)) void clock.set(hour); else if (isClockName(time)) void clock.set(time); }
   clock.paused = params.get('clock') === '0';
-  const file = v.parse(PaintedFile, await product.json(rows.file)), schema = file.sky.schema;
+  const input = await product.json(rows.file); live();
+  const file = v.parse(PaintedFile, input), schema = file.sky.schema;
   if (!paintedSchema(schema)) throw new Error('Painted sky schema lacks its rig fields');
   const day = file.sky.day, key = structuredClone(day), kit = dayLookPresets<PaintedSchema>(schema), channels = product.shardfile.clientChannels;
   const create = (): PaintedSky['look'] => ({ ...kit.live(file.sky.initial), sunDir: new THREE.Vector3(0, 1, 0), keyDir: new THREE.Vector3(0, 1, 0) });

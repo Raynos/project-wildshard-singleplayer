@@ -3,6 +3,7 @@ import type { MountedArsenal } from '../loadout/mounted';
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D } from 'three';
 import type { ModelSiteLayout, Placed } from '@wildshard/engine/models/place';
+import type { ForestWeatherRig } from '../weather/forest';
 import type { FixedDraws } from '../models/fixedDraws';
 import type { RopeDeckSite } from '../models/ropeDeckSite';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -24,6 +25,7 @@ import type { LivingBuildings } from './livingBuildings';
 /** A kind names a concrete platform owner, never an arbitrary shard result. */
 export interface EntryOwnerTypes {
   scenes: SceneHandles;
+  'world-weather': ForestWeatherRig;
   buildings: LivingBuildings;
   forest: ForestPage;
   cave: CaveInterior;
@@ -57,7 +59,7 @@ function check(scope: Scope, id: string): void {
 function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
-    value = { scenes: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
+    value = { scenes: new Map(), 'world-weather': new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(), 'mounted-arsenal': new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
     books.set(scope, value);

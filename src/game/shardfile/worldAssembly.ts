@@ -1,3 +1,6 @@
+import type { ShardContext } from '../plugin/context';
+import { installForestWeather } from '../weather/forest';
+import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
 import { TIER } from '@wildshard/engine/core/tier';
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -34,6 +37,8 @@ import type { SceneHandles } from './sceneHandles';
  *  site catalogue (for `site` stages), the model context and registry sites register into, and the build's slice. */
 export interface WorldAssemblyPorts {
   readonly scope: Scope;
+  /** The original construction context, used only by an ordered weather stage. */
+  readonly weatherContext?: ShardContext;
   readonly scenes: SceneHandles;
   readonly sites?: { readonly site: (key: string, choice: string, ctx: ModelContext, registry: WorldRegistry | null) => ModelSite };
   readonly context: ModelContext;
@@ -66,6 +71,27 @@ export interface WorldConstructionPorts {
   readonly progress?: StepProgress;
 }
 
+/** Ordered weather admission stays separately charged to its actual users. */
+async function installAssemblyWeather(ports: WorldAssemblyPorts, stage: Extract<WorldAssemblyStage, { kind: 'weather' }>): Promise<void> {
+  const scope = ports.scope;
+  const ctx = ports.weatherContext, product = ctx?.product, runtime = ctx?.game.runtime, world = runtime?.world;
+  if (ctx === undefined || product === undefined || runtime === undefined || world === undefined || world === null || ctx.scope !== scope)
+    throw new Error('World weather needs its original construction context');
+  const game = world.game, sky = world.sky, root = game.scene, read = product.json;
+  const unchanged = (): void => {
+    if (scope.disposed || scope.disposing) throw new Error('World assembly owner left');
+    if (ports.weatherContext !== ctx || ctx.scope !== scope || ctx.product !== product || product.json !== read
+      || ctx.game.runtime !== runtime || runtime.world !== world || world.game !== game || world.sky !== sky
+      || game.scene !== root || ports.context.sky !== sky) throw new Error('World weather owners changed');
+  };
+  unchanged();
+  const data = await product.json(stage.file); unchanged();
+  const rows = v.parse(v.object({ page: ForestWeatherSchema }), data).page;
+  const rig = await installForestWeather(ctx, rows); unchanged();
+  if (rig === null) throw new Error('World weather needs its original clocked sky');
+  publishEntryOwner(scope, 'world-weather', stage.id, rig);
+}
+
 /** G571: an admitted world assembly (format/worldAssembly), run stage by stage in its declared order. Client-only. */
 export class WorldAssembly {
   /** One walk of the declared stages, retaining native checkpoint and progress
@@ -73,6 +99,7 @@ export class WorldAssembly {
   static async construct(input: unknown, ports: WorldConstructionPorts): Promise<void> {
     const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admitted(input);
     if (rows === undefined) throw new Error('World construction needs its declared checkpoints');
+    if (stages.some(stage => stage.kind === 'weather')) throw new Error('World weather needs its explicit ordered construction context');
     const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
     if (world === null) throw new Error('World construction needs its native world');
     const { game, sky, player, registry, physics } = world, root = game.scene, viewer = runtime.viewer, read = product.file;
@@ -174,6 +201,10 @@ export class WorldAssembly {
       return { draws, draw, product, read: product.file, material };
     })();
     this.at++;
+    if (stage.kind === 'weather') {
+      await installAssemblyWeather(this.ports, stage);
+      return; // The surrounding existing checkpoints own progress; weather adds no slice.
+    }
     if (stage.kind === 'streamed-cover') {
       const cover = this.ports.cover, draws = this.ports.draws, product = this.ports.product, root = this.ports.entry?.root;
       if (cover === undefined || draws === undefined || !draws.ready || product === undefined || root === undefined) throw new Error('World cover needs its cells, draws, product and native authority');
@@ -302,7 +333,8 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 }
 
 /** The loan kinds a stage publishes, from its declaration alone. */
-function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient')[] {
+function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather')[] {
+  if (stage.kind === 'weather') return ['world-weather'];
   if (stage.kind === 'streamed-cover') return ['object', 'placed'];
   if (stage.kind === 'ambient-flock') return ['object', 'ambient-draw', 'ambient'];
   if (stage.kind === 'rope-deck') return ['object', 'placed', 'floor', 'rope-deck'];
