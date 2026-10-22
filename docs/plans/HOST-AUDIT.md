@@ -1,6 +1,6 @@
 # Plan: HOST-AUDIT — score every engine and game host, fix the ruler, put shard code back in the shard
 
-**State:** `draft` 2026-10-22 — an off-shoot of [SHARD-PLATFORM](SHARD-PLATFORM.md); nothing is worked until Jake says go.
+**State:** `draft` 2026-10-22 — an off-shoot of [SHARD-PLATFORM](SHARD-PLATFORM.md); nothing is worked until Jake says go; per G596 it starts after every shard is at zero and owns G594's ruler fix and G595's host-by-host approvals.
 It overlaps [SHARD-PLATFORM-NEXT](SHARD-PLATFORM-NEXT.md) N4; both plans stay as they are (Jake, 2026-10-22: *"leave them alone"*). Decisions
 stay in [shard-platform/decisions.md](shard-platform/decisions.md); the bar is [docs/HOST-BAR.md](../HOST-BAR.md).
 
