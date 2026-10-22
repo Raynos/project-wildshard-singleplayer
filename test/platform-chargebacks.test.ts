@@ -369,3 +369,12 @@ test('the completed G599 N1 second user grants the explicit post-graph host appr
   expect(approvedG571Host(approvals,'src/game/looks/postGraphLook.ts','postGraphLook')).toBe(true);
   expect(approvedG571Host(approvals,'src/format/postGraphLook.ts')).toBe(true);
 });
+
+
+test('CORE fixed draws credit only their picked defining bindings', () => {
+  const approvals = g571HostApprovals('.'), path = 'src/game/models/fixedDraws.ts';
+  expect(approvedG571Host(approvals, path, 'inlineFixedDraw')).toBe(true);
+  expect(approvedG571Host(approvals, path, 'bakedFixedDraws')).toBe(true);
+  expect(approvedG571Host(approvals, path, 'unreviewedBinding')).toBe(false);
+  expect(approvals.get(path)).not.toBeNull();
+});

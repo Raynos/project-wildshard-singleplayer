@@ -11804,6 +11804,12 @@ Explorer collection and scene-model rows select named models from that same
 admitted product/library book. No source module, field path, second library
 intake or native roster fallback is accepted.
 
+FixedDrawRowsSchema requires bounded plain JSON before reading row members;
+channel renames are exact [source, destination] pairs. Inline and baked
+library entry points reject getters, cycles, callbacks and surplus operands
+before template allocation or geometry decode. Existing native file/lane
+readers and cold-card lifetimes retain their ownership.
+
 FixedDrawRowsSchema lives in format/fixedDraws; ResolvedIslandLibrarySchema
 lives in format/islandLibrary. Resolved books pin their admitted product and
 deduplicate geometry-template intake only. Each construction admits figure

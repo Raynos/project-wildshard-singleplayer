@@ -1,3 +1,6 @@
+import { FixedDrawRowsSchema } from '../src/format/fixedDraws';
+import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 // oxlint-disable-next-line import/no-nodejs-modules -- The cold card reads the shipped baked gull through its product.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
@@ -163,4 +166,28 @@ test('a baked library reads lane and inline rows only', async () => {
   const library = bakedFixedDraws([{ slot: 'inline', inline: base64(zlibSync(block(5))), channels: [], baked }]);
   await library.load(); expect(library.handle('inline').copy().getAttribute('position').getX(0)).toBe(5);
   expect(() => bakedFixedDraws([{ slot: 'glb', file: 'models/a.glb', channels: [] }])).toThrow('read no product file');
+});
+
+
+test('fixed-draw data refuses accessors, cycles and extra channel operands before decoding', () => {
+  let reads = 0;
+  const row = { slot: 'inline', inline: base64(zlibSync(block(5))), channels: [], baked };
+  const getter = { get slot() { reads++; return 'inline'; }, inline: row.inline, channels: [], baked };
+  const cycle: Record<string, unknown> = { ...row }; cycle['self'] = cycle;
+  const allocate = vi.spyOn(BufferGeometry.prototype, 'setAttribute');
+  try {
+    for (const malformed of [getter, cycle, { ...row, channels: [['aTone', 'tone', 'extra']] }, { ...row, run: () => undefined }]) {
+      expect(() => inlineFixedDraw(malformed)).toThrow();
+      expect(() => bakedFixedDraws([row, malformed])).toThrow();
+    }
+    expect(reads).toBe(0); expect(allocate).not.toHaveBeenCalled();
+  } finally { allocate.mockRestore(); }
+});
+
+
+test('fixed-draw named admission keeps exact channel-pair arity', () => {
+  const schema = namedJsonSchema(FixedDrawRowsSchema);
+  const row = { slot: 'inline', inline: base64(zlibSync(block(5))), channels: [['aTone', 'tone']], baked };
+  expect(() => validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify([row])))).not.toThrow();
+  expect(() => validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify([{ ...row, channels: [['aTone', 'tone', 'extra']] }])))).toThrow();
 });
