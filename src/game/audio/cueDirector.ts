@@ -1,5 +1,5 @@
 import { clientNativeBook } from '../shardfile/clientNativeBook';
-import { AdditiveBlending, NormalBlending, ShaderMaterial, Vector3, type IUniform } from 'three';
+import { Vector3 } from 'three';
 import { parse } from 'valibot';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -11,28 +11,27 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { CueDirectorSchema, type CueDirectorRows } from '@wildshard/format/cueDirector';
 import type { ShardContext } from '../plugin/context';
 import { sceneModelSource } from '../shardfile/sceneSources';
+import { lentLook, setLentParam } from '../shardfile/lentLooks';
 
 type SprayRow = NonNullable<CueDirectorRows['sprays']>[number];
 type SprayTarget = Extract<CueDirectorRows['rows'][number]['vfx'][number], { kind: 'spray' }>;
 const GRAVITY = 1, BOUNCE = 2, GROW = 4, RISE = 8, FLAG = { gravity: GRAVITY, bounce: BOUNCE, grow: GROW, rise: RISE } as const;
 
-/** One declared spray: a pooled point draw whose points fall, bounce on the terrain, grow and rise by their flags. */
+/** One declared spray: a pooled point draw in its lent look whose points fall, bounce on the terrain, grow and rise by their flags. */
 class CueSpray {
   private readonly pool: ParticlePool<'aSize' | 'aAlpha' | 'aColor'>;
   private readonly maxLife: Float32Array; private readonly size0: Float32Array; private readonly flags: Uint8Array;
-  private readonly scale: IUniform<number> = { value: 400 }; readonly light: IUniform<number> = { value: 1 };
   private live = 0;
   constructor(private readonly row: SprayRow, scope: Scope) {
-    const material = scope.own(new ShaderMaterial({ uniforms: { uScale: this.scale, uLight: this.light }, vertexShader: row.vertexShader, fragmentShader: row.fragmentShader,
-      transparent: true, depthWrite: false, blending: row.additive ? AdditiveBlending : NormalBlending }));
-    material.name = `cue-${row.id}`;
-    this.pool = new ParticlePool({ capacity: row.capacity, material, renderOrder: row.renderOrder,
+    this.pool = new ParticlePool({ capacity: row.capacity, material: lentLook(row.look), renderOrder: row.renderOrder,
       attributes: { aSize: { itemSize: 1, dynamic: true }, aAlpha: { itemSize: 1, dynamic: true }, aColor: { itemSize: 3, dynamic: true } } });
-    this.pool.points.name = material.name; scope.own(this.pool.points.geometry);
+    this.pool.points.name = `cue-${row.id}`; scope.own(this.pool.points.geometry);
     this.maxLife = new Float32Array(row.capacity); this.size0 = new Float32Array(row.capacity); this.flags = new Uint8Array(row.capacity);
   }
   get points(): ParticlePool['points'] { return this.pool.points; }
   get lit(): boolean { return this.row.lit; }
+  /** the scene's light (0 … 1) on the spray's look */
+  setLight(value: number): void { setLentParam(this.row.look, 'light', value); }
   burst(target: SprayTarget, at: Vector3, direction: Vector3, random: () => number): void {
     const { pos, vel, life, data: { aSize, aAlpha, aColor } } = this.pool, flags = target.flags.reduce((sum, flag) => sum + FLAG[flag], 0);
     for (let k = 0; k < target.count; k++) {
@@ -48,7 +47,7 @@ class CueSpray {
   }
   update(dt: number, game: Game): void {
     if (this.live <= 0) return;
-    this.scale.value = pointScale(game.renderer, game.camera);
+    setLentParam(this.row.look, 'scale', pointScale(game.renderer, game.camera));
     const { pos: P, vel: V, life: L, data: { aSize, aAlpha } } = this.pool, [out, fadeIn, floor] = this.row.fade;
     let any = 0;
     for (let i = 0; i < this.row.capacity; i++) {
@@ -98,7 +97,7 @@ export class CueDirector {
     }
   }
   /** The scene's light (0 … 1) on every `lit` spray. */
-  setLight(value: number): void { for (const spray of this.sprays.values()) if (spray.lit) spray.light.value = value; }
+  setLight(value: number): void { for (const spray of this.sprays.values()) if (spray.lit) spray.setLight(value); }
   /** Advance the sprays (and, once installed, the fields) by `dt`. */
   update(dt: number): void {
     for (const field of this.fields.values()) field.update(dt);

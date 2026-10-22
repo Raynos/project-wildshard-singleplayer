@@ -40049,5 +40049,499 @@
     "shadow": true
    }
   }
+ },
+ "nalati-spray-debris": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "primitive": "points",
+  "effectState": {
+   "blend": "alpha",
+   "fog": false,
+   "depthWrite": false
+  },
+  "params": {
+   "scale": {
+    "type": "float",
+    "value": 400,
+    "min": 0,
+    "max": 1000000
+   },
+   "light": {
+    "type": "float",
+    "value": 1,
+    "min": 0,
+    "max": 1
+   }
+  },
+  "nodes": {
+   "sd0": {
+    "op": "attribute",
+    "name": "aSize",
+    "type": "float"
+   },
+   "sd1": {
+    "op": "attribute",
+    "name": "aAlpha",
+    "type": "float"
+   },
+   "sd2": {
+    "op": "attribute",
+    "name": "aColor",
+    "type": "vec3"
+   },
+   "sd3": {
+    "op": "gt",
+    "in": [
+     "sd0",
+     0.45
+    ]
+   },
+   "sd4": {
+    "op": "positionView"
+   },
+   "sd5": {
+    "op": "swizzle",
+    "in": [
+     "sd4"
+    ],
+    "mask": "z"
+   },
+   "sd6": {
+    "op": "mul",
+    "in": [
+     "sd5",
+     -1
+    ]
+   },
+   "sd7": {
+    "op": "param",
+    "param": "scale"
+   },
+   "sd8": {
+    "op": "mul",
+    "in": [
+     "sd0",
+     "sd7"
+    ]
+   },
+   "sd9": {
+    "op": "max",
+    "in": [
+     "sd6",
+     0.05
+    ]
+   },
+   "sd10": {
+    "op": "div",
+    "in": [
+     "sd8",
+     "sd9"
+    ]
+   },
+   "sd11": {
+    "op": "select",
+    "in": [
+     "sd3",
+     220,
+     26
+    ]
+   },
+   "sd12": {
+    "op": "min",
+    "in": [
+     "sd10",
+     "sd11"
+    ]
+   },
+   "sd13": {
+    "op": "select",
+    "in": [
+     "sd3",
+     0.3,
+     1
+    ]
+   },
+   "sd14": {
+    "op": "mul",
+    "in": [
+     "sd1",
+     "sd13"
+    ]
+   },
+   "sd15": {
+    "op": "pointCoord"
+   },
+   "sd16": {
+    "op": "sub",
+    "in": [
+     "sd15",
+     [
+      0.5,
+      0.5
+     ]
+    ]
+   },
+   "sd17": {
+    "op": "swizzle",
+    "in": [
+     "sd16"
+    ],
+    "mask": "x"
+   },
+   "sd18": {
+    "op": "abs",
+    "in": [
+     "sd17"
+    ]
+   },
+   "sd19": {
+    "op": "swizzle",
+    "in": [
+     "sd16"
+    ],
+    "mask": "y"
+   },
+   "sd20": {
+    "op": "abs",
+    "in": [
+     "sd19"
+    ]
+   },
+   "sd21": {
+    "op": "mul",
+    "in": [
+     "sd18",
+     1.7
+    ]
+   },
+   "sd22": {
+    "op": "mul",
+    "in": [
+     "sd20",
+     0.9
+    ]
+   },
+   "sd23": {
+    "op": "add",
+    "in": [
+     "sd21",
+     "sd22"
+    ]
+   },
+   "sd24": {
+    "op": "length",
+    "in": [
+     "sd16"
+    ]
+   },
+   "sd25": {
+    "op": "mul",
+    "in": [
+     "sd24",
+     2.1
+    ]
+   },
+   "sd26": {
+    "op": "max",
+    "in": [
+     "sd23",
+     "sd25"
+    ]
+   },
+   "sd27": {
+    "op": "swizzle",
+    "in": [
+     "sd16"
+    ],
+    "mask": "y"
+   },
+   "sd28": {
+    "op": "sub",
+    "in": [
+     0.5,
+     "sd27"
+    ]
+   },
+   "sd29": {
+    "op": "mul",
+    "in": [
+     0.5,
+     "sd28"
+    ]
+   },
+   "sd30": {
+    "op": "add",
+    "in": [
+     0.72,
+     "sd29"
+    ]
+   },
+   "sd31": {
+    "op": "mul",
+    "in": [
+     "sd2",
+     "sd30"
+    ]
+   },
+   "sd32": {
+    "op": "param",
+    "param": "light"
+   },
+   "sd33": {
+    "op": "mul",
+    "in": [
+     "sd31",
+     "sd32"
+    ]
+   },
+   "sd34": {
+    "op": "smoothstep",
+    "in": [
+     1,
+     0.8,
+     "sd26"
+    ]
+   },
+   "sd35": {
+    "op": "mul",
+    "in": [
+     "sd14",
+     "sd34"
+    ]
+   },
+   "sd36": {
+    "op": "gt",
+    "in": [
+     "sd26",
+     1
+    ]
+   },
+   "sd37": {
+    "op": "lte",
+    "in": [
+     "sd14",
+     0.002
+    ]
+   },
+   "sd38": {
+    "op": "or",
+    "in": [
+     "sd36",
+     "sd37"
+    ]
+   }
+  },
+  "stages": {
+   "points": {
+    "size": "sd12"
+   },
+   "surface": {
+    "colour": "sd33",
+    "alpha": "sd35",
+    "discard": "sd38"
+   }
+  }
+ },
+ "nalati-spray-mist": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "primitive": "points",
+  "effectState": {
+   "blend": "additive",
+   "fog": false,
+   "depthWrite": false
+  },
+  "params": {
+   "scale": {
+    "type": "float",
+    "value": 400,
+    "min": 0,
+    "max": 1000000
+   }
+  },
+  "nodes": {
+   "sm0": {
+    "op": "attribute",
+    "name": "aSize",
+    "type": "float"
+   },
+   "sm1": {
+    "op": "attribute",
+    "name": "aAlpha",
+    "type": "float"
+   },
+   "sm2": {
+    "op": "attribute",
+    "name": "aColor",
+    "type": "vec3"
+   },
+   "sm3": {
+    "op": "gt",
+    "in": [
+     "sm0",
+     0.45
+    ]
+   },
+   "sm4": {
+    "op": "positionView"
+   },
+   "sm5": {
+    "op": "swizzle",
+    "in": [
+     "sm4"
+    ],
+    "mask": "z"
+   },
+   "sm6": {
+    "op": "mul",
+    "in": [
+     "sm5",
+     -1
+    ]
+   },
+   "sm7": {
+    "op": "param",
+    "param": "scale"
+   },
+   "sm8": {
+    "op": "mul",
+    "in": [
+     "sm0",
+     "sm7"
+    ]
+   },
+   "sm9": {
+    "op": "max",
+    "in": [
+     "sm6",
+     0.05
+    ]
+   },
+   "sm10": {
+    "op": "div",
+    "in": [
+     "sm8",
+     "sm9"
+    ]
+   },
+   "sm11": {
+    "op": "select",
+    "in": [
+     "sm3",
+     220,
+     26
+    ]
+   },
+   "sm12": {
+    "op": "min",
+    "in": [
+     "sm10",
+     "sm11"
+    ]
+   },
+   "sm13": {
+    "op": "select",
+    "in": [
+     "sm3",
+     0.3,
+     1
+    ]
+   },
+   "sm14": {
+    "op": "mul",
+    "in": [
+     "sm1",
+     "sm13"
+    ]
+   },
+   "sm15": {
+    "op": "pointCoord"
+   },
+   "sm16": {
+    "op": "sub",
+    "in": [
+     "sm15",
+     [
+      0.5,
+      0.5
+     ]
+    ]
+   },
+   "sm17": {
+    "op": "dot",
+    "in": [
+     "sm16",
+     "sm16"
+    ]
+   },
+   "sm18": {
+    "op": "mul",
+    "in": [
+     "sm17",
+     4
+    ]
+   },
+   "sm19": {
+    "op": "sub",
+    "in": [
+     1,
+     "sm18"
+    ]
+   },
+   "sm20": {
+    "op": "mul",
+    "in": [
+     "sm19",
+     "sm19"
+    ]
+   },
+   "sm21": {
+    "op": "mul",
+    "in": [
+     "sm2",
+     "sm20"
+    ]
+   },
+   "sm22": {
+    "op": "mul",
+    "in": [
+     "sm21",
+     "sm14"
+    ]
+   },
+   "sm23": {
+    "op": "gt",
+    "in": [
+     "sm18",
+     1
+    ]
+   },
+   "sm24": {
+    "op": "lte",
+    "in": [
+     "sm14",
+     0.002
+    ]
+   },
+   "sm25": {
+    "op": "or",
+    "in": [
+     "sm23",
+     "sm24"
+    ]
+   }
+  },
+  "stages": {
+   "points": {
+    "size": "sm12"
+   },
+   "surface": {
+    "colour": "sm22",
+    "alpha": 1,
+    "discard": "sm25"
+   }
+  }
  }
 }

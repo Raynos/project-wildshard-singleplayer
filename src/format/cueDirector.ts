@@ -14,12 +14,11 @@ const vfxTarget = v.variant('kind', [
     speed: real, up: real, push: real, life: v.pipe(real, v.minValue(0.01)), size: v.pipe(real, v.minValue(0)), colour: vector, jitter: real, spread: real,
     flags: v.pipe(v.array(v.picklist(['gravity', 'bounce', 'grow', 'rise'])), v.maxLength(4)), offset: vector }),
 ]);
-/** A spray: one pooled point draw in the row's own shaders (uniforms `uScale`, the point scale, and `uLight`, the scene light
- *  0 … 1 when `lit`; attributes `aSize`, `aAlpha`, `aColor`). Alpha is min(1, k × fade[0]) × min(1, (1 − k) × fade[1] + fade[2])
- *  over its life k = 1 … 0. */
-const sprayRow = v.strictObject({ id, capacity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(2048)), additive: v.boolean(), lit: v.boolean(),
-  renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)), fade: vector,
-  vertexShader: v.pipe(v.string(), v.maxLength(4096)), fragmentShader: v.pipe(v.string(), v.maxLength(4096)) });
+/** A spray: one pooled point draw in its `look`, a points look graph the shard lends (attributes `aSize`, `aAlpha`,
+ *  `aColor`; params `scale`, the point scale, and, when `lit`, `light`, the scene light 0 … 1; its blend is the graph's).
+ *  Alpha is min(1, k × fade[0]) × min(1, (1 − k) × fade[1] + fade[2]) over its life k = 1 … 0. */
+const sprayRow = v.strictObject({ id, capacity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(2048)), lit: v.boolean(),
+  renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)), fade: vector, look: id });
 /** Cue rows schedule existing sound cues and native VFX targets in declaration
  * order. Fields are prepared from declared libraries, never shard hooks. */
 export const CueDirectorWireSchema = v.strictObject({ version: v.literal(1),

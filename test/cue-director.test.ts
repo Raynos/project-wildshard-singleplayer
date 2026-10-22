@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, Scene, ShaderMaterial, Vector3, type Vector2 } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, Scene, Vector3, type Vector2 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { overrideTerrain } from './fake/terrain';
@@ -11,6 +11,7 @@ import { CueDirector } from '../src/game/audio/cueDirector';
 import { CueDirectorSchema } from '../src/format/cueDirector';
 import * as sceneSources from '../src/game/shardfile/sceneSources';
 import { createModelLibrary } from '../src/game/plugin/geometry';
+import { lendLooks } from '../src/game/shardfile/lentLooks';
 import type { ShardContext } from '../src/game/plugin/context';
 import king from '../src/shards/pine-hollow/data/kingCues.json' with { type: 'json' };
 
@@ -94,17 +95,24 @@ test('unknown cues, callbacks, duplicate ids and unbound field targets refuse', 
 
 // A made-up ember marsh (the director's fixture second user): lit mud that falls and settles, unlit sparks pushed downwind.
 const marsh = { version: 1, fields: [], sprays: [
-  { id: 'mud', capacity: 8, additive: false, lit: true, renderOrder: 3, fade: [4, 0, 1], vertexShader: 'void main(){}', fragmentShader: 'void main(){}' },
-  { id: 'sparks', capacity: 4, additive: true, lit: false, renderOrder: 4, fade: [2, 6, 0.2], vertexShader: 'void main(){}', fragmentShader: 'void main(){}' }],
+  { id: 'mud', capacity: 8, lit: true, renderOrder: 3, fade: [4, 0, 1], look: 'marsh-mud' },
+  { id: 'sparks', capacity: 4, lit: false, renderOrder: 4, fade: [2, 6, 0.2], look: 'marsh-sparks' }],
 rows: [{ id: 'cue.marsh.splash', vfx: [
   { kind: 'spray', spray: 'mud', count: 6, speed: 2, up: 3, push: 0, life: 1, size: 0.1, colour: [0.3, 0.2, 0.1], jitter: 0, spread: 0.2, flags: ['gravity', 'bounce'], offset: [0, 0.5, 0] },
   { kind: 'spray', spray: 'sparks', count: 2, speed: 0, up: 0, push: 4, life: 0.5, size: 0.2, colour: [2, 1, 0.2], jitter: 0, spread: 0, flags: ['grow'], offset: [0, 0, 0] }] }] };
 
-function sprayOf(scene: Scene, name: string): { renderOrder: number; attribute: (name: string) => BufferAttribute; material: ShaderMaterial } {
+/** The sprays' lent looks: a points material each, their param writes recorded by look. */
+function lendSprayLooks(scope: Scope): Map<string, Record<string, unknown>> {
+  const params = new Map<string, Record<string, unknown>>([['marsh-mud', {}], ['marsh-sparks', {}]]);
+  lendLooks(scope, { materials: new Map([['marsh-mud', new PointsMaterial()], ['marsh-sparks', new PointsMaterial({ blending: AdditiveBlending })]]),
+    setParam: (id, name, value) => { const row = params.get(id); if (row !== undefined) row[name] = value; }, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mesh maps'); } });
+  return params;
+}
+function sprayOf(scene: Scene, name: string): { renderOrder: number; attribute: (name: string) => BufferAttribute; material: PointsMaterial } {
   const points = scene.getObjectByName(name);
   if (!(points instanceof Points)) throw new Error(`Missing spray ${name}`);
   const geometry: unknown = points.geometry, material: unknown = points.material;
-  if (!(geometry instanceof BufferGeometry) || !(material instanceof ShaderMaterial)) throw new Error('Spray requires buffer geometry and its shaders');
+  if (!(geometry instanceof BufferGeometry) || !(material instanceof PointsMaterial)) throw new Error('Spray requires buffer geometry and its lent look');
   return { renderOrder: points.renderOrder, material, attribute: attributeName => {
     const attribute: unknown = geometry.getAttribute(attributeName);
     if (!(attribute instanceof BufferAttribute)) throw new Error(`Missing ${attributeName}`); return attribute;
@@ -114,7 +122,7 @@ function sprayOf(scene: Scene, name: string): { renderOrder: number; attribute: 
 test('a second shard\'s sprays burst, fall, settle, grow and fade by its rows, lit only where declared', () => {
   const restore = overrideTerrain({ heightAt: () => 2 });
   try {
-    const scope = new Scope('marsh-sprays'), game = nativeGame(scope), director = new CueDirector(game, marsh);
+    const scope = new Scope('marsh-sprays'), game = nativeGame(scope), params = lendSprayLooks(scope), director = new CueDirector(game, marsh);
     const mud = sprayOf(game.scene, 'cue-mud'), sparks = sprayOf(game.scene, 'cue-sparks');
     expect(mud.renderOrder).toBe(3); expect(sparks.material.blending).not.toBe(mud.material.blending);
     director.cue('cue.marsh.splash', new Vector3(10, 2, -4), new Vector3(1, 0, 0));
@@ -125,7 +133,8 @@ test('a second shard\'s sprays burst, fall, settle, grow and fade by its rows, l
     expect(sparks.attribute('aSize').getX(0)).toBeGreaterThan(0.2 * 0.6);
     for (let i = 0; i < 60; i++) director.update(1 / 60);
     for (let i = 0; i < 6; i++) expect(mud.attribute('position').getY(i)).toBeGreaterThan(2.029);
-    director.setLight(0.3); expect(mud.material.uniforms['uLight']?.value).toBe(0.3); expect(sparks.material.uniforms['uLight']?.value).toBe(1);
+    expect(params.get('marsh-mud')?.['scale']).toBeGreaterThan(0);
+    director.setLight(0.3); expect(params.get('marsh-mud')?.['light']).toBe(0.3); expect(params.get('marsh-sparks')?.['light']).toBeUndefined();
     for (let i = 0; i < 60; i++) director.update(1 / 30);
     for (let i = 0; i < 6; i++) expect(mud.attribute('aAlpha').getX(i)).toBe(0);
     scope.dispose(); expect(game.scene.getObjectByName('cue-mud')).toBeUndefined();

@@ -80,10 +80,8 @@ export function ghostStyles(): Record<'rider' | 'captain' | 'storm', { key: stri
 }
 
 /** The night's sprays and cues (game/audio/cueDirector): the balbals' soil, turf, stone, dust and amber (lit by the dusk,
- *  lumpy clumps) and the ghost riders' cyan mist (additive puffs). */
+ *  lumpy clumps) and the ghost riders' cyan mist (additive puffs), drawn in their look graphs (data/lookGraphs.json). */
 export function nightCues(): unknown {
-  const vertexShader = `attribute float aSize; attribute float aAlpha; attribute vec3 aColor; varying float vA; varying vec3 vC; uniform float uScale;
-        void main(){ vA = aAlpha * (aSize > 0.45 ? 0.3 : 1.0); vC = aColor;   /* a big soft particle (dust, mist) is thin */ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = min(aSize * uScale / max(0.05, -mv.z), aSize > 0.45 ? 220.0 : 26.0);   /* a clod by the lens is a speck, not a disc */ gl_Position = projectionMatrix * mv; }`;
   const SOIL = [0.26, 0.19, 0.12], TURF = [0.3, 0.36, 0.14], STONE = [0.55, 0.53, 0.49], DUST = [0.5, 0.44, 0.34], AMBER = [2.4, 1.1, 0.25], MIST = [0.18, 0.75, 0.85];
   const spray = (id: string, count: number, speed: number, up: number, life: number, size: number, colour: number[], jitter: number, flags: string[], spread: number, offset = [0, 0, 0], push = 0) =>
     ({ kind: 'spray', spray: id, count, speed, up, push, life, size, colour, jitter, spread, flags, offset });
@@ -92,11 +90,9 @@ export function nightCues(): unknown {
   const fall = ['gravity', 'bounce'], stone = debris(14, 2.6, 2.2, 0.9, 0.07, STONE, 0.2, fall, 0.35), amber = debris(12, 3, 2.5, 0.5, 0.05, AMBER, 0.2, ['gravity'], 0.3);
   return { version: 1, fields: [],
     sprays: [
-      { id: 'debris', capacity: 900, additive: false, lit: true, renderOrder: 11, fade: [4, 0, 1], vertexShader,
-        // a lumpy clump: a squashed disc with a darker lower half, the light from above
-        fragmentShader: 'varying float vA; varying vec3 vC; uniform float uLight; void main(){ vec2 d = gl_PointCoord - 0.5; float r = max(abs(d.x) * 1.7 + abs(d.y) * 0.9, length(d) * 2.1); if (r > 1.0 || vA <= 0.002) discard; float shade = 0.72 + 0.5 * (0.5 - d.y); gl_FragColor = vec4(vC * shade * uLight, vA * smoothstep(1.0, 0.8, r)); }' },
-      { id: 'mist', capacity: 900, additive: true, lit: false, renderOrder: 12, fade: [2.2, 6, 0.2], vertexShader,
-        fragmentShader: 'varying float vA; varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d, d) * 4.0; if (r > 1.0 || vA <= 0.002) discard; float a = (1.0 - r); a *= a; gl_FragColor = vec4(vC * a * vA, 1.0); }' },
+      // a lumpy clump: a squashed disc with a darker lower half, the light from above (data/lookGraphs.json)
+      { id: 'debris', capacity: 900, lit: true, renderOrder: 11, fade: [4, 0, 1], look: 'nalati-spray-debris' },
+      { id: 'mist', capacity: 900, lit: false, renderOrder: 12, fade: [2.2, 6, 0.2], look: 'nalati-spray-mist' },
     ],
     rows: [
       // a balbal tears out of the ground; soil pours off it as it moves through the ground, a clod falls as it walks
