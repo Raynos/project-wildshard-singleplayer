@@ -24,7 +24,6 @@ export interface EliteBindings {
 /** Allocate per simulation, never at module import. */
 export function eliteBindings(): EliteBindings { return { pinned: new Set(), absent: new Set(), brains: new Map() }; }
 
-type Keeper = StalkerBrain<AnimalSim>;
 interface Herd { readonly stallionState: string; readonly stallion: AnimalSim | null; readonly leadAway: (x: number, z: number) => void }
 type HerdTaming = () => {readonly phase:string;readonly tulpar:AnimalSim|null}|null;
 /** Admitted native stalker tuning and herd guest rows. The installer retains
@@ -103,7 +102,7 @@ export class HerdEliteProjection {
 }
 
 interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean;
-  readonly controller: Keeper | HerdEliteProjection; readonly validate: (value: unknown) => void }
+  readonly controller: StalkerBrain<AnimalSim> | HerdEliteProjection; readonly validate: (value: unknown) => void }
 
 /** Install ordered named encounters on EliteCore. Shared ownership covers spawn/adoption, script/keeper continuation,
  * pack rebind, root effects and declared permanent detachment. Controllers retain fight decisions and clocks.
@@ -147,7 +146,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
       opened: silent, growl: silent };
     const howlerPorts = { ...common, pack: () => live.pack, environment: ports.environment, random: () => host.rng.stream('ai').next(), rings: tells,
       hurt, regrouped: silent, interrupted: silent, closed: silent, howl: silent };
-    const create = (): Keeper | HerdEliteProjection => {
+    const create = (): StalkerBrain<AnimalSim> | HerdEliteProjection => {
       if (row.keeper === 'pouncer') return new StalkerBrain({ pattern: 'pouncer',spec: ports.keepers.pouncer,ports: pouncerPorts });
       if (row.keeper === 'howler') return new StalkerBrain({ pattern: 'howler',spec: ports.keepers.howler,ports: howlerPorts });
       const herd=ports.keepers.herd;return new HerdEliteProjection(herd.rows,ReturnProgram.native(host,herd.program));
