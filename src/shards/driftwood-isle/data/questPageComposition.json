@@ -2,18 +2,18 @@
   "id": "driftwood.adventure",
   "world": "driftwood.world", "placement": { "platforms": true },
   "debug": "driftwood.adventure",
-  "presentation": { "mapPois": true, "flags": true, "hints": "quests/hints.json" },
+  "map": { "publish": { "tally": true } },
   "files": {
     "discovery": "quests/discovery.json", "services": "quests/services.json",
     "assembly": "sim/headless-assembly.json", "stall": "quests/stall.json",
     "encounter": "quests/wake-boss.json",
-    "returns": "sim/returns.json", "trader": "quests/trader.json"
+    "hints": "quests/hints.json", "returns": "sim/returns.json", "trader": "quests/trader.json"
   },
   "kit": { "platforms": true }, "services": ["glass", "pickup"],
   "deathOrder": 10, "deathMoves": [{ "effect": "hold-key", "target": "hold-key" }], "deathKill": 35,
   "talks": { "models": [{ "source": "entered", "id": "castaway", "approach": "wave", "swap": true, "stow": true }], "calls": {} },
   "held": "iron-sword", "quietPlaces": ["pier"],
-  "chapter": { "placements": true, "completion": true, "remaining": "Still to find" },
+  "chapter": { "publishFlags": true, "placements": true, "completion": true, "remaining": "Still to find" },
   "speaker": {
     "figure": "castaway",
     "feet": { "poi": "hut", "anchor": "hut.npc", "x": 2.4, "z": -8.2, "yaw": 3.491592653589793 },

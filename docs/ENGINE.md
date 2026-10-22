@@ -11635,3 +11635,10 @@ catalogue economy grammar, shared by LootEconomySchema. Its reference and
 real OwnedId preflight completes before any registration; the original kit
 order remains starter/finish effects, economy effects and goods, then skins.
 It reads no economy section and adds no clock, cache or save owner.
+
+Quest composition uses map.publish for pins; an absent map.zones leaves existing
+zone ownership untouched. chapter.publishFlags publishes the bound chapter's
+sorted flags through a scoped runtime reader. files.hints retains its original
+completion-time read; concrete hint/population/player/UI owners are rechecked
+after it by installQuestHintFile. installQuestHints resolves these entered owners directly, with no
+authored callback map or additional scheduler/save owner.

@@ -62,3 +62,17 @@ export function readQuestObservation(ctx: Pick<ShardContext, 'scope'>, quest: st
   return saved[row.id]?.kills ?? 0;
 }
 
+
+/** Publish the existing chapter's sorted flag snapshot for this entered scope.
+ * The scoped property restores prior readers; no state or probe registry is made. */
+export function publishChapterFlags(ctx: Pick<ShardContext, 'scope' | 'game'>, id: string): void {
+  const scope = ctx.scope;
+  if (scope.disposed || scope.disposing) throw new Error('Quest flag publication needs its live entry');
+  const chapter = boundChapter(scope, id), flags = chapter.quest.flags, runtime = ctx.game.runtime;
+  if (runtime === undefined) throw new Error('Quest flag publication needs its entered runtime');
+  scope.expose(runtime.hooks, 'adventureFlags', () => {
+    if (scope.disposed || scope.disposing) return [];
+    if (ctx.game.runtime !== runtime || boundChapter(scope, id) !== chapter || chapter.quest.flags !== flags) throw new Error('Quest flag owner changed');
+    return flags.all.slice().sort();
+  });
+}

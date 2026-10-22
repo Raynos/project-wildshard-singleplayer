@@ -1,7 +1,10 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
+import { Scope } from '../src/engine/app/scope';
+import type { ShardContext } from '../src/game/plugin/context';
+import { legacyDouble } from './fake/FakeGame';
 import * as v from 'valibot';
 import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from '../src/format/questPageFacets';
-import { pageCollectionCalls } from '../src/game/quest/pageFacets';
+import { pageCollectionCalls, installPageMap } from '../src/game/quest/pageFacets';
 import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
 
 // G565: Pine's forest story rows, as the quest page's optional facets (its second real user after Driftwood's page)
@@ -41,4 +44,21 @@ it('calls the count chip, the page action and the pickup sting from collection e
   expect(ran).toEqual([first.completeEvent]);
   expect(stings).toEqual(['pickup']);
   expect(calls.size).toBe(pine.collections.length * 2 + 1);
+});
+
+it('publishes quest pins without clearing zones when no zone rows are authored', () => {
+  const scope = new Scope('page-map'), map = { setZones: vi.fn(), setFeatures: vi.fn() }, chapter = { publishMap: vi.fn() };
+  type Runtime = NonNullable<ShardContext['game']['runtime']>;
+  type Play = NonNullable<Runtime['play']>;
+  const ctx = legacyDouble<ShardContext>({ scope, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<Runtime>({
+    world: legacyDouble<NonNullable<Runtime['world']>>({}), play: legacyDouble<Play>({ fullMap: legacyDouble<Play['fullMap']>(map) }),
+  }) }) });
+  try {
+    installPageMap(ctx, { publish: { tally: true } }, chapter);
+    expect(chapter.publishMap).toHaveBeenCalledExactlyOnceWith({ tally: true });
+    expect(map.setZones).not.toHaveBeenCalled(); expect(map.setFeatures).not.toHaveBeenCalled();
+    const zones = [{ label: 'Orchard', x: 3, z: 9 }];
+    installPageMap(ctx, { publish: { tally: true }, zones }, chapter);
+    expect(map.setZones).toHaveBeenCalledExactlyOnceWith(zones);
+  } finally { scope.dispose(); }
 });

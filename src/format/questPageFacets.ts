@@ -32,7 +32,7 @@ export const QuestPageCollectionsSchema = v.strictObject({
 export const QuestPageMapSchema = v.strictObject({
   publish: v.strictObject({ declutter: v.exactOptional(v.boolean()), tally: v.exactOptional(v.boolean()),
     unknownLabel: v.exactOptional(v.pipe(v.string(), v.maxLength(256))), markerLabels: v.exactOptional(v.picklist(['full', 'short'])) }),
-  zones: v.pipe(v.array(v.strictObject({ label: id, x: n, z: n, size: v.exactOptional(n), rot: v.exactOptional(n) })), v.maxLength(64)),
+  zones: v.exactOptional(v.pipe(v.array(v.strictObject({ label: id, x: n, z: n, size: v.exactOptional(n), rot: v.exactOptional(n) })), v.maxLength(64))),
   /** the entered forest's trees and this forest page's roofs on the map's ground layer */
   features: v.exactOptional(v.strictObject({ forest: id })),
 });

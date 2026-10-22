@@ -6,10 +6,10 @@ import { ArenaRoomEncounter } from '../boss/arenaRoom';
 import { ArenaScriptEncounter } from '../boss/arenaScript';
 import { enterFigureGroup } from '../systems/npc/figureRows';
 import { CarriedQuestProp } from './carriedProp';
-import { enteredAdventurePersistence } from './chapterBindings';
+import { enteredAdventurePersistence, publishChapterFlags } from './chapterBindings';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
-import { installQuestHints } from './hints';
+import { installQuestHintFile } from './hints';
 import { questPageWorld } from './pageResources';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -68,7 +68,7 @@ export interface QuestPageComposition {
   };
 }
 async function preparePage(ctx: ShardContext, rows: QuestPageRows, lent: ReadonlyMap<string, unknown>) {
-  const shell = ctx.game.runtime, world = shell?.world, h = shell?.play;
+  const product = ctx.product, shell = ctx.game.runtime, world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Quest page requires its entered play host');
   if (ctx.scope.disposed) throw new Error('Quest page left during admission');
   const scope = ctx.scope, d = rows.world === undefined ? null : questPageWorld(scope, rows.world);
@@ -129,8 +129,13 @@ async function preparePage(ctx: ShardContext, rows: QuestPageRows, lent: Readonl
   kit.onEvent = sfx.bindEvents(rows.events, { toast: text => { h.hud.toast(text); },
     item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { h.inventory.add(id, n); } } : null,
     calls: new Map([...rows.services.map(id => [id, () => { services.run(id); }] as const), ...collections]) });
-  return { entry, rows, shell, world, h, scope, d, update, ironDrop, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit,
+  return { entry, rows, product, shell, world, h, scope, d, update, ironDrop, story, services, content, traderStall, flags, floorAt, place, setAnchor, anchors, kit,
     ui, scenes, pages, panel };
+}
+/** Refuse stale concrete preparation owners before late presentation publication. */
+export function requireQuestPageOwners(ctx: ShardContext, page: Pick<Awaited<ReturnType<typeof preparePage>>, 'product' | 'shell' | 'world' | 'h' | 'scope'>): void {
+  if (page.scope.disposed || page.scope.disposing || ctx.scope !== page.scope || ctx.product !== page.product || ctx.game.runtime !== page.shell
+    || page.shell.world !== page.world || page.shell.play !== page.h) throw new Error('Quest page owners left or changed before presentation');
 }
 const preparations = new WeakMap<Scope, Map<string, Awaited<ReturnType<typeof preparePage>>>>();
 /** Prepare the real placement/interaction owners before borrowed figures enter.
@@ -300,10 +305,9 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     give: (id: string, n = 1): void => { if (isItemId(id)) h.inventory.add(id, n); },
     openBoard: (): void => { facets.board?.panel().open(); }, openTrade: (): void => { facets.shop?.().open(); } });
   ctx.debug.expose(`harness.quest.${ctx.manifest.slug}`, () => flags.all.slice().sort());
-  if (rows.presentation?.mapPois === true) chapter.publishMap({ tally: true });
+  requireQuestPageOwners(ctx, page);
   if (rows.map !== undefined) installPageMap(ctx, rows.map, chapter);
-  if (rows.presentation?.flags === true) page.shell.hooks.adventureFlags = () => flags.all.slice().sort();
-  if (rows.presentation?.hints !== undefined && h.firstHints !== undefined)
-    installQuestHints(ctx, await ctx.product.json(rows.presentation.hints), new Map([['quest', { hints: h.firstHints, animals: h.animals, player: page.world.player, ui: ctx.app.ui }]]));
+  if (rows.chapter.publishFlags === true) publishChapterFlags(ctx, story.quest.id);
+  if (rows.files.hints !== undefined && h.firstHints !== undefined) await installQuestHintFile(ctx, rows.files.hints);
   return adventure;
 }

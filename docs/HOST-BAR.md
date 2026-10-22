@@ -242,3 +242,5 @@ the rest of this document; filenames or a client-only label alone are insufficie
   catalogues, original order, cold/world book identity, refusal and retirement.
   Retire only the ProductExplorerDispatch receipt; private geometry intake and
   quest presentation keep their independent charges.
+
+- G571 entered hint and flag binding: `game/quest/hints#installQuestHints`, `game/quest/hints#installQuestHintFile` and `game/quest/chapterBindings#publishChapterFlags` borrow concrete entered hint, population, player, UI and bound chapter owners. Test 1 waived; tests 2–6 cover plain finite rows, original scheduler/control order and sorted flags, missing/retired/replaced owner refusal, original map publication and scoped hook restoration. No authored ports, new state, probe registry, clock or cache.

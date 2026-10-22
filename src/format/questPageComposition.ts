@@ -22,16 +22,15 @@ export const QuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest pa
   /** a registered page world (its POI anchors and guide flock), and the frames its placements resolve in */
   world: v.exactOptional(id), frames: v.exactOptional(v.pipe(v.record(id, frame), v.maxEntries(4096))),
   placement: v.exactOptional(v.strictObject({ platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(n, v.minValue(Number.MIN_VALUE))) })),
-  presentation: v.exactOptional(v.strictObject({ mapPois: v.boolean(), flags: v.boolean(), hints: v.exactOptional(id) })),
   files: v.strictObject({ services: id, stall: id, discovery: v.exactOptional(id), assembly: v.exactOptional(id), encounter: v.exactOptional(id),
-    returns: v.exactOptional(id), contracts: v.exactOptional(id), director: v.exactOptional(id), trader: v.exactOptional(id) }),
+    hints: v.exactOptional(id), returns: v.exactOptional(id), contracts: v.exactOptional(id), director: v.exactOptional(id), trader: v.exactOptional(id) }),
   /** the interaction table: the assembly file's constants, or a custom section's `table` */
   kit: v.exactOptional(v.strictObject({ section: v.exactOptional(custom), platforms: v.exactOptional(v.boolean()),
     registryReach: v.exactOptional(v.pipe(n, v.minValue(Number.MIN_VALUE))) })),
   events: v.unknown(), services: v.array(id),
   deaths: v.unknown(), deathOrder: n, deathMoves: v.array(v.strictObject({ effect: id, target: id })), deathKill: v.exactOptional(n),
   talks: QuestPageTalksSchema, held: v.exactOptional(id), quietPlaces: v.optional(ids, []), peopleLod: v.optional(v.boolean(), false),
-  chapter: v.strictObject({ placements: v.optional(v.boolean(), false), completion: v.optional(v.boolean(), false),
+  chapter: v.strictObject({ publishFlags: v.exactOptional(v.boolean()), placements: v.optional(v.boolean(), false), completion: v.optional(v.boolean(), false),
     remaining: v.exactOptional(id), program: v.exactOptional(v.unknown()) }),
   speaker: v.exactOptional(v.strictObject({ figure: id, feet: place, fire: place })),
   /** a placed trader's figure and counter; without it the stall's own rows place the trader */

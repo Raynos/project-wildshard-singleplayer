@@ -1,3 +1,4 @@
+import { isJsonData } from '@wildshard/format/json';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
 import type { FirstHints } from '@wildshard/engine/ui/FirstHints';
@@ -60,13 +61,30 @@ export class QuestHintFeed {
   }
 }
 /** Bind authored onboarding rows to existing events, scheduler and hint owners. */
-export function installQuestHints(ctx: ShardContext, input: unknown, owners: ReadonlyMap<string, {
-  readonly hints: QuestHintPorts['hints']; readonly animals: { readonly animals: readonly QuestHintBody[] };
-  readonly player: QuestHintPorts['player']; readonly ui: { readonly prompt: () => string };
-}>): void {
-  const ports = owners.get('quest');
-  if (ports === undefined) throw new Error('Missing quest hint owners');
-  const feed = new QuestHintFeed(input, { hints: ports.hints, animals: () => ports.animals.animals, player: ports.player, prompt: () => ports.ui.prompt() }, lockOn);
+
+export function installQuestHints(ctx: ShardContext, input: unknown): void {
+  if (ctx.scope.disposed || ctx.scope.disposing || !isJsonData(input)) throw new Error('Quest hints require live JSON rows');
+  const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play, hints = play?.firstHints;
+  if (runtime === undefined || world === undefined || world === null || play === undefined || play === null || hints === undefined) throw new Error('Missing entered quest hint owners');
+  const animals = play.animals, ui = ctx.app.ui;
+  const feed = new QuestHintFeed(input, { hints, animals: () => animals.animals, player: world.player, prompt: () => ui.prompt() }, lockOn);
   ctx.on('ai.windup', ({ actor }) => { feed.windup(actor); });
   ctx.system({ ...feed.rows.system, phase: 'update', run: dt => { feed.update(dt); } });
+}
+
+/** Read hint rows over the exact entered native owners, refusing a leave or
+ * replacement before any feed, listener or update system can be installed. */
+export async function installQuestHintFile(ctx: ShardContext, file: string): Promise<void> {
+  const scope = ctx.scope, product = ctx.product, runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play, hints = play?.firstHints;
+  if (runtime === undefined || world === undefined || world === null || play === undefined || play === null || hints === undefined) throw new Error('Missing entered quest hint owners');
+  const animals = play.animals, player = world.player, ui = ctx.app.ui;
+  const live = (): void => {
+    if (scope.disposed || scope.disposing || ctx.scope !== scope || ctx.product !== product || ctx.game.runtime !== runtime
+      || runtime.world !== world || runtime.play !== play || play.firstHints !== hints || play.animals !== animals
+      || world.player !== player || ctx.app.ui !== ui) throw new Error('Quest hint owners left or changed during admission');
+  };
+  live();
+  const input = await product.json(file);
+  live();
+  installQuestHints(ctx, input);
 }

@@ -63,6 +63,6 @@ export function pageCollectionCalls(input: unknown, ports: { readonly flags: Pic
 export function installPageMap(ctx: ShardContext, input: unknown, chapter: Pick<QuestChapter, 'publishMap'>): void {
   const rows = v.parse(QuestPageMapSchema, input), { world, play } = entered(ctx);
   chapter.publishMap(rows.publish);
-  play.fullMap.setZones(rows.zones);
+  if (rows.zones !== undefined) play.fullMap.setZones(rows.zones);
   if (rows.features !== undefined) play.fullMap.setFeatures({ trees: world.forest.trees, roofs: forestPage(ctx.scope, rows.features.forest).cabins.roofs });
 }

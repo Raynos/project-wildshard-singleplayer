@@ -41,8 +41,6 @@ const declarations = new Map([
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/engine/models/geometrySources.ts', new Map(['registerPackedGeometrySource', 'PackedGeometryImports'].map(name => [name, 'C1']))],
-  ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', 'C5']])],
-  ['src/format/questPageComposition.ts', new Map([['QuestPresentation', 'C5']])],
 ]);
 
 /** Concrete dependencies of the optional chapter facet retain their original
@@ -91,10 +89,6 @@ const inline = new Map([
   ['src/engine/models/geometrySources.ts', new Map([['PackedGeometryImports', [
     ["import { GeometryPack }", 1], ["import type { PackedGeometryRows }", 1],
   ]]])],
-  ['src/game/quest/pageComposition.ts', new Map([['QuestPresentation', [
-    ["import { installQuestHints }", 1], ['if (rows.presentation?.mapPois', 4],
-  ]]])],
-  ['src/format/questPageComposition.ts', new Map([['QuestPresentation', [['presentation: v.exactOptional', 1]]]])],
 ]);
 
 /** @param {string} path @param {string} [name] */
@@ -102,7 +96,7 @@ function reviewedOwner(path, name) {
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
   if (path === 'src/engine/models/geometrySources.ts') return 'pine-hollow';
-  if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts', 'src/game/quest/pageComposition.ts', 'src/format/questPageComposition.ts'].includes(path)) return 'driftwood-isle';
+  if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts'].includes(path)) return 'driftwood-isle';
   return 'nalati-grasslands';
 }
 
