@@ -104,6 +104,8 @@ const COLD_DWELL_TICKS = 5 * 60;
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
 // before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
 const APPROACH_TRAVEL_METRES = 0.1;
+// G580 T1: a sample step longer than this is a teleport (staging, respawn, recovery), not travel toward a neighbour
+const WARM_TRAVEL_MAX_METRES = 5;
 const entryAxes = [['x', 'z'], ['z', 'x']] as const;
 // Distance can decrease while passing parallel to a cell. Only a ray into its first boundary's midpoint mouth
 // predicts entry; product downloads remain radial, but an unrelated native world must not block the real turn-in.
@@ -446,13 +448,17 @@ export class LiveGridHost {
     // G580 T1: still inside the source, the nearest neighbour builds whole now (one at a time), so the wall is
     // open and its runtime parked by the time the traveller reaches it (the crossing re-activates it).
     // One neighbour at a time beside the source just left: a second build would only queue in front of the crossing.
+    // Only real travel asks for it (sp-o5's Simulator reading: a spawn facing Pine built a whole Pine world, and the
+    // crossing's destination then queued behind it): standing, turning or a teleport builds nothing.
     const lastSource = this.lastSource();
     const ahead = [...this.residents.keys()].some(id => id !== this.active && id !== lastSource);
-    if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0 && this.warm() && !ahead) {
-      // the neighbour ahead, whatever its readiness reach (inside a source a player can stand for minutes): the nearest by
-      // edge distance over the square of how squarely the traveller faces its centre (cells behind never), so a diagonal
-      // neighbour the traveller faces wins over a nearer one to the side
-      const yaw = this.ports.player.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+    const step = previous === undefined ? 0 : Math.hypot(feet.x - previous.x, feet.z - previous.z);
+    if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0 && this.warm() && !ahead
+      && previous !== undefined && travelled && step <= WARM_TRAVEL_MAX_METRES) {
+      // the neighbour ahead, whatever its readiness reach (inside a source a player can travel for minutes): the nearest by
+      // edge distance over the square of how squarely the travel heads at its centre (cells behind never), so a diagonal
+      // neighbour the traveller heads for wins over a nearer one to the side
+      const fx = (feet.x - previous.x) / step, fz = (feet.z - previous.z) / step;
       const score = (cell: GridCell): number => {
         const dx = cell.origin.x - feet.x, dz = cell.origin.z - feet.z, facing = (dx * fx + dz * fz) / Math.max(1e-6, Math.hypot(dx, dz));
         return facing <= 0 ? Infinity : this.distance(cell, feet) / (facing * facing);
