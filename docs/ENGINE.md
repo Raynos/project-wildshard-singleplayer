@@ -10129,6 +10129,19 @@ Every choice shares the same increasing LOD distances. Owned GLB intake
 restores `nativeAttributes` with the same decoder as whole-geometry libraries;
 no source geometry is fitted or transformed at load.
 
+A catalogue LOD draw may declare `attributes: {library, model}`. Its own
+prepared index borrows that donor's attribute objects without copying their
+arrays. Admission includes both sources and refuses noninteger, negative
+or out-of-range indices. Borrower geometries belong to the live sources
+owner; retirement detaches their borrowed attributes and index before
+disposal. An empty LOD level draws nothing from its `from` distance.
+
+Catalogue sources may also name a declared pool part. The shared
+`game/shardfile/scenePools.worldScenePool` decoder retains each file's full
+part roster and channel-renaming rules. Resident scenes decode the pool;
+cold cards read only the files holding their declared parts through the
+verified product reader. Card geometry stays with its source owner.
+
 `game/shardfile/worldSceneMaterials` owns source PBR slots (`kind: 'source'`).
 They declare a source URL, asset-manager aliases,
 material ordinal, sampler anisotropy and environment intensity. The existing
