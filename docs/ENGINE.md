@@ -456,6 +456,11 @@ Each construction scope acquires its own lease and gives consumers deep private
 copies; completion or cancellation releases the lease. Only completed geometry
 is shared, with disposal invalidating the memo; bytes, materials, products and
 pending owners are never retained by the cache.
+Whole-partition libraries can retain completed geometry and detached matrix
+words by ordered admitted hashes and tier. Each construction keeps its own
+first-use set and deep copies: its first identity-space, unposed part skips the
+view transform exactly as before; repeated and posed aliases keep the original
+view-then-model transform order. Transfer-first callers without reuse are unchanged.
 
 **The leak test.** The gate loads your shard, unloads it and checks the census is back to its title-screen value
 (geometries, textures, materials, bodies, listeners, audio nodes, timers). Code-built trees use their explicit scope:

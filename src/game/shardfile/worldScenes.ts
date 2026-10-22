@@ -242,7 +242,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       } else if (row.kind === 'whole') {
         const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
         if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); continue; }
-        const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner));
+        const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
         finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
       } else if (row.kind === 'owned') {
         const models = new Map<string, WorldSceneGeometry>();
