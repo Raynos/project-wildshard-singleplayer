@@ -73,7 +73,7 @@ export interface WorldConstructionPorts {
 }
 
 /** Ordered weather admission stays separately charged to its actual users. */
-async function installAssemblyWeather(ports: WorldAssemblyPorts, stage: Extract<WorldAssemblyStage, { kind: 'weather' }>): Promise<void> {
+export async function installAssemblyWeather(ports: Pick<WorldAssemblyPorts, 'scope' | 'weatherContext'> & { readonly context: Pick<ModelContext, 'sky'> }, stage: Extract<WorldAssemblyStage, { kind: 'weather' }>): Promise<void> {
   const scope = ports.scope;
   const ctx = ports.weatherContext, product = ctx?.product, runtime = ctx?.game.runtime, world = runtime?.world;
   if (ctx === undefined || product === undefined || runtime === undefined || world === undefined || world === null || ctx.scope !== scope)

@@ -1,4 +1,4 @@
-import { publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { clientWildlife, type PageWildlife } from '@wildshard/game/population/wildlife';
@@ -25,7 +25,7 @@ import { shapeBook } from '@wildshard/game/models/shapeBook';
 import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { installForestWeather } from '@wildshard/game/weather/forest';
+import { installAssemblyWeather } from '@wildshard/game/shardfile/worldAssembly';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
@@ -99,10 +99,9 @@ async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?:
   await slice(++completed, total, 'Dressing');
 
   // ── weather + day/night (weather agent, B10): the painted sky, its clock and the storm, all rows of the page's weather host ──
-  const rows = v.parse(v.object({ page: v.unknown() }), await plugin.product.json('world/weather.json')).page;
-  const rig = await installForestWeather(plugin, rows), storm = rig?.storm ?? null, painted = rig?.sky ?? null;
-  if (rig === null || storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
-  publishEntryOwner(plugin.scope, 'world-weather', 'nalati.weather', rig);
+  await installAssemblyWeather({ scope: plugin.scope, weatherContext: plugin, context: { sky } }, { kind: 'weather', id: 'nalati.weather', file: 'world/weather.json' });
+  const rig = entryOwner(plugin.scope, 'world-weather', 'nalati.weather'), storm = rig.storm, painted = rig.sky;
+  if (storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
   const weather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
   groups['weather'] = rig.group;
   updates.push(() => undefined); // The weather host owns this frame slot.

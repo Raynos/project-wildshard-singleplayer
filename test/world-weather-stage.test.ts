@@ -8,7 +8,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ModelContext } from '../src/engine/models/model';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
 import type { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
+import { WorldAssembly, installAssemblyWeather, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -21,7 +21,7 @@ import { DayCycle } from '../src/engine/world/dayCycle';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 
-const row = { kind: 'weather', id: 'meadow.weather', file: 'world/weather.json' };
+const row = { kind: 'weather', id: 'meadow.weather', file: 'world/weather.json' } as const;
 const policy = { files: { program: 'weather/program.json' }, mode: 'live', debug: 'meadow.weather', heldPhase: 0,
   system: { id: 'meadow.weather', after: [], before: [] } };
 function fixture(parent?: Scope) {
@@ -217,6 +217,37 @@ test('an independently retired native level owner refuses late weather while the
     const children = f.scene.children.length;
     try {
       expect(f.scope.disposed || f.scope.disposing).toBe(false);
+      f.release(); await expect(work).rejects.toThrow('owner left or changed');
+      expect(f.registrations).toEqual([]); expect(f.exposed.size).toBe(0); expect(f.scene.children).toHaveLength(children);
+      expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');
+    } finally { for (const step of retirement) void step; native.dispose(); f.close(); }
+  }
+});
+
+
+test('native weather uses the same admitted handler without a scene intake or additional slice', async () => {
+  const f = clockedFixture();
+  try {
+    f.trace.push('Dressing');
+    await installAssemblyWeather({ scope: f.scope, weatherContext: f.ctx, context: { sky: f.world.sky } }, row);
+    const rig = entryOwner(f.scope, 'world-weather', row.id);
+    f.trace.push('Titan');
+    expect(rig.sky?.clock).toBeInstanceOf(DayCycle);
+    expect(rig.weather).toBeInstanceOf(WeatherContinuation);
+    expect(f.exposed.get(policy.debug)).toMatchObject({ clock: rig.sky?.clock, weather: rig.weather, group: rig.group });
+    expect(f.registrations).toEqual(['weather.clock', policy.system.id]);
+    expect(f.trace).toEqual(['Dressing', `read ${row.file}`, 'read weather/sky.json', `read ${policy.files.program}`, 'Titan']);
+  } finally { f.close(); }
+});
+
+test('native weather keeps real inner read retirement fences with only its actual weather ports', async () => {
+  for (const held of ['sky', 'program'] as const) {
+    const native = new Scope('native direct weather'), f = clockedFixture(held, undefined, native);
+    const work = installAssemblyWeather({ scope: f.scope, weatherContext: f.ctx, context: { sky: f.world.sky } }, row);
+    await f.reading;
+    native.onDispose(() => undefined); const retirement = native.disposeSteps(); retirement.next();
+    const children = f.scene.children.length;
+    try {
       f.release(); await expect(work).rejects.toThrow('owner left or changed');
       expect(f.registrations).toEqual([]); expect(f.exposed.size).toBe(0); expect(f.scene.children).toHaveLength(children);
       expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');

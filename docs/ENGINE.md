@@ -11618,6 +11618,14 @@ paths refuse. Every original loan and toon/lighting identity preflights before
 registration. The bound construction scope selects the toon book across
 re-entry; entered system ownership does not dispose any borrowed native owner.
 
+
+`installAssemblyWeather(ports, stage)` runs the defining weather handler at
+an existing native construction boundary. Its ports are the original scope,
+ShardContext and sky; the finite stage names its id and admitted page file.
+It reads that page, retains every weather-owner fence and publishes the same
+world-weather rig. It creates no assembly, scene intake or progress slice.
+The helper remains charged to its sole user.
+
 ### Native world construction checkpoints
 
 WorldAssemblySchema may declare construction checkpoints around its existing
