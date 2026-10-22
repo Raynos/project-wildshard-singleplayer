@@ -144,3 +144,10 @@ artifact. Typecheck/lint jobs need only that artifact and start while the
 products job builds all 24 outputs. Full web/test consumers still require the
 complete test-products artifact. Generated-only evidence cannot satisfy full
 product restoration, and it refuses any embedded product before writing.
+
+G609: preparation proofs retain a complete catalogue inventory while omitting
+unchanged tracked outputs from the transfer. Each omitted file records its
+size, SHA-256, Git blob and mode, and must match the exact checked-out commit.
+Archive and retained paths are disjoint. Missing, modified or symlinked files
+refuse before any restore write; no generator repairs an incomplete checkout.
+The same-run SHA/checksum proof and the full-product requirement stay active.

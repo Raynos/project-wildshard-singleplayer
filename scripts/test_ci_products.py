@@ -77,9 +77,83 @@ class PreparedProducts(unittest.TestCase):
                         'commit', '-qm', 'retained asset'], check=True)
         os.environ['GITHUB_SHA'] = products.git(self.root, 'rev-parse', 'HEAD').decode().strip()
         products.pack(self.root)
-        (self.root / name).unlink()
+        proof = json.loads((self.root / products.PROOF).read_text())
+        self.assertIn(name, proof['retained'])
         products.unpack(self.root)
         self.assertEqual((self.root / name).read_bytes(), b'retained bytes')
+
+    def retain_asset(self):
+        subprocess.run(['git', '-C', str(self.root), 'add', self.asset], check=True)
+        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com',
+                        'commit', '-qm', 'tracked output'], check=True)
+        os.environ['GITHUB_SHA'] = products.git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        products.pack(self.root)
+
+    def test_dirty_tracked_output_is_transferred_not_retained_even_when_staged(self):
+        self.retain_asset()
+        (self.root / self.asset).write_bytes(b'new producer bytes')
+        subprocess.run(['git', '-C', str(self.root), 'add', self.asset], check=True)
+        products.pack(self.root)
+        proof = json.loads((self.root / products.PROOF).read_text())
+        self.assertNotIn(self.asset, proof['retained'])
+        (self.root / self.asset).unlink()
+        products.unpack(self.root)
+        self.assertEqual((self.root / self.asset).read_bytes(), b'new producer bytes')
+
+    def test_missing_or_changed_retained_output_refuses_before_writes(self):
+        self.retain_asset()
+        (self.root / self.table).unlink()
+        for content in [None, b'corrupt checkout']:
+            if content is None:
+                (self.root / self.asset).unlink()
+            else:
+                (self.root / self.asset).write_bytes(content)
+            with self.assertRaisesRegex(ValueError, 'retained output|Retained output'):
+                products.unpack(self.root)
+            self.assertFalse((self.root / self.table).exists())
+
+    def test_retained_inventory_cannot_overlap_an_archive_member(self):
+        self.retain_asset()
+        with tarfile.open(self.root / products.ARCHIVE, 'a') as archive:
+            archive.add(self.root / self.asset, arcname=self.asset)
+        proof = json.loads((self.root / products.PROOF).read_text())
+        proof.update(sha256=products.digest(self.root / products.ARCHIVE), files=proof['files'] + 1)
+        (self.root / products.PROOF).write_text(json.dumps(proof))
+        (self.root / self.table).unlink()
+        with self.assertRaisesRegex(ValueError, 'overlaps'):
+            products.unpack(self.root)
+        self.assertFalse((self.root / self.table).exists())
+
+    def test_retained_symlink_parent_refuses_even_inside_checkout(self):
+        self.retain_asset()
+        path = self.root / self.asset
+        moved = self.root / 'other-assets'
+        path.parent.rename(moved)
+        path.parent.symlink_to(moved, target_is_directory=True)
+        (self.root / self.table).unlink()
+        with self.assertRaisesRegex(ValueError, 'Unsafe prepared output'):
+            products.unpack(self.root)
+        self.assertFalse((self.root / self.table).exists())
+
+    def test_retained_mode_is_checked_before_writes(self):
+        self.retain_asset()
+        (self.root / self.asset).chmod(0o755)
+        (self.root / self.table).unlink()
+        with self.assertRaisesRegex(ValueError, 'Retained output differs'):
+            products.unpack(self.root)
+        self.assertFalse((self.root / self.table).exists())
+
+    def test_required_output_is_admitted_from_retained_inventory(self):
+        subprocess.run(['git', '-C', str(self.root), 'add', '-f', self.table], check=True)
+        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com',
+                        'commit', '-qm', 'tracked required table'], check=True)
+        os.environ['GITHUB_SHA'] = products.git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        products.pack(self.root, generated=True)
+        products.unpack(self.root, generated=True)
+        proof = json.loads((self.root / products.archive_names(True)[1]).read_text())
+        self.assertIn(self.table, proof['retained'])
+        self.assertEqual((self.root / self.table).read_text(), 'export const value=7;')
+
 
     def test_wrong_sha_and_run_refuse(self):
         for key in ['sha', 'run']:

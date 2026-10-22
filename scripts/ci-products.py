@@ -43,6 +43,40 @@ def digest(file):
     return result.hexdigest()
 
 
+def target(root, name):
+    path = root / admitted_path(name)
+    if path.is_symlink() or any(parent.is_symlink() for parent in path.parents if parent != root):
+        raise ValueError('Unsafe prepared output: ' + name)
+    if root.resolve() not in path.resolve().parents:
+        raise ValueError('Unsafe prepared output: ' + name)
+    return path
+
+
+def tracked_files(root):
+    # Use the exact committed tree, never the shared index or working diff.
+    rows = {}
+    for record in git(root, 'ls-tree', '-rz', 'HEAD').split(b'\0'):
+        if not record:
+            continue
+        metadata, name = record.split(b'\t', 1)
+        mode, kind, oid = metadata.split()
+        if kind == b'blob' and mode in {b'100644', b'100755'}:
+            rows[os.fsdecode(name)] = (int(mode, 8) & 0o777, oid.decode())
+    return rows
+
+
+def file_identity(path, object_format):
+    size = path.stat().st_size
+    blob = hashlib.new(object_format)
+    blob.update(f'blob {size}\0'.encode())
+    sha256 = hashlib.sha256()
+    with path.open('rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            blob.update(chunk)
+            sha256.update(chunk)
+    return size, sha256.hexdigest(), blob.hexdigest()
+
+
 def catalogue_outputs(root):
     jobs = json.loads((root / 'scripts/generation-jobs.json').read_text())['jobs']
     declared, required = set(), set()
@@ -78,15 +112,28 @@ def pack(root, generated=False):
         files = [name for name in files if not name.startswith('out/')]
     if not generated and not any(name.startswith('out/') and name.endswith('/shard.json') for name in files):
         raise ValueError('No prepared products to publish')
+    tracked = tracked_files(root)
+    object_format = git(root, 'rev-parse', '--show-object-format').decode().strip()
+    retained = {}
+    archived = 0
     with tarfile.open(root / archive_name, 'w') as archive:
         for name in files:
-            path = root / admitted_path(name)
+            path = target(root, name)
             if not path.is_file() or path.is_symlink():
                 raise ValueError('Prepared output is not a regular file: ' + name)
+            source = tracked.get(name)
+            if source is not None and not name.startswith('out/'):
+                size, sha256, blob = file_identity(path, object_format)
+                mode = path.stat().st_mode & 0o777
+                if source == (mode, blob):
+                    retained[name] = {'size': size, 'sha256': sha256, 'blob': blob, 'mode': mode}
+                    continue
             archive.add(path, arcname=name, recursive=False)
-    proof = {'sha': sha, 'run': run, 'sha256': digest(root / archive_name), 'files': len(files)}
+            archived += 1
+    proof = {'sha': sha, 'run': run, 'sha256': digest(root / archive_name),
+             'files': archived, 'retained': retained}
     (root / proof_name).write_text(json.dumps(proof) + '\n')
-    print(f'Published {len(files)} prepared files for {sha} in run {run}')
+    print(f'Published {archived} prepared files and verified {len(retained)} checkout files for {sha} in run {run}')
 
 
 def unpack(root, generated=False):
@@ -102,18 +149,31 @@ def unpack(root, generated=False):
         names = [member.name for member in members]
         if len(names) != proof['files'] or len(set(names)) != len(names):
             raise ValueError('Prepared output inventory mismatch')
+        retained = proof.get('retained', {})
+        if not isinstance(retained, dict) or set(retained).intersection(names):
+            raise ValueError('Prepared retained inventory overlaps the archive')
+        inventory = names + list(retained)
         _, required = catalogue_outputs(root)
-        if not required.issubset(names):
+        if not required.issubset(inventory):
             raise ValueError('Prepared catalogue outputs are missing from the archive')
-        if generated and any(name.startswith('out/') for name in names):
+        if generated and any(name.startswith('out/') for name in inventory):
             raise ValueError('Generated-only preparation cannot contain products')
         if not generated and not any(name.startswith('out/') and name.endswith('/shard.json') for name in names):
             raise ValueError('Prepared products are missing')
+        tracked = tracked_files(root)
+        object_format = git(root, 'rev-parse', '--show-object-format').decode().strip()
+        for name, row in retained.items():
+            path = target(root, name)
+            if not path.is_file() or tracked.get(name) != (row['mode'], row['blob']):
+                raise ValueError('Missing or untracked retained output: ' + name)
+            size, sha256, blob = file_identity(path, object_format)
+            if (size, sha256, blob, path.stat().st_mode & 0o777) != (row['size'], row['sha256'], row['blob'], row['mode']):
+                raise ValueError('Retained output differs from exact checkout: ' + name)
         # Validate the entire inventory before writing any file. Never follow a
         # workspace symlink, even when the archive itself has no link members.
         for member in members:
-            path = root / admitted_path(member.name)
-            if not member.isfile() or path.is_symlink() or root.resolve() not in path.resolve().parents:
+            path = target(root, member.name)
+            if not member.isfile() or path.exists() and not path.is_file():
                 raise ValueError('Unsafe prepared output: ' + member.name)
         for member in members:
             path = root / member.name
@@ -124,7 +184,7 @@ def unpack(root, generated=False):
             with stream, path.open('wb') as destination:
                 shutil.copyfileobj(stream, destination)
             path.chmod(member.mode & 0o777)
-    print(f'Restored {len(members)} verified prepared files for {sha} in run {run}')
+    print(f'Restored {len(members)} prepared files and verified {len(retained)} checkout files for {sha} in run {run}')
 
 
 if __name__ == '__main__':
