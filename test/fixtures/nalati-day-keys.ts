@@ -1,7 +1,7 @@
 // Frozen dayKeys.ts oracle from 1277540e6; independent of the channel compiler.
 import type { RGB } from '@wildshard/engine/level/data';
 import { DayCycle, type DayCycleSpec, type ScheduleSeg } from '@wildshard/engine/world/dayCycle';
-import type { SkyKey as SteppeKey } from '../../src/shards/nalati-grasslands/look/skyRig';
+import type { SkyKey as SteppeKey } from '../../src/shards/nalati-grasslands/data/skyTypes';
 
 export const DEFAULT_SCHEDULE: ScheduleSeg[] = [
   { phase: 'dawn', from: 4.5, to: 7, minutes: 2.5 },
