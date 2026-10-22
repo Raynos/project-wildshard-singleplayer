@@ -129,7 +129,8 @@
     "./decisionSource": "./decisionSource.ts",
     "./buildDecisionScripts": "./buildDecisionScripts.ts",
     "./projectDecisions": "./projectDecisions.ts",
-    "./bake/practiceCourse": "./bake/practiceCourse.ts"
+    "./bake/practiceCourse": "./bake/practiceCourse.ts",
+    "./returnProjectionV2": "./returnProjectionV2.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -637,6 +638,10 @@
       "./projectDecisions": {
         "types": "./dist/types/sdk/projectDecisions.d.ts",
         "default": "./dist/projectDecisions.js"
+      },
+      "./returnProjectionV2": {
+        "types": "./dist/types/sdk/returnProjectionV2.d.ts",
+        "default": "./dist/returnProjectionV2.js"
       }
     }
   }

@@ -277,7 +277,8 @@
     "./islandLibrary": "./islandLibrary.ts",
     "./catalogueEconomy": "./catalogueEconomy.ts",
     "./lootBag": "./lootBag.ts",
-    "./spawnScriptV2": "./spawnScriptV2.ts"
+    "./spawnScriptV2": "./spawnScriptV2.ts",
+    "./returnProjectionV2": "./returnProjectionV2.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

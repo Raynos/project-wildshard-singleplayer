@@ -126,6 +126,15 @@ export class ProjectedMotionSample {
 }
 
 
+/** Numeric projections retain the existing caller's decision slots. A v2
+ * transport prepares its RNG candidate until retained columns also validate. */
+export interface NumericProjection {
+  readonly project:(signal:string,observations:Readonly<Record<string,number>>,random?:Rng,candidates?:readonly Readonly<Record<string,number>>[])=>Readonly<Record<string,number>>;
+  readonly prepare?:(signal:string,observations:Readonly<Record<string,number>>,random?:Rng,candidates?:readonly Readonly<Record<string,number>>[])=>{
+    readonly values:Readonly<Record<string,number>>;readonly accept:()=>void;
+  };
+}
+
 /** Native continuation for admitted numeric projections. The guest owns rules;
  * rows name retained channels and event aliases. Both live arena clocks and
  * practice courses use the same state owner and optional ten-Hz sampling. */
@@ -135,7 +144,7 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
   private readonly retain:Readonly<Record<string,string>>;
   constructor(private readonly row:{ readonly initial:S; readonly parameters?:Readonly<Record<string,number>>;
     readonly retain?:Readonly<Record<string,string>>; readonly signals?:Readonly<Record<string,string>>; readonly signal?:string },
-    private readonly program:ReturnProgram) {
+    private readonly program:NumericProjection) {
     this.state={...row.initial};this.retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
     if(Object.values(this.retain).some(key=>!Object.hasOwn(row.initial,key)))throw new Error('Missing projection state slot');
   }
@@ -149,9 +158,11 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
   restart(frame:Readonly<Record<string,number>>={}):Readonly<Record<string,number>> {this.reset();return this.event('reset',frame);}
   event(event:string,frame:Readonly<Record<string,number>>={},random?:Rng,candidates:readonly Readonly<Record<string,number>>[]=[]):Readonly<Record<string,number>> {
     const signal=this.row.signals===undefined?event:this.row.signals[event];if(signal===undefined)throw new Error('Missing projection event');
-    const out=this.program.project(signal,{...this.row.parameters,...this.state,...frame},random,candidates),next:Record<string,number>={};
+    const input={...this.row.parameters,...this.state,...frame},prepared=this.program.prepare?.(signal,input,random,candidates);
+    const out=prepared?.values??this.program.project(signal,input,random,candidates),next:Record<string,number>={};
     for(const [channel,slot]of Object.entries(this.retain)){const value=out[channel];if(value!==undefined)next[slot]=value;}
-    this.set(next);return out;
+    if(Object.entries(next).some(([key,value])=>!Object.hasOwn(this.row.initial,key)||!Number.isFinite(value)))throw new Error('Invalid projection state');
+    prepared?.accept();this.set(next);return out;
   }
   project(frame:Readonly<Record<string,number>>,random?:Rng,candidates:readonly Readonly<Record<string,number>>[]=[]):Readonly<Record<string,number>> {
     if(this.row.signal===undefined)throw new Error('Missing projection signal');return this.event(this.row.signal,frame,random,candidates);

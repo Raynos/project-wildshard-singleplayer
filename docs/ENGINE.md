@@ -12102,3 +12102,20 @@ anything. Their registered generation inputs keep the original owner order.
 engine/ai/view/eliteEntry defines DeclaredEliteEntry and prepareEliteEntry over strict format/eliteEntryRows construction rows. Rows select ordered native controller kinds, profiles, original body/model loans, condition programs and finite effect IDs; borrowed rows name the same existing typed controller and cannot supply native construction fields or a factory. The engine validates the complete row/loan bank, immutable H4 column declarations, native spec and finite resolved spawn pose before constructing native kernels. Construction and entered scopes may be siblings. EncounterRegistry prepares leases in its original registry and interleaves registration with the original Elites.add order. Each transaction pins concrete lifetimes, entry arrays and callable identities; sliced retirement refuses new work. A borrowed ExternalElitePage defers only its tell allocation through its concrete prepareEntered lifecycle, at its original row position; native and external presentation share the same transaction child, so a late failure unwinds both without retiring the borrowed entered owner. Default external construction stays immediate.
 
 The original Elites owner resolves page loans through bindDeclaredEntry, retaining its presentation, rewards, persistence and existing native output drain. A private entered child scope rolls back the full binding on a late suffix failure. Conditions capture the original H4 clock/weather fields at the original bounded ten-Hz slot; native observations sample the current original actor x/z, with no invented climate defaults. Native controller effects remain synchronous after the same Elites.update; previously staged external page banks retain their original staged commit and post-update drain. No new clock, continuation, body registry or save owner is introduced.
+
+### Stateless ABI2 numeric projections
+
+`compileReturnProjectionV2` (SDK returnProjectionV2) dual-compiles the same
+admitted event-only AS closure. Its legacy artifact is unchanged; its candidate
+uses `ws_project`, the standard v2 field/output/RNG banks, and no guest imports.
+`ReturnProjectionV2` (game population/returnProjectionV2) captures actor zero
+and up to eight ordered candidate frames at the caller's existing decision slot.
+Missing numeric fields refuse only when read. It installs no scheduler or native
+body, contact, target, persistence or query owner.
+
+`prepare` returns detached channels and a single-use acceptance operation. A
+borrowed RNG remains unchanged until the complete envelope, channels and caller's
+retained state validate; a changed RNG continuation refuses acceptance. Existing
+`ProjectedState` uses this operation without changing its retain map, event order
+or elapsed ten-Hz gate. Existing ABI1 callers keep their original transport.
+The dual artifact alone never selects a production runtime or migrates saves.
