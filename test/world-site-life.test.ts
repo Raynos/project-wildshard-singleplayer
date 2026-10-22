@@ -1,3 +1,7 @@
+import { WIRE_SCHEMAS } from '../src/shards/driftwood-isle/generators/sectionSchemas.generated';
+import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { validateDefinedSection } from '../src/sdk/sections';
+import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, type Object3D } from 'three';
 import * as v from 'valibot';
@@ -164,4 +168,15 @@ test('production site data retains original firefly offsets and order without an
   expect(shrine.life).toEqual({ file: 'world/building-life.json', root: 'shrine.root', cloud: { draw: 'shrineFireflies', look: 'driftwood-shrine-fireflies',
     pose: { ...pose, at: { point: 'shrine.root', offset: [0, shrineBake.world.baseY, 0] }, center: [0, shrineBake.world.terrace - shrineBake.world.baseY, 0] } } });
   expect(rows.stages.filter(row => row.kind === 'site' && row.life !== undefined)).toHaveLength(1);
+});
+
+test('site-life custom sections convert with their suffix and defining checks intact', () => {
+  expect(() => formatJsonSchema(WorldAssemblySchema, 'draft-07')).not.toThrow();
+  const schema = WIRE_SCHEMAS['custom/worldStages'];
+  if (schema === undefined) throw new Error('Missing generated stage schema');
+  const encoded = new TextEncoder().encode(encodeCanonicalJson(schema));
+  expect(validateDefinedSection(encoded, stages)).toEqual(stages);
+  const wrong = { stages: [{ ...stages.stages[0], life: { ...lifeRow, file: 'wrong.bin' } }] };
+  expect(() => v.parse(WorldAssemblySchema, wrong)).toThrow();
+  expect(() => validateDefinedSection(encoded, wrong)).toThrow();
 });

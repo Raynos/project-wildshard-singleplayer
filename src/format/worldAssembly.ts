@@ -24,7 +24,7 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('rope-deck'), id, label, site: RopeDeckSiteSchema, span: RopeDeckSpanSchema }),
   v.strictObject({ kind: v.literal('rope-chain'), id, label, deck: id, capture: id }),
   v.strictObject({ kind: v.literal('site'), id, label, model: id, choice: id,
-    life: v.exactOptional(v.strictObject({ file: v.pipe(id, v.regex(/\.json$/u)), root: HandleIdSchema, cloud: v.strictObject({ draw: id, look: id, pose: BuildingCloudPoseSchema }) })) }),
+    life: v.exactOptional(v.strictObject({ file: v.pipe(id, v.regex(/\.json$/)), root: HandleIdSchema, cloud: v.strictObject({ draw: id, look: id, pose: BuildingCloudPoseSchema }) })) }),
   v.strictObject({ kind: v.literal('mesh'), id, label, part: id }),
   v.strictObject({ kind: v.literal('group'), id, label, part: id }),
   v.strictObject({ kind: v.literal('entry'), id, label, rows: v.pipe(v.array(WorldEntryStepSchema), v.minLength(1), v.maxLength(1024)),

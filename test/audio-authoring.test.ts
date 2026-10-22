@@ -7,11 +7,12 @@ import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' wi
 import islandOutput from '../src/shards/driftwood-isle/data/audio.generated.json' with {type:'json'};
 import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {type:'json'};
 import {islandCoveSpec} from '../src/shards/driftwood-isle/generators/coveLayout';
+import {driftwoodGameplayAudioEnvironment} from '../src/shards/driftwood-isle/generators/gameplayAudioEnvironment';
 
 it.each([
   ['pine-hollow',pineSource,pineOutput],['driftwood-isle',islandSource,islandOutput],
 ] as const)('%s publishes its authored audio through the existing section',async(slug,source,output)=>{
-  const rows=parseAudioData(slug==='driftwood-isle'?{...source.audio,gameplay:{...source.audio.gameplay,constants:{cove:{fall:cove.audioFall,cave:cove.audioCave,caveBounds:cove.audioBounds}}}}:source.audio);
+  const rows=parseAudioData(slug==='driftwood-isle'?{...source.audio,gameplay:{...source.audio.gameplay,entryEnvironment:driftwoodGameplayAudioEnvironment(),constants:{cove:{fall:cove.audioFall,cave:cove.audioCave,caveBounds:cove.audioBounds}}}}:source.audio);
   expect(cove.audioBounds).toEqual(islandCoveSpec().caveBounds);
   expect(cove.audioFall.foot).toEqual(islandCoveSpec().fall.foot);
   expect(islandCoveSpec().cave).toMatchObject(cove.audioCave);

@@ -38,7 +38,7 @@ import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { StateSchema } from '@wildshard/format/state';
 import { QuestStepRowsSchema, QuestServiceActionsSchema, QuestKillRowsSchema, QuestHintRowsSchema } from '@wildshard/format/questSteps';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
-import { BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
+import { BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema, BuildingCloudPoseSchema } from '@wildshard/format/buildings';
 import { WorldSceneWeldSchema } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
@@ -197,6 +197,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'worldScenePlacement.WorldScenePlacement': WorldScenePlacementSchema,
   'clientChannels.WorldScene': WorldSceneSchema,
   'buildings.BuildingLifeRows': BuildingLifeRowsSchema,
+  'buildings.BuildingCloudPose': BuildingCloudPoseSchema,
   'bodySlots.BodySlots': BodySlotsSchema,
   'limbRig.LimbRig': LimbRigSchema,
   'limbRig.LimbBlend': LimbBlendSchema,
