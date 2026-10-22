@@ -11966,3 +11966,11 @@ callback, writing into and returning its supplied output. declaredSurface
 compiles the existing surface callback with a fresh three-component result.
 Both retain the original ignored height/slope arguments and sampling order;
 rows name no callbacks or channel paths and create no cache or world owner.
+
+declaredMapColour in the manifest module admits three explicit ScalarLattice
+rows through the defining ScalarTripletSchema. It binds the existing minimap
+callback: ordered writes into the supplied output, void return, and ignored
+height/slope/forest arguments. The original baked sampler owns interpolation
+and edge handling. Existing channel rows can be passed directly as a tuple;
+no rebake, new payload, section, cache or world owner is required. Map overlays
+and POIs remain with the original mapPalette binding.
