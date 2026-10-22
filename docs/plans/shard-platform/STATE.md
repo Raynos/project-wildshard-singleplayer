@@ -8,9 +8,11 @@ T1–T6 (G580/G581) → Nine → Nalati. Rows: lanes/ready-queue.md.
 C5 112, C1 47, C9 47; 75 listed view), Driftwood 397 (269 local, 128 charged; C1 197, C9 159, C6 29). Was Pine 578,
 Driftwood 702 at 1e063584e2 this evening. Nalati 4,248, Nine 1,797 unchanged. Plan % refresh pending.
 
-**Live:** c2bd2b6164 (04:14Z): all tonight's live fixes (G578 in-world loading, Nalati road fix, G587, G588, DW
-world-scenes). Deploy PINNED there (7052439750) while T3's allocator regression was fixed (03e912b628, phone route
-clean: 95 s stalls gone); sp-x7 unpins to newest-ci-green (floor 03e912b628) once 00e5d7721d's CI + smoke are green.
+**Live:** see sp-x7 (00e5d7721d releasing: T3 allocator fix + Nalati keepers + all earlier live fixes). Deploy back on
+newest-ci-green (d4dffa3986); guard on heads >= 03d2597f56 lifts once CI on >= 173ec6a6ee passes products.
+Pine: only shard.config.ts left in src/shards/pine-hollow (4f9f4cf879 compiled page runtime); DW has 5 runtime files
+left (hybrid, catalogue, roster, blobAssets, rows). T1 warm neighbour landed default-off (028a898d22): crossing wait
+0.02 s when the player dwells; Simulator memory/fps reading next for default-on. T3 retention evicted under pressure.
 
 **Lanes (G574: 3 Opus):** sp-o2 T1 warm neighbour; sp-o4 O18 per-visit memory leak; sp-o5 Nine looks/world
 (-22 so far). Codex: sp-x1 Nine non-graphical + T3 A/B (T3 landed, gain unproven); sp-x6 DW world tail (bridge,
