@@ -936,6 +936,25 @@
       }
     },
     {
+      "shard": "pine-hollow",
+      "criterion": "memory",
+      "source": "0f9781148f596ce8382c65500f7d364f9227d9a5",
+      "latchedAt": "2026-10-22T14:20:49.478Z",
+      "quiet": false,
+      "measurement": {
+        "when": "2026-10-22T14:17:23.789Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 321,
+          "playingPeakBytes": 181520428,
+          "loadingPeakBytes": 181520428,
+          "browserProcessPeakBytes": 1351781376,
+          "rendererProcessPeakBytes": 2443107328,
+          "gpuProcessPeakBytes": 1173948416
+        }
+      }
+    },
+    {
       "shard": "sunscar-dunes",
       "criterion": "memory",
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
