@@ -4,30 +4,30 @@
 only at zero) → the rest. Pine/DW grid readiness is NOW too (G598). All items picked (G599-G603); only Jake-picked hosts
 get HOST-BAR lines. G602/G603: models, sets, worlds are CORE (strip one-shard fields, row-only, tests).
 
-**Census (sp-x8, ~17:40):** Pine, DW, _template, ink-cel 0. Nalati 3,859, Nine 830 (both falling); open-plots 19.
+**Census (~19:30):** Pine, DW, _template, ink-cel 0. Nalati ~3,620 (C5 144 after C8), Nine ~700 (N2-N4 landed);
+open-plots 19. Nalati sits at 46 custom sections vs a 43 ceiling (report-only, no gate).
 
-**Live:** df1f564b26. DW grid-ready memory + looks latched (697f240928); Pine looks still open.
+**Live:** df1f564b26; 14fadd9d3b releasing (manual source-run proof, GitHub aggregate stuck; cb645cb10e), 3efab8f0a5 next.
+DW grid-ready memory + looks latched (697f240928); Pine looks open (sp-o1: forest LOD warm-up).
 
-**WASM-HOST zero blockers:** landed H4 primitives, commands 4654a80b46, H5 c98a74e6e5, L7 adapter complete
-(a18d91ca09). OPEN: H4 page integration (SimBatchV2 page runner + observation resolver), sp-x9.
+**WASM-HOST:** all zero blockers landed except H4 page integration (production SpawnScript/SimBatch runner), sp-x9.
 
 **Rows by lane:**
-- sp-x9: H4 page integration → C9 HeldClaims runtime (on C10) → L5 wildlife AS.
-- sp-x8: G609 CI speed (push run <= 10 min) → C11 course merge → ND Nine flip → LB Nalati entry LAST.
-- sp-x1: C8 carry-to-goal host → L4 elite engine feature on sp-x9's resolver (no game TS bridge) → L9.
-- sp-x6: C3 terrain/water rows (decoder 14fadd9d3b landed) → L2 Titan WASM → L6 grass senses host.
-- sp-o1: Pine oneFrameLooks (activation frame; c710cbb2b3) → C1 rest (fabric 554e6f9803) + C2.
-- sp-o2: L8 species (shapes 7865df41f4; hull book next) → C5 spruce + camp people.
-- sp-o3: Nalati views on a view module + reins card bake.
-- sp-o4: G607 done 3d48494e02 → G608 hologram board (round-37) → L1 trail/panorama → L11.
-- sp-o5: C10 done 1668232c61 → N2 (verified, landing) → N3.
+- sp-x9: H4 production runner → C9 HeldClaims runtime → L5 wildlife AS.
+- sp-x8: C11 course merge (CI speed cuts bf903/3a058/bc07/df545/8a101/df73b/a63a7; full path still >10 min) → ND → LB LAST.
+- sp-x1: L4 engine elite feature on H4 + declared service rows (no TS bridge) → L9. C8 done 51b47c0542.
+- sp-x6: C3 channel recipes (ground rows 7330332a1e, primitives 291caae6f1) → L2 Titan WASM → L6.
+- sp-o1: Pine oneFrameLooks (forest tree LOD variants into the warm-up) → C2 volume textures.
+- sp-o2: L8 (hull book 76bc99bbd1; boar/bear strip, runtimeSpecimens, balbal/eagle on slot pools).
+- sp-o3: C5 (spruce 53269b533d + trees section 9bc3956da0) → camp people on DW quest figures.
+- sp-o4: G608 hologram board (round-37) → L1 trail/panorama.
+- sp-o5: N5 arms card, N6 build constants → L11 (per-instance graph params + static-capture chunk).
 - Kept one-user hosts (Jake): C4 sceneDressing, C6 timedEncounters. sp-x7: release.
 
-**For wildshard-v:** (1) confirm with Jake that G601 C6 also covers SlotEncounterView/PatrolEncounterView (charged
-whole to Nalati); sp-o3 proceeds as if yes. (2) G607 phone tier SQ-NE-b: heap 1,019 MB, renderer 2,151 MB, GPU 938 MB:
-iPhone tab-kill risk (a kill is a D bug to fix).
+**For wildshard-v:** (1) confirm with Jake that G601 C6 also covers SlotEncounterView/PatrolEncounterView (sp-o3
+proceeds as if yes). (2) G607 phone tier SQ-NE-b: renderer 2,151 MB, an iPhone tab-kill risk (a kill is a D bug).
 
-**Rules:** G605 Opus by Claude weekly (11 % now = 5 Opus; 50 % 3, 70 % 2, 80 % 1, 90 % 0). G492; never herdr
+**Rules:** G605 Opus by Claude weekly (13 % now = 5 Opus; 50 % 3, 70 % 2, 80 % 1, 90 % 0). G492; never herdr
 wildshard-v; no net-0 moves or relabels (G571). G558: Chromium is the check; Jake's iPhone only at ~99 %.
 
 **G606 legacy:** LD1-LD3 to the next free Codex lane; any deletion only on Jake's word.
