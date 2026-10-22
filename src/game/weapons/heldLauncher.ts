@@ -21,7 +21,7 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
 import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
 import * as v from 'valibot';
-import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldMaterialRow, type HeldModelRows } from '../plugin/heldFirearm';
+import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldModelRows } from '../plugin/heldFirearm';
 import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
 import { HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { createClientScene } from '../plugin/ui';
@@ -366,31 +366,10 @@ const StaveLookSchema = v.looseObject({ gripH: finite, limbW: finite, nockL: fin
   arrowX: finite, arrowY: finite, radial: finite, stringRadial: finite, stringR: finite, serving: finite, rightRoll: finite,
   tipKink: v.exactOptional(finite), nockX: v.exactOptional(finite), backScale: v.optional(finite, 0.55), tipInset: v.optional(finite, 0.014), tipOffset: v.optional(finite, 0.004) });
 const ArrowLookSchema = v.looseObject({ length: finite });
-/** A grip pose as data: the bow's place and aim point in rig space, its cant and pitch. */
-export interface HeldBowPoseRow { readonly pos: Triple; readonly aim: Triple; readonly cant: number; readonly pitch: number }
-/** A baked stave bow's rows (the shard's bake emits them): its look and arrow as serialised JSON, the stave's rings, its
- *  dynamic vertex counts and section samples, and the fists' wrist, hook and roll-axis points. */
-export interface HeldBowBake {
-  readonly look: string; readonly arrow: string; readonly ringU: readonly number[]; readonly ringSign: readonly number[]; readonly limbVerts: number; readonly dynVerts: number;
-  readonly sectionSamples: { readonly widths: readonly number[]; readonly ridges: readonly number[] };
-  readonly lWrist: readonly number[]; readonly rWrist: readonly number[]; readonly rHook: readonly number[]; readonly rWristDir: readonly number[];
-}
-/** A bow material: the viewmodels' lit program from a look row, or the painterly one (vertex colours; `transparent` for the
- *  viewmodel's depth-clear pass, dropped on a world card). */
-export type HeldBowMaterialRow = HeldLitRow | { readonly name: string; readonly painterly: { readonly rim?: number; readonly bands?: number; readonly shade?: number; readonly transparent?: boolean } };
-/** The bow's rows: the bake, its part names, its two materials, the arrow's flight / stick / pool numbers, the wind's pull, the
- *  poses and the stave's paints by style. */
-export interface HeldBowRows {
-  readonly bake: HeldBowBake;
-  readonly parts: { readonly stave: string; readonly nocked: string; readonly rightFist: string; readonly leftSleeve: string; readonly rightSleeve: string; readonly arrow: string };
-  readonly materials: { readonly bow: HeldBowMaterialRow; readonly arrow: HeldBowMaterialRow };
-  readonly arrow: { readonly gravity: number; readonly drag: number; readonly windCoupling: number; readonly bury: number; readonly recover: number; readonly maxFlying: number; readonly maxStuck: number };
-  /** the wind on an arrow: `base` + `gust` × the engine's gust field (m/s) along the world wind, or the steppe's own wind */
-  readonly wind: { readonly base: number; readonly gust: number } | { readonly field: 'steppe' };
-  readonly poses: Readonly<Record<keyof BowProfile['poses'], HeldBowPoseRow>>;
-  /** style → the stave's colour channel (the first is the base, painted on every new view) */
-  readonly styles?: Readonly<Record<string, string>>;
-}
+/** Bow contracts come from the schema that admits the same baked rows. */
+type HeldBowRows = v.InferOutput<typeof HeldBowRowsSchema>;
+type HeldBowPoseRow = HeldBowRows['poses']['rest'];
+type HeldBowMaterialRow = HeldBowRows['materials']['bow'];
 const names = v.pipe(v.array(v.pipe(v.string(), v.maxLength(256))), v.maxLength(32));
 const PoolSchema = v.strictObject({ url: v.pipe(v.string(), v.maxLength(512)), parts: names, channels: v.exactOptional(v.pipe(v.array(v.strictObject({
   name: v.string(), source: v.string(), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(names) })), v.maxLength(8))) });
@@ -429,7 +408,6 @@ export function loadHeldBow(url: string): Promise<ReturnType<typeof bindHeldBow>
 /** The profile's numbers: all but what the rows build (the view, arrow, wind, poses, the arrow's rest and length). */
 export type HeldBowBase = Omit<BowProfile, 'build' | 'arrow' | 'wind' | 'poses' | 'arrowX' | 'arrowY' | 'arrowLength'>;
 
-type HeldLitRow = Extract<HeldMaterialRow, { readonly look: unknown }>;
 const part = (model: HeldFirearmModel, id: string): THREE.BufferGeometry => need(model.geometry?.get(id), `bow part ${id}`);
 const staveLook = (rows: HeldBowRows) => v.parse(StaveLookSchema, JSON.parse(rows.bake.look));
 const arrowLength = (rows: HeldBowRows): number => v.parse(ArrowLookSchema, JSON.parse(rows.bake.arrow)).length;
