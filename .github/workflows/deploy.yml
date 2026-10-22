@@ -147,6 +147,9 @@ jobs:
         if: env.DEPLOY != 'true'
         with:
           name: test-products
+      - name: Decompress exact-run prepared products
+        if: env.DEPLOY != 'true'
+        run: zstd -d --rm test-products.tar.zst
       - name: Verify preparation, checks and build (parallel)
         if: env.DEPLOY != 'true'
         run: node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared 'python3 scripts/heavy-lane.py build -- pnpm exec vite build && node scripts/check-devserver.mjs dist'
@@ -261,7 +264,9 @@ jobs:
         with:
           name: generated-inputs
       - name: Verify and restore exact-run generated inputs
-        run: python3 scripts/ci-products.py unpack-generated
+        run: |
+          zstd -d --rm generated-inputs.tar.zst
+          python3 scripts/ci-products.py unpack-generated
       - name: Typecheck
         # Run all projects once, independently of every lint partition.
         if: matrix.shard == 'types'
@@ -317,14 +322,16 @@ jobs:
           restore-keys: generation-v1-${{ runner.os }}-node24-
       - run: node scripts/gen.mjs --parallel
       - name: Pack exact-run generated inputs
-        run: python3 scripts/ci-products.py pack-generated
+        run: |
+          python3 scripts/ci-products.py pack-generated
+          zstd -3 -T2 --rm generated-inputs.tar
       - uses: actions/upload-artifact@v4
         with:
           name: generated-inputs
           path: |
-            generated-inputs.tar
+            generated-inputs.tar.zst
             generated-inputs-proof.json
-          compression-level: 1
+          compression-level: 0
           retention-days: 3
           if-no-files-found: error
 
@@ -365,20 +372,24 @@ jobs:
         with:
           name: generated-inputs
       - name: Verify and restore exact-run generated inputs
-        run: python3 scripts/ci-products.py unpack-generated
+        run: |
+          zstd -d --rm generated-inputs.tar.zst
+          python3 scripts/ci-products.py unpack-generated
       - run: node scripts/build-shardfiles.mjs --reuse
       # A runner is isolated: save current reusable products rather than six
       # historical payload generations. Keep every input receipt for validation.
       - run: node scripts/ci-product-cache.mjs
       - name: Pack exact-run generated inputs and products
-        run: python3 scripts/ci-products.py pack
+        run: |
+          python3 scripts/ci-products.py pack
+          zstd -3 -T2 --rm test-products.tar
       - uses: actions/upload-artifact@v4
         with:
           name: test-products
           path: |
-            test-products.tar
+            test-products.tar.zst
             test-products-proof.json
-          compression-level: 1
+          compression-level: 0
           retention-days: 3
           if-no-files-found: error
 
@@ -410,7 +421,9 @@ jobs:
         with:
           name: test-products
       - name: Verify and restore exact-run generated inputs and products
-        run: python3 scripts/ci-products.py unpack
+        run: |
+          zstd -d --rm test-products.tar.zst
+          python3 scripts/ci-products.py unpack
       # The verified same-run producer built these exact products; hooks must
       # not rebuild them inside every test file (CI always forces a rebuild).
       - run: python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/10

@@ -279,6 +279,21 @@ class PreparedProducts(unittest.TestCase):
         products.unpack(self.root)
         self.assertTrue((self.root / self.table).is_file())
 
+    def test_zstd_transport_restores_the_same_tar_before_existing_proof_checks(self):
+        for generated in [False, True]:
+            products.pack(self.root, generated=generated)
+            archive_name, proof_name = products.archive_names(generated)
+            archive = self.root / archive_name
+            before, proof = products.digest(archive), (self.root / proof_name).read_bytes()
+            subprocess.run(['zstd', '-3', '-T2', '--rm', str(archive)], check=True, capture_output=True)
+            self.assertFalse(archive.exists())
+            subprocess.run(['zstd', '-d', '--rm', str(archive) + '.zst'], check=True, capture_output=True)
+            self.assertEqual(products.digest(archive), before)
+            self.assertEqual((self.root / proof_name).read_bytes(), proof)
+            (self.root / self.table).unlink()
+            products.unpack(self.root, generated=generated)
+            self.assertEqual((self.root / self.table).read_text(), 'export const value=7;')
+
     def test_duplicate_cannot_use_an_archived_file_as_a_parent(self):
         _, duplicate, row, proof = self.duplicate_payload()
         proof['duplicates'] = {row['source'] + '/child': row}
