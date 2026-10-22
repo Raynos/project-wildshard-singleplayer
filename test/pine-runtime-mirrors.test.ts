@@ -21,7 +21,7 @@ import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
 import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
-import { ASTC6_PHONE } from '../src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated';
+import ASTC6_PHONE from '../src/shards/pine-hollow/data/astc6.generated.json' with {type:'json'};
 import { pageModeBoot, pageModeKtx2 } from '../src/game/shard/pageBoot';
 import { pageModeValue, pageModeCap } from '../src/game/shard/pagePolicy';
 import policy from '../src/shards/pine-hollow/data/pagePolicy.json' with { type: 'json' };

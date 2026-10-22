@@ -232,7 +232,7 @@ export class LiveGridSession {
     const { assembly, home, scope } = ports, rapier = ports.physics.R;
     this.bootProgramCell = installBootProgramChoice(scope, assembly.cells.flatMap(cell => {
       const manifest = findShard(cell.slug);
-      return manifest?.trustedRuntime === undefined ? [] : [{ instance: cell.instance, label: manifest.name }];
+      return manifest === undefined || manifest.trustedRuntime === undefined && manifest.clientPlanRuntime !== true ? [] : [{ instance: cell.instance, label: manifest.name }];
     }));
     this.keepsPrograms = installShaderWarmChoice(scope) !== 'off';
     const traveller = page.traveller;
@@ -621,7 +621,7 @@ export class LiveGridSession {
 
   private bundle(cell: GridCell): ReadinessBundle {
     const manifest = findShard(cell.slug);
-    if (manifest?.gridShardfile !== undefined && manifest.trustedRuntime !== undefined) return { criticalWireBytes: 2_000_000, hybridWireBytes: 2_000_000, decodeSeconds: 1, runtimeParseSeconds: 1 };
+    if (manifest?.gridShardfile !== undefined && (manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime === true)) return { criticalWireBytes: 2_000_000, hybridWireBytes: 2_000_000, decodeSeconds: 1, runtimeParseSeconds: 1 };
     return { criticalWireBytes: findShard(cell.slug)?.shardfile === undefined ? 0 : 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 };
   }
 
@@ -738,8 +738,14 @@ export class LiveGridSession {
     if (page === undefined || page === null) throw new GridCellWaitingError('Regional page services are not ready');
     const textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
     const prepareEntry = async (): Promise<void> => {
-      if (declaration === null || !('entry' in declaration)) return;
+      if (declaration === null) return;
       if (manifest.load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
+      if (!('entry' in declaration)) {
+        if (manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime !== true) throw new GridCellWaitingError('Client-plan runtime requires its built-in manifest policy');
+        // The built-in loader still owns its literal CSS imports. Prepare them
+        // before entered features; importing it constructs no world or plugin.
+        await manifest.load(); return;
+      }
       const entry = manifestRuntimeEntry(manifest);
       await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
       const { slug: identity } = entry;

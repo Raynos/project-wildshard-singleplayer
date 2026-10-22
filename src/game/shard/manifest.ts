@@ -463,6 +463,8 @@ export interface ShardManifest {
   gridShardfile?: string;
   /** Explicit first-party module admission for the declared regional runtime; never an arbitrary asset import. */
   trustedRuntime?: Pick<TrustedRuntimeEntry, 'slug' | 'entry'>;
+  /** Built-in finite page owner, derived from the admitted entry policy; no source module exists. */
+  clientPlanRuntime?: true;
   /** SF65 (G237–G241): the ways SHARD SELECT can enter this shard with Developer on, and the one the public build enters
    *  (`src/game/shard/entryMode.ts`). Absent: a shard with no TypeScript plugin (`load`) is shardfile only, any other is its TypeScript alone. */
   entries?: ShardEntries;
@@ -769,6 +771,7 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
   })();
   if (bootData !== undefined && bootBindings === undefined) throw new Error('Manifest boot inventory has no native binding');
   return defineShard({ ...bindings, ...data, slug, trees, spawns,
+    ...(_declaredBindings.entry !== undefined && 'platform' in _declaredBindings.entry ? { clientPlanRuntime: true } : {}),
     ...(poses === undefined ? {} : { poses: parseCapturePoses(poses) }),
     ...(data.forest === undefined ? {} : {forest: {...data.forest, ...forestQueries}}),
     ...(tiers === undefined ? {} : {tiers}),

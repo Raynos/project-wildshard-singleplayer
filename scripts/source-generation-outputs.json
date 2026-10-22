@@ -14,7 +14,7 @@
       "src/shards/far-reach/data/movers.generated.json"
     ],
     "scripts/bake-astc6.mjs": [
-      "src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts"
+      "src/shards/pine-hollow/data/astc6.generated.json"
     ],
     "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs": [
       "src/shards/sunscar-dunes/data/striderRig.json"

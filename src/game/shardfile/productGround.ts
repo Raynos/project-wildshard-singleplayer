@@ -34,7 +34,7 @@ export function installProductGround(): () => void {
  *  only for the selected level of a first-party trusted hybrid this page enters as its shardfile (keyed by its slug). */
 export function standaloneHybrid(key: string): Promise<RuntimeProduct> | null {
   const manifest = findShard(key);
-  if (manifest?.gridShardfile === undefined || manifest.trustedRuntime === undefined || selectedLevel()?.id !== key || shardEntry(manifest) !== 'shardfile') return null;
+  if (manifest?.gridShardfile === undefined || manifest.trustedRuntime === undefined && manifest.clientPlanRuntime !== true || selectedLevel()?.id !== key || shardEntry(manifest) !== 'shardfile') return null;
   return firstPartyDescriptor(key).then(runtimeProduct);
 }
 

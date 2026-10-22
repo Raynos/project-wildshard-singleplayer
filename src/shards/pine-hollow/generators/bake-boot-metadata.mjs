@@ -32,9 +32,8 @@ export function bootMetadata() {
     if (path.startsWith('public/assets/')) inventory[path.slice('public'.length)] = true;
   }
   const ordered = Object.fromEntries(Object.keys(inventory).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, true]));
-  // The existing texture baker publishes a literal table, also read by the prop/hero bakers.
-  const source = readFileSync(resolve(root, 'src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts'), 'utf8');
-  const astc = v.parse(v.record(v.string(), v.string()), JSON.parse(source.slice(source.indexOf(' = {') + 3, source.lastIndexOf('}') + 1)));
+  // The existing texture baker publishes the exact committed URL alias data.
+  const astc = v.parse(v.record(v.string(), v.string()), JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/astc6.generated.json'), 'utf8')));
   return { boot: pineBootInventory(ordered, astc), gpu: pineKtx2Tables(astc) };
 }
 export const explorerMetadata = () => ({ cards: FINISH_CARDS, wildlifeLook: WILDLIFE_LOOK, names: Object.fromEntries(people.rows.map(row => [row.npc.id, row.npc.name])) });

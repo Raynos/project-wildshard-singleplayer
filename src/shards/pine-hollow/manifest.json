@@ -738,7 +738,6 @@
       "r": 12
     }
   ],
-  "runtimeEntry": "runtime/hybrid.ts",
   "bindings": {
     "accent": "moss",
     "budgets": {
@@ -806,7 +805,7 @@
       }
     },
     "entry": {
-      "legacy": "./runtime/hybrid",
+      "platform": "client-plan",
       "retainHomeRuntime": true,
       "stagesOwner": "runtime",
       "styles": [

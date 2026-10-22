@@ -11532,3 +11532,13 @@ placed lists or missing scene/baked roots refuse before any CPU release.
 Construction creates no new library or scene intake, cache, entered update,
 phase, save owner or progress slice. The caller keeps resident caching and
 explicit lending; this API does not select a client runtime declaration.
+
+
+A manifest with the strict built-in client-plan entry policy derives
+`clientPlanRuntime: true` when defineAuthoredShard admits its rows. It names no
+source loader or trusted runtime entry. Grid home ownership, program warming,
+measured runtime reservation and standalone ground preadmission keep their
+existing behavior for that policy; its literal entry CSS is prepared before
+entered features. retainHomeRuntime and stagesOwner remain the authored
+ownership choices. Compiled products carry no executable runtime files, and
+the project writer verifies this even when runtime copying was not requested.

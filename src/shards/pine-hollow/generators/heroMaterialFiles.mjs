@@ -7,7 +7,7 @@ import rows from '../data/heroRows.json' with {type:'json'};
 const root=new URL('../../../../',import.meta.url);
 const literal=path=>{const text=readFileSync(new URL(path,root),'utf8');return JSON.parse(text.slice(text.indexOf(' = {')+3,text.lastIndexOf('}')+1));};
 export function heroMaterialFiles(){
- const gpu=literal('src/shards/pine-hollow/ktx2.generated.ts'),astc=literal('src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts');
+ const gpu=literal('src/shards/pine-hollow/ktx2.generated.ts'),astc=JSON.parse(readFileSync(new URL('src/shards/pine-hollow/data/astc6.generated.json',root),'utf8'));
  const aliases={},outputs={},costs=[];
  for(const source of rows.sources)for(const id of [source,`${source}-lod1`]){
   const original=`${rows.directory}/${id}/${id}.glb`,phone=original.replace('.glb','.phone.glb');

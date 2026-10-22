@@ -63,7 +63,7 @@ if (import.meta.main) {
 /** Retain every original material/image byte and drop the redundant source mesh payload. */
 export function pinePropMaterialFiles() {
   const literal = (path) => { const text = readFileSync(resolve(root, path), 'utf8'); return JSON.parse(text.slice(text.indexOf(' = {') + 3, text.lastIndexOf('}') + 1)); };
-  const GPU_FILES = literal('src/shards/pine-hollow/ktx2.generated.ts'), ASTC6_PHONE = literal('src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts');
+  const GPU_FILES = literal('src/shards/pine-hollow/ktx2.generated.ts'), ASTC6_PHONE = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/astc6.generated.json'), 'utf8'));
   const aliases = {}, outputs = {}, costs = [];
   for (const id of ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk']) {
     const original = `/assets/models/${id}/${id}_lod.glb`, phone = original.replace('.glb', '.phone.glb');

@@ -66,3 +66,16 @@ it('refuses overlapping source/output before clearing the author project', async
   await expect(buildProject(project, project, { outputFormat: 2, client: null, copyRuntime: true })).rejects.toThrow('separate');
   expect(readFileSync(resolve(project, 'shard.config.ts'))).toEqual(config);
 });
+
+
+it('compiled project builds always refuse hidden executable sources without a copy flag',async()=>{
+  const {project,destination}=fixture(),shard=emptyShardfile({slug:'compiled-build',name:'Compiled build',author:'Fixture',revision:1,seed:3});
+  shard.runtime={kind:'client-plan',cost:{webContentMB:500,glMB:100,engineBaseMB:300,rev:'abcdef1234',device:'Fixture',evidence:'progress/memory/fixture.json'},binds:[]};
+  writeFileSync(resolve(project,'shard.config.ts'),`export default ${JSON.stringify(shard)};`);
+  await expect(buildProject(project,destination,{client:null})).rejects.toThrow('cannot contain executable source');
+  rmSync(resolve(project,'runtime'),{recursive:true});mkdirSync(resolve(project,'runtime'));
+  writeFileSync(resolve(project,'runtime/productSections.generated.d.ts'),'export interface Generated {readonly id:string}');
+  await buildProject(project,destination,{client:null});
+  const {index,shard:actual}=validateOutputProduct(destination);
+  expect(index.runtime).toEqual({...shard.runtime,trust:'first-party',files:[],lines:0});expect(actual.runtime).toEqual(shard.runtime);
+});
