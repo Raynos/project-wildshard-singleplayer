@@ -1,4 +1,4 @@
-// Lab P6 "light" (E169), from the light lab into the clean room; the GLSL and the rows are data (generators/compositeLight.ts).
+// Lab P6 "light" (E169), from the light lab into the clean room; the rows are data (the composite graph, generators/compositeGraph.ts).
 //  - WINDOW GLOW: lit windows, shop fronts and lanterns bleed warm light into the silk fog at distance, riding in the
 //    alpha channel of the bleed pyramid (½-res prefilter: brightness over a low threshold × warmth × distance; the
 //    composite adds warm amber × (tight.a · halo + wide.a · veil), kept off anything nearer than the glow).

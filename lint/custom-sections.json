@@ -404,6 +404,18 @@
         "bytes": 15921662
       },
       "why": "G514 remeasure at 3779d5e49e: 41727d1754/32f91d8c8b/3cf81f4f75 move models, landmarks and waystones onto world/forest-page.json rows (+1566 B) and 0451bee9cf lantern flags onto quests/forest-story.json (+246 B); data replaced runtime TS."
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "from": {
+        "count": 20,
+        "bytes": 4976007
+      },
+      "to": {
+        "count": 46,
+        "bytes": 9989024
+      },
+      "why": "G595 E2 (Jake: port the hand-written GLSL to look graphs; wildshard-new 2026-10-22: section ceilings are ratchets, raise Nine by the measured bytes in the port commit): the Jiehua composite as scaled post graph rows (+77,363 B over the measured base 9,911,661 B, 46 sections); the committed 20 / 4,976,007 had fallen behind the measured base."
     }
   ],
   "g514Reset": {
@@ -497,6 +509,112 @@
         }
       },
       "why": "G514 coordinator call (wildshard-new, 2026-10-20): raise to measured where rows and baked data replaced runtime TS; G496 shrink-only resumes from these ceilings."
+    },
+    {
+      "revision": "b38837088c923f23602d7c9c7e410c391ce78556",
+      "ceilings": {
+        "_template": {
+          "count": 0,
+          "bytes": 0
+        },
+        "blender-template": {
+          "count": 0,
+          "bytes": 0
+        },
+        "driftwood-isle": {
+          "count": 58,
+          "bytes": 3443141
+        },
+        "far-reach": {
+          "count": 19,
+          "bytes": 2928189
+        },
+        "ink-cel-valley": {
+          "count": 0,
+          "bytes": 0
+        },
+        "nalati-grasslands": {
+          "count": 43,
+          "bytes": 12290241
+        },
+        "nine-dragon-stack": {
+          "count": 46,
+          "bytes": 9989024
+        },
+        "open-plot-alien-plain": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-clockwork-canyon": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-coral-drift": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-desert-ruin": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-ember-forge": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-frostline-peaks": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-lantern-bayou": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-mosslight-ruins": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-night-market": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-showcase-template": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-sky-harbor": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-sky-race": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-starfall-observatory": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plot-thin-ice": {
+          "count": 0,
+          "bytes": 0
+        },
+        "open-plots": {
+          "count": 0,
+          "bytes": 0
+        },
+        "pastel-plain": {
+          "count": 0,
+          "bytes": 0
+        },
+        "pine-hollow": {
+          "count": 236,
+          "bytes": 15921662
+        },
+        "sunscar-dunes": {
+          "count": 16,
+          "bytes": 79809
+        }
+      },
+      "why": "G595 E2 (Jake: port the hand-written GLSL to look graphs; wildshard-new 2026-10-22: section ceilings are ratchets, raise Nine by the measured bytes in the port commit): the Jiehua composite as scaled post graph rows (+77,363 B over the measured base 9,911,661 B, 46 sections); the committed 20 / 4,976,007 had fallen behind the measured base."
     }
   ]
 }

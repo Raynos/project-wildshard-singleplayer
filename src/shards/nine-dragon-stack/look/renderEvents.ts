@@ -3,7 +3,7 @@ import type { NdRenderHandle } from './render';
 import { composite } from '../boot/metadata.generated.json' with { type: 'json' };
 
 /** Each composition owns its listeners and restores the studio's temporary air changes on unload. */
-export function installRenderEvents(c: Pick<LookComposeContext, 'app' | 'scope'>, handle: Pick<NdRenderHandle, 'jiehua' | 'shared'>): void {
+export function installRenderEvents(c: Pick<LookComposeContext, 'app' | 'scope'>, handle: Pick<NdRenderHandle, 'jiehua' | 'display' | 'shared'>): void {
   let air: { base: number; depths: number[] } | null = null;
   const restore = (): void => {
     if (air === null) return;
@@ -14,7 +14,7 @@ export function installRenderEvents(c: Pick<LookComposeContext, 'app' | 'scope'>
   };
   c.app.events.on('practice.active', (active) => {
     handle.jiehua.u.uRain.value.x = active ? 0 : composite.bleed.rain;
-    handle.jiehua.blendMode.opacity.value = active ? 0 : 1;
+    handle.display.blendMode.opacity.value = active ? 0 : 1;
   }, c.scope);
   c.app.events.on('explore.studio', (on) => {
     const u = handle.shared.u;
