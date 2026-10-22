@@ -17,7 +17,7 @@ const asset = row => mapModel(resolve(root, `public${row.url}`), row.geometrySlo
 const painted = row => mapGeometry(new Uint8Array(inflateSync(Buffer.from(row.data, 'base64'))), 0, row.geometry);
 
 export async function nalatiMapAssembly() {
-  const assembly = new MapAssembly(), prepared = read('boot/placeRuntime.generated.json'), specimens = read('boot/specimens.generated.json');
+  const assembly = new MapAssembly(), prepared = read('boot/placeRuntime.generated.json'), specimens = read('data/specimens.generated.json');
   const fixed = read('boot/poiPaint.json'), bytes = mapBinary(resolve(root, 'public/assets/nalati/baked/places.bin'), true);
   const native = parseBakedTerrain(Uint8Array.from(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'))).buffer);
   if (native === null) throw new Error('Map requires native Nalati terrain');

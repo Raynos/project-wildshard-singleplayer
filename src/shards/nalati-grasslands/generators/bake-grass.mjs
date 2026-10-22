@@ -42,5 +42,5 @@ const encodeRows = phone => {
   return { ...rows, scenes: Object.fromEntries(Object.entries(rows.scenes).map(([key, scene]) => [key, encode(new TextEncoder().encode(JSON.stringify(scene)))])) };
 };
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-grass');
-writer.put(resolve(import.meta.dirname, '..', 'boot', 'grass.generated.json'), jsonBytes({ view, height: encode(height), mask: encode(mask), field: encode(fd), ground: encode(gd), phone: encodeRows(true), desktop: encodeRows(false) }, 0));
+writer.put(resolve(import.meta.dirname, '..', 'data', 'grass.generated.json'), jsonBytes({ view, height: encode(height), mask: encode(mask), field: encode(fd), ground: encode(gd), phone: encodeRows(true), desktop: encodeRows(false) }, 0));
 writer.finish();

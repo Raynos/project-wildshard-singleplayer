@@ -41,7 +41,7 @@ const writer=byteWriter(process.argv.includes('--check'),'nalati-place-runtime')
 writer.put(resolve(root,shard,'boot/placeRuntime.generated.json'),jsonBytes({places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
 writer.put(resolve(root,shard,'data/placeRuntime.generated.json'),jsonBytes({places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
 writer.put(resolve(root,shard,'boot/modelMetrics.generated.json'),jsonBytes(read('data/modelMetrics.json')));
-writer.put(resolve(root,shard,'boot/staticCapture.generated.json'),jsonBytes(read('data/staticCapture.json')));
+writer.put(resolve(root,shard,'data/staticCapture.generated.json'),jsonBytes(read('data/staticCapture.json')));
 const paint=read('data/poiPaint.json');
 // G600 L8: the prepared shapes as fixed draw rows (game/models/fixedDraws): the actors' blocks in the place bake, the
 // painted ones inline. The sign lettering's atlases are scene-dressing rows of their own (game/looks/lettering).

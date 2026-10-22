@@ -4,9 +4,9 @@ import type { FixedDraws } from '../src/game/models/fixedDraws';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { installFixedDrawsStage, installPaintedReseedStage } from '../src/game/shardfile/paintedWorldStages';
 import { paintedWorld } from '../src/game/looks/paintedWorld';
-import paintedTextures from '../src/shards/nalati-grasslands/boot/paintedTextures.generated.json' with { type: 'json' };
-import specimenData from '../src/shards/nalati-grasslands/boot/specimens.generated.json' with { type: 'json' };
-import grassRows from '../src/shards/nalati-grasslands/boot/grass.generated.json' with { type: 'json' };
+import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
+import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
+import grassRows from '../src/shards/nalati-grasslands/data/grass.generated.json' with { type: 'json' };
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 
 // An orchard world (the stages' fixture level): its own fixed-draw library and a painted world borrowing the first

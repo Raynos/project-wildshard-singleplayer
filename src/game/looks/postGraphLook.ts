@@ -194,7 +194,11 @@ function lentTextures(rows: NonNullable<PostGraphLookRow['textures']>, bag: Unif
 export async function postGraphLook(product: { readonly slug: string; readonly json: (name: string) => Promise<unknown> }, source: { readonly file: string; readonly field: readonly string[] }): Promise<LookStrategy> {
   let at: unknown = await product.json(source.file);
   for (const key of source.field) at = typeof at === 'object' && at !== null ? Reflect.get(at, key) : undefined;
-  return postGraphLookOf(product.slug, at);
+  const look = postGraphLookOf(product.slug, at), painted = v.parse(PostGraphLookSchema, at).painted;
+  if (painted === undefined) return look;
+  // a painterly level's painted world (fog, ground, grass, sky): loaded only by a level that declares one
+  const { paintedWorld } = await import('./paintedWorld');
+  return { ...look, ...paintedWorld(product.slug, painted).look };
 }
 
 /** A level's post-graph look from its admitted row (`slug` names its LUT): an engine-chain look, or with `scene` its own. */

@@ -2079,7 +2079,7 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 /src/shards/nalati-grasslands/boot/geography.generated.json
 
-/src/shards/nalati-grasslands/boot/grass.generated.json
+/src/shards/nalati-grasslands/data/grass.generated.json
 
 /src/shards/nalati-grasslands/boot/geography.generated.d.json.ts
 /src/shards/nalati-grasslands/data/tamingPoses.generated.json
@@ -2145,7 +2145,7 @@ src/shards/driftwood-isle/data/mapAssembly.generated.*
 src/shards/driftwood-isle/look/map.baked.json
 public/assets/driftwood-isle/map/top.webp
 
-/src/shards/nalati-grasslands/boot/staticCapture.generated.json
+/src/shards/nalati-grasslands/data/staticCapture.generated.json
 
 # Registered generated scene and immutable-blob outputs (source-only builds).
 /public/assets/pine-hollow/baked/hero-materials/

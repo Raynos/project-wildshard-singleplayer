@@ -73,6 +73,9 @@ export const PostGraphLookSchema = v.strictObject({
   /** the whole chain in its own composer ('replace': the scene pass, then the sides and graphs); absent, the graphs stand in
    *  the engine's chain */
   scene: v.exactOptional(v.strictObject({})),
+  /** a painterly level's painted world beside its graphs (game/looks/paintedWorld rows: fog, air, ground, grass, sky, world),
+   *  admitted by that host; read by `postGraphLook` from a product file */
+  painted: v.exactOptional(v.unknown()),
   /** a numeric client-channel group (format/clientChannels programs) the look evaluates each frame after its pixel terms:
    *  its reads name the 'view' owner (the drawn camera seen from the frame root: eyeX, eyeY, eyeZ, near, the projection's
    *  p00 and p11, the root's place rootX, rootY, rootZ), the 'uniforms' owner (the bag's numbers: [uniform, 'value'], a

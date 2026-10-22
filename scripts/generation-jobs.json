@@ -471,12 +471,12 @@
       "outputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
-        "src/shards/nalati-grasslands/boot/paintedTextures.generated.json"
+        "src/shards/nalati-grasslands/data/paintedTextures.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
-        "src/shards/nalati-grasslands/boot/paintedTextures.generated.json"
+        "src/shards/nalati-grasslands/data/paintedTextures.generated.json"
       ],
       "platform": "portable"
     },
@@ -852,7 +852,7 @@
       "outputs": [
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json",
         "src/shards/nalati-grasslands/boot/modelMetrics.generated.json",
-        "src/shards/nalati-grasslands/boot/staticCapture.generated.json",
+        "src/shards/nalati-grasslands/data/staticCapture.generated.json",
         "src/shards/nalati-grasslands/data/placeRuntime.generated.json",
         "src/shards/nalati-grasslands/boot/shapeBook.generated.json"
       ],
@@ -860,7 +860,7 @@
       "buildOutputs": {
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361",
         "src/shards/nalati-grasslands/boot/modelMetrics.generated.json": "7b28eb61e3b25fa53ed7bb2ff5eabfff08b42340a8de4c6e79989b485e3935e6",
-        "src/shards/nalati-grasslands/boot/staticCapture.generated.json": "d2efb3124053f39e8c9e29c5d3925cf98199de6f182c82a18a7dd6e92c1f09dc",
+        "src/shards/nalati-grasslands/data/staticCapture.generated.json": "d2efb3124053f39e8c9e29c5d3925cf98199de6f182c82a18a7dd6e92c1f09dc",
         "src/shards/nalati-grasslands/data/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361",
         "src/shards/nalati-grasslands/boot/shapeBook.generated.json": "ccffd0f24f726a1a396986c2b92e348d5c582d96283f65c6c4293ef92bdd6671"
       },
@@ -1147,15 +1147,13 @@
         "src/shards/nalati-grasslands/data/specimenBindings.d.ts"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/boot/specimens.generated.json",
         "src/shards/nalati-grasslands/boot/specimenParams.generated.d.ts",
-        "src/shards/nalati-grasslands/boot/specimens.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/specimens.generated.d.json.ts",
         "src/shards/nalati-grasslands/data/specimens.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/boot/specimens.generated.json",
         "src/shards/nalati-grasslands/boot/specimenParams.generated.d.ts",
-        "src/shards/nalati-grasslands/boot/specimens.generated.d.json.ts",
+        "src/shards/nalati-grasslands/data/specimens.generated.d.json.ts",
         "src/shards/nalati-grasslands/data/specimens.generated.json"
       ],
       "platform": "portable"
@@ -19019,11 +19017,11 @@
         "src/shards/nalati-grasslands/data/dressing-willow.generated.json"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/boot/grass.generated.json"
+        "src/shards/nalati-grasslands/data/grass.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/nalati-grasslands/boot/grass.generated.json": "a4eb0b922b43aaa27174bac559d606bab10134cf69798aecc012bf40dc5eace0"
+        "src/shards/nalati-grasslands/data/grass.generated.json": "a4eb0b922b43aaa27174bac559d606bab10134cf69798aecc012bf40dc5eace0"
       }
     },
     {

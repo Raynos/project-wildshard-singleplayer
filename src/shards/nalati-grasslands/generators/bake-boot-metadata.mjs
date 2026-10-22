@@ -94,5 +94,5 @@ const fog = { start: 30, end: 600, aerial: [0.0032, 30, -10, 0.002], edge: [0.95
 // soft cloud shadows (game/looks/paintedLook paintedAir): a 520 m tile, cover past 0.53 (± 0.06) takes 0.66 of the sun,
 // drifting at 1.6 × the wind + 2 m/s
 const air = { tile: 520, threshold: 0.53, strength: 0.66, softness: 0.06, drift: [1.6, 2] };
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key, world, fog, air }));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/data/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key, world, fog, air }));
 writer.finish();

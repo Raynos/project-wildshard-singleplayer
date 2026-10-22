@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { afterEach, expect, test } from 'vitest';
 import * as v from 'valibot';
 import { PaintedWorldSchema, paintedWorld, paintedWorldOf } from '../src/game/looks/paintedWorld';
-import paintedTextures from '../src/shards/nalati-grasslands/boot/paintedTextures.generated.json' with { type: 'json' };
-import specimenData from '../src/shards/nalati-grasslands/boot/specimens.generated.json' with { type: 'json' };
-import grassRows from '../src/shards/nalati-grasslands/boot/grass.generated.json' with { type: 'json' };
+import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
+import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
+import grassRows from '../src/shards/nalati-grasslands/data/grass.generated.json' with { type: 'json' };
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 
 // A made-up moor (the painted world's fixture level): its own fog ramp, LUT and drifting cloud shadows over painted ground

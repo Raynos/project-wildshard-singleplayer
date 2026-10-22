@@ -10,7 +10,7 @@ import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { isJsonData } from '../src/format/json';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
-import grass from '../src/shards/nalati-grasslands/boot/grass.generated.json' with { type: 'json' };
+import grass from '../src/shards/nalati-grasslands/data/grass.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import places from '../src/shards/nalati-grasslands/boot/poiLayout.generated.json' with { type: 'json' };
 import clearings from '../src/shards/nalati-grasslands/boot/clearings.generated.json' with { type: 'json' };

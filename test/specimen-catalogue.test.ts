@@ -16,7 +16,7 @@ import packedRows from '../src/shards/nalati-grasslands/data/placeSpecimens.json
 import campMaterialRows from '../src/shards/nalati-grasslands/data/campMaterials.json' with { type: 'json' };
 import type { CatalogueParams } from '../src/shards/nalati-grasslands/boot/specimenParams.generated';
 import type { CatalogueParams as TrailParams } from '../src/shards/driftwood-isle/boot/specimenParams.generated';
-import campData from '../src/shards/nalati-grasslands/boot/specimens.generated.json' with { type: 'json' };
+import campData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
 
 import preparedPlaces from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };

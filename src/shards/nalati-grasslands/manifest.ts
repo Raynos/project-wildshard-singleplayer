@@ -23,7 +23,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   },
   trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
   ktx2: () => import('./ktx2.generated'),
-  render: async () => (await import('./look/render')).shardRender(),
+  render: async (product) => (await import('@wildshard/game/looks/postGraphLook')).postGraphLook(product, { file: 'look/post.json', field: [] }),
 };
 // oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
 export default NALATI_GRASSLANDS;
