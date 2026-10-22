@@ -96,8 +96,8 @@ export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
   for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
 }
 
-/** `worstContentCost` in steps, one per scanned row: a live admission paints between them (Pine's activation spent
- *  ~90 ms of a frame in this scan at 4x CPU). */
+/** `worstContentCost` in steps, one per own tile and synthetic neighbour tile the grids sum, then one per scanned row:
+ *  a live admission paints between them (Pine's activation spent ~90 ms of a frame in this scan at 4x CPU). */
 export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator<void, LocationCost> {
   const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, (tile.drawBounds ?? tile.bounds).min[0], (tile.drawBounds ?? tile.bounds).min[2], (tile.drawBounds ?? tile.bounds).max[0], (tile.drawBounds ?? tile.bounds).max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
     shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident]);
@@ -119,22 +119,26 @@ export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator
   for (const tile of shard.tiles) if (tile.lod === 0) {
     const bounds = tile.drawBounds ?? tile.bounds, bytes = tile.decoded + tile.gpu;
     near(bounds.min[0], bounds.min[2], bounds.max[0], bounds.max[2], cell => { ownL0[cell] = (ownL0[cell] ?? 0) + bytes; });
+    yield;
   }
   near(-250, -250, 250, 250, cell => { ownActive[cell] = 1; });
   const cells = new Map<string, { l0: Float64Array; active: Uint8Array }>();
-  const cellOf = ([cx, cz]: readonly [number, number]): { l0: Float64Array; active: Uint8Array } => {
+  const cellOf = function* cellOf([cx, cz]: readonly [number, number]): Generator<void, { l0: Float64Array; active: Uint8Array }> {
     const id = `${cx},${cz}`, known = cells.get(id); if (known !== undefined) return known;
     const made = { l0: new Float64Array(n * n), active: new Uint8Array(n * n) };
     for (let i = 0; i < 64; i++) {
       const x0 = cx - 250 + (i % 8) * 62.5, z0 = cz - 250 + Math.floor(i / 8) * 62.5;
       near(x0, z0, x0 + 62.5, z0 + 62.5, cell => { made.l0[cell] = (made.l0[cell] ?? 0) + C.l0.resident; });
+      yield;
     }
     near(cx - 250, cz - 250, cx + 250, cz + 250, cell => { made.active[cell] = 1; });
     cells.set(id, made); return made;
   };
   let worstAccounted = Number.NEGATIVE_INFINITY;
   for (const model of locationModels(shard, commons)) {
-    const [a, b, c] = model.neighbours.map(cellOf);
+    const found: { l0: Float64Array; active: Uint8Array }[] = [];
+    for (const neighbour of model.neighbours) found.push(yield* cellOf(neighbour));
+    const [a, b, c] = found;
     if (a === undefined || b === undefined || c === undefined) throw new Error('Location model requires three neighbours');
     for (let xi = 0; xi < n; xi++) for (let zi = 0; zi < n; zi++) {
       const cell = at(xi, zi), active = (a.active[cell] ?? 0) + (b.active[cell] ?? 0) + (c.active[cell] ?? 0);
