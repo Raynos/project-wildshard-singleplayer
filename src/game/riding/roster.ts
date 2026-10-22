@@ -9,17 +9,7 @@ import { creatureFloor, nativeCreatureRecipes } from '../shardfile/homeKeeper';
 import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { ReturnProgram } from '../population/returnProgram';
 
-interface Services { identities: NativeActors<HuntBody>; random: Rng; hunt: StalkerBrain<HuntBody>; bodies: HuntBody[]; sight: (boolean | null | undefined)[]; retired: Set<string>; flocks: readonly FlockBrain[] }
-const services = new WeakMap<SimHost, Map<string, Services>>();
-/** Bind only concrete built-in owners and mutable roster stores. No authored
- * callback, subclass policy or reflection target is accepted. */
-export function admitMountRoster(host: SimHost, id: string, identities: NativeActors<HuntBody>, random: Rng,
-  hunt: StalkerBrain<HuntBody>, bodies: HuntBody[], sight: (boolean | null | undefined)[], retired: Set<string>, flocks: readonly FlockBrain[]): void {
-  if (!(identities instanceof NativeActors) || !(random instanceof Rng) || !(hunt instanceof StalkerBrain)
-    || bodies.length > 64 || bodies.length !== sight.length || bodies.some(actor => host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid mount roster owners');
-  const map = services.get(host) ?? new Map<string, Services>(); if (map.has(id)) throw new Error('Duplicate mount roster owner');
-  map.set(id, { identities, random, hunt, bodies, sight, retired, flocks }); services.set(host, map); host.scope.onDispose(() => { map.delete(id); });
-}
+interface Services { readonly host: SimHost; readonly id: string; identities: NativeActors<HuntBody>; random: Rng; hunt: StalkerBrain<HuntBody>; bodies: HuntBody[]; sight: (boolean | null | undefined)[]; retired: Set<string>; flocks: readonly FlockBrain[] }
 export interface MountSpawn { id: string; variant: string; seed: number; scale: number; at: [number, number, number]; yaw: number; adopted: RngState }
 /** The same actor owns its dynamic identity, manager position and saved recipe. */
 export interface BondedMount { body: MountSpawn; upgraded: boolean }
@@ -39,17 +29,20 @@ const sampleTerrain = (): void => undefined;
 export class BondedMountRoster {
   readonly records: BondedMount[] = [];
   readonly hidden = new Set<string>();
-  private readonly service: Services;
   private readonly program: ReturnProgram;
   private readonly spec: AnimalSimSpec;
   private readonly floor: ReturnType<typeof creatureFloor>;
-  constructor(private readonly host: SimHost, private readonly rows: BondedMountRows) {
-    const owner = services.get(host)?.get(rows.services); if (owner === undefined) throw new Error('Missing mount roster service');
-    this.service = owner; this.program = ReturnProgram.native(host, rows.program);
+  constructor(private readonly host: SimHost, private readonly rows: BondedMountRows, private readonly service: Services) {
+    const { identities, random, hunt, bodies, sight } = service;
+    if (service.host !== host || service.id !== rows.services || host.scope.disposed || host.scope.disposing
+      || !(identities instanceof NativeActors) || !(random instanceof Rng) || !(hunt instanceof StalkerBrain)
+      || bodies.length > 64 || bodies.length !== sight.length || bodies.some(actor => host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid mount roster owners');
+    const map = installed.get(host) ?? new Map<string, BondedMountRoster>(); if (map.has(rows.id)) throw new Error('Duplicate bonded mount roster');
+    if ([...map.values()].some(roster => roster.rows.services === rows.services && roster.service !== service)) throw new Error('Duplicate mount roster owner');
+    this.program = ReturnProgram.native(host, rows.program);
     this.spec = nativeCreatureRecipes(rows.specs).spec(rows.kind, rows.variant);
     this.floor = creatureFloor(host, (x, z) => host.groundHeightAt(x, z));
     if (rows.scale.some(value => !Number.isFinite(value) || value <= 0) || rows.scale[0] > rows.scale[1] || !Number.isFinite(rows.spawnY)) throw new Error('Invalid mount spawn rows');
-    const map = installed.get(host) ?? new Map<string, BondedMountRoster>(); if (map.has(rows.id)) throw new Error('Duplicate bonded mount roster');
     map.set(rows.id, this); installed.set(host, map); host.scope.onDispose(() => { map.delete(rows.id); });
   }
   get flocks(): readonly FlockBrain[] { return this.service.flocks; }

@@ -16,7 +16,7 @@ import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import { nativeGroupCollection } from '../shardfile/groupRuntime';
 import { creatureFloor, admitNativeRosterServices, createNativeCreatureRoster, NativeDeferredRoster, type NativeCreatureSlot } from '../shardfile/homeKeeper';
-import { admitMountRoster, BondedMountRoster } from './roster';
+import { BondedMountRoster } from './roster';
 import { mountedPlayerOf } from './native';
 import { nativeTamingOf } from './nativeTaming';
 import { nativeHuntGround, createNativeHunt } from '../plugin/brain';
@@ -193,10 +193,10 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   const continueIds = (next: number): void => { intake.identities.restoreAllocator({ next, used: intake.identities.allocatorState().used }); };
   continueIds(Math.max(-1, ...bodies.map(a => Number(a.entityId.slice('creature:'.length)))) + 1);
   const eliteSpawns: v.InferOutput<typeof EliteSpawn>[] = [], retired = new Set<string>();
-  admitMountRoster(host, cfg.step, intake.identities, rng, hunt, bodies, seen, retired, flocks);
   const mountRoster = new BondedMountRoster(host, { id: cfg.companion.id, services: cfg.step, herds: cfg.herds,
     kind: cfg.companion.kind, variant: cfg.companion.variant, wildKinds: cfg.companion.wildKinds, specs: ports.boot.recipes,
-    scale: scaleVariants.get(cfg.companion.kind)?.find(row => row.id === cfg.companion.variant)?.scale ?? [1,1], spawnY: ports.spawnY, program: ports.boot.admission });
+    scale: scaleVariants.get(cfg.companion.kind)?.find(row => row.id === cfg.companion.variant)?.scale ?? [1,1], spawnY: ports.spawnY, program: ports.boot.admission },
+    { host, id: cfg.step, identities: intake.identities, random: rng, hunt, bodies, sight: seen, retired, flocks });
   const bonded = mountRoster.records, hiddenStallions = mountRoster.hidden;
   const deferred = new NativeDeferredRoster(host, intake, hunt, rng, bodies, seen, retired, ports.elites.absent,
     { limit: POP_BODY_MAX, spawnY: ports.spawnY, motorKinds: cfg.motorKinds, retiredY: cfg.retiredY });

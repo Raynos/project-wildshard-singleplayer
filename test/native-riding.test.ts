@@ -64,7 +64,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   const { fixtureNativeRoster } = await import('./fixtures/native-roster');
   const { Rng } = await import('@wildshard/engine/core/rng');
   const { NativeActors } = await import('../src/game/population/actors');
-  const { admitMountRoster, BondedMountRoster } = await import('@wildshard/game/riding/roster');
+  const { BondedMountRoster } = await import('@wildshard/game/riding/roster');
   const { installNativeTaming } = await import('@wildshard/game/riding/nativeTaming');
   const { SPECIES_POSES } = await import('../src/shards/nalati-grasslands/generators/speciesPoses');
   const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
@@ -74,8 +74,15 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   const random = new Rng(71), { hunt } = fixtureNativeRoster(host, random), retired = new Set<string>();
   const bodies: HuntBody[] = [], sight: (boolean | null | undefined)[] = [];
   herdService(host, 'orchard.herds');
-  admitMountRoster(host, 'orchard.actors', new NativeActors('creature', 64), random, hunt, bodies, sight, retired, []);
-  const roster = new BondedMountRoster(host, { id: 'orchard.companions', services: 'orchard.actors', herds: 'orchard.herds', kind: 'boar', variant: 'boar', wildKinds: ['boar'], specs: [sample.spec], scale: [1, 1], spawnY: 10, program: admission });
+  const service = { host, id: 'orchard.actors', identities: new NativeActors<HuntBody>('creature', 64), random, hunt, bodies, sight, retired, flocks: [] };
+  const companionRows: ConstructorParameters<typeof BondedMountRoster>[1] = { id: 'orchard.companions', services: service.id, herds: 'orchard.herds', kind: 'boar', variant: 'boar', wildKinds: ['boar'], specs: [sample.spec], scale: [1, 1], spawnY: 10, program: admission };
+  const roster = new BondedMountRoster(host, companionRows, service);
+  expect(() => new BondedMountRoster(host, companionRows, service)).toThrow('Duplicate bonded mount roster');
+  expect(() => new BondedMountRoster(host, { ...companionRows, id: 'orchard.other' }, { ...service })).toThrow('Duplicate mount roster owner');
+  expect(() => new BondedMountRoster(host, { ...companionRows, id: 'orchard.other', services: 'foreign.actors' }, service)).toThrow('Invalid mount roster owners');
+  expect(() => new BondedMountRoster(host, { ...companionRows, id: 'orchard.other' }, { ...service, sight: [false] })).toThrow('Invalid mount roster owners');
+  const foreign = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+  try { expect(() => new BondedMountRoster(foreign, companionRows, service)).toThrow('Invalid mount roster owners'); } finally { foreign.dispose(); }
   const mounted = installMountedPlayer(host, { ...rows, mountable: [] });
   const taming = installNativeTaming(host, { commands: () => [] }, { step: 'orchard.taming', herds: 'orchard.herds', roster: 'orchard.companions', kinds: [], programs,
     binding: { upgradeKind: 'silver', bonds: ['ordinary', 'silver'], names: ['Juniper', 'Silver'], offset: [1, 2], fields: { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' },
