@@ -4,7 +4,8 @@ import type { LiveMarker } from '@wildshard/engine/quest/view';
 import type { ShardContext } from '../plugin/context';
 import { findChunk } from '../shard/registry';
 import { travel } from '../travel/travel';
-import { ShardComplete, setCompleteEntry, type ShardCompleteData } from './ShardComplete';
+import { ShardComplete, completeEntry, setCompleteEntry, type CompleteEntry, type ShardCompleteData } from './ShardComplete';
+import { installEnteredLevelService } from '../shard/retainedHooks';
 
 /** Live progress remains in its existing owner; the card reads these values without copying or saving them. */
 export interface CompletionProgress {
@@ -85,9 +86,14 @@ export function installCompletion(ctx: CompletionContext, flags: Flags, progress
       title: () => { close(); play.hud.exitToMenu?.(); },
     });
   };
-  const syncEntry = (): void => { setCompleteEntry(flags.has(rows.doneFlag) ? { label: `${title} complete`, sub: rows.menuSubtitle, open } : null); };
-  syncEntry(); const off = flags.onChange(flag => { if (flag === rows.doneFlag) syncEntry(); });
-  ctx.scope.onDispose(() => { off(); card.close(); });
+  // the pause menu's complete row is one per page: a retained (grid) runtime holds it only while entered
+  let mine: CompleteEntry | null = null;
+  const syncEntry = (): void => { mine = flags.has(rows.doneFlag) ? { label: `${title} complete`, sub: rows.menuSubtitle, open } : null; setCompleteEntry(mine); };
+  installEnteredLevelService(ctx, (scope) => {
+    syncEntry(); const off = flags.onChange(flag => { if (flag === rows.doneFlag) syncEntry(); });
+    scope.onDispose(() => { off(); if (mine !== null && completeEntry() === mine) setCompleteEntry(null); mine = null; });
+  });
+  ctx.scope.onDispose(() => { card.close(); });
   let offered = false, checkT = 0;
   ctx.system({ id: rows.system, phase: 'update', before: rows.before, after: rows.after, run: (_dt, t) => {
     if (offered || t - checkT < rows.pollSeconds) return;
