@@ -12220,6 +12220,32 @@
       ]
     },
     {
+      "id": "driftwood-bridge-sway",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-bridge-sway.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-bridge-sway.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/driftwood-isle/behaviour/bridgeSway.as",
+        "src/shards/driftwood-isle/generators/bake-bridge-sway.mjs"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/behaviour/bridgeSway.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/behaviour/bridgeSway.generated.json"
+      ]
+    },
+    {
       "id": "driftwood-director",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs",

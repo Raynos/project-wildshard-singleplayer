@@ -57,6 +57,7 @@
     "./riding/nativePopulation": "./riding/nativePopulation.ts",
     "./shardfile/clientPlaceSets": "./shardfile/clientPlaceSets.ts",
     "./systems/looks/waterSurface": "./systems/looks/waterSurface.ts",
+    "./systems/looks/deckCameraSway": "./systems/looks/deckCameraSway.ts",
     "./shardfile/clientWaterSurfaces": "./shardfile/clientWaterSurfaces.ts",
     "./shardfile/clientCosmeticFinishes": "./shardfile/clientCosmeticFinishes.ts",
     "./riding/client": "./riding/client.ts",
