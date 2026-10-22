@@ -16,7 +16,7 @@ export interface WorldEntryPorts {
   /** the admitted scene handles (absent: an entry that runs only `piece` rows on its root, after the world is built) */
   readonly scenes?: SceneHandles;
   readonly root: Object3D;
-  /** The concrete entered owner; required for live grapple-closed pieces. */
+  /** The concrete entered owner; required for live tool-closed pieces. */
   readonly scope?: Scope;
   readonly tier: 'phone' | 'desktop';
   /** the world variant this build is (a deck ending, a standalone or grid entry); rows with another `when.variant` skip */

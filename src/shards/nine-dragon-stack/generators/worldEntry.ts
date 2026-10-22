@@ -34,7 +34,7 @@ export function nineWorldEntry(): WorldEntryRows {
   const guard = (variant: 'capped' | 'open', rows: readonly NinePhysicsPlacement[]) => {
     const row = rows.find(entry => entry.id === 'nds-grapple-guard'); if (row === undefined) throw new Error('Missing Nine grapple guard');
     return { kind: 'piece', when: { variant }, id: row.id, name: row.name, file: row.file, category: 'buildings', surface: 'stone',
-      colliders: row.colliders, floors: [], floorPolicy: 'first', solidFloor: false, object: null, active: 'grapple-closed' };
+      colliders: row.colliders, floors: [], floorPolicy: 'first', solidFloor: false, object: null, active: 'tool-closed' };
   };
   // the Well's crossings (both endings): stone, timber and metal walkways
   const crossings = { kind: 'piece', ...install.crossings, category: 'buildings', surface: 'stone', surfaces: ['stone', 'wood', 'metal'], colliders: worldRows.rows.crossings,

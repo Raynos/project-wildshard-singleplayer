@@ -18,7 +18,7 @@ import { legacyDouble } from './fake/FakeGame';
 
 const piece = { kind: 'piece', id: 'gate', name: 'Gate', file: 'gate.json', category: 'buildings', surface: 'stone',
   colliders: [], floors: [], floorPolicy: 'first', solidFloor: false, object: null };
-const guarded = { ...piece, active: 'grapple-closed' };
+const guarded = { ...piece, active: 'tool-closed' };
 const rows = { blocks: { pieces: [{ ...piece, id: 'first' }, guarded] } };
 
 test.each(['capped', 'open'] as const)('declared %s guard keeps original colliders and the last registration', async variant => {
@@ -52,6 +52,7 @@ test('active policy and missing owner refuse before any earlier piece registers'
   const ports = { root: new Group(), tier: 'phone' as const, piece: () => { effects++; } };
   await expect(WorldEntry.admit(rows, ports).run('pieces')).rejects.toThrow('entered scope');
   expect(() => parseWorldEntry({ blocks: { pieces: [{ ...piece, active: 'callback' }] } })).toThrow();
+  expect(() => parseWorldEntry({ blocks: { pieces: [{ ...piece, active: 'grapple-closed' }] } })).toThrow();
   expect(effects).toBe(0);
   const scope = new Scope('ended'); scope.dispose();
   expect(() => WorldEntry.admit(rows, { ...ports, scope })).toThrow('owner ended');
