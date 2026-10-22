@@ -371,7 +371,6 @@ export class ProjectilePresentation {
       else this.writer.publish(mesh, slot.data.index, 'stopped');
     });
   }
-  get stuckCount(): number { return this.stopped.reduce((count, page) => count + page.count, 0); }
   static movingFrame(owner: unknown): THREE.Object3D | null {
     if (typeof owner !== 'object' || owner === null || !('follows' in owner)) return null;
     return owner.follows instanceof THREE.Object3D ? owner.follows : null;

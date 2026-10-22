@@ -281,12 +281,8 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
   }
   override reload(): void { this.action.reload(); }
   override addBolts(n: number): void { this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + n); }
-  /** world position of the loaded bolt's tip (the iron sight) */
-  tipWorld(out: THREE.Vector3): THREE.Vector3 { return this.loadedBolt.localToWorld(out.copy(this.tipLocal)); }
   /** the plain bolt's material (special bolts dress a uniform-only clone of it) */
   get boltMaterial(): THREE.Material { return this.boltMat; }
-  get inFlight(): number { let n = 0; for (const b of this.flightPool.slots) if (b.active) n++; return n; }
-  get stuckCount(): number { return this.presentation.stuckCount; }
   /** A world copy for a pickup or a skin drop: the model at rest, without the hands, on merged world materials. */
   displayModel(): THREE.Group { return displayCopy(this.model, this.rows, this.sky, this.boltMat.name); }
 
