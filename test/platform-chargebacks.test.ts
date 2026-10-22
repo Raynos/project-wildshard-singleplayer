@@ -306,3 +306,15 @@ test('ordered arena script construction retains its actual Nalati-only C9 owner'
   expect(bindings.get(`${path}\0${name}`)).toEqual(new Set(['nalati-grasslands']));
   expect(bindings.get(`${path}\0WorldAssembly`)).toEqual(both);
 });
+
+test('the sole-user bounds policy charges Nine without approving the existing shared installer', () => {
+  const runtime = 'src/game/shardfile/clientRuntimeHooks.ts', format = 'src/format/clientPlan.ts';
+  const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nine-dragon-stack', []], ['nalati-grasslands', []]]);
+  for (const [path, name] of [[runtime, 'runtimeLevelBounds'], [runtime, 'RuntimeBoundsRows'], [format, 'RuntimeBoundsSchema']] as const) {
+    expect(platformChargeback(path, name)).toBe('C9');
+    expect(recordPrivateCharge(charges, 'nalati-grasslands', { path, name, lines: 1 })).toBe(true);
+  }
+  expect(charges.get('nine-dragon-stack')).toHaveLength(3);
+  expect(charges.get('nalati-grasslands')).toEqual([]);
+  expect(platformChargeback(runtime, 'installClientRuntimeHooks')).toBeNull();
+});

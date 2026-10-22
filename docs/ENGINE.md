@@ -11417,6 +11417,21 @@ exist; all targets are preflighted before installation. Movers retain the
 existing bound resident-construction authority: an unbound native entry keeps
 its original static rest pose and installs no drive.
 
+`world.runtime-hooks` may declare `bounds: {x: [min, max], z: [min, max],
+outer: {maxAbsXZ, floor}}`. Both axes are finite and strictly ordered; the
+outer threshold is nonnegative. The native bounds hook keeps an absent
+authored bound absent. Its floor getter reads the current world's player:
+outside the strict maximum absolute x/z threshold it returns the declared
+outer floor, otherwise the original authored floor, including when no player
+exists. It restores the previous hook when its entered owner retires.
+This bounds law remains charged to its sole user; the existing hook installer
+gains no additional waiver.
+
+String registration is compiled metadata. A world phase containing only
+metadata rows leaves look preparation to the original native constructor;
+any visual world row retains the normal pre-look boundary. Content cannot
+select or disable this behavior.
+
 An object mover may declare `moor: { look, water, cleats: [z0, z1] }`. Its
 actual lent graph must expose the fixed vec2 moor parameter. The existing
 fixed-step mover publishes the object's pose first, then writes each component

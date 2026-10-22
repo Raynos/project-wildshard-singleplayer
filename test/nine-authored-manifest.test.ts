@@ -33,7 +33,7 @@ test('Nine preserves its exact authored boot inventory, modes, art and structure
   expect(MANIFEST.trustedRuntime?.entry).toBe('runtime/index.ts');
   const source = authoredManifestSource(resolve(import.meta.dirname, '..'), 'nine-dragon-stack');
   expect(source).toContain('nativeModule["NdPlugin"]');
-  expect(source).toContain('"nativePlan":{"phases":["kit","play"]}');
+  expect(source).toContain('"nativePlan":{"phases":["world","world-bindings","kit","play"]}');
   expect(source).toContain('...{"structures":true}');
   expect(source).toContain('graphSword("nine-dragon-stack", "weapons/jian-row.json")');
 });

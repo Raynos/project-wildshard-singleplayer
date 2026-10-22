@@ -1,3 +1,4 @@
+import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
 import { StreamedCoverSchema } from '@wildshard/format/streamedCover';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
@@ -160,6 +161,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'clientPlan.RuntimeBounds': RuntimeBoundsSchema,
   'worldUpdates.WorldUpdates': WorldUpdatesSchema,
   'streamedCover.StreamedCover': StreamedCoverSchema,
   'practiceCourseRows.PracticeScene':PracticeSceneSchema,

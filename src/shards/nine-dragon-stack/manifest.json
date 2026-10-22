@@ -460,6 +460,8 @@
       "stagesOwner": "declared",
       "nativePlan": {
         "phases": [
+          "world",
+          "world-bindings",
           "kit",
           "play"
         ]

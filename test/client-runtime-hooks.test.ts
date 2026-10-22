@@ -1,9 +1,10 @@
 import { expect,test,vi } from 'vitest';
 import { BufferGeometry,Group,Mesh,MeshBasicMaterial,Object3D,Vector3 } from 'three';
+import type { Bounds } from '../src/engine/level/spec';
 import { Scope } from '../src/engine/app/scope';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { installClientRuntimeHooks } from '../src/game/shardfile/clientRuntimeHooks';
+import { installClientRuntimeHooks, runtimeLevelBounds } from '../src/game/shardfile/clientRuntimeHooks';
 import { lendEntryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { legacyDouble } from './fake/FakeGame';
 
@@ -62,4 +63,36 @@ test('retired entered or construction owners refuse without changing the runtime
   publishEntryOwner(construction,'object','flock',new Group());lendEntryOwner(entered,construction,'object','flock');construction.dispose();
   expect(()=>installClientRuntimeHooks(context(entered,shell),{overhead:['flock'],meleeSilent:true})).toThrow('living entered');
   expect(shell.hooks).toEqual({});expect(shell.overhead).toEqual([]);
+});
+
+const boundsRows = { x: [-250, 250], z: [-250, 250], outer: { maxAbsXZ: 200, floor: -20 } } as const;
+
+test('declared bounds preserve the exact strict edge and current world/player floor', () => {
+  const shell = runtime(), authored = { x0: -80, x1: 80, z0: -80, z1: 80, floor: -110 };
+  expect(runtimeLevelBounds(shell, boundsRows, undefined)).toBeUndefined();
+  const selected = runtimeLevelBounds(shell, boundsRows, authored);
+  expect(selected).toMatchObject({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -110 });
+  const position = new Vector3(200, 0, -200);
+  shell.world = legacyDouble<NonNullable<ShardRuntime['world']>>({ player: legacyDouble<NonNullable<ShardRuntime['world']>['player']>({ position }) });
+  expect(selected?.floor).toBe(-110);
+  position.x = 200.001; expect(selected?.floor).toBe(-20);
+  position.set(0, 0, -200.001); expect(selected?.floor).toBe(-20);
+  shell.world = legacyDouble<NonNullable<ShardRuntime['world']>>({ player: legacyDouble<NonNullable<ShardRuntime['world']>['player']>({ position: new Vector3() }) });
+  expect(selected?.floor).toBe(-110);
+  authored.floor = -120; expect(selected?.floor).toBe(-120);
+  shell.world = null; expect(selected?.floor).toBe(-120);
+});
+
+test('entered bounds restore original hooks and preserve a later owner on retirement', () => {
+  const shell = runtime(), first = new Scope('first bounds'), second = new Scope('second bounds');
+  const original = vi.fn((bounds: Bounds | undefined) => bounds), later = vi.fn((bounds: Bounds | undefined) => bounds);
+  shell.hooks.levelBounds = original;
+  installClientRuntimeHooks(context(first, shell), { overhead: [], bounds: boundsRows });
+  expect(shell.hooks.levelBounds).not.toBe(original);
+  expect(shell.hooks.levelBounds(undefined)).toBeUndefined();
+  first.dispose(); expect(shell.hooks.levelBounds).toBe(original);
+  installClientRuntimeHooks(context(second, shell), { overhead: [], bounds: boundsRows });
+  const third = new Scope('later bounds'); third.expose(shell.hooks, 'levelBounds', later);
+  second.dispose(); expect(shell.hooks.levelBounds).toBe(later);
+  third.dispose(); expect(shell.hooks.levelBounds).toBe(original);
 });

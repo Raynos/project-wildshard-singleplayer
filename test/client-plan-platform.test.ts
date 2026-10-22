@@ -1,4 +1,7 @@
 // @vitest-environment happy-dom
+import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { emitPlatformSections } from '../src/sdk/platformSections';
+import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { parseFamilyMaterial } from '../src/format/materialFamilies';
 import * as materialCompiler from '../src/game/shardfile/clientMaterials';
 import * as textureCapabilities from '../src/engine/core/ktx2';
@@ -30,7 +33,7 @@ import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { declaredRuntimeEntry, declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
 import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan, RuntimeBoundsSchema } from '../src/format/clientPlan';
 import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
@@ -496,4 +499,39 @@ test('native metadata registration leaves the original world as the only look co
     await new Entry(undefined, undefined, () => false).world(f.ctx);
     expect(order).toEqual(['strings', 'native-world']); expect(compile).not.toHaveBeenCalled();
   } finally { compile.mockRestore(); f.ctx.scope.dispose(); }
+});
+
+
+test('runtime bounds use their finite defining grammar and actual platform emission', () => {
+  const bounds = { x: [-250, 250], z: [-250, 250], outer: { maxAbsXZ: 200, floor: -20 } };
+  const row = { kind: 'world.runtime-hooks', bounds, overhead: [] };
+  const emitted = emitPlatformSections(new Map([['client/plan', { version: 1, features: [row] }]]));
+  const bytes = emitted.files.get('sections/client/plan.json');
+  if (bytes === undefined) throw new Error('Missing emitted client plan');
+  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({ version: 1, features: [row] });
+  const schema = namedJsonSchema(RuntimeBoundsSchema);
+  expect(validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify(bounds)))).toEqual(bounds);
+  for (const bad of [{ ...bounds, x: [2, 1] }, { ...bounds, z: [0, 0] }, { ...bounds, x: [-250, Number.NaN] },
+    { ...bounds, outer: { maxAbsXZ: -1, floor: -20 } }, { ...bounds, outer: { ...bounds.outer, floor: Infinity } },
+    { ...bounds, owner: 'player' }, { ...bounds, outer: { ...bounds.outer, path: 'position' } }])
+    expect(() => parseClientPlan({ version: 1, features: [{ ...row, bounds: bad }] })).toThrow();
+});
+
+test('runtime bound rows dispatch after the original native build and before its gameplay capture', async () => {
+  const f = context(), order: string[] = [], bounds = { x: [-250, 250], z: [-250, 250], outer: { maxAbsXZ: 200, floor: -20 } };
+  f.sections.set('client/plan', { version: 1, features: [{ kind: 'world.runtime-hooks', bounds, overhead: [] }] });
+  const install = vi.spyOn(runtimeHookBindings, 'installClientRuntimeHooks').mockImplementation((_ctx, rows) => {
+    expect(rows.bounds).toEqual(bounds); order.push('bounds');
+  });
+  class Native extends ShardPlugin {
+    override world(): void { order.push('build'); }
+    override play(): void { order.push('capture'); }
+  }
+  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared',
+    nativePlan: { phases: ['world-bindings'], features: ['world.runtime-hooks'] } }).default;
+  const plugin = new Entry(undefined, undefined, () => false);
+  try {
+    await plugin.world(f.ctx); await plugin.play(f.ctx);
+    expect(order).toEqual(['build', 'bounds', 'capture']); expect(install).toHaveBeenCalledOnce();
+  } finally { install.mockRestore(); f.ctx.scope.dispose(); }
 });

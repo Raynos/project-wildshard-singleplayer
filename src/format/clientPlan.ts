@@ -34,6 +34,11 @@ const WaterDrawSchema = v.strictObject({
   /** the toon lighting's sea level is this water's level */
   toonSeaLevel: v.boolean(),
 });
+/** A finite play rectangle with its authored fall floor inside the central square. */
+export const RuntimeBoundsSchema = v.pipe(v.strictObject({
+  x: v.tuple([finite, finite]), z: v.tuple([finite, finite]),
+  outer: v.strictObject({ maxAbsXZ: v.pipe(finite, v.minValue(0)), floor: finite }),
+}), v.check(row => row.x[0] < row.x[1] && row.z[0] < row.z[1], 'ordered play bounds'));
 /** Client-only declarations select compiled platform features, never modules, owners or property paths. */
 export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('strings.register') }),
@@ -50,7 +55,7 @@ export const ClientFeatureSchema = v.variant('kind', [
       v.check(rows => new Set(rows.map(row => row.id)).size === rows.length && new Set(rows.map(row => row.owner)).size === rows.length, 'unique ambient ids and owners')) }),
   v.strictObject({ kind: v.literal('world.updates'), rows: WorldUpdatesSchema }),
   v.strictObject({ kind: v.literal('world.assembly'), library: id, catalogue: label, rows: WorldAssemblySchema }),
-  v.strictObject({ kind: v.literal('world.runtime-hooks'), floor: v.exactOptional(id),
+  v.strictObject({ kind: v.literal('world.runtime-hooks'), bounds: v.exactOptional(RuntimeBoundsSchema), floor: v.exactOptional(id),
     overhead: v.pipe(v.array(id), v.maxLength(64), v.check(rows => new Set(rows).size === rows.length, 'unique overhead owners')),
     meleeSilent: v.exactOptional(v.boolean()) }),
   v.strictObject({ kind: v.literal('world.movers'), system: id,

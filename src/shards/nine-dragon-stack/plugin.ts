@@ -12,14 +12,10 @@ import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { TIER } from '@wildshard/engine/core/tier';
 import { NdRuntime, ownNdRuntime } from './runtime/state';
 import { installSpecimenLight } from './look/specimenLight';
-import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 
-
-/** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */
-const DECK_ZONE = 200;
 
 /** `caps`: whether the decks' open ends get their standalone balustrades (G200: no grid cube); `pause`: the build's paced
  *  pause between stretches (worldBuildYield, op-hitch45) */
@@ -49,7 +45,6 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
 
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
-  private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
     super();
@@ -57,14 +52,6 @@ export class NdPlugin extends ShardPlugin {
   }
   override async world(ctx: ShardContext): Promise<void> {
     const scope = ctx.scope;
-    ctx.strings(bootMetadata.strings);
-    this.shell = ctx.game.runtime;
-    // the player stands on the road-height decks at the cell's edges as well as on the fragment: the whole cell is in
-    // bounds; the fall net stays the fragment's own (its authored floor, Y0 − 100) under the fragment and drops to just
-    // under the road only out by the decks (G224: you reach them by portal, never by a fall)
-    const shell = this.shell;
-    if (shell !== undefined) shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { x0: -250, x1: 250, z0: -250, z1: 250,
-      get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
     const { world, camera } = await this.build(ctx, ctx.cube === null, () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     if (ctx.game.runtime !== undefined) ctx.game.runtime.objects['lanterns'] = world.lanterns;
@@ -84,7 +71,7 @@ export class NdPlugin extends ShardPlugin {
 }
 
 const entry = declaredRuntimeEntry(NdPlugin, NdPlugin, {
-  entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit', 'play'] },
+  entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['world', 'world-bindings', 'kit', 'play'] },
 });
 export const resolveTrustedRuntime = entry.resolveTrustedRuntime;
 
