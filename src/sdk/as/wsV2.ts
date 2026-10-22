@@ -77,6 +77,20 @@ let sliceStart:i32=-1;
 @inline export function edgeValue(index:i32,axis:i32):f64{assert(axis>=0&&axis<2);return load<f64>(row(8,index)+16+usize(axis)*8);}
 @inline export function eventWord(index:i32,field:i32):i32{assert(field>=0&&field<6);return load<i32>(row(9,index)+usize(field)*4);}
 @inline export function eventValue(index:i32,field:i32):f64{assert(field>=0&&field<4);return load<f64>(row(9,index)+24+usize(field)*8);}
+@inline export function query(op:i32,id:u32,target:i32,a:f64=0,b:f64=0,c:f64=0,d:f64=0,e:f64=0,f:f64=0,g:f64=0):void{
+  assert((op==4||op==5||op==8||op==9)&&id>0&&target>=0);const dir=directory(11),n=load<u32>(dir+16);assert(n<load<u32>(dir+12));
+  store<u32>(dir+16,n+1);const at=row(11,i32(n));store<i32>(at,handle());store<u32>(at+4,id);store<i32>(at+8,op);store<u32>(at+12,0);store<i32>(at+16,load<i32>(IO+28));store<i32>(at+20,target);
+  store<f64>(at+24,a);store<f64>(at+32,b);store<f64>(at+40,c);store<f64>(at+48,d);store<f64>(at+56,e);store<f64>(at+64,f);store<f64>(at+72,g);store<u32>(IO+60,n+1);
+}
+@inline export function replyBinding(index:i32):i32{return load<i32>(row(12,index));}
+@inline function reply(index:i32):usize{const at=row(12,index);assert(load<i32>(at)==handle());return at;}
+@inline export function replyId(index:i32):u32{return load<u32>(reply(index)+4);}
+@inline export function replyStatus(index:i32):u32{const status=load<u32>(reply(index)+8);assert(status>=1&&status<=3);return status;}
+@inline export function replyTick(index:i32):i32{return load<i32>(reply(index)+16);}
+@inline export function replyValue(index:i32,component:i32):f64{assert(replyStatus(index)==1&&component>=0&&component<5);return load<f64>(reply(index)+24+usize(component)*8);}
+@inline export function replyData(index:i32,component:i32):f64{
+  const at=reply(index),n=load<u32>(at+12),base=load<u32>(at+20),total=u32(count(13));assert(replyStatus(index)==1&&base<=total&&n<=total-base&&component>=0&&u32(component)<n);return load<f64>(row(13,i32(base)+component));
+}
 @inline function grid():usize{
   assert(count(14)>=64);const at=row(14,0);assert(load<u32>(at+56)==1&&load<u32>(at+44)==0&&load<u32>(at+60)==0);return at;
 }

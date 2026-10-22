@@ -634,6 +634,28 @@ the complete declared channel bank or none: its count and header offset 76 are
 both its capacity or both zero. Frozen targets are excluded by the host's trusted
 binding table even when the guest writes those positions.
 
+### Query operation and reply records
+
+Query ids 4 and 5 retain the v1 list ids; 8 and 9 are new v2 query ids.
+Flags are zero and a request's atTick equals its issuing entry tick. A
+nonzero target is an observed body to exclude, resolved to its stable identity
+before queuing. Navigation requests use target zero. The a..g fields are:
+
+| Op | Request | Successful reply |
+|---|---|---|
+| 4 walkable | x,y,z,radius,0,0,0; radius >= 0 | inline x,y,z,0,0; no data |
+| 5 path | fromX,fromY,fromZ,toX,toY,toZ,radius; radius >= 0 | inline pointCount,0,0,0,0; data is flat xyz triples |
+| 8 ray | origin xyz, unit direction xyz, maxDistance >= 0 | inline hit (0/1), point xyz, distance; hit data is normal xyz then body handle (0 absent); a miss is all zero with no data |
+| 9 overlap | center xyz,radius > 0,0,0,0 | inline bodyCount,0,0,0,0; data is unique observed body handles |
+
+The reply's count is its scalar data length; dataBase is a record index into
+kind 13, not a byte address. Unavailable/refused replies have zero inline and
+data payloads. Answer stamps are absolute while saved and relative on the
+wire; delivery must occur in a later eligible entry than afterBodies answered.
+Pending request targets and answer bodies retain stable identities. Local
+binding/body handles are resolved afresh when marshalling a reply; stale bodies
+refuse the complete batch. Capacity failures never publish a partial prefix.
+
 ### Tick, ordering and overflow rules
 
 The authoritative simulation remains 60 Hz. Wire ticks and sample/event stamps
