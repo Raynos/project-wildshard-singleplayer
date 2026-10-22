@@ -14,7 +14,8 @@ import type { ResidencyAllocator } from './allocator';
 import { neighbourProductFilesPaced } from '../shardfile/productCost';
 import { outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { FarSchema, ShardReferenceSchema } from '@wildshard/format/shardSections';
-import type { ShardfileFarRows } from './shardfileFar';
+import type { ShardfileFarRows, ShardfileNearRows } from './shardfileFar';
+import { NearPlaceholderSchema } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
@@ -28,6 +29,7 @@ const farRow = v.looseObject({ far: v.nullable(v.looseObject({ decoded: v.number
 const farRows = { tiles: v.looseObject({ far: FarSchema }), props: v.looseObject({ props: v.nullable(v.looseObject({ far: v.nullable(ShardReferenceSchema) })) }),
   look: v.looseObject({ look: v.looseObject({ keys: v.array(v.looseObject({ fog: v.looseObject({ colour: v.tuple([v.number(), v.number(), v.number()]) }) })) }) }),
   collision: v.looseObject({ meshCollision: v.unknown() }) };
+const nearRow = v.looseObject({ near: v.optional(NearPlaceholderSchema) });
 const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
 
 /** A product's bounded index, read once for several section or file reads (no runtime or asset is admitted). */
@@ -107,6 +109,39 @@ export async function readGridProductFar(url: string, identity: string, options:
     const file = at.index.files.find(row => row.hash === hash && (row.commons === true) === commons);
     if (file === undefined || rows.far?.files.includes(ref) !== true) return Promise.reject(new Error('Undeclared grid far file'));
     return readGridProductFile(at, outputBlobPath(file), hash, file.compressed);
+  };
+  return { rows, read };
+}
+
+/**
+ * G608: a shardfile cell's own near view straight from its product, as O26 reads the far proxy: the index, its world/tiles
+ * (the near row) and look/look (the haze colour) sections and the near content files, each hash-verified, without admitting
+ * the whole product (the near tier admitted it, and the cell drew nothing until it finished). The near row's cost is checked
+ * against the index's files before any content is read. Null when the slug has no shardfile or no near content (its near
+ * view is the baked folder's).
+ */
+export function readGridShardfileNear(slug: string): Promise<GridShardfileNear | null> {
+  const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
+  if (descriptor === undefined) return Promise.resolve(null);
+  const url = new URL(descriptor, location.href);
+  return readGridProductNear(url.href, slug, browserShardfileOptions(new URL('.', url).href, true));
+}
+/** A shardfile near view's rows and a verified reader for its near content files. */
+export interface GridShardfileNear { readonly rows: ShardfileNearRows; readonly read: (ref: string) => Promise<Uint8Array> }
+/** `readGridShardfileNear` for one product URL (null: no near content). */
+export async function readGridProductNear(url: string, identity: string, options: ProductOptions): Promise<GridShardfileNear | null> {
+  const at = await readGridProductIndex(url, identity, options);
+  const tiles = await readGridSection(at, 'world/tiles'), near = tiles === null ? undefined : v.parse(nearRow, tiles).near;
+  if (near === undefined || near.content.length === 0) return null;
+  const look = await readGridSection(at, 'look/look'), fog = look === null ? null : v.parse(farRows.look, look).look.keys[0]?.fog.colour ?? null;
+  // the index's file rows as the shardfile's (outputIndex assembleOutputFields): tile and bin blobs are binary files
+  const files = at.index.files.filter(row => row.commons !== true).map(({ path: _path, name: _name, commons: _commons, jsonSchema: _schema, kind, ...rest }) =>
+    Object.assign(rest, { kind: kind === 'tile' || kind === 'bin' ? 'binary' as const : kind }));
+  const rows: ShardfileNearRows = { near, fog, inventory: { files, requires: at.index.requires } };
+  const read = (ref: string): Promise<Uint8Array> => {
+    const file = at.index.files.find(row => row.hash === ref && row.commons !== true);
+    if (file === undefined || !near.content.includes(ref)) return Promise.reject(new Error('Undeclared grid near file'));
+    return readGridProductFile(at, outputBlobPath(file), ref, file.compressed);
   };
   return { rows, read };
 }

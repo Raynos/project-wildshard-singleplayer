@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { outputSectionPayloads } from '@wildshard/format/outputIndex';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { readGridProductEdges, readGridProductFar } from '../src/game/grid/products';
+import { readGridProductEdges, readGridProductFar, readGridProductNear } from '../src/game/grid/products';
 
 function fixture() {
   const source = emptyShardfile({ slug: 'edge-fixture', name: 'Edges', author: 'Test', revision: 1, seed: 9 });
@@ -69,4 +69,35 @@ test('O26: a world without mesh collision reads only the index and its collision
   f.wires.set(collision, new TextEncoder().encode(encodeCanonicalJson(payload)));
   expect(await readGridProductFar(f.url, f.source.identity.slug, f.options)).toBeNull();
   expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url, collision]);
+});
+
+test('G608: a product without near content reads only the index and its tiles section for its near view', async () => {
+  const f = fixture(), tiles = new URL('sections/world/tiles.json', f.url).href, payload = outputSectionPayloads(f.source).get('world/tiles');
+  if (payload === undefined) throw new Error('Missing tiles fixture');
+  f.wires.set(tiles, new TextEncoder().encode(encodeCanonicalJson(payload)));
+  expect(await readGridProductNear(f.url, f.source.identity.slug, f.options)).toBeNull();
+  expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url, tiles]);
+});
+
+test('G608: a near view reads its index, tiles and look sections and only its declared near files, never the product', async () => {
+  const glb = new Uint8Array([1, 2, 3, 4]), hash = hashImmutableBytes(glb), encode = (value: unknown) => new TextEncoder().encode(encodeCanonicalJson(value));
+  const file = { hash, kind: 'glb' as const, compressed: 4, decoded: 4, gpu: 0, triangles: 1, draws: 1, dependencies: [], critical: false };
+  const base = emptyShardfile({ slug: 'near-fixture', name: 'Near', author: 'Test', revision: 1, seed: 9 });
+  const source = { ...base, files: [file], near: { version: 1 as const, terrain: [], content: [hash] } }, url = 'https://game.test/shardfiles/near-fixture/shard.json';
+  const sections = new Map([...outputSectionPayloads(source)].map(([name, value]) => [name, encode(value)]));
+  const index = { format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version, identity: source.identity, requires: source.requires,
+    build: { sourceHash: '0'.repeat(64), validator: 'test' }, admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
+    sections: [...sections].map(([name, bytes]) => ({ name, path: `sections/${name}.json`, schema: `wildshard:${name}@1`, hash: hashImmutableBytes(bytes), bytes: bytes.length })), schemas: [],
+    files: [{ ...file, path: `blobs/glb/${hash}.glb` }], runtime: null };
+  const at = (path: string) => new URL(path, url).href, wires = new Map([[url, encode(index)], [at(`blobs/glb/${hash}.glb`), glb], ...[...sections].map(([name, bytes]) => [at(`sections/${name}.json`), bytes] as const)]);
+  const fetch = vi.fn((path: string): Promise<Response> => {
+    const bytes = wires.get(path); if (bytes === undefined) return Promise.reject(new Error(`Unexpected read: ${path}`));
+    return Promise.resolve(new Response(Uint8Array.from(bytes)));
+  });
+  const near = await readGridProductNear(url, 'near-fixture', { base: new URL('.', url).href, offline: false, firstParty: false, fetch, hash: (bytes: Uint8Array) => Promise.resolve(hashImmutableBytes(bytes)) });
+  if (near === null) throw new Error('Missing near view');
+  expect(near.rows.near.content).toEqual([hash]); expect(near.rows.inventory.files.map(row => row.kind)).toEqual(['glb']);
+  expect(await near.read(hash)).toEqual(glb);
+  await expect(near.read('0'.repeat(64))).rejects.toThrow('Undeclared grid near file');
+  expect(fetch.mock.calls.map(([path]) => path)).toEqual([url, at('sections/world/tiles.json'), at('sections/look/look.json'), at(`blobs/glb/${hash}.glb`)]);
 });

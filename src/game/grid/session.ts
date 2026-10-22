@@ -59,7 +59,7 @@ import { bakedNearFiles, NearPlaceholders, type NearPlaceholderState } from './n
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
-import { gridShardfileEdges, gridShardfileFarBytes, gridShardfileProduct, readGridShardfileFar } from './products';
+import { gridShardfileEdges, gridShardfileFarBytes, gridShardfileProduct, readGridShardfileFar, readGridShardfileNear } from './products';
 import { loadShardfileFar, loadShardfileNear } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
@@ -209,25 +209,20 @@ const FarRow = v.object({ far: v.object({ gpu: num, decoded: num, impostor: v.op
 /** The part of `near.json` the client reads. */
 const NearRow = v.object({ near: v.object({ gpu: num, decoded: num, content: v.optional(num), tiles: v.optional(v.literal(true)) }), look: FarRow.entries.look });
 /**
- * G342 / G348: a shard's near placeholder. Its admitted shardfile's own `near` row first (`wildshard build` bakes one for
- * any terrain shardfile, so an unknown uploaded shard draws its own); else its baked folder like the far proxy
+ * G342 / G348: a shard's near placeholder. Its shardfile's own `near` row first (`wildshard build` bakes one for any terrain
+ * shardfile, so an unknown uploaded shard draws its own), read from its sections and near files without admitting the
+ * product (G608, as O26's far proxy); else its baked folder like the far proxy
  * (`scripts/bake/near-placeholder.mjs`, the first-party shards until their shardfiles carry the row). A baked view whose
  * world carries the shard's own props owns its cell; one built from the shard's own coarse tiles (`near.tiles`) never does,
  * as a shardfile's own near row never does: those tiles keep refining over it.
  */
 async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProduct>[1]): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
+  const own = await readGridShardfileNear(slug);
+  if (own !== null) return loadShardfileNear(own.rows, own.read);
+  // a cell without its own near row is admitted here as before: that admission warms its product for the crossing
   const product = gridShardfileProduct(slug, owner);
   const retained = product === null ? null : await product.catch(() => null);
-  if (retained !== null) {
-    try {
-      const { source } = retained.admitted;
-      if (source.near !== undefined && source.near.content.length > 0) {
-        const assets = new ClientAssets(source, retained.admitted.assets, retained.options), release = assets.lease(source.near.content);
-        try { return await loadShardfileNear(source, ref => assets.read(ref)); }
-        finally { release(); }
-      }
-    } finally { retained.release(); }
-  }
+  retained?.release();
   const baked = bakedNearFiles(slug, publicBytes());
   if (baked === null) throw new Error('No declared near placeholder; retain far proxy');
   const response = await fetch(versionedUrl(baked.row));
