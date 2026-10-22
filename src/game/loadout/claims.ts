@@ -18,9 +18,15 @@ import { heldArmsGear } from '../models/heldGear';
 import { ToonArms } from '../systems/viewmodel/toonArms';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
+import { installDeclaredMelee, type DeclaredMelee } from './declaredMelee';
 import { QuestStepRunner, type QuestStepFrame } from '../quest/steps';
 
-type Claim = HeldArmsRows['claims'][number];
+type ToonRows = Extract<HeldArmsRows, { readonly look: unknown }>;
+type Claim = ToonRows['claims'][number];
+function requireHeldOwner(context: ShardContext, reason: string): void {
+  if (context.scope.disposed || context.scope.disposing) throw new Error(reason);
+}
+const PrimaryPresentationSchema = v.object({ portraitFov: v.pipe(v.number(), v.finite(), v.minValue(1), v.maxValue(179)) });
 /** A claim's guard evaluates rows over facts; no executable shard guard or notice callback is accepted. */
 export class HeldClaimGuard {
   private readonly runner: QuestStepRunner;
@@ -106,18 +112,30 @@ const catalogues = new Map<string, HeldClaims>();
 /** Client-only held melee families, world claims and Explorer cards. The shard supplies rows and platform contexts. */
 export class HeldClaims {
   readonly rows: HeldArmsRows;
-  private readonly arms: ToonArms;
+  private readonly arms: ToonArms | null;
+  private primary: DeclaredMelee | null = null;
+  private portraitFov: number | null = null;
   private readonly geometries = new Map<string, { file: string; source: OwnedGeometry }>();
   private readonly drops = new Map<string, HeldClaim>();
   private constructor(private readonly context: ShardContext) {
-    this.rows = v.parse(HeldArmsSchema, context.product.section('held/arms')); this.arms = ToonArms.admit(this.rows.look);
+    this.rows = v.parse(HeldArmsSchema, context.product.section('held/arms'));
+    this.arms = 'kind' in this.rows ? null : ToonArms.admit(this.rows.look);
+    if ('kind' in this.rows) return;
     for (const claim of this.rows.claims) for (const [id, file] of Object.entries(claim.geometries)) {
       this.geometries.set(`${claim.id}/${id}`, { file, source: createOwnedGeometry(context.product.url(file)) });
     }
   }
   /** Prepare explicitly during kit installation; publication and retirement follow the context scope. */
   static async prepare(context: ShardContext): Promise<HeldClaims> {
-    const host = new HeldClaims(context); await Promise.all([host.arms.prepare(context), Promise.all([...host.geometries.values()].map(async ({ file, source }) => { await source.load(await context.product.file(file)); }))]);
+    if (context.scope.disposed || context.scope.disposing) throw new Error('Held preparation scope has ended');
+    const host = new HeldClaims(context);
+    if ('kind' in host.rows) {
+      host.portraitFov = v.parse(PrimaryPresentationSchema, await context.product.json(host.rows.primary.file)).portraitFov;
+    } else {
+      if (host.arms === null) throw new Error('Held claims require their original arms');
+      await Promise.all([host.arms.prepare(context), Promise.all([...host.geometries.values()].map(async ({ file, source }) => { await source.load(await context.product.file(file)); }))]);
+    }
+    requireHeldOwner(context, 'Held claim entry owner ended during preparation');
     catalogues.set(context.product.slug, host);
     context.scope.onDispose(() => {
       if (catalogues.get(context.product.slug) === host) catalogues.delete(context.product.slug);
@@ -130,24 +148,46 @@ export class HeldClaims {
   claim(id: string): HeldClaim | null { return this.drops.get(id) ?? null; }
   /** Owned copies of the row's original geometry and shared graph materials, used by pickup and parity fixtures. */
   display(id: string): THREE.Group {
-    const row = this.rows.claims.find(claim => claim.id === id); if (row === undefined) throw new Error('Unknown held claim');
+    const rows = this.rows, arms = this.arms;
+    if ('kind' in rows || arms === null) throw new Error('Declared primary has no Toon claim display');
+    const row = rows.claims.find(claim => claim.id === id); if (row === undefined) throw new Error('Unknown held claim');
     const geometry = new Map(Object.keys(row.geometries).map(name => {
       const part = this.geometries.get(`${row.id}/${name}`)?.source.copy(); if (part === undefined) throw new Error('Held claim geometry is not prepared'); return [name, part] as const;
     }));
-    const materials = new Map(Object.entries(row.materials).map(([name, material]) => [name, this.arms.materialById(material)]));
+    const materials = new Map(Object.entries(row.materials).map(([name, material]) => [name, arms.materialById(material)]));
     const made = createClientScene(row.scene, { geometry, materials }), group = made.group(row.group);
     if (group === null) throw new Error('Held claim needs its declared group'); return group;
+  }
+  /** The original primary owner, available only after its declared kit install. */
+  melee(): DeclaredMelee {
+    if (this.context.scope.disposed || this.context.scope.disposing) throw new Error('Held primary owner has ended');
+    if (this.primary === null) throw new Error('Declared primary is not installed');
+    return this.primary;
   }
   /** Register native melee rows and factories in the admitted item order, without shard callbacks. */
   install(): void {
     const context = this.context, runtime = context.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === undefined || world === null) throw new Error('Held melee needs its world');
+    if (context.scope.disposed || context.scope.disposing) throw new Error('Held installation owner has ended');
+    const rows = this.rows;
+    if ('kind' in rows) {
+      if (this.primary !== null) throw new Error('Declared primary is already installed');
+      if (this.portraitFov === null) throw new Error('Declared primary presentation is not prepared');
+      const items = context.product.shardfile.items, catalogue = new ItemCatalogue(items);
+      const tools = rows.tools.map(id => {
+        if (!items.rows.some(item => item.id === id && item.kind === 'tool')) throw new Error(`Missing declared tool: ${id}`);
+        return catalogue.equipment(id);
+      });
+      this.primary = installDeclaredMelee(context, { item: rows.primary.item, blade: rows.primary.blade, portraitFov: this.portraitFov });
+      for (const tool of tools) context.rows.tool(tool);
+      return;
+    }
     const items = context.product.shardfile.items, factories = new Map<string, RuntimeEquipmentFactory>();
-    const profiles = this.rows.weapons.map(row => {
+    const profiles = rows.weapons.map(row => {
       const item = items.rows.find(entry => entry.id === row.item);
       if (item?.kind !== 'weapon' || item.profile?.family !== 'melee') throw new Error('Held melee needs its native item profile');
       const profile: MeleeProfile = applyMeleeCombatProfile({ ...(row.blade === 'iron' ? SWORD_IRON : SWORD_WOOD), ...new ItemCatalogue(items).equipment(row.item) }, item.profile);
-      const claim = this.rows.claims.find(entry => entry.item === row.item);
+      const claim = rows.claims.find(entry => entry.item === row.item);
       if (claim !== undefined) profile.pickup = { owned: claim.owned, prompt: claim.prompt, toast: claim.toast, create: (at, prompt) => {
         if (at !== claim.at) throw new Error('Unknown held claim site');
         const drop = new HeldClaim(context, claim, this.display(claim.id), prompt); this.drops.set(claim.id, drop); return drop;

@@ -1,0 +1,5 @@
+{
+  "kind": "declared-primary",
+  "primary": { "item": "weapon.jian", "blade": "wood", "file": "weapons/jian-row.json" },
+  "tools": ["tool.fei-zhua"]
+}

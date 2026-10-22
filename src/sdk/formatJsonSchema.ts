@@ -26,7 +26,7 @@ import { InputActionSchema, InputKeysSchema } from '@wildshard/format/inputDecla
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
-import { ToonArmsLookSchema } from '@wildshard/format/heldArms';
+import { ToonArmsLookSchema, HeldArmsSchema } from '@wildshard/format/heldArms';
 import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
 import { PracticeSceneSchema,RidingPracticeSchema } from '@wildshard/format/practiceCourseRows';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
@@ -393,6 +393,7 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
       if (valibotAction === GraphArmsSchema.entries.rig.entries.sockets.pipe[3]) return { ...jsonSchema, uniqueItems: true };
+      if (valibotAction === HeldArmsSchema.options[1].entries.tools.pipe[2]) return { ...jsonSchema, uniqueItems: true };
       // This defining transform only omits empty optional namespaces; all nonempty maps retain the schema below.
       if (valibotAction === DecisionScriptsSchema.pipe[7]) return jsonSchema;
       if (valibotAction === EdgeProfileSchema.pipe[1]) {

@@ -28,7 +28,7 @@ function looks(materials: ReadonlyMap<string, MeshBasicMaterial>): Looks {
 }
 
 test('a second shard drives held claim geometry, materials and cards entirely from rows', async () => {
-  const rows = v.parse(HeldArmsSchema, { ...HELD_ARMS, slug: 'fixture-harbour', look: { ...HELD_ARMS.look, id: 'harbour.claim-arms',
+  const rows = v.parse(HeldArmsSchema.options[0], { ...HELD_ARMS, slug: 'fixture-harbour', look: { ...HELD_ARMS.look, id: 'harbour.claim-arms',
     materials: { arms: 'linen', wood: 'oak', iron: 'steel', swim: 'wet', pickupBlade: 'coral', pickupFittings: 'brass' } },
     weapons: [{ item: 'harbour.sabre', blade: 'iron' }], cards: [{ id: 'harbour/sabre', name: 'Harbour sabre', file: 'harbour.json', kind: 'iron', size: [1,2,3], copies: 2 }],
     claims: HELD_ARMS.claims.map(row => Object.assign(structuredClone(row), { id: 'sabre', item: 'harbour.sabre', materials: { blade: 'coral', fittings: 'brass' } })) });

@@ -7,7 +7,7 @@ import wreck from '../data/wreckBake.json' with { type: 'json' };
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';
 
 /** Bake the existing rack anchor and asset identities; runtime claims need no world-object callbacks. */
-export const HELD_ARMS = v.parse(HeldArmsSchema, { ...authored, claims: authored.claims.map(({ site, ...claim }) => {
+export const HELD_ARMS = v.parse(HeldArmsSchema.options[0], { ...authored, claims: authored.claims.map(({ site, ...claim }) => {
   const anchor: unknown = Reflect.get(wreck.anchors, site.anchor);
   if (typeof anchor !== 'object' || anchor === null || !('x' in anchor) || !('y' in anchor) || !('z' in anchor) || !('yaw' in anchor)
     || typeof anchor.x !== 'number' || typeof anchor.y !== 'number' || typeof anchor.z !== 'number' || typeof anchor.yaw !== 'number')

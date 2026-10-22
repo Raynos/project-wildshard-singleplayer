@@ -4,12 +4,13 @@ import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type Clie
 
 /** Client-only build-generated first-party links, never shardfile data or a dynamic module lookup.
  * `nativePlan: false` keeps native-owned LEGACY phases; the admitted path still runs its plan.
+ * A finite `nativePlan.phases` selection adds only migrated phases to native hooks.
  * This is transitional runtime scaffolding; client features themselves take only JSON rows. */
 export function declaredRuntimeEntry(Runtime: new () => ShardPlugin, Native: new () => ShardPlugin,
-  policy: { readonly entry: string; readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime'; readonly nativePlan?: boolean }): {
+  policy: { readonly entry: string; readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime'; readonly nativePlan?: boolean | { readonly phases: readonly ClientPhase[] } }): {
     default: ReturnType<typeof standaloneHybridEntry>; resolveTrustedRuntime: (entry: string) => new () => ShardPlugin;
   } {
-  const NativeEntry = clientPlanNative(Native);
+  const NativeEntry = clientPlanNative(Native, typeof policy.nativePlan === 'object' ? policy.nativePlan.phases : undefined);
   const Entry = standaloneHybridEntry(policy.nativePlan === false ? Native : NativeEntry, ctx => {
     if (!ctx.product.has('client/plan')) throw new Error('Declared runtime entry requires client/plan');
     return prepareStandaloneHybrid(ctx, { name: 'declared runtime', ...policy,
@@ -33,10 +34,13 @@ export function declaredClientPlanEntry(policy: { readonly retainHomeRuntime: bo
   }, shardfileEntry, 'client-plan runtime') };
 }
 
-function clientPlanNative(Native: new () => ShardPlugin): new () => ShardPlugin {
+function clientPlanNative(Native: new () => ShardPlugin, phases?: readonly ClientPhase[]): new () => ShardPlugin {
+  const selected = phases === undefined ? undefined : new Set(phases);
+  if (phases !== undefined && selected?.size !== phases.length) throw new Error('Duplicate native client phase');
   return class extends Native {
     private plan: AdmittedClientPlan | undefined;
     private async phase(ctx: ShardContext, phase: ClientPhase): Promise<void> {
+      if (selected !== undefined && !selected.has(phase)) return;
       this.plan ??= admitClientPlan(ctx.product.section('client/plan'), ctx.product);
       await installClientPhase(ctx, this.plan, phase, ctx.scope);
     }

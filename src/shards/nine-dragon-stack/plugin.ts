@@ -2,7 +2,7 @@ import { prepareNinePost } from './look/render';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { declaredRuntimeEntry } from '@wildshard/game/shard/declaredEntry';
-import { installDeclaredMelee, type DeclaredMelee } from '@wildshard/game/loadout/declaredMelee';
+import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
 import { bindRuntimeEquipment, bindRuntimeItems, bindRuntimeLedger, projectRuntimeFacts } from '@wildshard/game/plugin/headless';
 import { Group, type PerspectiveCamera } from 'three';
@@ -55,17 +55,10 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
 
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
-  override async kit(ctx: ShardContext): Promise<void> {
-    // the jian: the declared melee primary on the wooden starter blade, at the held row's portrait field of view
-    const view = await ctx.product.json<GrappleRows>('weapons/jian-row.json');
-    this.melee = installDeclaredMelee(ctx, { item: 'weapon.jian', blade: 'wood', portraitFov: view.portraitFov });
-    ctx.rows.tool(new ItemCatalogue(ctx.product.shardfile.items).equipment('tool.fei-zhua'));
-  }
   override async play(ctx: ShardContext): Promise<void> {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
-    if (this.melee === null) throw new Error('Nine Dragon needs its prebuilt Jian before play');
-    const { primary: built, profile } = this.melee, primary = built();
+    const { primary: built, profile } = entryOwner(ctx.scope, 'claims', 'held.primary').melee(), primary = built();
     // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
     const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, ctx.product.shardfile, ctx.product.slug), this.shell?.play?.progress);
     if (this.ndWorld === null) throw new Error('Grapple needs its constructed world');
@@ -91,7 +84,6 @@ export class NdPlugin extends ShardPlugin {
   portals: PortalRide | null = null;
   private grapple: GrappleTool | null = null;
   private ndWorld: NineDragonWorld | null = null;
-  private melee: DeclaredMelee | null = null;
   private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
@@ -127,7 +119,7 @@ export class NdPlugin extends ShardPlugin {
 }
 
 const entry = declaredRuntimeEntry(NdPlugin, NdPlugin, {
-  entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: false,
+  entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'] },
 });
 export const resolveTrustedRuntime = entry.resolveTrustedRuntime;
 

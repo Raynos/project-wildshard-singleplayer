@@ -11245,6 +11245,21 @@ existing product installer and page decision authority, retaining species,
 spawn and loot registration order. The original geometry, equipment and
 save owners retain their resources and disposal.
 
+Declared runtime entries may migrate native phases separately with
+`nativePlan: { phases: ['kit'] }`. The compiled adapter snapshots that finite
+selection and runs only those client-plan phases around the original native
+world/kit/play hooks; omitted or true still runs every phase, and false keeps
+all native hooks without a plan. Repeated phases refuse. Hybrid entries keep
+their existing full admitted plan.
+
+The strict declared-primary branch of held/arms names one original melee
+item/blade/presentation file plus ordered tool ids. HeldClaims.prepare reads
+its portrait framing without loading another rig; install preflights its tools
+then calls the existing melee installer and registers tools in authored order.
+HeldClaims.melee() lends the exact installed primary and profile to play, and
+refuses before install or after its owner retires. The original Toon branch
+and its Explorer cards retain their existing wire and rig owners.
+
 ### Declared quest world facts (G571)
 
 `{ kind: 'quest.world', file, ambient? }` runs in the entered prepare-play

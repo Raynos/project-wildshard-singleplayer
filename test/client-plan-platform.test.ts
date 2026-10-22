@@ -24,6 +24,7 @@ import type { QuestSpawnResult } from '../src/game/quest/chapterDirector';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import * as runtimeHookBindings from '../src/game/shardfile/clientRuntimeHooks';
 import * as deckCameraViews from '../src/game/systems/looks/deckCameraSway';
+import * as clientPhases from '../src/game/shardfile/clientPlan';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
@@ -451,4 +452,28 @@ test('the compiled standalone native entry installs finite phases with no TS con
   const plugin=new Entry(undefined,undefined,()=>false);
   try{await plugin.world(f.ctx);expect(order).toEqual(['world']);await plugin.kit(f.ctx);await plugin.play(f.ctx);expect(order).toEqual(['world','play']);}
   finally{f.ctx.scope.dispose();}
+});
+
+
+test('a finite native kit selection retains its world and play owners without replaying their plan phases', async () => {
+  const f = context(), order: string[] = [], phases: string[] = [], release = vi.fn();
+  class Native extends ShardPlugin {
+    override world(ctx: ShardContext): void { order.push('world'); ctx.scope.onDispose(() => { release(); }); }
+    override kit(): void { order.push('native-kit'); }
+    override play(): void { order.push('play'); }
+  }
+  const install = vi.spyOn(clientPhases, 'installClientPhase').mockImplementation((_ctx, _plan, phase) => {
+    phases.push(phase); order.push('declared-kit'); return Promise.resolve();
+  });
+  const policy = { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'] } } as const;
+  const Entry = declaredRuntimeEntry(Native, Native, policy).default, plugin = new Entry(undefined, undefined, () => false);
+  try {
+    await plugin.world(f.ctx); expect(phases).toEqual([]);
+    await plugin.kit(f.ctx); await plugin.play(f.ctx);
+    expect(phases).toEqual(['kit']); expect(order).toEqual(['world', 'native-kit', 'declared-kit', 'play']);
+    expect(f.strings).not.toHaveBeenCalled(); expect(f.expose).not.toHaveBeenCalled();
+    expect(release).not.toHaveBeenCalled();
+    expect(() => declaredRuntimeEntry(Native, Native, { ...policy, nativePlan: { phases: ['kit', 'kit'] } })).toThrow('Duplicate native client phase');
+  } finally { install.mockRestore(); f.ctx.scope.dispose(); }
+  expect(release).toHaveBeenCalledOnce();
 });

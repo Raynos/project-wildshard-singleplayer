@@ -58,7 +58,9 @@ export function heldGear(input: unknown): readonly RosterEntry[] {
 
 /** Client-only Explorer cards for admitted melee arms; preparation retains the row's original look and size. */
 export function heldArmsGear(input: unknown): readonly RosterEntry[] {
-  const rows = v.parse(HeldArmsSchema, input), arms = ToonArms.admit(rows.look);
+  const rows = v.parse(HeldArmsSchema, input);
+  if ('kind' in rows) throw new Error('Declared primary cards use their original graph catalogue');
+  const arms = ToonArms.admit(rows.look);
   return rows.cards.map(row => live(defineModel<object>({ id: row.id, name: row.name, category: 'gear', pipeline: ['blender','code'], file: row.file, defaults: {},
     build: context => loadingSpecimen(row.id, row.size, async () => {
       await arms.prepareExplorer(context, await loadFirstPartyProduct(rows.slug)); return arms.specimen(context.sky, row.kind);

@@ -67,8 +67,8 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
     } else if (row.kind === 'held') {
       if (!product.shardfile.items.rows.some(item => item.id === row.item)) throw refusal(product, row, 'Unknown held item');
       if (product.has('held/arms')) {
-        const arms = product.section('held/arms'), weapon = arms.weapons.find(entry => entry.item === row.item);
-        if (weapon !== undefined) {
+        const arms = product.section('held/arms'), weapon = 'kind' in arms ? undefined : arms.weapons.find(entry => entry.item === row.item);
+        if (weapon !== undefined && !('kind' in arms)) {
           const cards = arms.cards.filter(card => card.kind === weapon.blade), card = cards[0];
           if (cards.length !== 1 || card === undefined) throw refusal(product, row, 'Held item requires exactly one existing arms card');
           const entry = HeldClaims.gear(arms).find(candidate => candidate.id === card.id);

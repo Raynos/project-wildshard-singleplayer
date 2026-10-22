@@ -6,21 +6,22 @@ import { shardContext, type ShardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import source from '../src/shards/nine-dragon-stack/shard.config';
 import manifest from '../src/shards/nine-dragon-stack/manifest';
-import { NdPlugin } from '../src/shards/nine-dragon-stack/plugin';
+import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../src/game/shardfile/heldClaimsEntry';
+import heldPrimary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };
 
 test('Nine kit admits its existing profile without fetching an unused rigid sword', async () => {
   const app = new App(), scope = new Scope('nine-sword-entry');
   const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
   const read = vi.fn(() => Promise.resolve(new TextEncoder().encode('{"portraitFov":78}')));
   const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source,
-    sections: new Map(), files: new Map([['weapons/jian-row.json', { hash: '0'.repeat(64), url: '/jian-row.json' }]]), read });
+    sections: new Map([['held/arms', heldPrimary]]), files: new Map([['weapons/jian-row.json', { hash: '0'.repeat(64), url: '/jian-row.json' }]]), read });
   const ctx = shardContext(level.context, manifest, { shard: manifest, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
-  const plugin = new NdPlugin();
   const shell: { world: object; buildEquipment?: NonNullable<ShardContext['game']['runtime']>['buildEquipment'] } = { world: { game: { level: { camera: { portraitFov: 78 } } } } };
   Object.defineProperty(ctx.game, 'runtime', { value: shell });
   try {
     level.openKit();
-    await plugin.kit(ctx);
+    await prepareHeldClaimsEntry(ctx, 'held.primary');
+    installHeldClaimsEntry(ctx, 'held.primary');
     level.closeKit();
     const build = shell.buildEquipment;
     if (build === undefined) throw new Error('Missing Nine equipment factory');

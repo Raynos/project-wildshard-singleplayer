@@ -1,4 +1,5 @@
 import practiceCard from '../data/practiceCard.json' with { type: 'json' };
+import heldPrimary from '../data/heldPrimary.json' with { type: 'json' };
 import { facadeWindowBlobs } from './facadeWindows';
 import entryProof from '../data/entryProof.generated.json' with { type: 'json' };
 import { heldGraphFiles } from './heldGraphFiles';
@@ -58,4 +59,4 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, l
 ]));
 
 export const output = { blobs: [{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"}], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['client/plan', {version:1,features:[practiceCard]}]])) };
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['client/plan', {version:1,features:[practiceCard, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}]}]])) };

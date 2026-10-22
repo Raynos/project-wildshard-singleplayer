@@ -31,7 +31,7 @@ export type ToonArmsLook = v.InferOutput<typeof ToonArmsLookSchema>;
 export function parseToonArmsLook(input: unknown): ToonArmsLook { return v.parse(ToonArmsLookSchema, input); }
 
 /** Held sword families, Explorer cards and optional world claims, all driven by the same rig/look catalogue. */
-export const HeldArmsSchema = v.strictObject({ slug: name, look: ToonArmsLookSchema,
+const ToonHeldArmsSchema = v.strictObject({ slug: name, look: ToonArmsLookSchema,
   weapons: v.pipe(v.array(v.strictObject({ item: name, blade: v.picklist(['wood', 'iron']) })), v.minLength(1), v.maxLength(16)),
   cards: v.pipe(v.array(v.strictObject({ id: name, name, file: name, kind: v.picklist(['wood', 'iron']),
     size: vector, copies: v.pipe(finite, v.integer(), v.minValue(0)) })), v.maxLength(16)),
@@ -47,5 +47,12 @@ export const HeldArmsSchema = v.strictObject({ slug: name, look: ToonArmsLookSch
     fade: v.strictObject({ light: finite, opacity: finite, scale: finite }),
   })), v.maxLength(16)),
 });
+/** A declared primary borrows its original rig from the manifest; preparation
+ * reads presentation framing without loading or constructing another rig. */
+const DeclaredPrimarySchema = v.strictObject({ kind: v.literal('declared-primary'),
+  primary: v.strictObject({ item: name, blade: v.picklist(['wood', 'iron']), file: name }),
+  tools: v.pipe(v.array(name), v.maxLength(16), v.check(rows => new Set(rows).size === rows.length)),
+});
+export const HeldArmsSchema = v.union([ToonHeldArmsSchema, DeclaredPrimarySchema]);
 /** Admitted catalogue shared by entered equipment and cold Explorer cards. */
 export type HeldArmsRows = v.InferOutput<typeof HeldArmsSchema>;
