@@ -444,6 +444,7 @@
     "./render/offscreenPreparation": "./render/offscreenPreparation.ts",
     "./world/bakedTerrainField": "./world/bakedTerrainField.ts",
     "./boot/contentCacheWorker": "./boot/contentCacheWorker.ts",
+    "./boot/contentHash": "./boot/contentHash.ts",
     "./ai/huntPattern": "./ai/huntPattern.ts",
     "./ai/ambientFlight": "./ai/ambientFlight.ts",
     "./ai/ambientFlock": "./ai/ambientFlock.ts",

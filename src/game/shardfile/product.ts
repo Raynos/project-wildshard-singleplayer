@@ -17,7 +17,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { neighbourProductFiles, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
+import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
@@ -61,6 +61,9 @@ export interface ProductOptions {
   cachedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
+  /** Optional off-page hash of an asset's owned copy (transferred and returned with its digest); where it rejects, the
+   *  copy is made again and `hash` checks it on the page. */
+  hashOwned?: (bytes: Uint8Array) => Promise<{ hash: string; bytes: Uint8Array }>;
   /** G216: trusted page Developer policy; authored data cannot provide it or bypass exact asset checks. */
   memory?: MemoryAdmission;
   /** Trusted residency owner reserves parsed source and immutable transport before any asset-cache read or owned copy. */
@@ -96,8 +99,11 @@ export interface AdmittedProduct {
 
 // Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
 function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): NonNullable<AdmittedProduct['releaseTransport']> {
-  // The releasable set walks the whole product (~60 ms at 4x CPU): built on the first release, not on every admission.
-  let bound: ReadonlySet<string> | undefined;
+  // The releasable set walks the whole product (~60 ms at 4x CPU): built on the first release, not on every admission,
+  // in paced steps, once (concurrent first releases share it)
+  let bound: Promise<ReadonlySet<string>> | undefined;
+  const releasable = async (): Promise<ReadonlySet<string>> => new Set([...runtimeBoundWorldFiles(source),
+    ...await runtimeOnlyProductFilesPaced(source, options.pause), ...await neighbourProductFilesPaced(source, options.pause)]);
   const files = new Map(source.files.map(file => [file.hash, file]));
   const base = new URL('.', options.base).href, cache = options.cache, hash = options.hash;
   return async (refs, reread) => {
@@ -108,9 +114,9 @@ function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, op
     // Do not pin the whole grid in the bounded disk cache; offline owners still require durable bytes.
     const canFetch = reread === 'cache-or-fetch' && !options.offline;
     if (cache === undefined && !canFetch) return released;
-    bound ??= new Set([...runtimeBoundWorldFiles(source), ...runtimeOnlyProductFiles(source), ...neighbourProductFiles(source)]);
+    const releasing = await (bound ??= releasable());
     for (const ref of requested) {
-      if (!bound.has(ref)) continue;
+      if (!releasing.has(ref)) continue;
       const file = files.get(ref);
       if (file === undefined) continue;
       if (canFetch) { released.push(ref); continue; }
@@ -297,7 +303,12 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     } else { bytesRead += bytes.length; progress('assets', `Cached ${hash.slice(0, 12)}`); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     progress('hash', `Verifying ${hash.slice(0, 12)}`);
-    const owned = Uint8Array.from(bytes), actual = await options.hash(owned);
+    let owned: Uint8Array = Uint8Array.from(bytes), actual: string;
+    if (options.hashOwned === undefined) actual = await options.hash(owned);
+    else {
+      try { ({ hash: actual, bytes: owned } = await options.hashOwned(owned)); }
+      catch { owned = Uint8Array.from(bytes); actual = await options.hash(owned); }
+    }
     if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
     if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
     filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);

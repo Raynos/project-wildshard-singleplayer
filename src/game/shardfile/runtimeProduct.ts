@@ -25,6 +25,7 @@ import type { ShardContext } from '../plugin/context';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { cachedTransport } from './cachedTransport';
 import { recordCachedDownload } from '@wildshard/engine/boot/download';
+import { hashOwnedBytes } from '@wildshard/engine/boot/contentHash';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -67,7 +68,7 @@ async function staleRecovery(): Promise<void> {
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
   const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
-  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash,
+  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
     fetch: url => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
         const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash));

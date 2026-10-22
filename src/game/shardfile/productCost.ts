@@ -4,6 +4,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { worstContentCost } from '@wildshard/format/budget';
 import { deviceLibraryCostSteps } from '@wildshard/format/assetAdmission';
+import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
 import { outputDescriptor } from './outputDescriptor';
@@ -29,11 +30,13 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
   return result.value;
 }
 
-/** Run `steps` to its result, pausing after each 8 ms of them (a live admission paints in between). */
+/** Run `steps` to its result, pausing after each 8 ms of them, or sooner once the frame's shared build budget is spent:
+ *  the grid admits several products at once, and their own clocks alone stacked 45-65 ms of steps into one Pine frame
+ *  (a live admission paints in between). */
 async function paced<T>(steps: Generator<void, T>, pause: () => Promise<void>): Promise<T> {
   let started = performance.now(), result = steps.next();
   while (result.done !== true) {
-    if (performance.now() - started >= 8) { await pause(); started = performance.now(); }
+    if (performance.now() - started >= 8 || frameBudgetSpent(8)) { await pause(); started = performance.now(); }
     result = steps.next();
   }
   return result.value;
@@ -308,6 +311,12 @@ export function productResidentBytes(source: Shardfile): number {
 /** Files read only through the asynchronous runtime product API. Inventory membership is not a use:
  * retain every host-declared reference and its dependency closure for synchronous neighbour/simulation readers. */
 export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
+  const steps = runtimeOnlyProductFilesSteps(source);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+/** `runtimeOnlyProductFiles` in steps of 4096 visited values (its walk over a whole product was ~45 ms of a frame). */
+function* runtimeOnlyProductFilesSteps(source: Shardfile): Generator<void, readonly string[]> {
+  let visited = 0;
   const files = new Map(source.files.map(file => [file.hash, file])), keep = new Set<string>();
   const descriptor = outputDescriptor(source), paths = new Map(descriptor?.index.files.map(file => [file.path, file.hash]));
   const pending: unknown[] = [{ ...source, files: [], critical: [], library: [] },
@@ -316,6 +325,7 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
   const queue = (item: unknown): void => { if (typeof item === 'string' || typeof item === 'object' && item !== null) pending.push(item); };
   while (pending.length > 0) {
     const value = pending.pop();
+    if (++visited % 4096 === 0) yield;
     if (typeof value === 'string') { const ref = paths.get(value) ?? value; if (files.has(ref)) keep.add(ref); }
     else if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) queue(item); }
     else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { pending.push(key); queue(child); }
@@ -335,14 +345,28 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
 /** Neighbours stream terrain, props tiles and placeholders through ClientAssets.read; bound whole geometry belongs to the entered runtime.
  * Keep every synchronous panel, material, physics and simulation reference, including dependencies shared with a tile. */
 export function neighbourProductFiles(source: Shardfile): readonly string[] {
+  return runtimeOnlyProductFiles(neighbourSource(source));
+}
+const neighbourWalks = new WeakMap<Shardfile, Promise<readonly string[]>>();
+/** `neighbourProductFiles` paced like admission, walked once per admitted source (its pins, then its release). */
+export function neighbourProductFilesPaced(source: Shardfile, pause: (() => Promise<void>) | undefined): Promise<readonly string[]> {
+  let walk = neighbourWalks.get(source);
+  if (walk === undefined) { walk = paced(runtimeOnlyProductFilesSteps(neighbourSource(source)), pause ?? (() => Promise.resolve())); neighbourWalks.set(source, walk); }
+  return walk;
+}
+/** `runtimeOnlyProductFiles` paced like admission. */
+export function runtimeOnlyProductFilesPaced(source: Shardfile, pause: (() => Promise<void>) | undefined): Promise<readonly string[]> {
+  return paced(runtimeOnlyProductFilesSteps(source), pause ?? (() => Promise.resolve()));
+}
+function neighbourSource(source: Shardfile): Shardfile {
   const props = source.props;
   const boundProps = source.runtime?.binds?.includes('props') === true;
   const boundTerrain = source.runtime?.binds?.includes('terrain') === true;
   const { near: _near, ...drawn } = source;
-  return runtimeOnlyProductFiles({ ...drawn, tiles: [], far: null,
+  return { ...drawn, tiles: [], far: null,
     terrain: source.terrain === null || boundTerrain ? null : { ...source.terrain, tiles: [] },
     props: props === null ? null : { ...props, tiles: [], far: null,
       ...(boundProps ? { models: [], wholeLibrary: [] } : {}),
       // The model key selects a colour map; material compilation only consumes its colour bytes.
-      textures: props.textures.map(({ colour }) => ({ model: '', colour })) } });
+      textures: props.textures.map(({ colour }) => ({ model: '', colour })) } };
 }

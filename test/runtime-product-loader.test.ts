@@ -94,6 +94,18 @@ test('immutable URL cache avoids admission and released-library revalidation whi
   await expect(admitProduct(f.index, options)).rejects.toThrow('hash mismatch');
 });
 
+test('admission hashes an asset off the page where it can, on the page when that rejects, and still refuses a wrong digest', async () => {
+  const f = fixture(); trust(f.receipt);
+  const offPage = vi.fn((owned: Uint8Array) => Promise.resolve({ hash: hashImmutableBytes(owned), bytes: owned }));
+  expect((await admitProduct(f.index, { ...f.options, hashOwned: offPage })).assets.get(f.ref)).toEqual(f.blob);
+  expect(offPage).toHaveBeenCalled();
+  // a worker that took the bytes and failed: the copy is made again and hashed on the page
+  const failed = (owned: Uint8Array) => { structuredClone(owned, { transfer: [owned.buffer] }); return Promise.reject(new Error('no worker')); };
+  expect((await admitProduct(f.index, { ...f.options, hashOwned: failed })).assets.get(f.ref)).toEqual(f.blob);
+  const wrong = (owned: Uint8Array) => Promise.resolve({ hash: hashImmutableBytes(new Uint8Array([9])), bytes: owned });
+  await expect(admitProduct(f.index, { ...f.options, hashOwned: wrong })).rejects.toThrow('hash mismatch');
+});
+
 test('the pinned index keeps custom admission and shares a facade until its last lease ends', async () => {
   const f = fixture(); trust(f.receipt); const parse = vi.spyOn(schema, 'parseShardfile');
   const a = own(), b = own();

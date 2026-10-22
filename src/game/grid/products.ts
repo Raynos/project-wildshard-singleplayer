@@ -11,7 +11,7 @@ import { ProductLeases } from './productLeases';
 import { GridPostCosts } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
-import { neighbourProductFiles } from '../shardfile/productCost';
+import { neighbourProductFilesPaced } from '../shardfile/productCost';
 import { outputBlobPath, parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { FarSchema, ShardReferenceSchema } from '@wildshard/format/shardSections';
 import type { ShardfileFarRows } from './shardfileFar';
@@ -200,7 +200,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
     accountTransportRelease(admitted, releaseBytes);
     // Drop runtime-only wires before neighbours can copy their map. Entered product.file() reads the
     // same immutable bytes from cache or network; host-declared materials/skins/sim inputs stay available.
-    const refs = neighbourProductFiles(admitted.source), unpin = options.cache?.pin?.(refs);
+    const refs = await neighbourProductFilesPaced(admitted.source, options.pause), unpin = options.cache?.pin?.(refs);
     try { await admitted.releaseTransport?.(refs, 'cache-or-fetch'); }
     finally { unpin?.(); }
     return { admitted, options };
