@@ -1,5 +1,4 @@
 import { publishEntryOwner, entryOwner } from '@wildshard/game/shardfile/entryOwners';
-import { installQuestContinuation } from '@wildshard/game/quest/continuation';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { driftwoodWorld } from '../world/build';
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
@@ -14,7 +13,6 @@ import { sharedModelContext } from '@wildshard/engine/models/model';
 import { place as placeModel } from '@wildshard/engine/models/place';
 import { ownQuestTree } from '@wildshard/game/quest/chapter';
 import { parseQuestTrader } from '@wildshard/game/quest/trader';
-import { COLLECTIONS } from '../runtime/boot/blobAssets';
 import { tradeCounter, trader as traderCard } from '../models/catalogue';
 import { productHullBook } from '@wildshard/game/looks/speciesBook';
 
@@ -29,7 +27,6 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const { player } = world;
   const d = driftwoodWorld(shell);
   const rows = await ctx.product.json<QuestPageCompositionRows>('quests/page-composition.json');
-  const continuation = await ctx.product.json<{ readonly collection: string }>('quests/continuation.json');
   registerQuestPageWorld(ctx.scope, rows.world, { pois: { hut: { anchors: entryOwner(ctx.scope, 'site', 'hut') }, lookout: { anchors: entryOwner(ctx.scope, 'site', 'lookout') },
     wreck: { anchors: d.wreck.anchors }, shrine: { anchors: d.shrine.anchors }, cave: { anchors: d.cove.anchors } }, flock: d.gulls.flock });
   const placement = await prepareQuestPageComposition(ctx, rows);
@@ -50,14 +47,12 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   ctx.system({ id: rows.systems.traderPose, phase: 'update', before: [rows.systems.trader], run: (dt, time) => { rig.update(dt, time, player.position); } });
   const adventure = await installQuestPageComposition(ctx, rows);
   publishEntryOwner(ctx.scope, 'quest', rows.id, adventure);
-  publishEntryOwner(ctx.scope, 'collection', continuation.collection, COLLECTIONS);
   installBridgeSway(ctx, { ...rows.sway, system: rows.systems.sway, before: rows.systems.before });
   const placed = [...entryOwner(ctx.scope, 'placed', 'piers.world-0'), d.boat.placed,
     ...['piers.world-1', 'piers.world-2', 'piers.world-3'].flatMap(id => entryOwner(ctx.scope, 'placed', id)), ...entryOwner(ctx.scope, 'placed', 'hut'), ...entryOwner(ctx.scope, 'placed', 'lookout'), d.shrine.placed, d.bushes.placed, d.palms.placed, d.rocks.placed, d.bridge.placed,
     ...d.trailside.placed, ...d.cover.placed, ...d.wreck.placed, ...d.cove.placed, adventure.zipline?.placed, ...adventure.kit.placed];
   // the named places' Sets: the client plan's `world.sets` rows (Wreck Cove's is the whole wreck and cove)
   await bindClientPlaceSets(ctx, new Map([['wreck', [...d.wreck.placed, ...d.cove.placed]]]), placed.filter(p => p !== undefined));
-  await installQuestContinuation(ctx, continuation);
   return adventure;
 }
 

@@ -29,6 +29,10 @@
     {
       "kind": "world.scenes",
       "graphs": "required"
+    },
+    {
+      "kind": "quest.continuation",
+      "file": "quests/continuation.json"
     }
   ]
 }

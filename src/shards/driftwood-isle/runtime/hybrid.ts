@@ -1,5 +1,6 @@
+import { COLLECTIONS } from './boot/blobAssets';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
-import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner, lendEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentBakedTiles } from '@wildshard/game/shardfile/bakedTiles';
 import { pageDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
@@ -35,6 +36,8 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (resident === undefined) {
       lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, [MOOR_LOOK]));
       built = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes')), await residentBakedTiles(ctx, ctx.scope), ctx.scope);
+      if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Driftwood entry ended during build');
+      publishEntryOwner(ctx.scope, 'collection', 'driftwood.collections', COLLECTIONS);
     } else {
       admitDriftwoodRows(ctx.product);
       let construction = residents.get(ctx.product);
@@ -47,11 +50,15 @@ export class DriftwoodPlugin extends ShardPlugin {
       }
       built = await construction.load(ctx, async owner => {
         lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, ctx.product.shardfile, true, [...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CASCADE_LOOKS), driftwoodRows('custom/fixedLayouts').nativeView.SMOKE_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.FIREFLY_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.REEF_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.SHRINE_POOL_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.OCEAN_LOOK, driftwoodRows('custom/fixedLayouts').nativeView.GULL_GRAPH_LOOK, ...driftwoodRows('custom/fixedLayouts').nativeView.COVER_LOOKS, ...Object.values(driftwoodRows('custom/fixedLayouts').nativeView.CREATURE_LOOKS), MOOR_LOOK]));
-        return buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), await residentBakedTiles(ctx, owner), owner);
+        const made = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), await residentBakedTiles(ctx, owner), owner);
+        if (owner.disposed || owner.disposing) throw new Error('Driftwood construction ended during build');
+        publishEntryOwner(owner, 'collection', 'driftwood.collections', COLLECTIONS);
+        return made;
       });
     }
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     WorldAssembly.lend(ctx.product.section('custom/worldStages'), resident ?? ctx.scope, ctx.scope);
+    if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'collection', 'driftwood.collections');
     keepDriftwoodWorld(shell, built);
     shell.hooks.meleeSilent = true;
     const { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
