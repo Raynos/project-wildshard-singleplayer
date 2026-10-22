@@ -235,6 +235,11 @@ went 94 → 112 GB.
   `*/tmp/build-mirror/*/tree` and step out. Also make the mirror sync clean `tree/tmp/` (section 7 fix 3, still open).
 - Section 8 is unchanged: `tmp/sp-x6-cache` is still 18 GB, and `$TMPDIR` holds 107 leaked `wildshard-generation-*`
   copies.
+- **04:47 follow-up: still leaking.** `check2` is now **38 GB** with **21** nested builds; the newest is
+  `20261022-034307-4400`. That is 8 more since 00:47, at about 1.9 GB each, or roughly 4 GB per hour. `./tmp` is now
+  103 GB and 681k files, and the repo is 125 GB. At the time of the check no `serve-build` or `build-mirror run`
+  process was alive, and no lane's recent herdr output names `--slot check2`, so the caller is a lane's own loop. Its
+  build logs show `heavy-lane` tickets 10177 → 10297.
 
 ## Decisions (Jake, 2026-10-15)
 
