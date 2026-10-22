@@ -63,9 +63,13 @@ export class QuestPageViews {
     const leadPuffs = ctx.scope.own(new DomePuffs(world.game.scene, new THREE.Color(...lead.puffs.color), lead.puffs.count));
     const spawnPuffs = ctx.scope.own(new DomePuffs(world.game.scene, new THREE.Color(...spawns.puffs.color), spawns.puffs.count));
     const hollow: Owners['hollow'] = { at: null };
-    void floor.cabins.resources.place(rows.secret.scene).then(() => { hollow.at = new THREE.Vector3().fromArray(rows.secret.mid); return hollow; });
+    const left = (): boolean => ctx.scope.disposed || ctx.scope.disposing;
+    // the secret's scene settles later: a page that left meanwhile keeps no projection point
+    void floor.cabins.resources.place(rows.secret.scene).then(() => { if (!left()) hollow.at = new THREE.Vector3().fromArray(rows.secret.mid); return hollow; });
     // the lowering pool and its companion: the world scenes' published meshes, drawn in their lent looks
     const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx)), p = rows.pool;
+    // a page that left during the scene install draws, chains and publishes nothing
+    if (left()) throw new Error('Quest page views left during their scene install');
     const draw = (row: { readonly scene: string; readonly surface: unknown }): WaterSurface =>
       new WaterSurface(row.surface, { material: lentLook(parseWaterSurface(row.surface).look) }).draw(scenes.mesh(row.scene).geometry.clone());
     const still = draw(p.still), trickle = draw(p.trickle).mesh, group = new THREE.Group();
