@@ -72,7 +72,12 @@ export const HEADLESS_ASSEMBLY_JSON_SCHEMA = {
     installRows: { type: 'array', maxItems: 256, items: { type: 'object', additionalProperties: false,
       required: ['name', 'value'], properties: { name: { $ref: '#/definitions/key' }, value: { anyOf: [
         { $ref: '#/definitions/value' },
-        { type: 'object', additionalProperties: false, required: ['$native'], properties: { $native: { const: 'native.body-scripts' } } },
+        { type: 'object', additionalProperties: false, required: ['$native'], properties: { $native: { anyOf: [
+          { const: 'native.body-scripts' },
+          { type: 'object', additionalProperties: false, required: ['kind', 'speed'], properties: {
+            kind: { const: 'combat.motion' }, speed: { type: 'number', exclusiveMinimum: 0 },
+          } },
+        ] } } },
       ] } } } },
   },
   properties: { version: { const: 1 }, modules: { type: 'object', propertyNames: {

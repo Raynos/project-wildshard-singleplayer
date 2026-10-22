@@ -12,7 +12,6 @@ import { ProjectileSlots, projectileFlightStep, type FlightSlot } from '@wildsha
 import { ProjectileContact, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
 import { drawnSpreadDegrees, instantSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { combatSpeedFactor } from '@wildshard/engine/player/combatMotion';
 import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
 import { fieldGustAt, type WindFieldSpec } from '@wildshard/engine/world/windField';
 import { BowWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
@@ -33,11 +32,6 @@ export function createNativeCombatFrame(): NativeCombatFrame {
   return { attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null }, scripts: new Map(),
     moveX: 0, moveZ: 0, yaw: 0, live: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
     speedFactor: 0, extraSpread: 0, mountSpread: 0, ammo: '', rain: 0, wind: null };
-}
-/** Authoritative pre-motor sampling; unavailable delegated motion refuses firing rather than guessing standing input. */
-export function observeNativeCombatMotion(host: SimHost, frame: NativeCombatFrame, speed: number): void {
-  host.observePlayerMotion(sample => { frame.speedFactor = sample === null ? null : combatSpeedFactor(
-    Math.sqrt(sample.velocityX * sample.velocityX + sample.velocityZ * sample.velocityZ), sample.grounded, sample.swimming, sample.hover, speed); });
 }
 function motion(frame: NativeCombatFrame): number {
   if (frame.speedFactor === null) throw new Error('Native ranged motion requires an authoritative player sample');

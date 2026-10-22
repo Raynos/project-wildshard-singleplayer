@@ -9008,8 +9008,13 @@ at `lend()`: all attacks in tape order, first ranged heavy hold, last melee and
 movement input (including release), and last value per script actor. It is
 transient input, never a second saved owner. Existing world owners publish
 numeric weather/wind and synchronized contact points; item rows receive no
-shard functions. `observeNativeCombatMotion` samples the actual pre-motor
-boundary and refuses unavailable delegated motion. Swept items synchronously
+shard functions. The install-only `sdk/headlessAssembly` value
+`{$native:{kind:"combat.motion",speed}}` samples the actual pre-motor
+boundary before gameplay and keeps unavailable delegated motion as null,
+so firing refuses. It uses the installation frame's concrete host and combat
+owner; finite positive speed and one motion capability per assembly are
+required. No clock or save adapter is added. The legacy
+`{$native:"native.body-scripts"}` form stays unchanged. Swept items synchronously
 ask `item.reaction` for the world's existing alarm/stagger consequences, keeping
 their original order. `bindNativeRangedVolumes` borrows numeric published points
 separately from live joint queries; it retains actors only weakly.

@@ -6,6 +6,7 @@ import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { installNativeBodyScripts } from '@wildshard/game/quest/nativeBodyScripts';
 import { hasStaticGround } from '@wildshard/engine/physics/query';
 import { onSimHostRestored } from '@wildshard/engine/sim/snapshot';
+import { combatSpeedFactor } from '@wildshard/engine/player/combatMotion';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation } from './headlessRuntime';
 
 /** Static imports supplied by the trusted caller and checked by the producer.
@@ -25,6 +26,10 @@ const valueList = (value: Value | undefined): value is readonly Value[] => Array
 const safeKey = (key: string): boolean => key.length > 0 && key.length <= 256 && !['__proto__', 'prototype', 'constructor', 'caller', 'callee', 'arguments'].includes(key);
 const operations = new Set(['$ref', '$call', '$new', '$fn', '$set', '$if', '$or', '$coalesce', '$eq', '$not', '$sequence', '$native']);
 
+function combatMotionRow(value: unknown): value is { readonly kind: 'combat.motion'; readonly speed: number } {
+  return record(value) && Object.keys(value).length === 2 && value['kind'] === 'combat.motion'
+    && typeof value['speed'] === 'number' && Number.isFinite(value['speed']) && value['speed'] > 0;
+}
 
 function valueData(value: unknown, depth = 0): value is Value {
   if (depth > 48) return false;
@@ -63,13 +68,15 @@ export function checkedHeadlessAssembly(input: unknown, modules: HeadlessAssembl
     declared[name] = exports;
   }
   if (Object.keys(declared).length !== Object.keys(modules).length) throw new Error('Assembly module catalogue differs from its static imports');
-  let bodyScripts = false;
+  let bodyScripts = false, combatMotion = false;
   const inspect = (value: Value, native = false): void => {
     if (valueList(value)) { for (const child of value) inspect(child); return; }
     if (value === null || typeof value !== 'object') return;
     if ('$native' in value) {
-      if (!native || value['$native'] !== 'native.body-scripts' || bodyScripts) throw new Error('Invalid native assembly capability');
-      bodyScripts = true; return;
+      if (!native) throw new Error('Invalid native assembly capability');
+      if (value['$native'] === 'native.body-scripts' && !bodyScripts) { bodyScripts = true; return; }
+      if (combatMotionRow(value['$native']) && !combatMotion) { combatMotion = true; return; }
+      throw new Error('Invalid native assembly capability');
     }
     const path = value['$ref'];
     if (path !== undefined) {
@@ -126,9 +133,17 @@ function evaluate(value: Value, env: Environment): unknown {
     return result;
   }
   if (op === '$native') {
-    if (input !== 'native.body-scripts' || env.native === undefined) throw new Error('Native capability requires its installation frame');
+    if (env.native === undefined) throw new Error('Native capability requires its installation frame');
     const { host, context, preparation } = env.native, product = preparation.product;
     if (host.scope.disposed || host.scope.disposing) throw new Error('Native capability owner has ended');
+    if (combatMotionRow(input)) {
+      const frame = context.combat;
+      if (frame === undefined) throw new Error('Native combat motion requires its combat frame');
+      host.observePlayerMotion(sample => { frame.speedFactor = sample === null ? null : combatSpeedFactor(
+        Math.sqrt(sample.velocityX * sample.velocityX + sample.velocityZ * sample.velocityZ), sample.grounded, sample.swimming, sample.hover, input.speed); });
+      return undefined;
+    }
+    if (input !== 'native.body-scripts') throw new Error('Invalid native assembly capability');
     const requireGround = (): void => { if (!hasStaticGround(host.physics)) throw new Error('Native body scripts require admitted ground'); };
     if (context.restoring) onSimHostRestored(host, requireGround);
     else requireGround();
@@ -190,9 +205,9 @@ const primitives = {
   },
 };
 /** Assemble one native plan from declared ordered calls to existing owners.
- * The finite native.body-scripts capability is install-only, after real ground
- * admission and before quest props. Its typed frame adds no callable path,
- * clock or snapshot adapter.
+ * Native capabilities are install-only: body scripts follow real ground
+ * admission; combat.motion observes the frame's existing player-motion phase.
+ * Their typed frame adds no callable path, clock or snapshot adapter.
  * Each install has fresh bindings; late callback reads retain that install's
  * live environment, including owners registered later. Save adapters, clocks,
  * physics, phases and disposal remain entirely with the called installers.
