@@ -4,24 +4,20 @@
 Order: live reds + G578 → Driftwood/Pine zero (G570–G573, G571 rules, G572 done bar) → grid crossing T1–T6
 (G580/G581) → Nine → Nalati → the rest (G575/G576 5x5 visuals). Rows: lanes/ready-queue.md.
 
-**Census (sp-x8, b1e8b270a3):** Driftwood and Pine at the G572 done bar (0/0/0; Pine 90ef5273ee). Nalati 4,190
-(local 923, charged 3,150), Nine 1,535 (820/418), _template 21, open-plots 19, ink-cel 6, the rest 0. Codex rows
-X42-X45 come from the unheld top-5 (practice course: Nalati + Nine, two real users).
+**Census (10-22 ~06:00):** Driftwood, Pine, _template (966ffb3950), ink-cel (6cde05957a, attribution) all 0. Nalati
+4,176 (charged 3,136), Nine 1,522 (405); X42 shared practice course f2990e3008 (-9/-13). open-plots 19 stays.
 
-**Live:** 96b965a60f (08:58Z, T3 default-off). Next ready: e60250f4f2 (CI + exact smoke green). GitHub cron skipped
-06:17/08:17Z; sp-x7 dispatches by hand when a run is missed.
+**Live:** e60250f4f2; c201ea5749 releasing (sp-x7). CI red 6cde..ab616 (nine-practice gen input) fixed 2be37809af.
 
 **Crossing:** T2/T4/T5/T6 done default-off (Developer 'Grid shader warm-up'). T1 warm neighbour default-off;
 with pre-emption (bed6aa9cdc), page scope (58fcd22019) and source retirement (b1bd53db8b) the quiet Sim pair reads ON
 1,597/1,517 vs OFF 1,494/1,414 MB (load/play), blocked 0/0, p95 35/34 ms; warm Sky crossing 3.8 s. T3 retention
 is a net loss (templates evicted), default-off. G579 (< 5 s) not met.
 
-**Lanes:** Opus at 0 until the Sun 12:00 weekly reset (Claude 95 %, wildshard-v 10-22 03:40): all three finished and stopped (58fcd22019, fc3338f4fd,
-92bf2708c2); G576, O27, O28 wait. T1 memory (runtime, not graphics) moved to sp-x1: retire the kept source when a
-build-ahead starts (tmp/t1/transit.mjs: DW 271 + Pine 154 + Far Reach 139 MB sims resident at once). Codex: sp-x1 T1 memory, then Nalati riding/audio/save (Nine metadata e09bb7bb34; Nine envelope 29, no more prep groups); sp-x8 Nalati compiled entry
-(held.mounted 022089667b, weather.clock next); sp-x6 Nalati groups X41 (weather prefix 6caaf5bf48, Titan encounter
-next); sp-x9 Pine final 9 (population cut bff8753aa8, Nalati -8); sp-x7 release (96b dispatched by hand: GitHub cron
-skipped 06:17/08:17Z).
+**Lanes:** Opus 0 until the Sun 12:00 reset (O27, O28, G576 wait). Codex: sp-x1 + sp-x6 crossing G579 (sp-x1
+admission/prefetch, sp-x6 forest-page geometry); landing rule: 3 alternating cold pairs, HEAD vs HEAD+patch, budget ON,
+whole-wait median gain > combined spread (stage-only wins drop). sp-x9 X45 elite binding; sp-x8 G585 dead-code sweep
+(7 commits, net -196) then scripts/lint. Uncounted game code lands on a src net-negative diff (tests excluded).
 
 **Tooling (G582/G585):** push loop + lane watchdog only, in herdr pane sp-tools (scripts/sp-tools.sh). main CI: one
 running + newest pending. Commit: scripts/commit.sh "msg" -- <files>, or --patch <file> for shared files (D9).
