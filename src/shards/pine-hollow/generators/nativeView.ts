@@ -19,10 +19,10 @@ import kingLook from '../data/antlerKingLook.json' with { type: 'json' };
 
 /** Coat, rest-body and hull requirements compile into the platform hull look book (`look/hull-book`). */
 export const SPECIES_LOOKS = { slug: 'pine-hollow', definitions: grazers, rows: [
-  { kind: 'boar', base: 'boar', required: false, postPose: THRALL_CLIPS, variants: { thrall: {
+  { kind: 'boar', base: 'registered', required: false, postPose: THRALL_CLIPS, variants: { thrall: {
     tint: { base: [.20,.19,.13], grizzle: [.34,.36,.22], dark: [.09,.09,.06], black: [.04,.04,.03], cheek: [.26,.26,.18] }, traits: { tuskScale: 1.4, thrall: 1 },
   } } },
-  { kind: 'bear', base: 'bear', required: false }, { kind: 'deer', base: 'definition', required: true },
+  { kind: 'bear', base: 'registered', required: false }, { kind: 'deer', base: 'definition', required: true },
   { kind: 'elk', base: 'definition', required: true, postPose: THRALL_CLIPS, variants: { thrall: { tint: thrall.tint, traits: { antlers: 1, ...thrall.traits } } } },
   { kind: 'antler-king', base: 'registered', required: true },
 ].map(row => Object.assign(row, { id: `pine.look.${row.kind}`, species: `pine.creature.${row.kind}` })),

@@ -43,7 +43,7 @@ export type CompactSpeciesBodiesRows=v.InferOutput<typeof CompactSpeciesBodiesSc
 /** Rigged hull looks compose shared fauna or declared rest bodies with authored coat and joint rows. */
 export const HullLookBookSchema = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({ slug: text,
   body: v.exactOptional(v.unknown()), compactBody: v.exactOptional(CompactSpeciesBodiesSchema), definitions: v.record(text, HullSpeciesSchema), derived: v.optional(v.record(text, DerivedSpeciesSchema), {}), rows: v.pipe(v.array(v.strictObject({
-    id: text, species: text, kind: text, base: v.picklist(['boar', 'bear', 'definition', 'registered']),
+    id: text, species: text, kind: text, base: v.picklist(['definition', 'registered']),
     required: v.boolean(), variants: v.exactOptional(v.record(text, variantLook)), postPose: v.exactOptional(NumericPoseSchema),
   })), v.maxLength(256)) }));
 /** An admitted hull look book (the `look/hull-book` section). */

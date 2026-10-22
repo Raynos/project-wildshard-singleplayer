@@ -17,8 +17,6 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { roamingBossDamage } from '../boss/roamingProjection';
 import { limbAnimation } from '../animation/limbView';
-import { BOAR_LOOK } from '../systems/species/view/boar';
-import { BEAR_LOOK } from '../systems/species/view/bear';
 
 /** Client-only hull projection on shared fauna or declared skeletons. The data
  * book owns coats and post-poses; the existing hull cache owns every asset. */
@@ -55,17 +53,17 @@ export class HullLookBook {
         build: () => ({ bones: structuredClone(rig.bones), furParts: [], hardParts: [], eyeParts: [], dims: structuredClone(rig.dims) }) });
     }
   }
-  /** Resolve registered rigs only when requested, after their native owner installs them. */
+  /** Resolve registered rigs only when requested, after their native owner installs them. A registered base lends its look
+   *  fields only: its think, act and damage stay the species row's (G602: never a look's). */
   look(kind: string): SpeciesLook {
     const row = this.book.rows.find(entry => entry.kind === kind); if (row === undefined) throw new Error('Missing hull look');
-    const base = row.base === 'boar' ? BOAR_LOOK : row.base === 'bear' ? BEAR_LOOK
-      : row.base === 'definition' ? this.definition(kind) : speciesDef(kind);
-    const variants = 'variants' in base && Array.isArray(base.variants)
-      ? Object.fromEntries([...base.variants, ...('spawnOnly' in base ? base.spawnOnly ?? [] : [])].map((variant: VariantDef) => [variant.id, {
-        ...(variant.tint === undefined ? {} : { tint: variant.tint }), ...(variant.fur === undefined ? {} : { fur: variant.fur }),
-        ...(variant.traits === undefined ? {} : { traits: variant.traits }),
-      }])) : base.variants;
-    const look = { ...base, id: row.id, species: row.species, kind, variants: { ...variants, ...row.variants },
+    const base = row.base === 'definition' ? this.definition(kind) : speciesDef(kind);
+    // every base is a species definition now (its variants a list): each variant's coat, spawn-only ones too
+    const variants = Object.fromEntries([...base.variants, ...(base.spawnOnly ?? [])].map((variant: VariantDef) => [variant.id, {
+      ...(variant.tint === undefined ? {} : { tint: variant.tint }), ...(variant.fur === undefined ? {} : { fur: variant.fur }),
+      ...(variant.traits === undefined ? {} : { traits: variant.traits }),
+    }]));
+    const look = { ...(row.base === 'definition' ? base : registeredLook(base)), id: row.id, species: row.species, kind, variants: { ...variants, ...row.variants },
       ...(row.postPose === undefined ? {} : { postPose: numericCreaturePose(row.postPose) }) };
     const bodies = this.bodies;
     if (bodies !== undefined) return { ...look, preload: bodies.preload, build: variant => bodies.copy(kind, variant.id) };
@@ -116,6 +114,15 @@ export class HullLookBook {
     });
     return { all, pose, get: kind => { const look = all.find(row => row.kind === kind); if (look === undefined) throw new Error('Unknown packed creature look'); return look; } };
   }
+}
+
+/** A registered species' look fields: its rig contract, fur, build, pose, gait, post-pose, rig, animation, eye glow and
+ *  (its variants are mapped by the caller), never its gameplay (think, act, damage). */
+function registeredLook(def: SpeciesDef): Pick<SpeciesLook, 'rigContract' | 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'eyeGlow' | 'eyeGlowIntensity'> {
+  const { rigContract, fur, build, pose, gait, postPose, rig, animate, eyeGlow, eyeGlowIntensity } = def;
+  return { rigContract, fur, build, ...(pose === undefined ? {} : { pose }),
+    ...(gait === undefined ? {} : { gait }), ...(postPose === undefined ? {} : { postPose }), ...(rig === undefined ? {} : { rig }),
+    ...(animate === undefined ? {} : { animate }), ...(eyeGlow === undefined ? {} : { eyeGlow }), ...(eyeGlowIntensity === undefined ? {} : { eyeGlowIntensity }) };
 }
 
 const productBooks = new Map<string, HullLookBook>();
