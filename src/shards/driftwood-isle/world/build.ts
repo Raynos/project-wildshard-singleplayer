@@ -14,7 +14,6 @@ import { loadFixedGeometry, fixedDrawLibrary } from '../runtime/boot/blobAssets'
  */
 import type * as THREE from 'three';
 import { sites } from '../models/catalogue';
-import wreckBake from '../data/wreckBake.json' with { type: 'json' };
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import manifest from '../discovery.generated';
@@ -75,17 +74,16 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // the shipwreck with the cove's cargo, drift logs and reef rocks: declared copies drawn into the wreck site's meshes
   // (piece `wreck`: the site's colliders and floors; the Wreck cove set)
   await stages.next('wreck');
-  const wreck = { group: entryOwner(scope, 'object', 'wreck'), placed: entryOwner(scope, 'placed', 'wreck'), anchors: structuredClone(wreckBake.anchors), holdBounds: { ...wreckBake.holdBounds }, floorHeightAt: entryOwner(scope, 'floor', 'wreck') };
+  const wreck = { group: entryOwner(scope, 'object', 'wreck'), placed: entryOwner(scope, 'placed', 'wreck'), floorHeightAt: entryOwner(scope, 'floor', 'wreck') };
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
   await stages.next('shrine');
   const shrineLife = entryOwner(scope, 'buildings', 'shrine');
   const shrine = { group: entryOwner(scope, 'object', 'shrine'), placed: only('shrine'), anchors: entryOwner(scope, 'site', 'shrine'),
-    floorHeightAt: entryOwner(scope, 'floor', 'shrine'), update: shrineLife.update.bind(shrineLife), setDusk: shrineLife.setDusk.bind(shrineLife) };
+    floorHeightAt: entryOwner(scope, 'floor', 'shrine'), update: shrineLife.update.bind(shrineLife) };
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   for (const row of assembly.piers.slice(1)) await stages.next(row.id);
   await slice();
   if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
-  const foliage = fixed.foliage.tiers[game.tier];
   await stages.next('bushes');
   const bushes = { placed: only('bushes'), mesh: entryOwner(scope, 'object', 'bushes') };
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
@@ -104,15 +102,12 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const reefLook = followToonLook(driftwoodProduct(), fixed.nativeView.REEF_LOOK);
   const seabed = { mesh: entryOwner(scope, 'object', 'seabed'), tick: () => { reefLook(); } };
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
-  const palmSpecs = [...foliage.palms.specs];
   await complete('Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
   const coveRows = driftwoodRows('custom/fixedLayouts').cove, coveView = coveRows.composition;
-  const coveSpec = structuredClone(coveRows.spec);
   await stages.next('cove'); // its cascade, its piece (rock walls, treads and floors) and its reef rocks (generators/worldEntry.ts)
-  const cove = { group: entryOwner(scope, 'object', 'cove'), placed: entryOwner(scope, 'placed', 'cove'), crabSites: coveSpec.crabSites,
-    anchors: structuredClone(coveRows.native.anchors), update: followToonLook(driftwoodProduct(), coveView.look) };
+  const cove = { group: entryOwner(scope, 'object', 'cove'), placed: entryOwner(scope, 'placed', 'cove'), update: followToonLook(driftwoodProduct(), coveView.look) };
   await stages.next('palms'); // The registry borrows the compacted batch and its native boxes.
   const palms = { placed: only('palms'), mesh: entryOwner(scope, 'object', 'palms'), update: updateWind };
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
@@ -128,10 +123,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const island = baked.get('cove'); if (island === undefined) throw new Error('Missing baked cove');
   await stages.next('smallRocks'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
   const smallRocks = entryOwner(scope, 'object', 'smallRocks');
-  palmSpecs.push(...fixed.foliage.islandPalms);
   await slice(total, total, 'Baked island');
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
-  return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
+  return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, cove, palms, cover, bridgeDeck };
 }

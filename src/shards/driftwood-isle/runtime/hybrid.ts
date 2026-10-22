@@ -54,8 +54,6 @@ export class DriftwoodPlugin extends ShardPlugin {
       lendEntryOwner(ctx.scope, resident, 'fixed-draws', 'driftwood.fixed-draws');
     }
     if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'collection', 'driftwood.collections');
-    const { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
-    Object.assign(shell.objects, { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
     islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
   }
 }
