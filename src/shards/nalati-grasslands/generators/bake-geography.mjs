@@ -10,7 +10,7 @@ import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const res = 256, size = 500;
 const forestMask = (x, z) => inSpruceClearing(x, z) ? 0 : Math.max(loneSpruceMask(x, z), edgeSpruceMask(x, z, edgeBermAt(x, z)));
-const names = ['river', 'brook', 'pond', 'wet', 'forest', 'valley', 'bowl', 'snow', 'red', 'green', 'blue', 'gravel', 'rock', 'ice', 'mapRed', 'mapGreen', 'mapBlue'];
+const names = ['pond', 'wet', 'forest', 'valley', 'bowl', 'snow', 'red', 'green', 'blue', 'gravel', 'rock', 'ice', 'mapRed', 'mapGreen', 'mapBlue'];
 const arrays = Object.fromEntries(names.map(name => [name, new Float32Array(res * res)]));
 const rgb = [0, 0, 0], map = [0, 0, 0];
 for (let j = 0; j < res; j++) for (let i = 0; i < res; i++) {
@@ -18,7 +18,7 @@ for (let j = 0; j < res; j++) for (let i = 0; i < res; i++) {
   const h = TERRAIN.heightAt(x, z), slope = 1 - TERRAIN.normalAt(x, z)[1], forest = forestMask(x, z);
   const zones = zoneAt(x, z), surface = surfaceAt(x, z, h, slope);
   groundColor(x, z, h, slope, TERRAIN, rgb); NALATI_MINIMAP.ground(x, z, h, slope, forest, map);
-  const values = [riverMask(x, z), brookMask(x, z), Math.max(riverMask(x, z), brookMask(x, z)), Number(nalatiWetAt(x, z)), forest, ...zones, ...rgb, ...surface, ...map];
+  const values = [Math.max(riverMask(x, z), brookMask(x, z)), Number(nalatiWetAt(x, z)), forest, ...zones, ...rgb, ...surface, ...map];
   names.forEach((name, channel) => { arrays[name][k] = values[channel]; });
 }
 const encode = array => Buffer.from(zlibSync(new Uint8Array(array.buffer))).toString('base64');
