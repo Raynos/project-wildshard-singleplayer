@@ -4,28 +4,6 @@ import { SWAP_GLYPHS } from './starterGlyphs';
 import { REST, CHARGE, SPRINT, COMBO, HEAVY } from './starterMoves';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 
-/** The base sword equipment row, retaining its legacy slot and cue IDs. */
-export const SWORD: EquipmentRow = {
-  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
-  "id": "weapon.sword",
-  "legacySlot": "sword",
-  "ui": {
-    "swapIcon": SWAP_GLYPHS.sword,
-    "name": "Sword",
-    "icon": "sword",
-    "touch": "melee",
-    "lockOn": true,
-    "melee": true,
-    "tracers": false
-  },
-  "meta": {
-    "name": "Sword",
-    "icon": "sword",
-    "blurb": "",
-    "category": "weapon"
-  }
-};
-
 /** The starter wooden sword equipment row and existing UI metadata. */
 export const WOODEN_SWORD: EquipmentRow = {
   cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
