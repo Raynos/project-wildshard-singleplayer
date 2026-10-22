@@ -139,6 +139,8 @@ G571 credit. Imports and dependencies retain their own attribution.
 
 - G571 bundled quest data: `format/questWorld#parseQuestWorldDocument` `format/questFigures#parseQuestFiguresDocument` `format/questContinuation#parseQuestContinuationDocument` read only their fixed admitted entry-resource field or original standalone rows. Tests 2–6 retain strict field admission, plain JSON, original values and owner/refusal behavior; no authored selectors, callback, clock or save.
 
+- G571 declared biome queries: `game/shard/manifest#declaredForestQueries` and `game/shard/manifest#declaredStreamClip` consume generated candidate-answer and centreline-clip rows at existing manifest bindings. Test 1 waived; test 2: generic coordinates/species and no shard branches; test 3: the declared rows supply every answer and boundary; test 4: renderer-free admission with no import-time installation; test 5: candidate lookups and corridor membership remain useful without their first shard; test 6: unknown JSON admitted by fixed schemas, no supplied callbacks or reflected paths. Tests 2–6 covered by test/declared-biome-queries.test.ts (data answers, missing candidates, non-finite/executable refusal, strict width, inclusive arcs and ordered ties), with original Pine candidate/pond parity in test/fixed-boot-layout-data.test.ts. No other manifest binding gains credit.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they
