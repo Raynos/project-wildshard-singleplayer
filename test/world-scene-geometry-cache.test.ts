@@ -9,6 +9,7 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/format/product';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
+import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 
 const originalTier = TIER;
 afterEach(() => { initializeTier(originalTier); vi.restoreAllMocks(); });
@@ -87,6 +88,25 @@ test('pressure refuses a live lease, then evicts idle storage and invalidates th
   const next = new Scope('next'); (await readWorldSceneGeometry(next, f.product, row, f.assets)).done();
   expect(f.product.file).toHaveBeenCalledTimes(2);
   next.dispose(); f.close();
+});
+
+test('overlapping and overwritten aliases preserve the original decoder order instead of sharing a sorted key', async () => {
+  const f = fixture(), scope = new Scope('aliases');
+  const profiles = [{ normal: 'custom', uv: 'custom' }, { uv: 'custom', normal: 'custom' },
+    { normal: 'uv', uv: 'custom' }, { uv: 'custom', normal: 'uv' }];
+  for (const attributes of profiles) {
+    const oracle = createOwnedGeometry(f.product.url(row.file), attributes); await oracle.load(f.bytes);
+    const original = oracle.take(), held = await readWorldSceneGeometry(scope, f.product, { ...row, attributes }, f.assets), actual = held.copy();
+    for (const name of ['position', 'normal', 'uv', 'custom']) {
+      expect(actual.hasAttribute(name)).toBe(original.hasAttribute(name));
+      if (!original.hasAttribute(name)) continue;
+      expect(actual.getAttribute(name).itemSize).toBe(original.getAttribute(name).itemSize);
+      expect(actual.getAttribute(name).array).toEqual(original.getAttribute(name).array);
+    }
+    actual.dispose(); original.dispose(); held.done();
+  }
+  expect(f.assets.retained()).toHaveLength(4);
+  scope.dispose(); f.close();
 });
 
 test('cancelled readers neither publish nor strand a live claim, and concurrent readers share only completed geometry', async () => {

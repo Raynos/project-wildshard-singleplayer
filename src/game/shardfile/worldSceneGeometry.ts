@@ -45,8 +45,11 @@ function lease(owner: Scope, assets: Assets, source: BufferGeometry): WorldScene
 export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardProduct, 'url' | 'file'>, row: Source, assets: Assets): Promise<WorldSceneGeometry> {
   requireLive(owner);
   const url = product.url(row.file), segments = row.segments?.map(file => product.url(file)) ?? [];
-  const channels = Object.entries(row.attributes ?? {}).sort(([a], [b]) => a.localeCompare(b));
-  const key = JSON.stringify([url, segments, TIER, channels]);
+  const ordered = Object.entries(row.attributes ?? {}), channels = [...ordered].sort(([a], [b]) => a.localeCompare(b));
+  // Independent renames commute; chained or overwritten destinations keep the decoder's authored order.
+  const destinations = ordered.map(([, to]) => to);
+  const orderedAliases = new Set(destinations).size !== destinations.length || destinations.some(to => Object.hasOwn(row.attributes ?? {}, to));
+  const key = JSON.stringify([url, segments, TIER, channels, orderedAliases ? ordered : null]);
   let memo = templates.get(assets);
   if (memo === undefined) { memo = new Map(); templates.set(assets, memo); }
   const ready = memo.get(key);
