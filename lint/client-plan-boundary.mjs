@@ -90,7 +90,7 @@ export function clientPlanSchemaViolations(root) {
     for (const name of names) {
       const matches = tables.flatMap(rows => rows.properties.filter(property => text(property.name) === name));
       if (matches.length > 1) { failures.push(`${platform}: duplicate client section schema ${name}`); continue; }
-      const row = matches[0];
+      const row = matches.at(0);
       const schema = row && ts.isPropertyAssignment(row) && ts.isObjectLiteralExpression(row.initializer)
         ? row.initializer.properties.find(property => text(property.name) === 'schema') : null;
       if (!schema || !ts.isPropertyAssignment(schema) || !ts.isIdentifier(schema.initializer)) failures.push(`${platform}: missing client section schema ${name}`);
