@@ -495,6 +495,8 @@ export interface ShardManifest {
   /** title-card order, starting at one */
   order: number;
   status: 'live' | 'experimental' | 'earlyAccess' | 'hidden';
+  /** False keeps a grid destination out of SHARD SELECT, including Developer. */
+  shardSelect?: boolean;
   /** URL-safe key used by `?chunk=<slug>` and the registry */
   slug: ShardSlug;
   name: string;

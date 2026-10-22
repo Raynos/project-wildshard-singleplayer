@@ -148,6 +148,7 @@
   "spawns": [],
   "species": [],
   "status": "hidden",
+  "shardSelect": false,
   "style": "greybox",
   "tiers": {
     "desktop": {

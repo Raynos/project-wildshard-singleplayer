@@ -565,6 +565,7 @@ are the row types; `EngineRows` is the verb set.
 | `name`, `blurb`, `biome`, `label` | title-deck text; `label` is the HUD grid label like `(+0, +0)` |
 | `order` | deck order; Driftwood is 1 |
 | `status` | `'live'` (on the deck) · `'experimental'` (taped band) · `'earlyAccess'` (tag) · `'hidden'` (Debug only, the template) |
+| `shardSelect` | optional boolean; `false` omits its standalone SHARD SELECT card even in Developer, without removing its source catalogue or grid availability |
 | `card` | `{ thumb, portrait, landscape }` image URLs, imported from your `thumbs/` |
 | `placement` | `{ grid, size }`: where it sits on the Wildshard map |
 | `seed`, `treeCount`, `trees`, `forest?` | the master seed and the forest (`trees: { factory: 'none', noun }` for a treeless level) |

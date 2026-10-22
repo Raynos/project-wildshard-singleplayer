@@ -2,10 +2,12 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { setDev } from '../src/engine/core/devMode';
 import { authoredRows } from '../src/engine/ui/authoredDebugRows';
-import { installShards } from '../src/game/shard/list';
+import { installShards, shards } from '../src/game/shard/list';
 import { shardEntry, type ShardEntryChoices } from '../src/game/shard/entryMode';
-import { buildTitleDeck, type TitleCard } from '../src/game/titleDeck';
+import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDeck';
 import { GAME_STRINGS } from '../src/game/strings';
+import { SHARDS, LEGACY_SHARDS } from '../src/shards.generated';
+import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
 
 // G531: SHARD SELECT shows one entry per shard, its shardfile; the Developer-tools row Legacy shard buttons brings LEGACY back.
 const card = (slug: TitleCard['slug'], legacy: boolean): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '',
@@ -74,4 +76,17 @@ test('the boot honours a LEGACY pick only with the legacy buttons on', () => {
   expect(shardEntry(pine, false, () => choices)).toBe('shardfile');
   expect(shardEntry(pine, true, () => choices)).toBe('legacy');
   expect(shardEntry({ slug: 'pine-hollow-legacy', entries: { legacy: true, shardfile: false, public: 'legacy' } }, false, () => choices)).toBe('legacy');
+});
+
+
+test('SHARD SELECT omits every open plot in public and Developer while retaining the grid catalogue', () => {
+  installShards([...SHARDS, ...LEGACY_SHARDS]);
+  const main = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach'];
+  const developer = [...main, '_template', 'blender-template', 'pastel-plain', 'ink-cel-valley'];
+  expect(titleCards(false).map(item => item.slug).sort()).toEqual(main.sort());
+  expect(titleCards(true).map(item => item.slug).sort()).toEqual(developer.sort());
+  const plotSlugs = new Set(plots.outputs.map(item => item.slug));
+  expect(SHARDS.filter(item => plotSlugs.has(item.slug)).map(item => item.slug).sort()).toEqual([...plotSlugs].sort());
+  expect(shards()).toHaveLength(SHARDS.length + LEGACY_SHARDS.length);
+  installShards([]);
 });
