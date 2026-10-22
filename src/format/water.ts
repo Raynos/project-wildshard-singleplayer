@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 
 const coord = v.pipe(v.number(), v.finite(), v.minValue(-250), v.maxValue(250));
-const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
+export const WaterBodyIdSchema = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
+const id = WaterBodyIdSchema;
 const point = v.tuple([coord, coord]);
 const circle = v.pipe(v.strictObject({ kind: v.literal('circle'), x: coord, z: coord, radius: v.pipe(coord, v.minValue(0.01)) }), v.check((s) => Math.abs(s.x) + s.radius <= 250 && Math.abs(s.z) + s.radius <= 250, 'pool fits cell'));
 function simplePolygon(points: readonly (readonly [number, number])[]): boolean {
@@ -29,13 +30,16 @@ const dryEntries = v.optional(v.pipe(v.array(v.picklist(['north', 'east', 'south
 export const StreamWaterSchema = v.pipe(v.strictObject({ id, kind: v.literal('stream'), width: v.pipe(coord, v.minValue(0.01), v.maxValue(100)), points: v.pipe(v.array(streamPoint), v.minLength(2), v.maxLength(128)), levels, dryEntries }), v.check((s) => s.points.every((p, i) => {
   const prev = s.points[i - 1]; return (p.under === undefined || s.levels?.[p.under] !== undefined) && Math.abs(p.x) + s.width / 2 <= 250 && Math.abs(p.z) + s.width / 2 <= 250 && (prev === undefined || p.x !== prev.x || p.z !== prev.z);
 }), 'stream fits cell, has nonzero segments and declares its live levels'));
-const body = v.variant('kind', [
+export const WaterBodySchema = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('pool'), level: coord, shape: v.variant('kind', [circle, polygon]), dryEntries }),
   v.strictObject({ id: v.literal('sea'), kind: v.literal('sea'), level: coord, waves: v.boolean(), dryEntries }),
   StreamWaterSchema,
 ]);
 /** Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. */
-export const WaterSchema = v.pipe(v.array(body), v.maxLength(64), v.check((rows) => new Set(rows.map((row) => row.id)).size === rows.length && rows.every((row, i) => row.kind === 'sea' ? i === rows.length - 1 : row.id !== 'sea'), 'unique water ids and sea last'));
+export function waterBodiesOrdered(rows: readonly { readonly id: string; readonly kind: string }[]): boolean {
+  return new Set(rows.map(row => row.id)).size === rows.length && rows.every((row,i) => row.kind === 'sea' ? i === rows.length-1 : row.id !== 'sea');
+}
+export const WaterSchema = v.pipe(v.array(WaterBodySchema), v.maxLength(64), v.check(rows => waterBodiesOrdered(rows), 'unique water ids and sea last'));
 /** A serialisable water section for pools, seas and streams, defaulting to [] in the full format. */
 export type ShardWater = v.InferOutput<typeof WaterSchema>;
 

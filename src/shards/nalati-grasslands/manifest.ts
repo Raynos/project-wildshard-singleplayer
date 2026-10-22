@@ -1,9 +1,8 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
-import { basinBody } from '@wildshard/engine/world/water/body';
 import { DECLARATION } from './boot/declaration.generated';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { nalatiWetAt } from './wet';
-import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, forestMask, NALATI_MINIMAP } from './world/geography';
+import { SEED, SPAWN, TERRAIN, GROUND, groundColor, surfaceAt, forestMask, NALATI_MINIMAP } from './world/geography';
 import discovery from './data/discovery.json' with { type: 'json' };
 
 /** Fixed metadata and asset identities are compiled by the boot producer. */
@@ -27,7 +26,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   roster: async () => (await import('./roster')).ROSTER,
   minimap: { ...DECLARATION.minimap, palette: NALATI_MINIMAP },
   groundColor, surfaceAt,
-  ground: { terrain: TERRAIN, paths: 'plugin', water: [basinBody('river', TERRAIN)] },
+  ground: GROUND,
   navmesh: { excludeGroundAt: (x, z, y) => y <= TERRAIN.waterLevel() + 0.25 || (nalatiWetAt(x, z) && TERRAIN.trailDistance(x, z) > 3.5) },
   trees: { ...DECLARATION.trees, factory: () => import('./world/spruceView').then(m => m.spruceFactory) },
   forest: { ...DECLARATION.forest, mask: forestMask },

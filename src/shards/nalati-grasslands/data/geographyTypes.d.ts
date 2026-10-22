@@ -1,10 +1,12 @@
 import type { MapPaletteRow } from '@wildshard/format/minimap';
+import type { GroundRows } from '@wildshard/format/terrain';
 
 /** Offline scalar rasters and fixed metadata; no runtime recipe is carried. */
 export interface GeographyRows {
   res: number; size: number; seed: number;
   spawn: { x: number; z: number; yaw: number };
   river: { level: number };
-  channels: Record<'pond' | 'wet' | 'forest' | 'valley' | 'bowl' | 'snow' | 'red' | 'green' | 'blue' | 'gravel' | 'rock' | 'ice' | 'mapRed' | 'mapGreen' | 'mapBlue', string>;
+  ground: GroundRows;
+  channels: Record<'wet' | 'forest' | 'valley' | 'bowl' | 'snow' | 'red' | 'green' | 'blue' | 'gravel' | 'rock' | 'ice' | 'mapRed' | 'mapGreen' | 'mapBlue', string>;
   map: MapPaletteRow;
 }

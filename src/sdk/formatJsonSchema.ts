@@ -75,7 +75,7 @@ import { ScriptBindingsSchema } from '@wildshard/format/scripts';
 import { ActorMovesSchema } from '@wildshard/format/actorMoves';
 import { DecisionScriptsSchema } from '@wildshard/format/decisionScripts';
 import { HooksSchema } from '@wildshard/format/hooks';
-import { TerrainSchema,ForestRowsSchema } from '@wildshard/format/terrain';
+import { TerrainSchema,ForestRowsSchema,GroundRowsSchema } from '@wildshard/format/terrain';
 import { WaterSchema } from '@wildshard/format/water';
 import { AccentSchema, ACCENT_IDS } from '@wildshard/format/accent';
 import { ItemsSchema, ItemFamilyNameSchema } from '@wildshard/format/items';
@@ -357,6 +357,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'shardSections.Critical': CriticalSchema,
   'shardSections.Far': FarSchema,
   'shardSections.Spawn': SpawnSchema,
+  'terrain.GroundRows': GroundRowsSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

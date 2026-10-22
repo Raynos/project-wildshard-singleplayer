@@ -1,4 +1,6 @@
 import { readScalarChannel } from '@wildshard/engine/world/scalarChannel';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
 import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/context";
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
@@ -18,7 +20,6 @@ import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '@wildsha
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
-import type { WaterBody } from '@wildshard/engine/world/water/body';
 import { flatTerrainField, terrainFieldFor } from '@wildshard/engine/world/groundField';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
@@ -689,15 +690,21 @@ export function defineShard(rows: ShardManifestRows,
  * A shard's ground from its declared rows (`GroundRowsSchema`, G4): its baked terrain field by key and seed (or a flat datum) with
  * the declared trails, pads, pond, rest water level and datum, and its water bodies from the same rows a shardfile's water
  * section admits (a declared stream also answers the terrain's `streamAt`: wading, the dry-ground test, the boundary).
+ * An optional lattice replaces the pond mask; ground-only basins borrow that same field and its live water level.
  * The manifest names a generated rows file (`ground: { platform: 'declared', rows }`); no shard code builds its ground.
  */
-export function declaredGround(input: unknown): ShardManifest['ground'] {
-  const rows = v.parse(GroundRowsSchema, input), water = rows.bodies.map(row => declaredWaterBody(row));
-  const stream = water[rows.bodies.findIndex(row => row.kind === 'stream')];
+export function declaredGround(input: unknown): ShardManifest['ground'] & { terrain: ChunkTerrain } {
+  const rows = v.parse(GroundRowsSchema,input), mask = rows.mask;
+  const values = mask === undefined ? null : readScalarChannel(mask.values);
+  if (values !== null && (!(values instanceof Float32Array) || !values.every(value => value >= 0 && value <= 1))) throw new Error('Invalid pond mask lattice');
+  const bodies = rows.bodies.map(row => ({ row,body: row.kind === 'terrain-basin' ? null : declaredWaterBody(row) }));
+  const stream = bodies.find(({ row }) => row.kind === 'stream')?.body ?? undefined;
   const metadata = buildTerrainMetadata(rows.terrain.seed, { trails: rows.trails, cabinSites: rows.cabinSites,
     ...(rows.pond === undefined ? {} : { pond: rows.pond }), ...(stream === undefined ? {} : { streamAt: stream.restAt }) }, () => rows.water);
+  if (mask !== undefined && values instanceof Float32Array) metadata.pondMask = bakedSamplers({ res: mask.res,size: mask.size,heights: values,seed: rows.terrain.seed,landscapeHash: 0,splat: new Uint8Array(0),undergrowth: null }).heightAt;
   const source = rows.terrain, terrain = 'flat' in source ? flatTerrainField(source.flat, metadata)
     : createBakedTerrainField(source, { ...metadata, ...(rows.datum === undefined ? {} : { datum: rows.datum }) });
+  const water = bodies.map(({ row,body }) => body ?? basinBody(row.id,terrain));
   return { ...(rows.paths === undefined ? {} : { paths: rows.paths }), terrain, water };
 }
 

@@ -11834,3 +11834,11 @@ typed storage, refusing length mismatch and non-finite values. It introduces
 no sampler, cache or owner. Nalati continues to use bakedSamplers; declared
 forest queries retain exact coordinate lookup and candidate order, with f64
 density rows preserving every original double and the legacy inline form.
+
+Declared ground accepts an optional f32 pond-mask lattice with explicit res,
+size and scalar storage. Its sample count must equal res squared; values must
+stay within zero and one. It is exclusive with a geometric pond. The existing
+bakedSamplers law owns clamping and interpolation. A ground-only terrain-basin
+body resolves against that same terrain, preserving basinBody's unbounded
+clamped mask and live water-level reads. Ordinary water rows retain their
+order and first-stream metadata. No renderer, cache or collider is installed.
