@@ -66,7 +66,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     // Item/quest/journal envelopes are root data; finishes are streamed separately.
     sections: ['held/finishes'], install: installClientCatalogue },
   'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', sections: [], install: installClientAdventurePersistence },
-  'world.assembly': { phase: 'world', rank: 70, lifetime: 'entered', sections: ['world/scenes'], install: async (ctx, row) => {
+  'world.assembly': { phase: 'world', rank: 70, lifetime: 'entered', needsWorldLooks: false, sections: ['world/scenes'], install: async (ctx, row) => {
     if (row.kind !== 'world.assembly') throw new Error('Invalid world assembly feature');
     const { installClientWorldAssembly } = await import('./clientWorldAssembly');
     await installClientWorldAssembly(ctx, row);

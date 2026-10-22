@@ -29,8 +29,8 @@ const rows={construction:{cells:{phone:'cells.bin',desktop:'cells.bin'},seed:1,p
   checkpoints:[],gpu:{label:'gpu',roots:[{kind:'object',id:'root'}]},looks:{unbound:[],bound:[]},publish:{draws:'draws',collection:'collection'}},
   stages:[{kind:'group',id:'root',label:'Root',part:'root'}]};
 const row=parseClientPlan({version:1,features:[{kind:'world.assembly',library:'fixture.island',catalogue:'models.json',rows}]}).features[0];
-if(row?.kind!=='world.assembly')throw new Error('Missing assembly fixture');
-const assembly=row;
+if(row?.kind!=='world.assembly'||row.library===undefined||row.catalogue===undefined)throw new Error('Missing assembly fixture');
+const assembly={...row,library:row.library,catalogue:row.catalogue};
 const book={id:assembly.library,draws:[{slot:'chime',file:'mesh.glb',channels:[]}],groups:'groups.json',figures:'figures.json',collections:{chime:'chime'}};
 const siteCatalogue={product:'fixture-island',models:[{key:'site',id:'fixture-island/site',name:'Site',file:'fixture.json',category:'props',pipeline:'blender',defaults:{},variants:[],
   choices:[{id:'world',params:{},size:[1,1,1],draws:[],lods:[],colliders:[]}]}]};
@@ -100,7 +100,7 @@ function nativeFixture(f: ReturnType<typeof fixture>, construction?: Scope) {
   const scope=construction?.child('entered')??new Scope('unbound');
   if(construction!==undefined)bindResidentWorldScope(scope,construction);
   const world=legacyDouble<ShardWorld>({game:legacyDouble<ShardWorld['game']>({}),registry:legacyDouble<ShardWorld['registry']>({}),sky:legacyDouble<ShardWorld['sky']>({}),physics:legacyDouble<ShardWorld['physics']>({})}),runtime=legacyDouble<ShardRuntime>({world});
-  const ctx=legacyDouble<ShardContext>({scope,product:f.product,progress:legacyDouble<ShardContext['progress']>({set:()=>undefined,detail:()=>undefined}),game:legacyDouble<ShardContext['game']>({runtime})});
+  const ctx=legacyDouble<ShardContext>({scope,product:f.product,cube:null,progress:legacyDouble<ShardContext['progress']>({set:()=>undefined,detail:()=>undefined}),game:legacyDouble<ShardContext['game']>({runtime})});
   return{scope,world,runtime,ctx};
 }
 

@@ -69,7 +69,8 @@ export interface WorldConstructionPorts {
   readonly scenes: SceneHandles;
   readonly baked: ReadonlyMap<string, BakedTiles>;
   readonly library?: IslandLibrary<unknown>;
-  readonly sites: ReturnType<typeof defineWorldSceneCatalogue>;
+  readonly sites?: ReturnType<typeof defineWorldSceneCatalogue>;
+  readonly variant?: string;
   readonly progress?: StepProgress;
 }
 
@@ -139,6 +140,9 @@ export class WorldAssembly {
     };
     live();
     const explicit = rows.progress.kind === 'checkpoints';
+    const variants = rows.variant;
+    if (variants !== undefined && ports.variant !== variants.standalone && ports.variant !== variants.cell) throw new Error('World construction needs its selected variant');
+    if (rows.gpu.roots.some(ref => ref.when !== undefined && (variants === undefined || ref.when.variant !== variants.standalone && ref.when.variant !== variants.cell))) throw new Error('World GPU root names an undeclared variant');
     if (library === undefined && stages.some(stage => stage.kind === 'rope-deck' || stage.kind === 'ambient-flock' || stage.kind === 'streamed-cover' || stage.kind === 'site' && stage.life !== undefined)) throw new Error('World construction needs its fixed-draw library');
     if (rows.cells === undefined && stages.some(stage => stage.kind === 'streamed-cover')) throw new Error('World construction needs its cover cells');
     const checkpoints = new Map<string, WorldConstructionRows['checkpoints'][number]>();
@@ -173,9 +177,9 @@ export class WorldAssembly {
     const draws = library?.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
     let completed = 0;
     const complete = async (label: string): Promise<void> => { await slice(++completed, total, label); };
-    const assembly = WorldAssembly.admit(input, { scope, scenes, sites: ports.sites, context: sharedModelContext(sky, game), registry,
+    const assembly = WorldAssembly.admit(input, { scope, scenes, ...(ports.sites === undefined ? {} : { sites: ports.sites }), context: sharedModelContext(sky, game), registry,
       slice: explicit ? () => Promise.resolve() : complete, product, ...(draws === undefined ? {} : { draws }), physics, fixed: game, ...(cells === undefined ? {} : { cover: { cells, viewer, updates: game } }),
-      entry: { root, tier: game.tier, physics, piece: piece => { registry.add(piece); } } });
+      entry: { root, scope, tier: game.tier, physics, ...(ports.variant === undefined ? {} : { variant: ports.variant }), piece: piece => { registry.add(piece); } } });
     if (rows.root !== undefined) { publishEntryOwner(scope, 'object', rows.root.id, root); publication = { id: rows.root.id, root }; }
     const checkpoint = async (stage: string, at: 'before' | 'after'): Promise<void> => {
       const check = checkpoints.get(`${at}:${stage}`);
@@ -202,7 +206,7 @@ export class WorldAssembly {
     }
     if (!explicit) await slice(total, total, rows.progress.finish); live();
     // Resolve the WHOLE ordered root list before releasing even one CPU copy.
-    const roots = rows.gpu.roots.map(ref => {
+    const roots = rows.gpu.roots.filter(ref => ref.when === undefined || ref.when.variant === ports.variant).map(ref => {
       if (ref.kind === 'object') return ref.id === rows.root?.id ? root : entryOwner(scope, 'object', ref.id);
       if (ref.kind === 'placed') {
         const [placed] = entryOwner(scope, 'placed', ref.id);

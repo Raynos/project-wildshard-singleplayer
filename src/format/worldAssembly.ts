@@ -50,6 +50,8 @@ export const WorldConstructionSchema = v.strictObject({
   looks: v.exactOptional(v.strictObject({ unbound: v.pipe(v.array(id), v.maxLength(256)), bound: v.pipe(v.array(id), v.maxLength(256)) })),
   publish: v.exactOptional(v.strictObject({ draws: id, collection: id })),
   root: v.exactOptional(v.strictObject({ id, name: label })),
+  /** Ending names remain authored data; the entered context selects standalone or cell. */
+  variant: v.exactOptional(v.strictObject({ standalone: id, cell: id })),
   cells: v.exactOptional(v.strictObject({ phone: id, desktop: id })), seed: v.pipe(v.number(), v.integer(), v.minValue(0)),
   progress: v.strictObject({ kind: v.exactOptional(v.literal('checkpoints')), total: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(2048)),
     start: label, finish: label, budgetMs: v.pipe(finite, v.minValue(0), v.maxValue(100)) }),
@@ -64,10 +66,10 @@ export const WorldConstructionSchema = v.strictObject({
       v.strictObject({ kind: v.literal('require-baked'), id }),
     ])), v.minLength(1), v.maxLength(16)) })), v.maxLength(128)),
   gpu: v.strictObject({ label, roots: v.pipe(v.array(v.variant('kind', [
-    v.strictObject({ kind: v.literal('object'), id }),
-    v.strictObject({ kind: v.literal('placed'), id }),
-    v.strictObject({ kind: v.literal('scene-part'), as: v.picklist(['mesh', 'group', 'object']), id }),
-    v.strictObject({ kind: v.literal('baked'), id }),
+    v.strictObject({ kind: v.literal('object'), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
+    v.strictObject({ kind: v.literal('placed'), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
+    v.strictObject({ kind: v.literal('scene-part'), as: v.picklist(['mesh', 'group', 'object']), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
+    v.strictObject({ kind: v.literal('baked'), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
   ])), v.minLength(1), v.maxLength(256)) }),
 });
 export type WorldConstructionRows = v.InferOutput<typeof WorldConstructionSchema>;

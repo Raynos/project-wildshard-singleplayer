@@ -18,18 +18,30 @@ const books = new WeakMap<ShardProduct, Map<string, {
 
 /** Whole-plan preflight; only already-admitted section values and file names. */
 export function preflightIslandBook(product: ShardProduct, row: AssemblyRow): void {
-  const book = v.parse(ResolvedIslandLibrarySchema, product.section('custom/fixedLayouts'));
   const assembly = v.parse(WorldAssemblySchema, row.rows), construction = assembly.construction;
+  if (construction?.looks === undefined) throw new Error('World assembly requires construction looks');
+  for (const look of [...construction.looks.unbound, ...construction.looks.bound]) {
+    if (product.shardfile.look.materials[look] === undefined) throw new Error(`World assembly names no look: ${look}`);
+  }
+  if (row.entered !== undefined) {
+    const blocks = product.section('world/scenes').entry?.blocks;
+    if (construction.root?.id !== row.entered.root || blocks === undefined || row.entered.blocks.some(id => blocks[id] === undefined || blocks[id].length === 0 || blocks[id].some(step => step.kind !== 'piece'))) throw new Error('Entered assembly requires its declared root and piece-only blocks');
+  }
+  if (row.library === undefined) {
+    if (row.catalogue !== undefined || construction.root === undefined || construction.publish !== undefined || construction.cells !== undefined) throw new Error('Scene assembly requires its root without a library publication or cells');
+    if (assembly.stages.some(stage => stage.kind === 'site' || stage.kind === 'rope-deck' || stage.kind === 'rope-chain' || stage.kind === 'ambient-flock' || stage.kind === 'streamed-cover' || stage.kind === 'weather' || stage.kind === 'arena-script')) throw new Error('Scene assembly cannot construct a library or native encounter stage');
+    if (assembly.stages.some(stage => stage.kind === 'entry' && stage.rows.some(step => step.kind === 'piece' && step.active !== undefined))) throw new Error('Active pieces require their separate entered binding');
+    return;
+  }
+  if (row.catalogue === undefined) throw new Error('Island book requires its catalogue');
+  const book = v.parse(ResolvedIslandLibrarySchema, product.section('custom/fixedLayouts'));
   if (book.id !== row.library || product.section('world/scenes').catalogue !== row.catalogue) throw new Error('Island book identity or catalogue differs');
-  if (construction?.looks === undefined || construction.publish === undefined) throw new Error('Island entry requires construction looks and publications');
+  if (construction.publish === undefined) throw new Error('Island entry requires construction looks and publications');
   if (new Set(book.draws.map(draw => draw.slot)).size !== book.draws.length) throw new Error('Repeated island fixed draw slot');
   const slots = new Set(book.draws.map(draw => draw.slot));
   if (Object.values(book.collections).some(slot => !slots.has(slot))) throw new Error('Island collection names an undeclared draw');
   for (const name of [book.groups, book.figures, row.catalogue, ...book.draws.flatMap(draw => 'file' in draw ? [draw.file] : [])]) {
     if (!product.hasFile(name)) throw new Error(`Island book names no product file: ${name}`);
-  }
-  for (const look of [...construction.looks.unbound, ...construction.looks.bound]) {
-    if (product.shardfile.look.materials[look] === undefined) throw new Error(`Island book names no look: ${look}`);
   }
 }
 
@@ -43,7 +55,7 @@ export async function admittedIslandBook(product: ShardProduct, id: string): Pro
   live();
   const matching = parseClientPlan(product.section('client/plan')).features.filter((row): row is AssemblyRow => row.kind === 'world.assembly' && row.library === id);
   const [row] = matching;
-  if (row === undefined || matching.length !== 1) throw new Error('Island book requires one matching assembly');
+  if (row?.catalogue === undefined || matching.length !== 1) throw new Error('Island book requires one matching assembly');
   preflightIslandBook(product, row);
   const root = product.section('custom/fixedLayouts'), recipe = JSON.stringify(row);
   let byId = books.get(product);

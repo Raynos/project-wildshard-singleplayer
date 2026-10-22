@@ -11718,6 +11718,20 @@ ownership choices. Compiled products carry no executable runtime files, and
 the project writer verifies this even when runtime copying was not requested.
 
 
+A scene-only world.assembly omits both library and catalogue. It requires
+construction.looks and an explicit root, and refuses cover cells, book
+publications, library stages and active entered pieces before reads. The
+existing resident owner retains its scene handles and completed root across
+entries; unbound construction uses its original entered scope.
+construction.variant {standalone, cell} maps the context to authored ending
+names without a shard-specific branch. Material reads fence native owners,
+product readers and scene declarations before subsequent allocation.
+An optional entered {root, blocks} binds only declared piece blocks after
+construction completes, using the original entered scope and piece receiver.
+The root is attached through its original piece registration; active tool
+pieces retain that entered lifetime. GPU root when.variant filters use the
+same selected ending before resolving the complete applicable root list.
+
 The finite world.assembly capability names a declared island library, a named
 scene catalogue and inline WorldAssembly rows. Its fixed entered-world rank 70
 follows ordinary world features and precedes world-bindings and kit. Whole-plan
