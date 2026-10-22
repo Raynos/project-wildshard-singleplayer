@@ -5,7 +5,9 @@ import { ScalarTripletSchema } from '../src/format/scalarChannel';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
-import { groundColor,surfaceAt,TERRAIN } from '../src/shards/nalati-grasslands/world/geography';
+import { groundColor,surfaceAt,GROUND } from '../src/shards/nalati-grasslands/world/geography';
+
+const TERRAIN = GROUND.terrain;
 
 const encode = (values: Float32Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));
 const raster = (value: number) => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: encode(new Float32Array(4).fill(value)) } });

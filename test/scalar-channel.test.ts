@@ -1,13 +1,15 @@
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
-import { readScalarChannel } from '../src/engine/world/scalarChannel';
+import { readScalarChannel,readScalarLattice } from '../src/engine/world/scalarChannel';
 import { ScalarChannelSchema } from '../src/format/scalarChannel';
 import { ForestRowsSchema } from '../src/format/terrain';
 import { declaredForestQueries } from '../src/game/shard/manifest';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
-import { wetMask,forestMask,groundColor,surfaceAt,NALATI_MINIMAP,TERRAIN } from '../src/shards/nalati-grasslands/world/geography';
+import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from '../src/shards/nalati-grasslands/world/geography';
+
+const TERRAIN = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);
 
 function encode(values: Float32Array | Float64Array): string {
   return btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer,values.byteOffset,values.byteLength))));

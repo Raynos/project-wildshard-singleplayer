@@ -22,7 +22,10 @@ import { TERRAIN, snowValleyX, snowValleyHalf, snowValleyFloor, inPoiClearing, i
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
-import { TERRAIN as bound, forestMask, wetMask } from '../src/shards/nalati-grasslands/world/geography';
+import { GROUND,forestMask } from '../src/shards/nalati-grasslands/world/geography';
+import { readScalarLattice } from '../src/engine/world/scalarChannel';
+
+const bound = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);
 
 test('baked layout owns every derived anchor and clearing', () => {
   const data = (source: object): object => Object.fromEntries(Object.entries(source).filter(([, value]) => typeof value !== 'function'));

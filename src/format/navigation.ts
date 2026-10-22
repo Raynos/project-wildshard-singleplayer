@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { ScalarLatticeSchema } from './scalarChannel';
+import { isJsonData } from './json';
 import { decodeNavigation, type NavigationLayerData } from '@wildshard/format/navigationBytes';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-16384), v.maxValue(16384));
@@ -44,3 +46,9 @@ export function validateNavigationAssets(source: { navigation: Navigation | null
   const bytes = assets.get(source.navigation.file); if (bytes === undefined) throw new Error('Missing navigation bytes');
   readNavigation(source.navigation, bytes);
 }
+
+/** Offline terrain-triangle exclusion only; no live navigation or collider policy. */
+export const NavmeshGroundSchema = v.pipe(v.unknown(),v.check(isJsonData,'Navmesh ground requires plain JSON'),v.strictObject({
+  waterMargin: v.pipe(finite,v.minValue(0)),wet: ScalarLatticeSchema,wetThreshold: finite,trailClearance: v.pipe(finite,v.minValue(0)),
+}));
+export type NavmeshGroundRows = v.InferOutput<typeof NavmeshGroundSchema>;

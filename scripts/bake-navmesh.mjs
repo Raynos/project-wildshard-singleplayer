@@ -25,6 +25,7 @@ import { brotliCompressSync, gzipSync } from 'node:zlib';
 import { visitAuthoredWorld } from './bake/worldHost.mjs';
 import { installBakeEnvironment } from './bake/environment.mjs';
 import { bakeNavigation } from '@wildshard/sdk/bake/navigation';
+import { navmeshGroundExclusion } from './bake/navmeshGround.ts';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const check = process.argv.includes('--check');
@@ -164,8 +165,8 @@ function addDesc(soup, d) {
  * (2r + 30 m across) and below its surface; 0.25 m of margin, as AnimalManager's `isDry`. (A pond shard's valleys lower
  * than the pond elsewhere are dry land: no water is drawn there, though `isDry` still calls them wet.)
  */
-function wetTest(def) {
-  if (def.navmesh?.excludeGroundAt) return def.navmesh.excludeGroundAt;
+function wetTest(def, exclusion) {
+  if (exclusion !== undefined) return exclusion;
   const wl = HF.waterLevel() + 0.25;
   if (def.ocean) return (_x, _z, y) => y <= wl;
   if (!HF.hasPond()) return () => false;
@@ -197,6 +198,7 @@ function addTerrain(soup, grid, wet) {
 const output = byteWriter(check, 'bake-navmesh');
 for (const def of SHARDS.filter(registry.playable)) {
   if (only.length > 0 && !only.includes(def.slug)) continue;
+  const exclusion = navmeshGroundExclusion(def.navmesh,def.ground.terrain);
   const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, 'terrain.bin');
   const required = def.ground.terrain === undefined ? null : bakedTerrainSource(def.ground.terrain);
   if (!existsSync(bakedFile) && required === null && def.ground.structures === undefined) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin missing — run scripts/bake-chunk.mjs`);
@@ -225,7 +227,7 @@ for (const def of SHARDS.filter(registry.playable)) {
     for (const d of colliders) { const c = d.kind === 'treads' ? d.from : d; if (Math.hypot(c.x - dx, c.z - dz) < dr) console.log(JSON.stringify(d, (k, v) => (v instanceof Float32Array ? `[${v.length / 3} points]` : typeof v === 'number' ? Math.round(v * 100) / 100 : v))); }
   }
   const soup = new Soup();
-  const dropped = addTerrain(soup, ground, wetTest(def));
+  const dropped = addTerrain(soup, ground, wetTest(def, exclusion));
   for (const d of colliders) addDesc(soup, d);
   // the navmesh is baked in the authored frame (src/engine/physics/navmesh.ts queries `y − datum`): a level shifted at
   // runtime (its terrain field's `datum`, Driftwood's G164 drop) builds shifted, so its soup is raised back by the datum

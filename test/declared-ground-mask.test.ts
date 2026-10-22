@@ -10,7 +10,7 @@ import { basinBody } from '../src/engine/world/water/body';
 import { readScalarChannel } from '../src/engine/world/scalarChannel';
 import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
-import { GROUND,TERRAIN } from '../src/shards/nalati-grasslands/world/geography';
+import { GROUND } from '../src/shards/nalati-grasslands/world/geography';
 import nalati from '../src/shards/nalati-grasslands/manifest';
 
 const encode = (values: Float32Array | Float64Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));
@@ -60,6 +60,7 @@ test('actual Nalati metadata, pond, water and required native terrain retain the
   if (!(values instanceof Float32Array)) throw new Error('Missing pond samples');
   const trails = [layout.S_ROAD_PTS,layout.N_ROAD_PTS,layout.E_ROAD_PTS,layout.W_ROAD_PTS,layout.SKY_ROAD,layout.CAMP_SPUR,...layout.BOWL_TRACKS,layout.EAGLE_TRAIL,layout.CAVE_TRAIL,layout.ARGYMAQ_TRAIL];
   const original = createBakedTerrainField({ key: 'nalati-grasslands',seed: geography.seed },{ water: geography.river.level,cabinSites: [],trails,mask: { res: geography.res,size: geography.size,values } });
+  const TERRAIN = GROUND.terrain;
   expect(nalati.ground).toBe(GROUND);expect(nalati.ground.terrain).toBe(TERRAIN);
   expect(TERRAIN.trails).toEqual(trails);expect(bakedTerrainSource(TERRAIN)).toEqual(bakedTerrainSource(original));
   const prior = basinBody('river',original),current = GROUND.water?.[0];

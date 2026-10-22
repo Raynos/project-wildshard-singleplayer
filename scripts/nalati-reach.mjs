@@ -129,7 +129,10 @@ if (mapFile) {
   const px = Number(arg('px') ?? 0.5);
   const W = Math.round((x1 - x0) / px), H = Math.round((z1 - z0) / px);
   const img = new Uint8Array(W * H * 3);
-  const wet = (await src('shards/nalati-grasslands/wet.ts')).nalatiWetAt;
+  const { NALATI_GRASSLANDS } = await src('shards/nalati-grasslands/manifest.ts');
+  const { readScalarLattice } = await src('engine/world/scalarChannel.ts');
+  const policy = NALATI_GRASSLANDS.navmesh.ground, mask = readScalarLattice(policy.wet);
+  const wet = (x,z) => mask(x,z) > policy.wetThreshold;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const x = x1 - (i + 0.5) * px, z = z1 - (j + 0.5) * px; // +x (west) on the left, north up
     const h = HF.heightAt(x, z), ny = HF.normalAt(x, z)[1], deg = Math.acos(Math.min(1, ny)) * 180 / Math.PI;

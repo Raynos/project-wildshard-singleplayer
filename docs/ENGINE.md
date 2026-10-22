@@ -12012,3 +12012,12 @@ height/slope/forest arguments. The original baked sampler owns interpolation
 and edge handling. Existing channel rows can be passed directly as a tuple;
 no rebake, new payload, section, cache or world owner is required. Map overlays
 and POIs remain with the original mapPalette binding.
+
+A manifest navmesh.ground is an offline-only NavmeshGroundSchema row: waterMargin,
+wet (the original ScalarLattice), wetThreshold and trailClearance. Before any
+world/bake effects, bake-navmesh admits the complete policy and decodes the
+existing raster once. Its predicate reads the same bound terrain's live water
+level first, then the wet sample and live trail distance only when needed; the
+water comparison is inclusive and both mask/trail comparisons are strict.
+Legacy excludeGroundAt remains supported, but cannot coexist with ground.
+No runtime query, collider, service, clock, payload or cache is installed.

@@ -1,4 +1,4 @@
-import type { NavigationContent } from '@wildshard/format/navigation';
+import type { NavmeshGroundRows,NavigationContent } from '@wildshard/format/navigation';
 import type { SetName } from '../player/viewmodelTextures';
 import type { FallCause } from '../combat/pipeline';
 import type { HorizonStrips } from '../world/HorizonMatte';
@@ -87,7 +87,7 @@ export interface LevelSpec {
   /** Authored diagnostic camera poses, exposed to capture scripts without content-world casts. */
   capturePoses?: () => Promise<Readonly<Record<string, { eye: readonly [number, number, number]; yaw: number; pitch: number; feet?: readonly [number, number, number]; probe?: { name?: string; x?: number; y?: number; z?: number; yaw?: number; pitch?: number } }>>>;
   /** Offline creature-navigation policy; the ground exclusion does not remove registered walkable decks. */
-  navmesh?: { excludeGroundAt: (x: number, z: number, y: number) => boolean };
+  navmesh?: { excludeGroundAt: (x: number,z: number,y: number) => boolean; ground?: never } | { ground: NavmeshGroundRows; excludeGroundAt?: never };
   /** `water`: the level's water bodies, registered in `app.world.water` at level.data (before any world step reads them) */
   ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin'; water?: readonly WaterBody[] };
   spawn: SpawnPose; bounds?: Bounds; camera?: { portraitFov: number };
