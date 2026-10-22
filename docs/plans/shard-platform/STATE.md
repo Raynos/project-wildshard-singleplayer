@@ -12,15 +12,21 @@ pass + latch → crossing T1–T6 (G580/G581) → Nine → Nalati → the rest (
 1,597/1,517 vs OFF 1,494/1,414 MB, blocked 0/0, p95 35/34 ms; warm Sky 3.8 s. Cold Pine ~17 s with budget; three
 stage cuts failed the whole-wait gate (3-5 s noise even quiet). G579 (< 5 s) not met.
 
-**Lanes (G590 full steam, 5 Opus + 4 Codex + sp-x7):** sp-o1 + sp-o5 O28 Nine graphical; sp-o3 O27 Nalati graphical;
-sp-o2 warm neighbour + budget default-on, Debug row deleted; sp-o4 Pine frame-gate (999.9 ms); sp-x1 DW grid-ready
-(harness route fix) + Pine re-latch; sp-x6 cold Pine; sp-x8 Nine non-graphical + flip; sp-x9 Nalati mounted book + cuts.
+**Lanes (G596 zero first, hosts later; G590 full steam):** Nine: sp-o1 (D1b spill/bounds, then NA), sp-o5 (view-lane
+uniforms/camera/specimen), sp-x8 ND flip. Nalati: sp-o3 O27/N1b/N5c, sp-o2 LG after crossing default-on, sp-x9 C6
+(N6a/N6b/LF), sp-x1 C5 (N5a/N5b) after the Pine/DW grid-ready latch, sp-x6 N1e then LB. sp-o4 E2 (GLSL memory first).
+N1a open for the next free Opus. HOST-AUDIT (later): G594 ruler/host items; sp-x8: 74ffcac600 posed loader is a real
+second user, 96b965a60f overbroad (Pine figure/socket vs DW kit-figure are different branches).
 
 **Tooling:** push loop + watchdog in pane sp-tools. Commit: scripts/commit.sh (or --patch for shared files).
 
 **Rules:** G492; never herdr wildshard-v; no net-0 moves or relabels (G571); G573; G561.
 
 **For wildshard-v:**
+(G595 candidates for Jake) game/riding/seatedFigure (sp-o3, 487c74c60c): one-user, charged not listed; self-scored
+2 Y, 3 Y, 4 Y, 5 Y (mounted-figure.test ferryman profile), 6 Y.
+(0) G587 part 1 is already live (745567649a): sp-x6 checked live 16a7101baa in a fresh phone context: Developer ON = 6
+real + 4 templates, OFF = 6 real, no open plots. If Jake still sees plots, it's a stale PWA cache, not code.
 (1) G589 pass (sp-x1, 0f9781148f): Pine memory passes (181.5 MB), oneFrameLooks FAILS (max frames 999.9/266.6/
 116.8 ms). DW not latched: harness bug, gridFloorPlans returns outward+return but the driver takes plans[0].
 (2) Ruler: 1aa987d01a stops counting runtime/productSections.generated.d.ts as authored. Re-run on 1aa987d01a+
