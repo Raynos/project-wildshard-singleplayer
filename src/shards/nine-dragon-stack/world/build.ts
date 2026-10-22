@@ -1,4 +1,3 @@
-import type { GeometryBoot } from '../runtime/productSections.generated';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -17,7 +16,6 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
-import metadata from '../boot/metadata.generated.json' with { type: 'json' };
 import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
@@ -47,7 +45,6 @@ export interface NineDragonWorld {
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
 export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; scenes: SceneHandles; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
-  const { world: worldRows } = await product.json<GeometryBoot>('geometry/layout.json');
   const shared = new Shared(restoreWeave(await product.file('looks/silk-weave.r8')), (await product.json<{ readonly look: { readonly shared: ConstructorParameters<typeof Shared>[1] } }>('weapons/jian-row.json')).look.shared);
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -102,11 +99,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await entry.run('lanterns');
   progress(0.56, 'facade batches');
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
-  // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
-  const facade = opts.scenes.object('fabric.facade');
-  // the facade's drawn pieces: world-scene placements (generators/worldScenes.ts LAYOUT_PLACEMENTS)
-  for (const row of worldRows.facade.drawn) facade.add((await opts.scenes.place(`nds-facade-${row.id}`)).object);
-  facade.add(...metadata.windowBindings[entryCaps ? 'capped' : 'open'].map(id => opts.scenes.object(id)));
+  // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md. The facade's drawn pieces, its lit windows and the
+  // sign boards: the world entry's `facade` rows (generators/worldEntry.ts)
+  await entry.run('facade');
   await slice();
   progress(0.6, 'streaks + dressing');
 
@@ -114,17 +109,13 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await entry.run('cards');
   await slice();
 
-  // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)
+  // the wall kit and the air conditioners: one InstancedMesh per piece and region
   await entry.run('wall');
-  root.add((await opts.scenes.place('nds-inst-ac')).object);
   await slice();
 
   // movers: the train, the gondola, the drones (each with its navigation lights), placed where the update puts them at t = 0
   const drones = models.project('nds-drones', models.ctx, root);
   const running = [...models.project('nds-train', models.ctx, root), ...models.project('nds-gondola', models.ctx, root), ...drones];
-  await slice();
-  // every sign hung is a copy of the sign model drawn into the dressing's sign and neon-board meshes (generators/worldScenes.ts)
-  for (const id of ['nds-signs', 'nds-signs-neon']) await opts.scenes.place(id);
   await slice();
 
   // the painted sky is the dressing step's (generators/worldScenes.ts); its silk is the shared weave

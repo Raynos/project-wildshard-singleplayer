@@ -5,14 +5,15 @@ import light from '../data/light.json' with { type: 'json' };
 import { nineWorldInstallRows, type NinePhysicsPlacement } from './physicsPlacements';
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import deckFloors from '../data/deckFloors.generated.json' with { type: 'json' };
+import windowBindings from '../data/windowBindings.json' with { type: 'json' };
 import { LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS } from './worldScenes';
 
 /**
  * Nine Dragon Stack's declared world entry (the world/scenes section's entry, run by @wildshard/game/shardfile/worldEntry in
  * world/build.ts): the portals, the banyan crown's looks and its dressing root, the wet floor's reflection cards for
  * this deck ending (`capped` standalone, `open` in a grid cell) with the streak and halo looks they draw in, the
- * catalogue placements the build reaches in turn (the square's lions and sets, the hung lanterns, the wall kit, the hook
- * and the crowd), and the square's floors piece for each ending (the plugin runs `pieces` once the world stands).
+ * catalogue placements the build reaches in turn (the square's lions and sets, the hung lanterns, the facade's drawn pieces
+ * and window bindings, the sign boards, the wall kit and air conditioners, the hook and the crowd), and the square's floors piece for each ending (the plugin runs `pieces` once the world stands).
  */
 export function nineWorldEntry(): WorldEntryRows {
   // the walkable square and stacks as one piece: its stone colliders for the ending, the world's floors then the decks' (first)
@@ -44,7 +45,9 @@ export function nineWorldEntry(): WorldEntryRows {
     const when = variant === undefined ? {} : { when: { variant } };
     return [{ kind: 'place', id, ...when }, { kind: 'attach', id: `${id}.root`, as: 'object', ...(name === undefined ? {} : { name }), ...when }];
   };
-  const wall = LAYOUT_PLACEMENTS.filter(row => row.id.startsWith('nds-inst-') && row.id !== 'nds-inst-ac');
+  const wall = LAYOUT_PLACEMENTS.filter(row => row.id.startsWith('nds-inst-'));
+  // under the fabric's facade group: its drawn pieces (worldScenes.ts LAYOUT_PLACEMENTS) and this ending's lit windows
+  const facade = (id: string, variant?: 'capped' | 'open') => ({ kind: 'attach', id, as: 'object', parent: 'fabric.facade', ...(variant === undefined ? {} : { when: { variant } }) });
   return parseWorldEntry({ blocks: {
     pieces: [floors('capped', install.standalone), floors('open', install.cell), ...stone('capped', install.standalone), ...stone('open', install.cell), crossings, guard('capped', install.standalone), guard('open', install.cell)],
     portals: [{ kind: 'attach', id: 'portals.root', as: 'group' }],
@@ -55,6 +58,12 @@ export function nineWorldEntry(): WorldEntryRows {
     // each deck ending's entry decks and the facade's sign boards (worldScenes.ts FIXED_STEPS)
     kits: (['open', 'capped'] as const).map(variant => ({ kind: 'attach', id: `fixed-${variant}.root`, as: 'group', when: { variant } })),
     lanterns: (['open', 'capped'] as const).flatMap(variant => placed(`nds-lanterns-${variant}`, 'lanterns', variant)),
+    facade: [
+      ...worldRows.rows.facade.drawn.flatMap(row => [{ kind: 'place', id: `nds-facade-${row.id}` }, facade(`nds-facade-${row.id}.root`)]),
+      ...(['open', 'capped'] as const).flatMap(variant => windowBindings[variant].map(id => facade(id, variant))),
+      // every sign hung: copies of the sign model drawn into the dressing's sign and neon-board meshes
+      { kind: 'place', id: 'nds-signs' }, { kind: 'place', id: 'nds-signs-neon' },
+    ],
     wall: wall.flatMap(row => placed(row.id)),
     figures: [...placed('nds-fei-zhua-hooks'), ...(['walkers', 'sitters'] as const).flatMap(group => worldRows.rows.crowd[group].length === 0 ? [] : placed(`nds-crowd-${group}`, 'crowd'))],
     cards: [
