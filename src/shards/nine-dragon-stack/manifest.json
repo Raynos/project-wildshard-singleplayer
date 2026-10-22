@@ -460,7 +460,8 @@
       "stagesOwner": "declared",
       "nativePlan": {
         "phases": [
-          "kit"
+          "kit",
+          "play"
         ]
       }
     }

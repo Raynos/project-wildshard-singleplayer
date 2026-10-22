@@ -89,7 +89,7 @@ test('quarry ribbon keeps endpoints pinned and uses only its declared look', () 
 test('quarry practice rows select the equipped native tool and translate their hooks', () => {
   const scope = new Scope('quarry.practice'), previous = app.levelScope, state = app.state;
   app.levelScope = scope;
-  const tool = new GrappleTool(legacyDouble<ShardContext>({}), { equipment: { ...SWORD_WOOD, id: 'tool.quarry-claw' },
+  const tool = new GrappleTool(legacyDouble<ShardContext>({ scope }), { equipment: { ...SWORD_WOOD, id: 'tool.quarry-claw' },
     profile: quarry, presentation: legacyDouble<GrappleRows>({}), hooks: [] });
   const select = vi.spyOn(tool, 'setGrappleCourse');
   let update: Parameters<PlaygroundHost['game']['onUpdate']>[0] = () => undefined;

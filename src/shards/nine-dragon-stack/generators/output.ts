@@ -59,4 +59,4 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, l
 ]));
 
 export const output = { blobs: [{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"}], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['client/plan', {version:1,features:[practiceCard, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}]}]])) };
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['client/plan', {version:1,features:[practiceCard, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };

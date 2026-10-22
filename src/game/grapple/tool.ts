@@ -410,6 +410,32 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
   return setCourse;
 }
 
+/** The original grapple tool's guard, closed before binding and while its entered owner retires. */
+export interface GrappleGuard {
+  readonly open: () => boolean;
+  readonly bind: (tool: GrappleTool) => void;
+}
+const guardTools = new WeakMap<GrappleTool, Scope>();
+const guards = new WeakMap<Scope, GrappleGuard>();
+/** One entered-scope reference; collision readers never throw while that scope or an ancestor retires. */
+export function grappleGuard(scope: Scope): GrappleGuard {
+  if (scope.disposed || scope.disposing) throw new Error('Grapple guard owner has ended');
+  const ready = guards.get(scope); if (ready !== undefined) return ready;
+  let current: GrappleTool | null = null;
+  const guard: GrappleGuard = {
+    open: () => !scope.disposed && !scope.disposing && current?.guardOpen === true,
+    bind: tool => {
+      if (scope.disposed || scope.disposing) throw new Error('Grapple guard owner has ended');
+      if (guardTools.get(tool) !== scope) throw new Error('Grapple guard requires its entered scope');
+      if (current !== null) throw new Error('Grapple guard is already bound');
+      current = tool;
+    },
+  };
+  guards.set(scope, guard);
+  scope.onDispose(() => { current = null; guards.delete(scope); });
+  return guard;
+}
+
 /** Client-only data-driven grapple tool. Context supplies standard services, never shard laws. */
 export class GrappleTool extends Tool {
   readonly id: Tool['id'];
@@ -426,6 +452,7 @@ export class GrappleTool extends Tool {
     if (!toolId(id)) throw new Error('Grapple requires a tool item identity');
     this.id = id;
     if (data.profile.id !== this.id) throw new Error('Grapple profile and equipped item differ');
+    guardTools.set(this, shard.scope);
   }
   get hooks(): GrappleCourseRow['hooks'] { return this.data.hooks; }
   get guardOpen(): boolean { return this.sim?.guardOpen() === true; }

@@ -1,13 +1,8 @@
 import { prepareNinePost } from './look/render';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
-import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { declaredRuntimeEntry } from '@wildshard/game/shard/declaredEntry';
-import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
-import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
-import { bindRuntimeEquipment, bindRuntimeItems, bindRuntimeLedger, projectRuntimeFacts } from '@wildshard/game/plugin/headless';
 import { Group, type PerspectiveCamera } from 'three';
-import { GrappleTool } from '@wildshard/game/grapple/tool';
-import grappleProfile from './data/grappleProfile.json' with { type: 'json' };
+import { grappleGuard } from '@wildshard/game/grapple/tool';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
@@ -18,7 +13,6 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { NdRuntime, ownNdRuntime } from './runtime/state';
 import { installSpecimenLight } from './look/specimenLight';
 import bootMetadata from './boot/metadata.generated.json' with { type: 'json' };
-import { installPortalRide, type PortalRide, type PortalRideRows } from '@wildshard/game/shardfile/portalRideBinding';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
@@ -55,35 +49,6 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
 
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
-  override async play(ctx: ShardContext): Promise<void> {
-    const equipment = ctx.app.equipment;
-    if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
-    const { primary: built, profile } = entryOwner(ctx.scope, 'claims', 'held.primary').melee(), primary = built();
-    // G285: the feats (a ride into Lantern Square, the Fei Zhua's Well crossing) are ledger facts the page's laws report
-    const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, ctx.product.shardfile, ctx.product.slug), this.shell?.play?.progress);
-    if (this.ndWorld === null) throw new Error('Grapple needs its constructed world');
-    const grapple = new GrappleTool(ctx, { equipment: new ItemCatalogue(ctx.product.shardfile.items).equipment('tool.fei-zhua'), profile: parseGrappleProfile(grappleProfile),
-      presentation: await ctx.product.json<GrappleRows>('weapons/jian-row.json'), hooks: this.ndWorld.ctx.hooks });
-    this.grapple = grapple;
-    const source = ctx.product.shardfile, items = source.items, tool = grapple.row;
-    bindRuntimeEquipment(ctx, { ...source, items: { ...items, rows: items.rows.filter(row => row.kind === 'weapon'), loadout: { ...items.loadout, tools: [] } } },
-      [{ id: primary.row.id, weapon: primary, profile }]);
-    bindRuntimeItems(ctx, source, {
-      kit: new Map([['melee', { kind: 'weapon', profiles: ['melee'], create: () => primary }]]),
-      families: new Map([['nine-dragon-stack.fei-zhua', { kind: 'tool', presentation: { ui: tool.ui }, create: row => { grapple.row = { ...row, meta: tool.meta }; return grapple; } }]]),
-      icon: name => { const row = [primary.row, tool].find(entry => entry.ui.icon === name); if (row === undefined) throw new Error(`Unknown Nine Dragon item icon ${name}`); return row.ui.icon; },
-    });
-    equipment.add(grapple, { locked: false });
-    // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
-    if (this.shell?.world !== undefined && this.shell.world !== null) {
-      const { portalRide } = await ctx.product.json<{ readonly portalRide: PortalRideRows }>('sim/headless-constants.json');
-      this.portals = await installPortalRide(ctx, source, portalRide, (name, entity) => { facts(name, entity); });
-    }
-  }
-  /** G224: the portals while they run (captures read them through the shard handle) */
-  portals: PortalRide | null = null;
-  private grapple: GrappleTool | null = null;
-  private ndWorld: NineDragonWorld | null = null;
   private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
@@ -102,16 +67,16 @@ export class NdPlugin extends ShardPlugin {
       get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
     const { world, camera } = await this.build(ctx, ctx.cube === null, () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
-    this.ndWorld = world;
     if (ctx.game.runtime !== undefined) ctx.game.runtime.objects['lanterns'] = world.lanterns;
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(scope, rt);
     // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
     await WorldEntry.admit(ctx.product.section('world/scenes').entry, { root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
     // the grapple guard: its gate's live state decides when it collides (the ending's other pieces are the entry's)
+    const guard = grappleGuard(ctx.scope);
     for (const { id, name, file, colliders } of (world.entryCaps === true ? worldInstall.standalone : worldInstall.cell).filter(row => row.id === 'nds-grapple-guard')) {
       ctx.piece({ id, name, file, category: 'buildings', surface: 'stone', colliders: readColliderRows(colliders, { kinds: ['box', 'treads'], surfaces: ['stone'], requireSurface: true }),
-        follows: new Group(), active: () => this.grapple?.guardOpen !== true });
+        follows: new Group(), active: () => !guard.open() });
     }
     ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t, rt.camera); } });
     installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
@@ -119,7 +84,7 @@ export class NdPlugin extends ShardPlugin {
 }
 
 const entry = declaredRuntimeEntry(NdPlugin, NdPlugin, {
-  entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'] },
+  entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit', 'play'] },
 });
 export const resolveTrustedRuntime = entry.resolveTrustedRuntime;
 

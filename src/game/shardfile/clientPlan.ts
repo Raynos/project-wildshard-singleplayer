@@ -200,6 +200,16 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { entryOwner } = await import('./entryOwners');
     entryOwner(ctx.scope, 'mounted-arsenal', row.arsenal).installPage(ctx);
   } },
+  'held.claims.enter': { phase: 'play', rank: -50, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
+    if (row.kind !== 'held.claims.enter') throw new Error('Invalid held claims entry feature');
+    const { entryOwner } = await import('./entryOwners');
+    await entryOwner(ctx.scope, 'claims', row.claims).enter(ctx, { grapple: row.grapple });
+  } },
+  'portal.ride': { phase: 'play', rank: -40, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'portal.ride') throw new Error('Invalid portal ride feature');
+    const { installDeclaredPortalRide } = await import('./portalRideBinding');
+    await installDeclaredPortalRide(ctx, row.source);
+  } },
   'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
@@ -277,6 +287,15 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     const plan = parseClientPlan(input);
     if (plan.features.some(row => row.kind === 'held.mounted') && plan.features.some(row => row.kind === 'held.claims.prepare' || row.kind === 'held.melee' || row.kind === 'held.ranged-page')) throw new Error('Mounted arsenal requires its sole native equipment builder');
     for (const row of plan.features) if (row.kind === 'world.assembly') preflightIslandBook(product, row);
+    for (const row of plan.features) {
+      if (row.kind === 'held.claims.enter') {
+        if (!plan.features.some(owner => owner.kind === 'held.claims.prepare' && owner.id === row.claims)
+          || !plan.features.some(owner => owner.kind === 'held.claims.install' && owner.claims === row.claims)) throw new Error('Held play entry requires matching declared claims');
+        if (![row.grapple.source, row.grapple.presentation].every(file => product.hasFile(file))) throw new Error('Held play entry requires its admitted grapple files');
+        if (!product.shardfile.items.rows.some(item => item.id === row.grapple.item && item.kind === 'tool')) throw new Error('Held play entry requires its declared tool');
+      }
+      if (row.kind === 'portal.ride' && !product.hasFile(row.source)) throw new Error('Portal ride requires its admitted data file');
+    }
     if (plan.features.some(row => row.kind === 'population.hull-book')) {
       if (plan.features.some(row => row.kind === 'population.product-creatures')) throw new Error('Hull book kit cannot duplicate product creatures');
       // These existing admitted services retain their wire during entry migration.

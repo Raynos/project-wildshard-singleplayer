@@ -11287,6 +11287,29 @@ HeldClaims.melee() lends the exact installed primary and profile to play, and
 refuses before install or after its owner retires. The original Toon branch
 and its Explorer cards retain their existing wire and rig owners.
 
+The entered play capability held.claims.enter names its prepared claims id and
+grapple {item, source, presentation}, at rank -50. HeldClaims.enter reads only
+the source's fixed hooks and grappleProfile fields and the presentation file,
+then adopts its original melee primary/profile and adds the original GrappleTool.
+It preflights the complete native item family and refuses a retired or replaced
+scope, product, equipment or primary across reads before binding or registration.
+The kit and play phases can be selected together on a native transition without
+replaying its world phase.
+
+game/grapple/tool.grappleGuard(scope) supplies one stable entered guard reference.
+open() is closed before binding and while the scope or an ancestor retires;
+bind(tool) accepts only a concrete GrappleTool created for that exact scope and
+refuses a duplicate binding. Collision readers use the same tool's guardOpen.
+
+The entered portal.ride {source} capability runs at play rank -40.
+game/shardfile/portalRideBinding.installDeclaredPortalRide(ctx, file) reads the
+source's fixed portalRide field. It retains the world, product, runtime, play and
+progress owners across file and UI-module reads, validates the original director,
+traversal and detached veil, then binds the existing ledger/progress projection.
+The original four-argument installPortalRide API and native ride/save contract
+remain unchanged. The veil belongs to the entered UI scope; the ride keeps its
+original update order, checked transfer and landing facts.
+
 ### Declared quest world facts (G571)
 
 `{ kind: 'quest.world', file, ambient? }` runs in the entered prepare-play

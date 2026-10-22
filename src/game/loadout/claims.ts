@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
+import { isJsonData } from '@wildshard/format/json';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { Rng } from '@wildshard/engine/core/rng';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
@@ -12,13 +13,15 @@ import { HeldArmsSchema, type HeldArmsRows } from '@wildshard/format/heldArms';
 import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { createClientScene } from '../plugin/ui';
-import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from '../plugin/headless';
+import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile, type RuntimeEquipmentFactory } from '../plugin/headless';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import { heldArmsGear } from '../models/heldGear';
 import { ToonArms } from '../systems/viewmodel/toonArms';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
 import { installDeclaredMelee, type DeclaredMelee } from './declaredMelee';
+import { GrappleTool, grappleGuard } from '../grapple/tool';
+import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { QuestStepRunner, type QuestStepFrame } from '../quest/steps';
 
 type ToonRows = Extract<HeldArmsRows, { readonly look: unknown }>;
@@ -26,6 +29,9 @@ type Claim = ToonRows['claims'][number];
 function requireHeldOwner(context: ShardContext, reason: string): void {
   if (context.scope.disposed || context.scope.disposing) throw new Error(reason);
 }
+const HeldPlaySchema = v.strictObject({ grapple: v.strictObject({ item: v.string(), source: v.string(), presentation: v.string() }) });
+const hookCoordinate = v.pipe(v.number(), v.finite());
+const GrappleHooksSchema = v.array(v.strictObject({ x: hookCoordinate, y: hookCoordinate, z: hookCoordinate }));
 const PrimaryPresentationSchema = v.object({ portraitFov: v.pipe(v.number(), v.finite(), v.minValue(1), v.maxValue(179)) });
 /** A claim's guard evaluates rows over facts; no executable shard guard or notice callback is accepted. */
 export class HeldClaimGuard {
@@ -114,6 +120,7 @@ export class HeldClaims {
   readonly rows: HeldArmsRows;
   private readonly arms: ToonArms | null;
   private primary: DeclaredMelee | null = null;
+  private entered = false;
   private portraitFov: number | null = null;
   private readonly geometries = new Map<string, { file: string; source: OwnedGeometry }>();
   private readonly drops = new Map<string, HeldClaim>();
@@ -164,6 +171,51 @@ export class HeldClaims {
     if (this.primary === null) throw new Error('Declared primary is not installed');
     return this.primary;
   }
+  private requireUnentered(): void { if (this.entered) throw new Error('Held play is already installed'); }
+  /** Bind the already-built declared primary and one declared grapple tool at entered play. */
+  async enter(context: ShardContext, input: unknown): Promise<void> {
+    if (!isJsonData(input)) throw new Error('Held play input must be JSON data');
+    requireHeldOwner(context, 'Held play owner has ended');
+    const scope = context.scope, product = context.product, app = context.app;
+    if (scope !== this.context.scope || product !== this.context.product) throw new Error('Held play requires its original entered owner');
+    const rows = this.rows;
+    if (!('kind' in rows)) throw new Error('Held play requires a declared primary');
+    this.requireUnentered();
+    const { grapple: spec } = v.parse(HeldPlaySchema, input), source = product.shardfile, items = source.items;
+    if (rows.tools.length !== 1 || rows.tools[0] !== spec.item) throw new Error('Held play requires its one declared grapple');
+    const declaration = items.rows.find(row => row.id === spec.item), weapon = items.rows.find(row => row.id === rows.primary.item);
+    if (declaration?.kind !== 'tool' || weapon?.kind !== 'weapon') throw new Error('Held play requires its declared primary and tool');
+    if (items.rows.some(row => row.id !== weapon.id && row.id !== declaration.id)) throw new Error('Held play cannot bind an undeclared equipment family');
+    if (![spec.source, spec.presentation].every(file => product.hasFile(file))) throw new Error('Held play requires its admitted grapple files');
+    const equipment = app.equipment;
+    if (equipment === null) throw new Error('Held play requires its loadout');
+    const melee = this.melee(), { primary: built, profile } = melee, primary = built();
+    if (primary.row.id !== rows.primary.item || !sameRuntimeProfile(weapon.profile, profile)) throw new Error('Held play primary differs from its original item');
+    const equipmentRow = new ItemCatalogue(items).equipment(spec.item);
+    const [content, presentation] = await Promise.all([
+      product.json<{ readonly hooks: unknown; readonly grappleProfile: unknown }>(spec.source),
+      product.json<GrappleRows>(spec.presentation),
+    ]);
+    const hooks = v.parse(GrappleHooksSchema, content.hooks), grappleProfile = parseGrappleProfile(content.grappleProfile);
+    if (grappleProfile.id !== spec.item) throw new Error('Held play grapple profile and item differ');
+    if (context.scope !== scope || scope.disposed || scope.disposing) throw new Error('Held play owner ended during preparation');
+    if (context.product !== product || product.shardfile !== source || context.app !== app || app.equipment !== equipment) throw new Error('Held play owner was replaced during preparation');
+    const current = this.melee();
+    if (current !== melee || current.primary() !== primary || current.profile !== profile || !sameRuntimeProfile(weapon.profile, profile)) throw new Error('Held play primary was replaced during preparation');
+    this.requireUnentered();
+    const grapple = new GrappleTool(context, { equipment: equipmentRow, profile: grappleProfile, presentation, hooks }), tool = grapple.row;
+    grappleGuard(scope).bind(grapple);
+    this.entered = true;
+    bindRuntimeEquipment(context, { ...source, items: { ...items, rows: items.rows.filter(row => row.kind === 'weapon'), loadout: { ...items.loadout, tools: [] } } },
+      [{ id: primary.row.id, weapon: primary, profile }]);
+    bindRuntimeItems(context, source, {
+      kit: new Map([[weapon.family, { kind: 'weapon', profiles: ['melee'], create: () => primary }]]),
+      families: new Map([[declaration.family, { kind: 'tool', presentation: { ui: tool.ui }, create: row => { grapple.row = { ...row, meta: tool.meta }; return grapple; } }]]),
+      icon: name => { const row = [primary.row, tool].find(entry => entry.ui.icon === name); if (row === undefined) throw new Error(`Unknown held item icon ${name}`); return row.ui.icon; },
+    });
+    equipment.add(grapple, { locked: false });
+  }
+
   /** Register native melee rows and factories in the admitted item order, without shard callbacks. */
   install(): void {
     const context = this.context, runtime = context.game.runtime, world = runtime?.world;
