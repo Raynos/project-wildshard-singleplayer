@@ -437,7 +437,7 @@
         "src/shards/nalati-grasslands/generators/budgets.ts",
         "src/shards/nalati-grasslands/generators/horizon.ts",
         "src/shards/nalati-grasslands/generators/bootFiles.ts",
-        "src/shards/nalati-grasslands/generators/bootSteps.ts",
+        "src/shards/nalati-grasslands/data/bootSteps.json",
         "src/shards/nalati-grasslands/ktx2.generated.ts",
         "src/engine/boot/filePolicy.ts",
         "src/engine/boot/bakedApi.ts",

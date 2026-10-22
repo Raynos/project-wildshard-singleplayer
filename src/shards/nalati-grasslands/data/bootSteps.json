@@ -1,14 +1,14 @@
-export const BOOT_STEPS = {
+{
   "renderer": {
     "label": "Renderer",
     "weight": 0.3
   },
   "sky": {
-    "label": "Sky · the painted panorama",
+    "label": "Sky \u00b7 the painted panorama",
     "weight": 2.5
   },
   "terrain": {
-    "label": "Steppe · the bowl · the snow ring",
+    "label": "Steppe \u00b7 the bowl \u00b7 the snow ring",
     "weight": 1.8
   },
   "cards": {
@@ -20,11 +20,11 @@ export const BOOT_STEPS = {
     "weight": 0.15
   },
   "edge": {
-    "label": "Kunes river · cloud sea · horizon",
+    "label": "Kunes river \u00b7 cloud sea \u00b7 horizon",
     "weight": 0.15
   },
   "grass": {
-    "label": "Grass rings · painted clumps",
+    "label": "Grass rings \u00b7 painted clumps",
     "weight": 0.5
   },
   "cabins": {
@@ -32,15 +32,15 @@ export const BOOT_STEPS = {
     "weight": 0.05
   },
   "props": {
-    "label": "Camp · kurgans · herds · the Storm Titan",
+    "label": "Camp \u00b7 kurgans \u00b7 herds \u00b7 the Storm Titan",
     "weight": 8.5
   },
   "animals": {
-    "label": "Wolves · horses · sheep",
+    "label": "Wolves \u00b7 horses \u00b7 sheep",
     "weight": 0.1
   },
   "weapon": {
-    "label": "Recurve bow · HUD",
+    "label": "Recurve bow \u00b7 HUD",
     "weight": 0.05
   },
   "shaders": {
@@ -51,4 +51,4 @@ export const BOOT_STEPS = {
     "label": "First frame",
     "weight": 0.5
   }
-} as const;
+}

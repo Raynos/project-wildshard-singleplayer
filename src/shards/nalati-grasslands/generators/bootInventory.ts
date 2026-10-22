@@ -1,7 +1,7 @@
 import type { BootModeRows } from '@wildshard/engine/level/spec';
 import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
 import { assetFiles, bootSources, lateReads } from './bootFiles';
-import { BOOT_STEPS } from './bootSteps';
+import BOOT_STEPS from '../data/bootSteps.json' with { type: 'json' };
 
 /** Pre-admission metadata preserves ordered tier/texture selections and loading weights. */
 export function nalatiBootInventory(inventory?: Readonly<Record<string, number | true>>): { sources: BootModeRows<ChunkFiles>; files: BootModeRows<readonly string[]>; lateReads: BootModeRows<readonly string[]>; steps: typeof BOOT_STEPS; assetFiles: typeof assetFiles } {
