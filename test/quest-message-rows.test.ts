@@ -7,7 +7,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext } from '../src/game/plugin/context';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { publishBoundQuest } from '../src/game/quest/boundState';
-import { installChapterStory, installQuestFlags } from '../src/game/quest/chapter';
+import { buildQuestChapter, installQuestFlags } from '../src/game/quest/chapter';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
@@ -71,11 +71,11 @@ for (const [story, definitions] of [[pineStory, PINE_QUESTS], [driftwoodStory, D
       expect(installQuestFlags(ctx, story.quest.id, flags.level)).toBe(flags);
       expect(() => installQuestFlags(ctx, story.quest.id, 'other-level')).toThrow('differs');
       expect(() => installQuestFlags(ctx, 'unbound', flags.level)).toThrow('declared quest');
-      expect(() => installChapterStory(ctx, story, { placements: {} })).toThrow('marker placement');
+      expect(() => buildQuestChapter(ctx, story, { placements: {} })).toThrow('marker placement');
       const next = quest.current;
       const completion = story.quest.id === driftwoodStory.quest.id;
-      const chapter = scope.run(() => installChapterStory(ctx, story, completion ? { completion: true, remainingLabel: 'Still to find' } : {}));
-      expect(() => installChapterStory(ctx, story)).toThrow('already installed');
+      const chapter = scope.run(() => buildQuestChapter(ctx, story, completion ? { completion: true, remainingLabel: 'Still to find' } : {}));
+      expect(() => buildQuestChapter(ctx, story)).toThrow('already installed');
       expect(chapter.quest).toBe(quest); expect(flags.all).toEqual(before); expect(log).toEqual([]);
       expect(() => chapter.publishMap({})).toThrow('discovery owner');
       expect(() => chapter.publishMap({ unknownLabel: () => '?' })).toThrow('JSON');
@@ -101,9 +101,9 @@ for (const [story, definitions] of [[pineStory, PINE_QUESTS], [driftwoodStory, D
       expect(log).toEqual([`Objective · ${quest.objective()}`, 'sting']);
       const stable = [...log]; for (const flag of next.done.all ?? []) flags.set(flag);
       expect(log).toEqual(stable);
-      expect(() => installChapterStory(ctx, story, { calls: {} })).toThrow();
-      expect(() => installChapterStory(ctx, story, { content: { hook: () => undefined } })).toThrow('plain JSON');
-      expect(() => installChapterStory(ctx, { ...story, quest: { ...story.quest, id: 'unbound' } })).toThrow('not bound');
+      expect(() => buildQuestChapter(ctx, story, { calls: {} })).toThrow();
+      expect(() => buildQuestChapter(ctx, story, { content: { hook: () => undefined } })).toThrow('plain JSON');
+      expect(() => buildQuestChapter(ctx, { ...story, quest: { ...story.quest, id: 'unbound' } })).toThrow('not bound');
       if (completion) {
         for (const step of def.steps) for (const flag of step.done.all ?? []) flags.set(flag);
         expect(quest.isComplete).toBe(true);
@@ -113,6 +113,6 @@ for (const [story, definitions] of [[pineStory, PINE_QUESTS], [driftwoodStory, D
         expect(map.read?.()?.hint).toBe('');
       }
     } finally { scope.dispose(); quest.dispose(); }
-    expect(() => installChapterStory(ctx, story)).toThrow('not bound');
+    expect(() => buildQuestChapter(ctx, story)).toThrow('not bound');
   });
 }

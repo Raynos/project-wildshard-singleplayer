@@ -66,7 +66,7 @@ function fixture() {
     line: legacyDouble<NonNullable<QuestChapter['line']>>({}), project: projection, update: chapterUpdate,
     places: legacyDouble<NonNullable<QuestChapter['places']>>({ update: placesUpdate }),
     chip: legacyDouble<QuestChapter['chip']>({ update: vi.fn<QuestChapter['chip']['update']>() }), installFeats: vi.fn<QuestChapter['installFeats']>(), markers: () => [], talk: vi.fn<QuestChapter['talk']>(), dialogueBox: vi.fn<QuestChapter['dialogueBox']>() });
-  vi.spyOn(chapterHost, 'installChapterStory').mockReturnValue(chapter);
+  vi.spyOn(chapterHost, 'buildQuestChapter').mockReturnValue(chapter);
   const people = { group: new Group(), figures: new Map(), ready: Promise.resolve(), update: vi.fn<figures.FigureGroup['update']>() };
   const enter = vi.spyOn(figures, 'enterFigureGroup').mockReturnValue(people);
   const kill = vi.fn<ReturnType<typeof bindings.enteredAdventurePersistence>['kill']>();

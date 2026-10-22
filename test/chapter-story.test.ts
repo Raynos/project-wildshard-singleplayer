@@ -22,7 +22,7 @@ import { MANIFEST } from '../src/shards/_template/discovery.generated';
 import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as PINE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
 
-import { installChapterStory } from '../src/game/quest/chapter';
+import { buildQuestChapter } from '../src/game/quest/chapter';
 import { bindAdventurePersistence } from '../src/game/quest/persistence';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
@@ -159,7 +159,7 @@ test('entered chapter rows preserve carving order and continue the same saved ch
       id: talk.figure, name: talk.id, feet: [0, 0, 0], yaw: 0, talkHeight: 1.5, pointAt: [0, 1.5, 0], points: false, rig: { skeleton: 'npc.test', clips: [], sockets: [] },
       joints: [], sockets: [], visible: [], drawDistance: 90,
     }, scope);
-    const chapter = scope.run(() => installChapterStory(ctx, chapterPresentation(policy), { content, program: kokpar.program }));
+    const chapter = scope.run(() => buildQuestChapter(ctx, chapterPresentation(policy), { content, program: kokpar.program }));
     scope.onDispose(saved.flags.onChange(flag => { changes.push(flag); }));
     return { scope, chapter, saved };
   };
@@ -238,7 +238,7 @@ test('Pine secret guest commits the original flag before its once-only notice', 
     fullMap: { setQuest: () => undefined },
   } } });
   try {
-    const chapter = scope.run(() => installChapterStory(ctx, PINE_STORY, { program: pineProgram }));
+    const chapter = scope.run(() => buildQuestChapter(ctx, PINE_STORY, { program: pineProgram }));
     scope.onDispose(flags.onChange(flag => { effects.push(flag); }));
     const at = { playerX: 0, playerY: 0, playerZ: 0, atX: 0, atY: 0, atZ: 0, floorY: 0 };
     chapter.project('secret', { ...at, playerX: 2.2 });

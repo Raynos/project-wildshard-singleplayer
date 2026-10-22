@@ -9653,7 +9653,7 @@ update systems or save adapters in the chapter intake. Callers keep their
 original chip update phase. Both shipped quests preserve their flags,
 notice/sting ordering, map card and completion marker policy.
 
-`installChapterStory(ctx, story, rows)` enters that same client-only host
+`buildQuestChapter(ctx, story, rows)` enters that same client-only host
 without preparing an interaction table. Pine supplies its stag program through
 the prepared entry; Nalati
 supplies its chapter/carving program and content rows. `chapter.project`

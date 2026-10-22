@@ -11,7 +11,7 @@ import { QuestState } from '../src/engine/quest/core';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishBoundQuest } from '../src/game/quest/boundState';
-import { installChapterStory } from '../src/game/quest/chapter';
+import { buildQuestChapter } from '../src/game/quest/chapter';
 import { readChapterDirector } from '../src/game/quest/chapterDirector';
 import { ChapterDirectorSchema, parseChapterDirector, chapterObservations } from '../src/format/chapterDirector';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -72,7 +72,7 @@ async function fixture(slug: string, saved: readonly string[], beforeDirector?: 
   Object.defineProperty(context, 'game', { value: { runtime: { world: { player, sky: { dayNight: day } }, play: {
     inventory, weapons, hud: { toast: (text: string) => { events.push(text); } }, music: { sting: (name: string) => { events.push(name); } }, fullMap: { setQuest: () => undefined },
   } } } });
-  const chapter = scope.run(() => installChapterStory(context, slug === 'pine-hollow' ? pineStory : driftwoodStory, slug === 'pine-hollow' ? { program: pineLife } : {}));
+  const chapter = scope.run(() => buildQuestChapter(context, slug === 'pine-hollow' ? pineStory : driftwoodStory, slug === 'pine-hollow' ? { program: pineLife } : {}));
   beforeDirector?.(scope);
   try {
     const clock = await scope.run(() => readChapterDirector(context, 'quests/chapter-director.json'));

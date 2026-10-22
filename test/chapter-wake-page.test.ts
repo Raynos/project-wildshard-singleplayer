@@ -10,7 +10,7 @@ import { nameBlob } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { manager } from './fake/manager';
 import { publishBoundQuest } from '../src/game/quest/boundState';
-import { installChapterStory } from '../src/game/quest/chapter';
+import { buildQuestChapter } from '../src/game/quest/chapter';
 import { installChapterWakeEncounter } from '../src/game/quest/chapterDirector';
 import type { ShardContext } from '../src/game/plugin/context';
 import { parseChapterWake } from '../src/format/chapterDirector';
@@ -59,7 +59,7 @@ test('salt-marsh chapter binds cue effects and the baseline boss bar through dat
     cues: WAKE_ENCOUNTER.cues.map(row => Object.assign(structuredClone(row), { effects: [{ kind: 'toast', text: row.operation }] })),
   });
   try {
-    const chapter = scope.run(() => installChapterStory(context, PAGE_STORY));
+    const chapter = scope.run(() => buildQuestChapter(context, PAGE_STORY));
     expect(chapter.quest.flags).toBe(flags);
     const binding = await scope.run(() => installChapterWakeEncounter(context, rows, { x: 4, z: -3 }));
     expect(binding.actor).toBeNull(); expect(animals.animals).toEqual([]);

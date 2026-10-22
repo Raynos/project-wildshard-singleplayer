@@ -297,7 +297,7 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
     },
     chapter: (chapterInput: unknown = {}): QuestChapter => {
       if (ctx.scope.disposed) throw new Error('Quest entry left before chapter installation');
-      return buildQuestChapter(ctx, story, chapterInput, placement.anchors, ctx);
+      return buildQuestChapter(ctx, story, chapterInput, placement.anchors);
     },
     interact: async (interactions: Parameters<typeof installQuestInteractables>[2], system: unknown): Promise<Awaited<ReturnType<typeof installQuestInteractables>>> => {
       const order = v.parse(entrySystem, system);
@@ -310,16 +310,10 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
     } };
 }
 
-/** Entered chapter stories resolve saved services and named figure resources;
- * story/content rows are the entire author API. Existing callers retain their
- * update, polling and feat installation phases. */
-export function installChapterStory(ctx: ShardContext, storyInput: unknown,
-  input: unknown = {}, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): QuestChapter {
-  return buildQuestChapter(ctx, storyInput, input, anchors, ctx);
-}
-
-function buildQuestChapter(ctx: QuestChapterContext, storyInput: unknown, input: unknown,
-  anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>, entered?: ShardContext): QuestChapter {
+/** Build the shared chapter presentation directly over its concrete entered owner.
+ * Story/content rows and the original optional marker anchors retain their API. */
+export function buildQuestChapter(ctx: ShardContext, storyInput: unknown, input: unknown = {},
+  anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): QuestChapter {
   if (!isJsonData(input)) throw new Error('Chapter intake requires plain JSON data');
   const rows = v.parse(schema, input);
   const completeStory = typeof storyInput === 'object' && storyInput !== null && 'quest' in storyInput ? parseQuestStory(storyInput) : null;
@@ -349,26 +343,25 @@ function buildQuestChapter(ctx: QuestChapterContext, storyInput: unknown, input:
     return { id: marker.id, label: marker.label, short: marker.short ?? marker.label, x: at.x, z: at.z };
   });
   const toast = (text: string): void => { play.hud.toast(text); }, sting = (): void => { play.music.sting('chunk'); };
-  const fullMap = completeStory === null && entered?.game.runtime?.play !== undefined && entered.game.runtime.play !== null
-    ? entered.game.runtime.play.fullMap : { setQuest: play.fullMap.setQuest.bind(play.fullMap) };
+  const fullMap = completeStory === null ? play.fullMap : { setQuest: play.fullMap.setQuest.bind(play.fullMap) };
   const options: Pick<QuestPresentationOptions, 'markers' | 'chip' | 'placements'> = { markers: () => left() ?? markers(), chip: () => { const remaining = left(); return remaining === null ? quest.chip()
       : { label: remaining.length > 0 ? rows.remainingLabel ?? '' : '', count: '' }; },
     ...(rows.placements === undefined ? {} : { placements: rows.placements }),
   };
   const presentation = line === null || story.chapters === undefined
     ? presentQuestStory(parseQuestStory(story), { scope: ctx.scope, player: world.player, fullMap, toast, sting }, quest, options)
-    : presentChapterStory(line, story.chapters, { ...(completeStory === null && entered !== undefined ? { ctx: entered } : {}), scope: ctx.scope, flags: quest.flags,
+    : presentChapterStory(line, story.chapters, { ...(completeStory === null ? { ctx } : {}), scope: ctx.scope, flags: quest.flags,
       figures: Object.fromEntries(story.chapters.talks.map(row => {
         const figure = FigureRows.entered(ctx.scope, row.figure ?? row.id);
         return [row.id, { headWorld: figure.talkPoint, get talking() { return figure.talking; }, set talking(value: boolean) { figure.talking = value; } }];
-      })), npcs: rows.content?.npcs ?? {}, places: rows.content?.places ?? [], prompts: entered?.game.runtime?.interactables ?? [],
-      open: () => { entered?.game.runtime?.play?.audio.weaponSwap(); },
+      })), npcs: rows.content?.npcs ?? {}, places: rows.content?.places ?? [], prompts: ctx.game.runtime?.interactables ?? [],
+      open: () => { ctx.game.runtime?.play?.audio.weaponSwap(); },
       ...(persistence === null ? {} : { feat: persistence.feat }), fullMap, toast, sting, ...(completeStory === null ? {} : options) });
   let places: Places | null = completeStory === null && 'places' in presentation ? presentation.places : null;
   let mapPublished = false;
   const publishMap = (mapInput: unknown): void => {
     if (!isJsonData(mapInput)) throw new Error('Quest map requires JSON rows');
-    const policy = v.parse(mapSchema, mapInput), map = entered?.game.runtime?.play?.fullMap, points = places;
+    const policy = v.parse(mapSchema, mapInput), map = ctx.game.runtime?.play?.fullMap, points = places;
     if (ctx.scope.disposed || map === undefined || points === null) throw new Error('Quest map requires its entered discovery owner');
     if (mapPublished) throw new Error('Quest map already published');
     map.setPois(() => {
@@ -401,8 +394,7 @@ function buildQuestChapter(ctx: QuestChapterContext, storyInput: unknown, input:
     for (const [channel, value] of Object.entries(result)) if (value !== 0) {
       const effects = decision?.actions[channel];
       if (effects !== undefined) {
-        if (entered === undefined) throw new Error('Chapter effects require their entered services');
-        commitQuestEffects(entered, quest.def.id, effects);
+        commitQuestEffects(ctx, quest.def.id, effects);
       }
     }
     return result;

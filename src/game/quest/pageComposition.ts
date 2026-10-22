@@ -28,7 +28,7 @@ import { QuestViews, bindQuestPageInteractions, type QuestPageInteractions } fro
 import type { MoverRuntime } from '../plugin/mover';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { prepareQuestEntry, installChapterStory, type QuestCableView, type QuestChapter } from './chapter';
+import { prepareQuestEntry, buildQuestChapter, type QuestCableView, type QuestChapter } from './chapter';
 import { bindRuntimeQuest } from '../plugin/headless';
 import { installQuestShop, type QuestTrader } from './trader';
 import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
@@ -179,7 +179,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     const rows = content.view;
     if (rows.story !== input.story) throw new Error('Chapter view story differs from its admitted entry');
     const people = enterFigureGroup({ scope: ctx.scope, sky: world.sky, registry: world.registry, channels: ctx.product.shardfile.clientChannels }, figures);
-    const chapter = installChapterStory(ctx, story, { content, program: content.program }), { chip, markers, places, line } = chapter;
+    const chapter = buildQuestChapter(ctx, story, { content, program: content.program }), { chip, markers, places, line } = chapter;
     if (places === null || line === null) throw new Error('Chapter view requires its discovery and quest line');
     const carriedRows = await ctx.product.json<unknown>(rows.carried);
     live();
