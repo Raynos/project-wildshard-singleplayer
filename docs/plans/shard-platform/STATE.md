@@ -31,7 +31,11 @@ timedEncounters (nightView moved, your flagged pattern); sp-x6's N1e terrain-cha
 O27 picks: Nalati look/* glue, spruceView, species presentation (animate/pose/prepare, kit species/looks);
 sp-o1 D1c bakedKits host (no-host alternative: kits as dressing mesh nodes + drawnInto, 2-kit far cull stays in Nine). sp-o5 Nine per-frame view laws: (A) AS on view lane +
 generic uniform-bank target host ~120 lines (ready, recommended) vs (B) keep TS in Nine. sp-o3 N1d: camp people need an 'atlas-figure' Explorer
-kind (~15 lines, reuses atlasFigureSkin) and the shepherd needs mountedSpecimen listed (recommended) or a seated row. Landed before G597:
+kind (~15 lines, reuses atlasFigureSkin) and the shepherd needs mountedSpecimen listed (recommended) or a seated row. sp-o4 E2 Nalati 4 slices need host code paths: (a) wedge/ghost per-
+instance graph params, (b) grade graph effect in scaledPost postChain, (c) static-capture graph chunk + height-bake. Nine
+E2 done 9070ae4fcb (-297 GLSL, +28 TS, +77 KB sections). sp-x1 C5 (218 left): N5a eliteRosterPage 122 as a strict finite-roster
+owner + concrete loans (draft green, unlanded); N5b carriedProp 73 via a generic view-lane object-transform target + AS
+(unlanded). Landed before G597:
 66e07696e9 WorldAssembly scene-only reshape (for Nine D1a).
 (5) RECOMMEND default-on after Jake's phone check: budget warm-up (cold Sky 12.1 -> 5.5 s) and T1 (+103 MB); sp-o2
 is landing it per G590.
