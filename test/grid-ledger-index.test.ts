@@ -17,6 +17,8 @@ function same(ledgers: Ledger[]) {
   expect(ledgers[1]?.entries()).toEqual(ledgers[0]?.entries());
 }
 function result<T>(run: () => T): T | string { try { return run(); } catch (error) { return String(error); } }
+/** Committed evictions, in order: an eviction that cannot make room is no longer prepared and aborted claim by claim. */
+const committed = (events: readonly string[] | undefined): string[] => (events ?? []).filter(event => event.startsWith('commit'));
 const Claim = v.object({ id: v.string(), category: v.picklist(['l0', 'l1', 'far', 'near', 'library', 'sim', 'commons', 'product', 'page']),
   bytes: v.number(), owner: v.string(), distance: v.number(), needed: v.boolean(), coveredBy: v.exactOptional(v.string()) });
 
@@ -69,7 +71,7 @@ test.each([false, true])('indexed coverage, holds, ordering and refusal match th
   const events = ledgers.map(() => [] as string[]);
   const run = (action: (ledger: Ledger, i: number) => unknown) => {
     const outcomes = ledgers.map((ledger, i) => result(() => action(ledger, i)));
-    expect(outcomes[1]).toEqual(outcomes[0]); same(ledgers); expect(events[1]).toEqual(events[0]);
+    expect(outcomes[1]).toEqual(outcomes[0]); same(ledgers); expect(committed(events[1])).toEqual(committed(events[0]));
     expect(ledgers[1]?.memory.reports()).toEqual(ledgers[0]?.memory.reports());
   };
   const reserve = (key: string, claim: ResidencyClaim, evict = false, refuses = false) => run((ledger, i) => {
@@ -121,7 +123,7 @@ test.each([false, true])('pressure projection preserves covered bytes when the p
   same(ledgers); expect(events[1]).toEqual(events[0]);
 });
 
-test('thousands of idle cache claims abort without changing real accounting when pressure cannot fit', () => {
+test('thousands of idle cache claims are not even prepared when pressure cannot fit', () => {
   const ledger = new ResidencyAllocator({ memory: new MemoryAdmission(() => true) });
   let prepares = 0, aborts = 0, commits = 0;
   const leases: LedgerLease[] = [];
@@ -134,7 +136,7 @@ test('thousands of idle cache claims abort without changing real accounting when
   for (const lease of leases) lease.update({ needed: false });
   const before = ledger.entries(), cost = ledger.cost();
   const pressure = ledger.reserve({ id: 'pressure', owner: 'other', category: 'sim', bytes: CONTENT_CAPS.playing, needed: true, distance: 0 });
-  expect(pressure).not.toBeNull(); expect(prepares).toBe(4000); expect(aborts).toBe(4000); expect(commits).toBe(0);
+  expect(pressure).not.toBeNull(); expect(prepares).toBe(0); expect(aborts).toBe(0); expect(commits).toBe(0);
   pressure?.release(); expect(ledger.entries()).toEqual(before); expect(ledger.cost()).toEqual(cost);
 });
 

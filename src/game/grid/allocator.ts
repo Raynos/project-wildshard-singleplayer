@@ -59,6 +59,8 @@ interface Entry { id: string; category: ResidencyCategory; bytes: number; owner:
 interface Coverage { bytes: number; commons: number; page: number; credit: number; children: Set<Entry> }
 
 const field = { l0: 'l0', l1: 'l1', far: 'far', near: 'near', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products', page: 'page' } as const;
+/** every category but the page components, which carry calibration credit as well as bytes */
+const CHARGED: readonly Exclude<ResidencyCategory, 'page'>[] = ['l0', 'l1', 'far', 'near', 'library', 'sim', 'commons', 'product'];
 
 /** G556: one owner alone on the cost model (the page's engine base, shared renderer components and overlap, plus its own
  * accounted bytes at the resident factor). The playing / loading limits apply to this, never to the page total. */
@@ -83,6 +85,12 @@ export class ResidencyAllocator {
   private readonly coverage = new Map<string, Coverage>();
   private readonly evictable = new Set<Entry>();
   private evictionOrder: Entry[] | null = null;
+  /** The evictable claims' raw bytes per category (and page calibration credit), kept with the evictable index: the most
+   *  room evicting all of them could make, as an upper bound (a covered claim is charged nothing, a parent re-exposes its
+   *  children), so the bound refuses only claims eviction cannot fit. */
+  private readonly evictableShares = new Map<Entry, { readonly category: ResidencyCategory; readonly bytes: number; readonly credit: number }>();
+  private readonly evictableBytes: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, near: 0, library: 0, sim: 0, commons: 0, product: 0, page: 0 };
+  private evictableCredit = 0;
 
   private readonly playing: number;
   private generation = 0;
@@ -110,7 +118,7 @@ export class ResidencyAllocator {
     this.input(claim, new Set([id])); // validates the calibration; a shared page component is never refused on the page total (G556)
     this.track(existing, -1);
     existing.bytes = bytes; existing.baseCredit = claim.baseCredit; existing.coveredBy = coveredBy; existing.refs++;
-    this.track(existing, 1);
+    this.track(existing, 1); this.refreshEviction(existing);
     return this.lease(existing);
   }
 
@@ -131,7 +139,7 @@ export class ResidencyAllocator {
       this.evicting = true;
       try {
         if (!this.evictFor(extra)) {
-          const input = this.input(extra), cost = shardCost((this.ownerBytes().get(claim.owner) ?? 0) + (extra.category === 'page' ? 0 : this.effectiveBytes(extra)), input);
+          const input = this.input(extra), cost = shardCost(this.ownerTotal(claim.owner) + (extra.category === 'page' ? 0 : this.effectiveBytes(extra)), input);
           if (!this.memory.accept({ stage: 'resident', owner: claim.owner, id: claim.id, claimedBytes: claim.bytes,
             accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
             playingCap: this.playing, categories: input })) return null;
@@ -151,6 +159,12 @@ export class ResidencyAllocator {
   private ownerBytes(): Map<string, number> {
     const bytes = new Map<string, number>();
     for (const entry of this.entries_.values()) if (entry.category !== 'page') bytes.set(entry.owner, (bytes.get(entry.owner) ?? 0) + this.effectiveBytes(entry));
+    return bytes;
+  }
+  /** One owner's accounted bytes ({@link ownerBytes} for a single owner, without building the whole map). */
+  private ownerTotal(owner: string): number {
+    let bytes = 0;
+    for (const entry of this.entries_.values()) if (entry.owner === owner && entry.category !== 'page') bytes += this.effectiveBytes(entry);
     return bytes;
   }
   /** Re-judge the retained resident warnings, each by its owner alone (G556). */
@@ -244,9 +258,14 @@ export class ResidencyAllocator {
   }
   private refreshEviction(entry: Entry): void {
     // Only eligible claims enter the sorted index; distance/needed/hold changes invalidate its snapshot.
-    if (this.entries_.get(entry.id) === entry && !entry.needed && entry.holds === 0 && entry.prepare !== undefined) {
-      this.evictable.add(entry); this.evictionOrder = null;
-    } else if (this.evictable.delete(entry)) this.evictionOrder = null;
+    const eligible = this.entries_.get(entry.id) === entry && !entry.needed && entry.holds === 0 && entry.prepare !== undefined;
+    if (eligible) { this.evictable.add(entry); this.evictionOrder = null; }
+    else if (this.evictable.delete(entry)) this.evictionOrder = null;
+    const before = this.evictableShares.get(entry);
+    if (before !== undefined) { this.evictableBytes[before.category] -= before.bytes; this.evictableCredit -= before.credit; this.evictableShares.delete(entry); }
+    if (!eligible) return;
+    const share = { category: entry.category, bytes: entry.bytes, credit: entry.category === 'page' ? entry.baseCredit : 0 };
+    this.evictableShares.set(entry, share); this.evictableBytes[share.category] += share.bytes; this.evictableCredit += share.credit;
   }
   private input(extra?: ResidencyClaim & { baseCredit: number }, omitted?: ReadonlySet<string>): ContentCostInput {
     const input: ContentCostInput = { l0: this.totals.l0, l1: this.totals.l1, far: this.totals.far, libraries: this.totals.library,
@@ -297,6 +316,18 @@ export class ResidencyAllocator {
     if (page > 0) { input.page = page; input.engineBase = CONTENT_CAPS.engineBase - credit; }
     else { delete input.page; delete input.engineBase; }
   }
+  /** `input` with every evictable claim's raw bytes taken out: a lower bound on what eviction could leave. */
+  private withoutEvictable(input: ContentCostInput): ContentCostInput {
+    const bound: ContentCostInput = { ...input };
+    for (const category of CHARGED) {
+      const bytes = this.evictableBytes[category];
+      if (bytes !== 0) { const key = field[category]; bound[key] = (bound[key] ?? 0) - bytes; }
+    }
+    if (this.evictableBytes.page !== 0 || this.evictableCredit !== 0) {
+      bound.page = (bound.page ?? 0) - this.evictableBytes.page; bound.engineBase = (bound.engineBase ?? CONTENT_CAPS.engineBase) + this.evictableCredit;
+    }
+    return bound;
+  }
   private fits(extra: ResidencyClaim & { baseCredit: number }): boolean { return contentCost(this.input(extra)).playing <= this.playing; }
   /**
    * Prepare unneeded, unheld claims farthest-first until the prepared bytes make room; commit them all, or abort them all
@@ -304,6 +335,10 @@ export class ResidencyAllocator {
    */
   private evictFor(extra: ResidencyClaim & { baseCredit: number }): boolean {
     const candidates = this.evictionOrder ??= [...this.evictable].sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id));
+    // When even evicting every eligible claim could not make room, nothing is prepared. (While a page sat over its target,
+    // each further claim prepared and aborted every idle candidate: a neighbour's build registering its geometry held a
+    // 600 ms frame on the phone at 4x.)
+    if (contentCost(this.withoutEvictable(this.input(extra))).playing > this.playing) return false;
     const prepared: { entry: Entry; eviction: ResidencyEviction }[] = []; const omitted = new Set<string>(); let enough = false;
     let input = this.input(extra), revision = this.accountingRevision;
     for (const entry of candidates) {
@@ -349,7 +384,7 @@ export class ResidencyAllocator {
         if (!live()) return;
         if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > entry.bytes || entry.coveredBy !== undefined || this.coverage.has(entry.id) || entry.baseCredit !== 0)
           throw new RangeError('Invalid residency shrink');
-        this.track(entry, -1); entry.bytes = bytes; this.track(entry, 1);
+        this.track(entry, -1); entry.bytes = bytes; this.track(entry, 1); this.refreshEviction(entry);
         if (this.memory.hasResidentWarnings) this.syncResidents();
       },
       update: (patch: { distance?: number; needed?: boolean; coveredBy?: string | null }): void => {
