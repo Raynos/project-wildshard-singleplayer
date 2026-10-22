@@ -88,7 +88,6 @@ import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type ShardRefusal } from './refusal';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
-import { horizonFade } from './horizonFade';
 
 declare const __GRID_SEAM_PLANS__: readonly (readonly [string, readonly number[][]])[];
 
@@ -398,13 +397,8 @@ export class GridSession {
     if (frame !== null) host.scope.onDispose(frame.horizon(platformRoad.horizon));
     // G103: the asphalt forced 15 m into each cell keeps the road's light under that cell's own (the road's frame weight)
     if (frame !== null) host.scope.onDispose(frame.stack(null, { weight: platformRoad.overlayLight }));
-    // G321 part 4: and what stands outside that cell (the road's far reaches here; the neighbours' far proxies, haze bands
-    // and ring tiles as they arrive) dithers out by it beyond the near road
-    const horizon = horizonFade(host.scope);
-    for (const root of platformRoad.roots) if (root.name !== 'grid-void') horizon.patch(root); // the void floor fades itself
-    if (frame !== null) host.scope.onDispose(frame.horizon((owned, cell) => {
-      horizon.set(owned, cell === null ? null : { x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, half: CHUNK_HALF });
-    }));
+    // G588: what stands outside that cell (the road's far reaches, the neighbours' near and far views, haze bands and ring
+    // tiles) stays drawn from inside it: the neighbours are the grid's horizon (G321 part 4's fade beyond the cell is gone)
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
     const roadRoots = platformRoad.roots;
     this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(roadRoots, camera, this.roadPlans); }, resident: () => roadResident(roadRoots, this.roadPlans) };
@@ -463,10 +457,10 @@ export class GridSession {
           view.dispose = () => { unband(); dispose(); };
           const haze = root.getObjectByName('haze-band');
           if (haze === undefined) throw new Error('Far haze band was not installed');
-          horizon.patch(haze); haze.visible = false; preparedBands.set(view, haze);
+          haze.visible = false; preparedBands.set(view, haze);
         }
         await host.prepareView?.(root, () => !host.scope.disposed && view.mesh.parent === root);
-      } }), decorate: horizon.patch,
+      } }),
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
         let loaded: Awaited<ReturnType<typeof loadFar>>;
@@ -482,7 +476,6 @@ export class GridSession {
       const prepared = preparedBands.get(view);
       const root = roots.get(tile.instance), unband = prepared !== undefined || band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
       if (prepared !== undefined) prepared.visible = true;
-      else { const haze = root?.getObjectByName('haze-band'); if (haze !== undefined) horizon.patch(haze); }
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };
@@ -495,7 +488,7 @@ export class GridSession {
       load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
       cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
       mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
-      adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)), decorate: horizon.patch,
+      adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)),
       ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView, current: () => boolean) => host.prepareView?.(view.mesh, current) ?? Promise.resolve() }) });
     this.near = near;
     host.scope.onDispose(() => { near.dispose(); });
@@ -526,11 +519,7 @@ export class GridSession {
       }
     };
     host.frame?.onLate((dt) => { this.viewStep(); this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
-    const tiles = neighbourTiles(host.scope, async (tile) => {
-      // Patch the final shader identity before preparation; no live parent or visibility changes while it yields.
-      horizon.patch(tile.group, 'outside');
-      await host.prepareTile?.(tile);
-    }), tileCost = clientRingCatalogue(tiles.instances);
+    const tiles = neighbourTiles(host.scope, async (tile) => { await host.prepareTile?.(tile); }), tileCost = clientRingCatalogue(tiles.instances);
     // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them
