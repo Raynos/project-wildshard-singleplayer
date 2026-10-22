@@ -81,33 +81,43 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
     const proxy = await tileProps(key, scope);
     if (proxy !== null) { proxy.shadow(false); coarseProps.set(key, proxy); }
   } } catch (error) { tileLifetime.dispose(); throw error; }
+  // A coarse tile hides (masks) exactly the quadrants a resident fine tile draws, so the floor never has a hole.
+  const remask = (): void => {
+    const masks = new Map<string, Set<number>>();
+    for (const key of fine.keys()) {
+      const [, tileX, tileZ] = key.split('/').map(Number);
+      if (tileX === undefined || tileZ === undefined) throw new Error('Invalid resident tile address');
+      const parent = `1/${Math.floor(tileX / 2)}/${Math.floor(tileZ / 2)}`, mask = masks.get(parent) ?? new Set<number>();
+      mask.add(tileX % 2 + tileZ % 2 * 2); masks.set(parent, mask);
+    }
+    for (const [key, tile] of coarse) tile.mask(masks.get(key) ?? new Set());
+    for (const [key, tile] of coarseProps) tile.mask(masks.get(key) ?? new Set());
+  };
   let chain = Promise.resolve();
   const refresh = (x: number, z: number): Promise<void> => {
     const selection = terrainResidency(x, z, source.props?.overhang ?? 0);
-    chain = chain.then(async () => {
+    // G587 (live 616ea317b, an open plot on the phone): the fine tiles that left the selection were disposed before the new
+    // ones were read and before the coarse masks moved, so for the length of the reads (seconds on the phone, more with
+    // refreshes queued) neither level drew there: the floor and its billboard vanished, then came back. Now each arriving
+    // fine tile unmasks its coarse quadrant at once, and the departed ones go with the remask in the same task. One failed
+    // read refuses its own refresh only; the next refresh still runs.
+    const run = chain.catch(() => undefined).then(async () => {
       if (ports.scope.disposed) return undefined;
-      for (const [key, scope] of fine) if (!selection.fine.has(key)) { scope.dispose(); fine.delete(key); fineTiles.delete(key); }
       for (const key of selection.fine) if (!fine.has(key)) {
         await slice();
         const scope = tileLifetime.child(key);
         if (!reserve(key, scope)) { scope.dispose(); continue; }
-        try { const tiles = [await terrain(key, scope, selection.shadows.has(key)), await tileProps(key, scope)].filter((tile): tile is ResidentTile => tile !== null); if (scope.disposed) return undefined; fineTiles.set(key, tiles); fine.set(key, scope); }
+        try { const tiles = [await terrain(key, scope, selection.shadows.has(key)), await tileProps(key, scope)].filter((tile): tile is ResidentTile => tile !== null); if (scope.disposed) return undefined; fineTiles.set(key, tiles); fine.set(key, scope); remask(); }
         catch (error) { scope.dispose(); throw error; }
       }
-      const masks = new Map<string, Set<number>>();
-      for (const key of fine.keys()) {
-        const [, tileX, tileZ] = key.split('/').map(Number);
-        if (tileX === undefined || tileZ === undefined) throw new Error('Invalid resident tile address');
-        const parent = `1/${Math.floor(tileX / 2)}/${Math.floor(tileZ / 2)}`, mask = masks.get(parent) ?? new Set<number>();
-        mask.add(tileX % 2 + tileZ % 2 * 2); masks.set(parent, mask);
-      }
-      for (const [key, tile] of coarse) tile.mask(masks.get(key) ?? new Set());
-      for (const [key, tile] of coarseProps) tile.mask(masks.get(key) ?? new Set());
+      for (const [key, scope] of fine) if (!selection.fine.has(key)) { scope.dispose(); fine.delete(key); fineTiles.delete(key); }
+      remask();
       for (const [key, tiles] of fineTiles) for (const tile of tiles) tile.shadow(selection.shadows.has(key));
       assets.releaseTiles();
       return undefined;
     });
-    return chain;
+    chain = run;
+    return run;
   };
   try { await refresh(ports.x, ports.z); } catch (error) { tileLifetime.dispose(); throw error; }
   return { props, refresh, get fine() { return new Set(fine.keys()); }, step: () => undefined };
