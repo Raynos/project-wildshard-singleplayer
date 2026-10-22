@@ -1,7 +1,7 @@
 # Plan: HOST-AUDIT — score every engine and game host, fix the ruler, put shard code back in the shard
 
 **State:** `draft` 2026-10-22 — an off-shoot of [SHARD-PLATFORM](SHARD-PLATFORM.md); nothing is worked until Jake says go.
-It takes over the audit half of [SHARD-PLATFORM-NEXT](SHARD-PLATFORM-NEXT.md) N4 (if Jake agrees, pick 1). Decisions
+It overlaps [SHARD-PLATFORM-NEXT](SHARD-PLATFORM-NEXT.md) N4; both plans stay as they are (Jake, 2026-10-22: *"leave them alone"*). Decisions
 stay in [shard-platform/decisions.md](shard-platform/decisions.md); the bar is [docs/HOST-BAR.md](../HOST-BAR.md).
 
 Jake, 2026-10-22, after the G594 audit found Pine/Driftwood code hidden in one-user TypeScript hosts: *"Tell me of
@@ -121,7 +121,7 @@ nothing about SHARD-PLATFORM's G592 order (Nine and Nalati to zero first); it st
 
 ## Picks for Jake (when he starts it)
 
-1. Does HOST-AUDIT take over NEXT N4's audit now? Recommended: **yes**; N4 keeps only the net-lines report.
+1. ~~Does HOST-AUDIT take over NEXT N4's audit?~~ **No** (Jake, 2026-10-22): the two plans overlap and both stay as written.
 2. ~~Do the existing self-written G571 listings keep credit until HA3?~~ **Decided by G595** (Jake, 2026-10-22): every one-user host, new or
    already listed, is approved by Jake himself, host by host; HA2/HA3 results reach him per host with the tests 2–6 scores and file:line
    evidence; rejected hosts fold back into the shard (HA4a). The four G594 hosts lose credit at HA0.
