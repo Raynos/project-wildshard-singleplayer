@@ -5,7 +5,7 @@ import { overrideTerrain } from './fake/terrain';
 import { WorldRegistry } from '../src/engine/world/registry';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { EncounterSites } from '../src/game/boss/encounterView';
-import balbal from '../src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json' with { type: 'json' };
+import balbal from '../src/shards/nalati-grasslands/data/balbalSpecimen.generated.json' with { type: 'json' };
 
 // A made-up orchard (the sites' fixture second user): guard statues on their plinths, every second one crowned.
 const material = new MeshStandardMaterial();

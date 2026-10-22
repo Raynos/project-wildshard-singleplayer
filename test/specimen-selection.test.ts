@@ -9,8 +9,10 @@ import { Rng } from '../src/engine/core/rng';
 import { modelContext, paramsOf } from '../src/engine/models/model';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { defineSpecimenCatalogue, loadBoundSpecimen, awaitSpecimenAssets } from '../src/game/models/specimenCatalogue';
-import { balbal } from '../src/shards/nalati-grasslands/models/balbal';
-import rows from '../src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json' with {type:'json'};
+import rows from '../src/shards/nalati-grasslands/data/balbalSpecimen.generated.json' with {type:'json'};
+
+/** Nalati's baked balbal rows: the generated model and both carved steles as one selection. */
+const balbal=defineSpecimenCatalogue<{balbal:{readonly carved:'bare'|'capped'|null}}>(rows.catalogue).model('balbal');
 
 function skyFixture():SkyRig{
   const sky:unknown=Object.create(SkyRig.prototype);

@@ -18,10 +18,10 @@ const carving=variant=>{
   if(mesh===undefined)throw new Error('Missing admitted balbal carving');
   return{kind:'inline',representation:'parts',data:deflateSync(binary.subarray(mesh.offset,mesh.offset+geometryBytes(mesh.geometry)),{level:9}).toString('base64'),geometry:mesh.geometry,material:specimens.materials.poi};
 };
-const catalogue=v.parse(SpecimenCatalogueSchema,[{key:'balbal',model:{id:'nalati-grasslands/balbal',name:'Balbal',category:'props',pipeline:['trellis','code'],file:'src/shards/nalati-grasslands/models/balbal.ts',surface:'stone',defaults:{carved:null},
+const catalogue=v.parse(SpecimenCatalogueSchema,[{key:'balbal',model:{id:'nalati-grasslands/balbal',name:'Balbal',category:'props',pipeline:['trellis','code'],file:'src/shards/nalati-grasslands/generators/places.ts',surface:'stone',defaults:{carved:null},
   variants:[{id:'generated',label:'TRELLIS.2',params:{}},{id:'bare',label:'Carved',params:{carved:'bare'}},{id:'capped',label:'Carved · cap',params:{carved:'capped'}}]},
   source:{kind:'selection',variants:[{params:{carved:null},source:{kind:'asset',asset:generated}},{params:{carved:'bare'},source:carving(0)},{params:{carved:'capped'},source:carving(1)}]}}]);
 const writer=byteWriter(process.argv.includes('--check'),'nalati-balbal-specimen');
 // the crown sites (game/boss/encounterView EncounterSites): every third stele capped, each a box that stops colliding while its warrior is awake
-const sites={name:'nalati-balbal',label:'Balbal',file:'src/shards/nalati-grasslands/models/balbal.ts',surface:'stone',variants:['bare','capped'],variantCycle:[1,0,0],sink:.18,collider:{hw:.42,hd:.33,top:2.2,bottom:1}};
-for(const dir of ['boot','data'])writer.put(resolve(root,shard,`${dir}/balbalSpecimen.generated.json`),jsonBytes({catalogue,generated,sites}));writer.finish();
+const sites={name:'nalati-balbal',label:'Balbal',file:'src/shards/nalati-grasslands/generators/places.ts',surface:'stone',variants:['bare','capped'],variantCycle:[1,0,0],sink:.18,collider:{hw:.42,hd:.33,top:2.2,bottom:1}};
+writer.put(resolve(root,shard,'data/balbalSpecimen.generated.json'),jsonBytes({catalogue,generated,sites}));writer.finish();

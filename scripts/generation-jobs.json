@@ -22377,11 +22377,9 @@
         "pnpm-lock.yaml"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json",
         "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json",
         "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json"
       ],
       "platform": "portable",

@@ -48,7 +48,7 @@ import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engin
 import * as THREE from 'three';
 import { PaintKit, M, v3 } from '../../../src/shards/nalati-grasslands/generators/paint';
 import { pole, blob, lathe } from '../../../src/shards/nalati-grasslands/generators/smoothGeometry';
-import { balbalGeometry } from '../../../src/shards/nalati-grasslands/models/balbal';
+import { balbalGeometry } from '../../../src/shards/nalati-grasslands/generators/places';
 
 /** where the interior lives (world): the chamber floor centre. Flat plateau under it (see the header). */
 export const DUNGEON = { x: -40, y: 140, z: -95 };

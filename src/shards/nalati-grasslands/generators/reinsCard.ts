@@ -29,7 +29,7 @@ export function reinsCard(): ReturnType<typeof parse<typeof SpecimenBookSchema>>
   let text = ''; for (const byte of zlibSync(join(blocks))) text += String.fromCodePoint(byte);
   geometry.dispose();
   return parse(SpecimenBookSchema, { materials: {}, rows: [{ key: 'reins',
-    model: { id: 'nalati-grasslands/reins', name: 'Reins', file: 'src/shards/nalati-grasslands/models/reins.ts', category: 'gear', pipeline: 'code', defaults: {} },
+    model: { id: 'nalati-grasslands/reins', name: 'Reins', file: 'src/shards/nalati-grasslands/generators/reinsCard.ts', category: 'gear', pipeline: 'code', defaults: {} },
     source: { kind: 'inline', data: btoa(text), geometry: row,
       material: { id: 'nalati-reins', family: 'painterly', rim: profile.paint.rim, bands: profile.paint.bands, side: 'double' } } }] });
 }

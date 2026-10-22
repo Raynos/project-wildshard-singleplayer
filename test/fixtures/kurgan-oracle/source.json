@@ -11,7 +11,7 @@
     ],
     [
       "'../models/balbal'",
-      "'../../../src/shards/nalati-grasslands/models/balbal'"
+      "'../../../src/shards/nalati-grasslands/generators/places'"
     ],
     [
       "export class KurganDungeon {",
