@@ -109,6 +109,16 @@ os.execv({sys.executable!r}, [{sys.executable!r}, *sys.argv[1:]])
 import os,sys
 if sys.argv[1] in ('scripts/gen.mjs','scripts/build-shardfiles.mjs'):
     sys.exit(0)
+if sys.argv[1].endswith('/build-mirror.mjs'):
+    import pathlib
+    root=pathlib.Path(os.environ['FIXTURE_ROOT'])
+    rows=list((root/'registry').glob('[0-9]*'))
+    assert len(rows)==1 and rows[0].read_text().split()[0]==str(os.getppid()), rows
+    assert '--slot' not in sys.argv
+    (root/'mirror-entered').touch()
+    if os.environ.get('FIXTURE_MIRROR_FAIL'): sys.exit(124)
+    command=sys.argv[sys.argv.index('--')+1:]
+    os.execvp(command[0],command)
 os.execv({node!r}, [{node!r}, *sys.argv[1:]])
 ''')
         self.command('pnpm', f'''#!{sys.executable}
@@ -173,8 +183,8 @@ else:
                     connection.close()
         self.fail('No adjacent test ports')
 
-    def launch(self, port):
-        process = subprocess.Popen(['/bin/bash', str(self.root / 'scripts/serve-build.sh'), '--port', str(port)],
+    def launch(self, port, *extra):
+        process = subprocess.Popen(['/bin/bash', str(self.root / 'scripts/serve-build.sh'), '--port', str(port), *extra],
             env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.launches.append(process)
         return process
@@ -193,6 +203,60 @@ else:
 
     def test_mac_bash_syntax(self):
         subprocess.run(['/bin/bash', '-n', str(self.root / 'scripts/serve-build.sh')], check=True)
+
+    def shorten_admission_clock(self):
+        script = self.root / 'scripts/serve-build.sh'
+        source = script.read_text()
+        self.assertIn('ROOM_WAIT_SECONDS=300', source)
+        script.write_text(source.replace('ROOM_WAIT_SECONDS=300', 'ROOM_WAIT_SECONDS=1'))
+
+    def test_full_preview_registry_times_out_before_mirror_admission(self):
+        self.shorten_admission_clock()
+        registry = self.root / 'registry'
+        registry.mkdir()
+        row = registry / '4400'
+        foreign = f'{os.getpid()} {int(time.time()) + 3600} /fixture foreign-owner young-preview\n'
+        row.write_text(foreign)
+        self.env.update(SERVE_MAX_LIVE='1', SERVE_RECYCLE_MIN='999999')
+        process = self.launch(self.port(), '--head')
+        _, stderr = process.communicate(timeout=5)
+        self.assertEqual(process.returncode, 124, stderr)
+        self.assertIn('timed out after 5 min waiting for preview room', stderr)
+        self.assertIn('slot=preview:4400 pid=' + str(os.getpid()), stderr)
+        self.assertFalse((self.root / 'mirror-entered').exists())
+        self.assertFalse((self.root / 'build-count').exists())
+        self.assertEqual(row.read_text(), foreign)
+        self.assertEqual(list(registry.glob('.port-lease-*')), [])
+
+    def test_registry_lock_timeout_preserves_foreign_lock_before_mirror(self):
+        self.shorten_admission_clock()
+        lock = self.root / 'registry/.lock'
+        lock.mkdir(parents=True)
+        owner = f'pid={os.getpid()} command=fixture start=now slot=preview-registry\n'
+        (lock / 'owner').write_text(owner)
+        process = self.launch(self.port(), '--head')
+        _, stderr = process.communicate(timeout=5)
+        self.assertEqual(process.returncode, 124, stderr)
+        self.assertIn('waiting for preview registry lock', stderr)
+        self.assertIn(owner.strip(), stderr)
+        self.assertEqual((lock / 'owner').read_text(), owner)
+        self.assertFalse((self.root / 'mirror-entered').exists())
+
+    def test_head_reserves_once_before_mirror_and_releases_parent_lease(self):
+        _, row, _ = self.finish(self.launch(self.port(), '--head'))
+        self.assertTrue((self.root / 'mirror-entered').exists())
+        self.assertEqual(len(list((self.root / 'registry').glob('[0-9]*'))), 1)
+        self.assertEqual(list((self.root / 'registry').glob('.port-lease-*')), [])
+        self.assertNotIn('(building)', row[-1])
+
+    def test_mirror_timeout_fails_once_and_releases_preview_reservation(self):
+        self.env['FIXTURE_MIRROR_FAIL'] = '1'
+        process = self.launch(self.port(), '--head')
+        _, stderr = process.communicate(timeout=5)
+        self.assertEqual(process.returncode, 124, stderr)
+        self.assertTrue((self.root / 'mirror-entered').exists())
+        self.assertEqual(list((self.root / 'registry').glob('[0-9]*')), [])
+        self.assertEqual(list((self.root / 'registry').glob('.port-lease-*')), [])
 
     def test_concurrent_starts_use_distinct_ports(self):
         port = self.port()

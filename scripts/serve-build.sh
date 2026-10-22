@@ -4,7 +4,7 @@
 #
 #   scripts/serve-build.sh [--head | --rev <rev>] [--shard <slug>[,<slug>]] [--full] [--port <n>] [--hours <h>] [--name <label>] [--devserver]
 #        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
-#        --head   build HEAD in a build-mirror slot (WILDSHARD_MIRROR_SLOT, default `check`) instead of the working tree
+#        --head   reserve preview room, then build HEAD in the shared mirror slot pool
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
 #        --shard  build only these shards' products (a capture of one shard): every other shard keeps its product only
 #                 while its content key still matches, else it is left out of the preview (never served stale)
@@ -80,13 +80,6 @@ while [ $# -gt 0 ]; do
     *) echo "serve-build.sh: unknown option $1" >&2; exit 64;;
   esac
 done
-# --head / --rev: the whole build runs in the locked `serve` slot of the build mirror (one persistent copy under ./tmp,
-# synced file by file) instead of a fresh export per preview; this script re-runs itself there and exits, releasing
-# the slot, once the preview is up.
-if [ $HEAD_ONLY -eq 1 ] && [ -z "${SERVE_IN_MIRROR:-}" ]; then
-  SERVE_IN_MIRROR=1 exec node "$REPO/scripts/build-mirror.mjs" run "$REV" --slot "${WILDSHARD_MIRROR_SLOT:-check}" -- bash "$REPO/scripts/serve-build.sh" "${ARGS[@]}"
-fi
-
 # caps (E317 follow-up: one session held 26 previews registered for 8–12 h): --hours at most SERVE_MAX_HOURS (4), and at
 # most SERVE_MAX_LIVE (12) previews machine-wide. Over it: this caller's own oldest preview is stopped to make room; else
 # another's, but only one older than SERVE_RECYCLE_MIN (60) minutes — a preview someone is capturing on right now is never
@@ -94,6 +87,8 @@ fi
 # The port is picked and reserved under a lock (a placeholder registry entry, this shell's pid, until the preview's own
 # pid replaces it): two starts in the same second were both handed :4400 (E339).
 MAX_H="${SERVE_MAX_HOURS:-4}"; MAX_LIVE="${SERVE_MAX_LIVE:-12}"; RECYCLE_MIN="${SERVE_RECYCLE_MIN:-60}"
+ROOM_WAIT_SECONDS=300
+ROOM_DEADLINE=$((SECONDS + ROOM_WAIT_SECONDS))
 if ! [[ "$HOURS" =~ ^[0-9]+$ ]] || [ "$HOURS" -lt 1 ]; then HOURS=1; fi
 if [ "$HOURS" -gt "$MAX_H" ]; then echo "serve-build: --hours capped at $MAX_H" >&2; HOURS=$MAX_H; fi
 age_min() {  # minutes since pid started (ps etime [[dd-]hh:]mm:ss)
@@ -103,14 +98,19 @@ age_min() {  # minutes since pid started (ps etime [[dd-]hh:]mm:ss)
   case "${#t[@]}" in 3) h=${t[0]}; m=${t[1]};; 2) m=${t[0]};; esac
   echo $(( 10#$d * 1440 + 10#$h * 60 + 10#$m ))
 }
-lock() {  # a mkdir lock round the registry; a lock left by a killed start is broken after 60 s
-  local n=0
+lock() {  # Never steal a registry lock or start a fresh wait after admission expires.
+  local deadline=${1:-$((SECONDS + ROOM_WAIT_SECONDS))}
   until mkdir "$REG/.lock" 2>/dev/null; do
-    n=$((n + 1)); [ $n -gt 300 ] && { rmdir "$REG/.lock" 2>/dev/null; n=0; }
+    if [ "$SECONDS" -ge "$deadline" ]; then
+      echo 'serve-build: timed out after 5 min waiting for preview registry lock; holder:' >&2
+      cat "$REG/.lock/owner" >&2 2>/dev/null || echo 'pid/command/start unavailable (legacy lock)' >&2
+      return 124
+    fi
     sleep 0.2
   done
+  printf 'pid=%s command=serve-build.sh start=%s slot=preview-registry\n' "$$" "$(date -u +%FT%TZ)" > "$REG/.lock/owner"
 }
-unlock() { rmdir "$REG/.lock" 2>/dev/null; return 0; }
+unlock() { rm -f "$REG/.lock/owner"; rmdir "$REG/.lock" 2>/dev/null; return 0; }
 
 REQUESTED_PORT="$PORT"; PORT_END=4999
 if [ -n "$PORT" ]; then
@@ -122,10 +122,15 @@ else PORT_START=4400; fi
 
 # Private FIFOs work with macOS Bash 3 without inheriting lease descriptors
 # into builders or detached previews. The helper also exits if its owner dies.
-PORT_CHANNEL="$(mktemp -d "$REG/.port-lease-XXXXXX")" || exit 1
-mkfifo "$PORT_CHANNEL/commands" "$PORT_CHANNEL/replies" || exit 1
-python3 "$REPO/scripts/serve-port-lease.py" hold "$REG" "$PORT_CHANNEL" "$$" &
-PORT_LEASE_OWNER=$!
+if [ -n "${SERVE_RESERVED_PORT:-}" ]; then
+  PORT="$SERVE_RESERVED_PORT"; stamp="${SERVE_RESERVED_STAMP:?}"
+  PORT_CHANNEL="${SERVE_RESERVED_CHANNEL:?}"; PORT_LEASE_OWNER=""
+else
+  PORT_CHANNEL="$(mktemp -d "$REG/.port-lease-XXXXXX")" || exit 1
+  mkfifo "$PORT_CHANNEL/commands" "$PORT_CHANNEL/replies" || exit 1
+  python3 "$REPO/scripts/serve-port-lease.py" hold "$REG" "$PORT_CHANNEL" "$$" &
+  PORT_LEASE_OWNER=$!
+fi
 close_port_lease() {
   if [ -n "${PORT_LEASE_OWNER:-}" ]; then
     python3 "$REPO/scripts/serve-port-lease.py" request "$PORT_CHANNEL" close >/dev/null 2>&1 || kill "$PORT_LEASE_OWNER" 2>/dev/null
@@ -162,9 +167,15 @@ publish_reservation() { # atomic rows cannot be mistaken for dead, partially wri
   printf '%s %s %s %s %s\n' "$1" "$2" "$BASE/$stamp" "$CALLER" "$3" > "$entry" || return
   mv "$entry" "$REG/$PORT"
 }
+if [ -n "${SERVE_RESERVED_PORT:-}" ]; then
+  # The outer shell owns the OS lease until this mirror child has finished.
+  read -r reserved_pid _ < "$REG/$PORT" || exit 1
+  [ "$reserved_pid" = "${SERVE_RESERVATION_PID:?}" ] && kill -0 "$reserved_pid" 2>/dev/null || { echo 'serve-build: lost preview reservation before mirror admission' >&2; exit 1; }
+  publish_reservation "$$" "$(( $(date +%s) + 3600 ))" "$NAME(building)" || exit 1
+else
 said=0
 while :; do
-  lock
+  lock "$ROOM_DEADLINE" || exit 124
   n_live=0; mine=""; mine_exp=""; other=""; other_age=0
   for f in "$REG"/*; do
     [ -f "$f" ] || continue
@@ -185,17 +196,39 @@ while :; do
     unlock; break
   fi
   unlock
+  remaining=$((ROOM_DEADLINE - SECONDS))
+  if [ "$remaining" -le 0 ]; then
+    echo "serve-build: timed out after 5 min waiting for preview room ($MAX_LIVE live); holders:" >&2
+    for f in "$REG"/*; do
+      [ -f "$f" ] || continue
+      read -r pid exp out cwd name < "$f"
+      printf 'slot=preview:%s pid=%s owner=%s name=%s ' "$(basename "$f")" "$pid" "$cwd" "$name" >&2
+      ps -p "$pid" -o command= -o lstart= >&2
+    done
+    exit 124
+  fi
   if [ -n "$mine" ]; then
     echo "serve-build: $MAX_LIVE previews running — stopping your oldest, :$mine" >&2; bash "$0" stop "$mine" >/dev/null
   elif [ -n "$other" ] && [ "$other_age" -ge "$RECYCLE_MIN" ]; then
     echo "serve-build: $MAX_LIVE previews running — stopping :$other (up ${other_age} min)" >&2; bash "$0" stop "$other" >/dev/null
   else
     [ $said -eq 0 ] && { echo "serve-build: $MAX_LIVE previews running, all young and none yours — waiting (scripts/serve-build.sh list)" >&2; said=1; }
-    sleep 15
+    [ "$remaining" -gt 15 ] && remaining=15
+    sleep "$remaining"
   fi
 done
+fi
 [ -n "$PORT" ] || { echo "serve-build.sh: no free port in 4400–4999" >&2; exit 1; }
 [ -n "$REQUESTED_PORT" ] && [ "$PORT" != "$REQUESTED_PORT" ] && echo "serve-build: port $REQUESTED_PORT busy; using $PORT" >&2
+
+# Preview admission precedes mirror admission. The parent keeps its reservation
+# and port lease across the child; a failed mirror wait is returned once.
+if [ $HEAD_ONLY -eq 1 ] && [ -z "${SERVE_IN_MIRROR:-}" ]; then
+  SERVE_IN_MIRROR=1 SERVE_RESERVED_PORT="$PORT" SERVE_RESERVED_STAMP="$stamp" \
+    SERVE_RESERVED_CHANNEL="$PORT_CHANNEL" SERVE_RESERVATION_PID="$$" \
+    node "$REPO/scripts/build-mirror.mjs" run "$REV" -- bash "$REPO/scripts/serve-build.sh" "${ARGS[@]}"
+  exit $?
+fi
 
 OUT="$BASE/$stamp/dist"
 SRC="$REPO"
@@ -306,7 +339,7 @@ while :; do
     exit 1
   fi
   old_port=$PORT; PORT_START=$((PORT + 1))
-  lock
+  lock "$deadline" || exit 124
   if ! reserve_port; then unlock; echo 'serve-build: no free retry port' >&2; exit 1; fi
   [ -f "$REG/$old_port" ] && grep -q "^$$ " "$REG/$old_port" && rm "$REG/$old_port"
   publish_reservation "$$" "$(( $(date +%s) + 3600 ))" "$NAME(starting)" || { unlock; exit 1; }
