@@ -2112,18 +2112,22 @@ admission records the resolved world files; scene intake refuses a different
 profile until fresh admission (quality switches reload the page). Other
 profiles remain metadata-only. No memory cap or multiplier changes.
 
-**Held arms (G474 / G475 / G477).** `@wildshard/game/systems/viewmodel/toonArms`
-defines `ToonArms`, the game host for sword arms, sockets, material binding and swimming.
-`new ToonArms(row)` admits `@wildshard/format/heldArms`'s `ToonArmsLookSchema` before
-loading anything: rig URL/skeleton/joint names, sockets, offset/frame, blade base,
-shadow lookup distance, swim plane and graph material identities. The rig uses
-`RigArms`'s semantic `arms`, `sword_wood`, `sword_iron` meshes and arm/swim clips.
-`prepare(context)` resolves graph material identities under the platform scope
-and obtains shared day uniforms from the row's lighting id. The backdrop reads
-those uniforms with `ToonArms.lighting(row)`. Each scope releases its prepared
-catalogue independently; the newest live preparation wins.
-`load()` returns the manifest's wooden/iron sword arms and swimming hands;
-`specimen(sky, kind)` creates an independent Explorer skeleton with shared geometry.
+**Held arms (G474 / G475 / G477, G601 C10).** `@wildshard/game/systems/viewmodel/heldView`
+defines `HeldView`, the game host for first-person arms, sockets, material binding and
+swimming, by look kind over `@wildshard/format/heldView`'s `HeldViewSchema`. The `toon`
+kind (`HeldView.admit({ kind: 'toon', ...look })` or `new HeldView(row)`) admits
+`@wildshard/format/heldArms`'s `ToonArmsLookSchema` before loading anything: rig
+URL/skeleton/joint names, sockets, offset/frame, blade base, shadow lookup distance, swim
+plane and graph material identities. The `graph` kind (`await HeldView.fromProduct(slug,
+file)`) reads a product's `GraphArmsSchema` row: graph looks with maps, weave, decals,
+pendants, the swing trail and frame-row writes. The rig uses `RigArms`'s semantic `arms`,
+`sword_wood`, `sword_iron` meshes and arm/swim clips. `prepare(context)` resolves graph
+material identities under the platform scope and obtains shared day uniforms from the
+row's lighting id (`game/looks/toonLighting` reads them for the backdrop). Each scope
+releases its prepared catalogue independently; the newest live preparation wins.
+`sword()` returns the wooden/iron sword arms and swimming hands; `specimen({ sky, blade })`
+(toon) or `specimen({ settleFrames, renderer })` (graph) creates an independent Explorer
+skeleton with shared geometry.
 The host preserves blade quantization/glow, per-vertex metalness, shadow following
 and the camera-space swim plane. A shard supplies rows and the platform context.
 No rig or material catalogue is installed by importing the module. The host uses
@@ -7210,9 +7214,9 @@ budgets from `format/streamedCover` rows (G475). Driftwood supplies rows
 and baked cells. Nalati's dressing layer is the planned W3 adopter; the
 feature carries G475's day-one approval directly.
 
-**Nine graph held arms (G475, G520).** Nine's listed native view in
-`src/shards/nine-dragon-stack/runtime/viewmodel/graphArms.ts` dresses the shared
-`RigArms` in its compiled looks. The build-only
+**Nine graph held arms (G475, G520).** Nine's held view is the `graph` kind of
+`game/systems/viewmodel/heldView` (G601 C10), dressing the shared `RigArms` in its
+compiled looks. The build-only
 `@wildshard/format/graphArmsRows` `GraphArmsSchema` admits the `view` in
 `weapons/jian-row.json` through the named-file schema. The native binding keeps
 the same rig, mesh channels, mapped textures, painted atlas, pendants and swing
