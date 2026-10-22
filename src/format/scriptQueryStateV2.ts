@@ -25,11 +25,15 @@ function schemas(scalars: number) {
   return { request,answer,natural,id };
 }
 export function parseV2QueryAnswer(input: unknown,scalars: number): V2QueryAnswer { return v.parse(schemas(scalars).answer,input); }
-export function parseV2QuerySnapshot(input: unknown,limits: { readonly bindings: number; readonly requests: number; readonly scalars: number }): V2QuerySnapshot {
+/** Defining strict continuation grammar, reused by the original owner's envelope. */
+export function createV2QuerySnapshotSchema(limits: { readonly bindings: number; readonly requests: number; readonly scalars: number }): v.GenericSchema<unknown,V2QuerySnapshot> {
   const { request,answer,natural,id } = schemas(limits.scalars);
-  return v.parse(v.strictObject({
+  return v.strictObject({
     phase: v.pipe(v.number(),v.integer(),v.minValue(-1),v.maxValue(Number.MAX_SAFE_INTEGER)),
     highWater: v.pipe(v.array(v.strictObject({ binding: id,id: v.pipe(natural,v.maxValue(0xffffffff)) })),v.maxLength(limits.bindings)),
     entries: v.pipe(v.array(v.strictObject({ request,reply: v.nullable(v.strictObject({ atTick: natural,answer })) })),v.maxLength(limits.requests)),
-  }),input);
+  });
+}
+export function parseV2QuerySnapshot(input: unknown,limits: { readonly bindings: number; readonly requests: number; readonly scalars: number }): V2QuerySnapshot {
+  return v.parse(createV2QuerySnapshotSchema(limits),input);
 }

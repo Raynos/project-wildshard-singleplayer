@@ -1,3 +1,5 @@
+import { answerV2QueryBatch } from '@wildshard/engine/script/queriesV2';
+import { resolvePhysicsQueriesV2,type V2QueryWorld } from '@wildshard/engine/physics/queryBatchV2';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Elites } from '../Elite';
 import { readEliteOutputV2,ELITE_OUTPUT_OPERATION,type EliteOutput } from '@wildshard/format/eliteFeature';
@@ -32,6 +34,9 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 
 /** Entered concrete service loans only; no shard callback or reflected name resolver. */
 export type SpawnV2Owners = Omit<V2ColumnOwners,'self' | 'player' | 'observed' | 't' | 'dt'>;
+/** Actual native worlds keyed by the original numeric binding id, not an
+ * authored resolver. Roster arrays preserve the source owner's live order. */
+export interface SpawnQueryLoansV2 { readonly worlds: ReadonlyMap<number,V2QueryWorld> }
 /** Internal page-effect transaction forwarded through the ORIGINAL ephemeral
  * effect stream and applied by its existing post-update entered drain. */
 export interface PreparedSpawnPageBank { readonly validate: () => void; readonly operations: readonly (() => void)[] }
@@ -75,6 +80,7 @@ export class SpawnScript {
   private readonly v2: OwnedSimBatchV2 | undefined;
   private readonly v2Columns: ObservationColumnsV2 | undefined;
   private readonly v2Contract: string | undefined;
+  private readonly queryWorlds: ReadonlyMap<number,V2QueryWorld> | undefined;
   private readonly v2Bindings: readonly OwnedV2Binding[];
   private readonly handles = new Map<number, ControlledBody>();
   private readonly adoptedBodies = new WeakSet<AnimalSim>();
@@ -98,7 +104,7 @@ export class SpawnScript {
   private readonly controlState: AnimalSim['state'];
   /** The decision host's final refusal, exposed without a callback into content. */
   get failure(): string | null { return this.disabledReason; }
-  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners,private readonly effectOwners?: SpawnEffectOwners) {
+  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners,private readonly effectOwners?: SpawnEffectOwners,queryLoans?: SpawnQueryLoansV2,private readonly nativeHost?: SimHost) {
     const rows = parseSpawnScript(input); this.rows = rows;
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
@@ -108,6 +114,8 @@ export class SpawnScript {
     this.contract = JSON.stringify({ ...originalRows, script: decisionScriptContract(rows.script), bytes: undefined });
     this.v2Contract = selected === undefined ? undefined : JSON.stringify({ ...selected,bytes: undefined });
     if (selected !== undefined && v2Owners === undefined) throw new Error('V2 spawn requires entered concrete owners');
+    if (selected?.queries !== undefined && queryLoans === undefined) throw new Error('Missing concrete query world authority');
+    if (selected?.queries === undefined && queryLoans !== undefined) throw new Error('Undeclared query world authority');
     if (selected?.effects?.elites === true && (effectOwners?.elites === undefined || bodies.pageActor === undefined)) throw new Error('Missing concrete page effect authority');
     if (selected?.effects?.world !== undefined && effectOwners?.world === undefined) throw new Error('Missing concrete world effect authority');
     this.v2Columns = selected === undefined || v2Owners === undefined ? undefined : new ObservationColumnsV2(selected.columns,v2Owners.scope);
@@ -132,6 +140,10 @@ export class SpawnScript {
       if (op !== 3) throw new Error('Unsupported population list'); out[0] = bodies.height(a, b); return 1;
     }, prepare: (commands, context) => this.prepare(commands, context),
       ...(selected?.effects === undefined ? {} : { prepareExternal: (commands: readonly DecisionExternalCommand[],context: DecisionContext) => this.prepareExternal(commands,context) }), failed: (_mode, _context, reason) => { this.disabledReason = reason; } };
+    if (queryLoans !== undefined) {
+      if (queryLoans.worlds.size !== bindings.length || [...queryLoans.worlds.keys()].some(id => !bindings.some(binding => binding.id === id))) throw new Error('Invalid query world binding identities');
+      this.queryWorlds = new Map([...queryLoans.worlds].map(([id,loan]) => [id,{ physics: loan.physics,navmesh: loan.navmesh,bodies: loan.bodies,sees: [...loan.sees],as: loan.as,...(loan.rosters === undefined ? {} : { rosters: loan.rosters }) }]));
+    }
     this.host = new DecisionHost({ scripts, bindings, modules: new Map([[rows.script.module, bytes]]), seed: [rows.seed >>> 0, 0],
       world, ...(selected === undefined ? {} : { externalDivisor: selected.divisor }),limits: { fuelPerCall: 2000000, fuelPerTick: 8000000 } });
     this.v2Bindings = bindings.map(binding => ({ binding: { ...binding,self: selected?.self === undefined ? binding.self : value(rows.slots.find(slot => slot.id === selected.self), 'v2 self').handle },script: value(scripts.find(script => script.id === binding.script), 'v2 declaration') }));
@@ -139,7 +151,7 @@ export class SpawnScript {
       const modern = Uint8Array.from(atob(selected.bytes), byte => byte.codePointAt(0) ?? 0);
       admitScriptContract(modern,{ abi: 2,lane: 'sim',pages: selected.artifact.pages,ioBytes: selected.artifact.ioBytes,compilerRevision: selected.artifact.compilerRevision,admissionRevision: selected.artifact.admissionRevision });
       this.v2 = new OwnedSimBatchV2(modern,{ host: this.host,bindings: this.v2Bindings,layout: layoutV2(selected.io,selected.artifact.pages,new Map(selected.capacities.map(row => [row.kind,row.capacity]))),
-        divisor: selected.divisor,fuel: selected.fuel,initFuel: selected.initFuel,seed: [rows.seed >>> 0,0],eventKinds: new Set(rows.script.on.map(name => SCRIPT_V1_EVENTS[name])),externalCommands: selected.effects !== undefined });
+        divisor: selected.divisor,fuel: selected.fuel,initFuel: selected.initFuel,seed: [rows.seed >>> 0,0],eventKinds: new Set(rows.script.on.map(name => SCRIPT_V1_EVENTS[name])),externalCommands: selected.effects !== undefined,...(selected.queries === undefined ? {} : { queries: { pending: selected.queries.pending,operations: new Map(selected.queries.operations.map(row => [row.op,row.scalars])) } }) });
     }
     if ('shard' in rows.script.binding) for (const binding of bindings) {
       if (this.v2 === undefined) this.host.enqueue(binding.id,[1,0,0,0,0,0]);
@@ -147,7 +159,8 @@ export class SpawnScript {
     }
   }
   /** Native binding takes existing platform authorities and rows, never per-shard ports. */
-  static native(host: SimHost, input: unknown,v2Owners?: SpawnV2Owners,worldActions?: readonly V2WorldActionLoan[]): SpawnScript {
+  static native(host: SimHost, input: unknown,v2Owners?: SpawnV2Owners,worldActions?: readonly V2WorldActionLoan[],queries?: SpawnQueryLoansV2): SpawnScript {
+    if (queries !== undefined && [...queries.worlds.values()].some(world => world.physics !== host.physics)) throw new Error('Foreign native query world');
     const rows = parseSpawnScript(input), roster = populationRoster(host, rows.roster);
     for (const row of rows.species) roster.validateSpawn(row.kind, row.variant);
     return new SpawnScript(rows, { spawn: roster.spawn, retire: actor => {
@@ -155,10 +168,11 @@ export class SpawnScript {
       roster.retire(body);
     }, actor: roster.actor,
       height: (x, z) => host.groundHeightAt(x, z), available: roster.available, boot: () => roster.bodies().filter(row => row.scripted).map(row => row.actor),
-      reach: (body, target) => canReach(body, target, host.physics) },v2Owners,worldActions === undefined ? undefined : { world: worldActions });
+      reach: (body, target) => canReach(body, target, host.physics) },v2Owners,worldActions === undefined ? undefined : { world: worldActions },queries,host);
   }
   /** Client-only binding to the actual AnimalManager. Its existing spawn/retire path owns bodies and draws. */
-  static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners,elites?: Elites,worldActions?: readonly V2WorldActionLoan[]): SpawnScript {
+  static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners,elites?: Elites,worldActions?: readonly V2WorldActionLoan[],queries?: SpawnQueryLoansV2): SpawnScript {
+    if (queries !== undefined && (physics === undefined || physics === null || [...queries.worlds.values()].some(world => world.physics !== physics))) throw new Error('Foreign page query world');
     return new SpawnScript(input, { spawn: (kind, x, z, yaw, variant) => animals.spawn(kind, x, z, yaw, variant),
       retire: actor => { const real = animals.animals.find(row => row === actor); if (real === undefined) throw new Error('Foreign page spawn retirement'); animals.retire(real); },
       actor: id => animals.animals.find(row => row.entityId === id) ?? null,
@@ -166,7 +180,42 @@ export class SpawnScript {
       available: () => 16384 - animals.animals.length, boot: () => animals.animals.filter(row => row.scripted),
       reach: (body, target) => physics !== undefined && physics !== null && canReach(body, target, physics),
       show: (body, visible) => { const real = animals.animals.find(row => row === body); if (real !== undefined) real.mesh.visible = visible; },
-    },v2Owners,{ ...(elites === undefined ? {} : { elites }),...(worldActions === undefined ? {} : { world: worldActions }) });
+    },v2Owners,{ ...(elites === undefined ? {} : { elites }),...(worldActions === undefined ? {} : { world: worldActions }) },queries);
+  }
+  /** One explicit call at the existing post-body slot for the complete actor
+   * module set. No scheduler, world registry, saved owner or guest callback is
+   * created. Every module and native loan preflights before the resolver runs. */
+  static answerQueries(runners: readonly SpawnScript[]): void {
+    if (runners.length === 0 || runners.length > 64) throw new Error('Invalid actor query batch size');
+    const tick = value(runners[0],'query batch').tick;
+    const modules = runners.map(runner => {
+      const ring = value(runner.v2?.queryRing,'query ring'),worlds = value(runner.queryWorlds,'query worlds'),scope = value(runner.v2Owners,'query owners').scope;
+      if (runner.tick !== tick || scope.disposed || scope.disposing || runner.nativeHost?.scope.disposed || runner.nativeHost?.scope.disposing || runner.nativeHost !== undefined && runner.nativeHost.state.tick !== tick) throw new Error('Retired or mismatched actor query phase');
+      return { identity: runner.rows.step,ring,runner,worlds: new Map([...worlds].map(([id,world]) => [String(id),world])) };
+    });
+    const owners = new Map(modules.map(row => [row.identity,row]));
+    const worlds = new Map(modules.map(row => [row.identity,row.worlds]));
+    answerV2QueryBatch(modules,tick,requests => {
+      // Validate every requested native loan before any physics query. Idle
+      // bindings and unrequested rosters never traverse their live actors.
+      for (const { module: identity,request } of requests) {
+        if (request.op !== 10) continue;
+        const owner = value(owners.get(identity),'query module'),world = owner.worlds.get(request.binding);
+        const roster = world?.rosters?.get(request.values[4]);
+        if (roster === undefined) continue; // H5 returns the original denied status.
+        if ((world?.rosters?.size ?? 0) > 256 || roster.length > 256) throw new Error('Query roster capacity');
+        for (const actor of roster) if (actor.alive && owner.runner.bodies.actor(actor.entityId) !== actor) throw new Error('Foreign query roster actor');
+      }
+      return resolvePhysicsQueriesV2(requests,worlds);
+    });
+  }
+  /** Trusted native registration over already constructed actor modules. All
+   * query continuations stay in those modules' original snapshot adapters. */
+  static installQueries(host: SimHost,runners: readonly SpawnScript[]): () => void {
+    if (runners.length === 0 || runners.length > 64 || new Set(runners).size !== runners.length || new Set(runners.map(runner => runner.rows.step)).size !== runners.length
+      || runners.some(runner => runner.nativeHost !== host || runner.v2?.queryRing === undefined || runner.tick !== host.state.tick)) throw new Error('Foreign native actor query owner');
+    const modules = [...runners];
+    return host.onStep('script.v2.queries',() => { SpawnScript.answerQueries(modules); },undefined,'afterBodies');
   }
   private v2Identities(): ReadonlyMap<number,string> {
     const rows = new Map([...this.handles].map(([handle,body]) => [handle,body.entityId]));rows.set(DECISION_PLAYER_HANDLE,`${this.rows.step}:player`);return rows;
@@ -649,8 +698,8 @@ export class SpawnScript {
 }
 
 /** Built-in native adapter: row ids resolve the already installed roster; its actor IDs, draw order and save owner stay authoritative. */
-export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock, 'night'>, input: unknown,v2Owners?: SpawnV2Owners,worldActions?: readonly V2WorldActionLoan[]): SpawnScript {
-  const rows = parseSpawnScript(input), runner = SpawnScript.native(host, rows,v2Owners,worldActions);
+export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock, 'night'>, input: unknown,v2Owners?: SpawnV2Owners,worldActions?: readonly V2WorldActionLoan[],queries?: SpawnQueryLoansV2): SpawnScript {
+  const rows = parseSpawnScript(input), runner = SpawnScript.native(host, rows,v2Owners,worldActions,queries);
   // A quiet re-save preserves the validated input wire until the first simulation step.
   let restored: SimValue | undefined;
   host.onStep(rows.step, dt => {

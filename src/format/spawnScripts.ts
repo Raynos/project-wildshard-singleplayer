@@ -55,6 +55,12 @@ export function parseSpawnScript(input: unknown): SpawnScriptRows {
     const needed = new Map([[1,bindings],[2,bindings*script.state.length],[3,bindings*script.state.length],[4,bindings*Object.keys(script.params).length],[5,bindings],[6,bindings*data.fields.length],[7,1],[9,16],[21,bindings],[22,bindings]]);
     if ([...needed].some(([kind,count]) => (capacities.get(kind) ?? 0) < count)) throw new Error('Incomplete spawn v2 input layout');
     if (capacities.size !== row.capacities.length || layout.bytes !== row.artifact.ioBytes) throw new Error('Invalid spawn v2 layout');
+    if (row.queries !== undefined) {
+      const query = row.queries;
+      if (new Set(query.operations.map(operation => operation.op)).size !== query.operations.length
+        || (capacities.get(11) ?? 0) < query.pending || (capacities.get(12) ?? 0) < query.pending
+        || query.operations.some(operation => operation.scalars > (capacities.get(13) ?? 0) || operation.op === 8 && operation.scalars < 4)) throw new Error('Invalid spawn v2 query rights or capacity');
+    }
     if (row.effects !== undefined) {
       const world = row.effects.world;
       if (world === undefined && row.effects.elites !== true) throw new Error('Empty v2 effect capabilities');

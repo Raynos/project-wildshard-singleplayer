@@ -11945,7 +11945,7 @@ as migration fallback, and v2 input/quarantine round-trips without module instan
 authority:'observe' borrows an existing actor but refuses body-changing commands and lifecycle allocation;
 interrupt, restore and scope retirement leave its native motion/brain/herd untouched. The initial executor
 supports original actor ops1..7/12/13, with complete state/command/RNG/input validation before publication and
-original next-native-tick command commit. Queries and view outputs still refuse in this actor runner.
+original next-native-tick command commit. Undeclared queries and all view outputs refuse in this actor runner.
 
 Optional rows.v2.effects.world declares exact targets, rights14/23/24, quotas
 and bounds; page/native construction lends the concrete world-action owners.
@@ -11967,6 +11967,32 @@ DecisionHost/SpawnScript envelope. Saving between stage and commit restores
 that bank exactly once without a guest call or a second owner. In-memory f64
 signed zero is retained; JSON saves preserve existing numeric canonicalization.
 Default v1 staged records never acquire this optional external key.
+
+SpawnScript rows.v2.queries declares a pending quota and finite query
+operation/reply-scalar reservations. Its fixed request/reply banks must admit
+those rights. Native construction accepts query-world loans as its fifth
+argument; page construction uses its seventh. Each loan is keyed by the
+existing numeric binding id and pins the actual physics, native navigation,
+body and ordered-roster sources. Missing, foreign or undeclared worlds refuse
+before guest construction. No authored resolver callback or inferred species
+registry is accepted.
+
+SpawnScript.answerQueries(runners) preflights the complete original actor
+module set and resolves it in one answerV2QueryBatch call at the existing
+post-body slot. Requested native rosters preflight before any query resolves;
+idle phases never traverse their live actors. SpawnScript.installQueries(host,
+runners) registers that operation once in SimHost's existing afterBodies phase
+over already-installed native runners. It creates no snapshot adapter, clock
+or registry. Continuations remain under each original SpawnScript adapter.
+Install the runners before registering this query phase, preserving the
+original body order. Queries never substitute for synchronous strike, contact,
+mount or bond authority.
+
+The optional v2Input.queries snapshot reuses createV2QuerySnapshotSchema, the
+defining strict H5 grammar. Old v1 saves import with an empty query ring;
+pending/ready v2 saves resume without replay. Explicit v2 contract fences still
+apply to selected v2 declarations. No shipped script is selected or recompiled
+merely by admitting this metadata.
 
 ScalarTripletSchema declares exactly three native scalar lattices, in component
 order. declaredGroundColour admits all three and compiles the existing ground
