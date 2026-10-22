@@ -54,6 +54,8 @@ export interface DecisionHostOptions {
   scripts: readonly DecisionScript[]; bindings: readonly DecisionBinding[]; modules: ReadonlyMap<string, Uint8Array>;
   seed: readonly [number, number]; world: DecisionWorld; trace?: (entry: DecisionTrace) => void;
   limits?: { fuelPerCall?: number; fuelPerTick?: number };
+  /** A v2 runner borrows this SAME logical continuation/command authority. */
+  externalDivisor?: 2 | 6;
 }
 type Command = [number, number, number, number, number];
 type Slots = Record<string, number | boolean>;
@@ -125,10 +127,12 @@ export class DecisionHost {
   private remainingFuel = 0;
   private usedCommands = 0;
   private tick = 0;
+  private revision = 0;
   private active: BindingState | null = null;
   private busy = false;
   private committing = false;
   constructor(options: DecisionHostOptions) {
+    check(options.externalDivisor === undefined || [2,6].includes(options.externalDivisor), 'external schedule');
     this.options = { ...options, seed: [options.seed[0], options.seed[1]] };
     this.callFuel = options.limits?.fuelPerCall ?? 400_000;
     this.tickFuel = options.limits?.fuelPerTick ?? 2_000_000;
@@ -208,14 +212,14 @@ export class DecisionHost {
   setEnabled(binding: number, enabled: boolean): void {
     check(!this.busy && typeof enabled === 'boolean', 'binding lifetime');
     const row = this.row(binding);
-    row.enabled = enabled;
+    this.revision++; row.enabled = enabled;
     if (!enabled) { row.staged = null; row.timers.fill(0); }
   }
   /** Reset a replaced actor's durable slots and stream without executing or resetting its module. */
   restart(binding: number): void {
     check(!this.busy, 'reentrant restart');
     const row = this.row(binding);
-    row.enabled = false; row.staged = null; row.queue.clear(); row.timers.fill(0); row.nextTimers.fill(0);
+    this.revision++; row.enabled = false; row.staged = null; row.queue.clear(); row.timers.fill(0); row.nextTimers.fill(0);
     row.rng = 0; row.nextRng = 0; row.lastCall = null; row.failures = 0; row.disabled = false;
     for (const [index, slot] of row.script.state.entries()) row.values[index] = slotNumber(slot, slot.default);
     row.next.set(row.values); row.commands.length = 0; row.observed.clear(); row.players.clear();
@@ -228,14 +232,25 @@ export class DecisionHost {
       row.disabled = false; row.failures = 0; row.rng = 0; row.queue.clear(); row.timers.fill(0); row.lastCall = null;
       for (let i = 0; i < row.script.state.length; i++) { const slot = row.script.state[i]; if (slot) row.values[i] = slotNumber(slot, slot.default); }
     }
+    this.revision++;
     if (!row.script.on.includes(eventName)) return;
     if (!row.disabled) row.queue.push(...event);
   }
   step(tick: number): void {
+    check(this.options.externalDivisor === undefined, 'external runner owns this step');
+    this.advance(tick, false);
+  }
+  /** Commit/timer/inbox phases only. The external engine runner executes its
+   * guest after this; native movement/contact remains with the existing owner. */
+  stepExternal(tick: number): void {
+    check(this.options.externalDivisor !== undefined, 'missing external runner');
+    this.advance(tick, true);
+  }
+  private advance(tick: number, external: boolean): void {
     check(!this.busy && integer(tick, 1) && tick === this.tick + 1, 'nonconsecutive step');
     this.busy = true;
     try {
-      this.tick = tick;
+      this.revision++;this.tick = tick;
       for (const row of this.rows) {
         if (row.staged !== null) {
           // An engine transaction promises a non-throwing commit; no script executes here.
@@ -254,12 +269,13 @@ export class DecisionHost {
           }
         }
       }
-      if (tick % SCRIPT_V1_LAYOUT.decisionDivisor !== 0) return;
+      if (tick % (this.options.externalDivisor ?? SCRIPT_V1_LAYOUT.decisionDivisor) !== 0) return;
       this.remainingFuel = this.tickFuel; this.usedCommands = 0;
       let calls = 0;
       for (const row of this.rows) {
         if (row.disabled) continue;
         if (row.enabled !== false && row.script.tick !== null && tick % (60 / row.script.tick) === 0) row.queue.push(2, 0, 0, 0, 0, 0);
+        if (external) continue;
         if (row.queue.size > 0 && calls < 64 && this.remainingFuel > 0) { calls++; this.call(row); }
         row.metric.carried = row.queue.size;
       }
@@ -426,7 +442,11 @@ export class DecisionHost {
         timers: this.savedTimers(row, row.nextTimers), rng: row.nextRng, lastCall: row.nextLastCall })),
     };
   }
-  restore(input: DecisionSnapshot): void {
+  restore(input: DecisionSnapshot): void { this.prepareRestore(input)(); }
+  /** Validate the complete continuation and native command suffix without
+   * mutation or Wasm. The nonthrowing owner commit is guarded against a stale
+   * capture. Used by the v2 runner as well as quiet restore, never content. */
+  prepareRestore(input: DecisionSnapshot): () => void {
     check(!this.busy, 'restore during call'); this.busy = true;
     try {
     const snapshot = structuredClone(input);
@@ -454,7 +474,7 @@ export class DecisionHost {
       const pending = staged.get(row.binding.id);
       let transaction: DecisionCommit | null = null, next = values, nextTimers = timers;
       if (pending) {
-        check(!saved.disabled && snapshot.tick % 6 === 0 && pending.tick === snapshot.tick && pending.lastCall === snapshot.tick
+        check(!saved.disabled && snapshot.tick % (this.options.externalDivisor ?? 6) === 0 && pending.tick === snapshot.tick && pending.lastCall === snapshot.tick
           && integer(pending.rng) && pending.commands.length <= 32, 'snapshot staged tick');
         next = decodeSlots(pending.slots); nextTimers = decodeTimers(pending.timers);
         const observed = new Set(pending.observed); for (const actor of observed) check(integer(actor, 1), 'snapshot observed actor');
@@ -473,6 +493,11 @@ export class DecisionHost {
       }
       return { row, saved, values, timers, queue, pending, transaction, next, nextTimers };
     });
+    const revision = this.revision;
+    return () => {
+      check(!this.busy && this.revision === revision, 'stale prepared continuation');
+      this.busy = true;
+      try {
     this.tick = snapshot.tick;
     for (const value of prepared) {
       const { row, saved, pending } = value;
@@ -485,6 +510,9 @@ export class DecisionHost {
       for (const command of pending?.commands ?? []) row.commands.push([...command]);
       row.context.tick = snapshot.tick;
     }
+      this.revision++;
+      } finally { this.busy = false; }
+    };
     } finally { this.busy = false; }
   }
   private trace(entry: DecisionTrace): void {
