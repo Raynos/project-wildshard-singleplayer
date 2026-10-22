@@ -31,6 +31,7 @@ class NativeWeapon extends Weapon {
   readonly model = new Group();
   readonly state = { ammo: 0, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   adsHeld = false; aimInfo = null; enabled = true; holster = 0;
+  override get charge(): number { return 0; }
   tryFire(): void { /* The native sword owns its swing clock. */ }
   update(): void { /* Admission never replaces the controller. */ }
 }
