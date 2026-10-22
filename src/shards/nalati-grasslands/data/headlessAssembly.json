@@ -31,7 +31,6 @@
       "NativeWildEnvironment"
     ],
     "@wildshard/game/population/environment": [
-      "populationTerrain",
       "NativePopulationField"
     ],
     "@wildshard/game/riding/nativePopulation": [
@@ -68,6 +67,9 @@
     ],
     "@wildshard/game/population/returnProgram": [
       "ReturnProgram"
+    ],
+    "@wildshard/format/terrainTileBytes": [
+      "decodeTerrainTile"
     ]
   },
   "constants": {
@@ -352,8 +354,8 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/population/environment",
-              "populationTerrain"
+              "@wildshard/format/terrainTileBytes",
+              "decodeTerrainTile"
             ]
           },
           {
@@ -400,15 +402,15 @@
             ]
           },
           {
-            "$ref": [
-              "shard",
-              "identity",
-              "seed"
-            ]
-          },
-          {
             "resolution": 256,
-            "size": 500
+            "size": 500,
+            "seed": {
+              "$ref": [
+                "shard",
+                "identity",
+                "seed"
+              ]
+            }
           }
         ]
       }
@@ -1601,7 +1603,11 @@
               },
               {
                 "world": {
-                  "$ref": ["constants", "nativeField", "world"]
+                  "$ref": [
+                    "constants",
+                    "nativeField",
+                    "world"
+                  ]
                 },
                 "mountable": {
                   "$call": [

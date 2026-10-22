@@ -12076,3 +12076,17 @@ require an existing palette. Ground, navmesh and capture poses use one field.
 The boot producer also exposes callback-free ROWS over its existing metadata;
 audio.catalogue and trees.factory=declared resolve the existing product loaders
 inside defineShard. Explicit native audio/boot callbacks retain precedence.
+
+HuntingStalkerCore.ground is the controller's original captured HuntGround,
+read-only and unchanged by later source-port replacement. Non-hunt patterns
+refuse through the same native authority guard. Native populations use this
+owner directly; there is no parallel ground registry.
+
+decodeTerrainTile optionally accepts TerrainSamplingRows (resolution, size,
+seed). Strict JSON rows select a centred, splatted, colour-free query lattice
+and return its original decoded storage as BakedGrid. The existing bilinear
+sampler shares that conversion; neither branch decodes twice or resamples.
+Legacy calls return the same TerrainTileData and retain their wire behavior.
+The existing boot producer may emit typed terrain recipe aliases that import
+the original geography data; these do not store another raster or install
+anything. Their registered generation inputs keep the original owner order.

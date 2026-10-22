@@ -19,7 +19,7 @@ import { creatureFloor, admitNativeRosterServices, createNativeCreatureRoster, N
 import { BondedMountRoster } from './roster';
 import { mountedPlayerOf } from './native';
 import { nativeTamingOf } from './nativeTaming';
-import { nativeHuntGround, createNativeHunt } from '../plugin/brain';
+import { createNativeHunt } from '../plugin/brain';
 import { NativePopulationField } from '../population/environment';
 import type { EliteBindings } from '../shardfile/eliteEncounters';
 import { ReturnProgram } from '../population/returnProgram';
@@ -126,7 +126,7 @@ export function nativePopulationOf(host: SimHost): NativePopulation | undefined 
 /** Extend the approved native mounted continuation around concrete game owners.
  * Config, source records and continuations are rows; no shard callback is bound. */
 export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBody>, rng: Rng, ports: NativePopulationBindings): NativePopulation {
-  const cfg = ports.config, groups = nativeGroupCollection(host, cfg.groups), env = groups.environment, ground = nativeHuntGround(hunt);
+  const cfg = ports.config, groups = nativeGroupCollection(host, cfg.groups), env = groups.environment, ground = hunt.ground;
   if (env === undefined || nativePopulations.has(host)) throw new Error('Missing or installed native population world');
   const author = ReturnProgram.native(host, ports.boot.admission);
   if (ports.bodies.length > POP_BODY_MAX) throw new Error(`native population headless hosts at most ${String(POP_BODY_MAX)} manager bodies`);

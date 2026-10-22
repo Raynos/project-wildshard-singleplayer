@@ -466,7 +466,8 @@
         "src/shards/nalati-grasslands/thumbs",
         "src/shards/nalati-grasslands/generators/layout.ts",
         "src/shards/nalati-grasslands/data/paintedTextures.json",
-        "src/shards/nalati-grasslands/data/species.generated.json"
+        "src/shards/nalati-grasslands/data/species.generated.json",
+        "src/shards/nalati-grasslands/boot/geography.generated.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json",

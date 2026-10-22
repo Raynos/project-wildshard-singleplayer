@@ -1,19 +1,13 @@
 import { defineShard, type ShardManifest } from '@wildshard/game/shard/manifest';
-import { ROWS } from './boot/declaration.generated';
+import { ROWS,TERRAIN_ROWS } from './boot/declaration.generated';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
-import geography from './boot/geography.generated.json' with { type: 'json' };
 import discovery from './data/discovery.json' with { type: 'json' };
 
 /** Fixed metadata and asset identities are compiled by the boot producer. */
 const BOUND = defineShard({
-  ...ROWS,
-  slug: 'nalati-grasslands',seed: geography.seed,spawn: geography.spawn,
+  ...ROWS,...TERRAIN_ROWS,slug: 'nalati-grasslands',
   navigation: { row: navigation.navigation,url: navigation.url },
-  groundRows: geography.ground,groundColourSamples: geography.pigment,surfaceSamples: geography.surface,
-  forestMaskSamples: geography.channels.forest,
-  mapGroundSamples: [geography.channels.mapRed,geography.channels.mapGreen,geography.channels.mapBlue],
-  minimap: { ...ROWS.minimap,palette: geography.map },
-  navmesh: { ground: { waterMargin: .25,wet: geography.channels.wet,wetThreshold: .5,trailClearance: 3.5 } },
+  minimap: { ...ROWS.minimap,...TERRAIN_ROWS.minimap },
   trees: { ...ROWS.trees,factory: 'declared' },
 }, {});
 export const NALATI_GRASSLANDS: ShardManifest = {

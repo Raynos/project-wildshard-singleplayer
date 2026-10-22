@@ -46,13 +46,24 @@ const inventory = nalatiBootInventory(ordered);
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ assetFiles: inventory.assetFiles, postChain: postChainRows(), panoramaRidge: PANO_RIDGE_V }));
 const { captureProbes: _captureProbes, extraArt, ...fixed } = discovery;
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generated.ts'), manifestDeclaration(root, 'nalati-grasslands', {
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generated.ts'), `${manifestDeclaration(root, 'nalati-grasslands', {
   ...NALATI_MANIFEST_ROWS, ...fixed, budgets: NALATI_BUDGET_INPUTS, runtimeCost,
   horizon: NALATI_HORIZON_V2,
   pois: NALATI_MAP.pois.map(p => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
   minimap: { image: '/assets/nalati-grasslands/map/top.webp' },
   boot: { ...fixed.boot, files: inventory.files, sources: inventory.sources, steps: inventory.steps, lateReads: inventory.lateReads, explore: { art: [...Object.values(fixed.explore.art), ...extraArt, ...fixed.explore.compare.flatMap(({ live, image }) => [live, image])] } },
-}, ['load', 'ground', 'seed', 'spawn', 'slug']));
+}, ['load', 'ground', 'seed', 'spawn', 'slug'])}
+import geography from './geography.generated.json' with { type: 'json' };
+export const TERRAIN_ROWS = {
+  seed: geography.seed,spawn: geography.spawn,
+  groundRows: geography.ground,groundColourSamples: geography.pigment,surfaceSamples: geography.surface,
+  forestMaskSamples: geography.channels.forest,
+  mapGroundSamples: [geography.channels.mapRed,geography.channels.mapGreen,geography.channels.mapBlue],
+  minimap: { palette: geography.map },
+  navmesh: { ground: { waterMargin: .25,wet: geography.channels.wet,wetThreshold: .5,trailClearance: 3.5 } },
+} satisfies Pick<import('@wildshard/game/shard/manifest').ShardManifestRows,
+  'seed'|'spawn'|'groundRows'|'groundColourSamples'|'surfaceSamples'|'forestMaskSamples'|'mapGroundSamples'|'minimap'|'navmesh'>;
+`);
 // the painted ground (game/looks/painterlyLook paintedGroundPainter): the meadow, path, gravel, rock and snow tiles, the snow
 // line, the wet low ground and the glacier's ice, in a softly banded painterly material recoloured by the terrain graph
 const m = paintedTextures.metres, ground = { layers: ['meadow', 'path', 'gravel', 'rock', 'snow'], colour: 'terrain', material: { bands: 0.5, rim: 0, shade: 0.85 },

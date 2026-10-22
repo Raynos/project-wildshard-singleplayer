@@ -1,3 +1,5 @@
+import type { BakedGrid } from './bakedTerrainBytes';
+import { isJsonData } from './json';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from './contentBounds';
 import { bakedSamplers, type BakedTerrainSamplers } from './bakedTerrainSampling';
 
@@ -32,9 +34,22 @@ export function encodeTerrainTile(data: TerrainTileData): Uint8Array {
   if (data.splat !== undefined) bytes.set(data.splat, HEADER + data.heights.length * (data.colours === undefined ? 4 : 16));
   return bytes;
 }
-/** Validate dimensions and exact byte counts before allocating sample arrays; reject unknown versions and flags. */
-export function decodeTerrainTile(bytes: Uint8Array): TerrainTileData {
-  if (bytes.length < HEADER || !isTerrainTileData(bytes)) throw new Error('Invalid terrain header');
+/** Finite centred query-grid dimensions; typed samples stay owned by the tile decoder. */
+export interface TerrainSamplingRows { readonly resolution: number; readonly size: number; readonly seed: number }
+function samplingGrid(data: TerrainTileData, rows: TerrainSamplingRows): BakedGrid {
+  if (data.splat === undefined || data.colours !== undefined || data.resolution !== rows.resolution || data.size !== rows.size
+    || data.x !== -rows.size/2 || data.z !== -rows.size/2) throw new Error('Invalid terrain sampling profile');
+  return { res: data.resolution,size: data.size,seed: rows.seed,landscapeHash: 0,heights: data.heights,splat: data.splat,undergrowth: null };
+}
+/** Validate dimensions and exact byte counts before allocating sample arrays; reject unknown versions and flags.
+ * Optional strict sampling rows return the same decoded arrays in the native baked-grid shape, without another read. */
+export function decodeTerrainTile(bytes: Uint8Array): TerrainTileData;
+export function decodeTerrainTile(bytes: Uint8Array | undefined, sampling: TerrainSamplingRows): BakedGrid;
+export function decodeTerrainTile(bytes: Uint8Array | undefined, sampling?: TerrainSamplingRows): TerrainTileData | BakedGrid {
+  if (sampling !== undefined && (!isJsonData(sampling) || Object.keys(sampling).sort().join(',') !== 'resolution,seed,size'
+    || !Number.isInteger(sampling.resolution) || sampling.resolution < 2 || sampling.resolution > 257
+    || !Number.isFinite(sampling.size) || sampling.size <= 0 || sampling.size > 500 || !Number.isFinite(sampling.seed))) throw new Error('Invalid terrain sampling rows');
+  if (bytes === undefined || bytes.length < HEADER || !isTerrainTileData(bytes)) throw new Error('Invalid terrain header');
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), r = v.getUint16(6, true), flags = v.getUint32(8, true);
   const colour = (flags & 1) !== 0, splat = (flags & 2) !== 0;
   if (v.getUint16(4, true) !== 1 || r < 2 || r > 257 || flags > 3 || v.getUint32(24, true) !== 0 || v.getUint32(28, true) !== 0 || bytes.length !== HEADER + r * r * (4 + (colour ? 12 : 0) + (splat ? 4 : 0))) throw new Error('Invalid terrain version or length');
@@ -42,7 +57,7 @@ export function decodeTerrainTile(bytes: Uint8Array): TerrainTileData {
   const data: TerrainTileData = { resolution: r, x: v.getFloat32(12, true), z: v.getFloat32(16, true), size: v.getFloat32(20, true), heights };
   if (colour) data.colours = Float32Array.from({ length: r * r * 3 }, (_, i) => v.getFloat32(HEADER + r * r * 4 + i * 4, true));
   if (splat) data.splat = Uint8Array.from(bytes.subarray(HEADER + r * r * (colour ? 16 : 4)));
-  check(data); return data;
+  check(data); return sampling === undefined ? data : samplingGrid(data,sampling);
 }
 /** Sample the same diagonal split as Rapier heightfields, rather than a bilinear surface that differs from collision. */
 export function terrainTileHeight(data: TerrainTileData, x: number, z: number, policy?: { layout?: 'column-major'; boundary?: 'clamp' }): number {
@@ -61,8 +76,7 @@ export function bilinearTerrainSamplers(data: TerrainTileData, normalEpsilon: nu
   if ((data.resolution !== 256 && data.resolution !== 257) || data.x !== -250 || data.z !== -250 || data.size !== 500
     || data.colours !== undefined || data.splat === undefined || !Number.isFinite(normalEpsilon) || normalEpsilon < 0.001 || normalEpsilon > 4
     || !Number.isFinite(datum) || datum < -CELL_BELOW || datum > CELL_ABOVE) throw new Error('Invalid bilinear terrain sampling profile');
-  const native = bakedSamplers({ res: data.resolution, size: data.size, seed: 0, landscapeHash: 0,
-    heights: data.heights, splat: data.splat, undergrowth: null });
+  const native = bakedSamplers(samplingGrid(data,{ resolution: data.resolution,size: data.size,seed: 0 }));
   return { heightAt: datum === 0 ? native.heightAt : (x, z) => native.heightAt(x, z) + datum,
     normalAt: (x, z, eps = normalEpsilon) => native.normalAt(x, z, eps), splatAt: native.splatAt };
 }

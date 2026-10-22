@@ -5,7 +5,7 @@ import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
-import { terrainTileHeight, decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
+import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import type { HuntGround, HuntTree } from '@wildshard/engine/ai/hunt';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
@@ -56,14 +56,6 @@ export function installPopulationEnvironment(host: SimHost, grid: Pick<BakedGrid
   };
   services.set(rows.id, ground); installed.set(host, services);
   host.scope.onDispose(() => { services.delete(rows.id); });
-}
-
-/** Decode only the exact admitted sampling lattice requested by the boot rows. */
-export function populationTerrain(bytes: Uint8Array | undefined, seed: number, row: { resolution: number; size: number }): BakedGrid {
-  const tile = bytes === undefined ? null : decodeTerrainTile(bytes);
-  if (tile?.splat === undefined || tile.colours !== undefined || tile.resolution !== row.resolution || tile.size !== row.size
-    || tile.x !== -row.size/2 || tile.z !== -row.size/2) throw new Error('Native population needs its admitted query terrain sampling');
-  return { res: tile.resolution,size: tile.size,seed,landscapeHash: 0,heights: tile.heights,splat: tile.splat,undergrowth: null };
 }
 
 /** G474 renderer-free grass, water and hunt observations. This concrete owner

@@ -318,7 +318,8 @@ export class HuntingStalkerCore<A extends AnimalSim> extends GroupBrain<A> {
   private requireHunt(): NonNullable<typeof this.hunting> { if (this.hunting === null) throw new Error('Incompatible stalker hunt pattern'); return this.hunting; }
   private get rng(): Rng { return this.requireHunt().rng; }
   private get ports(): HuntPorts<A> { return this.requireHunt().ports; }
-  private get ground(): HuntGround { return this.requireHunt().ground; }
+  /** The same captured ground authority used by this hunting controller; other patterns refuse. */
+  get ground(): HuntGround { return this.requireHunt().ground; }
   private get faunaTuning(): HuntConfig['faunaTuning'] { return this.requireHunt().faunaTuning; }
   private get species(): (kind: string) => HuntSpecies { return this.requireHunt().species; }
   /** Original telegraphed-contact mode, read once at construction. */
