@@ -15,6 +15,7 @@ import { parseGrappleProfile, parseGrappleFilament, type GrappleRows } from '@wi
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { GrappleTool } from '@wildshard/game/grapple/tool';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { OriginalPracticeCourse } from './fixtures/course-controller.oracle';
 import { PracticeCourse } from '@wildshard/game/practice/course';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import { grappleNeedsLift, grappleLiftTo } from '@wildshard/game/grapple/sim';
@@ -86,7 +87,11 @@ test('quarry ribbon keeps endpoints pinned and uses only its declared look', () 
   } finally { line.mesh.geometry.dispose(); material.dispose(); scope.dispose(); }
 });
 
-test('quarry practice rows select the equipped native tool and translate their hooks', () => {
+test('shared course preserves original native tool, checkpoint HUD and clock order',()=>{
+ const traces:unknown[][]=[];
+ for(const Course of [OriginalPracticeCourse,PracticeCourse]){
+  const trace:unknown[]=[];let now=0;
+  const timer=vi.spyOn(performance,'now').mockImplementation(()=>{trace.push('clock');return ++now*1000;});
   const scope = new Scope('quarry.practice'), previous = app.levelScope, state = app.state;
   app.levelScope = scope;
   const tool = new GrappleTool(legacyDouble<ShardContext>({ scope }), { equipment: { ...SWORD_WOOD, id: 'tool.quarry-claw' },
@@ -104,9 +109,11 @@ test('quarry practice rows select the equipped native tool and translate their h
     registry: legacyDouble<PlaygroundHost['registry']>({ add: piece => piece }),
     spawn: { x: 11, z: -9 }, toast: () => undefined,
   });
-  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope}), {kind:'grapple',layout:{ program:PRACTICE_PROGRAM,sampleEpsilon:1e-9,frame:practiceFrame({...room,pads}),course: { ...room, title: 'Quarry hook run', pads },
+  const course = new Course(host, legacyDouble<ShardContext>({scope}), {kind:'grapple',layout:{ controller:{title:'Quarry hook run',chip:room.chip,piece:{id:room.piece.id,name:room.piece.name,file:room.piece.file,surface:'metal'},center:{kind:'spawn'},entry:{kind:'grapple',hooks:[{x:3,y:4,z:5}]},view:{kind:'checkpoints',pads:pads.map(pad=>pad.label),goals:room.run.goals,words:room.words}}, program:PRACTICE_PROGRAM,sampleEpsilon:1e-9,frame:practiceFrame({...room,pads}),course: { ...room, title: 'Quarry hook run', pads },
     hooks: [{ pad: 'quarry-hook', x: 3, y: 4, z: 5 }],
     presentation: { parts: [], colliders: [], map: { bounds: { x0: -20, x1: 20, z0: -20, z1: 20 }, shapes: [] } } } });
+  const status=vi.spyOn(course.chip,'status').mockImplementation((...args)=>{trace.push(['status',...args]);});
+  const clockView=vi.spyOn(course.chip,'time').mockImplementation((...args)=>{trace.push(['time',...args]);});
   try {
     course.enter(); expect(course.entered).toBe(true);
     expect(select).toHaveBeenLastCalledWith({ name: 'Quarry hook run', hooks: [new Vector3(14, 3004, -4)] });
@@ -115,6 +122,12 @@ test('quarry practice rows select the equipped native tool and translate their h
     const project=vi.spyOn(ReturnProgram.prototype,'project');
     try {for(let frame=0;frame<60;frame++)update(1/60,frame/60);expect(project).toHaveBeenCalledTimes(10);}
     finally {project.mockRestore();}
+    position.set(host.spawn.x+start.x,3000+start.top,host.spawn.z+start.z-start.d/2-.1);update(.1,0);
+    for(const pad of pads){position.set(host.spawn.x+pad.x,3000+pad.top,host.spawn.z+pad.z);update(.1,0);}
+    position.y=2700;update(.1,0);course.restart();
+    traces.push(trace);
     course.exit(); expect(select).toHaveBeenLastCalledWith(null); expect(course.entered).toBe(false);
-  } finally { select.mockRestore(); course.exit(); scope.dispose(); app.levelScope = previous; app.setState(state); }
+  } finally {status.mockRestore();clockView.mockRestore();timer.mockRestore();select.mockRestore(); course.exit(); scope.dispose(); app.levelScope = previous; app.setState(state); }
+ }
+ expect(traces[1]).toEqual(traces[0]);
 });

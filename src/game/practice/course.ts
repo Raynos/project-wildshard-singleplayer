@@ -6,7 +6,7 @@ import { PlaygroundChip, clock, playgroundActive } from '@wildshard/engine/pract
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
 import type { RoomMap, RoomMarker } from '@wildshard/engine/ui/roomMap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { RidingPracticeLayout, HookPracticeLayout, HookPracticeRow } from '@wildshard/format/practiceCourseRows';
+import { parsePracticeController, type PracticeControllerRows, type RidingPracticeLayout, type HookPracticeLayout } from '@wildshard/format/practiceCourseRows';
 import { isJsonData } from '@wildshard/format/json';
 import type { GrappleCourseRow } from '@wildshard/format/grapple';
 import type { ShardContext } from '../plugin/context';
@@ -17,35 +17,29 @@ import { buildPracticeScene } from './scene';
 import { NumericCourse } from './numericCourse';
 
 const fill = (text:string, values:Readonly<Record<string,string|number>>):string => text.replaceAll(/\{(\w+)\}/gu,(match,key:string)=>String(values[key]??match));
-
-type HookCourseRow = HookPracticeRow;
-type HookCoursePad = HookCourseRow['pads'][number];
-
-/** Only rows and native page authority enter the shared room lifecycle. */
-export type PracticeCourseRows = { kind:'horse'; layout:RidingPracticeLayout } | { kind:'grapple'; layout:HookPracticeLayout };
-interface CourseController {
-  readonly map:RoomMap;
-  enter:()=>void; exit:()=>void; afterExit:()=>void; events:(active:boolean)=>void;
-  restart:()=>void; update:(delta:number)=>void;
+type MountEntryRows = Extract<PracticeControllerRows['entry'],{kind:'mount'}>;
+type GrappleEntryRows = Extract<PracticeControllerRows['entry'],{kind:'grapple'}>;
+/** Data only: both actual course files carry the same native-controller contract. */
+export interface PracticeCourseRows {
+  readonly kind:'horse'|'grapple';
+  readonly layout:RidingPracticeLayout|HookPracticeLayout;
 }
-function prepareCourse(ctx:ShardContext,input:PracticeCourseRows):
- {kind:'horse';layout:RidingPracticeLayout;mount:ReturnType<typeof pageRidingMount>;law:ReturnProgram} | {kind:'grapple';layout:HookPracticeLayout;law:ReturnProgram} {
-  if(!isJsonData(input.layout))throw new Error('Practice rows require JSON data');
-  if(input.kind==='horse')return {kind:'horse',layout:input.layout,mount:pageRidingMount(ctx),law:ReturnProgram.page(input.layout.program,ctx.scope.child('practice course program'))};
-  return {...input,law:ReturnProgram.page(input.layout.program,ctx.scope.child('practice course program'))};
+interface CourseEntry {
+  readonly map:RoomMap;readonly available:boolean;
+  enter:()=>void;observe:()=>boolean;
+  restart?:()=>void;exit?:()=>void;afterExit?:()=>void;events?:(active:boolean)=>void;
 }
-
-class MountedCourseController implements CourseController {
+class MountedCourseEntry implements CourseEntry {
   readonly map:RoomMap;
   readonly road:(readonly[number,number])[];
   private horse: Animal | null = null;
-  private readonly rows: RidingPracticeLayout;
+  private readonly rows: MountEntryRows;
   private readonly mount: ReturnType<typeof pageRidingMount>;
-  readonly run:NumericCourse;
+  
 
-  constructor(private readonly host:PlaygroundHost,rows:RidingPracticeLayout,
-    mount:ReturnType<typeof pageRidingMount>,program:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
-    this.rows=rows;this.mount=mount;this.run=new NumericCourse(host,room.origin,rows,program);
+  constructor(private readonly host:PlaygroundHost,rows:MountEntryRows,
+    mount:ReturnType<typeof pageRidingMount>,private readonly room:PracticeCourse,map:RoomMap) {
+    this.rows=rows;this.mount=mount;
     const o=room.origin,lap=rows.road.map(([x,z])=>[o.x+x,o.z+z]as const);this.road=[...lap,...lap.slice(1)];
     const mark:RoomMarker={x:0,z:0},marks=[mark],none:RoomMarker[]=[];
     this.map={...map,markers:()=>{const h=this.horse;if(h===null||h.hidden)return none;mark.x=h.position.x;mark.z=h.position.z;return marks;}};
@@ -60,12 +54,9 @@ class MountedCourseController implements CourseController {
     const mount=this.mount,horse=this.horse;
     if(horse!==null){if(mount.horse===horse)mount.dismount();mount.removeMountable(horse.entityId);mount.setRoads(null);horse.hidden=true;horse.mesh.visible=false;}
   }
-  afterExit():void { /* Mounted cleanup precedes the common room hide. */ }
-  events(_active:boolean):void { /* Mounted listeners use the existing practice-room DOM event. */ }
-
   /** the saddled horse, spawned once through the shard's AnimalManager (its rig, its sounds, its hit tests) */
   private spawnHorse(): Animal {
-    const a = this.host.animals.spawn(this.rows.actor.kind, this.rows.fieldAt.x + this.rows.horseStart.x, this.rows.fieldAt.z + this.rows.horseStart.z, this.rows.horseStart.yaw, this.rows.actor.variant);
+    const a = this.host.animals.spawn(this.rows.actor.kind, this.room.origin.x + this.rows.start.x, this.room.origin.z + this.rows.start.z, this.rows.start.yaw, this.rows.actor.variant);
     this.horse = a;
     return a;
   }
@@ -82,115 +73,108 @@ class MountedCourseController implements CourseController {
     a.mesh.position.copy(a.position);
   }
 
-  /** ↺: off the horse, the horse back on the start facing east, you by its left side; the laps reset */
-  restart(): void {
-    const mount = this.mount, a = this.horse;
-    if (a === null) return;
-    if (mount.horse === a) mount.dismount();
-    const o = this.room.origin;
-    this.standHorse(a, o.x + this.rows.horseStart.x, o.z + this.rows.horseStart.z, this.rows.horseStart.yaw);
-    this.run.reset();
-    this.room.chip.status(this.rows.words.ready);
-    this.room.chip.time(0,this.run.best);
+  get available():boolean { return this.horse!==null; }
+  restart():void {
+    const a=this.horse;if(a===null)return;
+    if(this.mount.horse===a)this.mount.dismount();
+    const o=this.room.origin,start=this.rows.start;
+    this.standHorse(a,o.x+start.x,o.z+start.z,start.yaw);
   }
-
-  update(dt:number): void {
-    const mount = this.mount, a = this.horse, p = this.host.player;
-    if (a === null) return;
-    if (p.hover) p.setHover(false);
-    // unridden, the horse stands on the field (a dismount hands it back to the terrain's tilt: level it again)
-    // — and at the field's height where it stands now: its ground follow tracks the terrain 3 km under it, so the offset
-    // taken on the start would float or sink it anywhere else (a dismount mid-lap; E321 / E328)
-    if (mount.horse !== a) { a.levelGround = true; a.yOffset = PLAYGROUND_Y - heightAt(a.position.x, a.position.z); }
-    const mounted = this.host.player.mountedOn === a;
-    const now=performance.now()/1000;
-    const lap=this.run.state.lap,out=this.run.step(dt,{now,mounted:Number(mounted)});
-    if(Object.keys(out).length>0){
-      if(out['courseFell']===1){this.restart();this.host.toast(this.rows.words.fell);return;}
-      const notice=out['courseEvent'],state=this.run.state;
-      if(notice===1||notice===2)this.host.toast(fill(notice===1?this.rows.words.lapNotice:this.rows.words.halfNotice,
-        {lap,time:clock(notice===1?state.last:state.running?now-state.started:0),best:state.best===state.last?this.rows.words.best:''}));
-    }
-    const state=this.run.state,elapsed=this.run.time(now),words=this.rows.words;
-    this.room.chip.time(elapsed,state.best<0?null:state.best);
-    this.room.chip.status(!mounted&&!state.running?words.ready:!state.running?words.ride:
-      fill(words.lap,{lap:state.lap,half:state.half?words.half:'',last:state.last<0?'':fill(words.last,{time:clock(state.last)})}),state.running||mounted?'go':undefined);
+  observe():boolean {
+    const a=this.horse;if(a===null)return false;
+    if(this.mount.horse!==a){a.levelGround=true;a.yOffset=PLAYGROUND_Y-heightAt(a.position.x,a.position.z);}
+    return this.host.player.mountedOn===a;
   }
 }
 
-
-class HookCourseController implements CourseController {
-  readonly map:RoomMap;
-  private readonly host: PlaygroundHost;
-  private readonly row: HookCourseRow;
-  private readonly course: GrappleCourseRow;
-  private readonly run:NumericCourse;
-
-  constructor(host:PlaygroundHost,layout:HookPracticeLayout,program:ReturnProgram,private readonly room:PracticeCourse,map:RoomMap) {
-    this.host=host;this.row=layout.course;this.map=map;
-    this.run=new NumericCourse(host,room.origin,layout,program);
-    const o=room.origin,hooks=layout.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z));
-    this.course={name:room.title,hooks};
+class GrappleCourseEntry implements CourseEntry {
+  readonly available=true;
+  private readonly course:GrappleCourseRow;
+  constructor(private readonly host:PlaygroundHost,rows:GrappleEntryRows,room:PracticeCourse,readonly map:RoomMap) {
+    const o=room.origin;this.course={name:room.title,hooks:rows.hooks.map(h=>new THREE.Vector3(o.x+h.x,o.y+h.y,o.z+h.z))};
   }
-
-  private tool(): GrappleTool {
-    const tool = this.host.game.app.equipment?.tools.find(item => item instanceof GrappleTool);
-    if (!(tool instanceof GrappleTool)) throw new Error('Hook practice needs the equipped grapple tool');
-    return tool;
+  private tool():GrappleTool {
+    const tool=this.host.game.app.equipment?.tools.find(item=>item instanceof GrappleTool);
+    if(!(tool instanceof GrappleTool))throw new Error('Hook practice needs the equipped grapple tool');return tool;
   }
-
   enter():void {this.tool().setGrappleCourse(this.course);}
-  exit():void { /* Grapple cleanup follows the common room hide. */ }
-  events(active:boolean):void {app.events.emit('practice.active',active);}
   afterExit():void {this.tool().setGrappleCourse(null);}
-
-  /** The guest resets its continuation; the native presenter moves the body. */
-  restart(): void {
-    this.run.reset();
-    this.room.chip.status(this.row.words.ready);this.room.chip.time(0,this.run.best);
-  }
-  private pad(index:number):HookCoursePad {
-    const pad=this.row.pads[index];if(pad===undefined)throw new Error('Invalid practice checkpoint');return pad;
-  }
-
-  update(delta:number): void {
-    const {player}=this.host,row=this.row,words=row.words;
-    if(player.hover)player.setHover(false);
-    const out=this.run.step(delta),index=out['pad']??-1,pad=index<0?null:this.pad(index);
-    if(Object.keys(out).length>0) {
-      if(out['finish']===1) {
-        const time=clock(this.run.state.elapsed);
-        this.room.chip.status(fill(words.finish,{time}),'done');
-        this.host.toast(fill(words.done,{time,best:this.run.best===this.run.state.elapsed?words.best:''}));
-      } else if(this.run.state.phase===1) this.room.chip.status(pad!==null?fill(words.running,{pad:pad.label}):fill(words.between,{reached:out['reached']??0,goals:row.run.goals}),'go');
-      if(out['fell']===1) {
-        const checkpoint=this.pad(this.run.state.checkpoint);
-        this.run.place(out);this.host.toast(fill(words.fell,{pad:checkpoint.label}));
-      }
-    }
-    const elapsed=this.run.time(this.run.state.phase===1?performance.now()/1000:0);
-    this.room.chip.time(elapsed,this.run.best);
-  }
+  events(active:boolean):void {app.events.emit('practice.active',active);}
+  observe():boolean {return false;}
 }
 
+/** One numeric/HUD controller; mounted bodies and equipped tools are borrowed by finite entry rows. */
+class CourseController {
+  readonly map:RoomMap;private readonly entry:CourseEntry;private readonly run:NumericCourse;
+  constructor(private readonly host:PlaygroundHost,layout:PracticeCourseRows['layout'],program:ReturnProgram,mount:ReturnType<typeof pageRidingMount>|null,
+    private readonly rows:PracticeControllerRows,private readonly room:PracticeCourse,map:RoomMap) {
+    const entry=rows.entry;
+    this.run=new NumericCourse(host,room.origin,layout,program);
+    if(entry.kind==='mount'){
+      if(mount===null)throw new Error('Practice needs its entered mount');
+      this.entry=new MountedCourseEntry(host,entry,mount,room,map);
+    }else this.entry=new GrappleCourseEntry(host,entry,room,map);
+    this.map=this.entry.map;
+  }
+  enter():void {this.entry.enter();}
+  exit():void {this.entry.exit?.();}
+  afterExit():void {this.entry.afterExit?.();}
+  events(active:boolean):void {this.entry.events?.(active);}
+  restart():void {
+    if(!this.entry.available)return;this.entry.restart?.();this.run.reset();
+    this.room.chip.status(this.rows.view.words.ready);this.room.chip.time(0,this.run.best);
+  }
+  private pad(index:number):string {
+    const view=this.rows.view,pad=view.kind==='checkpoints'?view.pads[index]:undefined;
+    if(pad===undefined)throw new Error('Invalid practice checkpoint');return pad;
+  }
+  update(dt:number):void {
+    if(!this.entry.available)return;
+    const player=this.host.player;if(player.hover)player.setHover(false);
+    const mounted=this.entry.observe(),now=performance.now()/1000,lap=this.run.state.lap;
+    const out=this.run.step(dt,{now,mounted:Number(mounted)}),view=this.rows.view,state=this.run.state;
+    if(view.kind==='laps'){
+      const labels=view.words;
+      if(Object.keys(out).length>0){
+        if(out['courseFell']===1){this.restart();this.host.toast(labels.fell);return;}
+        const notice=out['courseEvent'];
+        if(notice===1||notice===2)this.host.toast(fill(notice===1?labels.lapNotice:labels.halfNotice,
+          {lap,time:clock(notice===1?state.last:state.running?now-state.started:0),best:state.best===state.last?labels.best:''}));
+      }
+      this.room.chip.time(this.run.time(now),this.run.best);
+      this.room.chip.status(!mounted&&!state.running?labels.ready:!state.running?labels.ride:
+        fill(labels.lap,{lap:state.lap,half:state.half?labels.half:'',last:state.last<0?'':fill(labels.last,{time:clock(state.last)})}),state.running||mounted?'go':undefined);
+    }else{
+      const labels=view.words,index=out['pad']??-1,pad=index<0?null:this.pad(index);
+      if(Object.keys(out).length>0){
+        if(out['finish']===1){const time=clock(state.elapsed);this.room.chip.status(fill(labels.finish,{time}),'done');this.host.toast(fill(labels.done,{time,best:this.run.best===state.elapsed?labels.best:''}));}
+        else if(state.phase===1)this.room.chip.status(pad!==null?fill(labels.running,{pad}):fill(labels.between,{reached:out['reached']??0,goals:view.goals}),'go');
+        if(out['fell']===1){const checkpoint=this.pad(state.checkpoint);this.run.place(out);this.host.toast(fill(labels.fell,{pad:checkpoint}));}
+      }
+      this.room.chip.time(this.run.time(state.phase===1?performance.now()/1000:0),this.run.best);
+    }
+  }
+}
 
 /** Client-only common room lifetime, shared by the real riding and grapple courses.
- * Per-family controllers keep their existing laws and remain separately attributed. */
+ * The common controller consumes finite rows; native entry adapters retain body/tool authority. */
 export class PracticeCourse implements Playground {
   readonly id:'horse'|'grapple'; readonly title:string; readonly center:{x:number;z:number};
   readonly root:THREE.Group; readonly map:RoomMap; readonly origin:THREE.Vector3; readonly chip:PlaygroundChip;
   private active=false;
   private readonly controller:CourseController;
   constructor(private readonly host:PlaygroundHost,ctx:ShardContext,input:PracticeCourseRows) {
-    const data=prepareCourse(ctx,input),row=data.kind==='horse'?data.layout:data.layout.course;
-    this.id=data.kind;this.title=row.title;
-    this.center=data.kind==='horse'?{...data.layout.fieldAt}:{...host.spawn};
+    if(!isJsonData(input.layout))throw new Error('Practice rows require JSON data');
+    const data=input.layout,row=parsePracticeController(data.controller),mount=row.entry.kind==='mount'?pageRidingMount(ctx):null;
+    const program=ReturnProgram.page(data.program,ctx.scope.child('practice course program'));
+    this.id=input.kind;this.title=row.title;
+    this.center=row.center.kind==='fixed'?{x:row.center.x,z:row.center.z}:{...host.spawn};
     this.origin=new THREE.Vector3(this.center.x,PLAYGROUND_Y,this.center.z);
-    const {root,colliders,map}=buildPracticeScene(data.layout.presentation,this.origin,row.piece.id);
+    const {root,colliders,map}=buildPracticeScene(data.presentation,this.origin,row.piece.id);
     this.root=root;root.visible=false;
-    host.registry.add({id:row.piece.id,name:row.piece.name,category:'ground',file:row.piece.file,object:root,colliders,surface:data.kind==='horse'?'wood':'metal',solidFloor:true});
+    host.registry.add({id:row.piece.id,name:row.piece.name,category:'ground',file:row.piece.file,object:root,colliders,surface:row.piece.surface,solidFloor:true});
     this.chip=new PlaygroundChip(row.chip,()=>{this.restart();});
-    this.controller=data.kind==='horse'?new MountedCourseController(host,data.layout,data.mount,data.law,this,map):new HookCourseController(host,data.layout,data.law,this,map);
+    this.controller=new CourseController(host,data,program,mount,row,this,map);
     this.map=this.controller.map;
     host.game.onUpdate(dt=>{if(this.active)this.controller.update(dt);},row.piece.id);
   }

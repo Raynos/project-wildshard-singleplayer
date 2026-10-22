@@ -32,7 +32,7 @@ import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/forma
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { ToonArmsLookSchema, HeldArmsSchema } from '@wildshard/format/heldArms';
 import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
-import { PracticeSceneSchema,RidingPracticeSchema } from '@wildshard/format/practiceCourseRows';
+import { PracticeSceneSchema,RidingPracticeSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
@@ -359,6 +359,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'shardSections.Spawn': SpawnSchema,
   'terrain.GroundRows': GroundRowsSchema,
   'scalarChannel.ScalarLattice': ScalarLatticeSchema,
+  'practiceCourseRows.Controller': PracticeControllerSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

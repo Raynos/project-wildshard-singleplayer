@@ -16,7 +16,7 @@ const declarations = new Map([
   ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyWeather', 'C9'], ['installAssemblyArenaScript', 'C9']])],
   ['src/game/systems/npc/figureRows.ts', new Map(['FigureGroupMember', 'FigureGroup', 'memberPose', 'enterFigureGroup'].map(name => [name, 'C9']))],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
-  ['src/game/practice/course.ts', new Map(['MountedCourseController', 'HookCourseController', 'hookCoursePad', 'yawToward', 'HookCourseCourse', 'HookCourseRow', 'HookCoursePad'].map(name => [name, 'C6']))],
+  ['src/game/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','SlotViewActor','SlotSiteChange','Awake','PatrolEncounterView','PatrolViewActor','PatrolHit','Rider','PatrolActor','PatrolActorRoster'].map(name=>[name,'C4']))],
   ['src/game/population/pageGroups.ts', new Map([
     'point', 'whole', 'PagePopulationPlanner',
@@ -84,7 +84,7 @@ const inline = new Map([
 function reviewedOwner(path, name) {
   if ((path === 'src/game/shardfile/clientRuntimeHooks.ts' && ['runtimeLevelBounds', 'RuntimeBoundsRows'].includes(name ?? ''))
     || (path === 'src/format/clientPlan.ts' && name === 'RuntimeBoundsSchema')) return 'nine-dragon-stack';
-  if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
+  if(path === 'src/game/practice/course.ts' && ['GrappleCourseEntry','GrappleEntryRows'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
   return 'nalati-grasslands';
 }

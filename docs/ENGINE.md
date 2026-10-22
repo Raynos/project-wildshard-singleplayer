@@ -11868,3 +11868,25 @@ to bakedSamplers. Its returned scalar query retains the defining clamp and
 bilinear operation order. GroundRows.mask uses that same grammar; its extra
 zero-to-one pond range remains a ground precondition. Exact-index f64 forest
 candidates retain readScalarChannel and their existing coordinate lookup.
+
+Practice controller rows select a fixed or spawn-relative room, a mounted native actor/road/start or the
+equipped grapple tool's hooks, and lap or checkpoint HUD text. PracticeCourse admits these rows before
+allocating the room and uses one CourseController over the unchanged NumericCourse/ABI1 guest. Body/tool entry,
+exit and reset retain their original owners; the shared presenter preserves per-frame versus sampled statuses,
+best times, fall recovery, and clock-read order. No authored callback, new simulation clock or save state enters
+this API.
+
+Production actor ABI2 is selected only by explicit SpawnScript rows.v2 (artifact/compiler/admission revisions,
+layout/capacities, divisor2|6, fuel and finite observation columns).
+SpawnScript.page(animals,rows,physics,owners) / native(host,rows,owners) lend actual entered
+scope/environment/clock/weather/herd/taming/mount owners. The same DecisionHost, roster/body authority,
+ScriptStrikes and RNG counters remain authoritative. Generic columns capture only due bindings; explicit
+SpawnScript.observe fields retain original IDs and unset validity. Default ABI1 contracts and snapshots are
+unchanged. ABI2 adds optional v2Input to that same snapshot envelope; old pending events use saved native tick
+as migration fallback, and v2 input/quarantine round-trips without module instantiation. Slot
+authority:'observe' borrows an existing actor but refuses body-changing commands and lifecycle allocation;
+interrupt, restore and scope retirement leave its native motion/brain/herd untouched. The initial executor
+supports original actor ops1..7/12/13, with complete state/command/RNG/input validation before publication and
+original next-native-tick command commit. Queries, view outputs and world-action banks refuse until their
+explicit owner integrations land. No implicit elite action dispatcher is provided; op25 ordered detached actions
+remain a follow-on with the original elitePage drain slot.

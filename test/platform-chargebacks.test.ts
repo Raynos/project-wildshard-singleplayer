@@ -169,25 +169,26 @@ test('whole-module cuts retire their old receipts while unknown missing modules 
 });
 
 
-test('shared practice lifetime preserves each real controller charge', () => {
+test('shared numeric course preserves only each native entry charge', () => {
   const path = 'src/game/practice/course.ts', both = new Set(['nalati-grasslands', 'nine-dragon-stack']);
-  const names = ['PracticeCourse', 'MountedCourseController', 'HookCourseController', 'hookCoursePad'];
+  const names = ['CourseController', 'PracticeCourse', 'MountedCourseEntry', 'GrappleCourseEntry', 'GrappleEntryRows'];
   const modules = new Map([[path, both]]), bindings = new Map(names.map(name => [`${path}\0${name}`, both]));
   chargePlatformUsers(modules, bindings);
   expect(modules.get(path)).toEqual(both);
   expect(bindings.get(`${path}\0PracticeCourse`)).toEqual(both);
-  for (const name of ['MountedCourseController']) {
+  expect(bindings.get(`${path}\0CourseController`)).toEqual(both);
+  for (const name of ['MountedCourseEntry']) {
     expect([...bindings.get(`${path}\0${name}`) ?? []]).toEqual(['nalati-grasslands']);
     expect(platformChargeback(path, name)).toBe('C6');
   }
-  for (const name of ['HookCourseController', 'hookCoursePad']) {
+  for (const name of ['GrappleCourseEntry', 'GrappleEntryRows']) {
     expect([...bindings.get(`${path}\0${name}`) ?? []]).toEqual(['nine-dragon-stack']);
     expect(platformChargeback(path, name)).toBe('C6');
   }
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['nalati-grasslands', []], ['nine-dragon-stack', []]]);
-  for (const name of names.slice(1)) recordPrivateCharge(charges, 'fixture', {path, name, lines: 1});
-  expect(charges.get('nalati-grasslands')?.map(row => row.name)).toEqual(['MountedCourseController']);
-  expect(charges.get('nine-dragon-stack')?.map(row => row.name)).toEqual(['HookCourseController', 'hookCoursePad']);
+  for (const name of names.slice(2)) recordPrivateCharge(charges, 'fixture', {path, name, lines: 1});
+  expect(charges.get('nalati-grasslands')?.map(row => row.name)).toEqual(['MountedCourseEntry']);
+  expect(charges.get('nine-dragon-stack')?.map(row => row.name)).toEqual(['GrappleCourseEntry', 'GrappleEntryRows']);
 });
 
 test('the single slot roster stays charged despite an optional dispatcher',()=>{

@@ -1,0 +1,18 @@
+import {expect,test} from 'vitest';
+import {parsePracticeController} from '../src/format/practiceCourseRows';
+import {horseCourseRows} from '../src/shards/nalati-grasslands/generators/courseScene';
+import {grappleCourseScene} from '../src/shards/nine-dragon-stack/generators/courseScene';
+import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with {type:'json'};
+
+test('both real native entries share one strict controller grammar',()=>{
+ for(const rows of [horseCourseRows().controller,grappleCourseScene(course).controller])expect(parsePracticeController(rows)).toEqual(rows);
+ const original=horseCourseRows().controller;
+ const orchard=parsePracticeController({...original,title:'Orchard laps',entry:{kind:'mount',actor:{kind:'mule',variant:'cart',name:'Juniper'},start:{x:2,z:5,yaw:1},road:[[0,0],[20,0]]},center:{kind:'fixed',x:44,z:-9}});
+ expect(orchard.entry.kind).toBe('mount');expect(orchard.title).toBe('Orchard laps');
+});
+
+test('controller admission refuses executable and incomplete suffixes before entry allocation',()=>{
+ const rows=horseCourseRows().controller;
+ for(const input of [{...rows,entry:{kind:'mount',actor:{kind:'mule',variant:'cart',name:'Juniper'},start:{x:0,z:0,yaw:0},road:[[0,0,7],[1,1]]}},{...rows,entry:{...rows.entry,update:()=>0}},{...rows,center:{kind:'fixed',x:Infinity,z:0}},{...rows,piece:{...rows.piece,surface:'unknown'}},{...rows,view:{kind:'checkpoints',pads:[],goals:1,words:{}}}])expect(()=>parsePracticeController(input)).toThrow();
+ let reads=0;const input={...rows,get entry(){reads++;return rows.entry;}};expect(()=>parsePracticeController(input)).toThrow('JSON');expect(reads).toBe(0);
+});

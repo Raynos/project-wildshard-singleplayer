@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { PerspectiveCamera, Vector3, SkinnedMesh } from 'three';
 import { app as pageApp } from '@wildshard/engine/app/runtime';
+import { OriginalPracticeCourse } from './fixtures/course-controller.oracle';
 import { PracticeCourse } from '@wildshard/game/practice/course';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
@@ -187,7 +188,7 @@ test('full orchard riding session owns its native mount and data prompts', () =>
 });
 
 
-test('Nalati practice reuses its entered mount and respawns one horse across room entries', () => {
+test.each([OriginalPracticeCourse,PracticeCourse])('%s reuses its entered mount and respawns one horse across room entries', Course => {
   const f = fixture('horse', { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 });
   const previousScope = pageApp.levelScope, previousState = pageApp.state;
   pageApp.levelScope = f.scope;
@@ -202,7 +203,7 @@ test('Nalati practice reuses its entered mount and respawns one horse across roo
     registry: legacyDouble<PlaygroundHost['registry']>({add: piece => { registrations.push(piece.id); return piece; }}),
     game: legacyDouble<PlaygroundHost['game']>({onUpdate: run => {update = run;}}),
   });
-  const course = new PracticeCourse(host, legacyDouble<ShardContext>({scope: f.scope}), {kind: 'horse', layout: rows});
+  const course = new Course(host, legacyDouble<ShardContext>({scope: f.scope}), {kind: 'horse', layout: rows});
   try {
     expect(registrations).toEqual([rows.piece.id]);
     expect(course.root.visible).toBe(false);
@@ -220,4 +221,31 @@ test('Nalati practice reuses its entered mount and respawns one horse across roo
   } finally {
     course.exit(); f.scope.dispose(); pageApp.levelScope = previousScope; pageApp.setState(previousState);
   }
+});
+
+
+test('shared controller retains the original mounted HUD, fall/reset and clock call order',()=>{
+  const traces:unknown[][]=[];
+  for(const Course of [OriginalPracticeCourse,PracticeCourse]){
+    const f=fixture('horse',{walk:1.8,trot:4.5,canter:8.5,gallop:13}),rows=horseCourseRows(),trace:unknown[]=[];
+    const previousScope=pageApp.levelScope,previousState=pageApp.state;pageApp.levelScope=f.scope;
+    let update:Parameters<PlaygroundHost['game']['onUpdate']>[0]=()=>undefined,t=0;
+    const timer=vi.spyOn(performance,'now').mockImplementation(()=>{trace.push('clock');return ++t*1000;});
+    f.player.mountedOn=null;f.animals.spawn=()=>f.actor;
+    f.actor.place=(x,z,yaw)=>{trace.push(['actor.place',x,z,yaw]);f.actor.position.set(x,0,z);f.actor.yaw=yaw;};
+    f.player.spawn=(x,z,yaw,y)=>{trace.push(['player.spawn',x,z,yaw,y]);f.player.position.set(x,y??0,z);f.player.yaw=yaw;};
+    const host=legacyDouble<PlaygroundHost>({player:f.player,animals:f.animals,spawn:{x:0,z:0},toast:message=>{trace.push(['toast',message]);},
+      registry:legacyDouble<PlaygroundHost['registry']>({add:piece=>piece}),game:legacyDouble<PlaygroundHost['game']>({onUpdate:run=>{update=run;}})});
+    const course=new Course(host,legacyDouble<ShardContext>({scope:f.scope}),{kind:'horse',layout:rows});
+    const status=vi.spyOn(course.chip,'status').mockImplementation((...args)=>{trace.push(['status',...args]);});
+    const time=vi.spyOn(course.chip,'time').mockImplementation((...args)=>{trace.push(['time',...args]);});
+    try{
+      course.enter();trace.length=0;t=0;
+      for(const [x,y,z,mounted,dt] of [[rows.lineX-1,0,rows.oval.radius,0,.04],[rows.lineX-1,0,rows.oval.radius,1,.06],[rows.lineX+1,0,rows.oval.radius,1,.1],[rows.lineX+1,0,-rows.oval.radius,1,.1],[rows.lineX-1,0,-rows.oval.radius,1,.1],[rows.lineX+1,0,rows.oval.radius,1,.1],[rows.lineX+1,-13,rows.oval.radius,1,.1]]as const){
+        f.player.position.set(rows.fieldAt.x+x,3000+y,rows.fieldAt.z+z);f.player.mountedOn=mounted?f.actor:null;update(dt,0);
+      }
+      traces.push(trace);
+    }finally{status.mockRestore();time.mockRestore();timer.mockRestore();course.exit();f.scope.dispose();pageApp.levelScope=previousScope;pageApp.setState(previousState);}
+  }
+  expect(traces[1]).toEqual(traces[0]);expect(traces[0]?.some(row=>Array.isArray(row)&&row[0]==='toast')).toBe(true);
 });

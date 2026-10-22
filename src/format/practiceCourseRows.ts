@@ -43,8 +43,28 @@ export type PracticeScene = v.InferOutput<typeof PracticeSceneSchema>;
 /** Reject malformed or unbounded scene data before allocating client geometry. */
 export function parsePracticeScene(value: unknown): PracticeScene { return v.parse(PracticeSceneSchema, value); }
 
+/** Finite room entry and HUD rows. Native entry owners retain bodies and tools; the common guest retains the run law. */
+export const PracticeControllerSchema = v.pipe(v.unknown(),v.check(isJsonData,'Practice controller requires JSON data'),v.strictObject({
+  title:text,chip:text,piece:v.strictObject({id:text,name:text,file:text,surface:v.picklist(['wood','metal'])}),
+  center:v.variant('kind',[v.strictObject({kind:v.literal('fixed'),x:n,z:n}),v.strictObject({kind:v.literal('spawn')})]),
+  entry:v.variant('kind',[
+    v.strictObject({kind:v.literal('mount'),actor:v.strictObject({kind:text,variant:text,name:text}),
+      start:v.strictObject({x:n,z:n,yaw:n}),road:v.pipe(v.array(v.strictTuple([n,n])),v.minLength(2),v.maxLength(2048))}),
+    v.strictObject({kind:v.literal('grapple'),hooks:v.pipe(v.array(v.strictObject({x:n,y:n,z:n})),v.maxLength(256))}),
+  ]),
+  view:v.variant('kind',[
+    v.strictObject({kind:v.literal('laps'),words:v.strictObject({ready:text,ride:text,lap:text,half:text,last:text,best:text,fell:text,lapNotice:text,halfNotice:text})}),
+    v.strictObject({kind:v.literal('checkpoints'),pads:v.pipe(v.array(text),v.minLength(1),v.maxLength(256)),goals:v.pipe(n,v.integer(),v.minValue(1),v.maxValue(256)),
+      words:v.strictObject({ready:text,finish:text,running:text,between:text,done:text,best:text,fell:text})}),
+  ]),
+}));
+export type PracticeControllerRows = v.InferOutput<typeof PracticeControllerSchema>;
+/** Refuse executable, unbounded or incomplete controller rows before native entry allocation. */
+export function parsePracticeController(input:unknown):PracticeControllerRows { return v.parse(PracticeControllerSchema,input); }
+
 /** Client-only mounted practice. The guest owns laps; rows own the room and labels. */
 export const RidingPracticeSchema = v.strictObject({
+  controller:PracticeControllerSchema,
   presentation: PracticeSceneSchema, road: v.pipe(v.array(v.tuple([n,n])), v.minLength(2), v.maxLength(2048)),
   fieldAt: v.strictObject({x:n,z:n}), horseStart: v.strictObject({x:n,z:n,yaw:n}), riderStart: v.strictObject({x:n,z:n}),
   oval: v.strictObject({halfLen:positive,radius:positive,width:positive}), lineX:n,
@@ -75,5 +95,5 @@ export interface HookPracticeRow {
 }
 /** Offline traversal-room presentation and the run's data. */
 export interface HookPracticeLayout {
-  program: unknown; sampleEpsilon: number; frame: Readonly<Record<string, number>>; presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
+  controller: PracticeControllerRows; program: unknown; sampleEpsilon: number; frame: Readonly<Record<string, number>>; presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
 }
