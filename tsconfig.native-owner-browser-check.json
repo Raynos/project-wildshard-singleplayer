@@ -1,0 +1,1 @@
+{"extends": "./tsconfig.json", "compilerOptions": {"types": ["vite/client", "node"]}, "include": ["src/nativeOwnerProofBoot.ts", "src/shards/driftwood-isle/generators/nativeOwnerProof.ts", "test/native-owner-browser-proof.test.ts", "test/native-owner-proof-composition.test.ts", "test/native-owner-proof-persistence.test.ts", "src/**/*.d.ts", "src/engine/boot/shardPrefetch.ts"]}

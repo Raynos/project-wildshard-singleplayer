@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-19",
+  "method": "built-in image_gen image edits",
+  "originalsPreserved": true,
+  "claim": "AI-generated mockups; hidden anatomy approximate; not actual model renders",
+  "generations": [
+    {
+      "name": "conchExplorer",
+      "version": 2,
+      "prompt": "Use case: precise-object-edit. Edit the provided nine-panel AI concept sheet, retaining its layout, labels, footer disclaimer, creature design, coarse low-poly art style and context. Do not redesign or crop any body parts. Preserve successful panels. Required label order: 01 FRONT, 02 LEFT, 03 RIGHT, 04 BACK, 05 TOP, 06 ELEVATED FRONT, 07 ELEVATED LEFT, 08 ELEVATED RIGHT, 09 ELEVATED BACK. LEFT always means the creature nose visibly points to SCREEN LEFT, RIGHT points SCREEN RIGHT. TOP must be a genuine straight vertical overhead 90-degree-down camera, not a high front view: show crown/back/shoulder tops with head torso and legs overlapping vertically, no visible frontal face or chest, no horizon. Hidden anatomy is approximate AI concept, not a real model render. Correct panels 02/03 and 07/08 by exchanging opposing subject views so left-facing is in 02 and 07, right-facing in 03 and 08; keep asymmetrical shield claw versus slender blade on correct physical arms, do not mirror anatomy. Replace 05 with true straight-down overhead shell crown and claws; no front eyes visible. Keep dark cyan-ring Model Explorer stage in all panels.",
+      "inputs": [
+        "conchExplorerGen.png"
+      ],
+      "output": "corrections/conchExplorerCorrectedGen-v2.png"
+    },
+    {
+      "name": "conchWorld",
+      "version": 2,
+      "prompt": "Use case: precise-object-edit. Edit the provided nine-panel AI concept sheet, retaining its layout, labels, footer disclaimer, creature design, coarse low-poly art style and context. Do not redesign or crop any body parts. Preserve successful panels. Required label order: 01 FRONT, 02 LEFT, 03 RIGHT, 04 BACK, 05 TOP, 06 ELEVATED FRONT, 07 ELEVATED LEFT, 08 ELEVATED RIGHT, 09 ELEVATED BACK. LEFT always means the creature nose visibly points to SCREEN LEFT, RIGHT points SCREEN RIGHT. TOP must be a genuine straight vertical overhead 90-degree-down camera, not a high front view: show crown/back/shoulder tops with head torso and legs overlapping vertically, no visible frontal face or chest, no horizon. Hidden anatomy is approximate AI concept, not a real model render. Correct 02 and 07 to strict left-facing profile, 03 and 08 to right-facing profile. Preserve asymmetrical shield claw and slender blade physical arms; rotate animal rather than mirror anatomy. Replace 05 with true straight-down shell-crown overhead, no eyes/front shell aperture. Preserve sunny faceted beach context in all panels.",
+      "inputs": [
+        "conchWorldGen.png"
+      ],
+      "output": "corrections/conchWorldCorrectedGen-v2.png"
+    },
+    {
+      "name": "colossusExplorer",
+      "version": 2,
+      "prompt": "Use case: precise-object-edit. Edit the provided nine-panel AI concept sheet, retaining its layout, labels, footer disclaimer, creature design, coarse low-poly art style and context. Do not redesign or crop any body parts. Preserve successful panels. Required label order: 01 FRONT, 02 LEFT, 03 RIGHT, 04 BACK, 05 TOP, 06 ELEVATED FRONT, 07 ELEVATED LEFT, 08 ELEVATED RIGHT, 09 ELEVATED BACK. LEFT always means the creature nose visibly points to SCREEN LEFT, RIGHT points SCREEN RIGHT. TOP must be a genuine straight vertical overhead 90-degree-down camera, not a high front view: show crown/back/shoulder tops with head torso and legs overlapping vertically, no visible frontal face or chest, no horizon. Hidden anatomy is approximate AI concept, not a real model render. Swap opposing creature views of 02 with 03 and 07 with 08 without mirroring or changing labels: 02/07 face SCREEN LEFT and 03/08 SCREEN RIGHT. Completely replace 05 with true vertical overhead: foliage canopy and branch crown hide face/cyan chest gem; arms and feet foreshortened beneath shoulders. The 05 turntable is a perfect circle seen vertically. Keep all other views unchanged. Dark cyan-ring Model Explorer context.",
+      "inputs": [
+        "colossusExplorerGen.png"
+      ],
+      "output": "corrections/colossusExplorerCorrectedGen-v2.png"
+    },
+    {
+      "name": "colossusWorld",
+      "version": 2,
+      "prompt": "Use case: precise-object-edit. Edit the provided nine-panel AI concept sheet, retaining its layout, labels, footer disclaimer, creature design, coarse low-poly art style and context. Do not redesign or crop any body parts. Preserve successful panels. Required label order: 01 FRONT, 02 LEFT, 03 RIGHT, 04 BACK, 05 TOP, 06 ELEVATED FRONT, 07 ELEVATED LEFT, 08 ELEVATED RIGHT, 09 ELEVATED BACK. LEFT always means the creature nose visibly points to SCREEN LEFT, RIGHT points SCREEN RIGHT. TOP must be a genuine straight vertical overhead 90-degree-down camera, not a high front view: show crown/back/shoulder tops with head torso and legs overlapping vertically, no visible frontal face or chest, no horizon. Hidden anatomy is approximate AI concept, not a real model render. Swap opposing creature views of 02 with 03 and 07 with 08 without mirroring or changing labels: 02/07 face SCREEN LEFT and 03/08 SCREEN RIGHT. Completely replace 05 with true vertical overhead: foliage canopy and branch crown hide face/cyan chest gem; arms/feet foreshortened beneath shoulders. Beach sand flat plan view, no horizon in 05. Keep all other views unchanged. Sunny faceted beach context.",
+      "inputs": [
+        "colossusWorldGen.png"
+      ],
+      "output": "corrections/colossusWorldCorrectedGen-v2.png"
+    },
+    {
+      "name": "mantisWorld",
+      "version": 2,
+      "prompt": "Use case: precise-object-edit. Edit the provided nine-panel AI concept sheet, retaining its layout, labels, footer disclaimer, creature design, coarse low-poly art style and context. Do not redesign or crop any body parts. Preserve successful panels. Required label order: 01 FRONT, 02 LEFT, 03 RIGHT, 04 BACK, 05 TOP, 06 ELEVATED FRONT, 07 ELEVATED LEFT, 08 ELEVATED RIGHT, 09 ELEVATED BACK. LEFT always means the creature nose visibly points to SCREEN LEFT, RIGHT points SCREEN RIGHT. TOP must be a genuine straight vertical overhead 90-degree-down camera, not a high front view: show crown/back/shoulder tops with head torso and legs overlapping vertically, no visible frontal face or chest, no horizon. Hidden anatomy is approximate AI concept, not a real model render. Change only panels 05,07,08. Exchange subject views of 07 and 08 so 07 faces SCREEN LEFT and 08 SCREEN RIGHT. Replace 05 with camera directly vertically above insect, head oriented toward top of panel, dorsal wood thorax and green leaf wings covering lower abdomen; limbs and antennae project onto sandy ground plane, no tall upright silhouette, no horizon. Keep 01,02,03,04,06,09 unchanged, preserve sunny faceted beach.",
+      "inputs": [
+        "mantisWorldGen.png"
+      ],
+      "output": "corrections/mantisWorldCorrectedGen-v2.png"
+    },
+    {
+      "name": "bellbackExplorer",
+      "version": 2,
+      "prompt": "Use case: precise-object-edit. Edit the provided nine-panel AI concept sheet, retaining its layout, labels, footer disclaimer, creature design, coarse low-poly art style and context. Do not redesign or crop any body parts. Preserve successful panels. Required label order: 01 FRONT, 02 LEFT, 03 RIGHT, 04 BACK, 05 TOP, 06 ELEVATED FRONT, 07 ELEVATED LEFT, 08 ELEVATED RIGHT, 09 ELEVATED BACK. LEFT always means the creature nose visibly points to SCREEN LEFT, RIGHT points SCREEN RIGHT. TOP must be a genuine straight vertical overhead 90-degree-down camera, not a high front view: show crown/back/shoulder tops with head torso and legs overlapping vertically, no visible frontal face or chest, no horizon. Hidden anatomy is approximate AI concept, not a real model render. Image 1 is edit target; Image 2 is supporting anatomy reference only. Change ONLY rear panels 04 and 09 in image 1: reproduce the coherent wooden rear scaffold anatomy seen in image 2 panels 04/09, with rear vertical planks and crossed ropes hiding the front-facing bell mouth/clapper. No face visible from rear, no front opening visible from rear. Only back curve of teal bell metal partially visible behind scaffold. Retain image 1 dark Explorer grid and cyan turntable, never import beach. Preserve other seven panels unchanged.",
+      "inputs": [
+        "bellbackExplorerGen.png",
+        "bellbackWorldGen.png"
+      ],
+      "output": "corrections/bellbackExplorerCorrectedGen-v2.png"
+    },
+    {
+      "name": "conchExplorer",
+      "version": 3,
+      "prompt": "Use case: precise-object-edit. Extremely narrow correction to this nine-panel sheet. Change ONLY artwork inside BOTTOM LEFT panel 07 and BOTTOM MIDDLE panel 08. LEAVE ALL OTHER SEVEN PANELS AND ALL LABELS ABSOLUTELY UNCHANGED. In panel 07 ELEVATED LEFT the creature MUST face SCREEN LEFT: its face/nose at left edge of its body, rear toward right. In panel 08 ELEVATED RIGHT the creature MUST face SCREEN RIGHT: face/nose at right edge, rear toward left. Exchange the current two creature orientations, preserving their elevated downward camera and physical anatomy. Do not simply relabel. Preserve the backgrounds, complete silhouettes, coarse faceted art style, asymmetric anatomy and footer. The CURRENT bottom row is wrong and must visibly change. 07 = leftward-looking, 08 = rightward-looking. Keep panels 01,02,03,04,05,06,09 unchanged.",
+      "inputs": [
+        "corrections/conchExplorerCorrectedGen-v2.png"
+      ],
+      "output": "corrections/conchExplorerCorrectedGen-v3.png"
+    },
+    {
+      "name": "conchWorld",
+      "version": 3,
+      "prompt": "Use case: precise-object-edit. Extremely narrow correction to this nine-panel sheet. Change ONLY artwork inside BOTTOM LEFT panel 07 and BOTTOM MIDDLE panel 08. LEAVE ALL OTHER SEVEN PANELS AND ALL LABELS ABSOLUTELY UNCHANGED. In panel 07 ELEVATED LEFT the creature MUST face SCREEN LEFT: its face/nose at left edge of its body, rear toward right. In panel 08 ELEVATED RIGHT the creature MUST face SCREEN RIGHT: face/nose at right edge, rear toward left. Exchange the current two creature orientations, preserving their elevated downward camera and physical anatomy. Do not simply relabel. Preserve the backgrounds, complete silhouettes, coarse faceted art style, asymmetric anatomy and footer. The CURRENT bottom row is wrong and must visibly change. 07 = leftward-looking, 08 = rightward-looking. Keep panels 01,02,03,04,05,06,09 unchanged.",
+      "inputs": [
+        "corrections/conchWorldCorrectedGen-v2.png"
+      ],
+      "output": "corrections/conchWorldCorrectedGen-v3.png"
+    },
+    {
+      "name": "colossusExplorer",
+      "version": 3,
+      "prompt": "Use case: precise-object-edit. Extremely narrow correction to this nine-panel sheet. Change ONLY artwork inside BOTTOM LEFT panel 07 and BOTTOM MIDDLE panel 08. LEAVE ALL OTHER SEVEN PANELS AND ALL LABELS ABSOLUTELY UNCHANGED. In panel 07 ELEVATED LEFT the creature MUST face SCREEN LEFT: its face/nose at left edge of its body, rear toward right. In panel 08 ELEVATED RIGHT the creature MUST face SCREEN RIGHT: face/nose at right edge, rear toward left. Exchange the current two creature orientations, preserving their elevated downward camera and physical anatomy. Do not simply relabel. Preserve the backgrounds, complete silhouettes, coarse faceted art style, asymmetric anatomy and footer. The CURRENT bottom row is wrong and must visibly change. 07 = leftward-looking, 08 = rightward-looking. Keep panels 01,02,03,04,05,06,09 unchanged.",
+      "inputs": [
+        "corrections/colossusExplorerCorrectedGen-v2.png"
+      ],
+      "output": "corrections/colossusExplorerCorrectedGen-v3.png"
+    },
+    {
+      "name": "colossusWorld",
+      "version": 3,
+      "prompt": "Use case: precise-object-edit. Extremely narrow correction to this nine-panel sheet. Change ONLY artwork inside BOTTOM LEFT panel 07 and BOTTOM MIDDLE panel 08. LEAVE ALL OTHER SEVEN PANELS AND ALL LABELS ABSOLUTELY UNCHANGED. In panel 07 ELEVATED LEFT the creature MUST face SCREEN LEFT: its face/nose at left edge of its body, rear toward right. In panel 08 ELEVATED RIGHT the creature MUST face SCREEN RIGHT: face/nose at right edge, rear toward left. Exchange the current two creature orientations, preserving their elevated downward camera and physical anatomy. Do not simply relabel. Preserve the backgrounds, complete silhouettes, coarse faceted art style, asymmetric anatomy and footer. The CURRENT bottom row is wrong and must visibly change. 07 = leftward-looking, 08 = rightward-looking. Keep panels 01,02,03,04,05,06,09 unchanged.",
+      "inputs": [
+        "corrections/colossusWorldCorrectedGen-v2.png"
+      ],
+      "output": "corrections/colossusWorldCorrectedGen-v3.png"
+    }
+  ]
+}

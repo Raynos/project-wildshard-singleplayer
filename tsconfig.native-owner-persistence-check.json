@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["test/native-owner-proof-persistence.test.ts", "scripts/native-owner-proof-persistence.ts", "src/**/*.d.ts", "src/engine/boot/shardPrefetch.ts"]
+}

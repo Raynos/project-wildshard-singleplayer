@@ -1,0 +1,35 @@
+{
+  "status": "candidate references; independent inspection pending; no canonical or measured-camera acceptance",
+  "generator": "built-in image_gen",
+  "purpose": "Repair tail orientation consistency using original hero rear thumbnail and current world rear panels; preserve nine-direction Model Explorer and World contexts.",
+  "editScope": {
+    "explorer": "Panels04 BACK,05 TOP,09 ELEVATED BACK: upright sagittal caudal fan is edge-on; preserve side fan surface.",
+    "world": "Panel05 TOP: upright sagittal caudal fan edge-on. Remove unsupported39-degree sublabels from elevated view labels."
+  },
+  "limits": [
+    "Whole-sheet generative edits, not bit-identical masked edits.",
+    "Other anatomy and intended camera viewpoints remain approximate AI references.",
+    "Original approved hero is unchanged and authoritative.",
+    "No game/model/physics acceptance."
+  ],
+  "outputs": [
+    {
+      "role": "explorer",
+      "original": "explorer-tail-v2.png",
+      "originalSha256": "110f24b2ab3b61c881a4897dbf2f8f2a98032a9ad00d5945f7f9b5c82319351f",
+      "display": "explorer-tail-v2.webp",
+      "displaySha256": "c677969198ffcf5ccf2eec605bcb67726f0dfe6fa9da8a68af6d61123ec931d1",
+      "displayBytes": 1339112,
+      "pixelExact": true
+    },
+    {
+      "role": "world",
+      "original": "world-tail-v2.png",
+      "originalSha256": "c1bf31a221ca944d046aca5b73e4e0a419ee13768d124163bad31e6f943a0939",
+      "display": "world-tail-v2.webp",
+      "displaySha256": "809dbb8bbe36dc9e63ef511235a5ed3cf03515b867d035f42c5171721f8caf83",
+      "displayBytes": 1752002,
+      "pixelExact": true
+    }
+  ]
+}
