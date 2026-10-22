@@ -1,4 +1,4 @@
-// texmem-probe.mjs — the in-page halves of scripts/gpu-texmem.mjs (E157), shared with scripts/ktx2-b-check.mjs: `ledger`
+// texmem-probe.mjs — the in-page halves of scripts/gpu-texmem.mjs (E157): `ledger`
 // (an init script: the WebGL texture allocation ledger, window.__texmem) and `report` (after the settle: totals by format /
 // source, the scene's textures labelled). Both are serialised into the page by Playwright: self-contained, no imports.
 /** in the page before any script: the WebGL allocation ledger (window.__texmem) */
