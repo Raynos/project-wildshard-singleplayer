@@ -133,13 +133,28 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
   const chunks: Uint8Array[] = [], views: Json[] = [], accessors: Json[] = [], meshes: Json[] = [], nodes: Json[] = [], materials: Json[] = [];
   let offset = 0;
   const accessor = (values: readonly number[], width: number, type: string, integer = false, bounds = false, short = false): number => {
-    if (values.length === 0 || values.length % width !== 0 || values.some((n) => !Number.isFinite(n))) throw new Error('Invalid GLB attribute');
+    if (values.length === 0 || values.length % width !== 0) throw new Error('Invalid GLB attribute');
+    // Validate, encode and collect component bounds in one ordered pass. Bounds
+    // retain the unrounded source values, while the wire keeps its old storage.
+    const minima: number[] = bounds ? Array.from({ length: width }, () => Infinity) : [];
+    const maxima: number[] = bounds ? Array.from({ length: width }, () => -Infinity) : [];
     // a 16-bit index's view is padded to 4 bytes so every later view stays aligned
     const size = short ? 2 : 4, bytes = new Uint8Array(Math.ceil(values.length * size / 4) * 4), v = new DataView(bytes.buffer);
-    values.forEach((n, i) => short ? v.setUint16(i * 2, n, true) : integer ? v.setUint32(i * 4, n, true) : v.setFloat32(i * 4, n, true));
+    for (let i = 0; i < values.length; i++) {
+      const n = values[i];
+      if (n === undefined || !Number.isFinite(n)) throw new Error('Invalid GLB attribute');
+      if (short) v.setUint16(i * 2, n, true);
+      else if (integer) v.setUint32(i * 4, n, true);
+      else v.setFloat32(i * 4, n, true);
+      if (bounds) {
+        const component = i % width;
+        minima[component] = Math.min(minima[component] ?? Infinity, n);
+        maxima[component] = Math.max(maxima[component] ?? -Infinity, n);
+      }
+    }
     const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: values.length * size }); chunks.push(bytes); offset += bytes.length;
     const a: Record<string, Json> = { bufferView: view, componentType: short ? 5123 : integer ? 5125 : 5126, count: values.length / width, type };
-    if (bounds) { a['min'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.min(n, sample) : n, Infinity)); a['max'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.max(n, sample) : n, -Infinity)); }
+    if (bounds) { a['min'] = minima; a['max'] = maxima; }
     accessors.push(a); return accessors.length - 1;
   };
   const rawAccessor = (attribute: BufferAttribute): number => {
