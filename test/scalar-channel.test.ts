@@ -46,7 +46,7 @@ test('actual Nalati channels and every existing sampler retain exact boundary, s
     const bytes = unzlibSync(Uint8Array.from(atob(data),value => value.codePointAt(0) ?? 0));
     return bakedSamplers({ res: geography.res,size: geography.size,seed: geography.seed,landscapeHash: 0,heights: new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4),splat: new Uint8Array(0),undergrowth: null }).heightAt;
   };
-  const samplers = Object.fromEntries(Object.entries(geography.channels).map(([name,data]) => [name,old(data)]));
+  const samplers = Object.fromEntries(Object.entries(geography.channels).map(([name,data]) => [name,old(data.values.data)]));
   for (const x of [-251,-250,-0,0,1,249.999,250,251]) for (const z of [-251,-250,-0,0,1,249.999,250,251]) {
     expect(Object.is(wetMask(x,z),samplers['wet']?.(x,z))).toBe(true);expect(Object.is(forestMask(x,z),samplers['forest']?.(x,z))).toBe(true);
     const out: [number,number,number] = [0,0,0];
@@ -54,7 +54,7 @@ test('actual Nalati channels and every existing sampler retain exact boundary, s
     expect(surfaceAt(x,z,0,0)).toEqual(['gravel','rock','ice'].map(name => samplers[name]?.(x,z)));
     NALATI_MINIMAP.ground(x,z,0,0,0,out);expect(out).toEqual(['mapRed','mapGreen','mapBlue'].map(name => samplers[name]?.(x,z)));
   }
-  for (const name of ['red','green','blue'] as const) expect(readScalarChannel({ type: 'f32',count: geography.res*geography.res,data: geography.channels[name] })).toBeInstanceOf(Float32Array);
+  for (const name of ['red','green','blue'] as const) expect(readScalarChannel(geography.channels[name].values)).toBeInstanceOf(Float32Array);
 });
 
 test('the defining scalar and forest schemas emit through their retained wire roots', () => {

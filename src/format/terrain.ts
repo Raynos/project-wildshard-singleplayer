@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW } from './contentBounds';
 import { WaterBodySchema,WaterBodyIdSchema,waterBodiesOrdered } from './water';
 import { isJsonData } from './json';
-import { ScalarChannelSchema } from './scalarChannel';
+import { ScalarChannelSchema,ScalarLatticeSchema } from './scalarChannel';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(7));
@@ -56,10 +56,7 @@ export const GroundRowsSchema = v.pipe(v.unknown(),v.check(isJsonData,'Ground ro
   water: metre,
   datum: v.exactOptional(v.pipe(v.number(), v.finite(), v.minValue(-CELL_BELOW), v.maxValue(CELL_ABOVE))),
   /** A sampled pond has the original clamped native lattice, never an implied cell-edge clip. */
-  mask: v.exactOptional(v.pipe(v.strictObject({
-    res: v.pipe(v.number(),v.integer(),v.minValue(2),v.maxValue(2048)),
-    size: v.pipe(v.number(),v.finite(),v.minValue(Number.MIN_VALUE)),values: ScalarChannelSchema,
-  }),v.check(row => row.values.type === 'f32' && row.values.count === row.res*row.res,'Pond mask requires one f32 per sample'))),
+  mask: v.exactOptional(ScalarLatticeSchema),
   bodies: v.pipe(v.array(v.union([WaterBodySchema,v.strictObject({ id: WaterBodyIdSchema,kind: v.literal('terrain-basin') })])),
     v.maxLength(64),v.check(rows => waterBodiesOrdered(rows),'unique water ids and sea last')),
   /** the shard's own runtime grades its paths (the plugin's `paths`), as the manifest ground declares */

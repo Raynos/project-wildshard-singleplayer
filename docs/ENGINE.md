@@ -11861,3 +11861,10 @@ material and owner. A flat grid removes only that patch's collider. It installs
 no clock or terrain policy. The existing onGpuRestored event retains each
 callback only for its resource scope; retirement removes that registration.
 G601 C3 recognizes these engine features without changing either runtime law.
+
+readScalarLattice admits a square f32 ScalarLatticeSchema row (res, size,
+values), decodes its bounded channel once and passes the same typed storage
+to bakedSamplers. Its returned scalar query retains the defining clamp and
+bilinear operation order. GroundRows.mask uses that same grammar; its extra
+zero-to-one pond range remains a ground precondition. Exact-index f64 forest
+candidates retain readScalarChannel and their existing coordinate lookup.

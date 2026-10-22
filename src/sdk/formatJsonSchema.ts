@@ -1,4 +1,4 @@
-import { ScalarChannelSchema } from '@wildshard/format/scalarChannel';
+import { ScalarChannelSchema,ScalarLatticeSchema } from '@wildshard/format/scalarChannel';
 import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
 import { StreamedCoverSchema } from '@wildshard/format/streamedCover';
@@ -358,6 +358,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'shardSections.Far': FarSchema,
   'shardSections.Spawn': SpawnSchema,
   'terrain.GroundRows': GroundRowsSchema,
+  'scalarChannel.ScalarLattice': ScalarLatticeSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

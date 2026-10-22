@@ -62,7 +62,7 @@ test('all native terrain heights, including every edge, retain their bake', () =
 
 test('baked geography keeps bounded masks and complementary zones', () => {
   const zones = (['valley', 'bowl', 'snow'] as const).map(id => {
-    const bytes = unzlibSync(Uint8Array.from(atob(geography.channels[id]), value => value.codePointAt(0) ?? 0));
+    const bytes = unzlibSync(Uint8Array.from(atob(geography.channels[id].values.data), value => value.codePointAt(0) ?? 0));
     return bakedSamplers({ res: geography.res, size: geography.size, seed: geography.seed, landscapeHash: 0,
       heights: new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4), splat: new Uint8Array(0), undergrowth: null }).heightAt;
   });

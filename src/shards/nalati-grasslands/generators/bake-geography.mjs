@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { zlibSync } from 'fflate';
 import { Rng } from '@wildshard/engine/core/rng';
 import * as v from 'valibot';
+import { ScalarLatticeSchema } from '@wildshard/format/scalarChannel';
 import { GroundRowsSchema } from '@wildshard/format/terrain';
 import NALATI_GRASS_LAYOUT from '../data/grassFieldLayout.json' with { type: 'json' };
 import { SEED, TERRAIN, RIVER, SPAWN, groundColor, surfaceAt, zoneAt, riverMask, brookMask, loneSpruceMask, inSpruceClearing, edgeBermAt } from './terrainRecipe.ts';
@@ -34,7 +35,7 @@ for (let x = -247; x < 247; x += 4.2) for (let z = -247; z < 247; z += 4.2) {
 const profile = Array.from({ length: 501 }, (_, i) => [RIVER.z(i - 250), RIVER.half(i - 250)]);
 const channels = Object.fromEntries(Object.entries(arrays).map(([key, values]) => [key, encode(values)]));
 const data = { res, size, seed: SEED, spawn: SPAWN, river: { level: RIVER.level },
-  channels: Object.fromEntries(Object.entries(channels).filter(([key]) => key !== 'pond')),
+  channels: Object.fromEntries(Object.entries(channels).filter(([key]) => key !== 'pond').map(([key,encoded]) => [key,v.parse(ScalarLatticeSchema,{ res,size,values: { type: 'f32',count: res*res,data: encoded } })])),
   ground: v.parse(GroundRowsSchema,{ terrain: { key: 'nalati-grasslands',seed: SEED },trails: TERRAIN.trails,cabinSites: [],water: RIVER.level,
     paths: 'plugin',mask: { res,size,values: { type: 'f32',count: res*res,data: channels.pond } },bodies: [{ id: 'river',kind: 'terrain-basin' }] }),
   map: { ground: { base: [92, 128, 58], layers: [] }, segments: [],
