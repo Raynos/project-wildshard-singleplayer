@@ -21,7 +21,7 @@ import NALATI_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' }
 import questContent from '../data/questContent.json' with { type: 'json' };
 import NALATI_LEDGER from '../data/ledger.json' with { type: 'json' };
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
-import { NALATI_STATE } from './state';
+import NALATI_STATE from '../data/state.json' with { type: 'json' };
 import items from '../data/items.json' with { type: 'json' };
 import { NALATI_RUNTIME_SPAWNS } from './spawns';
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
