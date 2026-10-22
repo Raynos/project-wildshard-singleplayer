@@ -3395,6 +3395,16 @@ three ranged weapons use this path; extras retain their declared order.
 `createClientScene` also accepts a named geometry map, borrowed with the same
 validation as its resolver port; Driftwood's pickup and Far Reach's storm use it.
 W1 single-item kits and Pine's three ranged owners use the same builder.
+
+The defining HeldSlotsSchema in format/heldArms keeps construction slots
+separate from registration, equipment destinations, selection, mount loans,
+refills and upgrades. parseHeldSlots preflights every local reference and
+native kind before construction. bindAt (equipment or entered) selects
+when native item families register; pause declares task boundaries between
+ordered constructions. Omitted phase data retains equipment-time binding
+without task pauses. These rows sit beside the existing held-arm wire until
+its native adapters adopt them; admission alone constructs no weapon, prepares
+no cold card and changes no shipped item or saved state.
 `game/plugin/simulation.bindNativeLoadout` supplies the existing slot/swap law,
 live body and aim readers, and optional step/snapshot registration at the native
 owner's original id and phase. Weapon and ammunition continuations keep their

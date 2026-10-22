@@ -7,7 +7,7 @@ import loadout from '../src/shards/nalati-grasslands/boot/mountedLoadout.generat
 
 function mounted() {
   const firearm = loadout.page.firearm;
-  return { version: 1, id: 'kit', slots: [
+  return { version: 1, id: 'kit', bindAt: 'equipment', pause: true, slots: [
     { id: 'blade', kind: 'blade', item: loadout.blade.item, source: { kind: 'passes', file: loadout.blade.file } },
     { id: 'polearm', kind: 'polearm', ...loadout.polearm },
     { id: 'bow', kind: 'bow', ...loadout.bow },
@@ -26,6 +26,7 @@ test('the real mounted declaration keeps construction, metadata registration and
   const rows = parseHeldSlots(mounted());
   expect(rows.slots.map(row => row.item)).toEqual([loadout.blade.item, loadout.polearm.item, loadout.bow.item, loadout.page.firearm.item]);
   expect(rows.registration).toEqual(['bow', 'blade', 'polearm', 'firearm']);
+  expect(rows.bindAt).toBe('equipment');expect(rows.pause).toBe(true);
   expect(rows.equipment.primary).toBe('blade'); expect(rows.selection.initial).toBe('bow');
   expect(rows.upgrades.map(row => row.replacement)).toEqual([loadout.variants.bow, loadout.variants.blade].map(row => ({ item: row.id, name: row.name })));
 });
@@ -34,14 +35,15 @@ test('the actual two-sword and sword-with-tool declarations fit the same finite 
   const swords = arms.weapons.map((row, index) => ({ id: `blade-${index}`, kind: 'blade', item: row.item,
     source: { kind: 'starter', blade: row.blade, viewmodel: row.blade } }));
   const first = swords[0]; if (first === undefined) throw new Error('Missing original starter');
-  const shared = { version: 1, id: 'kit', selection: { unlock: [] }, mount: [], refills: [], upgrades: [] };
+  const shared = { version: 1, id: 'kit', bindAt: 'equipment', pause: true, selection: { unlock: [] }, mount: [], refills: [], upgrades: [] };
   const driftwood = parseHeldSlots({ ...shared, slots: swords, registration: swords.map(row => row.id), equipment: { primary: first.id, extras: swords.slice(1).map(row => row.id) } });
   expect(driftwood.slots.map(row => row.item)).toEqual(arms.weapons.map(row => row.item));
   const tool = primary.tools[0]; if (tool === undefined) throw new Error('Missing original tool');
-  const nine = parseHeldSlots({ ...shared, slots: [
+  const nine = parseHeldSlots({ ...shared, bindAt: 'entered', pause: false, slots: [
     { id: 'primary', kind: 'blade', item: primary.primary.item, source: { kind: 'starter', blade: primary.primary.blade, viewmodel: 'declared', framing: primary.primary.file } },
     { id: 'tool', kind: 'tool', item: tool, tool: 'grapple', source: 'sim/headless-constants.json', presentation: primary.primary.file },
   ], registration: ['primary', 'tool'], equipment: { primary: 'primary', extras: [] } });
+  expect(nine.bindAt).toBe('entered');expect(nine.pause).toBe(false);
   expect(nine.slots.map(row => row.item)).toEqual([primary.primary.item, ...primary.tools]);
   expect(nine.slots[1]).toMatchObject({ kind: 'tool', tool: 'grapple', presentation: primary.primary.file });
 });
@@ -70,4 +72,13 @@ test('the defining structure emits closed JSON Schema and accepts no executable 
   expect(() => parseHeldSlots({ ...rows, create: () => null })).toThrow();
   expect(() => parseHeldSlots({ ...rows, selection: { initial: () => 'bow', unlock: [] } })).toThrow();
   expect(() => parseHeldSlots({ ...rows, slots: [{ id: 'bow', kind: 'bow', item: loadout.bow.item, file: () => null }] })).toThrow();
+});
+
+
+test('binding phase and construction yielding are finite admitted data', () => {
+  const rows = mounted();
+  const { bindAt: _binding, pause: _pause, ...original } = rows;
+  expect(parseHeldSlots(original)).toMatchObject({bindAt:'equipment',pause:false});
+  for (const input of [{...rows,bindAt:'kit'}, {...rows,bindAt:()=> 'entered'},
+    {...rows,pause:1}, {...rows,pause:()=>true}]) expect(()=>parseHeldSlots(input)).toThrow();
 });

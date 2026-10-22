@@ -91,6 +91,8 @@ export const HeldSlotsSchema = v.strictObject({
   version: v.literal(1), id: slotId,
   slots: v.pipe(v.array(heldSlot), v.minLength(1), v.maxLength(32)),
   registration: slotReferences,
+  bindAt: v.optional(v.picklist(['equipment', 'entered']), 'equipment'),
+  pause: v.optional(v.boolean(), false),
   equipment: v.strictObject({ primary: slotId, rifle: v.exactOptional(slotId), secondary: v.exactOptional(slotId),
     extras: slotReferences, order: v.exactOptional(slotReferences) }),
   selection: v.strictObject({ unlock: slotReferences, initial: v.exactOptional(slotId) }),
