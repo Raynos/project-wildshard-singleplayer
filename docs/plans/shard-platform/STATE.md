@@ -6,8 +6,8 @@ T1–T6 (G580/G581) → Nine → Nalati. Rows: lanes/ready-queue.md (G571 area t
 
 **Ruler (1e063584e2):** plan 79.6 % (M3 92.6, M2 6/10). Custom: Pine 578, Driftwood 702, Nalati 4,248, Nine 1,797.
 
-**Live:** 616ea317b; 38ebc2777b release dispatched 01:19Z (sp-x7); G578 in-world loading (6f0558e460 + e04f9682da)
-ships the release after. Desktop 120 fps; Sim standalone/plots 60 fps; grid misses are late program compiles (T2).
+**Live:** 616ea317b; 38ebc2777b release dispatched 01:19Z (sp-x7); 38ebc2777b does NOT carry G578 (6f0558e460 + e04f9682da);
+the next release must include both plus 4db6393278 (DW world/scenes guard). G587/G588 live fixes in flight. Desktop 120 fps; Sim standalone/plots 60 fps; grid misses are late program compiles (T2).
 Crossing re-measure eca095167a: Pine→Sky held 12.7 s, Sky→Pine 56.5 s; under 5 s not met (T1–T3 after zero rows).
 
 **Lanes (G574: 3 Opus):** sp-o2 Pine G571 (landmarks); sp-o4 WASM-HOST H9 users (King/pool/rope/quest views);
