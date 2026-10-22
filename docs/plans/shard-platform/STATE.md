@@ -15,13 +15,9 @@ stage cuts failed the whole-wait gate (3-5 s noise even quiet). G579 (< 5 s) not
 **G597 STOP-RULE (Jake 10:25):** Jake picks WASM vs host per Nine/Nalati/C1/C5/C6 item; no new host, reshape or
 HOST-BAR listing lands before his pick; data/AS/generator/bake/dead-code rows continue.
 
-**Lanes (G596 zero first; G590 full steam):** Nine: sp-o1 (D1b spill/bounds, then NA), sp-o5 (view-lane
-uniforms/camera/specimen), sp-x8 ND flip. Nalati: sp-o3 O27/N1b/N5c, sp-o2 LG after crossing default-on, sp-x9 C6
-(N6a/N6b/LF), sp-x1 C5 (N5a/N5b) after the Pine/DW grid-ready latch, sp-x6 N1e then LB. sp-o4 E2 (GLSL memory first).
-N1a open for the next free Opus. HOST-AUDIT (later): G594 ruler/host items; sp-x8: 74ffcac600 posed loader is a real
-second user, 96b965a60f overbroad (Pine figure/socket vs DW kit-figure are different branches).
-
-**Tooling:** push loop + watchdog in pane sp-tools. Commit: scripts/commit.sh (or --patch for shared files).
+**Lanes:** Nine: sp-o1 D1d, sp-o5 Nine look data rows, sp-x8 dead/data. Nalati: sp-x1 C5 data, sp-x9 C6 dead/data
+(+ strict_tuple gen red fix), sp-x6 Nalati dead-code sweep, sp-o2 crossing default-on then LG. sp-o4 E2 GLSL->graphs.
+sp-o3 Pine/DW oneFrameLooks gate (G598); sp-x1 re-latches looks after. Host rows wait on Jake's G597 picks.
 
 **Rules:** G492; never herdr wildshard-v; no net-0 moves or relabels (G571); G573; G561.
 
@@ -31,7 +27,11 @@ second user, 96b965a60f overbroad (Pine figure/socket vs DW kit-figure are diffe
 (2) Grid-ready memory latched for Pine 181.5 MB and DW 300.9 MB (495bc1d918); looks miss 200 ms: Pine 316.7 ms
 (activation: uploads ~130, composition ~80, clip ~41, hooks ~34), DW 250.1 ms. Readiness after Nine/Nalati.
 (3) Host picks for Jake (G597): game/riding/seatedFigure (sp-o3 487c74c60c, self-scored 2-6 Y); fd674f4d4b
-timedEncounters (nightView moved, your flagged pattern); sp-x6's N1e terrain-channel host (unlanded, +51).
-(4) G587 part 1 already live (745567649a, checked fresh). Ruler: 1aa987d01a; 6bf8c2a6e5 restored port shares.
+timedEncounters (nightView moved, your flagged pattern); sp-x6's N1e terrain-channel host (unlanded, +51); sp-o3's
+O27 picks: Nalati look/* glue, spruceView, species presentation (animate/pose/prepare, kit species/looks);
+sp-o1 D1c bakedKits host (no-host alternative: kits as dressing mesh nodes + drawnInto, 2-kit far cull stays in Nine). sp-o5 Nine per-frame view laws: (A) AS on view lane +
+generic uniform-bank target host ~120 lines (ready, recommended) vs (B) keep TS in Nine. sp-o3 N1d: camp people need an 'atlas-figure' Explorer
+kind (~15 lines, reuses atlasFigureSkin) and the shepherd needs mountedSpecimen listed (recommended) or a seated row. Landed before G597:
+66e07696e9 WorldAssembly scene-only reshape (for Nine D1a).
 (5) RECOMMEND default-on after Jake's phone check: budget warm-up (cold Sky 12.1 -> 5.5 s) and T1 (+103 MB); sp-o2
 is landing it per G590.
