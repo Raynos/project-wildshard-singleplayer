@@ -5,12 +5,37 @@ import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSyn
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths.
 import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The mirror root comes from the fixture's environment.
-import { env as processEnv } from 'node:process';
-import { afterEach, expect, it } from 'vitest';
+import { env as processEnv, pid } from 'node:process';
+import { afterEach, expect, it, vi } from 'vitest';
 import { openMirror } from '../scripts/build-mirror.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const dir of owned.splice(0)) rmSync(dir, { recursive: true, force: true }); });
+
+it('caps live slot and FIFO waits at five minutes, names holders and removes its ticket', () => {
+  const { repo, env } = fixture();
+  const root = env['WILDSHARD_BUILD_MIRROR'] ?? '';
+  const lock = join(root, 'check.lock');
+  const queue = join(root, 'check.queue');
+  mkdirSync(lock, { recursive: true });
+  mkdirSync(queue, { recursive: true });
+  writeFileSync(join(lock, 'owner'), String(pid));
+  const details = JSON.stringify({ pid, command: 'node owned-build.mjs', startedAt: '2026-10-22T15:00:00Z' });
+  writeFileSync(join(lock, 'owner.json'), details);
+  for (const queued of [false, true]) {
+    const first = `000000000000001-${pid}`;
+    if (queued) writeFileSync(join(queue, first), details);
+    const now = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValueOnce(now).mockReturnValueOnce(now).mockReturnValue(now + 300_000);
+    try {
+      expect(() => openMirror('HEAD', { repo, env })).toThrow(
+        new RegExp(`after 5 min.*slot=check pid=${pid} command="node owned-build.mjs" start=2026-10-22T15:00:00Z${queued ? '.*queue head' : ''}`, 'u'),
+      );
+      expect(readdirSync(queue)).toEqual(queued ? [first] : []);
+      expect(readFileSync(join(lock, 'owner'), 'utf8')).toBe(String(pid));
+    } finally { clock.mockRestore(); }
+  }
+});
 
 function fixture(): { repo: string; commit: (files: Record<string, string | null>) => string; env: NodeJS.ProcessEnv } {
   const scratch = resolve('tmp');

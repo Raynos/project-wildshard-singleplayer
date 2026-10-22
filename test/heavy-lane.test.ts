@@ -2,6 +2,50 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise real flock leases in an isolated owned fixture.
 import { execFileSync, spawnSync } from 'node:child_process';
 
+test('queue and scheduler deadlines name holders without launching or taking their locks', () => {
+  const result = execFileSync('python3', ['-c', `
+import fcntl, importlib.util, json, os, pathlib, subprocess, sys, tempfile, time
+sys.path.insert(0, str(pathlib.Path('scripts').resolve()))
+spec = importlib.util.spec_from_file_location('heavy_lane', 'scripts/heavy-lane.py')
+module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+assert module.WAIT_SECONDS == 300
+module.WAIT_SECONDS = .02
+with tempfile.TemporaryDirectory(prefix='deadline-test-', dir='tmp') as temporary:
+ root = pathlib.Path(temporary).resolve()
+ owner = {'pid':os.getpid(), 'command':['node','owned-build.mjs'], 'startedAt':time.time()}
+ with (root/'scheduler.lock').open('w+') as lock:
+  json.dump(owner,lock); lock.flush(); fcntl.flock(lock,fcntl.LOCK_EX)
+  started = time.monotonic()
+  try:
+   with module.scheduler(root): raise AssertionError('stole scheduler lock')
+  except TimeoutError as error:
+   message = str(error)
+   assert all(value in message for value in ('5 min','slot=scheduler','pid='+str(os.getpid()),'owned-build.mjs','start=20')), message
+  assert time.monotonic()-started < 1
+ # Main exercises the actual FIFO/resource admission and its ticket cleanup.
+ (root/'queue.json').write_text(json.dumps({'next':1,'queue':[dict(owner,token='older',ticket=0,resources=['build'],priority=1,queuedAt=time.time())]}))
+ for slot in module.BUILD_SLOTS: (root/(slot+'.active.json')).write_text(json.dumps(owner))
+ saved_env = dict(os.environ)
+ os.environ.clear(); os.environ.update({k:v for k,v in saved_env.items() if not k.startswith('WS_HEAVY_')})
+ os.environ['WS_HEAVY_ROOT'] = str(root)
+ sys.argv = ['scripts/heavy-lane.py','build','--',sys.executable,'-c',"raise AssertionError('launched queued child')"]
+ try:
+  assert module.main() == 124
+  queue = json.loads((root/'queue.json').read_text())['queue']
+  assert len(queue)==1 and queue[0]['token']=='older', queue
+  (root/'queue.json').write_text(json.dumps({'next':1,'queue':[]}))
+  with (root/'build.lock').open('a+') as first, (root/'build-2.lock').open('a+') as second:
+   for lock in (first,second): fcntl.flock(lock,fcntl.LOCK_EX)
+   assert module.main() == 124
+   assert json.loads((root/'queue.json').read_text())['queue'] == []
+   for lock in (first,second): fcntl.flock(lock,fcntl.LOCK_EX | fcntl.LOCK_NB)
+ finally:
+  os.environ.clear(); os.environ.update(saved_env)
+print(json.dumps(True))
+`], { encoding: 'utf8', timeout: 5000 });
+  expect(JSON.parse(result)).toBe(true);
+});
+
 test('two checks waiting on a mirror leave build capacity for its preview', () => {
   const result = spawnSync('python3', ['scripts/test_lease_order.py'], { encoding: 'utf8', timeout: 25000 });
   expect(result.status, result.stderr).toBe(0);

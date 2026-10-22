@@ -2,6 +2,7 @@
 """Machine-wide full-test / app-build lanes. flock lifetime follows the owned child, not a PID file."""
 import argparse
 import contextlib
+from datetime import datetime, timezone
 import fcntl
 import json
 import math
@@ -19,6 +20,38 @@ import uuid
 BUILD_SLOTS = ('build', 'build-2')
 RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build')}
 LANES = ('full-test', *BUILD_SLOTS)
+WAIT_SECONDS = 5 * 60
+
+
+def holder(resource, entry):
+    pid = entry.get('pid', 'unavailable')
+    command = entry.get('command')
+    started = entry.get('startedAt', entry.get('queuedAt'))
+    if command is None and isinstance(pid, int):
+        try:
+            command = subprocess.check_output(['ps', '-p', str(pid), '-o', 'command='], text=True).strip()
+        except subprocess.CalledProcessError:
+            pass
+    if isinstance(started, (int, float)):
+        started = datetime.fromtimestamp(started, timezone.utc).isoformat()
+    return 'slot=%s pid=%s command=%s start=%s' % (resource, pid, json.dumps(command), started or 'unavailable')
+
+
+def read_entry(path):
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def queue_timeout(root, entry):
+    slots = set(slot for resource in entry['resources'] for slot in (BUILD_SLOTS if resource == 'build' else (resource,)))
+    holders = [holder(slot, read_entry(root / (slot + '.active.json'))) for slot in sorted(slots)]
+    queued = read_entry(root / 'queue.json').get('queue', [])
+    holders.extend('queue head ' + holder('/'.join(row['resources']), row) for row in queued
+                   if row['token'] != entry['token'] and row['ticket'] < entry['ticket']
+                   and set(row['resources']).intersection(entry['resources']) and alive(row['pid']))
+    return TimeoutError('heavy-lane: timed out after 5 min waiting for resources; ' + '; '.join(holders))
 
 
 # SF74 W1 (Jake, G280 / process audit 2026-10-09): no local full suite (since 2026-10-15 not even the push gate's). Lanes still ran 56 full
@@ -73,9 +106,28 @@ def owns(root, resource, token, family):
 
 
 @contextlib.contextmanager
-def scheduler(root):
+def scheduler(root, deadline=None):
+    if deadline is None:
+        deadline = time.monotonic() + WAIT_SECONDS
     with (root / 'scheduler.lock').open('a+') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
+        while True:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    lock.seek(0)
+                    try:
+                        owner = json.load(lock)
+                    except ValueError:
+                        owner = {}
+                    raise TimeoutError('heavy-lane: timed out after 5 min waiting for scheduler; ' + holder('scheduler', owner))
+                time.sleep(min(.1, remaining))
+        lock.seek(0)
+        lock.truncate()
+        json.dump({'pid': os.getpid(), 'command': sys.argv, 'startedAt': time.time()}, lock)
+        lock.flush()
         path = root / 'queue.json'
         try:
             state = json.loads(path.read_text())
@@ -118,13 +170,13 @@ def clear_compat(root, entry):
             pass  # Another lease or an older nested status command may still own entries.
 
 
-def remove_ticket(root, token):
-    with scheduler(root) as state:
+def remove_ticket(root, token, deadline=None):
+    with scheduler(root, deadline) as state:
         state['queue'] = [entry for entry in state['queue'] if entry['token'] != token]
 
 
-def acquire(root, entry):
-    with scheduler(root) as state:
+def acquire(root, entry, deadline=None):
+    with scheduler(root, deadline) as state:
         ordered = sorted(state['queue'], key=lambda row: (row['priority'], row['ticket']))
         # FIFO per resource. An older request for the independent lane does not block us.
         for previous in ordered:
@@ -318,21 +370,25 @@ def main():
              'resources': resources, 'priority': 1,
              'cwd': os.getcwd(), 'command': command, 'queuedAt': time.time()}
     held, child, started, load, code = None, None, None, None, 130
+    deadline = time.monotonic() + WAIT_SECONDS
     def interrupted(_signal, _frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, interrupted)
     signal.signal(signal.SIGINT, interrupted)
     try:
-        with scheduler(root) as state:
+        with scheduler(root, deadline) as state:
             entry['ticket'] = state['next']
             state['next'] += 1
             state['queue'].append(entry)
         print('heavy-lane: queued ' + args.kind + ' ticket ' + str(entry['ticket']), file=sys.stderr, flush=True)
         while held is None:
-            held = acquire(root, entry)
+            if time.monotonic() >= deadline:
+                raise queue_timeout(root, entry)
+            held = acquire(root, entry, deadline)
             if held is None:
-                time.sleep(0.1)
+                time.sleep(min(0.1, max(0, deadline - time.monotonic())))
         started = time.time()
+        entry['startedAt'] = started
         load = load_average()
         print('heavy-lane: acquired ' + args.kind + ' after %.2fs queue' % (started - entry['queuedAt']), file=sys.stderr, flush=True)
         compat = write_compat(root, entry)
@@ -358,8 +414,15 @@ def main():
     except KeyboardInterrupt:
         terminate(child)
         return 130
+    except TimeoutError as error:
+        print(str(error), file=sys.stderr, flush=True)
+        return 124
     finally:
-        remove_ticket(root, token)
+        try:
+            # A failed admission never starts a second wait during cleanup.
+            remove_ticket(root, token, time.monotonic() if held is None else None)
+        except TimeoutError as error:
+            print('heavy-lane: ticket cleanup deferred until process exit; ' + str(error), file=sys.stderr)
         if held is not None:
             with scheduler(root):
                 for resource in entry['leases']:

@@ -16,13 +16,13 @@
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 
 const REPO = resolve(import.meta.dirname, '..');
 const EXCLUDED = new Set(['art', 'progress', 'sources']);
-const LOCK_WAIT_MS = 30 * 60_000;
+const LOCK_WAIT_MS = 5 * 60_000;
 const sleep = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
 export function mirrorRoot(env = process.env, repo = REPO) {
@@ -45,20 +45,34 @@ function tickets(queueDir) {
   return live;
 }
 
+function holder(path, pid, slot) {
+  let details;
+  try { details = JSON.parse(readFileSync(path, 'utf8')); } catch { /* Older holders only recorded their PID. */ }
+  const inspect = (field) => {
+    try { return execFileSync('ps', ['-p', String(pid), '-o', `${field}=`], { encoding: 'utf8' }).trim(); }
+    catch { return 'unavailable'; }
+  };
+  return `slot=${slot} pid=${pid === 0 ? 'unavailable' : pid} command=${JSON.stringify(details?.command ?? (pid ? inspect('command') : 'unavailable'))} start=${details?.startedAt ?? (pid ? inspect('lstart') : 'unavailable')}`;
+}
+
 function acquire(lockDir) {
   const deadline = Date.now() + LOCK_WAIT_MS;
+  const slot = basename(lockDir, '.lock');
   const queueDir = lockDir.replace(/\.lock$/, '.queue');
   mkdirSync(queueDir, { recursive: true });
   const ticket = `${String(Date.now()).padStart(15, '0')}-${process.pid}`;
-  writeFileSync(join(queueDir, ticket), '');
+  const details = { pid: process.pid, command: process.argv.join(' '), startedAt: new Date().toISOString() };
+  writeFileSync(join(queueDir, ticket), JSON.stringify(details));
   const leave = () => rmSync(join(queueDir, ticket), { force: true });
   process.once('exit', leave);
   for (;;) {
-    const head = tickets(queueDir)[0] === ticket;
+    const first = tickets(queueDir)[0];
+    const head = first === ticket;
     if (head) {
       try {
         mkdirSync(lockDir);
         writeFileSync(join(lockDir, 'owner'), `${process.pid}\n`);
+        writeFileSync(join(lockDir, 'owner.json'), JSON.stringify(details));
         leave();
         return () => rmSync(lockDir, { recursive: true, force: true });
       } catch (error) {
@@ -68,8 +82,13 @@ function acquire(lockDir) {
     let owner = 0;
     try { owner = Number(readFileSync(join(lockDir, 'owner'), 'utf8')); } catch { /* owner not written yet, or no lock */ }
     if (owner && !alive(owner)) { rmSync(lockDir, { recursive: true, force: true }); continue; }
-    if (Date.now() > deadline) { leave(); throw new Error(`build-mirror: ${lockDir} still held by pid ${owner} after ${LOCK_WAIT_MS / 60_000} min`); }
-    sleep(head ? 250 : 2000);
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      leave();
+      const queued = !head && first ? `; queue head ${holder(join(queueDir, first), Number(first.slice(first.lastIndexOf('-') + 1)), slot)}` : '';
+      throw new Error(`build-mirror: timed out after 5 min waiting for ${lockDir}; holder ${holder(join(lockDir, 'owner.json'), owner, slot)}${queued}`);
+    }
+    sleep(Math.min(head ? 250 : 2000, remaining));
   }
 }
 
