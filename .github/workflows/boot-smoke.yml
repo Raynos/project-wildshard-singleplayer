@@ -11,6 +11,10 @@ on:
         description: Exact commit to prove (defaults to this workflow's SHA)
         type: string
         required: false
+      source_run:
+        description: Explicit exact push run (all 16 jobs must pass if its aggregate is stuck)
+        type: string
+        required: false
 permissions:
   contents: read
   actions: read
@@ -45,12 +49,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - uses: actions/checkout@v4
+        if: github.event_name == 'workflow_dispatch' && inputs.source_run != ''
+        with:
+          sparse-checkout: scripts/deploy-pin.mjs
+          sparse-checkout-cone-mode: false
       - name: Select the exact successful main push build
         id: source
         env:
           GH_TOKEN: ${{ github.token }}
           TESTED_SHA: ${{ steps.tested.outputs.sha }}
-          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+          SOURCE_RUN: ${{ inputs.source_run || github.event.workflow_run.id }}
+          JOB_PROOF_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.source_run || '' }}
         run: |
           run_id="$SOURCE_RUN"
           if [ -z "$run_id" ]; then
@@ -59,13 +69,22 @@ jobs:
               --jq ".workflow_runs[] | select(.head_branch == \"main\" and .head_sha == \"$TESTED_SHA\") | .id" | head -1)
           fi
           test -n "$run_id" || { echo '::error::No successful exact-SHA main push build'; exit 1; }
+          case "$run_id" in *[!0-9]*) echo '::error::Invalid source run identity'; exit 1 ;; esac
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" > source-run.json
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
+          import { resolve } from 'node:path';
+          import { pathToFileURL } from 'node:url';
           const run = JSON.parse(readFileSync('source-run.json', 'utf8'));
-          if (run.event !== 'push' || run.head_branch !== 'main' || run.status !== 'completed' || run.conclusion !== 'success'
+          if (run.event !== 'push' || run.head_branch !== 'main'
             || run.head_sha !== process.env.TESTED_SHA || run.head_repository.full_name !== process.env.GITHUB_REPOSITORY
             || run.path !== '.github/workflows/deploy.yml') throw new Error('Artifact source is not the exact successful main push CI');
+          if (run.status !== 'completed' || run.conclusion !== 'success') {
+            if (process.env.JOB_PROOF_RUN !== String(run.id)) throw new Error('Artifact source aggregate is not successful');
+            const { ciRunGreen } = await import(pathToFileURL(resolve('scripts/deploy-pin.mjs')).href);
+            if (!ciRunGreen(process.env.TESTED_SHA, process.env.JOB_PROOF_RUN)) throw new Error('Not every required exact-run CI job succeeded');
+            console.log(`CI aggregate exception: exact run ${run.id}, every required job verified successful`);
+          }
           NODE
           echo "run=$run_id" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4

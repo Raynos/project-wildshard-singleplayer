@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ciGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
+import { ciGreen, ciRunGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
 
 const newer = 'a'.repeat(40), proven = 'b'.repeat(40), oldest = 'c'.repeat(40);
 const completed = '2026-10-21T14:00:00Z', now = Date.parse('2026-10-21T14:01:00Z');
@@ -111,4 +111,51 @@ test('resolves both workflow paths once and selects numeric runs with exact proo
 test('missing or ambiguous workflow identities refuse release selection', () => {
   expect(() => releaseReady(() => '.github/workflows/deploy.yml\t123', () => undefined, now)).toThrow('Missing workflow: .github/workflows/boot-smoke.yml');
   expect(() => releaseReady(() => `${workflows}\n.github/workflows/deploy.yml\t789`, () => undefined, now)).toThrow('Invalid workflow identity');
+});
+
+const explicitRun = {
+  id: 789, workflow_id: 123, event: 'push', head_branch: 'main', head_sha: proven,
+  path: '.github/workflows/deploy.yml', status: 'in_progress', conclusion: null,
+  head_repository: { full_name: 'Raynos/project-wildshard-singleplayer' },
+};
+const completeJobs = ['products', 'build-and-deploy',
+  ...Array.from({ length: 4 }, (_, i) => `typecheck-lint (${i + 1})`),
+  ...Array.from({ length: 10 }, (_, i) => `behaviour (${i + 1})`)]
+  .map(name => `${name}\tcompleted\tsuccess`);
+
+function explicitQuery(run: object, jobs: readonly string[]): (args: string[]) => string {
+  return args => {
+    const path = args[0] ?? '';
+    if (path.endsWith('/actions/workflows?per_page=100&page=1')) return workflows;
+    if (path.endsWith('/actions/runs/789')) return JSON.stringify(run);
+    if (path.endsWith('/actions/runs/789/jobs?per_page=100')) {
+      expect(args).toContain('--paginate');
+      return jobs.join('\n');
+    }
+    throw new Error(`Unexpected explicit proof request: ${path}`);
+  };
+}
+
+test('an explicit stuck aggregate requires every one of the 16 exact-run jobs to succeed', () => {
+  expect(ciRunGreen(proven, '789', explicitQuery(explicitRun, completeJobs))).toBe(true);
+  for (const state of ['failure', 'cancelled', 'skipped', 'timed_out']) {
+    const jobs = completeJobs.map(row => row.startsWith('products\t') ? `products\tcompleted\t${state}` : row);
+    expect(ciRunGreen(proven, '789', explicitQuery(explicitRun, jobs))).toBe(false);
+  }
+  expect(ciRunGreen(proven, '789', explicitQuery(explicitRun, completeJobs.slice(1)))).toBe(false);
+  expect(ciRunGreen(proven, '789', explicitQuery(explicitRun, [...completeJobs, 'extra\tcompleted\tsuccess']))).toBe(false);
+  expect(ciRunGreen(proven, '789', explicitQuery(explicitRun, [...completeJobs.slice(1), 'products\tin_progress\t']))).toBe(false);
+  expect(ciRunGreen(proven, '789', explicitQuery(explicitRun, [...completeJobs.slice(1), 'behaviour (1)\tcompleted\tsuccess']))).toBe(false);
+});
+
+test('explicit job success cannot substitute a neighbour, fork, PR or different workflow', () => {
+  for (const delta of [
+    { id: 111 }, { head_sha: newer }, { workflow_id: 456 }, { path: '.github/workflows/boot-smoke.yml' },
+    { event: 'pull_request' }, { head_branch: 'feature' }, { head_repository: { full_name: 'other/fork' } },
+    { status: 'completed', conclusion: 'failure' }, { status: 'queued' },
+  ]) {
+    expect(ciRunGreen(proven, '789', explicitQuery({ ...explicitRun, ...delta }, completeJobs))).toBe(false);
+  }
+  expect(() => ciRunGreen('short', '789', explicitQuery(explicitRun, completeJobs))).toThrow('exact SHA');
+  expect(() => ciRunGreen(proven, 'not-a-run', explicitQuery(explicitRun, completeJobs))).toThrow('numeric run');
 });

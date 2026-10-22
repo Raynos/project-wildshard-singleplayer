@@ -70,13 +70,14 @@ export function workflowRunsPath(workflow, query = ghApi) {
   return `repos/${REPO}/actions/workflows/${id}/runs`;
 }
 
-/** @typedef {{ mode: string, sha: string, milestone: string, gate: string, go: string, set: string, by: string }} Pin */
+/** @typedef {{ mode: string, sha: string, milestone: string, gate: string, go: string, set: string, by: string, ciRun?: string }} Pin */
 
 /** @param {Pin} pin @returns {Pin} */
 export function validatePin(pin) {
   if (!/^[0-9a-f]{40}$/.test(pin.sha)) throw new Error(`${FILE}: sha must be 40 hex`);
   if (!['pinned', 'newest-green', 'newest-ci-green'].includes(pin.mode)) throw new Error(`${FILE}: mode must be pinned | newest-green | newest-ci-green`);
   if (!['grandfathered', 'required'].includes(pin.gate)) throw new Error(`${FILE}: gate must be grandfathered | required`);
+  if (pin.ciRun !== undefined && !/^\d+$/.test(pin.ciRun)) throw new Error(`${FILE}: ciRun must be a numeric workflow run`);
   return pin;
 }
 
@@ -154,6 +155,32 @@ export function ciGreen(sha, query = ghApi) {
   const runs = query([`${workflowRunsPath('deploy.yml', query)}?branch=main&event=push&status=success&head_sha=${sha}&per_page=1&page=1`,
     '--jq', '.workflow_runs[].head_sha']).trim().split('\n');
   return runs.includes(sha);
+}
+
+/** Explicit operator-selected CI proof for the legacy 16-job pipeline. GitHub can leave its aggregate
+ * running after every required job has completed. No missing, skipped or extra job supplies this proof.
+ * @param {string} sha @param {string} runId @param {(args:string[])=>string} [query] @returns {boolean} */
+export function ciRunGreen(sha, runId, query = ghApi) {
+  if (!/^[0-9a-f]{40}$/.test(sha) || !/^\d+$/.test(runId)) throw new Error('Explicit CI proof requires an exact SHA and numeric run');
+  /** @type {{id:number,workflow_id:number,event:string,head_branch:string,head_sha:string,path:string,status:string,conclusion:string|null,head_repository?:{full_name:string}}} */
+  const run = JSON.parse(query([`repos/${REPO}/actions/runs/${runId}`]));
+  const workflowId = workflowRunsPath('deploy.yml', query).split('/').at(-2);
+  if (String(run.id) !== runId || String(run.workflow_id) !== workflowId || run.event !== 'push'
+    || run.head_branch !== 'main' || run.head_sha !== sha || run.path !== '.github/workflows/deploy.yml'
+    || run.head_repository?.full_name !== REPO) return false;
+  if (run.status === 'completed' && run.conclusion === 'success') return true;
+  if (run.status !== 'in_progress' || run.conclusion !== null) return false;
+  const required = new Set(['products', 'build-and-deploy',
+    ...Array.from({length:4}, (_, i) => `typecheck-lint (${i+1})`),
+    ...Array.from({length:10}, (_, i) => `behaviour (${i+1})`)]);
+  const rows = query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
+    '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
+  if (rows.length !== required.size) return false;
+  for (const row of rows) {
+    const [name = '', status, conclusion] = row.split('\t');
+    if (!required.delete(name) || status !== 'completed' || conclusion !== 'success') return false;
+  }
+  return required.size === 0;
 }
 
 /** No CI-green SHA has a successful exact-SHA smoke yet. */
@@ -287,8 +314,10 @@ async function main() {
     if (!bootGreen(sha) && !(pin.mode === 'pinned' && productionLive(sha))) {
       throw new Error(`release refused: ${sha} has neither a green boot-smoke nor prior production proof`);
     }
-    const ciPassed = pin.mode === 'newest-ci-green' || ciGreen(sha);
+    const explicitCi = pin.mode === 'pinned' && pin.ciRun !== undefined && ciRunGreen(sha, pin.ciRun);
+    const ciPassed = explicitCi || pin.mode === 'newest-ci-green' || ciGreen(sha);
     console.log(sha);
+    if (explicitCi) console.error(`CI aggregate exception: exact run ${pin.ciRun}, every required job verified successful`);
     console.error(`Release selection: mode=${pin.mode}, exact push CI=${ciPassed}`);
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=${ciPassed}\n`);
     return 0;
