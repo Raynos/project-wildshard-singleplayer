@@ -5,12 +5,12 @@ its last cut; C4 + C9 last) → the rest. Grid readiness NOW (G598; Jake wants 8
 get HOST-BAR lines. G602/G603 core hosts row-only + tests. G612 D5: land on types/lint/focused tests only (working tree
 fine); no pre-land mirror or first frame; push gate + CI + boot smoke catch the rest. D3: 5-min lock waits fail, never retry.
 
-**Census (~23:30):** Pine, DW, Far Reach, Sunscar, Pastel, Ink, templates 0. NINE: bounds approved as a host (G614);
-sp-x2 lands the listing + Nine C9 lock -> Nine 0 (C1-C8 locked e2ce71ca16). Nalati ~3,000: C1 ~12, C2 ~117 (sp-o5 fold
+**Census (~23:30):** Pine, DW, Far Reach, Sunscar, Pastel, Ink, templates 0. NINE = 0 (output 0, source 0, C1-C9 all
+locked; G614 a62326bc61). Nalati ~3,000: C1 ~12, C2 ~117 (sp-o5 fold
 per G615), C5 chapter tail (sp-x1), C6 ~243 (sp-x9), C4 + C9 last. open-plots 19. Every shard raw GLSL 0.
 
-**Grid-ready:** DW latched (697f240928). Nine: memory latched (eee536972b); looks run after Nine = 0 (G561), sp-x2.
-Pine looks median 211-224 ms (sp-o1 fixes 38ef77be7c, 47e4e66af9; DW disposal 26->6 ms, sp-o4 3141edd9fe).
+**Grid-ready:** DW latched (697f240928); PINE latched (68bfadee66, median 192 ms). Nine: memory latched (eee536972b); looks run after Nine = 0 (G561), sp-x2.
+P0: slow phone grid entry on live (phone near budget 5630a9c63b landed; title art sp-o4, 25-cell edges sp-o1).
 
 **Live:** ec4ca6f855 (22:50Z).
 
