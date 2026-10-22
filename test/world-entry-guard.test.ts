@@ -47,10 +47,10 @@ test.each(['capped', 'open'] as const)('declared %s guard keeps original collide
   } finally { scope.dispose(); }
 });
 
-test('active policy and missing owner refuse before any earlier piece registers', () => {
+test('active policy and missing owner refuse before any earlier piece registers', async () => {
   let effects = 0;
   const ports = { root: new Group(), tier: 'phone' as const, piece: () => { effects++; } };
-  expect(() => WorldEntry.admit(rows, ports)).toThrow('entered scope');
+  await expect(WorldEntry.admit(rows, ports).run('pieces')).rejects.toThrow('entered scope');
   expect(() => parseWorldEntry({ blocks: { pieces: [{ ...piece, active: 'callback' }] } })).toThrow();
   expect(effects).toBe(0);
   const scope = new Scope('ended'); scope.dispose();
@@ -78,4 +78,16 @@ test('skipped guard variants do not require or create an entered owner', async (
     root: new Group(), tier: 'phone', variant: 'current', piece: row => { pieces.push(row); },
   }).run('pieces');
   expect(pieces).toHaveLength(0);
+});
+
+
+test('resident blocks admit the shared entry without claiming its later entered guard', async () => {
+  const pieces: Piece[] = [];
+  const entry = WorldEntry.admit({ blocks: { construction: [{ ...piece, id: 'resident' }], pieces: rows.blocks.pieces } }, {
+    root: new Group(), tier: 'phone', piece: row => { pieces.push(row); },
+  });
+  await entry.run('construction');
+  expect(pieces.map(row => row.id)).toEqual(['resident']);
+  await expect(entry.run('pieces')).rejects.toThrow('entered scope');
+  expect(pieces.map(row => row.id)).toEqual(['resident']);
 });

@@ -43,9 +43,6 @@ export class WorldEntry {
   static admit(input: unknown, ports: WorldEntryPorts): WorldEntry {
     const entry = new WorldEntry(parseWorldEntry(input), ports);
     entry.live();
-    if (ports.scope === undefined && Object.values(entry.rows.blocks).some(rows => rows.some(row => entry.applies(row) && row.kind === 'piece' && row.active !== undefined))) {
-      throw new Error('World entry active piece needs its entered scope');
-    }
     return entry;
   }
 
@@ -54,6 +51,9 @@ export class WorldEntry {
     const rows = this.rows.blocks[block];
     if (rows === undefined) throw new Error(`Missing world entry block: ${block}`);
     if (this.ran.has(block)) throw new Error(`World entry block ran twice: ${block}`);
+    if (this.ports.scope === undefined && rows.some(row => this.applies(row) && row.kind === 'piece' && row.active !== undefined)) {
+      throw new Error('World entry active piece needs its entered scope');
+    }
     this.ran.add(block);
     for (const row of rows) if (this.applies(row)) { this.live(); await this.step(row); this.live(); }
   }
