@@ -12,7 +12,7 @@ idea. There is no runtime code: the shard is data rows and one build-time genera
   (radius 10 m) with a cyan rim, the idea's hologram standing on it, the billboard behind it, the 'OPEN PLOT · COMING
   SOON' sign and a striped beacon in each corner with a cyan sky beam; then each output's data map. The world bake turns a plot into tiles, collision (only the `collide_` nodes,
   never the hologram), edges, a far proxy and the plot's own near view (`near: 'coarse'`).
-- `data/plot.json` (G608): the hologram's scale (one value; Jake picks it on art/grid/round-37-open-plot-scale), the
+- `data/plot.json` (G608): the hologram's scale (6: 72 m, Jake's G615 pick A on art/grid/round-37-open-plot-scale), the
   beams' heights and the floor's accent tint. The hologram and the beams are light (additive), so the generator also
   writes `far_` stand-ins (the hologram welded, a glowing box up each beam) that only the far proxy and the near
   view draw; the far bake simplifies them into the far budget.
