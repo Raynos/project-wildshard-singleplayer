@@ -4,6 +4,7 @@ import * as v from 'valibot';
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import type { ShardContext } from '../plugin/context';
+import { requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
 import { entryOwner } from '../shardfile/entryOwners';
 import { declaredLootEconomy } from '../shard/declaredRows';
 import { installDeclaredCollectionKeepsakes } from '../compendium/keepsakes';
@@ -38,4 +39,14 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
   if (ended(ctx)) return;
   const presentation = enteredLootPresentation(ctx, row.loot.id);
   installRuntimeLoot(ctx, presentation, { shop, minimap: row.loot.minimap, before: row.loot.before });
+}
+
+/** Finite entry dispatch. The admitted file owns quest and collection ids; no
+ * repeated ids or callables are supplied by the client-plan row. */
+export async function installQuestContinuationFile(ctx:ShardContext,file:string):Promise<void> {
+  const input=await ctx.product.json(file);
+  if(ended(ctx))throw new Error('Quest continuation owner ended during read');
+  const row=v.parse(QuestContinuationSchema,input);
+  requireClientPlaceSetsBound(ctx);
+  await installQuestContinuation(ctx,row);
 }

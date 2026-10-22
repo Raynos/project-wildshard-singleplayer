@@ -54,6 +54,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({kind:v.literal('look.painterly'),shadeTint:rgb,rimColor:rgb,wind:v.strictObject({x:finite,z:finite,strength:finite})}),
   v.strictObject({ kind: v.literal('audio.scene') }),
   v.strictObject({ kind: v.literal('held.ranged-page'), file: label, shadowBatch: v.exactOptional(v.strictObject({ shard: v.boolean(), grid: v.boolean() })) }),
+  v.strictObject({ kind: v.literal('quest.continuation'), file: label }),
   v.strictObject({ kind: v.literal('quest.composition'), id, file: label, ranged: id, animals: id, sounds: id }),
   v.strictObject({ kind: v.literal('quest.spawns'), id, source: v.pipe(label, v.regex(/^custom\/[A-Za-z][A-Za-z0-9_.-]*$/u)), quest: id, animals: id, sounds: id }),
   v.strictObject({kind:v.literal('world.water'),rows:v.pipe(v.array(v.union([v.strictObject({id,surface:WaterSurfaceSchema,geometry:v.pipe(v.string(),v.minLength(1),v.maxLength(256))}),v.strictObject({id,surface:WaterSurfaceSchema,draw:WaterDrawSchema})])),v.minLength(1),v.maxLength(8),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),

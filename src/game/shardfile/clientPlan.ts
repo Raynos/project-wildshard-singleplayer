@@ -74,6 +74,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       const { installEntryRangedPage } = await import('./clientQuestComposition');
       await installEntryRangedPage(ctx, row);
     } } },
+  'quest.continuation': { phase: 'play', rank: 0, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'quest.continuation') throw new Error('Invalid quest continuation feature');
+    const { installQuestContinuationFile } = await import('../quest/continuation');
+    await installQuestContinuationFile(ctx, row.file);
+  } },
   'quest.composition': { phase: 'prepare-play', rank: 20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.composition') throw new Error('Invalid quest composition feature');
     const { installEntryQuestComposition } = await import('./clientQuestComposition');
@@ -194,6 +199,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     if (plan.features.some(row => row.kind === 'weather.fields' && !product.shardfile.quests.quests.some(quest => quest.id === row.quest))) throw new Error('Weather fields require their declared quest');
     for(const row of plan.features)if(row.kind==='bag.finds'&&(!product.hasFile(row.file)||!product.shardfile.quests.quests.some(quest=>quest.id===row.quest)))throw new Error('Finds require their admitted file and quest');
     for (const row of plan.features) {
+      if (row.kind === 'quest.continuation' && !product.hasFile(row.file)) throw new Error('Quest continuation requires its admitted data file');
       if ((row.kind === 'quest.composition' || row.kind === 'held.ranged-page') && !product.hasFile(row.file)) throw new Error('Entry preparation requires its admitted data file');
       if (row.kind === 'quest.spawns') {
         const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');

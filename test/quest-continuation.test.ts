@@ -14,7 +14,8 @@ import type { QuestPageComposition } from '../src/game/quest/pageComposition';
 import { CollectionCatalogue } from '../src/game/models/collectionDisplay';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishEntryOwner, entryOwner } from '../src/game/shardfile/entryOwners';
-import { installQuestContinuation } from '../src/game/quest/continuation';
+import { installClientPlaceSets, bindClientPlaceSets } from '../src/game/shardfile/clientPlaceSets';
+import { installQuestContinuation, installQuestContinuationFile } from '../src/game/quest/continuation';
 import { QuestContinuationSchema } from '../src/format/questContinuation';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseRows } from '../src/format/rows';
@@ -47,7 +48,7 @@ function fixture(read: (hash: string) => Promise<Uint8Array>, parent?: Scope) {
   const product = createShardProduct({ slug: 'orchard', revision: 1, shardfile,
     sections: new Map<string, unknown>([['economy/loot', { rows: { loot: admitted.loot } }], ['custom/keepsakes', { models: {},
       keepsakes: { ...collections.keepsakes, placements: [], trophies: {}, wardrobe: [], restore: [] } }]]),
-    files: new Map([['cosmetics.json', { hash: 'cosmetics', url: '/cosmetics.json' }], ['shop.json', { hash: 'shop', url: '/shop.json' }]]), read });
+    files: new Map([['continuation.json', { hash: 'continuation', url: '/continuation.json' }], ['cosmetics.json', { hash: 'cosmetics', url: '/cosmetics.json' }], ['shop.json', { hash: 'shop', url: '/shop.json' }]]), read });
   const world = legacyDouble<NonNullable<ShardRuntime['world']>>({ sky: SkyRig.prototype, game: new FakeGame().asGame(), registry: new WorldRegistry(),
     player: legacyDouble<NonNullable<ShardRuntime['world']>['player']>({ position: new Vector3(), yaw: 0 }) });
   const play = legacyDouble<NonNullable<ShardRuntime['play']>>({ weapons: legacyDouble<NonNullable<ShardRuntime['play']>['weapons']>({ list: [] }),
@@ -94,4 +95,26 @@ test('continuation intake refuses callbacks, reflected paths and invalid collect
   expect(v.parse(QuestContinuationSchema, rows)).toEqual(rows);
   for (const input of [{ ...rows, run: () => 1 }, { ...rows, collection: { owner: 'view', path: ['catalogue'] } },
     { ...rows, collections: '../invalid?' }]) expect(() => v.parse(QuestContinuationSchema, input)).toThrow();
+});
+
+test('finite continuation dispatch refuses unbound placements before installing services', async () => {
+  const reads: string[] = [], f = fixture(hash => { reads.push(hash); return Promise.resolve(encode(rows)); });
+  try {
+    installClientPlaceSets(f.ctx, { kind: 'world.sets', rows: [] });
+    await expect(installQuestContinuationFile(f.ctx, 'continuation.json')).rejects.toThrow('not finished');
+    expect(reads).toEqual(['continuation']); expect(f.system).not.toHaveBeenCalled();
+  } finally { f.scope.dispose(); }
+});
+
+test('finite continuation dispatch admits rows after the real bind and refuses leave during its read', async () => {
+  const pending = deferred<Uint8Array>(), reached = deferred<string>(), reads: string[] = [];
+  const f = fixture(hash => { reads.push(hash); if (hash === 'continuation') { reached.resolve(hash); return pending.promise; } return Promise.resolve(cosmeticBytes); });
+  try {
+    installClientPlaceSets(f.ctx, { kind: 'world.sets', rows: [] });
+    await bindClientPlaceSets(f.ctx, new Map(), []);
+    const running = installQuestContinuationFile(f.ctx, 'continuation.json');
+    await reached.promise; f.scope.dispose(); pending.resolve(encode({ retired: true }));
+    await expect(running).rejects.toThrow('owner ended during read');
+    expect(reads).toEqual(['continuation']); expect(f.system).not.toHaveBeenCalled();
+  } finally { f.scope.dispose(); }
 });

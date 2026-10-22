@@ -11142,3 +11142,16 @@ variants and other unused controls refuse. `draws` names one admitted
 custom section's fixedDraws field, never a field path or executable builder.
 The book is a defining named-JSON wire root. It introduces no loader,
 owner, clock, view update or geometry representation by itself.
+
+### Entered continuation capability (G571)
+
+The finite dispatch `{kind:'quest.continuation',file}` runs at entered
+play rank 0 after the awaited legacy play step. Its strict named JSON
+already supplies the quest and collection ids; the feature duplicates neither.
+`installQuestContinuationFile(ctx,file)` fences a leave during its read,
+admits that data and requires completed actual place binding before effects.
+`requireClientPlaceSetsBound(ctx)` refuses registration alone, a still-running
+bind or its failed/retired final yield. Future world assembly must still
+complete the placement bind before dispatch; a rank is not a readiness proof.
+The continuation borrows the existing collection/quest and keeps their
+inventory, material, geometry and saved-state owners.
