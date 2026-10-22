@@ -24,7 +24,7 @@ export namespace Read{
   store<f64>(io+1800,load<f64>(io+1664+usize(grounds++)*8));return 1;
  }
  export function radial(angle:f64,radius:f64):i32{
-  store<f64>(io+1800,Math.cos(angle)*radius);store<f64>(io+1808,Math.sin(angle)*radius);return 2;
+  store<f64>(io+1800,Math.sin(angle)*radius);store<f64>(io+1808,Math.cos(angle)*radius);return 2;
  }
 }
 export namespace Do{export function channel(channel:i32,value:f64):void{store<f64>(io+2048+usize(channel)*8,value);}}`;
@@ -92,6 +92,8 @@ export const port = { input,verify: pair => {
   expect(output(fixed,'x')).toBe(4);expect(output(fixed,'z')).toBe(8);expect(fixed.slice(10,12)).toEqual([0,1]);
   const landed = evaluate('place',[{ x: 4,z: 8,now: 10,water: 0 }],[1,1],[0.25,0.5]);
   expect(output(landed,'retry')).toBe(0);expect(landed.slice(10,12)).toEqual([2,2]);
+  expect(output(landed,'x')).toBeCloseTo(4,12);expect(output(landed,'z')).toBeCloseTo(11,12);
+  expect(landed.slice(12,16)).toEqual([4,11,4,11]);
   const flooded = evaluate('place',[{ x: 4,z: 8,now: 10,water: 0 }],Array.from({ length: 7 },() => 0),Array.from({ length: 12 },(_,i) => i/12));
   expect(output(flooded,'retry')).toBe(70);expect(output(flooded,'x')).toBe(4);expect(output(flooded,'z')).toBe(8);
   expect(flooded.slice(10,12)).toEqual([12,7]);
