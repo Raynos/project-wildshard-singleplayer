@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { resolveSpecifier } from './check-graph.mjs';
 import { g571HostApprovals, approvedG571Host } from './g571-hosts.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
-import { decisionLegacyLines } from './decision-legacy-lines.mjs';
+import { shardLineBaselines } from './decision-legacy-lines.mjs';
 import { discoverGeneration } from './generate.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
 import { loadListedViews, listedViewInventory } from './listed-view-code.mjs';
@@ -670,7 +670,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const {probes,targets,edges,texts,graphs,sources,masks}=memo;
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
   const counts = new Map();
-  const frozen = legacyInventory(root);
+  const frozen = legacyInventory(root), baselines = shardLineBaselines(root);
   const generated = new Set(exists('scripts/generation-jobs.json') ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
   // Retained source tables also have exact producer/output identities; older tooling predates generation jobs.
   const sourceOutputs = 'scripts/source-generation-outputs.json';
@@ -982,8 +982,8 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
         && (RULES.buildOnlySdk.test(path) || !moduleUsers.has(path))).map(([path]) => ({path, lines:count(path), bytes:Buffer.byteLength(text(path))}));
       row.oneUserBuildTools = {lines:tools.reduce((sum, tool) => sum + tool.lines, 0), files:tools};
     }
-    const pair = Object.entries(frozen.shards).find(([, legacy]) => legacy.primary === slug);
-    const legacyLines = decisionLegacyLines(root, slug) ?? null;
+    const baseline = baselines.get(slug);
+    const legacyLines = baseline?.lines ?? null;
     const {modules,exports,pending} = partitionPendingPlatformUsers(slug,privateModules.get(slug),privateExports.get(slug),pendingUsers);
     const attributedLines = [...modules, ...exports].reduce((total, module) => total + module.lines, 0);
     const customRuntimeLines = shardRuntimeLines + additionalGlslLines + attributedLines;
@@ -992,8 +992,8 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     row.assemblyScriptBudget={ceiling:asCeiling,share:legacyLines===null?null:row.assemblyScriptLines/legacyLines,
       passed:asCeiling===null?null:row.assemblyScriptLines<=asCeiling,enforcement:'report-only'};
     row.conversion = {
-      metric: pair === undefined ? 'native' : 'runtime-vs-legacy', customRuntimeLines, shardRuntimeLines, rawGlslLines, additionalGlslLines,
-      legacyLines, legacyFolder: pair?.[0] ?? null, legacyRevision: pair?.[1].source ?? null,
+      metric: baseline === undefined ? 'native' : 'runtime-vs-legacy', customRuntimeLines, shardRuntimeLines, rawGlslLines, additionalGlslLines,
+      legacyLines, legacyFolder: baseline === undefined ? null : `${slug}-legacy`, legacyRevision: baseline?.source ?? null,
       runtimeShare: legacyLines === null ? null : customRuntimeLines / legacyLines,
       passed: legacyLines === null ? null : customRuntimeLines === 0, // G604: every shard's target is zero
       gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports, pendingSecondUser:pending },
