@@ -5,7 +5,7 @@ import type { ScriptV1Event,ScriptV1Command } from '@wildshard/format/scriptAbiV
 import type { ScriptInputStateV2 } from '@wildshard/format/scriptInputStateV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
 import type { V2Layout } from '@wildshard/format/scriptWireV2';
-import type { DecisionHost,DecisionBinding,DecisionScript,DecisionSnapshot } from './decision';
+import type { DecisionHost,DecisionBinding,DecisionScript,DecisionSnapshot,DecisionExternalCommand } from './decision';
 import { InputInboxV2,type V2InputBinding } from './inputInboxV2';
 import { SimBatchV2,type V2BatchResult } from './simBatchV2';
 import type { V2BindingInput,V2PlayerInput } from './observationsV2';
@@ -33,13 +33,15 @@ export class OwnedSimBatchV2 {
   private readonly divisor: 2 | 6;
   private readonly fuel: number;
   private readonly kinds: ReadonlySet<number>;
+  private readonly externalCommands: boolean;
   constructor(bytes: Uint8Array,options: {
     readonly host: DecisionHost; readonly bindings: readonly OwnedV2Binding[]; readonly layout: V2Layout;
     readonly divisor: 2 | 6; readonly fuel: number; readonly initFuel: number;
     readonly seed: readonly [number,number]; readonly eventKinds: ReadonlySet<number>;
+    readonly externalCommands?: boolean;
   }) {
     this.host = options.host;this.rows = [...options.bindings].sort((a,b) => String(a.binding.id) < String(b.binding.id) ? -1 : String(a.binding.id) > String(b.binding.id) ? 1 : 0);
-    this.layout = options.layout;this.divisor = options.divisor;this.seed = options.seed;this.fuel = options.fuel;this.kinds = new Set(options.eventKinds);
+    this.layout = options.layout;this.divisor = options.divisor;this.seed = options.seed;this.fuel = options.fuel;this.kinds = new Set(options.eventKinds);this.externalCommands = options.externalCommands === true;
     this.inbox = new InputInboxV2(options.layout,{ bindings: new Set(this.rows.map(row => String(row.binding.id))),players: new Set(),actions: new Map(),eventKinds: this.kinds,lagTicks: 0 });
     this.batch = new SimBatchV2(bytes,{ layout: options.layout,ordinal: 0,handle: 1,divisor: options.divisor,
       bindings: this.rows.map(row => ({ identity: String(row.binding.id),handle: row.binding.id })),fuel: options.fuel,initFuel: options.initFuel,seed: options.seed,output: [] });
@@ -72,7 +74,9 @@ export class OwnedSimBatchV2 {
     }
     for (const staged of native.staged) {
       const owner = required(this.rows.find(row => row.binding.id === staged.binding));
+      if (staged.external !== undefined && !this.externalCommands) throw new Error('Unexpected restored external command authority');
       if (staged.observed.some(handle => !owner.binding.actors.includes(handle) && !observed.has(handle)) || staged.commands.some(row => [1,2,3,4,6].includes(row[0]) && !owner.binding.actors.includes(row[1]))) throw new Error('Foreign restored v2 command owner');
+      if (staged.external?.some(row => [1,2,3,4,6].includes(row[0]) && !owner.binding.actors.includes(row[1])) === true) throw new Error('Foreign restored v2 command owner');
     }
     const failures = saved?.failures ?? 0;
     if (failures === 3 && native.bindings.some(row => row.enabled !== false)) throw new Error('Unfrozen disabled v2 continuation');
@@ -122,14 +126,22 @@ export class OwnedSimBatchV2 {
       const { bindings,inputBindings,rng } = required(prepared);
       for (const kind of [11,17,18,20]) if (candidate.counts[kind-1] !== 0) throw new Error('Unsupported native v2 output bank');
       const due = new Set(bindings.filter(row => row.due && row.handle !== candidate.excluded).map(row => row.handle));
-      const random = rng.readCandidate(candidate.view,candidate.counts[21] ?? 0,due), commands = new Map<number,ScriptV1Command[]>();
+      const random = rng.readCandidate(candidate.view,candidate.counts[21] ?? 0,due), commands = new Map<number,ScriptV1Command[]>(), external = new Map<number,DecisionExternalCommand[]>();
       const commandRegion = required(this.layout.regions[9]), stateRegion = required(this.layout.regions[2]);
       if ((candidate.counts[9] ?? 0) > 128 || candidate.counts[2] !== bindings.reduce((sum,row) => sum+row.state.length,0)) throw new Error('Native v2 candidate quota');
+      let previousBinding = 0;
       for (let i = 0; i < (candidate.counts[9] ?? 0); i++) {
         const at = this.layout.io+commandRegion.offset+i*64, view = candidate.view,binding = view.getUint32(at,true),op = view.getUint32(at+4,true);
-        if (!due.has(binding) || ![1,2,3,4,5,6,7,12,13].includes(op) || view.getUint32(at+12,true) !== 0 || [40,48,56].some(offset => !Object.is(view.getFloat64(at+offset,true),0))) throw new Error('Invalid native v2 actor command');
+        if (!due.has(binding) || (this.externalCommands ? op < 1 || op > 65535 || binding < previousBinding : ![1,2,3,4,5,6,7,12,13].includes(op))
+          || view.getUint32(at+12,true) !== 0 || (this.externalCommands ? [48,56] : [40,48,56]).some(offset => !Object.is(view.getFloat64(at+offset,true),0))) throw new Error('Invalid native v2 actor command');
+        previousBinding = binding;
         const target = view.getUint32(at+8,true), owner = required(this.rows.find(row => row.binding.id === binding));
         if ([1,2,3,4,6].includes(op) && !owner.binding.actors.includes(target)) throw new Error('Foreign native v2 actor command');
+        if (this.externalCommands) {
+          const row: DecisionExternalCommand = [op,target,view.getFloat64(at+16,true),view.getFloat64(at+24,true),view.getFloat64(at+32,true),view.getFloat64(at+40,true)];
+          if (!row.every(Number.isFinite)) throw new Error('Non-finite native v2 command');
+          const list = external.get(binding) ?? [];list.push(row);if (list.length > 32) throw new Error('Native v2 binding command quota');external.set(binding,list);continue;
+        }
         const row: ScriptV1Command = [op,target,view.getFloat64(at+16,true),view.getFloat64(at+24,true),view.getFloat64(at+32,true)];
         if (!row.every(Number.isFinite)) throw new Error('Non-finite native v2 command');
         const list = commands.get(binding) ?? [];list.push(row);if (list.length > 32) throw new Error('Native v2 binding command quota');commands.set(binding,list);
@@ -144,7 +156,7 @@ export class OwnedSimBatchV2 {
         }));stateBase += row.state.length;
         const nextRng = required(random.find(item => item.binding === row.handle));
         if (nextRng.draws > 0 && !declaration.script.reads.includes('random')) throw new Error('Undeclared native v2 RNG');
-        if (due.has(row.handle)) staged.push({ binding: row.handle,tick,observed: [...row.observed],commands: commands.get(row.handle) ?? [],slots,timers: saved.timers,rng: nextRng.state[2],lastCall: tick });
+        if (due.has(row.handle)) staged.push({ binding: row.handle,tick,observed: [...row.observed],commands: commands.get(row.handle) ?? [],...(this.externalCommands ? { external: external.get(row.handle) ?? [] } : {}),slots,timers: saved.timers,rng: nextRng.state[2],lastCall: tick });
       }
       const publish = this.host.prepareRestore({ ...before,staged });
       const accepted = new Map([...inputBindings].map(([key,row]) => [key,{ handle: row.handle,observed: row.observed,due: row.due && row.handle !== candidate.excluded }]));

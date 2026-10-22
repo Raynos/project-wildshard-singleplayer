@@ -60,3 +60,13 @@ test('default v1 save bytes do not acquire the external command key', async () =
   const f = await fixture(false), before = JSON.stringify(f.host.snapshot());
   f.host.restore(v.parse(savedWire,JSON.parse(before)));expect(JSON.stringify(f.host.snapshot())).toBe(before);expect(before).not.toContain('external');
 });
+
+
+test('in-memory op25 signed zero retains f64 while saved JSON keeps its existing numeric canonicalization', async () => {
+  const f = await fixture();for (let tick = 1; tick <= 6; tick++) f.host.stepExternal(tick);
+  f.host.prepareRestore(stage(f.host.snapshot(),[[25,1,-0,0,0,0]]))();
+  expect(Object.is(f.host.snapshot().staged[0]?.external?.[0]?.[2],-0)).toBe(true);
+  const saved = JSON.stringify(f.host.snapshot()),restored = await fixture();restored.host.restore(v.parse(savedWire,JSON.parse(saved)));
+  expect(JSON.stringify(restored.host.snapshot())).toBe(saved);expect(Object.is(restored.host.snapshot().staged[0]?.external?.[0]?.[2],0)).toBe(true);
+  restored.host.stepExternal(7);expect(Object.is(restored.effects[0]?.[2],0)).toBe(true);
+});

@@ -1,5 +1,18 @@
-import type { EliteEnteredPresentation } from '@wildshard/format/eliteFeature';
-import type { Scope } from '@wildshard/engine/app/scope';
+import type { KeeperElitePage, ExternalElitePage } from './quest/elitePage';
+import type { PatrolEncounterView } from './boss/encounterView';
+import type { PageWildlife } from './population/wildlife';
+import type { PageWildEnvironment } from './population/pageGroups';
+import type { AdventurePersistence } from './quest/persistence';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { StrikeRunner } from '@wildshard/engine/ai/strikes';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows';
+import { app } from '@wildshard/engine/app/runtime';
+import type { CrowdTargets } from './shardfile/crowdRuntime';
+import { parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
+import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { HUD } from '@wildshard/engine/ui/HUD';
@@ -101,6 +114,8 @@ export interface EliteEnteredOwners {
 type PresentationCallbacks = 'addInteractable' | 'removeInteractable' | 'toast' | 'sting' | 'pickupHum';
 type PageEliteHost = Omit<EliteHost, PresentationCallbacks> & Partial<Pick<EliteHost, PresentationCallbacks>>;
 type Entry = EliteCoreEntry<EliteScript>;
+interface PreparedEliteOutputs { readonly validate: () => void; readonly operations: readonly (() => void)[] }
+type EliteOutputPrepare = (bank: readonly EliteOutput[], actors: readonly (Animal | null)[]) => PreparedEliteOutputs;
 
 const SIGHT_EVERY = 0.2;
 const _h = new THREE.Vector3();
@@ -115,7 +130,7 @@ export interface ElitePersistence {
 export class Elites {
   private readonly scope = resourceScope().child('Elites');
   private readonly core: EliteCore<EliteScript>;
-  private entered: { readonly owners: EliteEnteredOwners; readonly rows: EliteEnteredPresentation } | null = null;
+  private entered: { readonly owners: EliteEnteredOwners; readonly rows: EliteEnteredPresentation; readonly outputs?: EliteOutputPrepare; readonly actions?: readonly EliteOutputAction[]; readonly validateOutputs?: () => void; readonly drainOutputs?: () => void } | null = null;
   /** the lairs' first-kill orbs while they float */
   private readonly drops = new Map<Entry, WeaponPickup>();
   /** the elite whose bar is up (nearest aware / engaged) */
@@ -123,7 +138,7 @@ export class Elites {
   /** the focus's head in line of sight (re-cast every SIGHT_EVERY s while its bar floats over its head) */
   private seen = true; private sightT = 0;
 
-  constructor(private readonly host: PageEliteHost, private readonly bar: EliteBar, slug: string, persistence: ElitePersistence = elitesSave) {
+  constructor(private readonly host: PageEliteHost, private readonly bar: EliteBar, slug: string, private readonly persistence: ElitePersistence = elitesSave) {
     this.core = new EliteCore<EliteScript>(host, {
       spawned: (e) => { this.drops.delete(e); },
       broken: (e, entering) => {
@@ -153,11 +168,54 @@ export class Elites {
     this.core.add(script);
   }
   /** Bind after registering every lair and before initialization. The entered scope owns this exact Elites instance. */
-  bindEnteredPresentation(owners: EliteEnteredOwners, rows: EliteEnteredPresentation): void {
+  bindEnteredPresentation<T extends CrowdTargets>(owners: EliteEnteredOwners, rows: EliteEnteredPresentation,
+    outputs?: { readonly actions: readonly EliteOutputAction[]; readonly loans: ElitePageOutputLoans<T> }): void {
     if (this.entered !== null || owners.scope.disposed || !this.scope.belongsTo(owners.scope)) throw new Error('Invalid entered elite presentation owner');
     const ids = this.entries.map(entry => entry.script.def.id), keys = Object.keys(rows);
     if (keys.length !== ids.length || ids.some(id => !Object.hasOwn(rows, id))) throw new Error('Invalid entered elite presentation identities');
-    this.entered = { owners, rows };
+    if (outputs === undefined) { this.entered = { owners, rows }; return; }
+    const loans = outputs.loans, actions = parseEliteOutputActions(outputs.actions, loans.controllers.length);
+    const identity = (): void => {
+      if (loans.entered !== owners.scope || loans.player !== this.host.player || loans.game.scene !== this.host.scene || loans.game.camera !== this.host.camera
+        || loans.hud !== owners.hud || loans.audio !== owners.audio || loans.persistence.elites !== this.persistence
+        || loans.controllers.length !== this.entries.length || loans.controllers.some((controller, index) => this.entries[index]?.script !== controller.owner)) throw new Error('Foreign elite output binding');
+    };
+    identity();
+    for (const action of actions) {
+      if (action.kind === 'wildlife-pack') Object.freeze(action.variants);
+      else if (action.kind === 'wildlife-herd') Object.freeze(action.offset);
+      Object.freeze(action);
+    }
+    Object.freeze(actions);
+    const initial = prepareElitePageOutputs(actions, [], loans, []);
+    const validate = (): void => { if (this.entered?.actions !== actions) throw new Error('Replaced elite output binding'); identity(); initial.validate(); };
+    const prepare: EliteOutputPrepare = (bank, actors) => {
+      validate();
+      const prepared = prepareElitePageOutputs(actions, bank.map(row => ({ action: row.id, values: row.values })), loans, actors);
+      return { validate: () => { validate(); prepared.validate(); }, operations: prepared.operations.map(apply => () => { validate(); apply(); }) };
+    };
+    this.entered = { owners, rows, outputs: prepare, actions, validateOutputs: validate, drainOutputs: () => { validate(); drainElitePageOutputs(this, actions, loans); } };
+  }
+  /** Page-only output preparation borrows the SAME entered controllers and
+   * persistence. Actor slots are transient original emitted pointers, never a
+   * controller lookup, an additional body book or a serialized outbox. */
+  get v2OutputActions(): readonly EliteOutputAction[] {
+    const entered = this.entered;
+    if (entered?.actions === undefined || entered.validateOutputs === undefined) throw new Error('Missing live elite output binding');
+    entered.validateOutputs();
+    return entered.actions;
+  }
+  prepareV2Outputs(bank: readonly EliteOutput[], actors: readonly (Animal | null)[]): PreparedEliteOutputs {
+    const entered = this.entered;
+    if (entered?.outputs === undefined || entered.owners.scope.disposed || entered.owners.scope.disposing) throw new Error('Missing live elite output binding');
+    return entered.outputs(bank, actors);
+  }
+  /** Drain at the original page post-update slot, never at native stage commit.
+   * Every native/page transaction validates before the first operation applies. */
+  drainEnteredOutputs(): void {
+    const entered = this.entered;
+    if (entered?.drainOutputs === undefined) throw new Error('Missing live elite output binding');
+    entered.drainOutputs();
   }
   private sting(entry: Entry, event: 'banner' | 'phase2' | 'kill'): void {
     const entered = this.entered;
@@ -331,4 +389,157 @@ export class GroundTell {
     this.pos.needsUpdate = true; profile.fill.value = fill; profile.alpha.value = alpha; this.mesh.visible = true;
   }
   private show(alpha: number): void { if (this.mat !== null) this.mat.uniforms.uAlpha.value = alpha; this.mesh.visible = alpha > 0.01; }
+}
+
+/** Compiled native admission produces these tags beside the real controller;
+ * authored action rows cannot construct or reclassify a controller loan. */
+export type EliteOutputController = { readonly kind: 'keeper'; readonly owner: KeeperElitePage }
+  | { readonly kind: 'external'; readonly owner: ExternalElitePage };
+/** Existing entered owners lent to the effect application. None is authored
+ * content, an additional body registry, clock, continuation or installer. */
+export interface ElitePageOutputLoans<T extends CrowdTargets = CrowdTargets> {
+  readonly construction: Scope; readonly entered: Scope; readonly game: Game;
+  readonly controllers: readonly EliteOutputController[];
+  readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
+  readonly animals: AnimalManager; readonly environment: PageWildEnvironment;
+  readonly player: Player; readonly hud: HUD; readonly audio: Audio;
+  readonly persistence: AdventurePersistence; readonly contacts: StrikeRunner;
+  readonly strikes: readonly { readonly amount: number; readonly strike: StrikeData }[];
+  readonly fallbackStrike: StrikeData;
+}
+/** Prepare the COMPLETE native suffix without effects. The existing combined
+ * command authority interleaves these synchronous operations only after every
+ * actor/world/elite branch has passed validation. Actor pointers are captured
+ * once here, so an earlier adoption cannot retarget a later emitted contact. */
+function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly EliteOutputAction[], input: unknown,
+  loans: ElitePageOutputLoans<T>, actors: readonly (Animal | null)[]): { readonly validate: () => void; readonly operations: readonly (() => void)[] } {
+  const { construction, entered, game, controllers, patrol, wildlife, animals, environment, player, hud, audio, persistence, contacts, strikes, fallbackStrike } = loans;
+  const bank = parseEliteOutputBank(parseEliteOutputActions(actions, controllers.length), input, actors.length);
+  const controls = [...controllers], tags = controls.map(loan => loan.kind), controllerOwners = controls.map(loan => loan.owner), bodies = [...actors], level = game.levelScope, health = app.player, physics = app.physics, combat = app.combat;
+  // Identities are compared only; all calls retain the concrete native receiver.
+  const method = <O extends object>(owner: O | null, key: keyof O): unknown => owner === null ? undefined : owner[key];
+  const nativeMethods = (): readonly unknown[] => [method(loans.patrol, 'spawnRider'), method(loans.patrol, 'spawnLine'), method(loans.patrol, 'dissolve'),
+    method(loans.wildlife, 'spawnPack'), method(loans.wildlife, 'spawnHerd'), method(loans.animals, 'spawn'), method(loans.environment, 'onKnockdown'),
+    method(loans.hud, 'killFeed'), method(loans.audio, 'animal'), method(loans.persistence, 'kill'), method(loans.persistence, 'feat'), method(loans.contacts, 'contact'), method(combat, 'hit'),
+    ...controllers.flatMap(loan => [method(loan.owner, 'row'), method(loan.owner, 'def'),
+      loan.kind === 'external' ? method(loan.owner, 'adopt') : undefined, loan.kind === 'external' ? method(loan.owner, 'support') : undefined])];
+  const methods = nativeMethods();
+  const live = (): void => {
+    if (!(construction instanceof Scope) || !(entered instanceof Scope) || construction.disposed || construction.disposing || entered.disposed || entered.disposing
+      || game.levelScope !== level || game.app !== app || app.player !== health || app.physics !== physics || app.combat !== combat
+      || loans.construction !== construction || loans.entered !== entered || loans.game !== game || loans.controllers !== controllers
+      || loans.patrol !== patrol || loans.wildlife !== wildlife || loans.animals !== animals || loans.environment !== environment || loans.player !== player
+      || loans.hud !== hud || loans.audio !== audio || loans.persistence !== persistence || loans.contacts !== contacts || loans.strikes !== strikes || loans.fallbackStrike !== fallbackStrike
+      || controls.length !== controllers.length || controls.some((loan, index) => controllers[index] !== loan || loan.kind !== tags[index] || loan.owner !== controllerOwners[index])
+      || bodies.length !== actors.length || bodies.some((actor, index) => actors[index] !== actor) || nativeMethods().some((value, index) => value !== methods[index])) throw new Error('Retired or replaced elite output owner');
+  };
+  live();
+  if (new Set(controllerOwners).size !== controllerOwners.length || new Set(bodies.filter(actor => actor !== null)).size !== bodies.filter(actor => actor !== null).length
+    || controls.some(loan => { const row: object = loan.owner.row; return loan.kind === 'keeper' ? !('pattern' in row) || 'mode' in row : !('mode' in row) || 'pattern' in row; })
+) throw new Error('Invalid elite output loan');
+  for (const action of actions) {
+    const loan = controls[action.controller];
+    if (loan === undefined || action.kind === 'wildlife-pack' && loan.kind !== 'keeper'
+      || (action.kind === 'patrol-rider' || action.kind === 'patrol-line') && (loan.kind !== 'external' || loan.owner.row.mode !== 'script')
+      || action.kind === 'wildlife-herd' && (loan.kind !== 'external' || loan.owner.row.mode !== 'herd')) throw new Error('Invalid elite action controller');
+  }
+  const prepared: (() => void)[] = [];
+  for (const row of bank) {
+    const controllerLoan = controls[row.controller]; if (controllerLoan === undefined) throw new Error('Missing elite output controller');
+    let apply: () => void;
+    switch (row.kind) {
+      case 'contact': case 'patrol-dissolve': {
+        const actor = bodies[row.values[0]]; if (actor === undefined || actor === null) throw new Error('Missing emitted elite output actor');
+        if (row.kind === 'patrol-dissolve') { apply = () => { patrol?.dissolve(actor); }; break; }
+        const strike = strikeFromData(strikes.find(value => value.amount === row.amount)?.strike ?? fallbackStrike);
+        apply = () => {
+          if (health === null) return;
+          contacts.contact(strike, { actor, target: player.position, canReach: () => canReach(actor, player.position, physics), hit: () => {
+            if (!canReach(actor, player.position, physics)) return;
+            combat.hit({ source: 'env', sourceTags: [`elite.${actor.variant}`, 'feel.blow', 'cover.checked'], target: health, amount: row.amount,
+              point: actor.position, dir: new THREE.Vector3(), cause: { kind: actor.kind, label: actor.label } });
+          } });
+        }; break;
+      }
+      case 'knockdown': apply = () => { const [x, z] = row.values, length = Math.hypot(x, z) || 1; environment.onKnockdown(x / length, z / length, row.duration); }; break;
+      case 'feed': apply = () => { hud.killFeed(row.text); }; break;
+      case 'sound': apply = () => { audio.animal(row.cue, new THREE.Vector3(...row.values), player.position, player.yaw); }; break;
+      case 'record': apply = () => { persistence.kill(row.actorKind, row.variant); persistence.feat(row.actorKind); }; break;
+      case 'patrol-rider': {
+        if (controllerLoan.kind !== 'external' || controllerLoan.owner.row.mode !== 'script') throw new Error('Invalid rider result controller');
+        const controller = controllerLoan.owner;
+        apply = () => { const [x, z, yaw] = row.values, actor = patrol?.spawnRider({ x, z, yaw, variant: row.variant }); if (actor !== undefined && actor !== null) controller.adopt(actor); }; break;
+      }
+      case 'patrol-line': {
+        if (controllerLoan.kind !== 'external' || controllerLoan.owner.row.mode !== 'script') throw new Error('Invalid support result controller');
+        const controller = controllerLoan.owner;
+        apply = () => { controller.support(patrol?.spawnLine({ count: row.values[0] }) ?? []); }; break;
+      }
+      case 'wildlife-pack': {
+        if (controllerLoan.kind !== 'keeper') throw new Error('Invalid pack result controller');
+        const controller = controllerLoan.owner;
+        apply = () => { const [x, z, homeX, homeZ] = row.values, pack = wildlife?.spawnPack(x, z, row.variants) ?? null;
+          if (pack !== null) { pack.homeX = homeX; pack.homeZ = homeZ; } controller.pack = pack; }; break;
+      }
+      case 'wildlife-herd': {
+        if (controllerLoan.kind !== 'external' || controllerLoan.owner.row.mode !== 'herd') throw new Error('Invalid herd result controller');
+        const controller = controllerLoan.owner;
+        apply = () => {
+          const [x, z, yaw] = row.values, herd = wildlife?.spawnHerd(x + row.offset[0], z + row.offset[1], row.mares, row.foals, row.stallion);
+          if (herd === undefined) return;
+          const actor = animals.spawn(row.actorKind, x, z, yaw, row.variant), index = herd.members[0]?.herd ?? -1;
+          actor.herd = index; if (index >= 0) animals.herds[index]?.members.push(actor); herd.adoptStallion(actor); controller.adopt(actor, herd);
+        }; break;
+      }
+      default: throw new Error('Unsupported elite output');
+    }
+    prepared.push(() => { live(); apply(); });
+  }
+  return { validate: live, operations: prepared };
+}
+
+/** Native kernels already chose these events. Match only admitted finite action
+ * metadata; guest-prepared page banks retain their place in this SAME drain. */
+function drainElitePageOutputs<T extends CrowdTargets>(elites: Elites, actions: readonly EliteOutputAction[], loans: ElitePageOutputLoans<T>): void {
+  const events = loans.controllers.flatMap((loan, controller) => loan.owner.drainEffects().map(effect => ({ controller, effect })));
+  const actors: Animal[] = [];
+  for (const { effect } of events) if (effect.kind === 'hit' || effect.kind === 'retire') {
+    const actor = effect.kind === 'hit' ? effect.animal : effect.actor;
+    if (!actors.includes(actor)) actors.push(actor);
+  }
+  const prepared = events.map(({ controller, effect }): PreparedEliteOutputs => {
+    if (effect.kind === 'page-bank') return effect.bank;
+    const loan = loans.controllers[controller]; if (loan === undefined) throw new Error('Missing elite output controller');
+    const candidates = actions.filter(action => action.controller === controller);
+    const choose = (matches: (action: EliteOutputAction) => boolean): EliteOutputAction => {
+      const rows = candidates.filter(matches), row = rows[0];
+      if (rows.length !== 1 || row === undefined) throw new Error('Missing or ambiguous elite native output');
+      return row;
+    };
+    let action: EliteOutputAction, values: readonly number[];
+    switch (effect.kind) {
+      case 'hit': action = choose(row => row.kind === 'contact' && row.amount === effect.amount); values = [actors.indexOf(effect.animal)]; break;
+      case 'knock': action = choose(row => row.kind === 'knockdown'); values = [effect.x, effect.z]; break;
+      case 'feed': action = choose(row => row.kind === 'feed' && row.text === effect.id); values = []; break;
+      case 'sound': action = choose(row => row.kind === 'sound' && row.cue === effect.id); values = [effect.at.x, effect.at.y, effect.at.z]; break;
+      case 'record': action = choose(row => row.kind === 'record' && row.actorKind === effect.species && row.variant === effect.variant); values = []; break;
+      case 'retire': action = choose(row => row.kind === 'patrol-dissolve'); values = [actors.indexOf(effect.actor)]; break;
+      case 'support': action = choose(row => row.kind === 'patrol-line'); values = [effect.count]; break;
+      case 'pack': action = choose(row => row.kind === 'wildlife-pack' && row.variants.length === effect.variants.length && row.variants.every((value, index) => value === effect.variants[index]));
+        values = [effect.x, effect.z, loan.owner.def.lair.x, loan.owner.def.lair.z]; break;
+      case 'request': {
+        if (loan.kind !== 'external' || effect.row !== loan.owner.row) throw new Error('Foreign elite request row');
+        const spawn = effect.row.spawn;
+        action = spawn.source === 'rider' ? choose(row => row.kind === 'patrol-rider' && row.variant === spawn.variant)
+          : choose(row => row.kind === 'wildlife-herd' && row.actorKind === spawn.kind && row.variant === spawn.variant
+            && row.mares === spawn.mares && row.foals === spawn.foals && row.stallion === spawn.stallion
+            && row.offset.every((value, index) => Object.is(value, spawn.offset[index])));
+        values = [effect.row.def.lair.x, effect.row.def.lair.z, spawn.yaw]; break;
+      }
+      default: throw new Error('Unsupported elite native effect');
+    }
+    return elites.prepareV2Outputs(parseEliteOutputBank(actions, [{ action: action.id, values }], actors.length), actors);
+  });
+  for (const transaction of prepared) transaction.validate();
+  for (const transaction of prepared) for (const apply of transaction.operations) apply();
 }

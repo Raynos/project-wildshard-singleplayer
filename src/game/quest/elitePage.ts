@@ -218,7 +218,8 @@ export class KeeperElitePage implements EliteScript {
 /** External native allocation remains with its existing body owner. These rows
  * bind either a v1 fight slot or an AS-projected herd encounter to that body. */
 export type ExternalEliteRow = ExternalEliteData;
-export type ExternalEliteEffect = KeeperEliteEffect | { readonly kind: 'request'; readonly row: ExternalEliteRow }
+export type ExternalEliteEffect = KeeperEliteEffect | { readonly kind: 'page-bank'; readonly bank: { readonly validate: () => void; readonly operations: readonly (() => void)[] } }
+  | { readonly kind: 'request'; readonly row: ExternalEliteRow }
   | { readonly kind: 'retire'; readonly actor: Animal } | { readonly kind: 'support'; readonly count: number }
   | { readonly kind: 'record'; readonly species: string; readonly variant: string };
 type EncounterHerd = Pick<HerdBrain<Animal>, 'stallionState' | 'stallion' | 'leadAway'>;
@@ -291,7 +292,8 @@ export class ExternalElitePage implements EliteScript {
       }
       program.frame(this.services.player.position, 0, { engaged: Number(engaged), leashing: Number(leashing), phase2: Number(this.phase2), clock: time }); program.advanceFrame(dt);
       for (const effect of program.drainEffects()) {
-        if (effect.kind === 'hit') { this.events.push({ kind: 'hit', animal, amount: effect.hit.damage }, { kind: 'knock', x: Math.sin(animal.yaw), z: Math.cos(animal.yaw) }); }
+        if (effect.kind === 'page-bank') this.events.push(effect);
+        else if (effect.kind === 'hit') { this.events.push({ kind: 'hit', animal, amount: effect.hit.damage }, { kind: 'knock', x: Math.sin(animal.yaw), z: Math.cos(animal.yaw) }); }
         else if (effect.kind === 'cue') {
           const cue = this.row.cues[program.cue(effect.id)]; if (cue === undefined) continue;
           if (cue.signature === true) this.services.elites.signature(this.def.id);

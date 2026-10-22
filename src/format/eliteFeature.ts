@@ -93,3 +93,105 @@ export const ExternalEliteSchema = v.variant('mode', [
 ]);
 export type ExternalEliteData = v.InferOutput<typeof ExternalEliteSchema>;
 export function parseExternalElite(input: unknown): ExternalEliteData { return v.parse(ExternalEliteSchema, input); }
+
+const outputId = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(65535));
+const outputSlot = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(63));
+const outputOwner = { id: outputId, controller: outputSlot };
+/** Finite native effects selected by the admitted elite guest. IDs and slots
+ * label actions and original controller results, never reflected owner paths. */
+export const EliteOutputActionsSchema = v.pipe(v.array(v.variant('kind', [
+  v.strictObject({ ...outputOwner, kind: v.literal('contact'), amount: nonnegative }),
+  v.strictObject({ ...outputOwner, kind: v.literal('knockdown'), duration: nonnegative }),
+  v.strictObject({ ...outputOwner, kind: v.literal('feed'), text }),
+  v.strictObject({ ...outputOwner, kind: v.literal('sound'), cue: id }),
+  v.strictObject({ ...outputOwner, kind: v.literal('record'), actorKind: id, variant: id }),
+  v.strictObject({ ...outputOwner, kind: v.literal('patrol-rider'), variant: v.picklist(['rider', 'captain']) }),
+  v.strictObject({ ...outputOwner, kind: v.literal('patrol-line') }),
+  v.strictObject({ ...outputOwner, kind: v.literal('patrol-dissolve') }),
+  v.strictObject({ ...outputOwner, kind: v.literal('wildlife-pack'), variants: v.pipe(v.array(id), v.minLength(1), v.maxLength(64)) }),
+  v.strictObject({ ...outputOwner, kind: v.literal('wildlife-herd'), actorKind: id, variant: id,
+    offset: v.strictTuple([finite, finite]), mares: v.pipe(nonnegative, v.integer(), v.maxValue(256)),
+    foals: v.pipe(nonnegative, v.integer(), v.maxValue(256)), stallion: v.boolean() }),
+])), v.maxLength(128));
+export type EliteOutputAction = v.InferOutput<typeof EliteOutputActionsSchema>[number];
+/** Admission is separate from effect delivery, so an invalid suffix cannot
+ * allocate bodies, draw randomness or publish a partial result. */
+export function parseEliteOutputActions(input: unknown, controllers: number): readonly EliteOutputAction[] {
+  if (!isJsonData(input)) throw new Error('Elite output actions require JSON data');
+  const rows = v.parse(EliteOutputActionsSchema, input);
+  if (!Number.isInteger(controllers) || controllers < 0 || controllers > 64
+    || new Set(rows.map(row => row.id)).size !== rows.length || rows.some(row => row.controller >= controllers)) throw new Error('Invalid elite output identities');
+  return rows;
+}
+const noOperands = v.strictTuple([]), actorOperand = v.strictTuple([v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(7))]);
+const pointOperands = v.strictTuple([finite, finite, finite]);
+const rawOutput = v.strictObject({ action: outputId, values: v.pipe(v.array(finite), v.maxLength(4)) });
+const outputBank = v.pipe(v.array(rawOutput), v.maxLength(256));
+/** Resolve exact operand widths while retaining f64 signs and operation order.
+ * Actor indices address the transient ORIGINAL emitted actor bank; they never
+ * re-read a controller's current actor after an earlier request adopts a body. */
+interface OutputOperands {
+  contact: readonly [number]; 'patrol-dissolve': readonly [number]; knockdown: readonly [number, number];
+  sound: readonly [number, number, number]; 'patrol-rider': readonly [number, number, number]; 'wildlife-herd': readonly [number, number, number];
+  'wildlife-pack': readonly [number, number, number, number]; 'patrol-line': readonly [number]; feed: readonly []; record: readonly [];
+};
+export type EliteOutput = { [K in EliteOutputAction['kind']]: Extract<EliteOutputAction, { kind: K }> & { readonly values: OutputOperands[K] } }[EliteOutputAction['kind']];
+export function parseEliteOutputBank(actions: readonly EliteOutputAction[], input: unknown, actors: number): readonly EliteOutput[] {
+  // Runtime banks may contain -0. Check descriptors before schema reads instead
+  // of applying the canonical-JSON rule, which intentionally rejects that value.
+  const data = (value: unknown, depth = 0): boolean => {
+    if (depth > 3) return false;
+    if (typeof value === 'number') return Number.isFinite(value);
+    if (value === null || typeof value !== 'object' || Object.getOwnPropertySymbols(value).length > 0) return false;
+    if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) return false;
+    const keys = Object.getOwnPropertyNames(value);
+    if (keys.length > 1025 || Array.isArray(value) && (value.length > 256 || keys.length !== value.length + 1)) return false;
+    return keys.every(key => {
+      const own = Object.getOwnPropertyDescriptor(value, key);
+      return key === 'length' && Array.isArray(value) || own?.enumerable === true && own.get === undefined && own.set === undefined
+        && (key === 'action' || Array.isArray(value) || key === 'values') && data(own.value, depth + 1);
+    });
+  };
+  if (!Number.isInteger(actors) || actors < 0 || actors > 8 || !data(input)) throw new Error('Invalid elite output data');
+  const bank = v.parse(outputBank, input), byId = new Map(parseEliteOutputActions(actions, 64).map(row => [row.id, row]));
+  if (byId.size !== actions.length || actions.length > 128) throw new Error('Invalid elite output action bank');
+  const decode = (output: v.InferOutput<typeof rawOutput>): EliteOutput => {
+    const row = byId.get(output.action);
+    if (row === undefined) throw new Error('Undeclared elite output');
+    switch (row.kind) {
+      case 'contact': case 'patrol-dissolve': {
+        const values = v.parse(actorOperand, output.values);
+        if (values[0] >= actors) throw new Error('Missing emitted elite actor');
+        return { ...row, values };
+      }
+      case 'knockdown': return { ...row, values: v.parse(v.strictTuple([finite, finite]), output.values) };
+      case 'sound': case 'patrol-rider': case 'wildlife-herd': return { ...row, values: v.parse(pointOperands, output.values) };
+      case 'wildlife-pack': return { ...row, values: v.parse(v.strictTuple([finite, finite, finite, finite]), output.values) };
+      case 'patrol-line': return { ...row, values: v.parse(v.strictTuple([v.pipe(nonnegative, v.integer(), v.maxValue(8))]), output.values) };
+      case 'feed': case 'record': return { ...row, values: v.parse(noOperands, output.values) };
+      default: throw new Error('Unknown elite output');
+    }
+  };
+  return bank.map(decode);
+}
+
+/** Explicit elite service operation in the existing ABI-v2 64-byte command row.
+ * The combined owner validates/prepares EVERY branch before committing any;
+ * this decoder neither publishes an effect nor admits other command kinds. */
+export const ELITE_OUTPUT_OPERATION = 25;
+export function readEliteOutputV2(view: DataView, at: number, binding: number,
+  actions: readonly EliteOutputAction[], actors: number): EliteOutput {
+  if (!Number.isSafeInteger(at) || at < 0 || at % 8 !== 0 || at > view.byteLength - 64
+    || !Number.isInteger(binding) || binding < 1 || binding > 0x7fffffff
+    || view.getUint32(at, true) !== binding || view.getUint32(at + 4, true) !== ELITE_OUTPUT_OPERATION
+    || view.getUint32(at + 12, true) !== 0) throw new Error('Invalid elite output command');
+  const actionId = view.getUint32(at + 8, true), row = actions.find(action => action.id === actionId);
+  if (row === undefined) throw new Error('Undeclared elite output action');
+  const widths = { contact: 1, knockdown: 2, feed: 0, sound: 3, record: 0,
+    'patrol-rider': 3, 'patrol-line': 1, 'patrol-dissolve': 1, 'wildlife-pack': 4, 'wildlife-herd': 3 };
+  const width = widths[row.kind], values = Array.from({ length: 6 }, (_, index) => view.getFloat64(at + 16 + index * 8, true));
+  if (values.slice(width).some(value => !Object.is(value, 0))) throw new Error('Invalid elite output reserved operands');
+  const output = parseEliteOutputBank(actions, [{ action: actionId, values: values.slice(0, width) }], actors)[0];
+  if (output === undefined) throw new Error('Missing elite output');
+  return output;
+}

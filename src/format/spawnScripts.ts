@@ -55,6 +55,14 @@ export function parseSpawnScript(input: unknown): SpawnScriptRows {
     const needed = new Map([[1,bindings],[2,bindings*script.state.length],[3,bindings*script.state.length],[4,bindings*Object.keys(script.params).length],[5,bindings],[6,bindings*data.fields.length],[7,1],[9,16],[21,bindings],[22,bindings]]);
     if ([...needed].some(([kind,count]) => (capacities.get(kind) ?? 0) < count)) throw new Error('Incomplete spawn v2 input layout');
     if (capacities.size !== row.capacities.length || layout.bytes !== row.artifact.ioBytes) throw new Error('Invalid spawn v2 layout');
+    if (row.effects !== undefined) {
+      const world = row.effects.world;
+      if (world === undefined && row.effects.elites !== true) throw new Error('Empty v2 effect capabilities');
+      if (row.effects.elites === true && data.slots.some(slot => slot.authority !== 'observe')) throw new Error('Page effect slots must observe original bodies');
+      if (world !== undefined && (new Set(world.targets.map(target => target.handle)).size !== world.targets.length
+        || new Set(world.targets.map(target => target.identity)).size !== world.targets.length
+        || new Set(world.operations).size !== world.operations.length)) throw new Error('Duplicate v2 effect capability');
+    }
     if (row.self !== undefined && 'spawnGroup' in script.binding) throw new Error('V2 spawn groups use their own self slots');
     if (row.self !== undefined && !registry.actors?.has(row.self)) throw new Error('Unknown v2 self slot');
     for (const column of row.columns) if (data.fields[column.id-1]?.id !== column.name || data.fields[column.id-1]?.source !== 'observed') throw new Error('V2 column requires matching observed field');

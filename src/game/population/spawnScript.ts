@@ -1,3 +1,8 @@
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { Elites } from '../Elite';
+import { readEliteOutputV2,ELITE_OUTPUT_OPERATION,type EliteOutput } from '@wildshard/format/eliteFeature';
+import { readV2WorldAction,V2_ACTION_OPS,type V2ActionBinding,type V2WorldAction } from '@wildshard/format/scriptActionsV2';
+import { prepareV2WorldActions,type V2WorldActionLoan } from '../shardfile/worldActionsV2';
 import * as v from 'valibot';
 import { OwnedSimBatchV2,type OwnedV2Binding,type OwnedV2Frame } from '@wildshard/engine/script/ownedSimBatchV2';
 import { ObservationColumnsV2,type V2ColumnOwners } from '@wildshard/engine/script/observationColumnsV2';
@@ -11,7 +16,7 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
-import { DecisionHost, type DecisionContext, type DecisionScript, type DecisionWorld, type DecisionSnapshot } from '@wildshard/engine/script/decision';
+import { DecisionHost, type DecisionContext, type DecisionScript, type DecisionWorld, type DecisionSnapshot,type DecisionExternalCommand } from '@wildshard/engine/script/decision';
 import { ActorMoveRunner } from '@wildshard/engine/ai/moves';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
@@ -27,6 +32,10 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 
 /** Entered concrete service loans only; no shard callback or reflected name resolver. */
 export type SpawnV2Owners = Omit<V2ColumnOwners,'self' | 'player' | 'observed' | 't' | 'dt'>;
+/** Internal page-effect transaction forwarded through the ORIGINAL ephemeral
+ * effect stream and applied by its existing post-update entered drain. */
+export interface PreparedSpawnPageBank { readonly validate: () => void; readonly operations: readonly (() => void)[] }
+interface SpawnEffectOwners { readonly elites?: Elites; readonly world?: readonly V2WorldActionLoan[] }
 
 type ControlledBody = AnimalSim & { hidden?: boolean };
 const claimedBodies = new WeakMap<AnimalSim, SpawnScript>();
@@ -41,9 +50,11 @@ interface SpawnBodyOwner {
   boot: () => readonly ControlledBody[];
   reach: (body: AnimalSim, target: Point) => boolean;
   show?: (body: AnimalSim, visible: boolean) => void;
+  pageActor?: (id: string) => Animal | null;
 }
 type Effect = { readonly kind: 'cue' | 'retire'; readonly id: number; readonly actor: number; readonly at: Point }
-  | { readonly kind: 'hit'; readonly actor: number; readonly hit: ScriptStrikeHit };
+  | { readonly kind: 'hit'; readonly actor: number; readonly hit: ScriptStrikeHit }
+  | { readonly kind: 'page-bank'; readonly bank: PreparedSpawnPageBank };
 interface Motion { readonly id: number; readonly target: number; readonly runner: ActorMoveRunner }
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
@@ -87,7 +98,7 @@ export class SpawnScript {
   private readonly controlState: AnimalSim['state'];
   /** The decision host's final refusal, exposed without a callback into content. */
   get failure(): string | null { return this.disabledReason; }
-  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners) {
+  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners,private readonly effectOwners?: SpawnEffectOwners) {
     const rows = parseSpawnScript(input); this.rows = rows;
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
@@ -97,6 +108,8 @@ export class SpawnScript {
     this.contract = JSON.stringify({ ...originalRows, script: decisionScriptContract(rows.script), bytes: undefined });
     this.v2Contract = selected === undefined ? undefined : JSON.stringify({ ...selected,bytes: undefined });
     if (selected !== undefined && v2Owners === undefined) throw new Error('V2 spawn requires entered concrete owners');
+    if (selected?.effects?.elites === true && (effectOwners?.elites === undefined || bodies.pageActor === undefined)) throw new Error('Missing concrete page effect authority');
+    if (selected?.effects?.world !== undefined && effectOwners?.world === undefined) throw new Error('Missing concrete world effect authority');
     this.v2Columns = selected === undefined || v2Owners === undefined ? undefined : new ObservationColumnsV2(selected.columns,v2Owners.scope);
     const scripts: DecisionScript[] = [];
     for (const row of actorDecisionRows(rows.script)) {
@@ -117,7 +130,8 @@ export class SpawnScript {
     const world: DecisionWorld = { read: (op, a, b) => this.read(op, a, b), list: (op, a, b, out) => {
       if (op === 6) { if (b < 0 || b > 10000) throw new Error('Radial query bounds'); out[0] = Math.sin(a) * b; out[1] = Math.cos(a) * b; return 2; }
       if (op !== 3) throw new Error('Unsupported population list'); out[0] = bodies.height(a, b); return 1;
-    }, prepare: (commands, context) => this.prepare(commands, context), failed: (_mode, _context, reason) => { this.disabledReason = reason; } };
+    }, prepare: (commands, context) => this.prepare(commands, context),
+      ...(selected?.effects === undefined ? {} : { prepareExternal: (commands: readonly DecisionExternalCommand[],context: DecisionContext) => this.prepareExternal(commands,context) }), failed: (_mode, _context, reason) => { this.disabledReason = reason; } };
     this.host = new DecisionHost({ scripts, bindings, modules: new Map([[rows.script.module, bytes]]), seed: [rows.seed >>> 0, 0],
       world, ...(selected === undefined ? {} : { externalDivisor: selected.divisor }),limits: { fuelPerCall: 2000000, fuelPerTick: 8000000 } });
     this.v2Bindings = bindings.map(binding => ({ binding: { ...binding,self: selected?.self === undefined ? binding.self : value(rows.slots.find(slot => slot.id === selected.self), 'v2 self').handle },script: value(scripts.find(script => script.id === binding.script), 'v2 declaration') }));
@@ -125,7 +139,7 @@ export class SpawnScript {
       const modern = Uint8Array.from(atob(selected.bytes), byte => byte.codePointAt(0) ?? 0);
       admitScriptContract(modern,{ abi: 2,lane: 'sim',pages: selected.artifact.pages,ioBytes: selected.artifact.ioBytes,compilerRevision: selected.artifact.compilerRevision,admissionRevision: selected.artifact.admissionRevision });
       this.v2 = new OwnedSimBatchV2(modern,{ host: this.host,bindings: this.v2Bindings,layout: layoutV2(selected.io,selected.artifact.pages,new Map(selected.capacities.map(row => [row.kind,row.capacity]))),
-        divisor: selected.divisor,fuel: selected.fuel,initFuel: selected.initFuel,seed: [rows.seed >>> 0,0],eventKinds: new Set(rows.script.on.map(name => SCRIPT_V1_EVENTS[name])) });
+        divisor: selected.divisor,fuel: selected.fuel,initFuel: selected.initFuel,seed: [rows.seed >>> 0,0],eventKinds: new Set(rows.script.on.map(name => SCRIPT_V1_EVENTS[name])),externalCommands: selected.effects !== undefined });
     }
     if ('shard' in rows.script.binding) for (const binding of bindings) {
       if (this.v2 === undefined) this.host.enqueue(binding.id,[1,0,0,0,0,0]);
@@ -133,7 +147,7 @@ export class SpawnScript {
     }
   }
   /** Native binding takes existing platform authorities and rows, never per-shard ports. */
-  static native(host: SimHost, input: unknown,v2Owners?: SpawnV2Owners): SpawnScript {
+  static native(host: SimHost, input: unknown,v2Owners?: SpawnV2Owners,worldActions?: readonly V2WorldActionLoan[]): SpawnScript {
     const rows = parseSpawnScript(input), roster = populationRoster(host, rows.roster);
     for (const row of rows.species) roster.validateSpawn(row.kind, row.variant);
     return new SpawnScript(rows, { spawn: roster.spawn, retire: actor => {
@@ -141,17 +155,18 @@ export class SpawnScript {
       roster.retire(body);
     }, actor: roster.actor,
       height: (x, z) => host.groundHeightAt(x, z), available: roster.available, boot: () => roster.bodies().filter(row => row.scripted).map(row => row.actor),
-      reach: (body, target) => canReach(body, target, host.physics) },v2Owners);
+      reach: (body, target) => canReach(body, target, host.physics) },v2Owners,worldActions === undefined ? undefined : { world: worldActions });
   }
   /** Client-only binding to the actual AnimalManager. Its existing spawn/retire path owns bodies and draws. */
-  static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners): SpawnScript {
+  static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners,elites?: Elites,worldActions?: readonly V2WorldActionLoan[]): SpawnScript {
     return new SpawnScript(input, { spawn: (kind, x, z, yaw, variant) => animals.spawn(kind, x, z, yaw, variant),
       retire: actor => { const real = animals.animals.find(row => row === actor); if (real === undefined) throw new Error('Foreign page spawn retirement'); animals.retire(real); },
-      actor: id => animals.animals.find(row => row.entityId === id) ?? null, height: terrainHeight,
+      actor: id => animals.animals.find(row => row.entityId === id) ?? null,
+      pageActor: id => animals.animals.find(row => row.entityId === id) ?? null, height: terrainHeight,
       available: () => 16384 - animals.animals.length, boot: () => animals.animals.filter(row => row.scripted),
       reach: (body, target) => physics !== undefined && physics !== null && canReach(body, target, physics),
       show: (body, visible) => { const real = animals.animals.find(row => row === body); if (real !== undefined) real.mesh.visible = visible; },
-    },v2Owners);
+    },v2Owners,{ ...(elites === undefined ? {} : { elites }),...(worldActions === undefined ? {} : { world: worldActions }) });
   }
   private v2Identities(): ReadonlyMap<number,string> {
     const rows = new Map([...this.handles].map(([handle,body]) => [handle,body.entityId]));rows.set(DECISION_PLAYER_HANDLE,`${this.rows.step}:player`);return rows;
@@ -218,6 +233,72 @@ export class SpawnScript {
   }
   /** Validate the complete batch and resolve its row/species/site identities before any draw, body or flag changes. */
   private prepare(commands: readonly ScriptV1Command[], context: DecisionContext): { commit: () => void } {
+    const operations = this.prepareOperations(commands,context);
+    return { commit: () => { for (const operation of operations) operation(); } };
+  }
+  private prepareExternal(commands: readonly DecisionExternalCommand[],context: DecisionContext): { commit: () => void } {
+    const capabilities = value(this.rows.v2?.effects,'external effect declaration'),owners = value(this.v2Owners,'external effect owners');
+    const elites = capabilities.elites === true ? value(this.effectOwners?.elites,'entered elite owner') : undefined;
+    // Preserve declaration indices, including holes. Never use manager order or
+    // re-read controller.animal after an earlier emitted adoption.
+    const actors: readonly (Animal | null)[] = elites === undefined ? [] : this.rows.slots.map(slot => {
+      const body = this.handles.get(slot.handle);if (body === undefined) return null;
+      const actual = this.bodies.pageActor?.(body.entityId);
+      if (actual !== body) throw new Error('Foreign page effect actor');return actual;
+    });
+    const actorRows: ScriptV1Command[] = [],worldRows: V2WorldAction[] = [],eliteRows: EliteOutput[] = [];
+    const order: { readonly kind: 'actor' | 'world' | 'elite'; readonly index: number }[] = [];
+    const world = capabilities.world;
+    const rights: V2ActionBinding | undefined = world === undefined ? undefined : { identity: String(context.binding.id),handle: context.binding.id,
+      targets: new Map(world.targets.map(row => [row.handle,{ identity: row.identity,kind: row.kind }])),operations: new Set(world.operations),maxCommands: world.maxCommands,bounds: world.bounds };
+    const wire = new DataView(new ArrayBuffer(64));
+    for (const command of commands) {
+      const [op,target,a,b,c,d] = command;
+      if ([1,2,3,4,5,6,7,12,13].includes(op)) {
+        if (!Object.is(d,0)) throw new Error('Native actor command padding');
+        // Physical fight commands keep their original native phase. A new page
+        // controller observes those bodies and emits only page-drain effects.
+        if (elites !== undefined && op !== 7 && op !== 13) throw new Error('Page actor operation requires native phase');
+        order.push({ kind: 'actor',index: actorRows.length });actorRows.push([op,target,a,b,c]);continue;
+      }
+      new Uint8Array(wire.buffer).fill(0);wire.setUint32(0,context.binding.id,true);wire.setUint32(4,op,true);wire.setUint32(8,target,true);
+      [a,b,c,d].forEach((n,index) => wire.setFloat64(16+index*8,n,true));
+      if (Object.values(V2_ACTION_OPS).some(operation => operation === op)) {
+        order.push({ kind: 'world',index: worldRows.length });worldRows.push(readV2WorldAction(wire,0,rights));continue;
+      }
+      if (op === ELITE_OUTPUT_OPERATION && elites !== undefined) {
+        order.push({ kind: 'elite',index: eliteRows.length });eliteRows.push(readEliteOutputV2(wire,0,context.binding.id,elites.v2OutputActions,actors.length));continue;
+      }
+      throw new Error('Undeclared external effect operation');
+    }
+    if (worldRows.length > (world?.maxCommands ?? 0)) throw new Error('World effect binding quota');
+    const actorOperations = this.prepareOperations(actorRows,context);
+    const preparedWorld = world === undefined ? undefined : prepareV2WorldActions(worldRows,value(this.effectOwners?.world,'world effect loans'));
+    const preparedElite = elites?.prepareV2Outputs(eliteRows,actors);
+    const validate = (): void => {
+      if (owners.scope.disposed || owners.scope.disposing) throw new Error('Retired external effect scope');
+      if (elites !== undefined) for (const [index,slot] of this.rows.slots.entries()) {
+        const before = actors[index] ?? null,now = this.handles.get(slot.handle) ?? null;
+        if (now !== before || (before !== null && this.bodies.pageActor?.(before.entityId) !== before)) throw new Error('Replaced page effect actor slot');
+      }
+      preparedWorld?.validate();preparedElite?.validate();
+    };
+    const operations = order.map(row => {
+      const operation = value(row.kind === 'actor' ? actorOperations[row.index] : row.kind === 'world' ? preparedWorld?.operations[row.index] : preparedElite?.operations[row.index],'prepared external operation');
+      return (): void => {
+        if (owners.scope.disposed || owners.scope.disposing) throw new Error('Retired external effect scope');
+        operation();
+      };
+    });
+    validate();
+    const bank: PreparedSpawnPageBank = { validate,operations: Object.freeze(operations) };
+    return { commit: () => {
+      validate();
+      if (elites !== undefined) this.effects.push({ kind: 'page-bank',bank });
+      else for (const operation of operations) operation();
+    } };
+  }
+  private prepareOperations(commands: readonly ScriptV1Command[], context: DecisionContext): readonly (() => void)[] {
     const fields = new Map(this.fields), pending = new Set<number>(), retiring = new Set<number>(), operations: (() => void)[] = [];
     let capacity = this.bodies.available();
     const slot = (name: string): number => value(this.rows.slots.find(row => row.id === name), 'slot').handle;
@@ -304,7 +385,7 @@ export class SpawnScript {
         value(this.rows.channels[a - 1], 'channel'); operations.push(() => { this.channels.set(a, b); });
       } else throw new Error('Unsupported population command');
     }
-    return { commit: () => { for (const operation of operations) operation(); } };
+    return operations;
   }
   /** Existing native/page owners supply observations as values; the guest cannot call back into shard code. */
   advance(dt: number, point: Point, night: number, maximum: number, flags: readonly string[]): void {
@@ -568,8 +649,8 @@ export class SpawnScript {
 }
 
 /** Built-in native adapter: row ids resolve the already installed roster; its actor IDs, draw order and save owner stay authoritative. */
-export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock, 'night'>, input: unknown,v2Owners?: SpawnV2Owners): SpawnScript {
-  const rows = parseSpawnScript(input), runner = SpawnScript.native(host, rows,v2Owners);
+export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock, 'night'>, input: unknown,v2Owners?: SpawnV2Owners,worldActions?: readonly V2WorldActionLoan[]): SpawnScript {
+  const rows = parseSpawnScript(input), runner = SpawnScript.native(host, rows,v2Owners,worldActions);
   // A quiet re-save preserves the validated input wire until the first simulation step.
   let restored: SimValue | undefined;
   host.onStep(rows.step, dt => {

@@ -44,21 +44,32 @@ export function readV2WorldActions(view: DataView,layout: V2Layout,count: number
   }
   const rows: V2WorldAction[] = [], used = new Map<number,number>();
   for (let index = 0; index < count; index++) {
-    const at = layout.io+region.offset+index*64, handle = view.getUint32(at,true), op = view.getUint32(at+4,true), target = view.getUint32(at+8,true), binding = bindings.get(handle);
+    const at = layout.io+region.offset+index*64, handle = view.getUint32(at,true), binding = bindings.get(handle);
+    const action = readV2WorldAction(view,at,binding);
+    if (binding === undefined) throw new Error('Undeclared v2 world action');
+    const n = (used.get(handle) ?? 0)+1;if (n > binding.maxCommands) throw new Error('V2 world action quota');used.set(handle,n);
+    rows.push(action);
+  }
+  return Object.freeze(rows.map(row => Object.freeze(row)));
+}
+
+/** Exact single record decoder for a combined bank. The combined authority
+ * still validates EVERY record, aggregate quotas and all native loans before
+ * any operation runs; this reader never skips unknown operations. */
+export function readV2WorldAction(view: DataView,at: number,binding: V2ActionBinding | undefined): V2WorldAction {
+  if (!Number.isSafeInteger(at) || at < 0 || at%8 !== 0 || at > view.byteLength-64) throw new Error('Invalid v2 world action record');
+  const handle = view.getUint32(at,true),op = view.getUint32(at+4,true),target = view.getUint32(at+8,true);
     if (binding === undefined || binding.handle !== handle || !positive(handle) || binding.identity.length === 0 || ![...binding.operations].some(allowed => allowed === op) || !positive(binding.maxCommands) || binding.maxCommands > 32
       || !Number.isFinite(binding.bounds.coordinate) || binding.bounds.coordinate <= 0 || !Number.isFinite(binding.bounds.velocity) || binding.bounds.velocity < 0
       || view.getUint32(at+12,true) !== 0) throw new Error('Undeclared v2 world action');
     const owner = binding.targets.get(target);
     if (!positive(target) || owner === undefined || owner.identity.length === 0) throw new Error('Unowned v2 world action target');
-    const n = (used.get(handle) ?? 0)+1;if (n > binding.maxCommands) throw new Error('V2 world action quota');used.set(handle,n);
     const values = Array.from({ length: 6 },(_,i) => view.getFloat64(at+16+i*8,true));
     if (!values.every(Number.isFinite)) throw new Error('Non-finite v2 world action');
     const [x,y,z] = values;if (x === undefined || y === undefined || z === undefined) throw new Error('Missing v2 world action values');
     const zero = (from: number): boolean => values.slice(from).every(value => Object.is(value,0));
-    if (op === V2_ACTION_OPS.dismount && owner.kind === 'mount' && (x === 0 || x === 1) && zero(1)) rows.push({ binding: binding.identity,target: owner.identity,kind: 'dismount',thrown: x === 1 });
-    else if (op === V2_ACTION_OPS.ignite && owner.kind === 'cell-field' && Math.abs(x) <= binding.bounds.coordinate && Math.abs(y) <= binding.bounds.coordinate && zero(2)) rows.push({ binding: binding.identity,target: owner.identity,kind: 'ignite',x,z: y });
-    else if (op === V2_ACTION_OPS.impulse && owner.kind === 'player' && Math.hypot(x,y,z) <= binding.bounds.velocity && zero(3)) rows.push({ binding: binding.identity,target: owner.identity,kind: 'impulse',x,y,z });
-    else throw new Error('Invalid v2 world action operands');
-  }
-  return Object.freeze(rows.map(row => Object.freeze(row)));
+    if (op === V2_ACTION_OPS.dismount && owner.kind === 'mount' && (x === 0 || x === 1) && zero(1)) return Object.freeze({ binding: binding.identity,target: owner.identity,kind: 'dismount',thrown: x === 1 });
+    if (op === V2_ACTION_OPS.ignite && owner.kind === 'cell-field' && Math.abs(x) <= binding.bounds.coordinate && Math.abs(y) <= binding.bounds.coordinate && zero(2)) return Object.freeze({ binding: binding.identity,target: owner.identity,kind: 'ignite',x,z: y });
+    if (op === V2_ACTION_OPS.impulse && owner.kind === 'player' && Math.hypot(x,y,z) <= binding.bounds.velocity && zero(3)) return Object.freeze({ binding: binding.identity,target: owner.identity,kind: 'impulse',x,y,z });
+    throw new Error('Invalid v2 world action operands');
 }
