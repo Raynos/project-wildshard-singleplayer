@@ -11155,3 +11155,24 @@ bind or its failed/retired final yield. Future world assembly must still
 complete the placement bind before dispatch; a rank is not a readiness proof.
 The continuation borrows the existing collection/quest and keeps their
 inventory, material, geometry and saved-state owners.
+
+### Declared page boot inventories (G571)
+
+`game/shard/pageBoot.pageModeBoot(rows)` returns the boot's `files`,
+`sources` and `bakedUnread` bindings from strict generated JSON. `PageBootRows`
+has exactly `shard`, `grid` and `bakedUnreadPrefixes`: each page row contains
+`modes` with both tiers and both texture modes, each containing the ten boot
+source arrays. Selectors read the current page mode on every call, preserving
+source order and duplicate URLs. `files(tier)` flattens the image inventory;
+`sources(tier, tex)` selects the requested inventory. Exclusion prefixes match
+only a final path basename and accept no regular expressions or callbacks.
+
+The strict manifest binding is `boot: { platform: 'page-mode', rows:
+{ module: './data/bootMetadata.generated.json', export: 'default' } }`.
+`ktx2` accepts the same binding shape with a separate generated JSON module.
+Discovery imports that GPU payload only inside the lazy KTX2 call and invokes
+`pageModeKtx2(rows)`. Its `PageKtx2Rows` contains exactly `shard` and `grid`,
+each with the existing `phone` and `desktop` GPU URL maps. Image boot bindings
+do not load or register GPU tables. Both hosts are server-safe and install no
+service, clock or save owner. Recipes resolve at build time; unknown binding
+options, executable rows and missing modes refuse admission.

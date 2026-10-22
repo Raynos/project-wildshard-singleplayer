@@ -198,10 +198,13 @@ const binding = v.strictObject({module: bindingModule, export: bindingName});
 const moduleBinding = v.strictObject({module: bindingModule});
 /** G4: rows a shard generates for the game to build from (`declaredGround`, `declaredForestQueries`, `declaredStreamClip`) */
 const declared = v.strictObject({ platform: v.literal('declared'), rows: binding });
+const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.strictObject({
+  module: v.pipe(binding.entries.module, v.regex(/\.json$/u)), export: v.literal('default'),
+}) });
 const bindings = v.strictObject({
   accent: text, budgets: binding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(binding),
   mapPalette: v.exactOptional(binding), poses: v.exactOptional(binding), audioCues: v.exactOptional(binding),
-  boot: v.exactOptional(v.strictObject({files: binding, sources: binding, lateReads: v.exactOptional(binding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding)})),
+  boot: v.exactOptional(v.union([pageBoot, v.strictObject({files: binding, sources: binding, lateReads: v.exactOptional(binding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding)})])),
   forestQueries: v.exactOptional(v.union([binding, declared])),
   pondClip: v.exactOptional(v.union([binding, declared])), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
@@ -210,7 +213,7 @@ const bindings = v.strictObject({
     // G571: a keyed day / night sky look from rows (game looks/keyedSky `keyedSkyRender`): its channel set, dome / env
     // looks and the page-mode trim row (packed keys and the small environment) of a page policy file
     v.strictObject({ platform: v.literal('keyed'), channels: text, looks: binding, trim: binding, trimRow: bindingName })])), load: v.exactOptional(moduleBinding),
-  ktx2: v.exactOptional(v.union([moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
+  ktx2: v.exactOptional(v.union([pageBoot, moduleBinding, binding])), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
 });
 const tier = v.objectWithRest({aa: v.exactOptional(v.picklist(['fxaa', 'smaa', 'off'])),
   slices: v.exactOptional(v.boolean()), skipRaysOffscreen: v.exactOptional(v.boolean()), envSteps: v.exactOptional(v.boolean()), pointLightSkip: v.exactOptional(v.boolean()), godRays: v.exactOptional(v.boolean()), ao: v.exactOptional(v.boolean()),

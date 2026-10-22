@@ -6,11 +6,10 @@ import * as v from 'valibot';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
-import { pineBootInventory } from './bootInventory.ts';
+import { pineBootInventory, pineKtx2Tables } from './bootInventory.ts';
 import { FINISH_CARDS } from './finishCards.ts';
 import { WILDLIFE_LOOK } from './wildlifeLook.ts';
 import people from '../data/questNpcs.generated.json' with { type: 'json' };
-import policy from '../data/pagePolicy.json' with { type: 'json' };
 
 /** Only these public trees affect recipe presence, phone fallbacks and GPU aliases. */
 const roots = ['assets/hdri', 'assets/baked/pine-hollow', 'assets/tex', 'assets/models',
@@ -36,7 +35,7 @@ export function bootMetadata() {
   // The existing texture baker publishes a literal table, also read by the prop/hero bakers.
   const source = readFileSync(resolve(root, 'src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated.ts'), 'utf8');
   const astc = v.parse(v.record(v.string(), v.string()), JSON.parse(source.slice(source.indexOf(' = {') + 3, source.lastIndexOf('}') + 1)));
-  return { ...pineBootInventory(ordered, astc), policy };
+  return { boot: pineBootInventory(ordered, astc), gpu: pineKtx2Tables(astc) };
 }
 export const explorerMetadata = () => ({ cards: FINISH_CARDS, wildlifeLook: WILDLIFE_LOOK, names: Object.fromEntries(people.rows.map(row => [row.npc.id, row.npc.name])) });
 /** Diagnostic eyes retain the shipping lattice's height and original angles. */
@@ -52,6 +51,8 @@ export function capturePoses() {
 }
 if (import.meta.main) {
   writeFileSync(new URL('../data/boot-poses.generated.json', import.meta.url), `${JSON.stringify(capturePoses())}\n`);
-  writeFileSync(new URL('../data/bootMetadata.generated.json', import.meta.url), `${JSON.stringify(bootMetadata())}\n`);
+  const rows = bootMetadata();
+  writeFileSync(new URL('../data/bootMetadata.generated.json', import.meta.url), `${JSON.stringify(rows.boot)}\n`);
+  writeFileSync(new URL('../data/gpuTables.generated.json', import.meta.url), `${JSON.stringify(rows.gpu)}\n`);
   writeFileSync(new URL('../data/explorerMetadata.generated.json', import.meta.url), `${JSON.stringify(explorerMetadata())}\n`);
 }

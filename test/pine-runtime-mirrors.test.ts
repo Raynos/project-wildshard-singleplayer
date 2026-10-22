@@ -4,11 +4,11 @@ import logKit from '../src/shards/pine-hollow/data/logKit.json' with { type: 'js
 import { readFileSync } from 'node:fs';
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
-import poses from '../src/shards/pine-hollow/data/boot-poses.generated.json' with { type: 'json' };
 import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
+import { ManifestMetadataSchema } from '../src/format/minimap';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
 import { NativeViewSchema, CaveRowsSchema, PoolGroundSchema } from '../src/shards/pine-hollow/generators/sections';
 import { output } from '../src/shards/pine-hollow/generators/output';
@@ -17,13 +17,15 @@ import { emptyShardfile } from '../src/sdk/author';
 import { resolveBootSources } from '../src/engine/boot/filePolicy';
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from '../src/shards/pine-hollow/generators/bootFiles';
 import metadata from '../src/shards/pine-hollow/data/bootMetadata.generated.json' with { type: 'json' };
-import explorer from '../src/shards/pine-hollow/data/explorerMetadata.generated.json' with { type: 'json' };
 import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
 import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import { ASTC6_PHONE } from '../src/shards/pine-hollow/runtime/boot/astc6/ktx2.generated';
-import { bootSources, bootFiles, pineMemoryTrim, pineSetCap } from '../src/shards/pine-hollow/runtime/boot/files';
+import { pageModeBoot, pageModeKtx2 } from '../src/game/shard/pageBoot';
+import { pageModeValue, pageModeCap } from '../src/game/shard/pagePolicy';
+import policy from '../src/shards/pine-hollow/data/pagePolicy.json' with { type: 'json' };
+import gpuTables from '../src/shards/pine-hollow/data/gpuTables.generated.json' with { type: 'json' };
 import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
 
 test('world view rows come from the admitted section', () => {
@@ -40,27 +42,34 @@ test('world view rows come from the admitted section', () => {
 });
 
 test('pre-admission metadata preserves Explorer identities and ordered boot recipes', () => {
-  expect(explorer.cards).toEqual(FINISH_CARDS);
+  const explorer: unknown = JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/explorerMetadata.generated.json', import.meta.url), 'utf8'));
+  expect(explorer).toMatchObject({ cards: FINISH_CARDS });
   const inputs = { pages:{ coats:coatPages.tiers }, aliases:{ props:authored.propMaterials } };
   const before = currentPageMode();
+  const boot = pageModeBoot(metadata);
+  if (typeof boot.sources !== 'function' || typeof boot.files !== 'function') throw new Error('Missing boot selectors');
   try {
     for (const mode of ['shard', 'grid'] as const) {
       setPageMode(mode);
-      expect(pineMemoryTrim()).toBe(mode === 'grid');
-      expect([256, 512, 1024, 2048].map(pineSetCap)).toEqual(mode === 'grid' ? [256, 512, 512, 2048] : [256, 512, 1024, 2048]);
+      expect(pageModeValue(policy.memoryTrim)).toBe(mode === 'grid');
+      expect([256, 512, 1024, 2048].map(cap => pageModeCap(policy.setCap, cap))).toEqual(mode === 'grid' ? [256, 512, 512, 2048] : [256, 512, 1024, 2048]);
       const table = mode === 'grid' ? { phone:{ ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop:GPU_FILES.desktop } : GPU_FILES;
-      const baked = mode === 'grid' ? metadata.grid : metadata.standalone;
+      const baked = metadata[mode];
+      expect(pageModeKtx2(gpuTables).GPU_FILES).toEqual(table);
       for (const tier of ['phone','desktop'] as const) for (const tex of ['img','ktx2'] as const) {
         const expected = resolveBootSources(PINE_BOOT_FILES, PINE_BOOT_SOURCES, tier, tex, table, inputs);
         expect(baked.modes[tier][tex]).toEqual(expected);
-        expect(bootSources(tier, tex)).toEqual(expected);
-        if (tex === 'img') expect(bootFiles(tier)).toEqual(Object.values(expected).flat());
+        expect(boot.sources(tier, tex)).toEqual(expected);
+        if (tex === 'img') expect(boot.files(tier)).toEqual(Object.values(expected).flat());
       }
     }
   } finally { setPageMode(before); }
 });
 
 test('generated diagnostic eyes retain the authored probes and native terrain height', () => {
+  const poses = v.parse(v.record(v.string(), v.strictObject({ probe: ManifestMetadataSchema.entries.captureProbes.wrapped.item,
+    eye: v.tuple([v.number(), v.number(), v.number()]), yaw: v.number(), pitch: v.number(), mockup: v.string(), frame: v.string(),
+  })), JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/boot-poses.generated.json', import.meta.url), 'utf8')));
   const grid = parseBakedTerrain(Uint8Array.from(readFileSync(new URL('../public/assets/baked/pine-hollow/terrain.bin', import.meta.url))), { seed:1337 });
   if (grid === null) throw new Error('Missing Pine lattice');
   const source = bakedSamplers(grid);

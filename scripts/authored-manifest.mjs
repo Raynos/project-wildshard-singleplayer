@@ -97,7 +97,10 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     const heldRows = value({ module: b.sword.rows, export: 'default' });
     rows.push(`sword: async () => (await import('@wildshard/game/systems/viewmodel/toonArms')).ToonArms.admit(${heldRows}.look).load()`);
   } else if (b.sword) rows.push(`sword: async () => ${lazy(b.sword, true)}`);
-  if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key])}`).join(', ')} }`);
+  if (b.boot?.platform === 'page-mode') {
+    imports.push("import { pageModeBoot } from '@wildshard/game/shard/pageBoot';");
+    rows.push(`bootBindings: pageModeBoot(${value(b.boot.rows)})`);
+  } else if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key])}`).join(', ')} }`);
   const native = [];
   if (b.render?.platform === 'toon') native.push("render: async (product) => (await import('@wildshard/game/looks/toonLook')).toonLook(product)");
   if (declared.includes('ground')) native.push(`ground: ${built('ground')}`);
@@ -121,7 +124,13 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     // before reading its constructor; never snapshot exports from concurrent loads.
     native.push(`load: async () => { const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default, ${policy}); }`);
   }
-  for (const key of ['load', 'ktx2']) if (b[key]) native.push(b[key].export ? `${key}: async () => ${lazy(b[key], true)}` : `${key}: () => import(${JSON.stringify(modulePath(b[key].module))})`);
+  for (const key of ['load', 'ktx2']) if (b[key]) {
+    if (key === 'ktx2' && b[key].platform === 'page-mode') {
+      const ref = b[key].rows;
+      if (ref.export !== 'default' || !ref.module.endsWith('.json')) throw new Error(`${file}: page KTX2 requires default JSON rows`);
+      native.push(`ktx2: async () => (await import('@wildshard/game/shard/pageBoot')).pageModeKtx2((await import(${JSON.stringify(modulePath(ref.module))}, { with: { type: 'json' } })).default)`);
+    } else native.push(b[key].export ? `${key}: async () => ${lazy(b[key], true)}` : `${key}: () => import(${JSON.stringify(modulePath(b[key].module))})`);
+  }
   if (b.posesLoader) native.push(`dev: {poses: async () => ${lazy(b.posesLoader, true)}}`);
   // The helper lives in the generated file behind a type-only import, so a build of an older revision that meets this file
   // in a mirror (its generators import it before gen-shards rewrites it) still loads.

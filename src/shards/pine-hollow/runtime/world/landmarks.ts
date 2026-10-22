@@ -18,7 +18,8 @@ import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { rangedPage } from '@wildshard/game/loadout/rangedPage';
 import { installPageLife } from '@wildshard/sdk/looks/pageLife';
 import { installForestWeather } from '@wildshard/sdk/looks/forestWeather';
-import { pineSetCap } from '../boot/files';
+import { pageModeCap } from '@wildshard/game/shard/pagePolicy';
+import pagePolicy from '../../data/pagePolicy.json' with { type: 'json' };
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 export class PineLandmarks {
@@ -32,7 +33,7 @@ export class PineLandmarks {
   async build(): Promise<this> {
     const product = await loadFirstPartyProduct('pine-hollow');
     // the cave, its textures and its roof patch
-    this.crags = { cave: await CaveInterior.load(await product.json('world/cave-interior.json'), pineSetCap(TIER_CONFIG.maxTexture)) };
+    this.crags = { cave: await CaveInterior.load(await product.json('world/cave-interior.json'), pageModeCap(pagePolicy.setCap, TIER_CONFIG.maxTexture)) };
     const cragFx = new THREE.Group(); cragFx.name = 'pine-crags';
     this.crags.cave.buildFx(); cragFx.add(...this.crags.cave.fx); this.group.add(cragFx);
     return this;

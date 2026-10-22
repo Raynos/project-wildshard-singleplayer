@@ -783,17 +783,10 @@
       "export": "default"
     },
     "boot": {
-      "files": {
-        "module": "./runtime/boot/files",
-        "export": "bootFiles"
-      },
-      "sources": {
-        "module": "./runtime/boot/files",
-        "export": "bootSources"
-      },
-      "bakedUnread": {
-        "module": "./runtime/boot/files",
-        "export": "BAKED_UNREAD"
+      "platform": "page-mode",
+      "rows": {
+        "module": "./data/bootMetadata.generated.json",
+        "export": "default"
       }
     },
     "forestQueries": {
@@ -811,8 +804,11 @@
       }
     },
     "ktx2": {
-      "module": "./runtime/boot/gpuTable",
-      "export": "pineKtx2"
+      "platform": "page-mode",
+      "rows": {
+        "module": "./data/gpuTables.generated.json",
+        "export": "default"
+      }
     },
     "entry": {
       "legacy": "./runtime/hybrid",

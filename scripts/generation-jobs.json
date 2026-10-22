@@ -18520,12 +18520,14 @@
       "outputs": [
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
         "src/shards/pine-hollow/data/explorerMetadata.generated.json",
-        "src/shards/pine-hollow/data/boot-poses.generated.json"
+        "src/shards/pine-hollow/data/boot-poses.generated.json",
+        "src/shards/pine-hollow/data/gpuTables.generated.json"
       ],
       "buildTimeOutputs": [
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
         "src/shards/pine-hollow/data/explorerMetadata.generated.json",
-        "src/shards/pine-hollow/data/boot-poses.generated.json"
+        "src/shards/pine-hollow/data/boot-poses.generated.json",
+        "src/shards/pine-hollow/data/gpuTables.generated.json"
       ],
       "platform": "portable"
     },

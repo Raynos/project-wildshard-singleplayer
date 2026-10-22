@@ -282,7 +282,8 @@
     "./quest/flagGates": "./quest/flagGates.ts",
     "./quest/bodyOps": "./quest/bodyOps.ts",
     "./shardfile/entryOwners": "./shardfile/entryOwners.ts",
-    "./quest/continuation": "./quest/continuation.ts"
+    "./quest/continuation": "./quest/continuation.ts",
+    "./shard/pageBoot": "./shard/pageBoot.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",
