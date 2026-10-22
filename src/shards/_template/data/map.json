@@ -44,7 +44,7 @@
   "inputs": [
     "shard.config.ts",
     "generators",
-    "data/layout.ts",
+    "data/layout.json",
     "data/spawn.ts",
     "data/props.json",
     "data/terrain.json",

@@ -1,5 +1,5 @@
 import { CHUNK_HALF } from '@wildshard/format/contentBounds';
-import { TRAIL } from '../data/layout';
+import layout from '../data/layout.json' with { type: 'json' };
 import { cellGround } from './ground';
 import { templateNoise } from './landscapeNoise';
 
@@ -14,7 +14,7 @@ const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 function trailDistance(x: number, z: number): number {
   let distance = Infinity;
-  for (const poly of TRAIL) for (let i = 0; i < poly.length - 1; i++) {
+  for (const poly of layout.TRAIL) for (let i = 0; i < poly.length - 1; i++) {
     const a = poly[i], b = poly[i + 1];
     if (a === undefined || b === undefined) continue;
     const vx = b[0] - a[0], vz = b[1] - a[1], wx = x - a[0], wz = z - a[1];

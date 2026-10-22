@@ -14,7 +14,7 @@ and props by `generators/bake-map.mjs`, using the style in `data/map.json`.
 water, look, HUD, audio, ledger and interactions. `behaviour/` holds admitted numeric
 AssemblyScript for the door and item hooks; `data/quests.json` declares the adventure. Stable
 state-field IDs and item handles preserve the script ABI across declaration reorder.
-`generators/` and `data/layout.ts` are build-time source metadata, never client runtime. `generators/cell.ts` fills the
+`generators/` and `data/layout.json` are build-time source metadata, never client runtime. `generators/cell.ts` fills the
 500 m cell (G220): a road from each entry socket to a square loop around the yard, a set piece just inside each entry
 (north gate, south container yard, east signal mast, west covered drive), four hub corners outside the loop and lamp
 posts, all dev-map boxes on ground the terrain levels to y = 0. `generators/districts.ts` (pass 2) fills the plane between

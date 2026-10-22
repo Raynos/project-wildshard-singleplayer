@@ -8,7 +8,7 @@ import { clientMaterials } from '../../../../src/game/shardfile/clientMaterials'
 import { clientViews } from '../../../../src/game/shardfile/clientViews';
 import { clientWorld } from '../../../../src/game/shardfile/clientWorld';
 import { ClientAssets } from '../../../../src/game/shardfile/clientAssets';
-import { TRAIL } from '../../../../src/shards/_template/data/layout';
+import layout from '../../../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../../../src/shards/_template/generators/world';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
 import source from '../../../../src/shards/_template/shard.config';
@@ -30,7 +30,7 @@ const ambient = new HemisphereLight(new Color().setRGB(...key.ambient.sky), new 
 scene.add(dome, sun, sun.target, ambient);
 
 // today: the template look's terrainPainter (verbatim numbers from src/shards/_template/look/render.ts) on the legacy field
-const today = new Group(), field = buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails: TRAIL, cabinSites: [] });
+const today = new Group(), field = buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails: layout.TRAIL, cabinSites: [] });
 const plane = new PlaneGeometry(200, 200, 40, 40); plane.rotateX(-Math.PI / 2);
 const pos = plane.getAttribute('position'); for (let i = 0; i < pos.count; i++) pos.setY(i, field.heightAt(pos.getX(i), pos.getZ(i)));
 plane.computeVertexNormals(); const ground = new Mesh(plane, new MeshStandardMaterial({ color: 0x7e8388, flatShading: true })); ground.receiveShadow = true;

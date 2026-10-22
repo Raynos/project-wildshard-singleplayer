@@ -20,8 +20,15 @@ import TEMPLATE_AUDIO from '../data/audio.json' with { type: 'json' };
 import SPAWN from '../data/spawn.json' with { type: 'json' };
 import ITEMS from '../data/items.json' with { type: 'json' };
 import targets from '../data/targets.json' with { type: 'json' };
-import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from '../data/skins';
+import skins from '../data/skins.json' with { type: 'json' };
+import CARD from '../data/card.json' with { type: 'json' };
+import boss from '../behaviour/boss.json' with { type: 'json' };
 import idle from '../data/clientScripts.json' with { type: 'json' };
+
+// Skin projections belong to this build-time declaration, with no runtime wrapper.
+const TEMPLATE_SKIN_LOOKS = skins.map(entry => ({ id: entry.look, species: entry.species, recipe: 'platform.skin', material: null, parameters: { skin: entry.skin }, animation: { recipe: 'platform.clips', parameters: { attackSpan: 1 } } }));
+const TEMPLATE_SKIN_FILES = skins.flatMap(entry => entry.files), TEMPLATE_SKIN_LIBRARY = skins.map(entry => entry.skin);
+const TEMPLATE_SKIN_COST = TEMPLATE_SKIN_FILES.reduce((sum, file) => ({ resident: sum.resident + file.decoded + file.gpu, compressed: sum.compressed + file.compressed }), { resident: 0, compressed: 0 });
 
 // The idle reserve retains three pairs of Wasm pages and six particle slots.
 const { hash: CLIENT_IDLE_HASH, bytes: CLIENT_IDLE_BYTES, resident: CLIENT_IDLE_RESIDENT } = idle.module;
@@ -49,8 +56,8 @@ const tiles = terrain.tiles.map((tile) => {
 const TERRAIN_DRAW = { shadow: { cast: true, receive: true }, follow: 5 } as const;
 // This declaration is the live source; the manifest supplies only picker metadata.
 // oxlint-disable-next-line import/no-default-export -- The root config imports this author-only declaration.
-export default parseShardfile({ ...base, accent: 'sand',
-  budgets: { library: { resident: 100_000 + TEMPLATE_SKIN_COST.resident + CLIENT_IDLE_RESIDENT + 2_633_280, compressed: 100_000 + CLIENT_IDLE_BYTES + TEMPLATE_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
+export default parseShardfile({ ...base, accent: 'sand', manifest: CARD,
+  budgets: { library: { resident: 100_000 + TEMPLATE_SKIN_COST.resident + CLIENT_IDLE_RESIDENT + 2_633_280, compressed: 100_000 + CLIENT_IDLE_BYTES + TEMPLATE_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 1_000_000 - boss.compressed }, overlap: 0 },
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
   look: TEMPLATE_LOOK, spawn: SPAWN, rows: { ...TEMPLATE_ROWS, looks: TEMPLATE_SKIN_LOOKS }, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
   terrain: { ...terrain.terrain, ...TERRAIN_DRAW }, tiles, files: [...terrain.files, ...props.files, ...TEMPLATE_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,

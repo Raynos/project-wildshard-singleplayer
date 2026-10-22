@@ -23,7 +23,7 @@ import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/fami
 import { staticGlb } from '../../src/sdk/bake/glb';
 import { defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatalogue';
 import modelCatalogue from '../../src/shards/driftwood-isle/boot/modelCatalogue.generated.json';
-import { TRAIL } from '../../src/shards/_template/data/layout';
+import layout from '../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../src/shards/_template/generators/world';
 import source from '../../src/shards/_template/shard.config';
 
@@ -226,7 +226,7 @@ async function pool() {
     installTerrainTile(bytes, { root: after, scope, material: faceted, shadow: true });
   }
   // REFERENCE: today's template terrainPainter (src/shards/_template/look/render.ts) on the legacy field
-  const field = buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails: TRAIL, cabinSites: [] });
+  const field = buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails: layout.TRAIL, cabinSites: [] });
   const plane = new THREE.PlaneGeometry(200, 200, 40, 40); plane.rotateX(-Math.PI / 2);
   const p = plane.getAttribute('position'); for (let i = 0; i < p.count; i++) p.setY(i, field.heightAt(p.getX(i), p.getZ(i)));
   plane.computeVertexNormals();
