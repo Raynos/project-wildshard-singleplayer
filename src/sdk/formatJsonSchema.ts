@@ -19,7 +19,7 @@ import { AchievementCounterDataSchema } from '@wildshard/format/achievementCount
 import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
 import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
 import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
-import { FigureCatalogueSchema } from '@wildshard/format/figures';
+import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figures';
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { WeatherProgramSchema } from '@wildshard/format/weatherProgram';
 import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
@@ -199,6 +199,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'panelTemplate.PanelDefinition': PanelDefinitionSchema,
   'heldFinishes.HeldFinishes': HeldFinishesSchema,
   'figures.FigureCatalogue': FigureCatalogueSchema,
+  'figures.FigureGroup': FigureGroupSchema,
   'questStory.QuestStory': QuestStorySchema,
   'weatherProgram.WeatherProgram': WeatherProgramSchema,
   'populationRoster.NativePopulationRows': NativePopulationRowsSchema,
