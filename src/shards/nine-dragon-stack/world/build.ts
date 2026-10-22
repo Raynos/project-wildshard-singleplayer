@@ -19,7 +19,7 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { placeSet } from '@wildshard/engine/models/sets';
 import { type DrawnPlaced as InKitPlaced, registerDrawnInto } from '../runtime/kit/drawnInto';
-import { defineModel, sharedModelContext, type ModelContext, type ModelDef, type ModelPart, type Placement } from '@wildshard/engine/models/model';
+import { sharedModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { namePlacedDraws as nameDraws } from '../runtime/cull/placedDraws';
 import { jiehuaMaterial as facadeMaterial, facadeUniforms, syncLooks } from '../look/facadeMaterial';
@@ -32,24 +32,17 @@ import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnl
 import { type Placed, copiesAt, place, placeSliced } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { ndLook, ndModelContext, need } from './modelLook';
+import { ndModelContext, need } from './modelLook';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
-import { loadCrowd, mahjongSitter, umbrellaWalker } from '../models/crowd';
 import { loadLayoutBake, prepareLayout, restoreLayout } from './layoutBake';
-import { loadCastLods, loadSignAtlas, loadSpill } from './casts';
+import { loadSignAtlas, loadSpill } from './casts';
 
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
-
-
-/** the guardian lion: its TRELLIS cast and authored LODs, loaded before the square places it */
-const cast = (key: string) => (ctx: ModelContext): readonly ModelPart[] => [{ geometry: need(ndLook(ctx).geo.get(key), `the cast ${key}`), material: lentLook('nine-architecture') }];
-const guardianLion = defineModel({ id: 'nine-dragon-stack/guardian-lion', name: 'Guardian lion', category: 'props', pipeline: 'trellis', file: 'src/shards/nine-dragon-stack/world/build.ts',
-  defaults: {}, build: cast('lion'), lods: [{ from: 10, build: cast('lion:mid10') }, { from: 30, build: cast('lion:mid30') }] });
 
 const isMesh = (value: unknown): value is Mesh => value instanceof Mesh;
 /** a placement from a copy's matrix (its translation is where it stands) */
@@ -163,9 +156,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // stair-street's and the Well rim's lions), the booths, parasol tables and pavilions are the night market
   const squareSets = { square: [] as Placed[], stair: [] as Placed[], rim: [] as Placed[] }, market: Placed[] = [];
   if (worldRows.lions.length > 0) {
-    const geometry = opts.scenes.geometry('casts.lion'); nd.look.geo.set('lion', geometry);
-    loadCastLods(nd.look.geo, 'lion', geometry, [10, 30], opts.scenes);
-    const lions = await placeSliced(guardianLion, worldRows.lions.map(frame => at(new Matrix4().fromArray(worldData, frame))), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-lions' } }, slice.due);
+    const lions = await opts.scenes.place('nds-lions'); root.add(lions.object);
     nameDraws(lions, 'glb:lion');
     for (const [k, idx] of [['square', worldRows.shares.plaza], ['stair', worldRows.shares.street], ['rim', worldRows.shares.rim]] as const) { const share = copiesAt(lions, idx); if (share !== null) squareSets[k].push(share); }
   }
@@ -264,8 +255,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   setLentTexture('nine-sky', 'silk', shared.u.uSilk.value);
   progress(0.75, 'crowd models');
 
-  // the TRELLIS crowd (models/crowd.ts: the casts in their ramps and dyes), dealt to its colourways (crowd.ts `dealCrowd`)
-  loadCrowd(nd.look, opts.scenes);
   // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks (models/feiZhuaHook.ts).
   // One instanced draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring
   // anchors stay.
@@ -277,11 +266,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     if (mounts.length > 0) nameDraws(await placeSliced(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }, slice.due), 'glb:dragon-hook');
   }
   // Crowd LODs are declared on the models; placement owns their frustum and range.
-  const drawCrowd = async <P extends object>(model: ModelDef<P>, rows: readonly { matrix: number; variant: string }[], id: string): Promise<void> => {
-    if (rows.length > 0) (await placeSliced(model, rows.map(row => ({ ...at<P>(new Matrix4().fromArray(worldData, row.matrix)), variant: row.variant })), { ctx: nd.ctx, cull: { bounds: 'sphere', from: 'origin', far: 130 }, parent: root, draw: 'instanced', piece: { id } }, slice.due)).object.name = 'crowd';
-  };
-  await drawCrowd(umbrellaWalker, worldRows.crowd.walkers, 'nds-crowd-walkers');
-  await drawCrowd(mahjongSitter, worldRows.crowd.sitters, 'nds-crowd-sitters');
+  // the TRELLIS crowd in its colourways: world-scene placements of its catalogue models (generators/worldScenes.ts)
+  for (const group of ['walkers', 'sitters'] as const) {
+    if (worldRows.crowd[group].length === 0) continue;
+    const crowd = await opts.scenes.place(`nds-crowd-${group}`); crowd.object.name = 'crowd'; root.add(crowd.object);
+  }
   await slice();
 
   // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the

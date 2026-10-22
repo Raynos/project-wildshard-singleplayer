@@ -20,6 +20,8 @@ export const CAST_SOURCES = Array.from({ length: Math.ceil(names.length / 16) },
     channels: name.startsWith('dragon-hook-') ? [] : castRows.CAST_CHANNELS })),
 }));
 const libraries = new Map(names.map((name, index) => [name, `casts-${Math.floor(index / 16)}`]));
+/** the cast pool library a cast's file is in */
+export function castLibrary(name: string): string { const library = libraries.get(name); if (library === undefined) throw new Error(`Nine has no cast ${name}`); return library; }
 export const CAST_LIBRARIES = [...CAST_SOURCES,
   { id: 'cast-hook', kind: 'owned', models: [{ id: 'dragon-hook', file: 'geometry/dragon-hook.glb' }] },
 ];
@@ -32,11 +34,14 @@ const geometryBlobs = [...names.map(name => {
   if (glb === undefined) throw new Error(`Missing prepared Nine cast ${name}`);
   return nameBlob(`geometry/casts/${name}.glb`, 'glb', compressGlb(Uint8Array.from(atob(glb), value => value.codePointAt(0) ?? 0)));
 }), nameBlob('geometry/dragon-hook.glb', 'glb', hookBytes)];
+/** a cast the world-scenes catalogue draws (the guardian lion, the crowd), with its prepared levels */
+const migrated = (name: string): boolean => name === 'lion' || name.startsWith('lion-') || crowd.some(key => name === key || name.startsWith(`${key}-`));
 /** Cast and layout resources share one existing admitted scene file. */
 export function castBlobs(extraResources: WorldSceneWeld['resources'] = []): NamedBlob[] {
   return [...geometryBlobs, nameBlob('world/casts.json', 'json', json(parseWorldSceneWeld({ id: 'casts', root: 'dressing.root', nodes: [],
     materials: [{ id: 'casts.hook-brass', kind: 'standard', source: { material: 'hook-source', maps: ['map', 'normalMap'] }, properties: hook.material }],
-    resources: [...names.map(name => ({ id: `casts.${name}`, kind: 'geometry', source: { library: libraries.get(name), model: name } })),
+    // the lion's and the crowd's casts are world-scenes catalogue sources (generators/worldScenes.ts), not weld handles
+    resources: [...names.filter(name => !migrated(name)).map(name => ({ id: `casts.${name}`, kind: 'geometry', source: { library: libraries.get(name), model: name } })),
       { id: 'casts.dragon-hook', kind: 'geometry', source: { library: 'cast-hook', model: 'dragon-hook' } }, ...extraResources] })))];
 }
 export const CAST_BLOBS = castBlobs();

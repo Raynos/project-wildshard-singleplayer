@@ -2,7 +2,9 @@ import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { NINE_CLIENT_CHANNELS } from './clientMotion';
 import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_BLOBS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
-import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS } from './castSources';
+import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS, castLibrary } from './castSources';
+import crowdRows from '../data/crowdModels.json' with { type: 'json' };
+import lodRows from '../data/lod.json' with { type: 'json' };
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { LayoutRowsSchema } from './sections';
 import { portalLookRows } from './portalLook';
@@ -101,6 +103,19 @@ models.push(
   one('cableGondola', 'cable-gondola', 'Cable gondola', 'props', [draw('main', 'mover:gondola', 'kit')]),
   one('drone', 'drone', 'Surveillance drone', 'props', [draw('main', 'mover:drone', 'kit')]),
 );
+// the guardian lion and the TRELLIS crowd from their casts (castSources.ts): each middle level a simplified index over the
+// full cast's attributes, the crowd's clustered far copy its own, and nothing past the crowd's far cutoff
+const cast = (name: string) => ({ id: 'main', library: castLibrary(name), model: name, material: 'kit', castShadow: false, receiveShadow: false, renderOrder: 0 });
+const sharing = (name: string, full: string) => ({ ...cast(name), attributes: { library: castLibrary(full), model: full } });
+models.push({ ...one('guardianLion', 'guardian-lion', 'Guardian lion', 'props', [cast('lion')]), pipeline: 'trellis',
+  choices: [choice('0', [cast('lion')], {}, [], [10, 30].map(from => ({ from, draws: [sharing(`lion-mid${String(from)}`, 'lion')] })))] });
+for (const [key, row] of Object.entries(crowdRows)) {
+  const name = key === 'walker' ? 'umbrellaWalker' : 'mahjongSitter';
+  models.push({ key: name, id: row.id, name: row.name, category: 'people', pipeline: 'trellis', file: FILE, defaults: row.defaults, variants: row.variants, assembly: 'parts',
+    choices: row.variants.map(variant => { const full = `${key}-${variant.id}`;
+      return choice(variant.id, [cast(full)], variant.params, [], [...lodRows.MID_FROM.map(from => ({ from, draws: [sharing(`${full}-mid${String(from)}`, full)] })),
+        { from: lodRows.LOD_NEAR, draws: [cast(`${full}-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]); }) });
+}
 const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models, projections: [
   { id: 'nds-train', key: 'monorailTrain', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(0, 1) },
   { id: 'nds-gondola', key: 'cableGondola', name: 'movers', programs: NINE_CLIENT_CHANNELS.slice(1, 2) },
@@ -200,6 +215,12 @@ export const LAYOUT_PLACEMENTS = [
     return { id: `nds-inst-${key}`, model, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-inst-${key}` },
       poses: copies.map(copy => posed(copy.matrix, copy.color)) };
   }),
+  // the guardian lions at their frames, and the crowd: walkers and mahjong sitters in their colourways, culled from the
+  // origin by the far cutoff
+  { id: 'nds-lions', model: 'guardianLion', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-lions' }, poses: worldRows.rows.lions.map(at => posed(frame(at))) },
+  ...([['walkers', 'umbrellaWalker'], ['sitters', 'mahjongSitter']] as const).map(([group, model]) => ({ id: `nds-crowd-${group}`, model, draw: 'instanced' as const,
+    cull: { bounds: 'sphere' as const, from: 'origin' as const, far: lodRows.LOD_FAR }, piece: { id: `nds-crowd-${group}` },
+    poses: worldRows.rows.crowd[group].map(row => ({ ...posed(frame(row.matrix)), variant: row.variant })) })),
   // the facade's drawn pieces (the baked shell's are drawn into it): one instanced placement each, small ones within 85 m
   ...worldRows.rows.facade.drawn.map(row => {
     const model = `facade:${row.id}`, name = catalogueName.get(model); if (name === undefined) throw new Error(`Nine facade ${row.id} has no catalogue model`);

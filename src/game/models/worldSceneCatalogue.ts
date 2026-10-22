@@ -1,5 +1,4 @@
-import type { ShardProduct } from '../shardfile/shardProduct';
-import { BufferGeometry, type Material, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, Sphere, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, type Material, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, Sphere, Vector3 } from 'three';
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 import { createClientChannels } from '../plugin/channels';
@@ -28,6 +27,9 @@ import { libraryModel } from './libraryModel';
 import { worldSceneSourceMaterial } from '../shardfile/worldSceneMaterials';
 import { readWholeLibrary } from '../shardfile/wholeLibrary';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
+import { worldScenePool } from '../shardfile/scenePools';
+import type { ModelLibrary } from '../plugin/geometry';
+import type { ShardProduct } from '../shardfile/shardProduct';
 
 interface Sources {
   readonly catalogue: WorldSceneModels;
@@ -45,6 +47,35 @@ interface Selection {
 /** A projected copy: its drawn body and its clock. */
 export interface ProjectedCopy { readonly body: Object3D; readonly advance: (time: number) => void }
 const state = (ctx: ModelContext, product: string): State => ctx.once(`world-scenes/models/${product}`, () => ({}));
+/** A prepared LOD index drawing its donor's vertex attributes (format/worldSceneModels `attributes`): one geometry per
+ *  sources owner and pair, holding the prepared index object and the donor's attribute objects (never copies), its index
+ *  checked (whole, in range) before any draw uses it. Only that owner's retirement releases it, and then only its own
+ *  bindings: the shared index and attributes are detached first, so the donor's and the prepared geometry's buffers stay
+ *  with their own owners. */
+const borrowedBy = new WeakMap<Scope, Map<BufferGeometry, Map<BufferGeometry, BufferGeometry>>>();
+function borrowAttributes(prepared: BufferGeometry, donor: BufferGeometry, owner: Scope | undefined): BufferGeometry {
+  if (owner === undefined || owner.disposed || owner.disposing) throw new Error('A shared-attribute LOD needs its live sources owner');
+  let byPrepared = borrowedBy.get(owner);
+  if (byPrepared === undefined) { const fresh = new Map<BufferGeometry, Map<BufferGeometry, BufferGeometry>>(); byPrepared = fresh; borrowedBy.set(owner, fresh); owner.onDispose(() => { borrowedBy.delete(owner); }); }
+  let byDonor = byPrepared.get(prepared); if (byDonor === undefined) { byDonor = new Map(); byPrepared.set(prepared, byDonor); }
+  const found = byDonor.get(donor); if (found !== undefined) return found;
+  const index = prepared.index, position: unknown = donor.getAttribute('position');
+  if (index === null || !(position instanceof BufferAttribute)) throw new Error('A shared-attribute LOD needs its own index and its donor\'s positions');
+  for (let i = 0; i < index.count; i++) {
+    const at = index.getX(i);
+    if (!Number.isInteger(at) || at < 0 || at >= position.count) throw new Error('A shared-attribute LOD indexes past its donor');
+  }
+  const borrowed = new BufferGeometry(); borrowed.setIndex(index);
+  for (const [name, attribute] of Object.entries(donor.attributes)) borrowed.setAttribute(name, attribute);
+  if (donor.boundingSphere !== null) borrowed.boundingSphere = donor.boundingSphere.clone();
+  if (donor.boundingBox !== null) borrowed.boundingBox = donor.boundingBox.clone();
+  byDonor.set(donor, borrowed);
+  owner.onDispose(() => {
+    for (const name of Object.keys(borrowed.attributes)) borrowed.deleteAttribute(name);
+    borrowed.setIndex(null); borrowed.dispose();
+  });
+  return borrowed;
+}
 type Draw = WorldSceneModels['models'][number]['choices'][number]['draws'][number];
 const tierNumber = (value: NonNullable<Draw['until']>, source: Sources | undefined): number => typeof value === 'number' ? value
   : 'knob' in value ? plumbingKnob(source?.plumbing, buildTier(), value.knob, 'number', TIER_CONFIG) * value.multiply + value.add : value[buildTier()];
@@ -115,10 +146,20 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
     const materialRows = declaredMaterials.filter(row => !current.value?.materials.has(row.id));
     for (const row of materialRows) if (row.kind === 'surface') await admitWorldSceneSurface(row, admitted);
     const wholes = new Map<string, Awaited<ReturnType<typeof readWholeLibrary>>>();
+    // a pool part is read from the one pool file holding it, decoded with that file's full parts roster and channel rules
+    const pools = new Map<string, ModelLibrary<never, never>>();
     for (const draw of declared.geometry) {
       const key = JSON.stringify([draw.library, draw.model]);
       if (geometries.has(key)) continue;
       const library = rows.libraries.find(row => row.id === draw.library);
+      if (library?.kind === 'pool') {
+        const file = library.files.find(entry => entry.parts.includes(draw.model)); if (file === undefined) throw new Error('Missing declared scene model source');
+        const poolKey = JSON.stringify([library.id, file.file]);
+        let pool = pools.get(poolKey);
+        if (pool === undefined) { const fresh = worldScenePool(admitted, library, [file]); pool = fresh; pools.set(poolKey, fresh); requireLive(owner); await fresh.preload(); requireLive(owner); }
+        const owned = pool.geometry(draw.model); if (owned === null) throw new Error('Missing declared scene model source');
+        geometries.set(key, owned); owner.onDispose(() => { owned.dispose(); }); continue;
+      }
       if (library?.kind === 'whole') {
         const whole = wholes.get(library.id) ?? await readWholeLibrary(owner, admitted, library, new Set(declared.geometry.flatMap(ref => ref.library === library.id ? [ref.model] : []))); wholes.set(library.id, whole);
         const owned = whole.geometry(draw.model); if (owned === null) throw new Error('Missing declared scene model source');
@@ -189,8 +230,12 @@ export function defineWorldSceneCatalogue(input: unknown, pinnedProduct?: ShardP
     if (row.choices.some((choice, index) => row.choices.slice(0, index).some(other => same(choice.params, other.params)))) throw new Error('Ambiguous scene model parameters');
     const admitted = new WeakSet<WorldSceneModels>();
     const parts = new Map<string, typeof row.choices[number]['draws'][number]>(row.choices.flatMap(choice => choice.draws.map(draw => [JSON.stringify([choice.id, draw.id]), draw] as const)));
-    const rawParts = (draws: typeof row.choices[number]['draws'], ctx: ModelContext, source = state(ctx, rows.product).value, owner?: Scope): ModelPart[] => draws.map(draw => {
-      const original = source?.geometries.get(JSON.stringify([draw.library, draw.model])), material = source?.materials.get(draw.material);
+    type Part = typeof row.choices[number]['draws'][number] & { readonly attributes?: { readonly library: string; readonly model: string } };
+    const rawParts = (draws: readonly Part[], ctx: ModelContext, source = state(ctx, rows.product).value, owner?: Scope): ModelPart[] => draws.map(draw => {
+      const own = source?.geometries.get(JSON.stringify([draw.library, draw.model])), material = source?.materials.get(draw.material);
+      const donor = draw.attributes === undefined ? undefined : source?.geometries.get(JSON.stringify([draw.attributes.library, draw.attributes.model]));
+      if (draw.attributes !== undefined && donor === undefined) throw new Error('Scene model parts are not ready');
+      const original = own === undefined || donor === undefined ? own : borrowAttributes(own, donor, state(ctx, rows.product).owner);
       const geometry = owner === undefined ? original : original?.clone();
       if (geometry === undefined || material === undefined) throw new Error('Scene model parts are not ready');
       if (owner !== undefined) ownSceneResource(geometry, owner);

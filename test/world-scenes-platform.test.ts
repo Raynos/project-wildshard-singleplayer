@@ -474,7 +474,7 @@ test('native scalar observations gate original contacts without adding a second 
   } finally { context.scope.dispose(); }
 });
 
-test('default residents release decoder storage and rebuild private scene owners', async () => {
+test('retired residents reuse decoder storage with fresh roots, materials and collision owners', async () => {
   const first = fixture(), next = fixture(), assets = first.app.assets;
   Object.assign(next.app, { assets });
   const read = vi.spyOn(next.product, 'file');
@@ -489,11 +489,11 @@ test('default residents release decoder storage and rebuild private scene owners
     originalPosition.setX(0, 99);
     first.scope.dispose();
     expect(first.app.registry.pieces).toHaveLength(0);
-    expect(assets.retained()).toEqual([]);
+    expect(assets.retained().map(entry => entry.refs)).toEqual([0]);
     const b = await installWorldScenes(next, section());
     const replacement = b.group('harbour.root').children[0];
     if (!(replacement instanceof Mesh)) throw new Error('Missing next scene draw');
-    expect(read.mock.calls.map(([file]) => file)).toContain('models/stone.glb');
+    expect(read.mock.calls.map(([file]) => file)).not.toContain('models/stone.glb');
     expect(b.group('harbour.root')).not.toBe(a.group('harbour.root'));
     expect(replacement.geometry).not.toBe(original.geometry);
     expect(replacement.material).not.toBe(original.material);
@@ -522,4 +522,52 @@ test.each(['harbour.at', 'markers.east.enabled', 'absent'])('collision scalar %s
     expect(context.app.registry.pieces).toHaveLength(0);
     expect(() => parseWorldScenes({ ...rows, steps: [{ ...step, registry: [{ ...step.registry[0], mode: 'board' }] }] })).toThrow();
   } finally { context.scope.dispose(); }
+});
+
+test('a cold card reads a pool part from its declared file only, exactly as the resident pool decodes it', async () => {
+  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { worldScenePool }, { CAST_BLOBS, CAST_SOURCES }] = await Promise.all([
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
+    import('../src/format/worldSceneModels'), import('../src/game/shardfile/scenePools'), import('../src/shards/nine-dragon-stack/generators/castSources'),
+  ]);
+  const context = fixture(), owner = new Scope('pool-card'), ctx = modelContext(null), base = section();
+  // Nine's real cast pool holding the lion: its files, parts and channel rules, served from its shipped blobs
+  const pool = CAST_SOURCES.find(row => row.files.some(entry => entry.parts.includes('lion')));
+  if (pool === undefined) throw new Error('Missing the lion cast pool');
+  const blobs = new Map(CAST_BLOBS.map(row => [row.file.name, row.bytes]));
+  const rows = parseWorldScenes({ ...base, libraries: [...base.libraries, pool], catalogue: 'models/catalogue.json' });
+  const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'lion', id: 'fixture-harbour/lion', name: 'Lion', category: 'props', pipeline: 'trellis', file: 'casts.json', defaults: {},
+    assembly: 'parts', choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'main', library: pool.id, model: 'lion', material: 'paint' }] }] }] };
+  const oldFile = context.product.file.bind(context.product);
+  const file = vi.spyOn(context.product, 'file').mockImplementation(name => { const blob = blobs.get(name);
+    return name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogueRows))) : blob === undefined ? oldFile(name) : Promise.resolve(blob); });
+  Object.assign(context.product, { section: () => rows });
+  const product = vi.spyOn(runtimeProducts, 'loadFirstPartyProduct').mockResolvedValue(context.product);
+  const material = new MeshStandardMaterial();
+  bindWorldSceneModelSources(ctx, 'fixture-harbour', { catalogue: parseWorldSceneModels(catalogueRows), geometries: new Map(), materials: new Map([['paint', material]]) }, context.scope);
+  const libraryRow = rows.libraries.find(row => row.kind === 'pool');
+  if (libraryRow?.kind !== 'pool') throw new Error('Missing fixture pool');
+  const resident = worldScenePool(context.product, libraryRow); await resident.preload();
+  try {
+    const catalogue = defineWorldSceneCatalogue(catalogueRows), built = withOwner(owner, () => catalogue.model('lion').build(ctx, {}, new Rng(1)));
+    if (!(built instanceof Group)) throw new Error('Missing loading specimen');
+    await vi.waitFor(() => { expect(built.children[0]).toBeInstanceOf(Group); });
+    const filled = built.children[0], draw = filled?.children[0];
+    if (!(draw instanceof Mesh)) throw new Error('Missing cold pool draw');
+    const cold: unknown = draw.geometry, warm: NativeBufferGeometry | null = resident.geometry('lion');
+    if (!(cold instanceof NativeBufferGeometry) || warm === null) throw new Error('Missing pool geometry');
+    // the serialised channels, index, groups and bounds of both decodes
+    expect(cold.toJSON().data).toEqual(warm.toJSON().data);
+    // only the lion's own file of its pool was read for the card (the resident decode above read them all)
+    const lionFile = pool.files.find(entry => entry.parts.includes('lion'))?.file;
+    const casts = file.mock.calls.map(([name]) => name).filter(name => name.startsWith('geometry/casts/'));
+    expect(casts.filter(name => name !== lionFile)).toHaveLength(pool.files.length - 1); expect(casts.filter(name => name === lionFile)).toHaveLength(2);
+    const dispose = vi.spyOn(cold, 'dispose'); owner.dispose(); expect(dispose).toHaveBeenCalledOnce();
+    const again = new Scope('pool-card-again');
+    try {
+      const next = withOwner(again, () => catalogue.model('lion').build(ctx, {}, new Rng(1)));
+      if (!(next instanceof Group)) throw new Error('Missing revisited pool card');
+      await vi.waitFor(() => { expect(next.children[0]).toBeInstanceOf(Group); });
+    } finally { again.dispose(); }
+    warm.dispose();
+  } finally { file.mockRestore(); product.mockRestore(); owner.dispose(); context.scope.dispose(); material.dispose(); }
 });

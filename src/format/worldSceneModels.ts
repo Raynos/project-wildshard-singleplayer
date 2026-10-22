@@ -19,7 +19,10 @@ const drawDistance = v.union([band, v.strictObject({ knob, multiply: v.optional(
 const flag = v.union([v.boolean(), v.strictObject({ phone: v.boolean(), desktop: v.boolean() }), v.strictObject({ knob })]);
 const draw = v.strictObject({ id, library: id, model: id, material: id, castShadow: v.optional(flag, false), receiveShadow: v.optional(v.boolean(), false), renderOrder: v.optional(finite, 0),
   until: v.exactOptional(drawDistance), depthOnly: v.exactOptional(v.boolean()), sphere: v.exactOptional(v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))])) });
-const levelSchema = v.strictObject({ from: band, draws: list(draw, 64) });
+/** a LOD level's draw may draw its own prepared index over another library model's vertex attributes (`attributes`: a
+ *  cast's simplified copy sharing the full cast's buffers, never a copy); an empty level draws nothing from its `from` */
+const lodDraw = v.strictObject({ ...draw.entries, attributes: v.exactOptional(v.strictObject({ library: id, model: id })) });
+const levelSchema = v.strictObject({ from: band, draws: list(lodDraw, 64) });
 const distanceAt = (value: v.InferOutput<typeof band> | undefined, tier: 'phone' | 'desktop'): number => value === undefined ? Infinity : typeof value === 'number' ? value : value[tier];
 const graphLeaf: v.GenericSchema<unknown, WorldSceneWeld | { file: string }> = v.union([WorldSceneWeldSchema, v.strictObject({ file: id })]);
 const graphChoice = v.union([graphLeaf, v.strictObject({ phone: graphLeaf, desktop: graphLeaf })]);
@@ -56,7 +59,8 @@ export function worldSceneModelGraphs(entry: WorldSceneModels['models'][number][
 export function worldSceneModelResources(rows: WorldSceneModels, admitted: readonly WorldSceneWeld[] = []): { readonly geometry: readonly { readonly library: string; readonly model: string }[]; readonly materials: readonly string[] } {
   const choices = rows.models.flatMap(entry => entry.choices), graphs = choices.flatMap(worldSceneModelGraphs).flatMap(entry => 'file' in entry ? [] : [entry]).concat(admitted);
   const draws = choices.flatMap(entry => entry.draws.concat(entry.lods.flatMap(level => level.draws)));
-  return { geometry: [...draws, ...graphs.flatMap(graph => graph.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : []))],
+  const donors = choices.flatMap(entry => entry.lods.flatMap(level => level.draws.flatMap(part => part.attributes === undefined ? [] : [part.attributes])));
+  return { geometry: [...draws, ...donors, ...graphs.flatMap(graph => graph.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : []))],
     materials: [...draws.map(entry => entry.material), ...graphs.flatMap(graph => {
       const local = new Set(graph.materials.map(row => row.id));
       return graph.nodes.flatMap(node => 'material' in node && node.material !== '$shadow' && !local.has(node.material) ? [node.material] : [])

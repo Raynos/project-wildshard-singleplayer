@@ -18,7 +18,7 @@ import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitW
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
-import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield } from '@wildshard/engine/core/workSlice';
@@ -28,7 +28,8 @@ import { parseWorldSceneModels, worldSceneModelResources } from '@wildshard/form
 import { parseWorldScenes, worldScenesForTier, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import type { ShardContext } from '../plugin/context';
-import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
+import type { ModelLibrary } from '../plugin/geometry';
+import { tierFile, worldScenePool } from './scenePools';
 import { createWorldScene, bindWorldSceneParts } from '../plugin/ui';
 import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
@@ -41,7 +42,6 @@ interface Library {
   readonly models?: Pick<ModelLibrary<string, string>, 'painted'>;
 }
 const decoder = new TextDecoder('utf-8', { fatal: true });
-const tierFile = (file: string | { readonly phone: string; readonly desktop: string }): string => typeof file === 'string' ? file : file[TIER];
 const residents = new WeakMap<Scope, WeakMap<ShardContext['product'], Promise<SceneHandles>>>();
 
 /** Client-only scene host. Takes declared rows and an engine lifetime, never shard constructors or callbacks.
@@ -93,13 +93,19 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     requireFile(section.catalogue);
     catalogue = parseWorldSceneModels(JSON.parse(decoder.decode(await product.file(section.catalogue))));
     if (!Object.is(catalogue.product, product.shardfile.identity.slug)) throw new Error('Scene catalogue product identity differs');
+    // a draw (and a LOD draw's attribute donor) reads an owned or whole model, or a part of a pool's files
+    const source = (ref: { readonly library: string; readonly model: string }): boolean => { const library = libraryRows.get(ref.library);
+      return library?.kind === 'owned' || library?.kind === 'whole' || library?.kind === 'pool' && library.files.some(file => file.parts.includes(ref.model)); };
+    for (const model of catalogue.models) for (const choice of model.choices) for (const level of choice.lods) for (const part of level.draws) {
+      if (part.attributes !== undefined && !source(part.attributes)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
+    }
     for (const model of catalogue.models) for (const choice of model.choices) for (const draw of [...choice.draws, ...choice.lods.flatMap(level => level.draws)]) {
       reference(draw);
-      if (!['owned', 'whole'].includes(libraryRows.get(draw.library)?.kind ?? '') || !slots.has(draw.material)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
+      if (!source(draw) || !slots.has(draw.material)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
     }
     modelScenes = await admitWorldSceneModelGraphs(product, catalogue);
     const resources = worldSceneModelResources(catalogue, [...modelScenes.values()]);
-    for (const draw of resources.geometry) { reference(draw); if (!['owned', 'whole'].includes(libraryRows.get(draw.library)?.kind ?? '')) throw new Error('Frozen specimens need owned geometry'); }
+    for (const draw of resources.geometry) { reference(draw); if (!source(draw)) throw new Error('Frozen specimens need owned geometry'); }
     for (const slot of resources.materials) if (!slots.has(slot)) throw new Error('Missing frozen specimen material slot');
     for (const slot of worldSceneModelResources({ ...catalogue, models: catalogue.models.filter(model => model.assembly === 'scene') }, [...modelScenes.values()]).materials) frozenSlots.add(slot);
   }
@@ -242,29 +248,24 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       } else if (row.kind === 'whole') {
         const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
         if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); continue; }
-        const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner));
+        const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
         finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
       } else if (row.kind === 'owned') {
-        const models = new Map<string, ReturnType<typeof createOwnedGeometry>>();
+        const models = new Map<string, WorldSceneGeometry>();
         const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
         const modelProgress = loadingUnits('Home models', neededModels.length);
         modelProgress(0, row.id);
         for (const [modelIndex, model] of neededModels.entries()) {
           const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-          const geometry = createOwnedGeometry(product.url(file), model.attributes);
-          await geometry.load(await product.file(file), model.segments === undefined ? undefined : await Promise.all(model.segments.map(segment => product.file(segment)))); models.set(model.id, geometry);
+          const geometry = await readWorldSceneGeometry(owner, product, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
+          finish.push(geometry.done); models.set(model.id, geometry);
           modelProgress(modelIndex + 1, model.id);
-          // Transfer on first use; later copies come from the independently owned original.
+          // Consumers keep private mutable copies; finish releases the construction lease.
           await buildYield(owner);
         }
         libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
       } else {
-        const models = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-          paintedModels: row.painted.map(model => ({ name: model.id, url: product.url(model.file), geometry: model.geometry })),
-          geometryPools: row.files.map(file => ({ url: product.url(tierFile(file.file)), parts: file.parts, ...(file.channels === undefined ? {} : { channels: file.channels }) })) }, 'world scene library', {},
-          async url => { const file = [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)].find(name => product.url(name) === url); if (file === undefined) throw new Error('Missing scene library file');
-            const { createRigLoader } = await import('@wildshard/engine/anim/rig');
-            return createRigLoader().parseBytesAsync(await product.file(file), ''); });
+        const models = worldScenePool(product, row);
         await models.preload(() => buildYield(owner));
         if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
           const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);

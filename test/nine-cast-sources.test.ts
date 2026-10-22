@@ -9,8 +9,8 @@ import { readSourceModel } from '../src/sdk/bake/skinned';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { loadCrowd } from '../src/shards/nine-dragon-stack/models/crowd';
-import type { NdLook } from '../src/shards/nine-dragon-stack/world/modelLook';
+import { NINE_SCENE_BLOBS } from '../src/shards/nine-dragon-stack/generators/worldScenes';
+import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { BufferGeometry, Color, Group, Mesh, MeshStandardMaterial, Texture, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { hydrateWorldSceneWeld } from '../src/game/shardfile/worldSceneWeld';
@@ -57,24 +57,23 @@ test('cast resource rows publish exact channels and preserve middle-LOD sharing 
     if (geometry === null || geometry === undefined) throw new Error(`Missing declared cast ${row.source.model}`);
     handles.publish(row.id, geometry);
   }
-  expect(rows.resources).toHaveLength(37);
-  const look: NdLook = { geo: new Map(), neon: null, hookMat: null };
-  loadCrowd(look, handles);
+  // the fixed kits and the hook stay weld handles; the lion's and the crowd's casts are catalogue sources only (one decode)
+  expect(rows.resources).toHaveLength(6);
+  expect(rows.resources.filter(row => /^casts\.(lion|walker|sitter)/u.test(row.id))).toEqual([]);
+  // the crowd's middle levels draw their simplified index over the full cast's attributes (world-scenes catalogue rows;
+  // the sharing itself: test/world-scene-shared-lods.test.ts), the far copy its own, nothing past the far cutoff
+  const blob = NINE_SCENE_BLOBS.find(row => row.file.name === 'models/world-scenes.json');
+  if (blob === undefined) throw new Error('Missing Nine world-scenes catalogue');
+  const catalogue = parseWorldSceneModels(JSON.parse(new TextDecoder().decode(blob.bytes)));
+  const declared = new Set(CAST_SOURCES.flatMap(row => row.files.flatMap(pool => pool.parts)));
   for (const key of ['walker-dark', 'walker-light', 'walker-oxblood', 'walker-paper', 'walker-blue', 'sitter-dark', 'sitter-light']) {
-    const base = handles.geometry(`casts.${key}`);
-    expect(look.geo.get(key)).toBe(base);
-    for (const distance of [12, 22]) {
-      const middle = look.geo.get(`${key}:mid${distance}`);
-      const source = CAST_SOURCES.find(row => row.files.some(pool => pool.parts.includes(`${key}-mid${distance}`)));
-      const template = source === undefined ? null : libraries.get(source.id)?.geometry(`${key}-mid${distance}`, { borrow: true });
-      if (middle === undefined || template === null || template === undefined) throw new Error('Missing prepared crowd LOD');
-      for (const [name, attribute] of Object.entries(base.attributes)) {
-        expect(middle.getAttribute(name)).toBe(attribute);
-        expect(template.getAttribute(name)).not.toBe(attribute);
-      }
-      expect(middle.index).not.toBe(template.index);
-      expect(middle.boundingBox).toBeNull();
-    }
+    const model = catalogue.models.find(row => row.key === (key.startsWith('walker') ? 'umbrellaWalker' : 'mahjongSitter'));
+    const choice = model?.choices.find(row => row.id === key.slice(key.indexOf('-') + 1));
+    if (choice === undefined) throw new Error(`Missing crowd colourway ${key}`);
+    expect(choice.draws.map(row => row.model)).toEqual([key]);
+    expect(choice.lods.map(level => level.draws.map(row => [row.model, row.attributes?.model ?? null]))).toEqual([
+      [[`${key}-mid12`, key]], [[`${key}-mid22`, key]], [[`${key}-far`, null]], []]);
+    for (const name of [key, `${key}-mid12`, `${key}-mid22`, `${key}-far`]) expect(declared.has(name), name).toBe(true);
   }
   expect(handles.geometry('casts.dragon-hook').getAttribute('uv').array).toBeInstanceOf(Uint16Array);
   for (const row of rows.resources) handles.geometry(row.id).dispose();
