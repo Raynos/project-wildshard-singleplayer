@@ -27,6 +27,7 @@ import { heldGear } from './heldGear';
 import { HeldEquipment } from '../plugin/heldEquipment';
 import { HeldFinishes } from '../loadout/finishes';
 import { resourceScope } from '@wildshard/engine/app/resources';
+import { cloudBodySpecimen } from '../boss/encounterView';
 
 /** Resolve declarations before registering any card, so an invalid reference
  * refuses the complete catalogue instead of publishing a partial roster. */
@@ -58,6 +59,11 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
       entries.push(present(defineModel({ ...creature(row.species, { species, ...(row.name === undefined ? {} : { name: row.name }),
         ...(row.spawnOnly === undefined ? {} : { spawnOnly: row.spawnOnly }) }), id: row.id, file: row.file,
         pipeline: row.pipeline ?? 'code', ...(row.surface === undefined ? {} : { surface: row.surface }), ...(row.category === undefined ? {} : { category: row.category }) }), row));
+    } else if (row.kind === 'cloud') {
+      if (row.id === undefined || row.name === undefined) throw refusal(product, row, 'Cloud card requires its id and name');
+      const cloud = await product.json<unknown>(row.json), id = row.id, name = row.name;
+      entries.push(present(defineModel<object>({ id, name, file: row.file ?? row.json, category: row.category ?? 'creatures', pipeline: row.pipeline ?? 'code', defaults: {},
+        build: () => cloudBodySpecimen(cloud) }), row));
     } else if (row.kind === 'engine') {
       entries.push(row.model === 'swim-hands' ? present(swimHands, row) : row.model === 'training-dummy' ? present(trainingDummy, row) : present(hoverboard, row));
     } else if (row.kind === 'rigs') {

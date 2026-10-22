@@ -36,6 +36,8 @@ export const ExplorerCatalogueSchema = v.pipe(v.unknown(), v.check(isJsonData, '
     v.strictObject({ ...meta, kind: v.literal('socket-creature'), rows: SocketRigCreatureSchema }),
     v.strictObject({ ...meta, kind: v.literal('equipment') }),
     v.strictObject({ ...meta, kind: v.literal('specimen'), books:v.strictObject({phone:text,desktop:text}), model:text,tierCopies:v.exactOptional(v.strictObject({phone:count,desktop:count})) }),
+    // a cloud body's specimen (game/boss/encounterView `cloudBodySpecimen`) from its product rows (format/encounterRows CloudSpecimenSchema)
+    v.strictObject({ ...meta, kind: v.literal('cloud'), json: text }),
     v.strictObject({ ...meta, kind: v.literal('engine'), model: v.picklist(['swim-hands', 'training-dummy', 'hoverboard']) }),
   ])), v.maxLength(256)) }),
   v.check(rows => { const ids = rows.entries.flatMap(row => row.id === undefined ? [] : [row.id]); return new Set(ids).size === ids.length; }, 'Duplicate Explorer identity'));

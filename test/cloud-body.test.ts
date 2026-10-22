@@ -1,17 +1,11 @@
-import { Rng } from '../src/engine/core/rng';
-import { defineRuntimeSpecimens } from '../src/game/models/runtimeSpecimens';
-import * as product from '../src/game/shardfile/runtimeProduct';
-import { absentShardProduct } from '../src/game/shardfile/shardProduct';
-import type { ModelContext } from '../src/engine/models/model';
-import { legacyDouble } from './fake/FakeGame';
-import { afterEach, expect, test, vi } from 'vitest';
-import { BufferGeometry, IcosahedronGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, Scene, SphereGeometry, TorusGeometry, Vector3, type Mesh, Object3D } from 'three';
+import { afterEach, expect, test } from 'vitest';
+import { BufferGeometry, IcosahedronGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, Scene, SphereGeometry, TorusGeometry, Vector3, type Mesh } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { numericChannelPrograms } from '../src/sdk/clientChannels';
 import { parsePrivateScene } from '../src/format/clientChannels';
 import { parse } from 'valibot';
-import { CloudBodySchema,CloudSpecimenSchema } from '../src/format/encounterRows';
-import { CloudBody } from '../src/game/boss/encounterView';
+import { CloudBodySchema } from '../src/format/encounterRows';
+import { CloudBody, cloudBodySpecimen } from '../src/game/boss/encounterView';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 
 // A made-up sky whale (the cloud body's fixture second user): a two-bone body, a pearl that opens, its own look and rows.
@@ -88,23 +82,13 @@ test('the strip shows only while aimed, struck to a point or held out past its p
 });
 
 
-test('the sky whale catalogue prepares verified rows and normalizes the same cloud body', async () => {
+test('the sky whale specimen admits its rows and normalizes the same cloud body', () => {
   build();
   const input = { name: 'whale-specimen', phone: whale, desktop: whale, pose: { rise: 1, open: 0 }, ports: { sky: { height: 40 } } };
-  const supplied = absentShardProduct('sky-whale');
-  Object.defineProperty(supplied, 'json', { value: () => Promise.resolve(parse(CloudSpecimenSchema,input)) });
-  const files = vi.spyOn(product, 'loadFirstPartyProduct').mockResolvedValueOnce(supplied);
-  try {
-    const catalogue = defineRuntimeSpecimens([{ key: 'whale', model: { id: 'sky-whale/preview', name: 'Sky whale', file: 'fixture', category: 'creatures', pipeline: 'code', defaults: {} }, source: { kind: 'cloud', slug: 'sky-whale', json: 'models/whale.json' } }]);
-    const model = catalogue.model('whale');
-    expect(() => model.build(legacyDouble<ModelContext>({}), {}, new Rng(1))).toThrow('prepared');
-    await model.prepare?.();
-    const view = model.build(legacyDouble<ModelContext>({}), {}, new Rng(1));
-    if (!(view instanceof Object3D)) throw new Error('Expected a cloud hierarchy');
-    expect(view.name).toBe('whale-specimen');
-    const own = view.children[0]; if (own === undefined) throw new Error('Missing normalized hierarchy');
-    expect(own.position.y).toBeLessThan(-40);
-    expect(files).toHaveBeenCalledWith('sky-whale');
-    expect(() => catalogue.model('absent')).toThrow('Missing');
-  } finally { files.mockRestore(); }
+  const view = cloudBodySpecimen(input);
+  expect(view.name).toBe('whale-specimen');
+  const own = view.children[0]; if (own === undefined) throw new Error('Missing normalized hierarchy');
+  expect(own.position.y).toBeLessThan(-40);
+  expect(() => cloudBodySpecimen({ ...input, surprise: 1 })).toThrow();
+  expect(() => cloudBodySpecimen({ ...input, pose: 'open' })).toThrow();
 });

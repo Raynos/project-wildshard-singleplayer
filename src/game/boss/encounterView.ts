@@ -3,6 +3,7 @@
  * existing AS projections and the fight; no shard renderer callback is accepted. Never imported by renderer-free hosts. */
 import * as THREE from 'three';
 import * as v from 'valibot';
+import { TIER } from '@wildshard/engine/core/tier';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { pinBrain } from '@wildshard/engine/ai/pinning';
@@ -24,7 +25,7 @@ import { ProjectedState, type ReturnProgram } from '../population/returnProgram'
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, lentLookInstance, setLentParam, type LookInstance } from '../shardfile/lentLooks';
-import { EncounterSitesSchema, type EncounterSlotsRows, type EncounterPatrolRows, type EncounterScheduleRows, type SlotViewRows, type PatrolViewRows, type CloudBodyRows, type ArenaSceneRows, type EncounterMaterialRows } from '@wildshard/format/encounterRows';
+import { CloudSpecimenSchema, EncounterSitesSchema, type EncounterSlotsRows, type EncounterPatrolRows, type EncounterScheduleRows, type SlotViewRows, type PatrolViewRows, type CloudBodyRows, type ArenaSceneRows, type EncounterMaterialRows } from '@wildshard/format/encounterRows';
 
 /**
  * What a slot encounter shows (the cycle's `wake` / `dawn` flags spawn into and release the sites): `cues` at a site as an
@@ -498,6 +499,22 @@ export class CloudBody {
     for (const made of this.made.values()) if (object instanceof THREE.Mesh && object.material === made) return made;
     throw new Error(`Cloud body part ${part} wears no declared material`);
   }
+}
+/** A cloud body's still specimen from its admitted rows (the tier's body at its pose, its ports' heights read from the
+ *  terrain): standing on its lowest puff over the origin, its focus kept on the camera as it draws. */
+export function cloudBodySpecimen(input: unknown): THREE.Group {
+  const rows = v.parse(CloudSpecimenSchema, input), scene = new THREE.Scene(), body = TIER === 'phone' ? rows.phone : rows.desktop;
+  const ports = new Map(Object.entries(rows.ports).map(([port, values]) => [port, Object.fromEntries(Object.entries(values).map(([key, value]) =>
+    [key, typeof value === 'number' ? value : heightAt(...value.heightAt)]))]));
+  const cloud = new CloudBody(scene, body, rows.pose, ports);
+  cloud.setVisible(true); cloud.update(0, new THREE.PerspectiveCamera());
+  const own = new THREE.Group();
+  for (const child of scene.children.slice()) own.add(child);
+  cloud.puffs.computeBoundingBox();
+  const root = cloud.part(body.root), low = cloud.puffs.boundingBox?.min.y ?? root.position.y;
+  own.position.set(-root.position.x, -low, -root.position.z);
+  cloud.puffs.onBeforeRender = (): void => { cloud.focusWorld(cloud.focusPoint); cloud.syncLook(); };
+  const group = new THREE.Group(); group.name = rows.name; group.add(own); return group;
 }
 function isMesh(value: unknown): value is THREE.Mesh { return value instanceof THREE.Mesh; }
 function isInstances(value: unknown): value is THREE.InstancedMesh { return value instanceof THREE.InstancedMesh; }

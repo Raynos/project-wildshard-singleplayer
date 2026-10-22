@@ -46,11 +46,8 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
         "code"
       ]
     },
-    {
-      "kind": "library",
-      "library": "native",
-      "model": "nalati-grasslands/sheep"
-    },
+    // the camp's flock (ecology.wildlife: one instanced draw), its painted sheep in the cover book
+    {kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model:'sheep',copies:ecology.wildlife.flocks.reduce((n,f)=>n+f.count,0),drawnAs:'instanced'},
     {
       "kind":"specimen","books":{"phone":"models/cover-phone.json","desktop":"models/cover-desktop.json"},"model":"marmot","copies":(ecology.wildlife.marmots?.sites??0)*4,"drawnAs":"instanced"
     },
@@ -129,7 +126,7 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
         "code"
       ]
     },
-    {kind:'library',library:'native',model:'nalati-grasslands/storm-titan'},
+    {kind:'cloud',id:'nalati-grasslands/storm-titan',name:'Jel Ata, the Storm Titan',json:'models/cloud-specimen.json',file:'src/shards/nalati-grasslands/generators/explorerCatalogue.ts',category:'creatures',pipeline:'code',copies:1,drawnAs:'instanced'},
     ...(['butterfly','raptor']as const).map(model=>({kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model,drawnAs:'instanced',tierCopies:model==='raptor'?{phone:cover.raptors,desktop:cover.raptors}:cover.butterflies})),
     {kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model:'reins',copies:1},
     {kind:'kit-figure',id:'nalati-grasslands/camp-people',name:'Camp people',file:'src/shards/nalati-grasslands/models/people.ts',category:'people',

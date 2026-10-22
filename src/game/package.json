@@ -14,7 +14,6 @@
     "./ui/dataPanels": "./ui/dataPanels.ts",
     "./population/nativeBake": "./population/nativeBake.ts",
     "./models/mountedSpecimen": "./models/mountedSpecimen.ts",
-    "./models/runtimeSpecimens": "./models/runtimeSpecimens.ts",
     "./population/perchBody": "./population/perchBody.ts",
     "./population/productCreatures": "./population/productCreatures.ts",
     "./quest/legacyRecords": "./quest/legacyRecords.ts",

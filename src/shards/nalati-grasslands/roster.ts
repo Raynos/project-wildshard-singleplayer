@@ -1,4 +1,3 @@
-import ecology from './data/ecology.generated.json' with { type: 'json' };
 /**
  * Nalati Grasslands' live models (E306 / E315 M5, `ShardManifest.roster`): every creature the steppe can spawn — its wildlife,
  * the named elites, the night's and the dusk's enemies, the two bosses (before they come too) — and its people. Listed in
@@ -7,21 +6,13 @@ import ecology from './data/ecology.generated.json' with { type: 'json' };
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
-import { defineRuntimeSpecimens } from '@wildshard/game/models/runtimeSpecimens';
-import runtimeSpecimens from './boot/runtimeSpecimens.json' with { type: 'json' };
 import { shepherd } from './models/people';
 import gear from './boot/gear.generated.json' with { type: 'json' };
 import { weaponCatalogue } from './weapons/loadout';
 
-const creatureSpecimens = defineRuntimeSpecimens(runtimeSpecimens);
-
-/** the camp's flock (Wildlife ecology.wildlife: 40 sheep, one instanced draw) */
-const FLOCK = ecology.wildlife.flocks.reduce((n, f) => n + f.count, 0);
-
 export const ROSTER: readonly RosterEntry[] = [
-  // the flock (Flock.ts: legs and head in the vertex shader) and the marmots (Marmots.ts): one instanced draw each
-  live(creatureSpecimens.model('sheep'), { copies: FLOCK, drawnAs: 'instanced' }),
-  live(creatureSpecimens.model('stormTitan'), { copies: 1, drawnAs: 'instanced' }),
+  // the flock's sheep and the Storm Titan are Explorer catalogue rows (generators/explorerCatalogue.ts: a cover-book
+  // specimen and a cloud-body card)
   // the dressing's ambient life (src/shards/nalati-grasslands/world/dressing/life.ts, E348): the butterflies over the drifts, the raptors
   // circling the valley — one instanced draw each
   // people: the mounted shepherd (src/shards/nalati-grasslands/sheepRaid.ts); the camp's five are a kit card (explorerCatalogue)
