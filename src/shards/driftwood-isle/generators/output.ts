@@ -34,6 +34,7 @@ import piers from '../data/pierScenes.generated.json' with { type: 'json' };
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { driftwoodQuestFigures } from './questFigures';
+import { driftwoodMoverOwners } from './moverOwners';
 import { driftwoodKitFigureCards } from './kitFigureCards';
 import { QUEST_SERVICES } from './questServiceEffects';
 import { TOON_LOOK } from './toonPresentation';
@@ -152,7 +153,7 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
 /** The island's fauna looks over its packed creature bodies (`look/hull-book`; data/creatureBodies.generated.json). */
 function hullBook(): unknown { const { fauna, ...body } = creatureBodies; return { ...fauna, body }; }
-export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'world.movers', ...driftwoodMoverOwners() }, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };

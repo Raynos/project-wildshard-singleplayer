@@ -39,10 +39,7 @@ export class DriftwoodPlugin extends ShardPlugin {
       admitDriftwoodRows(ctx.product);
       let construction = residents.get(ctx.product);
       if (construction === undefined) {
-        construction = new HybridResidentWorld<DriftwoodWorld>({ motion: { source: { ...ctx.product.shardfile, ...ctx.product.section('world/movers') }, systemId: 'shard.driftwood.movers', rows: [
-          { id: 'driftwood.boat', target: 'boat', group: 'group', afterPose: 'refreshPose' },
-          { id: 'driftwood.bridge', target: 'bridgeDeck', chain: true },
-        ] } });
+        construction = new HybridResidentWorld<DriftwoodWorld>();
         residents.set(ctx.product, construction);
       }
       built = await construction.load(ctx, async owner => {
@@ -62,6 +59,8 @@ export class DriftwoodPlugin extends ShardPlugin {
       for (const id of ['bridge', 'cover']) entryOwner(resident, 'placed', id);
       for (const id of ['bridge', 'cover']) lendEntryOwner(ctx.scope, resident, 'placed', id);
       lendEntryOwner(ctx.scope, resident, 'chain', 'bridge.deck');
+      lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.gulls');
+      lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.cover');
     }
     if (resident !== undefined) {
       lendEntryOwner(ctx.scope, resident, 'ambient', 'driftwood.gulls');
@@ -69,11 +68,8 @@ export class DriftwoodPlugin extends ShardPlugin {
     }
     if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'collection', 'driftwood.collections');
     keepDriftwoodWorld(shell, built);
-    shell.hooks.meleeSilent = true;
     const { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs } = built;
     Object.assign(shell.objects, { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
-    shell.hooks.spawnFloor = entryOwner(ctx.scope, 'floor', 'piers.world-0');
-    shell.overhead.push(gulls.group, built.cover.group);
     islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
     await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), null, null, new Map([['gulls', gulls]]));
   }

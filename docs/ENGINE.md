@@ -11280,7 +11280,9 @@ with a system id and object/chain owner bindings. These entered bindings run
 after declared world construction and the transitional plugin's world hook,
 before the regional shell's `afterWorld` and before kit. Rows cannot select
 the phase or its order: hooks precede movers. Construction loans must already
-exist; all targets are preflighted before installation.
+exist; all targets are preflighted before installation. Movers retain the
+existing bound resident-construction authority: an unbound native entry keeps
+its original static rest pose and installs no drive.
 
 An object mover may declare `moor: { look, water, cleats: [z0, z1] }`. Its
 actual lent graph must expose the fixed vec2 moor parameter. The existing

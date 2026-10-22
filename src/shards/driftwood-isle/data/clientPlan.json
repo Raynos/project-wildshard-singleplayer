@@ -94,6 +94,15 @@
         }
       ],
       "quest": "driftwood.adventure"
+    },
+    {
+      "kind": "world.runtime-hooks",
+      "floor": "piers.world-0",
+      "overhead": [
+        "driftwood.gulls",
+        "driftwood.cover"
+      ],
+      "meleeSilent": true
     }
   ]
 }
