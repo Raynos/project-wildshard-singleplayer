@@ -2,7 +2,6 @@ import { graphFileRules } from '../src/format/materials';
 import product from '../src/shards/nine-dragon-stack/generators/product';
 import { heldGraphFiles } from '../src/shards/nine-dragon-stack/generators/heldGraphFiles';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
-import { haloGraph } from '../src/shards/nine-dragon-stack/generators/haloGraph';
 import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
 import { postGraphLookOf } from '../src/game/looks/postGraphLook';
 import { uniformsFrom } from '../src/game/plugin/shaderFamily';
@@ -21,9 +20,13 @@ import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/view
 import { architectureGraphs } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
-import { lendLooks, lendUniforms as lendGrade } from '../src/game/shardfile/lentLooks';
-import { facadeUniforms, syncLooks } from '../src/shards/nine-dragon-stack/look/facadeMaterial';
-import type { Shared } from '../src/shards/nine-dragon-stack/look/style';
+import { lendUniforms as lendGrade } from '../src/game/shardfile/lentLooks';
+import { NINE_FRAME_CHANNELS, NINE_FRAME_GROUP, NINE_LOOK_TEXTURES } from '../src/shards/nine-dragon-stack/generators/frameChannels';
+import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
+import { graphParamRoots } from '../src/game/looks/graphDaySky';
+import sharedRows from '../src/shards/nine-dragon-stack/data/sharedUniforms.json' with { type: 'json' };
+import paint from '../src/shards/nine-dragon-stack/data/paint.json' with { type: 'json' };
+import light from '../src/shards/nine-dragon-stack/data/light.json' with { type: 'json' };
 
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
@@ -103,29 +106,6 @@ test('volume sampling refuses wrong coordinates, dimensions and lent textures', 
   expect(validateGraph({ ...graph, nodes: { ...graph.nodes, two: { op: 'texture', in: [[0.5, 0.5]], param: 'volume' }, sum: { op: 'add', in: ['sample', 'two'] }, colour: { op: 'swizzle', in: ['sum'], mask: 'xyz' } } }).ok).toBe(false);
   volume.dispose(); compiled.material.dispose();
 });
-
-
-test('existing uniform handles feed initial colours, texture swaps and Explorer tuning', () => {
-  const materials = new Map(Object.entries(graphs).map(([id]) => [id, new THREE.MeshBasicMaterial()]));
-  const writes = new Map<string, number | readonly number[]>(), textures = new Map<string, THREE.Texture>(), cleanups: (() => void)[] = [];
-  lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials, bindMeshMap: () => new THREE.MeshBasicMaterial(),
-    setParam: (id, name, value) => { writes.set(`${id}:${name}`, typeof value === 'number' ? value : [...value]); },
-    setTexture: (id, name, texture) => { textures.set(`${id}:${name}`, texture); } });
-  const volume = new THREE.Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1), replacement = volume.clone();
-  const shared = { u: { uLinePx: { value: 2.1 }, uShade: { value: new THREE.Color(0.5, 0.6, 0.7) }, uLpVolA: { value: volume } } } as Shared;
-  try {
-    const catalogue = Object.fromEntries(Object.entries({ ...graphs, 'nine-halo': haloGraph() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }]));
-    syncLooks(facadeUniforms(shared), {}, catalogue);
-    expect(writes.get('nine-facade:uFacadeWash')).toEqual(new THREE.Color(0xe0e3ef).toArray());
-    expect(writes.get('nine-windows:uSky')).toEqual(new THREE.Color(0xbcc4d2).toArray());
-    shared.u.uShade.value.setRGB(0.8, 0.9, 1); shared.u.uLinePx.value = 3; shared.u.uLpVolA.value = replacement;
-    syncLooks(shared.u, {}, catalogue);
-    expect(writes.get('nine-architecture:uShade')).toEqual([0.8, 0.9, 1]);
-    expect(writes.get('nine-facade:uLinePx')).toBe(3);
-    expect(textures.get('nine-architecture:uLpVolA')).toBe(replacement);
-  } finally { for (const cleanup of cleanups) cleanup(); for (const material of materials.values()) material.dispose(); volume.dispose(); replacement.dispose(); }
-});
-
 
 test('held toon and hull graphs compile rigid and skinned without adding draws', () => {
   for (const [id, graph] of Object.entries(viewmodelGraphs())) {
@@ -214,4 +194,53 @@ test('Nalati grades on the post-graph look: scene pass, desktop bloom side, the 
     expect(cell('desktop')).toEqual(['PostGraphPoseView', 'PostGraphBloom', 'PostGraphInputs', 'GradeV2Graph']);
     expect(cell('phone')).toEqual(['PostGraphPoseView', 'PostGraphInputs', 'GradeV2Graph']);
   } finally { levelScope.dispose(); }
+});
+
+test('the look channel rows give each lent look its shared params every frame, the facade washes and the silk weave', () => {
+  // the live shared rows as the world makes them (a number, a vector, a colour, a vector or colour array)
+  const bag: Record<string, THREE.IUniform> = {};
+  for (const [name, row] of Object.entries({ ...sharedRows, ...paint.uniforms, ...light.volume, ...light.haloUniforms, bandDepth: 1 })) {
+    const value: unknown = typeof row === 'number' ? row : 'rgb' in row ? new THREE.Color(row.rgb) : 'v4s' in row ? row.v4s.map(([x, y, z, w]) => new THREE.Vector4(x, y, z, w))
+      : 'rgbs' in row ? row.rgbs.map(hex => new THREE.Color(hex)) : 'v2' in row ? new THREE.Vector2(row.v2[0], row.v2[1])
+      : 'v3' in row ? new THREE.Vector3(row.v3[0], row.v3[1], row.v3[2]) : 'v4' in row ? new THREE.Vector4(row.v4[0], row.v4[1], row.v4[2], row.v4[3]) : null;
+    bag[name] = { value };
+  }
+  const shade = new THREE.Color(), linePx = { value: 2.1 };
+  bag['uShade'] = { value: shade }; bag['uLinePx'] = linePx;
+  const looks = [...new Set(NINE_FRAME_CHANNELS.flatMap(program => program.numeric?.outputs.map(out => out.target) ?? []))].filter(target => target !== 'bag');
+  const lent = graphParamRoots(NINE_FRAME_CHANNELS, NINE_FRAME_GROUP, looks), own = graphParamRoots(NINE_FRAME_CHANNELS, NINE_FRAME_GROUP, ['bag']);
+  const view = { eyeX: 1, eyeY: 130, eyeZ: 2, near: 0.1, p00: 1.5, p11: 2, rootX: 10, rootY: 0, rootZ: -4 };
+  const lane = installChannelPrograms(NINE_FRAME_CHANNELS, NINE_FRAME_GROUP, new Map<string, unknown>([['view', view], ['uniforms', bag], ...lent.roots, ...own.roots]));
+  const writes = new Map<string, number | readonly number[]>();
+  const frame = (): void => {
+    lane.evaluate({ time: 5, delta: 0.016, values: {} });
+    lent.push({ setParam: (id, name, value) => { writes.set(`${id}:${name}`, typeof value === 'number' ? value : [...value]); } });
+  };
+  frame();
+  const close = (key: string, to: readonly number[]): void => {
+    const got = writes.get(key), parts = typeof got === 'object' ? got : [];
+    expect(parts.length, key).toBe(to.length);
+    to.forEach((part, i) => { expect(parts[i], key).toBeCloseTo(part, 6); });
+  };
+  close('nine-facade:uFacadeWash', new THREE.Color(0xe0e3ef).toArray());
+  close('nine-windows:uSky', new THREE.Color(0xbcc4d2).toArray());
+  close('nine-halo:rootAt', [10, 0, -4]);
+  const depths = [...writes].filter(([key]) => key.endsWith(':bandDepth'));
+  expect(depths.length).toBeGreaterThan(0);
+  for (const [key, value] of depths) expect(value, key).toBeCloseTo(1, 6);
+  shade.setRGB(0.8, 0.9, 1); linePx.value = 3; frame();
+  close('nine-architecture:uShade', [0.8, 0.9, 1]);
+  expect(writes.get('nine-facade:uLinePx')).toBe(3);
+  // each write is a param its own look declares (the fog's colour only the silk fog's)
+  for (const key of writes.keys()) {
+    const [id = '', param = ''] = key.split(':'), entry: unknown = product.look.materials[id];
+    const graph: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'graph') : null;
+    const params: unknown = typeof graph === 'object' && graph !== null ? Reflect.get(graph, 'params') : null;
+    expect(typeof params === 'object' && params !== null ? Object.keys(params) : [], key).toContain(param);
+  }
+  expect([...writes.keys()]).toContain('nine-silk-fog:fogBaseCol');
+  expect([...writes.keys()]).not.toContain('nine-streaks:fogBaseCol');
+  expect(writes.get('nine-architecture:uLpMax')).toBe(0);
+  expect(NINE_LOOK_TEXTURES).toContainEqual({ look: 'nine-architecture', param: 'uSilk', uniform: 'uSilk' });
+  expect(NINE_LOOK_TEXTURES).toContainEqual({ look: 'nine-windows', param: 'uLpVolB', uniform: 'uLpVolB' });
 });

@@ -2,7 +2,6 @@ import type { PerspectiveCamera } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import type { NineDragonWorld } from '../world/build';
-import { specimenLight } from '../look/specimenLight';
 import { lendUniforms } from '@wildshard/sdk/looks/lentLooks';
 
 /** State owned by one level's world hook. */
@@ -25,14 +24,7 @@ export class NdRuntime {
   cull(camera: PerspectiveCamera = this.camera): void {
     if (!this.disposed) this.world.cull(camera);
   }
-  specimenLight(on: boolean, key?: { x: number; z: number }): void {
-    if (!this.disposed) specimenLight(this.world.shared, on, key);
-  }
-  dispose(): void {
-    if (this.disposed) return;
-    this.specimenLight(false);
-    this.disposed = true;
-  }
+  dispose(): void { this.disposed = true; }
 }
 
 let current: NdRuntime | null = null;

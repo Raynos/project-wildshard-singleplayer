@@ -73,11 +73,15 @@ export const PostGraphLookSchema = v.strictObject({
   /** the whole chain in its own composer ('replace': the scene pass, then the sides and graphs); absent, the graphs stand in
    *  the engine's chain */
   scene: v.exactOptional(v.strictObject({})),
-  /** a numeric client-channel group (format/clientChannels programs) the look evaluates each frame before its pixel terms:
+  /** a numeric client-channel group (format/clientChannels programs) the look evaluates each frame after its pixel terms:
    *  its reads name the 'view' owner (the drawn camera seen from the frame root: eyeX, eyeY, eyeZ, near, the projection's
-   *  p00 and p11, the root's place rootX, rootY, rootZ) and the clock; its outputs write the bag's uniforms (target 'bag',
-   *  path [uniform] or [uniform, axis]) and lent graph looks' params (target the look id, path [param] or [param, axis]) */
+   *  p00 and p11, the root's place rootX, rootY, rootZ), the 'uniforms' owner (the bag's numbers: [uniform, 'value'], a
+   *  vector's [uniform, 'value', axis], a colour's [uniform, 'value', 'r' | 'g' | 'b'], an array's element by index) and
+   *  the clock; its outputs write the bag's uniforms (target 'bag', path [uniform] or [uniform, axis]) and lent graph
+   *  looks' params (target the look id, path [param] or [param, axis]). Every read is taken before any output is written. */
   channels: v.exactOptional(v.strictObject({ group: id, programs: ClientChannelsSchema })),
+  /** lent graph looks' texture params, each given its bag uniform's texture when the look is lent and whenever it changes */
+  textures: v.exactOptional(v.pipe(v.array(v.strictObject({ look: id, param: name, uniform: name })), v.maxLength(32))),
 });
 export type PostGraphLookRow = v.InferOutput<typeof PostGraphLookSchema>;
 export type PostGraphEffect = v.InferOutput<typeof effect>;

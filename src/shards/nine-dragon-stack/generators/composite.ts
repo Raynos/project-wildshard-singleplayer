@@ -3,8 +3,11 @@ import layout from '../data/layoutPlan.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };
 import ao from '../data/aoLook.json' with { type: 'json' };
 import bindings from '../data/lookBindings.json' with { type: 'json' };
+import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
 import type { PostGraphLookRow } from '@wildshard/format/postGraphLook';
 import type { postRows } from './postGraphs';
+import { NINE_MANIFEST_ROWS } from './manifestRows';
+import { Color, Vector3 } from 'three';
 
 /** The Jiehua frame's authored rows: its bleed tuning and the uniforms its composite graph (compositeGraph.ts) reads. */
 const B = bleed;
@@ -18,6 +21,22 @@ const uniforms = {
   uGrade: { v3: [B.vignette, B.grain, B.shadowBlue] }, uTone: { v4: [B.toe, B.toeEnd, B.vibrance, B.warm] },
 } as const;
 export function compositeRows(): { readonly bleed: typeof bleed; readonly uniforms: typeof uniforms } { return { bleed, uniforms }; }
+
+/**
+ * E315 (Jake, on the Nine Dragon models board: the Kowloon stele, the lotus-bud finial and the roll shutter open dark): the
+ * Model Explorer lights Nine Dragon's specimens like a studio, not the city's blue-hour night. While the studio is up
+ * (`explore.studio`, with the turntable; the world is hidden while a model is on show) the ambient is raised, the shade
+ * wash lifted toward white, the top light turned to come from the side the turntable opens on (the sky's sun, the
+ * engine's compassDir of the level's sun row), and the washes drawn dry; held, so all four come back when it closes.
+ */
+function specimenLight(): { param: string; index?: number; value: number }[] {
+  const S = bindings.specimen, { azimuth, elevation } = NINE_MANIFEST_ROWS.sky.sun, az = azimuth * Math.PI / 180, el = elevation * Math.PI / 180;
+  const sun = new Vector3(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize(), h = Math.hypot(sun.x, sun.z);
+  const key = new Vector3((sun.x / h) * (1 - S.keyUp), S.keyUp, (sun.z / h) * (1 - S.keyUp)).normalize();
+  const shade = new Color(sharedUniforms.uShade.rgb).lerp(new Color(1, 1, 1), S.lift).toArray();
+  return [{ param: 'uLpAmb', value: S.ambient }, { param: 'uDry', value: 1 },
+    ...shade.map((value, index) => ({ param: 'uShade', index, value })), ...key.toArray().map((value, index) => ({ param: 'uLightDir', index, value }))];
+}
 
 /** The Jiehua frame as a post-graph look (G599 N1, game/looks/postGraphLook): the wet floor, the haze march and the bleed
  *  pyramid off the phone, the composite graph over them, the learned LUT, the pixel terms, the studio / practice edges. */
@@ -45,8 +64,8 @@ export function postGraphRow(passes: ReturnType<typeof postRows>): PostGraphLook
     // the streak cards' gain: the whole wet-floor reflection where no reflection pass runs
     lent: [{ look: 'nine-streaks', param: 'cardOn', side: 'reflect', drawn: bindings.cardOn, absent: 1 }],
     events: [{ event: 'practice.active', on: { set: [rain(0)], display: 0 }, off: { set: [rain(B.rain)], display: 1 } },
-      // the studio's clear air: no drizzle, no base fog, no band depth until it closes
-      { event: 'explore.studio', on: { set: [rain(0)], hold: [{ param: 'uFogBase', value: 0 }, { param: 'uBands', index: 2, each: true, value: 0 }] }, off: { set: [rain(B.rain)] } }],
+      // the studio's clear air (no drizzle, no base fog, no band depth) and its specimen light until it closes
+      { event: 'explore.studio', on: { set: [rain(0)], hold: [{ param: 'uFogBase', value: 0 }, { param: 'uBands', index: 2, each: true, value: 0 }, ...specimenLight()] }, off: { set: [rain(B.rain)] } }],
     ao: { ...ao, color: [ao.color[0] ?? 0, ao.color[1] ?? 0, ao.color[2] ?? 0], fog: [ao.fog[0] ?? 0, ao.fog[1] ?? 0] },
     // E281: the engine cloud layer has no place in a blue-hour sky; the painted sky owns the horizon inside its cell (G321)
     sky: { clouds: false, planet: true, ownSky: true } };

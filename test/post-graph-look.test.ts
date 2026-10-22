@@ -6,7 +6,7 @@ import { bindPostGraphEvents, postGraphLook, postGraphLookOf } from '../src/game
 import { numericChannelPrograms } from '../src/sdk/clientChannels';
 import { PostGraphLookSchema, type PostGraphLookRow } from '../src/format/postGraphLook';
 import type { ScaledPostRow } from '../src/format/scaledPost';
-import { lendUniforms } from '../src/game/shardfile/lentLooks';
+import { lendLooks, lendUniforms } from '../src/game/shardfile/lentLooks';
 import { prepareScaledPost } from '../src/game/looks/scaledPost';
 import { Scope } from '../src/engine/app/scope';
 import { Events } from '../src/engine/events/events';
@@ -135,4 +135,41 @@ test('a declared channel group writes the bag each frame from the camera seen fr
     expect(() => refused.cell?.build({ root, camera, renderer: render, tier: 'phone', scope })).toThrow();
     expect(() => postGraphLookOf('orchard', { ...ROW, channels: { group: 'orchard.frame', programs: [{ id: 'x', nodes: [], channels: [], reads: [], run: () => 0 }] } })).toThrow();
   } finally { scope.dispose(); }
+});
+
+test('a channel group copies the bag\'s numbers and colours into a lent look, a held colour comes back, and a texture is lent once per change', async () => {
+  // the orchard's leaves take its live air's warmth (a colour), its second row's depth and its mist each frame
+  const programs = numericChannelPrograms('orchard.leaf', 'orchard.leaf', [
+    { target: 'orchard-leaf', path: ['tint', 'x'], expr: (_b, read) => read('uniforms', ['uWarm', 'value', 'g']) },
+    { target: 'orchard-leaf', path: ['tint', 'y'], expr: (_b, read) => read('uniforms', ['uRows', 'value', 1, 'z']) },
+    { target: 'orchard-leaf', path: ['tint', 'z'], expr: (_b, read) => read('uniforms', ['uMist', 'value']) },
+  ]);
+  const writes = new Map<string, number | readonly number[]>(), textures: [string, THREE.Texture][] = [], cleanups: (() => void)[] = [];
+  const leaf = new THREE.MeshBasicMaterial();
+  const scope = new Scope('orchard-leaf'), live = { ...air(), uWarm: { value: new THREE.Color(0.2, 0.4, 0.6) }, uBark: { value: new THREE.Texture() } };
+  lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['orchard-leaf', leaf]]), bindMeshMap: () => new THREE.MeshBasicMaterial(),
+    setParam: (id, name, value) => { writes.set(`${id}:${name}`, typeof value === 'number' ? value : [...value]); },
+    setTexture: (id, name, texture) => { textures.push([`${id}:${name}`, texture]); } });
+  lendUniforms(scope, 'orchard-air', live);
+  const look = postGraphLookOf('orchard', { ...ROW, channels: { group: 'orchard.leaf', programs }, textures: [{ look: 'orchard-leaf', param: 'bark', uniform: 'uBark' }] });
+  const render = renderer(2), events = new Events(), display = new TextureEffect();
+  await prepareScaledPost(render);
+  try {
+    look.cell?.build({ root: new THREE.Group(), camera: new THREE.PerspectiveCamera(), renderer: render, tier: 'phone', scope });
+    look.frame?.(0.016, 1); look.frame?.(0.016, 2);
+    expect(writes.get('orchard-leaf:tint')).toEqual([expect.closeTo(0.4, 6), 6, expect.closeTo(0.7, 6)]);
+    expect(textures).toEqual([['orchard-leaf:bark', live.uBark.value]]);
+    // the studio's held warmth reaches the leaves at the next frame and comes back when it closes
+    bindPostGraphEvents([{ event: 'explore.studio', on: { hold: [{ param: 'uWarm', index: 1, value: 1 }] }, off: {} }], { ...live }, display, events, scope);
+    events.emit('explore.studio', true); events.flush('update'); look.frame?.(0.016, 3);
+    expect(writes.get('orchard-leaf:tint')).toEqual([1, 6, expect.closeTo(0.7, 6)]);
+    events.emit('explore.studio', false); events.flush('update'); look.frame?.(0.016, 4);
+    expect(live.uWarm.value.g).toBeCloseTo(0.4, 6);
+    const bark = new THREE.Texture(); live.uBark.value = bark; look.frame?.(0.016, 5); look.frame?.(0.016, 6);
+    expect(textures.map(([, texture]) => texture)).toEqual([expect.any(THREE.Texture), bark]);
+    // a texture row names a texture
+    const wrong = postGraphLookOf('orchard', { ...ROW, textures: [{ look: 'orchard-leaf', param: 'bark', uniform: 'uMist' }] });
+    wrong.cell?.build({ root: new THREE.Group(), camera: new THREE.PerspectiveCamera(), renderer: render, tier: 'phone', scope });
+    expect(() => wrong.frame?.(0.016, 7)).toThrow('holds no texture');
+  } finally { scope.dispose(); for (const cleanup of cleanups) cleanup(); leaf.dispose(); }
 });

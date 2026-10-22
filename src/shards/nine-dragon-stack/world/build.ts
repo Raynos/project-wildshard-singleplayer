@@ -18,7 +18,6 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
-import { facadeUniforms, syncLooks } from '../look/facadeMaterial';
 import metadata, { Y0 } from '../boot/metadata.generated.json' with { type: 'json' };
 import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -87,9 +86,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
-  syncLooks(shared.u);
   bindLowPolyMaterial(opts.sky, 'nine-architecture', lentLook('nine-architecture'), opts.scope);
-  syncLooks(facadeUniforms(shared));
   // the paper lanterns hung for this deck ending and the layout's air conditioners: world-scene placements of their
   // catalogue models (generators/worldScenes.ts LAYOUT_PLACEMENTS); the lanterns' hum hangs where each one does
   const lanternId = `nds-lanterns-${entryCaps ? 'capped' : 'open'}`;

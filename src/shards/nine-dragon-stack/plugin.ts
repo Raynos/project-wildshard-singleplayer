@@ -7,7 +7,6 @@ import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { TIER } from '@wildshard/engine/core/tier';
 import { NdRuntime, ownNdRuntime } from './runtime/state';
-import { installSpecimenLight } from './look/specimenLight';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
@@ -55,7 +54,6 @@ export class NdPlugin extends ShardPlugin {
     // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
     await WorldEntry.admit(ctx.product.section('world/scenes').entry, { scope, root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
     ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t); } });
-    installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }
 
