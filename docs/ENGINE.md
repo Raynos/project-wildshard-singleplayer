@@ -4130,8 +4130,8 @@ SF81 DIR-2: `@wildshard/sdk/directorAbi` defines `generateDirectorAbi(declaratio
 
 ### AAC packet index
 
-`@wildshard/engine/audio/aacIndex` defines `indexAac(bytes)`, the renderer-free bounded
-48 kHz stereo AAC-LC packet reader shared by incremental playback and product admission.
+`@wildshard/format/aacIndex` defines `indexRecordingAac(bytes)`, the renderer-free bounded
+48 kHz mono/stereo AAC-LC packet reader shared by incremental playback and product admission.
 Unsupported/encrypted/fragmented layouts refuse; costs include priming and full final
 packet padding. PCM WAV admission remains unchanged.
 
@@ -4516,7 +4516,6 @@ sample/score decoder, selection order, WebAudio clock and scoped RNG. Existing
 one-argument installers remain valid. Native runtime ownership and catalogue
 adoption are separate; this port does not create another audio owner.
 
-`indexAac(bytes)` keeps the stereo-only incremental playback contract.
 `indexRecordingAac(bytes)` inspects bounded, unfragmented 48 kHz mono/stereo
 AAC-LC recordings for immutable admission, including ordered multiple chunks.
 Packet/configuration checks and channel
