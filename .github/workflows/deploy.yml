@@ -323,7 +323,7 @@ jobs:
           path: |
             generated-inputs.tar
             generated-inputs-proof.json
-          compression-level: 0
+          compression-level: 1
           retention-days: 3
           if-no-files-found: error
 
@@ -373,7 +373,7 @@ jobs:
           path: |
             test-products.tar
             test-products-proof.json
-          compression-level: 0
+          compression-level: 1
           retention-days: 3
           if-no-files-found: error
 
