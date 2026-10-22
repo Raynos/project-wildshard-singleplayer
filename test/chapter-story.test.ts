@@ -26,7 +26,6 @@ import { buildQuestChapter } from '../src/game/quest/chapter';
 import { bindAdventurePersistence } from '../src/game/quest/persistence';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { chapterPresentation } from '../src/shards/nalati-grasslands/generators/chapterBindings';
 import persistenceRows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import pineProgram from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
@@ -159,7 +158,7 @@ test('entered chapter rows preserve carving order and continue the same saved ch
       id: talk.figure, name: talk.id, feet: [0, 0, 0], yaw: 0, talkHeight: 1.5, pointAt: [0, 1.5, 0], points: false, rig: { skeleton: 'npc.test', clips: [], sockets: [] },
       joints: [], sockets: [], visible: [], drawDistance: 90,
     }, scope);
-    const chapter = scope.run(() => buildQuestChapter(ctx, chapterPresentation(policy), { content, program: kokpar.program }));
+    const chapter = scope.run(() => buildQuestChapter(ctx, parseChapterStoryPresentation(policy), { content, program: kokpar.program }));
     scope.onDispose(saved.flags.onChange(flag => { changes.push(flag); }));
     return { scope, chapter, saved };
   };

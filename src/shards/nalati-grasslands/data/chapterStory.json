@@ -57,12 +57,334 @@
     }
   ],
   "introTitle": "Nalati Grasslands",
-  "chapterTitle": "Chapter {chapter} \u00b7 {title}",
-  "completedObjective": "{title} \u2014 complete",
+  "chapterTitle": "Chapter {chapter} · {title}",
+  "completedObjective": "{title} — complete",
   "completedHint": "The steppe has more stories. Baqyt Ata will tell them.",
-  "rewardKicker": "Chapter {chapter} \u00b7 complete",
-  "rewardSubtitle": "Title earned \u00b7 {reward}",
-  "started": "New quest \u00b7 {title}",
-  "objective": "Objective \u00b7 {objective}",
-  "rewardMs": 6500
+  "rewardKicker": "Chapter {chapter} · complete",
+  "rewardSubtitle": "Title earned · {reward}",
+  "started": "New quest · {title}",
+  "objective": "Objective · {objective}",
+  "rewardMs": 6500,
+  "decision": {
+    "observations": {
+      "king": {
+        "source": {
+          "saved": {
+            "record": "bosses",
+            "id": "golden-king",
+            "field": "defeated"
+          }
+        },
+        "on": "quest"
+      },
+      "titan": {
+        "source": {
+          "saved": {
+            "record": "bosses",
+            "id": "storm-titan",
+            "field": "defeated"
+          }
+        },
+        "on": "quest"
+      },
+      "clueStep": {
+        "source": {
+          "quest": "golden-king",
+          "step": "clues",
+          "state": "active"
+        },
+        "on": "carving"
+      },
+      "clue0": {
+        "source": {
+          "flag": "clue:1"
+        },
+        "on": "carving"
+      },
+      "clue1": {
+        "source": {
+          "flag": "clue:2"
+        },
+        "on": "carving"
+      },
+      "clue2": {
+        "source": {
+          "flag": "clue:3"
+        },
+        "on": "carving"
+      },
+      "elite0": {
+        "source": {
+          "saved": {
+            "record": "elites",
+            "id": "kokbori",
+            "field": "kills"
+          }
+        },
+        "on": "feathers"
+      },
+      "felled0": {
+        "source": {
+          "flag": "felled:kokbori"
+        },
+        "on": "feathers"
+      },
+      "elite1": {
+        "source": {
+          "saved": {
+            "record": "elites",
+            "id": "qyran",
+            "field": "kills"
+          }
+        },
+        "on": "feathers"
+      },
+      "felled1": {
+        "source": {
+          "flag": "felled:qyran"
+        },
+        "on": "feathers"
+      },
+      "elite2": {
+        "source": {
+          "saved": {
+            "record": "elites",
+            "id": "aqbars",
+            "field": "kills"
+          }
+        },
+        "on": "feathers"
+      },
+      "felled2": {
+        "source": {
+          "flag": "felled:aqbars"
+        },
+        "on": "feathers"
+      },
+      "elite3": {
+        "source": {
+          "saved": {
+            "record": "elites",
+            "id": "qara-batyr",
+            "field": "kills"
+          }
+        },
+        "on": "feathers"
+      },
+      "felled3": {
+        "source": {
+          "flag": "felled:qara-batyr"
+        },
+        "on": "feathers"
+      },
+      "elite4": {
+        "source": {
+          "saved": {
+            "record": "elites",
+            "id": "argymaq",
+            "field": "kills"
+          }
+        },
+        "on": "feathers"
+      },
+      "felled4": {
+        "source": {
+          "flag": "felled:argymaq"
+        },
+        "on": "feathers"
+      },
+      "feather0": {
+        "source": {
+          "flag": "feather:1"
+        },
+        "on": "feathers"
+      },
+      "feather1": {
+        "source": {
+          "flag": "feather:2"
+        },
+        "on": "feathers"
+      },
+      "feather2": {
+        "source": {
+          "flag": "feather:3"
+        },
+        "on": "feathers"
+      }
+    },
+    "actions": {
+      "qBonded": [
+        {
+          "kind": "flag",
+          "flag": "tamed:horse"
+        }
+      ],
+      "qArgymaq": [
+        {
+          "kind": "flag",
+          "flag": "tamed:argymaq"
+        },
+        {
+          "kind": "flag",
+          "flag": "felled:argymaq"
+        }
+      ],
+      "qInside": [
+        {
+          "kind": "flag",
+          "flag": "entered:kurgan"
+        }
+      ],
+      "qKing": [
+        {
+          "kind": "flag",
+          "flag": "dead:golden-king"
+        }
+      ],
+      "qTied": [
+        {
+          "kind": "flag",
+          "flag": "lit:cairn"
+        }
+      ],
+      "qTitan": [
+        {
+          "kind": "flag",
+          "flag": "dead:jel-ata"
+        }
+      ],
+      "qClue0": [
+        {
+          "kind": "toast",
+          "text": "A carving on its back · clue 1 / 3"
+        },
+        {
+          "kind": "reading",
+          "title": "A toppled balbal · 1 / 3",
+          "lines": [
+            "A rider with a sun for a face, and nine horses buried standing around him.",
+            "Under it, scratched later by a less patient hand: \"DO NOT DIG HERE. WE MEAN IT.\""
+          ]
+        },
+        {
+          "kind": "flag",
+          "flag": "clue:1"
+        }
+      ],
+      "qClue1": [
+        {
+          "kind": "toast",
+          "text": "A carving on its back · clue 2 / 3"
+        },
+        {
+          "kind": "reading",
+          "title": "A toppled balbal · 2 / 3",
+          "lines": [
+            "The sun-faced rider again, now on a throne of gold plates, a bow across his knees.",
+            "Around him, many small men with shovels. None of them look happy about it."
+          ]
+        },
+        {
+          "kind": "flag",
+          "flag": "clue:2"
+        }
+      ],
+      "qClue2": [
+        {
+          "kind": "toast",
+          "text": "A carving on its back · clue 3 / 3"
+        },
+        {
+          "kind": "reading",
+          "title": "A toppled balbal · 3 / 3",
+          "lines": [
+            "A door in a hill, facing the setting sun. Above it the sun-faced rider, sleeping — one eye open.",
+            "The carving says the king wakes for anyone who knocks. It does not say he is pleased to."
+          ]
+        },
+        {
+          "kind": "flag",
+          "flag": "clue:3"
+        }
+      ],
+      "qElite0": [
+        {
+          "kind": "flag",
+          "flag": "felled:kokbori"
+        }
+      ],
+      "qElite1": [
+        {
+          "kind": "flag",
+          "flag": "felled:qyran"
+        }
+      ],
+      "qElite2": [
+        {
+          "kind": "flag",
+          "flag": "felled:aqbars"
+        }
+      ],
+      "qElite3": [
+        {
+          "kind": "flag",
+          "flag": "felled:qara-batyr"
+        }
+      ],
+      "qElite4": [
+        {
+          "kind": "flag",
+          "flag": "felled:argymaq"
+        }
+      ],
+      "qFeather0": [
+        {
+          "kind": "flag",
+          "flag": "feather:1"
+        }
+      ],
+      "qNotice0": [
+        {
+          "kind": "toast",
+          "when": {
+            "quest": "father-wind",
+            "state": "active"
+          },
+          "text": "Storm feather · 1 / 3"
+        }
+      ],
+      "qFeather1": [
+        {
+          "kind": "flag",
+          "flag": "feather:2"
+        }
+      ],
+      "qNotice1": [
+        {
+          "kind": "toast",
+          "when": {
+            "quest": "father-wind",
+            "state": "active"
+          },
+          "text": "Storm feather · 2 / 3"
+        }
+      ],
+      "qFeather2": [
+        {
+          "kind": "flag",
+          "flag": "feather:3"
+        }
+      ],
+      "qNotice2": [
+        {
+          "kind": "toast",
+          "when": {
+            "quest": "father-wind",
+            "state": "active"
+          },
+          "text": "Storm feather · 3 / 3"
+        }
+      ]
+    }
+  }
 }
