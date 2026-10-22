@@ -116,7 +116,6 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private arc: THREE.Points = new THREE.Points(); private arcPos: Float32Array; private arcAttr: THREE.BufferAttribute = new THREE.BufferAttribute(new Float32Array(),3); private arcMat: THREE.PointsMaterial = new THREE.PointsMaterial();
   private readonly world: THREE.InstancedMesh;
   private javs: Jav[] = [];
-  private time = 0;
 
   private thrustT = -1; private hitDone = false; private queued = false;
   private rehit = new Map<object, number>();
@@ -160,13 +159,8 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
 
   override get segments(): number { return this.maxJavelins; }
   get magazine(): number { return this.maxJavelins; }
-  get winding(): boolean { return this.windT >= 0; }
-  get thrusting(): boolean { return this.thrustT >= 0; }
   
-  get javelinsOut(): number { let n = 0; for (const j of this.javs) if (j.state !== 0) n++; return n; }
   override addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
-  override reload(): void { /* nothing to reload: javelins are picked up */ }
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private readonly lookBlock = viewmodel(this.profile.feel.lag);
   private readonly lookState = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
@@ -407,7 +401,6 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   }
 
   update(dt: number, t: number): void {
-    this.time = t;
     const p = this.player, cam = this.game.camera;
     const inHand = this.model.visible;
     if (!inHand || !this.enabled) {
@@ -520,7 +513,6 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     }
   }
 
-  get clock(): number { return this.time; }
 }
 
 type PolearmData=schema.InferOutput<typeof PolearmRowsSchema>;
