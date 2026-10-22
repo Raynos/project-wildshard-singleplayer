@@ -80,3 +80,40 @@ test('missing stages, foreign constructions and duplicate declarations lend noth
     expect(() => WorldAssembly.lend({ stages: [{ kind: 'run', id: 'old', label: 'Old' }] }, f.scope, entered)).toThrow();
   } finally { f.scope.dispose(); foreign.dispose(); }
 });
+
+// sp-x8 QX: a retired or retiring construction allocates and publishes nothing more
+function retiring() {
+  const parent = new Scope('cell'), scope = parent.child('construction'); parent.onDispose(() => undefined); // the newest cleanup retires first
+  let settle: (value: Placed) => void = () => undefined;
+  const late = new Promise<Placed>(resolve => { settle = resolve; }), site = vi.fn<() => ModelSite>();
+  const scenes = legacyDouble<SceneHandles>({ place: () => late, floorAt: () => 0 });
+  const assembly = WorldAssembly.admit(stages, { scope, scenes, sites: { site }, context: legacyDouble<ModelContext>({}), registry: null, slice: () => Promise.resolve() });
+  const placed: Placed = { model: 'pier', object: new Group(), colliders: [], copies: 1, drawnAs: 'single', cull: () => undefined, copyBox: (_i, target) => target,
+    nearest: () => 0, registered: Promise.resolve() };
+  return { parent, scope, assembly, site, resolve: () => { settle(placed); } };
+}
+test('duplicate stage ids refuse at admission, before any stage runs', () => {
+  const scope = new Scope('construction'), place = vi.fn<() => Promise<Placed>>();
+  const twice = { stages: [{ kind: 'place', id: 'pier', label: 'Pier' }, { kind: 'mesh', id: 'pier', label: 'Again', part: 'pier.mesh' }] };
+  expect(() => WorldAssembly.admit(twice, { scope, scenes: legacyDouble<SceneHandles>({ place }), context: legacyDouble<ModelContext>({}), registry: null,
+    slice: () => Promise.resolve() })).toThrow('Repeated'); expect(place).not.toHaveBeenCalled(); scope.dispose();
+});
+test('a late place whose ancestor started retiring publishes nothing and refuses', async () => {
+  const f = retiring(), pending = f.assembly.next('piers.world-0');
+  const steps = f.parent.disposeSteps(); steps.next();
+  expect(f.scope.disposed).toBe(false); expect(f.scope.disposing).toBe(true);
+  f.resolve();
+  await expect(pending).rejects.toThrow('owner left');
+  for (let step = steps.next(); step.done !== true; step = steps.next()) { /* finish the retirement */ }
+  expect(() => entryOwner(f.scope, 'object', 'piers.world-0')).toThrow();
+});
+test('a site stage never allocates for a retired or retiring construction', async () => {
+  const f = retiring(), first = f.assembly.next('piers.world-0'); f.resolve(); await first;
+  const steps = f.parent.disposeSteps(); steps.next();
+  await expect(f.assembly.next('hut')).rejects.toThrow('owner left'); expect(f.site).not.toHaveBeenCalled();
+  for (let step = steps.next(); step.done !== true; step = steps.next()) { /* finish the retirement */ }
+  const g = retiring(), pier = g.assembly.next('piers.world-0'); g.resolve(); await pier;
+  g.scope.dispose();
+  await expect(g.assembly.next('hut')).rejects.toThrow('owner left'); expect(g.site).not.toHaveBeenCalled();
+  g.parent.dispose();
+});

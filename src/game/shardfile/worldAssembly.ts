@@ -23,7 +23,11 @@ export interface WorldAssemblyPorts {
 export class WorldAssembly {
   private at = 0;
   private constructor(private readonly stages: readonly WorldAssemblyStage[], private readonly ports: WorldAssemblyPorts) {}
-  static admit(input: unknown, ports: WorldAssemblyPorts): WorldAssembly { return new WorldAssembly(v.parse(WorldAssemblySchema, input).stages, ports); }
+  static admit(input: unknown, ports: WorldAssemblyPorts): WorldAssembly {
+    const { stages } = v.parse(WorldAssemblySchema, input);
+    if (new Set(stages.map(stage => stage.id)).size !== stages.length) throw new Error('Repeated world assembly owner');
+    return new WorldAssembly(stages, ports);
+  }
 
 
   /** Borrow the completed stages into an entered child, preserving every
@@ -47,11 +51,13 @@ export class WorldAssembly {
   async next(id: string): Promise<void> {
     const stage = this.stages[this.at];
     if (stage?.id !== id) throw new Error(`World assembly expected ${stage?.id ?? 'no stage'}, not ${id}`);
-    this.at++;
     const { scope, scenes } = this.ports;
+    // a retired or retiring construction (a sliced ancestor retirement) allocates and publishes nothing more
+    const live = (): void => { if (scope.disposed || scope.disposing) throw new Error('World assembly owner left'); };
+    live(); this.at++;
     if (stage.kind === 'place') {
       const placed = await scenes.place(stage.id);
-      if (scope.disposed) throw new Error('World assembly owner left');
+      live();
       publishEntryOwner(scope, 'object', stage.id, placed.object); publishEntryOwner(scope, 'placed', stage.id, [placed]);
       publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(stage.id, x, z));
     } else if (stage.kind === 'site') {
@@ -61,6 +67,7 @@ export class WorldAssembly {
       publishEntryOwner(scope, 'site', stage.id, site.anchors); publishEntryOwner(scope, 'floor', stage.id, site.floorHeightAt);
     } else publishEntryOwner(scope, 'object', stage.id, stage.kind === 'mesh' ? scenes.mesh(stage.part) : scenes.group(stage.part));
     await this.ports.slice(stage.label);
+    live();
   }
 
   /** Every declared stage ran. */
