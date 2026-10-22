@@ -113,7 +113,7 @@ test('native entered dispatch retains one bound build through leave/reentry and 
   const scenes=vi.spyOn(sceneHost,'installWorldScenes').mockResolvedValue(new SceneHandles({setupMaterial:()=>undefined}));
   const baked=vi.spyOn(bakedHost,'residentBakedTiles').mockResolvedValue(new Map());
   const draws=legacyDouble<FixedDraws>({ready:true}),loaded=vi.spyOn(ownerBook.library,'loaded').mockReturnValue(draws);
-  const build=vi.spyOn(WorldAssembly,'construct').mockImplementation(async(_rows,ports)=>{events.push('build');expect(ports.scope).toBe(construction);expect(ports.library).toBe(ownerBook.library);expect(ports.sites).toBe(ownerBook.sites);started();await complete;publishEntryOwner(ports.scope,'object','root',group);});
+  const build=vi.spyOn(WorldAssembly,'construct').mockImplementation(async(_rows,ports)=>{events.push('build');expect(ports.scope).toBe(construction);expect(ports.library).toBe(ownerBook.library);expect(ports.sites).toBe(ownerBook.sites);started();await complete;publishEntryOwner(ports.scope,'object','root',group);return {};});
   try{
     const pending=CLIENT_FEATURES['world.assembly'].install(first.ctx,assembly,construction);await Promise.race([begin,pending]);
     first.scope.dispose();finish();await expect(pending).rejects.toThrow('ended');
@@ -135,7 +135,7 @@ test('unbound native construction keeps its entered authority and never acquires
   const scenes=vi.spyOn(sceneHost,'installWorldScenes').mockResolvedValue(new SceneHandles({setupMaterial:()=>undefined}));
   const baked=vi.spyOn(bakedHost,'residentBakedTiles').mockResolvedValue(new Map());
   const draws=legacyDouble<FixedDraws>({ready:true}),loaded=vi.spyOn(ownerBook.library,'loaded').mockReturnValue(draws);
-  const build=vi.spyOn(WorldAssembly,'construct').mockImplementation((_rows,ports)=>{owners.push(ports.scope);publishEntryOwner(ports.scope,'object','root',new Group());return Promise.resolve();});
+  const build=vi.spyOn(WorldAssembly,'construct').mockImplementation((_rows,ports)=>{owners.push(ports.scope);publishEntryOwner(ports.scope,'object','root',new Group());return Promise.resolve({});});
   try{
     await CLIENT_FEATURES['world.assembly'].install(first.ctx,assembly,first.scope);first.scope.dispose();
     await CLIENT_FEATURES['world.assembly'].install(next.ctx,assembly,next.scope);

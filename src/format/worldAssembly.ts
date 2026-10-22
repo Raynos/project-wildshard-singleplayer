@@ -1,3 +1,4 @@
+import { isJsonData } from './json';
 import { StreamedCoverSchema } from './streamedCover';
 import { AmbientFlockSchema } from './ambientLife';
 import * as v from 'valibot';
@@ -26,6 +27,13 @@ const label = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
  * the existing building-life file and publishing its concrete buildings loan. It adds no progress step. Per-frame interpolation stays with its existing entered owner. No row selects a phase or callback.
  */
 export const WorldAssemblyStageSchema = v.variant('kind', [
+  /** Borrow an already installed concrete world owner; no second intake or draw. */
+  v.strictObject({ kind: v.literal('water-surface'), id, surface: id }),
+  v.strictObject({ kind: v.literal('dressing-piece'), id, part: id }),
+  v.strictObject({ kind: v.literal('dressing-anchor'), id, part: id, anchor: id }),
+  v.strictObject({ kind: v.literal('dressing'), id, bindSets: v.boolean() }),
+  v.strictObject({ kind: v.literal('fixed-draws'), id }),
+  v.strictObject({ kind: v.literal('painted-reseed'), id, world: id }),
   /** The weather occupies its exact ordered boundary without an extra progress slice. */
   v.strictObject({ kind: v.literal('weather'), id, file: id }),
   v.strictObject({ kind: v.literal('arena-script'), id, files: v.strictObject({ fight: id, geometry: id }), weather: id, anchor: id }),
@@ -49,12 +57,14 @@ export const WorldConstructionSchema = v.strictObject({
   /** Optional for direct native construction; mandatory for the finite entry capability. */
   looks: v.exactOptional(v.strictObject({ unbound: v.pipe(v.array(id), v.maxLength(256)), bound: v.pipe(v.array(id), v.maxLength(256)) })),
   publish: v.exactOptional(v.strictObject({ draws: id, collection: id })),
+  /** Snapshot only declared object loans at this construction boundary. */
+  groups: v.exactOptional(v.pipe(v.array(v.strictObject({ name: id, object: id })), v.maxLength(64))),
   root: v.exactOptional(v.strictObject({ id, name: label })),
   /** Ending names remain authored data; the entered context selects standalone or cell. */
   variant: v.exactOptional(v.strictObject({ standalone: id, cell: id })),
   cells: v.exactOptional(v.strictObject({ phone: id, desktop: id })), seed: v.pipe(v.number(), v.integer(), v.minValue(0)),
   progress: v.strictObject({ kind: v.exactOptional(v.literal('checkpoints')), total: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(2048)),
-    start: label, finish: label, budgetMs: v.pipe(finite, v.minValue(0), v.maxValue(100)) }),
+    start: v.exactOptional(label), finish: label, budgetMs: v.pipe(finite, v.minValue(0), v.maxValue(100)) }),
   checkpoints: v.pipe(v.array(v.strictObject({ stage: id, at: v.picklist(['before', 'after']),
     actions: v.pipe(v.array(v.variant('kind', [
       v.strictObject({ kind: v.literal('entry-floor'), floor: id }),
@@ -65,14 +75,14 @@ export const WorldConstructionSchema = v.strictObject({
       v.strictObject({ kind: v.literal('seed') }),
       v.strictObject({ kind: v.literal('require-baked'), id }),
     ])), v.minLength(1), v.maxLength(16)) })), v.maxLength(128)),
-  gpu: v.strictObject({ label, roots: v.pipe(v.array(v.variant('kind', [
+  gpu: v.exactOptional(v.strictObject({ label, roots: v.pipe(v.array(v.variant('kind', [
     v.strictObject({ kind: v.literal('object'), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
     v.strictObject({ kind: v.literal('placed'), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
     v.strictObject({ kind: v.literal('scene-part'), as: v.picklist(['mesh', 'group', 'object']), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
     v.strictObject({ kind: v.literal('baked'), id, when: v.exactOptional(v.strictObject({ variant: id })) }),
-  ])), v.minLength(1), v.maxLength(256)) }),
+  ])), v.minLength(1), v.maxLength(256)) })),
 });
 export type WorldConstructionRows = v.InferOutput<typeof WorldConstructionSchema>;
 
-export const WorldAssemblySchema = v.strictObject({ construction: v.exactOptional(WorldConstructionSchema), stages: v.pipe(v.array(WorldAssemblyStageSchema), v.minLength(1), v.maxLength(64)) });
+export const WorldAssemblySchema = v.pipe(v.unknown(), v.check(isJsonData, 'World assembly requires plain JSON'), v.strictObject({ construction: v.exactOptional(WorldConstructionSchema), stages: v.pipe(v.array(WorldAssemblyStageSchema), v.minLength(1), v.maxLength(64)) }));
 export type WorldAssemblyStage = v.InferOutput<typeof WorldAssemblyStageSchema>;

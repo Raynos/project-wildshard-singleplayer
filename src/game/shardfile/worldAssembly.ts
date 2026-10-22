@@ -1,3 +1,7 @@
+import { clientWaterSurfaces } from './clientWaterSurfaces';
+import { SceneDressing } from './sceneDressing';
+import { bindClientPlaceSets } from './clientPlaceSets';
+import { installFixedDrawsStage, installPaintedReseedStage } from './paintedWorldStages';
 import { ArenaScriptEncounter, readArenaScriptData } from '../boss/arenaScript';
 import type { ShardContext } from '../plugin/context';
 import { installForestWeather } from '../weather/forest';
@@ -9,7 +13,7 @@ import type { ShardRuntime } from '../shard/runtime';
 import type { IslandLibrary } from '../models/islandLibrary';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { BakedTiles } from './bakedTiles';
-import { Group, type Object3D, type Vector3 } from 'three';
+import { Group, Vector3, type Object3D } from 'three';
 import { worldBuildYield } from '../shard/plugin';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { createStreamedCover } from '../looks/streamedCover';
@@ -41,7 +45,7 @@ export interface WorldAssemblyPorts {
   readonly scope: Scope;
   /** The original construction context, used by ordered weather and encounter stages. */
   readonly weatherContext?: ShardContext;
-  readonly scenes: SceneHandles;
+  readonly scenes?: SceneHandles;
   readonly sites?: { readonly site: (key: string, choice: string, ctx: ModelContext, registry: WorldRegistry | null) => ModelSite };
   readonly context: ModelContext;
   readonly registry: WorldRegistry | null;
@@ -63,10 +67,13 @@ export interface WorldAssemblyPorts {
 /** Existing concrete native authorities; construction never creates another
  * library, scene intake, registry, world or retained owner. */
 export interface WorldConstructionPorts {
+  /** The original native construction context, only for declared borrowed-owner stages. */
+  readonly native?: ShardContext;
+  readonly draws?: FixedDraws;
   readonly runtime: ShardRuntime;
   readonly product: ShardProduct;
   readonly scope: Scope;
-  readonly scenes: SceneHandles;
+  readonly scenes?: SceneHandles;
   readonly baked: ReadonlyMap<string, BakedTiles>;
   readonly library?: IslandLibrary<unknown>;
   readonly sites?: ReturnType<typeof defineWorldSceneCatalogue>;
@@ -93,6 +100,7 @@ export async function installAssemblyWeather(ports: Pick<WorldAssemblyPorts, 'sc
   const rig = await installForestWeather(ctx, rows); unchanged();
   if (rig === null) throw new Error('World weather needs its original clocked sky');
   publishEntryOwner(scope, 'world-weather', stage.id, rig);
+  publishEntryOwner(scope, 'object', stage.id, rig.group);
 }
 
 /** Native arena ownership is separately charged to its actual users. */
@@ -123,26 +131,45 @@ async function installAssemblyArenaScript(ports: WorldAssemblyPorts, stage: Extr
 export class WorldAssembly {
   /** One walk of the declared stages, retaining native checkpoint and progress
    * boundaries. The caller keeps its original resident cache and lending. */
-  static async construct(input: unknown, ports: WorldConstructionPorts): Promise<void> {
+  static async construct(input: unknown, ports: WorldConstructionPorts): Promise<Record<string, Object3D>> {
     const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admitted(input);
     if (rows === undefined) throw new Error('World construction needs its declared checkpoints');
-    if (stages.some(stage => stage.kind === 'weather')) throw new Error('World weather needs its explicit ordered construction context');
-    if (stages.some(stage => stage.kind === 'arena-script')) throw new Error('World arena needs its explicit ordered construction context');
+    const native = ports.native;
+    if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','weather','arena-script','painted-reseed'].includes(stage.kind)) && native === undefined) throw new Error('World construction needs its original native context');
     const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
+    if (native !== undefined && (native.scope !== scope || native.product !== product || native.game.runtime !== runtime)) throw new Error('World construction native owners changed');
     if (world === null) throw new Error('World construction needs its native world');
-    const { game, sky, player, registry, physics } = world, scene = game.scene, viewer = runtime.viewer, read = product.file;
+    const { game, sky, player, registry, physics } = world, scene = game.scene, viewer = runtime.viewer, read = product.file, json = product.json, originalDraws = ports.draws;
+    const nativeGame = native?.game, nativeOwner = native === undefined ? undefined : game.levelScope;
+    const borrowedDressing = native !== undefined && stages.some(stage => stage.kind === 'dressing-piece' || stage.kind === 'dressing-anchor' || stage.kind === 'dressing') ? SceneDressing.current(native) : undefined;
+    const waters = native !== undefined && stages.some(stage => stage.kind === 'water-surface') ? clientWaterSurfaces(native) : undefined;
+    const borrowed = stages.flatMap(stage => {
+      if (stage.kind === 'water-surface') { const surface = waters?.get(stage.surface); if (surface === undefined) throw new Error('Missing declared water surface'); return [surface.group]; }
+      if (stage.kind === 'dressing-piece') { const piece = borrowedDressing?.pieces.get(stage.part); if (piece === undefined) throw new Error('Missing declared dressing piece'); return [piece.object]; }
+      return [];
+    });
     let publication: { readonly id: string; readonly root: Object3D } | undefined;
     const live = (): void => {
-      if (scope.disposed || scope.disposing || runtime.world !== world || world.game !== game || world.registry !== registry
+      if (native !== undefined && (ports.native !== native || native.scope !== scope || native.product !== product || native.game.runtime !== runtime)) throw new Error('World construction native owners changed');
+      if (scope.disposed || scope.disposing || nativeOwner !== undefined && (nativeOwner.disposed || nativeOwner.disposing || game.levelScope !== nativeOwner || native?.game !== nativeGame) || runtime.world !== world || world.player !== player || world.game !== game || world.registry !== registry
         || world.sky !== sky || world.physics !== physics || game.scene !== scene || runtime.viewer !== viewer
-        || product.file !== read || library !== undefined && library.product !== product) throw new Error('World construction owner left or changed');
+        || product.file !== read || product.json !== json || ports.draws !== originalDraws || library !== undefined && library.product !== product) throw new Error('World construction owner left or changed');
+      if (native !== undefined && (borrowedDressing !== undefined && SceneDressing.current(native) !== borrowedDressing || waters !== undefined && clientWaterSurfaces(native) !== waters)) throw new Error('World construction borrowed owners changed');
+      const current = stages.flatMap(stage => stage.kind === 'water-surface' ? [waters?.get(stage.surface)?.group] : stage.kind === 'dressing-piece' ? [borrowedDressing?.pieces.get(stage.part)?.object] : []);
+      if (current.some((object, index) => object !== borrowed[index])) throw new Error('World construction borrowed objects changed');
       if (publication !== undefined && entryOwner(scope, 'object', publication.id) !== publication.root) throw new Error('World construction root changed');
     };
     live();
     const explicit = rows.progress.kind === 'checkpoints';
+    if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','fixed-draws','painted-reseed'].includes(stage.kind)) && !explicit) throw new Error('World borrowed stages need explicit checkpoints');
+    if (stages.some(stage => stage.kind === 'fixed-draws') && ports.draws === undefined) throw new Error('World construction needs its original fixed draws');
+    if (!explicit && rows.progress.start === undefined) throw new Error('World automatic progress needs its start label');
+    const names = rows.groups ?? [], objectIds = new Set(stages.filter(stage => loanKinds(stage).includes('object')).map(stage => stage.kind === 'streamed-cover' ? stage.object : stage.id));
+    if (rows.root !== undefined) objectIds.add(rows.root.id);
+    if (new Set(names.map(row => row.name)).size !== names.length || names.some(row => !objectIds.has(row.object))) throw new Error('World groups need distinct names and declared object loans');
     const variants = rows.variant;
     if (variants !== undefined && ports.variant !== variants.standalone && ports.variant !== variants.cell) throw new Error('World construction needs its selected variant');
-    if (rows.gpu.roots.some(ref => ref.when !== undefined && (variants === undefined || ref.when.variant !== variants.standalone && ref.when.variant !== variants.cell))) throw new Error('World GPU root names an undeclared variant');
+    if ((rows.gpu?.roots ?? []).some(ref => ref.when !== undefined && (variants === undefined || ref.when.variant !== variants.standalone && ref.when.variant !== variants.cell))) throw new Error('World GPU root names an undeclared variant');
     if (library === undefined && stages.some(stage => stage.kind === 'rope-deck' || stage.kind === 'ambient-flock' || stage.kind === 'streamed-cover' || stage.kind === 'site' && stage.life !== undefined)) throw new Error('World construction needs its fixed-draw library');
     if (rows.cells === undefined && stages.some(stage => stage.kind === 'streamed-cover')) throw new Error('World construction needs its cover cells');
     const checkpoints = new Map<string, WorldConstructionRows['checkpoints'][number]>();
@@ -174,10 +201,10 @@ export class WorldAssembly {
       [, cells] = await Promise.all([library?.load(undefined, game.registrationScope, scope), rows.cells === undefined ? undefined : product.file(rows.cells[TIER])]);
       live();
     }
-    const draws = library?.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
+    const draws = ports.draws ?? library?.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
     let completed = 0;
     const complete = async (label: string): Promise<void> => { await slice(++completed, total, label); };
-    const assembly = WorldAssembly.admit(input, { scope, scenes, ...(ports.sites === undefined ? {} : { sites: ports.sites }), context: sharedModelContext(sky, game), registry,
+    const assembly = WorldAssembly.admit(input, { scope, ...(scenes === undefined ? {} : { scenes }), ...(native === undefined ? {} : { weatherContext: native }), ...(ports.sites === undefined ? {} : { sites: ports.sites }), context: sharedModelContext(sky, game), registry,
       slice: explicit ? () => Promise.resolve() : complete, product, ...(draws === undefined ? {} : { draws }), physics, fixed: game, ...(cells === undefined ? {} : { cover: { cells, viewer, updates: game } }),
       entry: { root, scope, tier: game.tier, physics, ...(ports.variant === undefined ? {} : { variant: ports.variant }), piece: piece => { registry.add(piece); } } });
     if (rows.root !== undefined) { publishEntryOwner(scope, 'object', rows.root.id, root); publication = { id: rows.root.id, root }; }
@@ -198,7 +225,7 @@ export class WorldAssembly {
         live();
       }
     };
-    ports.progress?.set(0, total, rows.progress.start);
+    if (rows.progress.start !== undefined) ports.progress?.set(0, total, rows.progress.start);
     for (const stage of stages) {
       live(); await checkpoint(stage.id, 'before'); live();
       await assembly.next(stage.id); live();
@@ -206,7 +233,7 @@ export class WorldAssembly {
     }
     if (!explicit) await slice(total, total, rows.progress.finish); live();
     // Resolve the WHOLE ordered root list before releasing even one CPU copy.
-    const roots = rows.gpu.roots.filter(ref => ref.when === undefined || ref.when.variant === ports.variant).map(ref => {
+    const roots = (rows.gpu?.roots ?? []).filter(ref => ref.when === undefined || ref.when.variant === ports.variant).map(ref => {
       if (ref.kind === 'object') return ref.id === rows.root?.id ? root : entryOwner(scope, 'object', ref.id);
       if (ref.kind === 'placed') {
         const [placed] = entryOwner(scope, 'placed', ref.id);
@@ -214,9 +241,11 @@ export class WorldAssembly {
         return placed.object;
       }
       if (ref.kind === 'baked') { const value = baked.get(ref.id); if (value === undefined) throw new Error(`Missing baked world ${ref.id}`); return value.group; }
+      if (scenes === undefined) throw new Error('World GPU scene root needs its scene handles');
       return ref.as === 'mesh' ? scenes.mesh(ref.id) : ref.as === 'group' ? scenes.group(ref.id) : scenes.object(ref.id);
     });
-    live(); gpuOnlyTrees(roots, rows.gpu.label, ['position']);
+    live(); if (rows.gpu !== undefined) gpuOnlyTrees(roots, rows.gpu.label, ['position']);
+    return Object.fromEntries(names.map(row => [row.name, entryOwner(scope, 'object', row.object)]));
   }
 
   private at = 0;
@@ -245,6 +274,38 @@ export class WorldAssembly {
     // a retired or retiring construction (a sliced ancestor retirement) allocates and publishes nothing more
     const live = (): void => { if (scope.disposed || scope.disposing) throw new Error('World assembly owner left'); };
     live();
+    if (stage.kind === 'water-surface' || stage.kind === 'dressing-piece' || stage.kind === 'dressing-anchor' || stage.kind === 'dressing') {
+      const ctx = this.ports.weatherContext, runtime = ctx?.game.runtime, world = runtime?.world;
+      if (ctx === undefined || runtime === undefined || world === undefined || world === null || ctx.scope !== scope) throw new Error('World borrowing needs its original native context');
+      const product = ctx.product, game = world.game;
+      const unchanged = (): void => { live(); if (this.ports.weatherContext !== ctx || ctx.scope !== scope || ctx.product !== product || ctx.game.runtime !== runtime || runtime.world !== world || world.game !== game) throw new Error('World borrowed owner changed'); };
+      unchanged(); this.at++;
+      if (stage.kind === 'water-surface') {
+        const surface = clientWaterSurfaces(ctx).get(stage.surface);
+        if (surface === undefined) throw new Error('Missing declared water surface');
+        publishEntryOwner(scope, 'object', stage.id, surface.group);
+      } else {
+        const dressing = SceneDressing.current(ctx);
+        if (stage.kind === 'dressing-piece') {
+          const piece = dressing.pieces.get(stage.part);
+          if (piece === undefined) throw new Error('Missing declared dressing piece');
+          publishEntryOwner(scope, 'object', stage.id, piece.object);
+        } else if (stage.kind === 'dressing-anchor') {
+          const point = dressing.pieces.get(stage.part)?.anchors[stage.anchor]?.[0];
+          publishEntryOwner(scope, 'world-point', stage.id, point === undefined ? null : new Vector3(point.x, point.y, point.z));
+        } else {
+          if (stage.bindSets) await bindClientPlaceSets(ctx, dressing.placedGroups(), dressing.placed);
+          unchanged(); if (SceneDressing.current(ctx) !== dressing) throw new Error('World dressing owner changed');
+          publishEntryOwner(scope, 'object', stage.id, dressing.group);
+        }
+      }
+      unchanged(); return;
+    }
+    if (stage.kind === 'fixed-draws') { this.at++; await installFixedDrawsStage(this.ports, stage); return; }
+    if (stage.kind === 'painted-reseed') { this.at++; installPaintedReseedStage(scope, stage); return; }
+    if (stage.kind === 'weather') { this.at++; await installAssemblyWeather(this.ports, stage); return; }
+    if (stage.kind === 'arena-script') { this.at++; await installAssemblyArenaScript(this.ports, stage); return; }
+    if (scenes === undefined) throw new Error('World scene stage needs its original scene handles');
     const lifeRow = stage.kind === 'site' ? stage.life : undefined;
     const lifePorts = lifeRow === undefined ? undefined : (() => {
       const draws = this.ports.draws, product = this.ports.product;
@@ -254,11 +315,6 @@ export class WorldAssembly {
       return { draws, draw, product, read: product.file, material };
     })();
     this.at++;
-    if (stage.kind === 'arena-script') { await installAssemblyArenaScript(this.ports, stage); return; }
-    if (stage.kind === 'weather') {
-      await installAssemblyWeather(this.ports, stage);
-      return; // The surrounding existing checkpoints own progress; weather adds no slice.
-    }
     if (stage.kind === 'streamed-cover') {
       const cover = this.ports.cover, draws = this.ports.draws, product = this.ports.product, root = this.ports.entry?.root;
       if (cover === undefined || draws === undefined || !draws.ready || product === undefined || root === undefined) throw new Error('World cover needs its cells, draws, product and native authority');
@@ -366,6 +422,9 @@ export class WorldAssembly {
  *  an entry's floor one of its own unconditional place rows. */
 function admitted(input: unknown): readonly WorldAssemblyStage[] {
   const { stages, construction } = v.parse(WorldAssemblySchema, input);
+  const owners = stages.flatMap(stage => loanKinds(stage).length === 0 ? [] : [stage.kind === 'streamed-cover' ? stage.object : stage.id]);
+  if (construction?.root !== undefined) owners.push(construction.root.id);
+  if (owners.some(id => !/^[A-Za-z][A-Za-z0-9_.:-]{0,255}$/u.test(id))) throw new Error('Invalid world assembly owner id');
   if (new Set(stages.map(stage => stage.id)).size !== stages.length) throw new Error('Repeated world assembly owner');
   const placements = stages.flatMap(stage => stage.kind === 'streamed-cover' ? [stage.placement] : stage.kind === 'place' || stage.kind === 'rope-deck' ? [stage.id] : stage.kind === 'entry' ? stage.rows.flatMap(row => row.kind === 'place' ? [row.id] : []) : []);
   if (new Set(placements).size !== placements.length) throw new Error('Repeated world assembly placement');
@@ -388,9 +447,12 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 }
 
 /** The loan kinds a stage publishes, from its declaration alone. */
-function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather' | 'arena-script')[] {
+function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather' | 'arena-script' | 'fixed-draws' | 'world-point')[] {
+  if (stage.kind === 'dressing-anchor') return ['world-point'];
   if (stage.kind === 'arena-script') return ['arena-script'];
-  if (stage.kind === 'weather') return ['world-weather'];
+  if (stage.kind === 'weather') return ['world-weather', 'object'];
+  if (stage.kind === 'fixed-draws') return ['fixed-draws'];
+  if (stage.kind === 'painted-reseed') return [];
   if (stage.kind === 'streamed-cover') return ['object', 'placed'];
   if (stage.kind === 'ambient-flock') return ['object', 'ambient-draw', 'ambient'];
   if (stage.kind === 'rope-deck') return ['object', 'placed', 'floor', 'rope-deck'];

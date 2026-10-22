@@ -57,7 +57,7 @@ function fixture(read: (hash: string) => Promise<Uint8Array>, parent?: Scope) {
     music: legacyDouble<NonNullable<ShardRuntime['play']>['music']>({ sting: () => undefined }) });
   const system = vi.fn<ShardContext['system']>(), events = new Events();
   const on: ShardContext['on'] = (name, run, options) => { events.on(name, run, scope, options); };
-  const ctx = legacyDouble<ShardContext>({ scope, product, system, on, debug: legacyDouble<ShardContext['debug']>({ expose: () => undefined }),
+  const ctx = legacyDouble<ShardContext>({ scope, product, system, on, app: legacyDouble<ShardContext['app']>({ registry: world.registry }), debug: legacyDouble<ShardContext['debug']>({ expose: () => undefined }),
     game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<ShardRuntime>({ world, play }) }) });
   return { scope, ctx, adventure, catalogue, system, on, flags, owned: play.owned };
 }

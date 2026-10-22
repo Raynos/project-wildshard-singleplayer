@@ -5,13 +5,14 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope } from '../src/engine/app/scope';
 import { parseClientPlan } from '../src/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
+import { legacyDouble } from './fake/FakeGame';
 import { bindClientPlaceSets,installClientPlaceSets } from '../src/game/shardfile/clientPlaceSets';
 
 const placement=(model:string,xs:number[]):Placed=>({model,object:new Group(),colliders:[],copies:xs.length,drawnAs:'instanced',cull:()=>undefined,registered:Promise.resolve(),nearest:()=>-1,
   copyBox:(index,target)=>{const x=xs[index];if(x===undefined)throw new Error('Missing fixture copy');return target.set(new Vector3(x-.5,0,-.5),new Vector3(x+.5,1,.5));}});
 
 test('orchard rows bind whole groups and loose spatial views once without double counting shared placements',async()=>{
-  const scope=new Scope('orchard-sets'),registry=new WorldRegistry(),ctx={} as ShardContext;Object.assign(ctx,{scope,app:{registry},product:{}});
+  const scope=new Scope('orchard-sets'),registry=new WorldRegistry(),ctx={} as ShardContext;Object.assign(ctx,{scope,app:{registry},product:{},game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world:null})})});
   const gate=placement('orchard/gate',[20,30]),trees=placement('orchard/tree',[0,20]),stones=placement('orchard/stone',[1,40]);
   const row=parseClientPlan({version:1,features:[{kind:'world.sets',rows:[
     {id:'gate',name:'Gate',place:'orchard/gate',file:'fixture',pois:['entrance'],x:100,z:0,r:1},

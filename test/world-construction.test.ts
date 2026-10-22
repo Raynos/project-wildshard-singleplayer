@@ -67,7 +67,7 @@ function fixture() {
   const release=vi.spyOn(gpu,'gpuOnlyTrees').mockImplementation((roots,label,keep)=>{events.push(['gpu',roots.map(value=>value.name),label,keep]);return 0;});
   const admit=vi.spyOn(WorldAssembly,'admit').mockImplementation((_input,ports:WorldAssemblyPorts)=>legacyDouble<WorldAssembly>({next:async id=>{
     const row=stageRows.find(value=>value.id===id);if(row===undefined)throw new Error('Unknown stage');
-    events.push(['stage',id]);afterStage(id);if(row.kind!=='weather'&&row.kind!=='arena-script')await ports.slice(row.label);
+    events.push(['stage',id]);afterStage(id);if('label' in row)await ports.slice(row.label);
   }}));
   const progress:boot.StepProgress={set:(...args)=>{events.push(['progress',...args]);},detail:()=>undefined};
   const ports={runtime,product,scope,library:ISLAND,scenes,baked,sites,progress};
@@ -110,6 +110,7 @@ test('leave across a stage stops before later checkpoints, stages or GPU release
 
 test.each(['placed','scene-part','baked'] as const)('a missing %s GPU root refuses the whole release',async kind=>{
   const f=fixture(),data=structuredClone(WORLD_STAGES);
+  if(data.construction.gpu===undefined)throw new Error('Fixture needs GPU roots');
   if(kind==='placed')f.placed.get('boat')?.splice(0);
   if(kind==='scene-part')data.construction.gpu.roots.push({kind:'scene-part',as:'mesh',id:'missing.mesh'});
   if(kind==='baked')data.construction.gpu.roots.push({kind:'baked',id:'missing-baked'});
@@ -161,6 +162,7 @@ test('scene-catalogue construction needs no island intake and keeps explicit fra
 
 test.each(['missing','backward','overshoot'] as const)('explicit %s progress refuses before library load or file reads',async mode=>{
   const f=fixture(),data=structuredClone(WORLD_STAGES);
+  if(data.construction.gpu===undefined)throw new Error('Fixture needs GPU roots');
   const construction={...data.construction,progress:{...data.construction.progress,kind:'checkpoints'},checkpoints:[
     {stage:'decks',at:'before',actions:[{kind:'progress',label:'first',done:.5}]},
     {stage:'decks',at:'after',actions:[mode==='missing'?{kind:'progress',label:'next'}:{kind:'progress',label:'next',done:mode==='backward'?.25:99}]}]};
@@ -169,6 +171,7 @@ test.each(['missing','backward','overshoot'] as const)('explicit %s progress ref
 
 test('constructed root publication cannot collide with a stage object loan',async()=>{
   const f=fixture(),data=structuredClone(WORLD_STAGES);
+  if(data.construction.gpu===undefined)throw new Error('Fixture needs GPU roots');
   try{await expect(WorldAssembly.construct({...data,construction:{...data.construction,root:{id:'hut',name:'collision'}}},f.ports)).rejects.toThrow('Repeated world assembly object');expect(f.events).toEqual([]);}finally{f.finish();}
 });
 
@@ -180,6 +183,7 @@ test('scene construction emits the strict checkpoint and root grammar',()=>{
 
 test('legacy stage ticks cannot silently gain a build-yield checkpoint',async()=>{
   const f=fixture(),data=structuredClone(WORLD_STAGES);
+  if(data.construction.gpu===undefined)throw new Error('Fixture needs GPU roots');
   const construction={...data.construction,checkpoints:[{stage:'decks',at:'before',actions:[{kind:'build-yield'}]}]};
   try{await expect(WorldAssembly.construct({...data,construction},f.ports)).rejects.toThrow('checkpoint progress');expect(f.events).toEqual([]);}finally{f.finish();}
 });

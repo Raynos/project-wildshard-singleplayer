@@ -1,0 +1,147 @@
+{
+  "construction": {
+    "seed": 18970,
+    "progress": {
+      "kind": "checkpoints",
+      "total": 7,
+      "finish": "World services",
+      "budgetMs": 0
+    },
+    "checkpoints": [
+      {
+        "stage": "water",
+        "at": "after",
+        "actions": [
+          {
+            "kind": "progress",
+            "done": 1,
+            "label": "Water"
+          },
+          {
+            "kind": "slice"
+          }
+        ]
+      },
+      {
+        "stage": "outcrops",
+        "at": "after",
+        "actions": [
+          {
+            "kind": "progress",
+            "done": 2,
+            "label": "Outcrops"
+          },
+          {
+            "kind": "slice"
+          }
+        ]
+      },
+      {
+        "stage": "crags",
+        "at": "after",
+        "actions": [
+          {
+            "kind": "progress",
+            "done": 3,
+            "label": "Crag rocks"
+          },
+          {
+            "kind": "slice"
+          }
+        ]
+      },
+      {
+        "stage": "cairn.tie",
+        "at": "after",
+        "actions": [
+          {
+            "kind": "progress",
+            "done": 4,
+            "label": "Places"
+          },
+          {
+            "kind": "slice"
+          }
+        ]
+      },
+      {
+        "stage": "dressing",
+        "at": "after",
+        "actions": [
+          {
+            "kind": "progress",
+            "done": 5,
+            "label": "Dressing"
+          },
+          {
+            "kind": "slice"
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "name": "water",
+        "object": "water"
+      },
+      {
+        "name": "outcrops",
+        "object": "outcrops"
+      },
+      {
+        "name": "crags",
+        "object": "crags"
+      },
+      {
+        "name": "dressing",
+        "object": "dressing"
+      },
+      {
+        "name": "weather",
+        "object": "nalati.weather"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "kind": "water-surface",
+      "id": "water",
+      "surface": "river"
+    },
+    {
+      "kind": "dressing-piece",
+      "id": "outcrops",
+      "part": "outcrops"
+    },
+    {
+      "kind": "dressing-piece",
+      "id": "crags",
+      "part": "cragRocks"
+    },
+    {
+      "kind": "fixed-draws",
+      "id": "shapes"
+    },
+    {
+      "kind": "dressing-anchor",
+      "id": "cairn.tie",
+      "part": "cairn",
+      "anchor": "tie"
+    },
+    {
+      "kind": "painted-reseed",
+      "id": "reseed",
+      "world": "nalati-grasslands"
+    },
+    {
+      "kind": "dressing",
+      "id": "dressing",
+      "bindSets": true
+    },
+    {
+      "kind": "weather",
+      "id": "nalati.weather",
+      "file": "world/weather.json"
+    }
+  ]
+}

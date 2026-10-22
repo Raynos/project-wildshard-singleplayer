@@ -1,3 +1,6 @@
+import { SceneDressing } from '../src/game/shardfile/sceneDressing';
+import { installClientPlaceSets, requireClientPlaceSetsBound } from '../src/game/shardfile/clientPlaceSets';
+import type { ShardContext } from '../src/game/plugin/context';
 import { App } from '../src/engine/app/app';
 import type { Game } from '../src/engine/core/Game';
 import { Physics } from '../src/engine/physics/Physics';
@@ -357,5 +360,32 @@ test('an entry piece row registers its collider owner, its declared collider sur
     await assembly.next('decks');
     expect(pieces).toHaveLength(1); expect(pieces[0]?.colliderOwner).toBe('deck.north'); expect(pieces[0]?.object).toBeUndefined();
     expect(pieces[0]?.colliders).toHaveLength(2);
+  } finally { scope.dispose(); }
+});
+
+
+test('native dressing stages borrow original groups and complete the original place-set owner without scene handles', async () => {
+  const scope = new Scope('orchard-native'), root = new Group(), registry = new WorldRegistry();
+  const product = legacyDouble<ShardContext['product']>({ slug: 'orchard', hasFile: () => false });
+  type Runtime = NonNullable<ShardContext['game']['runtime']>;
+  const world = legacyDouble<NonNullable<Runtime['world']>>({ sky: legacyDouble<NonNullable<Runtime['world']>['sky']>({}), game: legacyDouble<Game>({}) });
+  const runtime = legacyDouble<Runtime>({ world });
+  const ctx = legacyDouble<ShardContext>({ scope, root, product, app: legacyDouble<ShardContext['app']>({ registry }),
+    game: legacyDouble<ShardContext['game']>({ runtime }), system: () => undefined });
+  const rows = { name: 'orchard', catalogues: [], packs: {}, geometry: {}, materials: {}, layers: [], animations: [],
+    statics: [{ name: 'gate', anchors: { tie: [{ x: 1.25, y: 3, z: 5 }] }, tris: 0, members: [], geometry: {}, materials: {}, recipe: { version: 1, root: 'root', materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }] };
+  try {
+    const original = await SceneDressing.install(ctx, rows);
+    installClientPlaceSets(ctx, { kind: 'world.sets', rows: [] });
+    const assembly = WorldAssembly.admit({ stages: [{ kind: 'dressing-piece', id: 'gate', part: 'gate' }, { kind: 'dressing-anchor', id: 'tie', part: 'gate', anchor: 'tie' }, { kind: 'dressing-anchor', id: 'absent', part: 'gate', anchor: 'absent' }, { kind: 'dressing', id: 'dressing', bindSets: true }] },
+      { scope, weatherContext: ctx, context: legacyDouble<ModelContext>({}), registry, slice: () => { throw new Error('Native stages have no implicit slice'); } });
+    await assembly.next('gate'); await assembly.next('tie'); await assembly.next('absent'); await assembly.next('dressing');
+    expect(entryOwner(scope, 'object', 'gate')).toBe(original.pieces.get('gate')?.object);
+    expect(entryOwner(scope, 'object', 'dressing')).toBe(original.group);
+    const tie = entryOwner(scope, 'world-point', 'tie');
+    expect(tie?.toArray()).toEqual([1.25, 3, 5]);
+    expect(entryOwner(scope, 'world-point', 'absent')).toBeNull();
+    expect(root.children).toEqual([original.group]); expect(assembly.done).toBe(true);
+    expect(() => requireClientPlaceSetsBound(ctx)).not.toThrow();
   } finally { scope.dispose(); }
 });

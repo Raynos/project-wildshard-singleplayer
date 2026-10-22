@@ -7,9 +7,8 @@ import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
-import { Group, Mesh, Vector3, type Object3D } from 'three';
+import { Group, Mesh } from 'three';
 import * as v from 'valibot';
-import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
 import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import { wind } from '@wildshard/engine/world/steppeWind';
 
@@ -20,10 +19,11 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
-import { SHAPES, loadShapes } from '../models/shapes';
+import { SHAPES } from '../models/shapes';
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { installAssemblyWeather } from '@wildshard/game/shardfile/worldAssembly';
+import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
+import prefix from '../data/worldPrefix.json' with { type: 'json' };
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
@@ -31,12 +31,10 @@ import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { creatureGuest } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { wireLookV2 } from '../look/index';
-import { paintedWorldOf } from '@wildshard/game/looks/paintedWorld';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
 import type { CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
-import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 
@@ -50,58 +48,24 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
   const slice = slicer(0, progress);
-  let completed = 0;
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
   const { practiceRoom } = await import('@wildshard/engine/core/practiceRoom');
   const updates: ((dt: number, t: number) => void)[] = [];
-  const groups: Record<string, Object3D> = {};
-
-  // ── water (world agent, B0): the braided Kunes and the plateau brook, baked (generators/waterStrips.ts), on the water-surface
-  // host in their look (data/lookGraphs.json 'nalati-water', lit by the painted sky's tint rows) ──
-  const river=clientWaterSurfaces(plugin).get('river');if(river===undefined)throw new Error('Missing declared river');
-  groups['water'] = river.group;
-  await slice(++completed, total, 'Water');
-
-  const dressing = SceneDressing.current(plugin), outcrops = dressing.pieces.get('outcrops');
-  if (outcrops === undefined) throw new Error('Missing declared outcrops');
-  groups['outcrops'] = outcrops.object;
-  await slice(++completed, total, 'Outcrops');
-
-  // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
-  const crags=dressing.pieces.get('cragRocks');if(crags===undefined)throw new Error('Missing declared crag rocks');
-  await slice(++completed, total, 'Crag rocks');
-  groups['crags'] = crags.object;
-
-  // ── grass + wind (grass agent, B1): the blade rings are Grass.ts → look/grass.ts (main.ts builds it); the Wind object goes here ──
-
-  // ── spruce (spruce agent, B6): the Forest is built by bootstrap from `trees.factory`; anything extra goes here ──
-
-  // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
-  //    are the dressing's rows: its statics, the balbal sites, the road lettering, the camp smoke and the places' anchors
-  await loadShapes();
-  const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [], tie = anchors('cairn', 'tie')[0];
+  const runtime = plugin.game.runtime;
+  if (runtime === undefined || runtime.world !== ctx) throw new Error('Missing original world construction owner');
+  const groups = await WorldAssembly.construct(prefix, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: SHAPES, baked: new Map(), ...(progress === undefined ? {} : { progress }) });
+  const dressing = SceneDressing.current(plugin);
+  const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [];
   updates.push(() => undefined); // The dressing owns this frame slot.
-  await slice(++completed, total, 'Places');
-
-  // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
-  //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
-  paintedWorldOf('nalati-grasslands').grass.reseed(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
-  await bindClientPlaceSets(plugin,dressing.placedGroups(),dressing.placed);
-  groups['dressing'] = dressing.group;
-  await slice(++completed, total, 'Dressing');
-
-  // ── weather + day/night (weather agent, B10): the painted sky, its clock and the storm, all rows of the page's weather host ──
-  await installAssemblyWeather({ scope: plugin.scope, weatherContext: plugin, context: { sky } }, { kind: 'weather', id: 'nalati.weather', file: 'world/weather.json' });
   const rig = entryOwner(plugin.scope, 'world-weather', 'nalati.weather'), storm = rig.storm, painted = rig.sky;
   if (storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
   const weather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
-  groups['weather'] = rig.group;
   updates.push(() => undefined); // The weather host owns this frame slot.
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
-  const titan = new ArenaScriptEncounter({ game,player: ctx.player,weather: weather.weather,air: weather.air,tieSpot: tie === undefined ? null : new Vector3(tie.x, tie.y, tie.z) },await readArenaScriptData(plugin.product,{ fight: 'combat/titan-fight.json',geometry: 'combat/titan-geometry.json' }));
+  const titan = new ArenaScriptEncounter({ game,player: ctx.player,weather: weather.weather,air: weather.air,tieSpot: entryOwner(plugin.scope, 'world-point', 'cairn.tie') },await readArenaScriptData(plugin.product,{ fight: 'combat/titan-fight.json',geometry: 'combat/titan-geometry.json' }));
   plugin.answer('weather.storm-hold', held => Math.max(held, Number(titan.engaged)));   // the storm that called him rages on until he falls
   updates.push((dt, t) => { titan.update(dt, t); });
 
@@ -135,7 +99,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
-  await slice(completed + 1, total, 'Dungeon and weather');
+  await slice(total - 1, total, 'Dungeon and weather');
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
   const player = ctx.player;

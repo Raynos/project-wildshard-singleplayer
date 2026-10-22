@@ -7,7 +7,7 @@ import * as workSlice from '../src/engine/core/workSlice';
 import { legacyDouble } from './fake/FakeGame';
 
 function fixture() {
-  const scope = new Scope('place-bind'), ctx = legacyDouble<ShardContext>({ scope, product: legacyDouble<ShardContext['product']>({}), app: legacyDouble<ShardContext['app']>({ registry: new WorldRegistry() }) });
+  const scope = new Scope('place-bind'), ctx = legacyDouble<ShardContext>({ scope, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<NonNullable<ShardContext['game']['runtime']>>({ world: null }) }), product: legacyDouble<ShardContext['product']>({}), app: legacyDouble<ShardContext['app']>({ registry: new WorldRegistry() }) });
   return { scope, ctx };
 }
 

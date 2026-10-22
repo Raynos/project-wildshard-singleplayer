@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { Group, Scene, Mesh, MeshBasicMaterial, BufferGeometry } from 'three';
+import { Group, Scene, Mesh, MeshBasicMaterial, BufferGeometry, Vector3 } from 'three';
+import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -253,4 +254,39 @@ test('native weather keeps real inner read retirement fences with only its actua
       expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');
     } finally { for (const step of retirement) void step; native.dispose(); f.close(); }
   }
+});
+
+
+test('native checkpoint construction keeps the real weather at its original boundary without scenes or GPU release', async () => {
+  const f = clockedFixture(), position = new Vector3();
+  Object.assign(f.world.game, { renderer: legacyDouble<typeof f.world.game.renderer>({}), registrationScope: f.scope, tier: 'phone' });
+  Object.assign(f.world, { registry: new WorldRegistry(), physics: legacyDouble<typeof f.world.physics>({}), player: legacyDouble<typeof f.world.player>({ position }) });
+  Object.assign(f.runtime, { viewer: () => position });
+  const rows = { construction: { seed: 1, progress: { kind: 'checkpoints', total: 7, finish: 'World services', budgetMs: 0 },
+    groups: [{ name: 'weather', object: row.id }], checkpoints: [{ stage: row.id, at: 'after', actions: [{ kind: 'progress', done: 5, label: 'Dressing' }, { kind: 'slice' }] }] }, stages: [row] };
+  try {
+    const groups = await WorldAssembly.construct(rows, { runtime: f.runtime, native: f.ctx, product: f.ctx.product, scope: f.scope, baked: new Map(),
+      progress: { set: (done, total, label) => { f.trace.push(`${String(done)}/${String(total)} ${String(label)}`); }, detail: () => undefined } });
+    const rig = entryOwner(f.scope, 'world-weather', row.id);
+    expect(groups).toEqual({ weather: rig.group }); expect(groups['weather']).toBe(rig.group);
+    expect(entryOwner(f.scope, 'object', row.id)).toBe(rig.group);
+    expect(f.trace).toEqual([`read ${row.file}`, 'read weather/sky.json', `read ${policy.files.program}`, '5/7 Dressing']);
+    expect(f.registrations).toEqual(['weather.clock', policy.system.id]);
+  } finally { f.close(); }
+});
+
+test('native construction refuses missing contexts, bad group suffixes and accessor rows before any read', async () => {
+  const f = clockedFixture(), position = new Vector3();
+  Object.assign(f.world, { registry: new WorldRegistry(), physics: legacyDouble<typeof f.world.physics>({}), player: legacyDouble<typeof f.world.player>({ position }) });
+  Object.assign(f.runtime, { viewer: () => position });
+  const rows = { construction: { seed: 1, progress: { kind: 'checkpoints', total: 7, finish: 'World services', budgetMs: 0 },
+    checkpoints: [], groups: [{ name: 'weather', object: 'missing' }] }, stages: [row] };
+  const ports = { runtime: f.runtime, native: f.ctx, product: f.ctx.product, scope: f.scope, baked: new Map() };
+  let getters = 0;
+  try {
+    await expect(WorldAssembly.construct(rows, { runtime: f.runtime, product: f.ctx.product, scope: f.scope, baked: new Map() })).rejects.toThrow('original native context');
+    await expect(WorldAssembly.construct(rows, ports)).rejects.toThrow('declared object loans');
+    await expect(WorldAssembly.construct({ get stages() { getters++; return [row]; } }, ports)).rejects.toThrow('plain JSON');
+    expect(getters).toBe(0); expect(f.trace).toEqual([]); expect(f.registrations).toEqual([]);
+  } finally { f.close(); }
 });

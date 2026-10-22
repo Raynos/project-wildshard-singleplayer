@@ -13,7 +13,7 @@ import { legacyDouble } from './fake/FakeGame';
 const placed=(model:string):Placed=>({model,object:new Group(),colliders:[],copies:1,drawnAs:'single',cull:()=>undefined,registered:Promise.resolve(),nearest:()=>-1,
   copyBox:(_index,target)=>target.set(new Vector3(-.5,0,-.5),new Vector3(.5,1,.5))});
 function fixture(){
-  const scope=new Scope('entered-sets'),registry=new WorldRegistry(),ctx=legacyDouble<ShardContext>({scope,product:legacyDouble<ShardContext['product']>({}),app:legacyDouble<ShardContext['app']>({registry})});
+  const scope=new Scope('entered-sets'),registry=new WorldRegistry(),ctx=legacyDouble<ShardContext>({scope,game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world:null})}),product:legacyDouble<ShardContext['product']>({}),app:legacyDouble<ShardContext['app']>({registry})});
   installClientPlaceSets(ctx,{kind:'world.sets',rows:[
     {id:'wreck',name:'Wreck',place:'wreck',file:'fixture',pois:['wreck'],x:100,z:0,r:1},
     {id:'nearby',name:'Nearby',place:'nearby',file:'fixture',pois:[],x:0,z:0,r:10},
@@ -70,4 +70,30 @@ test.each([false,true])('a lost placement loan or entered retirement stops the n
     expect(registry.sets).toHaveLength(0);expect(yieldSpy).toHaveBeenCalledTimes(1);
     expect(()=>requireClientPlaceSetsBound(childCtx)).toThrow('not finished');
   }finally{yieldSpy.mockRestore();scope.dispose();construction.dispose();}
+});
+
+
+test.each(['scope','product','registry','world'] as const)('a redirected %s stops the next place-set effect and cleans the original registry', async changed => {
+  const { scope, registry, ctx } = fixture(), foreign = new Scope('foreign-bind');
+  const replacement = new WorldRegistry();
+  publishEntryOwner(scope, 'placed', 'wreck', [placed('wreck')]);
+  publishEntryOwner(scope, 'placed', 'pier', [placed('pier')]);
+  let resume: (() => void) | undefined;
+  const held = vi.spyOn(workSlice, 'buildYield').mockImplementationOnce(() => new Promise<void>(resolve => { resume = resolve; }));
+  try {
+    const binding = bindEnteredClientPlaceSets(ctx, { placed: ['wreck','pier'], groups: [{ id: 'wreck', placed: ['wreck'] }] });
+    expect(registry.sets).toHaveLength(1);
+    if (changed === 'scope') Object.assign(ctx, { scope: foreign });
+    if (changed === 'product') Object.assign(ctx, { product: legacyDouble<ShardContext['product']>({}) });
+    if (changed === 'registry') Object.assign(ctx.app, { registry: replacement });
+    if (changed === 'world') {
+      const runtime = ctx.game.runtime;
+      if (runtime === undefined) throw new Error('Missing fixture runtime');
+      runtime.world = legacyDouble<NonNullable<typeof runtime.world>>({});
+    }
+    if (resume === undefined) throw new Error('Missing held bind');
+    resume(); await expect(binding).rejects.toThrow();
+    expect(registry.sets).toHaveLength(1); expect(replacement.sets).toHaveLength(0);
+    scope.dispose(); expect(registry.sets).toHaveLength(0);
+  } finally { held.mockRestore(); scope.dispose(); foreign.dispose(); }
 });

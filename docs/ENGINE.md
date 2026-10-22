@@ -11740,6 +11740,24 @@ name} publishes the new construction Group before the stage walk; its scoped
 object loan is preflighted and lent with the completed stages. No empty book
 or extra intake substitutes for the original scene catalogue.
 
+Native construction may also borrow installed water-surface and dressing
+owners through its original ShardContext. water-surface names an installed
+surface; dressing-piece names a static piece; dressing-anchor captures its
+first named anchor as a world-point loan (null when absent). dressing binds
+the original declared place sets when bindSets is true, then lends their
+original group. All native authorities and borrowed groups remain pinned
+across awaits; no stage constructs a second world, registry or draw owner.
+fixed-draws loads and lends the supplied original FixedDraws once per page;
+painted-reseed selects a previously admitted painted world and reseeds its
+grass without an extra yield. Every stage retains the caller's construction
+scope, and rejects disposing owners and replaced readers before publication.
+
+construction.groups declares distinct names referring only to declared
+object loans. construct returns that concrete name-to-object snapshot after
+all stages finish. A native prefix can omit GPU roots to retain CPU geometry
+for later capture. In checkpoint mode start may be omitted when the caller
+already reported its initial progress; automatic mode requires start.
+
 With progress.kind checkpoints, explicit progress actions provide finite,
 nondecreasing done values within total; slice and build-yield actions retain
 separate native slicer and worldBuildYield boundaries. This mode adds no
