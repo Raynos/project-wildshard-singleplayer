@@ -508,13 +508,6 @@
               ]
             },
             "weakPoint": {
-              "joint": "chest",
-              "at": {
-                "$ref": [
-                  "bossView",
-                  "BOSS_RIBS"
-                ]
-              },
               "radius": {
                 "$ref": [
                   "bake",

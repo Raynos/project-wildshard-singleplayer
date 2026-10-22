@@ -63,7 +63,7 @@ test('data-only APIs reject callback bags, bad phase cuts and duplicate save ali
   expect(JSON.stringify(formatJsonSchema(WakeEncounterSchema))).toContain('@wildshard/format/bossEncounter#WakeEncounterSchema.pipe.1');
   expect(() => new WakeBossEncounter({ ...marshRows, presentation: { riseAbove: .2, cuts: [.3] } }, { x: 30, z: 40 })).toThrow('Invalid wake phases');
   expect(() => parseRoamingEncounter({ ...roaming, wire: [...roaming.wire, roaming.wire[0]] }, profile)).toThrow();
-  expect(() => v.parse(NativeBossBindingSchema, { population: 'marsh.population', weakPoint: { joint: 'root', at: [0, 1, 0], radius: .5 }, reward: { inventory: 'marsh.pack', grants: [] }, body: () => null })).toThrow();
+  expect(() => v.parse(NativeBossBindingSchema, { population: 'marsh.population', weakPoint: { radius: .5 }, reward: { inventory: 'marsh.pack', grants: [] }, body: () => null })).toThrow();
   const row = parseRoamingEncounter({ ...roaming, definition: { ...roaming.definition, id: 'marsh.roamer', name: 'Reed Roamer' }, kind: 'reed-titan', presence: { enter: 7, leave: 13 } }, { ...profile, fight: { ...profile.fight, origin: { x: 30, z: 40 } } });
   expect(row.profile.fight.origin).toEqual({ x: 30, z: 40 }); expect(row.presence).toEqual({ enter: 7, leave: 13 });
 });

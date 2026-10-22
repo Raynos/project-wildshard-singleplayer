@@ -431,11 +431,6 @@ export interface NativeCreaturePoseRecipe {
   readonly deathSplay?: boolean;
 }
 /** Renderer-free numeric pose with separate current locals and previous rendered contact publication. */
-const nativePoses = new WeakMap<AnimalSim, NativeCreaturePose>();
-/** Query the existing built-in pose of a retained actor; never installs a rig. */
-export function nativeCreaturePose(actor: AnimalSim): NativeCreaturePose {
-  const pose = nativePoses.get(actor); if (pose === undefined) throw new Error('Missing native creature pose'); return pose;
-}
 export class NativeCreaturePose {
   private static readonly ORIGIN = [0, 0, 0] as const;
   private static readonly u32 = poseSchema.pipe(poseSchema.number(), poseSchema.integer(), poseSchema.minValue(0), poseSchema.maxValue(0xffffffff));
@@ -500,7 +495,6 @@ export class NativeCreaturePose {
   private readonly animate: ((context: AnimalRigContext) => void) | undefined;
   constructor(actor: AnimalSim, recipe: NativeCreaturePoseRecipe, animate?: (context: AnimalRigContext) => void) {
     this.actor = actor; this.recipe = recipe; this.animate = animate;
-    nativePoses.set(actor, this);
     if (recipe.custom !== (animate !== undefined)) throw new Error('Incompatible native creature custom pose');
     this.identity = JSON.stringify({ id: actor.entityId, kind: actor.kind, variant: actor.variant, dims: actor.dims, recipe });
     this.entityId = actor.entityId;

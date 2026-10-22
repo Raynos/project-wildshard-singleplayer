@@ -10,7 +10,6 @@ import { installKingPoseKeeper } from './fixtures/pine/kingPoseBefore';
 import { installNativeLimbPoses } from '../src/game/animation/limbPopulation';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
-import { nativeCreaturePose } from '../src/game/plugin/animation';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { readKingRig } from './fixtures/pine/kingRigOracle';
@@ -132,15 +131,17 @@ test('invented native rows attach, save and restore through the built-in animal 
       const actor=Object.assign(body,{hidden:false,sampleTerrain:()=>{ /* replaced by platform owner */ }});
       service.attach(actor);return actor;
     };
-    const actor=adopt(host,poses),pose=nativeCreaturePose(actor);pose.advance(1/60,1,true);pose.publish();
+    const actor=adopt(host,poses),adapter=()=>host.adapters.get('marsh.poses')?.snapshot();host.step();
     const state=snapshotSimHost(host),fork=restoreSimHost(SIM_LEVEL,{rapier},state,owner=>{adopt(owner,installNativeLimbPoses(owner,poseRows));});
     try { expect(snapshotSimHost(fork)).toEqual(state); } finally { fork.dispose(); }
-    const before=pose.snapshot();expect(()=>poses.attach(actor)).toThrow('duplicated');expect(pose.snapshot()).toBe(before);
+    const before=adapter();expect(()=>poses.attach(actor)).toThrow('duplicated');expect(adapter()).toEqual(before);
     poses.retire(actor.entityId);expect(host.adapters.get('marsh.poses')?.snapshot()).toEqual({version:2,bodies:[]});
   }finally{host.dispose();}
 });
 
 
+/** A limb pose roster gives each attached body its ribs volume (`ribsWorld`: the chest chain, then the baked ribs point). */
+const hasRibs = (body: object): body is { ribsWorld: (out: Vector3) => Vector3 } => typeof Reflect.get(body, 'ribsWorld') === 'function';
 test('native pose continuation and ranged publications exactly match the retired King owner', async () => {
   const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const before=createSimHost(SIM_LEVEL,{rapier}),after=createSimHost(SIM_LEVEL,{rapier});
@@ -153,9 +154,9 @@ test('native pose continuation and ranged publications exactly match the retired
       for(const body of bodies){body.speed=tick<120?2.2:13;body.mem['act']=tick<180?1:3;if(tick%120===0)body.startAttack(1.4);}
       before.step();after.step();
       expect(after.adapters.get('pine.king.pose')?.snapshot()).toEqual(before.adapters.get('pine.king.pose')?.snapshot());
-      expect(nativeCreaturePose(b).snapshot()).toBe(nativeCreaturePose(a).snapshot());
-      for(const body of bodies)nativeCreaturePose(body).publish('chest');
-      expect(nativeCreaturePose(b).snapshot()).toBe(nativeCreaturePose(a).snapshot());
+      const ribs=bodies.map(body=>{if(!hasRibs(body))throw new Error('Missing ribs volume');return body.ribsWorld(new Vector3()).toArray();});
+      expect(ribs[1]).toEqual(ribs[0]);
+      expect(after.adapters.get('pine.king.pose')?.snapshot()).toEqual(before.adapters.get('pine.king.pose')?.snapshot());
     }
   }finally{before.dispose();after.dispose();}
 });

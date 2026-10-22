@@ -79,7 +79,7 @@ export function bossEncounterPresentation(input: unknown, encounter: { readonly 
 
 /** Concrete native service ids and pose/reward rows; no arbitrary hooks. */
 export const NativeBossBindingSchema = v.strictObject({ population: key,
-  weakPoint: v.strictObject({ joint: key, at: v.tuple([finite, finite, finite]), radius: positive }),
+  weakPoint: v.strictObject({ radius: positive }),
   reward: v.strictObject({ inventory: key, grants: v.pipe(v.array(v.strictObject({ item: key, count: v.pipe(finite, v.integer(), v.minValue(1)) })), v.maxLength(64)) }),
 });
 export type NativeBossBinding = v.InferOutput<typeof NativeBossBindingSchema>;

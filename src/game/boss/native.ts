@@ -2,7 +2,6 @@
  * damage ownership, reward flags and save continuation are shared platform law. */
 import { nativeDecisions } from '../shardfile/borrowedDecisions';
 import { populationRoster, type NativePopulationActor } from '../population/roster';
-import { nativeCreaturePose } from '../plugin/animation';
 import { grantNativeInventory } from '../inventoryLaw';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import * as v from 'valibot';
@@ -18,8 +17,9 @@ import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
 
-/** The actual native body remains owned by its installed population service. */
-export type NativeGroundBossBody = NativePopulationActor;
+/** The actual native body remains owned by its installed population service; its limb pose roster publishes the ribs
+ * volume (game/animation/limbPopulation `ribsWorld`: the chest chain, then the baked ribs point). */
+export type NativeGroundBossBody = NativePopulationActor & { readonly ribsWorld?: (out: Vector3) => Vector3 };
 type BossBrain = ReturnType<typeof installBossRow>['boss'];
 /** Data references to built-in services; arbitrary ports are not admitted. */
 const RIB_POINT = new Vector3();
@@ -29,7 +29,7 @@ const silentTell = { setTime: (): void => undefined, ring: (): void => undefined
 function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: SpeciesProgramData, binding: NativeBossBinding): { fight: GroundBossFight<NativeGroundBossBody>; own: { first: boolean; light: boolean } } {
   const own = { first: false, light: false }, roster = () => populationRoster(host, binding.population);
   const ribs = (body: NativeGroundBossBody, out: Vector3): Vector3 => {
-    const pose = nativeCreaturePose(body); pose.publish(binding.weakPoint.joint); return pose.jointPoint(binding.weakPoint.joint, binding.weakPoint.at, out);
+    if (body.ribsWorld === undefined) throw new Error('Boss body has no ribs volume'); return body.ribsWorld(out);
   };
   const reach = (a: NativeGroundBossBody, target: { x: number; y: number; z: number }): boolean => canReach(a, target, host.physics);
   const player = host.player;
@@ -82,8 +82,7 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
       room: () => { if (own.light && fight.darkK <= 0.5 && fight.body !== null) ribs(fight.body, RIB_POINT); },
       light: on => { own.light = on; },
       action: (k, move) => { k.mem[row.actionField] = row.actions[move] ?? 0; }, roar: () => undefined, burst: () => undefined,
-      // a dropped lantern's getWorldPosition forces the head's parent chain, even though its view is silent here
-      hazard: (_i, _f, _t, event) => { if (event === 'drop' && fight.body !== null) nativeCreaturePose(fight.body).publish(); },
+      hazard: () => undefined,
       add: () => undefined, ring: () => undefined, tell: silentTell,
     },
   }, host.level.seed, program, nativeDecisions(host));
