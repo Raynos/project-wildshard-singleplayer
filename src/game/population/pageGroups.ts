@@ -248,7 +248,6 @@ export class PageGroups {
     this.targets = new CrowdRoster(animals.animals,crowds,this.rows.prey);
   }
   private actor(id: string): Animal { const actor = this.animals.animals.find(body => body.entityId === id); if (actor === undefined) throw new Error('Missing rendered group actor'); return actor; }
-  private nearest(bodies: readonly Animal[],x: number,z: number,radius: number): Animal | null { return nearestPopulationActor(bodies,x,z,radius); }
   private common() {
     return { sharedRng: () => app.rng.stream('ai'),environment: () => wildEnv,
       visibility: (x: number,z: number,player: Vector3,speed: number,time: number) => wildEnv.visibility(x,z,player,speed,time),
@@ -269,7 +268,7 @@ export class PageGroups {
     const ports: PackPorts<Animal> = { ...this.common(),register: (actor,director) => { app.aggression.register(actor,director); },
       bite: (actor,context,radius) => { this.contact(actor,context,radius,false); },preyIdentity: prey => this.targets.identity(prey),resolvePrey: id => this.targets.resolve(id) };
     const pack = new PackBrain(members,x,z,row,ports); pack.initialize();
-    pack.findPrey = (px,pz,radius) => this.nearest(this.herds.flatMap(herd => herd.foals),px,pz,radius);
+    pack.findPrey = (px,pz,radius) => nearestPopulationActor(this.herds.flatMap(herd => herd.foals),px,pz,radius);
     this.packs.push(pack); for (const actor of members) { renderedPacks.set(actor,pack); } return pack;
   }
   herd(ids: readonly string[]): HerdBrain<Animal> {
@@ -278,7 +277,7 @@ export class PageGroups {
       chargeContact: (actor,context,radius) => { this.contact(actor,context,radius,true); },
       scarePack: (actor,radius) => { const pack = renderedPacks.get(actor); if (pack === undefined) return false; pack.scare(actor.position.x,actor.position.z,radius); return true; },
       onKnockdown: (x,z,strength) => { wildEnv.onKnockdown(x,z,strength); } });
-    herd.initialize(); herd.findThreat = (x,z,radius) => this.nearest(this.packs.flatMap(pack => pack.members),x,z,radius);
+    herd.initialize(); herd.findThreat = (x,z,radius) => nearestPopulationActor(this.packs.flatMap(pack => pack.members),x,z,radius);
     const adopt = herd.adoptStallion.bind(herd); herd.adoptStallion = actor => { adopt(actor); renderedHerds.set(actor,herd); };
     this.herds.push(herd); for (const actor of members) { renderedHerds.set(actor,herd); } return herd;
   }
