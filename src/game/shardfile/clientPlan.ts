@@ -74,6 +74,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       const { installEntryRangedPage } = await import('./clientQuestComposition');
       await installEntryRangedPage(ctx, row);
     } } },
+  'world.bind-sets': { phase: 'play', rank: -10, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'world.bind-sets') throw new Error('Invalid named-place binding feature');
+    const { bindEnteredClientPlaceSets } = await import('./clientPlaceSets');
+    await bindEnteredClientPlaceSets(ctx, row);
+  } },
   'quest.continuation': { phase: 'play', rank: 0, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.continuation') throw new Error('Invalid quest continuation feature');
     const { installQuestContinuationFile } = await import('../quest/continuation');
@@ -203,6 +208,10 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
         if (!product.has(name)) throw new Error('Product creatures require their admitted legacy owners');
         product.section(name);
       }
+    }
+    for (const row of plan.features) if (row.kind === 'world.bind-sets') {
+      if (!plan.features.some(feature => feature.kind === 'world.sets')) throw new Error('Named-place binding requires its declared sets');
+      if (row.quest !== undefined && !plan.features.some(feature => feature.kind === 'quest.composition' && feature.id === row.quest)) throw new Error('Named-place binding requires its declared quest');
     }
     const sections = new Map(outputDescriptor(product.shardfile)?.sections);
     for (const name of ['world/scenes', 'actors/species-programs', 'sim/runtime-plan', 'sim/scripts', 'look/painted'] as const)

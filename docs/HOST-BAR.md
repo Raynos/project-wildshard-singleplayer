@@ -132,6 +132,8 @@ G571 credit. Imports and dependencies retain their own attribution.
 
 - G571 entered quest figures: `game/quest/pageReference#QuestPageReference` provides the stable entered reader before publication. Test 1 waived; tests 2–6 covered by original live geometry, poses, collisions, resident material lifetime and captured-reader tests. No extra clock/save/author callbacks.
 
+- G571 entered named places: `game/shardfile/clientPlaceSets#bindEnteredClientPlaceSets` consumes finite placement and quest loan ids, preserving actual array order and binding completion. Test 1 waived; tests 2–6 covered by original registry sets, all-owner preflight, duplicate refusal and sliced owner-retirement regressions. No callback, clock or save.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they

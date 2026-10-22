@@ -63,6 +63,37 @@
         "file": "quests/figures.json",
         "draws": "driftwood.fixed-draws"
       }
+    },
+    {
+      "kind": "world.bind-sets",
+      "placed": [
+        "piers.world-0",
+        "boat",
+        "piers.world-1",
+        "piers.world-2",
+        "piers.world-3",
+        "hut",
+        "lookout",
+        "shrine",
+        "bushes",
+        "palms",
+        "shore",
+        "bridge",
+        "trail",
+        "cover",
+        "wreck",
+        "cove"
+      ],
+      "groups": [
+        {
+          "id": "wreck",
+          "placed": [
+            "wreck",
+            "cove"
+          ]
+        }
+      ],
+      "quest": "driftwood.adventure"
     }
   ]
 }

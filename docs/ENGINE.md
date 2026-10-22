@@ -11250,3 +11250,15 @@ it installs the original placed trader, counter, colliders, live pose
 systems and ordered cleanup. The completed quest publishes once into its
 entered loan and optional reference. Rows remain finite data without
 authored callbacks or a second geometry intake.
+
+### Entered named-place binding
+
+`world.bind-sets {placed,groups,quest?}` runs at entered play rank -10,
+before quest continuation. `placed` lists concrete placement loans in
+shipping order; each group supplies its id and ordered placement ids.
+The optional quest supplies its zipline and kit placements afterward.
+The compiled host preflights every owner before the first binding effect,
+rechecks their identities and retirement at each sliced yield, and awaits
+the original `bindClientPlaceSets` to completion. `world.sets` admission
+alone never proves placement readiness. Registration adds no geometry or
+colliders and leaves every loan with its original construction owner.
