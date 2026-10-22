@@ -1,10 +1,11 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "newest-ci-green",
-  "sha": "00e5d7721d338aa11c2b58adbe18efd4d2a305bd",
+  "mode": "pinned",
+  "sha": "14fadd9d3be1b07b3c077a142ca8b0b524507f7a",
   "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "Default T3 activation removed in2c8e05dd64; candidate96b965a60f includes it and has green CI39740793176 plus exact smoke39744112570 all five legs",
-  "set": "2026-10-22T08:15:02.704Z",
-  "by": "E357 lead"
+  "go": "Coordinator immediate release: GitHub CI aggregate39827849612 remains in_progress but all16 required exact-SHA jobs are completedSUCCESS; all5 exact smoke legs plus verdict39836087366 SUCCESS",
+  "set": "2026-10-22T19:08:53.552640+00:00",
+  "by": "sp-x7 / wildshard-new",
+  "ciRun": "39827849612"
 }
