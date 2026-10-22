@@ -12,7 +12,7 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  Box3, type BufferGeometry, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Vector3,
+  Box3, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Vector3,
 } from 'three';
 import { registerSigns } from '../models/signs';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -35,7 +35,7 @@ import { ndModelContext, need } from './modelLook';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { loadLayoutBake, prepareLayout, restoreLayout } from './layoutBake';
-import { loadSignAtlas, loadSpill } from './casts';
+import { loadSignAtlas } from './casts';
 
 import { addKitMeshes } from '../runtime/kit/kitMeshes';
 
@@ -135,16 +135,13 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   ctx.kits.clear();
   ctx.alphaKits.clear();
   await opts.pause(); // let the loading panel paint and GC run (in play: a drawn frame)
-  progress(0.52, 'neon spill + canopy');
-  await loadSpill(kitGeos, tier, entryCaps);
-  // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (its crown spilled like the kits; its
-  // leaf atlas, the paint and the scroll are the step's lent textures)
+  progress(0.52, 'canopy');
+  // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (the kits' and the crown's neon spill
+  // is baked into their geometry, generators/spillBake.ts; the leaf atlas, the paint and the scroll are the step's lent textures)
   await entry.run('canopy');
-  if (opts.scenes.has('dressing.crown-core')) {
-    const crownPart = (id: string): BufferGeometry => { const part = opts.scenes.object(`dressing.${id}`); if (!isMesh(part)) throw new Error(`Nine dressing ${id} is no mesh`); return part.geometry; };
-    const crown = [['canopy-cards', crownPart('crown-cards')], ['canopy-core', crownPart('crown-core')]] as const;
-    await loadSpill(crown, tier, entryCaps);
-    for (const [, geometry] of crown) gpuOnlyAttributes(geometry, STATIC_GEOMETRY);
+  if (opts.scenes.has('dressing.crown-core')) for (const id of ['crown-cards', 'crown-core']) {
+    const part = opts.scenes.object(`dressing.${id}`); if (!isMesh(part)) throw new Error(`Nine dressing ${id} is no mesh`);
+    gpuOnlyAttributes(part.geometry, STATIC_GEOMETRY);
   }
   await entry.run('dressing');
   // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error

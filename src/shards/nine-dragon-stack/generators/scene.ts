@@ -1,5 +1,6 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, Vector3, type BufferGeometry } from 'three';
+import { drawSpill, withSpill } from './spillBake';
 import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { partitionWholeGeometry, wholePartitionRuns } from '@wildshard/sdk/bake/props';
 import { nineLayoutSource } from './layout';
@@ -22,6 +23,13 @@ export function nineChannels(geometry: BufferGeometry): Record<string, string> {
 function buildNineScene(project?: string): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
   const layout = nineLayoutSource(), scene = new Scene(); scene.name = 'nine-dragon-stack';
   const material = new MeshStandardMaterial({ vertexColors: true });
+  // each kit's neon spill rides in its tiles as the aSpill channel (generators/spillBake.ts `drawSpill`)
+  const spill = drawSpill();
+  for (const { name, geo } of layout.rows.kits) {
+    const geometry = geo === null ? null : layout.geometries[geo];
+    if (geometry === undefined) throw new Error(`Nine scene: missing kit geometry ${name}`);
+    if (geometry !== null) withSpill(geometry, spill, name);
+  }
   const local = new Set(layout.rows.sets.map(set => set.geo));
   // The skyline crown reaches +273.5 m: retain that out-of-cube backdrop as an unchanged library geometry.
   const crown = layout.rows.kits.find(kit => kit.name === 'crown')?.geo;
@@ -48,7 +56,8 @@ function buildNineScene(project?: string): { baked: BakedScene; layout: ReturnTy
     if (geometry === undefined) throw new Error(`Nine scene: missing local geometry ${index}`);
     return [`layout_${index}`, geometry] as const;
   }));
-  const recipes = specimenRecipes(banyanOut.plan?.lumps ?? []);
+  const recipes = specimenRecipes(banyanOut.plan?.lumps ?? []).map(([key, build]): [string, () => BufferGeometry] =>
+    [key, key === 'canopy:cards' || key === 'canopy:core' ? () => withSpill(build(), spill, key.replace(':', '-')) : build]);
   const counts = layout.rows.counts, start = (counts.walkers + counts.sitters + counts.lanterns + counts.acs) * 16 + counts.hooks * 3 + counts.hookMounts * 6;
   const steam = Array.from({ length: counts.steam }, (_, i) => new Vector3().fromArray(layout.records, start + i * 3));
   if (layout.rows.sheets.length > 0) recipes.push(['mist:sheets', () => mistSheetsGeometry(layout.rows.sheets, WELL_RECTS, SHEET_LAYERS)]);

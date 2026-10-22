@@ -1,4 +1,4 @@
-import { type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
+import { BufferAttribute, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { nineLayoutSource } from './layout';
@@ -80,4 +80,25 @@ export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop'): ReturnType
   const input = spillInputs(caps, tier);
   bakeSpill([...input.geometry.values()], input.emitters);
   return input;
+}
+
+/** Each draw's spill, baked into its geometry: every tier and deck ending lights a shared draw identically (refused
+ *  otherwise), and each ending's own entry decks are their own draw. */
+export function drawSpill(): ReadonlyMap<string, BufferAttribute> {
+  const spill = new Map<string, BufferAttribute>();
+  for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) for (const [name, geometry] of bakedSpill(caps, tier).geometry) {
+    const key = name === 'entries' ? (caps ? 'entries-capped' : 'entries-open') : name, value = geometry.getAttribute('aSpill');
+    if (!(value instanceof BufferAttribute)) throw new Error(`Nine spill ${key} is not a buffer`);
+    const known = spill.get(key);
+    if (known === undefined) spill.set(key, value);
+    else if (known.array.length !== value.array.length || known.array.some((word, i) => !Object.is(word, value.array[i]))) throw new Error(`Nine spill differs by tier or deck ending: ${key}`);
+  }
+  return spill;
+}
+
+/** Put a draw's baked spill on its geometry (its vertex count must match). */
+export function withSpill(geometry: BufferGeometry, spill: ReadonlyMap<string, BufferAttribute>, name: string): BufferGeometry {
+  const value = spill.get(name);
+  if (value === undefined || value.count !== geometry.getAttribute('position').count) throw new Error(`Nine spill does not fit ${name}`);
+  return geometry.setAttribute('aSpill', value);
 }

@@ -1,26 +1,8 @@
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { type BufferGeometry, type Texture, Float32BufferAttribute } from 'three';
+import type { BufferGeometry, Texture } from 'three';
 import type { SignAtlas } from '../runtime/productSections.generated';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { layoutReviver } from './layoutBake';
-
-/** Attach verified, lossless float32 spill to the final merged vertex stream. */
-export async function loadSpill(meshes: readonly (readonly [string, BufferGeometry])[], tier: 'phone' | 'desktop', caps: boolean): Promise<void> {
-  const product = await loadFirstPartyProduct('nine-dragon-stack');
-  for (const [name, geometry] of meshes) {
-    const values = new Float32Array(geometry.getAttribute('position').count * 3);
-    for (let i = 0; i < values.length; i += 196608) {
-      const path = `lighting/spill/${tier}/${caps ? 'capped' : 'open'}/${name}-${i / 196608}.bin`, packed = await product.file(path);
-      const decoded = await new Response(new Blob([Uint8Array.from(packed)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
-      const length = new DataView(decoded).getUint32(0, true);
-      if (new TextDecoder().decode(new Uint8Array(decoded, 4, length)) !== path) throw new Error('Nine spill draw binding differs');
-      const part = new Float32Array(decoded, 4 + Math.ceil(length / 4) * 4);
-      if (part.length !== Math.min(196608, values.length - i)) throw new Error(`Nine spill vertex count differs: ${name}`);
-      values.set(part, i);
-    }
-    geometry.setAttribute('aSpill', new Float32BufferAttribute(values, 3));
-  }
-}
 
 export interface BakedSigns {
   readonly keys: Readonly<Record<string, string>>;
