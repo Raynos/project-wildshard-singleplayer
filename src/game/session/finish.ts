@@ -140,7 +140,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // first visit (on the grid, its whole world) after that visit retired. The runtime's objects still win, as spread last.
   const objects = boot.runtime.objects, fixed = new Set(['physics', 'boundary', 'water', 'streams', 'hands', 'props', 'animals', 'interactables', 'crossbow',
     'hud', 'audio', 'music', 'lockSys', 'lockState', 'weapons', 'arena', 'playground']);
-  const live = (key: string, from: object): void => { Object.defineProperty(handle, key, { get: (): unknown => Reflect.get(from, key), enumerable: true, configurable: true }); };
+  // A harness write (a capture's `freeCamera = true`) lands on the probe itself, as it did on the copy; reads stay live.
+  const live = (key: string, from: object): void => { Object.defineProperty(handle, key, { get: (): unknown => Reflect.get(from, key),
+    set: (value: unknown): void => { Object.defineProperty(handle, key, { value, writable: true, enumerable: true, configurable: true }); }, enumerable: true, configurable: true }); };
   for (const key of Object.keys(world)) if (!fixed.has(key) && !Object.hasOwn(objects, key)) live(key, world);
   for (const key of Object.keys(objects)) live(key, objects);
   app.audio = audio;

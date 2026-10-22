@@ -21,6 +21,7 @@
  *   --haze=off|light|current pins the grid far haze (the capture-only harness `farHaze`; a build reads it only where a
  *   local variant patch says so) and --everything pins every cell near (`nearEvery`) with a 6 km far plane. Each shot
  *   records the frame rate over 4 s, the JS heap and the renderer + GPU processes' footprint (Chromium) for its label.
+ *   The player stays on the session's road point for every view (re-posing the player in the grid loses the free camera).
  *   --url=<preview> captures an already served build (a local variant build in a mirror slot) instead of building HEAD.
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
  *   with the near tier (B, shipped); the square round's sizes and lenses.
@@ -394,15 +395,6 @@ async function captureAerial(base) {
               console.log(`entered ${shot.over.slug} for ${session.key}: ${JSON.stringify(entered.tiles)}`);
             }
             if (enterHere) row.entered = entered;
-            // G575 round 36: a pose that names where the player waits (the outer road) stands there first, then the rest go back
-            const standAt = far ? shot.stand ?? centre : null;
-            if (standAt !== null) {
-              await page.evaluate(async p => {
-                const api = window.__wildshard, w = api.requireWorld(), live = api.shard.grid.state().live.live;
-                await api.pose({ x: p.x - (live.worldFeet.x - w.player.position.x), z: p.z - (live.worldFeet.z - w.player.position.z), y: 0, yaw: 0, pitch: 0 });
-              }, standAt);
-              await page.waitForTimeout(8000);
-            }
             await page.evaluate(p => { window.__heroAerialPose = p; }, shot);
             await page.waitForTimeout(3500);
             const current = await page.evaluate(gridFloorDocumentIdentity);
