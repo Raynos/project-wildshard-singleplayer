@@ -4,7 +4,7 @@ import type { ModelContext } from '@wildshard/engine/models/model';
 import type { ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { WorldAssemblySchema, type WorldAssemblyStage } from '@wildshard/format/worldAssembly';
-import { publishEntryOwner } from './entryOwners';
+import { publishEntryOwner, entryOwner, lendEntryOwner } from './entryOwners';
 import type { SceneHandles } from './sceneHandles';
 
 /** What an assembly builds against: the construction scope its loans belong to, the admitted scene handles, the shard's
@@ -24,6 +24,24 @@ export class WorldAssembly {
   private at = 0;
   private constructor(private readonly stages: readonly WorldAssemblyStage[], private readonly ports: WorldAssemblyPorts) {}
   static admit(input: unknown, ports: WorldAssemblyPorts): WorldAssembly { return new WorldAssembly(v.parse(WorldAssemblySchema, input).stages, ports); }
+
+
+  /** Borrow the completed stages into an entered child, preserving every
+   * construction owner. Stage kinds determine the finite loan kinds; no
+   * callback, property path or second builder crosses this boundary. */
+  static lend(input: unknown, construction: Scope, entered: Scope): void {
+    const { stages } = v.parse(WorldAssemblySchema, input);
+    if (new Set(stages.map(stage => stage.id)).size !== stages.length) throw new Error('Repeated world assembly owner');
+    if (entered !== construction && !entered.belongsTo(construction)) throw new Error('World assembly needs its construction ancestor');
+    const loans = stages.flatMap(stage => {
+      const kinds = stage.kind === 'site' ? ['object', 'placed', 'site', 'floor'] as const
+        : stage.kind === 'place' ? ['object', 'placed', 'floor'] as const : ['object'] as const;
+      return kinds.map(kind => ({ kind, id: stage.id }));
+    });
+    // Refuse an incomplete build before publishing even its first entered loan.
+    for (const { kind, id } of loans) entryOwner(construction, kind, id);
+    if (entered !== construction) for (const { kind, id } of loans) lendEntryOwner(entered, construction, kind, id);
+  }
 
   /** Run the next declared stage, which must be `id` (the build keeps the declared order), and publish its loans. */
   async next(id: string): Promise<void> {

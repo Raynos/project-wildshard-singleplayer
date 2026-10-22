@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Group, Mesh } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import type { ModelSite, Placed } from '../src/engine/models/place';
@@ -48,4 +48,35 @@ test('a stage out of its declared order, past the end or after its owner left re
   const ports = { scope: new Scope('refused'), scenes: legacyDouble<SceneHandles>({}), context: legacyDouble<ModelContext>({}), registry: null, slice: () => Promise.resolve() };
   expect(() => WorldAssembly.admit({ stages: [{ kind: 'run', id: 'shore', label: 'Shore' }] }, ports)).toThrow();
   ports.scope.dispose();
+});
+
+test('completed stage loans keep the construction owner across repeated entries', async () => {
+  const f = fixture(), entered = f.scope.child('entered');
+  const dispose = vi.spyOn(f.mesh.geometry, 'dispose'); f.scope.own(f.mesh.geometry);
+  try {
+    for (const row of stages.stages) await f.assembly.next(row.id);
+    WorldAssembly.lend(stages, f.scope, f.scope); // standalone already owns these publications
+    WorldAssembly.lend(stages, f.scope, entered);
+    for (const kind of ['object', 'placed', 'site', 'floor'] as const) expect(entryOwner(entered, kind, 'hut')).toBe(entryOwner(f.scope, kind, 'hut'));
+    expect(entryOwner(entered, 'object', 'trail')).toBe(f.mesh);
+    expect(entryOwner(entered, 'floor', 'piers.world-0')(2, 0)).toBe(3);
+    entered.dispose(); expect(dispose).not.toHaveBeenCalled();
+    expect(() => entryOwner(entered, 'object', 'hut')).toThrow('scope has ended');
+    const next = f.scope.child('next'); WorldAssembly.lend(stages, f.scope, next);
+    expect(entryOwner(next, 'object', 'hut')).toBe(f.siteGroup);
+    f.scope.dispose(); expect(dispose).toHaveBeenCalledTimes(1);
+    expect(() => entryOwner(next, 'object', 'hut')).toThrow('scope has ended');
+  } finally { f.scope.dispose(); dispose.mockRestore(); }
+});
+
+test('missing stages, foreign constructions and duplicate declarations lend nothing', async () => {
+  const f = fixture(), entered = f.scope.child('entered'), foreign = new Scope('foreign');
+  try {
+    await f.assembly.next('piers.world-0');
+    expect(() => WorldAssembly.lend(stages, f.scope, entered)).toThrow('Missing live entry owner');
+    expect(() => entryOwner(entered, 'object', 'piers.world-0')).toThrow('Missing live entry owner');
+    expect(() => WorldAssembly.lend(stages, f.scope, foreign)).toThrow('construction ancestor');
+    expect(() => WorldAssembly.lend({ stages: [stages.stages[0], stages.stages[0]] }, f.scope, entered)).toThrow('Repeated');
+    expect(() => WorldAssembly.lend({ stages: [{ kind: 'run', id: 'old', label: 'Old' }] }, f.scope, entered)).toThrow();
+  } finally { f.scope.dispose(); foreign.dispose(); }
 });
