@@ -91,11 +91,12 @@ export function bindPortalRide(rider: PortalRider, veil: (amount: number) => voi
 }
 
 /** The page's ride: its veil panel in the HUD and its step after the player's, for the level's lifetime. */
-export async function installPortalRide(ctx: Pick<ShardContext, 'game' | 'system'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts): Promise<PortalRide> {
+export async function installPortalRide(ctx: Pick<ShardContext, 'game' | 'system' | 'scope'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts): Promise<PortalRide> {
   const [{ declarePanel }, { mountUi, uiScope }] = await Promise.all([import('@wildshard/engine/ui/panel'), import('@wildshard/engine/ui/ownership')]);
   const world = ctx.game.runtime?.world;
   if (world === undefined || world === null) throw new Error('The portal ride needs its entered world');
-  const owner = uiScope('PortalVeil'), panel = declarePanel(rows.veil);
+  // O18: the veil is the ride's, so it leaves with its page's scope (after the await the ambient owner is the page's level)
+  const owner = uiScope('PortalVeil', ctx.scope), panel = declarePanel(rows.veil);
   mountUi(panel.root, owner);
   const rider = portalRider(world.player, () => world.physics, source);
   const ride = bindPortalRide(rider, k => { panel.style('', 'opacity', k.toFixed(3)); panel.style('', 'display', k > 0 ? 'block' : 'none'); }, portalRings(source, rows), rows.landings, facts);

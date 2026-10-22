@@ -1095,7 +1095,9 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
     specimen.removeFromParent(); specimen.clear(); specimens.clear();
     for (const owner of owners) owner.dispose(); owners.clear();
   };
-  if (def.specimenLifetime === 'view') parent.onDispose(release);
+  // O18: the entry lives on its registry's piece: a world that retires releases it too, and drops the ambient owner's
+  // hold (the page's scope after an await), or every visit's release (and the placement it closes over) outlived the visit
+  if (def.specimenLifetime === 'view') { const forget = parent.capture('disposers', release); o.registry?.onRetire(() => { forget(); release(); }); }
   const kept = (variant?: string): THREE.Object3D => {
     const key = variant ?? '';
     let obj = specimens.get(key);
