@@ -11392,6 +11392,15 @@ standalone rows or their one compiled field in this page document. They
 accept no authored selector, owner path or callback. Sharing a document
 retains preparation order and original owners; it creates no named file.
 
+### Entered riding owners
+
+`createPageRiding`, `createPageTaming` and `RidingActions` take the concrete
+`PageRidingOwners {id, herds, wind}`. They borrow the original entered herd
+array and wind object, validate the native herd/member prototypes and both
+declared herd identities before entry effects, and retain scope lifetime
+checks. `enterClientRiding` supplies the existing population and wind; no
+second service book, body owner, decision clock or save is created.
+
 ### Chapter-only quest page views
 
 `game/quest/pageComposition.installQuestPageComposition(ctx,

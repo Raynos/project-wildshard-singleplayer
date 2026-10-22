@@ -44,8 +44,7 @@ export class NalatiPlugin extends ShardPlugin {
     await arsenal.polearm.prepare(ctx.product);
     await prepareWeaponCatalogue();
     publishEntryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal', arsenal);
-    const rt = this.rt;
-    shell.objects['nalati'] = rt;
+    shell.objects['nalati'] = this.rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
     // trampling the senses read (the authored physics rows sample it for the renderer-free field's check)
