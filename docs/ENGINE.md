@@ -10093,6 +10093,13 @@ the same handles. Disposal removes its scene parts, owned materials and geometry
 and any registered pieces. Failed construction disposes partial results and can
 retry. Nothing installs on import.
 
+The existing Developer Grid shader warm-up budget option overlaps at most
+four verified placement-file reads per settled window. Parsing, reference
+checks, yields and scene publication retain declaration order. Started reads
+drain before a refusal; a retired resident stops before visual allocation.
+The default remains one placement read at a time. Developer preparation
+spans distinguish placement admission, library intake, surfaces and slots.
+
 The section declares named model libraries (`owned`: exact identity-space GLBs
 with application-channel aliases; `pool`: prepared model pools), material slots
 (existing look ids, low-poly family variants, or plain standard/basic

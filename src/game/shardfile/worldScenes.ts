@@ -34,6 +34,8 @@ import { createWorldScene, bindWorldSceneParts } from '../plugin/ui';
 import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { loadingUnits } from '@wildshard/engine/boot/waits';
+import { readShaderWarmChoice } from '../grid/keptPrograms';
+import { timeClientPreparation } from './preparationTiming';
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
@@ -153,25 +155,45 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     published.add(row.id); reservations.set(row.id, row.fixed.length);
   }
   const placements: WorldScenePlacementRow[] = [];
-  for (const declared of section.placements ?? []) {
-    if ('file' in declared) requireFile(declared.file);
-    const row = 'file' in declared ? parseWorldScenePlacement(JSON.parse(decoder.decode(await product.file(declared.file)))) : declared;
-    if (row.id !== declared.id) throw new Error('Scene placement blob identity differs');
-    placements.push(row);
-    if (catalogue?.models.some(model => model.key === row.model) !== true && section.specimens?.some(model => model.key === row.model) !== true) throw new Error(`Missing scene placement model: ${row.model}`);
-    if (row.batch !== undefined) {
-      const batch = batches.get(row.batch), model = catalogue?.models.find(entry => entry.key === row.model);
-      if (batch === undefined || row.draw !== 'batched' || model === undefined || model.choices.some(choice => [choice.draws, ...choice.lods.map(level => level.draws)].some(draws => draws.length !== 1 || draws.some(draw => draw.material !== batch.material)))) throw new Error('Scene placement cannot share the declared batch');
-      const count = (reservations.get(row.batch) ?? 0) + row.poses.length;
-      if (count > batch.capacity.instances) throw new Error('Scene batch instance capacity exceeded');
-      reservations.set(row.batch, count);
+  await timeClientPreparation(product.slug, 'scene.placement-admission', async () => {
+    const declarations = section.placements ?? [], parallelReads = readShaderWarmChoice() === 'budget';
+    let reads: PromiseSettledResult<Uint8Array | undefined>[] = [];
+    for (const [index, declared] of declarations.entries()) {
+      // Only verified metadata reads overlap; checks, yields and publication keep authored order.
+      // Drain every started read before refusing, and never start a later window after a failure.
+      if (parallelReads && index % 4 === 0) {
+        reads = await Promise.allSettled(declarations.slice(index, index + 4).map(async entry => {
+          if (!('file' in entry)) return undefined;
+          requireFile(entry.file); const bytes = await product.file(entry.file); return bytes;
+        }));
+        if (resident.disposed || resident.disposing) throw new Error('Scene placement owner is disposed');
+      }
+      let bytes: Uint8Array | undefined;
+      if (parallelReads) {
+        const result = reads[index % 4];
+        if (result === undefined) throw new Error('Missing scene placement read');
+        if (result.status === 'rejected') throw result.reason;
+        bytes = result.value;
+      } else if ('file' in declared) { requireFile(declared.file); bytes = await product.file(declared.file); }
+      if ('file' in declared && bytes === undefined) throw new Error('Missing scene placement bytes');
+      const row = 'file' in declared ? parseWorldScenePlacement(JSON.parse(decoder.decode(bytes))) : declared;
+      if (row.id !== declared.id) throw new Error('Scene placement blob identity differs');
+      placements.push(row);
+      if (catalogue?.models.some(model => model.key === row.model) !== true && section.specimens?.some(model => model.key === row.model) !== true) throw new Error(`Missing scene placement model: ${row.model}`);
+      if (row.batch !== undefined) {
+        const batch = batches.get(row.batch), model = catalogue?.models.find(entry => entry.key === row.model);
+        if (batch === undefined || row.draw !== 'batched' || model === undefined || model.choices.some(choice => [choice.draws, ...choice.lods.map(level => level.draws)].some(draws => draws.length !== 1 || draws.some(draw => draw.material !== batch.material)))) throw new Error('Scene placement cannot share the declared batch');
+        const count = (reservations.get(row.batch) ?? 0) + row.poses.length;
+        if (count > batch.capacity.instances) throw new Error('Scene batch instance capacity exceeded');
+        reservations.set(row.batch, count);
+      }
+      for (const id of [row.id, `${row.id}.root`, `${row.id}.colliders`]) {
+        if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`);
+        published.add(id);
+      }
+      await buildYield(resident);
     }
-    for (const id of [row.id, `${row.id}.root`, `${row.id}.colliders`]) {
-      if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`);
-      published.add(id);
-    }
-    await buildYield(resident);
-  }
+  });
   for (const step of section.steps) {
     await prepareSceneDrawRows(product, step.draws ?? []);
     for (const row of step.draws ?? []) if (!slots.has(row.material)) throw new Error(`Missing scene draw slot: ${row.material}`);
@@ -238,44 +260,46 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     for (let draw = 0; draw < section.cosmeticDraws; draw++) random.next();
   }
   try {
-    const libraryProgress = loadingUnits('Model libraries', section.libraries.length);
-    libraryProgress(0);
-    for (const [libraryIndex, row] of section.libraries.entries()) {
-      if (row.kind === 'models') {
-        const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
-        libraries.set(row.id, { geometry: id => models.geometry(id), models });
-      } else if (row.kind === 'baked') { await sceneBakeSource(product, row.id).load();
-      } else if (row.kind === 'whole') {
-        const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
-        if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); continue; }
-        const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
-        finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
-      } else if (row.kind === 'owned') {
-        const models = new Map<string, WorldSceneGeometry>();
-        const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
-        const modelProgress = loadingUnits('Home models', neededModels.length);
-        modelProgress(0, row.id);
-        for (const [modelIndex, model] of neededModels.entries()) {
-          const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-          const geometry = await readWorldSceneGeometry(owner, product, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
-          finish.push(geometry.done); models.set(model.id, geometry);
-          modelProgress(modelIndex + 1, model.id);
-          // Consumers keep private mutable copies; finish releases the construction lease.
-          await buildYield(owner);
+    await timeClientPreparation(product.slug, 'scene.library-intake', async () => {
+      const libraryProgress = loadingUnits('Model libraries', section.libraries.length);
+      libraryProgress(0);
+      for (const [libraryIndex, row] of section.libraries.entries()) {
+        if (row.kind === 'models') {
+          const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
+          libraries.set(row.id, { geometry: id => models.geometry(id), models });
+        } else if (row.kind === 'baked') { await sceneBakeSource(product, row.id).load();
+        } else if (row.kind === 'whole') {
+          const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
+          if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); continue; }
+          const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
+          finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
+        } else if (row.kind === 'owned') {
+          const models = new Map<string, WorldSceneGeometry>();
+          const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
+          const modelProgress = loadingUnits('Home models', neededModels.length);
+          modelProgress(0, row.id);
+          for (const [modelIndex, model] of neededModels.entries()) {
+            const file = typeof model.file === 'string' ? model.file : model.file[TIER];
+            const geometry = await readWorldSceneGeometry(owner, product, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
+            finish.push(geometry.done); models.set(model.id, geometry);
+            modelProgress(modelIndex + 1, model.id);
+            // Consumers keep private mutable copies; finish releases the construction lease.
+            await buildYield(owner);
+          }
+          libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
+        } else {
+          const models = worldScenePool(product, row);
+          await models.preload(() => buildYield(owner));
+          if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
+            const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
+            owner.onDispose(() => { geometry.dispose(); }); handles.publish(`${row.publish}.${part}`, geometry);
+          }
+          libraries.set(row.id, { geometry: id => models.geometry(id), models });
         }
-        libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
-      } else {
-        const models = worldScenePool(product, row);
-        await models.preload(() => buildYield(owner));
-        if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
-          const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
-          owner.onDispose(() => { geometry.dispose(); }); handles.publish(`${row.publish}.${part}`, geometry);
-        }
-        libraries.set(row.id, { geometry: id => models.geometry(id), models });
+        libraryProgress(libraryIndex + 1, row.id);
+        await buildYield(owner);
       }
-      libraryProgress(libraryIndex + 1, row.id);
-      await buildYield(owner);
-    }
+    });
     const missing = section.materials.flatMap(row => (row.kind === 'look' || row.kind === 'surface') && row.look !== undefined
       && !(row.kind === 'look' && row.over === undefined && sceneMaterial(resident, product.slug, row.look) !== undefined) && !hasLentLook(row.look) ? [row.look] : [])
       .concat((section.lent ?? []).flatMap(row => row.looks.filter(look => !hasLentLook(look))));
@@ -284,39 +308,41 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     const surfaces = section.materials.filter(row => row.kind === 'surface');
     if (surfaces.length > 0) {
       const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
-      await prepareWorldSceneSurfaces(surfaces, sky, product, owner);
+      await timeClientPreparation(product.slug, 'scene.surface-intake', () => prepareWorldSceneSurfaces(surfaces, sky, product, owner));
     }
-    const materialProgress = loadingUnits('Materials and textures', section.materials.length);
-    materialProgress(0);
-    for (const [materialIndex, row] of section.materials.entries()) {
-      if (row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined && !welds.some(weld => weld.nodes.some(node => 'material' in node && node.material === row.id))
-        && !frozenSlots.has(row.id)) { materialProgress(materialIndex + 1, `${row.id} · deferred`); continue; }
-      const model = row.kind === 'look' && row.over !== undefined ? libraries.get(row.over.library)?.models?.painted(row.over.model) : undefined;
-      if (row.kind === 'look' && row.over !== undefined && (model === undefined || model === null)) throw new Error('Scene material overlay requires a mapped library model');
-      let material: Material;
-      if (row.kind === 'surface') {
-        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
-        material = await worldSceneSurfaceMaterial(row, sky, product, owner);
-      } else if (row.kind === 'source') {
-        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
-        material = await worldSceneSourceMaterial(row, sky, owner, handles);
-      } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
-      else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
-      else if (row.kind === 'mapped') material = weldSceneMaterial(row.material, id => { const source = materials.get(id); if (source === undefined) throw new Error('Missing mapped scene material source'); return source; }, () => {
-        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky'); return sky; });
-      else if (row.kind === 'lowpoly') {
-        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene family material needs a world sky');
-        material = lowPolyLookMaterial(sky, row.variant, value => { Object.assign(value, row.properties); });
-      } else material = model === undefined || model === null ? sceneMaterial(resident, product.slug, row.look) ?? lentLook(row.look) : lentMappedLook(row.look, model.map);
-      if (row.kind === 'standard' && row.sky === true) {
-        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky');
-        sky.setupMaterial(material);
+    await timeClientPreparation(product.slug, 'scene.material-intake', async () => {
+      const materialProgress = loadingUnits('Materials and textures', section.materials.length);
+      materialProgress(0);
+      for (const [materialIndex, row] of section.materials.entries()) {
+        if (row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined && !welds.some(weld => weld.nodes.some(node => 'material' in node && node.material === row.id))
+          && !frozenSlots.has(row.id)) { materialProgress(materialIndex + 1, `${row.id} · deferred`); continue; }
+        const model = row.kind === 'look' && row.over !== undefined ? libraries.get(row.over.library)?.models?.painted(row.over.model) : undefined;
+        if (row.kind === 'look' && row.over !== undefined && (model === undefined || model === null)) throw new Error('Scene material overlay requires a mapped library model');
+        let material: Material;
+        if (row.kind === 'surface') {
+          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
+          material = await worldSceneSurfaceMaterial(row, sky, product, owner);
+        } else if (row.kind === 'source') {
+          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
+          material = await worldSceneSourceMaterial(row, sky, owner, handles);
+        } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
+        else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
+        else if (row.kind === 'mapped') material = weldSceneMaterial(row.material, id => { const source = materials.get(id); if (source === undefined) throw new Error('Missing mapped scene material source'); return source; }, () => {
+          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky'); return sky; });
+        else if (row.kind === 'lowpoly') {
+          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene family material needs a world sky');
+          material = lowPolyLookMaterial(sky, row.variant, value => { Object.assign(value, row.properties); });
+        } else material = model === undefined || model === null ? sceneMaterial(resident, product.slug, row.look) ?? lentLook(row.look) : lentMappedLook(row.look, model.map);
+        if (row.kind === 'standard' && row.sky === true) {
+          const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky');
+          sky.setupMaterial(material);
+        }
+        materials.set(row.id, material); handles.publish(`materials.${row.id}`, material);
+        if (row.kind === 'standard' || row.kind === 'basic' || row.kind === 'mapped') owner.onDispose(() => { material.dispose(); });
+        materialProgress(materialIndex + 1, row.id);
+        await buildYield(owner);
       }
-      materials.set(row.id, material); handles.publish(`materials.${row.id}`, material);
-      if (row.kind === 'standard' || row.kind === 'basic' || row.kind === 'mapped') owner.onDispose(() => { material.dispose(); });
-      materialProgress(materialIndex + 1, row.id);
-      await buildYield(owner);
-    }
+    });
     const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game;
     for (const row of welds) {
       for (const resource of row.resources) {

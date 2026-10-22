@@ -12,6 +12,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
 import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
+import * as shaderWarm from '../src/game/grid/keptPrograms';
 
 // A made-up second shard: two steps, cube variants, repeated groups and named handles.
 const recipe = { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['stone'] },
@@ -612,4 +613,93 @@ test('a cold pool card under a retiring cell reads nothing more and publishes no
     for (let step = steps.next(); step.done !== true; step = steps.next()) { /* finish the retirement */ }
     expect(built.children.some(child => child instanceof Group)).toBe(false);
   } finally { file.mockRestore(); product.mockRestore(); cell.dispose(); context.scope.dispose(); material.dispose(); }
+});
+
+function placementReads(choice: 'off' | 'budget') {
+  const context = fixture(), started: number[] = [], geometry: string[] = [];
+  const rows = section(), encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
+  const draw = { id: 'face', library: 'shapes', model: 'stone', material: 'paint', sphere: [0, 0, 0, 3] };
+  const catalogue = { product: 'fixture-harbour', models: [{ key: 'marker', id: 'fixture-harbour/marker', name: 'Marker', category: 'props', pipeline: 'code', file: 'markers.json', defaults: {}, assembly: 'parts',
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [draw] }] }] };
+  const pending = Array.from({ length: 5 }, () => {
+    let resolveRead: ((bytes: Uint8Array) => void) | undefined, rejectRead: ((reason: Error) => void) | undefined;
+    const promise = new Promise<Uint8Array>((resolve, reject) => { resolveRead = resolve; rejectRead = reject; });
+    return { promise, release: (index: number, id = `marker-${index}`) => {
+      if (resolveRead === undefined) throw new Error('Missing placement resolver');
+      resolveRead(encode({ id, model: 'marker', draw: 'single', poses: [] }));
+    }, fail: (error: Error) => { if (rejectRead === undefined) throw new Error('Missing placement rejecter'); rejectRead(error); } };
+  });
+  const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  vi.spyOn(shaderWarm, 'readShaderWarmChoice').mockReturnValue(choice);
+  vi.spyOn(context.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || /^scenes\/p[0-4]\.json$/u.test(name) || has(name));
+  vi.spyOn(context.product, 'file').mockImplementation(name => {
+    if (name === 'models/catalogue.json') return Promise.resolve(encode(catalogue));
+    const match = /^scenes\/p([0-4])\.json$/u.exec(name);
+    if (match !== null) {
+      const index = Number(match[1]), read = pending[index];
+      if (read === undefined) throw new Error('Missing placement read'); started.push(index); return read.promise;
+    }
+    if (name.endsWith('.glb')) geometry.push(name); return file(name);
+  });
+  const input = parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: pending.map((_, index) => ({ id: `marker-${index}`, file: `scenes/p${index}.json` })) });
+  return { context, started, geometry, pending, input };
+}
+
+test('budget placement reads overlap only four and retain original scene construction', async () => {
+  const f = placementReads('budget');
+  try {
+    const installing = installWorldScenes(f.context, f.input);
+    await vi.waitFor(() => { expect(f.started).toEqual([0, 1, 2, 3]); });
+    for (const index of [3, 2, 1]) f.pending[index]?.release(index);
+    await Promise.resolve(); expect(f.started).toHaveLength(4); expect(f.geometry).toEqual([]);
+    f.pending[0]?.release(0);
+    await vi.waitFor(() => { expect(f.started).toEqual([0, 1, 2, 3, 4]); });
+    f.pending[4]?.release(4);
+    const handles = await installing;
+    expect(f.geometry).toEqual(['models/stone.glb']);
+    expect(handles.group('harbour.root').children[0]?.name).toBe('fixture-stone');
+    expect(handles.number('harbour.height')).toBe(7);
+    expect(handles.colliders('harbour.collision')).toHaveLength(1);
+  } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
+});
+
+test('default placement admission still reads one file at a time', async () => {
+  const f = placementReads('off');
+  try {
+    const installing = installWorldScenes(f.context, f.input);
+    for (let index = 0; index < 5; index++) {
+      await vi.waitFor(() => { expect(f.started).toEqual(Array.from({ length: index + 1 }, (_, at) => at)); });
+      f.pending[index]?.release(index);
+    }
+    const handles = await installing;
+    expect(handles.number('harbour.height')).toBe(7); expect(f.geometry).toEqual(['models/stone.glb']);
+  } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
+});
+
+test('budget drains a failed window and refuses in authored order before geometry or the next window', async () => {
+  const f = placementReads('budget'); let ended = false;
+  try {
+    const installing = installWorldScenes(f.context, f.input);
+    const refusal = (async () => { try { await installing; return undefined; } catch (error) { return error; } finally { ended = true; } })();
+    await vi.waitFor(() => { expect(f.started).toHaveLength(4); });
+    f.pending[1]?.fail(new Error('later transport failed')); f.pending[0]?.release(0, 'wrong-id');
+    await Promise.resolve(); expect(ended).toBe(false); expect(f.geometry).toEqual([]);
+    f.pending[2]?.release(2); f.pending[3]?.release(3);
+    expect(await refusal).toEqual(new Error('Scene placement blob identity differs'));
+    expect(f.started).toEqual([0, 1, 2, 3]); expect(f.geometry).toEqual([]);
+  } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
+});
+
+test.each(['disposed', 'disposing'] as const)('budget does not allocate after a %s resident finishes held metadata reads', async state => {
+  const f = placementReads('budget');
+  try {
+    const installing = installWorldScenes(f.context, f.input), refusal = (async () => { try { await installing; return undefined; } catch (error) { return error; } })();
+    await vi.waitFor(() => { expect(f.started).toHaveLength(4); });
+    const steps = f.context.scope.disposeSteps();
+    if (state === 'disposed') { Array.from(steps); }
+    else { steps.next(); expect(f.context.scope.disposing).toBe(true); }
+    for (let index = 0; index < 4; index++) f.pending[index]?.release(index);
+    expect(await refusal).toEqual(new Error('Scene placement owner is disposed'));
+    expect(f.started).toEqual([0, 1, 2, 3]); expect(f.geometry).toEqual([]);
+  } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
 });
