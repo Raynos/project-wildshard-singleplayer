@@ -16,7 +16,7 @@
  * manifest admitted from a shardfile) has no legacy TypeScript: G241's SHARDFILE ONLY · NO LEGACY.
  */
 import * as v from 'valibot';
-import { app } from '@wildshard/engine/app/runtime';
+import { saves } from '@wildshard/engine/saves/runtime';
 import type { ShardEntries, ShardEntryMode, ShardManifest } from './manifest';
 import { legacyButtons } from './legacyButtons';
 
@@ -36,7 +36,7 @@ export function defaultEntry(entries: ShardEntries): ShardEntryMode { return ent
 /** Whether the shard can be entered this way at all (a disabled button otherwise: NOT YET / SHARDFILE ONLY). */
 export function hasEntry(entries: ShardEntries, mode: ShardEntryMode): boolean { return mode === 'legacy' ? entries.legacy : entries.shardfile; }
 
-type Store = typeof app.saves;
+type Store = typeof saves;
 /** This tab's choices, one per shard. Session scope: a reload keeps the mode you entered with; a fresh launch starts on
  *  each shard's public entry again. */
 export interface ShardEntryChoices {
@@ -53,7 +53,7 @@ export function shardEntryChoices(store: Store): ShardEntryChoices {
 }
 let page: ShardEntryChoices | null = null;
 function pageChoices(): ShardEntryChoices {
-  page ??= shardEntryChoices(app.saves);
+  page ??= shardEntryChoices(saves);
   return page;
 }
 

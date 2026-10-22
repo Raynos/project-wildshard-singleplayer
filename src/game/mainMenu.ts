@@ -19,7 +19,7 @@ import { DEVSERVER, gridEntryShown, gridMode, menuMode } from './grid/menu';
 import { GridAssembly } from './grid/assembly';
 import { gridPrefetchOrder, startGridPrefetch } from './grid/prefetch';
 import { pageScope } from '@wildshard/engine/app/resources';
-import { dropGridIntent, enterGrid, gridRecoveryLoop } from './plugin/ui';
+import { dropGridIntent, enterGrid, gridRecoveryLoop } from './grid/pageEntry';
 
 import { GAME_STRINGS } from './strings';
 import { WHATS_NEW, type WhatsNew } from './whatsNew';

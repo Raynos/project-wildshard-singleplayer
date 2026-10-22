@@ -35,7 +35,7 @@ inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
 // renderer-free title until the player chooses a shard again.
 async function enterPage(): Promise<unknown> {
-  const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/plugin/ui'));
+  const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/grid/pageEntry'));
   const end = lastEnd();
   const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected' });
   if (recovery !== null) {
@@ -90,7 +90,7 @@ guardBoot(entered);
 export async function start(): Promise<void> {
   try { await startSelected(); }
   catch (error) {
-    const { pageGridRecovery, clearGridRecovery } = await import('@wildshard/game/plugin/ui');
+    const { pageGridRecovery, clearGridRecovery } = await import('@wildshard/game/grid/pageEntry');
     if (pageGridRecovery() === null) {
       // Admission can refuse before startSession installs its fatal-load boundary. main starts asynchronously;
       // paint the same fatal card here instead of leaving a rejected boot behind the first-paint loader.
@@ -125,7 +125,7 @@ async function startSelected(): Promise<void> {
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile } = await retried(() => import('@wildshard/game/plugin/ui'));
   const { browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/runtimeProduct'));
-  const { pageGridRecovery } = await retried(() => import('@wildshard/game/plugin/ui'));
+  const { pageGridRecovery } = await retried(() => import('@wildshard/game/grid/pageEntry'));
   const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
   const { preparePageResidency } = await retried(() => import('@wildshard/game/plugin/ui'));
   let page: ReturnType<typeof preparePageResidency> | undefined;

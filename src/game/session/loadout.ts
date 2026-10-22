@@ -11,7 +11,7 @@ import { buildTitleMenu } from '../mainMenu';
 import { shardEntry } from '../shard/entryMode';
 import { installLegacyButtonsRow } from '../shard/legacyButtons';
 import { pageMode } from '../plugin/context';
-import { enterGrid } from '../plugin/ui';
+import { enterGrid } from '../grid/pageEntry';
 import { travel } from '../travel/travel';
 import { shards } from '../shard/list';
 import { primaryShardManifest } from '../shard/legacy';

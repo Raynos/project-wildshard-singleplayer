@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { freshPageArrival } from '@wildshard/engine/boot/titleArrival';
-import { app } from '@wildshard/engine/app/runtime';
+import { saves } from '@wildshard/engine/saves/runtime';
 /**
  * Infinite Wildshard boots only from a one-shot tap intent (SF21a, R3-C5). The title's tap writes it, the next boot
  * consumes it, and it is gone: a reload, a Safari WebContent restart or an iOS memory kill never lands back in the grid,
@@ -23,7 +23,7 @@ export interface GridIntents {
 
 /** The injectable store and clock let a Node test run the real write / consume / expiry round trip. */
 /** the app's save store (src/engine/saves/store.ts) */
-type Store = typeof app.saves;
+type Store = typeof saves;
 export function gridIntents(store: Store, now: () => number = Date.now): GridIntents {
   const session = store.define({ key: 'gridIntent', scope: 'session', version: 1, schema, initial: () => null });
   const device = store.define({ key: 'gridIntent.once', scope: 'device', version: 1, schema, initial: () => null });
@@ -48,6 +48,6 @@ export function gridIntents(store: Store, now: () => number = Date.now): GridInt
 let page: GridIntents | null = null;
 /** this page's intents, on the app's save store (defined on first use) */
 export function pageGridIntents(): GridIntents {
-  page ??= gridIntents(app.saves);
+  page ??= gridIntents(saves);
   return page;
 }

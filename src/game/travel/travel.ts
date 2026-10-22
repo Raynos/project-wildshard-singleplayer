@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { app } from '@wildshard/engine/app/runtime';
+import { saves } from '@wildshard/engine/saves/runtime';
 import { markUnload } from '@wildshard/engine/boot/lastEnd';
 import { freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
@@ -52,7 +52,7 @@ export function travelService(ports: TravelPorts): { travel: (request: TravelReq
     },
   };
 }
-export function travelSlot(store = app.saves): SaveSlot<TravelHandoff | null> {
+export function travelSlot(store = saves): SaveSlot<TravelHandoff | null> {
   return store.define({ key: 'travel.handoff', scope: 'session', version: 1, schema, initial: () => null });
 }
 let running: TravelSource | null = null;
