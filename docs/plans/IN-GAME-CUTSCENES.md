@@ -1,6 +1,6 @@
 # Plan: IN-GAME-CUTSCENES — real cutscenes in the shards, in engine and generated (E475)
 
-**State:** `dropped` 2026-10-10 — Jake: *"We are not doing the cutscenes plan."* Kept as research (§7 holds his picks); nothing is built.
+**State:** `draft` 2026-10-22 — Jake: *"I thought that we could build in-game cutscenes in the future. Let's mark the in-game cutscenes plan as a draft."* Was `dropped` 2026-10-10 (Jake then: *"We are not doing the cutscenes plan."*, the same day the TRAILERS concept trailer shipped, 757912be60). §7 holds his three picks (E475). Nothing is built; it starts only when Jake says so.
 Live status moves to [in-game-cutscenes/STATE.md](in-game-cutscenes/STATE.md) once the plan starts.
 
 ## 0. Why
