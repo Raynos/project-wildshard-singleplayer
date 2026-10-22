@@ -15,6 +15,7 @@ import { installEntryQuestComposition, installEntryQuestReference } from '../src
 import * as composition from '../src/game/quest/pageComposition';
 import * as enteredFigures from '../src/game/quest/figures';
 import * as worldScenes from '../src/game/shardfile/worldScenes';
+import { bindResidentWorldScope } from '../src/game/shardfile/hybridPresentation';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from './fake/FakeGame';
 
@@ -35,6 +36,7 @@ function fixture(readOverride?: (name: string) => Promise<Uint8Array>) {
       return Promise.resolve(bytes(name === 'quest.json' ? { id: row.id } : name === 'models/world-scenes.json' ? { product: 'orchard', models: [] } : { figures: [] })); } });
   const draws = fixedDraws(product, [{ slot: 'original', file: 'original.glb', channels: [] }]);
   const hooks = {}, ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<ShardRuntime>({ hooks }) }) });
+  bindResidentWorldScope(scope, resident);
   publishEntryOwner(resident, 'fixed-draws', 'orchard.draws', draws);
   const reference = new QuestPageReference(scope);
   publishEntryOwner(scope, 'quest-reference', 'orchard.reference', reference);
@@ -61,6 +63,7 @@ test('the compiled figures step uses one preparation and original loans before p
   try {
     await installEntryQuestComposition(f.ctx, row);
     expect(order).toEqual(['prepare', 'figures', 'install']); expect(prepare).toHaveBeenCalledTimes(1);
+    expect(book).toHaveBeenCalledWith(f.ctx.product, 'people/catalogue.json', f.resident);
     expect(entryOwner(f.scope, 'quest', row.id)).toBe(adventure);
     expect(() => entryOwner(f.scope, 'animals', 'unused.animals')).toThrow('Missing live');
     expect(f.draws.ready).toBe(false);

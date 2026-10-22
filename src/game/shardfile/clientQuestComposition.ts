@@ -51,7 +51,7 @@ export async function installEntryQuestComposition(ctx: ShardContext, row: Extra
   })();
   const figures = figureRow === undefined ? null : await (async () => {
     const input = await ctx.product.json(figureRow.file); check();
-    const catalogue = await ProductFigureCatalogue.fromProduct(ctx.product, 'people/catalogue.json'); check();
+    const catalogue = await ProductFigureCatalogue.fromProduct(ctx.product, 'people/catalogue.json', residentWorldScope(ctx)); check();
     const modelRows = await ctx.product.json('models/world-scenes.json'); check();
     return { input, catalogue, models: defineWorldSceneCatalogue(modelRows) };
   })();
