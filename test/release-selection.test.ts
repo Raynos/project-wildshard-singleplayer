@@ -10,7 +10,7 @@ const workflows = '.github/workflows/deploy.yml\t123\n.github/workflows/boot-smo
 function queryFor(candidates: readonly string[], proofs: Readonly<Record<string, string>>): (args: string[]) => string {
   return args => {
     const path = args[0] ?? '';
-    if (path.endsWith('/actions/workflows?per_page=100')) return workflows;
+    if (path.endsWith('/actions/workflows?per_page=100&page=1')) return workflows;
     if (path.includes('/actions/workflows/123/runs?branch=main&event=push&status=success')) {
       return candidates.map(sha => `${sha}\t${completed}`).join('\n');
     }
@@ -73,7 +73,7 @@ test('terminal failures and unreadable proof queries never supply a release', ()
 });
 
 test('the hourly slot still refuses queued or recent releases', () => {
-  const query = (rows: string) => (args: string[]) => args[0]?.endsWith('/actions/workflows?per_page=100') ? workflows : rows;
+  const query = (rows: string) => (args: string[]) => args[0]?.endsWith('/actions/workflows?per_page=100&page=1') ? workflows : rows;
   expect(releaseSlot(now, query(`123\tqueued\t${completed}`))).toMatchObject({ free: false });
   expect(releaseSlot(now, query(`123\tcompleted\t${completed}`))).toMatchObject({ free: false });
   expect(releaseSlot(now, query(''))).toMatchObject({ free: true });
@@ -90,22 +90,22 @@ test('resolves both workflow paths once and selects numeric runs with exact proo
   const query = (args: string[]): string => {
     const path = args[0] ?? '';
     requests.push(path);
-    if (path.endsWith('/actions/workflows?per_page=100')) {
+    if (path.endsWith('/actions/workflows?per_page=100&page=1')) {
       expect(args).toContain('--paginate');
       return inventory.workflows.map(row => `${row.path}\t${row.id}`).join('\n');
     }
     if (path.includes('/actions/workflows/deploy.yml/runs')) return '';
-    if (path.endsWith('/actions/workflows/901/runs?branch=main&event=push&status=success&per_page=100')) {
+    if (path.endsWith('/actions/workflows/901/runs?branch=main&event=push&status=success&per_page=100&page=1')) {
       return runs.workflow_runs.map(row => `${row.head_sha}\t${row.updated_at}`).join('\n');
     }
-    if (path.endsWith(`/actions/workflows/901/runs?branch=main&event=push&status=success&head_sha=${proven}&per_page=1`)) return proven;
+    if (path.endsWith(`/actions/workflows/901/runs?branch=main&event=push&status=success&head_sha=${proven}&per_page=1&page=1`)) return proven;
     if (path.endsWith(`/commits/${proven}/status`)) return success;
     throw new Error(`Unexpected API request: ${path}`);
   };
   expect(releaseReady(query, () => undefined, now)).toEqual({ ready: true, sha: proven });
   expect(ciGreen(proven, query)).toBe(true);
   expect(workflowRunsPath('boot-smoke.yml', query)).toMatch(/\/902\/runs$/u);
-  expect(requests.filter(path => path.endsWith('/actions/workflows?per_page=100'))).toHaveLength(1);
+  expect(requests.filter(path => path.endsWith('/actions/workflows?per_page=100&page=1'))).toHaveLength(1);
 });
 
 test('missing or ambiguous workflow identities refuse release selection', () => {
