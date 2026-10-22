@@ -473,6 +473,15 @@ every call. Output domain/authority validation and the remaining lane
 integration below still belong to their defining hosts. Shipped v0/v1 loaders
 continue to select their original paths.
 
+The build-only compileDualScriptV2 receives one captured authored closure
+and separate v1/v2 adapters, requires both adapters to reach every authored
+file, and returns independently admitted shadow artifacts with source hashes.
+It never publishes either artifact or replaces a shipping producer. CI's
+test/script-v2-ports.test.ts discovers each .dual.ts port fixture, repeats
+v1 compilation after v2 to check unchanged bytes, and runs the port's artifact
+exercise. The initial Pine contract-helper pair is enrolled; unported AS
+families still need their own adapters before H13's full-coverage cutover.
+
 ### Encoding, authority and memory
 
 All multibyte values are little-endian. `u16` occupies two bytes,
