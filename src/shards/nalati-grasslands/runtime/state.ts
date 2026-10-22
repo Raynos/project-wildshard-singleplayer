@@ -7,10 +7,10 @@ import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
-import { Group, Mesh, type Object3D } from 'three';
+import { Group, Mesh, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';
 import { clientWaterSurfaces } from '@wildshard/game/shardfile/clientWaterSurfaces';
-import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
+import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import { wind } from '@wildshard/engine/world/steppeWind';
 
 
@@ -18,7 +18,6 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 
 
-import { buildNalatiPOIs } from '../world/view';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { shapeBook } from '@wildshard/game/models/shapeBook';
@@ -67,13 +66,11 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   const dressing = SceneDressing.current(plugin), outcrops = dressing.pieces.get('outcrops');
   if (outcrops === undefined) throw new Error('Missing declared outcrops');
-  const rockPlaced = [...outcrops.placed];
   groups['outcrops'] = outcrops.object;
   await slice(++completed, total, 'Outcrops');
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
   const crags=dressing.pieces.get('cragRocks');if(crags===undefined)throw new Error('Missing declared crag rocks');
-  rockPlaced.push(...crags.placed);
   await slice(++completed, total, 'Crag rocks');
   groups['crags'] = crags.object;
 
@@ -82,16 +79,16 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // ── spruce (spruce agent, B6): the Forest is built by bootstrap from `trees.factory`; anything extra goes here ──
 
   // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
-  const pois = await buildNalatiPOIs(sky, game.scene, ctx.player, macrotask, plugin.app.registry, dressing);
-  groups['pois'] = pois.group;
-  updates.push((dt) => pois.update(dt));
+  //    are the dressing's rows: its statics, the balbal sites, the road lettering, the camp smoke and the places' anchors
+  await shapeBook(shapeRows).load();
+  const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [], tie = anchors('cairn', 'tie')[0];
+  updates.push(() => undefined); // The dressing owns this frame slot.
   await slice(++completed, total, 'Places');
 
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
   reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
-  const dressPlaced = dressing.placed;
-  await bindClientPlaceSets(plugin,pois.placed,[...new Set([...rockPlaced,...dressPlaced])]);
+  await bindClientPlaceSets(plugin,dressing.placedGroups(),dressing.placed);
   groups['dressing'] = dressing.group;
   await slice(++completed, total, 'Dressing');
 
@@ -105,7 +102,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
-  const titan = new ArenaScriptEncounter({ game,player: ctx.player,weather: weather.weather,air: weather.air,tieSpot: pois.cairnTieSpot },await readArenaScriptData(plugin.product,{ fight: 'combat/titan-fight.json',geometry: 'combat/titan-geometry.json' }));
+  const titan = new ArenaScriptEncounter({ game,player: ctx.player,weather: weather.weather,air: weather.air,tieSpot: tie === undefined ? null : new Vector3(tie.x, tie.y, tie.z) },await readArenaScriptData(plugin.product,{ fight: 'combat/titan-fight.json',geometry: 'combat/titan-geometry.json' }));
   plugin.answer('weather.storm-hold', held => Math.max(held, Number(titan.engaged)));   // the storm that called him rages on until he falls
   updates.push((dt, t) => { titan.update(dt, t); });
 
@@ -120,7 +117,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const { constants: { pageElites } } = await plugin.product.json<{ constants: { pageElites: EliteRosterRows } }>('sim/headless-assembly.json');
   const dropMaterial = painterlyMaterial(sky, { rim: .6 });
   const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(shapeBook(shapeRows).geometry(`trophy:${row.def.id}`), dropMaterial)); return [row.def.id, model] as const; }));
-  const elites = new EliteRosterPage<Flock>({ game, player: ctx.player, ledges: pois.cragLedges, rock: poiLayout.EAGLE_ROCK, clock: weather.clock, weather: weather.weather },
+  const elites = new EliteRosterPage<Flock>({ game, player: ctx.player, ledges: anchors('crags', 'ledges'), rock: poiLayout.EAGLE_ROCK, clock: weather.clock, weather: weather.weather },
     pageElites, eliteProgram, drops, charge);
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
@@ -135,7 +132,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
   const kingRows = v.parse(v.object({ king: v.record(v.string(),v.unknown()), arenaRoom: v.unknown(), programs: v.object({ rules: v.unknown() }) }), await plugin.product.json('combat/titan-fight.json'));
-  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },shapeBook(shapeRows).geometries(arenaRoomGeometryIds(kingRows.arenaRoom)),pois.kurganEntrance);
+  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },shapeBook(shapeRows).geometries(arenaRoomGeometryIds(kingRows.arenaRoom)),anchors('kurgans', 'entrance')[0] ?? null);
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
@@ -152,11 +149,11 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-rider')), captainFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-captain'));
-  const night = await NalatiNight.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: pois.balbals, clock: weather.clock },
+  const night = await NalatiNight.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const nalati = {
-    pois, weather, groups, boss, elites, titan,
+    weather, groups, boss, elites, titan,
     get stealth(): Stealth | null { return stealth; },
     get ride(): Ride | null { return ride; },
     get wildlife() { return clientWildlife(plugin); },

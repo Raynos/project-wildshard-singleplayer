@@ -36,5 +36,5 @@ try {
     console.log(`${key}: ${result.width}x${result.height}, RGBA ${outputHash(new Uint8Array(result.pixels))}, ${referencePath === undefined ? 'no parent reference' : 'exact parent pixels'}`);
   }
 } finally { await browser.close(); }
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/signAtlases.json'), jsonBytes(atlases));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/data/signAtlases.json'), jsonBytes(atlases));
 writer.finish();

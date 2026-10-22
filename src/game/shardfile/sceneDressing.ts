@@ -15,12 +15,15 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { Rng } from '@wildshard/engine/core/rng';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { scatterLayer, instanceBoxes, type ScatterLayer, type ScatterPose } from '@wildshard/engine/render/scatterInstances';
+import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
 import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
 import { AmbientWingField } from '../ambient/wingField';
+import { EncounterSites } from '../boss/encounterView';
+import { letteringMaterial } from '../models/shapeBook';
 import { hasLentLook, lendLooks, lentLook, lentMappedLook, setLentParam, setLentTexture } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -90,7 +93,9 @@ export class SceneDressing {
   readonly group = new THREE.Group();
   readonly layers: ScatterLayer[] = [];
   readonly placed: Placed[] = [];
-  readonly pieces=new Map<string,{name:string;object:THREE.Object3D;tris:number;placed:Placed[]}>();
+  readonly pieces=new Map<string,{name:string;object:THREE.Object3D;tris:number;placed:Placed[];anchors:SceneDressingRows['statics'][number]['anchors']}>();
+  /** the encounter sites by name, with what each placed */
+  readonly sites=new Map<string,{sites:EncounterSites;placed:Placed}>();
   readonly props: THREE.Mesh[] = [];
   propTris = 0;
   private readonly frame = new FrameCamera(this.group);
@@ -107,7 +112,8 @@ export class SceneDressing {
   private wings: AmbientWingField | undefined;
   private readonly animations:SceneDressingRows['animations'];
   private readonly motes:SceneDressingRows['motes'];
-  private constructor(private readonly ctx: ShardContext, rows: SceneDressingRows) { this.group.name=rows.name;this.animations=rows.animations;this.motes=rows.motes; }
+  private readonly emitters:SceneDressingRows['emitters'];
+  private constructor(private readonly ctx: ShardContext, rows: SceneDressingRows) { this.group.name=rows.name;this.animations=rows.animations;this.motes=rows.motes;this.emitters=rows.emitters; }
 
   static async install(ctx: ShardContext, input: unknown): Promise<SceneDressing> {
     const rows=v.parse(SceneDressingSchema,input), owner=new SceneDressing(ctx,rows);
@@ -119,6 +125,8 @@ export class SceneDressing {
     return owner;
   }
   static current(ctx: ShardContext): SceneDressing { const value=books.get(ctx.scope)?.get(ctx.product);if(value===undefined||ctx.scope.disposed)throw new Error('Scene dressing is not installed');return value; }
+  /** every static's and site's placements by name (the named places' groups) */
+  placedGroups(): Map<string,readonly Placed[]> { return new Map<string,readonly Placed[]>([...[...this.pieces].map(([name,piece])=>[name,piece.placed] as const),...[...this.sites].map(([name,row])=>[name,[row.placed]] as const)]); }
 
   private async build(rows:SceneDressingRows): Promise<void> {
     const {ctx}=this,world=ctx.game.runtime?.world;
@@ -130,8 +138,8 @@ export class SceneDressing {
     const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope);
     const definitions=new Map<string,ModelDef<object>>();
     for(const source of rows.catalogues){
-      const pack='pack'in source?rows.packs[source.pack]:source;if(pack===undefined)throw new Error('Missing catalogue pack');
-      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,'packed'in pack?pack.packed:pack.rows,pack.materials);
+      const pack='pack'in source?rows.packs[source.pack]:{rows:source.packed,materials:source.materials};if(pack===undefined)throw new Error('Missing catalogue pack');
+      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,pack.rows,pack.materials);
       for(const row of source.rows)definitions.set(row.model.id,catalogue.model(row.key));
     }
     const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows)]));
@@ -162,7 +170,7 @@ export class SceneDressing {
     await timeClientPreparation(ctx.product.slug,'dressing.materials',async()=>{
     for(const [key,source]of Object.entries(rows.materials).sort((a,b)=>Number(a[1].kind==='mapped')-Number(b[1].kind==='mapped'))){
       const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row)).material
-        :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):painterlyMaterial(sky,source);
+        :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):source.kind==='lettering'?letteringMaterial(sky,source):painterlyMaterial(sky,source);
       if(source.kind==='look'){
         for(const [name,value]of Object.entries(source.params??{}))setLentParam(source.look,name,value);
         for(const [name,row]of Object.entries(source.textures??{}))void loadSpecimenTexture(row).then(texture=>{if(!ctx.scope.disposed)setLentTexture(source.look,name,texture);return null;}).catch(()=>null);
@@ -192,7 +200,7 @@ export class SceneDressing {
     await timeClientPreparation(ctx.product.slug,'dressing.statics',async()=>{
     for(const row of rows.statics){
       const made=createClientScene(row.recipe,{geometry:new Map(Object.entries(row.geometry).map(([key,id])=>[key,needGeometry(id)])),materials:new Map(Object.entries(row.materials).map(([key,id])=>[key,needMaterial(id)]))});
-      const piece={name:row.name,object:made.root,tris:row.tris,placed:[] as Placed[]};this.pieces.set(row.name,piece);
+      const piece={name:row.name,object:made.root,tris:row.tris,placed:[] as Placed[],anchors:row.anchors};this.pieces.set(row.name,piece);
       this.group.add(made.root);this.props.push(...made.root.children.filter(meshObject));this.propTris+=row.tris;
       for(const member of row.members){
         const floors=readSceneFloors(member.floors),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
@@ -202,6 +210,15 @@ export class SceneDressing {
       }
     }
     });
+    for(const row of rows.sites){
+      const sites=new EncounterSites(row.rows),placed=withOwner(ctx.scope,()=>sites.place(needModel(row.model),models,ctx.app.registry,sky));
+      this.group.add(sites.object);withOwner(ctx.scope,()=>{sites.register(ctx.app.registry);});this.sites.set(row.name,{sites,placed});await pause();
+    }
+    for(const row of rows.emitters){
+      const shape=instancedQuad(new THREE.PlaneGeometry(1,1),Object.fromEntries(Object.entries(row.attributes).map(([name,attribute])=>[name,new THREE.InstancedBufferAttribute(Float32Array.from(attribute.values),attribute.width)])));
+      shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...row.centre),row.radius);ctx.scope.own(shape);
+      const mesh=new THREE.Mesh(shape,lentLook(row.look));mesh.name=row.name;mesh.renderOrder=row.renderOrder;this.group.add(mesh);
+    }
     this.instances=await timeClientPreparation(ctx.product.slug,'dressing.instances',()=>new SceneInstanceFields(rows.instances,geometry,materials,new Map([...this.pieces].map(([key,piece])=>[key,piece.object]))));
     if(rows.wings!==undefined){this.wings=new AmbientWingField(rows.wings,new Map(rows.wings.layers.map(row=>[row.id,needGeometry(row.geometry)])),new Map(rows.wings.layers.map(row=>[row.id,needMaterial(row.material)])));this.group.add(this.wings.group);}
     if(rows.motes!==undefined){const row=rows.motes,rng=new Rng(row.seed),seeds=Float32Array.from({length:row.count*4},()=>rng.next()),shape=new THREE.BufferGeometry();
@@ -222,6 +239,10 @@ export class SceneDressing {
     }
     this.time+=dt;
     for(const row of this.animations){const w=painterlyUniforms.uPWind.value;setLentParam(row.look,row.timeParam,this.time);setLentParam(row.look,row.windParam,[w.x,w.y,Math.min(row.windMax,w.z*row.windScale)]);}
+    for(const row of this.emitters){
+      const w=painterlyUniforms.uPWind.value,shade=painterlyUniforms.uPShade.value,sun=world.sky.sunColor,c=row.params.windClamp,clamp=(value:number):number=>Math.min(c,Math.max(-c,value));
+      setLentParam(row.look,row.params.wind,[clamp(w.x),clamp(w.y),clamp(w.z)]);setLentParam(row.look,row.params.shade,[shade.r,shade.g,shade.b]);setLentParam(row.look,row.params.sun,[sun.r,sun.g,sun.b]);
+    }
     this.instances?.update(dt,world.player.position,painterlyUniforms.uPTime.value);
     this.wings?.update(dt,world.player.position);
     const row=this.motes;

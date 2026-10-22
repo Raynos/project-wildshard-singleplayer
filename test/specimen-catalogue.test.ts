@@ -23,7 +23,7 @@ import preparedPlaces from '../src/shards/nalati-grasslands/boot/placeRuntime.ge
 import sourcePlaces from '../src/shards/nalati-grasslands/data/places.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { readSceneFloors } from '../src/game/shardfile/sceneDressing';
-import type { MemberRow } from '../src/shards/nalati-grasslands/world/placeTypes';
+import type { MemberRow } from '../src/shards/nalati-grasslands/data/placeTypes';
 import { deckFloor, torFloor, type PlaceRow } from '../src/shards/nalati-grasslands/generators/placeRows';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor } from '../src/shards/nalati-grasslands/generators/placement';
 import { pathRampDescs } from '../src/engine/physics/paths';

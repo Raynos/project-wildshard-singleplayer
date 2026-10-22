@@ -17,7 +17,6 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { replaceSpecimenInstances } from '../models/specimenCatalogue';
 import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
@@ -26,9 +25,8 @@ import { ProjectedState, type ReturnProgram } from '../population/returnProgram'
 import { createClientScene } from '../plugin/ui';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
-import type { EncounterSlotsRows,EncounterPatrolRows,EncounterScheduleRows,SlotViewRows,PatrolViewRows,CloudBodyRows,ArenaSceneRows,EncounterMaterialRows } from '@wildshard/format/encounterRows';
+import { EncounterSitesSchema, type EncounterSlotsRows, type EncounterPatrolRows, type EncounterScheduleRows, type SlotViewRows, type PatrolViewRows, type CloudBodyRows, type ArenaSceneRows, type EncounterMaterialRows } from '@wildshard/format/encounterRows';
 
-const finite = v.pipe(v.number(), v.finite());
 /**
  * What a slot encounter shows (the cycle's `wake` / `dawn` flags spawn into and release the sites): `cues` at a site as an
  * actor wakes, on a hit (`weak` where the guest finds a weak point, `hard` past `drop` hp), on the member's `broken` flag
@@ -40,20 +38,6 @@ const finite = v.pipe(v.number(), v.finite());
 /** A slot actor as drawn: where it stands and faces, its health and its attack's phase (−1 between attacks). */
 export interface SlotViewActor extends PatrolActor { readonly scale:number; yOffset:number; readonly position: { readonly x: number; readonly y: number; readonly z: number }; readonly yaw: number; readonly hp: number; readonly attackPhase: number }
 const hidden = new THREE.Matrix4().makeScale(0, 0, 0);
-/**
- * The sites a slot encounter wakes from (`name`'s statues): one instanced copy of the model's `variants[k]` at each
- * site (k: `variantCycle[i mod its length]`; `sink` × scale into the ground, leaning `tilt`), all wearing the `generated`
- * asset once it loads, and each its
- * own `collider` box piece (half width, half depth, top and bottom × scale; `label`, `surface`, from `file`) that stops
- * colliding while the site is awake.
- */
-export const EncounterSitesSchema = v.strictObject({
-  name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)), label: v.string(), file: v.string(), surface: v.picklist(['stone', 'wood', 'metal', 'earth', 'ground']),
-  variants: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(8)), variantCycle: v.pipe(v.array(v.pipe(finite, v.integer(), v.minValue(0))), v.minLength(1), v.maxLength(16)),
-  sink: finite, generated: SpecimenAssetSchema,
-  collider: v.strictObject({ hw: finite, hd: finite, top: finite, bottom: finite }),
-  sites: v.pipe(v.array(v.strictObject({ x: finite, z: finite, yaw: finite, scale: finite, tilt: v.optional(finite, 0) })), v.maxLength(256)),
-});
 /** A placed site: where it stands and the copy that draws it. */
 export interface EncounterSite { readonly x:number; readonly z:number; readonly yaw:number; readonly variant:number; readonly y: number; readonly scale: number; readonly tilt: number; readonly slot: number;
   readonly collider: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number; ghost: true } }

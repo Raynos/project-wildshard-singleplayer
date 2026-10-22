@@ -24,4 +24,4 @@ const catalogue=v.parse(SpecimenCatalogueSchema,[{key:'balbal',model:{id:'nalati
 const writer=byteWriter(process.argv.includes('--check'),'nalati-balbal-specimen');
 // the crown sites (game/boss/encounterView EncounterSites): every third stele capped, each a box that stops colliding while its warrior is awake
 const sites={name:'nalati-balbal',label:'Balbal',file:'src/shards/nalati-grasslands/models/balbal.ts',surface:'stone',variants:['bare','capped'],variantCycle:[1,0,0],sink:.18,collider:{hw:.42,hd:.33,top:2.2,bottom:1}};
-writer.put(resolve(root,shard,'boot/balbalSpecimen.generated.json'),jsonBytes({catalogue,generated,sites}));writer.finish();
+for(const dir of ['boot','data'])writer.put(resolve(root,shard,`${dir}/balbalSpecimen.generated.json`),jsonBytes({catalogue,generated,sites}));writer.finish();

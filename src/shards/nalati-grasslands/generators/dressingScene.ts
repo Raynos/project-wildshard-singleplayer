@@ -19,6 +19,8 @@ import scenesInput from '../data/poiScenes.generated.json' with {type:'json'};
 import specimensInput from '../data/specimens.generated.json' with {type:'json'};
 import paintInput from '../data/poiPaint.json' with {type:'json'};
 import coverInput from '../data/cover.generated.json' with {type:'json'};
+import atlases from '../data/signAtlases.json' with {type:'json'};
+import balbal from '../data/balbalSpecimen.generated.json' with {type:'json'};
 import * as v from 'valibot';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { AmbientFlockSchema, AmbientPerchesSchema } from '@wildshard/format/ambientLife';
@@ -39,6 +41,12 @@ const scenes=v.parse(v.record(text,PrivateSceneSchema),scenesInput);
 const specimens=v.parse(specimensSchema,specimensInput);
 const paint=v.parse(paintSchema,paintInput);
 const cover=v.parse(coverSchema,coverInput);
+// the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
+const spot=v.object({x:number,y:number,z:number}),placed=v.parse(v.object({places:v.object({rows:v.array(v.object({name:text,
+  anchors:v.optional(v.object({entrance:v.exactOptional(v.object({...spot.entries,facing:number})),ledges:v.exactOptional(v.array(v.object({...spot.entries,r:number}))),
+    balbalSpots:v.exactOptional(v.array(v.object({x:number,z:number,yaw:number,scale:number})))}),{}),
+  members:v.array(v.tuple([text,v.object({placements:v.array(spot)})]))}))}),
+  view:v.object({smoke:v.object({centre:xyz,radius:number,attributes:v.object({aEmitter:v.array(number),aSeed:v.array(number),aCfg:v.array(number)})})})}),preparedInput);
 
 const encoded=(raw:Uint8Array):string=>{let encodedText='';for(const byte of zlibSync(raw))encodedText+=String.fromCodePoint(byte);return btoa(encodedText);};
 const id=(name:string)=>`nalati-grasslands/${name}`;
@@ -80,13 +88,19 @@ function compileDressingScene(tier:'phone'|'desktop') {
       const material=Object.entries(specimens.materials).find(([materialKey])=>materialKey===mesh.material)?.[1];if(material===undefined)throw new Error('Missing dressing static paint');materials[mesh.material]={kind:'specimen',row:material};
     }
     const copied=structuredClone(recipe),root=copied.nodes.find(node=>node.id===copied.root);
+    if(name==='roads'){
+      // the signposts' painted lettering, between the posts and their wood (the atlas on the painterly material)
+      const label=paint.rows.find(candidate=>candidate.key==='sign-labels:roads');if(label===undefined||root?.kind!=='group')throw new Error('Missing road lettering');
+      geometry['roads.lettering']={kind:'inline',data:label.data,row:label.geometry};materials['roads.lettering']={kind:'lettering',...atlases.roads,rim:.2};geo['lettering']='roads.lettering';mats['lettering']='roads.lettering';
+      copied.materials.push({kind:'port',id:'lettering',source:'lettering'});copied.nodes.push({kind:'mesh',id:'lettering',name:'nalati-signs',geometry:'lettering',material:'lettering',missing:'empty',castShadow:false,receiveShadow:true,children:[]});root.children.splice(1,0,'lettering');
+    }
     for(const [index,[,instance]]of row.instances.entries()){
       if(root?.kind!=='group')throw new Error('Static instances require their declared group');
       const mesh=instance.scene.nodes.find(node=>node.id===instance.scene.root);if(mesh?.kind!=='mesh')throw new Error('Static asset instance needs its declared mesh');
       const key=`${name}.instance.${index}`;geometry[key]={kind:'asset',row:instance.asset};materials[key]={kind:'asset',row:instance.asset};geo[key]=key;mats[key]=key;
       copied.materials.push({kind:'port',id:key,source:key});copied.nodes.push({...mesh,id:key,geometry:key,material:key});root.children.push(key);
     }
-    return{name,recipe:copied,geometry:geo,materials:mats,tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs])}))};
+    return{name,recipe:copied,geometry:geo,materials:mats,anchors:placeAnchors(name),tris:row.tris+(name==='kokpar'?6*(phone?metrics.farTriangles['kokpar-rider']:metrics.triangles['kokpar-rider']):0),members:row.members.map(([model,member])=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,floors:member.floors,contacts:preparedContacts([...member.solid,...member.descs])}))};
   });
   const cloth=clothGeometry();geometry['cloth']={kind:'inline',...cloth};materials['cloth']={kind:'look',look:'nalati-cloth'};
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
@@ -102,12 +116,25 @@ function compileDressingScene(tier:'phone'|'desktop') {
   const cragModel={model:{id:'nalati-grasslands/crag-rock',name:'Crag rock',category:'nature',pipeline:'code',file:'src/shards/nalati-grasslands/generators/bake-crag-rock.mjs',surface:'rock',defaults:{kind:'fin'},variants:[{id:'fin',label:'Fin',params:{}},{id:'rib',label:'Rib',params:{kind:'rib'}},{id:'tower',label:'Tower',params:{kind:'tower'}}]},geometry:firstCrag.key,material:'crag'};
   const cragPoints=Float32Array.from(crags.hulls.flatMap(row=>row.points)),cragContacts={kind:'packed-hulls',data:encoded(new Uint8Array(cragPoints.buffer)),origins:crags.hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
   statics.push({name:'cragRocks',recipe:crags.recipe,geometry:cragGeometry,materials:{crag:'crag'},tris:crags.triangles,members:[{model:'nalati-grasslands/crag-rock',draw:'merged',placements:crags.placements,boxes:crags.boxes,contacts:cragContacts}]});
-  const result={instances:bowl.instances,staticModels:[...bowl.staticModels,cragModel],name:'nalati-dressing',catalogues:[{rows:specimens.catalogue,packed:specimens.packed,materials:specimens.materials},{rows:profile.catalogue,pack:'cover'}],packs:{cover:{rows:profile.packed,materials:cover.materials}},geometry,materials,layers,statics,
+  const result={instances:bowl.instances,staticModels:[...bowl.staticModels,cragModel],name:'nalati-dressing',catalogues:[{rows:specimens.catalogue,packed:specimens.packed,materials:specimens.materials},{rows:balbal.catalogue},{rows:profile.catalogue,pack:'cover'}],packs:{cover:{rows:profile.packed,materials:cover.materials}},geometry,materials,layers,statics,
     wings:{groups:profile.life,layers:[{id:'butterfly',capacity:cover.butterflies[tier],palette:cover.hue,flap:[12,1.15,.25],geometry:'wing',material:'butterfly'},{id:'raptor',capacity:cover.raptors,palette:[],flap:null,geometry:'halfBird',material:'raptor'}]},
+    sites:[{name:'balbals',model:'nalati-grasslands/balbal',rows:{...balbal.sites,generated:balbal.generated,sites:placed.places.rows.find(row=>row.name==='kurgans')?.anchors.balbalSpots??[]}}],
+    emitters:[{name:'nalati-smoke',look:'nalati-camp-smoke',renderOrder:3,centre:placed.view.smoke.centre,radius:placed.view.smoke.radius,
+      attributes:{aEmitter:{width:3,values:placed.view.smoke.attributes.aEmitter},aSeed:{width:4,values:placed.view.smoke.attributes.aSeed},aCfg:{width:4,values:placed.view.smoke.attributes.aCfg}},
+      params:{wind:'wind',windClamp:8,shade:'shade',sun:'sunColour'}}],
     motes:{name:'nalati-dress-pollen',count:phone?380:900,seed:0x9011e,look:'nalati-motes',drift:.35,driftParam:'drift',pixelParam:'px'},animations:[{look:'nalati-cloth',timeParam:'clothTime',windParam:'clothWind',windScale:.7,windMax:1.2}]};
   const payload:unknown=JSON.parse(encodeCanonicalJson(result)),bytes=new Uint8Array(addresses.length*4),view=new DataView(bytes.buffer);
   addresses.forEach((offset,word)=>{if(!Number.isSafeInteger(offset)||offset<0||offset>0xffffffff)throw new Error('Invalid baked source address');view.setUint32(word*4,offset,true);});
   return{rows:v.parse(SceneDressingSchema,payload),addresses:bytes};
+}
+
+/** The places' gameplay anchors: the great kurgan's entrance, the crag ledges and the Wind Cairn's tie spot (3.6 m east, at its foot). */
+function placeAnchors(name:string):Record<string,{x:number;y:number;z:number;r?:number;facing?:number}[]>{
+  const row=placed.places.rows.find(candidate=>candidate.name===name),anchors=row?.anchors;
+  if(name==='kurgans'&&anchors?.entrance!==undefined)return{entrance:[anchors.entrance]};
+  if(name==='crags'&&anchors?.ledges!==undefined)return{ledges:anchors.ledges};
+  const foot=row?.members.find(([model])=>model==='nalati-grasslands/wind-cairn')?.[1].placements[0];
+  return name==='cairn'&&foot!==undefined?{tie:[{x:foot.x+3.6,y:foot.y,z:foot.z}]}:{};
 }
 
 /** Capture static strip attributes once; the existing cloth graph owns all movement. */

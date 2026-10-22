@@ -850,7 +850,7 @@
         "pnpm-lock.yaml",
         "src/shards/nalati-grasslands/data/staticCapture.json",
         "src/shards/nalati-grasslands/data/poiPaint.json",
-        "src/shards/nalati-grasslands/boot/signAtlases.json"
+        "src/shards/nalati-grasslands/data/signAtlases.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/placeRuntime.generated.json",
@@ -19803,7 +19803,7 @@
         "src/shards/nalati-grasslands/data/places.json"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/boot/signAtlases.json"
+        "src/shards/nalati-grasslands/data/signAtlases.json"
       ],
       "platform": "darwin",
       "browser": true
@@ -22418,10 +22418,12 @@
         "pnpm-lock.yaml"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json"
+        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json",
+        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json"
+        "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json",
+        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json"
       ],
       "platform": "portable",
       "catalogueDependencies": [

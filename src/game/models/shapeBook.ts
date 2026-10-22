@@ -56,13 +56,17 @@ class ShapeBook {
   geometries(keys: readonly string[]): readonly (readonly [string, THREE.BufferGeometry])[] { return keys.map(key => [key, this.geometry(key)] as const); }
   lettering(sky: SkyRig, key: string): THREE.Mesh {
     const row = this.rows.labels.find(candidate => candidate.key === key); if (row === undefined) throw new Error('Missing prepared label');
-    const bytes = decode(row.data); if (bytes.length !== row.width * row.height * 4) throw new Error('Label atlas byte count differs');
-    const atlas = new THREE.DataTexture(bytes, row.width, row.height);
-    atlas.colorSpace = THREE.SRGBColorSpace; atlas.anisotropy = 4; atlas.flipY = true; atlas.generateMipmaps = true;
-    atlas.minFilter = THREE.LinearMipmapLinearFilter; atlas.magFilter = THREE.LinearFilter; atlas.needsUpdate = true;
-    const material = painterlyMaterial(sky, { rim: row.rim }); material.map = atlas;
-    const mesh = new THREE.Mesh(this.geometry(row.shape), material); mesh.name = row.name; mesh.receiveShadow = true; return mesh;
+    const mesh = new THREE.Mesh(this.geometry(row.shape), letteringMaterial(sky, row)); mesh.name = row.name; mesh.receiveShadow = true; return mesh;
   }
+}
+
+/** Painted lettering: the RGBA8 atlas (zlib, base64) as the painterly material's mipmapped sRGB map. */
+export function letteringMaterial(sky: SkyRig | null, row: { readonly width: number; readonly height: number; readonly data: string; readonly rim: number }): THREE.Material {
+  const bytes = decode(row.data); if (bytes.length !== row.width * row.height * 4) throw new Error('Label atlas byte count differs');
+  const atlas = new THREE.DataTexture(bytes, row.width, row.height);
+  atlas.colorSpace = THREE.SRGBColorSpace; atlas.anisotropy = 4; atlas.flipY = true; atlas.generateMipmaps = true;
+  atlas.minFilter = THREE.LinearMipmapLinearFilter; atlas.magFilter = THREE.LinearFilter; atlas.needsUpdate = true;
+  const material = painterlyMaterial(sky, { rim: row.rim }); material.map = atlas; return material;
 }
 
 /** Borrow a per-declaration immutable geometry book. No import installs a service;

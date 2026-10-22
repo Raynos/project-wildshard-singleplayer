@@ -4,6 +4,7 @@ import { isJsonData } from './json';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenModelMetadataSchema, SpecimenTextureSchema } from './specimenCatalogue';
 import { AmbientFlockSchema, AmbientPerchesSchema } from './ambientLife';
 import { PrivateSceneSchema } from './clientChannels';
+import { EncounterSitesSchema } from './encounterRows';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite());
@@ -38,7 +39,7 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   name:id,
   instances:v.optional(SceneInstancesSchema,[]),
   staticModels:v.optional(list(v.strictObject({model:SpecimenModelMetadataSchema,geometry:id,material:id}),128),[]),
-  catalogues:list(v.union([v.strictObject({rows:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:v.record(id,SpecimenMaterialSchema)}),v.strictObject({rows:SpecimenCatalogueSchema,pack:id})]),8),
+  catalogues:list(v.union([v.strictObject({rows:SpecimenCatalogueSchema,packed:v.exactOptional(PackedSpecimenSchema),materials:v.optional(v.record(id,SpecimenMaterialSchema),{})}),v.strictObject({rows:SpecimenCatalogueSchema,pack:id})]),8),
   packs:v.record(id,v.strictObject({rows:PackedSpecimenSchema,materials:v.record(id,SpecimenMaterialSchema)})),
   geometry:v.record(id,geometry),
   materials:v.record(id,v.variant('kind',[
@@ -47,15 +48,25 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
     v.strictObject({kind:v.literal('painterly'),rim:finite,bands:finite,sway:v.exactOptional(finite),shade:v.exactOptional(finite),emissive:v.exactOptional(finite)}),
     v.strictObject({kind:v.literal('look'),look:id,params:v.exactOptional(v.record(id,v.union([finite,list(finite,16)]))),textures:v.exactOptional(v.record(id,SpecimenTextureSchema))}),
     v.strictObject({kind:v.literal('mapped'),look:id,over:id}),
+    /** painted lettering: an RGBA8 atlas (zlib, base64) on the painterly material */
+    v.strictObject({kind:v.literal('lettering'),width:count,height:count,data:v.pipe(v.string(),v.maxLength(1048576)),rim:finite}),
   ])),
   layers:list(v.strictObject({id,model:id,geometry:id,material:id,file:id,binary:v.boolean(),far:finite,castShadow:v.boolean(),keepNear:finite,
     select:v.exactOptional(v.strictObject({modulo:v.pipe(count,v.minValue(1)),remainder:count,equal:v.boolean()})),contacts:contactSource}),32),
   statics:list(v.strictObject({name:id,recipe:PrivateSceneSchema,geometry:v.record(id,id),materials:v.record(id,id),tris:finite,
+    /** the place's named gameplay points (an entrance, ledges, a tie spot), read by the encounters it hosts */
+    anchors:v.optional(v.record(id,list(v.strictObject({x:finite,y:finite,z:finite,r:v.optional(finite,0),facing:v.optional(finite,0)}),256)),{}),
     members:list(v.strictObject({model:id,draw:v.picklist(['single','instanced','merged']),placements:list(pose,8192),boxes:list(finite,49152),contacts:contactSource,floors:v.optional(list(SceneFloorSchema,64),[])}),128)}),32),
   wings:v.exactOptional(v.strictObject({groups:list(v.strictObject({kind:id,row:AmbientFlockSchema,perches:AmbientPerchesSchema}),32),
     layers:list(v.strictObject({id,capacity:count,palette:list(v.union([finite,id]),256),flap:v.nullable(v.tuple([finite,finite,finite])),geometry:id,material:id}),32)})),
   animations:list(v.strictObject({look:id,timeParam:id,windParam:id,windScale:finite,windMax:finite}),32),
   motes:v.exactOptional(v.strictObject({name:id,count,seed:count,look:id,drift:finite,driftParam:id,pixelParam:id})),
+  /** encounter sites (game/boss/encounterView) drawing a declared model, solid while they stand */
+  sites:v.optional(list(v.strictObject({name:id,model:id,rows:EncounterSitesSchema}),8),[]),
+  /** instanced quads in a lent look, their per-instance attributes baked; the look hears the painted wind (clamped), shade and sun */
+  emitters:v.optional(list(v.strictObject({name:id,look:id,renderOrder:count,centre:v.tuple([finite,finite,finite]),radius:finite,
+    attributes:v.record(id,v.strictObject({width:v.pipe(count,v.minValue(1),v.maxValue(4)),values:list(finite,1048576)})),
+    params:v.strictObject({wind:id,windClamp:finite,shade:id,sun:id})}),8),[]),
 }),v.check(rows=>{
   const models=new Set(rows.catalogues.flatMap(source=>source.rows.map(row=>row.model.id)).concat(rows.staticModels.map(row=>row.model.id)));
   const shape=(key:string)=>Object.hasOwn(rows.geometry,key),paint=(key:string)=>Object.hasOwn(rows.materials,key);
@@ -63,6 +74,7 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
     && rows.catalogues.every(source=>!('pack'in source)||Object.hasOwn(rows.packs,source.pack))
     && rows.staticModels.every(row=>shape(row.geometry)&&paint(row.material))
     && rows.instances.every(row=>shape(row.geometry)&&paint(row.material)&&rows.statics.some(group=>group.name===row.group))
+    && rows.sites.every(row=>models.has(row.model))
     && rows.layers.every(row=>models.has(row.model)&&shape(row.geometry)&&paint(row.material)&&(row.select===undefined||row.select.remainder<row.select.modulo))
     && rows.statics.every(row=>Object.values(row.geometry).every(shape)&&Object.values(row.materials).every(paint)&&row.members.every(member=>models.has(member.model)&&member.boxes.length===member.placements.length*6))
     && Object.values(rows.materials).every(row=>row.kind!=='mapped'||paint(row.over)&&rows.materials[row.over]?.kind!=='mapped')

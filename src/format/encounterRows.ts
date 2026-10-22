@@ -1,12 +1,27 @@
-/** Build-only admission for existing encounter rows; play imports types only. */
+/** Build-only admission for existing encounter rows; play imports their types and the encounter sites' schema. */
 import * as v from 'valibot';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { CreatureStrikeSchema } from './creatures';
+import { SpecimenAssetSchema } from './specimenCatalogue';
 
 const finite=v.pipe(v.number(),v.finite()),numbers=v.record(v.string(),finite);
 const count=v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(64));
 const offset=v.pipe(finite,v.integer(),v.minValue(-1),v.maxValue(1)),numeric=numbers;
 const pair=v.tuple([finite,finite]);
+/**
+ * The sites a slot encounter wakes from (`name`'s statues): one instanced copy of the model's `variants[k]` at each
+ * site (k: `variantCycle[i mod its length]`; `sink` × scale into the ground, leaning `tilt`), all wearing the `generated`
+ * asset once it loads, and each its
+ * own `collider` box piece (half width, half depth, top and bottom × scale; `label`, `surface`, from `file`) that stops
+ * colliding while the site is awake.
+ */
+export const EncounterSitesSchema = v.strictObject({
+  name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)), label: v.string(), file: v.string(), surface: v.picklist(['stone', 'wood', 'metal', 'earth', 'ground']),
+  variants: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(8)), variantCycle: v.pipe(v.array(v.pipe(finite, v.integer(), v.minValue(0))), v.minLength(1), v.maxLength(16)),
+  sink: finite, generated: SpecimenAssetSchema,
+  collider: v.strictObject({ hw: finite, hd: finite, top: finite, bottom: finite }),
+  sites: v.pipe(v.array(v.strictObject({ x: finite, z: finite, yaw: finite, scale: finite, tilt: v.optional(finite, 0) })), v.maxLength(256)),
+});
 export const EncounterPatrolSchema = v.strictObject({
   parameters: numbers, member: numbers, group: numbers,
   actors: v.optional(v.strictObject({ kind: v.string(), variant: v.string(), leader: v.string(), count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(8)),

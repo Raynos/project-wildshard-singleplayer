@@ -9,8 +9,8 @@
 import * as THREE from 'three';
 import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
 import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
-import type { Ground } from '../world/types';
 
+type Ground = (x: number, z: number) => number;
 const edge = new Noise2D(0x7a2d);
 
 /** a worn disc: 1 inside r·0.75 → 0 at r, the rim ragged by noise */
