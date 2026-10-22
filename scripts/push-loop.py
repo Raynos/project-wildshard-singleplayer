@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """One temporary push tick: live checks, safe prefix upload, lane notification. No history edits."""
+import fcntl
 import hashlib
 import json
 import os
@@ -118,6 +119,9 @@ def refusal_signature(output):
 
 
 def tick(root, checker=check_committed, uploader=None, notify=ping):
+    common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
+    if (common / 'quiet').exists():
+        return {'status': 'quiet', 'tip': git(root, 'rev-parse', 'main')}
     started = time.monotonic()
     # Reaping the snapshot is part of the 45-second ceiling too.
     deadline = started + LIVE['LIMIT'] - 2
@@ -143,7 +147,6 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         return {'status': 'idle', 'tip': tip}
     if git(root, 'merge-base', base, tip) != base:
         return {'status': 'diverged', 'tip': tip}
-    common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
     result = checker(root, base, tip, deadline)
     candidate = tip
     bad = None
@@ -190,13 +193,21 @@ def main():
         return 0 if result['ok'] else 1
     folder = root / 'tmp/push-loop'
     folder.mkdir(parents=True, exist_ok=True)
-    result = tick(root)
-    (folder / 'current.log').write_text(result.pop('output', '') + '\n' + json.dumps(result) + '\n')
     common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
+    # The quiet owner takes this lock only while publishing its marker, after an active tick drains.
+    # Once published, later ticks defer without holding a push lock through the sample.
+    with (common / 'push-loop.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print(json.dumps({'status': 'busy'}))
+            return 0
+        result = tick(root)
+    (folder / 'current.log').write_text(result.pop('output', '') + '\n' + json.dumps(result) + '\n')
     with (common / 'push.log').open('a') as log:
         log.write(time.strftime('%Y-%m-%dT%H:%M:%S%z ') + json.dumps(result) + '\n')
     print(json.dumps(result))
-    return 0 if result['status'] in ('idle', 'pushed') else 1
+    return 0 if result['status'] in ('idle', 'pushed', 'quiet') else 1
 
 
 if __name__ == '__main__':

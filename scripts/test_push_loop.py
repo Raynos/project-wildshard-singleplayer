@@ -1,5 +1,6 @@
 """Real Git prefix uploads, bounded children and live-check refusal paths."""
 import json
+import fcntl
 import hashlib
 import os
 from pathlib import Path
@@ -59,6 +60,39 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(cleaned['HERDR_SESSION'], 'fixture')
         self.assertEqual(cleaned['HERDR_SOCKET_PATH'], '/fixture/herdr.sock')
         self.assertEqual(context['PATH'].split(':')[0], '/Users/me/.codex/packages/standalone/releases/old/codex-path')
+
+    def test_cli_defers_overlap_and_observes_quiet_after_the_activity_lock(self):
+        self.put('.git/quiet', '{"owner":"fixture-sample"}')
+        env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+        command = [sys.executable, str(ROOT / 'scripts/push-loop.py')]
+        with (self.root / '.git/push-loop.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            busy = subprocess.run(command, cwd=self.root, env=env, capture_output=True, text=True, timeout=3)
+            self.assertEqual(busy.returncode, 0, busy.stderr)
+            self.assertEqual(json.loads(busy.stdout)['status'], 'busy')
+        resumed = subprocess.run(command, cwd=self.root, env=env, capture_output=True, text=True, timeout=3)
+        self.assertEqual(resumed.returncode, 0, resumed.stderr)
+        self.assertEqual(json.loads(resumed.stdout)['status'], 'quiet')
+        self.assertEqual(self.git('rev-parse', 'origin/main'), self.base)
+
+    def test_quiet_sample_defers_checks_and_upload_then_resumes(self):
+        tip = self.commit('src/good.ts')
+        self.put('.git/quiet', '{"owner":"fixture-sample"}')
+        checks, uploads = [], []
+        def checker(*args):
+            checks.append(args)
+            return {'ok': True, 'output': ''}
+        def upload(*args):
+            uploads.append(args)
+            return 0
+        result = PUSH['tick'](self.root, checker=checker, uploader=upload)
+        self.assertEqual(result, {'status': 'quiet', 'tip': tip})
+        self.assertEqual(checks, [])
+        self.assertEqual(uploads, [])
+        (self.root / '.git/quiet').unlink()
+        self.assertEqual(PUSH['tick'](self.root, checker=checker, uploader=upload)['status'], 'pushed')
+        self.assertEqual(len(checks), 1)
+        self.assertEqual(len(uploads), 1)
 
     def test_pre_push_runs_only_related_tests(self):
         tip = self.commit('src/good.ts')
