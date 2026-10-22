@@ -4,7 +4,9 @@ import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { TreeFactory, type TreeVariant } from '@wildshard/engine/world/TreeFactory';
-import { GeometryPack, packedRows, fetchDeflated, fetchBakeJson } from '@wildshard/sdk/kit/geometryPack';
+import { GeometryPack } from '@wildshard/engine/models/geometryPack';
+import { packedRows } from '@wildshard/format/geometryPack';
+import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 
 /** Triangle counts per LOD for one variant (perf reports). */
 export interface SpruceLodTris { hi: number; twigs: number; lo: number; far: number; trunk: number }
@@ -28,7 +30,11 @@ export class SpruceFactory extends TreeFactory {
     this.twigDepth = this.needleDepth;
 
     // The pack and inflated bytes are local to boot, never a resident geometry cache.
-    const [bytes, json] = await Promise.all([fetchDeflated('/assets/nalati/baked/spruce.bin'), fetchBakeJson('/assets/nalati/baked/spruce.json')]);
+    const [bytes, json] = await Promise.all([fetchDeflatedBytes('/assets/nalati/baked/spruce.bin'), (async () => {
+      const url = '/assets/nalati/baked/spruce.json', response = await fetch(url);
+      if (!response.ok) throw new Error(`${String(response.status)} ${url}`);
+      const data: unknown = await response.json(); return data;
+    })()]);
     const spruce = v.parse(v.object({
       pack: v.object({ bytes: v.number(), geometries: v.array(v.object({ attrs: v.array(v.tuple([v.string(), v.number()])), count: v.number(), unique: v.number(), own: v.nullable(v.picklist(['u16', 'u32'])), indexCount: v.number() })) }),
       variants: v.array(v.object({ height: v.number(), trunkRadius: v.number(), trunk: v.number(), cardsHi: v.number(), cardsLo: v.number(), twigs: v.number(), far: v.number() })),

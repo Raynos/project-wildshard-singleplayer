@@ -8,6 +8,8 @@ import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { SPRUCE_SPECS, spruceGeometry } from '../src/shards/nalati-grasslands/generators/spruceGeometry';
 import { GeometryPack, GeometryPackWriter } from '../src/sdk/kit/geometryPack';
+import { GeometryPack as NativeGeometryPack } from '../src/engine/models/geometryPack';
+import { unzlibSync } from 'fflate';
 import { SpruceFactory } from '../src/shards/nalati-grasslands/world/spruceView';
 import { TREE_SPECS } from '../src/engine/world/forest/treeSpec';
 import oracle from './fixtures/nalati-spruce.json' with { type: 'json' };
@@ -49,6 +51,16 @@ test('offline spruce keeps the original forest geometry, LODs and material bindi
     for (const v of original) for (const key of ['trunk', 'cardsHi', 'cardsLo', 'twigs', 'far'] as const) writer.add(v[key]);
     const metadata: unknown = JSON.parse(rows);
     expect(metadata).toMatchObject({ pack: writer.rows() });
+    const bytes = writer.bytes();
+    expect(unzlibSync(encoded)).toEqual(bytes);
+    const legacyPack = new GeometryPack(bytes, writer.rows(), 'original spruce');
+    const nativePack = new NativeGeometryPack(bytes, writer.rows(), 'original spruce');
+    for (let i = 0; i < writer.rows().geometries.length; i++) {
+      const previous = legacyPack.geometry(i), current = nativePack.geometry(i);
+      expect(fingerprint(current)).toEqual(fingerprint(previous));
+      for (const name of Object.keys(previous.attributes)) expect(current.getAttribute(name).array.buffer).not.toBe(previous.getAttribute(name).array.buffer);
+      current.dispose(); previous.dispose();
+    }
     expect(new GeometryPack(writer.bytes(), writer.rows(), 'spruce').geometry(0).getAttribute('position').count).toBe(original[0]?.trunk.getAttribute('position').count);
     expect(SPRUCE_SPECS.map(s => s.height)).toEqual(factory.variants.map(v => v.height));
   } finally { vi.unstubAllGlobals(); }
