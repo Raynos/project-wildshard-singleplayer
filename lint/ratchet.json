@@ -53,9 +53,7 @@
       "driftwood-isle/custom/gullFlock": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit",
       "driftwood-isle/custom/oceanSurface": "docs/plans/shard-platform/open-x-queue.md#W2 immutable product sections exit"
     },
-    "shardfile/sim-in-runtime": {
-      "src/shards/pine-hollow/runtime/baked.ts": "G453 existing native-entry value-module reach; remove by moving server logic to sections/hosts or Wasm."
-    }
+    "shardfile/sim-in-runtime": {}
   },
   "budgets": {
     "custom-sections/_template/count": 0,
@@ -117,7 +115,7 @@
     "sim-in-runtime/nine-dragon-stack": 0,
     "sim-in-runtime/open-plots": 0,
     "sim-in-runtime/pastel-plain": 0,
-    "sim-in-runtime/pine-hollow": 1,
+    "sim-in-runtime/pine-hollow": 0,
     "sim-in-runtime/sunscar-dunes": 0
   },
   "debugRows": {
