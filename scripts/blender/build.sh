@@ -112,10 +112,11 @@ for T in "${TARGETS[@]}"; do
   cmd+=(-- ${args[@]+"${args[@]}"} ${PASS[@]+"${PASS[@]}"})
   LOG="$CACHE/$(basename "$BUILD").log"
   locked=$(jq -r --arg t "$T" '.targets[$t] | if has("lock") then .lock else true end' "$MANIFEST")
-  if [ "$locked" = true ] && [ "$USELOCK" = 1 ]; then cmd=(lockf -k "$LOCK" "${cmd[@]}"); fi
+  if [ "$locked" = true ] && [ "$USELOCK" = 1 ]; then cmd=(lockf -k -t 300 "$LOCK" "${cmd[@]}"); fi
   t0=$(date +%s)
   rc=0
   PYTHONDONTWRITEBYTECODE=1 "${cmd[@]}" >"$LOG" 2>&1 || rc=$?
+  if [ "$rc" = 75 ]; then echo "build.sh: model lock timed out after 300s: $LOCK" >&2; lsof "$LOCK" >&2 || true; fi
   grep -E '^\[|Error|Traceback|  File "|Exception' "$LOG" | tail -25 || true
   echo "build.sh: $T: Blender exit $rc after $(( $(date +%s) - t0 )) s (log: $LOG)"
   [ "$rc" = 0 ] || { FAILED+=("$T"); continue; }

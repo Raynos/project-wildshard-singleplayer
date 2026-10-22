@@ -31,7 +31,9 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 
 - **One model at a time, machine-wide.** Other agents (herdr panes making music, SFX and 3D for the other shards)
   load models on this same box.
-  - Every load runs under `lockf -k ~/projects/localai/.model.lock` and waits until anonymous memory is below 70 GB.
+  - Every load runs under `lockf -k -t 300 ~/projects/localai/.model.lock` and waits at most five minutes until
+    anonymous memory is below 70 GB. The owned-process img2mesh runner uses the interoperable BSD flock with the
+    same 300s cap; its lock/memory overrides may shorten admission but cannot extend it. Timeouts fail, never retry.
     Use `~/projects/localai/bin/img2mesh/run-locked.sh <log> <cmd…>`, or `~/ml/imagegen/run-locked.sh`.
   - `pgrep -fl "lockf -k"` shows the queue.
   - Keep a batch under 30 minutes so the others get their turn.

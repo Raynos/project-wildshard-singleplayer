@@ -12,7 +12,8 @@
 #   --steps40    the full 40-step model instead of turbo (~4x slower, same look)
 #
 # Runs under the machine-wide model lock (~/projects/localai/.model.lock), so it may queue behind music / SFX / 3D
-# jobs from other agents. Setup + traps: ~/projects/localai/docs/image-models.md. Weights: ~/projects/weights/manual/Qwen/.
+# jobs from other agents. The shared run-locked launcher caps lock and memory admission at five minutes.
+# Setup + traps: ~/projects/localai/docs/image-models.md. Weights: ~/projects/weights/manual/Qwen/.
 set -euo pipefail
 IG="$HOME/ml/imagegen"
 refs=(); prompt=""; out=""; mask=""; size=""; seed=42; turbo="--turbo"
