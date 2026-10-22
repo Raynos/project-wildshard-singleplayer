@@ -3,24 +3,20 @@
  * --round=landscape (G336 round 3): the five landscapeHeroPlan poses at 2560×1440 and 1920×1080, desktop tier, DSF 1.
  * --round=square (G344): squareHeroPlan at a phone-1x lens, the square poses at 2048×2048 and 1440×1440 and the
  *   landscape ones at 2560×1440 and 1920×1080, desktop tier, DSF 1; each pose's fovDegrees is the capture camera's only.
- * --round=near (G342 / G385): the near tier B / C, raw and unlabelled: B (the shipped game, the four nearest cells on
- *   their near placeholder) and C (every cell near: the capture-only harness pin `__wildshardHarness.nearEvery`, never a
- *   setting), four road views from the roundabout to each crossroads cell, on iPhone 16 Pro portrait and 1920×1080
- *   desktop; files <B|C>-<pose>-<device>.png. (A, the far proxy only, was deleted by G385.)
+ * --round=near (G342 / G385): the near tier B, raw and unlabelled (the shipped game: since G607 every cell on its near
+ *   view), four road views from the roundabout to each crossroads cell, on iPhone 16 Pro portrait and 1920×1080 desktop;
+ *   files B-<pose>-<device>.png. (A, the far proxy only, went in G385; C, the every-cell pin, is the game since G607.)
  * --round=near also shoots the shipped hero (round 6's SQ-NE-b, G383, after the road views; never entered, O24). Every
  *   frame records each cell's real tier (grid.state().cells[].shows / drawn: near, far proxy, tiles, playing) and the
  *   near tier's own readout (frame.near), for the labels.
  * --round=5 (G372): round5HeroPlan (above Nalati's centre looking toward Driftwood) with the near tier (B, shipped).
- * --round=6 (G379 / G380): round6HeroPlan (above Nalati's far edge, across it to Driftwood) with C pinned (every cell's
- *   near view, the capture-only harness pin).
+ * --round=6 (G379 / G380): round6HeroPlan (above Nalati's far edge, across it to Driftwood), every cell near.
  * --round=5x5 (G536): grid5x5HeroPlan, the whole 5 × 5 at the phone-1x square lens on the PHONE tier at render scale 2
  *   (720 × 720 CSS at DSF 2: a 1440 × 1440 canvas, the portrait band's size); every cell on its shipped tier, no pin
  *   (pinning every cell near reads the same: from 1.5–3 km the engine's distance fog, not the tier, pales the cells).
  * --round=far (G575 / G576 round 36): farVariantPlan (the shipped hero SQ-NE-b, the 5 × 5 overview A, one outer road) on
- *   iPhone 16 Pro portrait and 1920×1080 desktop, shipped tiers, one variant per run: --variant=<label> names the files,
- *   --haze=off|light|current pins the grid far haze (the capture-only harness `farHaze`; a build reads it only where a
- *   local variant patch says so) and --everything pins every cell near (`nearEvery`) with a 6 km far plane. Each shot
- *   records the frame rate over 4 s, the JS heap and the renderer + GPU processes' footprint (Chromium) for its label.
+ *   iPhone 16 Pro portrait and 1920×1080 desktop, shipped tiers, one variant per run: --variant=<label> names the files
+ *   (G607 shipped round 36's D: every cell near, no far haze or hologram fade, a 6 km far plane). Each shot records the frame rate over 4 s, the JS heap and the renderer + GPU processes' footprint (Chromium) for its label.
  *   The player stays on the session's road point for every view (re-posing the player in the grid loses the free camera).
  *   --url=<preview> captures an already served build (a local variant build in a mirror slot) instead of building HEAD.
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
@@ -48,8 +44,6 @@ const out = resolvePath(flag('out', join(tmpdir(), `main-menu-hero-${process.pid
 const script = import.meta.filename;
 const round = flag('round', '1');
 if (!['1', 'aerial', 'landscape', 'square', 'near', '4', '5', '6', '5x5', 'far'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape, square, near, 4, 5, 6, 5x5 or far');
-// G575 round 36: the far haze rows a variant pins (current = GRID_FAR_HAZE)
-const FAR_HAZE = { off: { near: 450, far: 2600, max: 0 }, light: { near: 900, far: 3600, max: 0.3 }, current: { near: 450, far: 2600, max: 0.55 } };
 const serveOwner = process.env.SERVE_OWNER ?? 'sp-x2-g332';
 
 /** G575 round 36: the footprint (MB) of the browser's renderer and GPU processes (libproc phys_footprint, macOS). */
@@ -265,8 +259,6 @@ async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
     ['--experimental-transform-types', '--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? '6' : round], root));
-  // G575 round 36: --everything also opens every pose's far plane to 6 km (the capture camera's only)
-  if (args.includes('--everything')) plan.poses = plan.poses.map(p => ({ ...p, farMetres: Math.max(p.farMetres ?? 0, 6000) }));
   // --only=<pose id,…> and --sessions=<key,…> (e.g. 2048x2048) narrow a re-shoot; sessions left with no pose are skipped
   const only = flag('only', ''), keys = flag('sessions', '');
   // --enter (round 4): stand the player in the cell under the eye first (its runtime draws at full quality; the
@@ -274,14 +266,13 @@ async function captureAerial(base) {
   const enter = args.includes('--enter');
   if (only !== '') plan.poses = plan.poses.filter(p => only.split(',').includes(p.id));
   // G343 round 4: the square round's sessions over round4HeroPlan, with the near-placeholder tier on (G342)
-  const far = round === 'far', variant = flag('variant', 'current'), everything = args.includes('--everything'), haze = flag('haze', 'current');
-  if (far && !Object.hasOwn(FAR_HAZE, haze)) throw new Error('--haze must be off, light or current');
+  const far = round === 'far', variant = flag('variant', 'current');
   const near = round === 'near' || far, grid5x5 = round === '5x5', round4 = round === '4' || round === '5' || round === '6', square = round === 'square' || round4, landscape = round === 'landscape' || square || near || grid5x5;
   // Aerial: one phone context per Debug time pick. Landscape: one desktop context per resolution, desktop tier, DSF 1.
   // Square (G344): the same desktop contexts, square resolutions for the square poses and 16:9 for the landscape ones.
   const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
     context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
-    settings: { tier: 'desktop', fps: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' }, nearEvery: round === '6' });
+    settings: { tier: 'desktop', fps: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } });
   // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the shipped hero (NE-b, G383)
   const centre0 = plan.road ?? plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
@@ -296,10 +287,10 @@ async function captureAerial(base) {
     ? [{ key: 'phone-1440', poses: plan.poses, context: { ...devices['Desktop Chrome'], viewport: { width: 720, height: 720 }, deviceScaleFactor: 2 },
       settings: { tier: 'phone', fps: 'auto', volume: 0 }, gfx: { dpr: '2', aa: 'auto' } }]
     : near
-    ? (far ? [everything ? 'C' : 'B'] : ['B', 'C']).flatMap(mode => [
-      { key: `${mode}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] }, nearEvery: mode === 'C',
+    ? ['B'].flatMap(mode => [
+      { key: `${mode}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
         settings: { tier: 'phone', fps: 'auto', volume: 0 }, gfx: { dpr: '2', aa: 'auto' } },
-      { key: `${mode}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 }, nearEvery: mode === 'C',
+      { key: `${mode}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 },
         settings: { tier: 'desktop', fps: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } }])
     : square
     ? [[2048, 2048, 'square'], [1440, 1440, 'square'], [2560, 1440, 'landscape'], [1920, 1080, 'landscape']]
@@ -327,9 +318,7 @@ async function captureAerial(base) {
         await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
         await saveFixture(context, { scope: 'global', key: 'settings', merge: true, data: session.settings });
         await saveFixture(context, { scope: 'global', key: 'gfx', data: session.gfx });
-        // G385: C (every cell near) is this pin alone, set before the page loads; B is the shipped game
-        await context.addInitScript(({ nearEvery, farHaze }) => { window.__wildshardHarness = { seed: 357, capture: null, ...(nearEvery ? { nearEvery: true } : {}), ...(farHaze === null ? {} : { farHaze }) }; },
-          { nearEvery: session.nearEvery === true, farHaze: far ? FAR_HAZE[haze] : null });
+        await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
         await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
         const page = await context.newPage(), errors = [], consoleErrors = [];
         page.setDefaultTimeout(180000);
@@ -417,7 +406,7 @@ async function captureAerial(base) {
             const facing = shot.id.startsWith('road-') ? row.frame.cells.find(cell => Math.abs(cell.cell[0] * 555 - shot.target.x) < 277.5 && Math.abs(cell.cell[1] * 555 - shot.target.z) < 277.5) : undefined;
             const name = facing === undefined ? shot.id : `road-${facing.slug.replace(/^_/u, '').split('-')[0]}`;
             row.file = far ? `${variant}-${shot.id}-${session.key.slice(2)}.png` : near ? `${session.key.slice(0, 1)}-${name}-${session.key.slice(2)}.png` : landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
-            if (far) row.metrics = { variant, haze, everything, ...(await farMetrics(browser, page)) };
+            if (far) row.metrics = { variant, ...(await farMetrics(browser, page)) };
             await page.locator('canvas[data-hero-canvas]').screenshot({ path: join(out, row.file) });
             row.consoleErrors = [...consoleErrors]; row.complete = true;
           } catch (error) { row.errors.push(String(error)); }
@@ -444,7 +433,7 @@ if (args.includes('--worker')) {
       { ...process.env, SERVE_OWNER: serveOwner })).split('\n').at(-1);
     requireNoQuiet();
     await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`,
-      ...args.filter(value => /^--(?:only=|sessions=|pose=|enter$|variant=|haze=|everything$)/u.test(value))], root,
+      ...args.filter(value => /^--(?:only=|sessions=|pose=|enter$|variant=)/u.test(value))], root,
       { ...process.env, HERO_CAPTURE_LANE: '1' });
     console.log(`Canvas candidates and pinned capture.json: ${out}`);
   } finally {

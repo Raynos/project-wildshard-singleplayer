@@ -19,5 +19,5 @@ export const farLook = {
   // (measured on the west road face: ×1 → sRGB 159, ×0.5 → 145, ×0.25 → 109, ×0.125 → 67), so rockMid ×0.3 lands
   // on the warm grey-brown of the seam's rock instead of clipping to white
   cliff: { lip: [0.09, 0.081, 0.075], foot: [0.04, 0.04, 0.048] },
-  haze: { colour: [0.62, 0.78, 0.98], near: 500, far: 2800, max: 0.5 },
+  haze: { colour: [0.62, 0.78, 0.98] },
 } as const;

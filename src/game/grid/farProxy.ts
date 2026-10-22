@@ -20,16 +20,8 @@ import { GRID_RADIUS } from '@wildshard/format/contentBounds';
 export type FarRgb = readonly [number, number, number];
 /** The material family a proxy draws with; each shard keeps its own style. */
 export type FarFamily = 'toon' | 'painterly' | 'pbr';
-/** Distance haze on the proxy alone (independent of a shard's near fog, which would hide its neighbours). */
-export interface FarHaze { readonly colour: FarRgb; readonly near: number; readonly far: number; readonly max: number }
-/**
- * O24: the haze of a shard drawn across the grid without a far look of its own (any shardfile's far proxy and near view;
- * the build's placeholders): metres of view depth and strength, the range the authored far looks use (Driftwood 450-2600 m
- * at 0.55, Nalati and Far Reach 500-2800 at 0.5, Pine 400-2400 at 0.6). A shard's own fog key is its air up close: at
- * 160-700 m and full strength every such cell (the open plots, pastel plain, ink-cel valley) drew as a blank tile past
- * 700 m, the outer band of the G550 hero.
- */
-export const GRID_FAR_HAZE = { near: 450, far: 2600, max: 0.55 } as const;
+/** A shard's declared air: the colour the one frame's fog takes while the shard owns it (G607: no distance haze on a proxy). */
+export interface FarHaze { readonly colour: FarRgb }
 /**
  * A shard's far look, authored in its folder and read only at bake time. `colourAt` gets cell-local metres, the height,
  * the slope (1 − n.y) and the normalised splat weights (the shard's own four channels).
@@ -104,11 +96,12 @@ export const GRID_SIGHTLINE = 2 * (GRID_RADIUS + 0.5) * CONTENT_CAPS.pitch * Mat
  * every cell within `reach` (the grid's whole sightline, so no cell of the 5 × 5 pops in or out while you drive the
  * outer road), nearest first while the proxies' own bytes fit `count` charges of `CONTENT_CAPS.far.resident` (14.4 MB;
  * a baked proxy is ≈ 0.48–0.71 MB, so every cell fits). `viewDistance` (1.5 pitches) is still what the loader waits for.
- * `drawDistance` is the grid camera's far plane and `domeRadius` the road sky's camera-kept dome: past the sightline
- * (the far corner's rail) and inside the far plane, so nothing on the platform is clipped or drawn behind the sky.
+ * `drawDistance` is the grid camera's far plane (G607, Jake's round-36 D: 6 km, every cell drawn near and unhazed) and
+ * `domeRadius` the road sky's camera-kept dome: past the sightline (the far corner's rail) and inside the far plane, so
+ * nothing on the platform is clipped or drawn behind the sky.
  */
 export const FAR_RING = { count: CONTENT_CAPS.farCount, viewDistance: 1.5 * CONTENT_CAPS.pitch, farPrefetch: 435, reach: GRID_SIGHTLINE,
-  drawDistance: Math.ceil(GRID_SIGHTLINE / 100) * 100 + 400, domeRadius: Math.ceil(GRID_SIGHTLINE / 100) * 100 + 200 } as const;
+  drawDistance: 6000, domeRadius: Math.ceil(GRID_SIGHTLINE / 100) * 100 + 200 } as const;
 
 /**
  * G342 near round 5 (sp-o67's open row 1: the tall grey cliff where Nalati's mountains meet its cell edge): how a near

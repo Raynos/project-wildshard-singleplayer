@@ -12,7 +12,7 @@ export const farLook = {
   },
   // G222: its exposed boundary is sandstone in its own lee-slope sand, deepening toward the foot
   cliff: { lip: [0.5, 0.27, 0.13], foot: [0.34, 0.18, 0.09] },
-  haze: { colour: [0.78, 0.5, 0.36], near: 400, far: 2400, max: 0.55 },
+  haze: { colour: [0.78, 0.5, 0.36] },
   // SF19b / G94 (Jake: "C Dust-haze band"): under the grid's one sky the dunes keep their dusk through a tall band of warm
   // golden dust rising from the strip at their border, the sand behind it graded dusky orange; no second sky
   grade: { exposure: -0.2, saturation: 1.1, contrast: 1.05, tint: [1.08, 0.94, 0.8] },

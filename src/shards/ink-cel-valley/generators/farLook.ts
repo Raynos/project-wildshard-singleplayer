@@ -12,5 +12,5 @@ export const farLook = {
   },
   // G222: its exposed boundary is the ink-wash shade of its own ground
   cliff: { lip: [0.26, 0.28, 0.2], foot: [0.14, 0.15, 0.12] },
-  haze: { colour: [0.78, 0.82, 0.76], near: 450, far: 2600, max: 0.55 },
+  haze: { colour: [0.78, 0.82, 0.76] },
 } as const;

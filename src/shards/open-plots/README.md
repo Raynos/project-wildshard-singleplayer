@@ -18,9 +18,9 @@ idea. There is no runtime code: the shard is data rows and one build-time genera
 - `data/hologram.graph.json` is the ONE hologram shader (G545), a look row on the material graph host: unlit, additive,
   fresnel rim `pow(1 - |n·v|, 2.2)`, alpha `0.07 + rim × 0.7`, world-Y scanlines and a slow upward sweep, 28° feature edges
   at 0.55 and a 0.07 wireframe (both decoded from the generator's per-corner edge code in the vertex colours), colour
-  `#46e6ff`, fading out from 300 to 850 m. Its vertex stage turns the hologram slowly about the plinth's axis.
+  `#46e6ff`, drawn at every distance (G607). Its vertex stage turns the hologram slowly about the plinth's axis.
 - `data/beam.graph.json` draws the corner beams (G539): additive cyan, capped at 60 m (a twin at 45 m), thinning with
-  height and fading out from 300 to 850 m of view depth, so no beam reads across the 5 × 5.
+  height, drawn at every distance (G607): every plot's beams read across the 5 × 5.
 
 On the 5 × 5 (G538, P7): every open cell of `src/game/grid/singleplayer.json` is an `open-plot-<idea>` output, entered
 over the road like any shard cell, with its baked far proxy and impostor in the shared far tier; all 14 ideas stand on the

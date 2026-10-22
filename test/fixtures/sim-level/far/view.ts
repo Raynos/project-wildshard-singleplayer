@@ -22,7 +22,7 @@ import sunscar from '../../../../public/assets/baked/sunscar-dunes/far.json';
 import reachGlb from '../../../../public/assets/baked/far-reach/far.glb?url';
 import reach from '../../../../public/assets/baked/far-reach/far.json';
 
-interface FarJson { far: { decoded: number; gpu: number }; look: { family: string; haze: { colour: number[]; near: number; far: number; max: number } } }
+interface FarJson { far: { decoded: number; gpu: number }; look: { family: string; haze: { colour: number[] } } }
 const shards: Record<string, { url: string; json: FarJson; label: string }> = {
   '_template': { url: templateGlb, json: template, label: 'Template' }, 'driftwood-isle': { url: driftwoodGlb, json: driftwood, label: 'Driftwood Isle' },
   'pine-hollow': { url: pineGlb, json: pine, label: 'Pine Hollow' }, 'nalati-grasslands': { url: nalatiGlb, json: nalati, label: 'Nalati Grasslands' },
@@ -31,7 +31,7 @@ const shards: Record<string, { url: string; json: FarJson; label: string }> = {
 const layout: [number, number, string][] = [[-1, 1, '_template'], [0, 1, 'pine-hollow'], [1, 1, '_template'], [-1, 0, 'sunscar-dunes'], [0, 0, 'driftwood-isle'], [1, 0, 'nalati-grasslands'], [-1, -1, '_template'], [0, -1, 'far-reach'], [1, -1, '_template']];
 const look = (json: FarJson): FarLookRuntime => {
   const family = json.look.family === 'toon' || json.look.family === 'painterly' ? json.look.family : 'pbr', [r = 0, g = 0, b = 0] = json.look.haze.colour;
-  return { family, haze: { colour: [r, g, b], near: json.look.haze.near, far: json.look.haze.far, max: json.look.haze.max } };
+  return { family, haze: { colour: [r, g, b] } };
 };
 
 const renderer = new WebGLRenderer({ antialias: true }); renderer.setPixelRatio(2); renderer.setSize(innerWidth, innerHeight); document.body.append(renderer.domElement);

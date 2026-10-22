@@ -12,5 +12,5 @@ export const farLook = {
   },
   // G222: its exposed boundary is a darker lilac of its own ground
   cliff: { lip: [0.42, 0.34, 0.48], foot: [0.28, 0.22, 0.32] },
-  haze: { colour: [0.93, 0.84, 0.9], near: 450, far: 2600, max: 0.55 },
+  haze: { colour: [0.93, 0.84, 0.9] },
 } as const;

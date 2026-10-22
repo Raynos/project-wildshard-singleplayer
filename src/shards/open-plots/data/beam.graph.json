@@ -17,12 +17,7 @@
     "left": { "op": "oneMinus", "in": ["riseS"] },
     "taper": { "op": "pow", "in": ["left", 1.6] },
     "glow": { "op": "mul", "in": ["taper", 0.6] },
-    "pv": { "op": "positionView" },
-    "depth": { "op": "length", "in": ["pv"] },
-    "fadeS": { "op": "smoothstep", "in": [300, 850, "depth"] },
-    "keep": { "op": "oneMinus", "in": ["fadeS"] },
-    "a0": { "op": "mul", "in": ["glow", "keep"] },
-    "alpha": { "op": "saturate", "in": ["a0"] },
+    "alpha": { "op": "saturate", "in": ["glow"] },
     "colourP": { "op": "param", "param": "colour" }
   },
   "stages": {

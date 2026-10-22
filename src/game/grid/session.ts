@@ -203,7 +203,7 @@ async function loadFar(slug: string): Promise<{ prepared: FarPrepared; bytes: nu
 const num = v.pipe(v.number(), v.finite());
 /** The part of `far.json` the client reads: the resident cost and the look (the bake writes more). */
 const FarRow = v.object({ far: v.object({ gpu: num, decoded: num, impostor: v.optional(FarImpostorSchema) }),
-  look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]), near: num, far: num, max: num }),
+  look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]) }),
     grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num, tint: v.optional(v.tuple([num, num, num])) })),
     band: v.optional(v.object({ colour: v.tuple([num, num, num]), height: num, opacity: num, own: num })) }) });
 /** The part of `near.json` the client reads. */
@@ -474,24 +474,22 @@ export class GridSession {
       },
     });
     const framedPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
-      const band = data.look.band, view = far.upload(tile, data), untag = frame.proxy(view), dispose = view.dispose;
+      const band = data.look.band, view = far.upload(tile, data), dispose = view.dispose;
       // SF19b (G94 / G95): a shard that declares a band shows its mood at its border from the road; inside its cell it owns the frame (G158)
       const prepared = preparedBands.get(view);
       const root = roots.get(tile.instance), unband = prepared !== undefined || band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
       if (prepared !== undefined) prepared.visible = true;
-      view.dispose = () => { unband(); untag(); dispose(); };
+      view.dispose = () => { unband(); dispose(); };
       return view;
     } };
     // the drawn far views, for the cell screen's far-view row; G342: each one's mask is mirrored onto its near view
     const drawnFar = new Map<string, { view: FarProxyView; excluded: ReadonlySet<number> }>();
-    // G385: the near tier draws for everyone. C (G380) is the hero captures' alone: every neighbour draws its near view,
-    // whatever its distance or the four-cell cap, pinned by the capture's init script (`__wildshardHarness.nearEvery`)
-    const near = new NearPlaceholders({ every: typeof window !== 'undefined' && window.__wildshardHarness?.nearEvery === true,
+    // G607 (Jake's round-36 D): every neighbour draws its near view, whatever its distance
+    const near = new NearPlaceholders({
       allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
       load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
       cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
       mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
-      adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)),
       ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView, current: () => boolean) => host.prepareView?.(view.mesh, current) ?? Promise.resolve() }) });
     this.near = near;
     host.scope.onDispose(() => { near.dispose(); });

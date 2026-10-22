@@ -9,7 +9,7 @@ import type { PlaceholderGrid, PlaceholderLook } from '../src/game/plugin/animat
 // G539: every far proxy bakes a camera-facing impostor beside it, admitted in the same far row and its caps.
 const res = 17, heights = Float32Array.from({ length: res * res }, (_, i) => 30 * Math.sin((i % res) * 0.7) * Math.cos(Math.floor(i / res) * 0.5) + 20);
 const grid: PlaceholderGrid = { res, size: 500, heights, splat: null };
-const look: PlaceholderLook = { family: 'toon', quads: 4, colourAt: () => [0.6, 0.5, 0.3], cliff: { lip: [0.4, 0.4, 0.4], foot: [0.3, 0.3, 0.3] }, haze: { colour: [0.7, 0.7, 0.8], near: 400, far: 2400, max: 0.5 } };
+const look: PlaceholderLook = { family: 'toon', quads: 4, colourAt: () => [0.6, 0.5, 0.3], cliff: { lip: [0.4, 0.4, 0.4], foot: [0.3, 0.3, 0.3] }, haze: { colour: [0.7, 0.7, 0.8] } };
 
 test('the far bake ships an admitted impostor image', async () => {
   const baked = await bakeFarPlaceholder(grid, look);

@@ -13,5 +13,5 @@ export const farLook = {
   water: { level: 0, colour: [0.05, 0.42, 0.5] },
   // G222: its exposed boundary is its ground palette's crag rock (groundColor.ts rockLight #84888e → rock #666a70, linear)
   cliff: { lip: [0.231, 0.246, 0.271], foot: [0.133, 0.144, 0.162] },
-  haze: { colour: [0.6, 0.78, 0.92], near: 450, far: 2600, max: 0.55 },
+  haze: { colour: [0.6, 0.78, 0.92] },
 } as const;

@@ -39,7 +39,7 @@ export const farLook = {
   water: { level: SEA, colour: [0.86, 0.88, 0.93] },
   // G222: its exposed boundary is its keels' rock (the same grey-violet colourAt gives a steep or sunken facet)
   cliff: { lip: [0.42, 0.4, 0.42], foot: [0.28, 0.27, 0.29] },
-  haze: { colour: [0.7, 0.8, 0.95], near: 500, far: 2800, max: 0.5 },
+  haze: { colour: [0.7, 0.8, 0.95] },
 } as const;
 
 /** The flat grid under the cloud sheet (Sky Reach bakes no terrain). */

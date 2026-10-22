@@ -6,8 +6,8 @@
  * - **One clock, one sky, one sun**: the home look's backdrop is the world clock and draws the one dome and key light;
  *   the engine chain's tone mapping, bloom and vignette stay on.
  * - **The owner's air on everything**: before the scene draws, the scene fog's colour is the owner's air (the home
- *   look's live fog, a neighbour owner's declared haze, the neutral road air, by the owners' weights), and every far
- *   proxy hazes toward that one air, neighbours included (G158: the owner's fog applies to everything on screen).
+ *   look's live fog, a neighbour owner's declared haze, the neutral road air, by the owners' weights); far proxies draw
+ *   unhazed (G607: render everything, every cell near and clear to the 6 km far plane).
  * - **The owner's grade on every pixel**: the home look's grade effects (saturation, contrast, split tone, the learned
  *   LUT) fade with the home's weight (their blend opacity), and one small effect appended to the engine's one colour
  *   pass applies the rest of the frame's grade (a neighbour owner's declared exposure / saturation / contrast / tint,
@@ -46,7 +46,6 @@ import { GradeLookEffect, type GradeEffect } from '@wildshard/engine/core/Grade'
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import { CAMERA_FOV } from '@wildshard/engine/core/config';
 import type { LookCellPost } from '@wildshard/engine/render/look';
-import type { FarProxyView } from './farView';
 import { RoadSky, type RoadSkyPage } from './roadSky';
 import { FAR_RING } from './farProxy';
 import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
@@ -355,7 +354,6 @@ export class GridFrame {
   private readonly live = new Map<string, FrameLookContribution>();
   private readonly owned = new Map<string, RegionGrade>();
   private readonly airs = new Map<string, readonly [number, number, number]>();
-  private readonly proxies = new Set<FarProxyView>();
   /** G223: live regions' own skies (instance → its layer) */
   private readonly skies = new Map<string, FrameSkyLayer>();
   /** owner (an instance, or null for the road) → its stacks */
@@ -529,12 +527,6 @@ export class GridFrame {
     const colour = this.colour;
     if (colour === null) return;
     for (const p of passes) if (!colour.composer.passes.includes(p)) colour.composer.addPass(p, colour.composer.passes.indexOf(colour.pass));
-  }
-
-  /** A drawn far proxy: its haze follows the owner's air. Returns the release. */
-  proxy(view: FarProxyView): () => void {
-    this.proxies.add(view);
-    return () => { this.proxies.delete(view); };
   }
 
   /**
@@ -757,7 +749,7 @@ export class GridFrame {
 
   private uninstall(): void { for (const undo of this.restore.splice(0).reverse()) undo(); this.faded = 0; }
 
-  /** Before the scene draws: the scene fog becomes the owner's air, every far proxy hazes toward it. */
+  /** Before the scene draws: the scene fog becomes the owner's air. */
   private beforeScene(): void {
     // G343: the eye as drawn (a free camera is placed after the frame's late phase): the next frame's horizon reads it
     this.drawnLift = this.host.lift?.() ?? 0;
@@ -781,7 +773,6 @@ export class GridFrame {
     const [r, g, b] = frameFog(this.weights, home, hazes, ROAD_SKY.air);
     this.air.setRGB(r, g, b);
     if (live !== null) { live.copy(this.air); this.written.copy(this.air); }
-    for (const view of this.proxies) view.hazeColour(this.air);
     this.roadSky.frame(this.host.camera.getWorldPosition(this.eye), this.air);
   }
 

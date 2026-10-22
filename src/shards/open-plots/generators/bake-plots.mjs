@@ -2,8 +2,8 @@
 // outputs.json (SF88g: each its own product), built from data alone. A 500 m plot on a flat floor with a kerb broken by four entries, the showroom in
 // the middle: a low round plinth (radius 10 m) with a glowing rim, the idea's hologram standing on it (drawn by the one
 // shared `hologram` graph, which turns it), the idea's billboard behind it (north, +Z) and the 'OPEN PLOT · COMING SOON'
-// sign in front, and a striped beacon in each corner with a cyan sky beam (G539: capped at 60 m, fading with height and
-// out over 300-850 m in the `beam` graph). Collision is its own `collide_` nodes (floor, kerb, plinth, billboard, sign and
+// sign in front, and a striped beacon in each corner with a cyan sky beam (G539: capped at 60 m, fading with height in
+// the `beam` graph, at every distance). Collision is its own `collide_` nodes (floor, kerb, plinth, billboard, sign and
 // beacon posts), never the hologram or a beam.
 //
 // The hologram's vertex colours carry its edges for the graph: each triangle's three corners are unique vertices and

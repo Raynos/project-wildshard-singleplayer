@@ -5,7 +5,6 @@ import { nearPlaceholderCost } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FarPrepared } from './farView';
 import { decodeFarImpostor } from './farImpostorView';
-import { GRID_FAR_HAZE } from './farProxy';
 
 function isMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 /** three's merge returns null for parts whose attributes differ (its typing omits it). */
@@ -41,9 +40,9 @@ export async function loadShardfileFar(rows: ShardfileFarRows, read: (ref: strin
   return { prepared: { geometry, positionalMask: true, look: shardfileHaze(rows.fog), impostor }, bytes: far.decoded + far.gpu };
 }
 
-/** A shardfile's own placeholder look: pbr, hazed over the grid's distances (GRID_FAR_HAZE) in its first fog key's colour. */
+/** A shardfile's own placeholder look: pbr, its air its first fog key's colour. */
 function shardfileHaze(fog: ShardfileFarRows['fog']): FarPrepared['look'] {
-  return { family: 'pbr', haze: { colour: fog ?? [1, 1, 1], ...GRID_FAR_HAZE } };
+  return { family: 'pbr', haze: { colour: fog ?? [1, 1, 1] } };
 }
 
 /**

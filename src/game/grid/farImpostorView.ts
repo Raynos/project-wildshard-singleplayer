@@ -7,10 +7,9 @@
  * rest, so a cell never pops between them. The texels pack to RGBA 5551 (2 bytes, the bake's own quantisation) in a
  * worker, off the main thread, and leave the JS heap once uploaded. Generic: nothing here knows a shard.
  */
-import { Box3, DataTexture, LinearFilter, Mesh, PlaneGeometry, RGBAFormat, ShaderMaterial, Sphere, UnsignedShort5551Type, Vector3, type Color, type Material, type Object3D } from 'three';
+import { Box3, DataTexture, LinearFilter, Mesh, PlaneGeometry, RGBAFormat, ShaderMaterial, Sphere, UnsignedShort5551Type, Vector3, type Material, type Object3D } from 'three';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { FarImpostor } from '@wildshard/format/shardSections';
-import type { FarHaze } from './farProxy';
 import type { FarImpostorDecodeReply, FarImpostorDecodeRequest } from './farImpostorPack';
 
 /** A decoded impostor: its row and its packed texels. */
@@ -59,7 +58,6 @@ uniform vec2 uGrid;
 varying vec2 vUv;
 varying vec4 vTiles;
 varying float vMix;
-varying float vFarDepth;
 void main() {
   vec3 centre = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vec2 d = cameraPosition.xz - centre.xz;
@@ -70,7 +68,6 @@ void main() {
   vTiles = vec4(mod(i0, uGrid.x), floor(i0 / uGrid.x), mod(i1, uGrid.x), floor(i1 / uGrid.x));
   vUv = vec2(position.x + 0.5, position.y);
   vec4 mv = viewMatrix * vec4(world, 1.0);
-  vFarDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
 }`;
 const fragment = /* glsl */ `
@@ -78,12 +75,9 @@ uniform sampler2D uAtlas;
 uniform vec2 uGrid;
 uniform float uRange;
 uniform float uBand;
-uniform vec3 farHazeColour;
-uniform vec3 farHaze;
 varying vec2 vUv;
 varying vec4 vTiles;
 varying float vMix;
-varying float vFarDepth;
 vec3 farDecode(vec3 c) { return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c)); }
 void main() {
   if (fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) >= uBand) discard;
@@ -94,14 +88,13 @@ void main() {
   gl_FragColor = vec4(farDecode((c0.rgb * w0 + c1.rgb * w1) / w) * uRange, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
-  gl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(farHaze.x, farHaze.y, vFarDepth) * farHaze.z);
 }`;
 
 /** A drawn impostor: its mesh and the band share it draws at. */
 export interface FarImpostorView { readonly mesh: Mesh; band: (share: number, shown: boolean) => void; dispose: () => void }
 
-/** Install an impostor under a cell root, hazed toward `haze` (the proxy's own frame colour, shared, sRGB). */
-export function installFarImpostor(root: Object3D, data: FarImpostorData, look: { readonly haze: FarHaze }, haze: Color, decorate?: (material: Material) => void): FarImpostorView {
+/** Install an impostor under a cell root. */
+export function installFarImpostor(root: Object3D, data: FarImpostorData, decorate?: (material: Material) => void): FarImpostorView {
   const { row } = data, rows = Math.ceil(row.views / row.cols);
   const texture = new DataTexture(data.texels, data.width, data.height, RGBAFormat, UnsignedShort5551Type);
   texture.magFilter = LinearFilter; texture.minFilter = LinearFilter; texture.generateMipmaps = false; texture.needsUpdate = true; texture.name = 'far-impostor';
@@ -109,7 +102,7 @@ export function installFarImpostor(root: Object3D, data: FarImpostorData, look: 
   const material = new ShaderMaterial({
     vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
     uniforms: { uAtlas: { value: texture }, uGrid: { value: [row.cols, rows] }, uFrame: { value: [row.width, row.bottom, row.top, row.views] }, uRange: { value: row.range },
-      uBand: { value: 0 }, farHazeColour: { value: haze }, farHaze: { value: new Vector3(look.haze.near, look.haze.far, look.haze.max) } },
+      uBand: { value: 0 } },
   });
   material.name = 'far-impostor';
   decorate?.(material);

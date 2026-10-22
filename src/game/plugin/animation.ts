@@ -4,7 +4,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw, type AnimalPoseRecipe } from '@wildshard/engine/entities/animalPose';
 import { applyAnimalRoot, QuadrupedRigPose, type AnimalRigContext, type AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
-import { buildFarProxy, edgeLeanDrop, GRID_FAR_HAZE, type FarEdgeLean, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
+import { buildFarProxy, edgeLeanDrop, type FarEdgeLean, type FarGrid, type FarLookRuntime, type FarLookSource, type FarPart, type FarProxyMesh } from '../grid/farProxy';
 
 const swingValues = (values: readonly number[], size: number): boolean => values.length === size && values.every(Number.isFinite);
 const swingWindow = (w: readonly [number, number]): boolean => swingValues(w, 2) && w[0] >= 0 && w[1] <= 1 && w[0] < w[1];
@@ -392,8 +392,6 @@ export const clipAnimate = (clips: SpeciesClips): ((ctx: ClipCtx) => void) => (c
 export type PlaceholderGrid = FarGrid;
 /** A shard's far look (its palette by height, slope and splat; its haze, cliff and grade), authored in its folder. */
 export type PlaceholderLook = FarLookSource;
-/** The haze of a shard's placeholders across the grid (`GRID_FAR_HAZE`, O24). */
-export const PLACEHOLDER_HAZE: Readonly<Omit<FarLookSource['haze'], 'colour'>> = { ...GRID_FAR_HAZE };
 /** What the runtime reads beside the mesh (`far.json` / `near.json`'s `look`). */
 export type PlaceholderLookRuntime = FarLookRuntime;
 /** A model merged into the placeholder: cell-local metres and linear RGB per vertex, indexed. */

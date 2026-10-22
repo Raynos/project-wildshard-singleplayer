@@ -23,8 +23,6 @@ export function bakedNearFiles(slug: string, files: Readonly<Record<string, numb
 
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {
-  /** G380 / G385 C: every cell near, no reach or four-cell cap (the hero captures' harness pin only, never a setting) */
-  readonly every?: boolean;
   readonly allocator: ResidencyAllocator;
   readonly cells: readonly GridCell[];
   readonly pitch: number;
@@ -38,8 +36,6 @@ export interface NearPlaceholderHost {
   cover: (instance: string, covered: boolean) => void;
   /** the regions the rings refined in this cell (the far proxy's current mask) */
   mask: (instance: string) => ReadonlySet<number>;
-  /** frame / horizon hooks, as the far proxy gets them; returns the undo */
-  adopt?: (view: FarProxyView, prepared: FarPrepared) => () => void;
   decorate?: (material: Material) => void;
   /** Link and upload the admitted view while hidden; cancellation leaves the far proxy visible. */
   prepare?: (view: FarProxyView, current: () => boolean) => Promise<void>;
@@ -67,7 +63,7 @@ export class NearPlaceholders {
     if (this.disposed) return;
     const skip = new Set(this.missing);
     for (const cell of this.host.cells) if (this.host.root(cell.instance) === undefined) skip.add(cell.instance);
-    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip, every: this.host.every === true });
+    const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip });
     this.eye = { x: Math.round(eye.x * 10) / 10, z: Math.round(eye.z * 10) / 10 };
     const wanted = new Map(plan.cells.map(c => [c.instance, c.distance]));
     this.distances.clear();
@@ -138,7 +134,7 @@ export class NearPlaceholders {
       if (root === undefined || lease === null) { prepared.geometry.dispose(); this.slots.delete(instance); return; } // refused: the far proxy stays
       const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate, true);
       view.mesh.name = 'near-placeholder';
-      slot.view = view; slot.lease = lease; slot.undo = this.host.adopt?.(view, prepared) ?? null; slot.owns = owns;
+      slot.view = view; slot.lease = lease; slot.owns = owns;
       this.bytes.set(instance, bytes);
       view.mesh.visible = false;
       const current = (): boolean => !this.disposed && this.slots.get(instance) === slot;

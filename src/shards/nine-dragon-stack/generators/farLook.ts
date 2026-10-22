@@ -52,7 +52,7 @@ export const farLook = {
   },
   // G222: its exposed boundary is the stack's granite footing going to ink, never a pale wall
   cliff: { lip: GRANITE, foot: INK },
-  haze: { colour: [0.6, 0.56, 0.64], near: 300, far: 2200, max: 0.65 },
+  haze: { colour: [0.6, 0.56, 0.64] },
   // SF19b / G95 (Jake: "C Dusk + border fog"): under the grid's one sky the stack keeps its dusk through a dusky violet
   // grade on its own pixels and a pale silk fog rising from the strip at its border; no second sky
   grade: { exposure: -0.3, saturation: 1.05, contrast: 1.1, tint: [1.02, 0.88, 1.1] },

@@ -5,7 +5,6 @@ import type { EngineProbe, HarnessPins } from '@wildshard/engine/debug/probe';
 declare global {
   interface Window {
     __wildshard?: EngineProbe;
-    /** `nearEvery` (G380 / G385): the hero captures' C, every grid cell on its near view; a capture pin, never a setting */
-    __wildshardHarness?: HarnessPins & { readonly nearEvery?: boolean };
+    __wildshardHarness?: HarnessPins;
   }
 }

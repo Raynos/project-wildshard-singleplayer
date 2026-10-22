@@ -105,12 +105,7 @@
     "a2": { "op": "add", "in": ["a1", "featK"] },
     "a3": { "op": "add", "in": ["a2", "scanK"] },
     "a4": { "op": "add", "in": ["a3", "sweepK"] },
-    "pv": { "op": "positionView" },
-    "depth": { "op": "length", "in": ["pv"] },
-    "fadeS": { "op": "smoothstep", "in": [300, 850, "depth"] },
-    "keep": { "op": "oneMinus", "in": ["fadeS"] },
-    "a5": { "op": "mul", "in": ["a4", "keep"] },
-    "alpha": { "op": "saturate", "in": ["a5"] },
+    "alpha": { "op": "saturate", "in": ["a4"] },
     "colourP": { "op": "param", "param": "colour" }
   },
   "stages": {
