@@ -1,31 +1,30 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Order:** live reds → WASM-HOST zero blockers + CI speed (G609) → Nine and Nalati to ZERO (G604; the ruler passes
-only at zero) → the rest. Pine/DW grid readiness is NOW (G598). All items picked (G599-G603); only Jake-picked hosts get
-HOST-BAR lines. G602/G603: models, sets, worlds are CORE (row-only, tests). G568/F7: no batch checks; focused types,
-lint, tests BEFORE landing (+ first frame for load paths). D3: lock/queue timeouts (5 min) fail, never retry.
+**Order:** live reds → CI speed (G609) → Nine/Nalati to ZERO (G604), Nalati COMPONENT BY COMPONENT (G613: lock each in
+its last cut; C4 + C9 last) → the rest. Grid readiness NOW (G598; Jake wants 8/10 then 9/10). Only Jake-picked hosts
+get HOST-BAR lines. G602/G603 core hosts row-only + tests. G568/F7: no batch checks; focused types/lint/tests on a HEAD
+mirror + your source overlay BEFORE landing (+ first frame for load paths). D3: 5-min lock waits fail, never retry.
 
-**Census (sp-x8, 2b6bf53829):** Pine, DW, _template, ink-cel 0. NINE 44 (4 local, 39 charged: bounds 18, postGraphLook 5,
-course 16; +1 GLSL) and no TS runtime entry (86af73733d). Nalati 3,387 (564 local, 2,823 charged). open-plots 19.
+**Census (sp-x8, ~22:20):** Pine, DW, Far Reach, Sunscar, Pastel, Ink, templates 0. NINE 18 = bounds trio only (Jake pick);
+C1-C8 locked (e2ce71ca16). Nalati 3,231 (local 493, charged 2,738): C1 61, C2 147, C5 ~5 + L4, C6 ~243, C9 1,007, C4 rest.
+open-plots 19. Every shard raw GLSL 0.
 
-**Live:** 3efab8f0a5; d8c33a66c4 releasing. DW grid-ready latched (697f240928); Pine looks: median 217 ms, open.
+**Grid-ready:** DW latched (697f240928). Nine memory latched (eee536972b), looks fail (entry 466.6 / travel 266.6 ms).
+Pine looks median 211-224 ms; sp-o1's fixes 38ef77be7c + 47e4e66af9 re-measuring.
 
-**Lanes (5 Opus at Claude weekly 18 %; 5 Codex + sp-x7):**
-- sp-x8: C11 grapple-entry listing + postGraphLook N1 unconditional (condition met 65ff3e17fe) → LB Nalati entry LAST.
-- sp-x9: H4 production query integration → C9 HeldClaims runtime → L5 wildlife AS.
-- sp-x1: L4 engine elite feature (owner rows + engine construction) → L9 taming.
-- sp-x6: C3 NativePopulationField decoder (map binding 6fd73b04a1e) → L2 Titan WASM → L6.
-- sp-x2: fail-fast F1/F2/F3/F6 + LD1-LD3 (a3922936a5, 71d4038ef0, 007cfe778e) done → G609 CI speed (<=10 min open).
-- sp-o1 + sp-o4: Pine oneFrameLooks (activation reads/parses; DW disposal steps 22-28 ms).
-- sp-o2: L8 balbal/eagle view module → G608 engineering (far hologram in budget, near views, accent floor).
-- sp-o3: world-assembly test red (frozen double) → in-Pine build floor gate.
-- sp-o5: remaining unowned graphical Nine/Nalati spans (ruler sweep). L1 done (sp-o4), L11 done, N1-N7 done.
-- Kept one-user hosts (Jake): C4 sceneDressing, C6 timedEncounters. sp-x7: release.
+**Live:** d8c33a66c4; 00621446c5 releasing.
 
-**For wildshard-v:** (1) Jake pick: Nine bounds 18 (runtimeLevelBounds/RuntimeBoundsRows/Schema) is in no pick. (2)
-confirm G601 C6 covers SlotEncounterView/PatrolEncounterView (sp-o3 assumed yes). (3) G608 board 066ef9f7cc (A 72 m /
-B 120 m / C 192 m); sp-o2 builds size-agnostic, default 10x. (4) G607 phone renderer 2,151 MB: tab-kill risk. (5) Nalati
-46 custom sections vs 43 ceiling (report-only).
+**Lanes (5 Opus at Claude weekly 21 %; 5 Codex + sp-x7):**
+- C1: sp-x6 (ground-owner tail) + sp-x8 (core prefix through weather, green, first frame running) + sp-o4 (graphic stages).
+- C5: sp-x1 (L4 engine elite, 51 focus green; last 5 C5 chapter lines + lock). C6: sp-x9 (HeldClaims slots, fa6e759be3).
+- C2: sp-o5 (King frame B, look composition C) + sp-o4 (gated: Jake pick / LB). C4: sp-x6 L2 Titan + King/balbal brains, L6.
+- C9/LB: sp-x8 after C1. Readiness: sp-o1 Pine, sp-o3 Nine. G608: sp-o2 (far 601449c502; near loader next).
+- sp-x2: CI speed (zstd 00728a5811, compile cache ffb625ec22, gen 213 s / products 323 s; <=10 open). sp-x7: release.
+
+**For wildshard-v (Jake picks):** (1) Nine bounds 18 (runtimeLevelBounds/RuntimeBoundsRows/Schema). (2) Nalati
+paintedWorld 72 + painterlyLook 38 + paintedTerrain 6 + offscreenPreparation 9 as hosts under G600 L1? (3) confirm G601 C6
+covers SlotEncounterView/PatrolEncounterView. (4) G608 size: board 066ef9f7cc (A/B/C); far half landed at 10x. (5) G607
+phone renderer 2,151 MB tab-kill risk. (6) Nalati 46 custom sections vs 43 ceiling (report-only).
 
 **Rules:** G605 Opus steps (50 % 3, 70 % 2, 80 % 1, 90 % 0). G492; never herdr wildshard-v; no net-0 moves or
-relabels (G571). G558: Chromium is the check; Jake's iPhone only at ~99 %. G606: no legacy deletion before Jake's word.
+relabels (G571). G558: Chromium is the check. G606: no legacy deletion before Jake's word (LD1-LD3 done).
