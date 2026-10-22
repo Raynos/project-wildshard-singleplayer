@@ -8,7 +8,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
 import { readV2WorldActions,V2_ACTION_OPS,type V2ActionBinding,type V2WorldAction } from '../src/format/scriptActionsV2';
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
-import { applyV2WorldActions,type V2WorldActionLoan } from '../src/game/shardfile/worldActionsV2';
+import { prepareV2WorldActions,applyV2WorldActions,type V2WorldActionLoan } from '../src/game/shardfile/worldActionsV2';
 import { fixtureBytes } from './fixtures/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
@@ -163,4 +163,32 @@ test('the module accepts exactly 128 commands with at most 32 for each declared 
   view.setUint32(full.io+region.offset+32*64,1,true);
   expect(() => readV2WorldActions(view,full,128,declared)).toThrow('quota');
   expect(() => readV2WorldActions(view,full,129,declared)).toThrow('bank');
+});
+
+
+test('prepared world effects copy operands and can interleave only after every family validates', () => {
+  const scope = new Scope('prepared'),trace: unknown[] = [];
+  const action: { binding: string;target: string;kind: 'ignite';x: number;z: number } = { binding: 'a',target: 'cells',kind: 'ignite',x: 1,z: -0 };
+  const loan: V2WorldActionLoan = { binding: 'a',target: 'cells',scope,kind: 'cell-field',owner: { activate: (x,z) => { trace.push([x,z]); } } };
+  try {
+    const prepared = prepareV2WorldActions([action,action],[loan]);expect(trace).toEqual([]);
+    action.x = 99;action.z = 99;
+    prepared.validate();expect(trace).toEqual([]);
+    const first = prepared.operations[0],last = prepared.operations[1];
+    if (first === undefined || last === undefined) throw new Error('Missing prepared fixture operations');
+    first();trace.push('other prepared family');last();
+    expect(trace).toEqual([[1,-0],'other prepared family',[1,-0]]);
+  } finally { scope.dispose(); }
+});
+
+test('retired or replaced authority after preparation refuses before the first world effect', () => {
+  const scope = new Scope('prepared'),effect = vi.fn<(x: number,z: number) => void>();
+  const action: V2WorldAction = { binding: 'a',target: 'cells',kind: 'ignite',x: 1,z: 2 };
+  const owner = { activate: effect },loan: V2WorldActionLoan = { binding: 'a',target: 'cells',scope,kind: 'cell-field',owner };
+  try {
+    const prepared = prepareV2WorldActions([action],[loan]);owner.activate = vi.fn();
+    expect(prepared.validate).toThrow('Changed');expect(prepared.operations[0]).toThrow('Changed');expect(effect).not.toHaveBeenCalled();
+    owner.activate = effect;scope.dispose();
+    expect(prepared.validate).toThrow('Retired');expect(effect).not.toHaveBeenCalled();
+  } finally { scope.dispose(); }
 });
