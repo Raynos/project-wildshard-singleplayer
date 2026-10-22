@@ -7,7 +7,7 @@ import { specimens } from '../boot/metadata.generated.json' with { type: 'json' 
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
-import { graphArmsSpecimen } from '@wildshard/game/systems/viewmodel/graphArms';
+import { HeldView } from '@wildshard/game/systems/viewmodel/heldView';
 
 const rows = specimens.gear;
 
@@ -21,7 +21,7 @@ const rows = specimens.gear;
 export const fpArms: ModelDef<object> = defineModel<object>({
   ...rows.model, category: 'gear', pipeline: ['blender', 'trellis', 'code'],
   rig: { clips: rows.clips },
-  build: (ctx) => loadingSpecimen(fpArms.id, [0.9, 0.6, 0.9], () => graphArmsSpecimen('nine-dragon-stack', 'weapons/jian-row.json', rows.settleFrames, ctx.renderer)),
+  build: (ctx) => loadingSpecimen(fpArms.id, [0.9, 0.6, 0.9], async () => (await HeldView.fromProduct('nine-dragon-stack', 'weapons/jian-row.json')).specimen({ settleFrames: rows.settleFrames, renderer: ctx.renderer })),
 });
 
 /** the fragment's kit (src/main.ts, `weapon: 'sword'`): the jian arms alone — no rifle slot (E333), no iron sword (E314 A) */

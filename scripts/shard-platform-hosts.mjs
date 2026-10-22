@@ -38,7 +38,7 @@ const hosts = {
   'actors/spawns': ['game/shardfile/brainRuntime#installDeclaredBrains'],
   'actors/strikes': [], // Consumed by the runtime's explicitly imported creature host.
   'actors/species-programs': [], // Metadata lent to existing page/native species and hunt owners.
-  'held/arms': ['game/loadout/claims#HeldClaims', 'game/systems/viewmodel/toonArms#ToonArms'],
+  'held/arms': ['game/loadout/claims#HeldClaims', 'game/systems/viewmodel/heldView#HeldView'],
   'held/equipment': ['game/plugin/heldEquipment#HeldEquipment'],
   'held/loadout': ['game/loadout/held#installHeldLoadout', 'game/loadout/nativeAmmunition#NativeHeldAmmunition'],
   'held/finishes': ['game/loadout/finishes#HeldFinishes'],

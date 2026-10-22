@@ -212,6 +212,7 @@
     "./platformDataSections": "./platformDataSections.ts",
     "./heldArms": "./heldArms.ts",
     "./graphArmsRows": "./graphArmsRows.ts",
+    "./heldView": "./heldView.ts",
     "./herdShelter": "./herdShelter.ts",
     "./populationRespawn": "./populationRespawn.ts",
     "./nativeActors": "./nativeActors.ts",

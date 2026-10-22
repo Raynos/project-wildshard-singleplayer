@@ -10,7 +10,9 @@ import { Scope } from '../src/engine/app/scope';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { parseToonArmsLook } from '../src/format/heldArms';
-import { ToonArms } from '../src/game/systems/viewmodel/toonArms';
+import { HeldView } from '../src/game/systems/viewmodel/heldView';
+import { parseHeldView } from '../src/format/heldView';
+import { toonLighting } from '../src/game/looks/toonLighting';
 import { RigArms } from '../src/game/systems/viewmodel/rigArms';
 import { ARM_CLIPS, armClipNames } from '../src/game/systems/viewmodel/armClips';
 
@@ -21,7 +23,7 @@ function context(): ShardContext { return { scope: new Scope('held-fixture'), pr
 
 
 const row = {
-  id: 'harbour.held-arms',
+  kind: 'toon' as const, id: 'harbour.held-arms',
   lighting: { id: 'fixture-harbour.day', initial: { uToonLift: [.1, .2, .3], uToonRim: [.3, .2, .1], uCloudShadow: .6, uToonNight: 0, uSeaLevel: 2, uCloudTime: 3 } },
   url: '/assets/fixture-harbour/arms.glb', skeleton: 'harbour-rig', sockets: ['R_weapon', 'L_hand'],
   joints: { sides: ['R', 'L'], arm: ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'], fingers: ['thumb', 'index', 'middle', 'ring', 'pinky'], phalanges: 3 },
@@ -30,7 +32,8 @@ const row = {
   materials: { arms: 'harbour-linen', wood: 'harbour-oak', iron: 'harbour-steel', swim: 'harbour-wet' },
 };
 function lighting() {
-  return { source: ToonArms.lighting(row),
+  const admitted = parseHeldView(row); if (admitted.kind !== 'toon') throw new Error('Missing toon fixture');
+  return { source: toonLighting(admitted.lighting),
     target: { famToonLift: { value: new Color() }, famToonRim: { value: new Color() },
       famToonCloud: { value: new Vector4() }, famToonWater: { value: new Vector2() }, famToonTime: { value: 0 } } };
 }
@@ -59,7 +62,7 @@ beforeEach(() => {
 afterEach(() => { vi.restoreAllMocks(); });
 
 test('second-shard rows drive held materials, sword glow, sockets and independent loans', async () => {
-  const host = new ToonArms(row), first = catalogue(), latest = catalogue(), light = lighting();
+  const host = new HeldView(row), first = catalogue(), latest = catalogue(), light = lighting();
   expect(host.contract).toMatchObject({ skeleton: row.skeleton, sockets: row.sockets });
   expect(host.bake.joints?.[0]).toHaveLength(44);
   expect(host.bake.joints?.[0]?.slice(0, 3)).toEqual(['R_shoulder', 'R_upperarm', 'R_forearm']);
@@ -67,14 +70,14 @@ test('second-shard rows drive held materials, sword glow, sockets and independen
   queuedLooks = [first, latest];
   await host.prepare(firstScope); await host.prepare(latestScope);
   light.target = latest.toon.uniforms;
-  const held = await host.load();
+  const held = await host.sword();
   const wood = held.arms;
   if (wood === undefined) throw new Error('Missing fixture sword arms');
   wood.setup?.(sky); held.ironArms?.setup?.(sky);
   expect(latest.setParam).toHaveBeenCalledWith(row.materials.iron, 'bladeBase', .025);
   held.ironArms?.glow?.(.7);
   expect(latest.setParam).toHaveBeenCalledWith(row.materials.iron, 'rim', .7);
-  const root = await host.specimen(sky, 'iron');
+  const root = await host.specimen({ sky, blade: 'iron' });
   const mesh = root.children.find((part): part is Mesh<BufferGeometry, MeshBasicMaterial> => part instanceof Mesh && part.name === 'arms');
   expect(mesh).toBeInstanceOf(Mesh);
   if (mesh === undefined) throw new Error('Missing fixture arms');
@@ -98,13 +101,13 @@ test('second-shard rows drive held materials, sword glow, sockets and independen
   firstScope.scope.dispose();
   expect(() => wood.glow?.(.2)).not.toThrow();
   latestScope.scope.dispose();
-  expect(() => wood.glow?.(.2)).toThrow('no graph materials prepared');
+  expect(() => wood.glow?.(.2)).toThrow('no looks prepared');
   const geometry: BufferGeometry = mesh.geometry; geometry.dispose();
 });
 
 test('second-shard swimming uses its material and plane; submerged hands clip below water', async () => {
-  const host = new ToonArms(row), looks = catalogue(); queuedLooks = [looks]; await host.prepare(context());
-  const { swim } = await host.load();
+  const host = new HeldView(row), looks = catalogue(); queuedLooks = [looks]; await host.prepare(context());
+  const { swim } = await host.sword();
   if (swim === undefined) throw new Error('Missing fixture swim arms');
   swim.setup(sky);
   expect(looks.setParam).toHaveBeenCalledWith(row.materials.swim, 'waterD', -.3);
@@ -117,12 +120,15 @@ test('second-shard swimming uses its material and plane; submerged hands clip be
 });
 
 test('held arms refuse malformed rows and missing catalogue bindings before dressing', async () => {
-  expect(parseToonArmsLook(row)).toEqual(row);
+  const { kind: _kind, ...look } = row;
+  expect(parseToonArmsLook(look)).toEqual(look); expect(parseHeldView(row)).toEqual(row);
   for (const bad of [{ ...row, offset: [0, 0] }, { ...row, sunward: Infinity },
     { ...row, joints: { ...row.joints, phalanges: 0 } }, { ...row, sockets: ['R_weapon', 'R_weapon'] },
-    { ...row, frame: { ...row.frame, surprise: 1 } }]) expect(() => new ToonArms(bad)).toThrow();
+    { ...row, frame: { ...row.frame, surprise: 1 } }, { ...row, kind: 'clay' }]) expect(() => new HeldView(bad)).toThrow();
+  // a graph row is read from its product, never admitted as a toon host
+  expect(() => HeldView.admit({ ...row, kind: 'graph' })).toThrow();
   queuedLooks = [{ ...catalogue(), materials: new Map() }];
-  await expect(new ToonArms(row).prepare(context())).rejects.toThrow('look.materials lacks');
+  await expect(new HeldView(row).prepare(context())).rejects.toThrow('look.materials lacks');
 });
 
 test('shared rig player preserves the multi-mesh Jian and held grapple clips', async () => {

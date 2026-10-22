@@ -2,7 +2,7 @@ import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel } from '@wildshard/engine/models/model';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { HeldArmsSchema } from '@wildshard/format/heldArms';
-import { ToonArms } from '../systems/viewmodel/toonArms';
+import { HeldView } from '../systems/viewmodel/heldView';
 import { HeldGearSchema } from '@wildshard/format/heldGear';
 import * as v from 'valibot';
 import { HeldEquipment } from '../plugin/heldEquipment';
@@ -60,9 +60,9 @@ export function heldGear(input: unknown): readonly RosterEntry[] {
 export function heldArmsGear(input: unknown): readonly RosterEntry[] {
   const rows = v.parse(HeldArmsSchema, input);
   if ('kind' in rows) throw new Error('Declared primary cards use their original graph catalogue');
-  const arms = ToonArms.admit(rows.look);
+  const arms = HeldView.admit({ kind: 'toon', ...rows.look });
   return rows.cards.map(row => live(defineModel<object>({ id: row.id, name: row.name, category: 'gear', pipeline: ['blender','code'], file: row.file, defaults: {},
     build: context => loadingSpecimen(row.id, row.size, async () => {
-      await arms.prepareExplorer(context, await loadFirstPartyProduct(rows.slug)); return arms.specimen(context.sky, row.kind);
+      await arms.prepareExplorer(context, await loadFirstPartyProduct(rows.slug)); return arms.specimen({ sky: context.sky, blade: row.kind });
     }) }), { copies: row.copies }));
 }

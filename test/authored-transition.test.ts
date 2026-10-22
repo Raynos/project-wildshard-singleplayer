@@ -50,7 +50,7 @@ test('fixed boot and art bindings stay independent of page mode and lazy graph l
   expect(source).toContain('"./boot/files.generated.json"');
   expect(source).toContain('"./boot/sources.generated.json"');
   expect(source).toContain('"./boot/explore.generated.json"');
-  expect(source).toContain('graphSword("_template", "weapons/jian-row.json")');
+  expect(source).toContain('HeldView.fromProduct("_template", "weapons/jian-row.json")).sword()');
   expect(source).toContain('declaredForestQueries({"platform":"fixed","density":0})');
   expect(source).not.toContain('pageModeBoot');
   const queries = declaredForestQueries({ platform: 'fixed', density: 0 });

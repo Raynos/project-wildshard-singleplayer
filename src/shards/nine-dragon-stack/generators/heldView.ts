@@ -8,7 +8,7 @@ import arms from '../data/arms.json' with { type: 'json' };
 const { ARMS, ARMS_BASE, ARMS_MAPS } = arms;
 const TRAIL = 'nine-vm-trail', EDGE = 'nine-vm-edge';
 
-/** The held arms as one GraphArms row (game/systems/viewmodel/graphArms.ts); runtime code never imports authoring JSON. */
+/** The held arms as one GraphArms row (the graph kind of game/systems/viewmodel/heldView.ts); runtime code never imports authoring JSON. */
 export function heldView(): Readonly<Record<string, unknown>> {
   const scene = parsePrivateScene(pendants);
   const materials = pendants.materials.map(row => row.source);

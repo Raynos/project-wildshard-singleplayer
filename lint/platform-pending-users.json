@@ -1313,7 +1313,7 @@
       }
     },
     {
-      "module": "src/game/systems/viewmodel/toonArms.ts",
+      "module": "src/game/systems/viewmodel/heldView.ts",
       "shard": "pine-hollow",
       "plan": {
         "path": "docs/plans/shard-platform/decisions.md",

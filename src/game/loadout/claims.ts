@@ -16,7 +16,7 @@ import { createClientScene } from '../plugin/ui';
 import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile, type RuntimeEquipmentFactory } from '../plugin/headless';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import { heldArmsGear } from '../models/heldGear';
-import { ToonArms } from '../systems/viewmodel/toonArms';
+import { HeldView } from '../systems/viewmodel/heldView';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
 import { installDeclaredMelee, type DeclaredMelee } from './declaredMelee';
@@ -118,7 +118,7 @@ const catalogues = new Map<string, HeldClaims>();
 /** Client-only held melee families, world claims and Explorer cards. The shard supplies rows and platform contexts. */
 export class HeldClaims {
   readonly rows: HeldArmsRows;
-  private readonly arms: ToonArms | null;
+  private readonly arms: HeldView | null;
   private primary: DeclaredMelee | null = null;
   private entered = false;
   private portraitFov: number | null = null;
@@ -126,7 +126,7 @@ export class HeldClaims {
   private readonly drops = new Map<string, HeldClaim>();
   private constructor(private readonly context: ShardContext) {
     this.rows = v.parse(HeldArmsSchema, context.product.section('held/arms'));
-    this.arms = 'kind' in this.rows ? null : ToonArms.admit(this.rows.look);
+    this.arms = 'kind' in this.rows ? null : HeldView.admit({ kind: 'toon', ...this.rows.look });
     if ('kind' in this.rows) return;
     for (const claim of this.rows.claims) for (const [id, file] of Object.entries(claim.geometries)) {
       this.geometries.set(`${claim.id}/${id}`, { file, source: createOwnedGeometry(context.product.url(file)) });
