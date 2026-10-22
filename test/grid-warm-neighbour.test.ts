@@ -110,3 +110,41 @@ test('warm: the build-ahead picks the neighbour the traveller faces', async () =
   expect(await built(0)).toEqual([north.instance]); // facing -z: north
   expect(await built(-Math.PI / 2)).toEqual([east.instance]); // facing +x: east
 });
+
+test('warm: the neighbour built ahead stays whole however long the traveller stands deep in the source', async () => {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const home = assembly.cell('driftwood-isle');
+  const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
+  if (east === undefined) throw new Error('Missing east neighbour');
+  const page = createSimHost(level, { rapier }), residency = new PageResidency(), created: string[] = [], disposed: string[] = [];
+  const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  const live = new LiveGridHost(assembly, {
+    home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
+    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
+    prefetchable: cell => cell.instance === east.instance,
+    // a quick world: its readiness reach (and the cold-release radius) ends well short of the source's centre
+    readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
+      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 0 }) },
+    admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+      create: () => {
+        created.push(cell.instance);
+        const host = createSimHost(level, { rapier, playerBody: false, ground: false });
+        return Promise.resolve({ host, dispose: () => { disposed.push(cell.instance); host.dispose(); } });
+      } }),
+  });
+  try {
+    const enterHome = await live.prepare(null, home.instance); enterHome.commit();
+    player.position.x = 0; player.position.z = 0; live.beforeFixed();
+    for (let i = 0; i < 20 && !live.state().residents.includes(east.instance); i++) await new Promise(resolve => { setTimeout(resolve, 5); });
+    expect(live.state().residents).toContain(east.instance);
+    // well past the five-second cold dwell
+    for (let tick = 0; tick < 8 * 60; tick++) { live.beforeFixed(); if (tick % 60 === 0) await new Promise(resolve => { setTimeout(resolve, 1); }); }
+    expect(live.state().residents).toEqual([home.instance, east.instance].sort());
+    expect(created).toEqual([home.instance, east.instance]);
+    expect(disposed).toEqual([]);
+    expect(residency.allocator.entries().find(row => row.id === `sim:${east.instance}`)?.needed).toBe(true);
+  } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
+});

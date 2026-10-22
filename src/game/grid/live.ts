@@ -373,11 +373,12 @@ export class LiveGridHost {
   /** Automatic retirement uses a wider release radius and a continuous five-second dwell; explicit durable departure
    * still retires an exclusive runtime immediately before another foundation can allocate. */
   private retireColdRegions(): void {
+    const ahead = this.warmAhead();
     for (const cell of this.assembly.cells) {
       if (this.borrowedHome(cell.instance)) continue;
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
       const resident = this.residents.get(cell.instance);
-      const inside = distance <= estimate.distance + Math.max(10, this.ports.readiness.link.speed * 5);
+      const inside = cell.instance === ahead || distance <= estimate.distance + Math.max(10, this.ports.readiness.link.speed * 5);
       if (inside) {
         this.coldUnloadRefused.delete(cell.instance);
         if (resident !== undefined) delete resident.outsideSince;
@@ -387,6 +388,18 @@ export class LiveGridHost {
       if (!inside && !dwelling && resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
         && !this.coldUnloadRefused.has(cell.instance) && !this.retire(cell.instance)) this.coldUnloadRefused.add(cell.instance); // O20: in steps
     }
+  }
+  /** G580 T1: the neighbour built ahead of the active source (not the source just left) stays whole while it borders
+   * that source: the traveller may stand anywhere in the source for minutes, so neither the cold dwell nor the allocator
+   * may drop it before the crossing. */
+  private warmAhead(): string | null {
+    if (!this.warm() || this.active === null) return null;
+    const active = this.assembly.cell(this.active), lastSource = this.transitions.at(-1)?.from ?? null;
+    return [...this.residents.keys()].find(id => {
+      if (id === this.active || id === lastSource) return false;
+      const cell = this.assembly.cell(id);
+      return Math.max(Math.abs(cell.origin.x - active.origin.x), Math.abs(cell.origin.z - active.origin.z)) <= this.assembly.pitch * 1.001;
+    }) ?? null;
   }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
   retry(instance: string): void {
