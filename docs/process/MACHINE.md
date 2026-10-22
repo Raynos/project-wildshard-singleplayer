@@ -9,7 +9,8 @@ treatment.
 
 Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open.
 - Run every Playwright / Puppeteer script through **`scripts/browser-lane.sh [--max <min>] <cmd…>`**. It waits for a
-  free slot, releases it when the command exits (a crash too) and kills the command after `--max` minutes (default 60).
+  free slot for at most five minutes, releases it when the command exits (a crash too) and kills the command after
+  `--max` minutes (default 60).
 - Before a new agent-browser session: `scripts/browser-lane.sh wait && agent-browser --session <s> open …`. Reusing
   your open session is fine; `close` it the moment you're done, and always before you report (idle sessions also close
   after 5 min).
@@ -83,8 +84,9 @@ recorded PID and command to diagnose a stuck owner, and never kill another lane'
 Before every command, check `test -e .git/quiet`. While another lane owns that file, **read and edit only**:
 no Vitest (focused tests included), tsc / strict typechecks, oxlint, builds, bakes, generators, clean rooms,
 browsers, Simulator, previews or captures. Commits whose hooks start that work also wait.
-After an explicit CPU hold, resume only when the owner announces the **BOTH-surface release**; a deadline or
-the file disappearing does not end that hold (wildshard-new, 2026-10-11, after two contaminated Simulator samples).
+A quiet window ends on the owner's **BOTH-surface release**, after ten minutes, or when its recorded owner PID dies
+(G612). The push loop ignores expired/dead-owner markers. A legacy marker naming only an owner still expires at
+ten minutes. Never extend a hold by leaving its marker behind.
 
 The quiet owner must wait for an existing push to finish before sampling: check the authoritative push lock,
 the parent pusher and its snapshot / regeneration descendants. Auto-push checks quiet before starting a push;
@@ -121,7 +123,8 @@ preview past its `--hours` (default 4), an unregistered one after 6 h and any de
 ## iOS Simulators: at most 1 booted (E316)
 
 Through `scripts/sim-lane.sh`: `run [--max <min>] <device> <cmd…>` boots, runs and shuts down; `lease <device> [<min>]`
-holds it while you drive it; `release` shuts it down. Startup preserves boot and bootstatus failures, then probes
+holds it while you drive it; `release` shuts it down. Admission/lock waits fail after five minutes with holder
+status, preserving foreign leases. Startup preserves boot and bootstatus failures, then probes
 Safari with `openurl http://127.0.0.1:9/` until it succeeds (120 s wall deadline; `SIM_SAFARI_READY_TIMEOUT` can set 0–600 s,
 exclusive of zero). A failed new boot is shut down without handing over or publishing a lease; renewing a valid
 manual lease checks bootstatus without navigating its current page. The hook blocks a raw `simctl boot`. How to drive one:
@@ -146,10 +149,11 @@ machine does not boot up cleanly because it has to delete millions of files in t
 attack."* On 2026-10-15 millions of leftover `git archive` export files in `/tmp` and `$TMPDIR` held the laptop at the
 login progress bar for hours: macOS empties both at boot, before login.
 - **One checkout.** No exports, clones, worktrees or copies of `public/` assets, ever.
-- **At most seven build-mirror slots machine-wide** (`./tmp/build-mirror`, G547): `gate` (push), `commit` (pre-commit)
-  and `check`, `check2`…`check5`. Set `WILDSHARD_MIRROR_SLOT` to spread checks across those five shared slots.
-  Previews and ordinary builds use a check slot, never `commit` or `gate`. Never a slot per lane, agent or subagent:
-  each slot is a ~2 GB copy of the tree.
+- **Five pooled check slots plus one ruler** (`./tmp/build-mirror`, G612): `check`, `check2`…`check5`
+  form one FIFO pool; no slot or any check-slot name takes the first free slot. `ruler` is reserved for the source
+  census. `gate` and `commit` are retired. Previews and ordinary builds use the pool, never the ruler.
+  Every mirror/lease/lock/queue wait fails at five minutes naming holders; no retry. Never a slot per lane,
+  agent or subagent: each slot is a ~2 GB copy of the tree.
 - **Reuse one served build of HEAD**; rebuild only when your change needs it, and then with the fast path above. Focused tests and quick checks, no repeated
   full rebakes or builds for a small change.
 - **Big scratch only under `./tmp/<task>`**, small, deleted with `rm -rf` on its exact path the moment its result is
@@ -163,7 +167,7 @@ login progress bar for hours: macOS empties both at boot, before login.
 - **The generation cache (`~/.cache/wildshard/generate`) evicts itself** to the newest 3 entries per job and 20 GB
   (G430, GENERATION.md); it reached 376 GB without that.
 - **Pre-commit warns** (never refuses) through `scripts/boot-temp-warn.sh` when `/private/tmp` or `$TMPDIR` (two separate counts) passes 500,000
-  files or `./tmp/build-mirror` holds a slot beyond the three; `scripts/boot-temp-warn.sh --top` lists the biggest
+  files or `./tmp/build-mirror` holds a slot outside the pool and ruler; `scripts/boot-temp-warn.sh --top` lists the biggest
   folders. Delete your own; ask before touching another agent's.
 
 ## Scratchpads (Jake, 2026-10-02)

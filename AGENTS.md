@@ -124,9 +124,11 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   the git-ignored `./tmp/<task>`, deleted with `rm -rf` on its exact path when done. Never `/tmp`, `$TMPDIR` or the
   session scratchpad for anything big, and never `mv` trees to `/tmp/delete-me-*`: macOS empties those at boot before
   login, and millions of leftover export files held the laptop at the login progress bar for hours (2026-10-15).
-  **At most seven mirror slots machine-wide** (`gate`, `commit`, `check`, `check2`…`check5`; Jake, 2026-10-20, G547), never one per lane or agent; one served build
-  of HEAD reused; Node's compile cache lives outside `$TMPDIR`; pre-commit warns past 500k files in `/tmp` or in `$TMPDIR` (each counted)
-  (`scripts/boot-temp-warn.sh`).
+  **Five pooled check slots plus one ruler** (`check`, `check2`…`check5`, `ruler`; G612): any check-slot request
+  takes the first free pooled slot. The ruler is reserved for the source census; `gate` and `commit` are retired.
+  Every lock/queue wait fails at five minutes naming holders, with no retry. Reuse one served build of HEAD;
+  Node's compile cache lives outside `$TMPDIR`. Pre-commit warns past 500k files in `/tmp` or `$TMPDIR`
+  (each counted; `scripts/boot-temp-warn.sh`).
 
 ## Subagents → [docs/process/SUBAGENTS.md](docs/process/SUBAGENTS.md)
 
