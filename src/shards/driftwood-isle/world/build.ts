@@ -1,7 +1,7 @@
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
-import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { driftwoodRows, driftwoodProduct } from '../runtime/boot/rows';
 import { loadVertexWear } from '@wildshard/game/looks/vertexWear';
@@ -181,6 +181,10 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
+  publishEntryOwner(scope, 'placed', 'boat', [boat.placed]);
+  publishEntryOwner(scope, 'placed', 'shrine', [shrine.placed]);
+  publishEntryOwner(scope, 'placed', 'bridge', [bridge.placed]);
+  publishEntryOwner(scope, 'placed', 'cover', cover.placed);
   return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
 }
 
