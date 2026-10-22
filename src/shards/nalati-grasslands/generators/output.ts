@@ -1,4 +1,3 @@
-import { EliteEnteredPresentationSchema } from '@wildshard/format/eliteFeature';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { SpeciesActorsFileSchema } from '@wildshard/format/speciesBookRows';
 import { PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
@@ -9,7 +8,7 @@ import { MOUNTED_FIGURE } from './mountedFigure';
 import { CAIRN } from './layout';
 import crowdGuard from '../data/crowdGuard.json' with { type: 'json' };
 import crowdView from '../data/crowdView.json' with { type: 'json' };
-import eliteRoster from '../data/eliteRoster.json' with { type: 'json' };
+import { buildEliteEntryPageRows } from './eliteEntryRows';
 import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
 import { strike } from '@wildshard/sdk/species';
 import finds from '../data/finds.generated.json' with {type:'json'};
@@ -104,10 +103,7 @@ const {polearm:_polearm,blade:_blade,programs:_programs,program:_program,...weap
 const sheepBody = bakeSheepBody();
 // Resolve author-only lair definitions into the admitted assembly, never runtime imports.
 const {pageWildlife:_pageWildlife,pageGroups:_pageGroups,groupAdmission:_groupAdmission,...nativeConstants}=headlessAssembly.constants;
-const eliteAssembly = { ...headlessAssembly, constants: { ...nativeConstants, pageElites: { ...eliteRoster, presentation: v.parse(EliteEnteredPresentationSchema, Object.fromEntries(Object.values(ecology.elites).map(def => [def.id, {
-  prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, toast: `${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`,
-  hum: true, sting: { banner: .8, phase2: 1, kill: 'chunk' },
-}]))), keepers: ecology.keeperElites, external: ecology.externalElites, strikes: [{ amount: 14, strike: strike(strikes.swipe) }, { amount: 35, strike: strike(strikes.pounce) }, { amount: 22, strike: strike(strikes.bite) }, { amount: 30, strike: strike(strikes.stoop) }], fallbackStrike: strike(strikes.captain) }, eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
+const eliteAssembly = { ...headlessAssembly, constants: { ...nativeConstants, pageElites: buildEliteEntryPageRows(), eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
   id: def.id, lair: def.lair, awareR: def.awareR, engageR: def.engageR, leashR: def.leashR, rule: def.rule, respawnMin: def.respawnMin,
 }])), nativePopulation: v.parse(v.object({ population: v.record(v.string(), v.unknown()) }), ridingPrograms).population, nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, roads: headlessBoot.roads } } };
 

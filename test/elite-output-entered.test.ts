@@ -22,7 +22,8 @@ import { installEngineStrings } from '../src/engine/strings';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
 import { Elites, type EliteOutputController, type ElitePageOutputLoans, type EliteEnteredOwners } from '../src/game/Elite';
-import { KeeperElitePage, ExternalElitePage } from '../src/game/quest/elitePage';
+import { ExternalElitePage } from '../src/game/quest/elitePage';
+import { NativeEliteController } from '../src/engine/ai/view/eliteController';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
 import { parseEliteOutputActions, parseEliteOutputBank, type EliteOutputAction } from '../src/format/eliteFeature';
@@ -82,8 +83,8 @@ function fixture() {
     windup: 0, active: 0, recover: 0, cooldown: 0, tags: [], weight: { kind: 'constant', value: 1 } };
   const created = withOwner(entered, () => {
     const bar = new EliteBar(), elites = new Elites({ scene, camera, player, condition: () => false }, bar, 'reed', saved);
-    const keeper = new KeeperElitePage({ def, kind: 'reed-cat', pattern: 'pouncer', spec: pouncer.spec, yaw: 0, offset: [0, 0], memory: {},
-      tell: [.2, .3, .4], beam: [.3, .4, .5], messages: {}, voices: {} }, { game, player, animals, elites, bar, ledges: [], rock: { x: 0, z: 0, top: 1 } }, new Group());
+    const keeper = new NativeEliteController({ def, variant: def.id, kind: 'reed-cat', pattern: 'pouncer', spec: pouncer.spec, yaw: 0, offset: [0, 0], memory: {},
+      tell: [.2, .3, .4], beam: [.3, .4, .5], messages: {}, voices: {} }, { game, player, animals, lifecycle: elites, bar, ledges: [], rock: { x: 0, z: 0, top: 1 } }, new Group());
     elites.add(keeper);
     const controllers: EliteOutputController[] = [{ kind: 'keeper', owner: keeper }];
     const loans: ElitePageOutputLoans = { construction, entered, game, controllers, patrol: null, wildlife: null, animals, environment,
@@ -119,7 +120,7 @@ test('missing/null actor suffix and foreign controller refuse the whole native b
     const bank = parseEliteOutputBank(f.actions, [{ action: 1, values: [] }, { action: 2, values: [0] }], 1);
     expect(() => f.elites.prepareV2Outputs(bank, [null])).toThrow(/actor/);
     expect(f.trace).toEqual([]);
-    f.controllers[0] = { kind: 'keeper', owner: legacyDouble<KeeperElitePage>({ row: f.keeper.row, def: f.keeper.def }) };
+    f.controllers[0] = { kind: 'keeper', owner: legacyDouble<NativeEliteController>({ row: f.keeper.row, def: f.keeper.def }) };
     expect(() => f.elites.prepareV2Outputs([], [])).toThrow(/Foreign/);
     expect(f.trace).toEqual([]);
   } finally { f.root.dispose(); }

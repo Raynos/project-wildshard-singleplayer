@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./eliteEntryRows": "./eliteEntryRows.ts",
     "./scalarChannel": "./scalarChannel.ts",
     "./arenaScriptRows": "./arenaScriptRows.ts",
     "./vertexWear": "./vertexWear.ts",

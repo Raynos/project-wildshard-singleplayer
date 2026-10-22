@@ -3,7 +3,7 @@ import { DirectedSpeciesSchema } from '@wildshard/format/speciesLooks';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
 import { app } from '@wildshard/engine/app/runtime';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import { eliteDamageMul } from '../quest/elitePage';
+import { eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
 import { ReturnProgram } from './returnProgram';
 
 /** Client-only projection of admitted guest motion over a native actor. The

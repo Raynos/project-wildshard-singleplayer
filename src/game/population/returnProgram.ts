@@ -107,25 +107,6 @@ export class ReturnProgram {
   }
 }
 
-/** Cache boolean event projections on a bounded ten-Hz clock. Rows select signal
- * ids and static observations; callers provide only the current numeric frame. */
-export class EventConditions {
-  private elapsed = 0; private initialized = false;
-  private readonly values = new Map<string, boolean>();
-  constructor(private readonly program: ReturnProgram, private readonly rows: readonly {
-    readonly id: string; readonly signal: string; readonly observations: Readonly<Record<string, number>>;
-  }[]) {
-    if (rows.length > 64 || new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Invalid event condition rows');
-  }
-  update(dt: number, observations: Readonly<Record<string, number>>): void {
-    this.elapsed += dt;
-    if (this.initialized && this.elapsed + 1e-9 < .1) return;
-    this.initialized = true; this.elapsed = 0;
-    for (const row of this.rows) this.values.set(row.id, this.program.project(row.signal, { ...observations, ...row.observations })['accept'] === 1);
-  }
-  holds(id: string): boolean { return this.values.get(id) ?? false; }
-}
-
 /** Ten-Hz motion observation with a reused frame. The guest owns velocity caps
  * and smoothing; renderer frames borrow the last projected scalar. */
 export class ProjectedMotionSample {

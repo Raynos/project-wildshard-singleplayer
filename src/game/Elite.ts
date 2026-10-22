@@ -1,4 +1,11 @@
-import type { KeeperElitePage, ExternalElitePage } from './quest/elitePage';
+import { ExternalElitePage } from './quest/elitePage';
+import { NativeEliteController } from '@wildshard/engine/ai/view/eliteController';
+import type { DeclaredEliteEntry, EliteEntryLoans } from '@wildshard/engine/ai/view/eliteEntry';
+import { ObservationColumnsV2, type V2EnvironmentColumns } from '@wildshard/engine/script/observationColumnsV2';
+import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
+import type { ReturnProgram } from './population/returnProgram';
+import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
 import type { PatrolEncounterView } from './boss/encounterView';
 import type { PageWildlife } from './population/wildlife';
 import type { PageWildEnvironment } from './population/pageGroups';
@@ -166,6 +173,39 @@ export class Elites {
   add(script: EliteScript): void {
     if (this.entered !== null) throw new Error('Elite presentation identities are already bound');
     this.core.add(script);
+  }
+  /** Resolve only original typed authorities for an admitted engine entry.
+   * Controller selection, condition cadence and lifecycle ordering live in the
+   * engine; this owner retains presentation, native effects and persistence. */
+  bindDeclaredEntry<T extends CrowdTargets>(entry: DeclaredEliteEntry<ExternalElitePage>, input: unknown,
+    owners: EliteDeclaredEntryOwners<T>): void {
+    const rows = parseEliteEntryPageRows(input), { construction, entered, game, player, animals, models, program, controllers } = owners;
+    if (this.entered !== null || entered.scope.disposed || entered.scope.disposing || construction.disposed || construction.disposing
+      || game.levelScope !== construction || this.host.player !== player || this.host.scene !== game.scene || this.host.camera !== game.camera
+      || this.persistence !== owners.persistence.elites || JSON.stringify(rows.entry) !== JSON.stringify(entry.rows) || new Set(controllers.map(row => row.def.id)).size !== controllers.length
+      || controllers.some(row => !(row instanceof ExternalElitePage)) || !this.scope.belongsTo(entered.scope)
+      || Object.keys(rows.presentation).length !== rows.entry.entries.length || rows.entry.entries.some(row => !Object.hasOwn(rows.presentation, row.id))) throw new Error('Foreign declared elite entry owner');
+    preflightEliteEffectServices(rows.actions, { game, player, animals, environment: owners.environment, hud: entered.hud, audio: entered.audio,
+      persistence: owners.persistence, contacts: owners.contacts, patrol: owners.patrol, wildlife: owners.wildlife });
+    const emptyActors = new Map<number, Animal>();
+    const observations = rows.observations.map(row => ({ id: row.id, columns: new ObservationColumnsV2(row.rows, entered.scope), owners: {
+      scope: entered.scope, self: { group: rows.entry.id, slot: 0, identity: '', actor: null }, player, observed: emptyActors, t: 0, dt: 0,
+      environment: owners.environment, clock: owners.clock, weather: owners.weather } }));
+    const loans: EliteEntryLoans<ExternalElitePage> = { construction, entered: entered.scope, ui: { id: rows.entry.ui,
+      services: { game, player, lifecycle: this, bar: this.bar, ledges: owners.ledges, rock: owners.rock } },
+      profiles: rows.profiles, bodies: rows.entry.entries.some(row => row.controller.kind !== 'borrowed') ? [{ id: owners.body, manager: animals }] : [], models: [...new Set(rows.entry.entries.flatMap(row => row.controller.kind === 'borrowed' ? [] : [row.controller.model]))].map(id => { const object = models.get(id); if (object === undefined) throw new Error('Missing elite model loan'); return { id, object }; }), observations,
+      programs: [{ id: program.id, owner: program.scope, program: program.value }], controllers: controllers.map(controller => ({ id: controller.def.id, controller })), actions: rows.actions };
+    if (this.host.renderer !== undefined && this.host.renderer !== game.renderer) throw new Error('Foreign elite presentation renderer');
+    this.host.renderer = game.renderer;
+    entry.bind(loans, this, app.encounters);
+    const outputs: ElitePageOutputLoans<T> = { construction, entered: entered.scope, game,
+      controllers: entry.scripts.map(owner => owner instanceof NativeEliteController ? { kind: 'keeper', owner } : { kind: 'external', owner }),
+      patrol: owners.patrol, wildlife: owners.wildlife, animals, environment: owners.environment, player,
+      hud: entered.hud, audio: entered.audio, persistence: owners.persistence, contacts: owners.contacts,
+      strikes: rows.strikes, fallbackStrike: rows.fallbackStrike };
+    this.bindEnteredPresentation(entered, rows.presentation, { actions: rows.actions, loans: outputs });
+    if (rows.debug !== undefined) construction.onDispose(app.debug.scopedExpose(rows.debug, { scripts: entry.scripts, elites: this, bar: this.bar }));
+    for (const row of rows.prewarm) { try { animals.factory.model(row.kind, row.variant); } catch (cause) { console.warn('[elites] prewarm failed', row.kind, cause); } }
   }
   /** Bind after registering every lair and before initialization. The entered scope owns this exact Elites instance. */
   bindEnteredPresentation<T extends CrowdTargets>(owners: EliteEnteredOwners, rows: EliteEnteredPresentation,
@@ -393,8 +433,22 @@ export class GroundTell {
 
 /** Compiled native admission produces these tags beside the real controller;
  * authored action rows cannot construct or reclassify a controller loan. */
-export type EliteOutputController = { readonly kind: 'keeper'; readonly owner: KeeperElitePage }
+export type EliteOutputController = { readonly kind: 'keeper'; readonly owner: NativeEliteController }
   | { readonly kind: 'external'; readonly owner: ExternalElitePage };
+/** Compiled loans for the existing page owner; no authored factory, callback
+ * map or opaque shard object is admitted. Construction and entered may be siblings. */
+export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets> {
+  readonly construction: Scope; readonly entered: EliteEnteredOwners;
+  readonly game: Game; readonly player: Player; readonly body: string; readonly animals: AnimalManager;
+  readonly models: ReadonlyMap<string, THREE.Object3D>;
+  readonly program: { readonly id: string; readonly scope: Scope; readonly value: ReturnProgram };
+  readonly controllers: readonly ExternalElitePage[];
+  readonly environment: PageWildEnvironment & V2EnvironmentColumns;
+  readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };
+  readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };
+  readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
+  readonly persistence: AdventurePersistence; readonly contacts: StrikeRunner;
+}
 /** Existing entered owners lent to the effect application. None is authored
  * content, an additional body registry, clock, continuation or installer. */
 export interface ElitePageOutputLoans<T extends CrowdTargets = CrowdTargets> {
@@ -407,6 +461,28 @@ export interface ElitePageOutputLoans<T extends CrowdTargets = CrowdTargets> {
   readonly strikes: readonly { readonly amount: number; readonly strike: StrikeData }[];
   readonly fallbackStrike: StrikeData;
 }
+/** Admit every effect sink before engine construction; optional absent native
+ * services retain the original no-result semantics. No body/UI allocation. */
+function preflightEliteEffectServices<T extends CrowdTargets>(actions: readonly EliteOutputAction[],
+  loans: Pick<ElitePageOutputLoans<T>, 'game' | 'player' | 'animals' | 'environment' | 'hud' | 'audio' | 'persistence' | 'contacts' | 'patrol' | 'wildlife'>): void {
+  if (loans.game.app !== app) throw new Error('Foreign elite effect service owner');
+  const need = <O extends object>(owner: O | null, key: keyof O): void => {
+    if (owner !== null && typeof owner[key] !== 'function') throw new Error('Missing elite effect sink');
+  };
+  for (const action of actions) switch (action.kind) {
+    case 'contact': need(loans.contacts, 'contact'); need(app.combat, 'hit'); break;
+    case 'knockdown': need(loans.environment, 'onKnockdown'); break;
+    case 'feed': need(loans.hud, 'killFeed'); break;
+    case 'sound': need(loans.audio, 'animal'); break;
+    case 'record': need(loans.persistence, 'kill'); need(loans.persistence, 'feat'); break;
+    case 'patrol-rider': need(loans.patrol, 'spawnRider'); break;
+    case 'patrol-line': need(loans.patrol, 'spawnLine'); break;
+    case 'patrol-dissolve': need(loans.patrol, 'dissolve'); break;
+    case 'wildlife-pack': need(loans.wildlife, 'spawnPack'); break;
+    case 'wildlife-herd': need(loans.wildlife, 'spawnHerd'); need(loans.animals, 'spawn'); break;
+    default: throw new Error('Invalid elite effect sink');
+  }
+}
 /** Prepare the COMPLETE native suffix without effects. The existing combined
  * command authority interleaves these synchronous operations only after every
  * actor/world/elite branch has passed validation. Actor pointers are captured
@@ -415,6 +491,7 @@ function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly Elite
   loans: ElitePageOutputLoans<T>, actors: readonly (Animal | null)[]): { readonly validate: () => void; readonly operations: readonly (() => void)[] } {
   const { construction, entered, game, controllers, patrol, wildlife, animals, environment, player, hud, audio, persistence, contacts, strikes, fallbackStrike } = loans;
   const bank = parseEliteOutputBank(parseEliteOutputActions(actions, controllers.length), input, actors.length);
+  preflightEliteEffectServices(actions, loans);
   const controls = [...controllers], tags = controls.map(loan => loan.kind), controllerOwners = controls.map(loan => loan.owner), bodies = [...actors], level = game.levelScope, health = app.player, physics = app.physics, combat = app.combat;
   // Identities are compared only; all calls retain the concrete native receiver.
   const method = <O extends object>(owner: O | null, key: keyof O): unknown => owner === null ? undefined : owner[key];

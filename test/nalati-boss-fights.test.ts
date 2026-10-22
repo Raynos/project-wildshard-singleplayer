@@ -1,5 +1,5 @@
 import type { Animal } from '../src/engine/entities/AnimalView';
-import { eliteDamageMul } from '../src/game/quest/elitePage';
+import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
 // @vitest-environment happy-dom
 import { app } from '../src/engine/app/runtime';
 import type { ShardContext } from '../src/game/plugin/context';

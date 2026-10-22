@@ -1,5 +1,5 @@
 import { thinkCrowdGuard } from '../ambient/crowdPage';
-import { eliteAct, eliteDamageMul, eliteThink } from '../quest/elitePage';
+import { eliteAct, eliteDamageMul, eliteThink } from '@wildshard/engine/entities/eliteBrain';
 import { DirectedSpecies } from '../population/directedSpecies';
 import { groupSpecies } from '../population/groupSpecies';
 import { installChannelPrograms, numericCreaturePose } from '../plugin/channelPrograms';

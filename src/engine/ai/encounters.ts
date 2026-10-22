@@ -64,6 +64,49 @@ export class EncounterRegistry {
       }, retire,
     };
   }
+  /** Preflight the complete ordered runtime names before any controller/UI allocation. */
+  preflightElite(ids: readonly string[], scope: Scope): void {
+    if (scope.disposed || scope.disposing || ids.length > 64 || new Set(ids).size !== ids.length
+      || ids.some(id => id.length === 0 || id.length > 128 || this.runtimes.some(entry => entry.scope === scope && entry.id === id))) throw new Error('Invalid or occupied elite runtime slots');
+  }
+  /** One prepared lease over the existing runtime registry, with the original
+   * construction owner and reverse registration teardown order. No body book. */
+  prepareElites(rows: readonly { readonly id: string; readonly brain: { despawn: () => void } }[], scope: Scope): {
+    readonly validate: () => void; readonly commit: () => void; readonly commitNext: () => void; readonly release: () => void;
+  } {
+    const method = <O extends object>(owner: O, key: keyof O): unknown => owner[key];
+    const captured = rows.map(row => ({ row, id: row.id, brain: row.brain, method: method(row.brain, 'despawn'),
+      despawn: row.brain.despawn.bind(row.brain), entry: { id: row.id, brain: row.brain, scope } }));
+    let committed = false, count = 0, released = false, forget = (): void => undefined;
+    const validate = (): void => {
+      if (released || scope.disposed || scope.disposing || rows.length !== captured.length || captured.some((value, index) => rows[index] !== value.row || value.row.id !== value.id || value.row.brain !== value.brain
+        || method(value.brain, 'despawn') !== value.method
+        || captured.indexOf(value) < count && !this.runtimes.includes(value.entry))) throw new Error('Retired or replaced elite runtime lease');
+      this.preflightElite(captured.slice(count).map(value => value.id), scope);
+    };
+    const release = (): void => {
+      if (released) return;
+      released = true; forget();
+      if (!committed) return;
+      const errors: unknown[] = [];
+      for (const value of captured.slice(0, count).reverse()) {
+        const at = this.runtimes.indexOf(value.entry); if (at !== -1) this.runtimes.splice(at, 1);
+        try { value.despawn(); } catch (error) { errors.push(error); }
+      }
+      if (errors.length > 0) throw new AggregateError(errors, 'Elite runtime release failed');
+    };
+    const commitNext = (): void => {
+      validate(); const value = captured[count];
+      if (value === undefined) throw new Error('Elite runtime lease already committed');
+      if (!committed) { forget = scope.capture('disposers', release); committed = true; }
+      this.runtimes.push(value.entry); count++;
+    };
+    validate();
+    return { validate, release, commitNext, commit: () => {
+      if (count === captured.length) throw new Error('Elite runtime lease already committed');
+      while (count < captured.length) commitNext();
+    } };
+  }
   boss<T extends { disarm: () => void }>(id: string, brain: T, scope: Scope): T { return this.bind(id, brain, scope, () => { brain.disarm(); }); }
   elite<T extends { despawn: () => void }>(id: string, brain: T, scope: Scope): T { return this.bind(id, brain, scope, () => { brain.despawn(); }); }
   private bind<T extends object>(id: string, brain: T, scope: Scope, dispose: () => void): T {

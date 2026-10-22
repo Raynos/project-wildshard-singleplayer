@@ -1,5 +1,4 @@
 import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
-import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { clientWildlife, type PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
@@ -20,7 +19,9 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { SHAPES } from '../models/shapes';
-import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
+import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
+import type { ExternalElitePage } from '@wildshard/game/quest/elitePage';
+import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
@@ -77,15 +78,16 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
-  const { constants: { pageElites } } = await plugin.product.json<{ constants: { pageElites: EliteRosterRows } }>('sim/headless-assembly.json');
+  const { constants: { pageElites: eliteInput } } = await plugin.product.json<{ constants: { pageElites: unknown } }>('sim/headless-assembly.json');
+  const eliteRows = parseEliteEntryPageRows(eliteInput);
   const dropMaterial = painterlyMaterial(sky, { rim: .6 });
-  const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(SHAPES.handle(`trophy:${row.def.id}`).copy(), dropMaterial)); return [row.def.id, model] as const; }));
-  const elites = new EliteRosterPage<Flock>({ game, player: ctx.player, ledges: anchors('crags', 'ledges'), rock: poiLayout.EAGLE_ROCK, clock: weather.clock, weather: weather.weather },
-    pageElites, eliteProgram, drops, charge);
+  const drops = new Map(eliteRows.entry.entries.map(row => { const model = new Group(); model.add(new Mesh(SHAPES.handle(`trophy:${row.id}`).copy(), dropMaterial)); return [row.id, model] as const; }));
+  const eliteLedges = anchors('crags', 'ledges');
+  const elites = new DeclaredEliteEntry<ExternalElitePage>(eliteRows.entry, game.levelScope);
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
     if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)
-    elites.update(dt, t);
+    elites.update(dt, t, eliteFrame());
     for (const s of elites.scripts) if (s.animal !== null) s.animal.mem['noHeadBar'] = 1;   // the elite's own bar, not the combat one
   });
 
@@ -114,9 +116,12 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const riderFigure = game.levelScope.own(SHAPES.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(SHAPES.handle('ghost-captain').copy());
   const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
+  function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,
+    bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
   const nalati = {
-    weather, groups, boss, elites, titan,
+    weather, groups, boss, elites, titan, eliteFrame, eliteRows, eliteProgram, eliteDrops: drops, eliteCharge: charge, eliteLedges,
+    get elitePatrol() { return night.riders; },
     get stealth(): Stealth | null { return stealth; },
     get ride(): Ride | null { return ride; },
     get wildlife() { return clientWildlife(plugin); },
@@ -148,7 +153,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/shards/nalati-grasslands/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
 
-  elites.ghosts = night.riders;   // B12: Qara Batyr rides B11's captain rig at the head of a line
   titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
   updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
   updates.push(dt => { ride?.update(dt); });

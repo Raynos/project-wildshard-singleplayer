@@ -1,20 +1,36 @@
-import type * as THREE from 'three';
+import type { Vector3 } from 'three';
 import type { Animal } from './AnimalView';
 import type { ThinkCtx } from './species/registry';
+import type { Scope } from '../app/scope';
 
-/**
- * The named elites' brains (src/shards/nalati-grasslands/combat/elites.ts sets them, src/game/Elite.ts runs the system): a species that only
- * ever exists as an elite (the snow leopard, the giant eagle, Kokbori, the ghost captain) has `think: eliteThink` and
- * `damageMul: eliteDamageMul`, and its 10 Hz AI tick and its damage rule go to whatever the elite registered for that
- * animal. A tiny module on purpose: species files import it, and it imports nothing at runtime.
- */
-const brains = new WeakMap<Animal, (a: Animal, c: ThinkCtx) => void>();
-const acts = new WeakMap<Animal, (a: Animal, c: ThinkCtx) => void>();
-const damage = new WeakMap<Animal, (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number>();
-export function setEliteBrain(a: Animal, fn: (a: Animal, c: ThinkCtx) => void): void { brains.set(a, fn); }
-export function setEliteDamage(a: Animal, fn: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number): void { damage.set(a, fn); }
-export function eliteThink(a: Animal, c: ThinkCtx): void { brains.get(a)?.(a, c); }
-export function eliteDamageMul(a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3): number { return damage.get(a)?.(a, hitPoint, dir) ?? 1; }
-
-export function setEliteAct(a: Animal, fn: (a: Animal, c: ThinkCtx) => void): void { acts.set(a, fn); }
-export function eliteAct(a: Animal, c: ThinkCtx): void { acts.get(a)?.(a, c); }
+interface Binding<T> { readonly scope: Scope | null; readonly value: T }
+type Think = (a: Animal, c: ThinkCtx) => void;
+type Damage = (a: Animal, p: Vector3, d: Vector3) => number;
+const brains = new WeakMap<Animal, Binding<Think>>(), acts = new WeakMap<Animal, Binding<Think>>(), damage = new WeakMap<Animal, Binding<Damage>>();
+function bind<T>(book: WeakMap<Animal, Binding<T>>, actor: Animal, value: T, scope: Scope | undefined): () => void {
+  if (scope?.disposed === true || scope?.disposing === true) throw new Error('Retired elite body binding');
+  const binding = { scope: scope ?? null, value }; book.set(actor, binding);
+  let forget = (): void => undefined;
+  const release = (): void => { if (book.get(actor) === binding) book.delete(actor); forget(); };
+  if (scope !== undefined) forget = scope.capture('disposers', release);
+  return release;
+}
+function current<T>(book: WeakMap<Animal, Binding<T>>, actor: Animal): T | undefined {
+  const binding = book.get(actor);
+  return binding === undefined || binding.scope?.disposed === true || binding.scope?.disposing === true ? undefined : binding.value;
+}
+/** Native species retain their original decision/body/damage slots. The
+ * two-argument setters preserve legacy unscoped behavior. Explicit scopes own
+ * only their exact binding, and ancestor retirement makes callbacks inert. */
+export function setEliteBrain(a: Animal, fn: Think): void;
+export function setEliteBrain(a: Animal, fn: Think, scope: Scope): () => void;
+export function setEliteBrain(a: Animal, fn: Think, scope?: Scope): void | (() => void) { const release = bind(brains, a, fn, scope); if (scope !== undefined) return release; }
+export function setEliteAct(a: Animal, fn: Think): void;
+export function setEliteAct(a: Animal, fn: Think, scope: Scope): () => void;
+export function setEliteAct(a: Animal, fn: Think, scope?: Scope): void | (() => void) { const release = bind(acts, a, fn, scope); if (scope !== undefined) return release; }
+export function setEliteDamage(a: Animal, fn: Damage): void;
+export function setEliteDamage(a: Animal, fn: Damage, scope: Scope): () => void;
+export function setEliteDamage(a: Animal, fn: Damage, scope?: Scope): void | (() => void) { const release = bind(damage, a, fn, scope); if (scope !== undefined) return release; }
+export function eliteThink(a: Animal, c: ThinkCtx): void { current(brains, a)?.(a, c); }
+export function eliteAct(a: Animal, c: ThinkCtx): void { current(acts, a)?.(a, c); }
+export function eliteDamageMul(a: Animal, p: Vector3, d: Vector3): number { return current(damage, a)?.(a, p, d) ?? 1; }

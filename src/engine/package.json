@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./fx/groundTell": "./fx/groundTell.ts",
+    "./ai/view/eliteController": "./ai/view/eliteController.ts",
+    "./ai/view/eliteEntry": "./ai/view/eliteEntry.ts",
     "./world/scalarChannel": "./world/scalarChannel.ts",
     "./boot/waits": "./boot/waits.ts",
     "./boot/download": "./boot/download.ts",

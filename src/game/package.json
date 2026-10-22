@@ -79,7 +79,6 @@
     "./systems/npc/figureSkins": "./systems/npc/figureSkins.ts",
     "./looks/coverAppearance": "./looks/coverAppearance.ts",
     "./quest/eliteFeature": "./quest/eliteFeature.ts",
-    "./quest/eliteRosterPage": "./quest/eliteRosterPage.ts",
     "./quest/elitePage": "./quest/elitePage.ts",
     "./ambient/flock": "./ambient/flock.ts",
     "./grid/pageMode": "./grid/pageMode.ts",

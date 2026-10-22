@@ -29,7 +29,7 @@ import type { ShardProduct } from '../shardfile/shardProduct';
 import { installBossEncounter, type Boss } from '../Boss';
 import { ProjectedState, ReturnProgram } from '../population/returnProgram';
 import { wildEnv } from '../population/pageGroups';
-import { setEliteDamage } from '../quest/elitePage';
+import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import { CellField } from '../systems/cellField';
 import { arenaBlockedAt, installArenaBoundary, type ArenaBoundary } from './arenaField';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
