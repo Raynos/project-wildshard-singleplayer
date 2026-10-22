@@ -53,3 +53,24 @@ test('the bow definition emits a wire schema and refuses non-finite bake values'
       arrow: { ...PINE_HELD_BOW.bow.arrow, bury: value } } }, { geometry: () => new BufferGeometry() })).toThrow();
   }
 });
+
+test('the defining schema rejects all original bow invariants before any borrowed geometry', () => {
+  const mounted = v.parse(v.object(HeldBowDefinitionSchema.entries), recurve), base = mounted.base;
+  if (base.mounted === undefined) throw new Error('Missing mounted fixture');
+  const invalid: unknown[] = [
+    { ...PINE_HELD_BOW, base: { ...PINE_HELD_BOW.base, parent: 'invalid' } },
+    { ...PINE_HELD_BOW, base: { ...PINE_HELD_BOW.base, draw: { ...PINE_HELD_BOW.base.draw, holdSteady: 9 } } },
+    { ...PINE_HELD_BOW, bow: { ...PINE_HELD_BOW.bow, styles: {} } },
+    { ...PINE_HELD_BOW, bow: { ...PINE_HELD_BOW.bow, styles: Object.fromEntries(Array.from({ length: 9 }, (_, i) => [String(i), 'paint'])) } },
+  ];
+  for (const gaits of [[{ below: null, spread: 1 }, { below: 2, spread: 1 }], [{ below: 2, spread: 1 }, { below: 2, spread: 1 }], [{ below: 3, spread: 1 }, { below: 2, spread: 1 }]]) {
+    invalid.push({ ...mounted, base: { ...base, mounted: { ...base.mounted, gaits } } });
+  }
+  for (const input of invalid) {
+    let reads = 0;
+    expect(() => v.parse(HeldBowDefinitionSchema, input)).toThrow();
+    expect(() => bindHeldBow(input, { geometry: () => { reads++; return new BufferGeometry(); } })).toThrow();
+    expect(reads).toBe(0);
+  }
+  expect(() => formatJsonSchema(HeldBowDefinitionSchema, 'draft-07')).not.toThrow();
+});

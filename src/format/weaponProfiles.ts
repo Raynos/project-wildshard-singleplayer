@@ -39,16 +39,16 @@ export const BowWeaponProfileSchema = v.strictObject({
 /** Serializable held-bow feel, clocks and mounting policy. A null final gait
  * bound represents infinity on the wire; view strategies come from the bake. */
 export const HeldBowBaseSchema = v.strictObject({
-  family: v.literal('bow'), parent: v.exactOptional(v.string()), quiver: count,
+  family: v.literal('bow'), parent: v.exactOptional(v.pipe(v.string(), v.regex(/^(weapon|tool)\.[a-zA-Z0-9.-]+$/u, 'Invalid held bow parent'))), quiver: count,
   swayMax: scalar, speedBase: scalar, speedDraw: scalar, damageScale: scalar,
   aimZoom: scalar, aimVmZoom: scalar, aimSway: scalar, aimSpread: scalar, aimIn: scalar,
   arcFrom: scalar, arcColour: v.number(), arcMode: v.picklist(['setting', 'aim']), zoomLook: v.boolean(),
   inspectZ: v.number(), inspectHidesArms: v.boolean(), transparentParts: v.boolean(), vmScale: scalar,
-  draw: v.exactOptional(BowWeaponProfileSchema.entries.draw.pipe[0]),
+  draw: v.exactOptional(BowWeaponProfileSchema.entries.draw),
   loose: v.exactOptional(v.strictObject({ ...cone.entries, aimMultiplier: v.exactOptional(probability), motion: scalar, muzzle: scalar })),
   projectile: v.exactOptional(v.strictObject({ ...flight.entries, maxFlying: slots, substeps: slots, lifetime: duration })),
   mounted: v.exactOptional(v.strictObject({ drawTime: duration, rearAngle: scalar, rearDraw: scalar, rearSpread: scalar, arc: v.boolean(),
-    gaits: v.pipe(v.array(v.strictObject({ below: v.nullable(scalar), spread: scalar })), v.minLength(1), v.maxLength(32)) })),
+    gaits: v.pipe(v.array(v.strictObject({ below: v.nullable(scalar), spread: scalar })), v.minLength(1), v.maxLength(32), v.check(gaits => !gaits.some(({ below }, index) => below === null ? index !== gaits.length - 1 : index > 0 && below <= (gaits[index - 1]?.below ?? Infinity)), 'Invalid held bow gaits')) })),
 });
 
 /** Magazine, per-round lever and single-bolt parameters for the shared firearm family. Rendering and sounds are separate. */
@@ -258,7 +258,7 @@ export const HeldBowRowsSchema = v.strictObject({
   arrow: v.strictObject({ gravity: heldBowNumber, drag: heldBowNumber, windCoupling: heldBowNumber, bury: heldBowNumber, recover: heldBowNumber, maxFlying: heldBowNumber, maxStuck: heldBowNumber }),
   wind: v.union([v.strictObject({ base: heldBowNumber, gust: heldBowNumber }), v.strictObject({ field: v.literal('steppe') })]),
   poses: v.strictObject({ rest: heldBowPose, drawn: heldBowPose, restPort: heldBowPose, drawnPort: heldBowPose, aim: heldBowPose, aimPort: heldBowPose }),
-  styles: v.exactOptional(v.record(v.string(), v.string())),
+  styles: v.exactOptional(v.pipe(v.record(v.string(), v.string()), v.minEntries(1, 'Invalid held bow styles'), v.maxEntries(8, 'Invalid held bow styles'))),
 });
 
 /** Complete held-bow binding; executable view strategies belong to the shared host. */

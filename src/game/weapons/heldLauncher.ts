@@ -378,11 +378,6 @@ const HeldBowFileSchema = v.strictObject({ pool: PoolSchema, bow: HeldBowRowsSch
 export function bindHeldBow(input: unknown, library: Pick<ModelLibrary<never, never>, 'geometry'>): { readonly rows: HeldBowRows; readonly model: HeldFirearmModel; readonly profile: BowProfile } {
   const { bow: rows, base } = v.parse(HeldBowDefinitionSchema, input);
   const { parent, mounted, ...values } = base;
-  if (base.draw !== undefined && base.draw.holdSteady >= base.draw.holdTire) throw new Error('Invalid held bow fatigue');
-  if (rows.styles !== undefined && (Object.keys(rows.styles).length === 0 || Object.keys(rows.styles).length > 8)) throw new Error('Invalid held bow styles');
-  if (mounted?.gaits.some(({ below }, index, gaits) => below === null
-    ? index !== gaits.length - 1 : index > 0 && below <= (gaits[index - 1]?.below ?? Infinity)) === true) throw new Error('Invalid held bow gaits');
-  if (parent !== undefined && !/^(weapon|tool)\.[a-zA-Z0-9.-]+$/u.test(parent)) throw new Error('Invalid held bow parent');
   const model = { geometry: new Map(Object.values(rows.parts).map(id => [id, need(library.geometry(id, { borrow: true }), `bow part ${id}`)])) };
   const profile = heldBowProfile({ ...values, ...(parent === undefined ? {} : { parent: parent as NonNullable<BowProfile['parent']> }),
     ...(mounted === undefined ? {} : { mounted: { ...mounted, gaits: mounted.gaits.map(({ below, spread }) => ({ below: below ?? Infinity, spread })) } }) }, rows, model);
