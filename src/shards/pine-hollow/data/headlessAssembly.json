@@ -20,7 +20,7 @@
     "@wildshard/game/population/environment": ["installPopulationEnvironment"],
     "@wildshard/game/boss/native": ["installGroundBoss"],
     "@wildshard/engine/world/dayCycle": ["DayCycle"],
-    "src/shards/pine-hollow/look/dayKeys": ["PINE_DAY"],
+    "@wildshard/game/looks/keyedSkyClock": ["keyedSkyDaySpec"],
     "@wildshard/game/loadout/nativeAmmunition": ["installNativeHeldAmmunition"],
     "@wildshard/game/weather/continuation": ["installWeatherContinuation"],
     "@wildshard/game/population/shelter": ["installNativeHerdShelter"],
@@ -421,7 +421,10 @@
                 "$ref": ["@wildshard/engine/world/dayCycle", "DayCycle"]
               },
               {
-                "$ref": ["src/shards/pine-hollow/look/dayKeys", "PINE_DAY"]
+                "$call": [
+                  { "$ref": ["@wildshard/game/looks/keyedSkyClock", "keyedSkyDaySpec"] },
+                  { "$call": [{ "$ref": ["product", "section"] }, "look/keyed-sky"] }
+                ]
               }
             ]
           }
