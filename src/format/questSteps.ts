@@ -134,10 +134,11 @@ export function parseQuestSpawnPage(input: unknown): QuestSpawnPageRows {
   return rows;
 }
 
-/** Mounted carried quest props project guest channels into native scene and quest services. */
+/** Carried quests project an admitted guest through a declared player or mount carrier. Client-only. */
 const xyz=v.tuple([finite,finite,finite]),location=v.strictObject({x:finite,z:finite});
 export const CarriedQuestSchema=v.strictObject({
   quest:name,objectName:name,model:v.pipe(SpecimenCatalogueSchema,v.length(1)),program:ReturnProgramSchema,
+  carrier:v.exactOptional(v.variant('kind',[v.strictObject({kind:v.literal('mount')}),v.strictObject({kind:v.literal('player'),minimumSpeed:v.pipe(finite,v.minValue(0),v.maxValue(100))})])),
   floorWindow:v.pipe(finite,v.minValue(0)),step:v.pipe(finite,v.minValue(.1),v.maxValue(1)),home:location,goals:v.pipe(v.array(location),v.minLength(1),v.maxLength(64)),
   state:v.pipe(v.record(name,finite),v.maxEntries(32)),signals:v.strictObject({step:name,win:name}),
   fields:v.strictObject({dt:name,playerX:name,playerZ:name,objectX:name,objectZ:name,mounted:name,carrier:name,fast:name,practice:name,carrierX:name,carrierZ:name}),

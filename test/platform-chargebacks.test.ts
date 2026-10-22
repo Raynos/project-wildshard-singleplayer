@@ -253,6 +253,8 @@ test('optional chapter dispatch preserves the carried and merged-figure owners',
   const bindings = new Map([...names, 'FigureRows'].map(name => [`${figures}\0${name}`, shared]));
   chargePlatformUsers(moduleUsers, bindings);
   expect([...moduleUsers.get(carried) ?? []]).toEqual(['nalati-grasslands']);
+  // G601 credit is the exact picked binding, never a fabricated second user.
+  expect(platformChargeback(carried,'CarriedQuestProp')).toBeNull();
   expect(moduleUsers.get(figures)).toEqual(shared);
   for (const name of names) expect([...bindings.get(`${figures}\0${name}`) ?? []]).toEqual(['nalati-grasslands']);
   expect(bindings.get(`${figures}\0FigureRows`)).toEqual(shared);

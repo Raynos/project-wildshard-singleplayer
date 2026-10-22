@@ -20,6 +20,8 @@ import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.
 import { carriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
+import { QuestState } from '../src/engine/quest/core';
+import { publishBoundQuest } from '../src/game/quest/boundState';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { Actor, DamageRequest } from '../src/engine/combat/pipeline';
 import { Events } from '../src/engine/events/events';
@@ -48,11 +50,18 @@ function fixture() {
   const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const scope = new Scope('chapter-view'), flags = new Flags('chapter-view', false), f = manager();
   scope.onDispose(terrain);
+  publishBoundQuest(scope,new QuestState({id:carriedQuestRows.quest,title:'Carried delivery',
+    steps:[{id:'delivery',objective:'Deliver',done:{all:['fixture:done']}}],completeFlag:'fixture:complete'},flags,undefined,scope));
   const game = Object.assign(f.game.asGame(), { app, levelScope: scope });
   const materials = new Map(['nalati-titan-cloud', 'nalati-titan-flame', 'nalati-titan-smoke'].map(id => [id, new MeshBasicMaterial()]));
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped fight material'); } });
   const world = legacyDouble<World>({ player: f.player, sky: f.sky, registry: new WorldRegistry(), game });
-  const play = legacyDouble<NonNullable<Runtime['play']>>({ animals: f.manager });
+  type Play=NonNullable<Runtime['play']>;
+  const play = legacyDouble<Play>({ animals: f.manager,
+    hud:legacyDouble<Play['hud']>({toast:vi.fn<Play['hud']['toast']>()}),
+    music:legacyDouble<Play['music']>({sting:vi.fn<Play['music']['sting']>()}),
+    inventory:legacyDouble<Play['inventory']>({}),
+  });
   const runtime = legacyDouble<Runtime>({ world, play });
   const product = createShardProduct({ slug: 'chapter-view', revision: 1, shardfile: legacyDouble<ShardContext['product']['shardfile']>({ clientChannels: [] }),
     sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('Mocked product should not read bytes')) });

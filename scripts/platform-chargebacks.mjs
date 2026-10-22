@@ -2,8 +2,6 @@
 // not an allowance or a budget. A real second shard needs a reviewed re-score.
 /** @type {Map<string,import('./shard-components.mjs').Component>} */
 const modules = new Map([
-  // Optional chapter dispatch does not give carried-prop ownership to its other pages.
-  ['src/game/quest/carriedProp.ts', 'C5'],
   ...['game/boss/arenaScript', 'game/boss/arenaField'].map(path => [`src/${path}.ts`, 'C4']),
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
   ['src/game/models/mountedSpecimen.ts', 'C1'],
@@ -48,6 +46,8 @@ const declarations = new Map([
  * users and mixed component attribution; a dispatcher is not another owner.
  * @type {Map<string,readonly string[]|null>} */
 const chapterViewNativeOwners = new Map([
+  // G601 approval changes credit, never the actual optional-facet consumer.
+  ["src/game/quest/carriedProp.ts", null],
   ["src/engine/physics/heightPatch.ts", null],
   ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
   ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner"]],

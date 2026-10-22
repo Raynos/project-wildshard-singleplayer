@@ -9678,6 +9678,16 @@ strictly above terrain and strictly below terrain plus that window; zero
 disables deck selection. Nalati declares its original two-metre window.
 The existing AS round still owns decisions and ordered quest effects.
 
+`CarriedQuestProp` admits a finite carrier row: `{kind:'mount'}` borrows the
+original entered mount; `{kind:'player',minimumSpeed}` samples the concrete
+player with a finite 0..100 m/s movement threshold. An omitted carrier retains
+legacy mount mode and stays omitted on the wire. The admitted guest keeps
+carry/deliver decisions and effect order. Exact f64 home/goal coordinates
+remain authoritative independently of scene presentation. Captured entered
+and resource scopes and native owners must remain live and identical before
+projection or win effects; sibling scopes are permitted. No new clock or
+save owner.
+
 `game/quest/chapter.installQuestCatalogue(ctx)` registers `items.catalogue`
 from `combat/items` and `quests.achievements` from `quests/quests` through
 the existing scoped item and achievement registries. Both are optional,
