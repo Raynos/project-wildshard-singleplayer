@@ -15,7 +15,6 @@ import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' 
 import { poseNalatiCreature,balbalCrackGeometry,speciesGuestRows } from './presentation';
 
 export const BALBAL = speciesRows.balbal.kind;
-export const BALBAL_SLAM = speciesRows.slam;
 const cracks = new WeakMap<Animal, THREE.MeshBasicMaterial>();
 let admitted:CreatureGuestRows|null=null;
 let strike:ReturnType<typeof strikeFromData>|null=null;
