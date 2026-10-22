@@ -455,7 +455,16 @@ Select `sim`, `project` or `view`; inference is allowed only when one authored
 work export exists. The compiler keeps that work export, init and the getters.
 [`admitScriptV2(bytes, { lane, ioBytes })`](../src/format/scriptAdmissionV2.ts)
 verifies actual bytes before execution; the structural reader or fuel inspector
-alone does not grant execution. The host supplies the full trusted IO byte
+alone does not grant execution.
+
+H13 v2 artifact metadata requires ABI 2.0, compiler revision 1 and admission
+revision 1, a content hash, lane, fixed page count and full IO byte length.
+`parseScriptArtifactV2` returns a frozen checked snapshot; unknown revisions
+refuse, rather than selecting a different compiler or admission path. Both
+`compileScriptV2` and `admitScriptV2` accept explicit revision requests and
+refuse unsupported values before entering their pipelines. Metadata parsing
+does not execute Wasm or verify the content hash: the native asset owner still
+verifies bytes and executable admission before constructing its selected lane. The host supplies the full trusted IO byte
 length (default 656 for header/directory only), also used to reserve compiler
 static data and stack outside the wire area. The
 [`ScriptModuleV2`](../src/engine/script/moduleV2.ts) primitive admits one sim or

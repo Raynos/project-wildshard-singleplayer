@@ -6,7 +6,7 @@ import { instrumentV2Finite } from './v2Finite';
 import { instrumentV2Fuel } from './v2Fuel';
 import type { V2Lane } from '@wildshard/format/scriptFuelV2';
 import { readV2Module } from '@wildshard/format/scriptModuleV2';
-import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
+import { admitScriptV2,SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 
 interface Compiler { main: (args: string[],options: { readFile: (name: string) => string | null; writeFile: (name: string,contents: string | Uint8Array) => void }) => Promise<{ error: Error | null; stderr?: { toString: () => string } }> }
 function compiler(value: unknown): value is Compiler { return typeof value === 'object' && value !== null && 'main' in value && typeof value.main === 'function'; }
@@ -40,7 +40,8 @@ function localStartAndAbort(bytes: Uint8Array): Uint8Array {
 /** Source exports the H0b signatures, including the final i32 fuel parameter
  * and i32 result for each work entry. Generated wrappers return the real fuel
  * remainder rather than trusting the authored result. */
-export async function compileScriptV2(source: string,options: { maximumPages?: number; ioBytes?: number; lane?: V2Lane; sources?: Readonly<Record<string,string>> } = {}): Promise<Uint8Array> {
+export async function compileScriptV2(source: string,options: { maximumPages?: number; ioBytes?: number; lane?: V2Lane; sources?: Readonly<Record<string,string>>; compilerRevision?: number } = {}): Promise<Uint8Array> {
+  if (options.compilerRevision !== undefined && options.compilerRevision !== SCRIPT_V2_REVISIONS.compiler) throw new Error('Unsupported v2 compiler revision');
   const pages = options.maximumPages ?? 1;
   if (!Number.isInteger(pages) || pages < 1 || pages > 4) throw new Error('V2 fixed memory must be 1..4 pages');
   const sources = new Map(Object.entries(options.sources ?? {}));

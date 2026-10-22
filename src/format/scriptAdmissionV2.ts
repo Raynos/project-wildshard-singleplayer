@@ -2,6 +2,26 @@
  * Kept separate from scriptAdmission so shipped v0/v1 contracts stay unchanged. */
 import { readV2Module,type V2Body,type V2Instruction,type V2Signature } from './scriptModuleV2';
 import { inspectV2Fuel,type V2Lane } from './scriptFuelV2';
+import * as v from 'valibot';
+
+/** H13 selects these versioned implementations explicitly. They describe the
+ * v2 toolchain only; the shipped v0/v1 compiler and admission remain separate. */
+export const SCRIPT_V2_REVISIONS = Object.freeze({ abi: 2,minor: 0,compiler: 1,admission: 1 } as const);
+export const ScriptArtifactV2Schema = v.strictObject({
+  abi: v.literal(SCRIPT_V2_REVISIONS.abi),minor: v.literal(SCRIPT_V2_REVISIONS.minor),
+  compilerRevision: v.literal(SCRIPT_V2_REVISIONS.compiler),admissionRevision: v.literal(SCRIPT_V2_REVISIONS.admission),
+  hash: v.pipe(v.string(),v.length(64),v.regex(/^[a-f0-9]{64}$/u)),lane: v.picklist(['sim','project','view']),
+  pages: v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(4)),
+  ioBytes: v.pipe(v.number(),v.integer(),v.minValue(656),v.maxValue(4*65536)),
+});
+export type ScriptArtifactV2 = Readonly<v.InferOutput<typeof ScriptArtifactV2Schema>>;
+/** Metadata selection is not executable admission or content-hash verification.
+ * The native asset owner verifies the hash before lending bytes to its lane. */
+export function parseScriptArtifactV2(input: unknown): ScriptArtifactV2 {
+  const row = v.parse(ScriptArtifactV2Schema,input);
+  if (row.ioBytes > row.pages*65536) throw new Error('V2 artifact IO exceeds its pages');
+  return Object.freeze(row);
+}
 
 interface Control { start: number; end: number; type: number; op: number }
 interface Guard { control: Control; type: number; set: number }
@@ -53,7 +73,9 @@ export interface ScriptAdmissionV2 {
 }
 /** No instantiation, getters or initialization occurs during admission. The
  * runtime must still validate host-owned output regions before publishing. */
-export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number; readonly lane?: V2Lane } = {}): ScriptAdmissionV2 {
+export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number; readonly lane?: V2Lane; readonly compilerRevision?: number; readonly admissionRevision?: number } = {}): ScriptAdmissionV2 {
+  if ((options.compilerRevision !== undefined && options.compilerRevision !== SCRIPT_V2_REVISIONS.compiler)
+    || (options.admissionRevision !== undefined && options.admissionRevision !== SCRIPT_V2_REVISIONS.admission)) throw new Error('Unsupported v2 compiler/admission revision');
   const image = readV2Module(bytes), fuel = inspectV2Fuel(bytes,options);
   const floats = new Map(image.globals.flatMap((global,index): [number,number][] => global.type === f32 || global.type === f64 ? [[index,global.type]] : []));
   for (let i = 0; i < image.bodies.length; i++) {
