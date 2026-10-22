@@ -4,15 +4,15 @@
 Order: live reds + G578/G587/G588 → Driftwood/Pine zero (G570–G573, G571 rules, G572 done bar) → grid crossing
 T1–T6 (G580/G581) → Nine → Nalati. Rows: lanes/ready-queue.md.
 
-**Official census (sp-x8, 3bd0b9fc7c, all-product reuse):** Pine 223 custom (44 local, 179 platform-charged;
-C5 112, C1 47, C9 47; 75 listed view), Driftwood 397 (269 local, 128 charged; C1 197, C9 159, C6 29). Was Pine 578,
-Driftwood 702 at 1e063584e2 this evening. Nalati 4,248, Nine 1,797 unchanged. Plan % refresh pending.
+**Official census (sp-x8, 493cca22b0 + f1d3ff1e8e stub rule):** Pine 51 (0 local, 51 platform-charged Pine-only
+exports; sp-o4 converting the last 30 graphical), Driftwood 174 (83 local), Nalati 4,250, Nine ~1,600. Both Pine and
+Driftwood shard folders now hold NO runtime TS except shard.config.ts (Pine 4f9f4cf879, DW eeb30486f1). G572 done
+bar = also no platform charges left against them.
 
-**Live:** see sp-x7 (00e5d7721d releasing: T3 allocator fix + Nalati keepers + all earlier live fixes). Deploy back on
-newest-ci-green (d4dffa3986); guard on heads >= 03d2597f56 lifts once CI on >= 173ec6a6ee passes products.
-Pine: only shard.config.ts left in src/shards/pine-hollow (4f9f4cf879 compiled page runtime); DW has 5 runtime files
-left (hybrid, catalogue, roster, blobAssets, rows). T1 warm neighbour landed default-off (028a898d22): crossing wait
-0.02 s when the player dwells; Simulator memory/fps reading next for default-on. T3 retention evicted under pressure.
+**Live:** 00e5d7721d (05:43Z), PINNED (c1adc78eb8): it carries T3's default activation, which the quiet A/B showed
+slows Sky->Pine by ~20 s (all retained templates evicted). Floor for the next release: 2c8e05dd64 (T3 default-off);
+sp-x7 releases the first green candidate containing it. T1 warm neighbour default-off (028a898d22, 0.02 s crossing
+when dwelling), Sim memory/fps reading pending. O18 per-visit leaks fixed (heap 303 -> 217 MB).
 
 **Lanes (G574: 3 Opus):** sp-o2 T1 warm neighbour; sp-o4 O18 per-visit memory leak; sp-o5 Nine looks/world
 (-22 so far). Codex: sp-x1 Nine non-graphical + T3 A/B (T3 landed, gain unproven); sp-x6 DW world tail (bridge,
