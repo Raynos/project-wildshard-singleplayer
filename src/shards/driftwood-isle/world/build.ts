@@ -1,6 +1,5 @@
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -50,12 +49,11 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // road deck (the catalogue's entryDeck, generators/entryDeckGeometry.ts) that carries the socket on over it, and a pier / jetty ramps up from it
   const fixed = driftwoodRows('custom/fixedLayouts');
   const { game, sky, player, registry } = world;
-  const entry = WorldEntry.admit(driftwoodProduct().section('world/scenes').entry, { scenes, root: game.scene, tier: game.tier, piece: (piece) => { registry.add(piece); } });
   const [{ cutTerrain }, , islandCover, coverCells] = await Promise.all([import('@wildshard/engine/physics/terrain'), loadFixedGeometry(undefined, game.registrationScope),loadVertexWear(driftwoodProduct(), fixed.coverFiles[TIER]),driftwoodProduct().file(`world/cover/cells/${TIER}.bin`)]); // the deferred world code (cut, the live baked heightfield)
   islandCover.wear(world.terrain.mesh.geometry, 0); // E156: the ground wears the cover (its baked bytes, generators/islandCover.ts)
   const coverMap = islandCover.texture; if (coverMap === null) throw new Error('The island cover carries its ground map');
   const slice = slicer(30, progress);
-  const assembly = fixed.assembly, total = 16 + assembly.piers.length;
+  const assembly = fixed.assembly, total = 18 + assembly.piers.length;
   let completed = 0;
   const complete = async (detail: string): Promise<void> => { await slice(++completed, total, detail); };
   const stage = async <T>(detail: string, work: () => T | Promise<T>): Promise<T> => {
@@ -68,11 +66,13 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
   // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
-  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete });
+  const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete,
+    entry: { root: game.scene, tier: game.tier, piece: (piece) => { registry.add(piece); } } });
+  const only = (id: string): Placed => { const [placed] = entryOwner(scope, 'placed', id); if (placed === undefined) throw new Error(`Driftwood ${id} placed nothing`); return placed; };
   const firstPier = assembly.piers[0]; if (firstPier === undefined) throw new Error('Missing entry pier');
   await stages.next(firstPier.id);
   // G170: the declared entry landings and the four asphalt road decks over the water carrying them on; each ramp rises from one
-  await entry.run('decks');
+  await stages.next('decks');
   const y = entryOwner(scope, 'floor', firstPier.id)(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
@@ -87,15 +87,16 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await complete('Boat');
   // faceted shore boulders along the beach
   // Keep the model's authored copy facts over the finished world draw.
-  const rocks = await stage('Shore boulders', async () => { await entry.run('shore'); return { placed: entry.placed('rocks.shore.copies') }; });
+  await stages.next('shore');
+  const rocks = { placed: only('shore') };
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
   await stages.next('hut');
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
   await stages.next('lookout');
   // the shipwreck with the cove's cargo, drift logs and reef rocks: declared copies drawn into the wreck site's meshes
   // (piece `wreck`: the site's colliders and floors; the Wreck cove set)
-  const wreck = await stage('Wreck', async () => { await entry.run('wreck');
-    return { group: scenes.group('wreck.root'), placed: entry.placedIn('wreck'), anchors: structuredClone(wreckBake.anchors), holdBounds: { ...wreckBake.holdBounds }, floorHeightAt: (x: number, z: number) => scenes.floorAt('wreck.ship', x, z) }; });
+  await stages.next('wreck');
+  const wreck = { group: entryOwner(scope, 'object', 'wreck'), placed: entryOwner(scope, 'placed', 'wreck'), anchors: structuredClone(wreckBake.anchors), holdBounds: { ...wreckBake.holdBounds }, floorHeightAt: entryOwner(scope, 'floor', 'wreck') };
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
   const shrine = await stage('Shrine', async () => {
     const ctx = sharedModelContext(sky, game), { baseY, terrace } = fixed.shrine.world;
@@ -113,7 +114,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await slice();
   if (fixed.foliage.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
   const foliage = fixed.foliage.tiers[game.tier];
-  const bushes = await stage('Bushes', async () => { await entry.run('bushes'); return { placed: entry.placed(`foliage.bushes.${game.tier}`), mesh: scenes.mesh('hibiscus.mesh') }; });
+  await stages.next('bushes');
+  const bushes = { placed: only('bushes'), mesh: entryOwner(scope, 'object', 'bushes') };
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = await stage('Gulls', () => {
     const flock = createAmbientFlock(driftwoodRows('custom/gullFlock'), { name: fixed.nativeView.GULL_GRAPH_LOOK, geometry: fixedDraw('gull').copy(), material: lentLook(fixed.nativeView.GULL_GRAPH_LOOK).clone(), castShadow: true }, fixed.gullPerches);
@@ -121,11 +123,10 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
     return flock;
   });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
-  await entry.run('trail');
-  const trailside = { mesh: scenes.mesh('trail.mesh'), placed: entry.placedIn('trail') };
+  await stages.next('trail');
+  const trailside = { mesh: entryOwner(scope, 'object', 'trail'), placed: entryOwner(scope, 'placed', 'trail') };
   // its fence posts, signposts and plank steps are the entry's placements drawn into the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
-  await complete('Trailside');
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
   const bridge = await stage('Rope bridge', () => placeRopeBridge(sky, assembly.bridge, registry));
   // coral, kelp and starfish on the lagoon shelf (what you dive for); its fish school is page life (generators/fishDraw.ts)
@@ -141,15 +142,14 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
   const coveRows = driftwoodRows('custom/fixedLayouts').cove, coveView = coveRows.composition;
   const coveSpec = structuredClone(coveRows.spec);
-  const cove = { group: scenes.group(coveView.root), placed: [] as Placed[], crabSites: coveSpec.crabSites,
+  const cove = { group: scenes.group(coveView.root), placed: [] as readonly Placed[], crabSites: coveSpec.crabSites,
     anchors: structuredClone(coveRows.native.anchors), update: followToonLook(driftwoodProduct(), coveView.look) };
   cove.group.add(scenes.group(coveView.cascade));
-  await entry.run('cove'); // its piece (world/scenes entry): rock walls, treads and floors
-  cove.placed.push(await scenes.place('cove.reef'));
+  await stages.next('cove'); // its piece (generators/worldEntry.ts): rock walls, treads and floors, then its reef rocks
+  cove.placed = entryOwner(scope, 'placed', 'cove');
   cutTerrain(world.physics, structuredClone(coveRows.native.cuts)); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
-  await complete('Cove');
-  await entry.run('palms'); // The registry borrows the compacted batch and its native boxes.
-  const palms = { placed: entry.placed(`foliage.palms.${game.tier}`), mesh: scenes.mesh('palms.mesh'), update: updateWind };
+  await stages.next('palms'); // The registry borrows the compacted batch and its native boxes.
+  const palms = { placed: only('palms'), mesh: entryOwner(scope, 'object', 'palms'), update: updateWind };
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
   const coverComposition = await driftwoodProduct().json<CoverComposition>('world/cover-composition.json');
   const coverPlaced = await scenes.place(coverComposition.placement);
@@ -159,7 +159,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const coverLogs = scenes.mesh(coverComposition.mesh);
   Object.assign(coverLogs.userData, coverComposition.userData); cover.group.add(coverLogs);
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover');
-  await complete('Palms and ground cover');
+  await complete('Ground cover');
   await macrotask();
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
   // SF30 activation stays held until SF46 parity: keep the legacy model's live terrain, widths and owners exactly.
@@ -174,8 +174,8 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   for (const [id, c] of [[looks.cover, reach.cover], [looks.coverBig, reach.big]] as const) {
     setLentParam(id, 'fade', [c.near + c.grow, c.far, c.grow]); setLentParam(id, 'groundRect', [...islandCover.rect]); setLentTexture(id, 'groundMap', coverMap);
   }
-  await entry.run('smallRocks'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
-  const smallRocks = scenes.mesh('rocks.small');
+  await stages.next('smallRocks'); // E315 M1: the small-rock model's declared copies, merged into the rocks scene's small weld
+  const smallRocks = entryOwner(scope, 'object', 'smallRocks');
   palmSpecs.push(...fixed.foliage.islandPalms);
   await slice(total, total, 'Baked island');
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
