@@ -43,6 +43,7 @@ test('orchard rows bind native senses, prey, adopted herd and deferred pack iden
     const owner = installNativeGroupRows(host,rows,grid,env), kid = host.entities.get('orchard.kid'), buck = host.entities.get('orchard.buck');
     expect(nativeGroupCollection(host,rows.id)).toBe(owner);
     const admitted = nativeHerdCollection(host,rows.herds);
+    expect(admitted).toBe(owner); expect(nativeHerdCollection(host,rows.herds)).toBe(admitted);
     expect(admitted.herds).toBe(owner.herds); expect(admitted.wind).toBe(env.wind);
     env.wind.strength = .75; expect(admitted.wind.strength).toBe(.75);
     expect(owner.herds[0]?.stallion).toBe(buck); expect(buck?.mem['owned']).toBe(1);

@@ -1,6 +1,6 @@
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import type { PackPrey } from '@wildshard/engine/ai/pack';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { PackBrain as FixturePack, type PackPrey } from '@wildshard/engine/ai/pack';
+import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real native capsule continuation uses the shipped physics bytes.
 import { readFileSync } from 'node:fs';
@@ -9,7 +9,10 @@ import { zlibSync } from 'fflate';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { restoreSimHost, snapshotSimHost } from '@wildshard/engine/sim/snapshot';
-import { admitNativeHerds } from '@wildshard/game/shardfile/groupRuntime';
+import { NativeGroupCollection as FixtureNativeGroups, nativeGroupCollection as fixtureGroup, nativeHerdCollection } from '@wildshard/game/shardfile/groupRuntime';
+import { Rng as FixtureRandom } from '@wildshard/engine/core/rng';
+import { nativeGroupBrain as fixtureBrain } from '@wildshard/format/groupBrains';
+import fixtureBrains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import { installMountedPlayer } from '@wildshard/game/riding/native';
 import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -18,7 +21,21 @@ const zero = btoa(String.fromCodePoint(...zlibSync(new Uint8Array(16))));
 const rows = { step: 'orchard.saddle', herds: 'orchard.herds', kinds: ['boar'], adopted: { kind: 'boar', variant: 'boar' },
   mountable: ['boar:1'], speeds: { walk: 1, trot: 3, canter: 5, gallop: 8 }, pose: {},
   world: { res: 2, size: 32, water: -100, wet: zero, pond: zero }, thrownDamage: 7, thrownLabel: 'Thrown', program: programs.riding };
-function install(host: SimHost) { admitNativeHerds(host, rows.herds, []); return installMountedPlayer(host, rows); }
+// These riding-only fixtures need a dormant, real group owner, without adding
+// host entities, random streams or a step participant to the original test.
+function herdService(host: SimHost, id: string, group = `fixture:${id}`): FixtureNativeGroups {
+  const spec = fixtureBrain({ ...fixtureBrains.pack, id: 'fixture.pack', home: [0, 0], members: ['fixture.actor'] });
+  if (spec.kind !== 'pack') throw new Error('Missing dormant fixture pack');
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing dormant group member');
+  const actor = new AnimalSim(sample.spec, sample.seed, sample.scale, 'fixture.group.actor', { heightAt: () => 0, random: () => .5, now: () => 0 });
+  const random = new FixtureRandom(17), pack = new FixturePack<AnimalSim>([actor], 0, 0, spec, {
+    sharedRng: () => random, environment: () => ({ playerFwdX: 0, playerFwdZ: -1, playerMounted: false, playerHealth01: 1, grassHeightAt: () => 0 }),
+    visibility: () => 1, hearing: () => 10, downwind: () => false, inBounds: () => true, normalY: () => 1, register: () => undefined, bite: () => undefined,
+  });
+  return new FixtureNativeGroups(host, [pack], [], new Map<string, AnimalSim>(), new Map<string, PackPrey>(), new WeakMap<PackPrey, string>(), [],
+    new WeakMap<AnimalSim, FixturePack<AnimalSim>>(), { id: group, herds: id, firstRaid: 0 });
+}
+function install(host: SimHost) { herdService(host, rows.herds); return installMountedPlayer(host, rows); }
 
 test('G478 orchard native fixture owns and restores its actual mounted capsule', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -56,7 +73,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native fixture recipe');
   const random = new Rng(71), { hunt } = fixtureNativeRoster(host, random), retired = new Set<string>();
   const bodies: HuntBody[] = [], sight: (boolean | null | undefined)[] = [];
-  admitNativeHerds(host, 'orchard.herds', []);
+  herdService(host, 'orchard.herds');
   admitMountRoster(host, 'orchard.actors', new NativeActors('creature', 64), random, hunt, bodies, sight, retired, []);
   const roster = new BondedMountRoster(host, { id: 'orchard.companions', services: 'orchard.actors', herds: 'orchard.herds', kind: 'boar', variant: 'boar', wildKinds: ['boar'], specs: [sample.spec], scale: [1, 1], spawnY: 10, program: admission });
   const mounted = installMountedPlayer(host, { ...rows, mountable: [] });
@@ -240,7 +257,7 @@ test('orchard fixture installs the complete native population through data rows'
     cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
   const environment = new NativeWildEnvironment(field, new TrampleField(), { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, ReturnProgram.native(host,admission));
   new NativeGroupCollection(host, [pack], [], new Map([[actor.entityId, actor]]), prey, ids, [actor], new WeakMap(), { id: 'orchard.groups', firstRaid: 14, environment });
-  admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap()); admitNativeHerds(host, 'orchard.herds', []);
+  admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap()); herdService(host, 'orchard.herds');
   const foragers = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41); foragers.colonies([{ x: 5, z: 5 }]);
   const checkpoint = random.snapshot(); random.next(); random.next(); random.next(); const stream = random.snapshot(); random.restore(checkpoint);
   const owner = installNativePopulation(host, hunt, random, { boot: { admission, pasture, streamSeed: 71, species: { boar: { kind: BOAR.kind, variants: BOAR.variants } }, recipes: [sample.spec] },
@@ -259,4 +276,21 @@ test('orchard fixture installs the complete native population through data rows'
     expect(owner.bodies).toEqual([actor]); expect(host.entities.has(bound.entityId)).toBe(false);
     expect(() => owner.spawnElite('foreign', 0, 0, 0, 'boar')).toThrow('Foreign');
   } finally { host.dispose(); }
+});
+
+test('native herd service keeps both id namespaces and retires with its real group owner', async () => {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+  try {
+    const before = host.rng.snapshot(), owner = herdService(host, 'orchard.same', 'orchard.same');
+    expect(fixtureGroup(host, 'orchard.same')).toBe(owner);
+    expect(nativeHerdCollection(host, 'orchard.same')).toBe(owner);
+    expect(nativeHerdCollection(host, 'orchard.same').herds).toBe(owner.herds);
+    expect(nativeHerdCollection(host, 'orchard.same').wind).toEqual({ x: 0, z: 0, strength: 0 });
+    expect(() => herdService(host, 'orchard.same', 'orchard.other')).toThrow('Invalid native herd collection');
+    expect(() => fixtureGroup(host, 'orchard.other')).toThrow('Missing native group collection');
+    expect(host.rng.snapshot()).toEqual(before); expect(host.entities.size).toBe(0);
+  } finally { host.dispose(); }
+  expect(() => fixtureGroup(host, 'orchard.same')).toThrow('Missing native group collection');
+  expect(() => nativeHerdCollection(host, 'orchard.same')).toThrow('Missing native herd collection');
 });

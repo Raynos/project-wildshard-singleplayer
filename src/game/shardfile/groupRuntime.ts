@@ -137,21 +137,12 @@ export function prepareDeclaredGroupBrains(host: SimHost, declarations: readonly
   } };
 }
 
-// Built-in controllers are trusted services, never author-provided port objects.
-const nativeHerdCollections = new WeakMap<SimHost, Map<string, { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } }>>();
-/** Publish native herd controllers under a stable service identity. */
-export function admitNativeHerds(host: SimHost, id: string, herds: readonly HerdBrain<AnimalSim>[], wind?: { x: number; z: number; strength: number }): void {
-  const services = nativeHerdCollections.get(host) ?? new Map<string, { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } }>();
-  if (services.has(id) || herds.length > 8 || herds.some(herd => !(herd instanceof HerdBrain))) throw new Error('Invalid native herd collection');
-  services.set(id, { herds, wind: wind ?? { x: 0, z: 0, strength: 0 } }); nativeHerdCollections.set(host, services);
-  host.scope.onDispose(() => { services.delete(id); });
-}
+const collections = new WeakMap<SimHost, Map<string, NativeGroupCollection>>();
 /** Resolve the admitted herd controllers and their live numeric wind together. */
 export function nativeHerdCollection(host: SimHost, id: string): { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } } {
-  const rows = nativeHerdCollections.get(host)?.get(id); if (rows === undefined) throw new Error('Missing native herd collection'); return rows;
+  const rows = [...(collections.get(host)?.values() ?? [])].find(owner => owner.herdService === id); if (rows === undefined) throw new Error('Missing native herd collection'); return rows;
 }
 
-const collections = new WeakMap<SimHost, Map<string, NativeGroupCollection>>();
 /** Existing native group service, resolved by stable data id. */
 export function nativeGroupCollection(host: SimHost, id: string): NativeGroupCollection {
   const owner = collections.get(host)?.get(id); if (owner === undefined) throw new Error('Missing native group collection'); return owner;
@@ -161,15 +152,19 @@ export function nativeGroupCollection(host: SimHost, id: string): NativeGroupCol
 export class NativeGroupCollection {
   private preyRows: PackPrey[][] = [];
   readonly environment: NativeWildEnvironment | undefined;
+  readonly herdService: string | undefined;
+  readonly wind: NativeWildEnvironment['wind'];
   constructor(private readonly host: SimHost, readonly packs: PackBrain<AnimalSim>[], readonly herds: HerdBrain<AnimalSim>[],
     private readonly actors: Map<string, AnimalSim>, private readonly prey: Map<string, PackPrey>, private readonly ids: WeakMap<PackPrey, string>,
     private readonly wolves: AnimalSim[], private readonly packOf: WeakMap<AnimalSim, PackBrain<AnimalSim>>,
-    rows: { id: string; firstRaid: number; environment?: NativeWildEnvironment }) {
+    rows: { id: string; firstRaid: number; environment?: NativeWildEnvironment; herds?: string }) {
     const map = collections.get(host) ?? new Map<string, NativeGroupCollection>();
     if (rows.environment !== undefined && !(rows.environment instanceof NativeWildEnvironment)) throw new Error('Invalid native group world');
     if (map.has(rows.id) || packs.length === 0 || packs.length > 8 || herds.length > 8 || packs.some(pack => !(pack instanceof PackBrain))
       || herds.some(herd => !(herd instanceof HerdBrain)) || [...actors.values()].some(actor => host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid native group owners');
+    if (rows.herds !== undefined && [...map.values()].some(owner => owner.herdService === rows.herds)) throw new Error('Invalid native herd collection');
     map.set(rows.id, this); collections.set(host, map); host.scope.onDispose(() => { map.delete(rows.id); }); this.firstRaid = rows.firstRaid; this.environment = rows.environment;
+    this.herdService = rows.herds; this.wind = rows.environment?.wind ?? { x: 0, z: 0, strength: 0 };
   }
   readonly firstRaid: number;
   addPack(members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> {
@@ -252,6 +247,6 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
       if (step.adopt !== null) herd.adoptStallion(actor(step.adopt)); herds.push(herd);
     }
   }
-  const collection = new NativeGroupCollection(host,packs,herds,actors,prey,ids,wolves,packOf,{ id: rows.id,firstRaid,environment });
-  admitNativeHerds(host,rows.herds,herds,environment.wind); admitNativeManagerTokens(host,rows.tokens,tokens); return collection;
+  const collection = new NativeGroupCollection(host,packs,herds,actors,prey,ids,wolves,packOf,{ id: rows.id,firstRaid,environment,herds: rows.herds });
+  admitNativeManagerTokens(host,rows.tokens,tokens); return collection;
 }
