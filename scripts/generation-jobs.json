@@ -17,7 +17,6 @@
         "pnpm-lock.yaml",
         "src/format",
         "src/sdk",
-        "src/shards/nine-dragon-stack/behaviour",
         "src/shards/nine-dragon-stack/generators/practiceDecision.mjs",
         "src/sdk/decisionScriptBindings.ts",
         "src/format/scriptAbiV1.ts",
