@@ -79,7 +79,6 @@ export class MountedSword<P extends MountedSwordProfile = MountedSwordProfile> e
 
   get mounted(): boolean { return this.mount !== null; }
   
-  get passChainLeft(): number { return this.chainT; }
 
   override tryFire():void{if(this.mount===null){super.tryFire();return;}this.pendingAttack=true;}
   private decide(dt:number):void{
@@ -134,5 +133,4 @@ export class BladeSet {
   return {...rows.rig,material,sword:geometry(rows.parts.body),arms:geometry(rows.parts.arms),extras:[{geometry:geometry(rows.parts.metal),material:steel}]};
  }
  profile():SabreProfile{return this.need().profile;}
- power():unknown{return this.need().rows.power;}
 }
