@@ -1,0 +1,7 @@
+{
+  "why": "G608 (Jake): every plot's hologram scaled to stand over its cell across the 5 x 5 (Jake picks the scale on the round-37 board: 6, 10 or 16), the corner beams at full height (the beam graph's top), the plot floor tinted in the idea's accent. The generator (generators/bake-plots.mjs) and shard.config.ts read it.",
+  "hologramScale": 10,
+  "beam": { "height": 120, "twin": 90 },
+  "farHologramTriangles": 500,
+  "floorTint": 0.35
+}

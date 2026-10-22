@@ -14,9 +14,10 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Document, NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { MeshoptDecoder } from 'meshoptimizer';
+import { MeshoptDecoder, MeshoptSimplifier } from 'meshoptimizer';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { paintDataMap } from '../../../../scripts/bake-data-maps.mjs';
+import { ACCENTS } from '@wildshard/format/accent';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const REPO = resolve(ROOT, '../../..');
@@ -26,8 +27,12 @@ const BILLBOARD = { z: 26, width: 24, height: 13.5, bottom: 5, depth: 0.5 };
 const SIGN = { x: 15, z: -10, width: 7.5, height: 2.5, bottom: 1.2, yaw: 0.4 };
 const KERB = { inner: 238, outer: 240, height: 0.5, gap: 15 };
 const FLOOR_STEP = 25;
-/** G539: the corner beacons (inside the kerb's corners) and their beams, height-capped so they never read across the 5 x 5 */
-const BEACON = { at: 244, half: 0.45, band: 0.9, bands: 6, beam: 60, twin: 45, width: 0.8 };
+/** G608: the hologram's scale, the beams' heights and the floor's accent tint (data/plot.json) */
+const PLOT = JSON.parse(readFileSync(resolve(ROOT, 'data/plot.json'), 'utf8'));
+/** G539 / G608: the corner beacons (inside the kerb's corners) and their beams, at full height (data/plot.json) */
+const BEACON = { at: 244, half: 0.45, band: 0.9, bands: 6, beam: PLOT.beam.height, twin: PLOT.beam.twin, width: 0.8 };
+/** G608: the far stand-ins' glow colour (the hologram graph's #46e6ff, lifted) and the far beams' width */
+const GLOW = [0.35, 1, 1], FAR_BEAM = 3;
 
 const ideas = JSON.parse(readFileSync(resolve(ROOT, 'outputs.json'), 'utf8')).outputs;
 
@@ -133,6 +138,29 @@ async function hologram(file) {
   });
 }
 
+/** sRGB hex to linear RGB */
+const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+
+/**
+ * G608: the far-only stand-ins (the source's `far_` nodes, which only the far proxy draws): the hologram
+ * welded by position and indexed (so the far bake can simplify it into the far budget) and a glowing box up each beam.
+ */
+async function farStandIns(holo) {
+  const positions = [], index = [], seen = new Map();
+  for (const triangle of holo) for (const v of triangle) {
+    const p = [-v.p[0] * PLOT.hologramScale, v.p[1] * PLOT.hologramScale + PLINTH.height + 0.02, -v.p[2] * PLOT.hologramScale];
+    const key = p.map(c => Math.round(c * 1e3)).join(',');
+    let at = seen.get(key); if (at === undefined) { at = positions.length / 3; seen.set(key, at); positions.push(...p); }
+    index.push(at);
+  }
+  // simplified here to the row's triangle count (the far ring's budget is shared by every cell's proxy)
+  await MeshoptSimplifier.ready;
+  const simplified = MeshoptSimplifier.simplify(new Uint32Array(index), new Float32Array(positions), 3, PLOT.farHologramTriangles * 3, 1, ['LockBorder']);
+  const beams = new Soup(), { at: corner, band, bands, beam } = BEACON, y0 = band * bands + 0.5, half = FAR_BEAM / 2;
+  for (const [x, z] of [[-corner, -corner], [corner, -corner], [corner, corner], [-corner, corner]]) beams.box('Glow', [x - half, y0, z - half], [x + half, beam, z + half], [1, 1, 1]);
+  return { hologram: { positions, index: Array.from(simplified[0]) }, beams: beams.part('Glow') };
+}
+
 async function plot(idea) {
   const assets = resolve(REPO, 'public/assets/open-plots', idea.idea), soup = new Soup();
   // the floor: a grid of 25 m quads, the four avenues and the plaza lighter than the field
@@ -181,40 +209,57 @@ async function plot(idea) {
   signBox(-w - 0.2, sLow - 0.2, 0.02, w + 0.2, sHigh + 0.2, 0.25);
   signBox(-w + 0.6, 0, 0.05, -w + 1, sLow - 0.2, 0.22); signBox(w - 1, 0, 0.05, w - 0.6, sLow - 0.2, 0.22);
   // the hologram on the plinth, its front turned to the south entry (it turns anyway)
-  const holo = await hologram(resolve(assets, 'hologram.glb')), holoPart = soup.part('Hologram');
+  const holo = await hologram(resolve(assets, 'hologram.glb')), holoPart = soup.part('Hologram'), k = PLOT.hologramScale;
   for (const triangle of holo) for (const v of triangle) {
-    holoPart.positions.push(-v.p[0], v.p[1] + top + 0.02, -v.p[2]); holoPart.normals.push(-v.n[0], v.n[1], -v.n[2]); holoPart.colours.push(...v.c); holoPart.uvs.push(0, 0);
+    holoPart.positions.push(-v.p[0] * k, v.p[1] * k + top + 0.02, -v.p[2] * k); holoPart.normals.push(-v.n[0], v.n[1], -v.n[2]); holoPart.colours.push(...v.c); holoPart.uvs.push(0, 0);
   }
-  return { soup, assets, kerbs };
+  return { soup, assets, kerbs, far: await farStandIns(holo) };
 }
 
-async function writeWorld(idea, { soup, assets, kerbs }) {
+async function writeWorld(idea, { soup, assets, kerbs, far }) {
   const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('plot');
   const png = async (file) => writeImagePixels(await readImagePixels(readFileSync(file)));
   const texture = async (name, file) => doc.createTexture(name).setImage(await png(file)).setMimeType('image/png');
   const materials = {
-    Floor: doc.createMaterial('Floor').setBaseColorFactor([0.05, 0.16, 0.26, 1]).setRoughnessFactor(1).setMetallicFactor(0),
+    // G608: the survey floor's blue mixed toward the idea's accent
+    Floor: doc.createMaterial('Floor').setBaseColorFactor([...[0.05, 0.16, 0.26].map((c, i) => c + ((linear(ACCENTS[idea.accent])[i] ?? c) * 0.4 - c) * PLOT.floorTint), 1]).setRoughnessFactor(1).setMetallicFactor(0),
     Kerb: doc.createMaterial('Kerb').setBaseColorFactor([0.5, 0.56, 0.64, 1]).setRoughnessFactor(1).setMetallicFactor(0),
     Plinth: doc.createMaterial('Plinth').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0),
     Rim: doc.createMaterial('Rim').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Frame: doc.createMaterial('Frame').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.7).setMetallicFactor(0),
     Billboard: doc.createMaterial('Billboard').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('billboard', resolve(assets, 'billboard.webp'))),
     Sign: doc.createMaterial('Sign').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('sign', resolve(assets, 'sign.webp'))),
-    // the far proxy keeps the hologram as a dim teal silhouette (its colour times the edge code)
     Hologram: doc.createMaterial('Hologram').setBaseColorFactor([0.1, 0.45, 0.55, 1]).setMetallicFactor(0),
     Beam: doc.createMaterial('Beam').setBaseColorFactor([0.27, 0.9, 1, 1]).setMetallicFactor(0),
+    // G608: the far stand-ins' glow (the far proxy only)
+    Glow: doc.createMaterial('Glow').setBaseColorFactor([...GLOW, 1]).setRoughnessFactor(1).setMetallicFactor(0),
   };
   for (const [, material] of Object.entries(materials)) if (material.getBaseColorTexture() !== null) {
     material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
   }
   const accessor = (values, type) => doc.createAccessor().setType(type).setArray(new Float32Array(values)).setBuffer(buffer);
+  // G608: each part welded (corners that share position, normal, colour and uv become one indexed vertex), so the far
+  // bake can simplify the flat floor, kerb and plinth into the far budget; the drawn triangles are the same
   const node = (name, part, material, uv) => {
-    const primitive = doc.createPrimitive().setMaterial(material)
-      .setAttribute('POSITION', accessor(part.positions, 'VEC3')).setAttribute('NORMAL', accessor(part.normals, 'VEC3')).setAttribute('COLOR_0', accessor(part.colours, 'VEC3'));
-    if (uv) primitive.setAttribute('TEXCOORD_0', accessor(part.uvs, 'VEC2'));
+    const welded = { positions: [], normals: [], colours: [], uvs: [] }, index = [], seen = new Map();
+    for (let i = 0; i < part.positions.length / 3; i++) {
+      const corner = [part.positions.slice(i * 3, i * 3 + 3), part.normals.slice(i * 3, i * 3 + 3), part.colours.slice(i * 3, i * 3 + 3), part.uvs.slice(i * 2, i * 2 + 2)];
+      const key = corner.flat().map(c => Math.round(c * 1e4)).join(',');
+      let at = seen.get(key);
+      if (at === undefined) { at = seen.size; seen.set(key, at); welded.positions.push(...corner[0]); welded.normals.push(...corner[1]); welded.colours.push(...corner[2]); welded.uvs.push(...corner[3]); }
+      index.push(at);
+    }
+    const primitive = doc.createPrimitive().setMaterial(material).setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint32Array(index)).setBuffer(buffer))
+      .setAttribute('POSITION', accessor(welded.positions, 'VEC3')).setAttribute('NORMAL', accessor(welded.normals, 'VEC3')).setAttribute('COLOR_0', accessor(welded.colours, 'VEC3'));
+    if (uv) primitive.setAttribute('TEXCOORD_0', accessor(welded.uvs, 'VEC2'));
     scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));
   };
   for (const [name, part] of soup.parts) node(name === 'Floor' ? 'ws_terrain_floor' : `draw_${name.toLowerCase()}`, part, materials[name], name === 'Billboard' || name === 'Sign');
+  // G608: the far-only stand-ins (shard.config's `far: 'far_'`): the welded hologram and the beam boxes, in the glow
+  const indexed = doc.createPrimitive().setMaterial(materials.Glow).setAttribute('POSITION', accessor(far.hologram.positions, 'VEC3'))
+    .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint32Array(far.hologram.index)).setBuffer(buffer));
+  scene.addChild(doc.createNode('far_hologram').setMesh(doc.createMesh('far_hologram').addPrimitive(indexed)));
+  node('far_beams', far.beams, materials.Glow, false);
   // collision: the floor, the kerb, the beacon posts, the plinth drum, the billboard and the sign (never the hologram,
   // the rim or a beam)
   const solid = new Soup();

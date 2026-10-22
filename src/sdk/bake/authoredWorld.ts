@@ -104,9 +104,10 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       library.push(file.hash); return { id: panel.id, file: file.hash, visible: true };
     });
     // The far proxy is an independently measured vertex-colour approximation, one draw and no interactive panels.
-    // additive graph surfaces (a hologram) are light without a far silhouette; a far impostor, not the proxy, carries them
+    // additive graph surfaces (a hologram) are light without a far silhouette; the world's far-only nodes (its source's
+    // `far` prefix) stand in for them here (G608)
     const light = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id]; return entry?.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive' ? [index] : []; }));
-    const farRows = await Promise.all([...world.static, ...world.undrawn].filter(row => !light.has(row.material)).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
+    const farRows = await Promise.all([...world.static, ...world.undrawn, ...world.far].filter(row => !light.has(row.material)).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
     const farParts = farRows.map(row => {
       const part = worldGeometry(row.primitive), colour = world.materials[row.primitive.material]?.colour ?? [1, 1, 1];
       const n = part.getAttribute('position').count, values: number[] = [], original = part.hasAttribute('color') ? part.getAttribute('color') : null;
