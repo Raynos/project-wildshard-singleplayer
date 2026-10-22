@@ -501,3 +501,68 @@ test('admission stops launching on refusal and drains before its authored error 
   expect(await pending).toBe('First authored refusal');
   expect(started).toHaveLength(4); expect(putAsset).not.toHaveBeenCalled(); expect(putProduct).not.toHaveBeenCalled();
 });
+
+test.each([false, true])('cache publication keeps pins and complete checks with batching=%s', async cacheBatch => {
+  const f = admissionWindowFixture(), refs = new Set(f.index.files.map(row => row.hash));
+  let release: (() => void) | undefined, active = 0, peak = 0, pinned = false, writes = 0;
+  const gate = new Promise<void>(resolve => { release = resolve; }), checked = new Set<string>(), disk = new Map<string, Uint8Array>();
+  const published = vi.fn(() => Promise.resolve());
+  const cache: ProductCache = {
+    product: () => Promise.resolve(null), asset: () => Promise.resolve(null),
+    putAsset: async (_base, hash, wire) => {
+      if (refs.has(hash)) { expect(pinned).toBe(true); active++; peak = Math.max(peak, active); await gate; active--; writes++; }
+      disk.set(hash, wire); return true;
+    },
+    verifiedPresent: (hash, size) => {
+      expect(pinned).toBe(true); expect(active).toBe(0); expect(writes).toBe(8); checked.add(hash);
+      return Promise.resolve(disk.get(hash)?.length === size);
+    },
+    pin: () => { pinned = true; return () => { pinned = false; }; }, putProduct: published,
+  };
+  const pending = admitProduct(f.index, { ...f.options, cache, cacheBatch });
+  try {
+    await vi.waitFor(() => { expect(active).toBe(cacheBatch ? 4 : 1); });
+    expect(published).not.toHaveBeenCalled(); expect(pinned).toBe(true);
+  } finally { release?.(); await pending; }
+  expect(peak).toBe(cacheBatch ? 4 : 1); expect(pinned).toBe(false);
+  expect(checked).toEqual(new Set([...refs, ...f.index.sections.map(row => row.hash), ...f.index.schemas.map(row => row.hash)]));
+  expect(published).toHaveBeenCalledOnce();
+});
+
+test('batched cache publication drains refusals before unpinning and never publishes partial data', async () => {
+  const f = admissionWindowFixture(), refs = f.index.files.map(row => row.hash), started: string[] = [];
+  let release: (() => void) | undefined, pinned = false, finished = false;
+  const gate = new Promise<void>(resolve => { release = resolve; }), published = vi.fn(() => Promise.resolve());
+  const cache: ProductCache = {
+    product: () => Promise.resolve(null), asset: () => Promise.resolve(null),
+    putAsset: async (_base, hash) => {
+      if (!refs.includes(hash)) return true;
+      started.push(hash);
+      if (hash === refs[0]) { await gate; throw new Error('First cache refusal'); }
+      if (hash === refs[1]) throw new Error('Second cache refusal');
+      return true;
+    },
+    putProduct: published, pin: () => { pinned = true; return () => { pinned = false; }; },
+  };
+  const pending = (async () => {
+    try { await admitProduct(f.index, { ...f.options, cache, cacheBatch: true }); return ''; }
+    catch (error: unknown) { return String(error); }
+    finally { finished = true; }
+  })();
+  try {
+    await vi.waitFor(() => { expect(started).toHaveLength(4); });
+    expect(pinned).toBe(true); expect(finished).toBe(false); expect(published).not.toHaveBeenCalled();
+  } finally { release?.(); }
+  expect(await pending).toContain('First cache refusal');
+  expect(started).toHaveLength(4); expect(pinned).toBe(false); expect(published).not.toHaveBeenCalled();
+});
+
+test('one missing durable asset prevents a batched offline product while the online admission succeeds', async () => {
+  const f = admissionWindowFixture(), published = vi.fn(() => Promise.resolve());
+  const cache: ProductCache = {
+    product: () => Promise.resolve(null), asset: () => Promise.resolve(null),
+    putAsset: () => Promise.resolve(true), verifiedPresent: hash => Promise.resolve(hash !== f.ref), putProduct: published,
+  };
+  const admitted = await admitProduct(f.index, { ...f.options, cache, cacheBatch: true });
+  expect(admitted.assets.size).toBe(8); expect(published).not.toHaveBeenCalled();
+});

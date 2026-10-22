@@ -30,6 +30,7 @@ import { lendLooks } from './lentLooks';
 import { punchPageTerrain } from './pagePreparation';
 import { bindPageWater } from './pageWater';
 import { runtimeLookMaterials } from './runtimeProduct';
+import { timeClientPreparation } from './preparationTiming';
 
 type ForestPageRow = Extract<ClientFeatureRow, { kind: 'world.forest-page' }>;
 type PageLifeRow = Extract<ClientFeatureRow, { kind: 'page.life' }>;
@@ -52,10 +53,10 @@ export async function installClientForestPage(ctx: ShardContext, row: ForestPage
   if (runtime === undefined || world === undefined || world === null) throw new Error('Forest page requires its world');
   if (ended(ctx)) return;
   const input = await ctx.product.json<ForestPageRows>(row.file); if (ended(ctx)) return;
-  await ports.prepareForestPageLooks(ctx, input); if (ended(ctx)) return;
+  await timeClientPreparation(ctx.product.slug, 'forest.looks', () => ports.prepareForestPageLooks(ctx, input)); if (ended(ctx)) return;
   ports.bindPageWater(ctx, input.water);
-  const wildlife = await ports.library(ctx.product, input.wildlife); if (ended(ctx)) return;
-  const looks = await ports.runtimeLookMaterials(ctx, ctx.product.shardfile, true, [wildlife.name]); if (ended(ctx)) return;
+  const wildlife = await timeClientPreparation(ctx.product.slug, 'forest.wildlife', () => ports.library(ctx.product, input.wildlife)); if (ended(ctx)) return;
+  const looks = await timeClientPreparation(ctx.product.slug, 'forest.wildlife-looks', () => ports.runtimeLookMaterials(ctx, ctx.product.shardfile, true, [wildlife.name])); if (ended(ctx)) return;
   ports.lendLooks(ctx.scope, looks);
   const page = await ports.prepareForestPage(ctx, input); if (ended(ctx)) return;
   const id = page.rows.id;

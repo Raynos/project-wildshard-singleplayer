@@ -183,7 +183,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         request.allocator.markMeasuredPage(claim.id);
       }
       if (declaration !== null) coverRuntimeAssets(request.allocator, scope, request.claim);
-      const foundation = await prepare({ ...request, scope });
+      const foundation = await timeClientPreparation(request.cell.slug, 'native.foundation', () => prepare({ ...request, scope }));
       if (scope.disposed) { foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }
       scope.onDispose(foundation.region.dispose);
       const host = foundation.region.host;

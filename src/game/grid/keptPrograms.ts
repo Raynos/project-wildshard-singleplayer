@@ -9,7 +9,8 @@ export const SHADER_WARM_PICK = 'debug.gridShaderWarm';
 /** G580 T2: off; keep a retiring cell's compiled programs for the next cell; also, while the traveller waits at a cell's
  *  wall, let live Safari preparation issue more programs a frame (engine/render/precompile setWarmUpHeld); also freeze the
  *  parked destination's matrices during its warm-up (setParkedMatricesFrozen); also give its builds a bigger per-frame
- *  budget while the traveller is held (G580 T5, engine/core/framePacing setBuildHeld). Each includes the ones before. */
+ *  budget while the traveller is held (G580 T5, engine/core/framePacing setBuildHeld), and overlaps four offline-cache
+ *  publication requests without skipping any durable checks. Each includes the ones before. */
 export type ShaderWarmChoice = 'off' | 'keep' | 'held' | 'frozen' | 'budget';
 
 /** The Developer choice (default off under the risky render / memory rule until a device reading). */

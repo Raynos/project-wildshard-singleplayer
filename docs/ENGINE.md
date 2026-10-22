@@ -4796,6 +4796,13 @@ all started reads settle before the earliest authored refusal returns.
 Asset-map and cache publication happen only after every read succeeds.
 This transport window never changes the page-wide one-slot GLTF decoder.
 
+`ProductOptions.cacheBatch` optionally overlaps four offline-cache writes or
+durable-presence checks per settled window. Pins remain held through all
+started operations, including failure; refusals retain authored order.
+Every asset and section still requires durable presence before publishing
+the complete offline product. Browser admission enables this only with the
+existing Developer Grid shader warm-up budget choice; the default is serial.
+
 Browser first-party metadata may reuse a URL-cache hint only after bounded
 reading and independent hashing. An index hash must belong to the running
 client's bundled index set; section bytes must match their index hash and

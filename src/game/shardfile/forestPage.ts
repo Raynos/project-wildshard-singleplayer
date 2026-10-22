@@ -26,6 +26,7 @@ import { installWorldScenes } from './worldScenes';
 import { hydrateWorldSceneWeld } from './worldSceneWeld';
 import { residentWorldScope } from './hybridPresentation';
 import { runtimeLookMaterials } from './runtimeProduct';
+import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
@@ -61,7 +62,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
   if (pages.get(ctx.scope)?.has(rows.id) === true) throw new Error('Duplicate forest page');
   const { game, sky, forest, player, registry } = world;
   ctx.app.registerTrample(trample, ctx.scope);
-  const resources = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
+  const resources = await timeClientPreparation(ctx.product.slug, 'forest.scenes', () => installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx)));
   const streams = { group: resources.group(rows.streams.group), water: resources.mesh(rows.streams.water), spray: resources.mesh(rows.streams.spray) }; game.scene.add(streams.group);
   const carpet = await step('grass', async () => {
     const grass = ctx.scope.run(() => new Grass(sky, forest, { trample: { field: trample, glsl: TRAMPLE_GLSL } }).build()); await macrotask();

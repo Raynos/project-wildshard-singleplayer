@@ -21,6 +21,7 @@ import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
 import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/download';
 import { GridAdmissionPriority } from './admissionPriority';
+import { timeClientPreparation } from '../shardfile/preparationTiming';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
 const farRow = v.looseObject({ far: v.nullable(v.looseObject({ decoded: v.number(), gpu: v.number() })) });
@@ -193,7 +194,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
       } }),
     };
     const input = await readIndexBytes(await boundedResponse(await options.fetch(url.href), limits.sourceBytes), options);
-    const admitted = await admitProduct(input, { ...options, reserve });
+    const admitted = await timeClientPreparation(slug, 'product.admission', () => admitProduct(input, { ...options, reserve }));
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
     gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);
     accountTransportRelease(admitted, releaseBytes);

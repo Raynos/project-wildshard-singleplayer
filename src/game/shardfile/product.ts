@@ -69,6 +69,8 @@ export interface ProductOptions {
   progress?: (progress: ProductProgress) => void;
   /** Trusted presentation scheduling between complete checks; validation never skips work. */
   pause?: () => Promise<void>;
+  /** Trusted Developer budget experiment: at most four cache requests in flight; durable checks and pins stay. */
+  cacheBatch?: boolean;
   /** The bundled page's own first-party index hashes, and its once-only reload when a newer deployment's index arrives. */
   built?: { indexes: ReadonlySet<string>; stale: () => Promise<void> };
 }
@@ -211,6 +213,14 @@ export async function browserContentHash(bytes: Uint8Array): Promise<string> {
 export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   return waitFor('Admit product', admitProductWork(input, options), 'admission');
 }
+/** Drain a bounded window before refusal or publication; cache operations keep their authored error order. */
+async function cacheRows<T>(rows: readonly T[], batch: boolean, work: (row: T) => Promise<void>): Promise<void> {
+  if (!batch) { for (const row of rows) await work(row); return; }
+  for (let at = 0; at < rows.length; at += 4) {
+    const settled = await Promise.allSettled(rows.slice(at, at + 4).map(work));
+    for (const result of settled) if (result.status === 'rejected') throw result.reason;
+  }
+}
 async function admitProductWork(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
   options.progress?.({ phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
@@ -337,21 +347,21 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     const release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')).concat(sectionFiles.map(section => section.hash)));
     try {
       let complete = descriptor?.cached ?? true;
-      for (const [ref, bytes] of assets) {
+      await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
         const hash = ref.replace(/^commons:/u, '');
-        if (verifiedCached.has(hash)) continue; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
+        if (verifiedCached.has(hash)) return; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
         progress('cache', `Saving ${ref.slice(0, 12)}`); if (await cache.putAsset(base, hash, bytes) === false) complete = false;
-      }
+      });
       const present = async (hash: string, bytes: number): Promise<boolean> => cache.verifiedPresent === undefined
         ? await cache.asset(base, hash) !== null : cache.verifiedPresent(hash, bytes);
-      for (const [ref, bytes] of assets) {
+      await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
         const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${ref.slice(0, 12)}`);
-        if (await present(hash, bytes.length)) continue;
+        if (await present(hash, bytes.length)) return;
         // Another owner/browser may have evicted a previously verified hit before this publication pin.
         // Repair that miss, then recheck durable presence just as for a newly fetched file.
         if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || !await present(hash, bytes.length)) complete = false;
-      }
-      for (const section of sectionFiles) if (!await present(section.hash, section.bytes)) complete = false;
+      });
+      await cacheRows(sectionFiles, options.cacheBatch === true, async section => { if (!await present(section.hash, section.bytes)) complete = false; });
       if (complete && descriptor !== undefined) await cache.putProduct(base, { source: descriptor.index, firstParty: options.firstParty,
         ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: descriptor.indexHash, worst } }) });
     } finally { release?.(); }
