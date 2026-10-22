@@ -2,7 +2,7 @@ import type { BufferGeometry, Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
-import { shapeBook } from '../models/shapeBook';
+import { inlineFixedDraw } from '../models/fixedDraws';
 import { playClips, type ClipCtx } from '../plugin/animation';
 import { createClientScene } from '../plugin/ui';
 
@@ -14,7 +14,7 @@ interface Mount { readonly mesh: { readonly skeleton: { getBoneByName: (name: st
 /** The figure's private scene in its one painterly material, drawn from the rows' inline shapes; `own` takes each decoded
  *  geometry. The live seat and the cold mounted specimen build the same view. */
 export function seatedFigureView(row: MountedSpecimenSeatRows, own: (geometry: BufferGeometry) => void = () => undefined): ReturnType<typeof createClientScene> {
-  const geometry = new Map(shapeBook({ shapes: [], inline: row.shapes, labels: [] }).geometries(row.shapes.map(shape => shape.key)));
+  const geometry = new Map(row.shapes.map(shape => [shape.key, inlineFixedDraw({ slot: shape.key, channels: [], inline: shape.data, baked: shape.geometry })] as const));
   for (const part of geometry.values()) own(part);
   const material = painterlyMaterial(null, { rim: row.material.rim, bands: row.material.bands });
   return createClientScene(row.figure, { geometry, materials: new Map([[row.material.id, material]]) });

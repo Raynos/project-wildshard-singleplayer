@@ -23,7 +23,7 @@ import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/
 import { createClientScene } from '../plugin/ui';
 import { AmbientWingField } from '../ambient/wingField';
 import { EncounterSites } from '../boss/encounterView';
-import { letteringMaterial } from '../models/shapeBook';
+import { letteringMaterial } from '../looks/lettering';
 import { hasLentLook, lendLooks, lentLook, lentMappedLook, setLentParam, setLentTexture } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import type { Scope } from '@wildshard/engine/app/scope';

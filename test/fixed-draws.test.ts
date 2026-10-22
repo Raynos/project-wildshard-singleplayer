@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { zlibSync } from 'fflate';
-import { coldFixedDraws, fixedDraws, inlineFixedDraw } from '../src/game/models/fixedDraws';
+import { bakedFixedDraws, coldFixedDraws, fixedDraws, inlineFixedDraw } from '../src/game/models/fixedDraws';
 import { Scope } from '../src/engine/app/scope';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 
@@ -157,4 +157,10 @@ test('a lane block past its bake, two sources or a lane without its baked layout
   expect(() => fixedDraws(product, [{ slot: 'two', file: 'a.glb', lane: { url: '/b.bin', offset: 0 }, channels: [], baked }])).toThrow();
   expect(() => fixedDraws(product, [{ slot: 'raw', lane: { url: '/b.bin', offset: 0 }, channels: [] }])).toThrow();
   expect(() => inlineFixedDraw({ slot: 'file', file: 'a.bin', channels: [], baked })).toThrow('inline baked row');
+});
+
+test('a baked library reads lane and inline rows only', async () => {
+  const library = bakedFixedDraws([{ slot: 'inline', inline: base64(zlibSync(block(5))), channels: [], baked }]);
+  await library.load(); expect(library.handle('inline').copy().getAttribute('position').getX(0)).toBe(5);
+  expect(() => bakedFixedDraws([{ slot: 'glb', file: 'models/a.glb', channels: [] }])).toThrow('read no product file');
 });

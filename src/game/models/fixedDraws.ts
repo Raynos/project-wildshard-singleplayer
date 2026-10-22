@@ -112,6 +112,14 @@ export function fixedDraws(product: Pick<ShardProduct, 'file' | 'slug'>, input: 
   };
 }
 
+/** A library whose rows read no product file (lane bakes and inline blocks only: a shard's prepared shapes); a file row
+ *  refuses. */
+export function bakedFixedDraws(input: unknown): FixedDraws {
+  const rows = v.parse(FixedDrawRowsSchema, input);
+  if (rows.some(row => 'file' in row)) throw new Error('Baked fixed draws read no product file');
+  return fixedDraws({ slug: 'baked', file: name => Promise.reject(new Error(`Baked fixed draws read no product file: ${name}`)) }, rows);
+}
+
 /** G571: a cold view's own fixed draws (a kit-figure Explorer card): exactly `slots` of the admitted rows, through the
  *  same loader and format, owned by `cardScope` (never the live world's library, and no cache). Every slot's read and
  *  decode settles before the result: a card closed or retiring meanwhile, or any failed slot, releases exactly the

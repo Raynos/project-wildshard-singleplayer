@@ -1,8 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { shapeBook } from '../src/game/models/shapeBook';
-import shapeRows from '../src/shards/nalati-grasslands/boot/shapeBook.generated.json' with { type: 'json' };
+import { SHAPES } from '../src/shards/nalati-grasslands/models/shapes';
+import { letteringMaterial } from '../src/game/looks/lettering';
+import atlases from '../src/shards/nalati-grasslands/data/signAtlases.json' with { type: 'json' };
 import { seatedFigureView } from '../src/game/riding/seatedFigure';
 import { MOUNTED_FIGURE } from '../src/shards/nalati-grasslands/generators/mountedFigure';
 import { SkyRig } from '../src/engine/world/skyRig';
@@ -27,7 +28,7 @@ describe('Nalati fixed POI paint', () => {
   it('retains native fitted rock and glacier attributes, bounds and contact order', () => {
     expect(fixed.glacierSnout).toEqual(staticOracle.anchor);
     for (const [key, expected] of Object.entries(staticOracle.geometries)) {
-      const geometry = shapeBook(shapeRows).geometry(key);
+      const geometry = SHAPES.handle(key).copy();
       expect({ attributes: Object.entries(geometry.attributes).map(([name, a]) => ({ name,
         type: a.array.constructor.name, size: a.itemSize, count: a.count, normalized: a.normalized, hash: hash(a.array),
       })), index: geometry.index === null ? null : { type: geometry.index.array.constructor.name, count: geometry.index.count, hash: hash(geometry.index.array) },
@@ -41,7 +42,7 @@ describe('Nalati fixed POI paint', () => {
 
   it('retains every parent vertex, normal, colour, UV, index and bound', () => {
     for (const row of oracle.rows) {
-      const geometry = shapeBook(shapeRows).geometry(row.key);
+      const geometry = SHAPES.handle(row.key).copy();
       expect(Object.entries(geometry.attributes).map(([name, a]) => ({ name,
         type: a.array.constructor.name, size: a.itemSize, normalized: a.normalized,
         count: a.count, bytes: a.array.byteLength, hash: hash(a.array),
@@ -51,7 +52,7 @@ describe('Nalati fixed POI paint', () => {
       expect(geometry.groups).toEqual(row.groups);
       expect(geometry.boundingBox === null ? null : [geometry.boundingBox.min.toArray(), geometry.boundingBox.max.toArray()]).toEqual(row.box);
       expect(geometry.boundingSphere === null ? null : [geometry.boundingSphere.center.toArray(), geometry.boundingSphere.radius]).toEqual(row.sphere);
-      const second = shapeBook(shapeRows).geometry(row.key);
+      const second = SHAPES.handle(row.key).copy();
       expect(second.getAttribute('position').array).not.toBe(geometry.getAttribute('position').array);
       geometry.dispose(); second.dispose();
     }
@@ -77,7 +78,7 @@ describe('Nalati fixed POI paint', () => {
   it('adopts exact atlas pixels and sampling before entering the world', () => {
     const sky = testSky();
     for (const key of ['roads', 'specimen'] as const) {
-      const mesh = shapeBook(shapeRows).lettering(sky, key), material: unknown = mesh.material, expected = oracle.atlases[key];
+      const mesh = new Mesh(SHAPES.handle(`sign-labels:${key}`).copy(), letteringMaterial(sky, { ...atlases[key], rim: 0.2 })), material: unknown = mesh.material, expected = oracle.atlases[key];
       if (!(material instanceof MeshLambertMaterial) || !(material.map instanceof DataTexture)) throw new Error('Sign lettering needs its Lambert atlas');
       const atlas = material.map, image: unknown = atlas.image;
       if (typeof image !== 'object' || image === null) throw new Error('Missing atlas image');
@@ -87,7 +88,6 @@ describe('Nalati fixed POI paint', () => {
       expect([Reflect.get(image, 'width'), Reflect.get(image, 'height')]).toEqual([expected.width, expected.height]);
       expect([atlas.colorSpace, atlas.anisotropy, atlas.flipY, atlas.generateMipmaps, atlas.minFilter, atlas.magFilter, atlas.wrapS, atlas.wrapT])
         .toEqual([SRGBColorSpace, 4, true, true, LinearMipmapLinearFilter, LinearFilter, ClampToEdgeWrapping, ClampToEdgeWrapping]);
-      expect(mesh.castShadow).toBe(false); expect(mesh.receiveShadow).toBe(true);
       const geometry: unknown = mesh.geometry;
       if (!(geometry instanceof BufferGeometry)) throw new Error('Sign lettering requires baked geometry');
       geometry.dispose(); atlas.dispose(); material.dispose();

@@ -12,8 +12,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import marsh from './fixtures/boss-owner/marsh-room.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/kurganView.json' with { type: 'json' };
 import { bossArena } from './fake/bossArena';
-import { shapeBook } from '../src/game/models/shapeBook';
-import shapeRows from '../src/shards/nalati-grasslands/boot/shapeBook.generated.json' with { type: 'json' };
+import { SHAPES } from '../src/shards/nalati-grasslands/models/shapes';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
@@ -23,7 +22,7 @@ test('second-shard arena owns its translated floor, gate, cover and sand', () =>
  const root = source.scene.nodes.find(node => node.id === source.scene.root);
  if (root === undefined || !('position' in root)) throw new Error('Missing room root');
  root.position = [30, 20, 40];
- const shapes = new Map([...source.scene.nodes, ...source.static.nodes].flatMap(row => 'geometry' in row ? [[row.geometry, shapeBook(shapeRows).geometry(row.geometry)]] as const : []));
+ const shapes = new Map([...source.scene.nodes, ...source.static.nodes].flatMap(row => 'geometry' in row ? [[row.geometry, SHAPES.handle(row.geometry).copy()]] as const : []));
  const sand = new PlaneGeometry(12,12,8,8); sand.rotateX(-Math.PI/2);
  const count = sand.getAttribute('position').count; sand.setAttribute('light',new Float32BufferAttribute(new Float32Array(count*3).fill(1),3)); sand.setAttribute('color',new Float32BufferAttribute(new Float32Array(count*3).fill(1),3));
  const sandRow = source.scene.nodes.find(row => row.id === marsh.sand);
@@ -71,7 +70,7 @@ test('the reed vault portal owns fade, isolation, floor recovery and exit placem
  const source = structuredClone(view), root = source.scene.nodes.find(node => node.id === source.scene.root);
  if (root === undefined || !('position' in root)) throw new Error('Missing room root');
  root.position = [30,20,40];
- const shapes = new Map([...source.scene.nodes,...source.static.nodes].flatMap(row => 'geometry' in row ? [[row.geometry,shapeBook(shapeRows).geometry(row.geometry)]] as const : []));
+ const shapes = new Map([...source.scene.nodes,...source.static.nodes].flatMap(row => 'geometry' in row ? [[row.geometry,SHAPES.handle(row.geometry).copy()]] as const : []));
  const room = new BossArenaRoom({ ...marsh, sandCells: 40, view: source },shapes);
  const game = { scene: new Scene(), camera: new PerspectiveCamera() }, animals = { calm: false, group: new AnimalGroup() };
  const player = { position: new Vector3(200,2,202), velocity: new Vector3(1,-2,3), yaw: 3, pitch: .5, moveScale: 1 };

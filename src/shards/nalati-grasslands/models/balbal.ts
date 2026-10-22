@@ -14,8 +14,7 @@ import rows from '../boot/balbalSpecimen.generated.json' with { type: 'json' };
  * `balbalGeometry(variant)` (feet at y 0, facing −z, 2.1 m) is B11's rig's body too.
  */
 import type * as THREE from 'three';
-import { shapeBook } from '@wildshard/game/models/shapeBook';
-import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
+import { SHAPES } from './shapes';
 
 export type BalbalCarving = 'bare' | 'capped';
 
@@ -26,7 +25,7 @@ export interface BalbalParams {
 
 /** A fresh copy of the admitted carving; consumers may transform it in place. */
 export function balbalGeometry(variant: number, seed = 0xba1): THREE.BufferGeometry {
-  return shapeBook(shapeRows).geometry(`balbal:${String(variant)}:${String(seed)}`);
+  return SHAPES.handle(`balbal:${String(variant)}:${String(seed)}`).copy();
 }
 
 export const balbal = defineSpecimenCatalogue<{balbal:BalbalParams}>(rows.catalogue).model('balbal');

@@ -13,7 +13,6 @@
     "./ui/panelTemplates": "./ui/panelTemplates.ts",
     "./ui/dataPanels": "./ui/dataPanels.ts",
     "./population/nativeBake": "./population/nativeBake.ts",
-    "./models/shapeBook": "./models/shapeBook.ts",
     "./models/mountedSpecimen": "./models/mountedSpecimen.ts",
     "./models/runtimeSpecimens": "./models/runtimeSpecimens.ts",
     "./population/perchBody": "./population/perchBody.ts",

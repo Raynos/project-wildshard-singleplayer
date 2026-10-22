@@ -42,6 +42,8 @@ writer.put(resolve(root,shard,'boot/placeRuntime.generated.json'),jsonBytes({pla
 writer.put(resolve(root,shard,'data/placeRuntime.generated.json'),jsonBytes({places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
 writer.put(resolve(root,shard,'boot/modelMetrics.generated.json'),jsonBytes(read('data/modelMetrics.json')));
 writer.put(resolve(root,shard,'boot/staticCapture.generated.json'),jsonBytes(read('data/staticCapture.json')));
-const paint=read('data/poiPaint.json'),atlases=read('data/signAtlases.json');
-writer.put(resolve(root,shard,'boot/shapeBook.generated.json'),jsonBytes({binary:{url:'/assets/nalati/baked/places.bin',bytes:places.bytes},shapes:rows.filter(row=>row.name.startsWith('actor:')).flatMap(row=>row.meshes.slice(0,1).map(mesh=>({key:row.name.slice(6),offset:mesh.offset,geometry:mesh.geometry}))),inline:paint.rows.map(({key,data,geometry})=>({key,data,geometry})),labels:Object.entries(atlases).map(([key,atlas])=>({key,shape:`sign-labels:${key}`,name:'nalati-signs',width:atlas.width,height:atlas.height,data:atlas.data,rim:.2}))}));
+const paint=read('data/poiPaint.json');
+// G600 L8: the prepared shapes as fixed draw rows (game/models/fixedDraws): the actors' blocks in the place bake, the
+// painted ones inline. The sign lettering's atlases are scene-dressing rows of their own (game/looks/lettering).
+writer.put(resolve(root,shard,'boot/shapeBook.generated.json'),jsonBytes({draws:[...rows.filter(row=>row.name.startsWith('actor:')).flatMap(row=>row.meshes.slice(0,1).map(mesh=>({slot:row.name.slice(6),channels:[],lane:{url:'/assets/nalati/baked/places.bin',offset:mesh.offset},baked:mesh.geometry}))),...paint.rows.map(({key,data,geometry})=>({slot:key,channels:[],inline:data,baked:geometry}))]}));
 writer.finish();

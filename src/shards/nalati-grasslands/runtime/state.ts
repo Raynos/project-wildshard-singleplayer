@@ -20,8 +20,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
-import { shapeBook } from '@wildshard/game/models/shapeBook';
-import shapeRows from '../boot/shapeBook.generated.json' with { type: 'json' };
+import { SHAPES, loadShapes } from '../models/shapes';
 import { EliteRosterPage, type EliteRosterRows } from '@wildshard/game/quest/eliteRosterPage';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { installAssemblyWeather } from '@wildshard/game/shardfile/worldAssembly';
@@ -80,7 +79,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
   //    are the dressing's rows: its statics, the balbal sites, the road lettering, the camp smoke and the places' anchors
-  await shapeBook(shapeRows).load();
+  await loadShapes();
   const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [], tie = anchors('cairn', 'tie')[0];
   updates.push(() => undefined); // The dressing owns this frame slot.
   await slice(++completed, total, 'Places');
@@ -116,7 +115,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
   const { constants: { pageElites } } = await plugin.product.json<{ constants: { pageElites: EliteRosterRows } }>('sim/headless-assembly.json');
   const dropMaterial = painterlyMaterial(sky, { rim: .6 });
-  const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(shapeBook(shapeRows).geometry(`trophy:${row.def.id}`), dropMaterial)); return [row.def.id, model] as const; }));
+  const drops = new Map([...pageElites.keepers, ...pageElites.external].map(row => { const model = new Group(); model.add(new Mesh(SHAPES.handle(`trophy:${row.def.id}`).copy(), dropMaterial)); return [row.def.id, model] as const; }));
   const elites = new EliteRosterPage<Flock>({ game, player: ctx.player, ledges: anchors('crags', 'ledges'), rock: poiLayout.EAGLE_ROCK, clock: weather.clock, weather: weather.weather },
     pageElites, eliteProgram, drops, charge);
   updates.push((dt, t) => {
@@ -132,7 +131,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
   const kingRows = v.parse(v.object({ king: v.record(v.string(),v.unknown()), arenaRoom: v.unknown(), programs: v.object({ rules: v.unknown() }) }), await plugin.product.json('combat/titan-fight.json'));
-  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },shapeBook(shapeRows).geometries(arenaRoomGeometryIds(kingRows.arenaRoom)),anchors('kurgans', 'entrance')[0] ?? null);
+  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },arenaRoomGeometryIds(kingRows.arenaRoom).map(id => [id, SHAPES.handle(id).copy()] as const),anchors('kurgans', 'entrance')[0] ?? null);
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
@@ -148,7 +147,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
-  const riderFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-rider')), captainFigure = game.levelScope.own(shapeBook(shapeRows).geometry('ghost-captain'));
+  const riderFigure = game.levelScope.own(SHAPES.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(SHAPES.handle('ghost-captain').copy());
   const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
