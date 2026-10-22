@@ -33,6 +33,7 @@ import titanProgram from '../behaviour/titan.generated.json' with { type: 'json'
 import renderTiles from '../data/renderTiles.json' with { type: 'json' };
 import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
+import creatureViews from '../behaviour/creatureViews.generated.json' with { type: 'json' };
 
 // The existing plugin remains the trusted world entry while its audio comes from the shardfile.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand
@@ -53,12 +54,14 @@ const resident = files.reduce((sum, file) => sum + file.decoded, 0);
 const programs = [heldWeapons.program,stealth.program,speciesData.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, ...Object.values(titanProgram), ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
 const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, 0);
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes);
+// the creature view module (behaviour/creatureViews.as): its live and last-good pages on the client
+const viewMemory = creatureViews.pages * 65536 * 2;
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
   navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
   tiles: renderTiles.tiles, props: renderTiles.props,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident + programMemory },
-  budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes } },
+  budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),

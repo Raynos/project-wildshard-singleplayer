@@ -24,6 +24,7 @@ test('fields read memory, then the named actor values, then 0; set writes the he
   const view = slots.actor(0);
   if (view === null) throw new Error('Missing slot');
   expect([view.field('rise'), view.field('scale'), view.field('seed'), view.field('attackPhase'), view.field('absent')]).toEqual([0.25, 1.5, 7, -1, 0]);
+  expect([view.field('has:rise'), view.field('has:absent'), view.field('has:scale')]).toEqual([1, 0, 0]);
   expect(view.ground).toBe(9); expect([view.x, view.y, view.z, view.yaw]).toEqual([1, 2, 3, 0.5]);
   view.set('yOffset', 0.4); expect(a.yOffset).toBe(0.4);
   expect(() => { view.set('hp', 1); }).toThrow('not visual');

@@ -90,7 +90,8 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
       if (actor.identity !== identity) {
         identity = actor.identity;
         const object = ref.part === undefined ? actor.object : actor.object.getObjectByName(ref.part);
-        if (object === undefined) { release?.(); release = null; write = null; return; }
+        // a part its owner adds after the actor appears binds the frame it appears
+        if (object === undefined) { release?.(); release = null; identity = null; write = null; return; }
         bind(object, `${ref.pool}#${String(ref.slot)}`);
       }
       write?.(value);

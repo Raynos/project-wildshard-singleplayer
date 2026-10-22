@@ -302,7 +302,6 @@
         "src/shards/nalati-grasslands/generators/leopardBody.ts",
         "src/shards/nalati-grasslands/generators/shape.ts",
         "src/shards/nalati-grasslands/generators/bodyKey.ts",
-        "src/shards/nalati-grasslands/species/eagle.ts",
         "src/shards/nalati-grasslands/generators/ghostFigure.ts",
         "src/shards/nalati-grasslands/generators/speciesRows.ts",
         "src/shards/nalati-grasslands/species/horse.json",
@@ -12193,6 +12192,32 @@
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/behaviour/bridgeSway.generated.json"
+      ]
+    },
+    {
+      "id": "nalati-creature-views",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-creature-views.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-creature-views.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour/creatureViews.as",
+        "src/shards/nalati-grasslands/generators/bake-creature-views.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.json"
       ]
     },
     {
