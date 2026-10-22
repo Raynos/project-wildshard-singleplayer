@@ -131,26 +131,43 @@ function crossesBin(a: number, b: number, c: number, size: number): boolean {
 export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = []): Generator<void, CullPlan> {
   const index = geometry.getIndex(), position = geometry.getAttribute('position');
   if (index === null) throw new Error('A culled road mesh needs an index');
-  const triangles = index.count / 3, byBin = new Map<string, number[]>();
+  // each triangle's bin (`cullBin` of its centroid) as two numbers; a bin's string key, made once, orders the bins
+  const triangles = index.count / 3, size = pitch / BIN_DIVISOR, byBin = new Map<number, Map<number, { readonly key: string; readonly list: number[] }>>();
   for (let t = 0; t < triangles; t++) {
     if (t % 256 === 0) yield;
     let x = 0, z = 0;
     for (let c = 0; c < 3; c++) { const n = index.getX(t * 3 + c); x += position.getX(n); z += position.getZ(n); }
-    const key = cullBin(x / 3, z / 3, pitch), list = byBin.get(key);
-    if (list === undefined) byBin.set(key, [t]); else list.push(t);
+    const bx = Math.round(x / 3 / size), bz = Math.round(z / 3 / size);
+    let row = byBin.get(bx); if (row === undefined) { row = new Map(); byBin.set(bx, row); }
+    const bin = row.get(bz);
+    if (bin === undefined) row.set(bz, { key: `${String(bx)},${String(bz)}`, list: [t] }); else bin.list.push(t);
   }
-  const out: number[] = [], bins: CullBin[] = [], point = new Vector3();
+  const out: number[] = [], bins: CullBin[] = [];
   const clusters = lod.map((tier) => clusterer(geometry, pitch, tier.cell));
-  for (const key of [...byBin.keys()].sort()) {
-    const list = byBin.get(key) ?? [], start = out.length, points: Vector3[] = [];
+  const ordered: { readonly key: string; readonly list: number[] }[] = [];
+  for (const row of byBin.values()) for (const bin of row.values()) ordered.push(bin);
+  ordered.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  for (const { list } of ordered) {
+    const start = out.length;
+    let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
     for (const [i, t] of list.entries()) {
       if (i % 256 === 0) yield;
       for (let c = 0; c < 3; c++) {
-        const n = index.getX(t * 3 + c); out.push(n);
-        points.push(point.fromBufferAttribute(position, n).clone());
+        const n = index.getX(t * 3 + c), x = position.getX(n), y = position.getY(n), z = position.getZ(n); out.push(n);
+        minX = Math.min(minX, x); minY = Math.min(minY, y); minZ = Math.min(minZ, z); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); maxZ = Math.max(maxZ, z);
       }
     }
     const count = out.length - start, levels: { start: number; count: number }[] = [];
+    // three's Sphere.setFromPoints over these vertices without a Vector3 each: the box centre, then the farthest vertex
+    const sphere = new Sphere();
+    sphere.center.set(minX + maxX, minY + maxY, minZ + maxZ).multiplyScalar(0.5);
+    if (count === 0) sphere.center.set(0, 0, 0);
+    let farthest = 0;
+    for (let k = start; k < start + count; k++) {
+      const n = out[k] ?? 0, dx = sphere.center.x - position.getX(n), dy = sphere.center.y - position.getY(n), dz = sphere.center.z - position.getZ(n);
+      farthest = Math.max(farthest, dx * dx + dy * dy + dz * dz);
+    }
+    sphere.radius = Math.sqrt(farthest);
     for (const cluster of clusters) {
       const from = out.length;
       for (const [i, t] of list.entries()) {
@@ -160,7 +177,7 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
       }
       levels.push({ start: from, count: out.length - from });
     }
-    bins.push({ sphere: new Sphere().setFromPoints(points), start, count, levels });
+    bins.push({ sphere, start, count, levels });
   }
   return { source: Uint32Array.from(out), bins, lod: lod.map((tier) => tier.distance) };
 }
@@ -172,7 +189,7 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
  */
 function clusterer(geometry: BufferGeometry, pitch: number, cell: number): (n: number) => number {
   const position = geometry.getAttribute('position'), grain = geometry.hasAttribute('grainUv') ? geometry.getAttribute('grainUv') : undefined;
-  const first = new Map<string, number>(), memo = new Int32Array(position.count).fill(-1);
+  const first = new Map<number | string, number>(), memo = new Int32Array(position.count).fill(-1);
   return (n: number): number => {
     const known = memo[n] ?? -1; if (known >= 0) return known;
     const key = lodKey(position.getX(n), position.getY(n), position.getZ(n), grain?.getZ(n) ?? 0, grain?.getW(n) ?? 0, pitch, cell);
@@ -182,15 +199,23 @@ function clusterer(geometry: BufferGeometry, pitch: number, cell: number): (n: n
   };
 }
 
-/** A vertex's LOD lattice box and material; null on a bin edge or a cell edge (it stays itself). */
-function lodKey(x: number, y: number, z: number, layer: number, unlit: number, pitch: number, cell: number): string | null {
+/** Lattice boxes within this many of the origin on every axis key as one number (a 46-bit integer: exact). */
+const LOD_SPAN = 4096;
+/** A vertex's LOD lattice box and material; null on a bin edge or a cell edge (it stays itself). One box and material is
+ *  one key: a number in the usual ranges (string keys built per vertex were ~280 ms of a phone-tier road install), the
+ *  string form outside them. */
+function lodKey(x: number, y: number, z: number, layer: number, unlit: number, pitch: number, cell: number): number | string | null {
   const s = pitch / BIN_DIVISOR;
   const onLine = (v: number): boolean => {
     const bin = Math.abs(v / s - Math.round(v / s)); if (Math.abs(bin - 0.5) * s < 1e-3) return true; // a bin edge
     const local = Math.abs(v - Math.round(v / pitch) * pitch); return Math.abs(local - CELL_EDGE) < 1e-3; // a cell edge
   };
   if (onLine(x) || onLine(z)) return null;
-  return `${String(Math.floor(x / cell))},${String(Math.floor(y / cell))},${String(Math.floor(z / cell))},${String(layer)},${String(unlit)}`;
+  const ix = Math.floor(x / cell), iy = Math.floor(y / cell), iz = Math.floor(z / cell);
+  if (Math.abs(ix) < LOD_SPAN && Math.abs(iy) < LOD_SPAN && Math.abs(iz) < LOD_SPAN && Number.isInteger(layer) && layer >= 0 && layer < 64 && (unlit === 0 || unlit === 1)) {
+    return ((((ix + LOD_SPAN) * 2 * LOD_SPAN + iy + LOD_SPAN) * 2 * LOD_SPAN + iz + LOD_SPAN) * 64 + layer) * 2 + unlit;
+  }
+  return `${String(ix)},${String(iy)},${String(iz)},${String(layer)},${String(unlit)}`;
 }
 
 /** How the road builders cull a mesh (`cullRoadMesh` at `pitch`, the view camera) and where each mesh's plan is kept. */
@@ -223,7 +248,7 @@ export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, 
     vertices += run.vertices; clipped += run.vertices + extra.length / 3; source += out.length;
     const at = (n: number, c: number): number => (n < run.vertices ? run.position(n * 3 + c) : Math.fround(extra[(n - run.vertices) * 3 + c] ?? 0));
     for (const tier of lod) {
-      const memo = new Int32Array(run.vertices + extra.length / 3).fill(-1), first = new Map<string, number>();
+      const memo = new Int32Array(run.vertices + extra.length / 3).fill(-1), first = new Map<number | string, number>();
       const representative = (n: number): number => {
         const known = memo[n] ?? -1; if (known >= 0) return known;
         const key = lodKey(at(n, 0), at(n, 1), at(n, 2), run.layer ?? 0, run.unlit ?? 0, pitch, tier.cell);
