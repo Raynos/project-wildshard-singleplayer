@@ -22,7 +22,6 @@ type Polearm = InstanceType<PolearmSet['Weapon']>;
 export interface MountedLoadout {
   base:Blade;bow:Bow;sabre:Blade;spear:Polearm;extras:Weapon[];
   install:(weapons:EquipmentService)=>void;
-  replaceBow:(weapons:EquipmentService)=>Bow|null;
   upgradeBow:(weapons:EquipmentService,power:VariantBowPower)=>void;
   upgradeSabre:(weapons:EquipmentService,power:ArcWeaponPower)=>void;
   refill:()=>void;
@@ -85,13 +84,12 @@ export class MountedArsenal {
     const kit:MountedLoadout={
       base:sabre,bow,sabre,spear,extras:[bow,spear],
       install:weapons=>{for(const weapon of kit.extras)weapons.unlock(weapon.id);weapons.select(({blade:kit.sabre,polearm:kit.spear,bow:kit.bow})[this.rows.initial].id,true);},
-      replaceBow:weapons=>{
-        const variant=this.rows.variants.bow,previous=kit.bow;if(previous.row.id===variant.id)return null;
+      upgradeBow:(weapons,power)=>{
+        const variant=this.rows.variants.bow,previous=kit.bow;if(previous.row.id===variant.id)return;
         const next=new Bow(world,targets,{row:{...previous.row,id:variant.id,ui:{...previous.row.ui,name:variant.name,swapName:variant.name},meta:{...previous.meta,name:variant.name}},profile,allowUnlocked});
         next.damageMultiplier=previous.damageMultiplier;next.onLoose=previous.onLoose;next.carryMountState(previous);
-        weapons.replace(previous.id,next);kit.bow=next;return next;
+        weapons.replace(previous.id,next);kit.bow=next;power.apply(next);
       },
-      upgradeBow:(weapons,power)=>{const next=kit.replaceBow(weapons);if(next!==null)power.apply(next);},
       upgradeSabre:(weapons,power)=>{
         const variant=this.rows.variants.blade;if(kit.sabre.row.id===variant.id)return;
         const base=this.blade.profile(),next=new this.blade.Weapon(world,targets,{allowUnlocked,power,profile:{...base,id:variant.id,parent:base.id,ui:{...base.ui,name:variant.name},meta:{...base.meta,name:variant.name}}});
