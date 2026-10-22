@@ -125,6 +125,8 @@ G571 credit. Imports and dependencies retain their own attribution.
 
 - G571 entered claims: `game/shardfile/heldClaimsEntry#prepareHeldClaimsEntry` and `game/shardfile/heldClaimsEntry#installHeldClaimsEntry` consume finite kit ids and the concrete entered claims loan. Client-only; no callback, reflected path, extra clock or save. Test 1 waived; tests 2–6 covered by actual native claims/lifetime tests and compiled kit admission/order tests.
 
+- G571 quest world facts: `game/shardfile/questWorld#prepareQuestWorldEntry` consumes strict named anchors and an optional concrete ambient loan, refusing expired or changed loans across reads. Client-only; no callback, property selector, extra clock or save. Test 1 waived; tests 2–6 covered by actual fixed-placement parity and entered/resident lifetime tests.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they

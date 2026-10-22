@@ -35,6 +35,7 @@ export class DriftwoodPlugin extends ShardPlugin {
       built = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes')), await residentBakedTiles(ctx, ctx.scope), ctx.scope);
       if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Driftwood entry ended during build');
       publishEntryOwner(ctx.scope, 'collection', 'driftwood.collections', COLLECTIONS);
+      publishEntryOwner(ctx.scope, 'ambient', 'driftwood.gulls', built.gulls.flock);
     } else {
       admitDriftwoodRows(ctx.product);
       let construction = residents.get(ctx.product);
@@ -50,11 +51,13 @@ export class DriftwoodPlugin extends ShardPlugin {
         const made = await buildDriftwoodWorld(world, viewer, progress, await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner), await residentBakedTiles(ctx, owner), owner);
         if (owner.disposed || owner.disposing) throw new Error('Driftwood construction ended during build');
         publishEntryOwner(owner, 'collection', 'driftwood.collections', COLLECTIONS);
+        publishEntryOwner(owner, 'ambient', 'driftwood.gulls', made.gulls.flock);
         return made;
       });
     }
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     WorldAssembly.lend(ctx.product.section('custom/worldStages'), resident ?? ctx.scope, ctx.scope);
+    if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'ambient', 'driftwood.gulls');
     if (resident !== undefined) lendEntryOwner(ctx.scope, resident, 'collection', 'driftwood.collections');
     keepDriftwoodWorld(shell, built);
     shell.hooks.meleeSilent = true;

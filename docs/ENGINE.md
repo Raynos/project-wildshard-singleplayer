@@ -11192,3 +11192,15 @@ borrows that exact entered instance. The creature capability calls the
 existing product installer and page decision authority, retaining species,
 spawn and loot registration order. The original geometry, equipment and
 save owners retain their resources and disposal.
+
+### Declared quest world facts (G571)
+
+`{ kind: 'quest.world', file, ambient? }` runs in the entered prepare-play
+phase at compiled rank 15, after ranged equipment and before composition.
+Its admitted named JSON contains `{id,pois}`: nullable POI records of finite
+numeric anchor values. Build-time translation retains original site frames
+and anchor insertion order without constructing meshes or colliders.
+The optional `ambient` id resolves the original concrete AmbientGroup before
+reading. Retirement or a changed loan after the read refuses before world
+registration. Leaving drops the entered publication; its resident flock keeps
+its original owner. There is no callback, reflected path or new save owner.

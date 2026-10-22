@@ -44,6 +44,11 @@
     {
       "kind": "held.claims.install",
       "claims": "driftwood.claims"
+    },
+    {
+      "kind": "quest.world",
+      "file": "quests/world.json",
+      "ambient": "driftwood.gulls"
     }
   ]
 }

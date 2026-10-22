@@ -17,6 +17,7 @@ import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct, ProductError } from '../src/game/shardfile/shardProduct';
 import * as questPreparation from '../src/game/shardfile/clientQuestComposition';
+import * as questWorldPreparation from '../src/game/shardfile/questWorld';
 import * as rangedPreparation from '../src/game/loadout/rangedPage';
 import * as spawnPreparation from '../src/game/quest/chapterDirector';
 import type { QuestSpawnResult } from '../src/game/quest/chapterDirector';
@@ -302,11 +303,13 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
     { kind: 'quest.spawns', id: 'orchard.spawns', source: 'custom/questRuntime', quest: 'orchard.quest', animals: 'orchard.animals', sounds: 'orchard.sounds' },
     { kind: 'quest.composition', id: 'orchard.quest', file: 'quest.json', ranged: 'orchard.ranged', animals: 'orchard.animals', sounds: 'orchard.sounds' },
     { kind: 'held.ranged-page', file: 'ranged.json' },
+    { kind: 'quest.world', file: 'world.json' },
   ] });
   f.sections.set('held/finishes', {}); f.sections.set('custom/questRuntime', {});
-  for (const name of ['ranged.json', 'quest.json']) { f.files.set(name, { hash: name, url: `https://example.invalid/${name}` }); f.bytes.set(name, new TextEncoder().encode('{}')); }
+  for (const name of ['ranged.json', 'world.json', 'quest.json']) { f.files.set(name, { hash: name, url: `https://example.invalid/${name}` }); f.bytes.set(name, new TextEncoder().encode('{}')); }
   const prepare = vi.spyOn(rangedPreparation, 'prepareRangedPage').mockResolvedValue(undefined);
   const ranged = vi.spyOn(questPreparation, 'installEntryRangedPage').mockImplementation(() => { order.push('ranged'); return Promise.resolve(); });
+  const worldAdmission = vi.spyOn(questWorldPreparation, 'prepareQuestWorldEntry').mockImplementation(() => { order.push('world'); return Promise.resolve(); });
   const quest = vi.spyOn(questPreparation, 'installEntryQuestComposition').mockImplementation(() => { order.push('quest'); return Promise.resolve(); });
   const result: QuestSpawnResult = { puffs: { color: [1, 1, 1], count: 2, height: 1, burst: [1, 2, 3, 4] }, count: 0,
     force: () => undefined, update: () => undefined, takePuffs: () => [] };
@@ -336,9 +339,9 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
       await client.world(f.ctx); await client.kit(f.ctx); await client.play(f.ctx);
       expect(entryOwner(f.ctx.scope, 'quest-spawns', 'orchard.spawns')).toBe(result);
     }
-    expect(order).toEqual(surface === 'data' ? ['ranged', 'quest', 'spawns'] : ['ranged', 'quest', 'spawns', 'view']);
+    expect(order).toEqual(surface === 'data' ? ['ranged', 'world', 'quest', 'spawns'] : ['ranged', 'world', 'quest', 'spawns', 'view']);
   } finally {
-    prepare.mockRestore(); ranged.mockRestore(); quest.mockRestore(); spawns.mockRestore(); f.ctx.scope.dispose();
+    prepare.mockRestore(); ranged.mockRestore(); worldAdmission.mockRestore(); quest.mockRestore(); spawns.mockRestore(); f.ctx.scope.dispose();
   }
 });
 
