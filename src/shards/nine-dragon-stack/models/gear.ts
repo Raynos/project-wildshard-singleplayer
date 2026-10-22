@@ -11,10 +11,6 @@ import { graphArmsSpecimen } from '@wildshard/game/systems/viewmodel/graphArms';
 
 const rows = specimens.gear;
 
-/** fp-rig.glb's clips (src/shards/nine-dragon-stack/blender/viewmodel/rig/check-clips.mjs holds them to moves.ts): the right
- *  arm's base loops, cuts, charge and parry, the draw and sheathe; the left arm's loops and the grapple's poses */
-export const FP_ARMS_CLIPS: readonly string[] = rows.clips;
-
 /**
  * The first-person arms: fp-rig.glb — both arms (shoulder to hand, the twist bones), the Neon Jian a rigid child of the
  * right hand (its dragon-head guard from a TRELLIS.2 generation, cleaned in Blender), the Fei Zhua gauntlet and its claw on
@@ -24,7 +20,7 @@ export const FP_ARMS_CLIPS: readonly string[] = rows.clips;
  */
 export const fpArms: ModelDef<object> = defineModel<object>({
   ...rows.model, category: 'gear', pipeline: ['blender', 'trellis', 'code'],
-  rig: { clips: FP_ARMS_CLIPS },
+  rig: { clips: rows.clips },
   build: (ctx) => loadingSpecimen(fpArms.id, [0.9, 0.6, 0.9], () => graphArmsSpecimen('nine-dragon-stack', 'weapons/jian-row.json', rows.settleFrames, ctx.renderer)),
 });
 
