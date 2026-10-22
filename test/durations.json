@@ -532,7 +532,6 @@
  "test/grid-accent.test.ts": 0,
  "test/grid-admission-yield.test.ts": 0,
  "test/grid-allocator.test.ts": 0,
- "test/grid-approach-regression.test.ts": 0,
  "test/grid-assembly.test.ts": 0.1,
  "test/grid-asset-residency.test.ts": 0,
  "test/grid-basis-compatibility.test.ts": 4.3,
