@@ -117,3 +117,36 @@ test('owner retirement, missing concrete services and later slot effects are obs
     f.host.scope.dispose();expect(() => reader.capture(f.owners)).toThrow('owner');
   } finally { f.host.dispose(); }
 });
+
+test('declared metadata is immutable and preflights without sampling live owners', async () => {
+  const f = await fixture();
+  const states = [{ state: 'beaten',value: 7 }];
+  const input = [
+    { id: 1,name: 'grass',source: { kind: 'grass',at: 'self' } },
+    { id: 2,name: 'state',source: { kind: 'herd-state',group: 'herds',slot: 0,states } },
+  ];
+  try {
+    const reader = new ObservationColumnsV2(input,f.host.scope), columns = reader.declaredColumns;
+    expect(columns).toEqual(input);expect(reader.declaredColumns).toBe(columns);
+    expect(f.query).not.toHaveBeenCalled();
+    expect(Object.isFrozen(columns)).toBe(true);
+    for (const column of columns) {
+      expect(Object.isFrozen(column)).toBe(true);expect(Object.isFrozen(column.source)).toBe(true);
+      expect(() => Object.defineProperty(column,'id',{ value: 99 })).toThrow();
+      if (column.source.kind === 'herd-state') {
+        expect(Object.isFrozen(column.source.states)).toBe(true);
+        for (const code of column.source.states) {
+          expect(Object.isFrozen(code)).toBe(true);
+          expect(() => Object.defineProperty(code,'value',{ value: 99 })).toThrow();
+        }
+      }
+    }
+    states.push({ state: 'watch',value: 8 });
+    expect(reader.declaredColumns).toEqual([
+      { id: 1,name: 'grass',source: { kind: 'grass',at: 'self' } },
+      { id: 2,name: 'state',source: { kind: 'herd-state',group: 'herds',slot: 0,states: [{ state: 'beaten',value: 7 }] } },
+    ]);
+    expect(values(reader.capture({ ...f.owners,herds: [{ group: 'herds',slot: 0,owner: null }] }))).toEqual({ grass: 11,state: 0 });
+    expect(f.query).toHaveBeenCalledExactlyOnceWith(4,7);
+  } finally { f.host.dispose(); }
+});

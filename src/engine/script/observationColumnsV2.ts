@@ -35,13 +35,30 @@ export interface V2ColumnOwners {
 function finite(value: number): number { if (!Number.isFinite(value)) throw new Error('Non-finite observation column');return value; }
 function need<T>(value: T | undefined,kind: string): T { if (value === undefined) throw new Error(`Missing observation ${kind} owner`);return value; }
 
+type Immutable<T> = T extends readonly (infer Item)[] ? readonly Immutable<Item>[]
+  : T extends object ? { readonly [Key in keyof T]: Immutable<T[Key]> } : T;
+
 /** Detached columns at the original decision slot. No scheduler, body/RNG/save
  * owner or cached world frame lives here. In particular, keeper grass at:self
  * is sampled at the ACTOR, while an absent actor retains the original zero. */
 export class ObservationColumnsV2 {
-  private readonly rows: readonly ObservationColumnV2[];
+  private readonly rows: readonly Immutable<ObservationColumnV2>[];
   private readonly scope: Scope;
-  constructor(input: unknown,scope: Scope) { this.scope = scope;this.rows = parseObservationColumnsV2(input); }
+  constructor(input: unknown,scope: Scope) {
+    this.scope = scope;
+    const rows = parseObservationColumnsV2(input);
+    for (const row of rows) {
+      if (row.source.kind === 'herd-state') {
+        for (const code of row.source.states) Object.freeze(code);
+        Object.freeze(row.source.states);
+      }
+      Object.freeze(row.source);Object.freeze(row);
+    }
+    this.rows = Object.freeze(rows);
+  }
+  /** The same immutable admitted metadata, without sampling any live owner.
+   * Reading declarations does not capture a frame or grant a live owner loan. */
+  get declaredColumns(): readonly Immutable<ObservationColumnV2>[] { return this.rows; }
   capture(owners: V2ColumnOwners): readonly { readonly name: string; readonly id: number; readonly value: number }[] {
     if (owners.scope !== this.scope || this.scope.disposed || this.scope.disposing) throw new Error('Retired observation owner');
     const self = owners.self, actor = self.actor;

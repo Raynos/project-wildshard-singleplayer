@@ -11931,7 +11931,11 @@ layout/capacities, divisor2|6, fuel and finite observation columns).
 SpawnScript.page(animals,rows,physics,owners) / native(host,rows,owners) lend actual entered
 scope/environment/clock/weather/herd/taming/mount owners. The same DecisionHost, roster/body authority,
 ScriptStrikes and RNG counters remain authoritative. Generic columns capture only due bindings; explicit
-SpawnScript.observe fields retain original IDs and unset validity. Default ABI1 contracts and snapshots are
+SpawnScript.observe fields retain original IDs and unset validity.
+ObservationColumnsV2.declaredColumns returns the same deeply frozen admitted
+rows for pure name/id/source preflight. It does not capture a frame or sample
+grass, and does not lend live owner authority; capture retains its original
+slot and lifetime checks. Default ABI1 contracts and snapshots are
 unchanged. ABI2 adds optional v2Input to that same snapshot envelope; old pending events use saved native tick
 as migration fallback, and v2 input/quarantine round-trips without module instantiation. Slot
 authority:'observe' borrows an existing actor but refuses body-changing commands and lifecycle allocation;
