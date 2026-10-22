@@ -11459,18 +11459,28 @@ as pose.y minus water minus cleat-z times sin(pose.pitch). Admission performs
 no initial write, and module reads retain original loan/look identities.
 The original mover runtime still owns physics, ticking and saved handles.
 
-### Declared deck camera view
+### Declared view programs (G600 L7)
 
-`view.deck-camera-sway` carries strict inline DeckCameraSwaySchema rows and
-one admitted module name. Its entered play step runs before named-place
-binding and continuation, after quest preparation. Module reads fence owner
-retirement before the compiled deck-camera host installs its update system.
-The descriptor stays in client/plan; no extra named JSON section is emitted.
+`view.program` carries an id, strict inline ViewProgramSchema rows and one
+admitted module name; a plan may declare several, one per id. Its entered play
+step runs before named-place binding and continuation, after quest
+preparation. Module reads fence owner retirement before the program installs
+its update system. The rows name the binding's sample columns (player
+position or horizontal speed, a registry piece's floor under the player as
+present / height, constants), the channel bank's targets (an additive camera
+offset re-applied every displayed frame from the last landed bank, or a lent
+look parameter written on landing), the transform positions (entered objects
+lent by id: local matrices, the object's transform restored when the owner
+ends; a rendered pose is never an authority position), the lane budget and
+the matrix bounds. A program sampling a piece the registry lacks installs
+nothing. `engine/script/viewProgram` owns the lane; the game install only
+lends the world, entry-owner objects and lent looks.
 
 The critical Wasm uses an explicit ABI2 view contract: fixed pages, I/O bytes
 and compiler/admission revisions. Product admission validates those bytes
-before instantiation and accounts the fixed memory. The host retains the
-original registry piece, system order and authored camera tuning.
+before instantiation and accounts the fixed memory. Driftwood's rope-deck
+sway is the first program: the original registry piece, system order and
+authored camera tuning are its rows.
 
 ### ABI2 module admission transport
 

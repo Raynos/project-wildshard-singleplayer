@@ -26,7 +26,7 @@ import * as spawnPreparation from '../src/game/quest/chapterDirector';
 import type { QuestSpawnResult } from '../src/game/quest/chapterDirector';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import * as runtimeHookBindings from '../src/game/shardfile/clientRuntimeHooks';
-import * as deckCameraViews from '../src/game/systems/looks/deckCameraSway';
+import * as viewPrograms from '../src/game/shardfile/clientViewProgram';
 import * as clientPhases from '../src/game/shardfile/clientPlan';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
@@ -427,12 +427,14 @@ test('mover owner rows admit only finite fixed-pose mooring and typed targets', 
 });
 
 
-test.each(['live', 'retiring'] as const)('declared deck view installs only for a %s owner after its module read', async state => {
-  const f = context(), row = { kind: 'view.deck-camera-sway', module: 'view.wasm', rows: { piece: 'deck', system: 'deck.view', before: ['camera'], parameters: [1, 2, 3, 4, 5, 6, 7, 8, 9] } };
+test.each(['live', 'retiring'] as const)('declared view program installs only for a %s owner after its module read', async state => {
+  const f = context(), row = { kind: 'view.program', id: 'deck', module: 'view.wasm', rows: { system: 'deck.view', before: ['camera'],
+    budget: { pages: 1, ioBytes: 4096, fuel: 1000, targetMs: .5 }, samples: [{ kind: 'floor', piece: 'deck', field: 'present' }, { kind: 'constant', value: 1 }],
+    channels: [{ kind: 'camera', field: 'roll' }], transforms: [], bounds: { translation: 0, scale: [1, 1], shear: 0 } } };
   f.sections.set('view/modules', []);
   f.files.set('view.wasm', { hash: 'view', url: 'https://example.invalid/view.wasm' });
   const plan = admitClientPlan({ version: 1, features: [row] }, f.ctx.product), bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
-  const install = vi.spyOn(deckCameraViews, 'installDeckCameraSway').mockImplementation(() => undefined);
+  const install = vi.spyOn(viewPrograms, 'installViewProgram').mockImplementation(() => undefined);
   const read = vi.spyOn(f.ctx.product, 'file').mockImplementation(() => { if (state === 'retiring') f.ctx.scope.dispose(); return Promise.resolve(bytes); });
   try {
     if (state === 'retiring') {
@@ -440,11 +442,11 @@ test.each(['live', 'retiring'] as const)('declared deck view installs only for a
       expect(install).not.toHaveBeenCalled();
     } else {
       await installClientPhase(f.ctx, plan, 'play', f.ctx.scope);
-      expect(install).toHaveBeenCalledExactlyOnceWith(f.ctx, row.rows, bytes);
+      expect(install).toHaveBeenCalledExactlyOnceWith(f.ctx, row, bytes);
     }
     expect(read).toHaveBeenCalledExactlyOnceWith('view.wasm');
     expect(() => admitClientPlan({ version: 1, features: [{ ...row, module: 'missing.wasm' }] }, f.ctx.product)).toThrow('admitted module');
-    expect(() => parseClientPlan({ version: 1, features: [{ ...row, rows: { ...row.rows, parameters: [1, 2] } }] })).toThrow();
+    expect(() => parseClientPlan({ version: 1, features: [{ ...row, rows: { ...row.rows, samples: [] } }] })).toThrow();
   } finally { read.mockRestore(); install.mockRestore(); f.ctx.scope.dispose(); }
 });
 

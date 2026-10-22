@@ -24,7 +24,7 @@ test('quest view rows keep the original host before the remaining play consumers
   try{
     expect(admitClientPlan({version:1,features:[row]},f.ctx.product).features).toEqual([row]);
     expect(CLIENT_FEATURES['quest.views'].phase).toBe('play');
-    expect(CLIENT_FEATURES['quest.views'].rank).toBeLessThan(CLIENT_FEATURES['view.deck-camera-sway'].rank);
+    expect(CLIENT_FEATURES['quest.views'].rank).toBeLessThan(CLIENT_FEATURES['view.program'].rank);
     await expect(installEntryQuestViews(f.ctx,row)).rejects.toBe(stop);
     expect(install).toHaveBeenCalledTimes(1); expect(install.mock.calls[0]?.[0]).toBe(f.ctx); expect(install.mock.calls[0]?.[1]).toEqual(f.input);
     f.files.clear();expect(()=>admitClientPlan({version:1,features:[row]},f.ctx.product)).toThrow('admitted data file');

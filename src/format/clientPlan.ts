@@ -1,6 +1,6 @@
 import { CatalogueEconomySchema } from './catalogueEconomy';
 import { PagePathRampSchema } from './pagePreparation';
-import { DeckCameraSwaySchema } from './deckCameraSway';
+import { ViewProgramSchema } from './viewProgram';
 import { BakedSourceSchema, BakedTilesSchema } from './bakedTiles';
 import { WaterSurfaceSchema } from './water';
 import { ClientCuesSchema } from './clientCues';
@@ -102,7 +102,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('held.ranged-page'), file: label, shadowBatch: v.exactOptional(v.strictObject({ shard: v.boolean(), grid: v.boolean() })) }),
   v.strictObject({ kind: v.literal('quest.continuation'), file: label }),
   v.strictObject({ kind: v.literal('quest.views'), file: label }),
-  v.strictObject({ kind: v.literal('view.deck-camera-sway'), rows: DeckCameraSwaySchema, module: label }),
+  v.strictObject({ kind: v.literal('view.program'), id, rows: ViewProgramSchema, module: label }),
   v.strictObject({ kind: v.literal('quest.world'), file: label, ambient: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('quest.reference'), id }),
   v.strictObject({ kind: v.literal('quest.composition'), id, file: label,
@@ -121,7 +121,7 @@ export const ClientFeatureSchema = v.variant('kind', [
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */
 export const ClientPlanSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Client plan requires plain JSON'), v.strictObject({ version: v.literal(1), features: v.pipe(v.array(ClientFeatureSchema), v.maxLength(64)) }),
-  v.check(plan => new Set(plan.features.map(row => row.kind === 'debug.expose' ? `${row.kind}:${row.name}` : row.kind)).size === plan.features.length, 'Duplicate client feature'));
+  v.check(plan => new Set(plan.features.map(row => row.kind === 'debug.expose' ? `${row.kind}:${row.name}` : row.kind === 'view.program' ? `${row.kind}:${row.id}` : row.kind)).size === plan.features.length, 'Duplicate client feature'));
 export type ClientPlan = v.InferOutput<typeof ClientPlanSchema>;
 export type ClientFeatureRow = ClientPlan['features'][number];
 export type ClientFeatureKind = ClientFeatureRow['kind'];

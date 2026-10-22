@@ -8,12 +8,13 @@ import { shardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import { installDeckCameraSway } from '../src/game/systems/looks/deckCameraSway';
+import { installViewProgram } from '../src/game/shardfile/clientViewProgram';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { driftwoodBridgeSway } from '../src/shards/driftwood-isle/generators/bridgeSway';
 import swaySource from '../src/shards/driftwood-isle/behaviour/bridgeSway.as?raw';
 
-const rows = driftwoodBridgeSway();
+const rows = driftwoodBridgeSway(), feature = { kind: 'view.program' as const, id: 'bridge-sway', module: 'views/bridge-sway.wasm', rows };
+const piece = rows.samples[0]?.kind === 'floor' ? rows.samples[0].piece : '';
 
 test('declared rope deck keeps its update ordering, original camera sample and floor membership', async () => {
   const module = await compileScriptV2(swaySource, { lane: 'view', ioBytes: 4096 });
@@ -28,9 +29,9 @@ test('declared rope deck keeps its update ordering, original camera sample and f
   const systems: Parameters<typeof ctx.system>[0][] = [];
   const install = vi.spyOn(ctx, 'system').mockImplementation(row => { systems.push(row); });
   try {
-    installDeckCameraSway(ctx, rows, module); expect(systems).toEqual([]);
-    scope.run(() => { registry.add({ id: rows.piece, name: 'Rope deck', category: 'buildings', file: 'test/driftwood-bridge-sway.test.ts', floor: (x, z) => Math.abs(x) < 2 && Math.abs(z) < 2 ? 0 : undefined }); });
-    installDeckCameraSway(ctx, rows, module);
+    installViewProgram(ctx, feature, module); expect(systems).toEqual([]);
+    scope.run(() => { registry.add({ id: piece, name: 'Rope deck', category: 'buildings', file: 'test/driftwood-bridge-sway.test.ts', floor: (x, z) => Math.abs(x) < 2 && Math.abs(z) < 2 ? 0 : undefined }); });
+    installViewProgram(ctx, feature, module);
     const system = systems[0]; if (system === undefined) throw new Error('Missing bridge projection');
     expect(system.id).toBe('shard.driftwood.adventure.3'); expect(system.phase).toBe('update'); expect(system.before).toEqual(rows.before);
     system.run(.5, .5);

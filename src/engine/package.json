@@ -21,6 +21,7 @@
     "./script/moduleV2": "./script/moduleV2.ts",
     "./script/selectionV2": "./script/selectionV2.ts",
     "./script/viewLane": "./script/viewLane.ts",
+    "./script/viewProgram": "./script/viewProgram.ts",
     "./script/simBatchV2": "./script/simBatchV2.ts",
     "./script/queriesV2": "./script/queriesV2.ts",
     "./script/observationsV2": "./script/observationsV2.ts",

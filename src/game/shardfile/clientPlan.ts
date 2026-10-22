@@ -139,12 +139,12 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installEntryQuestViews } = await import('./clientQuestComposition');
     await installEntryQuestViews(ctx, row);
   } },
-  'view.deck-camera-sway': { phase: 'play', rank: -20, lifetime: 'entered', sections: ['view/modules'], install: async (ctx, row) => {
-    if (row.kind !== 'view.deck-camera-sway') throw new Error('Invalid deck camera sway feature');
-    const { installDeckCameraSway } = await import('../systems/looks/deckCameraSway');
-    const live = (): void => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Deck view owner has ended'); };
+  'view.program': { phase: 'play', rank: -20, lifetime: 'entered', sections: ['view/modules'], install: async (ctx, row) => {
+    if (row.kind !== 'view.program') throw new Error('Invalid view program feature');
+    const { installViewProgram } = await import('./clientViewProgram');
+    const live = (): void => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('View program owner has ended'); };
     live(); const bytes = await ctx.product.file(row.module); live();
-    installDeckCameraSway(ctx, row.rows, bytes);
+    installViewProgram(ctx, row, bytes);
   } },
   'world.bind-sets': { phase: 'play', rank: -10, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'world.bind-sets') throw new Error('Invalid named-place binding feature');
@@ -350,7 +350,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       if((water.surface.floor===undefined)!==(draw.floor===undefined)||(draw.foam.length>0&&draw.floor===undefined))throw new Error('Water floor and foam require a floored surface and its baked floor');
       if(draw.dry.length>(water.surface.dry?.slots??0))throw new Error('Water clips more dry rectangles than its surface has slots');
     }
-    for (const row of plan.features) if (row.kind === 'view.deck-camera-sway' && !product.hasFile(row.module)) throw new Error('Deck view requires its admitted module');
+    for (const row of plan.features) if (row.kind === 'view.program' && !product.hasFile(row.module)) throw new Error('View program requires its admitted module');
     for (const row of plan.features) if (row.kind === 'quest.views' && !product.hasFile(row.file)) throw new Error('Quest views require their admitted data file');
     for (const row of plan.features) if (row.kind === 'world.ambient-life' && !product.hasFile(row.file)) throw new Error('Ambient life requires its admitted data file');
     for (const row of plan.features) if (row.kind === 'held.ranged-page' && !product.hasFile(row.file)) throw new Error('Ranged page requires its admitted data file');
