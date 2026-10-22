@@ -15,3 +15,7 @@ export const ScalarLatticeSchema = v.pipe(v.unknown(),v.check(isJsonData,'Scalar
   size: v.pipe(v.number(),v.finite(),v.minValue(Number.MIN_VALUE)),values: ScalarChannelSchema,
 }),v.check(row => row.values.type === 'f32' && row.values.count === row.res*row.res,'Lattice requires one f32 per sample'));
 export type ScalarLatticeRows = v.InferOutput<typeof ScalarLatticeSchema>;
+
+/** Three explicitly ordered native rasters, with no runtime channel-name resolution. */
+export const ScalarTripletSchema = v.pipe(v.unknown(),v.check(isJsonData,'Scalar triplet requires plain JSON'),v.strictTuple([ScalarLatticeSchema,ScalarLatticeSchema,ScalarLatticeSchema]));
+export type ScalarTripletRows = v.InferOutput<typeof ScalarTripletSchema>;

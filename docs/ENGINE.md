@@ -11890,3 +11890,10 @@ supports original actor ops1..7/12/13, with complete state/command/RNG/input val
 original next-native-tick command commit. Queries, view outputs and world-action banks refuse until their
 explicit owner integrations land. No implicit elite action dispatcher is provided; op25 ordered detached actions
 remain a follow-on with the original elitePage drain slot.
+
+ScalarTripletSchema declares exactly three native scalar lattices, in component
+order. declaredGroundColour admits all three and compiles the existing ground
+callback, writing into and returning its supplied output. declaredSurface
+compiles the existing surface callback with a fresh three-component result.
+Both retain the original ignored height/slope arguments and sampling order;
+rows name no callbacks or channel paths and create no cache or world owner.

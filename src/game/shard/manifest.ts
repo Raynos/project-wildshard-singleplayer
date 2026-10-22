@@ -1,4 +1,5 @@
-import { readScalarChannel } from '@wildshard/engine/world/scalarChannel';
+import { readScalarChannel,readScalarLattice } from '@wildshard/engine/world/scalarChannel';
+import { ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
 import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/context";
@@ -807,4 +808,15 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     explore: { art: { world: image(data.explore.art.world), models: image(data.explore.art.models),
       sets: image(data.explore.art.sets), practice: image(data.explore.art.practice) }, ...(compare === undefined ? {} : {compare}) },
   }, native);
+}
+
+/** Ordered scalar rasters as the existing ground-colour callback, retaining the caller's output. */
+export function declaredGroundColour(input: unknown): NonNullable<ShardManifest['groundColor']> {
+  const rows = v.parse(ScalarTripletSchema,input),first = readScalarLattice(rows[0]),second = readScalarLattice(rows[1]),third = readScalarLattice(rows[2]);
+  return (x,z,_height,_slope,_terrain,out) => { out[0] = first(x,z);out[1] = second(x,z);out[2] = third(x,z);return out; };
+}
+/** Ordered scalar rasters as the existing surface callback, allocating its original fresh tuple. */
+export function declaredSurface(input: unknown): NonNullable<ShardManifest['surfaceAt']> {
+  const rows = v.parse(ScalarTripletSchema,input),first = readScalarLattice(rows[0]),second = readScalarLattice(rows[1]),third = readScalarLattice(rows[2]);
+  return (x,z,_height,_slope) => [first(x,z),second(x,z),third(x,z)];
 }
