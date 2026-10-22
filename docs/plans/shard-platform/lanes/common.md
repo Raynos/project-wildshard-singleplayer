@@ -8,7 +8,7 @@ AGENTS.md and docs/process/ hold the rest.
 - **Queue (G513, G518):** easy cuts toward 0 %, biggest first; whole modules onto existing hosts or data; a new or grown host
   needs a REAL second shard this wave, never a fixture, and HOST-BAR ≥ 5/6; state net lines; one-shard logic to AS + data (G470). G517: AS engine files
   (engine/script, compileScript, scriptAbi/scriptAdmission) only for bug fixes.
-- **Per slice (G568, G612):** types, lint and focused tests per slice. Land small source changes;
+- **Per slice (G568, G612):** types, lint and focused tests must pass before landing each slice;
   no batch checks, exact-commit mirror checks or checks on unlanded commit objects. The push gate,
   CI and exact-SHA boot smoke own the full gate; first frames follow landing when needed.
 - **No polling (G510, E491):** waits run in a script that wakes you only on a new actionable failure. Logs go to a file;
