@@ -12,8 +12,9 @@ pass + latch → crossing T1–T6 (G580/G581) → Nine → Nalati → the rest (
 1,597/1,517 vs OFF 1,494/1,414 MB, blocked 0/0, p95 35/34 ms; warm Sky 3.8 s. Cold Pine ~17 s with budget; three
 stage cuts failed the whole-wait gate (3-5 s noise even quiet). G579 (< 5 s) not met.
 
-**Lanes:** Claude and Codex at ~96 % (resets Sun 12:00 / Tue 27th ~01:30). All lanes stopped except sp-x7 (release);
-watchdog nudges nobody (a1aacfeeeb). sp-x6 cleaned 70 stale DW/Pine tree/index paths (0 genuine work lost).
+**Lanes (G590 full steam, 5 Opus + 4 Codex + sp-x7):** sp-o1 + sp-o5 O28 Nine graphical; sp-o3 O27 Nalati graphical;
+sp-o2 warm neighbour + budget default-on, Debug row deleted; sp-o4 Pine frame-gate (999.9 ms); sp-x1 DW grid-ready
+(harness route fix) + Pine re-latch; sp-x6 cold Pine; sp-x8 Nine non-graphical + flip; sp-x9 Nalati mounted book + cuts.
 
 **Tooling:** push loop + watchdog in pane sp-tools. Commit: scripts/commit.sh (or --patch for shared files).
 
