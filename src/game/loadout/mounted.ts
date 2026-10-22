@@ -28,14 +28,6 @@ export interface MountedLoadout {
   setMount:(state:Blade['mount'])=>void;
 }
 
-const enteredKits = new WeakMap<Scope, MountedLoadout>();
-/** Borrow the native kit built by the entered equipment stage. */
-export function mountedPageLoadout(ctx: Pick<ShardContext, 'scope'>): MountedLoadout {
-  const kit = enteredKits.get(ctx.scope);
-  if (ctx.scope.disposed || kit === undefined) throw new Error('Mounted loadout is not built');
-  return kit;
-}
-
 /** Client-only kit assembly over the native families. No content constructor,
  * selection hook or replacement callback crosses the declaration boundary. */
 export class MountedArsenal {
@@ -69,13 +61,12 @@ export class MountedArsenal {
       bindRuntimeEquipment(ctx,ctx.product.shardfile,[kit.bow,kit.sabre,kit.spear,rifle].map(weapon=>{
         const source=ctx.product.shardfile.items.rows.find(row=>row.id===weapon.row.id);return {id:weapon.row.id,weapon,profile:source?.kind==='weapon'?source.profile:undefined};
       }));
-      this.pageKits.set(ctx.scope,kit); enteredKits.set(ctx.scope,kit);
-      ctx.scope.onDispose(() => { if (enteredKits.get(ctx.scope) === kit) enteredKits.delete(ctx.scope); });
+      this.pageKits.set(ctx.scope,kit);
       return {primary:kit.base,rifle,secondary:null,extras:kit.extras,order:page.order,install:kit.install};
     };
   }
   /** Borrow the exact native kit assembled between kit and play. */
-  pageKit(ctx:Pick<ShardContext,'scope'>):MountedLoadout|null{return this.pageKits.get(ctx.scope)??null;}
+  pageKit(ctx:Pick<ShardContext,'scope'>):MountedLoadout|null{return ctx.scope.disposed||ctx.scope.disposing?null:this.pageKits.get(ctx.scope)??null;}
   async build(world:HeldPolearmWorld,targets:Targets,allowUnlocked:boolean,items:unknown):Promise<MountedLoadout>{
     const sabre=new this.blade.Weapon(world,targets,{allowUnlocked});await macrotask();
     const spear=new this.polearm.Weapon(world,targets,{allowUnlocked});await macrotask();

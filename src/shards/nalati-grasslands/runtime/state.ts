@@ -165,7 +165,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
       night.attach(attachedAnimals);
       stealth = new StealthController(plugin,player,stealthRows);
       if (wildlife === null) throw new Error('Nalati creatures have not been built');
-      ride = enterClientRiding(plugin);
+      ride = enterClientRiding(plugin, entryOwner(plugin.scope, 'mounted-arsenal', 'nalati.arsenal'));
       plugin.debug.expose('nalati.ride',ride);
 
       const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);

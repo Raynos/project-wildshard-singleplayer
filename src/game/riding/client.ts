@@ -3,7 +3,7 @@ import { installEnteredLevelService } from '../shard/retainedHooks';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { DataPanel } from '../ui/dataPanels';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
-import { mountedPageLoadout } from '../loadout/mounted';
+import type { MountedArsenal } from '../loadout/mounted';
 import { clientWildlife } from '../population/wildlife';
 import type { CrowdDraw } from '../ambient/crowdDraw';
 import { wildEnv } from '../population/pageGroups';
@@ -298,12 +298,13 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
 }
 /** Enter after native animals and equipment exist. The plan supplies all labels,
  * guest rows and resource ids; the page resolves its own concrete authorities. */
-export function enterClientRiding(ctx: ShardContext): PageRidingView {
+export function enterClientRiding(ctx: ShardContext, arsenal: MountedArsenal): PageRidingView {
   const owner = clientSessions.get(ctx.scope), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (owner === undefined || ctx.scope.disposed || runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Riding feature is not ready');
   if (owner.view !== null) throw new Error('Riding feature is already entered');
   const population = clientWildlife(ctx); if (population === null) throw new Error('Riding requires built wildlife');
-  const { rows } = owner, persistence = enteredAdventurePersistence(ctx.scope), kit = mountedPageLoadout(ctx);
+  const { rows } = owner, persistence = enteredAdventurePersistence(ctx.scope), kit = arsenal.pageKit(ctx);
+  if (kit === null) throw new Error('Riding requires its built equipment owner');
   const names = persistence.names.read(), preset = rows.preset;
   const owners = { id: preset.taming.herds, herds: population.herds, wind: wildEnv.wind };
   const session = createPageRiding(ctx, world.player, play.animals, world.game.camera, {

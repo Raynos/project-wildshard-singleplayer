@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { parse } from 'valibot';
 import { ClientRidingSessionSchema, cleanMountName } from '../src/format/riding';
 import { NALATI_RIDING_SESSION } from '../src/shards/nalati-grasslands/generators/clientRiding';
-import { mountedPageLoadout } from '../src/game/loadout/mounted';
+import { MountedArsenal } from '../src/game/loadout/mounted';
 import { Scope } from '../src/engine/app/scope';
 
 test('client session rejects callback ports and admits an unrelated ride profile', () => {
@@ -29,6 +29,9 @@ test('native names keep unicode graphemes, reject markup and respect the row cap
 
 test('the session cannot bind an unbuilt or disposed equipment authority', () => {
   const scope = new Scope('orchard.kit');
-  expect(() => mountedPageLoadout({ scope })).toThrow('not built'); scope.dispose();
-  expect(() => mountedPageLoadout({ scope })).toThrow('not built');
+  const arsenal = new MountedArsenal({ blade: { file: 'blade.json', item: 'weapon.blade' },
+    polearm: { file: 'pole.json', item: 'weapon.pole' }, bow: { file: 'bow.json', item: 'weapon.bow' }, initial: 'bow',
+    variants: { bow: { id: 'weapon.bow-upgraded', name: 'Bow' }, blade: { id: 'weapon.blade-upgraded', name: 'Blade' } } });
+  expect(arsenal.pageKit({ scope })).toBeNull();scope.dispose();
+  expect(arsenal.pageKit({ scope })).toBeNull();
 });

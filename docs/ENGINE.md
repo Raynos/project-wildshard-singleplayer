@@ -11330,8 +11330,12 @@ clock wiring remains charged to its sole user.
 `held.mounted {arsenal}` runs at entered kit rank -10. It borrows the concrete
 `mounted-arsenal` owner prepared by world and calls that same MountedArsenal's
 installPage; play and boss upgrades borrow the same arsenal and native kit.
-It creates no second weapon family, specimen catalogue or saved owner. This
-transitional capability does not waive the mounted host's sole-user charge.
+It creates no second weapon family, specimen catalogue or saved owner.
+`enterClientRiding(ctx, arsenal)` borrows `arsenal.pageKit(ctx)` from that
+concrete entered owner. The arsenal lends its exact built kit only within
+its construction scope; an unbuilt, disposing or disposed scope returns
+null. There is no second global kit publication or scope-to-kit book.
+This transitional capability does not waive the mounted host's sole-user charge.
 
 A transitional native phase selection may also give a finite `features` list,
 for example `{phases: ['kit'], features: ['held.mounted']}`. The adapter admits
