@@ -215,6 +215,27 @@ and `wildshard-v`.
   Overall, `./tmp` went 61 → 80 GB and 407k → 534k files, and the repo is now 102 GB. Disk still has 1.7 TB free.
   **Fix:** keep only the newest `sdk-case` per lane, or share one cache across revisions; the store is content-addressed.
 
+## 9. 2026-10-22 00:47 check: nested serve builds are back, `check2` 5 → 23 GB (OPEN)
+
+The boot purge is fine at 148k files. Since 10-21 20:47, `./tmp` went 72 → 92 GB and 507k → 607k files, and the repo
+went 94 → 112 GB.
+
+- **`tmp/build-mirror/check2/tree/tmp/serve/` holds 13 serve builds, 17.6 GB in total.** They were built between 10-21
+  21:28 and 10-22 00:11, about 1.4 GB each. **None of them is served or held open**: both live `vite preview` servers
+  serve from the main `tmp/serve`, and `lsof` finds nothing inside the nested directory. So section 7's fix 1 holds for
+  some callers but not this one.
+- **Cause:** `scripts/serve-build.sh:26` sets `REPO="$(cd "$(dirname "$0")/.." && pwd)"`, and line 33 builds `BASE` from
+  it, defaulting to `$REPO/tmp/serve`. A caller that runs the **slot tree's own copy** (`scripts/serve-build.sh`
+  relative to a `check2/tree` cwd, as `build-mirror run … --slot check2 -- bash scripts/serve-build.sh` does) gets the
+  slot tree as `REPO`. The eviction on line 61 only removes `"$REPO"/tmp/serve/?*` and runs per invocation, so builds in
+  a slot tree are never evicted by a run from the main checkout, and the slot's own runs don't clean them up either.
+  The build logs show the `heavy-lane` queue and generation, which matches an `sp-o5` lane (`tree/tmp/gen-sp-o5.log`).
+- **Fix:** have `serve-build.sh` resolve `BASE` to the **main checkout** even when it runs from a mirror tree. For
+  example, `build-mirror run` could export `SERVE_BUILD_DIR=<main>/tmp/serve`, or the script could detect
+  `*/tmp/build-mirror/*/tree` and step out. Also make the mirror sync clean `tree/tmp/` (section 7 fix 3, still open).
+- Section 8 is unchanged: `tmp/sp-x6-cache` is still 18 GB, and `$TMPDIR` holds 107 leaked `wildshard-generation-*`
+  copies.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
