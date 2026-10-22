@@ -74,8 +74,6 @@ const layoutRows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.ro
   value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value));
 const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
 for (const id of layoutIds) alias(`layout-${id}`, `layout_${id}`);
-const layoutWeld = parseWorldSceneWeld({ id: 'layout', root: 'dressing.root', nodes: [], resources: layoutIds.map(id => ({
-  id: `layout.${id}`, kind: 'geometry', source: { library: libraryOf.get(`layout-${id}`), model: `layout-${id}` } })) });
 for (const row of explorer.sources) if (!('resident' in row) || !row.resident.startsWith('lion')) alias(row.id, 'resident' in row ? row.resident : row.key, 'transform' in row ? row.transform : undefined);
 const draw = (id: string, model: string, material: string, renderOrder?: number): Draw => {
   alias(model, model);
@@ -197,7 +195,7 @@ const cardSteps = (['open', 'capped'] as const).map(caps => {
 });
 const CARD_BLOBS = [...cardFiles].map(([text, file]) => nameBlob(file, 'json', new TextEncoder().encode(text)));
 const portalLook = portalLookRows();
-export const NINE_SCENE_BLOBS: NamedBlob[] = [...SIGN_ATLAS_BLOBS, ...castBlobs(layoutWeld.resources), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
+export const NINE_SCENE_BLOBS: NamedBlob[] = [...SIGN_ATLAS_BLOBS, ...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...CARD_BLOBS];
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
@@ -250,6 +248,31 @@ function hungHooks() {
     .multiply(new Matrix4().makeScale(hook.scale, hook.scale, hook.scale))
     .multiply(new Matrix4().makeTranslation(-hook.ring.x, -hook.ring.y, -hook.ring.z)).elements));
 }
+/** the guardian lions at their frames, one placement per named place that keeps them (Lantern Square's, the stair-street's,
+ *  the Well rim's Set, FABRIC); every lion stands in exactly one */
+const LION_SHARES: readonly (readonly [string, readonly number[]])[] = [['plaza', worldRows.rows.shares.plaza], ['street', worldRows.rows.shares.street], ['rim', worldRows.rows.shares.rim]];
+if (worldRows.rows.lions.some((_at, index) => LION_SHARES.filter(([, share]) => share.includes(index)).length !== 1)) throw new Error('Nine lions differ from their places');
+export const LION_PLACEMENTS = LION_SHARES.flatMap(([place, share]) => share.length === 0 ? [] : [{ id: `nds-lions-${place}`, model: 'guardianLion', name: 'glb:lion',
+  draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-lions-${place}` }, poses: share.map(index => posed(frame(worldRows.rows.lions[index] ?? Number.NaN))) }]);
+// the models drawn into the kits (E306 / E315 M4: the brass dragon hooks, stools, scooters, mahjong tables and brush-drawn
+// figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts): per model and kit
+// one placement drawn into that kit's mesh (FABRIC), models in the order the layout first draws each and kits in the order
+// the model first meets them. A copy registers on its authored card; one drawn with free params (a laundry line's span
+// and rise) on the model's default one.
+const canonical = (params: object): string => JSON.stringify(Object.entries(params).sort(([a], [b]) => a.localeCompare(b)));
+const drawnModels = new Map<string, Map<string, typeof projection.inKit>>();
+for (const copy of projection.inKit) {
+  const kits = drawnModels.get(copy.model) ?? new Map<string, typeof projection.inKit>(); drawnModels.set(copy.model, kits);
+  kits.set(copy.kit, [...kits.get(copy.kit) ?? [], copy]);
+}
+const DRAWN_PLACEMENTS = [...drawnModels].flatMap(([id, kits]) => {
+  const model = catalogue.models.find(row => row.id === id); if (model === undefined) throw new Error(`Nine drawn-in model ${id} is no catalogue row`);
+  const authored = new Set(model.choices.map(entry => canonical(entry.params)));
+  return [...kits].map(([kit, copies]) => ({ id: `nds-${id.slice(id.indexOf('/') + 1)}@${kit}`, kit, model: model.key, draw: 'merged' as const,
+    drawnInto: { part: `fabric.kit.${kit}`, boxes: copies.flatMap(copy => copy.box) }, piece: { id: `nds-${id.slice(id.indexOf('/') + 1)}@${kit}` },
+    poses: copies.map(({ at: { x, y, z, yaw, variant, params } }) => ({ x, y, z, yxz: { yaw: yaw ?? 0, scale: 1 }, ...(variant === undefined ? {} : { variant }),
+      ...(params === undefined || !authored.has(canonical({ ...model.defaults, ...params })) ? {} : { params }) })) }));
+});
 /** the layout's air conditioners and paper lanterns (world/build.ts places them by id; lanterns per deck ending), each its own
  *  placement file (the section's plain-JSON node budget) */
 /** every sign hung, a copy of the sign model drawn into the sign or neon-board mesh, registered on its style's variant */
@@ -270,13 +293,20 @@ export const LAYOUT_PLACEMENTS = [
   }),
   // the guardian lions at their frames, and the crowd: walkers and mahjong sitters in their colourways, culled from the
   // origin by the far cutoff
-  { id: 'nds-lions', model: 'guardianLion', name: 'glb:lion', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-lions' }, poses: worldRows.rows.lions.map(at => posed(frame(at))) },
+  ...LION_PLACEMENTS,
   // the hook hung on the three Well hooks nearest the square: its ring on the mount's ring, turned out from the wall (the
   // brackets and collision-free ring anchors stay the world's; the grapple aims at the ring)
   { id: 'nds-fei-zhua-hooks', model: 'feiZhuaHook', name: 'glb:dragon-hook', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-fei-zhua-hooks' }, poses: hungHooks() },
   ...([['walkers', 'umbrellaWalker'], ['sitters', 'mahjongSitter']] as const).map(([group, model]) => ({ id: `nds-crowd-${group}`, model, draw: 'instanced' as const,
     cull: { bounds: 'sphere' as const, from: 'origin' as const, far: lodRows.LOD_FAR }, piece: { id: `nds-crowd-${group}` },
     poses: worldRows.rows.crowd[group].map(row => ({ ...posed(frame(row.matrix)), variant: row.variant })) })),
+  ...DRAWN_PLACEMENTS.map(({ kit: _kit, ...row }) => row),
+  // the facade's baked pieces, drawn into its merged shell (FABRIC): one placement each
+  ...worldRows.rows.facade.baked.map(row => {
+    const model = `facade:${row.id}`, name = catalogueName.get(model); if (name === undefined) throw new Error(`Nine facade ${row.id} has no catalogue model`);
+    return { id: `nds-facade-${row.id}`, model, draw: 'merged' as const, drawnInto: { part: 'fabric.shell', boxes: Array.from({ length: row.count * 6 }, (_, k) => record(row.boxes + k)) },
+      piece: { id: `nds-facade-${row.id}`, name }, poses: facadePoses(row.poses, row.count) };
+  }),
   // the facade's drawn pieces (the baked shell's are drawn into it): one instanced placement each, small ones within 85 m
   ...worldRows.rows.facade.drawn.map(row => {
     const model = `facade:${row.id}`, name = catalogueName.get(model); if (name === undefined) throw new Error(`Nine facade ${row.id} has no catalogue model`);
@@ -284,12 +314,55 @@ export const LAYOUT_PLACEMENTS = [
       piece: { id: `nds-facade-${row.id}`, name }, poses: facadePoses(row.poses, row.count) };
   }),
 ];
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
-  materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
+// ── the fabric (C1, G601): the layout's merged kits (opaque then alpha-cut) and the facade's shell as frozen-scene meshes on
+// their looks over the layout's tiles (their neon spill baked in, their bounds the layout bake's: assigned, never scanned),
+// the two kits with a draw distance culled from their box's centre, the catalogue models drawn into them, and the named
+// places' Sets. world/build.ts assembles it where the kits stood; each deck ending's entry decks and the facade's sign
+// boards are the FIXED_STEPS (casts that differ by ending).
+const kitBounds = new Map(projection.geometries.map(row => {
+  const b = row.s.slice(0, 6).map(Math.fround), [x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0] = b;
+  return [row.id, { sphere: [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, row.s[6]], box: row.box ? b : undefined, reach: Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2 }] as const;
+}));
+const farOf = new Map(projection.farOf), farKits: { id: string; at: number[] }[] = [];
+const kitNode = (id: string, parent: string, name: string, geo: number, material: string, far?: number) => {
+  const b = kitBounds.get(geo); if (b === undefined) throw new Error(`Nine layout geometry ${geo} has no baked bounds`);
+  const tiled = libraryOf.get(`layout-${geo}`); if (tiled === undefined) throw new Error(`Nine layout geometry ${geo} has no tiles`);
+  if (far !== undefined) farKits.push({ id, at: b.sphere.slice(0, 3) });
+  return { id, parent, name, kind: 'mesh', geometry: { library: tiled, model: `layout-${geo}` }, material, sphere: b.sphere, ...(b.box === undefined ? {} : { box: b.box }),
+    ...(far === undefined ? {} : { until: far + b.reach }) };
+};
+const shell = projection.shell;
+const fabricPlacements = [...LION_PLACEMENTS, ...SET_PLACEMENTS, ...DRAWN_PLACEMENTS, ...LAYOUT_PLACEMENTS.filter(row => row.id.startsWith('nds-inst-') && row.id.endsWith('@well')),
+  ...LAYOUT_PLACEMENTS.filter(row => 'drawnInto' in row && row.drawnInto.part === 'fabric.shell')].map(row => row.id);
+const extras: Readonly<Record<string, readonly string[]>> = { square: [...LION_PLACEMENTS.filter(row => row.id === 'nds-lions-plaza').map(row => row.id), 'nds-set-balustrade-panel'],
+  stair: LION_PLACEMENTS.filter(row => row.id === 'nds-lions-street').map(row => row.id), rim: LION_PLACEMENTS.filter(row => row.id === 'nds-lions-rim').map(row => row.id),
+  well: LAYOUT_PLACEMENTS.filter(row => row.id.startsWith('nds-inst-') && row.id.endsWith('@well')).map(row => row.id) };
+const market = SET_PLACEMENTS.filter(row => row.id !== 'nds-set-balustrade-panel').map(row => row.id);
+const FABRIC = parseWorldSceneWeld({ id: 'fabric', root: 'dressing.root', resources: [], placements: fabricPlacements, nodes: [
+  { id: 'fabric.root', parent: 'dressing.root', name: 'fabric', kind: 'group' },
+  ...projection.kits.flatMap(([name, geo]) => geo === null ? [] : [kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit', farOf.get(name))]),
+  ...projection.alphaKits.map(([name, geo]) => kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit-cut', farOf.get(name))),
+  ...shell === null ? [] : [{ id: 'fabric.facade', parent: 'fabric.root', name: 'facade', kind: 'group' }, kitNode('fabric.shell', 'fabric.facade', 'facade-shell', shell, 'facade')],
+], culls: farKits.length === 0 ? [] : [{ roots: farKits.map(row => row.id), origins: farKits.flatMap(row => row.at), units: [], details: [], hosted: [] }],
+sets: [...market.length === 0 ? [] : [{ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market }],
+  ...worldRows.rows.regions.flatMap(region => {
+    const members = [...DRAWN_PLACEMENTS.filter(row => region.kits.includes(row.kit)).map(row => row.id), ...extras[region.extra] ?? []];
+    return members.length === 0 ? [] : [{ id: region.id, name: region.name, place: region.place, file: 'src/shards/nine-dragon-stack/generators/worldRows.ts', members }];
+  })] });
+if (DRAWN_PLACEMENTS.some(row => !FABRIC.nodes.some(node => node.id === row.drawnInto.part))) throw new Error('Nine drawn-in copies need their kit in the fabric');
+// each deck ending's entry decks and the facade's sign boards (casts, generators/castSources.ts) on the kit look, one step per ending
+const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], nodes: [{ kind: 'group', id: 'root', children: ['entries', 'signs'] },
+  { kind: 'mesh', id: 'entries', geometry: 'entries', material: 'kit', missing: 'omit', name: 'kit:entries' }, { kind: 'mesh', id: 'signs', geometry: 'signs', material: 'kit', missing: 'omit', name: 'kit:facade-signs' }],
+  materials: [{ kind: 'port', id: 'kit', source: 'kit' }] } });
+const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
+  geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
+export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+  materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('kit-cut', 'nine-architecture-cut'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo'),
     look('neon', 'nine-neon'), look('neon-board', 'nine-neon-board'), look('neon-tube', 'nine-neon-tube')],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1]).geometry },
     instanceAttributes: windowStep([0, 1]).instanceAttributes,
-    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1]).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...portalLook.scenes.steps] });
+    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1]).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
 /** the layout placements' files (LAYOUT_PLACEMENTS) */
-export const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row))));
+export const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)))),
+  nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE))];

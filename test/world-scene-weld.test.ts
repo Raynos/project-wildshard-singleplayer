@@ -217,6 +217,34 @@ test('deferred world assembly publishes live seeds before borrowing the living r
   } finally { owner.dispose(); }
 });
 
+test('placements drawn into a frozen node register on it, and its named-place sets take those placements', async () => {
+  const owner = new Scope('fixture-fabric-world'), sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
+  const graph = { id: 'fabric', root: 'living.root', resources: [], placements: ['stool@wall'],
+    nodes: [{ id: 'fabric.root', parent: 'living.root', name: 'fabric', kind: 'group' }, { id: 'fabric.wall', parent: 'fabric.root', name: 'kit:wall', kind: 'group' }],
+    sets: [{ id: 'fixture/square', name: 'The square', file: 'square.json', place: 'fixture/square', members: ['stool@wall'] }] };
+  const catalogue = { product: 'fixture-fabric', models: [{ key: 'stool', id: 'fixture-fabric/stool', name: 'Stool', file: 'stool.json', category: 'props', pipeline: 'code', defaults: {},
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [] }] }] };
+  const files = new Map<string, unknown>([['fabric.json', graph], ['catalogue.json', catalogue]]);
+  const registry = new WorldRegistry();
+  const context = { scope: owner, app: { registry }, game: { runtime: { world: { sky, registry } } },
+    product: { shardfile: emptyShardfile({ slug: 'fixture-fabric', name: 'Fabric', author: 'Fixture', revision: 1, seed: 1 }),
+      hasFile: (name: string) => files.has(name), url: (name: string) => name,
+      file: (name: string) => Promise.resolve(new TextEncoder().encode(JSON.stringify(files.get(name)))) } } as ShardContext;
+  const rows = parseWorldScenes({ version: 1, catalogue: 'catalogue.json', libraries: [], materials: [], steps: [], welds: [{ id: graph.id, file: 'fabric.json' }],
+    placements: [{ id: 'stool@wall', model: 'stool', draw: 'merged', drawnInto: { part: 'fabric.wall', boxes: [0, 0, 0, 1, 1, 1, 2, 0, 0, 3, 1, 1] },
+      poses: [{ x: 0.5, y: 0, z: 0.5, yxz: { yaw: 0, scale: 1 } }, { x: 2.5, y: 0, z: 0.5, yxz: { yaw: 0, scale: 1 } }], piece: { id: 'stool@wall' } }] });
+  try {
+    const handles = await installWorldScenes(context, rows), root = new Group();
+    handles.publish('living.root', root);
+    await handles.assemble(graph.id);
+    const wall = handles.object('fabric.wall');
+    expect(wall.parent?.parent).toBe(root);
+    expect(registry.pieces.map(piece => piece.id)).toEqual(['stool@wall']);
+    expect(registry.sets.map(set => set.id)).toEqual(['fixture/square']);
+  } finally { owner.dispose(); }
+});
+
 test('one-shot world assembly snapshots borrowed staging and keeps only its live clones', async () => {
   const f = fixture();
   const assembly = new WorldSceneWeldAssembly(parseWorldSceneWeld({ ...f.row, culls: [] }), f.handles, f.sources, f.owner, new WorldRegistry());

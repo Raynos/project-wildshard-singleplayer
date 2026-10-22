@@ -14,8 +14,7 @@ import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/c
 import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
 import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dragon-stack/generators/casts';
-import { layoutProjection, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
-import { layoutReviver } from '../../src/shards/nine-dragon-stack/world/layoutBake';
+import { layoutProjection, restoreLayoutZeros, reviveLayout as layoutReviver } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
 import * as v from 'valibot';
 import { Scope } from '../../src/engine/app/scope';
@@ -105,9 +104,6 @@ test('layout blobs retain every float64 bit and signed author zero', () => {
   const decoded: unknown = JSON.parse(new TextDecoder().decode(rows.bytes));
   expect(restoreLayoutZeros(v.parse(GeometryBootSchema, decoded))).toEqual(original.rows);
   expect(rows.file.jsonSchema).toBeDefined();
-  const projection = blobs.find(row => row.file.name === 'geometry/layout-projection.json');
-  if (projection === undefined) throw new Error('Missing client layout projection');
-  expect(JSON.parse(new TextDecoder().decode(projection.bytes), layoutReviver)).toEqual(layoutProjection(original.rows, original.records, original.bounds));
   expect(layoutProjection(original.rows, original.records, original.bounds).fixed.lanterns).toEqual(fixed.lanterns);
 });
 

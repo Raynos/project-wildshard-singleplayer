@@ -5,7 +5,7 @@ import light from '../data/light.json' with { type: 'json' };
 import { nineWorldInstallRows, type NinePhysicsPlacement } from './physicsPlacements';
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import deckFloors from '../data/deckFloors.generated.json' with { type: 'json' };
-import { LAYOUT_PLACEMENTS, SET_PLACEMENTS } from './worldScenes';
+import { LAYOUT_PLACEMENTS, LION_PLACEMENTS, SET_PLACEMENTS } from './worldScenes';
 
 /**
  * Nine Dragon Stack's declared world entry (the world/scenes section's entry, run by @wildshard/game/shardfile/worldEntry in
@@ -50,8 +50,10 @@ export function nineWorldEntry(): WorldEntryRows {
     portals: [{ kind: 'attach', id: 'portals.root', as: 'group' }],
     canopy: canopy.draws.map(draw => ({ kind: 'look', look: draw.look, state: draw.state })),
     dressing: [{ kind: 'attach', id: 'dressing.root', as: 'group' }],
-    lions: worldRows.rows.lions.length > 0 ? placed('nds-lions') : [],
+    lions: LION_PLACEMENTS.flatMap(row => placed(row.id)),
     sets: SET_PLACEMENTS.flatMap(row => placed(row.id)),
+    // each deck ending's entry decks and the facade's sign boards (worldScenes.ts FIXED_STEPS)
+    kits: (['open', 'capped'] as const).map(variant => ({ kind: 'attach', id: `fixed-${variant}.root`, as: 'group', when: { variant } })),
     lanterns: (['open', 'capped'] as const).flatMap(variant => placed(`nds-lanterns-${variant}`, 'lanterns', variant)),
     wall: wall.flatMap(row => placed(row.id)),
     figures: [...placed('nds-fei-zhua-hooks'), ...(['walkers', 'sitters'] as const).flatMap(group => worldRows.rows.crowd[group].length === 0 ? [] : placed(`nds-crowd-${group}`, 'crowd'))],

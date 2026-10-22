@@ -2902,18 +2902,6 @@
       "count": 1,
       "row": "SF79 DS0.1 G303 verbatim move-back"
     },
-    "src/shards/nine-dragon-stack/runtime/kit/drawnInto.ts:unbounded-loop:41193f23be81afea6b091e239207ee1d413e423a2eacde067983cca7b87317f6": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
-    "src/shards/nine-dragon-stack/runtime/kit/drawnInto.ts:unbounded-loop:301fd65eb664e16103f16518af7fab407b58eaa96659c1eeb09efd9745320a3e": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
-    "src/shards/nine-dragon-stack/runtime/kit/drawnInto.ts:unbounded-loop:c8bed59271848d6d430c6ebe894c9d512b48fa6cc30f50b45405cf3b1e4f91a9": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
     "src/shards/nine-dragon-stack/runtime/kit/kitConvert.ts:async:88d26e13005d544ebc30f2eb6da9791ecc0a01c173e6b737375021f5ca757318": {
       "count": 1,
       "row": "SF79 DS0.1 G303 verbatim move-back"
@@ -2927,14 +2915,6 @@
       "row": "SF79 DS0.1 G303 verbatim move-back"
     },
     "src/shards/nine-dragon-stack/runtime/kit/kitConvert.ts:unbounded-loop:02781dbafb8d05025d53fd2b2a14a0ae4df7a3114ab558170d702e726616d1be": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
-    "src/shards/nine-dragon-stack/runtime/kit/kitMeshes.ts:unbounded-loop:6ac3221dd199bd51d4d7a95ca410c0812c00a01a586d318aa5d6c62d7cd8b503": {
-      "count": 1,
-      "row": "SF79 DS0.1 G303 verbatim move-back"
-    },
-    "src/shards/nine-dragon-stack/runtime/kit/kitMeshes.ts:unbounded-loop:df5b8f324478bdb93cceb03851039a15b94fd393fa3c7761aee006a5fa4b23c1": {
       "count": 1,
       "row": "SF79 DS0.1 G303 verbatim move-back"
     },

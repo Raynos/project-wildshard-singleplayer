@@ -3,10 +3,9 @@ import { lightVolumeRows } from './lightVolumes';
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import wireSchema from './layoutSchema.generated.json' with { type: 'json' };
-import layout from '../data/layout.generated.json' with { type: 'json' };
 import world from '../data/world.generated.json' with { type: 'json' };
 import { GeometryBootSchema } from './sections';
-import { bakedLayout, layoutProjection } from './layoutProjection';
+import { bakedLayout } from './layoutProjection';
 import { SET_TILES } from './worldScenes';
 
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
@@ -24,8 +23,5 @@ export function layoutBlobs(): NamedBlob[] {
   };
   locate(rows, []);
   const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows, volumes: lightVolumeRows() });
-  return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: wireSchema }),
-    nameBlob('geometry/layout-projection.json', 'json', new TextEncoder().encode(JSON.stringify(layoutProjection(rows, numeric, layout.bounds),
-      (_key, value: unknown) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value))),
-    nameBlob('geometry/world-f64.bin', 'bin', new Uint8Array(Float64Array.from(worldRows.records).buffer))];
+  return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: wireSchema })];
 }
