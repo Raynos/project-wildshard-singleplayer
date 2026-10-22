@@ -474,7 +474,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
     if (options.composition === undefined) host = await createMoverHost(options.data, assets, query);
     else { composition = await createComposedMoverHost(options.data, assets, query, options.composition); host = composition.host; }
   }
-  if (ctx.scope.disposed) throw new Error('Mover scope left during admission');
+  if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Mover scope left during admission');
   const runtime = new MoverRuntime(options.data, { ...(options.flags === undefined ? {} : { flags: options.flags }), physics: world.physics, scope: ctx.scope, host, adopt: (id) => views.get(id), ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }), activation: { ground: () => world.player.motor.result, ...options.activation } });
   options.prompts?.push(...runtime.ridePrompts());
   ctx.scope.onDispose(() => { if (runtime.riding()) world.player.carried = false; });
