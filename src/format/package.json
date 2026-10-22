@@ -25,6 +25,7 @@
     "./bowVariantRows": "./bowVariantRows.ts",
     "./questPageComposition": "./questPageComposition.ts",
     "./questFigures": "./questFigures.ts",
+    "./deckCameraSway": "./deckCameraSway.ts",
     "./questPageFacets": "./questPageFacets.ts",
     "./populationProjection": "./populationProjection.ts",
     "./populationKeeper": "./populationKeeper.ts",

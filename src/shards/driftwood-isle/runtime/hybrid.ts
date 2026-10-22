@@ -8,7 +8,6 @@ import { buildProgress, type ShardContext, ShardPlugin } from '@wildshard/game/p
 import { buildDriftwoodWorld, MOOR_LOOK, type DriftwoodWorld } from '../world/build';
 import { islandSystems } from './world/systems';
 import { installPageLife } from '@wildshard/game/population/pageLife';
-import { installDriftwoodAdventure } from '../quest/install';
 
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { boundResidentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
@@ -71,10 +70,6 @@ export class DriftwoodPlugin extends ShardPlugin {
     Object.assign(shell.objects, { boat, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, palmSpecs });
     islandSystems<DriftwoodWorld['bridgeDeck']>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
     await installPageLife(ctx, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file('actors/page-life.json'))), null, null, new Map([['gulls', gulls]]));
-  }
-
-  override async play(ctx: ShardContext): Promise<void> {
-    await ctx.scope.run(() => installDriftwoodAdventure(ctx));
   }
 }
 

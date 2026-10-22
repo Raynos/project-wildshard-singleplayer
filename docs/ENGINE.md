@@ -11290,3 +11290,16 @@ fixed-step mover publishes the object's pose first, then writes each component
 as pose.y minus water minus cleat-z times sin(pose.pitch). Admission performs
 no initial write, and module reads retain original loan/look identities.
 The original mover runtime still owns physics, ticking and saved handles.
+
+### Declared deck camera view
+
+`view.deck-camera-sway` carries strict inline DeckCameraSwaySchema rows and
+one admitted module name. Its entered play step runs before named-place
+binding and continuation, after quest preparation. Module reads fence owner
+retirement before the compiled deck-camera host installs its update system.
+The descriptor stays in client/plan; no extra named JSON section is emitted.
+
+The critical Wasm uses an explicit ABI2 view contract: fixed pages, I/O bytes
+and compiler/admission revisions. Product admission validates those bytes
+before instantiation and accounts the fixed memory. The host retains the
+original registry piece, system order and authored camera tuning.

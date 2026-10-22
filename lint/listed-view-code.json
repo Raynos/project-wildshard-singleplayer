@@ -9,8 +9,6 @@
       { "path": "src/game/quest/chapterDirector.ts", "name": "installChapterLead", "reason": "The remaining lead presentation reads the existing AS channels and presents its view.", "decision": "G570" }
     ],
     "driftwood-isle": [
-      { "path": "src/shards/driftwood-isle/quest/install.ts", "name": "BridgeSwayRows", "reason": "The rope deck's camera projection retains its authored visual tuning contract.", "decision": "G532" },
-      { "path": "src/shards/driftwood-isle/quest/install.ts", "name": "installBridgeSway", "reason": "Per-frame rope-deck camera sway remains listed shard view code until the view frame lane.", "decision": "G532" },
       { "path": "src/shards/driftwood-isle/runtime/models/people.ts", "reason": "The castaway's KitFigure, fitted camp and borrowed smoke are private scene presentation.", "decision": "G565" },
       { "path": "src/shards/driftwood-isle/runtime/models/trader.ts", "reason": "The entered trader's rig, specimen and pose ownership retain their actual view lifetime.", "decision": "G565" }
     ],

@@ -63,5 +63,5 @@ test('register refuses overlapping labels, foreign-shard paths and traversal',()
 test('the reviewed repository register has reasons and no whole-file overlap',()=>{
   const rows=loadListedViews('.');expect(Object.keys(rows.shards)).toHaveLength(6);
   expect(readFileSync('docs/HOST-BAR.md','utf8')).toContain('lint/listed-view-code.json');
-  expect(rows.shards['driftwood-isle']?.some(row=>row.name==='installBridgeSway')).toBe(true);
+  expect(rows.shards['driftwood-isle']?.some(row=>row.path==='src/shards/driftwood-isle/quest/install.ts')).toBe(false);
 });

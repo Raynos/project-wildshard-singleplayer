@@ -111,6 +111,13 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       const { installEntryRangedPage } = await import('./clientQuestComposition');
       await installEntryRangedPage(ctx, row);
     } } },
+  'view.deck-camera-sway': { phase: 'play', rank: -20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'view.deck-camera-sway') throw new Error('Invalid deck camera sway feature');
+    const { installDeckCameraSway } = await import('../systems/looks/deckCameraSway');
+    const live = (): void => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Deck view owner has ended'); };
+    live(); const bytes = await ctx.product.file(row.module); live();
+    installDeckCameraSway(ctx, row.rows, bytes);
+  } },
   'world.bind-sets': { phase: 'play', rank: -10, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'world.bind-sets') throw new Error('Invalid named-place binding feature');
     const { bindEnteredClientPlaceSets } = await import('./clientPlaceSets');
@@ -273,6 +280,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       if((water.surface.floor===undefined)!==(draw.floor===undefined)||(draw.foam.length>0&&draw.floor===undefined))throw new Error('Water floor and foam require a floored surface and its baked floor');
       if(draw.dry.length>(water.surface.dry?.slots??0))throw new Error('Water clips more dry rectangles than its surface has slots');
     }
+    for (const row of plan.features) if (row.kind === 'view.deck-camera-sway' && !product.hasFile(row.module)) throw new Error('Deck view requires its admitted module');
     for (const row of plan.features) if (row.kind === 'held.ranged-page' && !product.hasFile(row.file)) throw new Error('Ranged page requires its admitted data file');
     // G571: a forest page, its cave, weather and life name admitted files; a cave's spots and the life name a declared ranged page
     for (const row of plan.features) {

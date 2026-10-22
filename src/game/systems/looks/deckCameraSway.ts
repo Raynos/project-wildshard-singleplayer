@@ -8,16 +8,11 @@
  * from the registry installs nothing. Client-only; nothing reaches the sim or a save.
  */
 import * as v from 'valibot';
+import { DeckCameraSwaySchema } from '@wildshard/format/deckCameraSway';
 import { ViewLane } from '@wildshard/engine/script/viewLane';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { ShardContext } from '../../plugin/context';
 
-const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), finite = v.pipe(v.number(), v.finite());
-export const DeckCameraSwaySchema = v.strictObject({
-  piece: id, system: id, before: v.pipe(v.array(id), v.maxLength(16)),
-  /** height, ease, threshold, rate, speed, rollHz, roll, dipHz, dip: the module's own reading of its columns */
-  parameters: v.pipe(v.array(finite), v.length(9)),
-});
 /** The view module's fixed memory and I/O bytes, fuel per call and the call-time budget its rate policy holds to. */
 const PAGES = 1, IO_BYTES = 4096, FUEL = 100_000, TARGET_MS = 0.5;
 
