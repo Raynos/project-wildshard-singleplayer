@@ -25,3 +25,15 @@ test('empty hull part arrays retain their never item contract in the reference',
   expect(v.safeParse(parts, [{}]).success).toBe(false);
   expect(schemaInventory(parts)).toMatchObject([{ path: '$', type: 'array' }, { path: '$[]', type: 'never' }]);
 });
+
+
+test('strict tuples retain exact arity and expose every indexed child to the reference', () => {
+  const strict = v.strictTuple([v.number(), v.strictObject({ enabled: v.boolean() })]);
+  const ordinary = v.tuple([v.number(), v.strictObject({ enabled: v.boolean() })]);
+  const rows = schemaInventory(strict);
+  expect(rows[0]).toMatchObject({ path: '$', type: 'strict_tuple' });
+  expect(rows.slice(1)).toEqual(schemaInventory(ordinary).slice(1));
+  expect(rows.map(row => row.path)).toEqual(['$', '$[0]', '$[1]', '$[1].enabled']);
+  expect(v.safeParse(strict, [1, { enabled: true }]).success).toBe(true);
+  expect(v.safeParse(strict, [1, { enabled: true }, 2]).success).toBe(false);
+});

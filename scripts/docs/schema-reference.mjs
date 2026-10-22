@@ -5,7 +5,7 @@ const sorted = value => Array.isArray(value) ? value.map(sorted) : record(value)
   ? Object.fromEntries(Object.keys(value).sort(order).map(key => [key, sorted(value[key])])) : value;
 const describe = value => value instanceof RegExp ? value.toString() : typeof value === 'function' ? '[function; not executed]'
   : value === undefined ? 'undefined' : JSON.stringify(sorted(value));
-const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'lazy', 'literal', 'loose_object', 'never', 'null', 'nullable', 'number', 'object', 'object_with_rest', 'optional', 'picklist', 'record', 'strict_object', 'string', 'tuple', 'tuple_with_rest', 'union', 'unknown', 'variant']);
+const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'lazy', 'literal', 'loose_object', 'never', 'null', 'nullable', 'number', 'object', 'object_with_rest', 'optional', 'picklist', 'record', 'strict_object', 'strict_tuple', 'string', 'tuple', 'tuple_with_rest', 'union', 'unknown', 'variant']);
 const actions = new Set(['check', 'finite', 'integer', 'length', 'max_length', 'max_entries', 'max_value', 'min_length', 'min_value', 'raw_check', 'raw_transform', 'transform', 'regex', 'safe_integer']);
 
 /** Extract every declared path, preserving alternative branches and refusing unknown metadata. */
@@ -57,7 +57,7 @@ export function schemaInventory(schema, root = '$') {
         if (base.type === 'object_with_rest') visit(base.rest, `${path}{rest}`);
       } else if (base.type === 'array') visit(base.item, `${path}[]`);
       else if (base.type === 'record') { visit(base.key, `${path}{key}`); visit(base.value, `${path}{value}`); }
-      else if (base.type === 'tuple' || base.type === 'tuple_with_rest') {
+      else if (base.type === 'tuple' || base.type === 'strict_tuple' || base.type === 'tuple_with_rest') {
         base.items.forEach((item, index) => visit(item, `${path}[${index}]`));
         if (base.type === 'tuple_with_rest') visit(base.rest, `${path}[rest]`);
       }
