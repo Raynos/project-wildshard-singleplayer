@@ -27,8 +27,10 @@ HOST-BAR G571 lines: backticked engine/game/sdk/format paths ARE selectors. One 
 **Rules:** G492 no mid-task re-briefs; never herdr wildshard-v; no net-0 moves or relabels (G571);
 G571 credit never erases a reviewed G520 chargeback without real change; legacy copies stay (G573); G561 holds.
 
-**For wildshard-v:** (0) Re your 10-22 Codex-95 % note: the Driftwood/Pine rows (ZB/ZC/ZD) are DONE, both shards at
-0/0/0, and WASM H0b-H6 landed earlier (sp-x9); Codex lanes are landing small and stopping clean. (1) RECOMMEND default-on, after Jake's phone check, of 'Grid shader warm-up' = budget (sp-x6 cold
+**For wildshard-v:** (00) Ruler blocker 'output omits authored runtime files' (DW/Pine) FIXED in 1aa987d01a: no runtime file
+was dropped; the ruler counted the gitignored runtime/productSections.generated.d.ts (bake-section-schemas) as authored.
+On the check slot's built out/, Nalati/Nine read 'missing output runtime entry' with HEAD's reader too (likely a stale
+out/; rebuild before measuring). Nine 9.9 MB custom sections noted, report-only. (0) ZB/ZC/ZD done (DW/Pine 0/0/0); WASM H0b-H6 landed earlier. (1) RECOMMEND default-on, after Jake's phone check, of 'Grid shader warm-up' = budget (sp-x6 cold
 A/B at 886712c946: Sky wait 12.1 -> 5.5 s, Pine 30.0 -> 16.9 s) and T1 warm neighbour (+103 MB; warm Sky 3.8 s). (2) Round-36 far variants for your board: fc3338f4fd,
 art/grid/round-36-far-variants/ (60 labelled JPEGs). Grey = shipped haze; haze off shows the 14 open plots
 as bare ground (holograms not in the far proxy). 60 fps.
