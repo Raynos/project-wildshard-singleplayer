@@ -26,8 +26,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   shared stages. Name literal files, never a directory. A named file's entire working copy is committed: agree
   with its owner if it also contains another lane's hunk. Direct commits and private-index landings are retired.
   For shared files use `scripts/commit.sh --patch <file.patch> "message" -- <files...>`: an exact patch applies
-  to HEAD under the same lock, rejects undeclared paths, and leaves both working files and the shared index
-  untouched. Stale patches refuse. Patched source differing from the working copy is checked at pre-push.
+  to HEAD under the same lock and rejects undeclared paths. Working files and foreign shared stages stay
+  untouched; a declared path whose stage still equals the parent advances to the committed blob under the
+  index lock, avoiding a staged revert of the patch. Stale patches refuse. Patched source differing from the working copy is checked at pre-push.
   Pre-commit runs storage policy and one native oxlint invocation for TypeScript diagnostics and typed lint on
   changed source, with a soft five-second budget. Timeout warns and hands those exact staged blobs' typed checks
   to pre-push; actual errors still refuse. Missing verified generated inputs defer typed checks to full CI

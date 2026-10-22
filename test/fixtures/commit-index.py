@@ -68,8 +68,10 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     assert refused.returncode != 0 and git('rev-parse', 'HEAD') == head
     subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture patch', '--', 'shared.txt'], cwd=root, env=env, check=True)
     assert git('show', 'HEAD:shared.txt') == 'own=ours\npeer=base'
-    assert (root / '.git/index').read_bytes() == index
+    assert git('rev-parse', ':shared.txt') == git('rev-parse', 'HEAD:shared.txt')
+    assert git('rev-parse', ':peer.txt') == peer
     assert (root / 'shared.txt').read_bytes() == working
+    index = (root / '.git/index').read_bytes()
     head = git('rev-parse', 'HEAD')
     stale = subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture stale', '--', 'shared.txt'],
                            cwd=root, env=env, capture_output=True)
@@ -77,6 +79,27 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     assert (root / '.git/index').read_bytes() == index
     assert (root / 'shared.txt').read_bytes() == working
     assert list((root / '.git').glob('commit-patch.*')) == []
+    # A same-file foreign stage is preserved rather than aligned to our patch.
+    put('shared.txt', 'own=next\npeer=base\n')
+    patch.write_text(git('diff', 'HEAD', '--', 'shared.txt') + '\n')
+    put('shared.txt', 'own=ours\npeer=staged\n')
+    git('add', '--', 'shared.txt')
+    foreign = git('rev-parse', ':shared.txt')
+    put('shared.txt', 'own=next\npeer=working\n')
+    working = (root / 'shared.txt').read_bytes()
+    subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture foreign stage', '--', 'shared.txt'], cwd=root, env=env, check=True)
+    assert git('rev-parse', ':shared.txt') == foreign
+    assert git('show', 'HEAD:shared.txt') == 'own=next\npeer=base'
+    assert (root / 'shared.txt').read_bytes() == working
+    # New and deleted patch paths advance when their stages are untouched.
+    patch.write_text('--- /dev/null\n+++ b/patch-new.txt\n@@ -0,0 +1 @@\n+added\n'
+                     '--- a/own.txt\n+++ /dev/null\n@@ -1 +0,0 @@\n-own change\n')
+    subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture patch paths', '--', 'patch-new.txt', 'own.txt'], cwd=root, env=env, check=True)
+    assert git('rev-parse', ':patch-new.txt') == git('rev-parse', 'HEAD:patch-new.txt')
+    assert git('ls-files', '--', 'own.txt') == ''
+    assert (root / 'own.txt').read_text() == 'own change\n'
+    assert not (root / 'patch-new.txt').exists()
+    assert git('rev-parse', ':peer.txt') == peer
     # The storage check still reads this pathspec's staged object and refuses it.
     shutil.copy2(source / 'scripts/repo-size.mjs', root / 'scripts/repo-size.mjs')
     put('scripts/storage-policy.json', json.dumps({'schemaVersion': 1, 'maxBlobBytes': 1000000,

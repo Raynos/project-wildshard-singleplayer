@@ -18,6 +18,51 @@ for path in "$@"; do
   [ ! -d "$path" ] || { echo "commit.sh: name files, not directories: $path" >&2; exit 2; }
 done
 common="$(git rev-parse --path-format=absolute --git-common-dir)"
+# Advance untouched shared stages while holding Git's own index lock.
+align_shared_index() {
+  python3 - "$@" <<'PYALIGN'
+import os, subprocess, sys
+from pathlib import Path
+common, parent, landed, *paths = sys.argv[1:]
+env = dict(os.environ)
+env.pop("GIT_INDEX_FILE", None)
+index = Path(common) / "index"
+lock = Path(str(index) + ".lock")
+try:
+    handle = lock.open("xb")
+except FileExistsError:
+    print("commit.sh: shared index busy; committed patch left unchanged", file=sys.stderr)
+    raise SystemExit(0)
+try:
+    with handle:
+        handle.write(index.read_bytes())
+    env["GIT_INDEX_FILE"] = str(lock)
+    def git(*args, **kwargs):
+        return subprocess.check_output(["git", *args], env=env, **kwargs)
+    def tree(revision):
+        return {path: mode + b" " + oid + b" 0" for record in git("ls-tree", "-rz", revision, "--", *paths).split(b"\0") if record
+                for metadata, path in [record.split(b"\t", 1)] for mode, _, oid in [metadata.split()]}
+    before, after = tree(parent), tree(landed)
+    staged = {}
+    for record in git("ls-files", "--stage", "-z", "--", *paths).split(b"\0"):
+        if record:
+            metadata, path = record.split(b"\t", 1)
+            staged.setdefault(path, []).append(metadata)
+    updates = []
+    for name in paths:
+        path = os.fsencode(name)
+        if staged.get(path, []) != ([] if path not in before else [before[path]]):
+            continue
+        row = after.get(path, b"0 " + b"0" * 40 + b" 0")
+        updates.append(row + b"\t" + path + b"\0")
+    if updates:
+        git("update-index", "-z", "--index-info", input=b"".join(updates))
+        os.replace(lock, index)
+finally:
+    lock.unlink(missing_ok=True)
+PYALIGN
+}
+export -f align_shared_index
 exec python3 -c '
 import fcntl, signal, subprocess, sys
 def timeout(*_):
@@ -37,7 +82,8 @@ with open(sys.argv[1], "a") as lease:
     rm -f "$index"
     export GIT_INDEX_FILE="$index"
     trap '\''rm -f "$GIT_INDEX_FILE" "$GIT_INDEX_FILE.lock"'\'' EXIT
-    git read-tree HEAD
+    parent=$(git rev-parse HEAD)
+    git read-tree "$parent"
     git apply --cached -- "$patch"
     while IFS= read -r -d "" changed; do
       allowed=0
@@ -45,6 +91,7 @@ with open(sys.argv[1], "a") as lease:
       [ "$allowed" = 1 ] || { echo "commit.sh: patch changes undeclared path: $changed" >&2; exit 2; }
     done < <(git diff --cached --name-only -z)
     git commit -q -m "$message"
+    align_shared_index "$common" "$parent" "$(git rev-parse HEAD)" "$@"
     exit
   fi
   for path in "$@"; do
