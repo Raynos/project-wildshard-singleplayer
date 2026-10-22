@@ -83,7 +83,9 @@ export function installGridHud(host: GridHudHost): () => GridHudState {
     const copy = number === undefined ? '' : ` · ${number}`;
     const name = `${title.name}${copy}`;
     cardName.textContent = name; cardSub.textContent = title.subtitle; shownCard = name;
-    card.classList.remove('show'); void card.offsetWidth; card.classList.add('show');
+    // restart a showing card's fade in place: a remove / reflow / add forced a whole-page layout on the entry frame
+    if (card.classList.contains('show')) for (const fade of card.getAnimations()) fade.currentTime = 0;
+    else card.classList.add('show');
     cardTimer?.();
     let live = true; cardTimer = () => { live = false; };
     scope.timeout(CARD_MS, () => { if (!live) return; card.classList.remove('show'); shownCard = null; });

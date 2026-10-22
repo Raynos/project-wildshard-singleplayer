@@ -15,6 +15,7 @@ import { SceneHandles } from '../../shardfile/sceneHandles';
 import { installChannelPrograms } from '../../plugin/channelPrograms';
 import { atlasFigureSkin, FigureSkins } from './figureSkins';
 import { standingFigure, type FigureSkinState } from './standingFigure';
+import { skinEnvelope } from '../../grid/skinEnvelope';
 
 const skins = new FigureSkins();
 const entered = new WeakMap<Scope, Map<string, Set<FigureRows>>>();
@@ -112,6 +113,8 @@ export class FigureRows {
       if (!this.live) return;
       const rig = skins.rig(row.skin, resources.sky);
       if (rig === null) throw new Error('Baked figure skin was not prepared');
+      // the cell clip's one walk over the skin's vertices, here while it loads rather than on the frame the figure adopts it
+      skinEnvelope(rig.mesh);
       this.skinState.pending = rig; this.skinState.owned.push(rig.mesh.skeleton);
       for (const joint of row.joints) if ('bone' in joint) {
         const bone = rig.mesh.skeleton.bones.find(candidate => candidate.name === joint.bone);

@@ -89,6 +89,9 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
   const gates = new Map<Draw, () => void>(), pending = new Set<Draw>();
   const skinVersions = new WeakMap<SkinnedMesh, number>();
   const skinBounds = new WeakMap<SkinnedMesh, (() => Box3) | null>();
+  // An instanced draw's bounds walk every copy: keep them while its copies, count and geometry are the ones last walked
+  // (the construction sweep's walk then serves the activation and first-draw checks).
+  const instanceWalks = new WeakMap<object, { readonly geometry: unknown; readonly version: number; readonly count: number }>();
   let meshes = 0, checked = 0, checking = false, submitting = false;
   let flush = (): void => undefined;
   let validate = (_node: Draw, _submitted: boolean, _view?: Camera): void => undefined;
@@ -162,7 +165,12 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     } else if (node instanceof InstancedMesh && node.count === 0) {
       return;
     } else if (node instanceof InstancedMesh || node instanceof BatchedMesh) {
-      node.computeBoundingBox();
+      const walked = node instanceof InstancedMesh ? instanceWalks.get(node) : undefined;
+      if (node.boundingBox === null || !(node instanceof InstancedMesh) || walked === undefined || walked.geometry !== node.geometry
+        || walked.version !== node.instanceMatrix.version || walked.count !== node.count) {
+        node.computeBoundingBox();
+        if (node instanceof InstancedMesh) instanceWalks.set(node, { geometry: node.geometry, version: node.instanceMatrix.version, count: node.count });
+      }
       if (node.boundingBox === null) throw new Error('Cell draw has no instance bounds');
       projectBounds(node.boundingBox, node.matrixWorld, box);
     } else {
