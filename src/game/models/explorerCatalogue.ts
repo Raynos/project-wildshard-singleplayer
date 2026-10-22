@@ -18,6 +18,8 @@ import { prepareSceneSources, prepareSceneSpecimens, sceneModelDefinition, scene
 import { declaredHeldSpecimen, declaredNpcSpecimen } from './sceneSpecimens';
 import { scenePartSpecimen } from './scenePartSpecimen';
 import { ProductFigureCatalogue } from './figureCatalogue';
+import { KitFigureCardsSchema } from '@wildshard/format/questFigures';
+import { kitFigureCard } from './kitFigureCard';
 import { PosedDraw } from '../looks/posedInstances';
 import { heldGear } from './heldGear';
 import { HeldEquipment } from '../plugin/heldEquipment';
@@ -91,6 +93,9 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
     } else if (row.kind === 'figure') {
       const { file, ...card } = row;
       entries.push(present((await ProductFigureCatalogue.fromProduct(product, file)).model(row.figure), card));
+    } else if (row.kind === 'kit-figure') {
+      const book = parse(KitFigureCardsSchema, await product.json<unknown>(row.file));
+      entries.push(present(kitFigureCard(product, book, row.figure), row));
     } else if (row.kind === 'equipment') {
       const scope = resourceScope().child('held-finish-roster'), source = product.section('held/finishes').source;
       if (source === undefined) throw refusal(product, row, 'Held finishes require their declared geometry source');

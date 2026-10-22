@@ -10,8 +10,9 @@
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { KitFigureCardsSchema, QuestFiguresSchema, type QuestFigureRows } from '@wildshard/format/questFigures';
+import { QuestFiguresSchema, type QuestFigureRows } from '@wildshard/format/questFigures';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { KitFigure } from '../systems/npc/kitFigure';
 import { createBuildingCloud } from '../shardfile/buildingCloud';
@@ -55,15 +56,21 @@ export function questFigure(row: QuestFigureRows, ports: QuestFigurePorts): KitF
     const o = offset(object.at);
     if (object.kind === 'basic-mesh') {
       const material = new THREE.MeshBasicMaterial({ vertexColors: object.vertexColors, color: new THREE.Color(...object.colour) });
+      if (ports.scope !== undefined) ownSceneResource(material, ports.scope);
       material.name = object.name;
       const mesh = new THREE.Mesh(ports.draws.handle(object.draw).copy(), material);
       mesh.position.set(o.x, o.y + object.lift, o.z); objects.set(object.id, mesh);
     } else {
       const ready = ports.draws.ready, lit = hasLentLook(object.look);
-      objects.set(object.id, createBuildingCloud(ports.resources, {
+      const cloud = createBuildingCloud(ports.resources, {
         geometry: ports.resources.lend(ready ? ports.draws.handle(object.draw).copy() : new THREE.BufferGeometry()),
         material: lit ? ports.resources.lend(lentLook(object.look)) : null, seeds: object.seeds, name: object.name,
-        at: [o.x, o.y, o.z], center: object.center, radius: object.radius, order: object.order, visible: lit && ready }));
+        at: [o.x, o.y, o.z], center: object.center, radius: object.radius, order: object.order, visible: lit && ready });
+      if (ports.scope !== undefined) {
+        ownSceneResource(cloud.geometry, ports.scope);
+        if (!lit) for (const material of Array.isArray(cloud.material) ? cloud.material : [cloud.material]) ownSceneResource(material, ports.scope);
+      }
+      objects.set(object.id, cloud);
     }
   }
   for (const publication of row.publish) ports.resources.publish(publication.id, ports.draws.handle(publication.draw).copy());
@@ -131,17 +138,3 @@ export function installQuestFigures(ctx: ShardContext, input: unknown, ports: Qu
   return figures.map(({ figure }) => figure);
 }
 
-/** What cold Explorer kit cards borrow once their shard's roster has loaded its fixed draws: those draws, its figure
- *  catalogue and the product's client channels. */
-export type KitFigureCardPorts = Pick<QuestFigurePorts, 'draws' | 'catalogue' | 'channels'>;
-
-/** The admitted kit figure cards as Explorer models by key: each the live figure from its own row, built in its own space
- *  (its row's places taken as figure-frame coordinates) with its own scene resources. */
-export function kitFigureCards(input: unknown, ports: KitFigureCardPorts): (key: string) => ModelDef<object> {
-  const cards = new Map(Object.entries(v.parse(KitFigureCardsSchema, input).cards).map(([key, { model: { surface, ...model }, ...card }]) => [key, defineModel<object>({
-    ...model, ...(surface === undefined ? {} : { surface }),
-    build: ctx => questFigure(card.figure, { sky: ctx.sky, resources: new SceneHandles(ctx.sky), draws: ports.draws, catalogue: ports.catalogue,
-      channels: ports.channels, place: at => ({ x: at.x, y: at.y ?? 0, z: at.z, yaw: at.yaw ?? 0 }) }).group,
-  })]));
-  return key => { const card = cards.get(key); if (card === undefined) throw new Error(`Missing kit figure card: ${key}`); return card; };
-}

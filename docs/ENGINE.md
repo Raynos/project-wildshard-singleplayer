@@ -9711,7 +9711,15 @@ yaw; `bodyPlace` uses its explicitly requested heading.
 `game/plugin/channelPrograms.numericCreaturePose(input)` lends existing
 rig joints and copied frame inputs to the numeric channel evaluator. Each
 programme targets one optional joint (`joint.<name>`; underscores become
-dots); `read.joint.<name>.rotation` contains the pre-pose Euler scalars.
+dots). Build-only `sdk/clientChannels.creaturePoseRows` emits strict
+`NumericPoseSchema` inputs: finite frame fields, scalar records
+(`declared`, `memory`, or the seven declared dimensions), look yaw/pitch,
+and typed joint/transform/axis rows. Optional `bodyPitch` retains its
+present, absent and fallback behavior. There are no owner/path selectors.
+The runtime copies all applicable observations before any joint write,
+preserving lazy unused-target reads and numeric evaluation order. The
+shared generic channel container still admits wholly legacy input arrays
+for existing sky/weather users; pose rows admit only the finite branch.
 Rows may select a variant/alive gate, enumerate state indices, borrow the
 existing bounded look-angle helper, and finish with the existing flinch
 squash. The returned callback caches per rig, owns no actor memory or clock,
@@ -11204,3 +11212,21 @@ The optional `ambient` id resolves the original concrete AmbientGroup before
 reading. Retirement or a changed loan after the read refuses before world
 registration. Leaving drops the entered publication; its resident flock keeps
 its original owner. There is no callback, reflected path or new save owner.
+
+### Cold numeric kit cards (G571)
+
+Explorer `kit-figure {file,figure}` selects an admitted KitFigureCards row.
+The compiled card builder retains the model metadata and a view lifetime;
+its explicit specimen scope owns a cold fixed-draw intake and geometry
+copies. `coldFixedDraws(product,strictRows,cardScope,uniqueSlots)` admits
+exactly those declared slots through the original loader. All reads settle;
+a failure or retiring view frees every successfully decoded template.
+Ready/handle/load refuse the retired view, with no world fallback. It uses the existing figure catalogue and numeric quest figure
+recipe, without an initial pose update or an entered-world fallback.
+A leave during any read refuses construction. Flame materials and cloud
+geometry belong to that figure scope; lent kit and smoke materials keep
+their original owners. Closing the card releases only its own resources.
+`ProductFigureCatalogue.fromProduct(product,file,owner?)` and its admission
+method capture that explicit source owner before reads; omitted owners use
+the current resource scope. Retiring sources refuse before publishing a
+catalogue, and successful catalogue cache entries end with that owner.

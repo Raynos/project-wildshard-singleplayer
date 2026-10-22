@@ -11,10 +11,10 @@ import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../src/ga
 import { collectionCosmetic } from '../src/game/models/collectionDisplay';
 import { nativeSpecimenCatalogue } from '../src/shards/driftwood-isle/generators/nativeSpecimens';
 import { captainHat, sailclothCape, trader, tradeCounter, traderOf as originalTraderOf } from './fixtures/driftwoodNativeFactories';
-import { kitFigureCards, questFigure, type QuestFigurePorts } from '@wildshard/game/quest/figures';
+import { questFigure, type QuestFigurePorts } from '@wildshard/game/quest/figures';
 import type { QuestFigureRows } from '@wildshard/format/questFigures';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
-import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
+import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { ownQuestTree } from '@wildshard/game/quest/chapter';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
@@ -144,10 +144,9 @@ test('native card rows preserve the actual factories, pivots, colliders and shad
     // The real card is the entered rigid figure at its card pose. Its smoke is a
     // Mesh, hidden before a look is lent and borrowing that exact look afterward.
     const smokeRows = driftwoodRows('custom/fixedLayouts').nativeView;
-    const castaway = kitFigureCards(driftwoodKitFigureCards(), { draws: fixedDrawLibrary(), catalogue: FIGURES, channels: driftwoodProduct().shardfile.clientChannels })('castaway');
     const compareCastaway = (visible: boolean, material?: Material): void => {
-      const before = owner.run(() => figure('castaway', sky, owner, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).group);
-      const after = owner.run(() => group(castaway.build(ctx, castaway.defaults, new Rng(0))));
+      const before = owner.run(() => castawayFigure(sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(sky), owner).group);
+      const after = owner.run(() => figure('castaway', sky, owner, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).group);
       expect(snapshot(after)).toEqual(snapshot(before));
       const smoke = after.getObjectByName(smokeRows.CASTAWAY_SMOKE.name);
       if (!(smoke instanceof Mesh)) throw new Error('Castaway requires its actual smoke mesh');

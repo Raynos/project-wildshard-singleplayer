@@ -91,29 +91,34 @@ const admitted = new WeakMap<ShardProduct, Map<string, ProductFigureCatalogue>>(
  * Public callers supply product/file ids and resident scene handles only.
  */
 export class ProductFigureCatalogue {
-  /** Share the already admitted native catalogue with page composition. */
-  static async fromProduct(product: ShardProduct, file: string): Promise<ProductFigureCatalogue> {
+  /** Share the admitted catalogue; source `owner` is captured before reads and
+   * retires its cache and geometry. Omitted owners use the construction scope. */
+  static async fromProduct(product: ShardProduct, file: string, owner: Scope = resourceScope()): Promise<ProductFigureCatalogue> {
     const ready = admitted.get(product)?.get(file); if (ready !== undefined) return ready;
-    const catalogue = new ProductFigureCatalogue(product.slug, file); await catalogue.admit(product); return catalogue;
+    const catalogue = new ProductFigureCatalogue(product.slug, file); await catalogue.admit(product, owner); return catalogue;
   }
   private readonly figures = new FigureCatalogue();
   private pending: Promise<void> | undefined;
   constructor(private readonly productId: string, private readonly file: string) {}
-  async admit(product: ShardProduct): Promise<void> {
+  async admit(product: ShardProduct, owner: Scope = resourceScope()): Promise<void> {
+    const check = (): void => { if (owner.disposed || owner.disposing) throw new Error('Figure catalogue owner left'); };
+    check();
     const data = v.parse(FigureCatalogueSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(this.file))));
+    check();
     const resources = new SceneHandles();
     if (data.pack !== undefined) {
       const pack = new GeometryPack(await fetchDeflated(data.pack.url), data.pack.rows, this.file);
+      check();
       const indices = new Set(Object.values(data.figures).flatMap(row => [row.body, row.glass]).filter(index => index !== undefined && index !== null));
       for (const index of indices) {
         const geometry = pack.geometry(index); resources.publish(String(index), geometry);
-        resourceScope().onDispose(() => { geometry.dispose(); });
+        owner.onDispose(() => { geometry.dispose(); });
       }
     }
-    await this.figures.admit(data, resources);
+    await owner.run(() => this.figures.admit(data, resources)); check();
     const book = admitted.get(product) ?? new Map<string, ProductFigureCatalogue>();
     book.set(this.file, this); admitted.set(product, book);
-    resourceScope().onDispose(() => { if (book.get(this.file) === this) book.delete(this.file); });
+    owner.onDispose(() => { if (book.get(this.file) === this) book.delete(this.file); });
   }
   prepare(): Promise<void> {
     this.pending ??= (async () => {

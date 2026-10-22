@@ -52,7 +52,7 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
       ]
     }
     ,{kind:'posed',file:'look/gull-draw.json',source:'product'},
-    {kind:'library',library:'native',model:'driftwood-isle/castaway'},
+    {kind:'kit-figure',file:'people/cards.json',figure:'castaway',copies:1,drawnAs:'single'},
     ...HELD_ARMS.weapons.map(weapon => ({kind:'held',item:weapon.item})),
   ]
 });
