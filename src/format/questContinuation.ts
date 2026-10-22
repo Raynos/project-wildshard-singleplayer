@@ -10,3 +10,12 @@ export const QuestContinuationSchema = v.pipe(v.unknown(), v.check(isJsonData, '
   cosmetics: v.strictObject({ file: id, models: v.pipe(v.record(id, id), v.maxEntries(32)) }),
   loot: v.strictObject({ id, shop: id, minimap: v.boolean(), before: v.pipe(v.array(id), v.maxLength(64)) }),
 }));
+
+/** Read standalone rows or the fixed resource field of an admitted quest page.
+ * The field is compiled here; documents cannot provide a selector or callback. */
+export function parseQuestContinuationDocument(input: unknown): v.InferOutput<typeof QuestContinuationSchema> {
+  const rows = v.parse(v.pipe(v.unknown(), v.check(isJsonData, 'Quest document requires JSON rows'), v.union([
+    QuestContinuationSchema, v.object({ entryResources: v.object({ continuation: QuestContinuationSchema }) }),
+  ])), input);
+  return 'entryResources' in rows ? rows.entryResources.continuation : rows;
+}

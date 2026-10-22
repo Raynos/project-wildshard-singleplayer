@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import { QuestWorldSchema } from '@wildshard/format/questWorld';
+import { parseQuestWorldDocument } from '@wildshard/format/questWorld';
 import type { ShardContext } from '../plugin/context';
 import { registerQuestPageWorld } from '../quest/pageResources';
 import { entryOwner } from './entryOwners';
@@ -13,6 +12,6 @@ export async function prepareQuestWorldEntry(ctx: ShardContext, file: string, am
   const input = await ctx.product.json<unknown>(file);
   if (ended(ctx)) throw new Error('Quest world owner ended during read');
   if (ambient !== undefined && entryOwner(ctx.scope, 'ambient', ambient) !== flock) throw new Error('Quest world ambient owner changed during read');
-  const rows = v.parse(QuestWorldSchema, input);
+  const rows = parseQuestWorldDocument(input);
   registerQuestPageWorld(ctx.scope, rows.id, { pois: rows.pois, flock });
 }

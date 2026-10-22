@@ -1,7 +1,5 @@
 import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
-import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
-import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
@@ -15,7 +13,7 @@ import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { PageLifeSchema } from '@wildshard/format/pageLife';
 import { BuildingLifeRowsSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { FigureCatalogueSchema } from '@wildshard/format/figures';
-import { KitFigureCardsSchema, QuestFiguresSchema } from '@wildshard/format/questFigures';
+import { KitFigureCardsSchema } from '@wildshard/format/questFigures';
 import { ChapterDirectorSchema, ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { DirectorSchema } from '@wildshard/format/director';
 import { DirectorStagesSchema } from '@wildshard/format/directorStages';
@@ -29,14 +27,11 @@ import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/forma
 const text = v.string(), number = v.number();
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/page-composition.json': QuestPageCompositionSchema,
-  'quests/continuation.json': QuestContinuationSchema,
-  'quests/world.json': QuestWorldSchema,
   'actors/projection.json': PopulationProjectionSchema,
   'actors/page-life.json': PageLifeSchema,
   'world/cover-composition.json': CoverCompositionSchema,
   'people/catalogue.json': FigureCatalogueSchema,
   'people/cards.json': KitFigureCardsSchema,
-  'quests/figures.json': QuestFiguresSchema,
   'sim/returns.json': PageReturnRowsSchema,
   'models/world-scenes.json': WorldSceneModelsSchema,
   'world/building-life.json': v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: number }),

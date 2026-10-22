@@ -135,6 +135,8 @@ G571 credit. Imports and dependencies retain their own attribution.
 
 - G571 native bake intake: `game/population/nativeBake#createNativeBakeReader` and `game/population/nativeBake#nativeIntake` consume unknown producer data and strict stock lattice, rig, shape, parked and provenance rows. Test 1 waived; test 2: generic profiles without shard branches; test 3: declared data selects existing validation; test 4: renderer-free with no import-time installation; test 5: reusable native data admission remains useful without its first shard; test 6: JSON-only input, no supplied validator, callback or reflected selector. Tests 2–6 covered by native-bake-reader and headless-assembly refusal, complete-field, buffer-ownership and memoization tests, plus unchanged Pine/Driftwood native save envelopes. Unrelated declarations and dependencies remain charged.
 
+- G571 bundled quest data: `format/questWorld#parseQuestWorldDocument` `format/questFigures#parseQuestFiguresDocument` `format/questContinuation#parseQuestContinuationDocument` read only their fixed admitted entry-resource field or original standalone rows. Tests 2–6 retain strict field admission, plain JSON, original values and owner/refusal behavior; no authored selectors, callback, clock or save.
+
 ## Still owed
 
 - Still owed (G481): every host in `src/engine` and `src/game`, the plugin system, and the G473–G478 features as they

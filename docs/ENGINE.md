@@ -11262,3 +11262,12 @@ rechecks their identities and retirement at each sliced yield, and awaits
 the original `bindClientPlaceSets` to completion. `world.sets` admission
 alone never proves placement readiness. Registration adds no geometry or
 colliders and leaves every loan with its original construction owner.
+
+### Bundled quest entry resources
+
+An admitted quest page can carry strict `entryResources` containing
+`world`, `figures` and `continuation` rows under their defining schemas.
+The existing finite world/composition/continuation readers accept either
+standalone rows or their one compiled field in this page document. They
+accept no authored selector, owner path or callback. Sharing a document
+retains preparation order and original owners; it creates no named file.

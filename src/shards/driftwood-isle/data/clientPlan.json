@@ -32,7 +32,7 @@
     },
     {
       "kind": "quest.continuation",
-      "file": "quests/continuation.json"
+      "file": "quests/page-composition.json"
     },
     {
       "kind": "held.claims.prepare",
@@ -47,7 +47,7 @@
     },
     {
       "kind": "quest.world",
-      "file": "quests/world.json",
+      "file": "quests/page-composition.json",
       "ambient": "driftwood.gulls"
     },
     {
@@ -60,7 +60,7 @@
       "file": "quests/page-composition.json",
       "reference": "driftwood.quest-reference",
       "figures": {
-        "file": "quests/figures.json",
+        "file": "quests/page-composition.json",
         "draws": "driftwood.fixed-draws"
       }
     },

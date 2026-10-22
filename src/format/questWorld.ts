@@ -10,3 +10,12 @@ export const QuestWorldSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest w
   id, pois: v.pipe(v.record(id, v.nullable(v.strictObject({ anchors: v.pipe(v.record(id, anchor), v.maxEntries(1024)) }))), v.maxEntries(256)),
 }));
 export type QuestWorldRows = v.InferOutput<typeof QuestWorldSchema>;
+
+/** Read standalone rows or the fixed resource field of an admitted quest page.
+ * The field is compiled here; documents cannot provide a selector or callback. */
+export function parseQuestWorldDocument(input: unknown): QuestWorldRows {
+  const rows = v.parse(v.pipe(v.unknown(), v.check(isJsonData, 'Quest document requires JSON rows'), v.union([
+    QuestWorldSchema, v.object({ entryResources: v.object({ world: QuestWorldSchema }) }),
+  ])), input);
+  return 'entryResources' in rows ? rows.entryResources.world : rows;
+}

@@ -1,5 +1,8 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { QuestWorldSchema } from './questWorld';
+import { QuestFiguresSchema } from './questFigures';
+import { QuestContinuationSchema } from './questContinuation';
 import { QuestPageTalksSchema } from './npcs';
 import { ContractBoardPageSchema } from './contracts';
 import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from './questPageFacets';
@@ -13,6 +16,8 @@ const custom = v.pipe(v.string(), v.regex(/^custom\/[a-zA-Z0-9_./-]{1,249}$/));
  * Every facet past the shared entry, kit, talks, trader, cable and places is optional. */
 export const QuestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Quest page composition requires JSON rows'), v.strictObject({
   id, debug: id,
+  /** Optional entry resources share this admitted document without new file names. */
+  entryResources: v.exactOptional(v.strictObject({ world: QuestWorldSchema, figures: QuestFiguresSchema, continuation: QuestContinuationSchema })),
   /** a registered page world (its POI anchors and guide flock), and the frames its placements resolve in */
   world: v.exactOptional(id), frames: v.exactOptional(v.pipe(v.record(id, frame), v.maxEntries(4096))),
   placement: v.exactOptional(v.strictObject({ platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(n, v.minValue(Number.MIN_VALUE))) })),

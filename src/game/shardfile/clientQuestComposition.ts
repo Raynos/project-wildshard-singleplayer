@@ -7,6 +7,7 @@ import { installRangedPage, rangedPage } from '../loadout/rangedPage';
 import { prepareQuestPageComposition, installQuestPageComposition } from '../quest/pageComposition';
 import { QuestPageReference } from '../quest/pageReference';
 import { installQuestFigures } from '../quest/figures';
+import { parseQuestFiguresDocument } from '@wildshard/format/questFigures';
 import { ProductFigureCatalogue } from '../models/figureCatalogue';
 import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { ShardContext } from '../plugin/context';
@@ -50,10 +51,10 @@ export async function installEntryQuestComposition(ctx: ShardContext, row: Extra
     return { ids: equipmentRow, animals, page: rangedPage(ctx.scope, equipmentRow.ranged) };
   })();
   const figures = figureRow === undefined ? null : await (async () => {
-    const input = await ctx.product.json(figureRow.file); check();
+    const input = figureRow.file === row.file ? rows : await ctx.product.json(figureRow.file); check();
     const catalogue = await ProductFigureCatalogue.fromProduct(ctx.product, 'people/catalogue.json', residentWorldScope(ctx)); check();
     const modelRows = await ctx.product.json('models/world-scenes.json'); check();
-    return { input, catalogue, models: defineWorldSceneCatalogue(modelRows) };
+    return { input: parseQuestFiguresDocument(input), catalogue, models: defineWorldSceneCatalogue(modelRows) };
   })();
   const placement = await prepareQuestPageComposition(ctx, rows); check();
   if (figures !== null && draws !== null) {

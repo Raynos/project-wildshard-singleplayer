@@ -1,7 +1,7 @@
 /** Client-only entered continuation. Native inventory, flags, geometry and
  * saves keep their original owners; no content factory crosses this host. */
 import * as v from 'valibot';
-import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
+import { QuestContinuationSchema, parseQuestContinuationDocument } from '@wildshard/format/questContinuation';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import type { ShardContext } from '../plugin/context';
 import { requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
@@ -46,7 +46,7 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
 export async function installQuestContinuationFile(ctx:ShardContext,file:string):Promise<void> {
   const input=await ctx.product.json(file);
   if(ended(ctx))throw new Error('Quest continuation owner ended during read');
-  const row=v.parse(QuestContinuationSchema,input);
+  const row=parseQuestContinuationDocument(input);
   requireClientPlaceSetsBound(ctx);
   await installQuestContinuation(ctx,row);
 }

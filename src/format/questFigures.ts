@@ -48,3 +48,12 @@ export const KitFigureCardsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Kit
   })), v.maxEntries(64), v.check(rows => Object.keys(rows).length > 0, 'at least one kit figure card')),
 }));
 export type KitFigureCardsRows = v.InferOutput<typeof KitFigureCardsSchema>;
+
+/** Read standalone rows or the fixed resource field of an admitted quest page.
+ * The field is compiled here; documents cannot provide a selector or callback. */
+export function parseQuestFiguresDocument(input: unknown): QuestFiguresRows {
+  const rows = v.parse(v.pipe(v.unknown(), v.check(isJsonData, 'Quest document requires JSON rows'), v.union([
+    QuestFiguresSchema, v.object({ entryResources: v.object({ figures: QuestFiguresSchema }) }),
+  ])), input);
+  return 'entryResources' in rows ? rows.entryResources.figures : rows;
+}
