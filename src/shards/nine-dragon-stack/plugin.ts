@@ -1,4 +1,3 @@
-import { prepareNinePost } from './look/render';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { declaredRuntimeEntry } from '@wildshard/game/shard/declaredEntry';
 import { Group, type PerspectiveCamera } from 'three';
@@ -32,7 +31,6 @@ async function buildWorld(ctx: ShardContext, caps: boolean, pause: () => Promise
   if (sky === undefined) throw new Error('Nine Dragon needs its world sky');
   const world = await residentWorld.load(ctx, async owner => {
     lendLooks(owner, await lookGraphMaterials(owner, render, source, Object.keys(source.look.materials)));
-    await prepareNinePost(render.renderer);
     const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), owner);
     // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
     return buildNineDragonWorld(render.renderer, (fraction, detail) => {

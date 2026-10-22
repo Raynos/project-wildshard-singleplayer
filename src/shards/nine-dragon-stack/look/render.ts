@@ -27,12 +27,6 @@ import { syncLooks } from './facadeMaterial';
 const setStreakOn = (value: number): void => { setLentParam('nine-streaks', 'cardOn', value); };
 
 let post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>> & { readonly ao: AoTuning } | null = null;
-/** Load the admitted post rows while the world stage may await. */
-export async function prepareNinePost(renderer: Renderer): Promise<void> {
-  await prepareScaledPost(renderer);
-  const rows = await (await loadFirstPartyProduct('nine-dragon-stack')).json<{ readonly look: { readonly post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>>; readonly ao: AoTuning } }>('weapons/jian-row.json');
-  post = { ...rows.look.post, ao: rows.look.ao };
-}
 
 /**
  * The silk fog for the look graphs (O11): data/lookGraphs.json 'nine-silk-fog' is FOG_GLSL's silkFog as a `kind: 'fog'`
@@ -162,6 +156,12 @@ export function shardRender(): LookStrategy {
   };
 
   return {
+    // the admitted post rows, loaded while the world stage may await (the engine's world look preparation)
+    prepareWorld: async ({ renderer }) => {
+      await prepareScaledPost(renderer);
+      const rows = await (await loadFirstPartyProduct('nine-dragon-stack')).json<{ readonly look: { readonly post: Readonly<Record<'bleed' | 'reflect' | 'haze', ScaledPostRow>>; readonly ao: AoTuning } }>('weapons/jian-row.json');
+      post = { ...rows.look.post, ao: rows.look.ao };
+    },
     // (E281) the engine's cloud layer (a white cumulus dome for the daylight shards) has no place in a blue-hour sky
     // under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky: the layer is never built, and
     // inside its grid cell that sky owns the horizon (`ownSky`, G321)
