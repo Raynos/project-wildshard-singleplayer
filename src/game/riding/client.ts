@@ -32,18 +32,19 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { arenaBoundaryBlocked } from '../boss/arenaField';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 
-const collections = new WeakMap<Scope, Map<string, readonly HerdBrain<Animal>[]>>();
 function nativeHerds(value: unknown): value is readonly HerdBrain<Animal>[] {
   return Array.isArray(value) && value.length <= 8 && value.every((herd: unknown) => herd instanceof HerdBrain
     && Object.getPrototypeOf(herd) === HerdBrain.prototype && herd.members.every((actor: unknown) => actor instanceof Animal));
 }
-/** Bind concrete engine herds once. An authored callback, subclass or structural
- * policy object cannot enter the riding feature through this service registry. */
-export function admitRenderedHerds(scope: Scope, id: string, value: unknown): void {
-  if (!nativeHerds(value)) throw new Error('Invalid rendered riding herds');
-  const map = collections.get(scope) ?? new Map<string, readonly HerdBrain<Animal>[]>();
-  if (map.has(id)) throw new Error('Duplicate rendered riding herds'); map.set(id, value); collections.set(scope, map);
-  scope.onDispose(() => { map.delete(id); });
+/** Exact entered population owners, borrowed without a second service book. */
+export interface PageRidingOwners {
+  readonly id: string; readonly herds: readonly HerdBrain<Animal>[];
+  readonly wind: { x: number; z: number; strength: number };
+}
+function ridingHerds(owners: PageRidingOwners, id: string): readonly HerdBrain<Animal>[] {
+  if (!nativeHerds(owners.herds)) throw new Error('Invalid rendered riding herds');
+  if (owners.id !== id) throw new Error('Mismatched rendered riding herds');
+  return owners.herds;
 }
 export interface PageTamingRows {
   herds: string; programs: TamingPrograms; binding: unknown; savedBond: string | null;
@@ -64,10 +65,10 @@ export interface PageTamingOwner {
 }
 /** Client-only native effect adapter. Placement, persisted bond values, labels and
  * upgrade appearance are rows; the existing engine actors own their real rigs. */
-export function createPageTaming(ctx: LevelContext, player: Player, animals: AnimalManager, mount: Mount, rows: PageTamingRows): PageTamingOwner {
+export function createPageTaming(ctx: LevelContext, player: Player, animals: AnimalManager, mount: Mount, rows: PageTamingRows, owners: PageRidingOwners): PageTamingOwner {
   const profile = v.parse(PageTamingBindingSchema, rows.binding);
   const colour = v.parse(v.tuple([v.number(), v.number(), v.number()]), rows.adopted.upgrade.colour);
-  const herds = collections.get(ctx.scope)?.get(rows.herds); if (herds === undefined) throw new Error('Missing rendered riding herds');
+  const herds = ridingHerds(owners, rows.herds), wind = owners.wind;
   let events: PageTamingEvent[] = [];
   const law = new TamingBinding<Animal, HerdBrain<Animal>>({ profile, programs: rows.programs,
     bond: { read: () => rows.savedBond, write: value => { events.push({ kind: 'bond', value }); } }, player,
@@ -76,7 +77,7 @@ export function createPageTaming(ctx: LevelContext, player: Player, animals: Ani
       get breakRoll() { return mount.breakRoll; }, set breakRoll(value) { mount.breakRoll = value; },
       mount: (actor, breaking) => mount.mount(actor.entityId, breaking), dismount: thrown => { mount.dismount(thrown); },
       addMountable: (actor, name) => { mount.addMountable(actor.entityId, name); }, removeMountable: actor => { mount.removeMountable(actor.entityId); } },
-    hud: { offer: false, lean: 0 }, herds: () => herds, rest: rows.rest, wind: () => windOf(ctx), random: Math.random,
+    hud: { offer: false, lean: 0 }, herds: () => herds, rest: rows.rest, wind: () => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Missing riding wind'); return wind; }, random: Math.random,
     hideStallion: actor => { actor.hidden = true; actor.mesh.visible = false; actor.position.y = -1e4; },
     retireBonded: actor => {
       actor.hidden = true; actor.mesh.visible = false; actor.alive = false; actor.position.y = -1e4;
@@ -112,15 +113,6 @@ export function createPageTaming(ctx: LevelContext, player: Player, animals: Ani
     startBreaking: () => { law.startBreaking(); }, forceBreak: () => { law.forceBreak(); }, setInput: input => { law.input = input; },
     drainEvents: () => { const out = events; events = []; return out; } };
 }
-const winds = new WeakMap<Scope, { x: number; z: number; strength: number }>();
-/** Publish the scoped numeric world observation, without a wind callback. */
-export function admitRidingWind(scope: Scope, wind: { x: number; z: number; strength: number }): void {
-  if (winds.has(scope)) throw new Error('Duplicate riding wind'); winds.set(scope, wind); scope.onDispose(() => { winds.delete(scope); });
-}
-function windOf(ctx: LevelContext): { x: number; z: number; strength: number } {
-  const wind = winds.get(ctx.scope); if (wind === undefined) throw new Error('Missing riding wind'); return wind;
-}
-
 /** Labels, the hitch point and the admitted guest are shard data. */
 export interface RidingActionRows {
   herds: string; program: unknown; rail: { x: number; z: number }; tagRange: number; tagHeight: number;
@@ -140,8 +132,8 @@ export class RidingActions {
   private readonly rules: ReturnProgram;
   private readonly herds: readonly HerdBrain<Animal>[];
   constructor(private readonly ctx: LevelContext, private readonly mount: Mount, private readonly taming: PageTamingOwner,
-    private readonly player: Player, private readonly camera: THREE.PerspectiveCamera, private readonly animals: AnimalManager, private readonly rows: RidingActionRows) {
-    const herds = collections.get(ctx.scope)?.get(rows.herds); if (herds === undefined) throw new Error('Missing rendered riding herds'); this.herds = herds;
+    private readonly player: Player, private readonly camera: THREE.PerspectiveCamera, private readonly animals: AnimalManager, private readonly rows: RidingActionRows, owners: PageRidingOwners) {
+    this.herds = ridingHerds(owners, rows.herds);
     this.rules = ReturnProgram.page(rows.program, ctx.scope);
     this.hud = new RideHUD(ctx, camera, { tagRange: rows.tagRange, tagHeight: rows.tagHeight });
     this.nameIt = { position: new THREE.Vector3(rows.rail.x, 0, rows.rail.z), radius: 0, label: rows.labels.name,
@@ -240,16 +232,17 @@ export function respawnPageMounted(ctx: LevelContext, position: THREE.Vector3, y
     if (mount.mount(actor)) { mount.teleport(position.x,position.z,yaw+row.yaw); mount.steed = row.steed; mount.winded = false; return; }
   }
 }
-export function createPageRiding(ctx: LevelContext, player: Player, animals: AnimalManager, camera: THREE.PerspectiveCamera, rows: PageRidingRows): PageRidingSession {
+export function createPageRiding(ctx: LevelContext, player: Player, animals: AnimalManager, camera: THREE.PerspectiveCamera, rows: PageRidingRows, owners: PageRidingOwners): PageRidingSession {
+  ridingHerds(owners, rows.taming.herds); ridingHerds(owners, rows.actions.herds);
   const controls=rows.controls===undefined?undefined:v.parse(RidingControlsSchema,rows.controls);
   if(controls!==undefined && rows.taming.breakingContext!==undefined && controls.breaking!==rows.taming.breakingContext)throw new Error('Riding breaking context mismatch');
   const mount = new Mount(ctx, player, animals, rows.profile);
   for (const entry of rows.mountables) mount.addMountable(entry.id, entry.name);
   playerModes(player).register(rows.mode, ctx.scope);
-  const taming = createPageTaming(ctx, player, animals, mount, controls===undefined?rows.taming:{...rows.taming,breakingContext:controls.breaking});
+  const taming = createPageTaming(ctx, player, animals, mount, controls===undefined?rows.taming:{...rows.taming,breakingContext:controls.breaking}, owners);
   const owner = { player,taming }; mountedOwners.set(ctx.scope,owner);
   ctx.scope.onDispose(() => { if (mountedOwners.get(ctx.scope)===owner) mountedOwners.delete(ctx.scope); });
-  const actions = new RidingActions(ctx, mount, taming, player, camera, animals, rows.actions);
+  const actions = new RidingActions(ctx, mount, taming, player, camera, animals, rows.actions, owners);
   if (controls !== undefined) bindRidingControls(ctx,mount,taming,actions.hud,controls);
   return { mount, taming, hud: actions.hud, interactable: actions.interactable, names: rows.profile.names,
     update: (dt, wet, blocked, namingOpen) => { actions.advanceMount(dt, wet, blocked); taming.update(dt); actions.observe(dt, namingOpen); },
@@ -311,13 +304,13 @@ export function enterClientRiding(ctx: ShardContext): PageRidingView {
   const population = clientWildlife(ctx); if (population === null) throw new Error('Riding requires built wildlife');
   const { rows } = owner, persistence = enteredAdventurePersistence(ctx.scope), kit = mountedPageLoadout(ctx);
   const names = persistence.names.read(), preset = rows.preset;
-  admitRenderedHerds(ctx.scope, preset.taming.herds, population.herds); admitRidingWind(ctx.scope, wildEnv.wind);
+  const owners = { id: preset.taming.herds, herds: population.herds, wind: wildEnv.wind };
   const session = createPageRiding(ctx, world.player, play.animals, world.game.camera, {
     profile: { ...rows.profile, names, roads: rows.roads, restAt: rows.rest }, mode: preset.mode, ...(preset.controls === undefined ? {} : { controls: preset.controls }),
     taming: { ...preset.taming, programs: rows.programs, binding: rows.taming.binding, savedBond: persistence.bond.read(), rest: rows.rest },
     actions: { ...preset.actions, program: rows.programs.riding, rail: rows.taming.rail },
     mountables: population.mountables.map(actor => ({ id: actor.entityId, name: preset.mountableLabel })),
-  });
+  }, owners);
   const { mount, taming, hud, interactable } = session, reins = new MountedReins(world.game.camera, rows.programs.reins, ctx.scope);
   const namer = new DataPanel(rows.naming.panel), raid = new PagePastureRaid(play.animals, population, population.pastureProfile), nameValues = { current: '' };
   let namingActor: string | null = null;

@@ -12,12 +12,13 @@ import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { overrideTerrain } from './fake/terrain';
+import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DiscOpts } from '@wildshard/engine/ui/hudSlots';
 import { RidingControlsSchema, type RideHudState, type MountProfile } from '@wildshard/format/riding';
 import { parse } from 'valibot';
-import { admitRenderedHerds, admitRidingWind, createPageRiding, respawnPageMounted, RidingActions, type PageTamingOwner } from '@wildshard/game/riding/client';
+import { createPageRiding, respawnPageMounted, RidingActions, type PageTamingOwner, type PageRidingRows, type PageRidingOwners } from '@wildshard/game/riding/client';
 import fixturePrograms from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
@@ -116,10 +117,10 @@ test('fixture riding actions selects the rail prompt and emits a naming row', ()
     interactable: { position: new Vector3(), radius: 0, label: '', onInteract: () => undefined },
     update: () => undefined, noteEvent: () => undefined, noteShot: () => undefined, startBreaking: () => undefined,
     forceBreak: () => undefined, setInput: () => undefined, drainEvents: () => [] };
-  admitRenderedHerds(f.scope, 'orchard.herds', []);
+  const owners: PageRidingOwners = { id: 'orchard.herds', herds: [], wind: { x: 0, z: 0, strength: 0 } };
   const actions = new RidingActions(ctx, f.mount, taming, legacyDouble<Player>({ position: f.actor.position }), f.camera, animals,
     { herds: 'orchard.herds', program: fixturePrograms.riding, rail: { x: 3, z: 5 }, tagRange: 30, tagHeight: 2,
-      labels: { name: 'Name', panic: ' startled', thrown: 'Thrown', bolt: ' resting' }, squeal: 'mule-call' });
+      labels: { name: 'Name', panic: ' startled', thrown: 'Thrown', bolt: ' resting' }, squeal: 'mule-call' }, owners);
   try {
     f.mount.addMountable(f.actor.entityId, 'Orchard mule');
     f.camera.position.set(3, 1.5, 6.15);
@@ -143,9 +144,9 @@ test('full orchard riding session owns its native mount and data prompts', () =>
     describe:[{group:'riding',id:'orchard.call',label:'Call mule',actions:['ride.whistle']}]});
   const ctx = legacyDouble<LevelContext>({ ...f.ctx, on: () => undefined,
     inputContext:def=>input.register(def,f.scope),system:spec=>f.ctx.app.addSystem(spec,f.scope) });
-  admitRenderedHerds(f.scope, 'orchard.herds', []); admitRidingWind(f.scope, { x: 0, z: 1, strength: .2 });
+  const owners: PageRidingOwners = { id: 'orchard.herds', herds: [], wind: { x: 0, z: 1, strength: .2 } };
   const rest = { x: 3, z: 5, face: { x: 0, z: 1 } };
-  const session = createPageRiding(ctx, f.player, f.animals, f.camera, {
+  const rows: PageRidingRows = {
     profile: { speeds, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: rest }, mode: { id: 'ride', hud: 'ride' },
     controls,mountables: [{ id: f.actor.entityId, name: 'Orchard mule' }],
     taming: { herds: 'orchard.herds', programs: fixturePrograms, savedBond: null, rest,
@@ -155,7 +156,13 @@ test('full orchard riding session owns its native mount and data prompts', () =>
         labels: { mount: 'Mount', breaking: 'Breaking', trust: 'Trust', start: 'Tame', thrown: 'Thrown', bonded: ['Bonded', 'Silver bond'] } } },
     actions: { herds: 'orchard.herds', program: fixturePrograms.riding, rail: rest, tagRange: 30, tagHeight: 2,
       labels: { name: 'Name', panic: ' startled', thrown: 'Thrown', bolt: ' resting' }, squeal: 'mule-call' },
-  });
+  };
+  expect(() => createPageRiding(ctx, f.player, f.animals, f.camera, { ...rows, taming: { ...rows.taming, herds: 'foreign' } }, owners)).toThrow('Mismatched rendered riding herds');
+  expect(() => createPageRiding(ctx, f.player, f.animals, f.camera, { ...rows, actions: { ...rows.actions, herds: 'foreign' } }, owners)).toThrow('Mismatched rendered riding herds');
+  const imposter = legacyDouble<HerdBrain<Animal>>({ members: [] });
+  expect(() => createPageRiding(ctx, f.player, f.animals, f.camera, rows, { ...owners, herds: [imposter] })).toThrow('Invalid rendered riding herds');
+  expect(input.contexts).toEqual([]); expect(f.slots).toEqual([]);
+  const session = createPageRiding(ctx, f.player, f.animals, f.camera, rows, owners);
   try {
     f.camera.position.set(3, 1.5, 6.15); session.update(.1, false, false, false);
     expect(session.interactable.label).toBe('Name Orchard mule'); session.interactable.onInteract();
