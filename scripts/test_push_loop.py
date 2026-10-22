@@ -188,12 +188,15 @@ class PushLoop(unittest.TestCase):
         calls = []
         def runner(command, *_):
             calls.append(command)
+            if command[0] == 'node':
+                return 0, ''
             return 1, 'src/good.ts:1:1 error typescript(TS2322)'
         with patch.dict(PUSH['SOURCE'], committed_source=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'typed-check')
-        self.assertEqual(calls, [['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
+        self.assertEqual(calls, [['node', str(self.root / 'scripts/gen-shard-words.mjs')],
+                                ['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
                                  '-c', '.oxlintrc.json', 'src/good.ts']])
 
     def test_generation_phase_cache_rejects_changed_inputs_and_corrupt_outputs(self):

@@ -35,6 +35,10 @@ def check_committed(root, base, tip, deadline):
             available = json.loads((tree / '.push-types.json').read_text())['available']
             deferred = deferred_types(root, base, tip)
             if deferred:
+                rc, output = LIVE['run'](['node', str(tree / 'scripts/gen-shard-words.mjs')], tree, deadline)
+                if rc:
+                    return {'ok': False, 'phase': 'lint-tables',
+                            'files': LIVE['failure_paths'](output), 'output': output}
                 rc, output = LIVE['run'](['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
                                          '-c', '.oxlintrc.json', *deferred], tree, deadline)
                 if rc:
