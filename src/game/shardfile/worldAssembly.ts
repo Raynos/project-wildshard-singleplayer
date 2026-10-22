@@ -1,3 +1,10 @@
+import { TIER } from '@wildshard/engine/core/tier';
+import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
+import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
+import type { ShardRuntime } from '../shard/runtime';
+import type { IslandLibrary } from '../models/islandLibrary';
+import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
+import type { BakedTiles } from './bakedTiles';
 import type { Vector3 } from 'three';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { createStreamedCover } from '../looks/streamedCover';
@@ -15,10 +22,10 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { FixedDraws } from '../models/fixedDraws';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ModelContext } from '@wildshard/engine/models/model';
+import { sharedModelContext, type ModelContext } from '@wildshard/engine/models/model';
 import type { ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
-import { WorldAssemblySchema, type WorldAssemblyStage } from '@wildshard/format/worldAssembly';
+import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows } from '@wildshard/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner } from './entryOwners';
 import { WorldEntry, type WorldEntryPorts } from './worldEntry';
 import type { SceneHandles } from './sceneHandles';
@@ -46,8 +53,94 @@ export interface WorldAssemblyPorts {
   readonly slice: (label: string) => Promise<void>;
 }
 
+/** Existing concrete native authorities; construction never creates another
+ * library, scene intake, registry, world or retained owner. */
+export interface WorldConstructionPorts {
+  readonly runtime: ShardRuntime;
+  readonly product: ShardProduct;
+  readonly scope: Scope;
+  readonly scenes: SceneHandles;
+  readonly baked: ReadonlyMap<string, BakedTiles>;
+  readonly library: IslandLibrary<unknown>;
+  readonly sites: ReturnType<typeof defineWorldSceneCatalogue>;
+  readonly progress?: StepProgress;
+}
+
 /** G571: an admitted world assembly (format/worldAssembly), run stage by stage in its declared order. Client-only. */
 export class WorldAssembly {
+  /** One walk of the declared stages, retaining native checkpoint and progress
+   * boundaries. The caller keeps its original resident cache and lending. */
+  static async construct(input: unknown, ports: WorldConstructionPorts): Promise<void> {
+    const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admitted(input);
+    if (rows === undefined) throw new Error('World construction needs its declared checkpoints');
+    const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
+    if (world === null) throw new Error('World construction needs its native world');
+    const { game, sky, player, registry, physics } = world, root = game.scene, viewer = runtime.viewer, read = product.file;
+    const live = (): void => {
+      if (scope.disposed || scope.disposing || runtime.world !== world || world.game !== game || world.registry !== registry
+        || world.sky !== sky || world.physics !== physics || game.scene !== root || runtime.viewer !== viewer
+        || product.file !== read || library.product !== product) throw new Error('World construction owner left or changed');
+    };
+    live();
+    const checkpoints = new Map<string, WorldConstructionRows['checkpoints'][number]>();
+    const floors = new Set<string>();
+    for (const stage of stages) {
+      const before = rows.checkpoints.filter(check => check.stage === stage.id && check.at === 'before');
+      for (const check of before) for (const action of check.actions) if (action.kind === 'entry-floor' && !floors.has(action.floor)) throw new Error('World checkpoint floor is not constructed yet');
+      if (loanKinds(stage).includes('floor')) floors.add(stage.id);
+      const after = rows.checkpoints.filter(check => check.stage === stage.id && check.at === 'after');
+      for (const check of after) for (const action of check.actions) if (action.kind === 'entry-floor' && !floors.has(action.floor)) throw new Error('World checkpoint floor is not constructed yet');
+    }
+    for (const check of rows.checkpoints) {
+      const key = `${check.at}:${check.stage}`;
+      if (!stages.some(stage => stage.id === check.stage) || checkpoints.has(key)) throw new Error('Unknown or repeated world checkpoint');
+      checkpoints.set(key, check);
+    }
+    const [, cells] = await Promise.all([library.load(undefined, game.registrationScope), product.file(rows.cells[TIER])]);
+    live();
+    const draws = library.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
+    let completed = 0;
+    const complete = async (label: string): Promise<void> => { await slice(++completed, total, label); };
+    const assembly = WorldAssembly.admit(input, { scope, scenes, sites: ports.sites, context: sharedModelContext(sky, game), registry,
+      slice: complete, product, draws, physics, fixed: game, cover: { cells, viewer, updates: game },
+      entry: { root, tier: game.tier, physics, piece: piece => { registry.add(piece); } } });
+    const checkpoint = async (stage: string, at: 'before' | 'after'): Promise<void> => {
+      const check = checkpoints.get(`${at}:${stage}`);
+      if (check === undefined) return;
+      for (const action of check.actions) {
+        live();
+        if (action.kind === 'entry-floor') {
+          const y = entryOwner(scope, 'floor', action.floor)(player.position.x, player.position.z);
+          if (y !== undefined) player.position.y = y;
+        } else if (action.kind === 'slice') await slice();
+        else if (action.kind === 'progress') await complete(action.label);
+        else if (action.kind === 'macrotask') await macrotask();
+        else if (action.kind === 'seed') { if (rows.seed !== product.shardfile.identity.seed) throw new Error('Foliage placements require their authored seed'); }
+        else if (!baked.has(action.id)) throw new Error(`Missing baked world ${action.id}`);
+        live();
+      }
+    };
+    ports.progress?.set(0, total, rows.progress.start);
+    for (const stage of stages) {
+      live(); await checkpoint(stage.id, 'before'); live();
+      await assembly.next(stage.id); live();
+      await checkpoint(stage.id, 'after'); live();
+    }
+    await slice(total, total, rows.progress.finish); live();
+    // Resolve the WHOLE ordered root list before releasing even one CPU copy.
+    const roots = rows.gpu.roots.map(ref => {
+      if (ref.kind === 'object') return entryOwner(scope, 'object', ref.id);
+      if (ref.kind === 'placed') {
+        const [placed] = entryOwner(scope, 'placed', ref.id);
+        if (placed === undefined) throw new Error(`World GPU root placed nothing: ${ref.id}`);
+        return placed.object;
+      }
+      if (ref.kind === 'baked') { const value = baked.get(ref.id); if (value === undefined) throw new Error(`Missing baked world ${ref.id}`); return value.group; }
+      return ref.as === 'mesh' ? scenes.mesh(ref.id) : ref.as === 'group' ? scenes.group(ref.id) : scenes.object(ref.id);
+    });
+    live(); gpuOnlyTrees(roots, rows.gpu.label, ['position']);
+  }
+
   private at = 0;
   private constructor(private readonly stages: readonly WorldAssemblyStage[], private readonly ports: WorldAssemblyPorts) {}
   static admit(input: unknown, ports: WorldAssemblyPorts): WorldAssembly { return new WorldAssembly(admitted(input), ports); }

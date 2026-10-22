@@ -40,5 +40,29 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('entry'), id, label, rows: v.pipe(v.array(WorldEntryStepSchema), v.minLength(1), v.maxLength(1024)),
     object: v.exactOptional(v.strictObject({ as: v.picklist(['group', 'mesh', 'object']), part: id })), floor: v.exactOptional(id) }),
 ]);
-export const WorldAssemblySchema = v.strictObject({ stages: v.pipe(v.array(WorldAssemblyStageSchema), v.minLength(1), v.maxLength(64)) });
+/** Native checkpoints around one walk of the already-admitted stages. No row
+ * names a callback, module, phase, object path or another run schedule. */
+export const WorldConstructionSchema = v.strictObject({
+  cells: v.strictObject({ phone: id, desktop: id }), seed: v.pipe(v.number(), v.integer(), v.minValue(0)),
+  progress: v.strictObject({ total: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(2048)),
+    start: label, finish: label, budgetMs: v.pipe(finite, v.minValue(0), v.maxValue(100)) }),
+  checkpoints: v.pipe(v.array(v.strictObject({ stage: id, at: v.picklist(['before', 'after']),
+    actions: v.pipe(v.array(v.variant('kind', [
+      v.strictObject({ kind: v.literal('entry-floor'), floor: id }),
+      v.strictObject({ kind: v.literal('slice') }),
+      v.strictObject({ kind: v.literal('progress'), label }),
+      v.strictObject({ kind: v.literal('macrotask') }),
+      v.strictObject({ kind: v.literal('seed') }),
+      v.strictObject({ kind: v.literal('require-baked'), id }),
+    ])), v.minLength(1), v.maxLength(16)) })), v.maxLength(128)),
+  gpu: v.strictObject({ label, roots: v.pipe(v.array(v.variant('kind', [
+    v.strictObject({ kind: v.literal('object'), id }),
+    v.strictObject({ kind: v.literal('placed'), id }),
+    v.strictObject({ kind: v.literal('scene-part'), as: v.picklist(['mesh', 'group', 'object']), id }),
+    v.strictObject({ kind: v.literal('baked'), id }),
+  ])), v.minLength(1), v.maxLength(256)) }),
+});
+export type WorldConstructionRows = v.InferOutput<typeof WorldConstructionSchema>;
+
+export const WorldAssemblySchema = v.strictObject({ construction: v.exactOptional(WorldConstructionSchema), stages: v.pipe(v.array(WorldAssemblyStageSchema), v.minLength(1), v.maxLength(64)) });
 export type WorldAssemblyStage = v.InferOutput<typeof WorldAssemblyStageSchema>;

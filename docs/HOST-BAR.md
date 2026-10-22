@@ -119,6 +119,9 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - G571 world update ownership: `game/shardfile/worldUpdates#installWorldUpdates`, `format/worldUpdates#WorldUpdatesSchema`. Ordered finite native primitive bindings retain the original wind, awake rope interpolation, toon follow and building update systems. Test 1 waived; tests 2–6 preserve actual construction-selected owners, original system/receiver/order/cadence and retirement/reentry; no authored callback, path, new clock or rewritten view law.
 
+
+- G571 native construction checkpoints: `format/worldAssembly#WorldConstructionSchema` and `game/shardfile/worldAssembly#WorldConstructionPorts` declare finite checkpoints and existing concrete library/world authorities for the already-approved WorldAssembly host. Test 1 waived; tests 2–6 cover one original stage walk, native receivers, exact progress/yields/floor and GPU-root identities, whole-root preflight, retirement fences and strict refusal in test/world-construction.test.ts and the existing native world-assembly suite. No authored callback, path, second intake/cache, update or runtime phase.
+
 The ruler reads exact module or `module#binding` selectors from the G571
 list entries above. A named binding never approves other declarations in its
 file; shared physical lines stay charged if an unapproved binding occupies

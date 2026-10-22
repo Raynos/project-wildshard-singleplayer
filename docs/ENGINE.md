@@ -11512,3 +11512,23 @@ original system id and before list; authored phases, callbacks and property
 paths refuse. Every original loan and toon/lighting identity preflights before
 registration. The bound construction scope selects the toon book across
 re-entry; entered system ownership does not dispose any borrowed native owner.
+
+### Native world construction checkpoints
+
+WorldAssemblySchema may declare construction checkpoints around its existing
+ordered stages. WorldAssembly.construct(input, WorldConstructionPorts) walks
+those stages once, preserving the caller's concrete IslandLibrary, scene and
+site catalogues, native world, retained Scope and progress. It retains the
+original concurrent library/cell read; keyed before/after checkpoints select
+only entry-floor placement, slice, progress, macrotask, native seed equality
+or a baked-id requirement. Rows cannot run a callback, name a phase or follow
+an object path. Stage and checkpoint admission precede reads; every await is
+fenced by the original owner and native authority identities.
+
+The final GPU roots are ordered finite object loans, first Placed.object
+loans, scene parts or baked groups. The complete list resolves before the
+single existing gpuOnlyTrees call, which keeps position attributes. Empty
+placed lists or missing scene/baked roots refuse before any CPU release.
+Construction creates no new library or scene intake, cache, entered update,
+phase, save owner or progress slice. The caller keeps resident caching and
+explicit lending; this API does not select a client runtime declaration.
