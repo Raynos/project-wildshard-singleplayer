@@ -15,7 +15,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   // the flat placement datum under the structure world (y = 0, its four entry trails): declared rows, G4
   ground: { ...declaredGround(ground), structures: true },
   forest: { ...DECLARATION.forest, density: () => 0 },
-  sword: async () => (await import('./runtime/viewmodel/graphArms')).graphSword('nine-dragon-stack', 'weapons/jian-row.json'),
+  sword: async () => (await import('@wildshard/game/systems/viewmodel/graphArms')).graphSword('nine-dragon-stack', 'weapons/jian-row.json'),
   roster: async () => (await import('./models/gear')).GEAR,
   render: async () => (await import('./look/render')).shardRender(),
 };

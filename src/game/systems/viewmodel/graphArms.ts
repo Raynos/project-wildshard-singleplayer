@@ -1,4 +1,10 @@
-/** Nine's listed native held view. The product admits its rows before the rig, looks and textures are borrowed. */
+/**
+ * G571: a held view dressed in graph looks from rows (`format/graphArmsRows`, a product's weapon row file `view`): the
+ * shared rig arms (RigArms) with each mesh's graph look, maps and channels, the weave and decal textures, back-face and
+ * additive looks, the pendants' client scene on their socket, the swing trail in its own look and the frame rows that
+ * write time, buffer size, pixel ratio and projection into the looks. The product admits its rows before the rig, looks
+ * and textures are borrowed. Nine Dragon Stack's jian arms are the first user.
+ */
 import { BackSide, type BufferGeometry, BufferGeometryLoader, ClampToEdgeWrapping, DataTexture, DoubleSide, LinearMipmapLinearFilter, Mesh, NoColorSpace,
   type Object3D, RedFormat, RepeatWrapping, Texture, UnsignedByteType, Vector2, Vector3 } from 'three';
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
@@ -12,12 +18,12 @@ import { SlashTrail } from '@wildshard/engine/combat/view/slashTrail';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { GraphArmsRow } from '@wildshard/format/graphArmsRows';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { loadFirstPartyProduct, runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
-import { createClientScene } from '@wildshard/game/plugin/ui';
-import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
-import type { ShardSword } from '@wildshard/game/shard/manifest';
-import { ARM_CLIPS, armClipNames } from '@wildshard/game/systems/viewmodel/armClips';
-import { RigArms, swordArmsOf, type RigState } from '@wildshard/game/systems/viewmodel/rigArms';
+import { loadFirstPartyProduct, runtimeLookMaterials } from '../../shardfile/runtimeProduct';
+import { createClientScene } from '../../plugin/ui';
+import { BLEND_ADD_KEEP_ALPHA } from '../../plugin/shaderFamily';
+import type { ShardSword } from '../../shard/manifest';
+import { ARM_CLIPS, armClipNames } from './armClips';
+import { RigArms, swordArmsOf, type RigState } from './rigArms';
 
 type Looks = Awaited<ReturnType<typeof runtimeLookMaterials>>;
 /** decoded maps and decals by immutable path, while some rig still holds them */

@@ -125,6 +125,7 @@
     "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",
     "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",
+    "./systems/viewmodel/graphArms": "./systems/viewmodel/graphArms.ts",
     "./data/pickupCatalogue": "./data/pickupCatalogue.json",
     "./models/creatures": "./models/creatures.ts",
     "./systems/npc/npcRig": "./systems/npc/npcRig.ts",
