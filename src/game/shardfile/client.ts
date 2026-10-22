@@ -162,6 +162,9 @@ type DataMode = 'full' | 'empty' | 'presentation';
 const FOLLOW = 5;
 
 /** The existing Game's world/kit/play stages install one authored level, one borrowed simulation and the normal equipment/HUD. */
+/** the declared days shardfile runtimes own (G580 T1: never borrowed by another runtime) */
+const runtimeDays = new WeakSet();
+
 export class ShardfileClient {
   private plan: AdmittedClientPlan | undefined;
   private readonly source: Shardfile;
@@ -439,9 +442,12 @@ export class ShardfileClient {
     } };
     this.presentation?.graphs.bind(graphSources);
     this.post?.bind(graphSources); // the post stack's bound params read the same clock and state
-    const authoredDay = source.rows.days[0], day = ctx.app.dayCycle ?? (authoredDay === undefined ? null : declaredDay(authoredDay));
-    const ownsDay = ctx.app.dayCycle === null && day !== null;
-    if (ownsDay) ctx.app.registerDayCycle(day, ctx.scope);
+    // G580 T1: a runtime borrows the level's clock (the page's sky) but never another runtime's own declared day: a warm
+    // neighbour built while the home is entered keeps its own day instead of the home's through app.levelScope
+    const level = ctx.app.dayCycle, borrowed = level !== null && !runtimeDays.has(level) ? level : null;
+    const authoredDay = source.rows.days[0], day = borrowed ?? (authoredDay === undefined ? null : declaredDay(authoredDay));
+    const ownsDay = borrowed === null && day !== null;
+    if (ownsDay) { ctx.app.registerDayCycle(day, ctx.scope); runtimeDays.add(day); }
     const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, sim.host.rng.stream('cosmetic').fork(row.id))]));
     sim.host.onStep('climate.declared', (dt) => { if (ownsDay) day.update(dt); for (const profile of weather.values()) profile.update(dt, day); });
     for (const rule of source.ledger) if (!emitters.has(rule.origin.source)) emitters.set(rule.origin.source, installLedgerEmitter(sim.host, ledger, identity, rule.origin));
