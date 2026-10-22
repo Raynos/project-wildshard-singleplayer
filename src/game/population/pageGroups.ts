@@ -96,6 +96,8 @@ export class PageActorGroups {
   }
 
   dispose(): void { this.owner.dispose(); this.training = null; }
+  /** G598: the groups' actors retired one a step (a sliced retirement) */
+  disposeSteps(): Generator<undefined, void> { this.training = null; return this.owner.retireSteps(); }
 }
 
 const point = v.object({ x: v.number(), z: v.number() });

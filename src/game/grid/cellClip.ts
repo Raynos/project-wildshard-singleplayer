@@ -480,13 +480,13 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     }
     for (const child of node.children) watch(child);
   };
-  // G598: a retiring cell's whole tree is unwatched 64 nodes a step (Driftwood's root held one 14 ms step); `dispose()` runs
-  // it whole
+  // G598: a retiring cell's whole tree is unwatched 16 nodes a step (Driftwood's root held one 14 ms step, 64 nodes still
+  // 11 ms); `dispose()` runs it whole
   scope.onDisposeSteps(function* releaseClip() {
     const nodes: Object3D[] = []; root.traverse(node => { nodes.push(node); });
-    for (let at = 0; at < nodes.length; at += 64) {
+    for (let at = 0; at < nodes.length; at += 16) {
       checking = true;
-      try { for (const node of nodes.slice(at, at + 64)) unwatchNode(node); } finally { checking = false; }
+      try { for (const node of nodes.slice(at, at + 16)) unwatchNode(node); } finally { checking = false; }
       yield;
     }
     watched.clear(); dirty.clear(); forced.clear(); samePose.clear(); descendants.clear(); dependents.clear(); gates.clear(); pending.clear();

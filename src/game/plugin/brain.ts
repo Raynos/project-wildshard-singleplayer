@@ -117,6 +117,8 @@ export interface CreatureSpawner<A> {
   place: <R extends CreatureSpawnRow & { readonly herd: number }>(centres: readonly { readonly x: number; readonly z: number }[], kinds: readonly string[], rows: readonly R[],
     joined?: (actor: A, row: R) => void, grouped?: (kind: string, index: number) => void) => void;
   dispose: () => void;
+  /** G598: `dispose` one retired actor a step (a sliced retirement); `dispose` drains it */
+  retireSteps: () => Generator<undefined, void>;
 }
 
 /**
@@ -160,11 +162,13 @@ export function createCreatureSpawner<A extends { herd: number }>(ports: {
       group(kind, at, rows.filter(row => row.herd === index), joined); grouped?.(kind, index);
     }
   };
-  const dispose = (): void => {
+  function* retireSteps(): Generator<undefined, void> {
     if (disposed) return;
-    disposed = true; for (const actor of owned) ports.retire(actor); owned.clear();
-  };
-  return { spawn, group, place, dispose };
+    disposed = true;
+    for (const actor of owned) { owned.delete(actor); ports.retire(actor); yield; }
+  }
+  const dispose = (): void => { const steps = retireSteps(); while (steps.next().done !== true) { /* every actor at once */ } };
+  return { spawn, group, place, dispose, retireSteps };
 }
 
 /** Bounded radial or indexed creature placement over an existing stream and ground owner. A radial source draws a math

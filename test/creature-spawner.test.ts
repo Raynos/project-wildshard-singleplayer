@@ -93,3 +93,17 @@ test('a training death between samples never borrows live frame time', () => {
     groups.updatePractice(.1, player); expect(groups.practice).not.toBe(actor);
   } finally { groups.dispose(); scope.dispose(); restore(); }
 });
+
+test('a sliced retirement retires one owned actor a step, then nothing more', () => {
+  interface Actor { herd: number }
+  const retired: Actor[] = [];
+  const manager = { herds: [{ members: [] }], addHerd: (): number => 0, spawn: (): Actor => ({ herd: -1 }),
+    retire: (actor: Actor): void => { retired.push(actor); } };
+  const spawner = createCreatureSpawner(manager), actors = [spawner.spawn('a', 0, 0, 0), spawner.spawn('b', 0, 0, 0), spawner.spawn('c', 0, 0, 0)];
+  const steps = spawner.retireSteps();
+  expect(steps.next().done).toBe(false); expect(retired).toEqual(actors.slice(0, 1));
+  expect(() => spawner.spawn('d', 0, 0, 0)).toThrow('disposed');
+  expect(steps.next().done).toBe(false); expect(steps.next().done).toBe(false); expect(steps.next().done).toBe(true);
+  expect(retired).toEqual(actors);
+  spawner.dispose(); expect(spawner.retireSteps().next().done).toBe(true); expect(retired).toEqual(actors);
+});

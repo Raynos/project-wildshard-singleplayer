@@ -49,7 +49,7 @@ export class PopulationProjection {
     this.drops = new ParticlePool({ capacity: row.splash.capacity, material, renderOrder: 5, attributes: {}, parkY: -1000 });
     scope.own(this.drops.points.geometry); this.group.add(this.drops.points);
     this.observers = row.effects.map(effect => ({ row: effect, actor: null, state: 0, elapsed: 0 }));
-    scope.onDispose(() => { this.dispose(); });
+    scope.onDisposeSteps(() => this.disposeSteps());
   }
   get practice(): Animal | null { return this.creatures.practice; }
   async build(): Promise<this> {
@@ -168,7 +168,14 @@ export class PopulationProjection {
       }
     }
   }
-  dispose(): void { if (this.disposed) return; this.disposed = true; this.volley.dispose(); this.creatures.dispose(); this.group.removeFromParent(); }
+  dispose(): void { const steps = this.disposeSteps(); while (steps.next().done !== true) { /* whole */ } }
+  /** G598: the projection's creatures retired one a step in a sliced retirement (Driftwood's population held one 14 ms step) */
+  *disposeSteps(): Generator<undefined, void> {
+    if (this.disposed) return;
+    this.disposed = true; this.volley.dispose();
+    yield* this.creatures.disposeSteps();
+    this.group.removeFromParent();
+  }
 }
 function dropTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 32; const ctx = canvas.getContext('2d');

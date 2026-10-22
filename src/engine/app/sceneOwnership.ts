@@ -133,10 +133,13 @@ export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetSer
     for (const child of delegated) if (!scope.sharesTeardown(child.scope)) child.capture();
   };
   delegatedScenes.set(root, { scope, capture });
-  // G598: a sliced retirement frees the subtree's resources 16 a step after one walk (Driftwood's world held one 9 ms
-  // step); `dispose()` runs it whole, in the same order. A stepped owner hides its tree first (a retiring region's root)
+  // G598: a sliced retirement walks the subtree 256 nodes a step, then frees its resources 16 a step (Driftwood's world held
+  // single 9-15 ms steps); `dispose()` runs it whole, in the same order. A stepped owner hides its tree first (a retiring
+  // region's root)
   scope.onDisposeSteps(function* releaseSceneTree() {
-    const delegated: DelegatedScene[] = [], resources = [...collectSceneResources(root, scope, delegated)];
+    const delegated: DelegatedScene[] = [], collector = resourceCollector();
+    yield* walkSceneResources(root, scope, delegated, collector);
+    const resources = [...collector.resources];
     yield;
     for (let at = 0; at < resources.length; at += 16) {
       for (const resource of resources.slice(at, at + 16)) if (!assets.isAcquired(resource)) ownSceneResource(resource, scope);
@@ -155,22 +158,29 @@ function captureDelegatedScenes(root: Object3D): void {
 /** Resources a caller may own; explicit subtree owners are respected even when passed as the root. */
 export function sceneResources(root: Object3D, owner?: Scope): Set<Disposable3> { return collectSceneResources(root, owner); }
 function collectSceneResources(root: Object3D, owner?: Scope, delegatedRoots?: DelegatedScene[]): Set<Disposable3> {
-  const { resources, visit: collect } = resourceCollector();
-  const visit = (node: Object3D): void => {
+  const collector = resourceCollector(), walk = walkSceneResources(root, owner, delegatedRoots, collector);
+  while (walk.next().done !== true) { /* the whole walk at once */ }
+  return collector.resources;
+}
+/** G598: the same pre-order walk over an explicit stack, yielding every 256 nodes (a stepped release walks a world's tree
+ *  over several steps); delegated subtrees are left to their own owners. */
+function* walkSceneResources(root: Object3D, owner: Scope | undefined, delegatedRoots: DelegatedScene[] | undefined,
+  { resources, visit: collect }: ReturnType<typeof resourceCollector>): Generator<undefined, void> {
+  const stack: Object3D[] = [root];
+  for (let visited = 1; stack.length > 0; visited++) {
+    const node = stack.pop();
+    if (node === undefined) break;
     const delegated = delegatedScenes.get(node);
-    if (delegated !== undefined && (node !== root || delegated.scope !== owner)) {
-      delegatedRoots?.push(delegated); return;
-    }
+    if (delegated !== undefined && (node !== root || delegated.scope !== owner)) { delegatedRoots?.push(delegated); continue; }
     if (node instanceof InstancedMesh || node instanceof BatchedMesh) resources.add(node);
     for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
       // BatchedMesh.dispose owns its private aggregate geometry and internal textures.
       if (node instanceof BatchedMesh && key === 'geometry') continue;
       collect(Reflect.get(node, key));
     }
-    for (const child of node.children) visit(child);
-  };
-  visit(root);
-  return resources;
+    for (let i = node.children.length - 1; i >= 0; i--) { const child = node.children[i]; if (child !== undefined) stack.push(child); }
+    if (visited % 256 === 0) yield;
+  }
 }
 
 export class SceneOwnership {
