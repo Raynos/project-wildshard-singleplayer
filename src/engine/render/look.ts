@@ -316,6 +316,8 @@ export interface ReplaceLook extends LookParts {
   compose: (c: LookReplaceContext) => LookChain;
   /** SF63: the engine knobs its chain amounts to on a tier (`EngineKnobs`); absent: an engine chain keeps its own there */
   engineKnobs?: (tier: Tier) => EngineKnobs;
+  /** its own composite as a grid cell runs it, as `ExtendLook.cell`; declared, a grid cell carries it instead of `engineKnobs` */
+  cell?: LookCellComposite;
 }
 
 export type LookStrategy = ExtendLook | ReplaceLook;

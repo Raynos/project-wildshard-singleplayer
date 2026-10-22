@@ -1,9 +1,9 @@
 /**
  * Nalati's look strategy (E357 S3.2, 07 §6.2; 01 §13.1): the painterly look the engine used to branch on
  * (`style === 'painterly'` in Game.ts, Terrain.ts and Grass.ts), declared as the manifest's `render`.
- *   compose         'replace': the whole chain — RenderPass → bloom (desktop) + the one grade (grade.ts `lookV2Passes`);
- *                   the composer's MSAA is the manifest's `msaa` tier knob (phone 2, desktop 4)
- *   engineKnobs     that chain as an engine chain's knobs, for a page shell drawing its grid cell (SF63)
+ *   compose         'replace' (G600 L1, game/looks/postGraphLook): the whole chain — the scene pass → bloom (desktop) → the
+ *                   grade graph (generators/postChain.ts); the composer's MSAA is the manifest's `msaa` tier knob (phone 2,
+ *                   desktop 4); the same grade is its grid cell's whole colour chain
  *   fog             the cloud shadows (game/looks/paintedLook `paintedAir`), then the panorama fog, slot 300: every fogged
  *                   material fades into the painted haze straight behind it, the 256 × 1 azimuth LUT (panoramaData.ts,
  *                   un-graded at build time) re-tinted by the hour / weather as the dome is; both rows are the boot rows
@@ -18,7 +18,7 @@ import { headingTexture } from '@wildshard/engine/render/dataLook';
 import { ColourRampFog, panoramaTint } from '@wildshard/engine/world/Atmosphere';
 import { paintedAir } from '@wildshard/game/looks/paintedLook';
 import { paintedGroundPainter } from '@wildshard/game/looks/painterlyLook';
-import { lookV2EngineKnobs, lookV2Passes } from './grade';
+import { postGraphLookOf } from '@wildshard/game/looks/postGraphLook';
 import { createGrass } from './field';
 import { bakeUniforms } from './capture';
 import paintedTextures from '../boot/paintedTextures.generated.json' with { type: 'json' };
@@ -39,9 +39,7 @@ const FOG = new ColourRampFog({ start, end, near: haze, zenith: haze, panorama: 
 const AIR = paintedAir(paintedTextures.air);
 
 export const shardRender = (): LookStrategy => ({
-  mode: 'replace',
-  compose: (c) => ({ chain: lookV2Passes(c) }),
-  engineKnobs: lookV2EngineKnobs,
+  ...postGraphLookOf('nalati-grasslands', metadata.postChain.postGraph),
   fog: { ...FOG, install: () => { AIR.install(); FOG.install(); } },
   terrainPainter: GROUND,
   grass: { build: (sky, forest) => createGrass(sky, forest) },

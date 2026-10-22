@@ -3,10 +3,15 @@ import product from '../src/shards/nine-dragon-stack/generators/product';
 import { heldGraphFiles } from '../src/shards/nine-dragon-stack/generators/heldGraphFiles';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { haloGraph } from '../src/shards/nine-dragon-stack/generators/haloGraph';
-import { PostRowEffect, postChainEffects, postChainPasses, ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
+import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
+import { postGraphLookOf } from '../src/game/looks/postGraphLook';
+import { uniformsFrom } from '../src/game/plugin/shaderFamily';
+import { Scope } from '../src/engine/app/scope';
+import { Events } from '../src/engine/events/events';
+import { App } from '../src/engine/app/app';
 import type { ScaledPostRow } from '../src/format/scaledPost';
 import { postChainRows } from '../src/shards/nalati-grasslands/generators/postChain';
-import { BloomEffect, EffectPass, RenderPass } from 'postprocessing';
+import { EffectComposer } from 'postprocessing';
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
@@ -16,7 +21,7 @@ import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/view
 import { architectureGraphs } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { lendLooks, lendUniforms as lendGrade } from '../src/game/shardfile/lentLooks';
 import { facadeUniforms, syncLooks } from '../src/shards/nine-dragon-stack/look/facadeMaterial';
 import type { Shared } from '../src/shards/nine-dragon-stack/look/style';
 
@@ -185,20 +190,24 @@ test('held draw rows compile aliased GLB buffers and ribbon channels', () => {
 });
 
 
-test('both shard post rows retain tier schedules and live uniform replacements', () => {
-  const camera = new THREE.PerspectiveCamera(), scene = new THREE.Scene();
-  const target = new THREE.WebGLRenderTarget(400, 800), rows = postChainRows();
-  const gain = { value: 1 };
-  const desktop = postChainPasses(rows.chain, { scene, camera, tier: 'desktop' }, { gain });
-  const phone = postChainPasses(rows.chain, { scene, camera, tier: 'phone' }, { gain });
-  const desktopEffects = postChainEffects(rows.chain, 'desktop', { gain }), phoneEffects = postChainEffects(rows.chain, 'phone', { gain });
+test('Nalati grades on the post-graph look: scene pass, desktop bloom, the grade graph and its display', async () => {
+  const camera = new THREE.PerspectiveCamera(), scene = new THREE.Scene(), render = renderer(), rows = postChainRows();
+  await prepareScaledPost(render);
+  const grade = rows.postGraph.passes['grade']?.programs['grade']?.graph;
+  if (grade === undefined) throw new Error('Missing grade graph');
+  expect(validateGraph(grade, { trustedBudget: true }).ok).toBe(true);
+  expect(build(grade, false).fragment).not.toContain('NaN');
+  const levelScope = new Scope('nalati-grade');
+  lendGrade(levelScope, 'nalati-grade', uniformsFrom(rows.uniforms));
+  const look = postGraphLookOf('nalati-grasslands', rows.postGraph);
+  if (look.mode !== 'replace') throw new Error('Nalati composes its own chain');
+  const app: unknown = Object.create(App.prototype);
+  if (!(app instanceof App)) throw new Error('Missing app');
+  Reflect.set(app, 'events', new Events());
+  const chain = (tier: 'phone' | 'desktop'): string[] => look.compose({ app, scope: levelScope, debug: { expose: () => undefined }, renderer: render, scene, camera, composer: new EffectComposer(), tier }).chain.map(pass => pass.name);
   try {
-    expect(desktop[0]).toBeInstanceOf(RenderPass); expect(phone[0]).toBeInstanceOf(RenderPass);
-    expect(desktop[1]).toBeInstanceOf(EffectPass); expect(phone[1]).toBeInstanceOf(EffectPass);
-    expect(desktopEffects.filter(effect => effect instanceof BloomEffect)).toHaveLength(1);
-    expect(phoneEffects.filter(effect => effect instanceof BloomEffect)).toHaveLength(0);
-    expect(phoneEffects.filter(effect => effect instanceof PostRowEffect)).toHaveLength(1);
-    expect(rows.chain.effect.source).toContain('void mainImage(');
-    expect(rows.chain.effect.source).not.toMatch(/@\{|undefined/);
-  } finally { for (const effect of [...desktopEffects, ...phoneEffects]) effect.dispose(); for (const pass of [...desktop, ...phone]) pass.dispose(); target.dispose(); }
+    expect(chain('desktop')).toEqual(['RenderPass', 'EffectPass', 'PostGraphInputs', 'GradeV2Graph', 'EffectPass']);
+    expect(chain('phone')).toEqual(['RenderPass', 'PostGraphInputs', 'GradeV2Graph', 'EffectPass']);
+    expect(look.cell?.replaces).toBe('chain');
+  } finally { levelScope.dispose(); }
 });

@@ -4,18 +4,20 @@
  * uniforms pass lends their outputs to the composite (black where a side did not draw) and raises the declared presence
  * flags; the composite draws the frame and the chain's one effect displays it. The same composite runs inside a grid cell,
  * where it is the whole colour chain and shades in the cell root's frame. Every uniform comes from the row's bag: its own
- * rows, the level's lent live set, the LUT, the side textures and the aliases. Client-only presentation.
+ * rows, the level's lent live set, the LUT, the side textures and the aliases. With a `scene` row it is a 'replace' look:
+ * its own composer (the tier's MSAA) holds the scene pass, the bloom on its tiers, the graphs and the displayed frame, and
+ * its grid cell carries the same composite. Client-only presentation.
  */
 import { Color, type Data3DTexture, DataTexture, Fog, NoColorSpace, Vector2, Vector3, Vector4, type IUniform, type Object3D, type PerspectiveCamera, type Texture } from 'three';
-import { BlendFunction, LookupTexture, Pass, TextureEffect } from 'postprocessing';
+import { BlendFunction, BloomEffect, EffectPass, LookupTexture, Pass, RenderPass, TextureEffect } from 'postprocessing';
 import * as v from 'valibot';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { loadCarriedLUT } from '@wildshard/engine/boot/bakedApi';
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
-import type { ExtendLook } from '@wildshard/engine/render/look';
+import type { LookCellComposite, LookStrategy, WorldLookContext } from '@wildshard/engine/render/look';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Tier } from '@wildshard/engine/core/tier';
+import { TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { PostGraphLookSchema, type PostGraphEffect, type PostGraphLookRow, type PostGraphWrite } from '@wildshard/format/postGraphLook';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
@@ -123,14 +125,19 @@ export function bindPostGraphEvents(rows: PostGraphLookRow['events'], bag: Unifo
 }
 
 /** Read a level's post-graph look from its product file (`field` the path to its row) and make its strategy. */
-export async function postGraphLook(product: { readonly slug: string; readonly json: (name: string) => Promise<unknown> }, source: { readonly file: string; readonly field: readonly string[] }): Promise<ExtendLook> {
+export async function postGraphLook(product: { readonly slug: string; readonly json: (name: string) => Promise<unknown> }, source: { readonly file: string; readonly field: readonly string[] }): Promise<LookStrategy> {
   let at: unknown = await product.json(source.file);
   for (const key of source.field) at = typeof at === 'object' && at !== null ? Reflect.get(at, key) : undefined;
-  const row = v.parse(PostGraphLookSchema, at);
+  return postGraphLookOf(product.slug, at);
+}
+
+/** A level's post-graph look from its admitted row (`slug` names its LUT): an engine-chain look, or with `scene` its own. */
+export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
+  const row = v.parse(PostGraphLookSchema, input);
   const lut: UniformMap = row.lut === undefined ? {} : { [row.lut.texture]: { value: neutralLut() }, [row.lut.amount]: { value: 0 } };
   if (row.lut !== undefined) {
     const { url, texture, amount } = row.lut;
-    void (async (): Promise<void> => { need(lut, texture).value = await loadPostGraphLut(url, `${product.slug}-lut`); need(lut, amount).value = 1; })();
+    void (async (): Promise<void> => { need(lut, texture).value = await loadPostGraphLut(url, `${slug}-lut`); need(lut, amount).value = 1; })();
   }
   /** the latest build's bag and renderer, for the frame's pixel terms */
   let live: { readonly bag: UniformMap; readonly renderer: Renderer } | null = null;
@@ -151,16 +158,15 @@ export async function postGraphLook(product: { readonly slug: string; readonly j
     const frame = new ScaledPostPass(passRow(row, row.composite.pass), { renderer, camera: view, links: bag });
     const display = new TextureEffect({ texture: black, blendFunction: BlendFunction.SRC });
     const show = display.update.bind(display);
-    display.update = (r, input, dt): void => { display.texture = frame.output(row.composite.output) ?? black; show(r, input, dt); };
+    display.update = (r, target, dt): void => { display.texture = frame.output(row.composite.output) ?? black; show(r, target, dt); };
     for (const lent of row.lent ?? []) setLentParam(lent.look, lent.param, sides.has(lent.side) ? lent.drawn : lent.absent);
     live = { bag, renderer };
     return { display, sides, bag, passes: [...(pose === null ? [] : [new PoseView(pose)]), ...sides.values(), new SideInputs(row, sides, bag, pose), frame] };
   };
 
-  return {
-    prepareWorld: ({ renderer }) => prepareScaledPost(renderer),
-    sky: row.sky,
-    ...(row.lut === undefined ? {} : { lut: row.lut.url }),
+  const parts = {
+    prepareWorld: ({ renderer }: WorldLookContext) => prepareScaledPost(renderer),
+    ...(row.sky === undefined ? {} : { sky: row.sky }),
     cell: {
       replaces: 'chain',
       build: (c) => {
@@ -168,7 +174,31 @@ export async function postGraphLook(product: { readonly slug: string; readonly j
         c.scope.onDispose(() => { if (live?.bag === built.bag) live = null; });
         return { display: built.display, passes: built.passes };
       },
+    } satisfies LookCellComposite,
+    /** the drawing buffer's pixel terms, before the frame draws */
+    frame: (): void => {
+      if (live === null) return;
+      const { bag, renderer } = live, pr = renderer.getPixelRatio();
+      for (const term of row.pixel ?? []) {
+        if (term.of === 'buffer') { renderer.getDrawingBufferSize(size); const value: unknown = need(bag, term.param).value; if (value instanceof Vector2) value.copy(size); continue; }
+        const value = term.of === 'step' ? (pr < term.at ? term.below : term.above) : pr * (term.scale ?? 1) * (term.below !== undefined && pr < term.below.at ? term.below.times : 1);
+        put(bag, { param: term.param, ...(term.of === 'ratio' && term.index !== undefined ? { index: term.index } : {}), value }, value);
+      }
     },
+    dispose: (): void => { live = null; },
+  };
+  const scene = row.scene;
+  // its own composer: the scene pass, the bloom on its tiers, the graphs and the displayed frame (the tier's MSAA is the engine's)
+  if (scene !== undefined) return { ...parts, mode: 'replace', compose: (c) => {
+    const built = build(c.camera, c.tier, c.renderer, null), bloom = scene.bloom;
+    bindPostGraphEvents(row.events, built.bag, built.display, c.app.events, c.scope);
+    const bloomed = bloom?.tiers.includes(c.tier) === true ? [new EffectPass(c.camera, new BloomEffect({ intensity: bloom.intensity, luminanceThreshold: bloom.threshold,
+      luminanceSmoothing: bloom.smoothing, mipmapBlur: true, radius: bloom.radius, levels: bloom.levels ?? TIER_CONFIG.bloomLevels }))] : [];
+    return { chain: [new RenderPass(c.scene, c.camera), ...bloomed, ...built.passes, new EffectPass(c.camera, built.display)] };
+  } };
+  return {
+    ...parts,
+    ...(row.lut === undefined ? {} : { lut: row.lut.url }),
     compose: (c) => {
       if (row.ao !== undefined && c.fx.ao !== null) {
         const [r, g, b] = row.ao.color;
@@ -179,16 +209,5 @@ export async function postGraphLook(product: { readonly slug: string; readonly j
       bindPostGraphEvents(row.events, built.bag, built.display, c.app.events, c.scope);
       return { beforeChain: [...built.passes], chain: [built.display] };
     },
-    /** the drawing buffer's pixel terms, before the frame draws */
-    frame: () => {
-      if (live === null) return;
-      const { bag, renderer } = live, pr = renderer.getPixelRatio();
-      for (const term of row.pixel ?? []) {
-        if (term.of === 'buffer') { renderer.getDrawingBufferSize(size); const value: unknown = need(bag, term.param).value; if (value instanceof Vector2) value.copy(size); continue; }
-        const value = term.of === 'step' ? (pr < term.at ? term.below : term.above) : pr * (term.scale ?? 1) * (term.below !== undefined && pr < term.below.at ? term.below.times : 1);
-        put(bag, { param: term.param, ...(term.of === 'ratio' && term.index !== undefined ? { index: term.index } : {}), value }, value);
-      }
-    },
-    dispose: () => { live = null; },
   };
 }

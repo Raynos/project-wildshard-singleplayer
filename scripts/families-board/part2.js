@@ -16,9 +16,9 @@ import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/families/registry';
-import { lookV2Passes } from '../../src/shards/nalati-grasslands/look/grade';
-// e3d04d6a11 baked the live grade's inverse into the fog LUT; the frozen legacy grade keeps the CPU ungrade.
-import { ungrade } from '../../src/shards/nalati-grasslands-legacy/look/grade';
+// e3d04d6a11 baked the live grade's inverse into the fog LUT; the frozen legacy grade keeps the CPU ungrade (and, since
+// G600 L1 moved the live grade onto a post graph, its passes).
+import { lookV2Passes, ungrade } from '../../src/shards/nalati-grasslands-legacy/look/grade';
 import { Shared, restoreWeave } from '../../src/shards/nine-dragon-stack/look/style';
 import { silkWeaveBytes } from '../../src/shards/nine-dragon-stack/generators/silkWeave';
 import { GlyphAtlas } from '../../src/shards/nine-dragon-stack/look/glyphs';

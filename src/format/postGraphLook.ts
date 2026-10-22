@@ -63,7 +63,11 @@ export const PostGraphLookSchema = v.strictObject({
   events: v.exactOptional(v.pipe(v.array(v.strictObject({ event: v.picklist(['practice.active', 'explore.studio']), on: effect, off: effect })), v.maxLength(8))),
   /** the engine's AO at the level's scale per tier, its colour, and the scene fog's near / far */
   ao: v.exactOptional(v.strictObject({ phone: v.record(name, v.union([finite, v.boolean()])), desktop: v.record(name, v.union([finite, v.boolean()])), color: tuple3, fog: tuple2 })),
-  sky: v.strictObject({ clouds: v.boolean(), planet: v.boolean(), ownSky: v.exactOptional(v.boolean()) }),
+  sky: v.exactOptional(v.strictObject({ clouds: v.boolean(), planet: v.boolean(), ownSky: v.exactOptional(v.boolean()) })),
+  /** the whole chain in its own composer ('replace': the scene pass, the bloom on its tiers, then the graphs); absent, the
+   *  graphs stand in the engine's chain */
+  scene: v.exactOptional(v.strictObject({ bloom: v.exactOptional(v.strictObject({ tiers: v.pipe(v.array(v.picklist(['phone', 'desktop'])), v.minLength(1)),
+    intensity: finite, threshold: finite, smoothing: finite, radius: finite, levels: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))) })) })),
 });
 export type PostGraphLookRow = v.InferOutput<typeof PostGraphLookSchema>;
 export type PostGraphEffect = v.InferOutput<typeof effect>;

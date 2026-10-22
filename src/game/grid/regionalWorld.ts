@@ -298,8 +298,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // SF63 part 2: the region's scoped look, whose per-frame parts run only while its cell is entered
       let regionLook: ReturnType<SkyRig['scopeLevelLook']> = null;
       let skyReady = Promise.resolve();
-      // op-frame21 / Jake G322: its look's own post composite, always carried in its cell
-      const cellComposite = levelLook !== null && levelLook.mode !== 'replace' ? levelLook.cell ?? null : null;
+      // op-frame21 / Jake G322: its look's own post composite, always carried in its cell (a 'replace' look's too, G600)
+      const cellComposite = levelLook?.cell ?? null;
       let framePort: FrameLookPort | null = null, viewRoot: Object3D | null = null, composited = false;
       // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
       const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
