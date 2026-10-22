@@ -15,5 +15,5 @@
   "json": "riding/mounted-figure.json",
   "species": "horse",
   "variant": "camp-bay",
-  "scale": 0.5
+  "tint": 0.5
 }
