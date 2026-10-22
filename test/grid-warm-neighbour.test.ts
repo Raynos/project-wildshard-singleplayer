@@ -231,3 +231,53 @@ test('warm: standing, turning or a teleport builds nothing ahead', async () => {
     expect(created).toEqual([home.instance]);
   } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
 });
+
+test('warm: crossing into another cell abandons the build-ahead and builds the destination at once', async () => {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const home = assembly.cell('driftwood-isle');
+  const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
+  const north = assembly.cells.find(cell => cell.origin.x === 0 && cell.origin.z === -assembly.pitch);
+  if (east === undefined || north === undefined) throw new Error('Missing neighbours');
+  const page = createSimHost(level, { rapier }), residency = new PageResidency(), created: string[] = [], abandoned: string[] = [];
+  const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  const live = new LiveGridHost(assembly, {
+    home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
+    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+    bindFrame: () => undefined, gameplayReady: () => true, warmNeighbour: () => true,
+    highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
+    prefetchable: cell => cell.instance === east.instance || cell.instance === north.instance,
+    readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
+      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
+    admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+      create: (_saved, _claim, signal) => {
+        created.push(cell.instance);
+        // the east world builds until abandoned (a world that would take minutes)
+        if (cell.instance === east.instance && abandoned.length === 0) return new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () => { abandoned.push(cell.instance); reject(new Error('stopped')); }, { once: true });
+        });
+        const host = createSimHost(level, { rapier, playerBody: false, ground: false });
+        return Promise.resolve({ host, dispose: () => { host.dispose(); } });
+      } }),
+  });
+  try {
+    const enterHome = await live.prepare(null, home.instance); enterHome.commit();
+    player.position.x = CHUNK_HALF - 20; travel(live, player.position, 1, 0);
+    for (let i = 0; i < 4; i++) await new Promise(resolve => { setTimeout(resolve, 5); });
+    expect(live.state().pending).toContain(east.instance);
+    const leave = await live.prepare(home.instance, null); leave.commit();
+    // on the road beside the source just left, its approach guess (the source itself) abandons nothing
+    player.position.x = CHUNK_HALF + 0.5; live.beforeFixed(); player.position.x += 1; live.beforeFixed();
+    await new Promise(resolve => { setTimeout(resolve, 5); });
+    expect(abandoned).toEqual([]);
+    expect(live.state().pending).toContain(east.instance);
+    // the traveller turns north instead: the crossing into the north cell abandons the east build
+    player.position.x = 0; player.position.z = -(CHUNK_HALF + 0.5); live.beforeFixed();
+    const enter = await live.prepare(null, north.instance); enter.commit();
+    expect(abandoned).toEqual([east.instance]);
+    expect(live.state().current).toBe(north.instance);
+    expect(live.state().residents).toEqual([home.instance, north.instance].sort());
+    // no issue: the abandoned cell builds again when the traveller heads for it
+    expect(live.state().issues).toEqual({});
+  } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
+});

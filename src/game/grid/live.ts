@@ -22,7 +22,10 @@ export interface LiveGridRegion { host: SimHost; dispose: () => void;
   checkpoint?: () => boolean; walls?: ReadinessWalls }
 /** Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. */
 export interface LiveGridAdmission {
-  bytes: number; create: (saved: SimSnapshot | undefined, claim: ResidencyLease) => Promise<LiveGridRegion>;
+  bytes: number;
+  /** `signal` aborts a build-ahead (G580 T1) when the traveller crosses into another cell: stop at the next safe point
+   * and reject, disposing what was built. */
+  create: (saved: SimSnapshot | undefined, claim: ResidencyLease, signal?: AbortSignal) => Promise<LiveGridRegion>;
   /** Release an unpublished product lease on refusal/cancellation. Idempotent after failed create or region disposal;
    *  successful publication transfers release to the returned region's dispose. */
   cancel?: () => void;
@@ -137,9 +140,14 @@ function boulevardApproachDistance(cell: GridCell, feet: GridPoint, previous: Gr
 
 /** A background admission (prefetch, road approach) that fails is recorded as the cell's issue and, until an explicit
  *  retry, not attempted again: say so once, or a failed build (op-hitch33: a throwing warm-up) leaves only a route timeout. */
+/** G580 T1: a build-ahead given up for a crossing into another cell. It records no issue: the cell builds again later. */
+class BuildAheadAbandonedError extends Error {
+  override readonly name = 'BuildAheadAbandonedError';
+}
+
 async function background(instance: string, admission: Promise<unknown>, alive: () => boolean): Promise<void> {
   try { await admission; }
-  catch (error) { if (alive()) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
+  catch (error) { if (alive() && !(error instanceof BuildAheadAbandonedError)) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
 }
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
@@ -171,6 +179,8 @@ export class LiveGridHost {
   private readonly highway: LiveGridRegion | LiveGridHighway;
   private readonly limit: number;
   private sequence: Promise<void> = Promise.resolve();
+  /** G580 T1: the in-flight build-ahead, which a crossing into any other cell abandons (`preempt`). */
+  private speculative: { instance: string; controller: AbortController } | null = null;
   private active: string | null;
   private unbind: (() => void) | undefined;
   private disposed = false;
@@ -283,7 +293,7 @@ export class LiveGridHost {
     })();
     this.productRequests.set(instance, request); return request;
   }
-  private ensure(instance: string): Promise<void> {
+  private ensure(instance: string, speculative = false): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
     if (this.borrowedHome(instance) || this.residents.has(instance)) return Promise.resolve();
@@ -293,18 +303,30 @@ export class LiveGridHost {
     const ticket = this.readiness.request(instance, 0, estimate, bundle.hybridWireBytes > 0);
     if (ticket === null) return Promise.reject(new Error('Stale live grid readiness request'));
     const releasePriority = this.ports.prioritize?.(cell);
-    const request = this.admitRegion(cell, bundle, ticket, this.sequence).finally(() => { releasePriority?.(); });
+    const controller = speculative ? new AbortController() : undefined;
+    const request = this.admitRegion(cell, bundle, ticket, this.sequence, controller?.signal).finally(() => {
+      releasePriority?.();
+      if (this.speculative?.controller === controller) this.speculative = null;
+    });
+    if (controller !== undefined) this.speculative = { instance, controller };
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
+  }
+  /** G580 T1: a crossing toward `destination` abandons a build-ahead of any other cell, so the destination's admission
+   * (queued behind it in `sequence`) waits only for that build's next safe point, never its whole world. */
+  private preempt(destination: string): void {
+    const row = this.speculative;
+    if (row !== null && row.instance !== destination) row.controller.abort();
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
   /** G580 T1: owned worlds overlap (the Developer row warmNeighbour). */
   private warm(): boolean { return this.ports.home.mode === 'owned' && this.ports.warmNeighbour?.() === true; }
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
-  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>): Promise<void> {
+  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>, signal?: AbortSignal): Promise<void> {
     const instance = cell.instance;
     let admission: LiveGridAdmission | undefined;
+    const abandoned = (): void => { if (signal?.aborted === true) throw new BuildAheadAbandonedError(`Build-ahead of ${instance} abandoned for another crossing`); };
     try {
-      await previous; this.assertAlive(); this.retireColdRegions();
+      await previous; this.assertAlive(); abandoned(); this.retireColdRegions();
       const admitted = this.ports.home.mode === 'owned' ? await this.prefetchProduct(instance) : await this.ports.admit(cell);
       admission = admitted;
       this.assertAlive();
@@ -344,8 +366,8 @@ export class LiveGridHost {
         if (this.ports.home.mode !== 'owned') await admitted.prepareRuntime?.();
         this.assertAlive(); this.readiness.complete(ticket, 'runtime');
         if (this.ports.pause !== undefined) await this.ports.pause();
-        this.assertAlive();
-        region = await admitted.create(prior, lease); this.checkRegion(region);
+        this.assertAlive(); abandoned();
+        region = await admitted.create(prior, lease, signal); this.checkRegion(region);
         if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
@@ -363,11 +385,14 @@ export class LiveGridHost {
         lease.release(); throw error;
       }
     } catch (error) {
-      this.readiness.invalidate(instance); this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
+      // G580 T1: an abandoned build-ahead leaves no issue, so the cell can build again when the traveller heads for it
+      const gaveUp = signal?.aborted === true;
+      this.readiness.invalidate(instance);
+      if (!gaveUp) { this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error); }
       if (this.ports.home.mode === 'owned') this.products.delete(instance);
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
-      throw error;
+      throw gaveUp && !(error instanceof BuildAheadAbandonedError) ? new BuildAheadAbandonedError(`Build-ahead of ${instance} abandoned for another crossing`, { cause: error }) : error;
     }
     finally { this.requests.delete(instance); }
   }
@@ -465,7 +490,7 @@ export class LiveGridHost {
       };
       const next = candidates.slice(0, 8).filter(cell => !this.residents.has(cell.instance) && !this.issues.has(cell.instance))
         .map(cell => ({ cell, score: score(cell) })).filter(row => Number.isFinite(row.score)).sort((m, n) => m.score - n.score)[0]?.cell;
-      if (next !== undefined) void background(next.instance, this.ensure(next.instance), () => !this.disposed);
+      if (next !== undefined) void background(next.instance, this.ensure(next.instance, true), () => !this.disposed);
     }
     // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
@@ -640,6 +665,9 @@ export class LiveGridHost {
       // A speculative approach can still be building when the traveller turns toward another cell.
       // Retire it after it becomes resident, before the next foundation acquires a claim or allocates.
       // G580 T1: warm, a destination already parked (built ahead) waits for no other cell's admission
+      // and a build-ahead of any other cell is abandoned rather than waited for. Only this committed crossing pre-empts:
+      // the road approach's guess (right after a leave, the source just left) would abandon a good build (Chromium run)
+      this.preempt(to);
       if (!(this.warm() && this.residents.has(to) && this.ready(to))) await this.sequence;
       this.assertAlive();
       if (this.current() !== from) throw new Error('Stale live frame preparation');

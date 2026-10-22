@@ -763,7 +763,7 @@ export class LiveGridSession {
     this.durability.set(cell.instance, saved);
     let closed = false;
     const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
-    return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim) => {
+    return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim, signal) => {
       const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
         continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
         prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, navmesh: level => loadNavmesh(level.id, level.bakedId ?? level.id, level.navigation), pause: () => yieldGridConstruction(this.runtimeScope),
@@ -781,9 +781,17 @@ export class LiveGridSession {
       catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });
+      // G580 T1: a build-ahead abandoned for another crossing stops its runtime install at the next stage
+      const abandon = (): void => { this.hybrid.abandon(cell.instance); };
+      const stopped = (): boolean => signal?.aborted === true;
       try {
-        await this.hybrid.prepare(cell.instance);
-        if (this.page.ownedHome === true && !await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
+        if (stopped()) throw new Error('Build-ahead abandoned for another crossing');
+        const unlisten = signal === undefined ? undefined : this.runtimeScope.listen(signal, 'abort', abandon, { once: true });
+        try {
+          await this.hybrid.prepare(cell.instance);
+          if (this.page.ownedHome === true && !await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
+        } finally { unlisten?.(); }
+        if (stopped()) throw new Error('Build-ahead abandoned for another crossing');
         if (warmNeighbour()) prepared.park?.(); // G580 T1: parked while the traveller is still in the source
       }
       catch (error) {
