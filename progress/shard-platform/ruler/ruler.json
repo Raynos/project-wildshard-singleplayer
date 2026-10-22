@@ -1,28 +1,24 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "16a7101baaad96aee8744dbb0115a0b2cbb9582d",
- "committedAt": "2026-10-22T12:10:28.000Z",
- "measuredAt": "2026-10-22T13:13:22.799Z",
+ "revision": "6bf8c2a6e5a35e70c165834596305286fd53d6db",
+ "committedAt": "2026-10-22T13:48:21.000Z",
+ "measuredAt": "2026-10-22T14:13:22.034Z",
  "basis": "source",
  "plan": {
-  "lower": 0.24000000000000005,
-  "upper": 0.9199999999999999
+  "lower": 0.8055370546462459,
+  "upper": 0.965537054646246
  },
  "m3": {
-  "cut": null,
-  "mustGo": null,
-  "fraction": null
+  "cut": 93176,
+  "mustGo": 98854,
+  "fraction": 0.9425617577437433
  },
- "measurementError": "Cross-shard ownership unavailable: driftwood-isle: driftwood-isle: output omits authored runtime files; pine-hollow: pine-hollow: output omits authored runtime files",
- "productFailures": {
-  "driftwood-isle": "driftwood-isle: output omits authored runtime files",
-  "pine-hollow": "pine-hollow: output omits authored runtime files"
- },
+ "productFailures": {},
  "m2": {
   "ready": 6,
-  "fail": 2,
-  "unknown": 2,
+  "fail": 0,
+  "unknown": 4,
   "total": 10,
   "shards": [
    "_template",
@@ -103,35 +99,31 @@
     }
    },
    "driftwood-isle": {
-    "verdict": "fail",
+    "verdict": "unknown",
     "criteria": {
      "bakedTiles": {
-      "verdict": "unknown",
-      "evidence": "driftwood-isle: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:5e945d1cd521c1582316eee004ccecd8de03e522a961da1cfab8337cad51124b, validation sha256:d1f735803c78ee116e7d90e71d48f235112f65d04d798637041133a7fb2c7816: 17 L0 / 17 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
-      "verdict": "unknown",
-      "evidence": "driftwood-isle: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:5e945d1cd521c1582316eee004ccecd8de03e522a961da1cfab8337cad51124b, validation sha256:d1f735803c78ee116e7d90e71d48f235112f65d04d798637041133a7fb2c7816: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
      },
      "fourEntryways": {
-      "verdict": "unknown",
-      "evidence": "driftwood-isle: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:5e945d1cd521c1582316eee004ccecd8de03e522a961da1cfab8337cad51124b, validation sha256:d1f735803c78ee116e7d90e71d48f235112f65d04d798637041133a7fb2c7816: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "unknown",
-      "evidence": "driftwood-isle: output omits authored runtime files"
+      "evidence": "No latched memory pass or qualified current-source reading; declared costs alone are not readings"
      },
      "hudAccent": {
-      "verdict": "unknown",
-      "evidence": "driftwood-isle: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:5e945d1cd521c1582316eee004ccecd8de03e522a961da1cfab8337cad51124b, validation sha256:d1f735803c78ee116e7d90e71d48f235112f65d04d798637041133a7fb2c7816: Declared palette accent: marigold"
      },
      "oneFrameLooks": {
       "verdict": "unknown",
-      "evidence": "driftwood-isle: output omits authored runtime files"
-     },
-     "productBuild": {
-      "verdict": "fail",
-      "evidence": "driftwood-isle: output omits authored runtime files"
+      "evidence": "No latched look/travel pass or qualified current-source phone grid witness"
      }
     }
    },
@@ -281,35 +273,31 @@
     }
    },
    "pine-hollow": {
-    "verdict": "fail",
+    "verdict": "unknown",
     "criteria": {
      "bakedTiles": {
-      "verdict": "unknown",
-      "evidence": "pine-hollow: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:b3d47138ecb6b8686dae33a89d6c213f95caa37df88d9dedafe584347c15bf4a, validation sha256:a27ddb2e032dd26148cb1d61b6696de144fd156206648d1db03dcf8c0ad0c8ed: 12 L0 / 12 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
-      "verdict": "unknown",
-      "evidence": "pine-hollow: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:b3d47138ecb6b8686dae33a89d6c213f95caa37df88d9dedafe584347c15bf4a, validation sha256:a27ddb2e032dd26148cb1d61b6696de144fd156206648d1db03dcf8c0ad0c8ed: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
      },
      "fourEntryways": {
-      "verdict": "unknown",
-      "evidence": "pine-hollow: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:b3d47138ecb6b8686dae33a89d6c213f95caa37df88d9dedafe584347c15bf4a, validation sha256:a27ddb2e032dd26148cb1d61b6696de144fd156206648d1db03dcf8c0ad0c8ed: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "unknown",
-      "evidence": "pine-hollow: output omits authored runtime files"
+      "evidence": "No latched memory pass or qualified current-source reading; declared costs alone are not readings"
      },
      "hudAccent": {
-      "verdict": "unknown",
-      "evidence": "pine-hollow: output omits authored runtime files"
+      "verdict": "pass",
+      "evidence": "index sha256:b3d47138ecb6b8686dae33a89d6c213f95caa37df88d9dedafe584347c15bf4a, validation sha256:a27ddb2e032dd26148cb1d61b6696de144fd156206648d1db03dcf8c0ad0c8ed: Declared palette accent: moss"
      },
      "oneFrameLooks": {
       "verdict": "unknown",
-      "evidence": "pine-hollow: output omits authored runtime files"
-     },
-     "productBuild": {
-      "verdict": "fail",
-      "evidence": "pine-hollow: output omits authored runtime files"
+      "evidence": "No latched look/travel pass or qualified current-source phone grid witness"
      }
     }
    },
@@ -760,9 +748,9 @@
   {
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
-   "customCut": null,
+   "customCut": 4999,
    "platformGrowth": 69534,
-   "netCut": null,
+   "netCut": -64535,
    "layers": {
     "engine": {
      "before": 67206,
@@ -789,9 +777,9 @@
   {
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
-   "customCut": null,
+   "customCut": 41011,
    "platformGrowth": 65970,
-   "netCut": null,
+   "netCut": -24959,
    "layers": {
     "engine": {
      "before": 67897,
@@ -821,90 +809,90 @@
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 495,
+    "nine-dragon-stack": 406
    }
   },
   "C2": {
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 366,
+    "nine-dragon-stack": 786
    }
   },
   "C3": {
-   "closed": false,
-   "state": "open",
+   "closed": true,
+   "state": "closed",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0
    }
   },
   "C4": {
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 1758,
+    "nine-dragon-stack": 0
    }
   },
   "C5": {
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 229,
+    "nine-dragon-stack": 0
    }
   },
   "C6": {
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 280,
+    "nine-dragon-stack": 63
    }
   },
   "C7": {
-   "closed": false,
-   "state": "closing",
+   "closed": true,
+   "state": "closed",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0
    }
   },
   "C8": {
-   "closed": false,
-   "state": "open",
+   "closed": true,
+   "state": "closed",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0
    }
   },
   "C9": {
    "closed": false,
    "state": "open",
    "lines": {
-    "pine-hollow": null,
-    "driftwood-isle": null,
-    "nalati-grasslands": null,
-    "nine-dragon-stack": null
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "nalati-grasslands": 1031,
+    "nine-dragon-stack": 264
    }
   }
  },
@@ -913,75 +901,75 @@
    "id": "W1",
    "components": {
     "C1": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C2": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C3": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C4": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C5": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C6": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C7": {
-     "closed": false,
-     "state": "closing",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C8": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     },
     "C9": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "far-reach": null,
-      "sunscar-dunes": null
+      "far-reach": 0,
+      "sunscar-dunes": 0
      }
     }
    }
@@ -990,75 +978,75 @@
    "id": "W2",
    "components": {
     "C1": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C2": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C3": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C4": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C5": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C6": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C7": {
-     "closed": false,
-     "state": "closing",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C8": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     },
     "C9": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "pine-hollow": null,
-      "driftwood-isle": null
+      "pine-hollow": 0,
+      "driftwood-isle": 0
      }
     }
    }
@@ -1070,72 +1058,72 @@
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 495,
+      "nine-dragon-stack": 406
      }
     },
     "C2": {
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 366,
+      "nine-dragon-stack": 786
      }
     },
     "C3": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 0,
+      "nine-dragon-stack": 0
      }
     },
     "C4": {
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 1758,
+      "nine-dragon-stack": 0
      }
     },
     "C5": {
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 229,
+      "nine-dragon-stack": 0
      }
     },
     "C6": {
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 280,
+      "nine-dragon-stack": 63
      }
     },
     "C7": {
-     "closed": false,
-     "state": "closing",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 0,
+      "nine-dragon-stack": 0
      }
     },
     "C8": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 0,
+      "nine-dragon-stack": 0
      }
     },
     "C9": {
      "closed": false,
      "state": "open",
      "lines": {
-      "nalati-grasslands": null,
-      "nine-dragon-stack": null
+      "nalati-grasslands": 1031,
+      "nine-dragon-stack": 264
      }
     }
    }
@@ -1153,59 +1141,53 @@
    "name": "Pine Hollow",
    "wave": "W2",
    "goal": 0,
-   "custom": null,
+   "custom": 0,
    "legacy": 21305,
-   "pct": null,
-   "grid": "fail",
+   "pct": 0,
+   "grid": "unknown",
    "criteria": {
-    "bakedTiles": "unknown",
-    "edgeProfile": "unknown",
-    "fourEntryways": "unknown",
+    "bakedTiles": "pass",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
     "memory": "unknown",
-    "hudAccent": "unknown",
-    "oneFrameLooks": "unknown",
-    "productBuild": "fail"
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "pine-hollow: output omits authored runtime files"
-   },
-   "measurementError": "Cross-shard ownership unavailable: driftwood-isle: driftwood-isle: output omits authored runtime files; pine-hollow: pine-hollow: output omits authored runtime files",
-   "productFailure": "pine-hollow: output omits authored runtime files"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
+   }
   },
   {
    "slug": "driftwood-isle",
    "name": "Driftwood",
    "wave": "W2",
    "goal": 0,
-   "custom": null,
+   "custom": 0,
    "legacy": 17167,
-   "pct": null,
-   "grid": "fail",
+   "pct": 0,
+   "grid": "unknown",
    "criteria": {
-    "bakedTiles": "unknown",
-    "edgeProfile": "unknown",
-    "fourEntryways": "unknown",
+    "bakedTiles": "pass",
+    "edgeProfile": "pass",
+    "fourEntryways": "pass",
     "memory": "unknown",
-    "hudAccent": "unknown",
-    "oneFrameLooks": "unknown",
-    "productBuild": "fail"
+    "hudAccent": "pass",
+    "oneFrameLooks": "unknown"
    },
    "frameFloor": {
     "verdict": "unknown",
-    "evidence": "driftwood-isle: output omits authored runtime files"
-   },
-   "measurementError": "Cross-shard ownership unavailable: driftwood-isle: driftwood-isle: output omits authored runtime files; pine-hollow: pine-hollow: output omits authored runtime files",
-   "productFailure": "driftwood-isle: output omits authored runtime files"
+    "evidence": "No qualified exact-SHA frame-floor receipt"
+   }
   },
   {
    "slug": "far-reach",
    "name": "Sky Reach",
    "wave": "W1",
    "goal": 0,
-   "custom": null,
+   "custom": 0,
    "legacy": 6779,
-   "pct": null,
+   "pct": 0,
    "grid": "pass",
    "criteria": {
     "bakedTiles": "pass",
@@ -1218,17 +1200,16 @@
    "frameFloor": {
     "verdict": "unknown",
     "evidence": "No qualified exact-SHA frame-floor receipt"
-   },
-   "measurementError": "Cross-shard ownership unavailable: driftwood-isle: driftwood-isle: output omits authored runtime files; pine-hollow: pine-hollow: output omits authored runtime files"
+   }
   },
   {
    "slug": "sunscar-dunes",
    "name": "Signal Dunes",
    "wave": "W1",
    "goal": 0,
-   "custom": null,
+   "custom": 0,
    "legacy": 4122,
-   "pct": null,
+   "pct": 0,
    "grid": "pass",
    "criteria": {
     "bakedTiles": "pass",
@@ -1241,17 +1222,16 @@
    "frameFloor": {
     "verdict": "unknown",
     "evidence": "No qualified exact-SHA frame-floor receipt"
-   },
-   "measurementError": "Cross-shard ownership unavailable: driftwood-isle: driftwood-isle: output omits authored runtime files; pine-hollow: pine-hollow: output omits authored runtime files"
+   }
   },
   {
    "slug": "nalati-grasslands",
    "name": "Nalati",
    "wave": "W3",
    "goal": 0,
-   "custom": null,
+   "custom": 4159,
    "legacy": 28370,
-   "pct": null,
+   "pct": 14.7,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -1264,17 +1244,16 @@
    "frameFloor": {
     "verdict": "unknown",
     "evidence": "No qualified exact-SHA frame-floor receipt"
-   },
-   "measurementError": "Cross-shard ownership unavailable: driftwood-isle: driftwood-isle: output omits authored runtime files; pine-hollow: pine-hollow: output omits authored runtime files"
+   }
   },
   {
    "slug": "nine-dragon-stack",
    "name": "Nine Dragon",
    "wave": "W3",
    "goal": 0,
-   "custom": null,
+   "custom": 1519,
    "legacy": 21111,
-   "pct": null,
+   "pct": 7.2,
    "grid": "unknown",
    "criteria": {
     "bakedTiles": "pass",
@@ -1287,8 +1266,7 @@
    "frameFloor": {
     "verdict": "unknown",
     "evidence": "No qualified exact-SHA frame-floor receipt"
-   },
-   "measurementError": "Cross-shard ownership unavailable: driftwood-isle: driftwood-isle: output omits authored runtime files; pine-hollow: pine-hollow: output omits authored runtime files"
+   }
   }
  ],
  "native": [
@@ -1299,15 +1277,15 @@
   "pastel-plain"
  ],
  "wave": {
-  "id": "W1",
-  "label": "W1 · Sky + Signal to zero",
+  "id": "W3",
+  "label": "W3 · Nalati + Nine to zero",
   "until": null,
   "goal": 0,
   "shards": [
-   "far-reach",
-   "sunscar-dunes"
+   "nalati-grasslands",
+   "nine-dragon-stack"
   ],
-  "pct": null
+  "pct": 83.5
  },
  "waves": [
   {
@@ -1317,7 +1295,7 @@
     "far-reach": 19.3,
     "sunscar-dunes": 33.5
    },
-   "endedAt": null
+   "endedAt": "2026-10-22T14:13:22.034Z"
   },
   {
    "id": "W2",
@@ -1326,7 +1304,7 @@
     "pine-hollow": 107.6,
     "driftwood-isle": 104.2
    },
-   "endedAt": null
+   "endedAt": "2026-10-22T14:13:22.034Z"
   },
   {
    "id": "W3",
@@ -1335,7 +1313,7 @@
     "nalati-grasslands": 72.21008107155446,
     "nine-dragon-stack": 56.321349059731894
    },
-   "endedAt": "2026-10-20T16:56:12.885Z"
+   "endedAt": null
   },
   {
    "id": "NEXT",
@@ -2559,6 +2537,19 @@
    "at": "2026-10-22T12:10:28.000Z",
    "basis": "source",
    "shards": {}
+  },
+  {
+   "revision": "6bf8c2a6e5a35e70c165834596305286fd53d6db",
+   "at": "2026-10-22T13:48:21.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 14.659851956291858,
+    "nine-dragon-stack": 7.195301027900147
+   }
   }
  ],
  "events": [
@@ -2625,6 +2616,18 @@
   {
    "at": "2026-10-22T13:13:22.799Z",
    "label": "G567: W1 reopens toward zero custom"
+  },
+  {
+   "at": "2026-10-22T14:13:22.034Z",
+   "label": "W1 closes"
+  },
+  {
+   "at": "2026-10-22T14:13:22.034Z",
+   "label": "W2 closes"
+  },
+  {
+   "at": "2026-10-22T14:13:22.034Z",
+   "label": "G567: W3 reopens toward zero custom"
   }
  ]
 }
