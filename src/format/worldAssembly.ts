@@ -34,6 +34,9 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('dressing'), id, bindSets: v.boolean() }),
   v.strictObject({ kind: v.literal('fixed-draws'), id }),
   v.strictObject({ kind: v.literal('painted-reseed'), id, world: id }),
+  v.strictObject({ kind: v.literal('painted-world'), id, world: id, weather: id,
+    groups: v.pipe(v.array(v.strictObject({ name: id, object: id })), v.maxLength(16)),
+    casters: v.pipe(v.array(id), v.maxLength(16)), forest: v.boolean() }),
   /** The weather occupies its exact ordered boundary without an extra progress slice. */
   v.strictObject({ kind: v.literal('weather'), id, file: id }),
   v.strictObject({ kind: v.literal('arena-script'), id, files: v.strictObject({ fight: id, geometry: id }), weather: id, anchor: id }),

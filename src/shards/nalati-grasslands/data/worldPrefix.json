@@ -99,6 +99,10 @@
       {
         "name": "weather",
         "object": "nalati.weather"
+      },
+      {
+        "name": "skyV2",
+        "object": "nalati.painted"
       }
     ]
   },
@@ -142,6 +146,46 @@
       "kind": "weather",
       "id": "nalati.weather",
       "file": "world/weather.json"
+    },
+    {
+      "kind": "arena-script",
+      "id": "nalati.titan",
+      "files": {
+        "fight": "combat/titan-fight.json",
+        "geometry": "combat/titan-geometry.json"
+      },
+      "weather": "nalati.weather",
+      "anchor": "cairn.tie"
+    },
+    {
+      "kind": "painted-world",
+      "id": "nalati.painted",
+      "world": "nalati-grasslands",
+      "weather": "nalati.weather",
+      "groups": [
+        {
+          "name": "water",
+          "object": "water"
+        },
+        {
+          "name": "outcrops",
+          "object": "outcrops"
+        },
+        {
+          "name": "crags",
+          "object": "crags"
+        },
+        {
+          "name": "dressing",
+          "object": "dressing"
+        },
+        {
+          "name": "weather",
+          "object": "nalati.weather"
+        }
+      ],
+      "casters": [],
+      "forest": true
     }
   ]
 }

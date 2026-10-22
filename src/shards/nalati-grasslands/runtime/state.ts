@@ -25,15 +25,14 @@ import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
+import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 
 import type { NalatiLoadout } from '../weapons/loadout';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { creatureGuest } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
-import { wireLookV2 } from '../look/index';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
-import { ArenaScriptEncounter,readArenaScriptData } from '@wildshard/game/boss/arenaScript';
 import type { CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
@@ -45,7 +44,7 @@ export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 export type NalatiWeather = Nalati['weather'];
 
 async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
-  const { admission } = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
+  const { admission, worldUpdates } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   // the shape book (carvings, trophies, arena parts, ghost riders, painted places): the world's original fixed draws
   const product = plugin.product, shapes = await productFixedDraws(product, 'models/shape-book.json');
   if (plugin.scope.disposed || plugin.product !== product) throw new Error('Nalati world owners changed while its shape book loaded');
@@ -69,15 +68,12 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
-  const titan = new ArenaScriptEncounter({ game,player: ctx.player,weather: weather.weather,air: weather.air,tieSpot: entryOwner(plugin.scope, 'world-point', 'cairn.tie') },await readArenaScriptData(plugin.product,{ fight: 'combat/titan-fight.json',geometry: 'combat/titan-geometry.json' }));
-  plugin.answer('weather.storm-hold', held => Math.max(held, Number(titan.engaged)));   // the storm that called him rages on until he falls
+  const titan = entryOwner(plugin.scope, 'arena-script', 'nalati.titan');
   updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── the look (src/shards/nalati-grasslands/look/): ONE seamless 360° panorama on a sky dome — the painting is the sky, the clouds, the
   //    planet, the sun and the far range; the fog takes its colour from it (docs/design/nalati/handoff/port-v2.md) ──
-  const lookSlot = updates.length;
-  await wireLookV2({ game, sky, weather, updates, groups, forest: ctx.forest });
-  if (updates.length === lookSlot) updates.push(() => undefined);
+  updates.push(() => undefined); // The declared painted-world owns this frame slot.
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
@@ -186,7 +182,8 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     const name = ids[index], run = updates[index];
     if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
     const id = `shard.nalati.${name}`;
-    if (name !== 'wildlife') plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
+    if (name === 'look') installWorldUpdates(plugin, worldUpdates);
+    else if (name !== 'wildlife') plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
     previous = id;
   }
   plugin.system({ id: 'shard.nalati.reins', phase: 'late', run: (dt) => { ride?.late(dt); } });

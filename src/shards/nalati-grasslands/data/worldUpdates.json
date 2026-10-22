@@ -1,0 +1,14 @@
+[
+  {
+    "kind": "painted-world",
+    "system": "shard.nalati.look",
+    "before": [
+      "engine.creatures.update"
+    ],
+    "after": [
+      "shard.nalati.titan"
+    ],
+    "world": "nalati.painted",
+    "weather": "nalati.weather"
+  }
+]

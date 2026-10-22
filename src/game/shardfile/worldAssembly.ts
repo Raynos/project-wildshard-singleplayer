@@ -1,7 +1,7 @@
 import { clientWaterSurfaces } from './clientWaterSurfaces';
 import { SceneDressing } from './sceneDressing';
 import { bindClientPlaceSets } from './clientPlaceSets';
-import { installFixedDrawsStage, installPaintedReseedStage } from './paintedWorldStages';
+import { installFixedDrawsStage, installPaintedReseedStage, installPaintedWorldStage } from './paintedWorldStages';
 import { ArenaScriptEncounter, readArenaScriptData } from '../boss/arenaScript';
 import type { ShardContext } from '../plugin/context';
 import { installForestWeather } from '../weather/forest';
@@ -135,7 +135,7 @@ export class WorldAssembly {
     const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admitted(input);
     if (rows === undefined) throw new Error('World construction needs its declared checkpoints');
     const native = ports.native;
-    if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','weather','arena-script','painted-reseed'].includes(stage.kind)) && native === undefined) throw new Error('World construction needs its original native context');
+    if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','weather','arena-script','painted-reseed','painted-world'].includes(stage.kind)) && native === undefined) throw new Error('World construction needs its original native context');
     const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
     if (native !== undefined && (native.scope !== scope || native.product !== product || native.game.runtime !== runtime)) throw new Error('World construction native owners changed');
     if (world === null) throw new Error('World construction needs its native world');
@@ -303,6 +303,16 @@ export class WorldAssembly {
     }
     if (stage.kind === 'fixed-draws') { this.at++; await installFixedDrawsStage(this.ports, stage); return; }
     if (stage.kind === 'painted-reseed') { this.at++; installPaintedReseedStage(scope, stage); return; }
+    if (stage.kind === 'painted-world') {
+      const ctx = this.ports.weatherContext, world = ctx?.game.runtime?.world;
+      if (ctx === undefined || world === undefined || world === null || ctx.scope !== scope) throw new Error('Painted construction needs its original native world');
+      const game = world.game, runtime = ctx.game.runtime, product = ctx.product, ports = this.ports; this.at++;
+      await installPaintedWorldStage({ scope, get nativeScope() {
+        if (ports.weatherContext !== ctx || ctx.scope !== scope || ctx.product !== product || ctx.game.runtime !== runtime || runtime?.world !== world || world.game !== game) throw new Error('Painted construction owners changed');
+        return game.levelScope; }, get renderer() { return game.renderer; },
+        get scene() { return game.scene; }, get sky() { return world.sky; }, get forest() { return world.forest.group; },
+        get daySaturation() { return game.level.grade.saturation; } }, stage); return;
+    }
     if (stage.kind === 'weather') { this.at++; await installAssemblyWeather(this.ports, stage); return; }
     if (stage.kind === 'arena-script') { this.at++; await installAssemblyArenaScript(this.ports, stage); return; }
     if (scenes === undefined) throw new Error('World scene stage needs its original scene handles');
@@ -447,9 +457,10 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 }
 
 /** The loan kinds a stage publishes, from its declaration alone. */
-function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather' | 'arena-script' | 'fixed-draws' | 'world-point')[] {
+function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather' | 'arena-script' | 'fixed-draws' | 'world-point' | 'painted-world')[] {
   if (stage.kind === 'dressing-anchor') return ['world-point'];
   if (stage.kind === 'arena-script') return ['arena-script'];
+  if (stage.kind === 'painted-world') return ['painted-world', 'object'];
   if (stage.kind === 'weather') return ['world-weather', 'object'];
   if (stage.kind === 'fixed-draws') return ['fixed-draws'];
   if (stage.kind === 'painted-reseed') return [];

@@ -22,6 +22,7 @@ import type { CaveInterior } from './caveInterior';
 import type { ForestPage } from './forestPage';
 import type { SceneHandles } from './sceneHandles';
 import type { LivingBuildings } from './livingBuildings';
+import type { PainterlyWorld } from '../looks/postGraphLook';
 
 /** A kind names a concrete platform owner, never an arbitrary shard result. */
 export interface EntryOwnerTypes {
@@ -49,6 +50,7 @@ export interface EntryOwnerTypes {
   animals: AnimalManager;
   sounds: DeclaredSoundBank;
   'quest-spawns': QuestSpawnResult;
+  'painted-world': PainterlyWorld;
 }
 export type EntryOwnerKind = keyof EntryOwnerTypes;
 interface Loan<T> { readonly owner: Scope; readonly value: T }
@@ -64,7 +66,7 @@ function book(scope: Scope): Owners {
   if (value === undefined) {
     value = { scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-script': new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(), 'mounted-arsenal': new Map(),
-      animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
+      animals: new Map(), sounds: new Map(), 'quest-spawns': new Map(), 'painted-world': new Map() };
     books.set(scope, value);
   }
   return value;

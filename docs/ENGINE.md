@@ -11743,6 +11743,8 @@ Construction creates no new library or scene intake, cache, entered update,
 phase, save owner or progress slice. The caller keeps resident caching and
 explicit lending; this API does not select a client runtime declaration.
 
+The CORE WorldAssembly `painted-world` stage wires an admitted painterly world at its declared construction boundary. Its finite rows name the original weather rig, ordered named object groups, casters and optional native forest. Allocation uses the original native level scope; publication uses the construction scope. Both scopes and all concrete owners are pinned across the wire await. `worldUpdates` painted-world rows name that world and weather rig and retain explicit `before` and optional `after` system edges, without another clock or phase.
+
 WorldAssembly construction can omit IslandLibrary and cover cells when its
 stages need neither fixed draws nor streamed cover. An optional root {id,
 name} publishes the new construction Group before the stage walk; its scoped

@@ -28,6 +28,9 @@ import { driftwoodWorldUpdates } from '../src/shards/driftwood-isle/generators/w
 import shrineRows from '../src/shards/driftwood-isle/data/buildingLife.json' with {type:'json'};
 import { islandSystems } from './fixtures/driftwood-world-updates';
 import { legacyDouble } from './fake/FakeGame';
+import type { PainterlyWorld } from '../src/game/looks/postGraphLook';
+import type { ForestWeatherRig } from '../src/game/weather/forest';
+import type { PaintedSky } from '../src/game/looks/keyedSky';
 
 type NativeWorld = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
 const rows = driftwoodWorldUpdates();
@@ -165,4 +168,36 @@ test('compiled dispatch owns the entered pre-hook boundary and admits the defini
     expect(f.systems.map(system=>system.id)).toEqual(rows.map(value=>value.system));
     expect(formatJsonSchema(WorldUpdatesSchema)).toBeDefined();
   }finally{f.finish();}
+});
+
+
+test('painted-world preserves its exact native look slot, weather values and method receiver', () => {
+  const f = fixture(), update = vi.fn< PainterlyWorld['update'] >();
+  const painted = legacyDouble<PainterlyWorld>({ update(dt, frame) { expect(this).toBe(painted); update(dt, frame); } });
+  let sun = 0.75, overcast = 0.2;
+  const look = legacyDouble<PaintedSky['look']>({});
+  const sky = legacyDouble<PaintedSky>({ look, clock: legacyDouble<PaintedSky['clock']>({ get sunElevation() { return sun; } }) });
+  const rig = legacyDouble<ForestWeatherRig>({ sky, weather: legacyDouble<ForestWeatherRig['weather']>({ get overcast() { return overcast; } }) });
+  const row = { kind: 'painted-world' as const, system: 'orchard.look', before: ['engine.creatures.update'], after: ['orchard.titan'], world: 'orchard.painted', weather: 'orchard.weather' };
+  try {
+    publishEntryOwner(f.construction, 'painted-world', row.world, painted); publishEntryOwner(f.construction, 'world-weather', row.weather, rig);
+    lendEntryOwner(f.scope, f.construction, 'painted-world', row.world); lendEntryOwner(f.scope, f.construction, 'world-weather', row.weather);
+    installWorldUpdates(f.ctx, [row]);
+    expect(f.systems.map(({ id, phase, before, after }) => ({ id, phase, before, after }))).toEqual([{ id: row.system, phase: 'update', before: row.before, after: row.after }]);
+    expect(update).not.toHaveBeenCalled();
+    f.systems[0]?.run(1 / 30, 100);
+    sun = -0.4; overcast = 0.9; f.systems[0]?.run(0.2, 1000);
+    expect(update.mock.calls.map(([dt, frame]) => ({ dt, sun: frame.sunElevation, overcast: frame.overcast }))).toEqual([{ dt: 1 / 30, sun: 0.75, overcast: 0.2 }, { dt: 0.2, sun: -0.4, overcast: 0.9 }]);
+    for (const [, frame] of update.mock.calls) expect(frame.look).toBe(look);
+  } finally { f.finish(); }
+});
+
+test('a missing painted suffix or accessor row registers no earlier native update', () => {
+  const f = fixture(), getter = vi.fn(() => 'wind');
+  try {
+    expect(() => installWorldUpdates(f.ctx, [{ kind: 'wind', system: 'first', before: [] }, { kind: 'painted-world', system: 'later', before: [], world: 'missing', weather: 'missing' }])).toThrow('Missing live entry owner');
+    expect(f.systems).toEqual([]);
+    expect(() => installWorldUpdates(f.ctx, [{ get kind() { return getter(); }, system: 'getter', before: [] }])).toThrow('plain JSON');
+    expect(getter).not.toHaveBeenCalled(); expect(f.systems).toEqual([]);
+  } finally { f.finish(); }
 });
