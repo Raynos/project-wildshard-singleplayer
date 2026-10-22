@@ -43,6 +43,8 @@ let sliceStart:i32=-1;
 @inline export function beginState():void{
   selected=-1;sliceStart=-1;store<u32>(IO+64,0);const n=count(2),d=directory(3);assert(u32(n)<=load<u32>(d+12));
   store<u32>(d+16,u32(n));for(let i=0;i<n;i++)store<f64>(row(3,i),load<f64>(row(2,i)));
+  const r=count(21),out=directory(22);assert(u32(r)<=load<u32>(out+12));store<u32>(out+16,u32(r));
+  for(let i=0;i<r;i++){const a=row(21,i),b=row(22,i);for(let j:usize=0;j<64;j+=8)store<u64>(b+j,load<u64>(a+j));}
 }
 @inline function column(kind:i32,index:i32,base:usize):usize{
   const b=binding();assert(index>=0&&u32(index)<load<u32>(b+base+4));
@@ -90,6 +92,27 @@ let sliceStart:i32=-1;
 @inline export function replyValue(index:i32,component:i32):f64{assert(replyStatus(index)==1&&component>=0&&component<5);return load<f64>(reply(index)+24+usize(component)*8);}
 @inline export function replyData(index:i32,component:i32):f64{
   const at=reply(index),n=load<u32>(at+12),base=load<u32>(at+20),total=u32(count(13));assert(replyStatus(index)==1&&base<=total&&n<=total-base&&component>=0&&u32(component)<n);return load<f64>(row(13,i32(base)+component));
+}
+@inline function mixRng(value:u32):u32{
+  value=(value^(value>>16))*0x7feb352d;value=(value^(value>>15))*0x846ca68b;return value^(value>>16);
+}
+@inline export function random(stream:u32):f64{
+  assert(stream>0);
+  for(let i=0;i<count(22);i++){
+    const at=row(22,i);if(load<i32>(at)!=handle()||load<u32>(at+4)!=stream)continue;
+    const draws=load<u32>(at+12);assert(draws<0xffffffff);store<u32>(at+12,draws+1);
+    const algorithm=load<u32>(at+8);
+    if(algorithm==1){
+      const state=u32(load<f64>(at+16))+0x6d2b79f5;store<f64>(at+16,f64(state));
+      let t=(state^(state>>15))*(state|1);t^=t+(t^(t>>7))*(t|61);return f64(t^(t>>14))/4294967296;
+    }
+    assert(algorithm==2);const counter=load<f64>(at+32),identity=load<f64>(at+40),instance=load<f64>(at+48);assert(counter<9007199254740991);
+    const value=mixRng(mixRng(u32(load<f64>(at+16))^u32(identity%4294967296))^mixRng(u32(load<f64>(at+24))^u32(instance%4294967296))
+      ^mixRng(u32(Math.floor(identity/4294967296)))^mixRng(u32(Math.floor(instance/4294967296)))
+      ^mixRng(u32(counter%4294967296))^mixRng(u32(Math.floor(counter/4294967296))));
+    store<f64>(at+32,counter+1);return f64(value)/4294967296;
+  }
+  unreachable();return 0;
 }
 @inline function grid():usize{
   assert(count(14)>=64);const at=row(14,0);assert(load<u32>(at+56)==1&&load<u32>(at+44)==0&&load<u32>(at+60)==0);return at;
