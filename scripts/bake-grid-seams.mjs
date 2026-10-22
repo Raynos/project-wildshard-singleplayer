@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 // The build and the page use the same catalogue, edge reader and certifier.
-// Only retained native lattice rows ship; placement, meshes and colliders stay generated normally.
+// The retained native lattice rows ship, and each slug's declared edge source (what the page's reader returns for it), so
+// a grid entry reads no product for its edges; placement, meshes and colliders stay generated normally.
+// Output: {"plans": [[key, rows]...], "edges": [[slug, source]...]}.
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
 import { resolve } from 'node:path';
 import { GridAssembly } from '../src/game/grid/assembly.ts';
 import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles.ts';
@@ -22,7 +25,7 @@ const fetchFile = async path => {
   try { return new Response(new Uint8Array(await readFile(file))); }
   catch (error) { if (error?.code === 'ENOENT') return new Response(null, { status: 404 }); throw error; }
 };
-const plans = new Map(), seen = new Set(), products = new Map();
+const plans = new Map(), seen = new Set(), products = new Map(), sources = new Map();
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
   const assembly = new GridAssembly({ developer, devserver, nineDragon });
   const key = JSON.stringify(assembly.cells);
@@ -31,7 +34,7 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
   const empty = assembly.emptyNeighbour.edge;
   const edges = await loadGridEdgeProfiles(assembly.cells, async cell => {
     try {
-      return await readGridEdges(cell, { fetch: fetchFile, edges: slug => {
+      const source = await readGridEdges(cell, { fetch: fetchFile, edges: slug => {
         const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
         if (descriptor === undefined) return null;
         let pending = products.get(slug);
@@ -43,6 +46,10 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
         }
         return pending;
       } });
+      // only a JSON-exact declared source ships (a failed read keeps the page's own read)
+      const wire = JSON.stringify(source);
+      if (source.kind === 'declared' && isDeepStrictEqual(JSON.parse(wire), source)) sources.set(cell.slug, source);
+      return source;
     } catch (error) {
       // Partial --shard builds retain the page's existing exact-input runtime fallback.
       console.error(`[grid bake] ${cell.instance}: ${String(error)}`);
@@ -55,4 +62,4 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
   try { generatePlatform(input.cells, input.empty, plans); }
   catch (error) { console.error(`[grid bake] road-level fallback: ${String(error)}`); generatePlatform(input.flat, input.empty, plans); }
 }
-process.stdout.write(JSON.stringify([...plans]));
+process.stdout.write(JSON.stringify({ plans: [...plans], edges: [...sources] }));

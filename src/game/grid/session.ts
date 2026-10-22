@@ -71,7 +71,7 @@ import { collisionStrips, type CollisionMesh, type CollisionStrip } from './coll
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import type { SeamLookState } from './seamLook';
 import { roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
-import { loadGridEdgeProfiles } from './edgeProfiles';
+import { loadGridEdgeProfiles, type GridEdgeSource } from './edgeProfiles';
 import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
@@ -94,6 +94,8 @@ import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
 
 declare const __GRID_SEAM_PLANS__: readonly (readonly [string, readonly number[][]])[];
+/** Each slug's declared edge source, baked by the build with the seam plans (scripts/bake-grid-seams.mjs, the same reader) */
+declare const __GRID_EDGES__: readonly (readonly [string, Extract<GridEdgeSource, { kind: 'declared' }>])[];
 
 declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
 
@@ -297,16 +299,18 @@ export class GridSession {
   /** when each cell's current wait began, so its screen counts only the hooks of this load */
   private readonly loadingSince = new Map<string, number>();
 
-  /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
+  /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data, baked by the build: a grid entry read
+   *  20 products' index and edge section through the serial content cache, 3.5 s on Jake's phone), then build the session. */
   static async create(host: GridSessionHost, progress?: StepProgress): Promise<GridSession> {
     if (host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     const allocator = host.residency.allocator;
     const assembly = new GridAssembly(gridMode(DEVSERVER)), empty = assembly.emptyNeighbour.edge;
     let prepared = 0;
+    const baked = new Map(__GRID_EDGES__);
     progress?.set(0, 3, `Cell edges · 0 / ${assembly.cells.length}`);
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
-        const edge = await readGridEdges(cell, { edges: slug => gridShardfileEdges(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
+        const edge = baked.get(cell.slug) ?? await readGridEdges(cell, { edges: slug => gridShardfileEdges(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
         const claim = allocator.reserve({ id: `product:grid:edge:${cell.instance}`, category: 'product', owner: cell.instance, bytes: jsonResidentBytes(edge), distance: 0, needed: true });
         if (claim === null) throw new Error('Grid edge metadata residency deferred');
         host.scope.onDispose(() => { claim.release(); }); return edge;
