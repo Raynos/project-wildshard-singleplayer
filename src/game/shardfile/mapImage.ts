@@ -1,6 +1,6 @@
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ResidencyAllocator } from '../grid/allocator';
-import { stillImageUrl } from './stillImage';
+import { stillImageObjectUrl } from './stillImage';
 
 /** Lease the admitted map's conservative image residency before decoding or retaining its inert URL. */
 export function leaseMapImage(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, allocator: ResidencyAllocator,
@@ -14,7 +14,7 @@ export function leaseMapImage(source: Shardfile, assets: ReadonlyMap<string, Uin
   if (file?.kind !== 'image' || bytes === undefined) throw new Error('Missing admitted map image');
   const lease = reserveMapImage(source, allocator, scope);
   try {
-    const url = stillImageUrl(bytes);
+    const url = stillImageObjectUrl(bytes, scope);
     let settled = false;
     return { url, retained: image => {
       if (settled) throw new Error('Map image already settled');
