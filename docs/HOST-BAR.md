@@ -122,11 +122,14 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 
 - G571 native construction checkpoints: `format/worldAssembly#WorldConstructionSchema` and `game/shardfile/worldAssembly#WorldConstructionPorts` declare finite checkpoints and existing concrete library/world authorities for the already-approved WorldAssembly host. Test 1 waived; tests 2–6 cover one original stage walk, native receivers, exact progress/yields/floor and GPU-root identities, whole-root preflight, retirement fences and strict refusal in test/world-construction.test.ts and the existing native world-assembly suite. No authored callback, path, second intake/cache, update or runtime phase.
 
-The ruler reads exact module or `module#binding` selectors from the G571
-list entries above. A named binding never approves other declarations in its
-file; shared physical lines stay charged if an unapproved binding occupies
-them. Ordinary prose, other decisions and unnamed one-user hosts grant no
-G571 credit. Imports and dependencies retain their own attribution.
+The ruler reads exact module or `module#binding` selectors from G571 list
+entries and unconditional G599, G600 or G601 entries explicitly tagged
+`Jake-approved host:` (an optional row id precedes the tag). Plain or
+conditional prose grants no credit, including G599 N1 until its Nalati
+condition is fulfilled and its entry explicitly updated. A named binding
+never approves other declarations in its file; shared physical lines stay
+charged if an unapproved binding occupies them. Imports and dependencies
+retain their own attribution.
 
 - G571 quest entry prefix: `game/shardfile/clientQuestComposition#installEntryQuestReference`, `game/shardfile/clientQuestComposition#installEntryRangedPage` and `game/shardfile/clientQuestComposition#installEntryQuestComposition` prepare the entered ranged and named quest owners from finite client-plan rows; `game/quest/chapterDirector#QuestSpawnCapability`, `game/quest/chapterDirector#QuestSpawnResult` and `game/quest/chapterDirector#installDeclaredQuestSpawns` bind the existing AS spawns to exact quest, animal and sound loans. Client-only; no callback row, selector, extra clock or save. Test 1 waived; tests 2–6 covered by `test/quest-spawn-capability.test.ts`, `test/client-plan-platform.test.ts`, `test/ranged-entry-capability.test.ts` and the original quest product/save suites. Unrelated chapter director and guide declarations remain charged.
 

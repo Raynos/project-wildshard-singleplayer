@@ -1,17 +1,21 @@
-// G571 grants day-one credit only to the exact reviewed HOST-BAR entries.
+// Credit only exact G571 entries or explicitly tagged Jake-picked hosts.
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-/** Read module or #binding selectors only from explicit G571 list entries.
- * Missing fixture documentation grants no approvals. Ordinary prose and other
- * decisions cannot waive a one-user host. A binding never approves its module.
+/** Read exact selectors from G571 entries or unconditional G599-G601 entries
+ * tagged "Jake-approved host:" (optionally preceded by their row id).
+ * Missing documentation, ordinary prose and conditional approval grant no credit.
+ * A binding never approves its module; imports retain their own attribution.
  * @param {string} root @returns {Map<string,Set<string>|null>} */
 export function g571HostApprovals(root) {
   const file = resolve(root, 'docs/HOST-BAR.md');
   /** @type {Map<string,Set<string>|null>} */
   const result = new Map();
   if (!existsSync(file)) return result;
-  for (const line of readFileSync(file, 'utf8').split('\n').filter(row => /^- G571\b/u.test(row))) {
+  for (const line of readFileSync(file, 'utf8').split('\n')) {
+    const legacy = /^- G571\b/u.test(line);
+    const picked = /^- G(?:599|600|601)(?: [A-Z]\d+[a-z]?)? Jake-approved host:/u.test(line);
+    if (!legacy && (!picked || /\b(?:conditional(?:ly)?|condition|until|unless|if)\b/iu.test(line))) continue;
     for (const match of line.matchAll(/`((?:engine|game|sdk|format)\/[A-Za-z0-9_./-]+)(?:#([A-Za-z_$][\w$]*))?`/gu)) {
       /** @type {readonly (string|undefined)[]} */
       const captures = match;
