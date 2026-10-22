@@ -8,7 +8,7 @@ import type { ToonLookRow } from './toonLook';
 import type { KeyedSkyStyle } from './keyedSky';
 import type { SpawnScriptRows } from './spawnScripts';
 import type { ClientPlan } from './clientPlan';
-import type { ViewModuleRow } from './scriptContract';
+import type { ReturnModuleRow, ViewModuleRow } from './scriptContract';
 import type { WorldScenesSection } from './worldScenes';
 import type { TreeSetRows } from './treeSetRows';
 import type { HeldArmsRows } from './heldArms';
@@ -88,7 +88,7 @@ export interface PlatformSections {
   'actors/moves': ActorMoves;
   'actors/spawn-scripts': SpawnScriptRows[];
   /** Stateless return-policy modules are admitted but never auto-scheduled. */
-  'actors/return-scripts': DecisionScriptRow[];
+  'actors/return-scripts': ReturnModuleRow[];
   /** Callback-free gameplay species, in each owning world's original registration order. */
   'actors/species-programs': SpeciesPrograms;
   'actors/creatures': Pick<Shardfile, 'creatures'>;

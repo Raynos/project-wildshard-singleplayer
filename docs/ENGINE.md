@@ -12178,3 +12178,11 @@ the v2 module; fire/wind or other legacy rows keep their defining ABI1 path.
 Scope retirement refuses capture and prepared acceptance before state/RNG
 publication. The producer declares the selected ABI2 module and its memory cost;
 this transport changes no native contact, body, target or save authority.
+
+
+The actors/return-scripts inventory admits strict stateless ABI2 project-module
+rows beside unchanged ABI1 policies. Its explicit module path, sim side, project
+lane, fixed pages, I/O and revisions survive named-file reconstruction and
+product transport. These rows grant byte admission only: no scheduler, binding,
+clock or guest query is installed. Missing declarations still refuse; admission
+never infers an ABI from module bytes.

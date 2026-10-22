@@ -25,7 +25,7 @@ import { UiStringsSchema, type UiStrings } from './uiStrings';
 import { WorldPhysicsSchema, type WorldPhysics } from './worldPhysics';
 import { WorldTargetsSchema, type WorldTargets } from './worldTargets';
 import { WorldMoversSchema } from './movers';
-import { ViewModulesSchema, type ViewModuleRow } from './scriptContract';
+import { ReturnModulesSchema, type ReturnModuleRow, ViewModulesSchema, type ViewModuleRow } from './scriptContract';
 import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRuntimePlan';
 import { TreeSetSchema, type TreeSetRows } from './treeSetRows';
 
@@ -51,7 +51,7 @@ export interface PlatformDataSections {
   'actors/species-programs': SpeciesPrograms;
   'actors/moves': ActorMoves;
   'actors/spawn-scripts': SpawnScriptRows[];
-  'actors/return-scripts': DecisionScripts;
+  'actors/return-scripts': ReturnModuleRow[];
   'actors/strikes': CreatureStrikes;
   'sim/scripts': DecisionScripts;
   'sim/bodies': DeclaredBodyOpsRows;
@@ -84,7 +84,7 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
   'actors/species-programs': { schema: SpeciesProgramsSchema },
   'actors/moves': { schema: ActorMovesSchema },
   'actors/spawn-scripts': { schema: SpawnScriptsSchema },
-  'actors/return-scripts': { schema: DecisionScriptsSchema },
+  'actors/return-scripts': { schema: ReturnModulesSchema },
   'actors/strikes': { schema: CreatureStrikesSchema },
   'sim/scripts': { schema: DecisionScriptsSchema },
   'sim/bodies': { schema: DeclaredBodyOpsSchema },
@@ -122,7 +122,8 @@ export function parsePlatformDataSection(name: 'actors/species-programs', value:
 export function parsePlatformDataSection(name: 'actors/moves', value: unknown): ActorMoves;
 export function parsePlatformDataSection(name: 'actors/strikes', value: unknown): CreatureStrikes;
 export function parsePlatformDataSection(name: 'actors/spawn-scripts', value: unknown): SpawnScriptRows[];
-export function parsePlatformDataSection(name: 'actors/return-scripts' | 'sim/scripts', value: unknown): DecisionScripts;
+export function parsePlatformDataSection(name: 'actors/return-scripts', value: unknown): ReturnModuleRow[];
+export function parsePlatformDataSection(name: 'sim/scripts', value: unknown): DecisionScripts;
 export function parsePlatformDataSection(name: 'sim/bodies', value: unknown): DeclaredBodyOpsRows;
 export function parsePlatformDataSection(name: 'ui/completion', value: unknown): CompletionRows;
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;

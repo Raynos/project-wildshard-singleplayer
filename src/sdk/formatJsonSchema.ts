@@ -1,3 +1,4 @@
+import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
 import { ScalarChannelSchema,ScalarLatticeSchema,ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
@@ -364,6 +365,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'practiceCourseRows.Controller': PracticeControllerSchema,
   'scalarChannel.ScalarTriplet': ScalarTripletSchema,
   'returnProjectionV2.ReturnProjectionV2': ReturnProjectionV2Schema,
+  'scriptContract.ReturnModules': ReturnModulesSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
