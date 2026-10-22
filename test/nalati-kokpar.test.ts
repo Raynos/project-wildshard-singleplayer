@@ -4,6 +4,7 @@ import { zlibSync } from 'fflate';
 import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
+import { parseCarriedQuest } from '../src/format/questSteps';
 import { CarriedQuestProp } from '../src/game/quest/carriedProp';
 import { carriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
 import * as ridingService from '../src/game/riding/client';
@@ -108,8 +109,9 @@ it('an orchard delivery uses its own shape, program profile and quest effects',(
   Reflect.set(sky,'csm',{lights:[]});Reflect.set(sky,'sunDir',new THREE.Vector3(0,1,0));vi.spyOn(sky,'setupMaterial').mockImplementation(()=>undefined);
   const position=new THREE.Vector3(4,0,6),horse={position:position.clone(),yaw:0},events:string[]=[],ctx={} as ShardContext;
   Object.defineProperties(native,{mounted:{get:()=>true},gait:{get:()=>'gallop'},horse:{get:()=>horse}});vi.spyOn(ridingService,'pageRidingMount').mockReturnValue(native);
+  const registry=new WorldRegistry();let deck:number|undefined;vi.spyOn(registry,'floorAt').mockImplementation(()=>deck);
   const flags=new Flags('orchard-carry');Object.assign(quest,{def:{id:'orchard'},flags});publishBoundQuest(scope,quest);
-  Object.assign(ctx,{scope,game:{runtime:{world:{sky,registry:new WorldRegistry(),player:{position,yaw:0}},play:{hud:{toast:(text:string)=>{events.push(text);}},music:{sting:()=>undefined}}}}});
+  Object.assign(ctx,{scope,game:{runtime:{world:{sky,registry,player:{position,yaw:0}},play:{hud:{toast:(text:string)=>{events.push(text);}},music:{sting:()=>undefined}}}}});
   const script=parseDecisionScripts([carriedQuestRows.program.script])[0],model=carriedQuestRows.model[0];if(script===undefined||model===undefined)throw new Error('Missing fixture rows');
   const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'orchard crate');
   let compressed='';for(const byte of zlibSync(join(blocks)))compressed+=String.fromCodePoint(byte);
@@ -122,6 +124,14 @@ it('an orchard delivery uses its own shape, program profile and quest effects',(
     const prop=new CarriedQuestProp(ctx,orchardRows);prop.update(.1);expect(prop.carrying).toBe(true);expect(events).toEqual(['Harvest loaded']);
     horse.position.set(12,0,6);prop.update(.1);expect(prop.carrying).toBe(false);expect(flags.has('harvest:delivered')).toBe(true);
     expect(events).toEqual(['Harvest loaded','Harvest delivered']);expect(prop.object.position.x).toBe(12);expect(prop.object.name).toBe('harvest-crate');
+    for(const [window,height,expected] of [[.75,.5,.5],[.75,.75,0],[.75,0,0],[.75,-.5,0],[2,1.5,1.5],[0,.5,0]] as const){
+      deck=height;
+      const sample=new CarriedQuestProp(ctx,{...orchardRows,floorWindow:window});
+      expect(sample.object.position.y).toBe(expected+orchardRows.poses.home.height);
+    }
+    const {floorWindow,...missingWindow}=orchardRows;
+    expect(floorWindow).toBe(2);
+    for(const invalid of [missingWindow,{...orchardRows,floorWindow:-1},{...orchardRows,floorWindow:Infinity}])expect(()=>parseCarriedQuest(invalid)).toThrow();
     scope.dispose();expect(()=>new CarriedQuestProp(ctx,{...orchardRows,update:()=>0})).toThrow();
   }finally{scope.dispose();shape.dispose();vi.restoreAllMocks();}
 });

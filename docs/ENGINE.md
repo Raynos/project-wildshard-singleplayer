@@ -9668,6 +9668,12 @@ actual `FigureRows` in the entered scope; missing or ambiguous ids refuse.
 The caller still advances the camp figures and goat view. No save field,
 actor identity or RNG call is added.
 
+Carried quest rows declare `floorWindow`, a finite nonnegative deck-height
+window in metres. The projection uses a registry floor only when it is
+strictly above terrain and strictly below terrain plus that window; zero
+disables deck selection. Nalati declares its original two-metre window.
+The existing AS round still owns decisions and ordered quest effects.
+
 `game/quest/chapter.installQuestCatalogue(ctx)` registers `items.catalogue`
 from `combat/items` and `quests.achievements` from `quests/quests` through
 the existing scoped item and achievement registries. Both are optional,

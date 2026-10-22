@@ -36,7 +36,7 @@ export class CarriedQuestProp {
   get carrying():boolean{return (this.state[this.rows.outputs.carrying]??0)!==0;}
   private floorAt(x:number,z:number):number{
     const ground=terrainHeight(x,z),deck=this.world.registry.floorAt(x,z);
-    return deck!==undefined&&deck>ground&&deck<ground+2?deck:ground;
+    return deck!==undefined&&deck>ground&&deck<ground+this.rows.floorWindow?deck:ground;
   }
   private resetPose():void{
     const {home,poses}=this.rows;this.object.position.set(home.x,this.floorAt(home.x,home.z)+poses.home.height,home.z);

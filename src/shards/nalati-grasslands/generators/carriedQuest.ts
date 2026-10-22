@@ -4,7 +4,7 @@ import { parseCarriedQuest } from '@wildshard/format/questSteps';
 
 /** The existing round program chooses poses and existing quest service effects. */
 export const carriedQuestRows=parseCarriedQuest({
-  quest:'tulpar',objectName:'nalati-kokpar-goat',model:[prop],program:kokpar.program,step:.1,home:kokpar.home,goals:kokpar.goals,
+  quest:'tulpar',objectName:'nalati-kokpar-goat',model:[prop],program:kokpar.program,floorWindow:2,step:.1,home:kokpar.home,goals:kokpar.goals,
   state:{carrying:0,left:0,slow:0,cheer:0,warned:0},
   signals:{step:'step',win:'win'},fields:{dt:'dt',playerX:'playerX',playerZ:'playerZ',objectX:'goatX',objectZ:'goatZ',mounted:'mounted',carrier:'horse',fast:'fast',practice:'practice',carrierX:'horseX',carrierZ:'horseZ'},
   outputs:{carrying:'carrying',warning:'warning',pose:'pose',goal:'goal',event:'event'},
