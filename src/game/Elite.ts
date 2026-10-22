@@ -1,3 +1,8 @@
+import type { EliteEnteredPresentation } from '@wildshard/format/eliteFeature';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { HUD } from '@wildshard/engine/ui/HUD';
 import { elitesSave } from './saves';
 import * as THREE from 'three';
 import { resourceScope } from '@wildshard/engine/app/resources';
@@ -88,6 +93,13 @@ export interface EliteHost {
   canSee?: (from: THREE.Vector3, to: THREE.Vector3) => boolean;
 }
 
+/** Concrete entered owners; no author callbacks or service-name resolution. */
+export interface EliteEnteredOwners {
+  readonly scope: Scope; readonly interactables: Interactable[];
+  readonly hud: HUD; readonly audio: Audio; readonly music: Music;
+}
+type PresentationCallbacks = 'addInteractable' | 'removeInteractable' | 'toast' | 'sting' | 'pickupHum';
+type PageEliteHost = Omit<EliteHost, PresentationCallbacks> & Partial<Pick<EliteHost, PresentationCallbacks>>;
 type Entry = EliteCoreEntry<EliteScript>;
 
 const SIGHT_EVERY = 0.2;
@@ -103,6 +115,7 @@ export interface ElitePersistence {
 export class Elites {
   private readonly scope = resourceScope().child('Elites');
   private readonly core: EliteCore<EliteScript>;
+  private entered: { readonly owners: EliteEnteredOwners; readonly rows: EliteEnteredPresentation } | null = null;
   /** the lairs' first-kill orbs while they float */
   private readonly drops = new Map<Entry, WeaponPickup>();
   /** the elite whose bar is up (nearest aware / engaged) */
@@ -110,7 +123,7 @@ export class Elites {
   /** the focus's head in line of sight (re-cast every SIGHT_EVERY s while its bar floats over its head) */
   private seen = true; private sightT = 0;
 
-  constructor(private readonly host: EliteHost, private readonly bar: EliteBar, slug: string, persistence: ElitePersistence = elitesSave) {
+  constructor(private readonly host: PageEliteHost, private readonly bar: EliteBar, slug: string, persistence: ElitePersistence = elitesSave) {
     this.core = new EliteCore<EliteScript>(host, {
       spawned: (e) => { this.drops.delete(e); },
       broken: (e, entering) => {
@@ -119,12 +132,12 @@ export class Elites {
         a.headWorld(_h); _h.y += 0.55 * a.scale;
         this.bar.set(0, 'pinned', _h, this.host.camera, false, true);
       },
-      banner: (e) => { this.bar.banner(e.script.def.name, e.script.def.epithet); this.host.sting?.('banner'); },
-      phase2: (e) => { if (this.focus === e) this.bar.caption(e.script.def.phase2); this.host.sting?.('phase2'); },
+      banner: (e) => { this.bar.banner(e.script.def.name, e.script.def.epithet); this.sting(e, 'banner'); },
+      phase2: (e) => { if (this.focus === e) this.bar.caption(e.script.def.phase2); this.sting(e, 'phase2'); },
       signature: (e) => { if (this.focus === e) this.bar.caption(e.script.def.signature); },
       fell: (e, firstSkin) => {
         const a = e.script.animal;
-        this.host.sting?.('kill');
+        this.sting(e, 'kill');
         if (firstSkin && a && e.script.def.drop.skin !== null) this.dropSkin(e, a.position);
         if (this.focus === e) { this.bar.set(0, 'pinned', null, this.host.camera, false); this.focus = null; this.scope.timeout(1600, () => { if (this.focus === null) this.bar.hide(); }); }
       },
@@ -135,7 +148,26 @@ export class Elites {
   }
 
   get entries(): readonly Entry[] { return this.core.entries; }
-  add(script: EliteScript): void { this.core.add(script); }
+  add(script: EliteScript): void {
+    if (this.entered !== null) throw new Error('Elite presentation identities are already bound');
+    this.core.add(script);
+  }
+  /** Bind after registering every lair and before initialization. The entered scope owns this exact Elites instance. */
+  bindEnteredPresentation(owners: EliteEnteredOwners, rows: EliteEnteredPresentation): void {
+    if (this.entered !== null || owners.scope.disposed || !this.scope.belongsTo(owners.scope)) throw new Error('Invalid entered elite presentation owner');
+    const ids = this.entries.map(entry => entry.script.def.id), keys = Object.keys(rows);
+    if (keys.length !== ids.length || ids.some(id => !Object.hasOwn(rows, id))) throw new Error('Invalid entered elite presentation identities');
+    this.entered = { owners, rows };
+  }
+  private sting(entry: Entry, event: 'banner' | 'phase2' | 'kill'): void {
+    const entered = this.entered;
+    if (entered === null) { this.host.sting?.(event); return; }
+    if (entered.owners.scope.disposed) return;
+    const row = entered.rows[entry.script.def.id];
+    if (row === undefined) throw new Error('Missing entered elite presentation');
+    if (event === 'kill') entered.owners.music.sting(row.sting.kill);
+    else entered.owners.music.combat(row.sting[event]);
+  }
   /** Materialize eligible lair actors before restoring a rebuilt world, without advancing AI, timers or rewards. */
   initialize(): void { this.core.initialize(); }
   entry(id: string): Entry | undefined { return this.core.entry(id); }
@@ -177,18 +209,33 @@ export class Elites {
   private dropSkin(e: Entry, at: THREE.Vector3): void {
     const def = e.script.def, skin = def.drop.skin;
     if (skin === null) return;
-    const drop = new WeaponPickup({ scene: this.host.scene, item: e.script.dropModel(), position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, scale: 1.4 });
+    const entered = this.entered, row = entered?.rows[def.id];
+    if (entered?.owners.scope.disposed === true) return;
+    if (entered === null && (this.host.addInteractable === undefined || this.host.removeInteractable === undefined || this.host.toast === undefined)) throw new Error('Elite pickup requires its entered presentation');
+    const drop = new WeaponPickup({ scene: this.host.scene, item: e.script.dropModel(), position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: row?.prompt ?? `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, scale: 1.4 });
     this.drops.set(e, drop);
-    this.host.addInteractable(drop.interactable);
-    drop.onNear = (inside) => this.host.pickupHum?.(inside);
+    if (entered === null) this.host.addInteractable?.(drop.interactable);
+    else entered.owners.interactables.push(drop.interactable);
+    drop.onNear = (inside) => {
+      if (entered === null) this.host.pickupHum?.(inside);
+      else if (!entered.owners.scope.disposed && row?.hum === true) entered.owners.audio.pickupHum(inside);
+    };
     drop.onPickup = () => {
+      if (entered?.owners.scope.disposed === true) return;
       const s = this.core.record(def.id);
       if (s) s.skinTaken = true;
       this.core.save();
       this.host.ownSkin?.(skin);
-      this.host.removeInteractable(drop.interactable);
-      this.host.pickupHum?.(false);
-      this.host.toast(`${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`);
+      if (entered === null) {
+        this.host.removeInteractable?.(drop.interactable);
+        this.host.pickupHum?.(false);
+        this.host.toast?.(`${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`);
+      } else {
+        const index = entered.owners.interactables.indexOf(drop.interactable);
+        if (index !== -1) entered.owners.interactables.splice(index, 1);
+        if (row?.hum === true) entered.owners.audio.pickupHum(false);
+        if (row !== undefined) entered.owners.hud.toast(row.toast);
+      }
     };
   }
 }

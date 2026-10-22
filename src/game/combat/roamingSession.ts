@@ -62,8 +62,6 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
   const condition = (rule: EliteRule): boolean => rule === 'always' || (rule === 'dusk' ? ctx.dusk() > rows.availability : rule === 'night' ? ctx.night() > rows.availability : false);
   const persistence = bindAdventurePersistence(context, source, await context.product.json(rows.persistence), source.identity.slug);
   const eliteUi = context.scope.run(() => new EliteBar()), elites = context.scope.run(() => new Elites({ scene: game.scene, camera: game.camera, renderer: game.renderer, player, condition,
-    addInteractable: prompt => { runtime.interactables.push(prompt); }, removeInteractable: prompt => { const i = runtime.interactables.indexOf(prompt); if (i !== -1) runtime.interactables.splice(i, 1); },
-    toast: ctx.toast, sting: event => { if (event === 'kill') music.sting('chunk'); else music.combat(event === 'phase2' ? 1 : .8); }, pickupHum: on => { audio.pickupHum(on); },
     ownSkin: id => { if (HeldFinishes.current(source.identity.slug).has(id)) ctx.ownSkin(id); },
     canSee: (from, to) => context.app.physics === null || lineOfSight(context.app.physics, from, to, .6),
   }, eliteUi, source.identity.slug, persistence.elites));
@@ -71,6 +69,7 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
   // The elite fights' spawn scripts take the prepared memories the boss projection's authority would prepare after them.
   await prepareProductDecisionMemories(context);
   const eliteFeature = context.scope.run(() => installEliteFeaturePage(game, animals, player, sky, elites, parked, eliteRows, source.identity.seed, play.hud, rows.session.god));
+  elites.bindEnteredPresentation({ scope: context.scope, interactables: runtime.interactables, hud: play.hud, audio, music }, rows.elitePresentation);
   const fight = await installRoamingBossProjection(context, rows.projection);
   const night = (): boolean => ctx.night() > rows.availability;
   const encounter = context.scope.run(() => installBossEncounter(bossEncounterPresentation(rows.presentation, rows.projection.encounter), () => fight, {

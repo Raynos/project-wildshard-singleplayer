@@ -1,3 +1,4 @@
+import { EliteEnteredPresentationSchema } from '@wildshard/format/eliteFeature';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { SpeciesActorsFileSchema } from '@wildshard/format/speciesBookRows';
 import { wireProgram } from './returnProgramRows';
@@ -98,7 +99,12 @@ const {polearm:_polearm,blade:_blade,programs:_programs,program:_program,...weap
 const sheepBody = bakeSheepBody();
 // Resolve author-only lair definitions into the admitted assembly, never runtime imports.
 const {pageWildlife:_pageWildlife,pageGroups:_pageGroups,groupAdmission:_groupAdmission,...nativeConstants}=headlessAssembly.constants;
-const eliteAssembly = { ...headlessAssembly, constants: { ...nativeConstants, pageElites: { ...eliteRoster, keepers: ecology.keeperElites, external: ecology.externalElites, strikes: [{ amount: 14, strike: strike(strikes.swipe) }, { amount: 35, strike: strike(strikes.pounce) }, { amount: 22, strike: strike(strikes.bite) }, { amount: 30, strike: strike(strikes.stoop) }], fallbackStrike: strike(strikes.captain) }, eliteDefs: ecology.elites, nativePopulation: v.parse(v.object({ population: v.record(v.string(), v.unknown()) }), ridingPrograms).population, nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, roads: headlessBoot.roads } } };
+const eliteAssembly = { ...headlessAssembly, constants: { ...nativeConstants, pageElites: { ...eliteRoster, presentation: v.parse(EliteEnteredPresentationSchema, Object.fromEntries(Object.values(ecology.elites).map(def => [def.id, {
+  prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, toast: `${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`,
+  hum: true, sting: { banner: .8, phase2: 1, kill: 'chunk' },
+}]))), keepers: ecology.keeperElites, external: ecology.externalElites, strikes: [{ amount: 14, strike: strike(strikes.swipe) }, { amount: 35, strike: strike(strikes.pounce) }, { amount: 22, strike: strike(strikes.bite) }, { amount: 30, strike: strike(strikes.stoop) }], fallbackStrike: strike(strikes.captain) }, eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
+  id: def.id, lair: def.lair, awareR: def.awareR, engageR: def.engageR, leashR: def.leashR, rule: def.rule, respawnMin: def.respawnMin,
+}])), nativePopulation: v.parse(v.object({ population: v.record(v.string(), v.unknown()) }), ridingPrograms).population, nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, roads: headlessBoot.roads } } };
 
 /** Author weather once; page and native owners consume the same admitted numeric program. */
 const dressing = { boulder: dressboulder, slab: dressslab, stone: dressstone, juniper: dressjuniper, rose: dressrose, willow: dresswillow, lupin: dresslupin, daisy: dressdaisy, reed: dressreed, logs: dresslogs, stumps: dressstumps, ovoos: dressovoos, poles: dresspoles, fences: dressfences, gates: dressgates, drifts: dressdrifts, colliders: dresscolliders, clutter: dressclutter };

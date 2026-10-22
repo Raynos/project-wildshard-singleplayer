@@ -27,7 +27,8 @@ test('a marsh roster binds its own herd, drop and identities without author call
   const row = parseExternalElite({ ...source, def: { ...source.def, id: 'marsh.stag', name: 'Reed Stag', rule: 'always' as const,
     lair: { x: 30, z: -12, r: 15 } }, spawn: { ...source.spawn, kind: 'reed-stag', variant: 'silver', offset: [2, -4], mares: 3, foals: 0 },
     adopted: { scale: 1.1, kind: 'reed-stag', variant: 'silver', feed: 'The stag joins you' } });
-  const rows: EliteRosterRows = { keepers: [], external: [row], conditions: [{ id: 'always', signal: 'eliteRule', observations: { rule: 0 } }],
+  const rows: EliteRosterRows = { presentation: { [row.def.id]: { prompt: `Take the ${row.def.drop.skinName} ${row.def.drop.weapon} skin`,
+    toast: `${row.def.drop.skinName} ${row.def.drop.weapon} skin — ${row.def.drop.blurb}`, hum: true, sting: { banner: .8, phase2: 1, kill: 'chunk' } } }, keepers: [], external: [row], conditions: [{ id: 'always', signal: 'eliteRule', observations: { rule: 0 } }],
     strikes: [], fallbackStrike: strike(strikes.captain), knockDuration: .5, prewarm: [] };
   const scope = new Scope('marsh.roster'), requests: unknown[][] = [];
   const body = legacyDouble<Animal>({ position: new Vector3(30, 0, -12), mesh: new SkinnedMesh(undefined, new MeshLambertMaterial()), herd: -1, mem: {} });

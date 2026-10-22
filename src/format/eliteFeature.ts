@@ -14,6 +14,13 @@ const definition = v.strictObject({ id, name: text, epithet: text,
   once: v.exactOptional(v.boolean()), signature: text, phase2: text,
   drop: v.strictObject({ skin: v.nullable(id), skinName: text, weapon: id, blurb: text, trophyName: v.exactOptional(text) }),
 });
+/** Entered elite pickup and score presentation; rewards and bodies retain their callers. */
+export const EliteEnteredPresentationSchema = v.record(id, v.strictObject({
+  prompt: text, toast: text, hum: v.boolean(),
+  sting: v.strictObject({ banner: v.pipe(finite, v.minValue(0), v.maxValue(1)), phase2: v.pipe(finite, v.minValue(0), v.maxValue(1)),
+    kill: v.picklist(['pickup', 'death', 'chunk', 'dawn']) }),
+}));
+export type EliteEnteredPresentation = v.InferOutput<typeof EliteEnteredPresentationSchema>;
 const observation = v.strictObject({ field: id, source: v.picklist([
   'engaged', 'leashing', 'phase2', 'clock', 'god', 'dusk', 'night',
 ]) });

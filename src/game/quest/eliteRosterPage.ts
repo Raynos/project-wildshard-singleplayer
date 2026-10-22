@@ -1,3 +1,5 @@
+import type { EliteEnteredPresentation } from '@wildshard/format/eliteFeature';
+import { resourceScope } from '@wildshard/engine/app/resources';
 import type { PatrolEncounterView } from '../boss/encounterView';
 import { EventConditions, type ReturnProgram } from '../population/returnProgram';
 import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
@@ -8,10 +10,6 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
-import type { HUD } from '@wildshard/engine/ui/HUD';
-import type { Audio } from '@wildshard/engine/audio/Audio';
-import type { Music } from '@wildshard/engine/audio/Music';
-import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
@@ -20,13 +18,14 @@ import { Vector3, type Object3D } from 'three';
 import type { PageWildlife } from '../population/wildlife';
 import type { CrowdTargets } from '../shardfile/crowdRuntime';
 import { wildEnv } from '../population/pageGroups';
-import { Elites, type EliteScript } from '../Elite';
+import { Elites, type EliteScript, type EliteEnteredOwners } from '../Elite';
 import { KeeperElitePage, ExternalElitePage, type KeeperEliteRow, type ExternalEliteRow } from './elitePage';
 import type { AdventurePersistence } from './persistence';
 
 /** Client-only named encounter roster. Content supplies rows and prepared drop
  * models; concrete entered authorities retain bodies, rewards and audio. */
 export interface EliteRosterRows {
+  readonly presentation: EliteEnteredPresentation;
   readonly keepers: readonly KeeperEliteRow[]; readonly external: readonly ExternalEliteRow[];
   readonly conditions: ConstructorParameters<typeof EventConditions>[1];
   readonly strikes: readonly { readonly amount: number; readonly strike: StrikeData }[];
@@ -34,11 +33,10 @@ export interface EliteRosterRows {
   readonly prewarm: readonly { readonly kind: string; readonly variant: string }[];
 }
 type Ghosts = Pick<PatrolEncounterView, 'spawnRider' | 'spawnLine' | 'dissolve' | 'killsTonight'>;
-interface EnteredPlay<T extends CrowdTargets> {
+interface EnteredPlay<T extends CrowdTargets> extends Omit<EliteEnteredOwners, 'scope'> {
   readonly persistence: AdventurePersistence; readonly animals: AnimalManager;
   readonly wildlife: PageWildlife<T> | null;
   readonly taming: { readonly phase: string; readonly companion: Animal | null } | null;
-  readonly interactables: Interactable[]; readonly hud: HUD; readonly audio: Audio; readonly music: Music;
 }
 interface RosterContext {
   readonly game: Game; readonly player: Player; readonly ledges: readonly PouncerLedge[];
@@ -64,10 +62,6 @@ export class EliteRosterPage<T extends CrowdTargets = CrowdTargets> {
     conditions.update(0, this.conditionFrame());
     const elites = new Elites({ scene: game.scene, camera: game.camera, renderer: game.renderer, player,
       condition: rule => conditions.holds(rule),
-      addInteractable: it => { play.interactables.push(it); },
-      removeInteractable: it => { const index = play.interactables.indexOf(it); if (index !== -1) play.interactables.splice(index, 1); },
-      toast: text => { play.hud.toast(text); }, pickupHum: on => { play.audio.pickupHum(on); },
-      sting: event => { if (event === 'kill') play.music.sting('chunk'); else play.music.combat(event === 'phase2' ? 1 : .8); },
       ownSkin: skin => { this.skins.add(skin); },
     }, bar, game.level.id, play.persistence.elites); this.elites = elites;
     const model = (id: string): Object3D => { const value = this.models.get(id); if (value === undefined) throw new Error('Missing elite drop model'); return value; };
@@ -76,6 +70,7 @@ export class EliteRosterPage<T extends CrowdTargets = CrowdTargets> {
       ...this.rows.external.map(row => new ExternalElitePage(row, { game, player, animals: play.animals, elites }, this.decisions, model(row.def.id), row.mode === 'script' ? this.charge : undefined)),
     ];
     for (const script of this.scripts) { app.encounters.elite(script.def.id, script, game.levelScope); elites.add(script); const skin = script.def.drop.skin; if (skin !== null && elites.owned(script.def.id)) this.skins.add(skin); }
+    elites.bindEnteredPresentation({ scope: resourceScope(), interactables: play.interactables, hud: play.hud, audio: play.audio, music: play.music }, this.rows.presentation);
     if (this.rows.debug !== undefined) game.levelScope.onDispose(app.debug.scopedExpose(this.rows.debug, { scripts: this.scripts, elites, bar }));
     for (const row of this.rows.prewarm) { try { play.animals.factory.model(row.kind, row.variant); } catch (cause) { console.warn('[elites] prewarm failed', row.kind, cause); } }
   }

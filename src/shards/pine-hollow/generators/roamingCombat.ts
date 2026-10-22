@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { PINE_ELITE_DEFS } from './eliteRoster';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
@@ -10,6 +11,10 @@ import presentation from '../data/bossPresentation.json' with { type: 'json' };
 export const ROAMING_COMBAT = v.parse(RoamingCombatSchema, {
   session: { ...session, id: 'pine.combat', god: false }, projection: ROAMING_PROJECTION, presentation,
   loadout: 'pine.loadout', elites: 'actors/elites.json', persistence: 'quests/persistence.json', score: 'score.pine',
+  elitePresentation: Object.fromEntries(Object.values(PINE_ELITE_DEFS).map(def => [def.id, {
+    prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, toast: `${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`,
+    hum: true, sting: { banner: .8, phase2: 1, kill: 'chunk' },
+  }])),
   availability: .5, dayScene: 'day', nightScene: 'night',
   parked: { name: 'pine-drops-parked', y: -500, finishes: ['ironhide', 'ghost-stag', 'blackpaw', 'imperial', 'warden'] },
   reward: { finish: 'warden', bowScale: .5, bowPitch: -Math.PI / 2, trophy: 'amber-resin', count: 3 },
