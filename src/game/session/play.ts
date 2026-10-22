@@ -86,7 +86,8 @@ import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
-  if (session.memory !== undefined) installMemoryWarning(session.memory, game.levelScope, hud.root);
+  const memoryWarningOwner = session.memory === undefined ? undefined
+    : installMemoryWarning(session.memory, game.levelScope, hud.root, manifest.slug);
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
@@ -509,7 +510,11 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
       name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope, fullMap); // SF66: the full map lays out every cell's baked map + the road
     // playtest round 3: the menu names the shard whose cell you are in (the full map's arrow reads mapAt's home frame too)
-    game.levelScope.onDispose(gridCells.onEnter((cell) => { menu.setLevelName(findShard(cell.slug)?.name ?? cell.slug); }));
+    memoryWarningOwner?.(gridCells.cell?.slug ?? null);
+    game.levelScope.onDispose(gridCells.onEnter((cell) => {
+      menu.setLevelName(findShard(cell.slug)?.name ?? cell.slug); memoryWarningOwner?.(cell.slug);
+    }));
+    game.levelScope.onDispose(gridCells.onLeave(() => { memoryWarningOwner?.(null); }));
     // SF38 / G30: Developer mode's points budget over the one live allocator (no element or timer until Developer is on)
     const slugCount = new Map<string, number>();
     for (const cell of grid.assembly.cells) slugCount.set(cell.slug, (slugCount.get(cell.slug) ?? 0) + 1);

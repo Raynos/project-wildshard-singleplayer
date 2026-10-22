@@ -3624,6 +3624,13 @@ allocator reader and returns an exact detach; it creates no admission claims.
 
 The existing Developer MEMORY budget chip consumes this same scalar ledger when expanded: GPU and RAM storage by owner or asset, sortable rows of at least 1 MB and an explicit smaller-row remainder. Its accounted PLAYING / LOAD lines remain the admission model; the provenance-bearing native WC + labelled GPU ruler is shown separately, or NOT SAMPLED. No additional Developer tool or panel is installed.
 
+The collapsed shard chip shows its playing-memory percentage and MB against
+the same per-shard limit. `game/grid/memoryWarning.installMemoryWarning`
+takes the initial entered shard (null on the road) and returns its owner
+setter for existing cell transitions. Its HUD includes entered estimates
+and all resident violations; retained cold-neighbour reports stay available
+in admission history. This adds no page cap or admission run.
+
 ### Regional texture admission
 
 `@wildshard/engine/level/frame.LevelFrameOptions.textures` accepts the structural `enter()` port of a retained texture policy. The frame enters that same policy for each resident callback and leaves it afterward. Game regional admission resolves `TexturePolicyBinding` once before reserving the runtime: an accepted compressed path uses its primary measured claim, while an image fallback uses `runtime.cost.imagesFirst` when declared. Construction and entered frames reuse the resolved policy; the capability probe and total-memory caps remain unchanged. Measurements keep their source revision and evidence.

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { MemoryAdmission } from '../src/format/product';
 import { memoryWarningChip } from '../src/game/grid/memoryWarning';
 
-test('a retained worst-location report names its shard and stage on another shard', () => {
+test('history retains a worst-location estimate while the HUD filters it by entered shard', () => {
   const memory = new MemoryAdmission(() => true);
   memory.accept({ stage: 'actual', owner: 'pine-hollow', id: 'pine-hollow:worst-location',
     claimedBytes: 900_000_000, accountedBytes: 900_000_000,
@@ -13,6 +13,9 @@ test('a retained worst-location report names its shard and stage on another shar
     playingBytes: 916_000_000, loadingBytes: 1_100_000_000,
     playingCap: 1_200_000_000, loadingCap: 1_800_000_000 });
   expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · pine-hollow ESTIMATE · +140.1 MB');
+  expect(memoryWarningChip(memory.reports(), 'driftwood-isle')).toBeNull();
+  expect(memoryWarningChip(memory.reports(), 'pine-hollow')).toContain('pine-hollow ESTIMATE');
+  expect(memoryWarningChip(memory.reports(), null)).toBeNull();
   // Updating resident totals must not relabel or erase the independent estimate.
   memory.syncResidents(new Set(['runtime:driftwood-isle']), () => ({
     accounted: 500_000_000, playing: 916_000_000, loading: 1_100_000_000,
@@ -30,5 +33,6 @@ test('the chip uses the owner and stage of the largest loading or playing excess
   ] as const) memory.accept({ stage, owner, id: owner, claimedBytes: 1, accountedBytes: 1,
     playingBytes, loadingBytes, playingCap: 1_200_000_000, loadingCap: 1_800_000_000 });
   expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · second RESIDENT · +200.0 MB');
+  expect(memoryWarningChip(memory.reports(), 'another-shard')).toBe('MEMORY LIMIT · second RESIDENT · +200.0 MB');
   memory.dispose();
 });

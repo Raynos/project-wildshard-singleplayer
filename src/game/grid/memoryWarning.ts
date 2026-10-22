@@ -6,10 +6,11 @@ import './memoryWarning.css';
 
 const mb = (bytes: number): string => `${(bytes / 1_000_000).toFixed(3)} MB`;
 /** Name the shard report behind the maximum (G556: every report is one shard's own cost, never the page total). */
-export function memoryWarningChip(reports: readonly MemoryAdmissionWarning[]): string | null {
+export function memoryWarningChip(reports: readonly MemoryAdmissionWarning[], entered?: string | null): string | null {
   let largest: MemoryAdmissionWarning | undefined;
   let over = -1;
   for (const report of reports) {
+    if (entered !== undefined && report.stage !== 'resident' && report.owner !== entered) continue;
     const bytes = Math.max(report.playingOverBytes, report.loadingOverBytes);
     if (bytes > over) { largest = report; over = bytes; }
   }
@@ -31,9 +32,12 @@ export function memoryWarningLines(row: MemoryAdmissionWarning): readonly string
 /**
  * G216 / E332: one scope-owned warning on an entered shard's HUD. The trusted policy also feeds G217's separate blocked
  * cell screen. The warning starts as a tappable chip; only its chip and expanded details receive pointers. Full numeric reports stay available.
+ * Cold estimates show only for the entered shard; resident violations remain visible for every loaded shard.
+ * The returned setter follows existing cell transitions; reports and admission policy stay unchanged.
  * No timer, control movement, authored HTML or additional admission runs; public pages create no panel.
  */
-export function installMemoryWarning(memory: MemoryAdmission, scope: Scope, hudRoot: HTMLElement): void {
+export function installMemoryWarning(memory: MemoryAdmission, scope: Scope, hudRoot: HTMLElement, initialOwner: string | null): (owner: string | null) => void {
+  let entered = initialOwner;
   let surface: { root: HTMLElement; chip: HTMLButtonElement; details: HTMLElement } | undefined;
   const createSurface = (): { root: HTMLElement; chip: HTMLButtonElement; details: HTMLElement } => {
     const root = document.createElement('section'); root.className = 'ws-memory-warning'; root.setAttribute('role', 'status');
@@ -49,8 +53,8 @@ export function installMemoryWarning(memory: MemoryAdmission, scope: Scope, hudR
     return { root, chip, details };
   };
   const refresh = (): void => {
-    if (scope.disposed) return;
-    const reports = memory.reports();
+    if (scope.disposed || scope.disposing) return;
+    const reports = memory.reports().filter(report => report.stage === 'resident' || report.owner === entered);
     if (!isDev() || reports.length === 0) { if (surface !== undefined) surface.root.hidden = true; return; }
     surface ??= createSurface();
     surface.root.hidden = false;
@@ -66,4 +70,5 @@ export function installMemoryWarning(memory: MemoryAdmission, scope: Scope, hudR
     surface.details.replaceChildren(title, ...rows);
   };
   scope.onDispose(memory.subscribe(refresh)); scope.onDispose(onDev(refresh));
+  return owner => { entered = owner; refresh(); };
 }

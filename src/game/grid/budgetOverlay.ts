@@ -1,6 +1,6 @@
 /**
  * The points budget overlay (SHARD-PLATFORM SF38, G30): Developer mode only, grid pages only. One line under the top bar,
- * in plain words ("MEMORY · ALL LOADED 2331 MB · PINE HOLLOW 749% OF BUDGET · 1370 / 1200 MB · 3 SHARDS OK · SHARED 113 MB").
+ * in plain words ("MEMORY · ALL LOADED 2331 MB · PINE HOLLOW 114% OF LIMIT · 1370 / 1200 MB · 3 SHARDS OK · SHARED 113 MB").
  * G556: each shard is scored against its own 1.2 GB playing / 1.8 GB loading limit (red over it) and its §3.2 category
  * budget (amber over it); the page total is information only, with no cap and no tone. A tap expands the raw bytes per category (library, L0 / L1 tiles, sim, road, far, commons, product and the
  * overlap allowance), each shard's tiles and the heaviest tiles. The numbers are `budgetPoints.ts` over the one live
@@ -20,7 +20,7 @@ import './budgetOverlay.css';
 
 /** Developer tooling text (not player-facing; never localized). */
 const TEXT = {
-  title: 'MEMORY', ok: 'SHARDS OK', platform: 'SHARED', crossroads: 'ALL LOADED', budget: 'OF BUDGET', loading: 'LOAD', road: 'ROAD', tiles: 'TILES', worst: 'WORST', measured: 'MEASURED',
+  title: 'MEMORY', ok: 'SHARDS OK', platform: 'SHARED', crossroads: 'ALL LOADED', limit: 'OF LIMIT', loading: 'LOAD', road: 'ROAD', tiles: 'TILES', worst: 'WORST', measured: 'MEASURED',
   category: { library: 'LIBRARY', l0: 'L0 TILES', l1: 'L1 TILES', sim: 'SIM', road: 'ROAD', far: 'FAR', commons: 'COMMONS', product: 'PRODUCT' } satisfies Record<BudgetCategory, string>,
   overlap: 'OVERLAP', base: 'ENGINE BASE', factor: 'RESIDENT ×', accounted: 'ACCOUNTED', playing: 'PLAYING',
   info: 'PAGE TOTAL · INFORMATION ONLY: THE LIMITS ARE PER SHARD',
@@ -161,14 +161,14 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   const paint = (points: BudgetPoints, memory: MemorySnapshot | null): void => {
     if (bar === null || detail === null) return;
     const { crossroads } = points;
-    // plain words (playtest round 2): "ALL LOADED 2331 MB" (G556: information only), each shard as "% OF BUDGET" and its own limit
+    // plain words (playtest round 2): "ALL LOADED 2331 MB" (G556: information only), each shard as "% OF LIMIT" and the same playing envelope
     const head = scored('ws-grid-budget-x', `${TEXT.crossroads} ${Math.round(crossroads.playing / 1e6)} MB`, null);
     data(head, 'playing', crossroads.playing); data(head, 'accounted', crossroads.accounted);
     // collapsed, the line names only the shards over a warning line; green shards and page-wide owners are counted
     const chip = (shard: BudgetShard, shown: boolean): HTMLElement => {
       const { limit } = shard, name = label(shard.owner).toUpperCase();
       const node = scored('ws-grid-budget-chip', shard.points === null || limit === null ? `${name} ${megabytes(shard.total)} MB`
-        : `${name} ${shard.points}% ${TEXT.budget} · ${Math.round(limit.playing / 1e6)} / ${Math.round(limit.playingCap / 1e6)} MB`, shardTone(shard));
+        : `${name} ${limit.playingPoints}% ${TEXT.limit} · ${Math.round(limit.playing / 1e6)} / ${Math.round(limit.playingCap / 1e6)} MB`, shardTone(shard));
       data(node, 'owner', shard.owner); data(node, 'bytes', shard.total); if (limit !== null) data(node, 'limit-playing', limit.playing);
       node.hidden = !shown; return node;
     };
