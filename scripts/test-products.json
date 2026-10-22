@@ -113,8 +113,10 @@
   "test/quest-step-runner.test.ts": [],
   "test/quest-step-traces.test.ts": [],
   "test/quest-step-native-parity.test.ts": [
-    "pine-hollow",
     "driftwood-isle"
+  ],
+  "test/quest-step-pine-native-parity.test.ts": [
+    "pine-hollow"
   ],
   "test/held-equipment-platform.test.ts": [
     "pine-hollow"
