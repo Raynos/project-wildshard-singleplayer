@@ -4,12 +4,9 @@ import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mj
 import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
 import discovery from '../data/discovery.json' with { type: 'json' };
 import { NALATI_MAP, SNOW_LINE, GLACIER } from './layout.ts';
-import { nalatiDayClockRow } from './dayClock.ts';
 import { NALATI_MANIFEST_ROWS } from './manifestRows.ts';
 import { NALATI_BUDGET_INPUTS } from './budgets.ts';
 import { NALATI_HORIZON_V2 } from './horizon.ts';
-import strings from '../data/strings.json' with { type: 'json' };
-import { NALATI_GRASS_LAYOUT } from './grassFieldLayout.ts';
 import runtimeCost from '../data/runtimeCost.json' with { type: 'json' };
 // Boot metadata exists before product admission; author recipes never enter the client bundle.
 import { readdirSync, statSync, readFileSync } from 'node:fs';
@@ -41,10 +38,10 @@ for (const job of catalogue.jobs) for (const path of [...Object.keys(job.buildOu
 }
 // The page's generated PUBLIC_BYTES table has this exact lexical ordering.
 const ordered = Object.fromEntries(Object.keys(bytes).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, bytes[path]]));
-const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
-writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ ...nalatiBootInventory(ordered), dayClock: nalatiDayClockRow(), postChain: postChainRows(), runtimeCost, strings, grassLayout: NALATI_GRASS_LAYOUT, manifest: NALATI_MANIFEST_ROWS, budgets: NALATI_BUDGET_INPUTS, horizon: NALATI_HORIZON_V2, panoramaRidge: PANO_RIDGE_V }));
-const { captureProbes: _captureProbes, extraArt, ...fixed } = discovery;
 const inventory = nalatiBootInventory(ordered);
+const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
+writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ assetFiles: inventory.assetFiles, postChain: postChainRows(), panoramaRidge: PANO_RIDGE_V }));
+const { captureProbes: _captureProbes, extraArt, ...fixed } = discovery;
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generated.ts'), manifestDeclaration(root, 'nalati-grasslands', {
   ...NALATI_MANIFEST_ROWS, ...fixed, budgets: NALATI_BUDGET_INPUTS, runtimeCost,
   horizon: NALATI_HORIZON_V2,

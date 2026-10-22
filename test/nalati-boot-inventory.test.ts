@@ -2,21 +2,23 @@ import { expect, test } from 'vitest';
 import { bootFileList, bootLateReads, bootSourceFiles } from '@wildshard/engine/boot/filePolicy';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import metadata from '../src/shards/nalati-grasslands/bootMetadata.generated.json' with { type: 'json' };
+import { DECLARATION } from '../src/shards/nalati-grasslands/boot/declaration.generated';
 import { nalatiBootInventory } from '../src/shards/nalati-grasslands/generators/bootInventory';
 import { bootSources, lateReads } from '../src/shards/nalati-grasslands/generators/bootFiles';
 
 test('pre-admission Nalati rows retain ordered boot and late reads for every tier and texture mode', () => {
-  const inventory: Pick<typeof metadata, keyof ReturnType<typeof nalatiBootInventory>> = {
-    sources: metadata.sources, files: metadata.files, lateReads: metadata.lateReads,
-    steps: metadata.steps, assetFiles: metadata.assetFiles,
+  const boot = DECLARATION.boot;
+  const inventory = {
+    sources: boot.sources, files: boot.files, lateReads: boot.lateReads,
+    steps: boot.steps, assetFiles: metadata.assetFiles,
   };
   expect(inventory).toEqual(nalatiBootInventory(publicBytes()));
   for (const tier of ['phone', 'desktop'] as const) for (const tex of ['img', 'ktx2'] as const) {
     const expected = bootSources(tier, tex);
-    expect(bootSourceFiles(metadata.sources, tier, tex)).toEqual(expected);
-    expect(bootLateReads(metadata.lateReads, tier, tex)).toEqual(lateReads(tier, tex));
-    expect(bootFileList({ sources: metadata.sources, tier, tex }, tier)).toEqual(Object.values(expected).flat());
-    if (tex === 'img') expect(bootFileList(metadata.files, tier)).toEqual(Object.values(expected).flat());
+    expect(bootSourceFiles(boot.sources, tier, tex)).toEqual(expected);
+    expect(bootLateReads(boot.lateReads, tier, tex)).toEqual(lateReads(tier, tex));
+    expect(bootFileList({ sources: boot.sources, tier, tex }, tier)).toEqual(Object.values(expected).flat());
+    if (tex === 'img') expect(bootFileList(boot.files, tier)).toEqual(Object.values(expected).flat());
   }
 });
 

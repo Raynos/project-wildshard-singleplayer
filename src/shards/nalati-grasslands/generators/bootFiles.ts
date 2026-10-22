@@ -41,7 +41,6 @@ export function bootSources(tier: Tier, tex: TexMode = 'img', inventory: Readonl
     props: worldFiles(tier, inventory).map(gpu), art: [], music: [], sfx: [],
   };
 }
-export function bootFiles(tier: Tier): string[] { return Object.values(bootSources(tier)).flat(); }
 /** Camp people keep their original late-read timing and ordered identities. */
 export function lateReads(tier: Tier, tex: TexMode = 'img', inventory: Readonly<Record<string, number | true>> = publicBytes()): string[] {
   const { gpu } = filePolicy(tier, tex, GPU_FILES, inventory);
