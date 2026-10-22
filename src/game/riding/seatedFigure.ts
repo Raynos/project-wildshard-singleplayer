@@ -1,4 +1,4 @@
-import type { BufferGeometry, Object3D } from 'three';
+import type { BufferGeometry, Material, Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
@@ -11,13 +11,18 @@ const GESTURES = 16, SIGNALS = 8;
 /** A mount the figure sits on: its skeleton (the declared joint) and its speed. */
 interface Mount { readonly mesh: { readonly skeleton: { getBoneByName: (name: string) => Object3D | undefined } }; readonly speed: number }
 
-/** The figure's private scene in its one painterly material, drawn from the rows' inline shapes; `own` takes each decoded
- *  geometry. The live seat and the cold mounted specimen build the same view. */
-export function seatedFigureView(row: MountedSpecimenSeatRows, own: (geometry: BufferGeometry) => void = () => undefined): ReturnType<typeof createClientScene> {
+/** The figure's private scene drawn from the rows' inline shapes, its port material made from the row's lent look (or none:
+ *  the scene's own standard materials); `own` takes each decoded geometry and the made material. The live seat and the
+ *  cold mounted specimen build the same view. Client-only presentation (G603 L10: the riding host's rider on a mount). */
+export function seatedFigureView(row: MountedSpecimenSeatRows, own: (resource: BufferGeometry | Material) => void = () => undefined): ReturnType<typeof createClientScene> {
   const geometry = new Map(row.shapes.map(shape => [shape.key, inlineFixedDraw({ slot: shape.key, channels: [], inline: shape.data, baked: shape.geometry })] as const));
   for (const part of geometry.values()) own(part);
-  const material = painterlyMaterial(null, { rim: row.material.rim, bands: row.material.bands });
-  return createClientScene(row.figure, { geometry, materials: new Map([[row.material.id, material]]) });
+  const materials = new Map<string, Material>();
+  if (row.material !== undefined) {
+    const material = painterlyMaterial(null, { rim: row.material.rim, bands: row.material.bands });
+    own(material); materials.set(row.material.id, material);
+  }
+  return createClientScene(row.figure, { geometry, materials });
 }
 
 /** A figure seated on a mount's declared joint (G530 O1), leaning on its eased clips with the mount's speed and playing
@@ -27,7 +32,8 @@ export class SeatedFigure {
   private readonly frame: ClipCtx;
   private seat: Mount | null = null;
   constructor(private readonly row: MountedSpecimenSeatRows, scope: Scope) {
-    const view = seatedFigureView(row, geometry => { scope.own(geometry); });
+    const view = seatedFigureView(row, resource => { scope.own(resource); });
+    scope.onDispose(() => { view.dispose(); });
     this.root = view.root;
     const mem: Record<string, number> = {};
     for (let i = 0; i < GESTURES; i++) { const gesture = row.gestures[i]; if (gesture === undefined) break; mem[gesture.clock] = -1; }

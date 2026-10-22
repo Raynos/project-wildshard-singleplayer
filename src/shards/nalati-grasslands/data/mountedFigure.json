@@ -51,6 +51,7 @@
     ]
   },
   "material": {
+    "look": "painterly",
     "id": "rider",
     "rim": 0.4,
     "bands": 0.8
