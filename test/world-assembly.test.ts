@@ -117,3 +117,55 @@ test('a site stage never allocates for a retired or retiring construction', asyn
   await expect(g.assembly.next('hut')).rejects.toThrow('owner left'); expect(g.site).not.toHaveBeenCalled();
   g.parent.dispose();
 });
+
+// G571 entry kind: declared world entry rows as one stage, publishing what its applied rows loaded
+const placedNamed = (model: string): Placed => ({ model, object: new Group(), colliders: [], copies: 1, drawnAs: 'single', cull: () => undefined,
+  copyBox: (_i, target) => target, nearest: () => 0, registered: Promise.resolve() });
+const entryStages = { stages: [{ kind: 'entry', id: 'wreck', label: 'Wreck', object: { as: 'group', part: 'wreck.root' }, floor: 'wreck.ship', rows: [
+  { kind: 'place', id: 'wreck.ship' }, { kind: 'place', id: 'wreck.reef.phone', when: { tier: 'phone' } }, { kind: 'place', id: 'wreck.reef.desktop', when: { tier: 'desktop' } },
+  { kind: 'attach', id: 'wreck.root', as: 'group' }] }, { kind: 'entry', id: 'decks', label: 'Decks', rows: [{ kind: 'place', id: 'entry.decks' }] }] };
+function entryFixture(place: (id: string) => Promise<Placed> = id => Promise.resolve(placedNamed(id)), scope = new Scope('construction')) {
+  const root = new Group(), wreckRoot = new Group(), placed: string[] = [];
+  const scenes = legacyDouble<SceneHandles>({ place: (id: string) => { placed.push(id); return place(id); }, group: (id: string) => { if (id !== 'wreck.root') throw new Error(id); return wreckRoot; },
+    floorAt: (id: string, x: number) => id === 'wreck.ship' ? x * 2 : undefined });
+  const assembly = WorldAssembly.admit(entryStages, { scope, scenes, context: legacyDouble<ModelContext>({}), registry: null, entry: { root, tier: 'phone' }, slice: () => Promise.resolve() });
+  return { scope, root, wreckRoot, placed, assembly };
+}
+test('an entry stage runs its tier rows in order and publishes its placements, object and floor', async () => {
+  const f = entryFixture(), entered = f.scope.child('entered');
+  try {
+    await f.assembly.next('wreck'); await f.assembly.next('decks');
+    expect(f.placed).toEqual(['wreck.ship', 'wreck.reef.phone', 'entry.decks']);
+    expect(entryOwner(f.scope, 'placed', 'wreck').map(row => row.model)).toEqual(['wreck.ship', 'wreck.reef.phone']);
+    expect(entryOwner(f.scope, 'object', 'wreck')).toBe(f.wreckRoot); expect(f.wreckRoot.parent).toBe(f.root);
+    expect(entryOwner(f.scope, 'floor', 'wreck')(3, 0)).toBe(6);
+    expect(() => entryOwner(f.scope, 'object', 'decks')).toThrow('Missing live entry owner');
+    WorldAssembly.lend(entryStages, f.scope, entered);
+    expect(entryOwner(entered, 'placed', 'decks')).toBe(entryOwner(f.scope, 'placed', 'decks')); expect(entryOwner(entered, 'floor', 'wreck')(1, 0)).toBe(2);
+  } finally { f.scope.dispose(); }
+});
+test('an entry placement placed twice, or a floor on a tier row, refuses at admission', () => {
+  const ports = { scope: new Scope('refused'), scenes: legacyDouble<SceneHandles>({}), context: legacyDouble<ModelContext>({}), registry: null, slice: () => Promise.resolve() };
+  expect(() => WorldAssembly.admit({ stages: [{ kind: 'place', id: 'entry.decks', label: 'Pier' }, entryStages.stages[1]] }, ports)).toThrow('Repeated world assembly placement');
+  expect(() => WorldAssembly.admit({ stages: [{ ...entryStages.stages[0], floor: 'wreck.reef.phone' }] }, ports)).toThrow('unconditional place row');
+  ports.scope.dispose();
+});
+test('an entry stage whose ancestor starts retiring during a row loads no more rows and publishes nothing', async () => {
+  const parent = new Scope('cell'), scope = parent.child('construction'); parent.onDispose(() => undefined);
+  let settle: (value: Placed) => void = () => undefined;
+  const late = new Promise<Placed>(resolve => { settle = resolve; }), f = entryFixture(() => late, scope);
+  const pending = f.assembly.next('wreck'), steps = parent.disposeSteps(); steps.next();
+  settle(placedNamed('wreck.ship'));
+  await expect(pending).rejects.toThrow('owner left');
+  expect(f.placed).toEqual(['wreck.ship']); expect(f.wreckRoot.parent).toBeNull();
+  for (let step = steps.next(); step.done !== true; step = steps.next()) { /* finish the retirement */ }
+  expect(() => entryOwner(scope, 'placed', 'wreck')).toThrow();
+});
+test('an entry stage with a piece row and no piece authority refuses before its first row', async () => {
+  const scope = new Scope('construction'), place = vi.fn<() => Promise<Placed>>();
+  const rows = { stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'place', id: 'cove.reef' }, { kind: 'piece', id: 'cove', name: 'Cove', file: 'cove.ts', category: 'nature',
+    surface: 'rock', colliders: [], floors: [], floorPolicy: 'first', solidFloor: true, object: null }] }] };
+  const assembly = WorldAssembly.admit(rows, { scope, scenes: legacyDouble<SceneHandles>({ place }), context: legacyDouble<ModelContext>({}), registry: null,
+    entry: { root: new Group(), tier: 'phone' }, slice: () => Promise.resolve() });
+  await expect(assembly.next('cove')).rejects.toThrow('piece registration'); expect(place).not.toHaveBeenCalled(); scope.dispose();
+});

@@ -17,6 +17,8 @@ export interface WorldEntryPorts {
   readonly variant?: string;
   /** registers a `piece` row's piece (the world registry's add, or the level's own piece registration); required by them */
   readonly piece?: (piece: Piece) => void;
+  /** refuses when the build's owner left: run before and after every row, so nothing more allocates once it retires */
+  readonly fence?: () => void;
 }
 
 /**
@@ -38,7 +40,7 @@ export class WorldEntry {
     if (rows === undefined) throw new Error(`Missing world entry block: ${block}`);
     if (this.ran.has(block)) throw new Error(`World entry block ran twice: ${block}`);
     this.ran.add(block);
-    for (const row of rows) if (this.applies(row)) await this.step(row);
+    for (const row of rows) if (this.applies(row)) { this.ports.fence?.(); await this.step(row); this.ports.fence?.(); }
   }
 
   /** The placement a `place` row loaded. */
