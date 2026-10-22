@@ -12,22 +12,12 @@ import { creature, type CreatureParams } from '@wildshard/engine/models/creature
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import type { VariantDef } from '@wildshard/engine/entities/species/registry';
-import { SpecimenModelMetadataSchema } from '@wildshard/format/specimenCatalogue';
+import { SocketRigCreatureSchema } from '@wildshard/format/socketRigCreature';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { SocketRigCard } from '../boss/socketRig';
 import { productHullBook } from '../looks/speciesBook';
 import { HeldEquipment } from '../plugin/heldEquipment';
 import type { ShardContext } from '../plugin/context';
-
-const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite()), rgb = v.tuple([n, n, n]);
-const coat = v.strictObject({ id, label: id, weight: n, rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']), scale: v.tuple([n, n]),
-  hp: v.exactOptional(n), tint: v.exactOptional(v.pipe(v.record(id, rgb), v.maxEntries(32))),
-  traits: v.exactOptional(v.pipe(v.record(id, v.union([n, v.boolean(), id])), v.maxEntries(32))) });
-export const SocketRigCreatureSchema = v.strictObject({
-  model: v.pick(SpecimenModelMetadataSchema, ['id', 'file', 'pipeline', 'surface']),
-  /** the product whose socket rig rows dress the card, and that rows file */
-  product: id, sockets: id,
-  kind: id, coat,
-});
 
 /** One boss creature card (see the module note). */
 export class SocketRigCreature {
@@ -45,11 +35,31 @@ export class SocketRigCreature {
 
 /** The page kit a hull-book product needs before play (see the module note); `cards` preload their socket rows. */
 export async function prepareHullBookKit(ctx: ShardContext, cards: readonly SocketRigCreature[]): Promise<void> {
+  const live = (): void => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Hull book kit owner left'); };
+  live();
   const book = productHullBook(ctx.product), programs = ctx.product.section('actors/species-programs');
   book.registerDerived(); ctx.rows.species(programs.page);
   ctx.rows.speciesLook(book.looks);
   ctx.rows.spawnTable(declaredSpawnTables(programs.spawns));
-  const held = await HeldEquipment.prepare(ctx.product);
-  for (const card of cards) await card.card.preload();
+  const held = await HeldEquipment.prepare(ctx.product); live();
+  for (const card of cards) { await card.card.preload(); live(); }
   held.install(ctx);
+}
+
+const declaredCards = new WeakMap<ShardProduct, readonly SocketRigCreature[]>();
+/** One product's immutable card definitions are shared by kit and Explorer. All references preflight before construction. */
+export function declaredSocketRigCreatures(product: ShardProduct): readonly SocketRigCreature[] {
+  const cached = declaredCards.get(product); if (cached !== undefined) return cached;
+  const { slug: identity } = product;
+  const rows = product.section('explore/catalogue').entries.flatMap(row => row.kind === 'socket-creature' ? [row.rows] : []);
+  if (new Set(rows.map(row => row.model.id)).size !== rows.length) throw new Error('Repeated socket creature card');
+  for (const row of rows) if (row.product !== identity || !product.hasFile(row.sockets)) throw new Error('Socket creature card requires its own admitted product source');
+  const cards = rows.map(row => new SocketRigCreature(row)); declaredCards.set(product, cards); return cards;
+}
+/** The finite hull-book kit has no source path or factory row. Its cards are the admitted Explorer catalogue's cards. */
+export async function prepareDeclaredHullBookKit(ctx: ShardContext): Promise<void> {
+  if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Hull book kit owner left');
+  const cards = declaredSocketRigCreatures(ctx.product);
+  if (cards.length === 0) throw new Error('Hull book kit requires its declared socket cards');
+  await prepareHullBookKit(ctx, cards);
 }

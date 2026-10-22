@@ -71,6 +71,7 @@ export const ClientFeatureSchema = v.variant('kind', [
     title: label, blurb: label, icon: v.pipe(v.string(), v.minLength(1), v.maxLength(4096)), art: label, file: label }),
   v.strictObject({ kind: v.literal('held.claims.prepare'), id }),
   v.strictObject({ kind: v.literal('population.product-creatures') }),
+  v.strictObject({ kind: v.literal('population.hull-book') }),
   v.strictObject({ kind: v.literal('held.claims.install'), claims: id }),
   v.strictObject({ kind: v.literal('held.cosmetics') }),
   v.strictObject({ kind: v.literal('held.ranged-feel') }),

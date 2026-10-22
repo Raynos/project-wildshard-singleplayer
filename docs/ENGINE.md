@@ -11427,3 +11427,36 @@ under the site id. Declared lending borrows that same construction owner.
 Scope retirement and changed draw, reader, root or material identities
 refuse later effects or publication. No additional slice, intake, clock,
 section or per-frame updater is installed by site construction.
+
+### Ambient flock construction
+
+A WorldAssembly ambient-flock stage carries {id, label, rows, draw,
+perches}. AmbientFlockSchema defines rows; draw names a loaded fixed slot,
+a lent look and castShadow, and perches is at most 4096 finite xyz points.
+Construction preflights the original root, loaded handle and lent material
+before copying geometry and cloning that material once. It calls the same
+createAmbientFlock, adds its group to the original scene root, and publishes
+object, ambient-draw and ambient loans from that one draw. Declared lending
+borrows those same construction-owned identities.
+
+The existing stage slice still follows construction and fences retirement.
+Construction installs no updater: the entered world.ambient-life remains
+the sole tick owner. No cold fallback, second intake, cache, file, section,
+authored callback or phase selector is added.
+
+### Declared hull-book kit and socket creature cards
+
+The finite kit feature population.hull-book consumes the existing
+actors/species-programs, look/hull-book, held/equipment and explore/catalogue
+sections. It runs before ordinary kit features and refuses a simultaneous
+product-creatures kit. Socket-creature catalogue entries carry the defining
+format/socketRigCreature rows directly: original card metadata, coat, species
+kind and admitted socket source. No extra product file or section is needed.
+
+Declared socket cards preflight unique model identities and their own product's
+named socket source before constructing a definition. Kit and Explorer share
+those definitions for one admitted product; cold roster preparation preloads
+the existing socket owner. The original HullLookBook species, looks, spawn
+tables and HeldEquipment sequence stays intact, with scope retirement fences
+after each await and before installation. No rig, shader, pose or native save
+contract changes at this entry boundary.

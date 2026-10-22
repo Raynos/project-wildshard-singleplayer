@@ -97,6 +97,9 @@
     {
       "kind": "quest.views",
       "file": "quests/forest-story.json"
+    },
+    {
+      "kind": "population.hull-book"
     }
   ]
 }

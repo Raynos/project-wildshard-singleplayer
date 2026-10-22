@@ -20,6 +20,7 @@ import { scenePartSpecimen } from './scenePartSpecimen';
 import { ProductFigureCatalogue } from './figureCatalogue';
 import { KitFigureCardsSchema } from '@wildshard/format/questFigures';
 import { kitFigureCard } from './kitFigureCard';
+import { declaredSocketRigCreatures } from './socketRigCreature';
 import { PosedDraw } from '../looks/posedInstances';
 import { heldGear } from './heldGear';
 import { HeldEquipment } from '../plugin/heldEquipment';
@@ -96,6 +97,10 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
     } else if (row.kind === 'kit-figure') {
       const book = parse(KitFigureCardsSchema, await product.json<unknown>(row.file));
       entries.push(present(kitFigureCard(product, book, row.figure), row));
+    } else if (row.kind === 'socket-creature') {
+      const card = declaredSocketRigCreatures(product).find(candidate => candidate.model.id === row.rows.model.id);
+      if (card === undefined) throw refusal(product, row, 'Missing admitted socket creature card');
+      entries.push({ ...present(card.model, row), prepare: () => card.card.preload() });
     } else if (row.kind === 'equipment') {
       const scope = resourceScope().child('held-finish-roster'), source = product.section('held/finishes').source;
       if (source === undefined) throw refusal(product, row, 'Held finishes require their declared geometry source');

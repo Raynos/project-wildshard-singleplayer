@@ -1,4 +1,5 @@
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+import { ANTLER_KING_CARD } from './kingCard';
 
 /** Ordered references retain the original native specimen order. */
 export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
@@ -47,7 +48,7 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
       ],
       "spawnOnly": true
     }
-    ,{"kind":"library","library":"native","model":"pine-hollow/antler-king"},
+    ,{kind:'socket-creature',rows:ANTLER_KING_CARD,planned:1},
     {"kind":"posed","file":"look/wildlife-draw.json","source":"product"},
     ...['ranger', 'miller', 'trader'].map(figure => ({ kind: 'figure', file: 'people/catalogue.json', figure, copies: 1 })),
     { kind: 'equipment' }, { kind: 'engine', model: 'swim-hands', copies: 1 }

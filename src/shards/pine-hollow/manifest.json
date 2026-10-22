@@ -773,11 +773,6 @@
       },
       "trimRow": "memoryTrim"
     },
-    "roster": {
-      "module": "./roster",
-      "export": "preparedRoster",
-      "call": true
-    },
     "poses": {
       "module": "./data/boot-poses.generated.json",
       "export": "default"

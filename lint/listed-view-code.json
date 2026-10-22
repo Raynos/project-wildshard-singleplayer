@@ -5,7 +5,6 @@
     "sunscar-dunes": [],
     "pine-hollow": [
       { "path": "src/shards/pine-hollow/world/poolSurface.ts", "reason": "Per-frame wet-bed projection retains the original pool transition and geometry.", "decision": "G520" },
-      { "path": "src/shards/pine-hollow/runtime/models/antlerKing.ts", "reason": "The King's private limb rig and specimen presentation have no second drawing user.", "decision": "G570" },
       { "path": "src/game/quest/chapterDirector.ts", "name": "installChapterLead", "reason": "The remaining lead presentation reads the existing AS channels and presents its view.", "decision": "G570" }
     ],
     "driftwood-isle": [

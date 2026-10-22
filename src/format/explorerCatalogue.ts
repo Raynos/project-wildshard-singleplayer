@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { SocketRigCreatureSchema } from './socketRigCreature';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
@@ -26,6 +27,7 @@ export const ExplorerCatalogueSchema = v.pipe(v.unknown(), v.check(isJsonData, '
     v.strictObject({ ...meta, kind: v.literal('posed'), file: text, source: v.exactOptional(v.literal('product')) }),
     v.strictObject({ ...meta, kind: v.literal('figure'), file: text, figure: text }),
     v.strictObject({ ...meta, kind: v.literal('kit-figure'), file: text, figure: text }),
+    v.strictObject({ ...meta, kind: v.literal('socket-creature'), rows: SocketRigCreatureSchema }),
     v.strictObject({ ...meta, kind: v.literal('equipment') }),
     v.strictObject({ ...meta, kind: v.literal('specimen'), books:v.strictObject({phone:text,desktop:text}), model:text,tierCopies:v.exactOptional(v.strictObject({phone:count,desktop:count})) }),
     v.strictObject({ ...meta, kind: v.literal('engine'), model: v.picklist(['swim-hands', 'training-dummy', 'hoverboard']) }),

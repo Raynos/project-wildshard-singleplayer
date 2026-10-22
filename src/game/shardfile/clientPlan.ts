@@ -166,6 +166,10 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { prepareHeldClaimsEntry } = await import('./heldClaimsEntry');
     await prepareHeldClaimsEntry(ctx, row.id);
   } },
+  'population.hull-book': { phase: 'kit', rank: -25, lifetime: 'entered', sections: ['actors/species-programs', 'explore/catalogue'], install: async ctx => {
+    const { prepareDeclaredHullBookKit } = await import('../models/socketRigCreature');
+    await prepareDeclaredHullBookKit(ctx);
+  } },
   'population.product-creatures': { phase: 'kit', rank: -20, lifetime: 'entered', sections: ['actors/species-programs'], install: async ctx => {
     const { installProductCreatures } = await import('../population/productCreatures');
     const { pageDecisionAuthority } = await import('./borrowedDecisions');
@@ -253,6 +257,18 @@ export interface AdmittedClientPlan { readonly features: readonly ClientFeatureR
 export function admitClientPlan(input: unknown, product: ShardProduct): AdmittedClientPlan {
   try {
     const plan = parseClientPlan(input);
+    if (plan.features.some(row => row.kind === 'population.hull-book')) {
+      if (plan.features.some(row => row.kind === 'population.product-creatures')) throw new Error('Hull book kit cannot duplicate product creatures');
+      // These existing admitted services retain their wire during entry migration.
+      for (const name of ['look/hull-book', 'held/equipment'] as const) {
+        if (!product.has(name)) throw new Error('Hull book kit requires its admitted legacy owners');
+        product.section(name);
+      }
+      const { slug: identity } = product;
+      const cards = product.section('explore/catalogue').entries.flatMap(row => row.kind === 'socket-creature' ? [row.rows] : []);
+      if (cards.length === 0 || new Set(cards.map(card => card.model.id)).size !== cards.length
+        || cards.some(card => card.product !== identity || !product.hasFile(card.sockets))) throw new Error('Hull book kit requires its unique admitted socket cards');
+    }
     const prepare = plan.features.find(row => row.kind === 'held.claims.prepare'), install = plan.features.find(row => row.kind === 'held.claims.install');
     if ((prepare !== undefined || install !== undefined) && (prepare?.kind !== 'held.claims.prepare' || install?.kind !== 'held.claims.install' || prepare.id !== install.claims)) throw new Error('Held claims require one matching preparation and installation');
     if (plan.features.some(row => row.kind === 'population.product-creatures')) {
