@@ -10,7 +10,6 @@ import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import { Projectiles, type ProjectileWorld } from '@wildshard/engine/combat/view/projectile';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { FX, fxMaterial, type FxMaterial } from '@wildshard/engine/fx/groundFx';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
@@ -202,7 +201,7 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> {
 
 /**
  * What a patrol shows: each actor's `looks` (keyed by variant, or `quiet` for a quiet spawn, which also grows by
- * `quietScale`): a self-lit additive patch on its own material (uniforms uGFade, the member's `fade` state, and uGTime) and
+ * `quietScale`): a copy of its lent graph look on the body and on its figure (param `fade`, the member's `fade` state) and
  * on a figure mesh the caller supplies per look, hung on the rig's `bone`; the cues where it forms (`lift` over the ground),
  * where it tears apart while `dying`, behind its gallop (`trail`: `rate` a second, `back` m behind the `seat`), as it looses
  * (`aim` signal, from `lift` over the seat) and where its arrows hit you or the world; and `targets`, spheres in the bone's
@@ -216,7 +215,7 @@ export interface PatrolViewActor extends TargetAnimal { readonly entityId: strin
   readonly mesh: THREE.SkinnedMesh; scale: number; readonly variant: string; readonly yaw: number }
 /** An arrow that struck the player this step: its damage and who loosed it. */
 export interface PatrolHit<A> { readonly damage: number; readonly from: A | null }
-interface Rider<A> { readonly a: A; readonly scope: Scope; readonly fades: THREE.IUniform<number>[]; readonly law:ProjectedState; readonly group:ProjectedState|null; readonly slot:number; readonly steering:Record<string,number>; readonly bone: THREE.Object3D }
+interface Rider<A> { readonly a: A; readonly scope: Scope; readonly fades: { value: number }[]; readonly law:ProjectedState; readonly group:ProjectedState|null; readonly slot:number; readonly steering:Record<string,number>; readonly bone: THREE.Object3D }
 const seat = new THREE.Vector3(), back = new THREE.Vector3(), aimed = new THREE.Vector3(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), crossing = new THREE.Vector3();
 
 /** One native patrol roster; existing AS projections own cycle, group and member decisions. */
@@ -229,7 +228,6 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   readonly arrows: Projectiles;
   private readonly rows: PatrolViewRows;
   private readonly motion: ProjectedState;
-  private readonly time: THREE.IUniform<number> = { value: 0 };
   private readonly hits: PatrolHit<A>[] = [];
   private readonly hit: TargetHit;
   private shooter: A | null = null;
@@ -278,23 +276,19 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   }
   private present(a:A,law:ProjectedState,group:ProjectedState|null,slot:number,quiet:boolean):A {
     const rows=this.rows,key=quiet?rows.quietLook:rows.looks[a.variant]===undefined?Object.keys(rows.looks)[0]??'':a.variant;
-    const patch = rows.looks[key], figure = this.ports.figures[key], bone = a.mesh.skeleton.getBoneByName(rows.figure.bone);
-    if (patch === undefined || figure === undefined || bone === undefined) throw new Error(`Patrol look ${key} needs its style, figure and bone`);
-    const scope = this.ports.game.levelScope.child('patrol-actor'), fades: THREE.IUniform<number>[] = [];
-    const material = (): THREE.MeshLambertMaterial => {
-      const fade: THREE.IUniform<number> = { value: 0 }; fades.push(fade);
-      const made = scope.own(new THREE.MeshLambertMaterial({ color: 0x000000, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-      patchShader(made, 'encounter.look', PATCH_ORDER.decorate, shaderRows => {
-        shaderRows.uniforms['uGFade'] = fade; shaderRows.uniforms['uGTime'] = this.time;
-        shaderRows.fragmentShader = shaderRows.fragmentShader.replace('#include <common>', patch.common).replace('#include <dithering_fragment>', patch.fragment);
-      }, { key: patch.key });
-      made.name = patch.key; return made;
+    const look = rows.looks[key], figure = this.ports.figures[key], bone = a.mesh.skeleton.getBoneByName(rows.figure.bone);
+    if (look === undefined || figure === undefined || bone === undefined) throw new Error(`Patrol look ${key} needs its look, figure and bone`);
+    const scope = this.ports.game.levelScope.child('patrol-actor'), fades: { value: number }[] = [];
+    const material = (): THREE.Material => {
+      const copy = lentLookInstance(look);
+      fades.push(lookParam(copy, 'fade'));
+      copy.material.name = look; return copy.material;
     };
     if (quiet) { a.scale *= rows.quietScale; a.mesh.scale.setScalar(a.scale); pinBrain(a, scope); }
     a.mesh.material = material();
     // a ghost casts no shadow: the roster sets castShadow every frame, so it stays pinned off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });
-    const mesh = new THREE.Mesh(figure, material()); mesh.name = `${patch.key}-figure`; mesh.frustumCulled = false; bone.add(mesh);
+    const mesh = new THREE.Mesh(figure, material()); mesh.name = `${look}-figure`; mesh.frustumCulled = false; bone.add(mesh);
     this.riders.push({a,scope,fades,law,bone,group,slot,steering:{}});
     this.ports.cues.cue(rows.cues.form, seat.set(a.position.x, heightAt(a.position.x, a.position.z) + rows.lift.form, a.position.z), UP);
     return a;
@@ -318,8 +312,8 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   }
   /** Step the patrol and draw it (`frame`: its own fields beside the player's px / py / pz); the arrows that struck the
    *  player since the last call. `freeze` holds every actor where it stands. */
-  update(dt: number, t: number, frame: Readonly<Record<string, number>>, freeze = false): readonly PatrolHit<A>[] {
-    this.hits.length = 0; this.time.value = t;
+  update(dt: number, _t: number, frame: Readonly<Record<string, number>>, freeze = false): readonly PatrolHit<A>[] {
+    this.hits.length = 0;
     const rows = this.rows, cues = this.ports.cues, p = this.ports.player.position;
     const tick={...frame,px:p.x,py:p.y,pz:p.z},step=this.cycle.step(this.roster===null?0:dt,{...tick,living:this.living});
     const effects=new Map<Rider<A>,Readonly<Record<string,number>>>(),patrol=this.input.patrol,actors=patrol.actors;

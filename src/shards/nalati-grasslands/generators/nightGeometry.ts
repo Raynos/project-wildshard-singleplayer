@@ -37,23 +37,6 @@ export function ghostArrowKind(): {geometry: THREE.BufferGeometry;material: THRE
 
 
 
-export function ghostStyles(): Record<'rider' | 'captain' | 'storm', { key: string; common: string; fragment: string }> {
-  const style = (core: string, rim: string, key: string) => ({ key,
-    common: '#include <common>\nuniform float uGFade;\nuniform float uGTime;',
-    fragment: `#include <dithering_fragment>
-        vec3 gN = normalize( normal );
-        vec3 gV = normalize( vViewPosition );
-        float gF = pow( clamp( 1.0 - abs( dot( gN, gV ) ), 0.0, 1.0 ), 2.0 ); // clamped: |N·V| rounds past 1 on iOS mediump → pow(negative) = NaN → bloom's black square (E91)
-        float gS = 0.75 + 0.25 * sin( gl_FragCoord.y * 0.045 + uGTime * 3.1 ) * sin( gl_FragCoord.x * 0.031 - uGTime * 2.3 );
-        vec3 gC = mix( ${core}, ${rim}, gF ) * ( 0.8 + 1.3 * gF ) * gS;
-        gl_FragColor = vec4( gC * uGFade, 1.0 );`,
-  });
-  return {
-    rider: style('vec3(0.08, 0.42, 0.52)', 'vec3(0.45, 1.9, 2.3)', 'nalati-ghost'),
-    captain: style('vec3(0.1, 0.5, 0.42)', 'vec3(0.6, 2.4, 1.9)', 'nalati-ghost-captain'),
-    storm: style('vec3(0.34, 0.38, 0.48)', 'vec3(1.5, 1.8, 2.6)', 'nalati-ghost-storm'),
-  };
-}
 
 /** The night's sprays and cues (game/audio/cueDirector): the balbals' soil, turf, stone, dust and amber (lit by the dusk,
  *  lumpy clumps) and the ghost riders' cyan mist (additive puffs), drawn in their look graphs (data/lookGraphs.json). */

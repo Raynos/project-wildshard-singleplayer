@@ -40861,5 +40861,788 @@
     "discard": "w36"
    }
   }
+ },
+ "nalati-ghost": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 64,
+   "samplers": 1,
+   "instructions": 160
+  },
+  "effectState": {
+   "blend": "additive",
+   "fog": false,
+   "depthWrite": false
+  },
+  "params": {
+   "fade": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 1
+   },
+   "core": {
+    "type": "vec3",
+    "value": [
+     0.08,
+     0.42,
+     0.52
+    ],
+    "min": 0,
+    "max": 8
+   },
+   "rim": {
+    "type": "vec3",
+    "value": [
+     0.45,
+     1.9,
+     2.3
+    ],
+    "min": 0,
+    "max": 8
+   }
+  },
+  "nodes": {
+   "g0": {
+    "op": "normalWorld"
+   },
+   "g1": {
+    "op": "normalize",
+    "in": [
+     "g0"
+    ]
+   },
+   "g2": {
+    "op": "cameraPosition"
+   },
+   "g3": {
+    "op": "positionWorld"
+   },
+   "g4": {
+    "op": "sub",
+    "in": [
+     "g2",
+     "g3"
+    ]
+   },
+   "g5": {
+    "op": "normalize",
+    "in": [
+     "g4"
+    ]
+   },
+   "g6": {
+    "op": "dot",
+    "in": [
+     "g1",
+     "g5"
+    ]
+   },
+   "g7": {
+    "op": "abs",
+    "in": [
+     "g6"
+    ]
+   },
+   "g8": {
+    "op": "oneMinus",
+    "in": [
+     "g7"
+    ]
+   },
+   "g9": {
+    "op": "saturate",
+    "in": [
+     "g8"
+    ]
+   },
+   "g10": {
+    "op": "mul",
+    "in": [
+     "g9",
+     "g9"
+    ]
+   },
+   "g11": {
+    "op": "fragCoord"
+   },
+   "g12": {
+    "op": "swizzle",
+    "in": [
+     "g11"
+    ],
+    "mask": "y"
+   },
+   "g13": {
+    "op": "swizzle",
+    "in": [
+     "g11"
+    ],
+    "mask": "x"
+   },
+   "g14": {
+    "op": "time"
+   },
+   "g15": {
+    "op": "mul",
+    "in": [
+     "g12",
+     0.045
+    ]
+   },
+   "g16": {
+    "op": "mul",
+    "in": [
+     "g14",
+     3.1
+    ]
+   },
+   "g17": {
+    "op": "add",
+    "in": [
+     "g15",
+     "g16"
+    ]
+   },
+   "g18": {
+    "op": "sin",
+    "in": [
+     "g17"
+    ]
+   },
+   "g19": {
+    "op": "mul",
+    "in": [
+     "g13",
+     0.031
+    ]
+   },
+   "g20": {
+    "op": "mul",
+    "in": [
+     "g14",
+     2.3
+    ]
+   },
+   "g21": {
+    "op": "sub",
+    "in": [
+     "g19",
+     "g20"
+    ]
+   },
+   "g22": {
+    "op": "sin",
+    "in": [
+     "g21"
+    ]
+   },
+   "g23": {
+    "op": "mul",
+    "in": [
+     "g18",
+     "g22"
+    ]
+   },
+   "g24": {
+    "op": "mul",
+    "in": [
+     "g23",
+     0.25
+    ]
+   },
+   "g25": {
+    "op": "add",
+    "in": [
+     "g24",
+     0.75
+    ]
+   },
+   "g26": {
+    "op": "param",
+    "param": "core"
+   },
+   "g27": {
+    "op": "param",
+    "param": "rim"
+   },
+   "g28": {
+    "op": "mix",
+    "in": [
+     "g26",
+     "g27",
+     "g10"
+    ]
+   },
+   "g29": {
+    "op": "mul",
+    "in": [
+     "g10",
+     1.3
+    ]
+   },
+   "g30": {
+    "op": "add",
+    "in": [
+     "g29",
+     0.8
+    ]
+   },
+   "g31": {
+    "op": "mul",
+    "in": [
+     "g28",
+     "g30"
+    ]
+   },
+   "g32": {
+    "op": "mul",
+    "in": [
+     "g31",
+     "g25"
+    ]
+   },
+   "g33": {
+    "op": "param",
+    "param": "fade"
+   },
+   "g34": {
+    "op": "mul",
+    "in": [
+     "g32",
+     "g33"
+    ]
+   }
+  },
+  "stages": {
+   "surface": {
+    "colour": "g34",
+    "alpha": 1
+   }
+  }
+ },
+ "nalati-ghost-captain": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 64,
+   "samplers": 1,
+   "instructions": 160
+  },
+  "effectState": {
+   "blend": "additive",
+   "fog": false,
+   "depthWrite": false
+  },
+  "params": {
+   "fade": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 1
+   },
+   "core": {
+    "type": "vec3",
+    "value": [
+     0.1,
+     0.5,
+     0.42
+    ],
+    "min": 0,
+    "max": 8
+   },
+   "rim": {
+    "type": "vec3",
+    "value": [
+     0.6,
+     2.4,
+     1.9
+    ],
+    "min": 0,
+    "max": 8
+   }
+  },
+  "nodes": {
+   "g0": {
+    "op": "normalWorld"
+   },
+   "g1": {
+    "op": "normalize",
+    "in": [
+     "g0"
+    ]
+   },
+   "g2": {
+    "op": "cameraPosition"
+   },
+   "g3": {
+    "op": "positionWorld"
+   },
+   "g4": {
+    "op": "sub",
+    "in": [
+     "g2",
+     "g3"
+    ]
+   },
+   "g5": {
+    "op": "normalize",
+    "in": [
+     "g4"
+    ]
+   },
+   "g6": {
+    "op": "dot",
+    "in": [
+     "g1",
+     "g5"
+    ]
+   },
+   "g7": {
+    "op": "abs",
+    "in": [
+     "g6"
+    ]
+   },
+   "g8": {
+    "op": "oneMinus",
+    "in": [
+     "g7"
+    ]
+   },
+   "g9": {
+    "op": "saturate",
+    "in": [
+     "g8"
+    ]
+   },
+   "g10": {
+    "op": "mul",
+    "in": [
+     "g9",
+     "g9"
+    ]
+   },
+   "g11": {
+    "op": "fragCoord"
+   },
+   "g12": {
+    "op": "swizzle",
+    "in": [
+     "g11"
+    ],
+    "mask": "y"
+   },
+   "g13": {
+    "op": "swizzle",
+    "in": [
+     "g11"
+    ],
+    "mask": "x"
+   },
+   "g14": {
+    "op": "time"
+   },
+   "g15": {
+    "op": "mul",
+    "in": [
+     "g12",
+     0.045
+    ]
+   },
+   "g16": {
+    "op": "mul",
+    "in": [
+     "g14",
+     3.1
+    ]
+   },
+   "g17": {
+    "op": "add",
+    "in": [
+     "g15",
+     "g16"
+    ]
+   },
+   "g18": {
+    "op": "sin",
+    "in": [
+     "g17"
+    ]
+   },
+   "g19": {
+    "op": "mul",
+    "in": [
+     "g13",
+     0.031
+    ]
+   },
+   "g20": {
+    "op": "mul",
+    "in": [
+     "g14",
+     2.3
+    ]
+   },
+   "g21": {
+    "op": "sub",
+    "in": [
+     "g19",
+     "g20"
+    ]
+   },
+   "g22": {
+    "op": "sin",
+    "in": [
+     "g21"
+    ]
+   },
+   "g23": {
+    "op": "mul",
+    "in": [
+     "g18",
+     "g22"
+    ]
+   },
+   "g24": {
+    "op": "mul",
+    "in": [
+     "g23",
+     0.25
+    ]
+   },
+   "g25": {
+    "op": "add",
+    "in": [
+     "g24",
+     0.75
+    ]
+   },
+   "g26": {
+    "op": "param",
+    "param": "core"
+   },
+   "g27": {
+    "op": "param",
+    "param": "rim"
+   },
+   "g28": {
+    "op": "mix",
+    "in": [
+     "g26",
+     "g27",
+     "g10"
+    ]
+   },
+   "g29": {
+    "op": "mul",
+    "in": [
+     "g10",
+     1.3
+    ]
+   },
+   "g30": {
+    "op": "add",
+    "in": [
+     "g29",
+     0.8
+    ]
+   },
+   "g31": {
+    "op": "mul",
+    "in": [
+     "g28",
+     "g30"
+    ]
+   },
+   "g32": {
+    "op": "mul",
+    "in": [
+     "g31",
+     "g25"
+    ]
+   },
+   "g33": {
+    "op": "param",
+    "param": "fade"
+   },
+   "g34": {
+    "op": "mul",
+    "in": [
+     "g32",
+     "g33"
+    ]
+   }
+  },
+  "stages": {
+   "surface": {
+    "colour": "g34",
+    "alpha": 1
+   }
+  }
+ },
+ "nalati-ghost-storm": {
+  "version": 1,
+  "kind": "material",
+  "model": "unlit",
+  "budget": {
+   "nodes": 64,
+   "samplers": 1,
+   "instructions": 160
+  },
+  "effectState": {
+   "blend": "additive",
+   "fog": false,
+   "depthWrite": false
+  },
+  "params": {
+   "fade": {
+    "type": "float",
+    "value": 0,
+    "min": 0,
+    "max": 1
+   },
+   "core": {
+    "type": "vec3",
+    "value": [
+     0.34,
+     0.38,
+     0.48
+    ],
+    "min": 0,
+    "max": 8
+   },
+   "rim": {
+    "type": "vec3",
+    "value": [
+     1.5,
+     1.8,
+     2.6
+    ],
+    "min": 0,
+    "max": 8
+   }
+  },
+  "nodes": {
+   "g0": {
+    "op": "normalWorld"
+   },
+   "g1": {
+    "op": "normalize",
+    "in": [
+     "g0"
+    ]
+   },
+   "g2": {
+    "op": "cameraPosition"
+   },
+   "g3": {
+    "op": "positionWorld"
+   },
+   "g4": {
+    "op": "sub",
+    "in": [
+     "g2",
+     "g3"
+    ]
+   },
+   "g5": {
+    "op": "normalize",
+    "in": [
+     "g4"
+    ]
+   },
+   "g6": {
+    "op": "dot",
+    "in": [
+     "g1",
+     "g5"
+    ]
+   },
+   "g7": {
+    "op": "abs",
+    "in": [
+     "g6"
+    ]
+   },
+   "g8": {
+    "op": "oneMinus",
+    "in": [
+     "g7"
+    ]
+   },
+   "g9": {
+    "op": "saturate",
+    "in": [
+     "g8"
+    ]
+   },
+   "g10": {
+    "op": "mul",
+    "in": [
+     "g9",
+     "g9"
+    ]
+   },
+   "g11": {
+    "op": "fragCoord"
+   },
+   "g12": {
+    "op": "swizzle",
+    "in": [
+     "g11"
+    ],
+    "mask": "y"
+   },
+   "g13": {
+    "op": "swizzle",
+    "in": [
+     "g11"
+    ],
+    "mask": "x"
+   },
+   "g14": {
+    "op": "time"
+   },
+   "g15": {
+    "op": "mul",
+    "in": [
+     "g12",
+     0.045
+    ]
+   },
+   "g16": {
+    "op": "mul",
+    "in": [
+     "g14",
+     3.1
+    ]
+   },
+   "g17": {
+    "op": "add",
+    "in": [
+     "g15",
+     "g16"
+    ]
+   },
+   "g18": {
+    "op": "sin",
+    "in": [
+     "g17"
+    ]
+   },
+   "g19": {
+    "op": "mul",
+    "in": [
+     "g13",
+     0.031
+    ]
+   },
+   "g20": {
+    "op": "mul",
+    "in": [
+     "g14",
+     2.3
+    ]
+   },
+   "g21": {
+    "op": "sub",
+    "in": [
+     "g19",
+     "g20"
+    ]
+   },
+   "g22": {
+    "op": "sin",
+    "in": [
+     "g21"
+    ]
+   },
+   "g23": {
+    "op": "mul",
+    "in": [
+     "g18",
+     "g22"
+    ]
+   },
+   "g24": {
+    "op": "mul",
+    "in": [
+     "g23",
+     0.25
+    ]
+   },
+   "g25": {
+    "op": "add",
+    "in": [
+     "g24",
+     0.75
+    ]
+   },
+   "g26": {
+    "op": "param",
+    "param": "core"
+   },
+   "g27": {
+    "op": "param",
+    "param": "rim"
+   },
+   "g28": {
+    "op": "mix",
+    "in": [
+     "g26",
+     "g27",
+     "g10"
+    ]
+   },
+   "g29": {
+    "op": "mul",
+    "in": [
+     "g10",
+     1.3
+    ]
+   },
+   "g30": {
+    "op": "add",
+    "in": [
+     "g29",
+     0.8
+    ]
+   },
+   "g31": {
+    "op": "mul",
+    "in": [
+     "g28",
+     "g30"
+    ]
+   },
+   "g32": {
+    "op": "mul",
+    "in": [
+     "g31",
+     "g25"
+    ]
+   },
+   "g33": {
+    "op": "param",
+    "param": "fade"
+   },
+   "g34": {
+    "op": "mul",
+    "in": [
+     "g32",
+     "g33"
+    ]
+   }
+  },
+  "stages": {
+   "surface": {
+    "colour": "g34",
+    "alpha": 1
+   }
+  }
  }
 }

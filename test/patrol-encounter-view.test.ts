@@ -1,6 +1,6 @@
 import { EncounterPatrolSchema, PatrolViewSchema, type EncounterPatrolRows } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
-import { Bone, BoxGeometry, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, Vector3, type Vector2 } from 'three';
+import { Bone, BoxGeometry, BufferGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, Vector3, type Vector2 } from 'three';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
@@ -10,6 +10,7 @@ import type { Forest } from '../src/engine/world/forest/Forest';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { overrideTerrain } from './fake/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
+import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
@@ -17,8 +18,7 @@ import night from '../src/shards/nalati-grasslands/data/night.generated.json' wi
 
 // Alternate-data fixture only: lantern wraiths, a warden and declared looks/cues.
 // This grants no second-shard credit to the native patrol adapter.
-const look = (key: string) => ({ key, common: '#include <common>\nuniform float uGFade;\nuniform float uGTime;', fragment: '#include <dithering_fragment>\ngl_FragColor.rgb *= uGFade;' });
-const view = v.parse(PatrolViewSchema, { looks: { scout: look('orchard-scout'), warden: look('orchard-warden'), hush: look('orchard-hush') }, quietLook: 'hush', quietScale: 2,
+const view = v.parse(PatrolViewSchema, { looks: { scout: 'orchard-scout', warden: 'orchard-warden', hush: 'orchard-hush' }, quietLook: 'hush', quietScale: 2,
   figure: { bone: 'saddle' }, seat: [0, 1, 0], states: { fade: 'fade', dying: 'dying', dead: 'dead' },
   cues: { form: 'cue.orchard.form', tear: 'cue.orchard.tear', loose: 'cue.orchard.loose', hurt: 'cue.orchard.hurt', impact: 'cue.orchard.impact' },
   lift: { form: 0.5, loose: 0.2 }, trail: { cue: 'cue.orchard.trail', rate: 0, back: 1 }, aim: 'aim', damage: 7,
@@ -43,6 +43,9 @@ afterEach(() => { restore(); vi.restoreAllMocks(); });
 function orchard(input:EncounterPatrolRows=patrol) {
   restore = overrideTerrain({ heightAt: () => 2 });
   const scope = new Scope('orchard-watch'), scene = new Scene(), game = {} as Game;
+  // the watch's looks lend one copy per rider material (each with its own fade)
+  lendLooks(scope, { materials: new Map(['orchard-scout', 'orchard-warden', 'orchard-hush'].map(id => [id, new MeshBasicMaterial()])), setParam: () => undefined,
+    setTexture: () => undefined, bindMeshMap: () => new MeshBasicMaterial(), instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
   Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: scene }, camera: { value: new PerspectiveCamera(60) },
     renderer: { value: { getDrawingBufferSize: (out: Vector2) => out.set(800, 600) } } });
   const player = { position: new Vector3(0, 2, 30) } as Player, cues = new CueDirector(game, { version: 1, fields: [], rows: ids.map(id => ({ id, vfx: [] })) });
@@ -61,10 +64,7 @@ test('an orchard watch forms its own line in its own looks and figures, and a qu
   const line = watch.spawnLine({ captain: true, at: 0 });
   expect(line.map(a => a.variant)).toEqual(['warden', 'scout']);
   for (const a of line) {
-    const material = a.mesh.material;
-    expect(material).toBeInstanceOf(MeshLambertMaterial);
-    if (!(material instanceof MeshLambertMaterial)) throw new Error('Missing look');
-    expect(material.name).toBe(`orchard-${a.variant}`);
+    expect(a.mesh.material).toHaveProperty('name', `orchard-${a.variant}`);
     const figure = a.mesh.skeleton.getBoneByName('saddle')?.children[0];
     expect(figure).toBeInstanceOf(Mesh); expect(figure?.name).toBe(`orchard-${a.variant}-figure`);
     a.mesh.castShadow = true; expect(a.mesh.castShadow).toBe(false);

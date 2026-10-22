@@ -60,10 +60,9 @@ export const ArenaWhirlsSchema = v.strictObject({
 });
 
 const cue=v.pipe(v.string(),v.regex(/^cue\.[a-zA-Z0-9.-]+$/u)),name=v.pipe(v.string(),v.regex(/^[a-zA-Z][a-zA-Z0-9]*$/u));
-const shader=v.pipe(v.string(),v.maxLength(4096)),vector=v.tuple([finite,finite,finite]);
+const vector=v.tuple([finite,finite,finite]);
 // a lent graph look's catalogue id (format/materialGraph's id pattern)
 const lookId=v.pipe(v.string(),v.regex(/^[a-z][a-z0-9.-]{0,127}$/u));
-const look=v.strictObject({key:v.pipe(v.string(),v.maxLength(64)),common:shader,fragment:shader});
 const poolCount=v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(65536));
 
 export const SlotViewSchema = v.strictObject({
@@ -79,7 +78,8 @@ export const SlotViewSchema = v.strictObject({
     look: lookId }),
 });
 export const PatrolViewSchema = v.strictObject({
-  looks: v.record(name, look), quietLook: name, quietScale: v.pipe(finite, v.minValue(0.1)), figure: v.strictObject({ bone: name }), seat: vector,
+  // each variant's look: a lent graph look (float param `fade`), one copy per rider material
+  looks: v.record(name, lookId), quietLook: name, quietScale: v.pipe(finite, v.minValue(0.1)), figure: v.strictObject({ bone: name }), seat: vector,
   states: v.strictObject({ fade: name, dying: name, dead: name }),
   cues: v.strictObject({ form: cue, tear: cue, loose: cue, hurt: cue, impact: cue }), lift: v.strictObject({ form: finite, loose: finite }),
   trail: v.strictObject({ cue, rate: v.pipe(finite, v.minValue(0)), back: finite }), aim: name, damage: v.pipe(finite, v.minValue(0)),

@@ -2,7 +2,7 @@ import bindings from '../data/nightBindings.json' with { type: 'json' };
 import { weatherDecision } from './weatherDecision.mjs';
 import { BOWL } from './layout.ts';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
-import { ghostArrowKind, ghostStyles, nightCues } from './nightGeometry.ts';
+import { ghostArrowKind, nightCues } from './nightGeometry.ts';
 
 export async function nightProgram() {
   const ridge = Array.from({length:16}, (_,i) => {
@@ -26,7 +26,7 @@ export async function nightProgram() {
     tell:{pool:6,hold:.08,alpha:[.6,.4,1.4],look:"nalati-tell"}};
   // a ghost rider: the fresnel ghost looks (the Titan's storm riders the quiet one, 1.6x), the hooded figure on the body
   // bone, its torso and hood as targets, its mist, and the glowing arrow
-  const ride = {looks:ghostStyles(),quietLook:"storm",quietScale:1.6,figure:{bone:"body"},seat:[0,.36,.28],states:{fade:"fade",dying:"dying",dead:"dead"},
+  const ride = {looks:{rider:"nalati-ghost",captain:"nalati-ghost-captain",storm:"nalati-ghost-storm"},quietLook:"storm",quietScale:1.6,figure:{bone:"body"},seat:[0,.36,.28],states:{fade:"fade",dying:"dying",dead:"dead"},
     cues:{form:"cue.ghost.form",tear:"cue.ghost.tear",loose:"cue.ghost.loose",hurt:"cue.ghost.hurt",impact:"cue.ghost.impact"},lift:{form:1,loose:.7},
     trail:{cue:"cue.ghost.trail",rate:22,back:1.1},aim:"aim",damage:10,
     targets:[{at:[0,.86,.3],radius:.36,head:false},{at:[0,1.26,.42],radius:.2,head:true}],
