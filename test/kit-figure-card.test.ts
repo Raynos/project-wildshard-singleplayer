@@ -6,7 +6,7 @@ import { modelContext, specimenReady } from '../src/engine/models/model';
 import { Rng } from '../src/engine/core/rng';
 import { SkyRig } from '../src/engine/world/skyRig';
 import * as lowPolyKit from '../src/engine/world/lowpolyKit';
-import { kitFigureCard } from '../src/game/models/kitFigureCard';
+import { atlasFigureCard, kitFigureCard } from '../src/game/models/kitFigureCard';
 import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
 import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
@@ -81,4 +81,21 @@ test('ancestor retirement during catalogue read publishes no cold geometry or fi
     expect(root.children[0]?.children).toHaveLength(0);
     for (const step of steps) expect(step.scope.length).toBeGreaterThan(0);
   } finally { reads.mockRestore();warning.mockRestore();owner.dispose(); }
+});
+
+test('an atlas kit card is one card whose variants are its merged figure atlases, built only for a view owner', () => {
+  const atlas = (cell: number) => ({ url: '/assets/orchard/people/picker.glb', name: 'orchard-people', skeleton: 'npc.figures.v1', columns: 1, rows: 1, cell,
+    sources: ['/assets/orchard/people/picker.src.glb'], joints: ['picker-root', 'picker-head', 'picker-arm'], rim: 0.3, bands: 0.8 });
+  const entry = { kind: 'kit-figure', id: 'orchard/people', name: 'Orchard people', file: 'src/shards/orchard/people.ts', copies: 2, drawnAs: 'skinned',
+    atlases: { picker: { label: 'The picker', phone: atlas(256), desktop: atlas(512) }, keeper: { label: 'The keeper', phone: atlas(256), desktop: atlas(512) } } };
+  const [row] = parseExplorerCatalogue({ version: 1, entries: [entry] }).entries;
+  if (row?.kind !== 'kit-figure' || !('atlases' in row)) throw new Error('Expected an atlas kit card');
+  const model = atlasFigureCard(row);
+  expect(model).toMatchObject({ id: 'orchard/people', category: 'people', specimenLifetime: 'view', defaults: { figure: 'picker' } });
+  expect(model.variants?.map(variant => variant.label)).toEqual(['The picker', 'The keeper']);
+  expect(() => model.build(modelContext(SkyRig.prototype), { figure: 'picker' }, new Rng(1))).toThrow('view owner');
+  expect(() => parseExplorerCatalogue({ version: 1, entries: [{ ...entry, atlases: {} }] })).toThrow();
+  expect(() => parseExplorerCatalogue({ version: 1, entries: [{ ...entry, atlases: { picker: { ...entry.atlases.picker, build: 'picker' } } }] })).toThrow();
+  const { id: _id, ...anonymous } = row;
+  expect(() => atlasFigureCard(anonymous)).toThrow('id, name, file');
 });

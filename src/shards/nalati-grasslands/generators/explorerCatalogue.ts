@@ -1,6 +1,15 @@
 import ecology from '../data/ecology.generated.json' with {type:'json'};
 import cover from '../data/cover.generated.json' with {type:'json'};
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+import PEOPLE from '../data/peopleVariants.json' with {type:'json'};
+import { peopleRows } from './peopleRows.mjs';
+
+/** the camp's five, each its own merged atlas (the live camp draws them as one) */
+const campAtlases = Object.fromEntries(PEOPLE.map(person => {
+  const atlas = peopleRows.figures[person.id]?.atlas;
+  if (atlas === undefined) throw new Error(`Missing camp figure atlas ${person.id}`);
+  return [person.id, { label: person.label, ...atlas }];
+}));
 
 /** Ordered references retain the original native specimen order. */
 export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
@@ -123,5 +132,7 @@ export const EXPLORER_CATALOGUE = parseExplorerCatalogue({
     {kind:'library',library:'native',model:'nalati-grasslands/storm-titan'},
     ...(['butterfly','raptor']as const).map(model=>({kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model,drawnAs:'instanced',tierCopies:model==='raptor'?{phone:cover.raptors,desktop:cover.raptors}:cover.butterflies})),
     {kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model:'reins',copies:1},
+    {kind:'kit-figure',id:'nalati-grasslands/camp-people',name:'Camp people',file:'src/shards/nalati-grasslands/models/people.ts',category:'people',
+      pipeline:['hunyuan','code'],surface:'flesh',copies:PEOPLE.length,drawnAs:'skinned',atlases:campAtlases},
   ]
 });

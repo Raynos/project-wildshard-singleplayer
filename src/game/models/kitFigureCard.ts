@@ -1,6 +1,10 @@
 /** Cold kit cards use the existing numeric figure, catalogue and draw formats.
  * The card owns only its template intake, geometry copies and live figure. */
 import * as v from 'valibot';
+import { Group } from 'three';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { ExplorerEntryRow } from '@wildshard/format/explorerCatalogue';
+import { atlasFigureSkin } from '../systems/npc/figureSkins';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { resourceScope } from '@wildshard/engine/app/resources';
@@ -45,4 +49,30 @@ export function kitFigureCard(product: ShardProduct, input: KitFigureCardsRows, 
       return figure.group;
     }, owner);
   } });
+}
+
+type AtlasCardRow = Extract<ExplorerEntryRow, { readonly atlases: unknown }>;
+/** A kit card drawn from merged figure atlases (G601 C5): one card whose variants are its atlases, each a single figure
+ *  at rest, its first joint the root and the rest hung from it, as the atlas declares its joints. */
+export function atlasFigureCard(row: AtlasCardRow): ModelDef<{ readonly figure: string }> {
+  const keys = Object.keys(row.atlases), first = keys[0];
+  if (row.id === undefined || row.name === undefined || row.file === undefined || first === undefined) throw new Error('Atlas figure card requires its id, name, file and an atlas');
+  const id = row.id;
+  return defineModel<{ readonly figure: string }>({ id, name: row.name, file: row.file, category: row.category ?? 'people', pipeline: row.pipeline ?? 'code',
+    ...(row.surface === undefined ? {} : { surface: row.surface }), specimenLifetime: 'view', defaults: { figure: first },
+    variants: keys.map(key => ({ id: key, label: row.atlases[key]?.label ?? key, params: { figure: key } })),
+    build: (ctx, p) => {
+      const owner = ctx.specimenScope, atlas = row.atlases[p.figure];
+      if (owner === undefined) throw new Error('Atlas figure card requires its view owner');
+      if (atlas === undefined) throw new Error(`No figure atlas ${p.figure}`);
+      return loadingSpecimen(id, [1, 1, 1], async () => {
+        const mesh = await atlasFigureSkin(atlas[TIER], ctx.sky, owner), [root, ...rest] = mesh.skeleton.bones, group = new Group();
+        if (root === undefined) throw new Error('Figure atlas has no root joint');
+        for (const bone of mesh.skeleton.bones) { bone.matrixAutoUpdate = true; bone.matrixWorldAutoUpdate = true; }
+        if (rest.length > 0) root.add(...rest);
+        mesh.add(root); group.add(mesh);
+        group.updateMatrixWorld(true); mesh.skeleton.update(); mesh.computeBoundingBox(); mesh.computeBoundingSphere();
+        return group;
+      }, owner);
+    } });
 }

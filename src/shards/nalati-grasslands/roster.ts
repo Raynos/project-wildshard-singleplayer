@@ -7,10 +7,9 @@ import ecology from './data/ecology.generated.json' with { type: 'json' };
  */
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { swimHands } from '@wildshard/engine/models/swimHands';
-import content from './data/questContent.json' with { type: 'json' };
 import { defineRuntimeSpecimens } from '@wildshard/game/models/runtimeSpecimens';
 import runtimeSpecimens from './boot/runtimeSpecimens.json' with { type: 'json' };
-import { campPeople, shepherd } from './models/people';
+import { shepherd } from './models/people';
 import gear from './boot/gear.generated.json' with { type: 'json' };
 import { weaponCatalogue } from './weapons/loadout';
 
@@ -25,8 +24,8 @@ export const ROSTER: readonly RosterEntry[] = [
   live(creatureSpecimens.model('stormTitan'), { copies: 1, drawnAs: 'instanced' }),
   // the dressing's ambient life (src/shards/nalati-grasslands/world/dressing/life.ts, E348): the butterflies over the drifts, the raptors
   // circling the valley — one instanced draw each
-  // people: the camp's five (one skinned mesh) and the mounted shepherd (src/shards/nalati-grasslands/sheepRaid.ts)
-  live(campPeople, { copies: Object.keys(content.people).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
+  // people: the mounted shepherd (src/shards/nalati-grasslands/sheepRaid.ts); the camp's five are a kit card (explorerCatalogue)
+  live(shepherd, { copies: 1, drawnAs: 'skinned' }),
   // the gear its player holds (bow and its arrows · sabre · spear and its javelins, the Golden Bow and the Naizagai once
   // won, the AR-15) and the gloved hands in the river (E348); the reins card is a baked Explorer specimen (models/reins.json)
   ...gear.catalogue.map(row => live(weaponCatalogue.model(row.key), { copies: row.copies, ...(row.drawnAs === 'instanced' ? { drawnAs: 'instanced' as const } : {}) })),
