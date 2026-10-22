@@ -11394,3 +11394,17 @@ its loan kinds from the admitted stages and preflights the complete build
 before lending any owner. Retiring construction scopes cannot allocate or
 publish later stages. No new draw intake, clock or save adapter is created;
 the original entered pose callback remains the pose owner.
+
+### Declared quest views and entry styles
+
+The finite client feature `quest.views` names its admitted quest-view JSON
+file. Play rank -30 preserves the former plugin play call before other play
+features; equipment, quest composition and spawns have already prepared.
+The existing QuestPageViews host owns presentation and teardown. Retiring
+entries refuse before reading and after each awaited admission step.
+
+Declared manifest entry metadata may list at most eight unique own-folder
+CSS paths in `bindings.entry.styles`. Discovery generates literal bundled
+imports and awaits them before its compiled runtime/native entry imports.
+There is no runtime path resolver, arbitrary module binding or style change;
+ordinary manifests without styles keep their original loader.

@@ -93,6 +93,10 @@
       "file": "actors/page-life.json",
       "ranged": "pine.ranged",
       "object": "pineLife"
+    },
+    {
+      "kind": "quest.views",
+      "file": "quests/forest-story.json"
     }
   ]
 }

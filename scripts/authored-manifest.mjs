@@ -120,9 +120,13 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     if (!legacy.startsWith('./runtime/')) throw new Error(`${file}: legacy constructor must belong to runtime/`);
     if (typeof b.entry.retainHomeRuntime !== 'boolean' || !['declared', 'runtime'].includes(b.entry.stagesOwner)) throw new Error(`${file}: invalid entry ownership`);
     const policy = JSON.stringify({ entry, retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
+    const styles = b.entry.styles ?? [];
+    if (!Array.isArray(styles) || styles.length > 8 || new Set(styles).size !== styles.length) throw new Error(`${file}: invalid entry styles`);
+    const styleImports = styles.map(style => { const path = modulePath(style); if (!path.endsWith('.css')) throw new Error(`${file}: entry style must be CSS`); return `import(${JSON.stringify(path)})`; });
+    const prepareStyles = styleImports.length === 0 ? '' : `await Promise.all([${styleImports.join(', ')}]); `;
     // Runtime and native entries share a linked module graph. Finish each namespace
     // before reading its constructor; never snapshot exports from concurrent loads.
-    native.push(`load: async () => { const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default, ${policy}); }`);
+    native.push(`load: async () => { ${prepareStyles}const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default, ${policy}); }`);
   }
   for (const key of ['load', 'ktx2']) if (b[key]) {
     if (key === 'ktx2' && b[key].platform === 'page-mode') {

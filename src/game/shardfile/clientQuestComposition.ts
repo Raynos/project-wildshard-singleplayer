@@ -69,3 +69,12 @@ export async function installEntryQuestComposition(ctx: ShardContext, row: Extra
     publishEntryOwner(ctx.scope, 'sounds', equipment.ids.sounds, equipment.page.ambience.sfx);
   }
 }
+
+/** Entered quest presentation keeps its original host and starts before the other play features. */
+export async function installEntryQuestViews(ctx: ShardContext, row: Extract<ClientFeatureRow, { kind: 'quest.views' }>): Promise<void> {
+  const live = (): void => { if (ended(ctx)) throw new Error('Entry left during quest view admission'); };
+  live();
+  const input = await ctx.product.json(row.file); live();
+  const { QuestPageViews } = await import('../quest/questPageViews'); live();
+  await QuestPageViews.install(ctx, input);
+}

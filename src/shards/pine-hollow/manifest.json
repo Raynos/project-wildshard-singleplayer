@@ -813,7 +813,10 @@
     "entry": {
       "legacy": "./runtime/hybrid",
       "retainHomeRuntime": true,
-      "stagesOwner": "runtime"
+      "stagesOwner": "runtime",
+      "styles": [
+        "./quest/pinehollow.css"
+      ]
     }
   },
   "captureProbes": [

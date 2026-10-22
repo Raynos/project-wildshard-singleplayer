@@ -85,7 +85,7 @@ test('declared entries compile literal runtime links without shard plugin wrappe
     const source = authoredManifestSource(root, slug);
     expect(source).toContain("import('@wildshard/game/shard/declaredEntry')");
     expect(source).toContain('entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default,');
-    expect(source).not.toContain('await Promise.all([import(');
+    expect(source).not.toMatch(/Promise\.all\(\[import\("\.\/runtime\/(?:hybrid|index)"/u);
     expect(source).not.toContain('import("./plugin")');
     const row = parseManifestMetadata(metadata(slug));
     if (row.runtimeEntry === undefined) throw new Error('Missing declared runtime entry');
@@ -107,9 +107,10 @@ test('linked entry modules finish before the next namespace can observe their co
     let initialized = false;
     class Runtime { readonly kind = 'runtime'; }
     class Native { readonly kind = 'native'; }
-    const authored = JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8')) as { runtimeEntry: string; bindings: { entry: { legacy: string } } };
+    const authored = JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8')) as { runtimeEntry: string; bindings: { entry: { legacy: string; styles?: readonly string[] } } };
     const runtimePath = `./${authored.runtimeEntry.slice(0, -3)}`;
     const loadModule = async (specifier: string): Promise<object> => {
+      if (authored.bindings.entry.styles?.includes(specifier)) return {};
       if (specifier === runtimePath) {
         await Promise.resolve(); await Promise.resolve(); initialized = true;
         return { default: Runtime };

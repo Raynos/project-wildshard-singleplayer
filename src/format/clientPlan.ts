@@ -85,6 +85,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('page.life'), file: label, ranged: label, object: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('held.ranged-page'), file: label, shadowBatch: v.exactOptional(v.strictObject({ shard: v.boolean(), grid: v.boolean() })) }),
   v.strictObject({ kind: v.literal('quest.continuation'), file: label }),
+  v.strictObject({ kind: v.literal('quest.views'), file: label }),
   v.strictObject({ kind: v.literal('view.deck-camera-sway'), rows: DeckCameraSwaySchema, module: label }),
   v.strictObject({ kind: v.literal('quest.world'), file: label, ambient: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('quest.reference'), id }),

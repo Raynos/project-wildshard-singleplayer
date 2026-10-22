@@ -208,7 +208,9 @@ const bindings = v.strictObject({
   forestQueries: v.exactOptional(v.union([binding, declared])),
   pondClip: v.exactOptional(v.union([binding, declared])), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
-  entry: v.exactOptional(v.strictObject({ legacy: bindingModule, retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']) })),
+  entry: v.exactOptional(v.strictObject({ legacy: bindingModule, retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']),
+    styles: v.exactOptional(v.pipe(v.array(v.pipe(bindingModule, v.regex(/\.css$/u))), v.maxLength(8),
+      v.check(rows => new Set(rows).size === rows.length, 'Unique entry styles'))) })),
   ground: v.exactOptional(v.union([binding, declared])), render: v.exactOptional(v.union([binding, v.strictObject({ platform: v.picklist(['painted', 'toon']) }),
     // G571: a keyed day / night sky look from rows (game looks/keyedSky `keyedSkyRender`): its channel set, dome / env
     // looks and the page-mode trim row (packed keys and the small environment) of a page policy file
