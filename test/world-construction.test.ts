@@ -11,13 +11,16 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope } from '../src/engine/app/scope';
 import * as boot from '../src/engine/boot/plan';
 import * as model from '../src/engine/models/model';
+import * as plugin from '../src/game/shard/plugin';
+import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import * as gpu from '../src/engine/core/gpuOnly';
 import { WorldConstructionSchema, WorldAssemblySchema } from '../src/format/worldAssembly';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { publishEntryOwner, type EntryOwnerTypes } from '../src/game/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner, type EntryOwnerTypes } from '../src/game/shardfile/entryOwners';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
 import type { BakedTiles } from '../src/game/shardfile/bakedTiles';
 import * as assets from './fixtures/driftwoodLegacyAssets';
@@ -119,4 +122,79 @@ test('checkpoints reject arbitrary callbacks, paths, repeated runs and authored 
     expect(v.safeParse(WorldConstructionSchema,{...data,checkpoints:[{stage:'cover',at:'after',actions:[extra]}]}).success).toBe(false);
   }
   expect(v.parse(WorldAssemblySchema,WORLD_STAGES).construction).toEqual(data);
+});
+
+function sceneConstruction() {
+  return {construction:{root:{id:'nine.root',name:'nine-dragon-stack'},seed:0,
+    progress:{kind:'checkpoints',total:1,start:'paint + fonts',finish:'world ready',budgetMs:30},
+    checkpoints:[{stage:'first',at:'before',actions:[{kind:'progress',done:.15,label:'layout: square'}]},
+      {stage:'first',at:'after',actions:[{kind:'progress',done:.3,label:'signs'},{kind:'build-yield'}]},
+      {stage:'second',at:'before',actions:[{kind:'slice'},{kind:'progress',done:.52,label:'canopy'}]},
+      {stage:'second',at:'after',actions:[{kind:'progress',done:1,label:'world ready'}]}],
+    gpu:{label:'Nine Dragon static geometry (only the positions stay in JS)',roots:[{kind:'object',id:'nine.root'},{kind:'scene-part',as:'group',id:'first.root'}]}},
+    stages:[{kind:'entry',id:'first',label:'First',rows:[{kind:'attach',id:'first.root',as:'group'}]},{kind:'group',id:'second',label:'Second',part:'second.root'}]};
+}
+
+test('scene-catalogue construction needs no island intake and keeps explicit fractional checkpoints without automatic stage ticks',async()=>{
+  const f=fixture(); f.admit.mockRestore();
+  const {library:_library,...ports}=f.ports;
+  const first=new Group(),second=new Group(); first.name='first';second.name='second';
+  ports.scenes.publish('first.root',first);ports.scenes.publish('second.root',second);
+  const data=sceneConstruction();
+  const pause=vi.spyOn(plugin,'worldBuildYield').mockImplementation(({scope})=>{expect(entryOwner(scope,'object','nine.root').name).toBe('nine-dragon-stack');f.events.push(['build-yield']);return Promise.resolve();});
+  const group=ports.scenes.group.bind(ports.scenes),resolve=vi.spyOn(ports.scenes,'group').mockImplementation(id=>{expect(entryOwner(f.scope,'object','nine.root').name).toBe('nine-dragon-stack');return group(id);});
+  try{
+    await WorldAssembly.construct(data,ports);
+    expect(f.events.filter(event=>Array.isArray(event)&&event[0]==='progress')).toEqual([
+      ['progress',0,1,'paint + fonts'],['progress',.15,1,'layout: square'],['progress',.3,1,'signs'],
+      ['progress',.52,1,'canopy'],['progress',1,1,'world ready']]);
+    expect(f.events.filter(event=>Array.isArray(event)&&event[0]==='slice')).toEqual([['slice',undefined,undefined,undefined]]);
+    expect(f.events.some(event=>Array.isArray(event)&&(event[0]==='load'||event[0]==='file'))).toBe(false);
+    const root=entryOwner(f.scope,'object','nine.root');expect(root).toBeInstanceOf(Group);expect(root.name).toBe('nine-dragon-stack');
+    expect(first.parent).toBe(root);expect(pause).toHaveBeenCalledTimes(1);
+    expect(f.release.mock.calls[0]?.[0]).toEqual([root,first]);
+    const entered=f.scope.child('entered');WorldAssembly.lend(data,f.scope,entered);
+    expect(entryOwner(entered,'object','nine.root')).toBe(root);entered.dispose();
+    const next=f.scope.child('next');WorldAssembly.lend(data,f.scope,next);expect(entryOwner(next,'object','nine.root')).toBe(root);
+  }finally{resolve.mockRestore();pause.mockRestore();f.finish();}
+});
+
+test.each(['missing','backward','overshoot'] as const)('explicit %s progress refuses before library load or file reads',async mode=>{
+  const f=fixture(),data=structuredClone(WORLD_STAGES);
+  const construction={...data.construction,progress:{...data.construction.progress,kind:'checkpoints'},checkpoints:[
+    {stage:'decks',at:'before',actions:[{kind:'progress',label:'first',done:.5}]},
+    {stage:'decks',at:'after',actions:[mode==='missing'?{kind:'progress',label:'next'}:{kind:'progress',label:'next',done:mode==='backward'?.25:99}]}]};
+  try{await expect(WorldAssembly.construct({...data,construction},f.ports)).rejects.toThrow('progress checkpoint');expect(f.events).toEqual([]);}finally{f.finish();}
+});
+
+test('constructed root publication cannot collide with a stage object loan',async()=>{
+  const f=fixture(),data=structuredClone(WORLD_STAGES);
+  try{await expect(WorldAssembly.construct({...data,construction:{...data.construction,root:{id:'hut',name:'collision'}}},f.ports)).rejects.toThrow('Repeated world assembly object');expect(f.events).toEqual([]);}finally{f.finish();}
+});
+
+
+test('scene construction emits the strict checkpoint and root grammar',()=>{
+  const input=sceneConstruction(),schema=namedJsonSchema(WorldAssemblySchema);
+  expect(v.parse(WorldAssemblySchema,validateNamedJsonSchema(schema,new TextEncoder().encode(JSON.stringify(input))))).toEqual(input);
+});
+
+test('legacy stage ticks cannot silently gain a build-yield checkpoint',async()=>{
+  const f=fixture(),data=structuredClone(WORLD_STAGES);
+  const construction={...data.construction,checkpoints:[{stage:'decks',at:'before',actions:[{kind:'build-yield'}]}]};
+  try{await expect(WorldAssembly.construct({...data,construction},f.ports)).rejects.toThrow('checkpoint progress');expect(f.events).toEqual([]);}finally{f.finish();}
+});
+
+test('retiring across an explicit build yield stops later stages and GPU release',async()=>{
+  const f=fixture();f.admit.mockRestore();const {library:_library,...ports}=f.ports;
+  ports.scenes.publish('first.root',new Group());ports.scenes.publish('second.root',new Group());
+  let resume=():void=>undefined,started=():void=>undefined;
+  const waiting=new Promise<void>(resolve=>{started=resolve;});
+  const pause=vi.spyOn(plugin,'worldBuildYield').mockImplementation(()=>new Promise<void>(resolve=>{resume=resolve;started();}));
+  try{
+    const pending=WorldAssembly.construct(sceneConstruction(),ports);await waiting;
+    const root=entryOwner(f.scope,'object','nine.root');f.world.game.scene.add(root);
+    f.scope.dispose();resume();await expect(pending).rejects.toThrow('owner left');
+    expect(root.parent).toBeNull();expect(f.release).not.toHaveBeenCalled();
+    expect(()=>entryOwner(f.scope,'object','second')).toThrow();
+  }finally{resume();pause.mockRestore();f.finish();}
 });

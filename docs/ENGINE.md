@@ -11660,6 +11660,18 @@ Construction creates no new library or scene intake, cache, entered update,
 phase, save owner or progress slice. The caller keeps resident caching and
 explicit lending; this API does not select a client runtime declaration.
 
+WorldAssembly construction can omit IslandLibrary and cover cells when its
+stages need neither fixed draws nor streamed cover. An optional root {id,
+name} publishes the new construction Group before the stage walk; its scoped
+object loan is preflighted and lent with the completed stages. No empty book
+or extra intake substitutes for the original scene catalogue.
+
+With progress.kind checkpoints, explicit progress actions provide finite,
+nondecreasing done values within total; slice and build-yield actions retain
+separate native slicer and worldBuildYield boundaries. This mode adds no
+implicit per-stage progress, slice, final mark or final yield. Without that
+mode, existing stage progress is unchanged and build-yield is refused.
+
 
 A manifest with the strict built-in client-plan entry policy derives
 `clientPlanRuntime: true` when defineAuthoredShard admits its rows. It names no

@@ -9,7 +9,8 @@ import type { ShardRuntime } from '../shard/runtime';
 import type { IslandLibrary } from '../models/islandLibrary';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { BakedTiles } from './bakedTiles';
-import type { Vector3 } from 'three';
+import { Group, type Object3D, type Vector3 } from 'three';
+import { worldBuildYield } from '../shard/plugin';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { createStreamedCover } from '../looks/streamedCover';
 import { toonLightingOf } from '../looks/toonLighting';
@@ -67,7 +68,7 @@ export interface WorldConstructionPorts {
   readonly scope: Scope;
   readonly scenes: SceneHandles;
   readonly baked: ReadonlyMap<string, BakedTiles>;
-  readonly library: IslandLibrary<unknown>;
+  readonly library?: IslandLibrary<unknown>;
   readonly sites: ReturnType<typeof defineWorldSceneCatalogue>;
   readonly progress?: StepProgress;
 }
@@ -128,13 +129,18 @@ export class WorldAssembly {
     if (stages.some(stage => stage.kind === 'arena-script')) throw new Error('World arena needs its explicit ordered construction context');
     const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
     if (world === null) throw new Error('World construction needs its native world');
-    const { game, sky, player, registry, physics } = world, root = game.scene, viewer = runtime.viewer, read = product.file;
+    const { game, sky, player, registry, physics } = world, scene = game.scene, viewer = runtime.viewer, read = product.file;
+    let publication: { readonly id: string; readonly root: Object3D } | undefined;
     const live = (): void => {
       if (scope.disposed || scope.disposing || runtime.world !== world || world.game !== game || world.registry !== registry
-        || world.sky !== sky || world.physics !== physics || game.scene !== root || runtime.viewer !== viewer
-        || product.file !== read || library.product !== product) throw new Error('World construction owner left or changed');
+        || world.sky !== sky || world.physics !== physics || game.scene !== scene || runtime.viewer !== viewer
+        || product.file !== read || library !== undefined && library.product !== product) throw new Error('World construction owner left or changed');
+      if (publication !== undefined && entryOwner(scope, 'object', publication.id) !== publication.root) throw new Error('World construction root changed');
     };
     live();
+    const explicit = rows.progress.kind === 'checkpoints';
+    if (library === undefined && stages.some(stage => stage.kind === 'rope-deck' || stage.kind === 'ambient-flock' || stage.kind === 'streamed-cover' || stage.kind === 'site' && stage.life !== undefined)) throw new Error('World construction needs its fixed-draw library');
+    if (rows.cells === undefined && stages.some(stage => stage.kind === 'streamed-cover')) throw new Error('World construction needs its cover cells');
     const checkpoints = new Map<string, WorldConstructionRows['checkpoints'][number]>();
     const floors = new Set<string>();
     for (const stage of stages) {
@@ -149,14 +155,28 @@ export class WorldAssembly {
       if (!stages.some(stage => stage.id === check.stage) || checkpoints.has(key)) throw new Error('Unknown or repeated world checkpoint');
       checkpoints.set(key, check);
     }
-    const [, cells] = await Promise.all([library.load(undefined, game.registrationScope, scope), product.file(rows.cells[TIER])]);
-    live();
-    const draws = library.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
+    let last = 0;
+    for (const stage of stages) for (const at of ['before', 'after'] as const) for (const action of checkpoints.get(`${at}:${stage.id}`)?.actions ?? []) {
+      if (action.kind === 'build-yield' && !explicit) throw new Error('World build yield needs checkpoint progress');
+      if (action.kind === 'progress') {
+        if (explicit && (action.done === undefined || action.done < last || action.done > rows.progress.total) || !explicit && action.done !== undefined) throw new Error('Invalid world progress checkpoint');
+        if (action.done !== undefined) last = action.done;
+      }
+    }
+    const root = rows.root === undefined ? scene : new Group();
+    if (rows.root !== undefined) { root.name = rows.root.name; scope.onDispose(() => { root.removeFromParent(); }); }
+    let cells: Uint8Array | undefined;
+    if (library !== undefined || rows.cells !== undefined) {
+      [, cells] = await Promise.all([library?.load(undefined, game.registrationScope, scope), rows.cells === undefined ? undefined : product.file(rows.cells[TIER])]);
+      live();
+    }
+    const draws = library?.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
     let completed = 0;
     const complete = async (label: string): Promise<void> => { await slice(++completed, total, label); };
     const assembly = WorldAssembly.admit(input, { scope, scenes, sites: ports.sites, context: sharedModelContext(sky, game), registry,
-      slice: complete, product, draws, physics, fixed: game, cover: { cells, viewer, updates: game },
+      slice: explicit ? () => Promise.resolve() : complete, product, ...(draws === undefined ? {} : { draws }), physics, fixed: game, ...(cells === undefined ? {} : { cover: { cells, viewer, updates: game } }),
       entry: { root, tier: game.tier, physics, piece: piece => { registry.add(piece); } } });
+    if (rows.root !== undefined) { publishEntryOwner(scope, 'object', rows.root.id, root); publication = { id: rows.root.id, root }; }
     const checkpoint = async (stage: string, at: 'before' | 'after'): Promise<void> => {
       const check = checkpoints.get(`${at}:${stage}`);
       if (check === undefined) return;
@@ -166,7 +186,8 @@ export class WorldAssembly {
           const y = entryOwner(scope, 'floor', action.floor)(player.position.x, player.position.z);
           if (y !== undefined) player.position.y = y;
         } else if (action.kind === 'slice') await slice();
-        else if (action.kind === 'progress') await complete(action.label);
+        else if (action.kind === 'progress') { if (explicit) ports.progress?.set(action.done ?? 0, total, action.label); else await complete(action.label); }
+        else if (action.kind === 'build-yield') await worldBuildYield({ scope });
         else if (action.kind === 'macrotask') await macrotask();
         else if (action.kind === 'seed') { if (rows.seed !== product.shardfile.identity.seed) throw new Error('Foliage placements require their authored seed'); }
         else if (!baked.has(action.id)) throw new Error(`Missing baked world ${action.id}`);
@@ -179,10 +200,10 @@ export class WorldAssembly {
       await assembly.next(stage.id); live();
       await checkpoint(stage.id, 'after'); live();
     }
-    await slice(total, total, rows.progress.finish); live();
+    if (!explicit) await slice(total, total, rows.progress.finish); live();
     // Resolve the WHOLE ordered root list before releasing even one CPU copy.
     const roots = rows.gpu.roots.map(ref => {
-      if (ref.kind === 'object') return entryOwner(scope, 'object', ref.id);
+      if (ref.kind === 'object') return ref.id === rows.root?.id ? root : entryOwner(scope, 'object', ref.id);
       if (ref.kind === 'placed') {
         const [placed] = entryOwner(scope, 'placed', ref.id);
         if (placed === undefined) throw new Error(`World GPU root placed nothing: ${ref.id}`);
@@ -204,7 +225,9 @@ export class WorldAssembly {
   static lend(input: unknown, construction: Scope, entered: Scope): void {
     const stages = admitted(input);
     if (entered !== construction && !entered.belongsTo(construction)) throw new Error('World assembly needs its construction ancestor');
+    const root = v.parse(WorldAssemblySchema, input).construction?.root;
     const loans = stages.flatMap(stage => loanKinds(stage).map(kind => ({ kind, id: stage.kind === 'streamed-cover' && kind === 'object' ? stage.object : stage.id })));
+    if (root !== undefined) loans.unshift({ kind: 'object', id: root.id });
     // Refuse an incomplete build before publishing even its first entered loan.
     for (const { kind, id } of loans) entryOwner(construction, kind, id);
     if (entered !== construction) for (const { kind, id } of loans) lendEntryOwner(entered, construction, kind, id);
@@ -338,7 +361,7 @@ export class WorldAssembly {
 /** Admit an assembly: unique stage ids, every placement placed once across it (place stages and entry place rows), and
  *  an entry's floor one of its own unconditional place rows. */
 function admitted(input: unknown): readonly WorldAssemblyStage[] {
-  const { stages } = v.parse(WorldAssemblySchema, input);
+  const { stages, construction } = v.parse(WorldAssemblySchema, input);
   if (new Set(stages.map(stage => stage.id)).size !== stages.length) throw new Error('Repeated world assembly owner');
   const placements = stages.flatMap(stage => stage.kind === 'streamed-cover' ? [stage.placement] : stage.kind === 'place' || stage.kind === 'rope-deck' ? [stage.id] : stage.kind === 'entry' ? stage.rows.flatMap(row => row.kind === 'place' ? [row.id] : []) : []);
   if (new Set(placements).size !== placements.length) throw new Error('Repeated world assembly placement');
@@ -346,6 +369,7 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
     throw new Error(`World assembly entry ${stage.id} floor needs its unconditional place row`);
   }
   const objectIds = stages.flatMap(stage => loanKinds(stage).includes('object') ? [stage.kind === 'streamed-cover' ? stage.object : stage.id] : []);
+  if (construction?.root !== undefined) objectIds.push(construction.root.id);
   if (new Set(objectIds).size !== objectIds.length) throw new Error('Repeated world assembly object');
   const decks = new Set<string>(), chained = new Set<string>(), captures = new Set<string>();
   for (const stage of stages) {
