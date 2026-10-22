@@ -5,11 +5,13 @@ import { onGpuRestored } from '@wildshard/engine/core/gpuOnly';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 import { registerOffscreenPreparation } from '@wildshard/engine/render/offscreenPreparation';
 
 
-/** Client-only static shadow and contact capture. Scene bounds, pass programs and quality are authored rows. */
+/** Client-only static shadow and contact capture. Scene bounds and quality are authored rows; the pass programs are the host's. */
 export function staticCaptureUniforms(input: unknown): StaticCaptureUniforms {
   const row = v.parse(StaticCaptureSchema,input);
   const SIZE = row.shadowSize[TIER], HALF = row.half;
@@ -31,23 +33,33 @@ export interface StaticCaptureUniforms {
   readonly uContactXf: { value: THREE.Vector4 };
 }
 
-/** the casters' material for the depth pass: position only (instancing / batching kept), no colour work */
-function depthMaterial(row: StaticCaptureRows): THREE.ShaderMaterial {
-  return new THREE.ShaderMaterial({
-    vertexShader: row.shaders.planeVertex,
-    fragmentShader: 'void main() { gl_FragColor = vec4(1.0); }',
-  });
+/** the casters' material for the depth pass: only its depth is kept (instancing / batching as the casters draw) */
+function depthMaterial(): THREE.Material {
+  const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  material.name = 'static-capture-depth';
+  return material;
 }
 
-/** the casters' material for the contact pass: how far above the ground this fragment stands (m) */
-function contactMaterial(row: StaticCaptureRows, tHeight: THREE.Texture, xf: THREE.Vector4): THREE.ShaderMaterial {
-  return new THREE.ShaderMaterial({
-    // `xf` x, y: the height texture's corner where the level is drawn (its origin − 256), z: 1 / its size, w: the origin's height
-    uniforms: { tHeight: { value: tHeight }, uHXf: { value: xf } },
-    vertexShader: row.shaders.bakeVertex,
-    fragmentShader: row.shaders.bakeFragment,
-  });
-}
+/**
+ * The contact pass as a graph: how far above the ground each caster fragment stands (m, clamped to 0 .. 8), its world
+ * place against the ground's height texture. `xf` x, y: the height texture's corner where the level is drawn (its
+ * origin - 256), z: 1 / its size, w: the origin's height.
+ */
+export const STATIC_CONTACT_GRAPH: GraphIr = {
+  version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
+  params: { height: { type: 'texture', role: 'lent', value: 'height' }, xf: { type: 'vec4', value: [0, 0, 1, 0] } },
+  nodes: {
+    wp: { op: 'positionWorld' }, xz: { op: 'swizzle', in: ['wp'], mask: 'xz' }, xf: { op: 'param', param: 'xf' },
+    corner: { op: 'swizzle', in: ['xf'], mask: 'xy' }, scale: { op: 'swizzle', in: ['xf'], mask: 'z' }, base: { op: 'swizzle', in: ['xf'], mask: 'w' },
+    rel: { op: 'sub', in: ['xz', 'corner'] }, uv: { op: 'mul', in: ['rel', 'scale'] }, sample: { op: 'texture', in: ['uv'], param: 'height' },
+    ground: { op: 'swizzle', in: ['sample'], mask: 'x' }, y: { op: 'swizzle', in: ['wp'], mask: 'y' },
+    above: { op: 'sub', in: ['y', 'base'] }, rise: { op: 'sub', in: ['above', 'ground'] }, height: { op: 'clamp', in: ['rise', 0, 8] },
+    colour: { op: 'combine', in: ['height', 0, 0] },
+  },
+  stages: { surface: { colour: 'colour', alpha: 1 } },
+};
+/** the compiled contact pass: its material and its param writer */
+interface ContactPass { readonly material: THREE.Material; readonly setParam: (name: string, value: readonly number[]) => void }
 
 const _at = new THREE.Vector3();
 
@@ -56,8 +68,8 @@ export class StaticCapture {
   private readonly contactRT: THREE.WebGLRenderTarget;
   private readonly shadowCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 1400);
   private readonly contactCam = new THREE.OrthographicCamera();
-  private readonly depthMat: THREE.ShaderMaterial;
-  private readonly contactMat: THREE.ShaderMaterial;
+  private readonly depthMat: THREE.Material;
+  private readonly contactMat: THREE.Material;
   private readonly contactXf = new THREE.Vector4();
   private readonly lastDir = new THREE.Vector3(0, -1, 0);
   /** where the level's frame is drawn (its scene's world position: zero standalone, the cell's root in a grid cell) */
@@ -67,19 +79,28 @@ export class StaticCapture {
   contact: number;
   private readonly row: StaticCaptureRows;
 
-  constructor(private readonly renderer: Renderer, private readonly scene: THREE.Scene, tHeight: THREE.Texture, scope: Scope, input: unknown, private readonly uniforms: StaticCaptureUniforms) {
-    const row = this.row = v.parse(StaticCaptureSchema,input);
+  /** Admit the rows, load the graph compiler and compile the contact pass over `tHeight`, then make the capture. */
+  static async create(renderer: Renderer, scene: THREE.Scene, tHeight: THREE.Texture, scope: Scope, input: unknown, uniforms: StaticCaptureUniforms): Promise<StaticCapture> {
+    const row = v.parse(StaticCaptureSchema, input), compiler = await loadGraphCompiler(renderer);
+    if (scope.disposed) throw new Error('Static capture scope unloaded during the graph compiler load');
+    const compiled = compiler.compileGraph(STATIC_CONTACT_GRAPH); compiled.setTexture('height', tHeight);
+    return new StaticCapture(renderer, scene, scope, row, uniforms, { material: compiled.material, setParam: (name, value) => { compiled.setParam(name, value); } });
+  }
+  private constructor(private readonly renderer: Renderer, private readonly scene: THREE.Scene, scope: Scope, row: StaticCaptureRows, private readonly uniforms: StaticCaptureUniforms,
+    private readonly contactPass: ContactPass) {
+    this.row = row;
     const SIZE = row.shadowSize[TIER], AO_SIZE = row.contactSize, HALF = row.half, LAYER = row.layer;
-    this.depthMat = depthMaterial(row); this.contact = row.contact;
+    this.depthMat = depthMaterial(); this.contact = row.contact;
     this.contactCam.left = -HALF; this.contactCam.right = HALF; this.contactCam.top = HALF; this.contactCam.bottom = -HALF; this.contactCam.near = 1; this.contactCam.far = 600; this.contactCam.updateProjectionMatrix();
     this.contactXf.set(row.heightOrigin, row.heightOrigin, 1 / row.heightSize, 0);
+    contactPass.setParam('xf', this.contactXf.toArray());
     const depthTexture = new THREE.DepthTexture(SIZE, SIZE, THREE.UnsignedIntType);
     this.shadowRT = new THREE.WebGLRenderTarget(SIZE, SIZE, { depthTexture, depthBuffer: true, type: THREE.UnsignedByteType });
     depthTexture.minFilter = depthTexture.magFilter = THREE.NearestFilter;
     this.contactRT = new THREE.WebGLRenderTarget(AO_SIZE, AO_SIZE, {
       type: THREE.HalfFloatType, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true,
     });
-    this.contactMat = contactMaterial(row, tHeight, this.contactXf);
+    this.contactMat = contactPass.material;
     this.shadowCam.layers.set(LAYER);
     this.contactCam.layers.set(LAYER);
     // straight down over the slab: image right = +x, image up = −z (bakedContact's uv follows)
@@ -184,6 +205,7 @@ export class StaticCapture {
       this.contactCam.lookAt(o);
       this.contactCam.updateMatrixWorld();
       this.contactXf.set(o.x + row.heightOrigin, o.z + row.heightOrigin, 1 / row.heightSize, o.y);
+      this.contactPass.setParam('xf', this.contactXf.toArray());
       this.uniforms.uContactXf.value.set(o.x - HALF, o.z - HALF, 1 / (HALF * 2), this.uniforms.uContactXf.value.w);
       scene.overrideMaterial = this.contactMat;
       renderer.setRenderTarget(this.contactRT);

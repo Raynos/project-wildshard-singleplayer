@@ -17,10 +17,9 @@ export const GrassPresentationSchema = v.object({ height: text, mask: text, fiel
     trail: v.object({ speedLimit: positive, strength: positive }),
     gainFalloff: tuple, saturationFalloff: tuple, tintNight: tuple, tintStorm: tuple }) });
 export type GrassPresentationRows = v.InferOutput<typeof GrassPresentationSchema>;
-/** Static capture programs are trusted authored presentation data. */
-export const StaticCaptureSchema = v.object({ layer: v.pipe(number,v.integer(),v.minValue(0),v.maxValue(31)),
-  shadowSize: v.object({ phone: count, desktop: count }), contactSize: count, half: positive,
+/** A level's static capture: its layer, map sizes, bounds and quality rows (the pass programs are the host's). */
+export const StaticCaptureSchema = v.strictObject({ layer: v.pipe(number,v.integer(),v.minValue(0),v.maxValue(31)),
+  shadowSize: v.strictObject({ phone: count, desktop: count }), contactSize: count, half: positive,
   rekeyDegrees: positive, heightOrigin: number, heightSize: positive, depthBias: positive, contact: number,
-  staticOffCsm: v.object({ phone: v.boolean(), desktop: v.boolean() }),
-  shaders: v.object({ planeVertex: text, bakeVertex: text, bakeFragment: text }) });
+  staticOffCsm: v.strictObject({ phone: v.boolean(), desktop: v.boolean() }) });
 export type StaticCaptureRows = v.InferOutput<typeof StaticCaptureSchema>;

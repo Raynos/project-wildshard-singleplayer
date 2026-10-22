@@ -212,7 +212,7 @@ export class PainterlyWorld {
     const panorama = await PaintedPanorama.build(scene, Math.min(8, renderer.capabilities.getMaxAnisotropy()), scope, ports.panorama.rows, ports.panorama);
     if (panorama === null) return null;
     const key = new PainterKeyLight(ports.key.rows, sky, ports.key.daySaturation, ports.key.saturation);
-    const capture = 'lent' in ports.capture ? ports.capture.lent : new StaticCapture(renderer, scene, ports.grass.heightTexture(), scope, ports.capture.rows, ports.capture.uniforms);
+    const capture = 'lent' in ports.capture ? ports.capture.lent : await StaticCapture.create(renderer, scene, ports.grass.heightTexture(), scope, ports.capture.rows, ports.capture.uniforms);
     for (const name of rows.casters) { const group = ports.groups[name]; if (group !== undefined) capture.add(group); }
     for (const root of ports.casters) capture.add(root);
     if (capture.staticOffCsm) {

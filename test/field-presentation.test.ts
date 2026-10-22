@@ -4,7 +4,9 @@ import { zlibSync } from 'fflate';
 import { parse } from 'valibot';
 import { GrassPresentationSchema, StaticCaptureSchema } from '../src/format/fieldPresentation';
 import { GrassPresentationProfile } from '../src/game/looks/grassPresentation';
-import { staticCaptureUniforms } from '../src/game/looks/staticCapture';
+import { STATIC_CONTACT_GRAPH, staticCaptureUniforms } from '../src/game/looks/staticCapture';
+import { validateGraph } from '../src/format/materialGraph';
+import { compileGraph } from '../src/engine/render/graph/compile';
 import { scatterLayer, captureScatterSource, instanceBoxes } from '../src/engine/render/scatterInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { AmbientWingField } from '../src/game/ambient/wingField';
@@ -31,6 +33,14 @@ it('refuses unbounded field draws and invalid capture bounds before allocating',
   expect(()=>parse(GrassPresentationSchema,{...orchard(),view:{...orchard().view,trail:{speedLimit:0,strength:1}}})).toThrow();
   const row=orchard();row.phone.rings[0]={T:2,G:100};expect(()=>parse(GrassPresentationSchema,row)).toThrow();
   expect(()=>parse(StaticCaptureSchema,{...capture,half:Infinity})).toThrow();
+  // the pass programs are the host's: a row carrying shaders is refused
+  expect(()=>parse(StaticCaptureSchema,{...capture,shaders:{planeVertex:'void main(){}'}})).toThrow();
+});
+it('compiles the host contact pass as a graph with its height texture and frame',()=>{
+  expect(validateGraph(STATIC_CONTACT_GRAPH).ok).toBe(true);
+  const pass=compileGraph(STATIC_CONTACT_GRAPH),height=new THREE.DataTexture(new Float32Array(4),2,2,THREE.RedFormat,THREE.FloatType);
+  try{pass.setTexture('height',height);pass.setParam('xf',[-256,-256,1/512,3]);expect(()=>{pass.setParam('xf',[1,2]);}).toThrow();}
+  finally{pass.material.dispose();height.dispose();}
 });
 it('keeps static capture uniforms independent for differently sized worlds',()=>{
   const small=staticCaptureUniforms({...capture,half:20,contact:.2}),large=staticCaptureUniforms(capture);
