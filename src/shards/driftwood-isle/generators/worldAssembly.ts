@@ -16,7 +16,7 @@ const entry = (id: string, label: string, published: { object?: { as: 'group' | 
 /** G571: the world build's typed stages, in build order (game/shardfile/worldAssembly): the entry pier and its decks, the
  *  moored boat, the shore boulders, the hut and lookout sites, the wreck, the shrine site, the three jetties, then the bushes, trail, seabed, cove, palms and
  *  small rocks; each publishes its loans under its id. */
-export const WORLD_STAGES = { stages: [{ kind: 'place', ...pier }, entry('decks', 'Entry decks'), entry('boat', 'Boat', { floor: 'harbour.boat' }),
+export const WORLD_STAGES = { stages: [{ kind: 'place', ...pier }, entry('decks', 'Entry decks'), entry('boat', 'Boat', { object: { as: 'object', part: 'harbour.boat.root' }, floor: 'harbour.boat' }),
   entry('shore', 'Shore boulders', { object: { as: 'mesh', part: 'rocks.shore' } }),
   { kind: 'site', id: 'hut', label: 'Hut', model: 'hut', choice: 'world' }, { kind: 'site', id: 'lookout', label: 'Lookout', model: 'lookout', choice: 'world' },
   entry('wreck', 'Wreck', { object: { as: 'group', part: 'wreck.root' }, floor: 'wreck.ship' }),

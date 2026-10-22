@@ -176,6 +176,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   gpuOnlyTrees([...assembly.piers.map(row => entryOwner(scope, 'object', row.id)), boat.group, boat.ropes, rocks.placed.object, entryOwner(scope, 'object', 'hut'), entryOwner(scope, 'object', 'lookout'),
     wreck.group, shrine.group, bushes.mesh, gulls.group, trailside.mesh, bridge.placed.object, seabed.mesh, cove.group, palms.mesh, cover.group, island.group, smallRocks], 'driftwood.world', ['position']);
   // the sea is the client plan's `world.water` row (O7): its feature draws and ticks it
+  publishEntryOwner(scope, 'chain', 'bridge.deck', bridgeDeck);
   publishEntryOwner(scope, 'placed', 'bridge', [bridge.placed]);
   publishEntryOwner(scope, 'placed', 'cover', cover.placed);
   return { boat, rocks, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck };
